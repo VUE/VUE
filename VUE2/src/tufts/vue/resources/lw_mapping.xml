@@ -18,6 +18,7 @@
   </class>
   <!--class name="java.awt.geom.RectangularShape">
     <map-to xml="shape"/>
+   
   </class -->
   <class name="tufts.vue.shape.RectangularPoly2D">
     <map-to xml="polygon"/>
@@ -409,6 +410,7 @@
 	</class>
    
          <!--saving DataSourceViewer-->
+<!--
 <class name = "tufts.vue.SaveDataSourceViewer">
 		<map-to xml ="SaveDataSourceViewer"/>
 		
@@ -454,6 +456,6 @@
  
  </class>
 
-
+-->
   
 </mapping>
