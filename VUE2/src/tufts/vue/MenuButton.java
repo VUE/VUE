@@ -142,11 +142,10 @@ public abstract class MenuButton extends JButton implements ActionListener
             
         for (int i = 0; i < values.length; i++) {
             JMenuItem item;
-            if (values[i] instanceof Action) {
+            if (values[i] instanceof Action)
                 item = new JMenuItem((Action)values[i]);
-            } else {
+            else
                 item = new JMenuItem();
-            }
             item.putClientProperty(mValueKey, values[i]);
             Icon icon = makeIcon(values[i]);
             if (icon != null)
@@ -207,10 +206,7 @@ public abstract class MenuButton extends JButton implements ActionListener
                 ((Actions.VueAction)o).fire(this);
             else {
                 Action a = (Action) o;
-                String cmd = (String) a.getValue(Action.ACTION_COMMAND_KEY);
-                if (cmd == null)
-                    cmd = (String) a.getValue(Action.NAME);
-                a.actionPerformed(new ActionEvent(this, 0, cmd));
+                a.actionPerformed(new ActionEvent(this, 0, (String) a.getValue(Action.NAME)));
             }
         } else {
             firePropertyChanged(o, o);

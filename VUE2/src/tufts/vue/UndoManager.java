@@ -16,30 +16,92 @@ import javax.swing.Action;
  * there are unmarked changes.
  *
  * @author Scott Fraize
- * @version February 2004
+ * @version March 2004
  */
 
 public class UndoManager
     implements LWComponent.Listener, VUE.ActiveMapListener
 {
     private static boolean sUndoUnderway = false;
+    private static boolean sRedoUnderway = false;
 
-    /** The list of undo actions (named groups of property changes) */
-    private ArrayList mUndoActions = new ArrayList(); 
-    /** The list of redo actions (named groups of property changes generated from Undo's) */
-    private ArrayList mRedoActions = new ArrayList(); 
+    /* The list of undo actions (named groups of property changes) */
+    private UndoActionList UndoList = new UndoActionList("Undo"); 
+    /* The list of redo actions (named groups of property changes generated from Undo's) */
+    private UndoActionList RedoList = new UndoActionList("Redo"); 
     
-    /** The map who's modifications we're tracking. */
+    /* The map who's modifications we're tracking. */
     private LWMap mMap; 
     
-    /** All recorded changes since last mark, mapped by component (for detecting & ignoring repeats) */
+    /* All recorded changes since last mark, mapped by component (for detecting & ignoring repeats) */
     private Map mComponentChanges = new HashMap();
-    /** All recorded changes since last mark, kept in sequential order */
+    /* All recorded changes since last mark, marked for sequential processing */
     private List mUndoSequence = new ArrayList(); 
-    /** The last LWCEvent we didn't ignore since last mark -- used for guessing at good Undo action title names */
+    /* The last LWCEvent we didn't ignore since last mark -- used for guessing at good Undo action title names */
     private LWCEvent mLastEvent;
-    /** The total number of recorded or compressed changes since last mark (will be >= mUndoSequence.size()) */
+    /* The total number of recorded or compressed changes since last mark (will be >= mUndoSequence.size()) */
     private int mChangeCount;
+
+    private static class UndoActionList extends ArrayList
+    {
+        private String name;
+
+        UndoActionList(String name) {
+            this.name = name;
+        }
+        
+        int current = -1;
+        public boolean add(Object o) {
+            // when adding, flush anything after the top
+            if (current < size() - 1) {
+                int s = current + 1;
+                int e = size();
+                if (DEBUG.UNDO) out("flushing " + s + " to " + e + " in " + this);
+                removeRange(s, e);
+                if (DEBUG.UNDO) out("flushed: " + this);
+            }
+            if (DEBUG.UNDO) out("adding: " + o);
+            super.add(o);
+            current = size() - 1;
+            return true;
+        }
+        UndoAction pop() {
+            if (current < 0)
+                return null;
+            return (UndoAction) get(current--);
+        }
+        UndoAction peek() {
+            if (current < 0)
+                return null;
+            return (UndoAction) get(current);
+        }
+
+        void advance() {
+            current++;
+            if (current >= size())
+                throw new IllegalStateException(this + " top >= size()");
+        }
+
+        public void clear() {
+            super.clear();
+            current = -1;
+        }
+
+        int top() {
+            return current;
+        }
+
+        private void out(String s) {
+            System.out.println("\tUAL[" + name + "] " + s);
+        }
+        
+        public String toString() {
+            return "UndoActionList[" + name + " top=" + top() + " size=" + size() + "]";
+        }
+        
+        public void add(int index, Object element) { throw new UnsupportedOperationException(); }
+        public Object remove(int index) { throw new UnsupportedOperationException(); }
+    }
 
     /**
      * A named sequence of triples: LWComponent, property key, and old value.
@@ -47,9 +109,9 @@ public class UndoManager
      * are peeled back.
      */
     private static class UndoAction {
-        String name;
-        List undoSequence; // list of UndoItem's -- will be sorted by sequence index before first use
-        boolean sorted = false;
+        private String name;
+        private List undoSequence; // list of UndoItem's -- will be sorted by sequence index before first use
+        private boolean sorted = false;
 
         UndoAction(String name, List undoSequence) {
             this.name = name;
@@ -57,6 +119,15 @@ public class UndoManager
         }
         
         void undo() {
+            try {
+                sUndoUnderway = true;
+                run_undo();
+            } finally {
+                sUndoUnderway = false;
+            }
+        }
+
+        private void run_undo() {
             if (DEBUG.UNDO) System.out.println(this + " undoing sequence of size " + changeCount());
 
             if (!sorted) {
@@ -102,7 +173,35 @@ public class UndoManager
         int changeCount() {
             return undoSequence.size();
         }
+
+        String getName() {
+            return name;
+        }
         
+        /**
+         *  massage the name of the property to produce a more human
+         *  presentable name for the undo action.
+         */
+        String getDisplayName() {
+            if (DEBUG.UNDO) return this.name + " {" + changeCount() + "}";
+            
+            String name = "";
+            String uName = this.name;
+            if (uName.startsWith("hier."))
+                uName = uName.substring(5);
+            // Replace all '.' with ' ' and capitalize first letter of each word
+            uName = uName.replace('-', '.');
+            String[] word = uName.split("\\.");
+            for (int i = 0; i < word.length; i++) {
+                if (Character.isLowerCase(word[i].charAt(0)))
+                    word[i] = Character.toUpperCase(word[i].charAt(0)) + word[i].substring(1);
+                if (i > 0)
+                    name += " ";
+                name += word[i];
+            }
+            return name;
+        }
+    
         public String toString() {
             return "UndoAction["
                 + name
@@ -139,6 +238,10 @@ public class UndoManager
         private void undoHierarchyChange(LWContainer parent, Object oldValue)
         {
             if (DEBUG.UNDO) System.out.println("\trestoring children of " + parent + " to " + oldValue);
+            // todo: compute additions/deletions and generate childrenAdded & childrenRemoved events
+            // for things like the outline view which listen for them (or: redo outline code
+            // to just rebuild everything on the HierarchyChanged event)
+            parent.notify(LWKey.HierarchyChanging);
             parent.children = (List) oldValue;
             Iterator ci = parent.children.iterator();
             // now make sure all the children are properly parented,
@@ -185,36 +288,26 @@ public class UndoManager
         mMap = map;
         map.addLWCListener(this);
         VUE.addActiveMapListener(this);
-        setUndoActionLabel(null); // disable undo action at start
+        activeMapChanged(map); // make sure actions disabled at start
     }
 
     public void activeMapChanged(LWMap map)
     {
         if (map == mMap)
-            setUndoActionLabel(peek());
+            updateActionLabels();
     }
 
-    private UndoAction pop()
-    {
-        if (mUndoActions.size() < 1)
-            return null;
-        int index = mUndoActions.size() - 1;
-        UndoAction ua = (UndoAction) mUndoActions.get(index);
-        mUndoActions.remove(index);
-        return ua;
-    }
-
-    private UndoAction peek()
-    {
-        if (mUndoActions.size() > 0)
-            return (UndoAction) mUndoActions.get(mUndoActions.size() - 1);
-        else
-            return null;
+    private void updateActionLabels() {
+        setActionLabel(Actions.Undo, UndoList);
+        setActionLabel(Actions.Redo, RedoList);
     }
 
     void flush() {
-        mUndoActions.clear();
+        UndoList.clear();
+        RedoList.clear();
         mComponentChanges.clear();
+        if (VUE.getActiveMap() == mMap)
+            updateActionLabels();
     }
 
     private boolean checkAndHandleUnmarkedChanges() {
@@ -223,32 +316,37 @@ public class UndoManager
             java.awt.Toolkit.getDefaultToolkit().beep();
             boolean olddb = DEBUG.UNDO;
             DEBUG.UNDO = true;
-            markChangesAsUndo("Unmanaged Actions [last=" + mLastEvent.getWhat() + "]"); // collect whatever's there
+            markChangesAsUndo("Unnamed Actions [last=" + mLastEvent.getWhat() + "]"); // collect whatever's there
             DEBUG.UNDO = olddb;
             return true;
         }
         return false;
     }
 
-    private UndoAction mRedoAction;
-    public void redo()
+    private boolean mRedoCaptured = false; // debug
+    public synchronized void redo()
     {
-        if (true)return;
         checkAndHandleUnmarkedChanges();
-
-        if (DEBUG.UNDO) System.out.println(this + ": REDO");
-
-        sUndoUnderway = true;
         mRedoCaptured = false;
-        mRedoAction.undo();
-        sUndoUnderway = false;
+        UndoAction redoAction = RedoList.pop();
+        if (DEBUG.UNDO) System.out.println(this + " redoing " + redoAction);
+        if (redoAction != null) {
+            try {
+                sRedoUnderway = true;
+                redoAction.undo();
+            } finally {
+                sRedoUnderway = false;
+            }
+            UndoList.advance();
+        }
+        updateActionLabels();
     }
     
-    public void undo()
+    public synchronized void undo()
     {
         checkAndHandleUnmarkedChanges();
         
-        UndoAction undoAction = pop();
+        UndoAction undoAction = UndoList.pop();
         if (DEBUG.UNDO) System.out.println(this + " undoing " + undoAction);
         if (undoAction != null) {
             try {
@@ -259,45 +357,25 @@ public class UndoManager
                 sUndoUnderway = false;
             }
         }
-        //mRedoAction = collectChangesAsUndoAction("Redo " + undoAction.name);
-        //Actions.Redo.putValue(Action.NAME, mRedoAction.name);
-        setUndoActionLabel(peek());
-        
-        // We've undo everything: we can mark the map as having been saved
-        if (peek() == null)
+        RedoList.add(collectChangesAsUndoAction("<redo>" + undoAction.name));
+        updateActionLabels();
+        // We've undo everything: we can mark the map as having no modifications
+        if (UndoList.peek() == null)
             mMap.markAsSaved();
     }
 
-    private void setUndoActionLabel(UndoAction undoAction)
-    {
-        String name = "Undo ";
-
-        if (undoAction != null) {
-            // massage the name of the property to produce a more human
-            // presentable name for the undo action
-            if (DEBUG.UNDO||DEBUG.EVENTS) name += "#" + mUndoActions.size() + " ";
-            String uName = undoAction.name;
-            if (uName.startsWith("hier."))
-                uName = uName.substring(5);
-            // Replace all '.' with ' ' and capitalize first letter of each word
-            uName = uName.replace('-', '.');
-            String[] word = uName.split("\\.");
-            for (int i = 0; i < word.length; i++) {
-                if (Character.isLowerCase(word[i].charAt(0)))
-                    word[i] = Character.toUpperCase(word[i].charAt(0)) + word[i].substring(1);
-                if (i > 0)
-                    name += " ";
-                name += word[i];
-            }
-            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + undoAction.changeCount() + ")";
-            Actions.Undo.setEnabled(true);
-        } else {
-            Actions.Undo.setEnabled(false);
-        }
-        if (DEBUG.UNDO) System.out.println(this + " new UndoAction '" +  name + "'");
-        Actions.Undo.putValue(Action.NAME, name);
+    private void setActionLabel(Action a, UndoActionList undoList) {
+        String label = undoList.name;
+        if (DEBUG.UNDO) label += "#" + undoList.top() + "["+undoList.size()+"]";
+        if (undoList.top() >= 0) {
+            label += " " + undoList.peek().getDisplayName();
+            if (DEBUG.UNDO) System.out.println(this + " now available: '" + label + "'");
+            a.setEnabled(true);
+        } else
+            a.setEnabled(false);
+        a.putValue(Action.NAME, label);
     }
-    
+
     /** figure the name of the undo action from the last LWCEvent we stored
      * an old property value for */
     public void mark() {
@@ -328,9 +406,9 @@ public class UndoManager
                 return;
             name = mLastEvent.getWhat();
         }
-        UndoAction newUndoAction = collectChangesAsUndoAction(name);
-        mUndoActions.add(newUndoAction);
-        setUndoActionLabel(newUndoAction);
+        UndoList.add(collectChangesAsUndoAction(name));
+        RedoList.clear();
+        updateActionLabels();
     }
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
@@ -351,11 +429,11 @@ public class UndoManager
      * a hierarchy event (add/remove/delete/forward/back, etc)
      * we handle it specially.
      */
-
-    private boolean mRedoCaptured = false;
     public void LWCChanged(LWCEvent e) {
+        if (sRedoUnderway) // ignore everything during redo
+            return;
+
         if (sUndoUnderway) {
-if (true)return;
             if (!mRedoCaptured && mUndoSequence.size() > 0) 
                 throw new Error("Undo Error: have changes at start of redo record: " + mUndoSequence.size() + " " + mComponentChanges + " " + e);
             mRedoCaptured = true;
@@ -397,13 +475,17 @@ if (true)return;
         mLastEvent = e;
     }
 
-    private static class IndexedProperty {
+    private static class TaggedPropertyValue {
         int index;
         Object value;
 
-        IndexedProperty(int index, Object value) {
+        TaggedPropertyValue(int index, Object value) {
             this.index = index;
             this.value = value;
+        }
+
+        public String toString() {
+            return value + "~" + index;
         }
     }
     
@@ -413,11 +495,11 @@ if (true)return;
         boolean compressed = false; // already had one of these props: can ignore all subsequent
         
         Map cPropMap = (Map) map.get(component);
-        IndexedProperty existingPropertyValue = null;
+        TaggedPropertyValue existingPropertyValue = null;
         if (cPropMap != null) {
             //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
             //Object value = cPropMap.get(propertyKey);
-            existingPropertyValue = (IndexedProperty) cPropMap.get(propertyKey);
+            existingPropertyValue = (TaggedPropertyValue) cPropMap.get(propertyKey);
             if (existingPropertyValue != null) {
                 if (DEBUG.UNDO) System.out.println(" (compressed)");
                 compressed = true;
@@ -429,22 +511,18 @@ if (true)return;
         
         if (compressed) {
             // If compressed, still make sure the current property change UndoItem is
-            // at the end of the undo sequence.
-            //if (existingPropertyValue.index != mUndoSequence.size() - 1) {
+            // marked as being at the current end of the undo sequence.
             if (mUndoSequence.size() > 1) {
                 UndoItem undoItem = (UndoItem) mUndoSequence.get(existingPropertyValue.index);
                 if (DEBUG.UNDO&&DEBUG.META) System.out.println("Moving index "
                                                                +existingPropertyValue.index+" to end index "+mChangeCount
                                                                + " " + undoItem);
                 undoItem.index = mChangeCount++;
-                //existingPropertyValue.index = mChangeCount++;
-                //existingPropertyValue.index = mUndoSequence.size();
-                //mUndoSequence.add(undoItem);
             }
         } else {
             if (oldValue == HIERARCHY_CHANGE)
                 oldValue = ((ArrayList)((LWContainer)component).children).clone();
-            cPropMap.put(propertyKey, new IndexedProperty(mUndoSequence.size(), oldValue));
+            cPropMap.put(propertyKey, new TaggedPropertyValue(mUndoSequence.size(), oldValue));
             mUndoSequence.add(new UndoItem(component, propertyKey, oldValue, mChangeCount));
             mChangeCount++;
             if (DEBUG.UNDO) {
@@ -453,6 +531,10 @@ if (true)return;
                 //else System.out.println(" (stored)");
             }
         }
+    }
+
+    private static void out(String s) {
+        System.out.println("UndoManger: " + s);
     }
 
     public String toString()

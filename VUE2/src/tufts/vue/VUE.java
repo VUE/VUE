@@ -702,6 +702,17 @@ public class VUE
         //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
         JMenu helpMenu = menuBar.add(new JMenu("Help"));
 
+        if (DEBUG.Enabled) {
+            JComponent u = new JButton(Actions.Undo);
+            JComponent r = new JButton(Actions.Redo);
+            u.setBackground(Color.white);
+            r.setBackground(Color.white);
+            u.setFont(FONT_SMALL);
+            r.setFont(FONT_SMALL);
+            menuBar.add(u).setFocusable(false);
+            menuBar.add(r).setFocusable(false);
+        }
+
         //adding actions
         SaveAction saveAction = new SaveAction("Save", false);
         SaveAction saveAsAction = new SaveAction("Save As...");
