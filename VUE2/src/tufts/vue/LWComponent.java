@@ -238,6 +238,9 @@ public class LWComponent
         this.nodeFilter = nodeFilter;
     }
     
+    
+    
+    
     public NodeFilter getNodeFilter() {
         return nodeFilter;
     }
