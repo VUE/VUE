@@ -205,24 +205,4 @@ public class LWPathway extends tufts.vue.LWComponent
     public void setWeight(int weight) {
         this.weight = weight;
     }
-    
-    /**
-    public void setCategory(String category) {
-    }
-    
-    public void setID(String ID) {
-    }
-    
-    public void setLabel(String label) {
-    }
-    
-    public void setMetaData(String metaData) {
-    }
-    
-    public void setNotes(String notes) {
-    }
-    
-    public void setResource(Resource resource) {
-    }
-    */
 }
