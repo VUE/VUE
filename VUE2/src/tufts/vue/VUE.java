@@ -195,9 +195,12 @@ public class VUE
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         inspectorTool.addTool(new LWCInspector());
         //inspectorTool.addTool(new MapItemInspector());
+        
+        LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
 
         Action[] windowActions = { pannerTool.getDisplayAction(),
-                                   inspectorTool.getDisplayAction() };
+                                   inspectorTool.getDisplayAction(),
+                                   pathwayInspect.getDisplayAction()};
 
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);
