@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
@@ -642,12 +643,16 @@ public abstract class LWContainer extends LWComponent
                 // -------------------------------------------------------
                 
                 if (c.isDisplayed() && c.intersects(clipBounds)) {
+                    // todo opt: don't create all these GC's
+                    Graphics2D gg = (Graphics2D) g.create();
                     try {
-                        c.draw((java.awt.Graphics2D) g.create());
+                        c.draw(gg);
                     } catch (Exception e) {
                         e.printStackTrace();
                         System.err.println("*** Exception drawing: " + c);
                         System.err.println("***         In parent: " + this);
+                    } finally {
+                        gg.dispose();
                     }
                     if (MapViewer.DEBUG_PAINT) {
                         if (c instanceof LWLink) links++;
@@ -663,6 +668,11 @@ public abstract class LWContainer extends LWComponent
             g.setStroke(STROKE_ONE);
             g.draw(getBounds());
         }
+    }
+
+    public String paramString()
+    {
+        return super.paramString() + " nChild=" + children.size();
     }
     
     
