@@ -25,15 +25,41 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public LWPathway() {
         super.setLabel("DEFAULT PATHWAY");
-        LWNode node1 = new LWNode("Node 1");
-        LWNode node2 = new LWNode("Node 2");
-        LWNode node3 = new LWNode("Node 3");
-        LWNode node4 = new LWNode("Node 4");
-        this.addNode(node1);
-        this.addNode(node2);
-        this.addNode(node3);
-        this.addNode(node4);
+        nodeList = new LinkedList();
     }
+    
+    //testing constructor
+    public LWPathway(int i)
+    {
+        this();
+        
+        if (i == 0)
+        {
+            LWNode node1 = new LWNode("Node 1");
+            LWNode node2 = new LWNode("Node 2");
+            LWNode node3 = new LWNode("Node 3");
+            LWNode node4 = new LWNode("Node 4");
+        
+            this.addNode(node1);
+            this.addNode(node2);
+            this.addNode(node3);
+            this.addNode(node4);
+        }
+        
+        else
+        {
+            LWNode node1 = new LWNode("AT");
+            LWNode node2 = new LWNode("Power Team");
+            LWNode node3 = new LWNode("VUE");
+            LWNode node4 = new LWNode("Pathway");
+        
+            this.addNode(node1);
+            this.addNode(node2);
+            this.addNode(node3);
+            this.addNode(node4);
+        }
+    }
+    
     
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(String label) {
@@ -106,20 +132,32 @@ public class LWPathway extends tufts.vue.LWComponent
         int index = nodeList.indexOf(current);
         
         if (index > 0)
-            return (Node)nodeList.get(index--);
+        {
+            System.out.println("returning: " + index);
+            return (Node)nodeList.get(--index);
+        }
         
         else
+        {
+            System.out.println("returning null");
             return null;
+        }
     }
     
     public Node getNext(Node current) {
         int index = nodeList.indexOf(current);
         
         if (index >= 0 && index < (length() - 1))
-            return (Node)nodeList.get(index++);
+        {
+            System.out.println("returning: " + index);
+            return (Node)nodeList.get(++index);
+        }
         
         else
+        {
+            System.out.println("returning null");
             return null;
+        }
     }
     
     public java.util.Iterator getNodeIterator() {
