@@ -95,7 +95,7 @@ public class LWPathwayInspector extends InspectorWindow
         
         InfoTable table = new InfoTable();
         notes = new Notes();
-        pathwayTab = new PathwayTab(this);
+        //pathwayTab = new PathwayTab(this);
         Info info = new Info();
         info.setInfo(this.getPathway());
         
@@ -105,7 +105,7 @@ public class LWPathwayInspector extends InspectorWindow
         
         pane.addTab("Info", null, info, "Info Tab");
         pane.addTab("Notes", null, notes, "Notes Tab");
-        pane.addTab("Pathways", null, pathwayTab, "Pathways Tab");
+        //pane.addTab("Pathways", null, pathwayTab, "Pathways Tab");
         pane.addTab("Filters", null, new JLabel("Filters..."), "Filters Tab");
         
         /**adding pane and setting location of this stand alone window*/
@@ -123,7 +123,7 @@ public class LWPathwayInspector extends InspectorWindow
     }
     
     public void setPathwayManager(LWPathwayManager pathwayManager){
-        pathwayTab.setPathwayManager(pathwayManager);
+        //pathwayTab.setPathwayManager(pathwayManager);
     }
     
     public LWPathway getCurrentPathway(){

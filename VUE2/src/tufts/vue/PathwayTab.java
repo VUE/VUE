@@ -58,8 +58,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
     private JTextField text;
     private JLabel pathLabel = null;//, nodeLabel = null, slashLabel = new JLabel(" / ");
     
-    //private Frame parent;
-    private JDialog parent;
+    private JFrame parent;
+    //private JDialog parent;
     private JPanel buttons = null, pnPanel = null, pcPanel = null, buttonPanel = null;
     private JLabel pathName = null;
     
@@ -114,7 +114,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
     private int[] colWidths = {20,20,20,100,20,20};
  
     /** Creates a new instance of PathwayTab */
-    public PathwayTab(JDialog parent) 
+    //public PathwayTab(JDialog parent) 
+    public PathwayTab(JFrame parent) 
     {   
         this.parent = parent;
         this.setBorder(BorderFactory.createMatteBorder(4, 4, 7, 4, bgColor));
@@ -263,7 +264,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
         gc.weightx = 1.0;
         gc.gridheight = 1;
         
-        northPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
+        northPanel.setPreferredSize(new Dimension(this.getWidth(), 30));
         northPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
         bagLayout.setConstraints(northPanel, gc);
         tablePanel.add(northPanel);
@@ -278,7 +279,10 @@ public class PathwayTab extends JPanel implements   ActionListener,
         
         gc.weighty = 0.0;
         gc.gridheight = 1;
+
+        //southPanel.setPreferredSize(new Dimension(this.getWidth(), 30));
         //southPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
+        
         southPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
         bagLayout.setConstraints(southPanel, gc);
         tablePanel.add(southPanel);
@@ -317,7 +321,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
         c.gridheight = 1;
         c.weightx = 1.0;
         
-        editPathwaysPanel.setPreferredSize(new Dimension(this.getWidth(), 20));
+        editPathwaysPanel.setPreferredSize(new Dimension(this.getWidth(), 35));
         bag.setConstraints(editPathwaysPanel, c);
         add(editPathwaysPanel);
         
@@ -373,8 +377,13 @@ public class PathwayTab extends JPanel implements   ActionListener,
          }
     }*/
     
-    public JDialog getDialogParent(){
-    //public Frame getParentFrame(){
+    public void setButton(JButton button){
+        button.addActionListener(this);
+        buttonPanel.add(button);
+    }
+    
+    //public JDialog getDialogParent(){
+    public JFrame getParentFrame(){
         return parent;
     }
     /*
@@ -604,7 +613,10 @@ public class PathwayTab extends JPanel implements   ActionListener,
         if (notesArea.isFocusOwner()){
             if(dispPath != null){
                 if(dispComp != null){
-                    dispComp.setNotes(notesArea.getText());
+                    
+                    //dispComp.setNotes(notesArea.getText());
+                    dispPath.setElementNotes(dispComp, notesArea.getText());
+                    
                 }else
                     dispPath.setNotes(notesArea.getText());
             } 
@@ -877,7 +889,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
     public void mapViewerEventRaised(MapViewerEvent e) {
         if ((e.getID() & TitleChangeMask) != 0){
                this.setPathwayManager();
-               VUE.getPathwayInspector().repaint();
+               parent.repaint();
+               //VUE.getPathwayInspector().repaint();
                //System.out.println("Map Viewer Event: "+e.getID());
                //System.out.println("Active Map: "+VUE.getActiveMap().getLabel());
             }   

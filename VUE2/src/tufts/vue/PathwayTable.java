@@ -149,7 +149,9 @@ public class PathwayTable extends JTable{
                         newText = newText + path.getLabel() 
                             + " / " 
                             + comp.getLabel();
-                        notesText = comp.getNotes();
+                        
+                        //notesText = comp.getNotes();
+                        notesText = path.getElementNotes(comp);
                     }
                     
                     
