@@ -461,28 +461,28 @@ class Actions {
         
     static final Action ZoomIn =
         //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
-        new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, CTRL_ALT)) {
+        new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT)) {
             public void act()
             {
                 VUE.getActiveViewer().zoomTool.setZoomBigger();
             }
         };
     static final Action ZoomOut =
-        new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, CTRL_ALT)) {
+        new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
             public void act()
             {
                 VUE.getActiveViewer().zoomTool.setZoomSmaller();
             }
         };
     static final Action ZoomFit =
-        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, CTRL_ALT)) {
+        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
             public void act()
             {
                 VUE.getActiveViewer().zoomTool.setZoomFit();
             }
         };
     static final Action ZoomActual =
-        new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, CTRL_ALT)) {
+        new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
             boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
             public void act()
             {
