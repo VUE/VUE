@@ -19,9 +19,11 @@ import javax.swing.AbstractAction;
  * @version 6/19/03
  */
 class Actions {
-    static final int META = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+    static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
     static final int CTRL = Event.CTRL_MASK;
     static final int SHIFT = Event.SHIFT_MASK;
+    static final int ALT = Event.ALT_MASK;
+    static final int CTRL_ALT = VueUtil.isMacPlatform() ? CTRL+COMMAND : CTRL+ALT;
     
     static final private KeyStroke keyStroke(int vk, int mod) {
         return KeyStroke.getKeyStroke(vk, mod);
@@ -35,7 +37,7 @@ class Actions {
     //-------------------------------------------------------
     
     static final Action SelectAll =
-        new MapAction("Select All", keyStroke(KeyEvent.VK_A, META)) {
+        new MapAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
             boolean enabledFor(LWSelection l) { return true; }
             public void act()
             {
@@ -43,7 +45,7 @@ class Actions {
             }
         };
     static final Action DeselectAll =
-        new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+META)) {
+        new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
             boolean enabledFor(LWSelection l) { return l.size() > 0; }
             public void act()
             {
@@ -51,19 +53,19 @@ class Actions {
             }
         };
     static final Action Cut =
-        new MapAction("Cut", keyStroke(KeyEvent.VK_X, META)) {
+        new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
             void Xact(LWComponent c) {
                 
             }
         };
     static final Action Copy =
-        new MapAction("Copy", keyStroke(KeyEvent.VK_C, META)) {
+        new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
             void Xact(LWComponent c) {
                 
             }
         };
     static final Action Paste =
-        new MapAction("Paste", keyStroke(KeyEvent.VK_V, META)) {
+        new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
             void Xact(LWComponent c) {
                 
             }
@@ -74,7 +76,7 @@ class Actions {
     //-------------------------------------------------------
     
     static final Action Group =
-        new MapAction("Group", keyStroke(KeyEvent.VK_G, META))
+        new MapAction("Group", keyStroke(KeyEvent.VK_G, COMMAND))
         {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection l)
@@ -95,7 +97,7 @@ class Actions {
             }
         };
     static final Action Ungroup =
-        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, META+SHIFT))
+        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT))
         {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection l)
@@ -137,7 +139,7 @@ class Actions {
     static final MapAction BringToFront =
         new MapAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
-                      keyStroke(KeyEvent.VK_CLOSE_BRACKET, META+SHIFT))
+                      keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT))
         {
             boolean enabledFor(LWSelection l)
             {
@@ -160,7 +162,7 @@ class Actions {
     static final MapAction SendToBack =
         new MapAction("Send to Back",
                       "Make sure this object doesn't obscure any other object",
-                      keyStroke(KeyEvent.VK_OPEN_BRACKET, META+SHIFT))
+                      keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT))
         {
             boolean enabledFor(LWSelection l)
             {
@@ -174,7 +176,7 @@ class Actions {
             }
         };
     static final MapAction BringForward =
-        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, META))
+        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND))
         {
             boolean enabledFor(LWSelection l) { return BringToFront.enabledFor(l); }
             void act(LWSelection selection) {
@@ -183,7 +185,7 @@ class Actions {
             }
         };
     static final MapAction SendBackward =
-        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, META))
+        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND))
         {
             boolean enabledFor(LWSelection l) { return SendToBack.enabledFor(l); }
             void act(LWSelection selection) {
@@ -197,7 +199,7 @@ class Actions {
     //-------------------------------------------------------
         
     static final Action FontSmaller =
-        new MapAction("Font Smaller", keyStroke(KeyEvent.VK_8, META))//todo: chance accelerators
+        new MapAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -206,7 +208,7 @@ class Actions {
             }
         };
     static final Action FontBigger =
-        new MapAction("Font Bigger", keyStroke(KeyEvent.VK_9, META))
+        new MapAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -214,7 +216,7 @@ class Actions {
             }
         };
     static final Action FontBold =
-        new MapAction("Font Bold", keyStroke(KeyEvent.VK_B, META))
+        new MapAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -223,7 +225,7 @@ class Actions {
             }
         };
     static final Action FontItalic =
-        new MapAction("Font Italic", keyStroke(KeyEvent.VK_I, META))
+        new MapAction("Font Italic", keyStroke(KeyEvent.VK_I, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -368,7 +370,7 @@ class Actions {
             }
         };
     static final Action CloseMap =
-        new VueAction("Close", keyStroke(KeyEvent.VK_W, META))
+        new VueAction("Close", keyStroke(KeyEvent.VK_W, COMMAND))
         {
             // todo: listen to map viewer display event to tag
             // with currently displayed map name\
@@ -379,19 +381,19 @@ class Actions {
             }
         };
     static final Action Undo =
-        new VueAction("Undo", keyStroke(KeyEvent.VK_Z, META))
+        new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
             public boolean isEnabled() { return false; }
 
         };
     static final Action Redo =
-        new VueAction("Redo", keyStroke(KeyEvent.VK_Z, META+SHIFT))
+        new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT))
         {
             public boolean isEnabled() { return false; }
         };
 
     static final Action NewNode =
-        new VueAction("New Node", keyStroke(KeyEvent.VK_N, META))
+        new VueAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND))
         {
             LWNode lastNode = null;
             Point lastMousePress = null;
@@ -435,7 +437,7 @@ class Actions {
 
 
     static final Action NewText =
-        new VueAction("New Text", keyStroke(KeyEvent.VK_T, META))
+        new VueAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND))
         {
             void act()
             {
@@ -458,29 +460,29 @@ class Actions {
     //-------------------------------------------------------
         
     static final Action ZoomIn =
-        //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, META)) {
-        new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, META)) {
+        //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
+        new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, CTRL_ALT)) {
             public void act()
             {
                 VUE.getActiveViewer().zoomTool.setZoomBigger();
             }
         };
     static final Action ZoomOut =
-        new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, META)) {
+        new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, CTRL_ALT)) {
             public void act()
             {
                 VUE.getActiveViewer().zoomTool.setZoomSmaller();
             }
         };
     static final Action ZoomFit =
-        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, META)) {
+        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, CTRL_ALT)) {
             public void act()
             {
                 VUE.getActiveViewer().zoomTool.setZoomFit();
             }
         };
     static final Action ZoomActual =
-        new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, META)) {
+        new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, CTRL_ALT)) {
             boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
             public void act()
             {
@@ -516,7 +518,11 @@ class Actions {
         public void actionPerformed(ActionEvent ae)
         {
             try {
-                System.out.println("VueAction: " + ae.getActionCommand());
+                String msg = "VueAction: " + getActionName();
+                if (!ae.getActionCommand().equals(getActionName()))
+                    msg += " (" + ae.getActionCommand() + ")";
+                msg += " n=" + VUE.ModelSelection.size();
+                System.out.println(msg);
                 if (enabled()) {
                     act();
                 } else {
@@ -560,7 +566,7 @@ class Actions {
         void act()
         {
             LWSelection selection = VUE.ModelSelection;
-            System.out.println("MapAction: " + getActionName() + " n=" + selection.size());
+            //System.out.println("MapAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
                 if (mayModifySelection())
                     selection = (LWSelection) selection.clone();
