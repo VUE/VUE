@@ -763,7 +763,11 @@ VueAction: Zoom 100% n=1
 
     public String paramString()
     {
-        return super.paramString() + " nChild=" + children.size();
+        if (children != null)
+            return super.paramString() + " nChild=" + children.size();
+        else
+            return super.paramString();
+            
     }
     
     
