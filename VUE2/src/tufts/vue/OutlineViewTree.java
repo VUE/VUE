@@ -26,6 +26,16 @@
 package tufts.vue;
 
 import java.awt.*;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.FocusEvent;
+import javax.swing.AbstractCellEditor;
+import javax.swing.UIManager;
+import javax.swing.JTextArea;
+import javax.swing.JViewport;
+import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -45,7 +55,7 @@ import java.util.ArrayList;
 
 /**A class that represents a tree structure which holds the outline view model*/
 public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener
-{ 
+{
     private boolean selectionFromVUE = false;
     private boolean valueChangedState = false;
     
@@ -56,8 +66,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     private ImageIcon  nodeIcon = VueResources.getImageIcon("outlineIcon.node");
     private ImageIcon linkIcon = VueResources.getImageIcon("outlineIcon.link");
     private ImageIcon   mapIcon = VueResources.getImageIcon("outlineIcon.map");
-    private ImageIcon  selectedIcon = null;
-    
+   
     /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
     {
@@ -65,13 +74,14 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
+         setCellEditor(new OutlineViewTreeEditor(this));
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
             new TreeSelectionListener() 
             {
                 public void valueChanged(TreeSelectionEvent e) 
-                {                      
+                {    
                     ArrayList selectedComponents = new ArrayList();
                     ArrayList selectedHierarchyNodes = new ArrayList();
                     
@@ -79,13 +89,16 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     
                     //if there is no selected nodes
                     if (paths == null)
-                    {
-                        selectedNode = null;
+                    {   
+                        selectedNode = null;    
+                        valueChangedState = false;
+                        selectionFromVUE = false;
+                    
                         return;
                     }
                     
                     for(int i = 0; i < paths.length; i++)
-                    {
+                    {   
                         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)paths[i].getLastPathComponent();
                         tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
                         LWComponent component = hierarchyNode.getLWComponent();
@@ -100,8 +113,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     
                     if(!selectionFromVUE)
                     {
-                        //System.out.println("setting vue selection: " + selectedComponents.size());
-                        
                         valueChangedState = true;
                         
                         if(selectedComponents.size() != 0)
@@ -113,24 +124,12 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     
                     //saving the reference for the renaming purpose
                     if(!selectedHierarchyNodes.isEmpty())
-                      selectedNode = (tufts.oki.hierarchy.HierarchyNode)selectedHierarchyNodes.get(0);
-     
+                    {
+                        selectedNode = (tufts.oki.hierarchy.HierarchyNode)selectedHierarchyNodes.get(0);
+                    }
+                    
                     valueChangedState = false;
                     selectionFromVUE = false;
-                    
-                        /*
-                        if (selectedComponent instanceof LWMap)
-                          selectedIcon = mapIcon;
-                        
-                        else if (selectedComponent instanceof LWNode)
-                          selectedIcon = nodeIcon;
-                        
-                        else if (selectedComponent instanceof LWLink)
-                          selectedIcon = linkIcon;  
-                        */
-                        
-                        //if(!(selectedComponent instanceof LWMap) && focused)
-                            //VUE.getSelection().setTo(selectedComponent);
                 }
             }
         );
@@ -290,16 +289,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     }
     
     /**A class that specifies the rendering method of the outline view tree*/
-    private class OutlineViewTreeRenderer extends DefaultTreeCellRenderer
-    { 
-        //private ImageIcon nodeIcon = null, linkIcon = null, mapIcon = null;
-        
-        public OutlineViewTreeRenderer()
-        {
-            //retrieves the icons for nodes and links
-           
-        }
-        
+    private class OutlineViewTreeRenderer extends OutlineViewRenderElement implements TreeCellRenderer
+    {   
         public Component getTreeCellRendererComponent(
                         JTree tree,
                         Object value,
@@ -309,14 +300,13 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                         int row,
                         boolean hasFocus) 
         {
-            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-
             if (((DefaultMutableTreeNode)value).getUserObject() instanceof tufts.oki.hierarchy.HierarchyNode)
             {
                 tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
                 LWComponent component = hierarchyNode.getLWComponent();
                 
-                if (((DefaultMutableTreeNode)getModel().getRoot()).getUserObject().equals(hierarchyNode) || component instanceof LWMap)
+                //if (((DefaultMutableTreeNode)getModel().getRoot()).getUserObject().equals(hierarchyNode) || component instanceof LWMap)
+                if (component instanceof LWMap)
                   setIcon(mapIcon);
                 
                 else if (component instanceof LWNode)
@@ -331,11 +321,20 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                 // doesn't appear to get right size if there's a '.' in the name!
             }
             
+            if (sel) 
+              setIsSelected(true);  
+           
             else
-            {
-              //if (selectedIcon == null ) System.err.println("OutlineViewTree's icon is null --- problem");
-              setIcon(selectedIcon);
-            }
+              setIsSelected(false);
+            
+            if (hasFocus) 
+              setIsFocused(true);
+            
+            else      
+              setIsFocused(false);
+         
+            String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);   
+            setText(label);
             
             return this;
         }
@@ -344,4 +343,234 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }   
+    
+    private class OutlineViewTreeEditor extends AbstractCellEditor implements TreeCellEditor, KeyListener, FocusListener 
+    {
+        // This is the component that will handle the editing of the cell value
+        private OutlineViewEditorElement editorElement = null;
+        private final int clickToStartEditing = 2;
+        private JTree tree = null;
+        
+        /*
+        public OutlineViewTreeEditor()
+        {
+            editorElement = new OutlineViewEditorElement(this);
+        }
+        */
+        
+        public OutlineViewTreeEditor(JTree tree)
+        {
+            this.tree = tree;
+            editorElement = new OutlineViewEditorElement(this);
+        }
+        
+        // This method is called when a cell value is edited by the user.
+        public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded, boolean leaf, int row) 
+        {
+            editorElement.setBackground(Color.white);   
+            editorElement.setBorder( UIManager.getBorder("Table.focusCellHighlightBorder") );
+             
+            // Configure the component with the specified value
+            String label = tree.convertValueToText(value, isSelected, expanded, leaf, row, true);
+            editorElement.setText(label);
+            
+            //default icon for now
+            editorElement.setIcon(mapIcon);
+            
+            // Return the configured component
+            return editorElement;
+        }
+    
+        // This method is called when editing is completed.
+        // It must return the new value to be stored in the cell.
+        public Object getCellEditorValue() 
+        {
+            return editorElement.getText();
+        }
+        
+        public void keyReleased(KeyEvent e) 
+        {
+            if (e.getKeyCode() == KeyEvent.VK_CONTROL)
+              this.stopCellEditing();
+        }
+        /** not used **/
+        public void keyPressed(KeyEvent e) 
+        {}
+        
+        public void keyTyped(KeyEvent e) 
+        {}
+        
+        public boolean isCellEditable(java.util.EventObject anEvent) 
+        { 
+            if (anEvent instanceof java.awt.event.MouseEvent) 
+            { 
+		return ((java.awt.event.MouseEvent)anEvent).getClickCount() >= clickToStartEditing;
+	    }
+            
+	    return true;
+        }
+
+        public void focusGained(FocusEvent e) 
+        {}
+        
+        public void focusLost(FocusEvent e) 
+        {
+            System.out.println("focus lost");
+            this.stopCellEditing();
+        }     
+    }
+    
+    private class IconPanel extends JPanel
+    {
+        private ImageIcon icon = null;
+        
+        public IconPanel()
+        {
+            setBackground(Color.white);
+        }
+        
+        public void setIcon(ImageIcon icon)
+        {
+            this.icon = icon;
+            
+            if (icon != null)
+              setPreferredSize(new Dimension(icon.getIconWidth() + 4, icon.getIconHeight() + 4));
+        }
+        
+        public ImageIcon getIcon()
+        {
+            return icon;
+        }
+        
+        protected void paintComponent(Graphics g)
+        {
+            if (icon != null)
+              icon.paintIcon(this, g, 0, 0);
+        }
+    }
+    
+    private class OutlineViewRenderElement extends JPanel
+    {
+        private JTextArea label = null;
+        private IconPanel iconPanel = null;
+        
+        //private Color selectedColor = VueResources.getColor("treeSelectionColor");
+        private Color selectedColor = Color.blue;
+        private Color nonSelectedColor = Color.white;
+        
+        public OutlineViewRenderElement()
+        {   
+            setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            setBackground(Color.white);
+            
+            label = new JTextArea();
+            label.setEditable(false);
+            
+            iconPanel = new IconPanel();
+            
+            add(iconPanel);
+            add(label);
+        }
+        
+        public void setIsFocused(boolean value)
+        {   
+            /*
+            if (value)
+              setBorder(new javax.swing.border.LineBorder(Color.green));
+            
+            else
+              setBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0));
+                
+            repaint();
+             */
+        }
+        
+        public void setIsSelected(boolean value)
+        {   
+            if (value)
+              label.setBackground(selectedColor);
+            
+            else
+              label.setBackground(nonSelectedColor);
+          
+            repaint();
+        }
+        
+        public void setText(String text)
+        {
+            label.setText(text);
+        }
+        
+        public String getText()
+        {
+            return label.getText();
+        }
+        
+        public void setIcon(ImageIcon icon)
+        {
+            iconPanel.setIcon(icon);
+        }
+    }
+    
+    private class OutlineViewEditorElement extends JPanel
+    {
+        private IconPanel iconPanel = null;
+        private JTextArea label = null;
+        private JViewport viewPort = null;
+        private JScrollPane scrollPane = null;
+        private OutlineViewTreeEditor editor = null;
+        
+        public OutlineViewEditorElement(OutlineViewTreeEditor editor)
+        {
+            setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
+         
+            label = new JTextArea();
+            label.setEditable(true);
+            label.setLineWrap(true);
+            
+            this.editor = editor;
+            addKeyListener(editor);
+            label.addFocusListener(this.editor);
+            
+            iconPanel = new IconPanel();
+
+            scrollPane = new JScrollPane(label);
+            //viewPort = new JViewport();
+            //viewPort.setView(label);
+            
+            add(iconPanel);
+            add(scrollPane);
+            //add(viewPort);     
+        }
+        
+        public JViewport getViewPort()
+        {
+            return viewPort;
+        }
+        
+        public void addKeyListener(KeyListener l)
+        {
+            label.addKeyListener(l);
+        }
+        
+        public void removeKeyListener(KeyListener l)
+        {
+            label.removeKeyListener(l);
+        }
+        
+        public void setText(String text)
+        {   
+            label.setText(text);
+        }
+        
+        public String getText()
+        {
+            return label.getText();
+        }
+        
+        public void setIcon(ImageIcon icon)
+        {
+            iconPanel.setIcon(icon);
+        }
+    }
 }
