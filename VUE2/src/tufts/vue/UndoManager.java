@@ -9,12 +9,14 @@ import javax.swing.Action;
  */
 
 public class UndoManager
-    implements LWComponent.Listener
+    implements LWComponent.Listener, VUE.ActiveMapListener
 {
     private static boolean sInUndo = false;
 
     private ArrayList mUndoActions = new ArrayList(); // the list of undo actions (named groups of property changes)
     private ArrayList mRedoActions = new ArrayList(); // the list of redo actions (named groups of property changes)
+    
+    private LWMap mMap; // the map who's modifications we're tracking
     
     private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
     //private Map mHierarchyChanges = new HashMap(); // all hierarchy changes, mapped by component, since last mark
@@ -104,8 +106,17 @@ public class UndoManager
 
     public UndoManager(LWMap map)
     {
+        mMap = map;
         map.addLWCListener(this);
+        VUE.addActiveMapListener(this);
         setUndoActionLabel(null); // disable undo action at start
+    }
+
+    public void activeMapChanged(LWMap map)
+    {
+        if (map == mMap)
+            setUndoActionLabel(peek());
+            
     }
 
     private UndoAction pop()

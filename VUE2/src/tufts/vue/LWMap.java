@@ -359,14 +359,15 @@ public class LWMap extends LWContainer
     }
     
 
-    /** override of LWComponent: parent == null indicates deleted,
+    /* override of LWComponent: parent == null indicates deleted,
      * but map parent is always null.  For now always returns
      * false.  If need to support tracking deleted map, create
-     * a different internal indicator for LWMap's [OLD] */
+     * a different internal indicator for LWMap's [OLD] 
     public boolean isDeleted() {
         return false;
     }
-
+    */
+    
     /** override of LWComponent: normally, parent == null indicates orphan,
      * which is considered a problem condition if attempting to deliver
      * events, but this is normal for the LWMap which as no parent,

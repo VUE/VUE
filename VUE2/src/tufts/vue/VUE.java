@@ -662,14 +662,22 @@ implements VueConstants {
         else
             return null;
     }
+
     /*
      * Returns instance of frame. used by orpahan dialogs
      */
+    /*
     public static JFrame getInstance() {
         return frame;
     }
+    */
+
     public static UndoManager getUndoManager() {
-        return getActiveMap().getUndoManager();
+        LWMap map = getActiveMap();
+        if (map != null)
+            return map.getUndoManager();
+        else
+            return null;
     }
     
     public static boolean isOkayToExit() {

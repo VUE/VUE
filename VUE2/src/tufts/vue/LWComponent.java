@@ -1380,14 +1380,6 @@ public class LWComponent
         notifyLWCListeners(new LWCEvent(this, componentList, what));
     }
 
-    public boolean isDeleted()
-    {
-        // links nulled only after removeFromModel, so it's a marker
-        // for a deleted component
-        return this.scale == -1;
-        //return this.parent == null;
-    }
-    
     /**
      * Do any cleanup needed now that this LWComponent has
      * been removed from the model
@@ -1401,11 +1393,15 @@ public class LWComponent
         setDeleted(true);
     }
 
+    public boolean isDeleted() {
+        return this.scale == -1;
+    }
+    
     void setDeleted(boolean deleted) {
         if (deleted) {
             this.scale = -1;
             if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS) {
-                if (parent != null) System.out.println(this + " parent not yet null in setDeleted true (ok for undo of new)");
+                if (parent != null) System.out.println(this + " parent not yet null in setDeleted true (ok for undo of creates)");
             }
             this.parent = null;
         } else

@@ -57,7 +57,7 @@ public class ImageMap extends AbstractAction {
     }
 
     private void createJpeg(){
-            MapViewer currentMap = (MapViewer) VUE.getTabbedPane().getSelectedComponent();
+        MapViewer currentMap = VUE.getActiveViewer();
             Dimension size = currentMap.getSize();
             BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
             Graphics g = mapImage.getGraphics();
