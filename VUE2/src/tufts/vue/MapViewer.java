@@ -383,7 +383,12 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         repaint();
-        new MapViewerEvent(this, MapViewerEvent.ZOOM).raise();
+        fireViewerEvent(MapViewerEvent.ZOOM);
+    }
+
+    private void fireViewerEvent(int id) {
+        if (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
+            new MapViewerEvent(this, id).raise();
     }
     
     public double getZoomFactor() {
@@ -572,8 +577,8 @@ public class MapViewer extends javax.swing.JComponent
         //setMapOriginOffset(extent.x, extent.y);
         //((JViewport)getParent()).setExtentSize(d);
         //if (isDisplayed())
-        if (!sDragUnderway && VUE.getActiveViewer() == this)
-            new MapViewerEvent(this, MapViewerEvent.PAN).raise(); // notify panner
+        if (!sDragUnderway)
+            fireViewerEvent(MapViewerEvent.PAN); // notify panner
         
     }
     
@@ -678,7 +683,7 @@ public class MapViewer extends javax.swing.JComponent
             setPreferredSize(mapToScreenDim(extent));
             revalidate();
         }
-        new MapViewerEvent(this, MapViewerEvent.PAN).raise();
+        fireViewerEvent(MapViewerEvent.PAN);
     }
     
     public void setPreferredSize(Dimension d) {
@@ -714,7 +719,7 @@ public class MapViewer extends javax.swing.JComponent
             getMap().setUserOrigin(panelX, panelY);
         if (!inScrollPane && update) {
             repaint();
-            new MapViewerEvent(this, MapViewerEvent.PAN).raise();
+            fireViewerEvent(MapViewerEvent.PAN);
         }
         /*
         if (true||!inScrollPane) {
@@ -1044,7 +1049,7 @@ public class MapViewer extends javax.swing.JComponent
             //if (isShowing()) mLastCorner = getLocationOnScreen();
             repaint(250); // why the delay?
             //requestFocus();
-            new MapViewerEvent(this, MapViewerEvent.PAN).raise();
+            fireViewerEvent(MapViewerEvent.PAN);
             // may be causing problems on mac --
             // some components in tabbed is getting a reshape call
             // when switching tabs
@@ -4110,7 +4115,7 @@ public class MapViewer extends javax.swing.JComponent
         repaint();
     }
     
-    private void grabVueApplicationFocus(String from) {
+    void grabVueApplicationFocus(String from) {
         if (DEBUG.FOCUS) System.out.println(this + " grabVueApplicationFocus triggered thru " + from);
         this.VueSelection = VUE.ModelSelection;
         setFocusable(true);
@@ -4155,7 +4160,7 @@ public class MapViewer extends javax.swing.JComponent
         // do NOT grab focus if we're not actually visible
         grabVueApplicationFocus("focusGained");
         repaint();
-        new MapViewerEvent(this, MapViewerEvent.FOCUSED).raise();
+        fireViewerEvent(MapViewerEvent.FOCUSED);
     }
     
     /**
@@ -4176,13 +4181,13 @@ public class MapViewer extends javax.swing.JComponent
             setFocusable(true);
             grabVueApplicationFocus("setVisible");
             requestFocus();
-            new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
+            fireViewerEvent(MapViewerEvent.DISPLAYED);
             //new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise(); // handled in focusGained
             // only need to do this if this viewer displaying a different MAP
             repaint();
         } else {
             setFocusable(false);
-            new MapViewerEvent(this, MapViewerEvent.HIDDEN).raise();
+            fireViewerEvent(MapViewerEvent.HIDDEN);
         }
     }
     

@@ -12,6 +12,9 @@ import javax.swing.event.*;
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 /**
  * Vue application class.
  * Create an application frame and layout all the components
@@ -342,6 +345,25 @@ public class VUE
         viewerSplit.setLeftComponent(mMapTabsLeft);
         viewerSplit.setResizeWeight(0.5);
         viewerSplit.setDividerLocation(9999);
+
+        viewerSplit.addPropertyChangeListener(new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent e) {
+                    //System.out.println("VS " + e);
+                    if (!e.getPropertyName().equals("dividerLocation"))
+                        return;
+                    if (DEBUG.FOCUS) System.out.println("viewerSplit: " + e.getPropertyName()
+                                       + "=" + e.getNewValue().getClass().getName()
+                                       + " " + e.getNewValue());
+                    if (multipleMapsVisible() == false) {
+                        MapViewer viewer = mMapTabsLeft.getVisibleViewer();
+                        if (viewer != null && viewer != getActiveViewer()) {
+                            if (DEBUG.FOCUS) System.out.println("viewerSplit: default focus to " + viewer);
+                            viewer.grabVueApplicationFocus("split-pane-other-hidden");
+                        }
+                    }
+                    
+                }});
+        
         
         //splitPane.setRightComponent(mMapTabsLeft);
         splitPane.setRightComponent(viewerSplit);
@@ -563,7 +585,7 @@ public class VUE
             return false;
         int dl = viewerSplit.getDividerLocation();
         return dl >= viewerSplit.getMinimumDividerLocation()
-        && dl <= viewerSplit.getMaximumDividerLocation();
+            && dl <= viewerSplit.getMaximumDividerLocation();
         
     }
     

@@ -54,6 +54,10 @@ public class MapTabbedPane extends JTabbedPane
         //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
         super.reshape(x,y, w,h);
     }
+
+    public MapViewer getVisibleViewer() {
+        return getViewerAt(getSelectedIndex());
+    }
         
     public void focusGained(FocusEvent e) {
         System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
