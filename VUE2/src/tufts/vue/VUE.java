@@ -874,6 +874,9 @@ public class VUE
         editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.DeselectAll);
+        editMenu.addSeparator();
+        editMenu.add(Actions.editDataSource);
+        
         
         viewMenu.add(Actions.ZoomIn);
         viewMenu.add(Actions.ZoomOut);
