@@ -671,8 +671,9 @@ public class LWNode extends LWContainer
             // layout_centered has to compute that now anyway.
             mIconDivider.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
         } else {
-            if (iconShowing())
-                VueUtil.clipToYCrossings(mIconDivider, drawnShape, MarginLinePadY);
+            // No longer need to clip: can just use content height!
+            //if (iconShowing())
+            //    VueUtil.clipToYCrossings(mIconDivider, drawnShape, MarginLinePadY);
         }
 
     
@@ -698,7 +699,6 @@ public class LWNode extends LWContainer
      */
     private Size layout_centered()
     {
-        //Size minSize = get_minimum_content_size();
         NodeContent content = getLaidOutNodeContent();
         Size minSize = new Size(content);
         Size node = new Size(content);
@@ -774,7 +774,7 @@ public class LWNode extends LWContainer
             tries++;
         }
         if (tries > 0) {
-            final float shrink = 0.5f;
+            final float shrink = 1f;
             System.out.println("Contents of " + shape + "  rought  fit  to " + content + " in " + tries + " tries");
             do {
                 shape.setFrame(0, 0, shape.getWidth() - shrink, shape.getHeight() - shrink);
@@ -948,17 +948,14 @@ public class LWNode extends LWContainer
             mLabelPos.setLocation(x + rLabel.x, y + rLabel.y);
             if (rIcons != null) {
                 mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
-                mIconDivider.setLine(mIconBlock.x + mIconBlock.width, 0,
-                                     mIconBlock.x + mIconBlock.width, nodeSize.height);
-                //mIconDivider.setLine(mIconBlock.x + mIconBlock.width, -1000,
-                //                     mIconBlock.x + mIconBlock.width, 1000);
-                // Cannot clip here: must wait till we've drawShape is updated, which won't
-                // happen till setSize has been called
-                //VueUtil.clipToYCrossings(mIconDivider, LWNode.this.drawnShape, MarginLinePadY);
+                mIconDivider.setLine(mIconBlock.x + mIconBlock.width, this.y,
+                                     mIconBlock.x + mIconBlock.width, this.y + this.height);
+                //mIconDivider.setLine(mIconBlock.x + mIconBlock.width, 0,
+                //                     mIconBlock.x + mIconBlock.width, nodeSize.height);
             }
             if (rChildren != null) {
                 mChildPos.setLocation(x + rChildren.x, y + rChildren.y);
-                layoutChildren(mChildPos.x, mChildPos.y);
+                layoutChildren();
             }
         }
         
@@ -1021,34 +1018,6 @@ public class LWNode extends LWContainer
         return _lastNodeContent = new NodeContent();
     }
 
-    /** @return the minimum size rectangular area required to contain all visible node
-     * contents
-     */
-    private Size get_minimum_content_size()
-    {
-        Size box = new Size();
-        Size text = getTextSize();
-
-        //box.width  = LabelPadX + text.width + LabelPadX;
-        //box.height = LabelPadY + text.height + LabelPadY;
-        box.width  = text.width;
-        box.height = text.height;
-
-        if (iconShowing()) {
-            box.width += mIconBlock.width;
-            box.fitHeight(mIconBlock.height);
-        }
-
-        if (hasChildren()) {
-            Size children = layoutChildren(new Size(), true);
-            //box.height += LabelPadY;
-            box.fitWidth(ChildPadX + children.width + ChildPadX);
-            box.height += ChildOffsetY + children.height + + ChildrenPadBottom;
-        }
-
-        return box;
-    }
-    
     private Size layout_boxed()
     {
         final float givenWidth = getWidth();
@@ -1157,13 +1126,17 @@ public class LWNode extends LWContainer
     }
 
     private float childOffsetX() {
-        if (isCenterLayout)
+        if (isCenterLayout) {
+            //System.out.println("\tchildPos.x=" + mChildPos.x);
             return mChildPos.x;
+        }
         return iconShowing() ? ChildOffsetX : ChildPadX;
     }
     private float childOffsetY() {
-        if (isCenterLayout)
+        if (isCenterLayout) {
+            //System.out.println("\tchildPos.y=" + mChildPos.y);
             return mChildPos.y;
+        }
         float baseY;
         if (iconShowing()) {
             //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
@@ -1223,6 +1196,8 @@ public class LWNode extends LWContainer
     
     private Size layoutChildren(float baseX, float baseY, Size result)
     {
+        if (DEBUG.LAYOUT) System.out.println("*** " + this + " layoutChildren at " + baseX + "," + baseY);
+        //if (baseX > 0) new Throwable("LAYOUT-CHILDREN").printStackTrace();
         if (true)
             layoutChildrenSingleColumn(baseX, baseY, result);
         else

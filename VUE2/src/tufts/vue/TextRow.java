@@ -92,7 +92,7 @@ public class TextRow
             row.draw(g2d, xoff, yoff);
 
             
-            if (DEBUG.BOXES||DEBUG.LAYOUT) {
+            if (DEBUG.BOXES) {
                 // draw a red bounding box for testing
                 tb.x += xoff;
                 // tb.y seems to default at to -1, and if
@@ -120,7 +120,7 @@ public class TextRow
             row.draw(g2d, -tb.x + xoff, -tb.y + yoff);
             //baseline = yoff + tb.height;
 
-            if (DEBUG.BOXES||DEBUG.LAYOUT) {
+            if (DEBUG.BOXES) {
                 // draw a red bounding box for testing
                 tb.x = xoff;
                 tb.y = yoff;
