@@ -24,6 +24,7 @@ public class LWHierarchyMap extends LWMap
     //parent hashtable holds nodes' parent information
     //node hashtable serves the purpose of mapping duplicates to the original nodes
     private HashMap distanceHash, parentHash;
+    private Hashtable nodeHash;
     
     //an arraylist which holds all the nodes that were connected from the root node
     private ArrayList originalNodes;
@@ -37,7 +38,7 @@ public class LWHierarchyMap extends LWMap
         originalNodes = new ArrayList();
         distanceHash = new HashMap();
         parentHash = new HashMap();
-        //nodeHash = new Hashtable();
+        nodeHash = new Hashtable();
     }
     
     public LWHierarchyMap(LWNode node)
@@ -68,7 +69,6 @@ public class LWHierarchyMap extends LWMap
         
         //stores default values to the distance and parent hashtables
         distanceHash.put(rootNode, new Integer(0));
-        //parentHash.put(rootNode, "none");
         parentHash.put(rootNode, null);
         
         //Dijkstra's theorem (shortest path)
@@ -136,65 +136,43 @@ public class LWHierarchyMap extends LWMap
             addNode(copy);
             
             //maps the orginal node to the duplicated one using the nodes' toString method
-            //nodeHash.put(node.toString(), copy.toString());
+            nodeHash.put(node, copy);
         }
         
         //verify a path between nodes and create a link between the nodes
-        for (Iterator i = getNodeIterator(); i.hasNext();)
+        for (Iterator i = originalNodes.iterator(); i.hasNext();)
         {
-            //String childLabel = ((LWNode)i.next()).toString(); 
-            //String parentLabel = (String)parentHash.get(childLabel);
             LWNode child = (LWNode)i.next();
             LWNode parent = (LWNode)parentHash.get(child);
             
             //if the node has a parent
-            //if (!parentLabel.equals("none"))
             if (parent != null)
             {
               //creates the link using the mapped duplicates of the original nodes
-              //createLink((String)nodeHash.get(parentLabel), (String)nodeHash.get(childLabel));
+              LWNode childCopy = (LWNode)nodeHash.get(child);
+              LWNode parentCopy = (LWNode)nodeHash.get(parent);
               
-              LWLink link = new LWLink(parent, child);
+              LWLink link = new LWLink(parentCopy, childCopy);
               addLink(link);
             }
         }
     }
     
-    /**creates a link between two given nodes*/
-    public void createLink(String parentLabel, String childLabel)
-    {        
-        LWNode parent = null, child = null;
-         
-        //searches for the parent and child nodes
-        for (Iterator i = getNodeIterator(); i.hasNext();)
-        {
-          LWNode node = (LWNode)i.next();
-          
-          if (node.toString().equals(parentLabel))
-            parent = node;
-          
-          else if (node.toString().equals(childLabel))
-            child = node;
-          
-          //if both parent node and child node are found, break out of the loop
-          if (parent != null && child != null)
-            break;
-        }
-        
-        //creates the link and adds it to the map
-        LWLink link = new LWLink(parent, child);
-        addLink(link);
-    }
-    
     /**organizes the nodes in a hierarchical manner*/
     public void layout()
     {
-        //has to set the location of each node in a hierarchical manner
-        for (Iterator i = getNodeIterator(); i.hasNext();)
+        LWNode currentNode = rootNode;
+        
+        //go through each node
         {
-            LWNode currentNode = (LWNode)i.next();
+            LWNode copyNode = (LWNode)nodeHash.get(currentNode);
+        
+            LWNode parent = (LWNode)parentHash.get(currentNode);
             
-            //how to set up the hierarchy??
+            if(parent != null)
+            {
+                //set the location
+            }
         }
     }
     
