@@ -59,13 +59,12 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     public PathwayControl(JFrame parent) 
     {   
         super(parent, "Pathway Control");
-        setSize(450, 120);
+        setSize(500, 100);
         
         pathwayList = new JComboBox();
         
         getContentPane().setLayout(new BorderLayout());
         getContentPane().setBackground(Color.white);
-        //getContentPane().setBorder(new LineBorder(Color.black));
         
         firstButton = new JButton("<<");
         lastButton = new JButton(">>");
@@ -86,7 +85,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         backButton.addActionListener(this);
         
         //temporarily here
-        removeButton = new JButton("remove");
+        removeButton = new JButton("Remove Pathway");
         removeButton.addActionListener(this);
         
         pathwayList.setRenderer(new pathwayRenderer());
@@ -95,24 +94,24 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.setBackground(Color.white);
+        buttonPanel.add(removeButton);
         buttonPanel.add(firstButton);
         buttonPanel.add(backButton);
         buttonPanel.add(forwardButton);
         buttonPanel.add(lastButton);
-        buttonPanel.add(removeButton);
-         
+      
         JPanel descriptionPanel = new JPanel();
         descriptionPanel.setLayout(new FlowLayout());
         descriptionPanel.setBackground(Color.white);
         descriptionPanel.add(new JLabel("Label:"));
         descriptionPanel.add(nodeLabel);
         
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.add(pathwayList);
-        bottomPanel.add(buttonPanel);
+        JPanel mainPanel = new JPanel();
+        mainPanel.add(pathwayList);
+        mainPanel.add(buttonPanel);
         
-        getContentPane().add(bottomPanel, BorderLayout.SOUTH);
-        getContentPane().add(descriptionPanel, BorderLayout.CENTER);
+        getContentPane().add(mainPanel, BorderLayout.CENTER);
+        getContentPane().add(descriptionPanel, BorderLayout.NORTH);
         
         super.addWindowListener(new WindowAdapter()
             {
@@ -473,22 +472,37 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             }
             
             else if (e.getSource() == cancelButton)
+            {
+                //selects empty pathway if the cancel button was pressed
+                pathwayList.setSelectedItem(noPathway);
                 dispose();
+            }
         }
         
+        //key events for the dialog box
         public void keyPressed(KeyEvent e) {}
-        
         public void keyReleased(KeyEvent e) {}
-        public void keyTyped(KeyEvent e) {
-            if(e.getKeyChar()==KeyEvent.VK_ENTER){
+        
+        public void keyTyped(KeyEvent e) 
+        {
+            //when enter is pressed
+            if(e.getKeyChar()==KeyEvent.VK_ENTER)
+            {
+                //if the ok button or the text field has the focus, add a designated new pathway
                 if(e.getSource().equals(okButton) 
                     || e.getSource().equals(textField))
                 {    
                     addPathway(new LWPathway(textField.getText()));
                     dispose();                  
                 }
+                
+                //else if the cancel button has the focus, just aborts it
                 else if(e.getSource().equals(cancelButton))
+                {
+                    //selects empty pathway if the cancel button was pressed
+                    pathwayList.setSelectedItem(noPathway);
                     dispose(); //does catch event?
+                }
             }
         }
         
