@@ -513,9 +513,6 @@ public class VUE
             }
         });
         
-        frame.show();
-        System.out.println("VUE: frame visible");
-        
         if (!nodr) {
             try {
                 File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
@@ -532,6 +529,9 @@ public class VUE
             pannerTool.setVisible(true);
         }
 
+        frame.show();
+        System.out.println("VUE: frame visible");
+        
         if (splashScreen != null)
             splashScreen.setVisible(false);
 

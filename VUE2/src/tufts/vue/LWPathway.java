@@ -432,11 +432,13 @@ public class LWPathway extends LWContainer
         return null;
     }
     
+    /** @return true if selected is last item, or none selected */
     public boolean atFirst(){
-        return (mCurrentIndex == 0);
+        return mCurrentIndex <= 0;
     }
+    /** @return true if selected is first item, or none selected */
     public boolean atLast(){
-        return (mCurrentIndex == (length() - 1));
+        return mCurrentIndex == -1 || mCurrentIndex == (length() - 1);
     }
     
     public LWComponent setLast() {

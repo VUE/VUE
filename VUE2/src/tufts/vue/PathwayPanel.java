@@ -411,7 +411,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         VUE.getUndoManager().mark();
     }
 
-    private LWPathway excluseDisplay;
+    private LWPathway exclusiveDisplay;
     private synchronized void toggleHideEverythingButCurrentPathway()
     {
         LWMap map = VUE.getActiveMap();
@@ -421,24 +421,24 @@ public class PathwayPanel extends JPanel implements ActionListener
             return;
 
         Iterator i = map.getAllDescendentsIterator();
-        if (excluseDisplay != pathway) {
+        if (exclusiveDisplay != pathway) {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 c.setIsFiltered(!c.inPathway(pathway));
             }
-            excluseDisplay = pathway;
+            exclusiveDisplay = pathway;
         } else {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 c.setIsFiltered(false);
             }
-            excluseDisplay = null;
+            exclusiveDisplay = null;
         }
 
         i = map.getPathwayList().iterator();
         while (i.hasNext()) {
             LWPathway p = (LWPathway) i.next();
-            if (excluseDisplay == null)
+            if (exclusiveDisplay == null)
                 p.setIsFiltered(false);
             else
                 p.setIsFiltered(p != pathway);
@@ -528,6 +528,11 @@ public class PathwayPanel extends JPanel implements ActionListener
     
     /** Delete's a pathway and all it's contents */
     private void deletePathway(LWPathway p) {
+        // We only ever delete the current pathway, and if's
+        // exclusively displayed, make sure to undo the filter.
+        // TODO: handle for undo, tho not a critical undo to handle.
+        if (exclusiveDisplay != null)
+            toggleHideEverythingButCurrentPathway();
         VUE.getActiveMap().getPathwayList().remove(p);
     }
     
