@@ -125,6 +125,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                     add(Box.createHorizontalGlue());
                         
                     JLabel label = new JLabel("Create Pathways");
+                    //if (DEBUG.Enabled) System.out.println("PathPanel.SmallBoldFont: " + smallBoldFont);
                     label.setFont(smallBoldFont);
                     label.setForeground(Color.white);
                     label.setBorder(new EmptyBorder(0,0,2,3));

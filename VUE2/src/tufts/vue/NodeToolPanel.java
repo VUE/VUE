@@ -22,6 +22,7 @@ import tufts.vue.gui.*;
 import tufts.vue.beans.*;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.geom.RectangularShape;
 import javax.swing.AbstractButton;
@@ -74,6 +75,9 @@ public class NodeToolPanel extends LWCToolPanel
             setButtonIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
         }
 
+        protected Dimension getButtonSize() {
+            return new Dimension(37,22);
+        }
 
         protected void handleMenuSelection(ActionEvent e) {
             Icon i = ((AbstractButton)e.getSource()).getIcon();

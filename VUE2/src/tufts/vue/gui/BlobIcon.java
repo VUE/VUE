@@ -197,7 +197,16 @@ public class BlobIcon implements Icon
         g.setColor(oldColor);
     }
 
+    public String paramString() {
+        String s = mWidth + "x" + mHeight;
+        if (mColor != null) 
+            s += " rgb=" + mColor.getRed()
+                + "," + mColor.getGreen()
+                + "," + mColor.getBlue();
+        return s;
+    }
+
     public String toString() {
-        return "BlobIcon[" + mColor + "]";
+        return "BlobIcon[" + paramString() + "]";
     }
 }

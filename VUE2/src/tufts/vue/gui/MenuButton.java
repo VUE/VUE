@@ -109,10 +109,11 @@ public abstract class MenuButton extends JButton implements ActionListener
      * Intended for use during initialization.
      **/
     public void setButtonIcon(Icon i) {
-        System.out.println("MenuButton " + this + " setButtonIcon " + i);
-        if (DEBUG.Enabled) new Throwable().printStackTrace();
+        if (DEBUG.BOXES||DEBUG.TOOL) System.out.println("MenuButton " + this + " setButtonIcon " + i);
+        //if (DEBUG.Enabled) new Throwable().printStackTrace();
         _setIcon(mButtonIcon = i);
     }
+
     
     /*Intended for use during initialization OR then later for value changes.
     public void setOrResetButtonIcon(Icon i) {
@@ -146,20 +147,56 @@ public abstract class MenuButton extends JButton implements ActionListener
         }
     }
     */
+
+    /** return the default button size for this type of button: subclasses can override */
+    protected Dimension getButtonSize() {
+        return new Dimension(32,22); // better at 22, but get clipped 1 pix at top in VueToolbarController! todo: BUG
+    }
+    
+    private class MenuProxyIcon implements Icon {
+        private static final int arrowWidth = 5; // make sure is odd #
+        private static final int arrowGap = 3; // make sure is odd #
+        Icon src;
+        MenuProxyIcon(Icon src) {
+            this.src = src;
+        }
+
+        public int getIconWidth() { return src.getIconWidth() + arrowWidth + arrowGap; };
+        public int getIconHeight() { return src.getIconHeight(); }
+        
+        public void paintIcon(Component c, Graphics g, int sx, int sy) {
+            int w = src.getIconWidth();
+            int h = src.getIconHeight();
+            ///int h = getHeight(); // get height of entire button...(need compensate incoming x/y)
+            if (DEBUG.BOXES) System.out.println("proxyPaint x=" + sx + " y=" + sy + " src=" + src);
+            g.setColor(Color.black);
+            int x = sx + w + arrowGap;
+            //int y = sy + h / 2 - 1;  // src icon relative
+            int y = getHeight() / 2 - 1; // parent button relative: keeps arrows aligned across butons buttons of same height
+            for (int len = arrowWidth; len > 0; len -= 2) {
+                g.drawLine(x,y,x+len,y);
+                y++;
+                x++;
+            }
+            src.paintIcon(c, g, sx, sy);
+        }
+    }
     
     private void _setIcon(Icon i) {
-        if (false) {
+        /*
             super.setIcon(i);
             super.setRolloverIcon(new VueButtonIcon(i, VueButtonIcon.ROLLOVER));
-        } else {
-            final int pad = 7;
-            Dimension d = new Dimension(i.getIconWidth()+pad, i.getIconHeight()+pad);
-            if (d.width < 21) d.width = 21; // todo: config
-            if (d.height < 21) d.height = 21; // todo: config
-            VueButtonIcon.installGenerated(this, i, d);
-            System.out.println("MenuButton " + this + " *** installed generated, setPreferredSize " + d);
-            setPreferredSize(d);
-        }
+        */
+        /*
+          final int pad = 7;
+          Dimension d = new Dimension(i.getIconWidth()+pad, i.getIconHeight()+pad);
+          if (d.width < 21) d.width = 21; // todo: config
+          if (d.height < 21) d.height = 21; // todo: config
+        */
+        Dimension d = getButtonSize();
+        VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
+        System.out.println("MenuButton " + this + " *** installed generated, setPreferredSize " + d);
+        setPreferredSize(d);
     }
     
 
@@ -311,6 +348,20 @@ public abstract class MenuButton extends JButton implements ActionListener
             (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
              java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         super.paint(g);
+        if (true) setToolTipText(null);//tmp debug
+        /*
+        int w = getWidth();
+        int h = getHeight();
+        g.setColor(Color.black);
+        final int arrowWidth = 5; // make sure is odd #
+        int x = w - (arrowWidth + 3);
+        int y = h / 2 - 1;
+        for (int len = arrowWidth; len > 0; len -= 2) {
+            g.drawLine(x,y,x+len,y);
+            y++;
+            x++;
+        }
+        */
     }
 	
     public String toString() {
