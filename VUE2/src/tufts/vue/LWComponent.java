@@ -436,6 +436,7 @@ public class LWComponent
         this.x = x;
         this.y = y;
         // notify("location"); // todo: does anyone need this?
+        // also: if enable, don't forget to put in setX/getX!
     }
     
     public void setLocation(double x, double y)
@@ -462,7 +463,9 @@ public class LWComponent
 
     public float getX() { return this.x; }
     public float getY() { return this.y; }
+    /** for XML restore only! */
     public void setX(float x) { this.x = x; }
+    /** for XML restore only! */
     public void setY(float y) { this.y = y; }
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
