@@ -25,8 +25,8 @@ A few GUI tips:
   - Ctrl 1 zooms to 100%
   - Ctrl + zooms bigger
   - Ctrl - zooms smaller
-  -      z zooms in at point
-  - Ctrl z zooms out at point
+  - 'z' zooms in at point
+  - 'Z' zooms out at point
 
   - Right-click pops a test context menu, but they
     don't do anything yet.
