@@ -46,11 +46,6 @@ import java.beans.PropertyChangeListener;
 public class VUE
     implements VueConstants
 {
-    public static final String VUE_CONF = "vue.conf";
-   
-    // preferences for the application
-    //public static Preferences prefs;
-    
     /** The currently active viewer (e.g., is visible
      * and has focus).  Actions (@see Actions.java) are performed on
      * the active model (sometimes querying the active viewer). */
@@ -93,6 +88,7 @@ public class VUE
         public void activeViewerChanged(MapViewer viewer);
     }
     
+    /*
     public static java.net.URL getResource(String name) {
         java.net.URL url = null;
         // First, check the current directory:
@@ -115,18 +111,7 @@ public class VUE
             System.out.println("resource \"" + name + "\" found in classpath at " + url);
         return url;
     }
-    
-    
-        /*
-        String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
-        URL imageURL = getClass().getResource(imgLocation);    FileOutputStream fos = new FileOutputStream("vue.conf");
-            prefs.exportSubtree(fos);
-     //       FileInputStream fis = new FileInputStream("tezt.xml");
-     //       prefs.importPreferences(fis);
-        } catch (Exception e) { System.out.println(e);}
-        if (imageURL != null)
-            button = new JButton(new ImageIcon(imageURL));
-         */
+    */
     
     static class VueFrame extends JFrame
         implements MapViewer.Listener
@@ -309,16 +294,19 @@ public class VUE
     }
 
     static void parseArgs(String[] args) {
+        String allArgs = "";
         for (int i = 0; i < args.length; i++) {
+            allArgs += "[" + args[i] + "]";
             if (args[i].equals("-nodr"))
                 nodr = true;
-            else if (args[i].equals("-mac"))
+            else if (args[i].equals("-mac") || args[i].equals("-useMacLookAndFeel"))
                 useMacLAF = true;
             else if (args[i].equals("-debug_init"))
                 DEBUG.INIT = true;
             else if (args[i].equals("-debug_dr"))
                 DEBUG.DR = true;
         }
+        out("parsed args " + allArgs);
     }
     
     
@@ -536,6 +524,8 @@ public class VUE
                     continue;
                 if (w instanceof JFrame)
                     ((JFrame)w).setJMenuBar(new VueMenuBar(toolWindows));
+                //else if (w instanceof JDialog)
+                    //((JDialog)w).setJMenuBar(null);
                 //((JFrame)w).setJMenuBar(buildMenuBar(toolWindows));
                 //((JWindow)w).getRootPane().setJMenuBar(buildMenuBar(toolWindows));
             }
@@ -863,7 +853,7 @@ public class VUE
         implements FocusListener
     {
         // this may be created multiple times as a workaround for the inability
-        // to support a single JMenuBar for the while application on the Mac
+        // to support a single JMenuBar for the whole application on the Mac
         public VueMenuBar(Window[] toolWindows)
         {
             addFocusListener(this);
