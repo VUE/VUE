@@ -162,17 +162,20 @@ public class ZoomTool extends VueTool
         setZoom(zoomFactor, true, focus, false);
     }
     
-    private static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus, boolean reset)
+    private static void setZoom(double newZoomFactor, boolean adjustViewport, Point2D focus, boolean reset)
     {
         // this is much simpler as the viewer now handles adjusting for the focal point
         MapViewer viewer = VUE.getActiveViewer();
         if (focus == DONT_FOCUS) {
             focus = null;
+        } else if (focus instanceof Point) {
+            // if a Point and not just a Point2D, it was a screen coordinate from setZoomBigger/Smaller
+            focus = viewer.screenToMapPoint((Point)focus);
         } else if (adjustViewport && (focus == null || focus == CENTER_FOCUS)) {
             // If no user selected zoom focus point, zoom in to
             // towards the map location at the center of the
             // viewport.
-            focus = viewer.getVisibleCenter();
+            focus = viewer.screenToMapPoint(viewer.getVisibleCenter());
         }
         viewer.setZoomFactor(newZoomFactor, reset, focus);
     }
@@ -226,14 +229,14 @@ public class ZoomTool extends VueTool
             viewer.setMapOriginOffset(offsetX, offsetY);
             viewer.resetScrollRegion();
         } else {
-            setZoom(newZoom, false, DONT_FOCUS, true);
-            // don't adjust the scroll region, we've already got
-            // the adjustment here -- tho will need work for scrolling!
-            
-            if (viewer.inScrollPane())
-                ;
-            else
+            if (viewer.inScrollPane()) {
+                Point2D center = new Point2D.Double(mapRegion.getX() + mapRegion.getWidth() / 2,
+                                                    mapRegion.getY() + mapRegion.getHeight() / 2);
+                setZoom(newZoom, false, center, false);
+            } else {
+                setZoom(newZoom, false, DONT_FOCUS, true);
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
+            }
             
         }
     }

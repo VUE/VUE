@@ -376,31 +376,34 @@ public class MapViewer extends javax.swing.JComponent
      * zoom as it was before the zoom.  Can be null if don't want to
      * make this adjustment.  */
     
-    void setZoomFactor(double pZoomFactor, boolean pReset, Point pFocus) {
-        if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+pFocus);
+    void setZoomFactor(double pZoomFactor, boolean pReset, Point2D mapAnchor) {
+        if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
         
         //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
         //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
+        if (mapAnchor == null && !pReset) {
+            mapAnchor = screenToMapPoint(getVisibleCenter());
+            if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + out(mapAnchor));
+        } else {
+            if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + out(mapAnchor));
+        }
         
-        if (pFocus == null)
-            pFocus = getVisibleCenter();
         
         // Record the on-screen map location of focus point before
         // the zoom.
-        Point2D.Float mapAnchor = null;
+        //Point2D.Float mapAnchor = null;
         Point2D.Float offset = new Point2D.Float();
-        if (pFocus != null) {
-            mapAnchor = screenToMapPoint(pFocus);
-            if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
-            if (DEBUG.SCROLL) System.out.println("     ZOOM MAP ANCHOR: " + out(mapAnchor));
-            offset.x = (float) ((mapAnchor.getX() * pZoomFactor) - pFocus.getX());
-            offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - pFocus.getY());
+        //if (pFocus != null) {
+        if (!pReset && !inScrollPane) {
+            // TODO: this is for non-scroll map viewer: cleanup
+            //mapAnchor = screenToMapPoint(pFocus);
+            //if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
+            Point2D focus = mapToScreenPoint2D(mapAnchor);
+            offset.x = (float) ((mapAnchor.getX() * pZoomFactor) - focus.getX());
+            offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - focus.getY());
             //if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
-            if (!inScrollPane)
-                setMapOriginOffset(offset.x, offset.y, false);
+            setMapOriginOffset(offset.x, offset.y, false);
         }
-        
-        boolean zoomOut = pZoomFactor < mZoomFactor;
 
         //------------------------------------------------------------------
         // Set the new zoom factor: everything immediately "moves"
