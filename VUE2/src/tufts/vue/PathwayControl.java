@@ -58,6 +58,9 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     /** Creates a new instance of PathwayControl */
     public PathwayControl(JDialog parent, PathwayTab tab) 
     {   
+        //start of pathway control constructor, not used though
+        
+        
         this.parent = parent;
         this.tab = tab;
         pathwayList = new JComboBox();
