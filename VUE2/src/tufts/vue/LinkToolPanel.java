@@ -29,12 +29,10 @@ import tufts.vue.beans.*;
      public LinkToolPanel() {
          //new Throwable("LINKTOOLPANEL CREATED").printStackTrace();
          
-         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-
-         Color bakColor = VueResources.getColor("toolbar.background");
-         Box box = Box.createHorizontalBox();
-         setBackground( bakColor);
-         setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
+         //Color bakColor = VueResources.getColor("toolbar.background");
+         //Box box = Box.createHorizontalBox();
+         //setBackground( bakColor);
+         //setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
                 
          Color [] linkColors = VueResources.getColorArray( "linkColorValues");
          String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
@@ -46,14 +44,14 @@ import tufts.vue.beans.*;
          mLinkColorButton.setPropertyName(LWKey.StrokeColor);
          mLinkColorButton.setBorderPainted(false);
          mLinkColorButton.setMargin(ButtonInsets);
-         mLinkColorButton.setBackground( bakColor);
+         //mLinkColorButton.setBackground( bakColor);
          mLinkColorButton.addPropertyChangeListener( this);
  		
  		
          mArrowStartButton = new JToggleButton();
          mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
          mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
-         mArrowStartButton.setBackground( bakColor);
+         //mArrowStartButton.setBackground( bakColor);
          mArrowStartButton.setBorderPainted(false);
          mArrowStartButton.setMargin(ButtonInsets);
          mArrowStartButton.addActionListener( this);
@@ -70,22 +68,15 @@ import tufts.vue.beans.*;
          //box.add( mArrowStartButton);
          //box.add( mArrowEndButton);
  		
-         getBox().add(mArrowEndButton, 1);
-         getBox().add(mArrowStartButton, 1);
+         getBox().add(mArrowEndButton, 0);
+         getBox().add(mArrowStartButton, 0);
+         
+         JLabel label = new JLabel("   Link:");         
+         label.setFont(VueConstants.FONT_SMALL);
+         getBox().add(label, 0);
  	
          initDefaultState();
      }
- 	
- 	
-    protected javax.swing.JComponent getLabelComponent() {
-        javax.swing.JComponent label = new javax.swing.JLabel("   Link:");
-        label.setFont(VueConstants.FONT_SMALL);
-        return label;
-    }
-     ////////////////
-     // Methods
-     /////////////////
- 	
  	
      protected void initDefaultState() {
          LWLink link = LWLink.setDefaults(new LWLink());

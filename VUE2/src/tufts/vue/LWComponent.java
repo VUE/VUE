@@ -1758,9 +1758,9 @@ public class LWComponent
             s += " ";
         if (getLabel() != null) {
             if (isAutoSized())
-                s += " \"" + escapeWhitespace(getLabel()) + "\"";
+                s += " \"" + getDisplayLabel() + "\"";
             else
-                s += " (" + escapeWhitespace(getLabel()) + ")";
+                s += " (" + getDisplayLabel() + ")";
         }
         if (getScale() != 1f)
             s += " z" + getScale();

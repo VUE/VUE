@@ -114,6 +114,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color[] textColors = VueResources.getColorArray("textColorValues");
          String[] textColorNames = VueResources.getStringArray("textColorNames");
          mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
+         mTextColorButton.setText("");
          mTextColorButton.setBackground( bakColor);
          ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
          BlobIcon textBlob = new BlobIcon();
@@ -135,14 +136,6 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              mFontPanel.setBackground(bakColor);
          mFontPanel.setPropertyName( LWKey.Font );
  		
-         //-------------------------------------------------------
-         // Optional label for the contextual toolbar
-         //-------------------------------------------------------
-
-         JComponent c = getLabelComponent();
-         if (c != null)
-             box.add(c);
-
          //-------------------------------------------------------
          if (debug) {
              JComponent m = new JMenuBar();
@@ -199,11 +192,6 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         return box;
     }
     
-
-    protected JComponent getLabelComponent() {
-        return null;
-    }
- 	
     protected void initDefaultState() {
         //System.out.println("NodeToolPanel.initDefaultState");
         LWNode node = new LWNode("LWCToolPanel.initializer");

@@ -79,10 +79,10 @@ public class PathwayPanel extends JPanel implements ActionListener
         //-------------------------------------------------------
 
         JPanel playbackPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        JLabel playBackLabel = new JLabel("Highlight a path to playback:  ");
-        playBackLabel.setFont(defaultFont);
+        JLabel playbackLabel = new JLabel("Playback on selected path:  ");
+        playbackLabel.setFont(defaultFont);
         playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
-        playbackPanel.add(playBackLabel);
+        playbackPanel.add(playbackLabel);
         playbackPanel.add(new PlaybackToolPanel());
         
         //-------------------------------------------------------

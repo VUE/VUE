@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import tufts.vue.beans.*;
+import javax.swing.JLabel;
 
 /**
  * NodeToolPanel
@@ -9,16 +10,16 @@ import tufts.vue.beans.*;
  
 public class NodeToolPanel extends LWCToolPanel
 {
+     public NodeToolPanel() {
+         JLabel label = new JLabel("   Node:");
+         label.setFont(VueConstants.FONT_SMALL);
+         getBox().add(label, 0);
+     }
+         
     public static boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
     
-    protected javax.swing.JComponent getLabelComponent() {
-        javax.swing.JComponent label = new javax.swing.JLabel("   Node:");
-        label.setFont(VueConstants.FONT_SMALL);
-        return label;
-    }
- 	
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");
         VUE.initUI(true);
