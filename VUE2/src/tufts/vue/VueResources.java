@@ -80,18 +80,27 @@ public class VueResources
         if (icon != null) {
             Point hot = new Point();
             if (data.length > 2) {
-                try {
-                    hot.x = Integer.parseInt(data[1]);
-                    hot.y = Integer.parseInt(data[2]);
-                } catch (Exception e) {
-                    System.err.println(e);
-                }
+                hot.x = parseInt(data[0]);
+                hot.y = parseInt(data[1]);
             }
             //System.out.println("Creating cursor for " + icon);
             //System.out.println("Creating cursor " + pLookupKey + " " + Arrays.asList(data) + " with hotspot " + hot);
             cursor = Toolkit.getDefaultToolkit().createCustomCursor(icon.getImage(), hot, pLookupKey+":"+icon.toString());
         }
         return cursor;
+    }
+
+    private static int parseInt(String str) {
+        return parseInt(str, 0);
+    }
+    private static int parseInt(String str, int exceptionValue) {
+        int i = exceptionValue;
+        try {
+            i = Integer.parseInt(str);
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+        return i;
     }
         
         
@@ -231,111 +240,110 @@ public class VueResources
     }
 
 
-	/**
-	 * getFont()
-	 * This method gets a Font based on the Font string in the
-	 * the properties file.  Use formate:  
-	 *   myFont=fontname,plain|bold|italic|bolditalic,size
-	 * 
-	 *
-	 * @param pLookupKey the string lookupkey in the properties file
-	 * @return Font the Font, or null if missing
-	 **/
-	static public Font getFont( String pLookupKey) {
+    /**
+     * getFont()
+     * This method gets a Font based on the Font string in the
+     * the properties file.  Use formate:  
+     *   myFont=fontname,plain|bold|italic|bolditalic,size
+     * 
+     *
+     * @param pLookupKey the string lookupkey in the properties file
+     * @return Font the Font, or null if missing
+     **/
+    static public Font getFont( String pLookupKey) {
 		
-		Font font = null;
+        Font font = null;
 		
-		try {
-			String [] strs  = getStringArray( pLookupKey);
-			if( (strs != null)  && (strs.length == 3) ) {
-				String fontName = strs[0];
-				int style = 0;
-				if( strs[1].equals("bold") ) {
-					style = Font.BOLD;
-					}
-				else
-				if( strs[1].equals("italic") ) {
-					style = Font.ITALIC;
-				}
-				else
-				if( strs[1].equals("bolditalic") ) {
-					style = Font.BOLD + Font. ITALIC;
-				}
-				else {
-					style = Font.PLAIN;
-				}
+        try {
+            String [] strs  = getStringArray( pLookupKey);
+            if( (strs != null)  && (strs.length == 3) ) {
+                String fontName = strs[0];
+                int style = 0;
+                if( strs[1].equals("bold") ) {
+                    style = Font.BOLD;
+                }
+                else
+                    if( strs[1].equals("italic") ) {
+                        style = Font.ITALIC;
+                    }
+                    else
+                        if( strs[1].equals("bolditalic") ) {
+                            style = Font.BOLD + Font. ITALIC;
+                        }
+                        else {
+                            style = Font.PLAIN;
+                        }
 				
-				Integer size = new Integer( strs[2] );
-				font = new Font( fontName, style, size.intValue()  );
-				}
-		} catch (Exception e) {
-			alert("Missing or malformed font with key: "+pLookupKey);
-		}
-		return font;
-	}
+                Integer size = new Integer( strs[2] );
+                font = new Font( fontName, style, size.intValue()  );
+            }
+        } catch (Exception e) {
+            alert("Missing or malformed font with key: "+pLookupKey);
+        }
+        return font;
+    }
 
 
-	/**
-	 * getColor()
-	 * This method gets a color based on the color string in the
-	 * the properties file.  Use formate:  myColor=rgbHex
-	 * grayColor=4F4F4F
-	 * blue=FF
-	 *
-	 * @param pLookupKey the string lookupkey in the properties file
-	 * @return Color the color, or null if missing
-	 **/
-	static public Color getColor( String pLookupKey) {
+    /**
+     * getColor()
+     * This method gets a color based on the color string in the
+     * the properties file.  Use formate:  myColor=rgbHex
+     * grayColor=4F4F4F
+     * blue=FF
+     *
+     * @param pLookupKey the string lookupkey in the properties file
+     * @return Color the color, or null if missing
+     **/
+    static public Color getColor( String pLookupKey) {
 		
-		Color retValue = null;
+        Color retValue = null;
 		
-		try {
-			String str = sResourceBundle.getString( pLookupKey);
-			if( str != null) {
-				Integer intVal =  Integer.valueOf(str, 16);
+        try {
+            String str = sResourceBundle.getString( pLookupKey);
+            if( str != null) {
+                Integer intVal =  Integer.valueOf(str, 16);
 				 
-				retValue = new Color( intVal.intValue() );
-				}
-		} catch (Exception e) {
-			alert("Missing Color resource: "+pLookupKey);
-		}
-		return retValue;
-	}
+                retValue = new Color( intVal.intValue() );
+            }
+        } catch (Exception e) {
+            alert("Missing Color resource: "+pLookupKey);
+        }
+        return retValue;
+    }
 
 
-	/**
-	 * getColorArray()
-	 * This method gets a color based on the color string in the
-	 * the properties file.  Use formate:  myColor=rgbHex
-	 * grayColor=4F4F4F,BBCCDD,FFAAFF
-	 * blue=FF
-	 *
-	 * @param pLookupKey the string lookupkey in the properties file
-	 * @return Color[]  the colors, or null if missing
-	 **/
-	static public Color [] getColorArray( String pLookupKey) {
+    /**
+     * getColorArray()
+     * This method gets a color based on the color string in the
+     * the properties file.  Use formate:  myColor=rgbHex
+     * grayColor=4F4F4F,BBCCDD,FFAAFF
+     * blue=FF
+     *
+     * @param pLookupKey the string lookupkey in the properties file
+     * @return Color[]  the colors, or null if missing
+     **/
+    static public Color [] getColorArray( String pLookupKey) {
 		
-		Color [] retValue = null;
+        Color [] retValue = null;
 		
-		try {
-			String []  strs = getStringArray( pLookupKey);
-			if( strs != null) {
-				int len = strs.length;
-				retValue = new Color [ len];
+        try {
+            String []  strs = getStringArray( pLookupKey);
+            if( strs != null) {
+                int len = strs.length;
+                retValue = new Color [ len];
 				
-				for( int i=0; i< len; i++) {
-					Integer intVal =  Integer.valueOf(strs[i], 16);
+                for( int i=0; i< len; i++) {
+                    Integer intVal =  Integer.valueOf(strs[i], 16);
 				 
-					retValue[i] = new Color( intVal.intValue() );
-					}
-				}
-		} catch (Exception e) {
-			alert("Missing Color resource: "+pLookupKey);
-			retValue = null;
-		}
-		return retValue;
-	}
-
+                    retValue[i] = new Color( intVal.intValue() );
+                }
+            }
+        } catch (Exception e) {
+            alert("Missing Color resource: "+pLookupKey);
+            retValue = null;
+        }
+        return retValue;
+    }
 
 
     /**
