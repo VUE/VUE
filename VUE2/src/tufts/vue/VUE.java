@@ -345,11 +345,13 @@ public class VUE
         
         helpMenu.add(new JMenuItem("Help"));
         
+        ImageConversion imageAction = new ImageConversion("image");
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);
+        toolBar.add(imageAction);
         toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);

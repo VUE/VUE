@@ -1,4 +1,4 @@
- package tufts.vue;
+package tufts.vue;
 
 import java.awt.*;
 import java.awt.event.*;
