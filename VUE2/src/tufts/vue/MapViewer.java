@@ -1282,13 +1282,6 @@ public class MapViewer extends javax.swing.JComponent
         final String key = e.getWhat();
         //if (key == LWKey.HierarchyChanging) // ignore these as always paired with something else (EXCEPT during undo!)
         //    return;
-        if (key == LWKey.Added) // depend on childAdded 
-            // || e.getWhat.equals("childRemoved"))
-            //if (key.startsWith("hier.child")) {
-            // todo: deleting even will set up for repainting that node,
-            // but the childRemoved event's component object is the whole map --
-            // thus we'll repaint everything on every delete (or childAdded)
-            return;
 
         adjustScrollRegion();
         // TODO: OPTIMIZE -- we get tons of location events

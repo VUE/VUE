@@ -21,10 +21,10 @@ public interface LWKey {
     public String Font = "font";
 
     public String Created = "created"; // any LWComponets creation event
-    public String Added = "added"; // a child components add-notify
+    //public String Added = "added"; // a child components add-notify
     //public String ChildAdded = "childAdded";// the parent component's add-notify
     public String ChildrenAdded = "hier.childrenAdded";// the parent component's group add-notify
-    public String ChildRemoved = "hier.childRemoved";// the parent component's remove-notify
+    //public String ChildRemoved = "hier.childRemoved";// the parent component's remove-notify
     public String ChildrenRemoved = "hier.childrenRemoved";// the parent component's group remove-notify
     public String HierarchyChanging = "hier.changing"; // pre-change event for any hierarchy change
 

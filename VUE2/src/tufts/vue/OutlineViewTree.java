@@ -103,7 +103,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             setModel(model);
             
             currentContainer.addLWCListener(this, LWKey.Label);
-            currentContainer.addLWCListener(hierarchyModel);
+            currentContainer.addLWCListener(hierarchyModel, new Object[] { LWKey.ChildrenAdded, LWKey.ChildrenRemoved } );
         }
         
         else
