@@ -72,6 +72,7 @@ public class MapPanner extends javax.swing.JPanel
     
     private void setViewer(MapViewer mapViewer)
     {
+        if (DEBUG.FOCUS) out("setViewer " + mapViewer);
         if (this.mapViewer != mapViewer) {
             this.mapViewer = mapViewer;
             if (mapViewer != null)
@@ -81,6 +82,7 @@ public class MapPanner extends javax.swing.JPanel
     }
 
     private void setMap(LWMap map) {
+        if (DEBUG.FOCUS) out("setMap " + map);
         if (this.map != map) {
             if (this.map != null)
                 this.map.removeLWCListener(this);
@@ -183,8 +185,10 @@ public class MapPanner extends javax.swing.JPanel
         Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
         Rectangle   viewerBounds = new Rectangle(mapViewer.getVisibleWidth()-1, mapViewer.getVisibleHeight()-1);
 
-        if (viewerBounds.isEmpty())
+        if (viewerBounds.isEmpty()) {
+            out("nothing to paint");
             return;
+        }
         
         //Rectangle2D.Float mapViewerRect = (Rectangle2D.Float) mapViewer.screenToMapRect(viewerBounds);
         Rectangle2D mapViewerRect = mapViewer.getVisibleMapBounds();
@@ -260,7 +264,7 @@ public class MapPanner extends javax.swing.JPanel
     public void mouseMoved(MouseEvent e) {}
 
     private void out(Object o) {
-        System.out.println(this + " " + (o==null?"null":o.toString()));
+        System.out.println("\t*** " + this + " " + (o==null?"null":o.toString()));
     }
     
     public String toString() {

@@ -65,6 +65,7 @@ public class LWMap extends LWContainer
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
+        //setEventsSuspended();
     	markDate();
     }
 
@@ -304,6 +305,7 @@ public class LWMap extends LWContainer
             LWComponent c = (LWComponent) i.next();
             c.layout();
         }
+        //setEventsResumed();
         markAsSaved();
     }
     
@@ -345,7 +347,7 @@ public class LWMap extends LWContainer
         if (userOriginX != x || userOriginY != y){
             this.userOriginX = x;
             this.userOriginY = y;
-            mChanges++;
+            markChange("userOrigin");
         }
     }
     /** for persistance */
@@ -466,14 +468,19 @@ public class LWMap extends LWContainer
             // happen do to rollover -- any time a scale happens
             // otherwise will be in conjunction with a reparenting
             // event, and so we'll detect the change that way.
-            if (DEBUG.EVENTS && mChanges == 0) {
-                out(this + " First Modification Happening on " + e);
-                if (DEBUG.META)
-                    new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
-            }
-            mChanges++;
+            markChange(e);
         }
         super.notifyLWCListeners(e);
+    }
+
+    private void markChange(Object e) {
+        if (mChanges == 0) {
+            if (DEBUG.EVENTS)
+                out(this + " First Modification Happening on " + e);
+            if (DEBUG.INIT||(DEBUG.EVENTS&&DEBUG.META))
+                new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
+        }
+        mChanges++;
     }
     
     public java.awt.geom.Rectangle2D getBounds()

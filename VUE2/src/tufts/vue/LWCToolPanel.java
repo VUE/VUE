@@ -7,6 +7,7 @@ import java.util.*;
 import java.io.*;
 import java.beans.*;
 import javax.swing.*;
+import javax.swing.border.*;
 
 import tufts.vue.beans.*;
 
@@ -38,18 +39,19 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
 
     private Box box;
     
-    public LWCToolPanel() {
-        //System.out.println("*** CONSTRUCTED " + this);
-        //new Throwable().printStackTrace();
-         //super(BoxLayout.X_AXIS);
+    public LWCToolPanel()
+    {
+        out("CONSTRUCTED.");
+        if (DEBUG.INIT&&DEBUG.META) new Throwable(toString()).printStackTrace();
+        
          setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
          // squeeze everything to keep the font editor panel from going right
          // up against the edge -- any more than 2 tho and we grow bigger than
          // the VueToolPanel which we don't want to do because the whole frame resizes.
          if (debug)
-             setBorder(new javax.swing.border.LineBorder(Color.pink, 2));
+             setBorder(new LineBorder(Color.pink, 2));
          else
-             setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
+             setBorder(new EmptyBorder(2,1,2,1));//t,l,b,r
 
          Color bakColor = VueResources.getColor("toolbar.background");
          if (debug) bakColor = Color.red;
@@ -289,6 +291,9 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  	
     }
 
+    private void out(Object o) {
+        System.out.println(this + " " + (o==null?"null":o.toString()));
+    }
     public String toString() {
         return getClass().getName();
     }

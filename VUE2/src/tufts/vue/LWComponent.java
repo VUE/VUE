@@ -1427,10 +1427,12 @@ public class LWComponent
                                    + "\n\tevent=" + e
                                    + "\n\tlisteners=" + listeners);
                 if (DEBUG.PARENTING) new Throwable().printStackTrace();
-            } else if (DEBUG.META && (DEBUG.EVENTS || DEBUG.PARENTING) && !(this instanceof LWGroup))
+            }
+            /*else if (DEBUG.META && (DEBUG.EVENTS || DEBUG.PARENTING) && !(this instanceof LWGroup))
                 // dragged selection group is a null parented object, so we're
                 // ignoring all groups for purposes of this diagnostic for now.
                 System.out.println(e + " (FYI: orphan node event)");
+            */
         }
     }
 
@@ -1785,10 +1787,14 @@ public class LWComponent
             +  " " + width + "x" + height;
     }
 
+    static protected void out(Object o) {
+        System.out.println((o==null?"null":o.toString()));
+    }
+/*
     static protected void out(String s) {
         System.out.println(s);
     }
-
+*/
     public String toString()
     {
         String cname = getClass().getName();

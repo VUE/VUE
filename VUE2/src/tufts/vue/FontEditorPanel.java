@@ -183,11 +183,10 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         this.initColors( VueResources.getColor("toolbar.background") );
     }
 
-    public void X_addNotify()
+    public void addNotify()
     {
         super.addNotify();
-        // this still doesn't shrink the button size: must use negative insets!
-        mBoldButton.setSize(new Dimension(sBoldOn.getIconWidth(), sBoldOn.getIconHeight()));
+        System.out.println(this + " adding as parent of " + getParent());
     }
 
     // as this can sometimes take a while, we can call this manually

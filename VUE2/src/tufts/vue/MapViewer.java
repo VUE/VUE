@@ -189,7 +189,7 @@ public class MapViewer extends javax.swing.JComponent
     public MapViewer(LWMap map) {
         //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
-        //setFocusable(false); // not till setVsible [only for no scroll-panes]
+        //setFocusable(false); // not till setVsible 
         
         setLayout(null);
         addKeyListener(inputHandler);
@@ -4210,10 +4210,11 @@ public class MapViewer extends javax.swing.JComponent
                 }
                 
                 if (oldActiveMap != this.map) {
-                    if (DEBUG.FOCUS) System.out.println("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
+                    if (DEBUG.FOCUS) out("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
                     resizeControl.active = false;
                     // clear and notify since the selected map changed.
-                    VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
+                    VUE.ModelSelection.clear();
+                    //VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
                 }
             }
         }
@@ -4469,10 +4470,10 @@ public class MapViewer extends javax.swing.JComponent
     // debugging stuff
     //-------------------------------------------------------
     
-    private void out(String s) {
-        //if (VUE.getActiveViewer() == this || DEBUG.META)
-            System.out.println(this + " " + s);
+    private void out(Object o) {
+        System.out.println(this + " " + (o==null?"null":o.toString()));
     }
+
     private String out(Point2D p) { return (float)p.getX() + " , " + (float)p.getY(); }
     private String out(Rectangle2D r) { return ""
             + (float)r.getX() + " , " + (float)r.getY()
