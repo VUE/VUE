@@ -385,7 +385,7 @@ public class VUE
     
     public static void main(String[] args) {
         System.out.println("VUE:main");
-        parseArgs(args);
+        System.out.println("VUE: fully built: " + tufts.vue.Version.BuildDay);
 
         // initUI installs the VueTheme (unless mac look), which must be done
         // before any other GUI code (including the SlpashScreen)
