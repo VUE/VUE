@@ -417,10 +417,6 @@ implements VueConstants {
             displayMap(map2);
         }
         
-        // DEMO FIX:
-        // no lwinspector in left
-        //toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
-        
         JSplitPane splitPane = new JSplitPane();
         //splitPane.setResizeWeight(0.40); // 25% space to the left component
         splitPane.setContinuousLayout(false);
@@ -452,8 +448,10 @@ implements VueConstants {
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner());
         
-        ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
-        inspectorTool.addTool(new LWCInspector());
+        if (nodr) {
+            ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
+            inspectorTool.addTool(new LWCInspector());
+        }
         
         ToolWindow drBrowserTool  = new ToolWindow("DR Browser", frame);
         if (drBrowser != null)

@@ -181,7 +181,8 @@ public class PathwayTableModel extends DefaultTableModel
                 }
             }
         }
-        throw new IllegalStateException(this + " failed to find any element at row " + pRow);
+        return null;
+        //throw new IllegalStateException(this + " failed to find any element at row " + pRow);
         
         /* The simple but slow version of getElement:
         return (LWComponent) getList().get(pRow);

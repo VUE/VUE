@@ -272,6 +272,7 @@ public class LWPathway extends LWContainer
                 c.removeLWCListener(this);
             }
             disposeElementProperties(c);  // only remove property if last time appears in list.
+            // todo undo: don't dispose at all for undo or put undo code in the dispose (latter may be more sound)
         }
 
         // If what we just deleted was the current item, the currentIndex
