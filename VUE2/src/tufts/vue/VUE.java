@@ -299,7 +299,32 @@ public class VUE
         toolbarWindow.pack();
         ModelSelection.addListener(tbc);
         frame.getContentPane().add( tbc.getToolbar(), BorderLayout.NORTH);
-
+		
+		// Map Inspector
+		
+		// get the proper scree/main frame size
+		ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
+		MapInspectorPanel mip = new MapInspectorPanel();
+		ModelSelection.addListener( mip);
+		mapInspector.addTool( mip );
+		
+		
+			
+		ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+		ObjectInspectorPanel oip = new ObjectInspectorPanel();
+		ModelSelection.addListener( oip);
+		objectInspector.addTool( oip);
+		
+		
+		if( false) {
+			JFrame testFrame = new JFrame("Debug");
+			testFrame.setSize( 300,300);
+			//testFrame.getContentPane().add( new NodeInspectorPanel() );
+			testFrame.getContentPane().add( oip);
+			testFrame.show();
+		}
+		
+		
         //addtion by the power team
         pathwayInspector = new LWPathwayInspector(frame);
         control = new PathwayControl(frame);
@@ -314,6 +339,8 @@ public class VUE
                                    pathwayInspector.getDisplayAction(),
                                    control.getDisplayAction(), 
                                    hierarchyTree.getDisplayAction(),
+                                   mapInspector.getDisplayAction(),
+                                   objectInspector.getDisplayAction(),
                                    outlineViewTree.getDisplayAction()
                                  };
         
@@ -330,6 +357,13 @@ public class VUE
         int x = d.width/2 - frame.getWidth()/2;
         int y = d.height/2 - frame.getHeight()/2;
         frame.setLocation(x, y);
+        
+        // position inspectors pased on frame location
+        int inspectorx = x + frame.getWidth() - mapInspector.getWidth();
+        mapInspector.setLocation( inspectorx, y);
+        objectInspector.setLocation( inspectorx, y + mapInspector.getHeight() );
+        
+        
         
         frame.show();
         System.out.println("after showing frame...");
