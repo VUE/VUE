@@ -456,6 +456,8 @@
 	</class>
  <class name="tufts.vue.FavoritesDataSource" extends="tufts.vue.VueDataSource">
 	</class>
+<class name="tufts.vue.OsidDataSource" extends="tufts.vue.VueDataSource">
+	</class>
 <class name="tufts.vue.RemoteFileDataSource" extends="tufts.vue.VueDataSource">
       <field name = "UserName" type = "string">
           <bind-xml name = "UserName" node = "element" />
