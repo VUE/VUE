@@ -45,15 +45,10 @@ import java.awt.geom.Rectangle2D;
 
 public class TextRow
 {
-    // todo: cache the bounds more consistently
-    private String text;
-    private Graphics2D g2d;
     private TextLayout row;
-
-    private static final BasicStroke BorderStroke = new BasicStroke(0.1f);
-
     private Rectangle2D.Float bounds;
 
+    public final String text;
     public final float width;
     public final float height;
     
@@ -69,7 +64,6 @@ public class TextRow
     public TextRow(String text, Graphics g)
     {
         this(text, g.getFont(), ((Graphics2D)g).getFontRenderContext());
-        this.g2d = (Graphics2D) g;
     }
 
     public TextRow(String text, Font font)
@@ -78,15 +72,8 @@ public class TextRow
         this(text, font, new FontRenderContext(null, true, true));
     }
     
-    public float getWidth() { return width; }
-    public float getHeight() { return height; }
-
-    public void draw(float xoff, float yoff)
-    {
-        draw(this.g2d, xoff, yoff);
-    }
         
-    private Rectangle2D.Float cachedBounds;
+    private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
 
     public void draw(Graphics2D g2d, float xoff, float yoff)
     {
@@ -94,20 +81,16 @@ public class TextRow
         // and differ in how descents are factored into bounds offsets
 
         if (VueUtil.isMacPlatform()) {
-            if (cachedBounds == null) {
-                // for some reason, getting the bounds is only accurate the FIRST
-                // time we ask for it on mac JVM 1.4.2_03
-                cachedBounds = (Rectangle2D.Float) row.getBounds();
-            }
-            final Rectangle2D.Float tb = (Rectangle2D.Float) cachedBounds.clone();
             //System.out.println("TextRow[" + text + "]@"+tb);
-            yoff += tb.height;
-            yoff += tb.y;
-            xoff += tb.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
+            
+            yoff += this.height;
+            yoff += this.bounds.y;
+            xoff += this.bounds.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
+            
             row.draw(g2d, xoff, yoff);
-
             
             if (DEBUG.BOXES) {
+                final Rectangle2D.Float tb = (Rectangle2D.Float) this.bounds.clone();
                 // draw a red bounding box for testing
                 tb.x += xoff;
                 // tb.y seems to default at to -1, and if
@@ -122,27 +105,31 @@ public class TextRow
                 tb.y += yoff;
                 tb.y -= tb.height;
                 g2d.setStroke(BorderStroke);
-                g2d.setColor(Color.red);
+                g2d.setColor(Color.green);
                 g2d.draw(tb);
             }
                 
         } else {
-            final Rectangle2D.Float tb = (Rectangle2D.Float) row.getBounds();
             // This is cleaner, thus I'm assuming the PC
             // implementation is also cleaner, and worthy of being
             // the default case.
                 
-            row.draw(g2d, -tb.x + xoff, -tb.y + yoff);
+            row.draw(g2d, -bounds.x + xoff, -bounds.y + yoff);
             //baseline = yoff + tb.height;
 
             if (DEBUG.BOXES) {
+                final Rectangle2D.Float tb = (Rectangle2D.Float) this.bounds.clone();
                 // draw a red bounding box for testing
                 tb.x = xoff;
                 tb.y = yoff;
                 g2d.setStroke(BorderStroke);
-                g2d.setColor(Color.red);
+                g2d.setColor(Color.green);
                 g2d.draw(tb);
             }
         }
+    }
+
+    public String toString() {
+        return "TextRow[" + text + " " + bounds + "]";
     }
 }

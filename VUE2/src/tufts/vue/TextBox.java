@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.TextRow;
+
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -526,6 +528,14 @@ class TextBox extends JTextPane
         // to the map -- tho hey, LWNode could force integer boundry
         // when setting the translation before painting us.
         
+        if (DEBUG.BOXES) {
+            if (lwc.getLabel().indexOf('\n') < 0) {
+                TextRow r = new TextRow(lwc.getLabel(), lwc.getFont(), dc.g.getFontRenderContext());
+                dc.g.setColor(Color.lightGray);
+                r.draw(dc.g, 0, 0);
+            }
+        }
+
         //super.paintBorder(g);
         super.paintComponent(dc.g);
         //super.paint(g);

@@ -105,9 +105,13 @@ public class LineIcon extends BlobIcon
                 g.setColor(getColor());
             int weight = (int) getWeight();
             if (mDiagonal) {
-                //g.setStroke
                 g.drawLine(x, getIconHeight(), getIconWidth(), y);
             } else {
+                if (weight < 1 && getWeight() > 0) {
+                    // todo: hack for stroke between 0 & 1
+                    g.setColor(Color.gray);
+                    weight = 1;
+                }
                 int y1 = y + (getIconHeight() - weight) / 2;
                 g.fillRect(x, y1, getIconWidth(), weight );
             }

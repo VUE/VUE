@@ -60,6 +60,7 @@ public class StrokeMenuButton extends MenuButton
         if (getButtonIcon() instanceof LineIcon) {
             LineIcon icon = (LineIcon) getButtonIcon();
             icon.setWeight(mStroke);
+            repaint();
         }
 
         if(false)setText(((int)mStroke) + "px");
