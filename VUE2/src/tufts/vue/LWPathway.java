@@ -26,7 +26,7 @@ import java.awt.geom.Ellipse2D;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version  February 2004
+ * @version  March 2004
  */
 
 public class LWPathway extends LWContainer
@@ -294,7 +294,7 @@ public class LWPathway extends LWContainer
             if (contained) {
                 c.removePathwayRef(this);
                 c.removeLWCListener(this);       
-                disposeElementProperties(c);
+                //disposeElementProperties(c);
                 removed.add(c);
             }
         }
@@ -536,7 +536,7 @@ public class LWPathway extends LWContainer
             if (c.getID().equals(ID))
                 return c;
         }
-        new Throwable(this + " couldn't find ID [" + ID + "]").printStackTrace();
+        System.err.println(this + " couldn't find ID [" + ID + "] in " + children);
         return null;
     }
     
@@ -552,8 +552,13 @@ public class LWPathway extends LWContainer
         }
         for (Iterator i = this.elementPropertyList.iterator(); i.hasNext();) {
             LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
-            pep.setComponent(findElementByID(pep.getElementID()));
+            LWComponent c = findElementByID(pep.getElementID());
+            if (c == null) // shouldn't normally happen, but just in case
+                i.remove();
+            else
+                pep.setComponent(c);
         }
+        if (DEBUG.PATHWAY) System.out.println(this + " restored. elementPropertyList= " + elementPropertyList);
         mXMLRestoreUnderway = false;
     }
 
@@ -579,6 +584,7 @@ public class LWPathway extends LWContainer
     /** for persistance: XML save/restore only */
     public java.util.List getElementPropertyList()
     {
+        //if (DEBUG.PATHWAY) System.out.println(this + " getElementPropertyList0 " + elementPropertyList);
         if (!mXMLRestoreUnderway) {
             // cull any entries for components that have been deleted
             // or are no longer in the pathway.
@@ -589,6 +595,7 @@ public class LWPathway extends LWContainer
             }
         }
         
+        //if (DEBUG.PATHWAY) System.out.println(this + " getElementPropertyList1 " + elementPropertyList);
         return elementPropertyList;
     }
     
@@ -596,8 +603,13 @@ public class LWPathway extends LWContainer
         if (c == null) return null;
         for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
             LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
-            if (pep.getComponent() == c)
-                return pep;
+            if (mXMLRestoreUnderway) {
+                if (pep.getElementID().equals(c.getID()))
+                    return pep;
+            } else {
+                if (pep.getComponent() == c)
+                    return pep;
+            }
         }
         return null;
         //return new LWPathwayElementProperty(c);

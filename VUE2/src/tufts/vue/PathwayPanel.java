@@ -533,6 +533,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     private boolean mTrailingNoteSave;
     private void updateTextAreas()
     {
+        if (DEBUG.PATHWAY) System.out.println(this + " updateTextAreas, skipping="+mTrailingNoteSave);
         if (mTrailingNoteSave)
             return;
         try {

@@ -7,8 +7,9 @@
 package tufts.vue;
 
 /**
- *
  * @author  Daisuke Fujiwara
+ * todo: this should really be an inner class to LWPathway, but castor doesn't
+ * support mapping to inner classes.
  */
 public class LWPathwayElementProperty 
 {
@@ -71,6 +72,6 @@ public class LWPathwayElementProperty
 
     public String toString()
     {
-        return "LWPathwayElementProperty[cid=" + getElementID() + " note="+notes + "]";
+        return "PEP[id=" + getElementID() + " notes="+notes + "]";
     }
 }

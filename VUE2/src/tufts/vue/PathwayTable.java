@@ -167,49 +167,33 @@ public class PathwayTable extends JTable
     private PathwayTableModel getTableModel() {
         return (PathwayTableModel) getModel();
     }
-    
+
     private class ColorEditor extends AbstractCellEditor
                          implements TableCellEditor,
-			            ActionListener {
+			            ActionListener
+    {
         Color currentColor;
         JButton button;
-        JColorChooser colorChooser;
-        JDialog dialog;
-        protected static final String EDIT = "edit";
 
         public ColorEditor() {
             button = new ColorRenderer();
-            button.setActionCommand(EDIT);
             button.addActionListener(this);
-            //button.setBorderPainted(false);
-            button.setBorder(BorderFactory.createMatteBorder(3,3,3,3,
-                                                  Color.white));
-            colorChooser = new JColorChooser();
-            dialog = JColorChooser.createDialog(button,
-                                            "Pathway Color Selection",
-                                            true,  
-                                            colorChooser,
-                                            this,  
-                                            null);
+            button.setBorder(null);
+            //button.setBorder(new LineBorder(bgColor, 3));
         }
 
         public void actionPerformed(ActionEvent e) {
-            if (!VUE.getActivePathway().isLocked())
-            {
-                if (EDIT.equals(e.getActionCommand())) {
-                    colorChooser.setColor(currentColor);
-                    dialog.setVisible(true);
-                    fireEditingStopped();
-                } else { 
-                    currentColor = colorChooser.getColor();
-                    if (currentColor != null){
-                        int row = getSelectedRow();
-                        if (row == -1)
-                            row = lastSelectedRow;
-                        if (row != -1)
-                            getTableModel().setValueAt(currentColor, row, 1);
-                    }               
-                }
+            if (VUE.getActivePathway().isLocked())
+                return;
+            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor);
+            fireEditingStopped();
+            if (c != null) {
+                // why the row checking here?
+                int row = getSelectedRow();
+                if (row == -1)
+                    row = lastSelectedRow;
+                if (row != -1)
+                    getTableModel().setValueAt(currentColor = c, row, 1);
             }
         }
 
@@ -228,41 +212,21 @@ public class PathwayTable extends JTable
         }
     }
     
-    private class ColorRenderer extends JButton implements TableCellRenderer{
-        Border unselectedBorder = null;
-        Border selectedBorder = null;
-        boolean isBordered = true;
-        
-        public ColorRenderer(){
+    private class ColorRenderer extends JButton implements TableCellRenderer {
+        public ColorRenderer() {
             setOpaque(true);
+            setBorder(new LineBorder(bgColor, 3)); // fyi: empty border no good: won't paint over
         }
-        
         public java.awt.Component getTableCellRendererComponent(
                                     JTable table, Object color, 
                                     boolean isSelected, boolean hasFocus, 
                                     int row, int col)
         {
-            Color newColor = (Color)color;
-            //this.setBorder(normalBorder);
-            selectedBorder = BorderFactory.createMatteBorder(3,3,3,3,
-                                                  bgColor);
-                    
-            setBorder(selectedBorder);
-            this.setBackground(bgColor);
-            
-            Object path = getTableModel().getElement(row);
-            if (path instanceof LWPathway){
-                setBackground(newColor);
-            } else {
-                setBackground(bgColor);
-                Border compBorder = BorderFactory.createMatteBorder(3,3,3,3, bgColor);
-                setBorder(compBorder);
-                //this.setBorder(selectedBorder);
-            }
-            
-            JPanel con = new JPanel(new BorderLayout(0,0));
-            con.add(this, BorderLayout.CENTER);
-            return con;
+            if (getTableModel().getElement(row) instanceof LWPathway) {
+                setBackground((Color) color);
+                return this;
+            } else
+                return null;
         }  
     }
     

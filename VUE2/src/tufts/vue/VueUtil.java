@@ -4,9 +4,13 @@ import java.util.*;
 import java.io.File;
 import java.awt.Color;
 import java.awt.Shape;
+import java.awt.Dialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.FlatteningPathIterator;
+import javax.swing.JColorChooser;
     
 
 public class VueUtil
@@ -474,6 +478,34 @@ public class VueUtil
         VueUtil.centerOnScreen(frame);
         frame.show();
     }
+
+    private static JColorChooser colorChooser;
+    private static Dialog colorChooserDialog;
+    private static boolean colorChosen;
+    public static Color runColorChooser(String title, Color c)
+    {
+        if (colorChooserDialog == null) {
+            colorChooser = new JColorChooser();
+            //colorChooser.setDragEnabled(true);
+            colorChooserDialog =
+                JColorChooser.createDialog(null,
+                                           "Color Chooser",
+                                           true,  
+                                           colorChooser,
+                                           new ActionListener() { public void actionPerformed(ActionEvent e)
+                                               { colorChosen = true; } },
+                                           null);
+        }
+        if (c != null)
+            colorChooser.setColor(c);
+        if (title != null)
+            colorChooserDialog.setTitle(title);
+        // blocks until a color chosen or cancled, then automatically hides:
+        colorChosen = false;
+        colorChooserDialog.show(); 
+        return colorChosen ? colorChooser.getColor() : null;
+    }
+    
 
     static final double sFactor = 0.9;
     public static Color darkerColor(Color c) {

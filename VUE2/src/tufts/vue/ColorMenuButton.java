@@ -2,7 +2,6 @@ package tufts.vue;
 
 import java.awt.Color;
 import javax.swing.Icon;
-import javax.swing.JColorChooser;
 
 /**
  * ColorMenuButton
@@ -90,23 +89,11 @@ public class ColorMenuButton extends MenuButton
         return new BlobIcon(16,16, (Color) value);
     }
 
-    //private JColorChooser chooser;
     protected Object runCustomChooser() {
-        /*
-        if (chooser == null) {
-        // need to create as dialog, and may even have to set up own
-        // listeners to get to work the way we want (we will: that
-        // way can actually tweak color on map as they play with it
-        // in the chooser)
-            chooser = new JColorChooser();
-            chooser.setDragEnabled(true);
-        }
-        chooser.setColor(getColor());
-        chooser.show();
-        */
-        // todo: cache this, it's slow to pop-up, and this is also probably why
-        // the custom colors are always lost.
-        return JColorChooser.showDialog(this, "Select Custom Color", getColor());
+        return VueUtil.runColorChooser("Select Custom Color", getColor());
+        // todo: set up own listeners for color change in chooser
+        // --that way way can actually tweak color on map as they play
+        // with it in the chooser
     }
 
     ColorMenuButton() { this(sTestColors,  sTestNames, true); }
