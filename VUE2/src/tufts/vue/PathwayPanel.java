@@ -705,10 +705,10 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     /*** Pathway Control methods ***/
     /**Sets the pathway manager to the given pathway manager*/
     
-    private void setPathwayManager(LWPathwayManager manager){
+   /** private void setPathwayManager(LWPathwayManager manager){
         //PATH TODO JUNK: getTableModel().setPathwayManager(manager);
     }
-
+**/
     /*
     private void setPathwayManager()
     {

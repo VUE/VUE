@@ -260,14 +260,15 @@ public class Publisher extends JDialog implements ActionListener {
            LWComponent component = (LWComponent) i.next();
            if(component.hasResource()){
                Resource resource = component.getResource();
-               if(resource.getType() == Resource.URL) {
+            //   if(resource.getType() == Resource.URL) {
                    try {
                         System.out.println("Resource = "+resource.getSpec());
-                        File file = new File(new URL(resource.getSpec()).getFile());
+                       // File file = new File(new URL(resource.getSpec()).getFile());
+                        File file = new File(resource.getSpec());
                         if(file.isFile()) {
                             Vector row = new Vector();
                             row.add(new Boolean(true));
-                            row.add(resource.getSpec());
+                            row.add(resource);
                             row.add(new Long(file.length()));
                             row.add("Ready");
                             vector.add(row);
@@ -275,7 +276,7 @@ public class Publisher extends JDialog implements ActionListener {
                    }catch (Exception ex) {
                        System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
                    }
-               }
+              // }
            }
            if(component instanceof LWContainer) {
                 setLocalResourceVector(vector,(LWContainer)component);
@@ -317,6 +318,7 @@ public class Publisher extends JDialog implements ActionListener {
                 Vector vector = (Vector)i.next();
                 Resource r = (Resource)(vector.elementAt(1));
                 Boolean b = (Boolean)(vector.elementAt(0));
+               // File file = new File((String)vector.elementAt(1));
                 File file = new File(r.getSpec());
                 if(file.isFile() && b.booleanValue()) {
                     resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
@@ -328,6 +330,7 @@ public class Publisher extends JDialog implements ActionListener {
                 }
                 publishMap();
             }
+            
             System.out.println("Publish All");
         } catch (Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
@@ -359,8 +362,12 @@ public class Publisher extends JDialog implements ActionListener {
         Iterator i = resourceVector.iterator();       
         while(i.hasNext()) {
             Vector vector = (Vector)i.next();
+            Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File((String)vector.elementAt(1));
+            File file = new File(r.getSpec());
+               
+           
+            //File file = new File((String)vector.elementAt(1));
             if(file.isFile() && b.booleanValue()) {
                  System.out.println("FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
                  resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);

@@ -36,9 +36,12 @@ public class MapResource implements Resource {
     private String [] mPropertyNames = null;
 
     /** an optional resource title */
-    private String mTitle;
+    protected String mTitle;
 
     private URL url = null;
+    
+    // for castor to save and restore
+    protected Vector propertyList = null;
     
     public MapResource() {
         this.type =  Resource.NONE;
@@ -142,8 +145,7 @@ public class MapResource implements Resource {
         this.size = size;
     }
 
-    public void setTitle(String title)
-    {
+    public void setTitle(String title) {
         mTitle = title;
     }
 
@@ -343,6 +345,7 @@ public class MapResource implements Resource {
      }
      
      public void setProperties(Properties pProperties) {
+         System.out.println("SET PROPERTIES");
          this.mProperties = pProperties;
      }
      
@@ -378,5 +381,32 @@ public class MapResource implements Resource {
     }
     public String getToolTipInformation() {
         return "ToolTip Information";
-    }    
+    }   
+
+    public void setPropertyList(Vector propertyList) {
+        System.out.println("PROPERTY = "+mProperties.size());
+        this.propertyList = propertyList;
+        this.mProperties = new Properties();
+        Iterator i = propertyList.iterator();
+        while(i.hasNext()) {
+            PropertyEntry entry = (PropertyEntry) i.next();
+            mProperties.put(entry.getEntryKey(),entry.getEntryValue());
+        }
+        System.out.println("PROPERTY = "+mProperties.size());
+    }
+    
+    public Vector getPropertyList() {
+        propertyList = new Vector();
+        Iterator i = mProperties.keySet().iterator();
+        while(i.hasNext()) {
+            Object object = i.next();
+            PropertyEntry entry = new PropertyEntry();
+            entry.setEntryKey(object);
+            entry.setEntryValue(mProperties.get(object));
+            propertyList.add(entry);
+        }
+        return propertyList;
+    }
+    
+ 
 }

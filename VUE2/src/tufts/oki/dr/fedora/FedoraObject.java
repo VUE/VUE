@@ -95,8 +95,10 @@ public class FedoraObject implements osid.dr.Asset{
     public String getDefaultViewURL() throws osid.dr.DigitalRepositoryException, osid.OsidException{ 
         if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
             return getDR().getFedoraProperties().getProperty("url.fedora.get")+"/"+pid.getIdString()+"/demo:60/getStandard/";
-        if(assetType.getKeyword().equals("XML_TO_HTMLDOC"));
+        else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
             return getDR().getFedoraProperties().getProperty("url.fedora.get")+"/"+pid.getIdString()+"/demo:77/getDocument/";
+        else 
+            return getDR().getFedoraProperties().getProperty("url.fedora.get")+"/"+pid.getIdString();
     }
     // set-get methods.
     public  void setLocation(String location) {

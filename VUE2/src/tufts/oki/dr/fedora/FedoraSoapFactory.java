@@ -150,19 +150,22 @@ public class FedoraSoapFactory {
                 if(lSearchCriteria.getToken() != null) {
                    methodDefs =    (FieldSearchResult) call.invoke(new Object[] {lSearchCriteria.getToken()} ); 
                    ListSession listSession = methodDefs.getListSession();
-                   lSearchCriteria.setToken(listSession.getToken());
+                   if(listSession != null)
+                        lSearchCriteria.setToken(listSession.getToken());
+                   else 
+                       lSearchCriteria.setToken(null);
                 }
             }
                    
             if (methodDefs != null){
                     ObjectFields[] fields= methodDefs.getResultList(); 
                     for(int i=0;i<fields.length;i++) {
-                        if(dr.isFedoraObjectAssetTypeSupported(fields[i].getCModel())) {
                             String title = "No Title";
                             if(fields[i].getTitle() != null) 
                                 title = fields[i].getTitle()[0];
                             resultObjects.add(new FedoraObject(dr,fields[i].getPid(),title,dr.getAssetType(fields[i].getCModel())));
-                        }
+                  
+             
                     }
             } else {
                 System.out.println("search returned no results");
@@ -175,7 +178,10 @@ public class FedoraSoapFactory {
         }  
     }
     
-    public static  FedoraObjectIterator advancedSearch(DR dr,Condition[] cond,String maxResults)  throws osid.dr.DigitalRepositoryException {
+    public static  FedoraObjectIterator advancedSearch(DR dr,SearchCriteria lSearchCriteria)  throws osid.dr.DigitalRepositoryException {
+        Condition cond[] = lSearchCriteria.getConditions();
+        String maxResults = lSearchCriteria.getMaxReturns();
+        
         Call call;
         FieldSearchResult searchResults=new FieldSearchResult();   
         NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
@@ -194,9 +200,7 @@ public class FedoraSoapFactory {
             if (methodDefs != null){
                     ObjectFields[] fields= methodDefs.getResultList(); 
                     for(int i=0;i<fields.length;i++) {
-                        if(dr.isFedoraObjectAssetTypeSupported(fields[i].getCModel())) {
-                            resultObjects.add(new FedoraObject(dr,fields[i].getPid(),fields[i].getTitle()[0],dr.getAssetType(fields[i].getCModel())));
-                        }
+                        resultObjects.add(new FedoraObject(dr,fields[i].getPid(),fields[i].getTitle()[0],dr.getAssetType(fields[i].getCModel())));
                     }
             } else {
                 System.out.println("search return no results");

@@ -56,7 +56,8 @@ import fedora.client.ingest.AutoIngestor;
 
 public class DR implements osid.dr.DigitalRepository {
     
-    public static final String[] DC_FIELDS = {"dc:title","dc:creator","dc:subject","dc:date","dc:type","dc:format","dc:identifier","dc:collection","dc:coverage"};
+    public static final String DC_NAMESPACE = "dc:";
+    public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
     
     
     // using the vue.conf file.  This is the default file. the file name will be set in the constructor in future.
@@ -179,7 +180,7 @@ public class DR implements osid.dr.DigitalRepository {
             if(fedoraObjectAssetType.getType().equals(type))
                 return fedoraObjectAssetType;
         }
-        throw new DigitalRepositoryException("DR.getAssetType "+type+"doesn't exist");
+        return createFedoraObjectAssetType(type);
     }
     
     public boolean isFedoraObjectAssetTypeSupported(String type) {
@@ -367,7 +368,10 @@ public class DR implements osid.dr.DigitalRepository {
         }
         condition[0].setProperty("pid");
         condition[0].setOperator(ComparisonOperator.eq);
-        AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,condition,"1");
+        SearchCriteria searchCriteria = new SearchCriteria();
+        searchCriteria.setConditions(condition);
+        searchCriteria.setMaxReturns("1");
+        AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
         if(mAssetIterator.hasNext()) 
             return  mAssetIterator.next();
         else 
@@ -388,7 +392,7 @@ public class DR implements osid.dr.DigitalRepository {
         if(searchType.getKeyword().equals("Search")) {
               return FedoraSoapFactory.search(this,lSearchCriteria);
         } else if(searchType.getKeyword().equals("Advanced Search")) {
-            return FedoraSoapFactory.advancedSearch(this,lSearchCriteria.getConditions(),lSearchCriteria.getMaxReturns());
+            return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
         }else {
            throw new osid.dr.DigitalRepositoryException("Search Type Not Supported");
         }
@@ -461,6 +465,7 @@ public class DR implements osid.dr.DigitalRepository {
         s = s.replaceAll("%file.location%", fileLocation).trim();
         s = s.replaceAll("%file.title%", fileTitle).trim();
         s = s.replaceAll("%dc.Metadata%", getMetadataString(dcFields));
+        System.out.println("METADATA ==== "+getMetadataString(dcFields)+"\n SIZE="+dcFields.size());
         return s;
         
     }
@@ -495,7 +500,7 @@ public class DR implements osid.dr.DigitalRepository {
         while(e.hasMoreElements()) {
             String field = (String)e.nextElement();
             if(isSupportedMetadataField(field)) 
-                metadata += "<"+field+">"+dcFields.getProperty(field)+"</"+field+">";
+                metadata += "<"+DC_NAMESPACE+field+">"+dcFields.getProperty(field)+"</"+DC_NAMESPACE+field+">";
         }
         return metadata;
     }

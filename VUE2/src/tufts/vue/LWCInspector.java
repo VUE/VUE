@@ -30,10 +30,14 @@ class LWCInspector extends javax.swing.JPanel
     JTextField notesField = new JTextField();
     JPanel extraPanel = new JPanel();
     
+    
     //JTextArea notesField = new JTextArea(1, 20);
 
     JPanel fieldPane = new JPanel();
+    JPanel resourceMetadataPanel = new JPanel();
+    JPanel metadataPane = new JPanel();
 
+    
         //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
         Object[] labelTextPairs = {
             "-ID",      idField,
@@ -78,7 +82,9 @@ class LWCInspector extends javax.swing.JPanel
             notesField.setBorder(LineBorder.createGrayLineBorder());
         
         addLabelTextRows(labelTextPairs, gridBag, fieldPane);
-
+        // settting metadata
+        setUpMetadataPane();
+  
         //removeListeners(idField, MouseListener.class);
         //removeListeners(idField, MouseMotionListener.class);
         // failed experiment to see if removing mouse focus
@@ -87,10 +93,18 @@ class LWCInspector extends javax.swing.JPanel
 
         setLayout(new BorderLayout());
         add(fieldPane, BorderLayout.CENTER);
+        add(metadataPane,BorderLayout.SOUTH);
+        
 
         VUE.ModelSelection.addListener(this);
     }
 
+    public void setUpMetadataPane() {
+        BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
+        metadataPane.setLayout(layout);
+        metadataPane.add(resourceMetadataPanel);
+        
+    }
     /*
     private void removeListeners(Component c, Class listenerType)
     {
@@ -339,7 +353,17 @@ class LWCInspector extends javax.swing.JPanel
         textColorField.setText(c.getXMLtextColor());
         strokeColorField.setText(c.getXMLstrokeColor());
         strokeField.setText(""+c.getStrokeWidth());
-
+        
+        //loading the metadat if it exists
+        System.out.println("Resource = " + c.getResource());
+        if(c.getResource() != null && c.getResource().getProperties() != null) {
+            metadataPane.remove(resourceMetadataPanel);
+            if(c.getResource().getType() == Resource.ASSET_FEDORA)
+                resourceMetadataPanel = new PropertiesEditor(c.getResource().getProperties(), false);
+            else
+                resourceMetadataPanel = new PropertiesEditor(c.getResource().getProperties(), true);
+            metadataPane.add(resourceMetadataPanel);
+        }
         /*
         if (false&&c.labelBox != null) {
             //extraPanel.add(p);

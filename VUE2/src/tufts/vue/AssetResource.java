@@ -21,10 +21,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import fedora.server.types.gen.*;
 import java.io.*;
 
-public class AssetResource extends MapResource {
+public class AssetResource extends MapResource{
     
     /** Creates a new instance of AssetResource */
+    static final int DC_NAMESPACE_LENGTH = 3 ;// (dc:) the namespacepresent in metadata fields. Beginning is chopped off for clean rendering
     static final String[] dcFields = tufts.oki.dr.fedora.DR.DC_FIELDS;
+    static final String  DC_NAMESPACE = tufts.oki.dr.fedora.DR.DC_NAMESPACE;
     
     private Asset asset;
     private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
@@ -55,7 +57,7 @@ public class AssetResource extends MapResource {
             InputStream dublinCoreInputStream = new ByteArrayInputStream(((MIMETypedStream)(asset.getInfoField(new PID("getDublinCore")).getValue())).getStream());
             Document document = factory.newDocumentBuilder().parse(dublinCoreInputStream);
             for(int i=0;i<dcFields.length;i++) {
-                NodeList list = document.getElementsByTagName(dcFields[i]);
+                NodeList list = document.getElementsByTagName(DC_NAMESPACE+dcFields[i]);
                 if(list != null && list.getLength() != 0) {
                      // only picks the first element 
                     if(list.item(0).getFirstChild() != null) 

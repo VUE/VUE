@@ -34,10 +34,8 @@ public class CabinetResource extends MapResource{
     
     private int type = Resource.NONE;           //  Resource type.
     private boolean selected = false;           //  Selection flag.
-    private String spec = null;                 //  Object specification, usually URL.
+             //  Object specification, usually URL.
     private String ext = null;                  //  Extension.
-    private Properties properties = null;       //  Metadata.
-    private String title = null;                //  Title.
     
     
     /**
@@ -125,15 +123,16 @@ public class CabinetResource extends MapResource{
     public java.util.Properties getProperties() {
         Properties props = new Properties();
         
+        
         //  Check for a restored resource.
         if (this.entry == null)
-            return this.properties;
+            return (Properties)this.mProperties;
         else {
             try {
                 if (this.entry instanceof RemoteByteStore) {
                     RemoteByteStore bs = (RemoteByteStore) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
-                    props.setProperty(CabinetResource.MD_TIME, bs.getLastAccessedTime().toString());
+                    props.setProperty(CabinetResource.MD_TIME,Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
                     props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
                     if (bs.isReadable())
                         props.setProperty(CabinetResource.MD_READ, "true");
@@ -144,7 +143,7 @@ public class CabinetResource extends MapResource{
                     else
                         props.setProperty(CabinetResource.MD_WRITE, "false");
                     props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
-                    props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
+                    //props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
 
                 }
                 else if (this.entry instanceof RemoteCabinet) {
@@ -153,10 +152,12 @@ public class CabinetResource extends MapResource{
                     props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
                 }
                 else if (this.entry instanceof LocalByteStore) {
+      
                     LocalByteStore bs = (LocalByteStore) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
-                    props.setProperty(CabinetResource.MD_TIME, bs.getLastAccessedTime().toString());
+                    props.setProperty(CabinetResource.MD_TIME, Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
                     props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
+                    
                     if (bs.isReadable())
                         props.setProperty(CabinetResource.MD_READ, "true");
                     else
@@ -165,8 +166,10 @@ public class CabinetResource extends MapResource{
                         props.setProperty(CabinetResource.MD_WRITE, "true");
                     else
                         props.setProperty(CabinetResource.MD_WRITE, "false");
+                     
                     props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
-                    props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
+                   // props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
+                     
                 }
                 else if (this.entry instanceof LocalCabinet) {
                     LocalCabinet cab = (LocalCabinet) this.entry;
@@ -180,10 +183,12 @@ public class CabinetResource extends MapResource{
             catch (osid.shared.SharedException ex2) {
                 //  If we get an exception, just return what we got.
             }
-            this.properties = props;            //  Cache the metadata.
+            this.mProperties = props;            //  Cache the metadata.
             return props;
         }
     }
+    
+    
     
     /**
      *  Return the resource specification.  For cabinet resources, this is URL of either
@@ -219,15 +224,15 @@ public class CabinetResource extends MapResource{
      */
     public String getTitle() {
         if (this.entry == null)
-            return this.title;
+            return this.mTitle;
         else {
             try {
-                this.title = entry.getDisplayName();
+                this.mTitle = entry.getDisplayName();
             }
             catch (osid.filing.FilingException ex) {
                 //  This can't fail.
             }
-            return this.title;
+            return this.mTitle;
         }
     }
     

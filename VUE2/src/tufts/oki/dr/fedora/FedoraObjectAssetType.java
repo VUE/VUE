@@ -44,7 +44,7 @@ public class FedoraObjectAssetType extends osid.shared.Type {
         try {
             FileInputStream fis = new FileInputStream(dr.getConfiguration().getFile().replaceAll("%20"," "));
             prefs.importPreferences(fis);
-            String infoStructureString = prefs.get(type,"");
+            String infoStructureString = prefs.get(type,"fedora-system:3");
             java.util.Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);
             java.util.Iterator i = infoStructureVector.iterator();
             while(i.hasNext()) {
