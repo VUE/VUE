@@ -1091,7 +1091,10 @@ implements VueConstants {
         map.addLink(k2);
         map.addLink(k3);
         // create test pathways
-        if (true) {
+        if (false) {
+            // FYI: I dno't think PathwayTableModel will
+            // detect this creation, so can't use this
+            // for full testing (e.g., note setting, undo, etc)
             LWPathway p = new LWPathway("Test Pathway");
             p.add(n1);
             p.add(n2);

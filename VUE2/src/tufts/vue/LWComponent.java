@@ -1330,10 +1330,10 @@ public class LWComponent
         }
         
         if (isDeleted()) {
-            System.err.println("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
+            System.err.println("ZOMBIE EVENT: deleted component attempting event notification:"
                                + "\n\tdeleted=" + this
                                + "\n\tattempted notification=" + e);
-            new Throwable("ZOMBIE").printStackTrace();
+            new Throwable("ZOMBIE EVENT").printStackTrace();
             return;
         }
 
@@ -1385,7 +1385,7 @@ public class LWComponent
                                             + e + " in " + source + " to " + listeners);
 
         if (source instanceof LWComponent && ((LWComponent)source).isDeleted() || listeners == null) {
-            System.err.println("DISPATCH: deleted component or null listeners attempting event dispatch:"
+            System.err.println("ZOMBIE DISPATCH: deleted component or null listeners attempting event dispatch:"
                                + "\n\tsource=" + source
                                + "\n\tlisteners=" + listeners
                                + "\n\tattempted notification=" + e);

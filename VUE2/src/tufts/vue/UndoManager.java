@@ -65,7 +65,24 @@ public class UndoManager
             Iterator i = propertyChanges.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
-                undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
+                LWComponent c = (LWComponent) e.getKey();
+
+                // It's possible component was un-created during this
+                // undo by a prior hierarchy change, rendering it
+                // deleted -- don't bother undoing prop changes or
+                // we'll get zombie events (is this totally safe?
+                // happens on undo of duplicate of node parented to
+                // another node -- the setLocation by the parent's
+                // layout try's to get undo after we undo the create
+                // and delete it -- won't we need the setLocation on
+                // redo?  No: layout will automatically get called on
+                // the parent due to the hier change event)
+
+                if (!c.isDeleted()) {
+                    undoComponentChanges(c, (Map) e.getValue());
+                } else {
+                    if (DEBUG.UNDO) System.out.println(this + " SKIPPING: DELETED " + c);
+                }
             }
         }
 
@@ -367,6 +384,7 @@ if (true)return;
             if (oldValue == HIERARCHY_CHANGE)
                 oldValue = ((ArrayList)((LWContainer)component).children).clone();
             cPropList.put(propertyKey, oldValue);
+            //mUndoSequence.add(new Object[] { propertyKey, oldValue });
             mChangeCount++;
             if (DEBUG.UNDO) {
                 System.out.println(" (stored: " + oldValue + ")");

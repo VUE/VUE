@@ -53,13 +53,20 @@ public class SaveAction extends AbstractAction
     }
     */
     
+    private boolean inSave = false;
     public void actionPerformed(ActionEvent e)
     {
-        System.out.println("Action["+e.getActionCommand()+"] invoked...");
-        
-        saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs());
-        
-        System.out.println("Action["+e.getActionCommand()+"] completed.");
+        if (inSave) // otherwise rapid Ctrl-S's will trigger multiple dialog boxes
+            return;
+
+        try {
+            inSave = true;
+            System.out.println("Action["+e.getActionCommand()+"] invoked...");
+            saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs());
+            System.out.println("Action["+e.getActionCommand()+"] completed.");
+        } finally {
+            inSave = false;
+        }
     }
 
     /**

@@ -20,7 +20,7 @@ public interface LWKey {
     public String StrokeWidth = "strokeWidth"; 
     public String Font = "font";
 
-    public String Created = "created"; // any LWComponets creation event
+    public String Created = "new.component"; // any LWComponets creation event
     //public String Added = "added"; // a child components add-notify
     //public String ChildAdded = "childAdded";// the parent component's add-notify
     public String ChildrenAdded = "hier.childrenAdded";// the parent component's group add-notify
