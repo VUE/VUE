@@ -583,7 +583,7 @@ public class MapViewer extends javax.swing.JPanel
             //if (prefSize.width < textWidth)
             //prefSize.width = textWidth;
 
-            int newWidth = mapToScreenDim(lwc.getWidth()*0.85);
+            int newWidth = mapToScreenDim(lwc.getWidth()-14);
             if (prefSize.width < newWidth)
                 prefSize.width = newWidth;
             prefSize.height = fm.getAscent() + fm.getDescent();
