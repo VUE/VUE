@@ -517,6 +517,32 @@ public class VUE
     static class MapTabbedPane extends JTabbedPane
         implements LWComponent.Listener
     {
+        private static final Color BgColor = VueResources.getColor("toolbar.background");
+
+        int mWasSelected = -1;
+        protected void fireStateChanged() {
+            super.fireStateChanged();
+            int selected = getModel().getSelectedIndex();
+            if (mWasSelected >= 0) {
+                setForegroundAt(mWasSelected, Color.darkGray);
+                //setBackgroundAt(mWasSelected, BgColor);
+            }
+            if (selected >= 0) {
+                setForegroundAt(selected, Color.black);
+                //setBackgroundAt(selected, Color.white);// no effect
+            }
+            mWasSelected = selected;
+        }
+        
+        public void addNotify()
+        {
+            super.addNotify();
+            if (!VueUtil.isMacPlatform()) {
+                setForeground(Color.darkGray);
+                setBackground(BgColor);
+            }
+        }
+        
         public void addTab(LWMap map, Component c)
         {
             super.addTab(map.getLabel(), c);
@@ -526,6 +552,9 @@ public class VUE
             // care to hear from it's children), and even that
             // we'd only like to see, e.g., LABEL events.
             // -- create bit masks in LWCEvent
+
+            //setBackgroundAt(0, Color.blue);
+            //setToolTipTextAt(0, map.getFile().toString());
         }
 
         public void LWCChanged(LWCEvent e)
@@ -554,6 +583,13 @@ public class VUE
         {
             remove(findTabWithMap(map));
         }
+
+        public void paintComponent(Graphics g) {
+            ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                                             java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            super.paintComponent(g);
+        }
+        
     }
     
 
@@ -625,11 +661,11 @@ public class VUE
 
     }
     
+    private static Color menuColor = VueResources.getColor( "menubarColor");
     private static void  setMenuToolbars(JFrame frame, Window[] toolWindows)
     {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
-        Color menuColor = VueResources.getColor( "menubarColor");
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBackground( menuColor);
         
