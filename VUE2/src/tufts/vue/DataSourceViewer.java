@@ -30,6 +30,9 @@ public class DataSourceViewer  extends JPanel{
     DataSourceList dataSourceList;
     JPanel resourcesPanel;
     JDialog addEditDialog = null;   //  The add/edit dialog box.
+    AbstractAction addAction;//
+    AbstractAction editAction; 
+    AbstractAction deleteAction;
 
 
     public DataSourceViewer(DRBrowser drBrowser){
@@ -72,6 +75,7 @@ public class DataSourceViewer  extends JPanel{
     }
     public void setActiveDataSource(DataSource ds){ 
         activeDataSource = ds;
+        dataSourceList.setSelectedValue(ds,true);
         drBrowser.remove(resourcesPanel);
         resourcesPanel  = new JPanel();
         resourcesPanel.setLayout(new BorderLayout());
@@ -85,21 +89,28 @@ public class DataSourceViewer  extends JPanel{
     
     public void  setPopup() {
         popup = new JPopupMenu();
-        AbstractAction addAction = new AbstractAction("Add") {
+        addAction = new AbstractAction("Add") {
             public void actionPerformed(ActionEvent e) {
                 showAddEditWindow(0);
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
-        AbstractAction editAction = new AbstractAction("Edit") {
+        editAction = new AbstractAction("Edit") {
             public void actionPerformed(ActionEvent e) {
                 showAddEditWindow(1);
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
+        deleteAction =  new AbstractAction("Delete") {
+            public void actionPerformed(ActionEvent e) {
+                deleteDataSource(activeDataSource);
+            }
+        };
         popup.add(addAction);
         popup.addSeparator();
         popup.add(editAction);
+        popup.addSeparator();
+        popup.add(deleteAction);
     }
     
     public void showAddEditWindow(int mode) {
@@ -149,6 +160,20 @@ public class DataSourceViewer  extends JPanel{
         dataSourceList.getContents().addElement(ds); // SHOULD BE DONE IN SINGE STEP
        
         setActiveDataSource (ds);
+    }
+    
+    public void deleteDataSource(DataSource dataSource) {
+        int choice = JOptionPane.showConfirmDialog(null,"Do you want to delete Datasource "+dataSource.getDisplayName(),"Confirm Delete",JOptionPane.YES_NO_CANCEL_OPTION);
+        if(choice == 0) {
+            
+            // THIS PART NEEDS TO BE FIXED.  Doesn't handle deletion of first datasource.
+            if(dataSources.size() >0 ) {
+                setActiveDataSource((DataSource)dataSources.firstElement());
+            }
+            dataSources.remove(dataSource);
+            dataSourceList.getContents().removeElement(dataSource);
+            
+        }
     }
 
     private void createAddPanel(JPanel addPanel) {
