@@ -75,7 +75,7 @@ public class ZoomTool extends VueTool
     
     public boolean handleMouseReleased(MapMouseEvent e)
     {
-        System.out.println(this + " handleMouseReleased " + e);
+        if (DEBUG.TOOL) System.out.println(this + " handleMouseReleased " + e);
 
         Point p = e.getPoint();
         

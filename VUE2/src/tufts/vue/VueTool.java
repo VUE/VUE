@@ -235,7 +235,7 @@ public abstract class VueTool extends AbstractAction
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) { return false; }
     
     public boolean handleMousePressed(MapMouseEvent e) {
-        if (debug) System.out.println(this + " handleMousePressed " + e);
+        if (DEBUG.TOOL) System.out.println(this + " handleMousePressed " + e);
         return false;
     }
     public boolean handleMouseDragged(MapMouseEvent e) {
@@ -243,16 +243,16 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
     public boolean handleMouseReleased(MapMouseEvent e) {
-        if (debug) System.out.println(this + " handleMouseReleased " + e);
+        if (DEBUG.TOOL) System.out.println(this + " handleMouseReleased " + e);
         return false;
     }
     public void handleMouseClicked(MapMouseEvent e) {
-        if (debug) System.out.println(this + " handleMouseClicked " + e);
+        if (DEBUG.TOOL) System.out.println(this + " handleMouseClicked " + e);
     }
     public void handleDragAbort() {}
 
     public boolean handleSelectorRelease(MapMouseEvent e) {
-        if (debug) System.out.println(this + " handleSelectorRelease " + e);
+        if (DEBUG.TOOL) System.out.println(this + " handleSelectorRelease " + e);
         return false;
     }
 	
@@ -485,7 +485,4 @@ public abstract class VueTool extends AbstractAction
     }
 	
     public abstract JPanel getContextualPanel();
-
-    private final boolean debug = false;
-    
 }
