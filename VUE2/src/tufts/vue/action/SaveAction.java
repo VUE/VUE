@@ -21,6 +21,9 @@ import tufts.vue.*;
 /**
  *
  * @author  akumar03
+ *
+ * modified by John Briedis 5/29/03
+ *
  */
 public class SaveAction extends AbstractAction
 {
@@ -82,9 +85,10 @@ public class SaveAction extends AbstractAction
       }
       else {
             System.out.println("request to save as html...");
-            //save as html file in current directory
+            
+            //save as html file called XmlTo Html in C: directory
+            
             String output = getOutput();
-            //String output = "<HTML><HEAD></HEAD><BODY>XML File........</BODY></HTML>";
             try{
                 
                 File outputFile = new File("C:\\XmlToHtml.html");
@@ -97,38 +101,38 @@ public class SaveAction extends AbstractAction
             }
       }
     }
-    
+    //creates an html file as string output to FileWriter
     private String getOutput() {
         String output = "<HTML><HEAD><TITLE>XML TEST FILE</TITLE></HEAD><BODY>";
-        output = output + "<b>Concept Map:</b> <p>";
+        output += "<b>Concept Map:</b> <p>";
         ConceptMap map = (ConceptMap) tufts.vue.VUE.getActiveMap();
         output = getItemData(output, map);
         
-        output = output + "<b>Nodes:</b> <p>";
+        output += "<b>Nodes:</b> <p>";
         java.util.Iterator ni = (java.util.Iterator) map.getNodeIterator();
         int i = 0;
         while( ni.hasNext() ){
-            output = output + "&nbsp;<u>Node No."+i+"</u>:<p>"; i++;
+            output += "&nbsp;<u>Node No."+i+"</u>:<p>"; i++;
             output = getNodeData(output, (Node)ni.next());
         }
         
-        output = output + "<b>Links:</b> <p>";
+        output += "<b>Links:</b> <p>";
         java.util.Iterator li = (java.util.Iterator) map.getLinkIterator();
         i = 0;
         while( li.hasNext() ){
-            output = output + "&nbsp;<u>Link No."+i+"</u>:<p>"; i++;
+            output += "&nbsp;<u>Link No."+i+"</u>:<p>"; i++;
             output = getLinkData(output, (Link)li.next());
         }
         
-        output = output + "<b>Pathways:</b> <p>";
+        output += "<b>Pathways:</b> <p>";
         java.util.Iterator pi = (java.util.Iterator) map.getPathwayIterator();
         i = 0;
         while( pi.hasNext() ){
-            output = output + "&nbsp;<u>Pathway No."+i+"</u>:<p>"; i++;
+            output += "&nbsp;<u>Pathway No."+i+"</u>:<p>"; i++;
             output = getPathwayData(output, (Pathway)pi.next());
         }
         
-        output = output + "</BODY></HTML>";
+        output += "</BODY></HTML>";
         return output;
     }
     
@@ -139,28 +143,36 @@ public class SaveAction extends AbstractAction
     
     private String getLinkData(String out, Link link){
         out = getItemData(out, link);
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Weight: " + link.getWeight() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Ordered?: " + link.isOrdered() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Fixed?: " + link.isFixed() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Item 1: " + link.getItem1().getLabel() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Item 2: " + link.getItem2().getLabel() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Weight: " + link.getWeight() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Ordered?: " + link.isOrdered() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Fixed?: " + link.isFixed() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Item 1: " + link.getItem1().getLabel() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Item 2: " + link.getItem2().getLabel() + "<p>";
         return out;
     }
     
     private String getPathwayData(String out, Pathway path){
         out = getItemData(out, path);
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Weight: " + path.getWeight() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Ordered?: " + path.isOrdered() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Weight: " + path.getWeight() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Ordered?: " + path.isOrdered() + "<p>";
         return out;
     }
     
     private String getItemData(String out, MapItem item){
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Label: " + item.getLabel() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;ID: " + item.getID() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Notes: " + item.getNotes() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;MetaData: " + item.getMetaData() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Catagory: " + item.getCategory() + "<p>";
-        out = out + "&nbsp;&nbsp;&nbsp;&nbsp;Resource: <a href=\""+item.getResource()+"\">" + item.getResource() +"</a><p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Label: " + item.getLabel() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;ID: " + item.getID() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Notes: " + item.getNotes() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;MetaData: " + item.getMetaData() + "<p>";
+        out += "&nbsp;&nbsp;&nbsp;&nbsp;Catagory: " + item.getCategory() + "<p>";
+        Resource res = item.getResource();
+        if(res != null){
+            if(item.getResource().toString().startsWith("http:")){
+            out += "&nbsp;&nbsp;&nbsp;&nbsp;Resource: <a href=\""+item.getResource()+"\">" + item.getResource() +"</a><p>";
+            } else {
+            out += "&nbsp;&nbsp;&nbsp;&nbsp;Resource: <a href=\"file:///"+item.getResource()+"\">" + item.getResource() +"</a><p>";
+            }
+        } 
+        else out += "&nbsp;&nbsp;&nbsp;&nbsp;Resource: No Resource<p>";
         return out;
     }
     
