@@ -187,7 +187,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
                 public void selectionChanged(LWSelection s) {
                     if (s.size() == 1 && s.first().inPathway(getSelectedPathway()))
                         getSelectedPathway().setCurrentElement(s.first());
-                    //updateEnabledStates();
+                    updateEnabledStates();
                 }
             }     
         );
@@ -440,7 +440,9 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
 
         LWSelection selection = VUE.ModelSelection;
         
-        if (path.getCurrentIndex() >= 0) {
+        // if any viable index, AND path is open so you can see
+        // it selected, enable the remove button.
+        if (path.getCurrentIndex() >= 0 && path.isOpen()) {
             removeElement.setEnabled(true);
             removeDone = true;
         }
@@ -449,15 +451,14 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             addElement.setEnabled(true);
             if (!removeDone) {
                 // if at least one element in selection is on current path,
-                // enable remove.  Theoretically this code should never happen
-                // as long as there's always a current item in the pathway.
+                // enable remove.  Theoretically should only get here if
+                // pathway is closed.
                 boolean enabled = false;
                 Iterator i = selection.iterator();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
                     if (c.inPathway(path)) {
-                        //if (DEBUG.PATHWAY)
-                        System.out.println(this + " updateAddRemoveActions: found for remove enable " + c + " on " + path);
+                        if (DEBUG.PATHWAY) System.out.println(this + " in selection enables remove: " + c + " on " + path);
                         enabled = true;
                         break;
                     }

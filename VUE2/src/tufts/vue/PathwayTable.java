@@ -99,21 +99,21 @@ public class PathwayTable extends JTable
                     
                     lastSelectedRow = row;
                     int col = getSelectedColumn();
-                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: clicked row "+row+", col "+col);    
+                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: selected row "+row+", col "+col);    
                     
                     LWComponent c = tableModel.getElement(row);
-                    LWPathway path = null;
+                    LWPathway pathway = null;
                     if (c instanceof LWPathway)
-                        path = (LWPathway) c;
+                        pathway = (LWPathway) c;
                     else
-                        path = tableModel.getPathwayForElementAt(row);
-                    tableModel.setCurrentPathway(path);
+                        pathway = tableModel.getPathwayForElementAt(row);
+                    tableModel.setCurrentPathway(pathway);
                     
                     if (c instanceof LWPathway) {
                         if (col == 0 || col == 2 || col == 5)
-                            setValueAt(path, row, col); // toggle pathway bits: visible, open or locked
+                            setValueAt(pathway, row, col); // toggle pathway bits: visible, open or locked
                     } else {
-                        path.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
+                        pathway.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
                     }
                 }
                 });
