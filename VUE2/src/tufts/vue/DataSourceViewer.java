@@ -435,31 +435,13 @@ public class DataSourceViewer  extends JPanel{
                 activeDataSource.setUserName(userField.getText());
                 activeDataSource.setPassword(pwField.getText());
                 activeDataSource.setsearchURL(urlField.getText());
-<<<<<<< DataSourceViewer.java
-                
-                //-----------
-                 drBrowser.remove(resourcesPanel);
-                  resourcesPanel  = new JPanel();
-                  resourcesPanel.setLayout(new BorderLayout());
-                  resourcesPanel.setBorder(new TitledBorder(activeDataSource.getDisplayName()));
-                   resourcesPanel.add(activeDataSource.getResourceViewer(),BorderLayout.CENTER);
-                    drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-                 drBrowser.repaint();
-                drBrowser.validate();
-                
-                
-                
-                //----
-                
-=======
+
                 try {
                     activeDataSource.setViewer();
                 } catch(Exception ex) {
                     ex.printStackTrace();
                 } 
                 setActiveDataSource(activeDataSource); // reset resource panel after edits
-                  
->>>>>>> 1.19
                 dia.hide();
             }
         });
@@ -592,15 +574,28 @@ public class DataSourceViewer  extends JPanel{
         
         return sviewer;
     } 
-    
+ 
+   
+   /*
+    * static method that returns all the datasource where Maps can be published.
+    * Only FEDORA @ Tufts is available at present
+    */
    public static Iterator getPublishableDataSources() {
        Vector mDataSources = new Vector();
+       try {
+           mDataSources.add(new DataSource("ds2", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA));
+       } catch (Exception ex) {
+           System.out.println("Datasources can't be loaded");
+       }
+      
+       /**
        Iterator i = dataSources.iterator();
        while(i.hasNext() ) {
            DataSource mDataSource = (DataSource)i.next();
            if(mDataSource.getType() == DataSource.DR_FEDORA)
                mDataSources.add(mDataSource);
        }
+        */
        return mDataSources.iterator();
            
    }

@@ -89,8 +89,10 @@ public class Publisher extends JDialog implements ActionListener {
     }
     
     private void setUpModeSelectionPanel() {
-        Vector dataSourceVector = DataSourceViewer.dataSources;
-        //dataSourceVector.add("Tufts Digital Library");
+        Vector dataSourceVector = new Vector();
+        Iterator  i = DataSourceViewer.getPublishableDataSources();
+        while(i.hasNext())  
+            dataSourceVector.add(i.next());
         
         modeSelectionPanel = new JPanel();
         GridBagLayout gridbag = new GridBagLayout();
@@ -115,7 +117,7 @@ public class Publisher extends JDialog implements ActionListener {
         
         JPanel buttonPanel = new JPanel();
         publishMapRButton = new JRadioButton("Publish Map");
-        publishCMapRButton = new JRadioButton("Publish CMAP");
+        publishCMapRButton = new JRadioButton("Publish IMSCP MAP");
         publishAllRButton = new JRadioButton("Publish All");
         publishMapRButton.addActionListener(this);
         publishCMapRButton.addActionListener(this);
@@ -289,7 +291,9 @@ public class Publisher extends JDialog implements ActionListener {
             saveActiveMap();
             Properties metadata = VUE.getActiveMap().getMetadata();
             String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, metadata).getIdString();
+            JOptionPane.showMessageDialog(null, "Map successfully published. Asset ID for Map = "+pid, "Map Published",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Published Map: id = "+pid);
+            this.dispose();
         } catch (Exception ex) {
              VueUtil.alert(null,  "Publish Not Supported:"+ex.getMessage(), "Publish Error");
              ex.printStackTrace();
@@ -301,8 +305,9 @@ public class Publisher extends JDialog implements ActionListener {
             File savedCMap = createIMSCP();
             Properties metadata  = VUE.getActiveMap().getMetadata();
             String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
-          
+            JOptionPane.showMessageDialog(null, "Map successfully published. Asset ID for Map = "+pid, "Map Published",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Published CMap: id = "+pid);
+            this.dispose();
         } catch (Exception ex) {
              VueUtil.alert(null, "Publish Not Supported:"+ex.getMessage(), "Publish Error");
              ex.printStackTrace();
@@ -328,9 +333,9 @@ public class Publisher extends JDialog implements ActionListener {
                     System.out.println("Resource = " + r+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
                     
                 }
-                publishMap();
+              
             }
-            
+            publishMap();
             System.out.println("Publish All");
         } catch (Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
@@ -395,8 +400,6 @@ public class Publisher extends JDialog implements ActionListener {
                 if(publishAllRButton.isSelected())
                     publishAll();
             }
-                
-            this.dispose();
         }
         if(e.getSource() == nextButton) {
             this.getContentPane().remove(modeSelectionPanel);
