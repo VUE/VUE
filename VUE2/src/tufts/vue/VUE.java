@@ -378,6 +378,7 @@ implements VueConstants {
     static JPanel toolPanel;//todo: tmp hack
     public static void main(String[] args) {
         System.out.println("VUE:main");
+        SplashScreen splashScreen = new SplashScreen();
         initUI();
         
         //-------------------------------------------------------
