@@ -10,10 +10,6 @@
 
 package tufts.vue.action;
 
-//classes from fop.jar
-import org.apache.fop.messaging.MessageHandler;
-import org.apache.fop.apps.FOPException;
-
 //classes from castor jar files
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -173,7 +169,7 @@ public class PDFTransform extends AbstractAction {
             driver.run();
         }catch(IOException ioe){
             System.out.println("io problems running the driver: " + ioe);
-        }catch(FOPException fe){
+        }catch(Exception fe){
             System.out.println("fop problems running the driver: " + fe);
         }
         
