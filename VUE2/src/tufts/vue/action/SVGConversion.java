@@ -63,7 +63,7 @@ public class SVGConversion extends AbstractAction {
         
         //translate and set the clip for the map content
         svgGenerator.translate(-(int)bounds.getX(), -(int)bounds.getY());
-        svgGenerator.setClip(0, 0, size.width, size.height);
+        svgGenerator.setClip(bounds);   
                 
         //renders the map image into the SVGGraphics object
         //map.paintComponent(svgGenerator);

@@ -61,21 +61,21 @@ public class ImageConversion extends AbstractAction {
          BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
          Graphics2D g = (Graphics2D) mapImage.getGraphics();
         
-         //draws the background and the border of the image
+        
          g.setColor(Color.white);
          g.fillRect(0, 0, size.width, size.height);
-         g.setColor(Color.black);
-         g.drawRect(0, 0, size.width-1, size.height-1);
-             
+         //g.setColor(Color.black);
+        // g.drawRect(0, 0, size.width-1, size.height-1);
+         
          //translate and set the clip for the map content
          g.translate(-(int)bounds.getX(), -(int)bounds.getY());
-         g.setClip(0, 0, size.width, size.height);
-            
+         //g.setClip(0, 0, size.width, size.height);
+         g.setClip(bounds);   
          DrawContext dc = new DrawContext(g);
-         dc.setPrinting(true);
+         dc.disableAntiAlias(true);
+         //dc.setPrinting(true);
          // render the map
          currentMap.draw(dc);
-        
          //begins the conversion to the file
          convert(mapImage, location, "jpeg");
     }
