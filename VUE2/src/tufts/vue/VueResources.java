@@ -87,7 +87,7 @@ public class VueResources
 			return sResourceBundle.getString(pLookupKey);
 		}
 		catch (MissingResourceException mre) {
-			alert("Missing string resource "+pLookupKey );
+			alert("!!! Warning: Missing string resource "+pLookupKey );
 			}
 		return null;
 	}
@@ -210,25 +210,29 @@ public class VueResources
 	/**
 	 * getColor()
 	 * This method gets a color based on the color string in the
-	 * the properties file.  Use formate:  myColor=rbbInteger
+	 * the properties file.  Use formate:  myColor=rgbHex
+	 * grayColor=4F4F4F
+	 * blue=FF
 	 *
 	 * @param pLookupKey the string lookupkey in the properties file
 	 * @return Color the color, or null if missing
 	 **/
-    static public Color getColor( String pLookupKey)
-    {
-        Color retValue = null;
-        try {
-            String str = sResourceBundle.getString( pLookupKey);
-            if (str != null) {
-                Integer intVal = Integer.decode(str);
-                retValue = new Color(intVal.intValue());
-            }
-        } catch (Exception e) {
-            alert("Missing Color resource: "+pLookupKey);
-        }
-        return retValue;
-    }
+	static public Color getColor( String pLookupKey) {
+		
+		Color retValue = null;
+		
+		try {
+			String str = sResourceBundle.getString( pLookupKey);
+			if( str != null) {
+				Integer intVal =  Integer.valueOf(str, 16);
+				 
+				retValue = new Color( intVal.intValue() );
+				}
+		} catch (Exception e) {
+			alert("Missing Color resource: "+pLookupKey);
+		}
+		return retValue;
+	}
 
     /**
      * getBool
@@ -270,7 +274,31 @@ public class VueResources
 
 
 	static protected void alert( String pMsg) {
+		if( get("alerts") != null)
 		System.out.println(pMsg);
+	}
+	
+	
+	static private String get( String pKey)  {
+		String value = null;
+		try {
+			value = getBundle().getString( pKey);
+		} catch( Exception e) {
+		}
+		return value;
+		
+	}
+	
+	static public void initComponent( JComponent pObj, String pKey) {
+	
+		Font font = getFont( pKey+".font");
+		Color background = getColor( pKey + ".background");
+		
+		if( font != null)
+			pObj.setFont( font);
+		if( background != null)
+			pObj.setBackground( background);	
+	
 	}
 	
 	static private boolean sDebug = false;
