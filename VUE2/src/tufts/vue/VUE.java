@@ -710,8 +710,14 @@ public class VUE
         formatMenu.add(Actions.FontItalic);
         //formatMenu.add(new JMenuItem("Size"));
         //formatMenu.add(new JMenuItem("Style"));
-        formatMenu.add("Text Justify").setEnabled(false);
-
+        //formatMenu.add("Text Justify").setEnabled(false);
+        for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
+            Action a = Actions.LINK_MENU_ACTIONS[i];
+            if (a == null)
+                formatMenu.addSeparator();
+            else
+                formatMenu.add(a);
+        }
 
         for (int i = 0; i < Actions.ALIGN_MENU_ACTIONS.length; i++) {
             Action a = Actions.ALIGN_MENU_ACTIONS[i];
@@ -836,7 +842,7 @@ public class VUE
         LWLink k1 = new LWLink(n1, n2);
         LWLink k2 = new LWLink(n2, n3);
         LWLink k3 = new LWLink(n2, n4);
-        k3.setCurved(true);
+        k3.setControlCount(1);
         k2.setControlCount(2);
         map.addLink(k1);
         map.addLink(k2);
