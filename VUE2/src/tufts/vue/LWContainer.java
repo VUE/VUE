@@ -203,10 +203,10 @@ public abstract class LWContainer extends LWComponent
             return getParent().getNextUniqueID();
     }
 
-    public void layoutChildren()
-    {
-        // in case the container can do anything to lay out it's children
-    }
+    /** In case the container subclass can do anything to lay out it's children
+     *  (e.g., so that LWNode can override & handle chil layout).
+     */
+    void layoutChildren() { }
 
     protected void addChildInternal(LWComponent c)
     {

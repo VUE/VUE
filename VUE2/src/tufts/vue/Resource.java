@@ -18,6 +18,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.*;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import fedora.server.types.gen.*;
@@ -195,6 +196,16 @@ public class Resource
         this.referenceCreated = System.currentTimeMillis();
         try {
             url = new URL(this.spec);
+
+            /*
+            System.err.println("Opening connection...");
+            URLConnection conn = url.openConnection();
+            //System.err.println("Connecting...");
+            //conn.connect();
+            System.err.println("Getting headers...");
+            System.err.println("Headers: " + conn.getHeaderFields());
+            */
+            
             /*
             String fname = url.getFile();
             System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
@@ -207,6 +218,8 @@ public class Resource
             // Okay for url to be null: means local file
             //System.err.println(e);
             //System.out.println("Resource [" + spec + "] *** NOT A URL ***");
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
     
