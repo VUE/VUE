@@ -80,7 +80,7 @@ public class ActionUtil {
     }
     
     /**A static method which creates an appropriate marshaller and marshal the active map*/
-    public static void marshallFile(String fileName)
+    public static void marshallFile(File file)
     {
         Marshaller marshaller = null;
         
@@ -89,7 +89,7 @@ public class ActionUtil {
             
         try 
         {
-            FileWriter writer = new FileWriter(fileName);
+            FileWriter writer = new FileWriter(file);
             
             marshaller = new Marshaller(writer);
             mapping.loadMapping(XML_MAPPING);
