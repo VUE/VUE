@@ -382,8 +382,8 @@ public class MapViewer extends javax.swing.JComponent
         //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
         //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
         
-        // TODO: fix (for now, force all zooms to be on-center)
-        pFocus = getVisibleCenter();
+        if (pFocus == null)
+            pFocus = getVisibleCenter();
         
         // Record the on-screen map location of focus point before
         // the zoom.
@@ -2990,7 +2990,9 @@ public class MapViewer extends javax.swing.JComponent
             int dx = lastDrag.x - mouse.x;
             int dy = lastDrag.y - mouse.y;
             if (inScrollPane) {
-                panScrollRegion(dx, dy);
+                panScrollRegion(dx, dy, false);
+                // if allow growth during drag, mouse location will keep changing it's base offset
+                // during drags towards southeast! (as origin moves)
             } else {
                 setMapOriginOffset(originAtDragStart.getX() + dx,
                                    originAtDragStart.getY() + dy);

@@ -32,7 +32,7 @@ public class MapPanner extends javax.swing.JPanel
 
     // Enable this to keep viewport always visible in panner: (it causes while-you-drag
     // zoom adjusting tho, which can be a bit disorienting)
-    private static final boolean ViewerAlwaysVisible = true;
+    private static final boolean ViewerAlwaysVisible = false;
     private static final int MapMargin = 0;
     //private static final int MapMargin = ViewerAlwaysVisible ? 5 : 50;
     
@@ -212,7 +212,7 @@ public class MapPanner extends javax.swing.JPanel
         final Rectangle2D viewerRect = mapViewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
 
-        if (ViewerAlwaysVisible) {
+        if (ViewerAlwaysVisible || DEBUG.Enabled) {
             if (ShowFullExtent)
                 // the fudgey margins go away with show full extent -- which indicates
                 // the problem w/out the extent is obviously because we can *drag* to

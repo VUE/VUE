@@ -335,7 +335,7 @@ class MapViewport extends JViewport
             if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
         }
         
-        setCanvasPosition(location);
+        setCanvasPosition(location, allowGrowth);
         viewer.fireViewerEvent(MapViewerEvent.PAN);
         
         /*
@@ -372,6 +372,10 @@ class MapViewport extends JViewport
     
     
     void setCanvasPosition(Point p) {
+        setCanvasPosition(p, true);
+    }
+    
+    void setCanvasPosition(Point p, boolean allowGrowth) {
         if (DEBUG.SCROLL) {
             out("setCanvasPosition " + out(p));
             if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
@@ -431,11 +435,13 @@ class MapViewport extends JViewport
             grew = true;
         }
 
-        if (grew)
-            setCanvasSize(canvas);
-        if (moved)
-            viewer.setMapOriginOffset(ox, oy);
-        
+        if (allowGrowth) {
+            if (grew)
+                setCanvasSize(canvas);
+            if (moved)
+                viewer.setMapOriginOffset(ox, oy);
+        }
+            
         p.x = -p.x;
         p.y = -p.y;
         setViewPosition(p);
