@@ -26,6 +26,7 @@ class DRBrowser extends JPanel {
     JComboBox maxReturns;
     DigitalRepository dr;
     osid.shared.Type assetType;
+    public static DataSourceViewer dsViewer = null;
    
     public DRBrowser()
     {
@@ -34,7 +35,8 @@ class DRBrowser extends JPanel {
         //setContinuousLayout(false);
         //setResizeWeight(0.25);
         setLayout(new BorderLayout());
-        DataSourceViewer dsViewer = new DataSourceViewer(this);
+        dsViewer = new DataSourceViewer(this);
+        dsViewer.setName("Data Source Viewer");
         add(dsViewer,BorderLayout.NORTH);
         //setTopComponent(panel);
        // JDesktopPane jDP = new JDesktopPane();
