@@ -81,7 +81,7 @@ public class LWMap extends LWContainer
         setChildScaleValues();
         //setScale(getScale());
         setChildParentReferences();
-        nextID = findGreatestChildID() + 1;
+        this.nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
 
@@ -92,11 +92,11 @@ public class LWMap extends LWContainer
         }
     }
     
-    public void draw(Graphics2D g){
-        super.draw(g);
+    public void draw(DrawContext dc){
+        super.draw(dc);
         LWPathway path = this.getPathwayManager().getCurrentPathway();        
-        if(path != null){
-            path.drawPathway(g);
+        if (path != null) {
+            path.drawPathway(dc.g);
         }
     }
 
@@ -109,21 +109,6 @@ public class LWMap extends LWContainer
         } else
             return c;
     }
-    
-    /*
-     * Because this is where we set the ID's, all brand new nodes
-     * should be going through this addChild -- this means that new
-     * nodes should always be created as children of the top level
-     * map, and never as children of any other LWContainer (e.g., a
-     * LWGroup or LWNode) -- Okay -- now getNextUniqueID is
-     * on LWContainer...
-    public void addChild(LWComponent c)
-    {
-        super.addChild(c);
-        if (c.getID() == null)
-            c.setID(getNextUniqueID());
-    }
-    */
     
     /** for viewer to report user origin sets via pan drags */
     void setUserOrigin(float x, float y)
@@ -190,20 +175,6 @@ public class LWMap extends LWContainer
     {
         removeChild(c);
     }
-
-    /*
-    public void addNode(Node n) { addLWC(n); }
-    public void addLink(Link l) { addLWC(l); }
-    public void addPathway(Pathway p) {}
-    public void removeNode(Node n) { removeLWC(n); }
-    public void removeLink(Link l) { removeLWC(l); }
-    public void removePathway(Pathway p) {}
-    */
-    /*
-    public java.util.Iterator getPathwayIterator()
-    {
-        return null;
-    }*/
 
     public java.awt.geom.Rectangle2D getBounds()
     {
