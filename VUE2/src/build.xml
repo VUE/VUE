@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.25 $ / $Date: 2004-12-11 20:32:43 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.25 2004-12-11 20:32:43 sfraize Exp $ -->
+<!-- $Revision: 1.26 $ / $Date: 2004-12-11 21:03:16 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.26 2004-12-11 21:03:16 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -559,7 +559,7 @@ public static final String
         Time = "${TSTAMP}",
         User = "${user.name}",
         Platform = "${os.name} ${os.version} ${os.arch}",
-        JVM = "${java.version}",
+        JVM = "${java.runtime.version}",
         AllInfo = "${TODAY} at ${TSTAMP} by ${user.name} on " + Platform + " JVM " + JVM,
         WhatString = "@(#)VUE: built " + AllInfo;
 }
