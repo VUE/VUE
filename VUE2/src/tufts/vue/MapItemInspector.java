@@ -18,11 +18,14 @@ class MapItemInspector extends javax.swing.JPanel
 {
     MapItem mapItem;
 
-    JTextField idField = new JTextField();
+    JLabel idField = new JLabel();
     JTextField labelField = new JTextField(15);
     JTextField categoryField = new JTextField();
     JTextField resourceField = new JTextField();
     JTextField notesField = new JTextField();
+    JLabel locationField = new JLabel();
+    JLabel sizeField = new JLabel();
+    
     //JTextArea notesField = new JTextArea(1, 20);
 
     JPanel fieldPane = new JPanel();
@@ -43,20 +46,45 @@ class MapItemInspector extends javax.swing.JPanel
         //textControlsPane.add(actionLabel);
         */
 
-        String[] labels = { "ID", "Label", "Category", "Resource", "Notes" };
-        JTextComponent[] textFields = {idField, labelField, categoryField, resourceField, notesField};
-        //idField.setBorder(LineBorder.createBlackLineBorder());
-        idField.setBorder(new EmptyBorder(1,1,1,1));
-        idField.setEditable(false);
-        if (VueUtil.isMacPlatform())
-            idField.setBackground(SystemColor.window);
+        //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
+        Object[] labelTextPairs = {
+            "-ID",      idField,
+            "-Location",locationField,
+            //"-Size",    sizeField,
+            "Label",    labelField,
+            "Category", categoryField,
+            "Resource", resourceField,
+            "Notes",    notesField,
+        };
+
         if (!(notesField instanceof JTextField))
             notesField.setBorder(LineBorder.createGrayLineBorder());
         
-        addLabelTextRows(labels, textFields, gridBag, fieldPane);
+        addLabelTextRows(labelTextPairs, gridBag, fieldPane);
+
+        //removeListeners(idField, MouseListener.class);
+        //removeListeners(idField, MouseMotionListener.class);
+        // failed experiment to see if removing mouse focus
+        // from a text field would let the events pass thu
+        // to parent window, as they do with JLabels
 
         setLayout(new BorderLayout());
         add(fieldPane, BorderLayout.CENTER);
+    }
+    
+    private void removeListeners(Component c, Class listenerType)
+    {
+        java.util.EventListener[] listeners = c.getListeners(listenerType);
+        for (int i = 0; i < listeners.length; i++) {
+            java.util.EventListener l = listeners[i];
+            System.out.println("Removing "
+                               + listenerType.getName()
+                               + " " + l);
+            if (l instanceof MouseListener)
+                c.removeMouseListener((MouseListener)l);
+            else if (l instanceof MouseMotionListener)
+                c.removeMouseMotionListener((MouseMotionListener)l);
+        }
 
     }
 
@@ -75,24 +103,45 @@ class MapItemInspector extends javax.swing.JPanel
             mapItem.setNotes(text);
         else if (src == resourceField)
             mapItem.setResource(text);
+        else
+            return;
+        transferFocus(); // this isn't going to next field
+        
+        //todo: getNextFocusableComponent().requestFocus();
+        // Try below with next-focus action for enter?
+        //   component.getInputMap().put(aKeyStroke, aCommand);
+        //   component.getActionMap().put(aCommmand, anAction);
+        // Or: just have something else request focus.
+        // Could even track to the next component ourself,
+        // tho it seems rediculous to manage ourselves given
+        // there's a BOODLE of awt code for this -- so
+        // why isn't this dead easy???
 
     }
 
-    private void addLabelTextRows(String[] labels,
-                                  JTextComponent[] textFields,
+    private void addLabelTextRows(Object[] labelTextPairs,
                                   GridBagLayout gridbag,
                                   Container container)
     {
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.EAST;
-        int numLabels = labels.length;
+        int num = labelTextPairs.length;
 
-        for (int i = 0; i < numLabels; i++) {
+        for (int i = 0; i < num; i += 2) {
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
             c.fill = GridBagConstraints.NONE;      //reset to default
             c.weightx = 0.0;                       //reset to default
 
-            JLabel label = new JLabel(labels[i] + ": ");
+            String txt = (String) labelTextPairs[i];
+            boolean readOnly = false;
+            if (txt.startsWith("-")) {
+                txt = txt.substring(1);
+                readOnly = true;
+            } 
+            txt += ": ";
+
+            JLabel label = new JLabel(txt);
+            //JLabel label = new JLabel(labels[i]);
             label.setFont(SmallFont);
             gridbag.setConstraints(label, c);
             container.add(label);
@@ -101,12 +150,23 @@ class MapItemInspector extends javax.swing.JPanel
             c.fill = GridBagConstraints.HORIZONTAL;
             c.weightx = 1.0;
 
-            JTextComponent field = textFields[i];
+            JComponent field = (JComponent) labelTextPairs[i+1];
             field.setFont(SmallFont);
             if (field instanceof JTextField)
                 ((JTextField)field).addActionListener(this);
             gridbag.setConstraints(field, c);
             container.add(field);
+
+            if (readOnly) {
+                field.setBorder(new EmptyBorder(1,1,1,1));
+                if (field instanceof JTextField) {
+                    JTextField tf = (JTextField) field;
+                    tf.setEditable(false);
+                    tf.setFocusable(false);
+                }
+                if (VueUtil.isMacPlatform())
+                    field.setBackground(SystemColor.control);
+            }
         }
     }
     
@@ -129,6 +189,17 @@ class MapItemInspector extends javax.swing.JPanel
         setItem(e.getMapItem());
     }
 
+    private void loadText(JTextComponent c, String text)
+    {
+        String hasText = c.getText();
+        // This prevents flashing where fields of
+        // length greater the the visible area do
+        // a flash-scroll when setting the text, even
+        // if it's the same as what's there.
+        if (hasText != text && !hasText.equals(text))
+            c.setText(text);
+    }
+
     public void setItem(MapItem mapItem)
     {
         //System.err.println("inspector: " + mapItem);
@@ -143,22 +214,27 @@ class MapItemInspector extends javax.swing.JPanel
             if (mapItem instanceof Node) {
                 Node node = (Node) mapItem;
                 if (node.getResource() != null)
-                    resourceField.setText(node.getResource().toString());
+                    loadText(resourceField, node.getResource().toString());
                 else
-                    resourceField.setText("");
+                    loadText(resourceField, "");
                 resourceField.setEditable(true);
                 //resourceLabel.setVisible(true);
                 //resourceField.setVisible(true);
             } else {
-                resourceField.setText("");
+                loadText(resourceField, "");
                 resourceField.setEditable(false);
                 //resourceLabel.setVisible(false);
                 //resourceField.setVisible(false);
             }
+
+            //loadText(idField, mapItem.getID());
             idField.setText(mapItem.getID());
-            labelField.setText(mapItem.getLabel());
-            categoryField.setText(mapItem.getCategory());
-            notesField.setText(mapItem.getNotes());
+            loadText(labelField, mapItem.getLabel());
+            loadText(categoryField, mapItem.getCategory());
+            loadText(notesField, mapItem.getNotes());
+
+            locationField.setText("x=" + mapItem.getX() + " y=" + mapItem.getY());
+            //sizeField.setText(mapItem.getWidth() + "x" + mapItem.getHeight());
         }
         
     }
