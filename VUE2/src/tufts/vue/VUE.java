@@ -320,9 +320,9 @@ public class VUE
             }
             void act(LWSelection selection)
             {
-                LWComponent c = selection.first(); // all have same parent
+                LWContainer parent = selection.first().getParent(); // all have same parent
                 LWGroup group = LWGroup.create(selection);
-                c.getParent().addChild(group);
+                parent.addChild(group);
                 //LWSelection.set(group);//todo
             }
         };
