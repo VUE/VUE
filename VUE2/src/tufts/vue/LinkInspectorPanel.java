@@ -31,7 +31,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-
+import tufts.vue.filter.*;
 
 /**
  * LinkInspectorPanel
@@ -55,8 +55,12 @@ public class LinkInspectorPanel  extends JPanel implements ObjectInspectorPanel.
     /** info tab panel **/
     InfoPanel mInfoPanel = null;
     
-    /** filter panel **/
+    /** Notes panel **/
     NotePanel mNotePanel = null;
+    
+    /** Filter Panel **/
+    LinkFilterPanel mLinkFilterPanel = null;
+    
     
     ///////////////////
     // Constructors
@@ -73,9 +77,10 @@ public class LinkInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         
         mInfoPanel = new InfoPanel();
         mNotePanel = new NotePanel();
-        
+        mLinkFilterPanel = new LinkFilterPanel();
         mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
+        mTabbedPane.addTab(mLinkFilterPanel.getName(), mLinkFilterPanel);
         
         add( BorderLayout.CENTER, mTabbedPane );
         validate();
@@ -115,6 +120,7 @@ public class LinkInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         
         mInfoPanel.updatePanel( mLink);
         mNotePanel.updatePanel( mLink);
+        mLinkFilterPanel.updatePanel(mLink);
     }
     
     //////////////////////
@@ -199,6 +205,38 @@ public class LinkInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         }
     }
     
+     public class LinkFilterPanel extends JPanel implements ActionListener{
+        NodeFilterEditor nodeFilterEditor = null;
+        
+        public LinkFilterPanel() {
+            
+            setLayout(new BorderLayout());
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+            
+            // todo in VUE to create map before adding panels or have a model that
+            // has selection loaded when map is added.
+            // nodeFilterEditor = new NodeFilterEditor(mNode.getNodeFilter(),true);
+            // add(nodeFilterEditor);
+        }
+        
+        
+        public void actionPerformed(ActionEvent e) {
+        }
+        public String getName() {
+            return "Custom Metadata"; // this should come from VueResources
+        }
+        public void updatePanel(LWComponent component) {
+            // update the display
+            if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + component);
+            if(nodeFilterEditor!= null) {
+                nodeFilterEditor.setNodeFilter(component.getNodeFilter());
+            }else {
+                nodeFilterEditor = new NodeFilterEditor(component.getNodeFilter(),true);
+                add(nodeFilterEditor,BorderLayout.CENTER);
+            }
+            validate();  
+        }
+    }
     
     /**
      * setTab

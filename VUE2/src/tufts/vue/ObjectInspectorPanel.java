@@ -230,8 +230,8 @@ public class ObjectInspectorPanel  extends JPanel
 
 	public Dimension getPreferredSize()  {
 		Dimension size =  super.getPreferredSize();
-		if( size.getWidth() < 280 ) {
-			size.setSize( 280, size.getHeight() );
+		if( size.getWidth() < 320) {
+			size.setSize( 320, size.getHeight() );
 			}
 		if( size.getHeight() < 300 ) {
 			size.setSize( size.getWidth(), 300);

@@ -74,7 +74,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
     public NodeInspectorPanel() {
         super();
         
-        setMinimumSize( new Dimension( 150,200) );
+        setMinimumSize( new Dimension( 200,200) );
         setLayout( new BorderLayout() );
         setBorder( new EmptyBorder( 5,5,5,5) );
         mTabbedPane = new JTabbedPane();
