@@ -199,7 +199,7 @@ public class AuthenticationManager extends OsidManager implements osid.authentic
      *  @return TypeIterator which lists each known authentication type.
      */
     public osid.shared.TypeIterator getAuthenticationTypes() {
-        osid_mjn.shared.TypeIterator it = new osid_mjn.shared.TypeIterator (am_types);
+        tufts.oki.shared.TypeIterator it = new tufts.oki.shared.TypeIterator (am_types);
         return it;
     }
     
