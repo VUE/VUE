@@ -66,11 +66,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	//////////////////
  	
  	public FontEditorPanel() {
- 		
-            if (sFontNames == null){
-                //new Throwable("Loading system fonts...").printStackTrace();
-                sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-            }
+                loadFontNames();
                 
  		Box box = Box.createHorizontalBox();
  		
@@ -107,6 +103,16 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  		setFontValue(  FONT_DEFAULT);
  		this.initColors( VueResources.getColor("toolbar.background") );
  	}
+
+     // as this can sometimes take a while, we can call this manually
+     // during startup to control when we take the delay.
+     static void loadFontNames()
+     {
+         if (sFontNames == null){
+             //new Throwable("Loading system fonts...").printStackTrace();
+             sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+         }
+     }
  	
  	
  	////////////////
