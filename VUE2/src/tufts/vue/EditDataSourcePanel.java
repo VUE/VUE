@@ -48,7 +48,7 @@ public class EditDataSourcePanel extends JPanel{
         if (DEBUG.DR) System.out.println("EditDataSourcePanel: setDataSource");
         setDataSource(DataSourceViewer.getActiveDataSource());
         if (DEBUG.DR) System.out.println("EditDataSourcePanel: save data sources?????");
-        DataSourceViewer.saveDataSourceViewer();
+       // DataSourceViewer.saveDataSourceViewer();
     }
     
     public void setDataSource(DataSource dataSource) {
@@ -65,6 +65,8 @@ public class EditDataSourcePanel extends JPanel{
             editDataSourcePanel = new GoogleDataSourcePanel((GoogleDataSource)dataSource);
         } else if(dataSource instanceof OsidDataSource) {
             editDataSourcePanel = new OsidDataSourcePanel((OsidDataSource)dataSource);
+        } else if(dataSource instanceof tufts.artifact.DataSource){
+            editDataSourcePanel = new tufts.artifact.EditPanel((tufts.artifact.DataSource)dataSource,this.dialog);
         }
         add(editDataSourcePanel,BorderLayout.NORTH);
         validate();

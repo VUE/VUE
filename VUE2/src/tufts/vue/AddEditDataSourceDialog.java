@@ -72,7 +72,7 @@ public class AddEditDataSourceDialog extends JDialog {
             tabbedPane.setSelectedComponent(addPanel);
         }
         if (DEBUG.DR) System.out.println(this + " calling super.show");
-        show();
+        super.show();
     }
 
     public String toString() {

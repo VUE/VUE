@@ -36,7 +36,7 @@ import java.awt.event.*;
 public class AddDataSourcePanel extends JPanel {
     
     /** Creates a new instance of AddDataSourcePanel */
-    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID-DR"};
+    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID-DR","Artifact"};
     Box addDataSourceBox;
     JPanel addPanel;
     JPanel typesPanel;
@@ -66,6 +66,8 @@ public class AddDataSourcePanel extends JPanel {
                         addPanel.add(new GoogleDataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[5])) {
                         addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[6])){
+                        addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
                     }
                     validate();
                 }

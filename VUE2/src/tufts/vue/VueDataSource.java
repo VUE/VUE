@@ -36,14 +36,14 @@ import javax.swing.JPanel;
 public class VueDataSource implements DataSource{
   
     public static final String RESOURCEVIEWER_ERROR = "No ResourceViewer Available";
-    String displayName;
-    String address;
-    String Id;
-    boolean isAutoConnect;
-    int publishMode;
-    JPanel resourceViewer; 
-    JPanel addDataSourcePanel;
-    JPanel editDataSourcePanel;
+    protected String displayName;
+    protected String address;
+    protected String Id;
+    protected boolean isAutoConnect;
+    protected int publishMode;
+    protected JPanel resourceViewer; 
+    protected JPanel addDataSourcePanel;
+    protected JPanel editDataSourcePanel;
     
     
     public VueDataSource(){

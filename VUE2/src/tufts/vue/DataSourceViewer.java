@@ -229,7 +229,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof FedoraDataSource) type = 3;
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
-        else type = 6;
+        else if(ds instanceof tufts.artifact.DataSource) type = 6;
+        else type = 7;
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
@@ -259,7 +260,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     public static void refreshDataSourceList(){
         int i =0; Vector dsVector;
         String breakTag = "";
-        int NOOFTYPES = 6;
+        int NOOFTYPES = 7;
         if (!(dataSourceList.getContents().isEmpty()))dataSourceList.getContents().clear();
         for (i = 0; i < NOOFTYPES; i++){
             dsVector = (Vector)allDataSources.get(i);
@@ -411,6 +412,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         Vector dataSource3 = new Vector();
         Vector dataSource4 = new Vector();
         Vector dataSource5 = new Vector();
+        Vector dataSource6 = new Vector();
         
         allDataSources.add(dataSource0);
         allDataSources.add(dataSource1);
@@ -418,6 +420,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         allDataSources.add(dataSource3);
         allDataSources.add(dataSource4);
         allDataSources.add(dataSource5);
+        allDataSources.add(dataSource6);
         
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
