@@ -1085,7 +1085,7 @@ public class LWLink extends LWComponent
         if (arrowState < 0 || arrowState > ARROW_BOTH)
             throw new IllegalArgumentException("arrowState < 0 || > " + ARROW_BOTH + ": " + arrowState);
         mArrowState = arrowState;
-        //notify("repaint");
+        notify("arrowState");
     }
 
     public int getArrowState()
