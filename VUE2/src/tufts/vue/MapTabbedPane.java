@@ -149,7 +149,7 @@ public class MapTabbedPane extends JTabbedPane
             if (map.getFile() != null)
                 tooltip = map.getFile().toString();
             else
-                tooltip = "[Unsaved]";
+                tooltip = "(Unsaved)";
             if (map.isCurrentlyFiltered())
                 tooltip += " (filtered)";
             setToolTipTextAt(i, tooltip);
@@ -271,6 +271,8 @@ public class MapTabbedPane extends JTabbedPane
     public LWMap getMapAt(int index) {
         MapViewer viewer = getViewerAt(index);
         LWMap map = null;
+        if (viewer == null && VUE.inFullScreen()) // hack, but works for now: todo: cleaner
+            return VUE.getActiveMap();
         if (viewer != null)
             map = viewer.getMap();
         //System.out.println(this + " map at index " + index + " is " + map);
