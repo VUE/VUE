@@ -342,7 +342,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         public JComponent getToolTipComponent()
         {
             tufts.vue.Resource r = mLWC.getResource();
-            boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
+            //boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
+            boolean hasTitle = r.getTitle() != null;
             if (ttResource == null
                 || !ttLastString.equals(mLWC.getResource().getSpec())
                 || hadTitle != hasTitle)

@@ -213,7 +213,8 @@ public abstract class LWContainer extends LWComponent
         if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
         if (c.getParent() != null) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
-            new Throwable("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()).printStackTrace();
+            if (DEBUG.PARENTING)
+                new Throwable("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()).printStackTrace();
             if (c.getParent() == this) {
                 if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
                 // this okay -- in fact useful for child node re-drop on existing parent to trigger
