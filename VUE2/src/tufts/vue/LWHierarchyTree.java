@@ -45,6 +45,7 @@ public class LWHierarchyTree extends InspectorWindow
         tree.setEditable(true);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         
+        /*current commented out due to the interface complication
         //mouse listener to let the user open up the resource associated with the selected tree node
         tree.addMouseListener
         (
@@ -70,6 +71,7 @@ public class LWHierarchyTree extends InspectorWindow
                 }
             }
         );
+         */
         
         //tree selection listener to keep track of the selected node 
         tree.addTreeSelectionListener(
@@ -77,7 +79,7 @@ public class LWHierarchyTree extends InspectorWindow
             {
                 public void valueChanged(TreeSelectionEvent e) 
                 {
-                    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+                    LWTreeNode treeNode = (LWTreeNode)tree.getLastSelectedPathComponent();
         
                     if (treeNode == null) 
                       return;

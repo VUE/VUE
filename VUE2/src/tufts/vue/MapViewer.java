@@ -2126,10 +2126,10 @@ public class MapViewer extends javax.swing.JPanel
                         // we're "opening" this node -- maybe an indication
                         // flash -- we'll need another thread for that.
                         if(resource.getAsset() != null) {
-                            AssetViewer a = new AssetViewer(resource.getAsset());
-                            a.setSize(600,400);
-                            a.setLocation(e.getX(),e.getY());
-                            a.show();
+                            //AssetViewer a = new AssetViewer(resource.getAsset());
+                            //a.setSize(600,400);
+                            //a.setLocation(e.getX(),e.getY());
+                            //8a.show();
                         } else {
                             resource.displayContent();
                         }

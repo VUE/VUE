@@ -44,9 +44,9 @@ public class HierarchyTreeModel implements TreeModelListener
     
     /**Sets up the tree hierarchy in a recursive fashion
        As arguments it takes the current node and its parent node*/
-    public DefaultMutableTreeNode setUpHierarchy(LWNode node, LWNode parentNode)
+    public LWTreeNode setUpHierarchy(LWNode node, LWNode parentNode)
     {   
-        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(node);
+        LWTreeNode treeNode = new LWTreeNode(node);
         
         //calls itself on the children nodes
         for (Iterator i = node.getLinks().iterator(); i.hasNext();)
@@ -68,20 +68,19 @@ public class HierarchyTreeModel implements TreeModelListener
     public void treeNodesChanged(TreeModelEvent e) 
     {
         //retrieves the selected node
-        DefaultMutableTreeNode treeNode;
-        treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
+        LWTreeNode treeNode = (LWTreeNode)(e.getTreePath().getLastPathComponent());
         
         //if appropriate retrieves the child of the selected node
         try 
         {
             int index = e.getChildIndices()[0];
-            treeNode = (DefaultMutableTreeNode)(treeNode.getChildAt(index));
+            treeNode = (LWTreeNode)(treeNode.getChildAt(index));
         } 
         
         catch (NullPointerException exc) {}
         
         //changes the node's label and sets it as a new object for the tree node
-        selectedNode.setLabel(treeNode.getUserObject().toString());
+        selectedNode.setLabel(treeNode.toString());
         treeNode.setUserObject(selectedNode);
     }
     
