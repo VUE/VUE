@@ -36,6 +36,9 @@ public class PrintAction extends AbstractAction implements Printable {
             graphics.setClip(0, 0, size.width, size.height);
             currentMap.paintComponent(graphics);
          
+            graphics.setColor(Color.black);
+            graphics.drawRect(0, 0, size.width - 1, size.height - 1);
+            
             return Printable.PAGE_EXISTS;
         }
         
@@ -46,7 +49,21 @@ public class PrintAction extends AbstractAction implements Printable {
     public void actionPerformed(ActionEvent ae)
     {
         PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable(this);
+        
+        PageFormat format = job.defaultPage();
+        Paper paper = format.getPaper();
+        
+        int offset = 15;
+        double x, y, width, height;
+        x = paper.getImageableX() + offset;
+        y = paper.getImageableY() + offset;
+        width = paper.getWidth() - offset;
+        height = paper.getHeight() - offset;
+        
+        paper.setImageableArea(x, y, width, height);
+        
+        format.setPaper(paper);
+        job.setPrintable(this, format);
         
         try
         {
