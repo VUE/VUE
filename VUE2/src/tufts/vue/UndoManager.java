@@ -34,7 +34,7 @@ import javax.swing.Action;
  * there are unmarked changes.
  *
  * @author Scott Fraize
- * @version March 2004
+ * @version July 2004
  */
 
 public class UndoManager
@@ -257,14 +257,22 @@ public class UndoManager
         private void undoHierarchyChange(LWContainer parent, Object oldValue)
         {
             if (DEBUG.UNDO) System.out.println("\trestoring children of " + parent + " to " + oldValue);
-            // todo: compute additions/deletions and generate childrenAdded & childrenRemoved events
-            // for things like the outline view which listen for them (or: redo outline code
-            // to just rebuild everything on the HierarchyChanged event)
-            parent.notify(LWKey.HierarchyChanging); // this event important for REDO (can we optimize?)
+
+            parent.notify(LWKey.HierarchyChanging); // this event important for REDO
+
+            // Create data for synthesized ChildrenAdded & ChildrenRemoved events
+            List newChildList = (List) oldValue;
+            List oldChildList = parent.children;
+            ArrayList childrenAdded = new ArrayList(newChildList);
+            childrenAdded.removeAll(oldChildList);
+            ArrayList childrenRemoved = new ArrayList(oldChildList);
+            childrenRemoved.removeAll(newChildList);
+
+            // Do the swap in of the old list of children:
             parent.children = (List) oldValue;
-            Iterator ci = parent.children.iterator();
             // now make sure all the children are properly parented,
             // and none of them are marked as deleted.
+            Iterator ci = parent.children.iterator();
             while (ci.hasNext()) {
                 LWComponent child = (LWComponent) ci.next();
                 if (parent instanceof LWPathway) {
@@ -278,6 +286,16 @@ public class UndoManager
             }
             parent.setScale(parent.getScale());
             parent.layout();
+            // issue synthesized ChildrenAddded and/or ChildrenRemoved events
+            if (childrenAdded.size() > 0) {
+                if (DEBUG.UNDO) out("Synthetic event " + LWKey.ChildrenAdded + " " + childrenAdded);
+                parent.notify(LWKey.ChildrenAdded, childrenAdded);
+            }
+            if (childrenRemoved.size() > 0) {
+                if (DEBUG.UNDO) out("Synthetic event " + LWKey.ChildrenRemoved + " " + childrenRemoved);
+                parent.notify(LWKey.ChildrenRemoved, childrenRemoved);
+            }
+            // issue the general hierarchy change event
             parent.notify(LWKey.HierarchyChanged);
         }
 
