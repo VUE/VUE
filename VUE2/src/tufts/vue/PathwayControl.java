@@ -149,24 +149,14 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         if ((pathwayManager.getCurrentPathway() != null) 
             && (pathwayManager.getCurrentPathway().getCurrent() == null) )
           pathwayManager.getCurrentPathway().getFirst();
+        
         pathwayList.setSelectedItem(pathwayManager.getCurrentPathway());
         
         updateControlPanel();
         
         /*if (this.pathwayManager.getCurrentPathway() != null)
           setCurrentPathway(pathway);
-        
-        //maybe not necessary
-        else
-        {
-            Actions.AddPathwayNode.setEnabled(false); 
-            
-            if (!Actions.AddPathwayNode.isEnabled())
-              System.out.println("setting false managed");
-            
-            else
-              System.out.println("setting false failed");
-        } */   
+          */
     }
     
     /**Returns the currently associated pathway manager*/
@@ -330,7 +320,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
           this.getCurrentPathway().getPrevious();
           
         }
-        //////////////////////////////////////////////
+        
         //temporarily here
         else if (e.getSource() == removeButton)
           removePathway(this.getCurrentPathway());
@@ -365,18 +355,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 //VUE.getPathwayInspector().setPathway(currentPathway);
                 
                 updateControlPanel();
-                
-                /*if (Actions.AddPathwayNode.isEnabled())
-                {
-                   Actions.AddPathwayNode.setEnabled(false);
-                   Actions.DeletePathwayNode.setEnabled(false);
-            
-                   if (!Actions.AddPathwayNode.isEnabled())
-                     System.out.println("setting false managed");
-            
-                   else
-                     System.out.println("setting false failed");
-                }*/
             }
             
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly

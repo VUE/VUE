@@ -1519,6 +1519,9 @@ public class MapViewer extends javax.swing.JPanel
                 } else {
                     getComponentPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
                     
+                    //enables and disables the add/delete pathway nodes menu 
+                    //depending on whether there is a selected pathway and the selected component 
+                    //belongs to the pathway
                     if(getMap().getPathwayManager().getCurrentPathway()!=null){
                         if(getMap().getPathwayManager().getCurrentPathway().contains(hitComponent)){
                             Actions.AddPathwayNode.setEnabled(false);
