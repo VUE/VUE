@@ -661,21 +661,21 @@ class Actions {
         new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT)) {
             public void act()
             {
-                VUE.getActiveViewer().zoomTool.setZoomBigger();
+                // FIX:  zoom tool gone  VUE.getActiveViewer().zoomTool.setZoomBigger();
             }
         };
     static final Action ZoomOut =
         new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
             public void act()
             {
-                VUE.getActiveViewer().zoomTool.setZoomSmaller();
+                //FIX:  zoom tool gone:  VUE.getActiveViewer().zoomTool.setZoomSmaller();
             }
         };
     static final Action ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
             public void act()
             {
-                VUE.getActiveViewer().zoomTool.setZoomFit();
+                // FIX:  zoom tool gone VUE.getActiveViewer().zoomTool.setZoomFit();
             }
         };
     static final Action ZoomActual =
@@ -683,7 +683,7 @@ class Actions {
             boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
             public void act()
             {
-                VUE.getActiveViewer().zoomTool.setZoom(1.0);
+                // FIX:  VUE.getActiveViewer().zoomTool.setZoom(1.0);
             }
         };
 
