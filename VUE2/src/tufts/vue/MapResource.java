@@ -45,9 +45,13 @@ public class MapResource implements Resource {
     
     public MapResource(String spec)
     {
+        
         setSpec(spec);
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
+        this.mTitle = spec;
     }
+    
+   
     
     
     public Object toDigitalRepositoryReference()
