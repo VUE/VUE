@@ -32,7 +32,7 @@ import org.exolab.castor.mapping.MappingException;
 import java.io.OutputStreamWriter;
 import org.xml.sax.InputSource;
 
-// these classses are required for soap implementation of 
+// these classses are required for soap implementation of
 import javax.xml.namespace.QName;
 
 import fedora.server.types.gen.*;
@@ -49,7 +49,7 @@ import java.rmi.RemoteException ;
 // for FTP
 import org.apache.commons.net.ftp.*;
 
-// APIM 
+// APIM
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
 import fedora.client.ingest.AutoIngestor;
@@ -74,7 +74,7 @@ public class DR implements osid.dr.DigitalRepository {
     private java.util.Vector assets = new java.util.Vector();
     private osid.shared.Id id;
     private URL configuration;
-
+    
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of DR */
@@ -108,15 +108,16 @@ public class DR implements osid.dr.DigitalRepository {
     }
     
     /** sets a soap call to perform all digital repository operations
-     * @throws igitalRepositoryException if Soap call can't be made
+     * @throws DigitalRepositoryException if Soap call can't be made
      */
-   
+    
     public void setFedoraProperties(Properties fedoraProperties) {
         this.fedoraProperties = fedoraProperties;
     }
-   
+    
     public void setFedoraProperties(java.net.URL conf) {
-        String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile()+"/";
+        String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile();
+        System.out.println("FEDORA Address = "+ url);
         fedoraProperties = new Properties();
         try {
             System.out.println("Fedora Properties " + conf);
@@ -126,35 +127,34 @@ public class DR implements osid.dr.DigitalRepository {
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", ""));
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", ""));
             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types",""));
-            System.out.println("Fedora soap access = "+fedoraProperties.getProperty("url.fedora.soap.access"));
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
- 
+        
     }
     
     private void loadFedoraObjectAssetTypes() {
         try {
-             Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
-             Iterator i =fedoraTypesVector.iterator();
-             while(i.hasNext()) {
-                 createFedoraObjectAssetType((String)i.next());
-             }
+            Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
+            Iterator i =fedoraTypesVector.iterator();
+            while(i.hasNext()) {
+                createFedoraObjectAssetType((String)i.next());
+            }
         } catch (Exception ex) { System.out.println("Unable to load fedora types"+ex);}
     }
     public Properties getFedoraProperties() {
         return fedoraProperties;
     }
-
+    
     public URL getConfiguration() {
         return configuration;
     }
     
-
+    
     /**To create AssetTypes that don't exist when repository is loaded. OKI NEEDS to add such a feature
      *@ param String type
      *@ return FedoraObjectAssetType
      *@throws osid.dr.DigitalRepositoryException
      */
- 
+    
     public FedoraObjectAssetType createFedoraObjectAssetType(String type) throws osid.dr.DigitalRepositoryException {
         java.util.Iterator i = assetTypes.iterator();
         while(i.hasNext()) {
@@ -164,23 +164,22 @@ public class DR implements osid.dr.DigitalRepository {
         }
         FedoraObjectAssetType fedoraObjectAssetType = new FedoraObjectAssetType(this,type);
         osid.dr.InfoStructureIterator iter =  fedoraObjectAssetType.getInfoStructures();
-        while(iter.hasNext())
-            infoStructures.add(iter.next());
+        while(iter.hasNext()) {
+            osid.dr.InfoStructure infoStructure = (osid.dr.InfoStructure)iter.next();
+            if(infoStructures.indexOf(infoStructure) < 0)
+                infoStructures.add(infoStructure);
+        }
         assetTypes.add(fedoraObjectAssetType);
         return fedoraObjectAssetType;
     }
     
     /** AssetTypes are loaded from the configuration file. In future versions these will be loaded directly from FEDORA.
      *  OKI Team recommends having  an object in digital repository that maintains this information.
-     * @ throws DigitalRepositoryException 
+     * @ throws DigitalRepositoryException
      */
     
     private void loadAssetTypes() throws  osid.dr.DigitalRepositoryException {
         FedoraObjectAssetType fedoraObjectAssetType = new FedoraObjectAssetType(this,"TUFTS_STD_IMAGE");
-        osid.dr.InfoStructureIterator i =  fedoraObjectAssetType.getInfoStructures();
-        while(i.hasNext())
-            infoStructures.add(i.next());
-        assetTypes.add(fedoraObjectAssetType);
     }
     
     public FedoraObjectAssetType getAssetType(String type) throws osid.dr.DigitalRepositoryException {
@@ -202,8 +201,8 @@ public class DR implements osid.dr.DigitalRepository {
         }
         return false;
     }
-        
-  
+    
+    
     
     /**     Create a new Asset of this AssetType to this DigitalRepository.  The implementation of this method sets the Id for the new object.
      *     @return Asset
@@ -235,7 +234,7 @@ public class DR implements osid.dr.DigitalRepository {
      */
     public osid.shared.TypeIterator getAssetTypes() throws osid.dr.DigitalRepositoryException {
         // this method needs an implementation of TypeIterator which has not yet been implemented
-      return new TypeIterator(assetTypes);
+        return new TypeIterator(assetTypes);
     }
     
     /**     Get all the Assets in this DigitalRepository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -249,12 +248,12 @@ public class DR implements osid.dr.DigitalRepository {
         String assetId = "tufts:";
         String location = null;
         try {
-        for(int i=1;i<=10;i++) {
-           // location = getObject(assetId+i);
-          // FedoraObject obj = createObject(location);
-            FedoraObject obj = new FedoraObject(new PID(assetId+i),this);
-            assetVector.add(obj);
-        }
+            for(int i=1;i<=10;i++) {
+                // location = getObject(assetId+i);
+                // FedoraObject obj = createObject(location);
+                FedoraObject obj = new FedoraObject(new PID(assetId+i),this);
+                assetVector.add(obj);
+            }
         } catch(Exception ex) {
             throw new DigitalRepositoryException(ex.getMessage());
         }
@@ -265,7 +264,7 @@ public class DR implements osid.dr.DigitalRepository {
      *     @return AssetIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws DigitalRepositoryException if there is a general failure   or if the Type is unknown
      */
-  
+    
     
     /**     Get the description for this DigitalRepository.
      *     @return String the name
@@ -312,7 +311,7 @@ public class DR implements osid.dr.DigitalRepository {
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public osid.shared.TypeIterator getSearchTypes() throws osid.dr.DigitalRepositoryException {
-       return new TypeIterator(searchTypes);
+        return new TypeIterator(searchTypes);
     }
     
     /**     Get the the StatusTypes of this Asset.
@@ -320,7 +319,7 @@ public class DR implements osid.dr.DigitalRepository {
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public osid.shared.Type getStatus(osid.shared.Id assetId) throws osid.dr.DigitalRepositoryException {
-         throw new osid.dr.DigitalRepositoryException("Not Implemented");
+        throw new osid.dr.DigitalRepositoryException("Not Implemented");
     }
     
     /**     Get all the StatusTypes supported by this DigitalRepository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -353,7 +352,7 @@ public class DR implements osid.dr.DigitalRepository {
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public void invalidateAsset(osid.shared.Id assetId) throws osid.dr.DigitalRepositoryException {
-         throw new osid.dr.DigitalRepositoryException("Not Implemented");
+        throw new osid.dr.DigitalRepositoryException("Not Implemented");
     }
     
     /**     Validate all the InfoRecords for an Asset and set its status Type accordingly.  If the Asset is valid, return true; otherwise return false.  The implementation may throw an Exception for any validation failures and use the Exception's message to identify specific causes.
@@ -362,7 +361,7 @@ public class DR implements osid.dr.DigitalRepository {
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public boolean validateAsset(osid.shared.Id assetId) throws osid.dr.DigitalRepositoryException {
-         throw new osid.dr.DigitalRepositoryException("Not Implemented");
+        throw new osid.dr.DigitalRepositoryException("Not Implemented");
     }
     
     public osid.shared.Id copyAsset(osid.dr.Asset asset) throws osid.dr.DigitalRepositoryException {
@@ -382,10 +381,10 @@ public class DR implements osid.dr.DigitalRepository {
         searchCriteria.setConditions(condition);
         searchCriteria.setMaxReturns("1");
         AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
-        if(mAssetIterator.hasNext()) 
+        if(mAssetIterator.hasNext())
             return  mAssetIterator.next();
-        else 
-             throw new osid.dr.DigitalRepositoryException("Object not found");
+        else
+            throw new osid.dr.DigitalRepositoryException("Object not found");
         
     }
     
@@ -398,13 +397,14 @@ public class DR implements osid.dr.DigitalRepository {
     }
     
     public AssetIterator getAssets(java.io.Serializable searchCriteria, osid.shared.Type searchType) throws osid.dr.DigitalRepositoryException {
+        System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
         SearchCriteria lSearchCriteria = (SearchCriteria)searchCriteria;
         if(searchType.getKeyword().equals("Search")) {
-              return FedoraSoapFactory.search(this,lSearchCriteria);
+            return FedoraSoapFactory.search(this,lSearchCriteria);
         } else if(searchType.getKeyword().equals("Advanced Search")) {
             return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
         }else {
-           throw new osid.dr.DigitalRepositoryException("Search Type Not Supported");
+            throw new osid.dr.DigitalRepositoryException("Search Type Not Supported");
         }
     }
     
@@ -431,11 +431,11 @@ public class DR implements osid.dr.DigitalRepository {
         int port = 21;
         String userName = "vue";
         String password = "vue@at";
-        String directory = "public_html/fedora"; 
+        String directory = "public_html/fedora";
         FTPClient client = new FTPClient();
         client.connect(host,port);
         client.login(userName,password);
-        client.changeWorkingDirectory(directory); 
+        client.changeWorkingDirectory(directory);
         client.setFileType(FTP.BINARY_FILE_TYPE);
         client.storeFile(fileName,new FileInputStream(file));
         client.logout();
@@ -447,7 +447,7 @@ public class DR implements osid.dr.DigitalRepository {
         String s = new String();
         FileInputStream fis = new FileInputStream(new File(getResource(templateFileName).getFile().replaceAll("%20"," ")));
         //FileInputStream fis = new FileInputStream(new File(templateFileName));
-        DataInputStream in = new DataInputStream(fis); 
+        DataInputStream in = new DataInputStream(fis);
         byte[] buf = new byte[BUFFER_SIZE];
         int ch;
         int len;
@@ -456,7 +456,7 @@ public class DR implements osid.dr.DigitalRepository {
         }
         fis.close();
         in.close();
-      //  s = sb.toString();
+        //  s = sb.toString();
         //String r =  s.replaceAll("%file.location%", fileName).trim();
         String r = updateMetadata(s, fileName,file.getName(),properties);
         //writing the to outputfile
@@ -465,11 +465,11 @@ public class DR implements osid.dr.DigitalRepository {
         fos.write(r.getBytes());
         fos.close();
         AutoIngestor a = new AutoIngestor(address.getHost(), address.getPort(),"fedoraAdmin","fedoraAdmin");
-        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest"); 
+        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest");
         System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
         return new PID(pid);
-    } 
-   
+    }
+    
     private String updateMetadata(String s,String fileLocation, String fileTitle, Properties dcFields) {
         String dcMetadata;
         s = s.replaceAll("%file.location%", fileLocation).trim();
@@ -479,9 +479,8 @@ public class DR implements osid.dr.DigitalRepository {
         return s;
         
     }
-     
-    private java.net.URL getResource(String name)
-    {
+    
+    private java.net.URL getResource(String name) {
         java.net.URL url = null;
         java.io.File f = new java.io.File(name);
         if (f.exists()) {
@@ -492,9 +491,9 @@ public class DR implements osid.dr.DigitalRepository {
             }
         }
         if (url == null)
-           url = getClass().getResource(name);
+            url = getClass().getResource(name);
         System.out.println("fedora.conf = "+url.getFile());
-       return url;
+        return url;
     }
     
     public static boolean isSupportedMetadataField(String field){
@@ -509,19 +508,19 @@ public class DR implements osid.dr.DigitalRepository {
         Enumeration e = dcFields.keys();
         while(e.hasMoreElements()) {
             String field = (String)e.nextElement();
-            if(isSupportedMetadataField(field)) 
+            if(isSupportedMetadataField(field))
                 metadata += "<"+DC_NAMESPACE+field+">"+dcFields.getProperty(field)+"</"+DC_NAMESPACE+field+">";
         }
         return metadata;
     }
-   
+    
     public String getAddress() {
-        return this.address.getHost();  
+        return this.address.getHost();
     }
     public void setAddress(String address) throws java.net.MalformedURLException {
-
-            this.address = new URL("http",address,8080,"fedora/");
-   
+        
+        this.address = new URL("http",address,8080,"fedora/");
+        
     }
     public String getUserName() {
         return this.userName;
@@ -535,13 +534,13 @@ public class DR implements osid.dr.DigitalRepository {
     public void setPassword() {
         this.password = password;
     }
-     public String getConf() {
+    public String getConf() {
         return this.conf;
     }
     public void setConf(String conf) {
         this.conf = conf;
     }
-   
+    
 }
 
 

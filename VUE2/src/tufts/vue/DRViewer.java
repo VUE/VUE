@@ -33,6 +33,7 @@ import java.util.ArrayList;
 public class DRViewer extends JPanel implements ActionListener,KeyListener {
     
     public static String  FEDORA_MESG = "Problem accessing FEDORA Server.Please redo search";
+    public static int SEARCH_ATTEMPTS = 3;
     public int countError = 0;
     ConditionsTableModel m_model;
     JTabbedPane tabbedPane;
@@ -143,20 +144,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
         
-        // redundant not required.
-     //adding the top label   
-       // c.weightx = 1.0;
-        /**
-        c.gridx=0;
-        c.gridy=0;
-        c.gridwidth=3;
-        c.insets = defaultInsets;
-        JLabel topLabel = new JLabel("Search inside: Tufts FEDORA");
-        topLabel.setFont(new Font("Arial",Font.PLAIN, 12));
-        gridbag.setConstraints(topLabel, c);
-        DRSearchPanel.add(topLabel);
-        */
-        
+      
     //adding the search box 
         c.gridx=0;
         c.gridy=1;
@@ -330,7 +318,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             setSearchResultsPanel();
             countError = 0;
         }  catch (Exception ex) {
-            if(countError >5) {
+            if(countError >SEARCH_ATTEMPTS) {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
                 countError = 0;
             }else {
@@ -354,7 +342,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             setSearchResultsPanel();
             countError = 0;
         } catch (Exception ex) {
-            if(countError > 5){ 
+            if(countError > SEARCH_ATTEMPTS){ 
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
                 countError = 0;
            }else {
@@ -377,7 +365,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             setSearchResultsPanel();
             countError = 0;
         } catch (Exception ex) {
-             if(countError > 5) {
+             if(countError > SEARCH_ATTEMPTS) {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
                 countError = 0;
              }else {

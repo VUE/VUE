@@ -47,11 +47,11 @@ public class InfoPartIterator implements osid.dr.InfoPartIterator {
      *
      * @throws An exception with one of the following messages defined in
      *         osid.dr.DigitalRepositoryException may be thrown:
-     *         OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
+     *         OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTSt
      */
     public osid.dr.InfoPart next() throws osid.dr.DigitalRepositoryException {
         if (i >= vector.size()) {
-            throw new osid.dr.DigitalRepositoryException("No more Behaviors");
+            throw new osid.dr.DigitalRepositoryException("No more InfoParts");
         }
 
         return (osid.dr.InfoPart) vector.elementAt(i++);

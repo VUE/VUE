@@ -27,9 +27,9 @@ public class PID extends tufts.oki.shared.Id {
     
     public PID(String pid)  throws osid.shared.SharedException { 
         super(pid);
-    }    /** Get a string representation from a unique identifier
-     *
-  
+    }     
+         
+
 
     /** Checks if the id is valid
      *

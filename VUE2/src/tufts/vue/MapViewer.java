@@ -2681,25 +2681,16 @@ public class MapViewer extends javax.swing.JComponent
 
         return sSinglePopup;
     }
-    
+   
     private JMenu buildAssetMenu(Asset asset) {
-        JMenu returnMenu = new JMenu("Behaviors");
-        
-        InfoRecordIterator i;
+        JMenu returnMenu = new JMenu("Disseminators");
+   
+        osid.dr.InfoRecordIterator i;
         try {
             i = asset.getInfoRecords();
             while(i.hasNext()) {
-                  InfoRecord infoRecord = i.next();
-                  JMenu infoRecordMenu = new  JMenu(infoRecord.getId().getIdString());
-                  InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
-                  while(inf.hasNext()) {
-                      InfoField infoField = (InfoField)inf.next();
-                      //String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getId().getIdString();
-                      infoRecordMenu.add(FedoraUtils.getFedoraAction(infoField));
-                      //infoRecordMenu.add(new FedoraAction(infoField.getId().getIdString(),method));
-                  }
-                  
-                  returnMenu.add(infoRecordMenu);
+                  osid.dr.InfoRecord infoRecord = i.next();
+                   returnMenu.add(FedoraUtils.getFedoraAction(infoRecord,((FedoraObject)asset).getDR()));
             }
         } catch (Exception e) {
             System.out.println("MapViewer.getAssetMenu"+e);
@@ -2979,7 +2970,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
-                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
+                else if (c == '*') { tufts.vue.PrintAction.getPrintAction().fire(this); }
                 else
                     did = false;
                 if (did) {

@@ -1018,7 +1018,7 @@ public class LWLink extends LWComponent
         return mArrowState;
     }
 
-    void rotateArrowState()
+    public void rotateArrowState()
     {
         if (++mArrowState > ARROW_BOTH)
             mArrowState = ARROW_NONE;

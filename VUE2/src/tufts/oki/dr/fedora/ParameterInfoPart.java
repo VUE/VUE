@@ -26,8 +26,9 @@ public class ParameterInfoPart implements osid.dr.InfoPart {
     public ParameterInfoPart() {
     }
     
-    public ParameterInfoPart(DR dr,DisseminationInfoPart infoPart) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {  
-        this.id = new PID("Parameter_Id");
+    public ParameterInfoPart(osid.dr.InfoStructure infoStructure,DR dr) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {  
+        this.infoStructure = infoStructure;
+        this.id = new PID(FedoraUtils.getFedoraProperty(dr, "ParameterInfoPartId"));
         repeatable = true;
     }
     
