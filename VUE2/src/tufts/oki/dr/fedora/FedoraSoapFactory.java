@@ -34,54 +34,7 @@ public class FedoraSoapFactory {
     // preferences for Fedora
     
     /** Creates a new instance of FedoraSoapFactory */
-    public static Vector getBehaviors(FedoraObject obj) throws osid.dr.DigitalRepositoryException {
-        Call call;
-        Vector behaviorList = new Vector();
-        try {
-            call = getCallBehavior(obj);
-            String[] objMethods= (String[]) call.invoke(new Object[] {obj.getId().getIdString()} );
-            if(objMethods == null)
-                throw new osid.dr.DigitalRepositoryException("tufts.dr.FedoraObject():No Behaviours returned");
-            else {
-                for(int i=0;i<objMethods.length;i++) {
-                    behaviorList.add(new Behavior(new PID(objMethods[i]),obj));
-                }
-            }
-        }catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("FedoraSoapFactory.getBehaviors"+ex.getMessage());
-        }
-        System.out.println("FedoraSoapFactory Behavior count ="+behaviorList.size());
-        return behaviorList;
-    }
-    /**
-     * public static Vector getDisseminators(Behavior behavior) throws osid.dr.DigitalRepositoryException {
-     * Call call;
-     * Vector disseminationList = new Vector();
-     * try {
-     * String pid = behavior.getFedoraObject().getId().getIdString();
-     * call = getCallMethods(behavior);
-     * ObjectMethodsDef[] objMethods= (ObjectMethodsDef[]) call.invoke(new Object[] {pid} );
-     * if(objMethods == null)
-     * throw new osid.dr.DigitalRepositoryException("tufts.dr.FedoraObject():No Disseminations  returned");
-     * else {
-     * for(int i=0;i<objMethods.length;i++){
-     * // System.out.println("PID ="+pid + " bdefid " + behavior.getId().getIdString()+"method "+objMethods[i].getMethodName());
-     * if(objMethods[i].getBDefPID().equals(behavior.getId().getIdString())) {
-     * if(!objMethods[i].getMethodName().equals("getImage") && !objMethods[i].getMethodName().equals("getItem") ) {
-     * Dissemination dissemination =  new Dissemination(new PID(objMethods[i].getMethodName()),behavior);
-     * dissemination.setValue(getDisseminationStream(dissemination));
-     * disseminationList.add(new Dissemination(new PID(objMethods[i].getMethodName()),behavior));
-     * }
-     * }
-     * }
-     * }
-     * }
-     * catch(Exception ex) {
-     * throw new osid.dr.DigitalRepositoryException("FedoraSoapFactory.getDisseminators "+ex.getMessage());
-     * }
-     * return disseminationList;
-     * }
-     **/
+   
     public static  Vector getDissemintionInfoRecords(String pid,osid.dr.InfoStructure infoStructure,DR dr)   throws osid.dr.DigitalRepositoryException  {
         Call call;
         Vector disseminationList = new Vector();
@@ -105,41 +58,7 @@ public class FedoraSoapFactory {
         return disseminationList;
     }
     
-    /**
-    public static  MIMETypedStream getDisseminationStream(Dissemination dissemination) throws osid.dr.DigitalRepositoryException {
-        Call call;
-        MIMETypedStream stream;
-        try {
-            call = getCallDissemination(dissemination);
-            String pid = dissemination.getBehavior().getFedoraObject().getId().getIdString();
-            String bPid = dissemination.getBehavior().getId().getIdString();
-            String methodName = dissemination.getId().getIdString();
-            Property userParams= null;
-            stream = (MIMETypedStream) call.invoke(new Object[] {pid,bPid,methodName,userParams});
-        }catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("FedoraSoapFactory.getDisseminationStream"+ex.getMessage());
-        }
-        return stream;
-        
-    }
-     */
-    // not used anymore
-    /**
-     * public static  FieldSearchResult search(DR dr,String term,String maxResults,String[] resField)  throws osid.dr.DigitalRepositoryException {
-     * Call call;
-     * FieldSearchResult searchResults=new FieldSearchResult();
-     * NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
-     * try {
-     * call = getCallSearch(dr);
-     * FieldSearchQuery query=new FieldSearchQuery();
-     * query.setTerms(term);
-     * FieldSearchResult searchResult  =    (FieldSearchResult) call.invoke(new Object[] {resField,maxRes,query} );
-     * return searchResult ;
-     * }catch(Exception ex) {
-     * throw new osid.dr.DigitalRepositoryException("FedoraSoapFactory.search"+ex.getMessage());
-     * }
-     * }
-     **/
+ 
     public static  FedoraObjectIterator search(DR dr,SearchCriteria lSearchCriteria)  throws osid.dr.DigitalRepositoryException {
         String term = lSearchCriteria.getKeywords();
         String maxResults = lSearchCriteria.getMaxReturns();
@@ -246,33 +165,7 @@ public class FedoraSoapFactory {
         }
     }
     
-    private static Call  getCallBehavior(FedoraObject obj) throws osid.dr.DigitalRepositoryException{
-        Call call;
-        DR dr = obj.getDR();
-        try {
-            String fedoraTypeUrl = dr.getFedoraProperties().getProperty("url.fedora.type");
-            
-            Service service = new Service();
-            call=(Call)service.createCall();
-            call.setTargetEndpointAddress(new URL(dr.getFedoraProperties().getProperty("url.fedora.soap.access")));
-            // creating namespacescall.setOperationName(new QName(FEDORA_API_URI,"findObjects"));
-            
-            QName qn1=new QName(fedoraTypeUrl, "ObjectMethodsDef");
-            QName qn2=new QName(fedoraTypeUrl, "ObjectProfile");
-            //registering namespaces
-            call.registerTypeMapping(ObjectMethodsDef.class, qn1,new BeanSerializerFactory(ObjectMethodsDef.class, qn1),
-            new BeanDeserializerFactory(ObjectMethodsDef.class, qn1));
-            call.registerTypeMapping(ObjectProfile.class, qn2,new BeanSerializerFactory(ObjectProfile.class, qn2),
-            new BeanDeserializerFactory(ObjectProfile.class, qn2));
-            
-            call.setOperationName(new QName(dr.getFedoraProperties().getProperty("url.fedora.api"),"getBehaviorDefinitions"));
-            
-        } catch (Exception ex) {
-            throw new DigitalRepositoryException("FedoraSoapFactory.getCallBehavior"+ex.getMessage());
-        }
-        return call;
-    }
-    
+   
     private static  Call getCallMethods(DR dr)  throws osid.dr.DigitalRepositoryException  {
         //creates the new service and call instance
         Call call;
@@ -302,34 +195,7 @@ public class FedoraSoapFactory {
         }
         return call;
     }
-    /**
-    private static Call getCallDissemination(Dissemination dissemination) throws osid.dr.DigitalRepositoryException {
-        Call call;
-        DR dr = dissemination.getBehavior().getFedoraObject().getDR();
-        try {
-            String fedoraTypeUrl = dr.getFedoraProperties().getProperty("url.fedora.type");
-            String fedoraApiUrl = dr.getFedoraProperties().getProperty("url.fedora.api");
-            Service service = new Service();
-            call=(Call)service.createCall();
-            call.setTargetEndpointAddress(new URL(dr.getFedoraProperties().getProperty("url.fedora.soap.access")));
-            //specify what method to call on the server
-            call.setOperationName(new QName(fedoraApiUrl,"GetDissemination"));
-            //create namingspaces for user defined types
-            QName qn1 = new QName(fedoraTypeUrl, "MIMETypedStream");
-            QName qn2 = new QName(fedoraTypeUrl, "Property");
-            // Any Fedora-defined types required by the SOAP service must be registered
-            // prior to invocation so the SOAP service knows the appropriate
-            // serializer/deserializer to use for these types.
-            call.registerTypeMapping(MIMETypedStream.class, qn1,new BeanSerializerFactory(MIMETypedStream.class, qn1),
-            new BeanDeserializerFactory(MIMETypedStream.class, qn1));
-            call.registerTypeMapping(Property.class, qn2,new BeanSerializerFactory(Property.class, qn2),
-            new BeanDeserializerFactory(Property.class, qn2));
-        }catch (Exception ex) {
-            throw new DigitalRepositoryException("FedoraSoapFactory.getCallDissemination "+ex.getMessage());
-        }
-        return call;
-    }
-    **/
+   
     private static Call getCallSearch(DR dr)  throws osid.dr.DigitalRepositoryException {
         Call call;
         try {
