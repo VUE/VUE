@@ -107,8 +107,7 @@ public class LinkTool extends VueTool
     
     public boolean supportsSelection() { return true; }
 
-    // redo as handleComponentPressed
-    public boolean handleMousePressed(MapMouseEvent e)
+    public boolean handleComponentPressed(MapMouseEvent e)
     {
         //System.out.println(this + " handleMousePressed " + e);
         LWComponent hit = e.getHitComponent();

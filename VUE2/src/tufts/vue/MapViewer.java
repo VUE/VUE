@@ -3044,7 +3044,7 @@ public class MapViewer extends javax.swing.JComponent
                 // MOUSE: We've pressed the left (normal) mouse on SOME LWComponent
                 //-------------------------------------------------------
                 
-                //activeTool.handleMousePressed(mme);
+                activeTool.handleComponentPressed(mme);
                 
                 if (mme.getDragRequest() != null) {
                     dragComponent = mme.getDragRequest(); // TODO: okay, at least HERE, dragComponent CAN be a real component...

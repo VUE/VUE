@@ -250,28 +250,42 @@ public class VUE
         return isStartupUnderway;
     }
     
-    private static Cursor oldCursor;
+    private static Cursor oldRootCursor;
+    private static Cursor oldViewerCursor;
+    private static MapViewer waitedViewer;
+    // todo: as a stack
     public static synchronized void activateWaitCursor() {
-        JRootPane rp = SwingUtilities.getRootPane(VUE.frame);
-        if (oldCursor != null)
-            System.out.println("multiple wait-cursors");
-        else if (getActiveViewer() != null) {
-            oldCursor = getActiveViewer().getCursor();
-            getActiveViewer().setCursor(CURSOR_WAIT);
+        if (oldRootCursor != null) {
+            out("multiple wait-cursors: already have " + oldRootCursor + "\n");
+            return;
         }
-        //oldCursor = rp.getCursor();
-        // okay -- need to get this from the MapViewer..
-        System.out.println("GOT OLD CURSOR " + oldCursor);
-        rp.setCursor(CURSOR_WAIT);
-    }
-    public static synchronized void clearWaitCursor() {
-        if (getActiveViewer() != null)
-            getActiveViewer().setCursor(oldCursor);
-        SwingUtilities.getRootPane(VUE.frame).setCursor(oldCursor);
-        System.out.println("USED OLD CURSOR " + oldCursor);
-        oldCursor = null;
+        if (getActiveViewer() != null) {
+            waitedViewer = getActiveViewer();
+            oldViewerCursor = waitedViewer.getCursor();
+            waitedViewer.setCursor(CURSOR_WAIT);
+        }
+        JRootPane root = SwingUtilities.getRootPane(VUE.frame);
+        out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
+        oldRootCursor = root.getCursor();
+        root.setCursor(CURSOR_WAIT);
     }
     
+    public static void clearWaitCursor() {
+        //_clearWaitCursor();
+        VUE.invokeAfterAWT(new Runnable() { public void run() { _clearWaitCursor(); }});
+    }
+    
+    private static void _clearWaitCursor() {
+        out("restoring old cursor " + oldRootCursor + "\n");
+        if (oldRootCursor == null)
+            return;
+        if (waitedViewer != null) {
+            waitedViewer.setCursor(oldViewerCursor);
+            waitedViewer = null;
+        }
+        SwingUtilities.getRootPane(VUE.frame).setCursor(oldRootCursor);
+        oldRootCursor = null;
+    }
     
     /*public static LWPathwayInspector getPathwayInspector(){
         return pathwayInspector;
@@ -385,8 +399,8 @@ public class VUE
     
     public static void main(String[] args) {
         System.out.println("VUE:main");
-        System.out.println("VUE: fully built: " + tufts.vue.Version.BuildDay);
-
+        parseArgs(args);
+        
         // initUI installs the VueTheme (unless mac look), which must be done
         // before any other GUI code (including the SlpashScreen)
         // or our VueTheme gets ignored by swing.
@@ -398,6 +412,8 @@ public class VUE
         else
             splashScreen = new SplashScreen();
 
+        System.out.println("VUE: fully built: " + tufts.vue.Version.BuildDay);
+        
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
@@ -698,18 +714,19 @@ public class VUE
         if (splashScreen != null)
             splashScreen.setVisible(false);
 
+        VUE.activateWaitCursor();
+        
         if (args.length > 0) {
             try {
                 for (int i = 0; i < args.length; i++) {
                     if (args[i].charAt(0) == '-')
                         continue;
-                    VUE.activateWaitCursor();
                     LWMap map = OpenAction.loadMap(args[i]);
                     if (map != null)
                         displayMap(map);
                 }
             } finally {
-                VUE.clearWaitCursor();
+                //VUE.clearWaitCursor();                
             }
         }
         
@@ -758,7 +775,11 @@ public class VUE
         //out("INPUTMAP " + Arrays.asList(VUE.getActiveViewer().getInputMap().keys()));
         //out("INPUTMAP " + Arrays.asList(getInputMap().keys()));
 
+        VUE.clearWaitCursor();
+        
         out("main completed.");
+        
+        
     }
 
     private static void installMacOSXApplicationEventHandlers()

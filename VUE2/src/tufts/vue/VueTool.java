@@ -336,6 +336,9 @@ public abstract class VueTool extends AbstractAction
         if (DEBUG.TOOL) System.out.println(this + " handleMousePressed " + e);
         return false;
     }
+    public boolean handleComponentPressed(MapMouseEvent e) {
+        return false;
+    }
     public boolean handleMouseDragged(MapMouseEvent e) {
         //System.out.println(this + " handleMouseDragged " + e);
         return false;

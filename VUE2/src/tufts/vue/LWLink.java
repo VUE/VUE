@@ -1301,16 +1301,22 @@ public class LWLink extends LWComponent
         if (!isNestedLink())
             drawLinkDecorations(dc);
         
-        if (DEBUG.BOXES) {
+        boolean ep1group = getComponent1() instanceof LWGroup;
+        boolean ep2group = getComponent2() instanceof LWGroup;
+        if (ep1group || ep2group || DEBUG.BOXES) {
             RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, 10,10);
-            dot.setFrameFromCenter(startX, startY, startX+5, startY+5);
             Composite composite = dc.g.getComposite();
             dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             dc.g.setColor(Color.green);
-            dc.g.fill(dot);
-            dot.setFrameFromCenter(endX, endY, endX+5, endY+5);
-            dc.g.setColor(Color.red);
-            dc.g.fill(dot);
+            if (ep1group || DEBUG.BOXES) {
+                dot.setFrameFromCenter(startX, startY, startX+5, startY+5);
+                dc.g.fill(dot);
+            }
+            if (ep2group || DEBUG.BOXES) {
+                dot.setFrameFromCenter(endX, endY, endX+5, endY+5);
+                if (DEBUG.BOXES) dc.g.setColor(Color.red);
+                dc.g.fill(dot);
+            }
             dc.g.setComposite(composite);
         }
                 
