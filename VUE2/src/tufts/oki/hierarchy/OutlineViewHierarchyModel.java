@@ -20,6 +20,8 @@ import tufts.vue.LWCEvent;
  *
  * @author  Daisuke Fujiwara
  */
+
+/**A class that represents the hierarchy model used for the outline view*/
 public class OutlineViewHierarchyModel extends HierarchyModel implements LWComponent.Listener 
 {
     
@@ -36,12 +38,14 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         setUpOutlineView(container, null);
     }
     
+    /**A method that sets up the hierarchy structure of the outline view*/
     public void setUpOutlineView(LWContainer container, HierarchyNode parentNode)
     {
         try
         {
             HierarchyNode hierarchyNode;
         
+            //if a node to be created is a root node
             if (parentNode == null)
             {
               String label, description;
@@ -57,6 +61,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
               hierarchyNode.setLWComponent(container);
             }
             
+            //if it is a non root node
             else
               hierarchyNode = createHierarchyNode(parentNode, container);
             
@@ -133,15 +138,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         return foundNode;
     }
     
-    /**Adds a new tree node*/
-    public void addLWTreeNode(LWContainer parent, LWComponent addedChild)
+    /**Adds a new hierarchy node*/
+    public void addHierarchyTreeNode(LWContainer parent, LWComponent addedChild)
     {      
         //if it is a LWNode
         if (addedChild instanceof LWNode)
         {
             HierarchyNode parentNode = null, childNode;
             
-            //finds the parent tree node
+            //finds the parent hierarchy node
             try
             {
                 if (parent instanceof LWMap)
@@ -163,19 +168,23 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 return;
             }
 
-            //adds the tree node        
+            //creates the hierarchy node as a child of the parent node    
             childNode = createHierarchyNode(parentNode, addedChild);
             
-            //for each link associated with the added LWNode, add to the tree node
+            //for each link associated with the added LWNode, add to the parent hierarchy node
             for (Iterator i = addedChild.getLinks().iterator(); i.hasNext();)
             {
                 LWLink link = (LWLink)i.next();       
                 HierarchyNode linkNode = createHierarchyNode(childNode, link);
             }
                
-            //adding anything that the added node contains
+            //adds anything that is contained in the added LWNode
             for (Iterator nodeIterator = ((LWNode)addedChild).getNodeIterator(); nodeIterator.hasNext();)
             {
+                
+                addHierarchyTreeNode((LWNode)addedChild, (LWNode)nodeIterator.next());
+                
+                /*
                 LWNode subChild = (LWNode)nodeIterator.next();
                 HierarchyNode subChildNode = createHierarchyNode(childNode, subChild);
                 
@@ -184,6 +193,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                     LWLink link = (LWLink)linkIterator.next();
                     HierarchyNode linkNode = createHierarchyNode(subChildNode, link);
                 }
+                 */
+               
             }
             
             //updates the tree
@@ -202,24 +213,24 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             LWComponent component1 = link.getComponent1();
             LWComponent component2 = link.getComponent2();
          
-            //finds the tree nodes associated with the two components and adds the tree node representing the link to
-            //the two tree nodes
+            //finds the hierarchy nodes associated with the two components and adds a hierarchy node representing the link to
+            //the two hierarchy nodes
             if (component1 != null) 
             {
                 try
                 {
                     linkedNode1 = findHierarchyNode(getRootNode(), component1, true);
+                    
+                    if (linkedNode1 != null)
+                    { 
+                        HierarchyNode linkNode = createHierarchyNode(linkedNode1, link);
+                        reloadTreeModel(linkedNode1);
+                    }
                 }
                 
                 catch (osid.hierarchy.HierarchyException he1)
                 {
                     System.err.println("couldn't find the root");
-                }
-                
-                if (linkedNode1 != null)
-                { 
-                    HierarchyNode linkNode = createHierarchyNode(linkedNode1, link);
-                    reloadTreeModel(linkedNode1);
                 }
             }
             
@@ -228,17 +239,17 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 try
                 {
                     linkedNode2 = findHierarchyNode(getRootNode(), component2, true);
+                    
+                    if (linkedNode2 != null) 
+                    {
+                        HierarchyNode linkNode = createHierarchyNode(linkedNode2, link);
+                        reloadTreeModel(linkedNode2);
+                    }
                 }
                 
                 catch (osid.hierarchy.HierarchyException he2)
                 {
                     System.err.println("couldn't find the root");
-                }
-                
-                if (linkedNode2 != null) 
-                {
-                    HierarchyNode linkNode = createHierarchyNode(linkedNode2, link);
-                    reloadTreeModel(linkedNode2);
                 }
             }
             
@@ -249,15 +260,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         }
     }
     
-    /**Deletes a tree node*/
-    public void deleteLWTreeNode(LWContainer parent, LWComponent deletedChild)
+    /**Deletes a hierarchy node*/
+    public void deleteHierarchyTreeNode(LWContainer parent, LWComponent deletedChild)
     {    
         //if it is a LWNode
         if (deletedChild instanceof LWNode)
         {
             HierarchyNode parentNode = null, deletedChildNode = null;
             
-            //finds the parent tree node
+            //finds the parent hierarchy node
             try
             {
                 if (parent instanceof LWMap)
@@ -275,7 +286,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             //finds the tree node representing the deleted child
             deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);
              
-            //removes from the tree and updates the tree
+            //removes from the hierarch model
             deleteHierarchyNode(parentNode, deletedChildNode);
         }
          
@@ -300,19 +311,19 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 System.err.println("couldn't find the root");
             }
             
-            //finds the tree nodes associated with the two components and deletes the tree node representing the link to
+            //finds the hierarchy nodes associated with the two components and deletes the tree node representing the link to
             //the two tree nodes
             //must check to see if the parent wasn't deleted in the process
             if (linkedNode1 != null)
             {
-              HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
-              deleteHierarchyNode(linkedNode1, linkNode1);
+                HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
+                deleteHierarchyNode(linkedNode1, linkNode1);
             }
               
             if (linkedNode2 != null)
             {
-              HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
-              deleteHierarchyNode(linkedNode2, linkNode2);
+                HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
+                deleteHierarchyNode(linkedNode2, linkNode2);
             }
         }
     }
@@ -324,28 +335,29 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         
         //when a child is added to the map
         if (message.equals("childAdded")) 
-          addLWTreeNode((LWContainer)e.getSource(), e.getComponent());
+          addHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
             
         //when a child is removed from the map
         else if (message.equals("childRemoved"))
-          deleteLWTreeNode((LWContainer)e.getSource(), e.getComponent());
+          deleteHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
 
         //when children added to the map
         else if (message.equals("childrenAdded"))
         {
             ArrayList childrenList = e.getComponents();
             for (Iterator i = childrenList.iterator(); i.hasNext();)
-                addLWTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
+                addHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
         }
         //when children are removed from the map
         else if (message.equals("childrenRemoved"))
         {
             ArrayList childrenList = e.getComponents();
             for (Iterator i = childrenList.iterator(); i.hasNext();)
-                deleteLWTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
+                deleteHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
         }
     }
     
+    /**A method that creates a hierarch node with a given parent and the given LWComponent*/
     private HierarchyNode createHierarchyNode(HierarchyNode parentNode, LWComponent component) 
     {   
         HierarchyNode node = null;
@@ -354,6 +366,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         {
             String label, description;
             
+            //if there is no label associated with the given component
             if ((label = component.getLabel()) == null)
             {
                 if (component instanceof LWLink)
@@ -365,7 +378,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             
             if ((description = component.getNotes()) == null)
               description = new String("No description for " + label);
-                
+              
+            //creates a hierarchy node and sets its LWcomponent to the given one
             node = (HierarchyNode)createNode(new tufts.oki.shared.Id(getNextID()), parentNode.getId(), new tufts.oki.shared.VueType(), 
                                              label, description);
             node.setLWComponent(component);
@@ -390,6 +404,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         return node;
     }
     
+    /**A method that deletes the given node*/
     private void deleteHierarchyNode(HierarchyNode parentNode, HierarchyNode childNode)
     {
         try

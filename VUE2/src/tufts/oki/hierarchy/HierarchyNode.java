@@ -16,6 +16,8 @@ import tufts.vue.LWComponent;
  *
  * @author  Daisuke Fujiwara
  */
+
+/**A class that represents a node of a hierarchy structure*/
 public class HierarchyNode implements osid.hierarchy.Node
 {
     private osid.shared.Type type;
@@ -37,6 +39,7 @@ public class HierarchyNode implements osid.hierarchy.Node
         this.treeNode = treeNode;
     }
     
+    /**A method that retrieves the children of the node*/
     public osid.hierarchy.NodeIterator getChildren() throws osid.hierarchy.HierarchyException 
     {   
         if (treeNode == null)
@@ -46,25 +49,27 @@ public class HierarchyNode implements osid.hierarchy.Node
         
         for (Enumeration e = treeNode.children(); e.hasMoreElements();)
         {
+            //for each child node, retrieves the hierarchy node associated with it and adds to the node vector
             DefaultMutableTreeNode childTreeNode = (DefaultMutableTreeNode) e.nextElement();
             children.addElement((osid.hierarchy.Node) (childTreeNode.getUserObject()));
-            //osid.hierarchy.Node childNode = (osid.hierarchy.Node) e.nextElement();
-            //children.addElement(childNode);
         }
 
         return (osid.hierarchy.NodeIterator) (new HierarchyNodeIterator(children));
     }
     
+    /**A method that returns the node's ID*/
     public osid.shared.Id getId() throws osid.hierarchy.HierarchyException 
     {
         return id;
     }
     
+    /**A method that returns the node's display name*/
     public String getDisplayName() throws osid.hierarchy.HierarchyException 
     {
         return name;
     }
     
+    /**A method that modifies the node's display name*/
     public void updateDisplayName(java.lang.String name) throws osid.hierarchy.HierarchyException 
     {
         if (name == null) 
@@ -73,11 +78,13 @@ public class HierarchyNode implements osid.hierarchy.Node
         this.name = name;
     }
     
+    /**A method that returns the node's description*/
     public String getDescription() throws osid.hierarchy.HierarchyException 
     {
         return this.description;
     }
     
+    /**A method that modifies the node's description*/
     public void updateDescription(java.lang.String description) throws osid.hierarchy.HierarchyException 
     {
         if (description == null) 
@@ -86,6 +93,7 @@ public class HierarchyNode implements osid.hierarchy.Node
         this.description = description;
     }
     
+    /**A method that retrieves the parents of the node*/
     public osid.hierarchy.NodeIterator getParents() throws osid.hierarchy.HierarchyException 
     {   
         if (treeNode == null)
@@ -94,9 +102,9 @@ public class HierarchyNode implements osid.hierarchy.Node
         Vector parents = new java.util.Vector();
         DefaultMutableTreeNode parentTreeNode = (DefaultMutableTreeNode) treeNode.getParent();
 
+        //this ONLY works for the single parent structure
         if (parentTreeNode != null) 
           parents.addElement((osid.hierarchy.Node) (parentTreeNode.getUserObject()));
-          //parents.addElement(parentNode);
         
         //maybe not needed, since you can check for this one level up
         else
@@ -105,63 +113,76 @@ public class HierarchyNode implements osid.hierarchy.Node
         return (osid.hierarchy.NodeIterator) (new HierarchyNodeIterator(parents));
     }
     
+    /**A method that sets the type of the node*/
     public void setType(osid.shared.Type type) throws osid.hierarchy.HierarchyException
     {
         this.type = type; 
     }
     
+    /**A method that gets the type of the node*/
     public osid.shared.Type getType() throws osid.hierarchy.HierarchyException 
     {
         return type;
     }
     
+    /**A method that indicates whether the node is a leaf or not*/
     public boolean isLeaf() throws osid.hierarchy.HierarchyException 
     {
         return treeNode.isLeaf();
     }
     
+    /** method that indicates whether the node is a root or not*/
     public boolean isRoot() throws osid.hierarchy.HierarchyException 
     {
         return treeNode.isRoot();
     }
     
+    /**A method that adds a parent to the node*/
     public void addParent(osid.shared.Id nodeId) throws osid.hierarchy.HierarchyException 
     {
         //unimplmented
     }
     
+    /**A method that removes a parent from the node*/
     public void removeParent(osid.shared.Id nodeId) throws osid.hierarchy.HierarchyException 
     {
         //unimplemented
     }
     
+    /**A method that changes a parent to another parent*/
     public void changeParent(osid.shared.Id first, osid.shared.Id second) throws osid.hierarchy.HierarchyException
     {
         //unimplemented
     }
     
     /** custom methods */
+    
+    /**A method that returns the tree node associated with the hierarchy node*/
     public DefaultMutableTreeNode getTreeNode() 
     {
         return treeNode;
     }
     
+    /**A method that changes the label associated with the LWComponent*/
     public void changeLWComponentLabel(String label) throws osid.hierarchy.HierarchyException
     {
         component.setLabel(label);
         updateDisplayName(label);
     }
     
+    /**A method that sets the LWComponent associated with the hierarchy node*/
     public void setLWComponent(LWComponent component)
     {
         this.component = component;
     }
     
+    /**A method that gets the LWComponent associated with the hierarchy node*/
     public LWComponent getLWComponent()
     {
         return component;
     }
     
+    /**A method that returns the string representation of the node*/
     public String toString()
     {
         return name;

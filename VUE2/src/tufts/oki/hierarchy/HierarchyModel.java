@@ -12,14 +12,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Iterator;
 import java.util.Enumeration;
-
-//import tufts.vue.LWComponent;
-//import tufts.vue.LWContainer;
-//import tufts.vue.LWNode;
-//import tufts.vue.LWLink;
-
-import tufts.vue.HierarchyTreeModel;
-
 /**
  *
  * @author  Daisuke Fujiwara
@@ -39,26 +31,31 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
     private int nextID = 1;
     
     /** methods defined by Daisuke Fujiwara */
+    
+    /**A method that returns a unique ID associated with this hierarchy model*/
     protected String getNextID()
     {
         return Integer.toString(nextID++, 10);
     }
     
+    /**A method that returns the associated tree model*/
     public DefaultTreeModel getTreeModel()
     {
         return treeModel;
     }
     
+    /**A method that reloads the tree model at the given tree node*/
     protected void reloadTreeModel(HierarchyNode node)
     {
         treeModel.reload(node.getTreeNode());
     }
     
-    //assuming a single parent mode
+    /**A method that returns the root node of the hierarchy structure*/
     protected HierarchyNode getRootNode() throws osid.hierarchy.HierarchyException
     {
         try
         {
+            //this only works if the hierarchy is a single root structure
             osid.hierarchy.NodeIterator i = getRootNodes();
             HierarchyNode rootNode = (HierarchyNode)i.next();
         
@@ -81,7 +78,6 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         try 
         {
             ID = new tufts.oki.shared.Id(getNextID());
-            
         }
         
         catch (osid.shared.SharedException se)
@@ -102,6 +98,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         this.description = description;
     }
     
+    /**A method that adds a given type the list of the node types*/
     public void addNodeType(osid.shared.Type type) throws osid.hierarchy.HierarchyException 
     {
         if (type == null) 
@@ -115,6 +112,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
           throw new osid.hierarchy.HierarchyException("type already exists");
     }
     
+    /**A method that removes a given type from the list of the node types*/
     public void removeNodeType(osid.shared.Type nodeType) throws osid.hierarchy.HierarchyException 
     {
         if (nodeType == null) 
@@ -148,16 +146,19 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         //throw new osid.hierarchy.HierarchyException(osid.hierarchy.HierarchyException.NODE_TYPE_NOT_FOUND);
     }
 
+    /**A method that returns whether the model allows multiple parents or not*/
     public boolean allowsMultipleParents() throws osid.hierarchy.HierarchyException 
     {
         return multipleParents;
     }
     
+    /**A method that returns whether the model allows recursion or not*/
     public boolean allowsRecursion() throws osid.hierarchy.HierarchyException 
     {
         return recursion;
     }
     
+    /**A methoid that creates a hierarchy node*/
     public osid.hierarchy.Node createNode(osid.shared.Id nodeId, osid.shared.Id parentId, osid.shared.Type type, String name, String description) throws osid.hierarchy.HierarchyException 
     {
         if ((nodeId == null) || (parentId == null) || (name == null) || (type == null) || (description == null)) 
@@ -193,6 +194,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         }
     }
     
+    /**A method that creates a root node of the model*/
     public osid.hierarchy.Node createRootNode(osid.shared.Id nodeId, osid.shared.Type type, String name, String description) throws osid.hierarchy.HierarchyException 
     {
         if ((nodeId == null) || (name == null) || (type == null) || (description == null)) 
@@ -221,6 +223,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         return (osid.hierarchy.Node)rootNode;
     }
     
+    /**A method that deletes the node with the given ID*/
     public void deleteNode(osid.shared.Id nodeId) throws osid.hierarchy.HierarchyException 
     {
         try
@@ -247,6 +250,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         }
     }
     
+    /**A method that returns an iterator of the nodes contained in the model*/
     public osid.hierarchy.NodeIterator getAllNodes() throws osid.hierarchy.HierarchyException 
     {
         Vector list = new Vector();
@@ -257,26 +261,31 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         return (osid.hierarchy.NodeIterator)(new HierarchyNodeIterator(list));
     }
     
+    /**A method that returns the description of the model*/
     public String getDescription() throws osid.hierarchy.HierarchyException 
     {
         return description;
     }
     
+    /**A method that returns the display name of the model*/
     public String getDisplayName() throws osid.hierarchy.HierarchyException 
     {
         return name;
     }
+    
+    /**A method that returns the ID of the model*/
     public osid.shared.Id getId() throws osid.hierarchy.HierarchyException 
     {
         return ID;
     }
     
+    /**A method that modifies the description of the model*/
     public void updateDescription(java.lang.String description) throws osid.hierarchy.HierarchyException 
     {
         this.description = description;
     }
     
-    //hashing could be useful
+    /**A method that retrieves the node associated with the given ID*/
     public osid.hierarchy.Node getNode(osid.shared.Id nodeId) throws osid.hierarchy.HierarchyException 
     {
         try
@@ -291,11 +300,13 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         }
     }
     
+    /**A method that retrieves nodes types of the model*/
     public osid.shared.TypeIterator getNodeTypes() throws osid.hierarchy.HierarchyException 
     {
         return (osid.shared.TypeIterator) (new tufts.oki.shared.TypeIterator(availableTypes));
     }
     
+    /**A method that returns an iterator of root nodes*/
     public osid.hierarchy.NodeIterator getRootNodes() throws osid.hierarchy.HierarchyException 
     {
         Vector rootNodes = new Vector();

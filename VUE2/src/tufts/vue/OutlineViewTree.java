@@ -18,12 +18,15 @@ import javax.swing.event.TreeModelEvent;
  *
  * @author  Daisuke Fujiwara
  */
+
+/**A class that represents a tree structure which holds the outline view model*/
 public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener
 { 
     private LWContainer currentContainer = null;
-    private LWComponent selectedComponent = null;
-    
-    /** Creates a new instance of LWOverviewTree */
+    private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
+    private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
+
+    /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
     {
          setModel(null);
@@ -36,15 +39,21 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             {
                 public void valueChanged(TreeSelectionEvent e) 
                 {
-                    LWTreeNode treeNode = (LWTreeNode)getLastSelectedPathComponent();
-        
-                    if (treeNode == null || treeNode.getUserObject() instanceof String) 
-                       selectedComponent = null;
+                    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+                    
+                    //if there is no selected node
+                    if (treeNode == null)
+                      selectedNode = null;
                                 
                     else 
                     {
-                        selectedComponent = (LWComponent)treeNode.getUserObject();
-                        VUE.ModelSelection.setTo(selectedComponent);
+                        //retrieves the LWComponent associated with the selected tree node
+                        selectedNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
+                        LWComponent selectedComponent = selectedNode.getLWComponent();
+                        
+                        //if the selected node is not an instance of LWMap
+                        if(!(selectedComponent instanceof LWMap))
+                          VUE.ModelSelection.setTo(selectedComponent);
                     }
                 }
             }
@@ -57,56 +66,67 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         switchContainer(container);
     }
     
-    /**A method which switches the displayed map*/
+    /**A method which switches the displayed container*/
     public void switchContainer(LWContainer newContainer)
     {
-        //removes itself from the old map's listener list
+        //removes itself from the old container's listener list
         if (currentContainer != null)
         {
           currentContainer.removeLWCListener(this);
-          currentContainer.removeLWCListener((OutlineViewTreeModel)getModel());
+          currentContainer.removeLWCListener(hierarchyModel);
         }
         
-        //adds itself to the new map's listener list
+        //adds itself to the new container's listener list
         if (newContainer != null)
         {
             currentContainer = newContainer;
             
-            OutlineViewTreeModel model = new OutlineViewTreeModel(newContainer);
+            //creates the new model for the tree with the given new LWContainer
+            hierarchyModel = new tufts.oki.hierarchy.OutlineViewHierarchyModel(newContainer);
+            DefaultTreeModel model = hierarchyModel.getTreeModel();
+            
             model.addTreeModelListener(this);
             setModel(model);
             
             currentContainer.addLWCListener(this);
-            currentContainer.addLWCListener((OutlineViewTreeModel)getModel());
+            currentContainer.addLWCListener(hierarchyModel);
         }
         
         else
             setModel(null);
     }
     
+    /**A method that deals with dynamic changes to the tree element*/
     public void treeNodesChanged(TreeModelEvent e)
     {
         //retrieves the selected node
-        LWTreeNode treeNode = (LWTreeNode)(e.getTreePath().getLastPathComponent());
+        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
         
         //it appropriate retrieves the child of the selected node
         try 
         {
             int index = e.getChildIndices()[0];
-            treeNode = (LWTreeNode)(treeNode.getChildAt(index));
+            treeNode = (DefaultMutableTreeNode)(treeNode.getChildAt(index));
         } 
         
         catch (NullPointerException exc) {}
        
         //might want to come up with an exception
-        if(treeNode != (LWTreeNode)getModel().getRoot())
+        if(treeNode != (DefaultMutableTreeNode)getModel().getRoot())
         {
             //changes the node's label and sets it as a new object of the tree node
-            selectedComponent.setLabel(treeNode.toString());
-            treeNode.setUserObject(selectedComponent);
+            try
+            {
+                selectedNode.changeLWComponentLabel(treeNode.toString());
+                treeNode.setUserObject(selectedNode);
+            }
+            
+            catch (osid.hierarchy.HierarchyException he)
+            {
+                //resets the change to the previous one
+                treeNode.setUserObject(selectedNode);
+            }
         }
-        
-        //VUE.getActiveViewer().repaint();
     }
     
     /**unused portion of the interface*/
