@@ -493,16 +493,25 @@ public class VUE
     }
     */
     
+    /*
     public static void closeViewer(Component c)
     {
         // todo: as closeMap
         tabbedPane.remove(c);
         tabbedPane2.remove(c);
     }
+    */
+
+    
+    public static void closeMap(LWMap map)
+    {
+        // TODO: check for modifications and ask for save!
+        tabbedPane.closeMap(map);
+        tabbedPane2.closeMap(map);
+    }
 
     static class MapTabbedPane extends JTabbedPane
         implements LWComponent.Listener
-                   //implements MapViewer.Listener
     {
         public void addTab(LWMap map, Component c)
         {
@@ -537,20 +546,10 @@ public class VUE
             return -1;
         }
 
-        /*
-        // the viewers in the closed split-pane don't get this
-        // event...
-        public void mapViewerEventRaised(MapViewerEvent e)
+        public void closeMap(LWMap map)
         {
-            if ((e.getID() & MapViewerEvent.DISPLAYED) != 0) {
-                int i = indexOfComponent(e.getMapViewer());
-                System.out.println("MapTabbedPane: " + e + " index=" + i);
-                if (i >= 0)
-                    setTitleAt(i, e.getMapViewer().getMap().getLabel());
-            }
+            remove(findTabWithMap(map));
         }
-        */
-        
     }
     
 

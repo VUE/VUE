@@ -780,8 +780,7 @@ class Actions {
             boolean enabled() { return VUE.openMapCount() > 0; }
             public void act()
             {
-                VUE.closeViewer(VUE.getActiveViewer());
-                //VUE.closeMap(VUE.getActiveMap());
+                VUE.closeMap(VUE.getActiveMap());
             }
         };
     static final Action Undo =
