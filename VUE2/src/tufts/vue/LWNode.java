@@ -2,8 +2,11 @@ package tufts.vue;
 
 import java.awt.*;
 import java.awt.geom.*;
-import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ImageIcon;
+import javax.swing.border.LineBorder;
 
 /**
  * LWNode.java
@@ -112,13 +115,14 @@ class LWNode extends LWComponent
         // shrink the drawn shape size by border width
         // so it fits entirely inside the bounds shape.
         
-        double x = boundsShape.getX() + borderWidth / 2.0;
-        double y = boundsShape.getY() + borderWidth / 2.0;
-        if (VueUtil.isMacPlatform()) {
-            // mac osx 1.4.1 bug?
+        //double x = boundsShape.getX() + borderWidth / 2.0;
+        //double y = boundsShape.getY() + borderWidth / 2.0;
+        double x = 0;
+        double y = 0;
+        if (VueUtil.StrokeBug05) {
             // note that boundsShape.getBounds() is different than on PC
-            x -= 0.5;
-            y -= 0.5;
+            x += 0.5;
+            y += 0.5;
         }
         double w = boundsShape.getWidth() - borderWidth;
         double h = boundsShape.getHeight() - borderWidth;
@@ -127,7 +131,6 @@ class LWNode extends LWComponent
         this.drawnShape.setFrame(x, y, w, h);
     }
     
-
     public boolean contains(float x, float y)
     {
         if (imageIcon != null)
@@ -144,26 +147,82 @@ class LWNode extends LWComponent
     public void setLocation(float x, float y)
     {
         super.setLocation(x, y);
-        getNode().setPosition(x, y);
+
+        java.util.Iterator i = getNode().getChildIterator();
+        float cy = y + 24;
+        while (i.hasNext()) {
+            //Node node = (Node) i.next();
+            //need to set LWNodes
+            cy += 20;
+        }
+
+        //getNode().setPosition(x, y);
         // todo arch: if this was initiated by user, we're going to be called twice here
         // because the MapItem always does at least one callback.
         this.boundsShape.setFrame(x, y, this.width, this.height);
         adjustDrawnShape();
+
+        
     }
 
     private final int pad = 12;
     private float fontHeight;
     private float fontStringWidth;
-    private void setSizeFromText(Graphics g, String label)
+
+    class PLabel extends JLabel
+    //class PLabel extends JTextArea
     {
+        PLabel(String txt)
+        {
+            super(txt);
+            //setSize(getWidth()*2, getHeight());
+            //setBorder(new LineBorder(Color.red));
+            setOpaque(false);
+            setFont(SmallFont);
+            setSize(getPreferredSize());
+        }
+        public void draw(Graphics2D g)
+        {
+            //super.paintBorder(g);
+            super.paintComponent(g);
+            g.setColor(Color.red);
+            g.setStroke(new BasicStroke(1/8f));
+            g.drawRect(0,0, getWidth(), getHeight());
+        }
+    }
+
+    private PLabel pLabel;
+    private FontMetrics fontMetrics;
+    private String lastLabel;
+    
+    public void mapItemChanged(MapItemEvent e)
+    {
+        System.out.println("mapItemChanged in LWNode " + e);
+        MapItem mi = e.getSource();
+        if (mi.getLabel() != lastLabel && this.fontMetrics != null) {
+            setSizeFromLabel(mi.getLabel());
+            lastLabel = mi.getLabel();
+        }
+        if  (e.getWhat().endsWith("Child")) {
+            // add or remove child -- recompute size
+            setSizeFromLabel(mi.getLabel());
+        }
+    }
+    
+    private void setSizeFromLabel(String label)
+    {
+        if (this.fontMetrics == null) {
+            new Throwable("null FontMetrics").printStackTrace();
+            return;
+        }
+        FontMetrics fm = this.fontMetrics;
         float oldWidth = getWidth();
-        
-        FontMetrics fm = g.getFontMetrics();
         this.fontHeight = fm.getAscent() - fm.getDescent() / 1;
         this.fontStringWidth = fm.stringWidth(label);
         float width = this.fontStringWidth + (pad*2) + borderWidth;
         float height = this.fontHeight + (pad*1) + borderWidth;
-        if (width != oldWidth) {
+        height += getNode().getChildList().size() * 15;
+        if (width != oldWidth && lastLabel != null) {
             // keep the node's center the same.
             // Besides nice, this is actually important so
             // that any links to us are still rendered to our
@@ -177,8 +236,19 @@ class LWNode extends LWComponent
         // in the callback, and we also need once again to know
         // that THIS LWComponent should ignore the callback...
         setSize(width, height);
+
+        /*
+        pLabel = new PLabel(label);
+        float w = pLabel.getWidth();
+        if (w < width && !label.startsWith("<html>")) {
+            pLabel.setSize((int)width, pLabel.getHeight());
+            w = width;
+        }
+        setSize(w, pLabel.getHeight());
+        */
     }
 
+    
     public Point2D getLabelOffset()
     {
         return new Point2D.Float(getLabelX(), getLabelY());
@@ -189,22 +259,14 @@ class LWNode extends LWComponent
     float getLabelY() {
         return (this.height+this.fontHeight) / 2f;
     }
+
+    //public boolean translatedPainting() { return false; }
     
-    /*
-    public void mapItemChanged(MapItemChangeEvent e)
-    {
-        super.mapItemChanged(e);
-        lastLabel = null;
-        // todo: fixme - this doesn't help because links can only set their endpoint
-        // AFTER the node has once been rendered at it's new size,
-        // and links are rendered first in the paint loop.
-        }*/
-    
-    private String lastLabel;
     public void draw(Graphics2D g)
     {
         super.draw(g);
 
+        this.fontMetrics = g.getFontMetrics();
         String label = getNode().getLabel();
 
         // System.out.println("draw " + label);
@@ -213,10 +275,12 @@ class LWNode extends LWComponent
         
         if (imageIcon != null) {
             // experimental
-            imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
+            //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
+            imageIcon.paintIcon(null, g, 0, 0);
         } else {
             if (label != lastLabel) {
-                setSizeFromText(g, label);
+                //System.out.println("label " + lastLabel + " -> " + label);
+                setSizeFromLabel(label);
                 lastLabel = label;
             }
             g.setColor(DEFAULT_NODE_COLOR);
@@ -228,8 +292,7 @@ class LWNode extends LWComponent
         if (isIndicated())
             g.setColor(COLOR_INDICATION);
         //else if (isSelected())
-        //g.setColor(COLOR_SELECTION);
-         // this looks messy w/selection boxes, which are same color
+            //g.setColor(COLOR_SELECTION);
         else
             g.setColor(COLOR_DEFAULT);
         g.setStroke(new java.awt.BasicStroke(borderWidth));
@@ -250,17 +313,31 @@ class LWNode extends LWComponent
             // box the text for seeing layout metrics
             g.setStroke(new BasicStroke(0.0001f));
             g.setColor(Color.black);
-            g.draw(new Rectangle2D.Float(getX() + this.pad,
+            //g.draw(new Rectangle2D.Float(getX() + this.pad,
+            g.draw(new Rectangle2D.Float(this.pad,
                                          textBaseline-fontHeight,
                                          fontStringWidth,
                                          fontHeight));
         }
-        g.setColor(Color.black);
-        g.drawString(label, getX() + getLabelX(), getY() + textBaseline);
+        g.setColor(COLOR_DEFAULT);
+        if (true)
+            //g.drawString(label, getX() + getLabelX(), getY() + textBaseline);
+            g.drawString(label, getLabelX(), textBaseline);
+        else
+            pLabel.draw(g);
         if (getNode().getResource() != null) {
             g.setFont(VueConstants.SmallFont);
             g.setColor(Color.black);
-            g.drawString(getNode().getResource().toString(), getX(), getY() + textBaseline+17);
+            g.drawString(getNode().getResource().toString(), 0, getHeight()+12);
+            //g.drawString(getNode().getResource().toString(), getX(), getY() + getHeight()+17);
+        }
+
+        java.util.Iterator i = getNode().getChildIterator();
+        float y = getHeight()+24;
+        while (i.hasNext()) {
+            Node node = (Node) i.next();
+            g.drawString(node.getLabel(), 0, y);
+            y += 10;
         }
     }
 }
