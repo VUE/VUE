@@ -106,7 +106,7 @@ public class LWPathway extends LWContainer
     {
         children.add(c);
         c.addPathwayRef(this);
-        new Throwable(this + " addChild " + c).printStackTrace();
+        //new Throwable(this + " addChild " + c).printStackTrace();
         // don't want to add to element props if they already have some!
         // (is happening on restore)
         elementPropertyList.add(new LWPathwayElementProperty(c.getID()));
