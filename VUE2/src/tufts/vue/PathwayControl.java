@@ -184,7 +184,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         //if there is a pathway currently selected
         if (currentPathway != null)
         {
-            Node currentNode = currentPathway.getCurrent();
+            Node currentNode = (LWNode)currentPathway.getCurrent();
         
             //if there is a node in the pathway
             if(currentNode != null)
@@ -193,7 +193,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 nodeLabel.setText(currentNode.getLabel());
           
                 //if it is the first node in the pathway, then disables first and back buttons
-                if (currentPathway.isFirst(currentNode))
+                if (currentPathway.isFirst((LWComponent)currentNode))
                 {
                     backButton.setEnabled(false);
                     firstButton.setEnabled(false);
@@ -206,7 +206,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 }
           
                 //if it is the last node in the pathway, then disables last and forward buttons
-                if (currentPathway.isLast(currentNode))
+                if (currentPathway.isLast((LWComponent)currentNode))
                 {
                     forwardButton.setEnabled(false);
                     lastButton.setEnabled(false);

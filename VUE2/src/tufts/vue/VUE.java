@@ -484,11 +484,11 @@ public class VUE
         java.util.LinkedList link = new java.util.LinkedList();
         link.add(n1);
         link.add(n2);
-        p1.setNodeList(link);
+        p1.setElementList(link);
         link.remove(n1);
         link.add(n3);
         link.add(n4);
-        p2.setNodeList(link);
+        p2.setElementList(link);
         map.addPathway(p1);
         map.addPathway(p2);
     }

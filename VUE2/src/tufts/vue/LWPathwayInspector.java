@@ -361,8 +361,9 @@ public class LWPathwayInspector extends InspectorWindow
         //submit
         else
         {            
-            Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
-            node.setNotes(text.getText());
+            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
+            //node.setNotes(text.getText());
+            LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selected);
             submit.setEnabled(false);
         }
     }
@@ -378,8 +379,10 @@ public class LWPathwayInspector extends InspectorWindow
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
             
-            Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
-            text.setText(node.getNotes());
+            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
+            //text.setText(node.getNotes());
+            LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
+            text.setText(element.getNotes());
             
             //if the selected row is the last row, then disables the move down button
             if(selectedRow == pathwayTable.getRowCount() - 1)
@@ -474,8 +477,10 @@ public class LWPathwayInspector extends InspectorWindow
                 switch(column)
                 {                    
                     case 0:
-                        Node rowNode = pathway.getNode(row);
-                        return rowNode.getLabel();
+                        //Node rowNode = pathway.getNode(row);
+                        //return rowNode.getLabel();
+                        LWComponent rowElement = pathway.getElement(row);
+                        return rowElement.getLabel();
                     //case 1:
                        // return new String("Comments about the node");
                 }
@@ -492,14 +497,16 @@ public class LWPathwayInspector extends InspectorWindow
         //adds a row to the table (insertion)
         public synchronized void addRow(Node node)
         {
-            pathway.addNode(node);
+            //pathway.addNode(node);
+            pathway.addElement((LWComponent)node);
             fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
         }
         
         //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
-            pathway.removeNode(pathway.getNode(row));
+            //pathway.removeNode(pathway.getNode(row));
+            pathway.removeElement(pathway.getElement(row));
             fireTableRowsDeleted(row, row);  
         }
     }

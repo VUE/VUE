@@ -2,13 +2,13 @@ package tufts.vue;
 
 public interface Pathway extends MapItem
 {
-    public java.util.Iterator getNodeIterator();
-    public void addNode(Node node);
-    public void removeNode(Node node);
+    public java.util.Iterator getElementIterator();
+    public void addElement(LWComponent element);
+    public void removeElement(LWComponent element);
     public void setWeight(int weight);
     public int getWeight();
     public void setOrdered(boolean ordered);
     public boolean isOrdered();
-    public java.util.List getNodeList();
-    public void setNodeList(java.util.List nodeList);
+    public java.util.List getElementList();
+    public void setElementList(java.util.List elementList);
 }
