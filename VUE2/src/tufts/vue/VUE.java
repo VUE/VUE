@@ -477,14 +477,9 @@ public class VUE
             }
         });
         
-        /*
-        frame.addComponentListener(new ComponentAdapter() {
-                public void componentShown(ComponentEvent e) { System.out.println(e); }
-                public void componentHidden(ComponentEvent e) { System.out.println(e); frame.show(); }
-            });
-         
-         */
-
+        frame.show();
+        System.out.println("VUE: frame visible");
+        
         if (!nodr) {
             try {
                 File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
@@ -499,9 +494,6 @@ public class VUE
             }
         }
 
-        frame.show();
-        System.out.println("VUE: frame visible");
-        
         if (splashScreen != null)
             splashScreen.setVisible(false);
 
