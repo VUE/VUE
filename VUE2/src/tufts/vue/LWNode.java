@@ -157,11 +157,20 @@ public class LWNode extends LWContainer
         System.out.println("handleDoubleClick " + p + " " + this);
         if (getResource() != null) {
             if (genIcon.contains(p)) {
+                // todo: flash the genIcon red or something
                 getResource().displayContent();
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean handleSingleClick(Point2D p)
+    {
+        System.out.println("handleSingleClick " + p + " " + this);
+        // "handle", but don't actually do anything, if they single click on
+        // the icon (to prevent activating a label edit if they click here)
+        return getResource() != null && genIcon.contains(p);
     }
 
     // todo: remove this eventually

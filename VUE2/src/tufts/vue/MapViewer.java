@@ -1648,7 +1648,7 @@ public class MapViewer extends javax.swing.JPanel
                 // display debugging features
                 char c = e.getKeyChar();
                 boolean did = true;
-                if (c == 'M') {
+                if (c == 'I') {
                     DEBUG_SHOW_MOUSE_LOCATION = !DEBUG_SHOW_MOUSE_LOCATION;
                 } else if (c == 'A') {
                     DEBUG_ANTIALIAS_OFF = !DEBUG_ANTIALIAS_OFF;
@@ -1666,6 +1666,8 @@ public class MapViewer extends javax.swing.JPanel
                     DEBUG_PAINT = !DEBUG_PAINT;
                 } else if (c == 'K') {
                     DEBUG_KEYS = !DEBUG_KEYS;
+                } else if (c == 'M') {
+                    DEBUG_MOUSE = !DEBUG_MOUSE;
                 } else
                     did = false;
                 if (did) {
@@ -2541,14 +2543,28 @@ public class MapViewer extends javax.swing.JPanel
                 if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
 
                 // move to arrow tool
+
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
-                    if (activeTool == TextTool ||
-                        hitComponent.isSelected() && hitComponent != justSelected
-                        //&& !(hitComponent instanceof ClickHandler)
-                        // activate label edits in a handleSingleClick?
-                        // or hit-test on the actual label?
-                        )
+
+                    boolean handled = false;
+
+                    if (activeTool == TextTool) {
                         activateLabelEdit(hitComponent);
+                        handled = true;
+                    } else if (hitComponent instanceof ClickHandler) {
+                        Point2D.Float p = screenToMapPoint(e.getPoint());
+                        // Make point relative to the component
+                        p.x -= hitComponent.getX();
+                        p.y -= hitComponent.getY();
+                        handled = ((ClickHandler)hitComponent).handleSingleClick(p);
+                    }
+                    
+                    //todo: below not triggering under arrow tool if we just dragged the link --
+                    // justSelected must be inappropriately set to the dragged component
+                    if (!handled &&
+                        (activeTool == TextTool || hitComponent.isSelected() && hitComponent != justSelected))
+                        activateLabelEdit(hitComponent);
+                    
                 } else if (activeTool == TextTool) {
                     Actions.NewText.act();
                 } else if (activeTool == NodeTool) {
@@ -2562,18 +2578,22 @@ public class MapViewer extends javax.swing.JPanel
                 
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
                 if (DEBUG_MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
+                
+                boolean handled = false;
+                
                 if (activeTool == TextTool && hitComponent != null) {
                     activateLabelEdit(hitComponent);
+                    handled = true;
                 } else if (hitComponent instanceof ClickHandler) {
-                    // TODO: we're getting singleClick event before double-click
-                    // event, which is activating label edit...
-                    
                     Point2D.Float p = screenToMapPoint(e.getPoint());
                     // Make point relative to the component
                     p.x -= hitComponent.getX();
                     p.y -= hitComponent.getY();
-                    ((ClickHandler)hitComponent).handleDoubleClick(p);
-                } else if (hitComponent instanceof LWNode) {
+                    handled = ((ClickHandler)hitComponent).handleDoubleClick(p);
+                }
+                if (!handled && hitComponent instanceof LWNode) {
+                    /*
+                    System.out.println("deprecated resource display handler");
                     Resource resource = hitComponent.getResource();
                     if (resource != null) {
                         // todo: some kind of animation or something to show
@@ -2588,7 +2608,7 @@ public class MapViewer extends javax.swing.JPanel
                             resource.displayContent();
                         }
                         System.out.println("opening resource for: " + hitComponent);
-                    } else
+                        } else*/
                         activateLabelEdit(hitComponent);
                 } else if (hitComponent instanceof LWLink)
                     // todo: need LWComponent flag as to if supports displaying a label
