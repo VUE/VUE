@@ -62,7 +62,7 @@ public class DataSourceList extends JList implements DropTargetListener{
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
        
-        breakIcon.setIconWidth(400);
+        breakIcon.setIconWidth(1600);
         breakIcon.setIconHeight(1);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
@@ -80,7 +80,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                 else  if (((DataSource)value).getType() == DataSource.BREAK){
                     setIcon(breakIcon);
                     
-                    this.setPreferredSize(new Dimension(400,3));
+                    this.setPreferredSize(new Dimension(200,3));
                     
                 }
                 else{
