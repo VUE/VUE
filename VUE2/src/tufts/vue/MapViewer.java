@@ -4554,7 +4554,13 @@ public class MapViewer extends javax.swing.JComponent
         installExampleNodes(map);
         
         //VueUtil.displayComponent(new MapViewer(map), 400,300);
-        VueUtil.displayComponent(new JScrollPane(new MapViewer(map)), 300,200);
+        JFrame frame = VueUtil.displayComponent(new JScrollPane(new MapViewer(map)), 300,200);
+        frame.setJMenuBar(VUE.getMenuBar(null));
+
+        ToolWindow pannerTool = new ToolWindow("Panner", frame);
+        pannerTool.setSize(120,120);
+        pannerTool.addTool(new MapPanner());
+        pannerTool.setVisible(true);
     }
     
 }

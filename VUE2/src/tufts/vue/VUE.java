@@ -472,7 +472,7 @@ public class VUE
         };
         
         // adding the menus and toolbars
-        setMenuToolbars(frame, toolWindows);
+        frame.setJMenuBar(getMenuBar(toolWindows));
         out("menu toolbars set.");
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
         //frame.setContentPane(vuePanel);
@@ -758,7 +758,7 @@ public class VUE
         
     }
     
-    private static void  setMenuToolbars(JFrame frame, Window[] toolWindows) {
+    static JMenuBar getMenuBar(Window[] toolWindows) {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
         JMenuBar menuBar = new JMenuBar();
@@ -883,15 +883,17 @@ public class VUE
         arrangeMenu.addSeparator();
         arrangeMenu.add(alignMenu);
         
-        for (int i = 0; i < toolWindows.length; i++) {
-            //System.out.println("adding " + toolWindows[i]);
-            Window window = toolWindows[i];
-            if (window == null)
-                continue;
-            WindowDisplayAction windowAction = new WindowDisplayAction(window);
-            JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
-            windowAction.setLinkedButton(checkBox);
-            windowMenu.add(checkBox);
+        if (toolWindows != null) {
+            for (int i = 0; i < toolWindows.length; i++) {
+                //System.out.println("adding " + toolWindows[i]);
+                Window window = toolWindows[i];
+                if (window == null)
+                    continue;
+                WindowDisplayAction windowAction = new WindowDisplayAction(window);
+                JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
+                windowAction.setLinkedButton(checkBox);
+                windowMenu.add(checkBox);
+            }
         }
         
         //windowMenu.add(new UserDataAction());
@@ -948,7 +950,8 @@ public class VUE
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
           */
 
-        frame.setJMenuBar(menuBar);
+        return menuBar;
+
     }
 
     public static JMenu buildMenu(String name, Action[] actions) {

@@ -480,7 +480,7 @@ public class VueUtil
     }
     
     // This is for testing individual components.
-    public static void displayComponent(javax.swing.JComponent comp, int width, int height)
+    public static JFrame displayComponent(javax.swing.JComponent comp, int width, int height)
     {
         javax.swing.JFrame frame = new javax.swing.JFrame(comp.getClass().getName());
         comp.setSize(comp.getPreferredSize());
@@ -492,9 +492,10 @@ public class VueUtil
         frame.validate();
         VueUtil.centerOnScreen(frame);
         frame.show();
+        return frame;
     }
-    public static void displayComponent(javax.swing.JComponent comp) {
-        displayComponent(comp, 0, 0);
+    public static JFrame displayComponent(javax.swing.JComponent comp) {
+        return displayComponent(comp, 0, 0);
     }
 
     private static JColorChooser colorChooser;
