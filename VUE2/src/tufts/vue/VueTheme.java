@@ -3,6 +3,7 @@ package tufts.vue;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
+import javax.swing.plaf.metal.*;
 
 class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 {
@@ -22,19 +23,20 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     //private FontUIResource fontWindowTitle  = new FontUIResource(FixedFont);
     //private FontUIResource fontSubText  = new FontUIResource(FONT_TINY);
     
-    private ColorUIResource VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));    
-    private ColorUIResource FocusColor = new ColorUIResource(Color.red);
+    private static Color VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));    
+    private static Color ToolbarColor = new ColorUIResource(VueResources.getColor("toolbar.background"));
+    private Color FocusColor = new ColorUIResource(Color.red);
     
     // these are gray in Metal Default Theme
-    private ColorUIResource VueSecondary1 = new ColorUIResource(VueColor.darker().darker());
-    private ColorUIResource VueSecondary2 = new ColorUIResource(VueColor.darker());
-    private ColorUIResource VueSecondary3 = new ColorUIResource(VueColor);
+    private static ColorUIResource VueSecondary1 = new ColorUIResource(VueColor.darker().darker());
+    private static ColorUIResource VueSecondary2 = new ColorUIResource(VueColor.darker());
+    private static ColorUIResource VueSecondary3 = new ColorUIResource(VueColor);
 
-    private ColorUIResource VueLowContrast = new ColorUIResource(VueUtil.factorColor(VueColor, 0.95));
+    private Color VueLowContrast = new ColorUIResource(VueUtil.factorColor(VueColor, 0.95));
 
-    private ColorUIResource TestColor1 = new ColorUIResource(Color.red);
-    private ColorUIResource TestColor2 = new ColorUIResource(Color.green);
-    private ColorUIResource TestColor3 = new ColorUIResource(Color.blue);
+    private Color TestColor1 = new ColorUIResource(Color.red);
+    private Color TestColor2 = new ColorUIResource(Color.green);
+    private Color TestColor3 = new ColorUIResource(Color.blue);
     
     public String getName() {
         return super.getName() + " (VUE)";
@@ -65,7 +67,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     //    return new ColorUIResource(Color.green);
     //}
 
-    public static class VueTabbedPaneUI extends javax.swing.plaf.metal.MetalTabbedPaneUI {
+    public static class VueTabbedPaneUI extends MetalTabbedPaneUI {
         public static ComponentUI createUI( JComponent x ) {
             if (DEBUG.Enabled) System.out.println("Creating VueTabbedPaneUI");
             return new VueTabbedPaneUI();
@@ -74,6 +76,40 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
                                            Rectangle[] rects, int tabIndex, 
                                            Rectangle iconRect, Rectangle textRect,
                                            boolean isSelected) {}
+        
+        protected void paintTabBackground( Graphics g, int tabPlacement,
+                                           int tabIndex, int x, int y, int w, int h, boolean isSelected ) {
+            int slantWidth = h / 2;
+            if ( isSelected ) {
+                g.setColor( selectColor );
+            } else {
+                //g.setColor( tabPane.getBackgroundAt( tabIndex ) );
+                Color c = tabPane.getBackgroundAt( tabIndex );
+                // for now, allow toolbar color as optional tabbed bg, but all others override
+                if (ToolbarColor.equals(c))
+                    g.setColor(c);
+                else
+                    g.setColor(VueSecondary2);
+            }
+            switch ( tabPlacement ) {
+            case LEFT:
+                g.fillRect( x + 5, y + 1, w - 5, h - 1);
+                g.fillRect( x + 2, y + 4, 3, h - 4 );
+                break;
+            case BOTTOM:
+                g.fillRect( x + 2, y, w - 2, h - 4 );
+                g.fillRect( x + 5, y + (h - 1) - 3, w - 5, 3 );
+                break;
+            case RIGHT:
+                g.fillRect( x + 1, y + 1, w - 5, h - 1);
+                g.fillRect( x + (w - 1) - 3, y + 5, 3, h - 5 );
+                break;
+            case TOP:
+            default:
+                g.fillRect( x + 4, y + 2, (w - 1) - 3, (h - 1) - 1 );
+                g.fillRect( x + 2, y + 5, 2, h - 5 );
+            }
+        }
     }
         
     
