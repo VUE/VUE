@@ -136,7 +136,7 @@ public class MapViewer extends javax.swing.JPanel
         //-------------------------------------------------------
         setBackground(map.getFillColor()); // todo: will need to listen for fill color changes
         
-        setFont(VueConstants.DefaultFont);
+        //setFont(VueConstants.DefaultFont);
         loadMap(map);
 
         //-------------------------------------------------------

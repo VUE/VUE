@@ -10,16 +10,17 @@ public interface VueConstants
 
     static String installDir = "C:\\anoop\\euclid\\VUEDevelopment\\src\\";
     
-    
-    static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
+    //static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
     static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
-    static Font LinkLabelFont = new Font("SansSerif", Font.PLAIN, 10);
+    //static Font LinkLabelFont = new Font("SansSerif", Font.PLAIN, 10);
 
+    static Font FONT_NODE_DEFAULT = VueResources.getFont("node.font");    
+    static Font FONT_TEXT_DEFAULT = VueResources.getFont("text.font");    
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 18);
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
     static Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10);
-    static Font FONT_ICON = new Font("SansSerif", Font.PLAIN, 8);
+    static Font FONT_ICON = VueResources.getFont("node.icon.font");
     static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
     
     static java.awt.Color COLOR_LINK_LABEL = java.awt.Color.darkGray;
