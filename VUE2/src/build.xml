@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.23 $ / $Date: 2004-12-09 01:19:50 $ -->
+<!-- $Revision: 1.24 $ / $Date: 2004-12-09 06:03:01 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -367,6 +367,7 @@
            listfiles="yes"
            >
       <classpath refid="compile.classpath.vue"/>
+      <include name="tufts/artifact/*.java"/>
       <include name="tufts/vue/**/*.java"/>
       <exclude name="tufts/vue/OsidAsset*.java"/>
       <exclude name="**/macosx/**"/>
