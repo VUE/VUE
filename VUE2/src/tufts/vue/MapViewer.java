@@ -1444,7 +1444,8 @@ public class MapViewer extends javax.swing.JComponent
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
-        //if (paints == 0 && inScrollPane) adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
+        if (paints == 0 && inScrollPane)
+            adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
         if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
