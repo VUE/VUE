@@ -927,7 +927,7 @@ public class DataSourceViewer  extends JPanel{
         //--Marshalling etc
             filinglocal = 0; favorites = 0;fedora=0;google=0;filingremote = 0;preBreakSpot = 0;postBreakSpot =0;
           
-            boolean debug = false;
+            boolean debug = false  ;
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
             if(f.exists() && !debug){
