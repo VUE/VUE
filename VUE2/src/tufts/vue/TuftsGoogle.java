@@ -231,8 +231,9 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                
                 Result r = (Result)i.next();
                 URLResource urlResource = new URLResource(r.getUrl());
-                if (r.getTitle() != null) urlResource.setTitle(r.getTitle());
+                if (r.getTitle() != null) urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
                 else urlResource.setTitle(r.getUrl().toString());
+               
                 resultVector.add(urlResource);
               //resultVector.add(r.get());
               // resultVector.add(r.getTitle());
