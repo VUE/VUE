@@ -11,6 +11,8 @@ class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
 
     private static final int DRBrowserWidth = 329;
+
+    private JLabel loadingLabel;
    
     public DRBrowser()
     {
@@ -22,9 +24,9 @@ class DRBrowser extends JPanel {
         setLayout(new BorderLayout());
         if (delayed) {
             setMinimumSize(new Dimension(DRBrowserWidth,100));
-            JLabel label = new JLabel("Loading data sources...");
-            label.setBorder(new EmptyBorder(22,22,22,22));
-            add(label, BorderLayout.NORTH);
+            loadingLabel = new JLabel("Loading data sources...");
+            loadingLabel.setBorder(new EmptyBorder(22,22,22,22));
+            add(loadingLabel, BorderLayout.NORTH);
         } else {
             loadDataSourceViewer();
         }
@@ -39,8 +41,8 @@ class DRBrowser extends JPanel {
             dsViewer = dsv;
             //tufts.vue.VUE.dataSourceViewer = dsv;
         }
-        if (getComponentCount() > 0)
-            remove(getComponent(0)); // remove loading message
+        if (loadingLabel != null)
+            remove(loadingLabel);
         setMinimumSize(null);
         add(dsv, BorderLayout.NORTH);
         validate();
