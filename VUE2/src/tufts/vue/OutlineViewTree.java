@@ -221,6 +221,11 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             
                 else if (component instanceof LWLink)
                   setIcon(linkIcon);
+
+                //setText(component.getDisplayLabel());
+                // need to update size (but only if label has changed)
+                //setPreferredSize(getPreferredSize());
+                // doesn't appear to get right size if there's a '.' in the name!
             }
             
             else
