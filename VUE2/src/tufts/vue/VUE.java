@@ -265,9 +265,11 @@ public class VUE
             waitedViewer.setCursor(CURSOR_WAIT);
         }
         JRootPane root = SwingUtilities.getRootPane(VUE.frame);
-        out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
-        oldRootCursor = root.getCursor();
-        root.setCursor(CURSOR_WAIT);
+        if (root != null) {
+            out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
+            oldRootCursor = root.getCursor();
+            root.setCursor(CURSOR_WAIT);
+        }
     }
     
     public static void clearWaitCursor() {
@@ -413,6 +415,10 @@ public class VUE
             DEBUG.Enabled = true;
         else
             splashScreen = new SplashScreen();
+
+        //Preferences p = Preferences.userNodeForPackage(VUE.class);
+        //p.put("DRBROWSER.RUN", "yes, it has");
+        
 
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
@@ -980,6 +986,9 @@ public class VUE
         
         if (!map.isModified())
             return true;
+
+        if (inNativeFullScreen())
+            toggleFullScreen();
         
         int response = JOptionPane.showOptionDialog
         (VUE.getRootParent(),
@@ -1329,6 +1338,7 @@ public class VUE
             fileMenu.add(printAction);
             fileMenu.add(printAction).setText("Print Visible...");
             fileMenu.add(publishAction);
+            // GET RECENT FILES FROM PREFS!
             //fileMenu.add(exportMenu);
             if (MRJAdapter.isSwingUsingScreenMenuBar() == false) {
                 fileMenu.addSeparator();
