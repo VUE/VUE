@@ -323,11 +323,17 @@ public class VUE
 
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
             UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
+
+            UIManager.getLookAndFeelDefaults().put("Label.font", FONT_MEDIUM);
+            UIManager.getLookAndFeelDefaults().put("Button.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("Menu.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("MenuItem.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("TabbedPane.font", FONT_MEDIUM);
-            
-            // This is doing nothing I can see:
+            UIManager.getLookAndFeelDefaults().put("CheckBox.font", FONT_MEDIUM);
+            UIManager.getLookAndFeelDefaults().put("RadioButton.font", FONT_MEDIUM);
+            UIManager.getLookAndFeelDefaults().put("ToggleButton.font", FONT_MEDIUM);
+
+                // This is doing nothing I can see:
             //UIManager.getLookAndFeelDefaults().put("Menu.background", Color.white);
 
             // This tweaks the bg, but the buttons all appear to paint their on bg,
