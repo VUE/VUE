@@ -186,7 +186,9 @@ public class UndoManager
             
             String name = "";
             String uName = this.name;
-            if (uName.startsWith("hier."))
+            if (uName == LWKey.HierarchyChanging)
+                uName = "Change";
+            else if (uName.startsWith("hier."))
                 uName = uName.substring(5);
             // Replace all '.' with ' ' and capitalize first letter of each word
             uName = uName.replace('-', '.');

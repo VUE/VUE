@@ -19,7 +19,12 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
 /**
- * VUE application actions (file, viewer/component, etc)
+ * VUE actions, all subclassed from VueAction, of generally these types:
+ *      - application actions (e.g., new map)
+ *      - actions that work on the active viewer (e.g., zoom)
+ *      - actions that work on the active map (e.g., undo, select all)
+ *      - actions that work on the current selection (e.g., font size, delete)
+ *        (These are LWCAction's)
  *
  * @author Scott Fraize
  * @version March 2004
@@ -92,10 +97,9 @@ class Actions
     static final Action HierarchyView = 
         new LWCAction("Hierarchy View")
         {
-
-            public void act()
+            public void act(LWNode n)
             {
-                LWNode rootNode = (LWNode)(VUE.getSelection().get(0));
+                LWNode rootNode = n;
                 String name = new String(rootNode.getLabel() + "'s Hierarchy View");
                 String description = new String("Hierarchy view model of " + rootNode.getLabel());
              
@@ -106,23 +110,6 @@ class Actions
                 
                 hierarchyMap.setHierarchyModel(model);
                 hierarchyMap.addAllComponents();
-                
-                /*
-                String mapLabel;
-        
-                try
-                {
-                    mapLabel = model.getDisplayName();
-                }
-        
-                catch(osid.hierarchy.HierarchyException he)
-                {
-                    mapLabel = "Hierarchy Map"; 
-                }
-                */
-                
-                // Doesn't compile -- SMF 2004-01-04 12:32.18 Sunday 
-                //LWHierarchyMap hierarchyMap = new LWHierarchyMap(model, mapLabel);
                 VUE.displayMap((LWMap)hierarchyMap);
             }
             
@@ -304,7 +291,7 @@ class Actions
             void act(Iterator iSelection) {
                 ScratchBuffer.clear();
                 ScratchBuffer.addAll(duplicatePreservingLinks(iSelection));
-                ScratchMap = VUE.getActiveViewer().getMap();
+                ScratchMap = VUE.getActiveMap();
                 // paste differs from duplicate in that the new parent is
                 // always the top level map -- not the old parent -- so a node
                 // that was a child has to have it's scale set back to 1.0
@@ -322,7 +309,7 @@ class Actions
             //public boolean isEnabled() //would need to listen for scratch buffer fills
 
             void act() {
-                LWContainer parent = VUE.getActiveViewer().getMap();
+                LWContainer parent = VUE.getActiveMap();
                 if (parent == ScratchMap) {
                     // unless this was from a cut or it came from a
                     // different map, or we already pasted this,
