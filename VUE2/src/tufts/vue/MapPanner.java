@@ -166,6 +166,7 @@ public class MapPanner extends javax.swing.JPanel
     public void mouseReleased(MouseEvent e)
     {
         dragStart = null;
+        //mapViewer.adjustScrollRegion();// for now
     }
 
     public void mouseDragged(MouseEvent e)
@@ -204,10 +205,13 @@ public class MapPanner extends javax.swing.JPanel
         /*
          * Reposition the active MapViewer -- this will generate an
          * event that we'll get, a which point the panner will
-         * then repaint itself.  (We then tell the mapviewer
+         * then repaint itself.  [ NO LONGER TRUE ]
          */
         mapViewer.setMapOriginOffset(mapStart.getX() + dragOffsetX,
                                      mapStart.getY() + dragOffsetY);
+        // for now...:
+        mapViewer.repaint();
+        repaint();
     }
     
     public void mouseClicked(MouseEvent e) {}
