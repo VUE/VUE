@@ -275,7 +275,7 @@ class TextBox extends JTextPane
 
     public void keyPressed(KeyEvent e)
     {
-        System.out.println("TextBox: " + e);
+        //System.out.println("TextBox: " + e);
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
             setText(savedText);
