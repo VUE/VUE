@@ -307,7 +307,11 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         }
     }
     
-    /**Deletes a hierarchy node*/
+    /** Deletes a hierarchy node.  Note that deletedChild may or may NOT be a proper
+     LWMap container hierarchy child -- for our purposes here, any connected LWLink
+    is a "child" as it is displayed as such in the outline views, but it is not a real
+    child of the parent.
+    */
     public void deleteHierarchyTreeNode(LWContainer parent, LWComponent deletedChild) throws osid.hierarchy.HierarchyException
     {    
         //if it is a LWNode
@@ -421,7 +425,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
 
         try
         {
-            if (message == LWKey.ChildrenAdded)
+            if (message == LWKey.LinkAdded)
+            {
+                addHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
+            }
+            else if (message == LWKey.LinkRemoved)
+            {
+                deleteHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
+            }
+            else if (message == LWKey.ChildrenAdded)
             {
                 ArrayList childrenList = e.getComponents();
                 for (Iterator i = childrenList.iterator(); i.hasNext();)
