@@ -1068,7 +1068,7 @@ public abstract class LWContainer extends LWComponent
                 // we need to draw just in case any of the children are NOT filtered.
                 if (c.isVisible() && (!c.isFiltered() || c.hasChildren()) && c.intersects(clipBounds)) {
                     _drawChild(dc, c);
-                    if (MapViewer.DEBUG_PAINT) { // todo: remove MapViewer reference
+                    if (DEBUG.PAINT) { // todo: remove MapViewer reference
                         if (c instanceof LWLink) links++;
                         else if (c instanceof LWNode) nodes++;
                     }
@@ -1081,8 +1081,8 @@ public abstract class LWContainer extends LWComponent
             } else
                 setFocusComponent(null);
                 
-            if (MapViewer.DEBUG_PAINT) // todo: remove MapViewer reference
-                System.out.println(this + " painted " + links + " links, " + nodes + " nodes");
+            if (DEBUG.PAINT) 
+                out(this + " painted " + links + " links, " + nodes + " nodes");
         }
         if (DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.green);

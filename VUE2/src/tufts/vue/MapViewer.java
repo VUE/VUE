@@ -1087,7 +1087,7 @@ public class MapViewer extends javax.swing.JComponent
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (DEBUG.SCROLL||DEBUG_PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
+        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
             out("      reshape: "
                 + w + " x " + h
                 + " "
@@ -1308,6 +1308,8 @@ public class MapViewer extends javax.swing.JComponent
         final String key = e.getWhat();
 
         if (DEBUG.META != true) {
+            // this prevents other viewers of same map from updating until an
+            // action is completed in the active viewer.
             if (VUE.getActiveViewer() != this) {
                 if (sDragUnderway || key != LWKey.UserActionCompleted)
                     return;
@@ -1345,7 +1347,10 @@ public class MapViewer extends javax.swing.JComponent
         if (key == LWKey.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
+        } else if (key == LWKey.FillColor && e.getComponent() == this.map) {
+            setBackground(this.map.getFillColor());
         }
+        
         // ignore events from ourself: they're there only
         // to notify any other map viewers listenting to this map.
         //if (e.getSource() == this || e.getSource() == this.inputHandler) -- this already filtered by LWCEvent dispatch
@@ -1774,7 +1779,7 @@ public class MapViewer extends javax.swing.JComponent
     private boolean redrawingSelector = false;
     public void paint(Graphics g) {
         long start = 0;
-        if (DEBUG_PAINT) {
+        if (DEBUG.PAINT) {
             System.out.print("paint " + paints + " " + g.getClipBounds()+" "); System.out.flush();
             start = System.currentTimeMillis();
         }
@@ -1796,7 +1801,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         if (paints == 0 && inScrollPane)
             adjustScrollRegion();
-        if (DEBUG_PAINT) {
+        if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
             System.out.println("paint " + paints + " " + this + ": "
@@ -1817,7 +1822,7 @@ public class MapViewer extends javax.swing.JComponent
         Graphics2D g2 = (Graphics2D) g;
         
         Rectangle cb = g.getClipBounds();
-        //if (DEBUG_PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
+        //if (DEBUG.PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
         //out("paintComponent: clipBounds " + cb);
         
         //-------------------------------------------------------
@@ -1844,7 +1849,7 @@ public class MapViewer extends javax.swing.JComponent
         
         if (OPTIMIZED_REPAINT) {
             // debug: shows the repaint region
-            if (DEBUG_PAINT && (RepaintRegion != null || paintingRegion)) {
+            if (DEBUG.PAINT && (RepaintRegion != null || paintingRegion)) {
                 paintingRegion = false;
                 g2.setColor(rrColor);
                 g2.fillRect(0, 0, getWidth(), getHeight());
@@ -2167,7 +2172,7 @@ public class MapViewer extends javax.swing.JComponent
     // (erase old box, draw new box)
     private void redrawSelectorBox_OLD(Graphics2D g2)
     {
-        //if (DEBUG_PAINT) System.out.println(g2);
+        //if (DEBUG.PAINT) System.out.println(g2);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
         g2.setXORMode(COLOR_SELECTION_DRAG);
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
@@ -2184,7 +2189,7 @@ public class MapViewer extends javax.swing.JComponent
     private void redrawSelectorBox(Graphics2D g2)
     {
         //throw new UnsupportedOperationException("XOR redraw no longer supported");
-        //if (DEBUG_PAINT) System.out.println(g2);
+        //if (DEBUG.PAINT) System.out.println(g2);
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
      
         if (activeTool.supportsXORSelectorDrawing()) {
@@ -3005,7 +3010,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
                 else if (c == 'm') { DEBUG.MARGINS = !DEBUG.MARGINS; }
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
-                else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
+                else if (c == 'P') { DEBUG.PAINT = !DEBUG.PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
                 else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
@@ -3346,7 +3351,7 @@ public class MapViewer extends javax.swing.JComponent
             
             repaintRect.width++;
             repaintRect.height++;
-            if (DEBUG_PAINT && redrawingSelector)
+            if (DEBUG.PAINT && redrawingSelector)
                 System.out.println("dragResizeSelectorBox: already repainting selector");
             
             // XOR drawing simply keeps repainting on an existing graphics context,
@@ -3667,7 +3672,7 @@ public class MapViewer extends javax.swing.JComponent
                 
                 //System.out.println("  Adding " + dragComponent.getBounds());
                 if (OPTIMIZED_REPAINT) repaintRegion.add(dragComponent.getBounds());
-                //if (DEBUG_PAINT) System.out.println("     Got " + repaintRegion);
+                //if (DEBUG.PAINT) System.out.println("     Got " + repaintRegion);
                 
                 if (OPTIMIZED_REPAINT && dragComponent instanceof LWLink) {
                     // todo: not currently used as link dragging disabled
@@ -3718,7 +3723,7 @@ public class MapViewer extends javax.swing.JComponent
                 repaint();
                 
             } else {
-                //if (DEBUG_PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);
+                //if (DEBUG.PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);
                 //-------------------------------------------------------
                 //
                 // Do Repaint optimzation: This makes a HUGE
@@ -3776,7 +3781,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
                 while (i != null && i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
-                    //if (DEBUG_PAINT) System.out.println("RR adding: " + c);
+                    //if (DEBUG.PAINT) System.out.println("RR adding: " + c);
                     repaintRegion.add(c.getBounds());
                 }
                 //if (linkSource != null) repaintRegion.add(linkSource.getBounds());
@@ -3786,7 +3791,7 @@ public class MapViewer extends javax.swing.JComponent
                 // and controlPoints are causing 0,0 to be added to the repaint region.
                 // create a RepaintRegion rectangle object that understands the idea
                 // of an empty region (not just 0,0), and an unintialized RR that has no location or size.
-                //if (DEBUG_PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);
+                //if (DEBUG.PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);
                 Rectangle rr = mapToScreenRect(repaintRegion);
                 growForSelection(rr);
                 
@@ -4544,7 +4549,6 @@ public class MapViewer extends javax.swing.JComponent
     private boolean DEBUG_TIMER_ROLLOVER = true;
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
-    static boolean DEBUG_PAINT = false; // for all maps
     
     private Point mouse = new Point();
     

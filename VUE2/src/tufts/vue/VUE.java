@@ -783,16 +783,15 @@ public class VUE
             menuBar.add(v).setFocusable(false);
         }
 
-        /*
-        JMenu exportMenu = new JMenu("Export");
-        exportMenu.add(htmlAction);
-        exportMenu.add(pdfAction);
-        exportMenu.add(imageAction);
-        exportMenu.add(svgAction);
-        exportMenu.add(xmlAction);
-        exportMenu.add(imageMap);
-        // End of addition
-        */
+        if (DEBUG.Enabled) {
+            JMenu exportMenu = menuBar.add(new JMenu("Export"));
+            exportMenu.add(htmlAction);
+            exportMenu.add(pdfAction);
+            exportMenu.add(imageAction);
+            exportMenu.add(svgAction);
+            exportMenu.add(xmlAction);
+            exportMenu.add(imageMap);
+        }
         
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));

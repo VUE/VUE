@@ -220,7 +220,7 @@ class LWCInspector extends javax.swing.JPanel
     private void loadSelection(LWSelection selection)
     {
         if (selection.isEmpty()) {
-            setAllEnabled(false);
+            loadItem(VUE.getActiveMap());
             return;
         }
         setAllEnabled(true);
@@ -347,22 +347,31 @@ class LWCInspector extends javax.swing.JPanel
         */
     }
 
+    LWSelection dummySelection = (LWSelection) new LWSelection().clone(); // clone so won't set selection bits
+    private LWSelection getSelection() {
+        if (VUE.getSelection().isEmpty()) {
+            dummySelection.setTo(this.lwc);
+            return dummySelection;
+        } else
+            return VUE.getSelection();
+    }
+
     private void setFillColors(String text) {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLfillColor(text);
         }
     }
     private void setTextColors(String text) {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLtextColor(text);
         }
     }
     private void setStrokeColors(String text) {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLstrokeColor(text);
@@ -371,7 +380,7 @@ class LWCInspector extends javax.swing.JPanel
     private void setStrokeWidths(String text)
         throws NumberFormatException
     {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             float w = Float.parseFloat(text);
@@ -381,7 +390,7 @@ class LWCInspector extends javax.swing.JPanel
     private void setWidths(String text)
         throws NumberFormatException
     {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             float w = Float.parseFloat(text);
@@ -391,7 +400,7 @@ class LWCInspector extends javax.swing.JPanel
     private void setHeights(String text)
         throws NumberFormatException
     {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             float h = Float.parseFloat(text);
@@ -401,7 +410,7 @@ class LWCInspector extends javax.swing.JPanel
     private void setFonts(String text)
         throws NumberFormatException
     {
-        Iterator i = VUE.getSelection().iterator();
+        Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLfont(text);

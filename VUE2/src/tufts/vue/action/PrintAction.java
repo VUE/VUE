@@ -232,9 +232,9 @@ public class PrintAction extends tufts.vue.VueAction
 
             if (isPrintingView())
                 g.clipRect((int) Math.floor(bounds.getX()),
-                            (int) Math.floor(bounds.getY()),
-                            (int) Math.ceil(bounds.getWidth()),
-                            (int) Math.ceil(bounds.getHeight()));
+                           (int) Math.floor(bounds.getY()),
+                           (int) Math.ceil(bounds.getWidth()),
+                           (int) Math.ceil(bounds.getHeight()));
         
             if (DEBUG.Enabled) {
                 g.setColor(Color.red);
@@ -256,10 +256,8 @@ public class PrintAction extends tufts.vue.VueAction
         private void out(String s) {
             System.out.println("PringJob[" + jobName + "] " + s);
         }
-        
     }
 
-        
 
     private void out(String s) {
         System.out.println("PrintAction: " + s);

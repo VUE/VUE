@@ -16,6 +16,7 @@ public class DEBUG
     public static boolean DND = false; // drag & drop
     public static boolean MOUSE = false;
     public static boolean VIEWER = false; // MapViewer
+    public static boolean PAINT = false; // painting
     public static boolean ROLLOVER = false; // MapViewer auto-zoom rollover
     public static boolean SCROLL = false; // MapViewer scroll-bars / scrolling
     public static boolean FOCUS = true; // AWT focus events, VUE MapViewer application focus
@@ -29,7 +30,7 @@ public class DEBUG
 
     public static  void setAllEnabled(boolean t) {
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
-            SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=t;
+            SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=PAINT=MARGINS=INIT=t;
         if (t == false)
             META = false;
     }
