@@ -114,7 +114,7 @@ public class VueUtil
         }
         if (getJavaVersion() >= 1.4f) {
             // FYI -- this will not compile using mac java 1.3
-            com.apple.eio.FileManager.openURL(url);
+          //  com.apple.eio.FileManager.openURL(url);
 
             // use this if want to compile < 1.4
             //Class c = Class.forName("com.apple.eio.FileManager");
@@ -125,7 +125,7 @@ public class VueUtil
             // this has been deprecated in mac java 1.4, so
             // just ignore the warning if using a 1.4 or beyond
             // compiler
-            com.apple.mrj.MRJFileUtils.openURL(url);
+        //    com.apple.mrj.MRJFileUtils.openURL(url);
         }
         System.err.println("returned from openURL_Mac " + url);
     }

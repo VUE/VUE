@@ -34,7 +34,13 @@ public class SaveAction extends AbstractAction {
       try {  
         Mapping mapping;
         Marshaller marshaller;
-        marshaller = new Marshaller(new FileWriter("test.xml"));
+        JFileChooser chooser = new JFileChooser();
+        int option = chooser.showSaveDialog(tufts.vue.VUE.frame);
+        String fileName = "test.xml";
+        if(option == JFileChooser.APPROVE_OPTION) {
+            fileName = chooser.getSelectedFile().getAbsolutePath();
+        }
+        marshaller = new Marshaller(new FileWriter(fileName));
         mapping =  new Mapping();
         mapping.loadMapping( "mapping.xml" );
         marshaller.setMapping(mapping);

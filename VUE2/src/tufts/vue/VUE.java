@@ -15,6 +15,8 @@ public class VUE
     public static Cursor CURSOR_ZOOM_OUT;
     
     public static ConceptMap map1 = null;
+    
+    public static JFrame frame;
 
     static {
         /*
@@ -146,7 +148,7 @@ public class VUE
         splitPane.setRightComponent(tabbedPane);
 
 
-        JFrame frame = new VueFrame();
+        frame = new VueFrame();
         JPanel vuePanel = new VuePanel();
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
