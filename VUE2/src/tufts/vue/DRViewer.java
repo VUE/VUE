@@ -31,6 +31,8 @@ import java.util.ArrayList;
 
 
 public class DRViewer extends JPanel implements ActionListener,KeyListener {
+    
+    public static String  FEDORA_MESG = "Problem accessing FEDORA Server.Please redo search";
     ConditionsTableModel m_model;
     JTabbedPane tabbedPane;
     JPanel DRSearchResults;
@@ -278,7 +280,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             JScrollPane jsp = new JScrollPane(tree);
             setSearchResultsPanel(jsp);
         } catch (Exception ex) {
-            VueUtil.alert(this, ex.getMessage(),"Search Error");
+            VueUtil.alert(this, FEDORA_MESG,"Search Error");
              System.out.println("DRViewer.performSearch :"+ex);
         }
     }
@@ -295,7 +297,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             JScrollPane jsp = new JScrollPane(tree);
             setSearchResultsPanel(jsp);
         } catch (Exception ex) {
-            VueUtil.alert(this, ex.getMessage(),"Search Error");
+            VueUtil.alert(this,FEDORA_MESG,"Search Error");
             ex.printStackTrace();
                        
         }
@@ -312,7 +314,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             JScrollPane jsp = new JScrollPane(tree);
             setSearchResultsPanel(jsp);
         } catch (Exception ex) {
-            VueUtil.alert(this, ex.getMessage(),"Search Error");
+            VueUtil.alert(this,FEDORA_MESG,"Search Error");
             
             System.out.println("DRViewer.performMoreSearch :"+ex);
         }

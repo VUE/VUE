@@ -145,7 +145,11 @@ public class FedoraSoapFactory {
             if(searchOperation == SearchCriteria.FIND_OBJECTS) {
                 methodDefs =    (FieldSearchResult) call.invoke(new Object[] {resField,maxRes,query} );
                 ListSession listSession = methodDefs.getListSession();
-                lSearchCriteria.setToken(listSession.getToken());
+                if(listSession != null)
+                        lSearchCriteria.setToken(listSession.getToken());
+                   else 
+                       lSearchCriteria.setToken(null);
+           
             }else {
                 if(lSearchCriteria.getToken() != null) {
                    methodDefs =    (FieldSearchResult) call.invoke(new Object[] {lSearchCriteria.getToken()} ); 
@@ -157,7 +161,7 @@ public class FedoraSoapFactory {
                 }
             }
                    
-            if (methodDefs != null){
+            if (methodDefs != null &&  methodDefs.getResultList().length > 0 ){
                     ObjectFields[] fields= methodDefs.getResultList(); 
                     for(int i=0;i<fields.length;i++) {
                             String title = "No Title";
@@ -170,6 +174,8 @@ public class FedoraSoapFactory {
             } else {
                 System.out.println("search returned no results");
             }
+            
+            
             return new FedoraObjectIterator(resultObjects) ;
         }catch(Exception ex) {
               ex.printStackTrace();

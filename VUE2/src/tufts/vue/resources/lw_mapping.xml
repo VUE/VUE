@@ -254,7 +254,7 @@
 		<field name="type" type="integer">
 			<bind-xml name="type" node="element" />
 		</field>
-                <field name="propertyList" set-method="setPropertyList" type="tufts.vue.PropertyEntry" collection="vector">
+                <field name="propertyList" type="tufts.vue.PropertyEntry" collection="vector">
 			<bind-xml name="property" />
 		</field>
 
