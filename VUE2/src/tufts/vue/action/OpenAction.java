@@ -17,7 +17,7 @@ import tufts.vue.*;
 
 public class OpenAction extends AbstractAction
 {
-    final static java.net.URL XML_MAPPING = VUE.CASTOR_XML_MAPPING_RESOURCE;
+    //final static java.net.URL XML_MAPPING = VUE.CASTOR_XML_MAPPING_RESOURCE;
     
     /** Creates a new instance of OpenAction */
     public OpenAction() {

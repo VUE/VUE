@@ -30,7 +30,8 @@ import org.xml.sax.InputSource;
 /** A class which defines utility methods for any of the action class
  */
 public class ActionUtil {
-    private static final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
+    final static java.net.URL XML_MAPPING = VUE.CASTOR_XML_MAPPING_RESOURCE;
+    //private static final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     
     /** Creates a new instance of Class */
     public ActionUtil() {
