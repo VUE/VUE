@@ -55,8 +55,7 @@ public class ZoomTool extends VueTool
         return true;
     }
 
-    public boolean isZoomOutMode()
-    {
+    public boolean isZoomOutMode() {
         return getSelectedSubTool().getID().equals("zoomTool.zoomOut");
     }
 
@@ -70,7 +69,8 @@ public class ZoomTool extends VueTool
         // because right click in zoom does a zoom out, and it makes less sense to
         // zoom out on a particular region.
         // Need to recognize button 1 on a drag, where getButton=0, or a release, where modifiers 0 but getButton=1
-        return !isZoomOutMode() && (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
+        return !isZoomOutMode() &&
+            (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
     }
     
     public boolean handleMouseReleased(MapMouseEvent e)
@@ -100,30 +100,6 @@ public class ZoomTool extends VueTool
         return true;
     }
     
-
-    /*
-        if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
-            || toolKeyEvent != null && toolKeyEvent.isShiftDown()
-            ) {
-            setZoomPoint(e.getPoint());
-            if (ZoomTool.isZoomOutMode())
-                setZoomBigger();
-            else
-                setZoomSmaller();
-        } else {
-            if (draggedSelectorBox != null &&
-                draggedSelectorBox.getWidth() > 10 && draggedSelectorBox.getHeight() > 10) {
-                setZoomFitRegion(screenToMapRect(draggedSelectorBox));
-            } else {
-                setZoomPoint(e.getPoint());
-                if (ZoomTool.isZoomOutMode())
-                    setZoomSmaller();
-                else
-                    setZoomBigger();
-            }
-        }
-    */
-    
     public boolean handleKeyPressed(KeyEvent e){return false;}
     
     public static boolean setZoomBigger(Point focus)
@@ -150,8 +126,8 @@ public class ZoomTool extends VueTool
         return false;
     }
 
-    private static final Point CENTER_FOCUS = new Point(); // marker only
-    private static final Point DONT_FOCUS = new Point(); // marker only
+    private static final Point2D CENTER_FOCUS = new Point2D.Float(); // marker only
+    private static final Point2D DONT_FOCUS = new Point2D.Float(); // marker only
     
     public static void setZoom(double zoomFactor)
     {
@@ -180,46 +156,15 @@ public class ZoomTool extends VueTool
         viewer.setZoomFactor(newZoomFactor, reset, focus);
     }
     
-    /*
-    private static void OLD_setZoom(double newZoomFactor, boolean adjustViewport, Point focus, boolean reset)
-    {
-        MapViewer viewer = VUE.getActiveViewer();
-        
-        //        if (!DEBUG_SCROLL && adjustViewport) {
-        if (adjustViewport) {
-            if (focus == null || focus == CENTER_FOCUS) {
-                // If no user selected zoom focus point, zoom in to
-                // towards the map location at the center of the
-                // viewport.
-
-                focus = viewer.getVisibleCenter();
-                
-                //focus = new Point(viewer.getVisibleWidth() / 2,
-                //viewer.getVisibleHeight() / 2);
-                // this probably doesn't compute right if we're scrolled...
-            }
-            //viewer.scrollMapLocationToScreenLocation(mapAnchor, focus);
-
-            //Point2D mapAnchor = viewer.screenToMapPoint(focus);
-            //double offsetX = (mapAnchor.getX() * newZoomFactor) - focus.getX();
-            //double offsetY = (mapAnchor.getY() * newZoomFactor) - focus.getY();
-            //viewer.setMapOriginOffset(offsetX, offsetY);
-        }
-
-        if (focus == DONT_FOCUS)
-            focus = null;
-        
-        viewer.setZoomFactor(newZoomFactor, reset, focus);
-    }
-    */    
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
-        Point2D.Double offset = new Point2D.Double();
         MapViewer viewer = VUE.getActiveViewer();
+        Point2D.Double offset = new Point2D.Double();
         double newZoom = computeZoomFit(viewer.getVisibleSize(),
                                         edgePadding,
                                         mapRegion,
                                         offset);
+        
         if (viewer.inScrollPane()) {
             Point2D center = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
             if (newZoom > MaxZoom)
@@ -244,6 +189,9 @@ public class ZoomTool extends VueTool
     /** fit everything in the current map into the current viewport */
     public static void setZoomFit()
     {
+        // if don't want this to vertically center map in viewport, will need
+        // to tell setZoomFitRegion above to compute center using mapRegion.getY()
+        // instead of mapRegion.getCenterY()
         setZoomFitRegion(VUE.getActiveMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD);
         // while it would be nice to call getActiveViewer().getContentBounds()
         // as a way to get bounds with max selection edges, etc, it computes some
