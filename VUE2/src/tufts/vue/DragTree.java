@@ -142,7 +142,7 @@ class FileSelection extends Vector implements Transferable
     	}
         }
     }
-/*
+
 class FileNode extends DefaultMutableTreeNode {
 	private boolean explored = false;
 
@@ -194,7 +194,7 @@ class FileNode extends DefaultMutableTreeNode {
 		}
 	}
 }
- */
+
 class DragTreeCellRenderer extends DefaultTreeCellRenderer {
     protected JTree tree;
     protected Object lastNode;

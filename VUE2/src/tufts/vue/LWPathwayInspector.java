@@ -66,7 +66,7 @@ public class LWPathwayInspector extends InspectorWindow
     private LWPathway pathway = null; //new LWPathway(1);
     
     /**third tab which holds the notes for the current pathway*/
-    public JTextArea area = null, text = null;
+    public JTextArea text = null;
     
     /** buttons to navigate between pathway nodes*/
     private JButton moveUp, moveDown, remove, submit;
@@ -78,7 +78,7 @@ public class LWPathwayInspector extends InspectorWindow
     private AbstractButton aButton = null;
     
     public InfoTableModel model = null;
-    private JPanel notes = null;
+    private Notes notes = null;
     private PathwayTab path = null;
     
     public LWPathwayInspector(JFrame owner, LWPathway pathway){
@@ -92,14 +92,14 @@ public class LWPathwayInspector extends InspectorWindow
         
         /**three components to be added to the tabbed pane*/
         InfoTable table = new InfoTable();
-        //JPanel path = getPath();
-        notes = getNotes();
-        
+        notes = new Notes();
         path = new PathwayTab();
+        
         if(pathway != null)
             this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
         else
             this.setTitle("PATHWAY INSPECTOR");
+        
         /**instantiating and setting up tabbed pane*/
         pane = new JTabbedPane();
         pane.addTab("General Info", null, new JScrollPane(table), "Info Panel");
@@ -156,11 +156,7 @@ public class LWPathwayInspector extends InspectorWindow
         */
         
         path.setPathway(pathway);
-        
-        notes = null;
-        notes = getNotes();
-        pane.removeTabAt(2);
-        pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
+        notes.setNotes(pathway);
         
         model.fireTableDataChanged();
     }
@@ -183,9 +179,10 @@ public class LWPathwayInspector extends InspectorWindow
     }
      
     /**gets the current notes saved in the pathway's class and creates a test area for them*/
+    /*
     private JPanel getNotes(){
         
-        area = new JTextArea();
+        JText Area area = new JTextArea();
         if(pathway != null) {
             area.setText(pathway.getComment());
             area.setWrapStyleWord(true);
@@ -207,6 +204,50 @@ public class LWPathwayInspector extends InspectorWindow
         panel.setPreferredSize(new Dimension(315, 200));
         panel.setBorder(border);        
         return panel;
+    }
+     **/
+    
+    private class Notes extends JPanel
+    {
+        private JTextArea area = null;
+        private LWPathway notesPathway = null;
+        
+        public Notes ()
+        {
+            setLayout(new BorderLayout());
+            setPreferredSize(new Dimension(315, 200));
+            setBorder(border);    
+            
+            area = new JTextArea();
+            area.setWrapStyleWord(true);
+            area.setLineWrap(true);
+            area.addKeyListener(new KeyAdapter()
+                {
+                    public void keyTyped(KeyEvent e)
+                    {
+                        notesPathway.setComment(area.getText());
+                    }
+                });
+                
+            JLabel north = new JLabel("Pathway Notes", JLabel.CENTER);
+        
+            add(north, BorderLayout.NORTH);
+            add(area, BorderLayout.CENTER);    
+        }
+        
+        public void setNotes(LWPathway givenPathway)
+        {
+            notesPathway = givenPathway;
+            
+            //if the pathway is null disable the notes panel
+            if (notesPathway == null)
+                area.setEnabled(false);
+            
+            else
+                area.setEnabled(true);
+               
+            area.setText(givenPathway.getComment());
+        }
     }
     
     /**class to create a new general info table*/

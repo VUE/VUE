@@ -181,6 +181,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         if ((currentPathway.getCurrent() == null) && (currentPathway.getFirst() != null) )
             currentPathway.setCurrent(currentPathway.getFirst());
         
+        System.out.println("selecting to the pathway: " + pathway.getLabel());
         pathwayList.setSelectedItem(pathway);
         
         updateControlPanel();
@@ -333,7 +334,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 
                 if (pathwayManager != null)
                 {
-                    System.out.println("setting the current pathway in the manager");
+                    System.out.println("setting the current pathway in the manager to : " + currentPathway.getLabel());
                     pathwayManager.setCurrentPathway(currentPathway);
                 }
                 
