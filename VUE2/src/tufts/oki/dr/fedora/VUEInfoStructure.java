@@ -154,9 +154,9 @@ public class VUEInfoStructure implements osid.dr.InfoStructure {
     public static InfoRecord createVUEInfoRecord(String pid,VUEInfoStructure infoStructure,DR dr,PID objectId,FedoraObjectAssetType assetType)  throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {
         InfoRecord infoRecord = new InfoRecord(new PID(pid),infoStructure);
         if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
-            infoRecord.createInfoField(infoStructure.getVUEDefaultViewInfoPart().getId(),dr.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString()+"/demo:60/getStandard/");
+            infoRecord.createInfoField(infoStructure.getVUEDefaultViewInfoPart().getId(),dr.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
         else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
-            infoRecord.createInfoField(infoStructure.getVUEDefaultViewInfoPart().getId(),dr.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString()+"/demo:77/getDocument/");
+            infoRecord.createInfoField(infoStructure.getVUEDefaultViewInfoPart().getId(),dr.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
         else
             infoRecord.createInfoField(infoStructure.getVUEDefaultViewInfoPart().getId(),dr.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString());
         return infoRecord;
