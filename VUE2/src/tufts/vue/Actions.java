@@ -60,7 +60,7 @@ class Actions
             boolean undoable() { return false; }
             boolean enabledFor(LWSelection s) { return true; }
             public void act() {
-                VUE.ModelSelection.setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
+                VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
             }
         };
     static final Action DeselectAll =
@@ -69,7 +69,7 @@ class Actions
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             public void act()
             {
-                VUE.ModelSelection.clear();
+                VUE.getSelection().clear();
             }
         };
 
@@ -107,7 +107,7 @@ class Actions
             boolean undoable() { return false; }
             public void act()
             {
-                LWNode rootNode = (LWNode)(VUE.ModelSelection.get(0));
+                LWNode rootNode = (LWNode)(VUE.getSelection().get(0));
                 String name = new String(rootNode.getLabel() + "'s Hierarchy View");
                 String description = new String("Hierarchy view model of " + rootNode.getLabel());
              
@@ -140,7 +140,7 @@ class Actions
             
             public boolean enabled()
             { 
-              if (VUE.ModelSelection.size() != 1 && VUE.ModelSelection.get(0) instanceof LWLink)
+              if (VUE.getSelection().size() != 1 && VUE.getSelection().get(0) instanceof LWLink)
                   return false;
               
               else
@@ -281,7 +281,7 @@ class Actions
                 sOriginals.clear();
                 super.act(i);
                 reconnectLinks();
-                VUE.ModelSelection.setTo(sCopies.values().iterator());
+                VUE.getSelection().setTo(sCopies.values().iterator());
             }
 
             void act(LWComponent c) {
@@ -353,7 +353,7 @@ class Actions
 
                 Collection pasted = duplicatePreservingLinks(ScratchBuffer.iterator());
                 parent.addChildren(pasted.iterator());
-                VUE.ModelSelection.setTo(pasted.iterator());
+                VUE.getSelection().setTo(pasted.iterator());
             }
             void act_system() {
                 
@@ -383,7 +383,7 @@ class Actions
                 // Here, all we need to do is clear the selection as
                 // we know everything in it has just been deleted.
 
-                VUE.ModelSelection.clear();
+                VUE.getSelection().clear();
             }
             void act(LWComponent c) {
                 LWContainer parent = c.getParent();
@@ -423,7 +423,7 @@ class Actions
                 LWContainer parent = selection.first().getParent(); // all have same parent
                 LWGroup group = LWGroup.create(selection);
                 parent.addChild(group);
-                VUE.ModelSelection.setTo(group);
+                VUE.getSelection().setTo(group);
                 // setting selection here is slightly sketchy in that it's
                 // really a UI policy that belongs to the viewer
                 // todo: could handle in viewer via "created" LWCEvent
@@ -447,7 +447,7 @@ class Actions
                         group.disperse();
                     }
                 }
-                VUE.ModelSelection.setTo(dispersedChildren.iterator());
+                VUE.getSelection().setTo(dispersedChildren.iterator());
             }
         };
     static final Action Rename =
@@ -822,7 +822,7 @@ class Actions
                 // redo NewItemAction if want to be able to change the creation location
                 // automatically of they keep clicking in the same spot
                 VUE.getActiveMap().addNode(node);
-                //VUE.ModelSelection.setTo(node); // also important so will be repainted (repaint optimziation only)
+                //VUE.getSelection().setTo(node); // also important so will be repainted (repaint optimziation only)
                 MapViewer viewer = VUE.getActiveViewer();
                 //viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
                 viewer.activateLabelEdit(node);
@@ -912,7 +912,7 @@ class Actions
                 String msg = "VueAction: " + getActionName();
                 if (!ae.getActionCommand().equals(getActionName()))
                     msg += " (" + ae.getActionCommand() + ")";
-                msg += " n=" + VUE.ModelSelection.size();
+                msg += " n=" + VUE.getSelection().size();
                 System.out.println(msg);
                 */
                 if (enabled()) {
@@ -925,7 +925,7 @@ class Actions
                 java.awt.Toolkit.getDefaultToolkit().beep();
                 e.printStackTrace();
                 System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
-                System.err.println("*** VueAction: selection is " + VUE.ModelSelection);
+                System.err.println("*** VueAction: selection is " + VUE.getSelection());
                 System.err.println("*** VueAction: event was " + ae);
                 hadException = true;
             }
@@ -953,11 +953,11 @@ class Actions
         // To update action's enabled state after an action is performed.
         private void updateActionListeners()
         {
-            Iterator i = VUE.ModelSelection.getListeners().iterator();
+            Iterator i = VUE.getSelection().getListeners().iterator();
             while (i.hasNext()) {
                 LWSelection.Listener l = (LWSelection.Listener) i.next();
                 if (l instanceof javax.swing.Action) {
-                    l.selectionChanged(VUE.ModelSelection);
+                    l.selectionChanged(VUE.getSelection());
                     //System.out.println("Notifying action " + l);
                 }
                 //else System.out.println("Skipping listener " + l);
@@ -1021,7 +1021,7 @@ class Actions
         MapAction(String name, String shortDescription, KeyStroke keyStroke)
         {
             super(name, shortDescription, keyStroke);
-            VUE.ModelSelection.addListener(this);
+            VUE.getSelection().addListener(this);
         }
         MapAction(String name) {
             this(name, null, null);
@@ -1031,7 +1031,7 @@ class Actions
         }
         void act()
         {
-            LWSelection selection = VUE.ModelSelection;
+            LWSelection selection = VUE.getSelection();
             //System.out.println("MapAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
                 if (mayModifySelection())
@@ -1058,7 +1058,7 @@ class Actions
         }
         */
 
-        boolean enabled() { return VUE.getActiveMap() != null && enabledFor(VUE.ModelSelection); }
+        boolean enabled() { return VUE.getActiveMap() != null && enabledFor(VUE.getSelection()); }
 
         public void selectionChanged(LWSelection selection) {
             if (VUE.getActiveMap() == null)
@@ -1067,7 +1067,7 @@ class Actions
                 setEnabled(enabledFor(selection));
         }
         void checkEnabled() {
-            selectionChanged(VUE.ModelSelection);
+            selectionChanged(VUE.getSelection());
         }
         
         /** Is this action enabled given this selection? */
@@ -1181,5 +1181,5 @@ class Actions
                     // then Delete
                     ScratchBuffer.add(c);
                 }
-                VUE.ModelSelection.clear();
+                VUE.getSelection().clear();
                 */

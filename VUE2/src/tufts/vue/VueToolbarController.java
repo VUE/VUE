@@ -435,7 +435,7 @@ public class VueToolbarController
      public JPanel getSuggestedContextualPanel() {
          JPanel panel = null;
          VueToolbarController controller = VueToolbarController.getController();
-         LWSelection selection = VUE.ModelSelection;
+         LWSelection selection = VUE.getSelection();
          VueTool tool = null;
 	 	
          if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
@@ -462,7 +462,7 @@ public class VueToolbarController
      
      private JPanel getContextualPanelForSelection() {
          JPanel panel = null;
-         LWSelection selection = VUE.ModelSelection;
+         LWSelection selection = VUE.getSelection();
          if (selection.size() > 0 && selection.allOfSameType()) {
              LWComponent c = selection.first();
              if (c instanceof LWNode) {
@@ -481,7 +481,7 @@ public class VueToolbarController
      }
 	 
      void initContextualPanelFromSelection( JPanel panel) {
-         LWSelection selection = VUE.ModelSelection;
+         LWSelection selection = VUE.getSelection();
          LWComponent c = null;
          if (selection != null && selection.size() > 0) {
              // TODO: something more sophisticated than just loading

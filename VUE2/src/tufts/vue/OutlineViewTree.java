@@ -67,7 +67,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                             
                         //if the selected node is not an instance of LWMap
                         if(!(selectedComponent instanceof LWMap))
-                          VUE.ModelSelection.setTo(selectedComponent);
+                            VUE.getSelection().setTo(selectedComponent);
                     }
                 }
             }

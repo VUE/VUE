@@ -36,7 +36,7 @@ implements VueConstants {
     private static MapViewer ActiveViewer = null;
     /** The currently active selection.
      * elements in ModelSelection should always be from the ActiveModel */
-    public static LWSelection ModelSelection = new LWSelection();
+    static LWSelection ModelSelection = new LWSelection();
     
     /** teh global resource selection static model **/
     public static ResourceSelection sResourceSelection = new ResourceSelection();

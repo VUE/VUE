@@ -116,7 +116,6 @@ public class UndoManager
     {
         if (map == mMap)
             setUndoActionLabel(peek());
-            
     }
 
     private UndoAction pop()

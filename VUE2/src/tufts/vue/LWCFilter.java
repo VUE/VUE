@@ -233,7 +233,7 @@ public class LWCFilter
 		
 		if( isSelecting() ) {
 			// clear the selection
-			VUE.ModelSelection.clear();
+			VUE.getSelection().clear();
 			}
 		java.util.List list = mMap.getAllDescendents();
 		Iterator it = list.iterator();
@@ -250,7 +250,7 @@ public class LWCFilter
 					}
 				if( isSelecting() ) {
 					if( state)
-						VUE.ModelSelection.add( c);
+						VUE.getSelection().add( c);
 					}
 				}
 			}

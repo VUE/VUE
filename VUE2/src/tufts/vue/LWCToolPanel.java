@@ -232,7 +232,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         if( !name.equals("ancestor") ) {
             System.out.println("LWC property changed: "+ pEvent.getPropertyName() + " " + pEvent);
 	  		
-            VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
+            VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, pEvent.getNewValue());
             VUE.getUndoManager().markChangesAsUndo(pEvent.getPropertyName());
             if( mState != null) {
                 mState.setPropertyValue( name, pEvent.getNewValue() );

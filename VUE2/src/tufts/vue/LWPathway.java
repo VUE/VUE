@@ -125,7 +125,7 @@ public class LWPathway extends LWContainer
             return i;
         //Object oldValue = new Integer(mCurrentIndex);
         if (i >= 0 && VUE.getActivePathway() == this)
-            VUE.ModelSelection.setTo(getElement(i));
+            VUE.getSelection().setTo(getElement(i));
         mCurrentIndex = i;
         notify("pathway.index");
         // Although this property is actually saved, it doesn't seem worthy of having
@@ -142,7 +142,7 @@ public class LWPathway extends LWContainer
      */
     public void addChildren(Iterator i)
     {
-        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChildren " + VUE.ModelSelection);
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChildren " + VUE.getSelection());
         ArrayList added = new java.util.ArrayList();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -217,7 +217,7 @@ public class LWPathway extends LWContainer
     //  Todo: factor & comine with remove(int index, bool deleting)
     public void removeChildren(Iterator i)
     {
-        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChildren " + VUE.ModelSelection);
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChildren " + VUE.getSelection());
         ArrayList removed = new java.util.ArrayList();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();

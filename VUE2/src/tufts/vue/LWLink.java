@@ -114,20 +114,6 @@ public class LWLink extends LWComponent
         return true;
     }
     
-    /*
-    public void setSelected(boolean selected)
-    {
-        boolean wasSelected = this.selected;
-        super.setSelected(selected);
-        if (wasSelected != selected && isCurved) {
-            //notify("requestSelectionHandle", getCtrlPoint())
-            if (selected)
-                VUE.ModelSelection.addSelectionControl(getCtrlPoint(), this);
-            else
-                VUE.ModelSelection.removeSelectionControl(this);
-        }
-        }*/
-
     public boolean handleSingleClick(MapMouseEvent e)
     {
         // returning true will disallow label-edit

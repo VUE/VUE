@@ -282,7 +282,7 @@ class MapDropTarget
                 success = true;
             }
             if (addedNodes.size() > 0)
-                VUE.ModelSelection.setTo(addedNodes.iterator());
+                VUE.getSelection().setTo(addedNodes.iterator());
          
         } else if (resourceList != null) {
             if (resourceList.size() == 1 && hitComponent != null && overwriteResource) {

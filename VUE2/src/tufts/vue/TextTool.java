@@ -63,7 +63,7 @@ public class TextTool extends VueTool
         node.setAutoSized(false);
         node.setFrame(mapRect);
         VUE.getActiveMap().addNode(node);
-        VUE.ModelSelection.setTo(node);
+        VUE.getSelection().setTo(node);
         VUE.getActiveViewer().activateLabelEdit(node);
     }
         */
