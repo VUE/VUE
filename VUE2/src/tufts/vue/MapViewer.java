@@ -193,7 +193,7 @@ public class MapViewer extends javax.swing.JPanel
 
     static final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     static final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
-    static final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
+    static final ZoomTool ZoomTool = (ZoomTool) VueToolbarController.getController().getTool("zoomTool");
     static final VueTool NodeTool = VueToolbarController.getController().getTool("nodeTool");
     static final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     static final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
@@ -2320,14 +2320,20 @@ public class MapViewer extends javax.swing.JPanel
                 if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
                     || toolKeyEvent != null && toolKeyEvent.isShiftDown()) {
                     setZoomPoint(e.getPoint());
-                    setZoomSmaller();
+                    if (ZoomTool.isZoomOutMode())
+                        setZoomBigger();
+                    else
+                        setZoomSmaller();
                 } else {
                     if (draggedSelectorBox != null &&
                         draggedSelectorBox.getWidth() > 10 && draggedSelectorBox.getHeight() > 10) {
                         setZoomFitRegion(screenToMapRect(draggedSelectorBox));
                     } else {
                         setZoomPoint(e.getPoint());
-                        setZoomBigger();
+                        if (ZoomTool.isZoomOutMode())
+                            setZoomSmaller();
+                        else
+                            setZoomBigger();
                     }
                 }
 
