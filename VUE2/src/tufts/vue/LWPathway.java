@@ -104,12 +104,14 @@ public class LWPathway //extends tufts.vue.LWComponent
     
     public LWComponent getFirst() {        
         LWComponent firstElement = null;
+        
         try{
             firstElement = (LWComponent)elementList.getFirst();
             currentIndex = 0;
         }catch(NoSuchElementException ne){
             firstElement = null;
         }        
+        
         return firstElement;
     }
     
@@ -119,7 +121,8 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public LWComponent getLast() {        
-        LWComponent lastElement = null;        
+        LWComponent lastElement = null;  
+        
         try{
             lastElement = (LWComponent)elementList.getLast();
             currentIndex = length() - 1;
@@ -150,11 +153,13 @@ public class LWPathway //extends tufts.vue.LWComponent
     
     public LWComponent getElement(int index){
         LWComponent element = null;
+        
         try{
             element = (LWComponent)elementList.get(index);
         }catch (IndexOutOfBoundsException ie){
             element = null;
-        }       
+        }    
+        
         return element;
     }
     
@@ -164,15 +169,16 @@ public class LWPathway //extends tufts.vue.LWComponent
     
     public void removeElement(int index) {
         System.out.println("this remove element is called...");
-        if (index == currentIndex)
-        {
-            if (!isFirst()){
-              getPrevious();
-              System.out.println("moved back to " + currentIndex);
-            }else{
-              System.out.println("moved forward to " + currentIndex);
-            }
-        }
+        
+        //if the current node needs to be deleted and it isn't the first node, 
+        //set the current index to the one before, else keep the same index
+        if (index == currentIndex && !isFirst())
+            //if (!isFirst())
+          currentIndex--;
+        
+        //if the node to be deleted is before the current node, set the current index to the one before
+        else if (index < currentIndex)
+          currentIndex--;
         
         LWComponent element = (LWComponent)elementList.remove(index);
         
@@ -182,6 +188,7 @@ public class LWPathway //extends tufts.vue.LWComponent
        
     public void removeElement(LWComponent element) {
        //Iterator iter = elementList.iterator();
+       System.out.println("the element version of the remove is being called");
        for(int i = 0; i < elementList.size(); i++){
             LWComponent comp = (LWComponent)elementList.get(i);
             if(comp.equals(element)){
@@ -234,13 +241,22 @@ public class LWPathway //extends tufts.vue.LWComponent
     /** Interface for the linked list used by the Castor mapping file*/
     public ArrayList getElementArrayList()
     {
+        System.out.println("calling get elementarraylist for " + getLabel());
         return new ArrayList(elementList);
     }
     
     public void setElementArrayList(ArrayList list)
     {
+        System.out.println("calling set elementarraylist for " + getLabel());
         elementList = new LinkedList(list);
     }
+    
+    public void setElementArrayList(LWComponent component)
+    {
+        System.out.println("calling set elementarraylist for " + getLabel());
+        elementList.add(component);
+    }
+    
     /** end of Castor Interface */
     
     public LWComponent getCurrent() { 
@@ -262,6 +278,7 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public void setCurrentIndex(int i){
+        System.out.println("Current pathway node is now " + i);
         currentIndex = i;
         VUE.getActiveViewer().repaint();
     }
@@ -315,7 +332,7 @@ public class LWPathway //extends tufts.vue.LWComponent
         }else{
             System.out.println("LWPathway.addElement(element,adj1,adj2), index out of bounds");
         }
-    }        
+    }
     
     public LWComponent getNext(LWComponent current) {
         int index = elementList.indexOf(current);
