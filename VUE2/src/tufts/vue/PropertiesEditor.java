@@ -89,6 +89,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         //disable buttons if not editable
         if(tableModel.isEditable()) {
             addPropertyButton.setEnabled(true);
+            deletePropertyButton.setEnabled(true);
             sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
             propertiesTable.getSelectionModel().addListSelectionListener(sListener);
             addPropertiesButtonListener = new AddPropertiesButtonListener(tableModel);
@@ -101,7 +102,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
             
         } else {
-             addPropertyButton.setEnabled(false);
+            addPropertyButton.setEnabled(false);
+            deletePropertyButton.setEnabled(false);
         }
         labelPanel.add(topPanel,BorderLayout.EAST);
         // setting the panel for top buttons
@@ -129,6 +131,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         tableModel = new PropertiesTableModel(properties,editable);
         propertiesTable.setModel(tableModel);
         if(tableModel.isEditable()) {
+            addPropertyButton.setEnabled(true);
+            deletePropertyButton.setEnabled(true);
             sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
             propertiesTable.getSelectionModel().addListSelectionListener(sListener);
             addPropertyButton.removeActionListener(addPropertiesButtonListener);
@@ -138,9 +142,10 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             deletePropertiesButtonListener = new DeletePropertiesButtonListener(propertiesTable,sListener);
             deletePropertyButton.addActionListener(deletePropertiesButtonListener);
             JComboBox comboBox = new JComboBox(DC_FIELDS);
-            propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));   
+            propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
         } else {
-             addPropertyButton.setEnabled(false);
+            addPropertyButton.setEnabled(false);
+            deletePropertyButton.setEnabled(false);
         }
         
     }
@@ -308,10 +313,12 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         }
         
         private void updateButtons() {
-            if (getSelectedRow()==-1) {
-                m_deleteButton.setEnabled(false);
-            } else {
-                m_deleteButton.setEnabled(true);
+            if(PropertiesEditor.this.tableModel.isEditable()){
+                if (getSelectedRow()==-1) {
+                    m_deleteButton.setEnabled(false);
+                } else {
+                    m_deleteButton.setEnabled(true);
+                }
             }
         }
     }
