@@ -960,10 +960,12 @@ public abstract class LWContainer extends LWComponent
             throw new IllegalStateException(this + "ensurePaintSequence: both aren't in list! " + bottomIndex + " " + topIndex);
         //if (DEBUG.PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
         if (topIndex == (bottomIndex - 1)) {
+            notify(LWKey.HierarchyChanging);
             swap(topIndex, bottomIndex);
             notify("hier.sequence");
             if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: swapped " + onTop);
         } else if (topIndex < bottomIndex) {
+            notify(LWKey.HierarchyChanging);
             children.remove(topIndex);
             // don't forget that after above remove the indexes have all been shifted down one
             if (bottomIndex >= children.size())
