@@ -301,6 +301,8 @@ class Actions {
         new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            // TODO: preserve layering order of components -- don't
+            // just leave in the arbitrary selection order!
             void act(Iterator i) {
                 sCopies.clear();
                 sOriginals.clear();
