@@ -8,7 +8,8 @@ public class VueUtil
     private static boolean MacPlatform = false;
     private static boolean UnixPlatform = false;
     private static float javaVersion = 1.0f;
-
+    private static String currentDirectoryPath = "";
+    
     static {
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
@@ -202,4 +203,21 @@ public class VueUtil
                 curIter.remove();
         }
     }
+    
+    
+    public static void  setCurrentDirectoryPath(String cdp) {
+        currentDirectoryPath = cdp;
+    }
+    
+    public static String getCurrentDirectoryPath() {
+        return currentDirectoryPath;
+    }    
+    
+    public static boolean isCurrentDirectoryPathSet() {
+        if(currentDirectoryPath.equals("")) 
+            return false;
+        else
+            return true;
+    }    
+   
 }
