@@ -65,8 +65,14 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
     /**A method that reloads the tree model at the given tree node*/
     public void reloadTreeModel(HierarchyNode node)
     {
-        if (treeModel != null && node != null)
-          treeModel.reload(node.getTreeNode());
+        if (treeModel != null)
+        {
+            if (node != null)
+              treeModel.reload(node.getTreeNode());
+            
+            else
+              treeModel.reload();
+        }
     }
     
     /**A method that fires the tree value changed event */
