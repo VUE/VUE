@@ -274,6 +274,9 @@
        
         <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
             <map-to xml="cabinetResource"/>
+            <field name="extension" type="string">
+                <bind-xml name="extension" node="element"/>
+             </field>
 	</class>
 		
 		<!-- FEDORA OBJECTS -->
