@@ -68,7 +68,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     DnDConstants.ACTION_LINK |
     DnDConstants.ACTION_MOVE;
     private final boolean debug = true;
-    private final int FAVORITES = DataSource.FAVORITES;
+   private final int FAVORITES = 1;
     private final boolean sametree = true;
     private final int newfavoritesnode = 0;
     
