@@ -188,18 +188,24 @@ public class LWMap extends LWContainer
      * apply / clear as appropriate to the state of the filter.
      * @param LWCFilter the filter to install and/or update against
      **/
+    private boolean filterWasOn = false; // workaround for filter bug
     public void setLWCFilter(LWCFilter filter) {
         out("setLWCFilter: " + filter);
-        mLWCFilter = filter;
+        //new Throwable("setLWCFilter").printStackTrace();
         if (filter == null || filter.isFilterOn() == false) {
-            clearFilter();
+            if (mLWCFilter != null && filterWasOn)
+                clearFilter();
+            filterWasOn = false;
         } else {
             filter.applyFilter();
+            filterWasOn = true;
         }
+        mLWCFilter = filter;
         notify(LWKey.MapFilter); // not currently undoable
     }
 
     private void clearFilter() {
+        out("clearFilter: cur=" + mLWCFilter);
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();

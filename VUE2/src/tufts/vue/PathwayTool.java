@@ -152,6 +152,7 @@ public class PathwayTool extends VueSimpleTool
             Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
             combo.setFont(menuFont);
             combo.setBackground(VueTheme.getVueColor());
+            combo.setFocusable(false);
 
             // A total hack so the visible height of the combo-box is squeezed down a bit
             // Setting the size only appears to work for the width, not the height.

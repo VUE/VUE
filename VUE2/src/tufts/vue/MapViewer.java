@@ -4005,6 +4005,8 @@ public class MapViewer extends javax.swing.JComponent
                     //VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
                 }
             }
+        } else {
+            if (DEBUG.FOCUS) out("grabVueApplicationFocus: already the active viewer");
         }
         mIndicator.repaint();
     }

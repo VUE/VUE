@@ -773,7 +773,7 @@ implements VueConstants {
     // VueActions
     //-----------------------------------------------------------------------------
     static final Action NewMap =
-    new VueAction("New Map") {
+    new VueAction("New Map", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT)) {
         private int count = 1;
         boolean undoable() { return false; }
         boolean enabled() { return true; }

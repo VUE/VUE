@@ -42,6 +42,7 @@ public class MapTabbedPane extends JTabbedPane
     private int mWasSelected = -1;
     protected void fireStateChanged() {
         try {
+            if (DEBUG.FOCUS) System.out.println(this + " fireStateChanged");
             super.fireStateChanged();
         } catch (ArrayIndexOutOfBoundsException e) {
             // this is happening after we close everything and then
@@ -59,6 +60,7 @@ public class MapTabbedPane extends JTabbedPane
                 setBackgroundAt(selected, BgColor);
             }
             mWasSelected = selected;
+            getSelectedViewer().requestFocus();
         }
     }
         
@@ -191,9 +193,7 @@ public class MapTabbedPane extends JTabbedPane
         map.addLWCListener(this, new Object[] { LWKey.MapFilter, LWKey.Label } );
         // todo perf: we should be able to ask to listen only
         // for events from this object directly (that we don't
-        // care to hear from it's children), and even that
-        // we'd only like to see, e.g., LABEL events.
-        // -- create bit masks in LWCEvent
+        // care to hear from it's children)
         updateTitleTextAt(indexOfComponent(c)); // first time just needed for tooltip
     }
         
@@ -223,13 +223,12 @@ public class MapTabbedPane extends JTabbedPane
     */
         
 
-    /*
+    /**
      * Will find either the component index (default superclass
      * behavior), or, if the component found at any location
      * is a JScrollPane, look within it at the JViewport's
      * view, and if it matches the component sought, return that index.
      */
-        
     public int indexOfComponent(Component component) {
         for (int i = 0; i < getTabCount(); i++) {
             Component c = getComponentAt(i);

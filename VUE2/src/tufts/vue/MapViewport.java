@@ -565,7 +565,7 @@ class MapViewport extends JViewport
     */
 
     public String toString() {
-        return "MapViewport";
+        return "MapViewport[" + this.viewer + "]";
     }
 
     private void out(Object o) {
