@@ -53,7 +53,8 @@ import java.util.Vector;
  * @author  Jay Briedis
  */
 public class LWPathwayInspector extends InspectorWindow 
-    implements ActionListener, ListSelectionListener, DocumentListener{
+    implements ActionListener, ListSelectionListener, DocumentListener
+{
     
     /**Pane holds three tabs: general info, nodes in path, pathway notes*/
     private static JTabbedPane pane = null;
@@ -79,6 +80,8 @@ public class LWPathwayInspector extends InspectorWindow
     /**handles opening and closing inspector*/
     private AbstractButton aButton = null;
     
+    private PathwayTab path = null;
+    
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
         manager = LWPathwayManager.getInstance();
@@ -87,8 +90,11 @@ public class LWPathwayInspector extends InspectorWindow
         
         /**three components to be added to the tabbed pane*/
         InfoTable table = new InfoTable();
-        JPanel path = getPath();
+        //JPanel path = getPath();
         JPanel notes = getNotes();
+        
+        path = new PathwayTab();
+        path.setPathway(pathway);
         
         /**instantiating and setting up tabbed pane*/
         pane = new JTabbedPane();
@@ -271,6 +277,7 @@ public class LWPathwayInspector extends InspectorWindow
         }
     }
     
+    
     private JPanel getPath(){
         pathwayTable = new JTable(new PathwayTableModel());
         pathwayTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -364,11 +371,13 @@ public class LWPathwayInspector extends InspectorWindow
             //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
             //node.setNotes(text.getText());
             LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selected);
+            element.setNotes(text.getText());
             submit.setEnabled(false);
         }
     }
-    
+  
     /**Reacts to list selections dispatched by the table*/
+    
     public void valueChanged(ListSelectionEvent le)
     {
         ListSelectionModel lsm = (ListSelectionModel)le.getSource();
@@ -427,6 +436,7 @@ public class LWPathwayInspector extends InspectorWindow
     }
     
     /**A model used by the table which displays nodes of the pathway*/
+    
     private class PathwayTableModel extends AbstractTableModel
     {
         //pathway whose nodes are displayed in the table
@@ -501,13 +511,6 @@ public class LWPathwayInspector extends InspectorWindow
             pathway.addElement((LWComponent)node);
             fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
         }
-        
-        /* for adding in between
-        public void addRow()
-        {
-            pathway.addElement();
-        }
-        */
         
         //deletes the given row from the table
         public synchronized void deleteRow(int row)

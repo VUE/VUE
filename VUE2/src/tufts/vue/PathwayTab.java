@@ -36,8 +36,6 @@ import javax.swing.text.Document;
 /**A class which displays nodes in a pathway */
 public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener, DocumentListener
 {    
-    
-    
     //necessary widgets
     private JTable pathwayTable;
     private JButton moveUp, moveDown, remove, submit;
@@ -46,7 +44,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     /** Creates a new instance of PathwayTab */
     public PathwayTab() 
     {   
-        /*pathwayTable = new JTable(new PathwayTableModel());
+        pathwayTable = new JTable(new PathwayTableModel());
         pathwayTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         ListSelectionModel lsm = pathwayTable.getSelectionModel();
         lsm.addListSelectionListener(this);
@@ -97,7 +95,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         add(scrollPane, BorderLayout.CENTER);
         add(buttons, BorderLayout.EAST);
         add(textPanel, BorderLayout.SOUTH);
-    */}
+    }
     
     /**Another constructor which takes in a pathway as an argument*/
     public PathwayTab(LWPathway pathway)
@@ -107,19 +105,19 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     }
     
     //sets the table's pathway to the given pathway
-    /*public void setPathway(LWPathway pathway)
+    public void setPathway(LWPathway pathway)
     {
         ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
-    }*/
+    }
     
-    /*public LWPathway getPathway()
+    public LWPathway getPathway()
     {
         return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
-    }*/
+    }
     
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
-    {/*
+    {
         //gets the selected row number
         int selected = pathwayTable.getSelectedRow();
         
@@ -152,15 +150,17 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //submit
         else
         {            
-            Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
-            node.setNotes(text.getText());
+            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
+            //node.setNotes(text.getText());
+            LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selected);
+            element.setNotes(text.getText());
             submit.setEnabled(false);
         }
-    */}
+    }
     
     /**Reacts to list selections dispatched by the table*/
     public void valueChanged(ListSelectionEvent le)
-    {/*
+    {
         ListSelectionModel lsm = (ListSelectionModel)le.getSource();
 
         //if there is a row selected
@@ -169,9 +169,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
             
-            Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
-            text.setText(node.getNotes());
-            
+            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
+            //text.setText(node.getNotes());
+            LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
+            text.setText(element.getNotes());
+      
             //if the selected row is the last row, then disables the move down button
             if(selectedRow == pathwayTable.getRowCount() - 1)
                 moveDown.setEnabled(false);
@@ -193,7 +195,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             remove.setEnabled(false);
             submit.setEnabled(false);
             text.setText("comment");
-        }*/
+        }
     }
    
     public void removeUpdate(javax.swing.event.DocumentEvent documentEvent) 
@@ -285,6 +287,8 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
                     case 0:
                         //Node rowNode = pathway.getNode(row);
                         //return rowNode.getLabel();
+                        LWComponent rowElement = pathway.getElement(row);
+                        return rowElement.getLabel();
                     //case 1:
                        // return new String("Comments about the node");
                 }
@@ -302,13 +306,15 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         public synchronized void addRow(Node node)
         {
             //pathway.addNode(node);
-            //fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
+            pathway.addElement((LWComponent)node);
+            fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
         }
         
         //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
             //pathway.removeNode(pathway.getNode(row));
+            pathway.removeElement(pathway.getElement(row));
             fireTableRowsDeleted(row, row);  
         }
     }
