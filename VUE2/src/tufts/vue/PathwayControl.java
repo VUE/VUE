@@ -15,10 +15,6 @@ import javax.swing.JList;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JTextField;
-<<<<<<< PathwayControl.java
-=======
-
->>>>>>> 1.7
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.border.LineBorder;
 import java.awt.FlowLayout;
@@ -177,15 +173,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     /**
      * @param args the command line arguments
      */
-<<<<<<< PathwayControl.java
     public static void main(String[] args) {
         PathwayControl control = new PathwayControl(LWPathwayManager.getInstance());
         //PathwayControl control = new PathwayControl();
-=======
-    //public static void main(String[] args) {
-     //   PathwayControl control = new PathwayControl(new LWPathwayManager(1));
->>>>>>> 1.7
-        
+  
         /*
         //setting up pathway control in a tool window
         ToolWindow window = new ToolWindow("Pathway Control", null);
@@ -194,10 +185,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         window.setVisible(true);
         */
         
-     //   InspectorWindow window = new InspectorWindow(null, "test");
-     //   window.getContentPane().add(control);
-     //   window.show();
-    //}
+       InspectorWindow window = new InspectorWindow(null, "test");
+       window.getContentPane().add(control);
+       window.show();
+    }
     
     /**A method which updates the widgets accordingly*/
     public void updateControlPanel()
@@ -206,7 +197,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         if (currentPathway != null)
         {
             Node currentNode = (LWNode)currentPathway.getCurrent();
-        
+            
+            //temporarily here 
+            removeButton.setEnabled(true);
+            
             //if there is a node in the pathway
             if(currentNode != null)
             {
@@ -269,12 +263,17 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     public void addPathway(LWPathway newPathway)
     {
         pathwayList.addItem(newPathway);
-        pathwayManager.addPathway(newPathway);
+       
+        //currently not necessary
+        //pathwayManager.addPathway(newPathway);
     }
     
     /**Removes the given pathway from the combo box list and the pathway manager*/
     public void removePathway(LWPathway oldPathway)
     {
+        //sets to the no pathway selected
+        pathwayList.setSelectedIndex(0);
+        
         pathwayList.removeItem(oldPathway);
         pathwayManager.removePathway(oldPathway);
     }
@@ -300,7 +299,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             
         //temporarily here
         else if (e.getSource() == removeButton)
+        {
+          System.out.println("remove was pressed");
           removePathway(currentPathway);
+        }
           
         //notifies the change to the panel
         updateControlPanel();
@@ -401,8 +403,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             cancelButton.addActionListener(this);
             
             textField = new JTextField("default", 18);
-            textField.addActionListener(this);
-            textField.setPreferredSize(new Dimension(50, 20));
+            textField.setPreferredSize(new Dimension(40, 20));
             
             JPanel buttons = new JPanel();
             buttons.setLayout(new FlowLayout());
@@ -434,9 +435,6 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 System.out.println("cancel button");
                 dispose();
             }
-            
-            else if (e.getSource() == textField)
-              System.out.println("text field");
         }
     }
 }

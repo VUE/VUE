@@ -502,6 +502,11 @@ public class LWPathwayInspector extends InspectorWindow
             fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
         }
         
+        public void addRow()
+        {
+            pathway.addElement();
+        }
+        
         //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
