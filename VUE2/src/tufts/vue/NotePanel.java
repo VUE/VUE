@@ -158,6 +158,11 @@ public class NotePanel extends JPanel
 		
 	}
 
+    public String toString()
+    {
+        return "NotePanel[" + mObject + "]";
+    }
+
 	static private boolean  sDebug = false;
 	private void debug( String str) {
 		if( sDebug) {

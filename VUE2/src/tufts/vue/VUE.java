@@ -1,14 +1,16 @@
 package tufts.vue;
 
+import tufts.vue.action.*;
+
+import java.util.*;
+import java.util.prefs.*;
+import java.io.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
-import tufts.vue.action.*;
-import java.util.LinkedList;
-import java.util.prefs.*;
-import java.io.*;
 
 /**
  * Vue application class.
@@ -627,9 +629,30 @@ public class VUE
     public static int openMapCount() {
         return mMapTabsLeft.getTabCount();
     }
+
+
+    static java.util.List sActiveMapListeners = new java.util.ArrayList();
+    public interface ActiveMapListener {
+        public void activeMapChanged(LWMap map);
+    }
+
+    public static void addActiveMapListener(ActiveMapListener l) {
+        sActiveMapListeners.add(l);
+    }
+    public static void removeActiveMapListener(ActiveMapListener l) {
+        sActiveMapListeners.remove(l);
+    }
+
     
     public static void setActiveViewer(MapViewer viewer) {
-        ActiveViewer = viewer;
+        if (ActiveViewer == null || viewer.getMap() != ActiveViewer.getMap()) {
+            ActiveViewer = viewer;
+            java.util.Iterator i = sActiveMapListeners.iterator();
+            while (i.hasNext())
+                ((ActiveMapListener)i.next()).activeMapChanged(viewer.getMap());
+        } else {
+            ActiveViewer = viewer;
+        }
     }
 
     public static MapViewer getActiveViewer() {

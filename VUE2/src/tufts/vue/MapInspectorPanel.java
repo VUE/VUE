@@ -213,7 +213,7 @@ public class MapInspectorPanel  extends JPanel
 			mInfoScrollPane.setVisible(true);
 			mInfoScrollPane.getViewport().add( mInfoBox);
 		
-			add( BorderLayout.CENTER, mInfoScrollPane );
+			add( BorderLayout.NORTH, mInfoScrollPane );
 			
 			mTitleEditor = new JTextField();
 			

@@ -4671,8 +4671,8 @@ public class MapViewer extends javax.swing.JComponent
     public String toString()
     {
         return "MapViewer<" + (isRightSide ? "right" : "*LEFT") + "> "
-            + "\'" + (map==null?"nil":map.getLabel()) + "\' "
-            + Integer.toHexString(hashCode());
+            + "\'" + (map==null?"nil":map.getLabel()) + "\' ";
+        //+ Integer.toHexString(hashCode());
     }
   
     

@@ -231,7 +231,7 @@ public class LWMap extends LWContainer
         return mPathwayManager;
     }
     */
-    public LWPathwayList getPathwayList(){ 
+    public LWPathwayList getPathwayList() { 
         return mPathways;
     }
     /** for persistance restore only */
@@ -322,24 +322,20 @@ public class LWMap extends LWContainer
         this.userOriginY = y;
     }
     /** for persistance */
-    public Point2D.Float getUserOrigin()
-    {
+    public Point2D.Float getUserOrigin() {
         return new Point2D.Float(this.userOriginX, this.userOriginY);
     }
     /** for persistance */
-    public void setUserOrigin(Point2D.Float p)
-    {
+    public void setUserOrigin(Point2D.Float p) {
         setUserOrigin((float) p.getX(), (float) p.getY());
     }
     /** for persistance */
-    public void setUserZoom(double zoom)
-    {
+    public void setUserZoom(double zoom) {
         this.userZoom = zoom;
         //notify("userZoom");//todo perf: mapviewer may be doing needless repaints
     }
     /** for persistance */
-    public double getUserZoom()
-    {
+    public double getUserZoom() {
         return this.userZoom;
     }
       
@@ -357,28 +353,36 @@ public class LWMap extends LWContainer
     }
     */
 
-    protected LWComponent defaultHitComponent()
-    {
+    /** override of LWContainer: default hit component on the map
+     * is nothing -- we just @return null.
+     */
+    protected LWComponent defaultHitComponent() {
         return null;
     }
     
 
-    LWNode addNode(LWNode c)
+    public LWNode addNode(LWNode c)
     {
         addChild(c);
         return c;
     }
-    LWLink addLink(LWLink c)
+    public LWLink addLink(LWLink c)
     {
         addChild(c);
         return c;
     }
 
-    LWPathway addPathway(LWPathway p)
+    public LWPathway addPathway(LWPathway p)
     {
-        mPathways.add(p);
-        p.setMap(this);
+        getPathwayList().add(p);
         return p;
+    }
+
+    protected void addChildInternal(LWComponent c)
+    {
+        if (c instanceof LWPathway)
+            throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
+        super.addChildInternal(c);
     }
     
     LWComponent addLWC(LWComponent c)
@@ -503,7 +507,10 @@ public class LWMap extends LWContainer
 
     public String paramString()
     {
-        return " children=" + children.size() + " <" + this.file + ">";
+        if (this.file == null)
+            return " n=" + children.size();
+        else
+            return " n=" + children.size() + " <" + this.file + ">";
         
         /*
         if (this.file == null)

@@ -88,7 +88,7 @@ public class LWCEvent
     public String toString()
     {
         String s = "LWCEvent[" + what
-            + " s:" + source;
+            + " s=" + source;
         
         if (component != null && component != source)
             s += " c:" + component;

@@ -233,8 +233,13 @@ public class LWPathway extends LWContainer
             new Throwable(e + " ignoring: already deleting in " + this).printStackTrace();
             return;
         }
-        if (e.getWhat() == LWCEvent.Deleting)
+        if (e.getWhat() == LWCEvent.Deleting) {
             removeAll(e.getComponent());
+        } else {
+            // rebroadcast our child events so that the LWPathwayList which is
+            // listening to us can pass them on to the PathwayTableModel
+            dispatchLWCEvent(this, super.listeners, e);
+        }
     }
 
     /**
@@ -569,8 +574,8 @@ public class LWPathway extends LWContainer
         return "LWPathway[" + label
             + " n="
             + (children==null?-1:children.size())
-            + " idx="+mCurrentIndex
-            + " map=" + (getMap()==null?"null":getMap().getLabel())
+            + " i="+mCurrentIndex
+            + " " + (getMap()==null?"null":getMap().getLabel())
             + "]";
     }
 

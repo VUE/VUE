@@ -32,7 +32,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     }
 
     private static int newcnt = 1;
-    public void setUpUI()
+    private void setUpUI()
     {
         okButton = new JButton("Ok");
         cancelButton = new JButton("Cancel");

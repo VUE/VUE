@@ -434,7 +434,7 @@ public class LWComponent
     // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
     protected transient float scale = 1.0f;
 
-    private transient java.util.List listeners;
+    protected transient java.util.List listeners;
 
     /** for save/restore only & internal use only */
     public LWComponent()
@@ -1161,7 +1161,7 @@ public class LWComponent
             listeners.clear();
         }
     }
-    private static int sDepth = 0;
+    /*
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
         if (isDeleted())
@@ -1172,6 +1172,11 @@ public class LWComponent
         if (listeners != null && listeners.size() > 0) {
             // todo perf: take this out and see if can fix all concurrent mod exceptions
             // (delete out from under a pathway in particular)
+            // or: allow listener removes via nulling.  Not really a concern
+            // anyway in that a component that removes itself as a listener
+            // after having been notified of an event has already had
+            // it's notification and we don't need to make sure it doesn't
+            // get one further down the list.
             Listener[] listener_array = new Listener[listeners.size()];
             listeners.toArray(listener_array);
             //java.util.Iterator i = listeners.iterator();
@@ -1230,7 +1235,97 @@ public class LWComponent
             parent.notifyLWCListeners(e);
         }
     }
+    */
     
+    private static int sDepth = 0;
+    protected synchronized void notifyLWCListeners(LWCEvent e)
+    {
+        if (isDeleted())
+            throw new IllegalStateException("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
+                                            + "\n\tdeleted=" + this
+                                            + "\n\tattempted notification=" + e);
+
+        if (listeners != null && listeners.size() > 0) {
+            dispatchLWCEvent(this, listeners, e);
+        } else {
+            if (DEBUG.EVENTS) {
+                for (int x = 0; x < sDepth; x++) System.out.print("    ");
+                System.out.println(e + " -> " + "<NO LISTENERS>");
+            }
+        }
+
+        // todo: have a seperate notifyParent? -- every parent
+        // shouldn't have to be a listener
+
+        // todo: "added" events don't need to go thru parent chain as
+        // a "childAdded" event has already taken place (but
+        // listeners, eg, inspectors, may need to know to see if the
+        // parent changed)
+        
+        if (parent != null) {
+            if (DEBUG.EVENTS) {
+                for (int x = 0; x < sDepth; x++) System.out.print("    ");
+                System.out.println(e + " " + parent + " ** PARENT UP-NOTIFICATION");
+            }
+            parent.notifyLWCListeners(e);
+        }
+    }
+    
+    static void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
+    {
+        // todo perf: take this out and see if can fix all concurrent mod exceptions
+        // (delete out from under a pathway in particular)
+        // or: allow listener removes via nulling.  Not really a concern
+        // anyway in that a component that removes itself as a listener
+        // after having been notified of an event has already had
+        // it's notification and we don't need to make sure it doesn't
+        // get one further down the list.
+        Listener[] listener_array = new Listener[listeners.size()];
+        listeners.toArray(listener_array);
+        //java.util.Iterator i = listeners.iterator();
+        //while (i.hasNext()) {
+        for (int i = 0; i < listener_array.length; i++) {
+            if (DEBUG.EVENTS) {
+                for (int x = 0; x < sDepth; x++) System.out.print("    ");
+                if (e.getSource() != source)
+                    System.out.print(e + " " + source + " -> ");
+                else
+                    System.out.print(e + " -> ");
+            }
+            //Listener l = (Listener) i.next();
+            Listener l = listener_array[i];
+            if (DEBUG.EVENTS) {
+                if (e.getSource() == l)
+                    System.out.println(l + " (SKIPPED: source)");
+                //else if (e.getSource() != source)
+                //    System.out.println(l + " (" + source + ")");
+                else
+                    System.out.println(l);
+            } else { // temporary checking
+                if (e.getSource() == l)
+                    System.out.println(e + " " + l + " (SKIPPED: source)");
+            }
+            //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
+            if (e.getSource() == l)
+                continue;
+            sDepth++;
+            try {
+                // do the event notification
+                l.LWCChanged(e);
+            } catch (Exception ex) {
+                System.err.println("LWComponent.notifyLWCListeners: exception during LWCEvent notification:"
+                                   + "\n\tnotifying component: " + source
+                                   + "\n\tevent was: " + e
+                                   + "\n\tfailing listener: " + l);
+                ex.printStackTrace();
+                java.awt.Toolkit.getDefaultToolkit().beep();
+            } finally {
+                sDepth--;
+            }
+        }
+    }
+
+        
     /**
      * A third party can ask this object to raise an event
      * on behalf of the source.

@@ -16,15 +16,59 @@ import java.util.*;
  * @author  Jay Briedis
  * @version February 2004
  */
-public class PathwayTableModel extends DefaultTableModel {
+public class PathwayTableModel extends DefaultTableModel
+    implements VUE.ActiveMapListener, LWComponent.Listener
+{
+    private LWMap mMap;
+    
+    public PathwayTableModel()
+    {
+        VUE.addActiveMapListener(this);
+        setMap(VUE.getActiveMap());
+    }
 
-    public PathwayTableModel() { }
+    private void setMap(LWMap map)
+    {
+        if (mMap == map)
+            return;
+        if (mMap != null)
+            mMap.getPathwayList().removeListener(this);
+        mMap = map;
+        if (mMap != null)
+            mMap.getPathwayList().addListener(this);
+        fireTableDataChanged();
+    }
+
+    public void LWCChanged(LWCEvent e)
+    {
+        if (e.getSource() instanceof LWPathway) {
+            // The events mainly of interest to us are either a structural event, or a LWPathway label/note event,
+            // although if anything in the pathway changes, fire a change event just in case.
+            System.out.println(this + " pathway event " + e);
+            fireTableDataChanged();
+        } else if (e.getWhat() == LWCEvent.Label) {
+            // This means one of the LWComponents in the pathway has changed.
+            // We only care about label changes as that's all that's displayed
+            // in the PathwayTable.
+            // We only really need the PathwayTable to repaint if a label
+            // has changed, but this will do it.
+            fireTableDataChanged();
+        }
+    }
+
+    public void activeMapChanged(LWMap map)
+    {
+        if (DEBUG.PATHWAY) System.out.println(this + " activeMapChanged to " + map);
+        setMap(map);
+    }
 
     private LWPathwayList getPathwayList() {
-        return VUE.getActiveMap() == null ? null : VUE.getActiveMap().getPathwayList();
+        return mMap == null ? null : mMap.getPathwayList();
+        //return VUE.getActiveMap() == null ? null : VUE.getActiveMap().getPathwayList();
     }
     Iterator getPathwayIterator() {
-        return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathwayList().iterator();
+        //return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathwayList().iterator();
+        return mMap == null ? VueUtil.EmptyIterator : mMap.getPathwayList().iterator();
     }
     
     void fireChanged(Object invoker) {

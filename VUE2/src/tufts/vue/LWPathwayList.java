@@ -10,20 +10,18 @@
 package tufts.vue;
 
 import java.util.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.*;
 
 /**
  * @author Scott Fraize
- * @version Feb 2004
+ * @version February 2004
  */
 
-public class LWPathwayList
+public class LWPathwayList implements LWComponent.Listener
 {
-    private java.util.List elements = new java.util.ArrayList();
+    private List mElements = new java.util.ArrayList();
     private LWMap mMap = null;
     private LWPathway mActive = null;
+    private List mListeners = new java.util.ArrayList();
 
     /** persistance constructor only */
     public LWPathwayList() {}
@@ -51,55 +49,21 @@ public class LWPathwayList
         }
     }
 
+    /**
+     * Add a listener for our children.  The LWPathwayList
+     * listeners for and just rebroadcasts any events
+     * from it's LWPathways.
+     */
+    public void addListener(LWComponent.Listener l) {
+        mListeners.add(l);
+    }
+    public void removeListener(LWComponent.Listener l) {
+        mListeners.remove(l);
+    }
+
     public Collection getElementList() {
-        return elements;
+        return mElements;
     }
-    
-    /*
-    public int getPathwayIndex(LWPathway p) {
-        return indexOf(p);
-    }
-    */
-
-    /*
-    public void setPathwayList(ArrayList pathways){
-        this.pathways = pathways;
-    }
-    public ArrayList getPathwayList(){
-        return pathways;
-    }
-    */
-    /*
-    public void addPathwayElements(LWComponent[] array, LWPathway path){
-        if(path.getOpen()){
-            this.hidePathwayElements();
-            for (int i = 0; i < array.length; i++){
-                path.addElement(array[i]);                        
-            }
-            this.showPathwayElements();
-        }else{
-            for (int i = 0; i < array.length; i++){
-                path.addElement(array[i]);                        
-            }
-        }
-    }
-    
-
-    /*
-    public LWPathway getPathwayforElementAt(int index){
-        if(index > 0){
-            for(int i = index; i > -1; i--){
-                if(pathways.get(i) instanceof LWPathway){
-                    return (LWPathway)pathways.get(i);
-                }
-            }
-        }
-        return null;
-    }
-    */
-
-    //Object getPathwaysElement(int row) {return null;}//tmp smf
-    //LWPathway getPathwayforElementAt(int row) {return null;}//tmp smf
     
     public LWPathway getActivePathway() {
         return mActive;
@@ -116,10 +80,10 @@ public class LWPathwayList
             VUE.getActiveMap().notify(this, LWCEvent.Repaint);
     }
 
-    private Object get(int i) { return elements.get(i); }
-    public int size() { return elements.size(); }
-    public Iterator iterator() { return elements.iterator(); }
-    public int indexOf(Object o) { return elements.indexOf(o); }
+    private Object get(int i) { return mElements.get(i); }
+    public int size() { return mElements.size(); }
+    public Iterator iterator() { return mElements.iterator(); }
+    public int indexOf(Object o) { return mElements.indexOf(o); }
    
     public LWPathway getFirst(){
         if (size() != 0)
@@ -135,23 +99,29 @@ public class LWPathwayList
             return null;
     }
     
-    public boolean add(Object o) {
-        LWPathway p = (LWPathway) o;
+    public boolean add(LWPathway p) {
+        p.setMap(getMap());
         setActivePathway(p);
-        return elements.add(p);
+        p.addLWCListener(this);
+        return mElements.add(p);
     }
     
     public void addPathway(LWPathway pathway){
         add(pathway);
     }
 
-    public boolean remove(Object o)
+    public boolean remove(LWPathway p)
     {
-        LWPathway p = (LWPathway) o;
+        p.removeLWCListener(this);
         p.removeFromModel();
         if (mActive == p)
             setActivePathway(getFirst());
-        return elements.remove(p);
+        return mElements.remove(p);
+    }
+
+    public void LWCChanged(LWCEvent e) {
+        //if (DEBUG.PATHWAY) System.out.println(this + " " + e + " REBROADCASTING");
+        LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
     
     /**Interface for Castor by Daisuke Fujiwara
@@ -176,7 +146,7 @@ public class LWPathwayList
     
     public String toString()
     {
-        return "LWPathwayList[size=" + size()
+        return "LWPathwayList[n=" + size()
             + " map=" + (getMap()==null?"null":getMap().getLabel())
             + "]";
     }
