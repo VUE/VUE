@@ -23,14 +23,6 @@ public class MapViewer extends javax.swing.JPanel
     implements VueConstants
                , LWCListener
 {
-    /*
-    java.util.List nodeList = new java.util.ArrayList();
-    java.util.List linkList = new java.util.ArrayList();
-    java.util.List componentList = new java.util.ArrayList();
-    java.util.List pathwayList = new java.util.ArrayList();
-    java.util.List components = new java.util.ArrayList();
-    */
-
     java.util.List tools = new java.util.ArrayList();
 
     protected Vue2DMap map;                   // the map we're displaying & interacting with
@@ -69,6 +61,7 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_KEYS = false;
     private boolean DEBUG_MOUSE = false;
+    private boolean DEBUG_SELECTION = false;
     private int mouseX;
     private int mouseY;
     //-------------------------------------------------------
@@ -263,6 +256,7 @@ public class MapViewer extends javax.swing.JPanel
     
     void unloadMap()
     {
+        this.map.removeLWCListener(this);
         this.map = null;
     }
     
@@ -342,9 +336,8 @@ public class MapViewer extends javax.swing.JPanel
     private java.util.List computeSelection(Rectangle2D mapRect)
     {
         java.util.List hits = new java.util.ArrayList();
-        
-        //java.util.Iterator i = new VueUtil.GroupIterator(componentList, nodeList);
-        java.util.Iterator i = getMap().getChildIterator();  // todo: DEPTH ITERATOR
+        java.util.Iterator i = getMap().getChildIterator();
+        // todo: if want nested children to get seleced, will need a descending iterator
 
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -663,12 +656,12 @@ public class MapViewer extends javax.swing.JPanel
         
         public void focusLost(FocusEvent e)
         {
-            System.out.println("map edit focusLost");
+            //System.out.println("map edit focusLost");
             removeLabelEdit();
         }
         public void focusGained(FocusEvent e)
         {
-            System.out.println("map edit focusGained");
+            //System.out.println("map edit focusGained");
         }
     
     
@@ -724,8 +717,6 @@ public class MapViewer extends javax.swing.JPanel
 
     void activateLabelEdit(LWComponent lwc)
     {
-        //if (lwc.getMapItem() == null)
-        //  return;
         if (activeTextEdit != null && activeTextEdit.lwc == lwc)
             return;
         removeLabelEdit();
@@ -918,24 +909,32 @@ public class MapViewer extends javax.swing.JPanel
     }
 
 
-    void addToSelection(LWComponent c)
+    protected void addToSelection(LWComponent c)
     {
+        // todo: multiple views of same map will need to keep
+        // track of who's selected in a component with a hashmap
+        // or something.
         if (!c.isSelected()) {
+            if (DEBUG_SELECTION) System.out.println("addToSelection: " + c);
             c.setSelected(true);
             selectionList.add(c);
             lastSelection = c;
             justSelected = c;
-        }
+        } else
+            if (DEBUG_SELECTION) System.out.println("addToSelection(already): " + c);
+
     }
-    void removeFromSelection(LWComponent c)
+    protected void removeFromSelection(LWComponent c)
     {
+        if (DEBUG_SELECTION) System.out.println("removeFromSelection: " + c);
         c.setSelected(false);
         selectionList.remove(c);
         if (lastSelection == c)
             lastSelection = null;
     }
-    void clearSelection()
+    protected void clearSelection()
     {
+        if (DEBUG_SELECTION) System.out.println("clearSelection: " + selectionList);
         selectionBounds = null;
         java.util.Iterator i = selectionList.iterator();
         while (i.hasNext()) {
@@ -946,17 +945,30 @@ public class MapViewer extends javax.swing.JPanel
         lastSelection = null;
     }
 
-    void setSelection(LWComponent c)
-    {
-        //if (selectionList.size() == 1 && selectionList.get(0) == lastSelection)
-        //  return;
-        clearSelection();
-        addToSelection(c);
-    }
-    
     // todo temporary
-    JPopupMenu mapPopup = null;
-    JPopupMenu cPopup = null;
+    private JPopupMenu mapPopup = null;
+    private JPopupMenu cPopup = null;
+    private JPopupMenu getMapPopup()
+    {
+        // this is just example menu code for the moment
+        if (mapPopup == null) {
+            mapPopup = new JPopupMenu("Map Menu");
+            mapPopup.add("New Node");
+            //mapPopup.add("Visible");
+            mapPopup.setBackground(Color.gray);
+        }
+        return mapPopup;
+    }
+    private JPopupMenu getComponentPopup()
+    {
+        // this is just example menu code for the moment
+        if (cPopup == null) {
+            cPopup = new JPopupMenu("Item Menu");
+            cPopup.add("Rename");
+            cPopup.add("Delete");
+        }
+        return cPopup;
+    }
     
     static final int RIGHT_BUTTON_MASK =
         java.awt.event.InputEvent.BUTTON2_MASK
@@ -1136,38 +1148,29 @@ public class MapViewer extends javax.swing.JPanel
             //e.isPopupTrigger()
             // java 1.4.0 bug on PC(w2k): isPopupTrigger isn't true for right-click!
 
-            boolean editActivated = false;
-            
             if ((mods & RIGHT_BUTTON_MASK) != 0 && (mods & java.awt.Event.CTRL_MASK) == 0)
-                // We've pressed the right button down
             {
-                // this is just example menu code for the moment
-                if (mapPopup == null) {
-                    mapPopup = new JPopupMenu("Map Menu");
-                    mapPopup.add("New Node");
-                    mapPopup.add("Fixed");
-                    mapPopup.add("Visible");
-                    mapPopup.setBackground(Color.gray);
-                }
-                if (cPopup == null) {
-                    cPopup = new JPopupMenu("Item Menu");
-                    cPopup.add("Edit");
-                    cPopup.add("Rename");
-                    cPopup.add("Delete");
-                }
+                //-------------------------------------------------------
+                // MOUSE: We've pressed the right button down, so pop
+                // a context menu depending on what's under us.
+                //-------------------------------------------------------
+                
                 if (hitComponent == null) {
-                    mapPopup.show(MapViewer.this, e.getX(), e.getY());
+                    getMapPopup().show(MapViewer.this, e.getX(), e.getY());
                 } else {
-                    //setSelection(hitComponent);
-                    cPopup.show(e.getComponent(), e.getX(), e.getY());
+                    getComponentPopup().show(e.getComponent(), e.getX(), e.getY());
                 }
             }
             else if (hitComponent != null)
-                // We've pressed the left (normal) mouse on some LWComponent
             {
+                //-------------------------------------------------------
+                // MOUSE: We've pressed the left (normal) mouse on SOME LWComponent
+                //-------------------------------------------------------
                 
                 if (e.isControlDown() || e.isAltDown()) {
-                    // Mod-Drag off a component to offer new link creation
+                    //-------------------------------------------------------
+                    // Mod-drag off a component: NEW LINK CREATION
+                    //-------------------------------------------------------
                     linkSource = hitComponent;
                     dragOffset.setLocation(0,0);
                     creationLink.setSource(linkSource);
@@ -1175,20 +1178,28 @@ public class MapViewer extends javax.swing.JPanel
                     invisibleLinkEndpoint.setLocation(mapX, mapY);
                     dragComponent = invisibleLinkEndpoint;
                 } else if (e.isShiftDown()) {
+                    //-------------------------------------------------------
+                    // Shift was down: TOGGLE SELECTION STATUS
+                    //-------------------------------------------------------
                     if (hitComponent.isSelected())
                         removeFromSelection(hitComponent);
                     else
                         addToSelection(hitComponent);
                 } else {
-                    //if (hitComponent.isSelected()) {
-                        //activateLabelEdit(hitComponent);
-                    //    editActivated = true;
-                    //} else {
-                        setSelection(hitComponent);
-                        dragComponent = hitComponent;
-                        dragOffset.setLocation(hitComponent.getX() - mapX,
-                                               hitComponent.getY() - mapY);
-                        //}
+                    //-------------------------------------------------------
+                    // Vanilla mouse press: SET SELECTION
+                    // Clear any existing selection, and set to hitComponent.
+                    // Also: mark drag start in case they start dragging
+                    //-------------------------------------------------------
+                    
+                    if (lastSelection != hitComponent) {
+                        clearSelection();
+                        addToSelection(hitComponent);
+                    }
+                    dragComponent = hitComponent;
+                    dragOffset.setLocation(hitComponent.getX() - mapX,
+                                           hitComponent.getY() - mapY);
+
                 }
             } else {
                 if (!e.isShiftDown())
@@ -1198,8 +1209,6 @@ public class MapViewer extends javax.swing.JPanel
                 draggingSelectionBox = true;
             }
             repaint();
-            //if (!editActivated)
-            //  removeLabelEdit();
         }
         
         public void mouseMoved(MouseEvent e)
@@ -1330,6 +1339,11 @@ public class MapViewer extends javax.swing.JPanel
             if (dragComponent != null) {
 
                 if (true || dragComponent.hasChildren()) {
+                    // todo: repaint optimization turned off for now
+                    // as node bounds computation doesn't include border
+                    // stroke width (bounds falls ON stroke, not outside)
+                    // so outer edge of border stroke isn't being
+                    // included in the clear region.
                     repaint();
                 } else {
                     //-------------------------------------------------------
@@ -1465,9 +1479,7 @@ public class MapViewer extends javax.swing.JPanel
 
             if (isSingleClickEvent(e)) {
                 if (hitComponent != null) {
-                    if (hitComponent.isSelected()
-                        //&& hitComponent != justSelected
-                        )
+                    if (hitComponent.isSelected() && hitComponent != justSelected)
                         activateLabelEdit(hitComponent);
                 }
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
@@ -1479,7 +1491,8 @@ public class MapViewer extends javax.swing.JPanel
                         // flash -- we'll need another thread for that.
                         System.err.println("opening resource for: " + hitComponent);
                         resource.displayContent();
-                    }
+                    } else
+                        activateLabelEdit(hitComponent);
                 }
             }
 
