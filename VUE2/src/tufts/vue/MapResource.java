@@ -1,378 +1,1 @@
-package tufts.vue;
-
-/**
- * The Resource class is intended to handle a reference
- * to either a URL (local file: or http:) or a digital
- * repository reference, which is TBD.  This needs
- * more work.
- */
-
-import java.util.*;
-
-
-import java.net.*;
-import java.io.*;
-import java.util.regex.*;
-import fedora.server.types.gen.*;
-
-
-public class MapResource implements Resource {
-    static final long SIZE_UNKNOWN = -1;
-    // constats that define the type of resource
-    
-    long referenceCreated;
-    long accessAttempted;
-    long accessSuccessful;
-    long size = SIZE_UNKNOWN;
-    protected transient boolean selected = false;
-    String spec;
-    int type;
-    
-    /** the metadata property map **/
-    protected   Map mProperties = new Properties();
-    
-    /** property name cache **/
-    private String [] mPropertyNames = null;
-
-    /** an optional resource title */
-    private String mTitle;
-
-    private URL url = null;
-    
-    public MapResource() {
-        this.type =  Resource.NONE;
-    } 
-    
-    public MapResource(String spec)
-    {
-        
-        setSpec(spec);
-        this.type = isLocalFile() ? Resource.FILE : Resource.URL;
-        this.mTitle = spec;
-    }
-    
-   
-    
-    
-    public Object toDigitalRepositoryReference()
-    {
-        return null;
-    }
-    
-    public String toURLString()
-    {
-        String txt;
-        
-        // todo fixme: this pathname may have been created on another
-        // platform, (meaning, a different separator char) unless
-        // we're going to canonicalize everything ourselves coming
-        // in...
-
-        if (this.url == null)
-            txt = "file://" + spec;
-        else
-            txt = this.url.toString();
-        /*
-        if (spec.startsWith(java.io.File.separator))
-            txt = "file://" + spec;
-        else
-            txt = spec;
-        */
-        return txt;
-    }
-
-    public java.net.URL toURL()
-        throws java.net.MalformedURLException
-    {
-        if (url == null)
-            return new java.net.URL(toURLString());
-        else
-            return this.url;
-    }
-
-    public void displayContent()
-    {
-        System.out.println("displayContent for " + this);
-        try {
-            this.accessAttempted = System.currentTimeMillis();
-            //if (getAsset() != null) {
-                //AssetViewer a = new AssetViewer(getAsset());
-                //a.setSize(600,400);
-                //a.show();
-            //} else
-            if (VueUtil.isMacPlatform())
-                VueUtil.openURL(toURLString());
-            else
-                VueUtil.openURL(getSpec());
-            this.accessSuccessful = System.currentTimeMillis();
-        } catch (Exception e) {
-            System.err.println(e);
-        }
-    }
-
-    public long getReferenceCreated() {
-        return this.referenceCreated;
-    }
-    
-    public void setReferenceCreated(long referenceCreated) {
-        this.referenceCreated = referenceCreated;
-    }
-    
-    public long getAccessAttempted() {
-        return this.accessAttempted;
-    }
-    
-    public void setAccessAttempted(long accessAttempted) {
-        this.accessAttempted = accessAttempted;
-    }
-    
-    public long getAccessSuccessful() {
-        return this.accessSuccessful;
-    }
-    
-    public void setAccessSuccessful(long accessSuccessful) {
-        this.accessSuccessful = accessSuccessful;
-    }
-    public long getSize() {
-        return this.size;
-    }
-    
-    public void setSize(long size) {
-        this.size = size;
-    }
-
-    public void setTitle(String title)
-    {
-        mTitle = title;
-    }
-
-    public String getTitle()
-    {
-        return mTitle;
-    }
-
-    public void setSpec(String spec) {
-        this.spec = spec;
-        this.referenceCreated = System.currentTimeMillis();
-        try {
-            url = new URL(this.spec);
-            /*
-              String fname = url.getFile();
-              System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
-              java.io.File file = new java.io.File(fname);
-              System.out.println("\t" + file + " exists=" +file.exists());
-              file = new java.io.File(spec);
-              System.out.println("\t" + file + " exists=" +file.exists());
-            */
-        } catch (MalformedURLException e) {
-            // Okay for url to be null: means local file
-            //System.err.println(e);
-            //System.out.println("Resource [" + spec + "] *** NOT A URL ***");
-        } catch (Exception e) {
-            System.err.println(e);
-        }
-    }
-
-    public void setTitleFromContent()
-    {
-        if (url != null) {
-            try {
-                System.err.println("Opening connection to " + url);
-                URLConnection conn = url.openConnection();
-                //System.err.println("Connecting...");
-                //conn.connect();
-                //System.err.println("Getting headers...");
-                //System.err.println("Headers: " + conn.getHeaderFields());
-                //Object content = conn.getContent();
-                //System.err.println("GOT CONTENT[" + content + "]"); // is stream
-                String title = searchURLforTitle(conn);
-                // TODO: do NOT do this if it came from a .url shortcut -- we
-                // already have the file-name
-                if (title != null)
-                    setTitle(title);
-            } catch (Exception e) {
-                System.err.println("Resource title scrape: " + e);
-            }
-        }
-    }
-
-    private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+).*",
-                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
-    private static String searchURLforTitle(URLConnection url_conn)
-    {
-        String title = null;
-        try {
-            title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
-            title = title.replace('\n', ' ').trim();
-            //System.out.println("*** got title ["+title+"]");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return title;
-    }
-
-    /** search a stream for a single regex -- one matching group only.
-     * Only search the first n bytes of input stream. */
-    private static String searchStreamForRegex(InputStream in, Pattern regex, int bytes)
-    {
-        String result = null;
-        try {
-            System.out.println("*** Searching for regex in " + in);
-            if (!(in instanceof BufferedInputStream)) {
-                // this handles a possibly "chunked" http stream,
-                // which would only hand back, say, 23 bytes the first
-                // time, as Yahoo's http server did.
-                in = new BufferedInputStream(in, bytes);
-            }
-            byte[] buf = new byte[bytes];
-            int len = in.read(buf);
-            in.close();
-            String str = new String(buf, 0, len);
-            System.out.println("*** Got string of length " + len);
-            //System.out.println("*** String[" + str + "]");
-            Matcher m = regex.matcher(str);
-            if (m.lookingAt()) {
-                result = m.group(1);
-                System.out.println("*** regex found ["+result+"]");
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return result;
-    }
-
-    
-    
-    /** Return exactly whatever we were handed at creation time.  We
-     * need this because if it's a local file (file: URL or just local
-     * file path name), we need whatever the local OS gave us as a
-     * reference in order to give that to give back to openURL, as
-     * it's the most reliable string to give back to the underlying OS
-     * for opening a local file.  */
-    
-    public String getSpec() {
-       return this.spec;
-    }
-
-    /**
-     * If isLocalFile is true, this will return a file name
-     * suitable to be given to java.io.File such that it
-     * can be found.  Note that this may differ from getSpec.
-     * If isLocalFile is false, it will return the file
-     * portion of the URL, although that may not be useful.
-     */
-    public String getFileName() {
-        if (this.url == null)
-            return getSpec();
-        else
-            return url.getFile();
-    }
-
-    public boolean isLocalFile()
-    {
-        return url == null || url.getProtocol().equals("file");
-        //String s = spec.toLowerCase();
-        //return s.startsWith("file:") || s.indexOf(':') < 0;
-    }
-
-    public String getExtension()
-    {
-        String ext = "xxx";
-        if (spec.startsWith("http"))
-            ext = "web";
-        else if (spec.startsWith("file"))
-            ext = "file";
-        else {
-            ext = spec.substring(0, Math.min(spec.length(), 3));
-            if (!spec.endsWith("/")) {
-                int i = spec.lastIndexOf('.');
-                if (i > 0 && i < spec.length()-1)
-                    ext = spec.substring(i+1);
-            }
-        }
-        if (ext.length() > 4)
-            ext = ext.substring(0,4);
-
-        return ext;
-    }
-
-    
-    /**
-     * getPropertyNames
-     * This returns an array of property names
-     * @return String [] the list of property names
-     **/
-    public String [] getPropertyNames() {
-    	
-    	if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
-	    	Set keys = mProperties.keySet();
-			if( ! keys.isEmpty() ) {
-				mPropertyNames = new String[ keys.size() ];
-				Iterator it = keys.iterator();
-				int i=0;
-				while( it.hasNext()) {
-					mPropertyNames[i] = (String) it.next();
-					i++;
-					}
-				}
-			}
-    	return mPropertyNames;
-    }
-    
-    /**
-     * setPropertyValue+-
-     * This method sets a property value
-     * Note:  This method will add a new property if called.
-     *        Since this is a small version of a VUEBean, only
-     *        two property class values are supported:  String and Vector
-     *        where Vector is a vector of String objects.
-     * @param STring pName the proeprty name
-     * @param Object pValue the value
-     **/
-     public void setPropertyValue( String pName, Object pValue) {
-     	/** invalidate our dumb cache of names if we add a new one **/
-     	if( !mProperties.containsKey( pName) ) {
-     		mPropertyNames = null;
-     		}	
-     	mProperties.put( pName, pValue);
-     }
-     
-     public Properties getProperties() {
-         return (Properties)mProperties;
-     }
-     
-     /**
-      * getPropertyValue
-      * This method returns a value for the given property name.
-      * @param pname the property name.
-      * @return Object the value
-      **/
-     public Object getPropertyValue( String pName) {
-     	Object value = null;
-     	value = mProperties.get( pName);
-     	return value;
-     }
-     
-     public boolean isSelected(){
-         return selected;
-     }
-     
-     public void setSelected(boolean selected) {
-         this.selected = selected;
-     }
-    public String toString()
-    {
-        return getSpec();
-    }
-    
-    public int getType() {
-        return type;
-    }
-    public void setType(int type) {
-        this.type = type;
-    }
-    public String getToolTipInformation() {
-        return "ToolTip Information";
-    }
-    
-}
+package tufts.vue;/** * The Resource class is intended to handle a reference * to either a URL (local file: or http:) or a digital * repository reference, which is TBD.  This needs * more work. */import java.util.*;import java.net.*;import java.io.*;import java.util.regex.*;import fedora.server.types.gen.*;public class MapResource implements Resource {    static final long SIZE_UNKNOWN = -1;    // constats that define the type of resource        long referenceCreated;    long accessAttempted;    long accessSuccessful;    long size = SIZE_UNKNOWN;    protected transient boolean selected = false;    String spec;    int type;        /** the metadata property map **/    protected   Map mProperties = new Properties();        /** property name cache **/    private String [] mPropertyNames = null;    /** an optional resource title */    private String mTitle;    private URL url = null;        public MapResource() {        this.type =  Resource.NONE;    }         public MapResource(String spec)    {        setSpec(spec);        this.type = isLocalFile() ? Resource.FILE : Resource.URL;        // do NOT set title to spec! -- SMF        // this.mTitle = spec;    }        public Object toDigitalRepositoryReference()    {        return null;    }        public String toURLString()    {        String txt;                // todo fixme: this pathname may have been created on another        // platform, (meaning, a different separator char) unless        // we're going to canonicalize everything ourselves coming        // in...        if (this.url == null)            txt = "file://" + spec;        else            txt = this.url.toString();        /*        if (spec.startsWith(java.io.File.separator))            txt = "file://" + spec;        else            txt = spec;        */        return txt;    }    public java.net.URL toURL()        throws java.net.MalformedURLException    {        if (url == null)            return new java.net.URL(toURLString());        else            return this.url;    }    public void displayContent()    {        System.out.println("displayContent for " + this);        try {            this.accessAttempted = System.currentTimeMillis();            //if (getAsset() != null) {                //AssetViewer a = new AssetViewer(getAsset());                //a.setSize(600,400);                //a.show();            //} else            if (VueUtil.isMacPlatform())                VueUtil.openURL(toURLString());            else                VueUtil.openURL(getSpec());            this.accessSuccessful = System.currentTimeMillis();        } catch (Exception e) {            System.err.println(e);        }    }    public long getReferenceCreated() {        return this.referenceCreated;    }        public void setReferenceCreated(long referenceCreated) {        this.referenceCreated = referenceCreated;    }        public long getAccessAttempted() {        return this.accessAttempted;    }        public void setAccessAttempted(long accessAttempted) {        this.accessAttempted = accessAttempted;    }        public long getAccessSuccessful() {        return this.accessSuccessful;    }        public void setAccessSuccessful(long accessSuccessful) {        this.accessSuccessful = accessSuccessful;    }    public long getSize() {        return this.size;    }        public void setSize(long size) {        this.size = size;    }    public void setTitle(String title)    {        mTitle = title;    }    public String getTitle()    {        return mTitle;    }    public void setSpec(String spec) {        this.spec = spec;        this.referenceCreated = System.currentTimeMillis();        try {            url = new URL(this.spec);            /*              String fname = url.getFile();              System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");              java.io.File file = new java.io.File(fname);              System.out.println("\t" + file + " exists=" +file.exists());              file = new java.io.File(spec);              System.out.println("\t" + file + " exists=" +file.exists());            */        } catch (MalformedURLException e) {            // Okay for url to be null: means local file            //System.err.println(e);            //System.out.println("Resource [" + spec + "] *** NOT A URL ***");        } catch (Exception e) {            System.err.println(e);        }    }    public void setTitleFromContent()    {        if (url != null) {            try {                System.err.println("Opening connection to " + url);                URLConnection conn = url.openConnection();                //System.err.println("Connecting...");                //conn.connect();                //System.err.println("Getting headers...");                //System.err.println("Headers: " + conn.getHeaderFields());                //Object content = conn.getContent();                //System.err.println("GOT CONTENT[" + content + "]"); // is stream                String title = searchURLforTitle(conn);                // TODO: do NOT do this if it came from a .url shortcut -- we                // already have the file-name                if (title != null)                    setTitle(title);            } catch (Exception e) {                System.err.println("Resource title scrape: " + e);            }        }    }    private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+).*",                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);    private static String searchURLforTitle(URLConnection url_conn)    {        String title = null;        try {            title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);            title = title.replace('\n', ' ').trim();            //System.out.println("*** got title ["+title+"]");        } catch (Exception e) {            System.out.println(e);        }        return title;    }    /** search a stream for a single regex -- one matching group only.     * Only search the first n bytes of input stream. */    private static String searchStreamForRegex(InputStream in, Pattern regex, int bytes)    {        String result = null;        try {            System.out.println("*** Searching for regex in " + in);            if (!(in instanceof BufferedInputStream)) {                // this handles a possibly "chunked" http stream,                // which would only hand back, say, 23 bytes the first                // time, as Yahoo's http server did.                in = new BufferedInputStream(in, bytes);            }            byte[] buf = new byte[bytes];            int len = in.read(buf);            in.close();            String str = new String(buf, 0, len);            System.out.println("*** Got string of length " + len);            //System.out.println("*** String[" + str + "]");            Matcher m = regex.matcher(str);            if (m.lookingAt()) {                result = m.group(1);                System.out.println("*** regex found ["+result+"]");            }        } catch (Exception e) {            System.out.println(e);        }        return result;    }            /** Return exactly whatever we were handed at creation time.  We     * need this because if it's a local file (file: URL or just local     * file path name), we need whatever the local OS gave us as a     * reference in order to give that to give back to openURL, as     * it's the most reliable string to give back to the underlying OS     * for opening a local file.  */        public String getSpec() {       return this.spec;    }    /**     * If isLocalFile is true, this will return a file name     * suitable to be given to java.io.File such that it     * can be found.  Note that this may differ from getSpec.     * If isLocalFile is false, it will return the file     * portion of the URL, although that may not be useful.     */    public String getFileName() {        if (this.url == null)            return getSpec();        else            return url.getFile();    }    public boolean isLocalFile()    {        return url == null || url.getProtocol().equals("file");        //String s = spec.toLowerCase();        //return s.startsWith("file:") || s.indexOf(':') < 0;    }    public String getExtension()    {        String ext = "xxx";        if (spec.startsWith("http"))            ext = "web";        else if (spec.startsWith("file"))            ext = "file";        else {            ext = spec.substring(0, Math.min(spec.length(), 3));            if (!spec.endsWith("/")) {                int i = spec.lastIndexOf('.');                if (i > 0 && i < spec.length()-1)                    ext = spec.substring(i+1);            }        }        if (ext.length() > 4)            ext = ext.substring(0,4);        return ext;    }        /**     * getPropertyNames     * This returns an array of property names     * @return String [] the list of property names     **/    public String [] getPropertyNames() {    	    	if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {	    	Set keys = mProperties.keySet();			if( ! keys.isEmpty() ) {				mPropertyNames = new String[ keys.size() ];				Iterator it = keys.iterator();				int i=0;				while( it.hasNext()) {					mPropertyNames[i] = (String) it.next();					i++;					}				}			}    	return mPropertyNames;    }        /**     * setPropertyValue+-     * This method sets a property value     * Note:  This method will add a new property if called.     *        Since this is a small version of a VUEBean, only     *        two property class values are supported:  String and Vector     *        where Vector is a vector of String objects.     * @param STring pName the proeprty name     * @param Object pValue the value     **/     public void setPropertyValue( String pName, Object pValue) {     	/** invalidate our dumb cache of names if we add a new one **/     	if( !mProperties.containsKey( pName) ) {     		mPropertyNames = null;     		}	     	mProperties.put( pName, pValue);     }          public Properties getProperties() {         return (Properties)mProperties;     }          /**      * getPropertyValue      * This method returns a value for the given property name.      * @param pname the property name.      * @return Object the value      **/     public Object getPropertyValue( String pName) {     	Object value = null;     	value = mProperties.get( pName);     	return value;     }          public boolean isSelected(){         return selected;     }          public void setSelected(boolean selected) {         this.selected = selected;     }    public String toString()    {        return getSpec();    }        public int getType() {        return type;    }    public void setType(int type) {        this.type = type;    }    public String getToolTipInformation() {        return "ToolTip Information";    }    }
