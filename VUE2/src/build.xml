@@ -29,7 +29,7 @@
     and running.
   </description>
 
-<!-- $Revision: 1.10 $ / $Date: 2004-08-06 21:26:48 $ -->
+<!-- $Revision: 1.11 $ / $Date: 2004-08-06 22:05:43 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -396,7 +396,7 @@
     <tstamp/>
     <jar destfile="${build.home}/VUE.jar" compress="true" index="true" update="false">
       <manifest>
-        <attribute name="Description" value="Tufts VUE 1.0 (Visual Understanding Environment) [beta]"/>
+        <attribute name="Description" value="Tufts VUE 0.9 (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>

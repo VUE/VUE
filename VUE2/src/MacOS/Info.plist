@@ -5,7 +5,7 @@
 	<key>CFBundleName</key>
 	<string>VUE</string>
 	<key>CFBundleVersion</key>
-	<string>1.0 pre-release</string>
+	<string>0.9 pre-release</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>true</string>
 	<key>CFBundleExecutable</key>
