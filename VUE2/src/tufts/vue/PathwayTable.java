@@ -196,7 +196,9 @@ public class PathwayTable extends JTable{
         }
 
         public void actionPerformed(ActionEvent e) {
-            if(!VUE.getPathwayInspector().getCurrentPathway().getLocked()){
+            //if(!VUE.getPathwayInspector().getCurrentPathway().getLocked()){
+            if(!VUE.getActiveMap().getPathwayManager().getCurrentPathway().getLocked())
+            {
                 if (EDIT.equals(e.getActionCommand())) {
                     colorChooser.setColor(currentColor);
                     dialog.setVisible(true);
@@ -301,6 +303,13 @@ public class PathwayTable extends JTable{
             if(obj instanceof LWPathway){
                 LWPathway path = (LWPathway)obj;
                 //use p for border, font?
+                
+                if(path == tab.getCurrentPathway())
+                {
+                  System.out.println(path.toString() + " suckaaa");
+                  this.setBackground(Color.red);
+                }
+                
                 this.setFont(currentFont);
                 this.setText(path.getLabel());   
                 
