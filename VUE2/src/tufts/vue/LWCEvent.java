@@ -20,7 +20,7 @@ public class LWCEvent
     public static final String Font = "font";
 
     public static final String Added = "added"; // a child components add-notify
-    public static final String ChildAdded = "childAdded";// the parent component's add-notify
+    //public static final String ChildAdded = "childAdded";// the parent component's add-notify
     public static final String ChildrenAdded = "childrenAdded";// the parent component's group add-notify
     public static final String ChildRemoved = "childRemoved";// the parent component's remove-notify
     public static final String ChildrenRemoved = "childrenRemoved";// the parent component's group remove-notify

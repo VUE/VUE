@@ -87,85 +87,89 @@ public class PathwayTable extends JTable
         
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        this.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-            
-            public void valueChanged(ListSelectionEvent le){
-                ListSelectionModel lsm = (ListSelectionModel)le.getSource();
-                if (!lsm.isSelectionEmpty()){
+        this.getSelectionModel().addListSelectionListener
+            (new ListSelectionListener() {
+                public void valueChanged(ListSelectionEvent le) {
+                    ListSelectionModel lsm = (ListSelectionModel)le.getSource();
+                    if (lsm.isSelectionEmpty())
+                        return;
+                
+                    PathwayTableModel tableModel = getTableModel();
                     int row = lsm.getMinSelectionIndex();
+                    
                     lastSelectedRow = row;
                     int col = getSelectedColumn();
                     if (DEBUG.PATHWAY) System.out.println("PathwayTable: clicked row "+row+", col "+col);    
                     
                     //PathwayTableModel tableModel = pathPanel.getTableModel();
                     // could this have even been null??
-                    PathwayTableModel tableModel = getTableModel();
-                    if (tableModel != null){
-                        LWComponent c = tableModel.getElement(row);
-                        LWPathway p = null;
-                        if (c instanceof LWPathway)
-                            p = (LWPathway) c;
-                        else
-                            p = tableModel.getPathwayForElementAt(row);
-                        tableModel.setCurrentPathway(p);
+                    LWComponent c = tableModel.getElement(row);
+                    LWPathway path = null;
+                    if (c instanceof LWPathway)
+                        path = (LWPathway) c;
+                    else
+                        path = tableModel.getPathwayForElementAt(row);
+                    tableModel.setCurrentPathway(path);
+                    
+                    if (c instanceof LWPathway) {
+                        //pathPanel.setAddElementEnabled();
+                        //pathPanel.removeElement.setEnabled(false);
+                        
+                        if (col == 0 || col == 2)
+                            setValueAt(path, row, col); // what's this do??
+                        
+                        tableModel.fireChanged(this);
+                        //tableModel.fireTableDataChanged(new TableModelEvent(this));
+                        //pathPanel.updateControlPanel();
+                        
+                    } else {
+                        path.setIndex(tableModel.getPathwayIndexForElementAt(row));
+                        //path.setCurrentElement(c);
 
-                        if (c instanceof LWPathway) {
-                            //pathPanel.setAddElementEnabled();
-                            //pathPanel.removeElement.setEnabled(false);
-                            
-                            if (col == 0 || col == 2)
-                                setValueAt(p, row, col); // what's this do??
-                            
-                            tableModel.fireChanged(this);
-                            //tableModel.fireTableDataChanged(new TableModelEvent(this));
-                            //pathPanel.updateControlPanel();
-                            
-                        } else {
-                            p.setCurrentElement(c);
-                            //pathPanel.removeElement.setEnabled(true);
-                            //tableModel.fireChanged(this);
-                            //tableModel.fireTableDataChanged(new TableModelEvent(this)); // new
-                            //pathPanel.updateControlPanel();
-                        }
+                        // temporarily calling this only to ensure an update of the
+                        // labels as per old code below -- but as soon as pathpanel
+                        // (via table model) is a listener to the LWPathway, it will
+                        // be able to pick up an LWCEvent issued from the setCurrentElement
+                        // above.
+                                tableModel.fireChanged(this);
+                        
+                        //pathPanel.removeElement.setEnabled(true);
+                        //tableModel.fireChanged(this);
+                        //tableModel.fireTableDataChanged(new TableModelEvent(this)); // new
+                        //pathPanel.updateControlPanel();
                     }
-                    else {
-                        // is this reachable code?
-                        pathPanel.removeElement.setEnabled(false);
-                        new Throwable("tableModel is null").printStackTrace();
-                    }
-                    
-                    
+
+
                     String newText = "Notes: ";
                     String notesText = "";
-                    LWPathway path = null;
+                    //LWPathway path = null;
                     LWComponent comp = null;
-                        
-                    Object obj = tableModel.getElement(row);
+                    //LWComponent c = tableModel.getElement(row);
 
-                    if(obj instanceof LWPathway){
-                        newText = newText + ((LWPathway)obj).getLabel();
-                        notesText = ((LWPathway)obj).getNotes();
-                        path = (LWPathway)obj;
-                    }
-                    else{
-                        path = tableModel.getCurrentPathway();
-                        comp = (LWComponent)tableModel.getElement(row);
+                    if (c instanceof LWPathway){
+                        newText = newText + c.getLabel();
+                        notesText = c.getNotes();
+                        path = (LWPathway) c;
+                    } else {
+                        //path = tableModel.getCurrentPathway();
+                        path = VUE.getActivePathway(); // is this too much an assumption at this point?
                         newText = newText + path.getLabel() 
                             + " / " 
-                            + comp.getLabel();
+                            + c.getLabel();
                         
                         //notesText = comp.getNotes();
-                        notesText = path.getElementNotes(comp);
+                        notesText = path.getElementNotes(c);
                     }
                     
-                    
-                    pathPanel.updateLabels(newText, notesText, path, comp);
+                    pathPanel.updateLabels(newText, notesText, path, c);
                     pathPanel.repaint();
                 }
-            }
-        });
+                });
+
+        // end of constructor
     }
     
+
     private PathwayTableModel getTableModel()
     {
         return (PathwayTableModel) getModel();
@@ -308,14 +312,17 @@ public class PathwayTable extends JTable
                 this.setText(p.getLabel());
                 
             } else if (c != null) {
-                this.setFont(normalFont);
-                this.setBackground(bgColor);
-                this.setText(c.getLabel());
+                setFont(normalFont);
+                setBackground(bgColor);
+                setText(c.getLabel());
 
-                LWPathway p = getTableModel().getPathwayForElementAt(row);
-                LWPathway curPath = getTableModel().getCurrentPathway();
+                LWPathway activePath = VUE.getActivePathway();
+                LWPathway elementPath = getTableModel().getPathwayForElementAt(row);
+                int elementIndexInPath = getTableModel().getPathwayIndexForElementAt(row);
+                
+                //LWPathway curPath = getTableModel().getCurrentPathway();
                 //System.out.println("LabelRenderer current path: " + curPath);
-                if (curPath != null && curPath == p && p.getCurrent() == c) {
+                if (elementPath == activePath && elementPath.getCurrentIndex() == elementIndexInPath) {
                     // This is the current item on the current path
                     this.setForeground(currentNodeColor);
                     this.setText("* "+this.getText());

@@ -58,4 +58,9 @@ public class LWPathwayElementProperty
         else
             this.notes = notes;
     }
+
+    public String toString()
+    {
+        return "LWPathwayElementProperty[cid=" + getElementID() + " note="+notes + "]";
+    }
 }

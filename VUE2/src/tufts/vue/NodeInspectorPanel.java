@@ -155,7 +155,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 			mInfoBox.add( new LWCInspector() );
 		
 			mInfoScrollPane = new JScrollPane();
-			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mInfoScrollPane.setLocation(new Point(8, 9));
 			mInfoScrollPane.setVisible(true);

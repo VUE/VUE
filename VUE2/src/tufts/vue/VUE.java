@@ -251,7 +251,8 @@ public class VUE
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
         //if (debug)
-        lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        if (VueUtil.isMacPlatform()) // for now for testing
+            lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         try {
             if (lafn != null)
                 javax.swing.UIManager.setLookAndFeel(lafn);
@@ -516,12 +517,12 @@ public class VUE
        
         Window[] toolWindows = {
             objectInspector,
+            mapInspector,
             drBrowserTool,
             toolbarWindow,
             //pathwayInspector,
             pannerTool,
             //htWindow,
-            mapInspector,
             outlineView,
             inspectorTool,
         };

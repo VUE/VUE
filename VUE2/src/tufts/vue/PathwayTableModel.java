@@ -66,39 +66,70 @@ public class PathwayTableModel extends DefaultTableModel {
     }
     
     /** for PathwayTable */
+    /*
     LWPathway getCurrentPathway(){
         if (getPathwayList() != null)
             return getPathwayList().getActivePathway();
         else
             return null;
     }
+    */
 
     /** for PathwayPanel */
     int getCurrentPathwayIndex(){
         return getList().indexOf(VUE.getActivePathway());
     }
 
-    /** for PathwayTable */
+    /**
+     * for PathwayTable
+     * Given @param pRow in the displayed table model,
+     * return the pathway that contains it.  If element
+     * at that row is a pathway, return that pathway.
+     */
     LWPathway getPathwayForElementAt(int pRow)
     {
         Iterator i = getPathwayIterator();
         int row = 0;
         while (i.hasNext()) {
             LWPathway p = (LWPathway) i.next();
-            if (row == pRow)
+            if (row++ == pRow)
                 return p;
-            row++;
             if (p.isOpen()) {
-                Iterator ci = p.getElementIterator();
-                while (ci.hasNext()) {
-                    LWComponent c = (LWComponent) ci.next();
-                    if (row == pRow)
+                for (int index = 0; index < p.length(); index++) {
+                    if (row++ == pRow)
                         return p;
-                    row++;
                 }
             }
         }
-        return null;
+        throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
+    }
+    /**
+     * for PathwayTable
+     * Returns index of element within given pathway.  We need
+     * this because an element can appear in the pathway more
+     * than once, and this is how we differentiate them (by index).
+     * If the element at @param pRow is a pathway, return -1.
+     */
+    int getPathwayIndexForElementAt(int pRow)
+    {
+        Iterator i = getPathwayIterator();
+        int row = 0;
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            if (row++ == pRow)
+                return -1;
+            //System.out.println("searching pw " + p + " row=" + row);
+            if (p.isOpen()) {
+                for (int index = 0; index < p.length(); index++) {
+                    //System.out.println("searching pw " + p + " row=" + row + " sub-index " + pathIndex);
+                    if (row++ == pRow) {
+                        //System.out.println("searching pw " + p + " row=" + row + " sub-index " + pathIndex + " THIS IS ROW " + pRow);
+                        return index;
+                    }
+                }
+            }
+        }
+        throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
     }
 
     // get the model list

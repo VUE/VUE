@@ -222,13 +222,24 @@ public class VueUtil
             javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().indexOf("aqua") >= 0;
     }
 
-    public static Iterator EmptyIterator = new Iterator() {
+    public static java.util.Iterator EmptyIterator = new java.util.Iterator() {
             public boolean hasNext() { return false; }
             public Object next() { throw new NoSuchElementException(); }
             public void remove() { throw new UnsupportedOperationException(); }
         };
+
+    // Single element convience iterator
+    public static class SingleIterator implements java.util.Iterator {
+        Object object;
+        public SingleIterator(Object o) {
+            object = o;
+        }
+        public boolean hasNext() { return object != null; }
+        public Object next() { if (object == null) throw new NoSuchElementException(); Object o = object; object = null; return o; }
+        public void remove() { throw new UnsupportedOperationException(); }
+    };
     
-    public static class GroupIterator implements Iterator
+    public static class GroupIterator implements java.util.Iterator
     {
         private Object[] iterables = new Object[4];
         int nIter = 0;

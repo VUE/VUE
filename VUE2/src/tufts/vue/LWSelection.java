@@ -128,6 +128,8 @@ public class LWSelection extends java.util.ArrayList
 
     synchronized void setTo(LWComponent c)
     {
+        if (size() == 1 && first() == c)
+            return;
         clear0();
         add(c);
     }

@@ -503,7 +503,14 @@ public class LWMap extends LWContainer
 
     public String paramString()
     {
-        return super.paramString() + " <" + this.file + ">";
+        return " children=" + children.size() + " <" + this.file + ">";
+        
+        /*
+        if (this.file == null)
+            return super.paramString();
+        else
+            return super.paramString() + " <" + this.file + ">";
+        */
     }
     
 

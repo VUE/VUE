@@ -6,61 +6,34 @@
 
 package tufts.vue;
 
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.table.*;
-import javax.swing.ListSelectionModel;
-import java.awt.FlowLayout;
-import java.awt.BorderLayout;
-import javax.swing.border.*;
-import java.util.Vector;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.util.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.text.Document;
-
-
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
+import javax.swing.table.*;
+import javax.swing.border.*;
+
 /**
  * 8-fold cyclic repetition of a beta-strand-loop-alpha- helix-loop module with helix alpha 7 missing. 
  * @author  Daisuke Fujiwara
  */
 
 /**A class which displays nodes in a pathway */
-public class PathwayPanel extends JPanel implements   ActionListener,
-                                                    MapViewer.Listener
+public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Listener
 {    
-    //necessary widgets
     private PathwayTable pathwayTable = null;
     private PathwayTableModel tableModel = null;
-    public JButton removeElement = null, addElement = null, moveUp = null, moveDown = null; //, submit 
-    //private JTextField text;
+    private JButton removeElement = null, addElement = null, moveUp = null, moveDown = null; //, submit 
+
     private JLabel pathLabel = null;//, nodeLabel = null, slashLabel = new JLabel(" / ");
     
     private JFrame parent;
-    //private JDialog parent;
     private JPanel buttons = null;
     private JPanel buttonPanel = null;
     private JLabel pathName = null;
     
     private boolean elemSelection = false;
-    
-    private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     
     //private Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
     //private Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
@@ -97,8 +70,8 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     private final String noPathway = "                          ";
     private final String emptyLabel = "empty";
     
-    private LWPathway dispPath = null;
-    private LWComponent dispComp = null;
+    private LWComponent displayedComponent;
+    private LWPathway displayedComponentPathway;
     
     private Color bgColor = new Color(241, 243, 246);
     private Color altbgColor = new Color(186, 196, 222);
@@ -118,11 +91,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         highlightFont = this.getFont();
         highlightFont.deriveFont(Font.BOLD);
         
-        pathLabel = new JLabel();
-        
         setupPathwayControl();
-        //setupPathwayNameLabel();
-        
          
         createButton = new JButton(addUpIcon);
         createButton.setSelectedIcon(addDownIcon);
@@ -197,6 +166,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         tableModel.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
                     if (DEBUG.PATHWAY) System.out.println(this + " " + e);
+                    updateLabels();
                     updateEnabledStates();
                     //repaint();
                 }
@@ -213,7 +183,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         
         JScrollPane tablePane = new JScrollPane(pathwayTable);
         
-        setButtons();
+        setupButtons();
         //toggles the add button's availability depending on the selection
         VUE.ModelSelection.addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) { updateEnabledFromSelection(); }
@@ -230,7 +200,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         southPanel.setBackground(altbgColor);
         southPanel.add(addLabel);
-        southPanel.add(buttons); // buttons panel setup in setButtons() method
+        southPanel.add(buttons); // buttons panel setup in setupButtons() method
         
         /* Layout for the table components */
         
@@ -273,8 +243,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         
         southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
         southNotes.setBackground(bgColor);
-        southNotes.add(pathLabel);
-        pathLabel.setText("Notes: ");
+        southNotes.add(pathLabel = new JLabel("Notes: " ));
         
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
@@ -286,17 +255,20 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         notesArea.addKeyListener(new KeyAdapter() {
                 public void keyTyped(KeyEvent e) {
                     if (DEBUG.PATHWAY) System.out.println(this + " " + e);
-                    if (dispPath == null)
+                    if (displayedComponent == null)
                         return;
-                    if (dispComp != null){
-                        if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes");
-                        dispPath.setElementNotes(dispComp, notesArea.getText());
-                        
+                    // we get this event before the typed key is included in the text,
+                    // thus we add it here manually (already slow and a hack to do this every
+                    // key press -- should do it on focus loss instead)
+                    String text = notesArea.getText() + e.getKeyChar();
+                    if (displayedComponent instanceof LWPathway){
+                        if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
+                        displayedComponent.setNotes(text);
                     } else {
-                        if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes");
-                        dispPath.setNotes(notesArea.getText());
+                        if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
+                        displayedComponentPathway.setElementNotes(displayedComponent, text);
                     }
-                    updateTable(); // only need this if first key typed not turn on note icon
+                    //fireTableModelUpdate(); // only need this if first key typed to turn on note icon
                 }
             });
 
@@ -403,8 +375,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         buttonPanel.add(lastButton);
     }
 
-    private void setButtons(){
-        
+    private void setupButtons() {
         addElement = new JButton(addUpIcon);
         addElement.setSelectedIcon(addDownIcon);
         addElement.setDisabledIcon(this.addDisabledIcon);
@@ -412,7 +383,6 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         addElement.addActionListener(this);
         addElement.setEnabled(false);
         addElement.setBorderPainted(false);
-        
         
         removeElement = new JButton(deleteUpIcon);
         removeElement.setSelectedIcon(deleteDownIcon);
@@ -437,119 +407,46 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     }
     
     /**Notifies the table of data change*/
-    private void updateTable()
-    {
-        //((PathwayTableModel)pathwayTable.getModel()).fireTableDataChanged();
+    private void fireTableModelUpdate() {
         getTableModel().fireChanged(this);
     }
-    
-    //key events for the dialog box
-    public void keyPressed(KeyEvent e) {}
-    public void keyReleased(KeyEvent e) {}
-
     
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
         int selected = pathwayTable.getSelectedRow();
         Object btn = e.getSource();
+
+        LWPathway pathway = getSelectedPathway();
         
-        if (false && btn == removeElement) {
-            // We used to allow removing the current element in the panel,
-            // but now we only allow removing something that's in the
-            // the VUE selection.
-            /*
-            Object obj = null;
-            if (selected != -1) 
-                obj = getTableModel().getElement(selected);
-            else {
-                if (getTableModel().getCurrentPathway() != null
-                   && getTableModel().getCurrentPathway().getCurrent() != null)
-                    obj = getTableModel().getCurrentPathway().getCurrent();
-            }
-            if (obj != null && obj instanceof LWComponent) {
-                getSelectedPathway().remove((LWComponent) obj);
+        if (btn == removeElement) {
+            if (VUE.ModelSelection.size() == 1 && pathway.containsMultiple(pathway.getCurrent())) {
+                // special case: if only one element in selection, AND it appears
+                // more than once in the current pathway, be sure to remove only the
+                // selected instance in the pathway.
+                pathway.remove(pathway.getCurrentIndex());
+            } else if (VUE.ModelSelection.isEmpty() && pathway.getCurrentIndex() >= 0) {
+                // if nothing in selection, allow removal of the current index
+                pathway.remove(pathway.getCurrentIndex());
             } else {
-                System.out.println("Error trying to remove pathway element: selected object not found.");
+                pathway.remove(VUE.ModelSelection.iterator());
             }
-            */
-        }            
-        else if (btn == removeElement)  { getSelectedPathway().remove(VUE.ModelSelection.iterator()); }
-        else if (btn == addElement)     { getSelectedPathway().add(VUE.ModelSelection.iterator()); }
-        else if (btn == firstButton)    { getSelectedPathway().setFirst(); }
-        else if (btn == lastButton)     { getSelectedPathway().setLast(); }
-        else if (btn == forwardButton)  { getSelectedPathway().setNext(); }
-        else if (btn == backButton)     { getSelectedPathway().setPrevious(); }
-        else if (btn == removeButton)   { removePathway(getSelectedPathway()); }
+        }
+        else if (btn == addElement)     { pathway.add(VUE.ModelSelection.iterator()); }
+        else if (btn == firstButton)    { pathway.setFirst(); }
+        else if (btn == lastButton)     { pathway.setLast(); }
+        else if (btn == forwardButton)  { pathway.setNext(); }
+        else if (btn == backButton)     { pathway.setPrevious(); }
+        else if (btn == removeButton)   { removePathway(pathway); }
         else if (btn == createButton)   { new PathwayDialog(this, getLocationOnScreen()).show(); }
-        else if (btn == lockButton)     { getSelectedPathway().setLocked(!getSelectedPathway().isLocked()); }
-            //{
-            //if (getSelectedPathway() != null) {
-            ////int currentRow = getTableModel().getManager().getPathwayIndex(getTableModel().getCurrentPathway());
-            //int currentRow = getTableModel().getCurrentPathwayIndex();
-            //    getPathwayTable().setValueAt(this, currentRow, 5);
-            //    updateAddElementEnabled();
-            //}
-            //}
+        else if (btn == lockButton)     { pathway.setLocked(!pathway.isLocked()); }
         
         //getTableModel().fireTableDataChanged();
-        updateTable();
+        fireTableModelUpdate();
         //updateEnabledStates();
         VUE.getActiveMap().notify(this, LWCEvent.Repaint);//todo: remove
     }
    
-    /*** Pathway Control methods ***/
-    /**Sets the pathway manager to the given pathway manager*/
-    
-   /** private void setPathwayManager(LWPathwayManager manager){
-        //PATH TODO JUNK: getTableModel().setPathwayManager(manager);
-    }
-**/
-    /*
-    private void setPathwayManager()
-    {
-        //PATH TODO:getTableModel().setPathwayManager(VUE.getActiveMap().getPathwayList());
-        new Throwable("PATH TODO").printStackTrace();
-        updateEnabledStates();
-    }
-    */
-    
-    /**Returns the currently associated pathway manager*/
-/*    public LWPathwayManager getPathwayManager()
-    {
-        return pathwayManager;
-    }
-  */  
-    /**Adds the given pathway to the combo box list and the pathway manager*/
-
-    private void addPathway(LWPathway newPathway)
-    {
-        new Throwable("addPathway " + newPathway).printStackTrace();
-    }
-    
-    /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
-    /*
-    public void setCurrentPathway(LWPathway pathway)
-    {
-        if (DEBUG.PATHWAY) System.out.println(this + " setCurrentPathway " + pathway);
-        //if(this.getPathwayManager() != null)
-        //    this.getPathwayManager().setCurrentPathway(pathway);
-        getTableModel().setCurrentPathway(pathway);
-            
-        //sets to the first node if there is no current node set
-        if (pathway != null) {
-            // wow: how fucked up -- getFirst has a fuckin side effect
-            if (pathway.getCurrent() == null && pathway.length() > 0)
-                pathway.setFirst();
-        }       
-        
-        // would be better to wait till we get a callback to do these:
-        updateEnabledFromSelection();
-        updateEnabledStates();
-    }
-    */
-    
-    
     private void setElemSelection(boolean val){
         //System.out.println("set element selection: " + val);
         this.elemSelection = val;
@@ -616,34 +513,21 @@ public class PathwayPanel extends JPanel implements   ActionListener,
 
         //-------------------------------------------------------
         // original handle
-        if (getSelectedPathway() != null){
-            LWComponent currentElement = getSelectedPathway().getCurrent();
-            removeButton.setEnabled(true);
-            
-            if(currentElement != null){
-                if (getSelectedPathway().isFirst()){
-                    backButton.setEnabled(false);
-                    firstButton.setEnabled(false);
-                }else{
-                    backButton.setEnabled(true);
-                    firstButton.setEnabled(true);
-                }
-          
-                if (getSelectedPathway().isLast()){
-                    forwardButton.setEnabled(false);
-                    lastButton.setEnabled(false);
-                }else {
-                    forwardButton.setEnabled(true);
-                    lastButton.setEnabled(true);
-                }
-            }else{
+        if (getSelectedPathway() != null) {
+            if (getSelectedPathway().length() > 1) {
+                boolean atFirst = getSelectedPathway().atFirst();
+                boolean atLast = getSelectedPathway().atLast();
+                backButton.setEnabled(!atFirst);
+                firstButton.setEnabled(!atFirst);
+                forwardButton.setEnabled(!atLast);
+                lastButton.setEnabled(!atLast);
+            } else {
                 firstButton.setEnabled(false);
                 lastButton.setEnabled(false);
                 forwardButton.setEnabled(false);
                 backButton.setEnabled(false);
             }           
         }
-        
         //if currently no pathway is selected, disables all buttons and resets the label
         else
         {
@@ -664,9 +548,25 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         VUE.getActiveMap().getPathwayList().remove(oldPathway);
     }
     
-    /** For PathwayTable */
-    void updateLabels(String text, String notes, LWPathway path, LWComponent comp){
-        pathLabel.setText(text);   
+    private void updateLabels()
+    {
+        /*
+                    if(obj instanceof LWPathway){
+                        newText = newText + ((LWPathway)obj).getLabel();
+                        notesText = ((LWPathway)obj).getNotes();
+                        path = (LWPathway)obj;
+                    }
+                    else{
+                        path = tableModel.getCurrentPathway();
+                        comp = (LWComponent)tableModel.getElement(row);
+                        newText = newText + path.getLabel() 
+                            + " / " 
+                            + comp.getLabel();
+                        
+                        //notesText = comp.getNotes();
+                        notesText = path.getElementNotes(comp);
+                    }
+        pathLabel.setText(getSelectedPathway().getLabel());
         pathLabel.repaint();
         
         notesArea.setText(notes);
@@ -674,12 +574,24 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         
         dispPath = path;
         dispComp = comp;
+        */
+    }
+
+    void updateLabels(String text, String notes, LWPathway path, LWComponent comp){
+        pathLabel.setText(text);   
+        pathLabel.repaint();
+        
+        notesArea.setText(notes);
+        notesArea.repaint();
+        
+        displayedComponent = comp;
+        displayedComponentPathway = path;
     }
 
     public void mapViewerEventRaised(MapViewerEvent e) {
         if ((e.getID() & MapViewerEvent.DISPLAYED) != 0){
             if (DEBUG.PATHWAY) System.out.println(this + " got " + e + " updating...");
-            updateTable();
+            fireTableModelUpdate();
             //updateEnabledStates();
             //getTableModel().fireTableDataChanged();
 
@@ -699,7 +611,36 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     
 }
 
+
+
+
+    
+    /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
     /*
+    public void setCurrentPathway(LWPathway pathway)
+    {
+        if (DEBUG.PATHWAY) System.out.println(this + " setCurrentPathway " + pathway);
+        //if(this.getPathwayManager() != null)
+        //    this.getPathwayManager().setCurrentPathway(pathway);
+        getTableModel().setCurrentPathway(pathway);
+            
+        //sets to the first node if there is no current node set
+        if (pathway != null) {
+            // wow: how fucked up -- getFirst has a fuckin side effect
+            if (pathway.getCurrent() == null && pathway.length() > 0)
+                pathway.setFirst();
+        }       
+        
+        // would be better to wait till we get a callback to do these:
+        updateEnabledFromSelection();
+        updateEnabledStates();
+    }
+    */
+    
+    
+
+
+/*
     private void setButton(JButton button){
         button.addActionListener(this);
         buttonPanel.add(button);

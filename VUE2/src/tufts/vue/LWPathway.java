@@ -78,72 +78,173 @@ public class LWPathway extends LWContainer
     public int getWeight() { return weight; }
     public void setWeight(int weight) { this.weight = weight; }
 
-    private int setIndex(int i)
+    int setIndex(int i)
     {
         if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
-        if (VUE.getActivePathway() == this)
+        if (i >= 0 && VUE.getActivePathway() == this)
             VUE.ModelSelection.setTo(getElement(i));
         return mCurrentIndex = i;
     }
 
     /**
-     * Overrides LWContainer addChild.  Pathways aren't true
+     * Overrides LWContainer addChildren.  Pathways aren't true
      * parents, so all we want to do is add a reference to them,
      * and raise a change event.
      */
-    public void addChild(LWComponent c)
+    public void addChildren(Iterator i)
     {
-        children.add(c);
-        c.addPathwayRef(this);
-        //new Throwable(this + " addChild " + c).printStackTrace();
-        // don't want to add to element props if they already have some!
-        // (is happening on restore)
-        elementPropertyList.add(new LWPathwayElementProperty(c.getID()));
-        if (mCurrentIndex == -1) setIndex(length() - 1);
-        c.addLWCListener(this);       
-        notify(LWCEvent.ChildAdded, c);
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChildren " + VUE.ModelSelection);
+        ArrayList added = new java.util.ArrayList();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChild " + added.size() + " " + c);
+            super.children.add(c);
+            c.addPathwayRef(this);
+            c.addLWCListener(this);       
+
+            // For now you can only have one set of properties per element in the list,
+            // even if the element is in the path more than once.  We probably
+            // want to ultimately support a set of properties for each index
+            // within the pathway.
+            if (!hasElementProperties(c))
+                elementPropertyList.add(new LWPathwayElementProperty(c.getID()));
+            
+            added.add(c);
+        }
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " ADDEDALL " + added);
+        //if (mCurrentIndex == -1) setIndex(length() - 1);
+        if (added.size() > 0) {
+            if (added.size() == 1)
+                setIndex(length()-1);
+            notify(LWCEvent.ChildrenAdded, added);
+        }
     }
 
-    /**
-     * Overrides LWContainer addChild.  Pathways aren't true
-     * parents, so all we want to do is remove the reference to them
-     * and raise a change event.
-     */
-    public void removeChild(LWComponent c)
-    {
-        children.remove(c);
-        //c.removePathwayRef(this);
-        //c.removeLWCListener(this);// getting a concurrent mod here
-        notify(LWCEvent.ChildRemoved, c);
-    }
-    
-    /** adds an element to the end of the pathway */
     public void add(LWComponent c) {
         addChild(c);
     }
-
     public void remove(LWComponent c) {
         removeChild(c);
     }
-
     public void add(Iterator i) {
-        while (i.hasNext()) add((LWComponent) i.next());
+        addChildren(i);
     }
     public void remove(Iterator i) {
-        while (i.hasNext()) remove((LWComponent) i.next());
+        removeChildren(i);
     }
-    /*
-    public void addElement(LWComponent c) {
-        add(c);
+
+    /**
+     * As a LWComponent may appear more than once in a pathway, we
+     * need to make sure we can remove pathway entries by index, and
+     * not just by content.
+     */
+    private LWComponent removingComponent = null;
+    public synchronized void remove(int index) {
+        remove(index, false);
     }
-    */
-    public void LWCChanged(LWCEvent e)
+
+    private void disposeElementProperties(LWComponent c)
     {
-        //if (e.getWhat() == LWCEvent.Deleted)
-        if (e.getWhat() == LWCEvent.Deleting)
-            remove(e.getComponent());
+        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
+            LWPathwayElementProperty prop = (LWPathwayElementProperty) i.next();
+            if (prop.getElementID().equals(c.getID())) {
+                if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " dumping property " + prop);
+                i.remove();
+                break;
+            }
+        }
     }
     
+    /**
+     * Overrides LWContainer removeChildren.  Pathways aren't true
+     * parents, so all we want to do is remove the reference to them
+     * and raise a change event.  Removes all items in iterator
+     * COMPLETELY from the pathway -- all instances are removed.
+     * The iterator may contains elements that are not in this pathway:
+     * we just make sure any that are in this pathway are removed.
+     */
+    //  Todo: factor & comine with remove(int index, bool deleting)
+    public void removeChildren(Iterator i)
+    {
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChildren " + VUE.ModelSelection);
+        ArrayList removed = new java.util.ArrayList();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            boolean contained = false;
+            while (children.contains(c)) {
+                if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChild " + removed.size() + " " + c);
+                contained |= children.remove(c);
+            }
+            if (contained) {
+                c.removePathwayRef(this);
+                c.removeLWCListener(this);       
+                disposeElementProperties(c);
+                removed.add(c);
+            }
+        }
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " REMOVEDALL " + removed);
+        if (removed.size() > 0) {
+            if (mCurrentIndex >= length())
+                setIndex(length() - 1);
+            else
+                setIndex(mCurrentIndex);
+            notify(LWCEvent.ChildrenRemoved, removed);
+        }
+    }
+    
+    private synchronized void remove(int index, boolean deleting) {
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " remove index " + index + " deleting=" + deleting);
+        LWComponent c = (LWComponent) children.remove(index);
+        if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removed " + c);
+        if (length() == 0)
+            mCurrentIndex = -1;
+        c.removePathwayRef(this);
+        if (!deleting) {
+            // If deleting, component will remove us as listener itself.
+            // If we remove it here while deleting, we'll get a concurrent
+            // modification exception from LWCompononent.notifyLWCListeners
+            if (!contains(c)) // in case in multiple times
+                c.removeLWCListener(this);
+        }
+        
+        if (!contains(c)) // only remove property if last time appears in list.
+            disposeElementProperties(c);
+
+        // If what we just deleted was the current item, the currentIndex
+        // doesn't change, but we call this to make sure we set the selection.
+        // Or, if we just deleted the last item in the list, mCurrentIndex
+        // needs to shrink by one.
+        if (mCurrentIndex >= length())
+            setIndex(length() - 1);
+        else
+            setIndex(mCurrentIndex);
+
+        removingComponent = c; // todo: should be able to remove this now that we don't deliver events back to source
+        notify(LWCEvent.ChildRemoved, c);
+        removingComponent = null;
+    }
+    
+    public synchronized void LWCChanged(LWCEvent e)
+    {
+        if (e.getComponent() == removingComponent) {
+            //if (DEBUG.PATHWAY || DEBUG.EVENTS) System.out.println(e + " ignoring: already deleting in " + this);
+            new Throwable(e + " ignoring: already deleting in " + this).printStackTrace();
+            return;
+        }
+        if (e.getWhat() == LWCEvent.Deleting)
+            removeAll(e.getComponent());
+    }
+
+    /**
+     * Remove all instances of @param deleted from this pathway
+     * Used when a component has been deleted.
+     */
+    protected void removeAll(LWComponent deleted)
+    {
+        while (contains(deleted))
+            remove(children.indexOf(deleted), true);
+    }
+
     public LWMap getMap(){
         return (LWMap) getParent();
     }
@@ -170,6 +271,9 @@ public class LWPathway extends LWContainer
     public boolean contains(LWComponent c) {
         return children.contains(c);
     }
+    public boolean containsMultiple(LWComponent c) {
+        return children.indexOf(c) != children.lastIndexOf(c);
+    }
 
     public int length() {
         return children.size();
@@ -184,8 +288,11 @@ public class LWPathway extends LWContainer
         return null;
     }
     
-    public boolean isFirst(){
+    public boolean atFirst(){
         return (mCurrentIndex == 0);
+    }
+    public boolean atLast(){
+        return (mCurrentIndex == (length() - 1));
     }
     
     public LWComponent setLast() {
@@ -196,10 +303,6 @@ public class LWPathway extends LWContainer
         return null;
     }
     
-    public boolean isLast(){
-        return (mCurrentIndex == (length() - 1));
-    }
-      
     public LWComponent setPrevious(){
         if (mCurrentIndex > 0)
             return getElement(setIndex(mCurrentIndex - 1));
@@ -224,64 +327,6 @@ public class LWPathway extends LWContainer
         return c;
     }
 
-    /** Pathway interface */
-    public java.util.Iterator getElementIterator() {
-        return children.iterator();
-    }
-    /*    
-    public void removeElement(int index) {
-        removeElement(index, false);
-    }
-
-    protected void removeElement(int index, boolean deleted) {
-        
-        //if the current node needs to be deleted and it isn't the first node, 
-        //set the current index to the one before, else keep the same index
-        if (index == mCurrentIndex && !isFirst())
-            //if (!isFirst())
-          mCurrentIndex--;
-        
-        //if the node to be deleted is before the current node, set the current index to the one before
-        else if (index < mCurrentIndex)
-          mCurrentIndex--;
-        
-        LWComponent element = (LWComponent)elementList.remove(index);
-        
-        System.out.println(this + " removing index " + index + " c="+element);
-
-        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
-        {
-            if(((LWPathwayElementProperty)i.next()).getElementID().equals(element.getID()))
-            {
-                i.remove();
-                break;
-            }
-        }
-        
-        
-        if (element == null) {
-            System.err.println(this + " removeElement: element does not exist in pathway");
-        } else {
-            if (!deleted) {
-                element.removePathwayRef(this);
-                //element.removeLWCListener(this);
-            }
-        }
-    }
-       
-    public void removeElement(LWComponent element) {
-      
-       System.out.println("the element version of the remove is being called");
-       for(int i = 0; i < elementList.size(); i++){
-            LWComponent comp = (LWComponent)elementList.get(i);
-            if(comp.equals(element)){
-                this.removeElement(i);
-                element.removePathwayRef(this);
-                //break;
-            }
-       }
-    }
-*/
     /**
      * Make sure we've completely cleaned up the pathway when it's
      * been deleted (must get rid of LWComponent references to this
@@ -294,17 +339,6 @@ public class LWPathway extends LWContainer
             LWComponent c = (LWComponent) i.next();
             c.removePathwayRef(this);
        }
-    }
-
-    public void moveElement(int oldIndex, int newIndex) {
-        throw new UnsupportedOperationException("LWPathway.moveElement");
-        // will need to clean up add/remove element code at bottom
-        // and track addPathRefs before can put this back in
-        /*
-        LWComponent element = getElement(oldIndex);
-        removeElement(oldIndex);
-        addElement(element, newIndex);
-        */
     }
     
     public boolean getOrdered() {
@@ -319,23 +353,27 @@ public class LWPathway extends LWContainer
      * for persistance: override of LWContainer: pathways never save their children
      * as they don't own them -- they only save ID references to them.
      */
-    public ArrayList getChildList()
-    {
+    public ArrayList getChildList() {
         return null;
     }
     
+    /** Pathway interface */
+    public java.util.Iterator getElementIterator() {
+        return super.children.iterator();
+    }
+
     public java.util.List getElementList() {
         //System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
         return super.children;
     }
 
-    /** for persistance */
+    /** for persistance: XML save/restore only */
     public java.util.List getElementPropertyList() {
         return elementPropertyList;
     }
     
     private List idList = new ArrayList();
-    /** for XML save/restore only */
+    /** for persistance: XML save/restore only */
     public List getElementIDList() {
         if (mDoingXMLRestore) {
             return idList;
@@ -373,32 +411,13 @@ public class LWPathway extends LWContainer
         mDoingXMLRestore = false;
     }
     
-    /** Interface for the linked list used by the Castor mapping file*/
-    /**
-    public ArrayList getElementArrayList()
-    {
-        System.out.println("calling get elementarraylist for " + getLabel());
-         return new ArrayList(elementList);
-    }
-    
-    public void setElementArrayList(ArrayList list)
-    {
-        System.out.println("calling set elementarraylist for " + getLabel());
-        elementList = new LinkedList(list);
-    }
-    **/
-    /*
-    public void setElementArrayList(LWComponent component)
-    {
-        System.out.println("calling set elementarraylist for " + getLabel());
-        elementList.add(component);
-    }
-    */
-    /** end of Castor Interface */
-    
     /** return the current element */
     public LWComponent getCurrent() { 
         LWComponent c = null;
+        if (mCurrentIndex < 0 && length() > 0) {
+            System.out.println(this + " lazy default of index to 0");
+            mCurrentIndex = 0;
+        }
         try {
             c = (LWComponent) children.get(mCurrentIndex);
         } catch (IndexOutOfBoundsException ie){
@@ -422,34 +441,41 @@ public class LWPathway extends LWContainer
         if (c == null) return null;
         
         String notes = null;
-        
         for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
-            LWPathwayElementProperty element = (LWPathwayElementProperty) i.next();
-            if (element.getElementID().equals(c.getID())) {
-                notes = element.getElementNotes();
+            LWPathwayElementProperty prop = (LWPathwayElementProperty) i.next();
+            if (prop.getElementID().equals(c.getID())) {
+                notes = prop.getElementNotes();
                 break;
             }
         }
         //System.out.println("returning notes for " + c + " [" + notes + "]");
         return notes;
     }
+    
+    public boolean hasElementProperties(LWComponent c)
+    {
+        if (c == null) return false;
+        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
+            LWPathwayElementProperty prop = (LWPathwayElementProperty) i.next();
+            if (prop.getElementID().equals(c.getID()))
+                return true;
+        }
+        return false;
+    }
 
-    public void setElementNotes(LWComponent component, String notes)
+    public void setElementNotes(LWComponent c, String notes)
     {   
-        if (notes == null || component == null)
-        {
+        if (notes == null || c == null) {
             System.err.println("argument(s) to setElementNotes is null");
             return;
         }
         
-        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
-        {
+        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
             LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
-            
-            if (element.getElementID().equals(component.getID()))
-            {
+            if (element.getElementID().equals(c.getID())) {
+                String oldNotes = element.getElementNotes();
                 element.setElementNotes(notes);
-                //can elements be in a pathway twice?
+                notify("pathway.element.notes", oldNotes); // not enough info for undo...
                 break;
             }
         }
@@ -467,17 +493,19 @@ public class LWPathway extends LWContainer
         Iterator i = this.getElementIterator();
         Graphics2D g = dc.g;
 
+        if (DEBUG.PATHWAY) {
         if (dc.getIndex() % 2 == 0)
             dash_phase = 0;
         else
             dash_phase = 0.5f;
+        }
         if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         
         g.setColor(getStrokeColor());
         LWComponent last = null;
         Line2D connector = new Line2D.Float();
         BasicStroke connectorStroke =
-            new BasicStroke(6, BasicStroke.CAP_BUTT
+            new BasicStroke(5, BasicStroke.CAP_BUTT
                             , BasicStroke.JOIN_BEVEL
                             , 0f
                             , new float[] { dash_length, dash_length }

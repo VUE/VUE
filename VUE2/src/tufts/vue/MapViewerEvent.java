@@ -53,11 +53,11 @@ public class MapViewerEvent
     public String toString()
     {
         String name = null;
-        if (id == DISPLAYED) name = "DISPLAYED";
-        else if (id == HIDDEN) name = "HIDDEN";
-        else if (id == PAN) name = "PAN";
-        else if (id == ZOOM) name = "ZOOM";
-        else if (id == FOCUSED) name = "FOCUSED";
+        if (id == DISPLAYED)    name = "DISPLAYED";
+        else if (id == HIDDEN)  name = "HIDDEN   ";
+        else if (id == PAN)     name = "PAN      ";
+        else if (id == ZOOM)    name = "ZOOM     ";
+        else if (id == FOCUSED) name = "FOCUSED  ";
         return "MapViewerEvent[" + name + " src=" + getSource() + "]";
     }
     

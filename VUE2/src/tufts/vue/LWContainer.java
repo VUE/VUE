@@ -243,10 +243,13 @@ public abstract class LWContainer extends LWComponent
 
     public void addChild(LWComponent c)
     {
+        addChildren(new VueUtil.SingleIterator(c));
+        /*
         addChildInternal(c);
         ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
         c.notify(LWCEvent.Added, this);
         notify(LWCEvent.ChildAdded, c);
+        */
     }
     
     public void addChildren(Iterator i)
@@ -265,13 +268,12 @@ public abstract class LWContainer extends LWComponent
         Iterator in = addedChildren.iterator();
         while (in.hasNext()) {
             ensureLinksPaintOnTopOfAllParents((LWComponent) in.next());
-            //c.notify("added", this); todo: need to call this for each child to == addChild??
         }
-        
         
         if (addedChildren.size() > 0) {
             notify(LWCEvent.ChildrenAdded, addedChildren);
             //todo: change all these child events to a structureChanged event
+            //? single addChild didn't call layout!
             layout();
         }
     }
@@ -341,10 +343,12 @@ public abstract class LWContainer extends LWComponent
     
     protected void removeChild(LWComponent c)
     {
+        removeChildren(new VueUtil.SingleIterator(c));
+        /*
         removeChildInternal(c);
-        //c.notify("removed", this); // don't need to let anyone know this
         notify(LWCEvent.ChildRemoved, c);
         layout();
+        */
     }
 
     protected void removeChildInternal(LWComponent c)
@@ -363,9 +367,6 @@ public abstract class LWContainer extends LWComponent
         if (!this.children.remove(c))
             throw new IllegalStateException(this + " didn't contain child for removal: " + c);
         c.setParent(null); // leave parent ref place for undo -- but -- ack need this!
-
-        // gunk to handle scale stuff
-        //if (c.isManagedColor()) c.setFillColor(COLOR_NODE_DEFAULT);
 
         // If this child was scaled inside us (as all children are except groups)
         // besure to restore it's scale back to 1 when de-parenting it.

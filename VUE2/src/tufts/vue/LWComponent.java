@@ -271,13 +271,17 @@ public class LWComponent
             pathwayRefs = new ArrayList();
         pathwayRefs.add(p);
         layout();
-        notify("pathway.add");
+        //notify("pathway.add");
     }
     void removePathwayRef(LWPathway p)
     {
+        if (pathwayRefs == null) {
+            new Throwable("attempt to remove non-existent pathwayRef to " + p + " in " + this).printStackTrace();
+            return;
+        }
         pathwayRefs.remove(p);
         layout();
-        notify("pathway.remove");
+        //notify("pathway.remove");
     }
     
 
@@ -1128,10 +1132,14 @@ public class LWComponent
     {
         if (listeners == null)
             listeners = new java.util.ArrayList();
-        if (listeners.contains(listener))
-            new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
-        else {
-            if (DEBUG.EVENTS) System.out.println(this + " ***        ADDING LISTENER " + listener);
+        if (listeners.contains(listener)) {
+            // do nothing (they're already listening to us)
+            if (DEBUG.EVENTS) {
+                System.out.println("already listening to us: " + listener + " " + this);
+                if (DEBUG.META) new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
+            }
+        } else {
+            if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + " +++ADDS " + this);
             listeners.add(listener);
         }
     }
@@ -1139,7 +1147,7 @@ public class LWComponent
     {
         if (listeners == null)
             return;
-            if (DEBUG.EVENTS) System.out.println(this + " ***      REMOVING LISTENER " + listener);
+        if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + " REMOVES " + this);
         listeners.remove(listener);
     }
     public synchronized void removeAllLWCListeners()
@@ -1165,10 +1173,21 @@ public class LWComponent
                     System.out.print(e + " -> ");
                 }
                 Listener l = (Listener) i.next();
-                if (DEBUG.EVENTS) System.out.println(l);
+                if (DEBUG.EVENTS) {
+                    if (e.getSource() == l)
+                        System.out.println(l + " (SKIPPED: source)");
+                    else
+                        System.out.println(l);
+                } else { // temporary checking
+                    if (e.getSource() == l)
+                        System.out.println(e + " " + l + " (SKIPPED: source)");
+                }
                 //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
+                if (e.getSource() == l)
+                    continue;
                 sDepth++;
                 try {
+                    // do the event notification
                     l.LWCChanged(e);
                 } catch (Exception ex) {
                     System.err.println("LWComponent.notifyLWCListeners: exception during LWCEvent notification:"

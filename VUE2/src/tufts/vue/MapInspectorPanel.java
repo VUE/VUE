@@ -207,8 +207,8 @@ public class MapInspectorPanel  extends JPanel
 			mInfoBox = Box.createVerticalBox();
 		
 			mInfoScrollPane = new JScrollPane();
-			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-			mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			mInfoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+			mInfoScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mInfoScrollPane.setLocation(new Point(8, 9));
 			mInfoScrollPane.setVisible(true);
 			mInfoScrollPane.getViewport().add( mInfoBox);
@@ -303,7 +303,7 @@ public class MapInspectorPanel  extends JPanel
                         mPathDisplay = new PathwayPanel(VUE.frame);
                         
 			mPathScrollPane = new JScrollPane();
-			mPathScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+			mPathScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			mPathScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mPathScrollPane.setLocation(new Point(8, 9));
 			mPathScrollPane.setVisible(true);
@@ -473,7 +473,7 @@ public class MapInspectorPanel  extends JPanel
 			mMainFilterPanel.add( BorderLayout.SOUTH, mLowerPanel);
 			mMainFilterPanel.add( BorderLayout.CENTER, mFilterBox);
 			
-			mFilterScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+			mFilterScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			mFilterScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mFilterScrollPane.setLocation(new Point(8, 9));
 			mFilterScrollPane.setVisible(true);
