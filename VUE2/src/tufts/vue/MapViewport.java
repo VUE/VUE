@@ -408,19 +408,20 @@ class MapViewport extends JViewport
             grew = true;
         }
 
-        //  this isn't helping.  Why does it work perfectly in our MapViewer:main test,
-        //  but not otherwise?
         double px = p.getX();
         double py = p.getY();
-        Point2D.Double decimal = new Point2D.Double();
-        decimal.x = px - (int) px;
-        decimal.y = py - (int) py;
-        if (DEBUG.SCROLL) out("decimal " + decimal);
-        if (decimal.x != 0 || decimal.y != 0) {
-            if (DEBUG.Enabled) out("compensate " + out(decimal));
-            //ox -= decimal.x;
-            //oy -= decimal.y;
-            //moved = true;
+        int floorx = (int) px;
+        int floory = (int) py;
+        if (floorx != px || floory != py) {
+            Point2D.Double decimal = new Point2D.Double();
+            decimal.x = px - floorx;
+            decimal.y = py - floory;
+            if (DEBUG.SCROLL) out("compensating " + out(decimal));
+            ox -= decimal.x;
+            oy -= decimal.y;
+            moved = true;
+            if (!allowGrowth)
+                out("setCanvasPosition: growth disallowed, losing compensation " + out(decimal));
         }
 
         if (allowGrowth) {
@@ -430,11 +431,7 @@ class MapViewport extends JViewport
                 viewer.setMapOriginOffset(ox, oy);
         }
             
-        //p.setLocation(-p.getX(), -p.getY());
-        // todo: as the view position is integer based, this is where we're losing
-        // precision on zoom-outs: will need to compensate for the decimal value
-        // via setMapOriginOffset instead of just truncating it in view position.
-        setViewPosition(new Point(-((int)p.getX()), -((int)p.getY())));
+        setViewPosition(new Point(-floorx, -floory));
         
         if (DEBUG.SCROLL) out("setCanvasPosition completed");
     }

@@ -1673,12 +1673,11 @@ public class MapViewer extends javax.swing.JComponent
 
             Point2D center = getVisibleCenter();
             dc.setAbsoluteStroke(1);
-            Line2D ScreenX = new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord);
-            Line2D ScreenY = new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
-            g2.draw(ScreenX);
-            g2.draw(ScreenY);
-            //g2.drawLine(-99999, center.getX(), 99999, center.getY());
-            //g2.drawLine(center.getX(), -99999, center.getY(), 99999);
+            // easily gets lost when way zoomed in because coords > MaxCoord
+            //g2.draw(new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord));
+            //g2.draw(new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
+            g2.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
+            g2.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
         }
 
         /*
