@@ -1344,11 +1344,10 @@ public class LWLink extends LWComponent
         //float totalWidth = 0;
         boolean iconBlockShowing = mIconBlock.isShowing();
 
-        if (iconBlockShowing) {
-            mIconBlock.layout();
-            //totalWidth += mIconBlock.getWidth();
-            totalHeight += mIconBlock.getHeight();
-        }
+        mIconBlock.layout();
+        //totalWidth += mIconBlock.getWidth();
+        totalHeight += mIconBlock.getHeight();
+
         if (hasLabel()) {
             // since links don't have a sensible "location" in terms of an
             // upper left hand corner, the textbox needs to have an absolute
