@@ -1218,7 +1218,7 @@ public class MapViewer extends javax.swing.JComponent
             VueSelection = null; // insurance: nothing should be happening here if we're not active
         else {
             if (VueSelection != VUE.ModelSelection) {
-                if (DEBUG_FOCUS) System.out.println("*** Pointing to selection: " + this);
+                if (DEBUG.FOCUS) System.out.println("*** Pointing to selection: " + this);
                 VueSelection = VUE.ModelSelection;
             }
         }
@@ -1507,7 +1507,18 @@ public class MapViewer extends javax.swing.JComponent
             rollover.setRollover(false);
             rollover.setZoomedFocus(false);
             if (true||mZoomoverOldScale != 1f) {
-                rollover.setScale(mZoomoverOldScale);
+
+                // If deleted, don't put scale back or will throw
+                // zombie event exception (should be okay to leave
+                // scale in intermediate state on deleted node -- on
+                // restore it should have it's scale set back thru
+                // reparenting... if not, we'll need to clear rollover
+                // on nodes b4 they're deleted, or allow the setScale
+                // on a deleted node in LWComponent.
+
+                if (!rollover.isDeleted())
+                    rollover.setScale(mZoomoverOldScale);
+
                 //if (rollover.getParent() instanceof LWNode)
                     // have the parent put it back in place
                     //rollover.getParent().layoutChildren();
@@ -2808,7 +2819,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
                 else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
                 //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
-                else if (c == 'F') { DEBUG_FOCUS = !DEBUG_FOCUS; }
+                else if (c == 'F') { DEBUG.FOCUS = !DEBUG.FOCUS; }
                 else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
                 else if (c == 'M') { DEBUG_MOUSE = !DEBUG_MOUSE; }
@@ -2930,7 +2941,7 @@ public class MapViewer extends javax.swing.JComponent
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
             
             mLabelEditWasActiveAtMousePress = (activeTextEdit != null);
-            if (DEBUG_FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
+            if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
             clearTip();
@@ -4261,7 +4272,7 @@ public class MapViewer extends javax.swing.JComponent
 
     public void focusLost(FocusEvent e)
     {
-        if (DEBUG_FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
+        if (DEBUG.FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
 
         if (VueUtil.isMacPlatform()) {
 
@@ -4275,7 +4286,7 @@ public class MapViewer extends javax.swing.JComponent
             String opName = e.getOppositeComponent().getName();
             // hack: check the name against the special name of Popup$HeavyWeightWindow
             if (opName != null && opName.equals("###overrideRedirect###")) {
-                if (DEBUG_FOCUS) System.out.println("\tLOST TO POPUP!");
+                if (DEBUG.FOCUS) System.out.println("\tLOST TO POPUP!");
                 //requestFocus();
                 // Actually, requestFocus can ADD to our problems if moving right from one rollover to another...
                 // The bug is this: on Mac, rolling right from a tip that was HeavyWeight to one
@@ -4304,10 +4315,10 @@ public class MapViewer extends javax.swing.JComponent
 
     private void grabVueApplicationFocus(String from)
     {
-        if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus triggered thru " + from);
+        if (DEBUG.FOCUS) System.out.println(this + " grabVueApplicationFocus triggered thru " + from);
         this.VueSelection = VUE.ModelSelection;
         if (VUE.getActiveViewer() != this) {
-            if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
+            if (DEBUG.FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
             //new Throwable("REAL GRAB").printStackTrace();
             MapViewer activeViewer = VUE.getActiveViewer();
             // why are we checking this again if we just checked it???
@@ -4322,7 +4333,7 @@ public class MapViewer extends javax.swing.JComponent
                 //can this be moved to setActiveViewer method????
 
                 if (VUE.getPathwayInspector() != null) {
-                    if (DEBUG_FOCUS) System.err.println("Setting pathway manager to: " + getMap().getPathwayManager());
+                    if (DEBUG.FOCUS) System.err.println("Setting pathway manager to: " + getMap().getPathwayManager());
                     VUE.getPathwayInspector().setPathwayManager(getMap().getPathwayManager());
                 }
                     
@@ -4342,7 +4353,7 @@ public class MapViewer extends javax.swing.JComponent
                 // end of addition by Daisuke 
                 
                 if (oldActiveMap != this.map) {
-                    if (DEBUG_FOCUS) System.out.println("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
+                    if (DEBUG.FOCUS) System.out.println("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
                     resizeControl.active = false;
                     // clear and notify since the selected map changed.
                     VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
@@ -4352,7 +4363,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     public void focusGained(FocusEvent e)
     {
-        if (DEBUG_FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        if (DEBUG.FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
         grabVueApplicationFocus("focusGained");
         repaint();
         new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
@@ -4363,10 +4374,10 @@ public class MapViewer extends javax.swing.JComponent
      */
     public void setVisible(boolean doShow)
     {
-        if (DEBUG_FOCUS) System.out.println(this + " setVisible " + doShow);
+        if (DEBUG.FOCUS) System.out.println(this + " setVisible " + doShow);
         //if (!getParent().isVisible()) {
         if (doShow && getParent() == null) {
-            if (DEBUG_FOCUS) System.out.println(this + " IGNORING (parent null)");
+            if (DEBUG.FOCUS) System.out.println(this + " IGNORING (parent null)");
             return;
         }
         super.setVisible(doShow);
@@ -4637,7 +4648,6 @@ public class MapViewer extends javax.swing.JComponent
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     static boolean DEBUG_PAINT = false; // for all maps
-    static boolean DEBUG_FOCUS = false; // for all maps
 
     private Point mouse = new Point();
 

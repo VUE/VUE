@@ -330,7 +330,7 @@ class TextBox extends JTextPane
     }
     public void focusLost(FocusEvent e)
     {
-        if (debug||MapViewer.DEBUG_FOCUS) System.out.println("TextBox focusLost to " + e.getOppositeComponent());
+        if (debug||DEBUG.FOCUS) System.out.println("TextBox focusLost to " + e.getOppositeComponent());
         if (getParent() != null)
             getParent().remove(this);
         if (keyWasPressed) {
@@ -342,7 +342,7 @@ class TextBox extends JTextPane
     }
     public void focusGained(FocusEvent e)
     {
-        if (debug||MapViewer.DEBUG_FOCUS) System.out.println("TextBox focusGained from " + e.getOppositeComponent());
+        if (debug||DEBUG.FOCUS) System.out.println("TextBox focusGained from " + e.getOppositeComponent());
     }
 
     private void setDocumentFont(Font f)
