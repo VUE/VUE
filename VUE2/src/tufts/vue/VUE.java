@@ -574,7 +574,11 @@ public class VUE
         
         if (!nodr) {
             try {
-                OpenAction.displayMap(new File(VueResources.getURL("resource.startmap").getFile()));// this will be loaded using vue resourece
+                File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
+                LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
+                startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
+                startupMap.setLabel("Welcome");
+                displayMap(startupMap);
             } catch(Exception ex) {
                 VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
                 ex.printStackTrace();
@@ -757,13 +761,21 @@ public class VUE
         }
         
         
+        private String mapToTabTitle(LWMap map)
+        {
+            String title = map.getLabel();
+            if (title.toLowerCase().endsWith(".vue") && title.length() > 4)
+                title = title.substring(0, title.length() - 4);
+            return title;
+        }
+
         public void addViewer(MapViewer viewer)
         {
             Component c = viewer;
             if (!this.name.startsWith("*"))
                 c = new JScrollPane(viewer);
             LWMap map = viewer.getMap();
-            addTab(map.getLabel(), c);
+            addTab(mapToTabTitle(map), c);
             map.addLWCListener(this);
             // todo perf: we should be able to ask to listen only
             // for events from this object directly (that we don't
@@ -807,7 +819,7 @@ public class VUE
                 LWMap map = (LWMap) c;
                 int i = findTabWithMap(map);
                 if (i >= 0) {
-                    setTitleAt(i, c.getLabel());
+                    setTitleAt(i, mapToTabTitle(map));
                     if (map.getFile() != null)
                         setToolTipTextAt(i, map.getFile().toString());
                 }

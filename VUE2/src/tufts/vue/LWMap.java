@@ -78,7 +78,8 @@ public class LWMap extends LWContainer
     public void setFile(File file)
     {
         this.file = file;
-        setLabel(file.getName());
+        if (file != null)
+            setLabel(file.getName());
     }
 
     public File getFile()
