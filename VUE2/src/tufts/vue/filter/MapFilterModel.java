@@ -40,6 +40,7 @@ public class MapFilterModel  extends AbstractTableModel{
         Iterator iter = tufts.vue.VUE.getActiveMap().getAllDescendents().iterator();
         while(iter.hasNext()) 
             ((tufts.vue.LWComponent)iter.next()).getNodeFilter().removeStatements(key);
+        tufts.vue.VUE.getActiveMap().getLWCFilter().removeStatements(key);
         notifyListeners(new MapFilterModelEvent(key,MapFilterModelEvent.KEY_DELETED));
     }
     
