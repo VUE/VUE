@@ -31,7 +31,7 @@ LWSelection.Listener,
 LWComponent.Listener,
 ActionListener {
     private JTextField labelField = new JTextField(15);
-    private JTextField resourceField = new JTextField();
+    private tufts.vue.gui.VueTextField resourceField = new tufts.vue.gui.VueTextField();
     
     private JPanel fieldPane = new JPanel();
     private JPanel resourceMetadataPanel = new JPanel();
@@ -166,6 +166,9 @@ ActionListener {
             JComponent field = (JComponent) labelTextPairs[i+1];
             field.setEnabled(tv);
         }
+        resourceMetadataPanel.setEnabled(tv);
+        metadataPane.setEnabled(tv);
+        propertiesEditor.setEnabled(tv);
     }
     
     private void loadItem(LWComponent lwc) {
