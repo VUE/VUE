@@ -20,7 +20,9 @@ import javax.swing.text.JTextComponent;
 public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
-    implements MapListener, VueConstants //, AWTEventListener
+    implements VueConstants
+               , MapListener
+               //, AWTEventListener
 {
     java.util.List components = new java.util.ArrayList();
     java.util.List nodeViews = new java.util.ArrayList();
@@ -28,12 +30,13 @@ public class MapViewer extends javax.swing.JPanel
     java.util.List tools = new java.util.ArrayList();
 
     protected ConceptMap map;                   // the map we're displaying & interacting with
-    private MapTextField editComponent;          // Current on-map text edit
+    private MapTextEdit activeTextEdit;          // Current on-map text edit
 
     //-------------------------------------------------------
     // Selection support
     //-------------------------------------------------------
     protected LWComponent lastSelection;   // the most recently selected component
+    protected LWComponent justSelected;    // temporary lastSelection for between mouse press&click
     protected Rectangle draggedSelectionBox;     // currently dragged selection box
     protected boolean draggingSelectionBox;     // currently dragged selection box
     protected Rectangle2D selectionBounds;  // max bounds of all components in current selection
@@ -545,19 +548,21 @@ public class MapViewer extends javax.swing.JPanel
         // we need to invoke this ourself
     }
 
-    class MapTextField extends JTextField
-        implements ActionListener,
-                   java.awt.event.KeyListener
+    class MapTextEdit extends JTextField
+        implements ActionListener
+                   , KeyListener
+                   , FocusListener
     {
-        private LWComponent lwc;
+        LWComponent lwc;
         
-        MapTextField(LWComponent lwc)
+        MapTextEdit(LWComponent lwc)
         {
             super(lwc.getMapItem().getLabel());
             if (getColumns() < 4)
                 setColumns(4);
             this.lwc = lwc;
             addActionListener(this);
+            addFocusListener(this);
             addKeyListener(this);
             Font baseFont;
             if (lwc instanceof LWLink)
@@ -605,7 +610,7 @@ public class MapViewer extends javax.swing.JPanel
 
         public void actionPerformed(ActionEvent e)
         {
-            //System.out.println("MapTextField " + e);
+            //System.out.println("MapTextEdit " + e);
             lwc.getMapItem().setLabel(e.getActionCommand());
             removeLabelEdit();
         }
@@ -618,6 +623,13 @@ public class MapViewer extends javax.swing.JPanel
         public void keyReleased(KeyEvent e) {}
         public void keyTyped(KeyEvent e) {}
         
+        public void focusLost(FocusEvent e)
+        {
+            removeLabelEdit();
+        }
+        public void focusGained(FocusEvent e) { }
+    
+    
         public void X_paint(Graphics g)
         {
             //System.out.println("paint mtf");
@@ -660,8 +672,9 @@ public class MapViewer extends javax.swing.JPanel
     
     void removeLabelEdit()
     {
-        if (editComponent != null) {
-            remove(editComponent);
+        if (activeTextEdit != null) {
+            remove(activeTextEdit);
+            activeTextEdit = null;
             repaint();
             requestFocus();
         }
@@ -669,37 +682,39 @@ public class MapViewer extends javax.swing.JPanel
 
     void activateLabelEdit(LWComponent lwc)
     {
+        if (activeTextEdit != null && activeTextEdit.lwc == lwc)
+            return;
         removeLabelEdit();
-        editComponent = new MapTextField(lwc);
+        activeTextEdit = new MapTextEdit(lwc);
         /*
         Point2D offset = lwc.getLabelOffset();
         float cx = mapToScreenX(lwc.getX() + offset.getX());
-        float cy = mapToScreenY(lwc.getY() + offset.getY()) - editComponent.getHeight();
+        float cy = mapToScreenY(lwc.getY() + offset.getY()) - activeTextEdit.getHeight();
         // todo fixme: this positioning is a hack
-        if (editComponent.getBorder() != null) {
-            Insets bi = editComponent.getBorder().getBorderInsets(editComponent);
+        if (activeTextEdit.getBorder() != null) {
+            Insets bi = activeTextEdit.getBorder().getBorderInsets(activeTextEdit);
             //System.out.println("borderInsets="+bi);
             cx -= bi.left;
             cy += bi.top;
         }
         cy += 2*zoomFactor;
-        editComponent.setLocation(Math.round(cx), Math.round(cy));
+        activeTextEdit.setLocation(Math.round(cx), Math.round(cy));
         */
 
         // for now, just center in the component
-        float ew = screenToMapDim(editComponent.getWidth());
-        float eh = screenToMapDim(editComponent.getHeight());
+        float ew = screenToMapDim(activeTextEdit.getWidth());
+        float eh = screenToMapDim(activeTextEdit.getHeight());
         float cx = lwc.getX() + (lwc.getWidth() - ew) / 2f;
         float cy = lwc.getY() + (lwc.getHeight() - eh) / 2f;
-        editComponent.setLocation(mapToScreenX(cx), mapToScreenY(cy));
+        activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy));
         
         // we must add the component to the container in order to get events.
         // super.paintChildren is called in paintComponent only to handle
         // the case where a field like this is active on the panel.
         // Note that this component only simulates zoom by scaling it's font,
-        // so we cannot zoom the panel while this component is active.
-        add(editComponent);
-        editComponent.requestFocus();
+        // so we must not zoom the panel while this component is active.
+        add(activeTextEdit);
+        activeTextEdit.requestFocus();
     }
     private void drawComponentList(Graphics2D g2, java.util.List componentList)
     {
@@ -883,6 +898,7 @@ public class MapViewer extends javax.swing.JPanel
             c.setSelected(true);
             selectionList.add(c);
             lastSelection = c;
+            justSelected = c;
         }
     }
     void removeFromSelection(LWComponent c)
@@ -906,6 +922,8 @@ public class MapViewer extends javax.swing.JPanel
 
     void setSelection(LWComponent c)
     {
+        //if (selectionList.size() == 1 && selectionList.get(0) == lastSelection)
+        //  return;
         clearSelection();
         addToSelection(c);
     }
@@ -917,7 +935,7 @@ public class MapViewer extends javax.swing.JPanel
     static final int RIGHT_BUTTON_MASK =
         java.awt.event.InputEvent.BUTTON2_MASK
         | java.awt.event.InputEvent.BUTTON3_MASK;
-    static final int NO_MODIFIERS_MASK =
+    static final int ALL_MODIFIER_KEYS_MASK =
         java.awt.event.InputEvent.SHIFT_MASK
         | java.awt.event.InputEvent.CTRL_MASK
         | java.awt.event.InputEvent.META_MASK
@@ -993,7 +1011,7 @@ public class MapViewer extends javax.swing.JPanel
                     clearIndicated(); // incase dragging new link
                     repaint();
                 }
-                removeLabelEdit();
+                //removeLabelEdit();
             }
             
 
@@ -1131,15 +1149,15 @@ public class MapViewer extends javax.swing.JPanel
                     else
                         addToSelection(hitComponent);
                 } else {
-                    if (hitComponent.isSelected()) {
-                        activateLabelEdit(hitComponent);
-                        editActivated = true;
-                    } else {
+                    //if (hitComponent.isSelected()) {
+                        //activateLabelEdit(hitComponent);
+                    //    editActivated = true;
+                    //} else {
                         setSelection(hitComponent);
                         dragComponent = hitComponent;
                         dragOffset.setLocation(hitComponent.getX() - mapX,
                                                hitComponent.getY() - mapY);
-                    }
+                        //}
                 }
             } else {
                 if (!e.isShiftDown())
@@ -1148,8 +1166,8 @@ public class MapViewer extends javax.swing.JPanel
                     clearSelection();
                 draggingSelectionBox = true;
             }
-            if (!editActivated)
-                removeLabelEdit();
+            //if (!editActivated)
+            //  removeLabelEdit();
         }
         
         public void mouseMoved(MouseEvent e)
@@ -1285,14 +1303,28 @@ public class MapViewer extends javax.swing.JPanel
         {
             return e.getClickCount() == 2
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
-                && (e.getModifiers() & NO_MODIFIERS_MASK) == 0;
+                && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+        }
+        
+        private final boolean isSingleClickEvent(MouseEvent e)
+        {
+            return e.getClickCount() == 1
+                && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
+                && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }
         
         public void mouseClicked(MouseEvent e)
         {
             if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
-            if (isDoubleClickEvent(e) && toolKeyDown == 0) {
+            if (isSingleClickEvent(e)) {
+                if (hitComponent != null) {
+                    if (hitComponent.isSelected()
+                        //&& hitComponent != justSelected
+                        )
+                        activateLabelEdit(hitComponent);
+                }
+            } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
                 if (hitComponent instanceof LWNode) {
                     Resource resource = ((LWNode)hitComponent).getNode().getResource();
                     if (resource != null) {
@@ -1304,6 +1336,8 @@ public class MapViewer extends javax.swing.JPanel
                     }
                 }
             }
+
+            justSelected = null;
         }
 
         public LWComponent findLWLinkTargetAt(int x, int y)
