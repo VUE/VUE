@@ -32,6 +32,9 @@ public class LWLink extends LWComponent
     implements Link,
                LWSelection.ControlListener
 {
+    public final static Font DEFAULT_FONT = VueResources.getFont("link.font");
+    public final static Color DEFAULT_LABEL_COLOR = java.awt.Color.darkGray;
+    
     //private static final Color ContrastFillColor = new Color(255,255,255,224);
     //private static final Color ContrastFillColor = new Color(255,255,255);
     // transparency fill is actually just distracting
@@ -102,8 +105,8 @@ public class LWLink extends LWComponent
 
     static LWLink setDefaults(LWLink l)
     {
-        l.setFont(FONT_LINKLABEL);
-        l.setTextColor(COLOR_LINK_LABEL);
+        l.setFont(DEFAULT_FONT);
+        l.setTextColor(DEFAULT_LABEL_COLOR);
         l.setStrokeWidth(1f); //todo config: default link width
         return l;
     }

@@ -19,10 +19,9 @@ public interface VueConstants
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
     static Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10);
     static Font FONT_TINY = new Font("SansSerif", Font.PLAIN, 8);
-    static Font FONT_LINKLABEL = new Font("Verdana", Font.PLAIN, 11);
+    //static Font FONT_LINKLABEL = new Font("Verdana", Font.PLAIN, 11);
     //static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
     
-    static java.awt.Color COLOR_LINK_LABEL = java.awt.Color.darkGray;
     //static java.awt.Color COLOR_SELECTION = new java.awt.Color(74, 133, 255);
     static java.awt.Color COLOR_SELECTION = VueResources.getColor("mapViewer.selection.color");
     static java.awt.Color COLOR_SELECTION_CONTROL = new java.awt.Color(74, 255, 133);

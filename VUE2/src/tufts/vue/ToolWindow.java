@@ -138,7 +138,7 @@ public class ToolWindow
                 //titlePanel.setLayout(new FlowLayout());
                 titlePanel.setLayout(null); // for manual layout
                 JLabel l = new JLabel(title);
-                l.setFont(new Font("SansSerf", Font.PLAIN, 11));
+                l.setFont(new Font("SansSerf", Font.PLAIN, 10));
                 l.setForeground(SystemColor.activeCaptionText);
                 //l.setForeground(Color.darkGray);
                 l.setSize(l.getPreferredSize());
