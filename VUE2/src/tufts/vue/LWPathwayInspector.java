@@ -62,9 +62,6 @@ public class LWPathwayInspector extends InspectorWindow
     /**'info' holds the pathway's general info*/
     private JTable info = null, pathwayTable = null;
     
-    /**receives updates from manager as to which pathway is current*/
-    private LWPathwayManager manager = null;
-    
     /**current pathway as indicated by the manager*/
     private LWPathway pathway = null; //new LWPathway(1);
     
@@ -80,13 +77,19 @@ public class LWPathwayInspector extends InspectorWindow
     /**handles opening and closing inspector*/
     private AbstractButton aButton = null;
     
+    public InfoTableModel model = null;
+    
+    public LWPathwayInspector(JFrame owner, LWPathway pathway){
+        this(owner);
+        this.pathway = pathway;
+        path.setPathway(pathway);
+    }
+
     private PathwayTab path = null;
     
+
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
-        manager = LWPathwayManager.getInstance();
-        pathway = manager.getCurrentPathway();
-        this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
         
         /**three components to be added to the tabbed pane*/
         InfoTable table = new InfoTable();
@@ -94,7 +97,8 @@ public class LWPathwayInspector extends InspectorWindow
         JPanel notes = getNotes();
         
         path = new PathwayTab();
-        path.setPathway(pathway);
+        
+        this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
         
         /**instantiating and setting up tabbed pane*/
         pane = new JTabbedPane();
@@ -126,6 +130,11 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setButton(boolean state){
         aButton.setSelected(state);
+    }
+    
+    public void setPathway(LWPathway pathway){
+        this.pathway = pathway;
+        model.fireTableDataChanged();
     }
     
     Action displayAction = null;
@@ -162,7 +171,6 @@ public class LWPathwayInspector extends InspectorWindow
     
     /**class to create a new general info table*/
     class InfoTable extends JTable{
-           InfoTableModel model = null;
            public InfoTable(){
                 
                /**sets up model to handle changes in pathway data*/
@@ -447,8 +455,7 @@ public class LWPathwayInspector extends InspectorWindow
          
         public PathwayTableModel()
         {
-            //default pathway
-            //pathway = new LWPathway();
+         
         }
         
         //sets the pathway to the given pathway

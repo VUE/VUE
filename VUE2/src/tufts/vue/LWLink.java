@@ -25,7 +25,7 @@ public class LWLink extends LWComponent
 {
     //private static final float WEIGHT_RENDER_RATIO = 2f;
     //private static final float MAX_RENDER_WIDTH = 16f;
-
+    
     // interface
     
     // used only during save
@@ -124,6 +124,8 @@ public class LWLink extends LWComponent
         setEndPoint2(c2);
         setStrokeWidth(2f);
         // todo: compute location now
+        
+        //manager = LWPathwayManager.getInstance();
     }
     
     protected void removeFromModel()
@@ -378,14 +380,13 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         // Draw the stroke
         //-------------------------------------------------------
-
         if (isSelected())
             g.setColor(COLOR_SELECTION);
         else if (isIndicated())
             g.setColor(COLOR_INDICATION);
         else
             g.setColor(getStrokeColor());
-        
+
         //g.setColor(getStrokeColor());
         g.setStroke(stroke);
         g.draw(this.line);
@@ -398,8 +399,7 @@ public class LWLink extends LWComponent
             float w = fm.stringWidth(label);
             g.drawString(label, locX - w/2, locY - (strokeWidth/2));
         }
-
-        
+       
         //g.drawLine((int)sx, (int)sy, (int)ex, (int)ey);
         //g.drawLine(sx, sy, ex, ey);
 

@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.action.*;
+import java.util.LinkedList;
 
 
 /**
@@ -149,7 +150,7 @@ public class VUE
 
             installExampleMap(map1);
             installExampleMap(map2);
-            installExampleNodes(map1);
+            //installExampleNodes(map1);
             
             displayMap(map1);
             displayMap(map2);
@@ -196,11 +197,12 @@ public class VUE
         inspectorTool.addTool(new LWCInspector());
         //inspectorTool.addTool(new MapItemInspector());
         
-        LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
+        //LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
 
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
-                                   pathwayInspect.getDisplayAction()};
+        };
+                                   //pathwayInspect.getDisplayAction()};
 
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);
@@ -474,23 +476,31 @@ public class VUE
         map.addNode(n2);
         map.addNode(n3);
         map.addNode(n4);
-        map.addLink(new LWLink(n1, n2));
-        map.addLink(new LWLink(n2, n3));
+        LWLink k1 = new LWLink(n1, n2);
+        LWLink k2 = new LWLink(n2, n3);
+        map.addLink(k1);
+        map.addLink(k2);
         map.addLink(new LWLink(n2, n4));
-        
+        System.out.println("map label::"+map.getLabel());
         //creating test pathways
-        
-        LWPathway p1 = new LWPathway("Pathway 1");
-        LWPathway p2 = new LWPathway("Pathway 2");
-        java.util.LinkedList link = new java.util.LinkedList();
-        link.add(n1);
-        link.add(n2);
-        p1.setElementList(link);
-        link.remove(n1);
-        link.add(n3);
-        link.add(n4);
-        p2.setElementList(link);
-        map.addPathway(p1);
-        map.addPathway(p2);
+        if(map.getLabel().equals("Three")){
+            LWPathway p1 = new LWPathway("Pathway 1");
+            LinkedList linkedlist = new LinkedList();
+            linkedlist.add(n1);
+            linkedlist.add(n2);
+            linkedlist.add(n3);
+            linkedlist.add(k1);
+            p1.setElementList(linkedlist);
+            map.addPathway(p1);
+        }else{        
+            LWPathway p2 = new LWPathway("Pathway 2");
+            LinkedList anotherList = new LinkedList();
+            anotherList.add(n3);
+            anotherList.add(n4);
+            anotherList.add(n2);
+            anotherList.add(k2);
+            p2.setElementList(anotherList);
+            map.addPathway(p2);         
+        }
     }
 }

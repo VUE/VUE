@@ -14,34 +14,12 @@ import java.util.ArrayList;
  */
 public class LWPathwayManager {
     
-    private static ArrayList pathways = new ArrayList();
-    private static LWPathway current = new LWPathway();
-    private static LWPathwayManager manager = null;
+    private ArrayList pathways = new ArrayList();
+    private LWPathway current = null;
+    private LWPathwayManager manager = null;
     
-    private LWPathwayManager() {
+    public LWPathwayManager() {
         pathways = new ArrayList();
-    }
-    
-    /** Constructor used for testing */
-    
-    private LWPathwayManager(int test){
-        if(test == 1){
-            LWPathway path1 = new LWPathway("Path 1");
-            LWPathway path2 = new LWPathway("Path 2");
-            LWPathway path3 = new LWPathway("Path 3");
-            LWPathway path4 = new LWPathway("Path 4");
-            LWPathway path5 = new LWPathway("Path 5");
-            this.addPathway(path1);
-            this.addPathway(path2);
-            this.addPathway(path3);
-            this.addPathway(path4);
-            this.addPathway(path5);
-        }
-    }
-    
-    public static LWPathwayManager getInstance(){
-        if(manager==null) manager = new LWPathwayManager();       
-        return manager;
     }
     
     public java.util.Iterator getPathwayIterator() {

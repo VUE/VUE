@@ -25,6 +25,7 @@ public class LWMap extends LWContainer
     private float userOriginY;
     private double userZoom = 1;
     
+    private LWPathwayManager manager = null;
     
     // only to be used during a restore from persisted
     public LWMap()
@@ -40,8 +41,14 @@ public class LWMap extends LWContainer
         setTextColor(COLOR_TEXT);
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
+        manager = new LWPathwayManager();
     }
 
+    public LWPathwayManager getPathwayManagerInstance(){
+        if(manager==null) manager = new LWPathwayManager();       
+        return manager;
+    }
+    
     private int nextID = 1;
     private String getNextUniqueID()
     {

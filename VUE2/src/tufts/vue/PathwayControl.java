@@ -174,8 +174,8 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        PathwayControl control = new PathwayControl(LWPathwayManager.getInstance());
-        //PathwayControl control = new PathwayControl();
+        //PathwayControl control = new PathwayControl(LWPathwayManager.getInstance());
+        PathwayControl control = new PathwayControl();
   
         /*
         //setting up pathway control in a tool window

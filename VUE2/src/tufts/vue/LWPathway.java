@@ -19,37 +19,36 @@ public class LWPathway extends tufts.vue.LWComponent
     implements Pathway{
         
     private LinkedList elementList = null;
-    private LWComponent currentElement = null;
+    private LWComponent current = null;
     private int weight = 1;
     private String comment = "";
     private boolean ordered = false;
     private Color borderColor = Color.blue;
-    private LWPathwayManager manager = null;
+    //private LWPathwayManager manager = null;
     
-    public LWPathway() {
-        elementList = new LinkedList();
-        manager = LWPathwayManager.getInstance();
-        manager.addPathway(this);
-        manager.setCurrentPathway(this);
-    }
+    /**default constructor used for marshalling*/
+    public LWPathway() {}
     
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(String label) {
-        this();
         super.setLabel(label);
+        elementList = new LinkedList();
+        //manager = LWPathwayManager.getInstance(); 
+        //manager.addPathway(this);
+        
     }
     
     /** adds an element to the 'end' of the pathway */
     public void addElement(LWComponent element) {
         elementList.add(element);
-        if(currentElement == null) currentElement = element;
+        if(current == null) current = element;
     }
     
     /** adds an element at the specified location within the pathway*/
     public void addElement(LWComponent element, int index){
         if(elementList.size() >= index){
             elementList.add(index, element);
-            if(currentElement == null) currentElement = element;
+            if(current == null) current = element;
         }else{
             System.out.println("LWPathway.addElement(element, index), index out of bounds");
         }
@@ -74,7 +73,7 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void draw(Graphics2D g)
     {
-        //do nothing
+        //do nothing: drawing of pathway is handled in LWNode and LWLink
     }
     
     public boolean contains(LWComponent element){
@@ -83,10 +82,6 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public int length() {
         return elementList.size();
-    }
-    
-    public Color getBorderColor(){
-        return borderColor;
     }
     
     public LWComponent getFirst() {
@@ -138,47 +133,52 @@ public class LWPathway extends tufts.vue.LWComponent
         return elementList.iterator();
     }
     
-    public java.util.List getElementList() {
-        return elementList;
-    }
-    
-    public int getWeight() {
-        return weight;
-    }
-    
-    public boolean isOrdered() {
-        return ordered;
-    }
-    
-    public LWComponent getCurrent() {
-        return currentElement;
-    }
-    
     public void removeElement(LWComponent element) {
         boolean success = elementList.remove(element);
         if(!success)
             System.err.println("LWPathway.removeElement: element does not exist in pathway");
     }
     
-    public void setElementList(java.util.List elementList) {
-        this.elementList = (LinkedList)elementList;
-        if(elementList.size() >= 1) currentElement = (LWComponent)elementList.get(0);
-    }
-    
-    public void setCurrent(LWComponent comp){
-        currentElement = comp;
-    }
-    
-    public void setOrdered(boolean ordered) {
-        this.ordered = ordered;
+    /**accessor methods used also by xml marshalling process*/
+    public Color getBorderColor(){
+        return borderColor;
     }
     
     public void setBorderColor(Color color){
         this.borderColor = color;
     }
     
+    public int getWeight() {
+        return weight;
+    }
+    
     public void setWeight(int weight) {
         this.weight = weight;
+    }
+    
+    public boolean getOrdered() {
+        return ordered;
+    }
+    
+    public void setOrdered(boolean ordered) {
+        this.ordered = ordered;
+    }
+    
+    public java.util.List getElementList() {
+        return elementList;
+    }
+    
+    public void setElementList(java.util.List elementList) {
+        this.elementList = (LinkedList)elementList;
+        if(elementList.size() >= 1) current = (LWComponent)elementList.get(0);
+    }
+    
+    public LWComponent getCurrent() {
+        return current;
+    }
+    
+    public void setCurrent(LWComponent comp){
+        current = comp;
     }
     
     public String getComment(){
@@ -226,9 +226,7 @@ public class LWPathway extends tufts.vue.LWComponent
     
     /*
     public void dividePathway(Node node1, Node node2){
-        LWPathway path1 = new LWPathway();
-        LWPathway path2 = new LWPathway();
-        //path1.setNodeList(this.nodeList.subList(fromIndex
+        
     }*/
     
 }

@@ -31,7 +31,6 @@ public class LWNode extends LWContainer
     protected boolean equalAspect = false;
     //todo: probably collapse off of the above into NodeShape
     
-    private ArrayList borderList = new ArrayList();
     private ImageIcon imageIcon = null;
     private boolean autoSized = true; // compute size from label & children
 
@@ -42,8 +41,6 @@ public class LWNode extends LWContainer
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
 
-    private LWPathwayManager manager = null;
-    
     public LWNode(String label)
     {
         this(label, 0, 0);
@@ -59,7 +56,7 @@ public class LWNode extends LWContainer
         setStrokeWidth(2f);
         
         //get instance of pathway manager
-        manager = LWPathwayManager.getInstance();
+        //manager = LWPathwayManager.getInstance();
     }
     // internal convenience
     LWNode(String label, Resource resource)
@@ -150,14 +147,6 @@ public class LWNode extends LWContainer
         adjustDrawnShape();
         this.lastLabel = null;
         // this will cause size to be computed at the next rendering
-    }
-    
-    protected void setBorderLayer(Color color){
-        borderList.add(color);
-    }
-    
-    protected ArrayList getBorderLayers(){
-        return borderList;
     }
     
     void setImage(Image image)
@@ -490,59 +479,21 @@ public class LWNode extends LWContainer
         }
 
         //-------------------------------------------------------
-        // Draw the pathway border if any
-        //-------------------------------------------------------
-        
-        //get current pathway
-        LWPathway path = manager.getCurrentPathway();
-        if(path.contains(this)){
-            g.setColor(path.getBorderColor());
-            g.setStroke(STROKE_INDICATION);
-            g.draw(drawnShape);
-        }
-        /*
-        if () {
-            g.setColor(COLOR_INDICATION);
-            if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
-                g.setStroke(STROKE_INDICATION);
-            else
-                g.setStroke(this.stroke);
-            g.draw(drawnShape);
-        } else if (getStrokeWidth() > 0) {
-            g.setColor(getStrokeColor());
-            g.setStroke(this.stroke);
-            g.draw(drawnShape);
-        }*/
-        
-        //-------------------------------------------------------
-        // Draw the indicated border if any, after the pathways border
-        //-------------------------------------------------------
-        
+        // Draw the indicated border if any, instead of the pathways border
+        //-------------------------------------------------------        
+
         if (isIndicated()) {
-            g.setColor(COLOR_INDICATION);
-            if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
-                g.setStroke(STROKE_INDICATION);
-            else
-                g.setStroke(this.stroke);
-            g.draw(drawnShape);
-        } else if (getStrokeWidth() > 0) {
-            g.setColor(getStrokeColor());
-            g.setStroke(this.stroke);
-            g.draw(drawnShape);
-        }
-        /*
-        //draw any borders for pathways
-        if (this.getBorderLayers().size() > 0) {
-            ArrayList colors = getBorderLayers();
-            for(int i = 0; i < getBorderLayers().size(); i++){
-                g.setColor((Color)getBorderLayers().get(i));
+                g.setColor(COLOR_INDICATION);
                 if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
                     g.setStroke(STROKE_INDICATION);
                 else
                     g.setStroke(this.stroke);
                 g.draw(drawnShape);
-            }
-        }*/
+            } else if (getStrokeWidth() > 0) {
+                g.setColor(getStrokeColor());
+                g.setStroke(this.stroke);
+                g.draw(drawnShape);
+            }       
 
         //-------------------------------------------------------
         // Draw the text label if any
