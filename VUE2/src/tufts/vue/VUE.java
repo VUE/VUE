@@ -492,7 +492,7 @@ public class VUE
         //extra additions by the power team members
         //PDFConversion pdfAction = new PDFConversion("PDF");
         PDFTransform pdfAction = new PDFTransform("PDF");
-        HTMLConversion htmlAction = new HTMLConversion("Html");
+        HTMLConversion htmlAction = new HTMLConversion("HTML");
         ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("Imap");
         //SVGConversion svgAction = new SVGConversion("SVG");

@@ -1,51 +1,62 @@
 /*
  * HTMLConversion.java
  *
- * Created on June 5, 2003, 2:39 PM
+ * Created on June 11, 2003, 10:46 AM
  */
 
 package tufts.vue.action;
-
-import javax.imageio.*;
-import java.awt.image.*;
-import java.io.*;
-import java.awt.*;
-import javax.swing.*;
-
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import java.io.OutputStreamWriter;
-
-import tufts.vue.*;
 
 /**
  *
  * @author  Jay Briedis
  */
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.Unmarshaller;
+import org.exolab.castor.mapping.Mapping;
+import org.exolab.castor.mapping.MappingException;
 
-/**a class which constructs an HTML file based on the data within the concept map*/
-public class HTMLConversion extends AbstractAction {
+import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JFileChooser;
+import java.awt.event.ActionEvent;
+
+import tufts.vue.*;
+
+public class HTMLConversion extends AbstractAction
+{   
     
     private static  String htmlFileName = "default.html";
-    private static  String fileName = "default.xml";
+    private static  String xmlFileName = "default.xml";
+    private static  String xslFileName = "viewHTML.xsl";
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private Marshaller marshaller = null;
     
-    /** Creates a new instance of HTMLConversion */
     public HTMLConversion() {
     }
     
-    /**A constructor */
     public HTMLConversion(String label) {
         super(label);
         putValue(Action.SHORT_DESCRIPTION,label);
     }
     
-    public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
-        System.out.println("Performing HTML Conversion:" + actionEvent.getActionCommand());
+    public void actionPerformed(ActionEvent ae) {
+        System.out.println("Performing HTML Conversion:" + ae.getActionCommand());
+        
         try {
             marshaller = getMarshaller();
             marshaller.marshal(tufts.vue.VUE.getActiveMap());
@@ -53,39 +64,41 @@ public class HTMLConversion extends AbstractAction {
         }catch(Exception ex) {
             System.out.println(ex);
         }
-        
-        
-        //convert default.xml to html
+        System.out.println("done with converting to xml...");
         selectHTMLFile();
-        String state = "xalan"
-            +" -IN default.xml"
-            +" -xsl viewHtml.xsl"
-            +" -OUT \"" + htmlFileName + "\"";
-        try{
-            Runtime r = Runtime.getRuntime();
-            
-            Process p = r.exec( "cmd /c" + state);
-            p = null;
-            
-        } catch (IOException ioe){
-            System.err.println("HTMLConversion.actionPerformed error: " +ioe);
-        }
-        System.out.println("Action["+actionEvent.getActionCommand()+"] performed!");
     }
     
-    private Marshaller getMarshaller() {
-        if (this.marshaller == null) {
+    public void convert(){
+        System.out.println("in convert..................");
+        TransformerFactory tfactory = TransformerFactory.newInstance();
+        
+        try
+        {
+            InputStream xslInput = new FileInputStream( xslFileName );
+            StreamSource xslSource = new StreamSource( xslInput );
+                
+            StreamSource xmlSource = new StreamSource( xmlFileName );
             
-            Mapping mapping = new Mapping();
-            try {
-                this.marshaller = new Marshaller(new FileWriter(fileName));
-                mapping.loadMapping(XML_MAPPING);
-                marshaller.setMapping(mapping);
-            } catch (Exception e) {
-                System.err.println("HTMLConversion.getMarshaller: " + e);
-            }
+            Templates templates = tfactory.newTemplates( xslSource );
+        
+            File result = new File(htmlFileName);
+            
+            StreamResult out = new StreamResult(result);
+            
+            Transformer transformer = templates.newTransformer();
+    
+            transformer.transform( xmlSource, out );
         }
-        return this.marshaller;
+        catch ( IOException ex )
+        {
+            System.out.println(ex.getMessage());
+        }
+        catch ( TransformerException ex )
+        {
+            System.out.println( ex.getMessage() );
+        }
+        
+        System.out.println("finished converting xml to html.");
     }
     
     private void selectHTMLFile() {
@@ -98,8 +111,24 @@ public class HTMLConversion extends AbstractAction {
             if (option == JFileChooser.APPROVE_OPTION) {
                 htmlFileName = chooser.getSelectedFile().getAbsolutePath();
                 if(!htmlFileName.endsWith(".html")) htmlFileName += ".html";
-            }
-            System.out.println("saving to file: "+htmlFileName);
+                System.out.println("saving to file: "+htmlFileName);
+                convert();
+            }     
         }catch(Exception ex) {System.out.println(ex);}
+    }
+    
+    private Marshaller getMarshaller() {
+        if (this.marshaller == null) {
+            
+            Mapping mapping = new Mapping();
+            try {
+                this.marshaller = new Marshaller(new FileWriter(xmlFileName));
+                mapping.loadMapping(XML_MAPPING);
+                marshaller.setMapping(mapping);
+            } catch (Exception e) {
+                System.err.println("HTMLConversion.getMarshaller: " + e);
+            }
+        }
+        return this.marshaller;
     }
 }
