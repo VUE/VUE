@@ -59,17 +59,20 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         buttons.setLayout(new FlowLayout());
         buttons.setPreferredSize(new Dimension (80, 60));
         
-        moveUp = new JButton("Up");
-        moveDown = new JButton("Down");
-        remove = new JButton("Remove");
+        moveUp = new JButton("^");
+        moveDown = new JButton("v");
+        remove = new JButton("Delete");
         submit = new JButton("Submit");
-        add = new JButton("add");
+        add = new JButton("Add");
         
         text = new JTextArea();
         text.setEditable(true);
         text.setLineWrap(true);
         text.setWrapStyleWord(true);
-        text.setPreferredSize(new Dimension(100, 50));
+        
+        JScrollPane textScrollPane = new JScrollPane(text);
+        textScrollPane.setPreferredSize(new Dimension(200, 70));
+        textScrollPane.setBorder(new TitledBorder("Node Comment"));
         
         Document document = text.getDocument();
         document.addDocumentListener(this);
@@ -108,7 +111,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new FlowLayout());
-        textPanel.add(text);
+        textPanel.add(textScrollPane);
         textPanel.add(submit);
         
         add(scrollPane, BorderLayout.CENTER);
