@@ -133,28 +133,12 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setPathway(LWPathway pathway){
         this.pathway = pathway;
-        
-        /*
-        if(pathway != null && path != null){ 
-            path.setPathway(pathway);
-            System.out.println("set pathway to: " + pathway);
+        if(pathway != null)
             setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
-            pane.removeTabAt(2);
-            pane.removeTabAt(1);
-            path = null;
-            path = new PathwayTab();
-            path.setPathway(pathway);
-            notes = null;
-            notes = getNotes();
-            pane.addTab("Node Info", null, path, "Path Panel");
-            pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
-        
-            model.fireTableDataChanged();
-            repaint();
-        } 
-        */
-        
+        else
+            setTitle("PATHWAY INSPECTOR");        
         path.setPathway(pathway);
+
         notes.setNotes(pathway);
         
         model.fireTableDataChanged();
@@ -338,18 +322,4 @@ public class LWPathwayInspector extends InspectorWindow
             else return null;
         }
     }
-    
-    /**main method used for testing purposes*/
-    /*public static void main(String args[])
-    {
-        JFrame frame = new JFrame("ToolBar test");
-        
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {System.exit(0);}});
-        
-        frame.getContentPane().setLayout(new BorderLayout());
-        LWPathwayInspector inspect = new LWPathwayInspector(frame);
-        frame.show();
-        
-    }*/
 }
