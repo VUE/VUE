@@ -1,7 +1,7 @@
 
 <project name="vue" default="vuedemo" basedir=".">
 
-<!-- $Revision: 1.3 $ / $Date: 2004-06-03 00:14:28 $ -->
+<!-- $Revision: 1.4 $ / $Date: 2004-06-04 20:36:59 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -14,7 +14,22 @@
   <property name="build.class" value="${build.home}/classes" />
   <property name="dist.home"   value="${basedir}/dist"/>
   <property name="dist.src"    value="${dist.home}/src"/>
-  <property name="lib.home" value="../lib"/>
+  <property name="lib.home"    value="../lib"/>
+
+
+<!--  ==================== Compilation Control Options ==================== -->
+<!--
+  These properties control option settings on the Javac compiler when it
+  is invoked using the <javac> task.
+
+  compile.debug        Should compilation include the debug option?
+  compile.deprecation  Should compilation include the deprecation option?
+  compile.optimize     Should compilation include the optimize option?
+-->
+  <property name="compile.debug"       value="true"/>
+  <property name="compile.deprecation" value="true"/>
+  <property name="compile.optimize"    value="false"/>
+
 
 <!-- ==================== Compilation Classpath =========================== -->
 <!--
@@ -25,8 +40,8 @@
   <path id="runtime.classpath">
     <pathelement path="${java.class.path}"/>
     <pathelement location="${junit.jar}"/>
-    <pathelement path="."/>                
-<!--     <pathelement path="${lib.home}/OkiSIDs.jar"/>  -->
+    <pathelement path="."/>
+
     <pathelement path="${lib.home}/activation.jar"/>
     <pathelement path="${lib.home}/an_az.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -39,8 +54,8 @@
     <pathelement path="${lib.home}/batik-svggen.jar"/>
     <pathelement path="${lib.home}/batik-util.jar"/>
     <pathelement path="${lib.home}/batik.jar"/>
-    <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/>
-    <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX -- we only need XML-->
+    <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/> 
+<!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX - we only need XML-->
     <pathelement path="${lib.home}/commons-discovery.jar"/>
     <pathelement path="${lib.home}/commons-httpclient.jar"/>
     <pathelement path="${lib.home}/commons-logging.jar"/>
@@ -71,8 +86,12 @@
     <pathelement path="${lib.home}/mysql.jar"/>
     <pathelement path="${lib.home}/okiReversi.jar"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiSIDimpl.jar"/>
-<!--     <pathelement path="${lib.home}/osid.jar"/>  -->
+    <pathelement path="${lib.home}/okiSIDimpl.jar"/>  
+<!-- <pathelement path="${lib.home}/osid.jar"/>  -->
+<!-- <pathelement path="${lib.home}/OkiSIDs.jar"/>  -->
+    <!-- This jar must load after okiSID_rc6_1.jar  -->
+    <pathelement path="okiOSID_v2.jar" />
+    
     <pathelement path="${lib.home}/postgresql.jar"/>
     <pathelement path="${lib.home}/saaj.jar"/>
     <pathelement path="${lib.home}/saxon6.5.jar"/>
@@ -88,19 +107,20 @@
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/xmlrpc-1.1.jar"/>
+    
   </path>
 
 
   <path id="compile.classpath.common">
 
     <pathelement path="."/>                
-    <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX -- we only need XML-->
+    <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX - we only need XML-->
     <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/>
     <pathelement path="${lib.home}/batik-svggen.jar"/>
     <pathelement path="${lib.home}/batik-awt-util.jar"/>
     <pathelement path="${lib.home}/batik-util.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
-    <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
+<!--     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>  -->
     <pathelement path="${lib.home}/fedorautilities.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
     <pathelement path="${lib.home}/fedora-client.jar"/>
@@ -116,48 +136,36 @@
     
   <path id="compile.classpath.google">
     <path refid="compile.classpath.common"/>
-    <pathelement path="${lib.home}/xerces-2_4_0\xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xerces-2_4_0\xml-apis.jar"/>
   </path>
-  <!-- tufts\google\*.java -->
 
 
   <path id="compile.classpath.oki">
     <path refid="compile.classpath.common"/>
-    <pathelement path="${lib.home}/xerces-1_2_1.jar"/>
+    <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xerces-2.2.1.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
     
-<!-- 
-    tufts\oki\authentication\*.java 
-    tufts\oki\authorization\*.java 
-    tufts\oki\dr\fedora\*.java 
-    tufts\oki\hierarchy\*.java 
-    tufts\oki\localFiling\*.java 
-    tufts\oki\OsidManager.java 
-    tufts\oki\remoteFiling\*.java 
-    tufts\oki\shared\*.java
- -->    
+  </path>
+
+
+  <path id="compile.classpath.oki2">
+    <path refid="compile.classpath.common"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
+    <pathelement path="${lib.home}/xercesImpl.jar"/>
+    <pathelement path="${lib.home}/xml-apis.jar"/>
+    <pathelement path="${lib.home}/apache-commons.jar"/>
+    
   </path>
 
 
   <path id="compile.classpath.vue">
     <path refid="compile.classpath.common"/>
-    <pathelement path="${lib.home}/xerces-1_2_1.jar"/>
+    <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xerces-2.2.1.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
     
-<!-- 
-    tufts\vue\*.java 
-    tufts\vue\action\*.java 
-    tufts\vue\beans\*.java 
-    tufts\vue\filter\*.java 
-    tufts\vue\shape\*.java
--->
   </path>
 
 <!-- ==================== Prepare Target ================================== -->
@@ -186,42 +194,17 @@
         <os family="windows"/>
       </not>
     </condition>
-    
 
-    <!-- copy API license files -->
-    <mkdir  dir="${dist.src}/osid"/>
-    <copy todir="${dist.src}/osid">
-      <fileset dir="${basedir}">
-        <include name="SidLicense.java"/>
-        <include name="SidImplementationLicense.java"/>
-        <include name="SidImplementationLicenseMIT.java"/>
-      </fileset>    
-    </copy>
-    
-    <!-- compile license classes. Codegen needs the compiled licenses
-         in order to emit the license text into the source files 
-    -->
-    <mkdir dir="${build.class}"/>
-    
-    <javac srcdir="${dist.src}" destdir="${build.class}"
-              debug="${compile.debug}"
-        deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
-      <classpath refid="compile.classpath"/>
-      <include name="osid/SidLicense.java"/>
-      <include name="osid/SidImplementationLicense.java"/>
-      <include name="osid/SidImplementationLicenseMIT.java"/>
-    </javac>
-    
     <tstamp />
   </target>
+
 
 <!-- ==================== compile Task ================================ -->
 
   <target name="compile" depends="prepare"
     description="Compile Java sources using default javac">
     <!-- <mkdir dir="${build.class}"/> -->
-  <echo message="lib.home is ${lib.home}"/>
+    <echo message="lib.home is ${lib.home}"/>
 
     <javac srcdir="${basedir}" 
               debug="${compile.debug}"
@@ -236,17 +219,16 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}">
       <classpath refid="compile.classpath.oki"/>
-      <include name="tufts/oki/*/*.java"/>
-        <!-- 
-            tufts\oki\authentication\*.java 
-            tufts\oki\authorization\*.java 
-            tufts\oki\dr\fedora\*.java 
-            tufts\oki\hierarchy\*.java 
-            tufts\oki\localFiling\*.java 
-            tufts\oki\OsidManager.java 
-            tufts\oki\remoteFiling\*.java 
-            tufts\oki\shared\*.java
-         -->    
+      <include name="tufts/oki/**/*.java"/>
+      <exclude name="tufts/oki/repository/fedora/*.java"/>
+    </javac>
+
+    <javac srcdir="${basedir}" 
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}">
+      <classpath refid="compile.classpath.oki2"/>
+      <include name="tufts/oki/repository/fedora/*.java"/>
     </javac>
 
     <javac srcdir="${basedir}" 
@@ -255,24 +237,16 @@
            optimize="${compile.optimize}">
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/vue/**/*.java"/>
-        <!-- 
-            tufts\vue\*.java 
-            tufts\vue\action\*.java 
-            tufts\vue\beans\*.java 
-            tufts\vue\filter\*.java 
-            tufts\vue\shape\*.java
-        -->
     </javac>
-   
-   
+
     </target>
 
 
 <!-- ==================== vuedemo Task ================================ -->
 <!--
-  The "Search" target runs the drQuickSearch application.
+  The "Search" target runs the VUE application.
 -->
-    <target name="vuedemo" depends="" description="" >
+    <target name="vuedemo" depends="" description="Run the VUE application" >
 
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
             <classpath>
