@@ -23,7 +23,7 @@ public class LWHierarchyMap extends LWMap
     //distance hashtable holds the shortest distance to reach a node from the root node
     //parent hashtable holds nodes' parent information
     //node hashtable serves the purpose of mapping duplicates to the original nodes
-    private Hashtable distanceHash, parentHash, nodeHash;
+    private HashMap distanceHash, parentHash;
     
     //an arraylist which holds all the nodes that were connected from the root node
     private ArrayList originalNodes;
@@ -35,9 +35,9 @@ public class LWHierarchyMap extends LWMap
         
         rootNode = null;
         originalNodes = new ArrayList();
-        distanceHash = new Hashtable();
-        parentHash = new Hashtable();
-        nodeHash = new Hashtable();
+        distanceHash = new HashMap();
+        parentHash = new HashMap();
+        //nodeHash = new Hashtable();
     }
     
     public LWHierarchyMap(LWNode node)
@@ -67,8 +67,9 @@ public class LWHierarchyMap extends LWMap
         originalNodes.add(rootNode);
         
         //stores default values to the distance and parent hashtables
-        distanceHash.put(rootNode.toString(), new Integer(0));
-        parentHash.put(rootNode.toString(), "none");
+        distanceHash.put(rootNode, new Integer(0));
+        //parentHash.put(rootNode, "none");
+        parentHash.put(rootNode, null);
         
         //Dijkstra's theorem (shortest path)
         while(!nodesVector.isEmpty())
@@ -77,8 +78,8 @@ public class LWHierarchyMap extends LWMap
             LWNode currentNode = (LWNode)nodesVector.remove(0);
             
             //retrieves the current shortest distance to get to the given node from the root node
-            int totalDistance = ((Integer)distanceHash.get(currentNode.toString())).intValue();
-            
+            int totalDistance = ((Integer)distanceHash.get(currentNode)).intValue();
+
             //iterates through nodes that are connected to the given node
             for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
             {   
@@ -96,13 +97,13 @@ public class LWHierarchyMap extends LWMap
                 
                 //if it is the first time traversing through this node or if the calculated distance is shorter
                 //than the shortest distance associated with the adjacent node
-                if (!distanceHash.containsKey(nextNode.toString()) || 
-                   totalDistance < ((Integer)distanceHash.get(nextNode.toString())).intValue())
+                if (!distanceHash.containsKey(nextNode) || 
+                   totalDistance < ((Integer)distanceHash.get(nextNode)).intValue())
                 {  
                     //updates the distance and parent hashtables and adds to the vector
                     nodesVector.add(nextNode);
-                    distanceHash.put(nextNode.toString(), new Integer(totalDistance));
-                    parentHash.put(nextNode.toString(), currentNode.toString());                    
+                    distanceHash.put(nextNode, new Integer(totalDistance));
+                    parentHash.put(nextNode, currentNode);                    
                 }
                 
                 //keep track of nodes that are connected 
@@ -112,12 +113,14 @@ public class LWHierarchyMap extends LWMap
         }
           
         //debugging
+        /*
         for (Enumeration e = parentHash.keys(); e.hasMoreElements();)
         {
           Object a = e.nextElement();
           System.out.println("key " + a);
           System.out.println("value " + parentHash.get(a) + "\n\n");
         }
+         **/
     }
     
     /**creates the elements for the hierarchy map including duplicated nodes
@@ -133,19 +136,27 @@ public class LWHierarchyMap extends LWMap
             addNode(copy);
             
             //maps the orginal node to the duplicated one using the nodes' toString method
-            nodeHash.put(node.toString(), copy.toString());
+            //nodeHash.put(node.toString(), copy.toString());
         }
         
         //verify a path between nodes and create a link between the nodes
-        for (Iterator i = originalNodes.iterator(); i.hasNext();)
+        for (Iterator i = getNodeIterator(); i.hasNext();)
         {
-            String childLabel = ((LWNode)i.next()).toString(); 
-            String parentLabel = (String)parentHash.get(childLabel);
+            //String childLabel = ((LWNode)i.next()).toString(); 
+            //String parentLabel = (String)parentHash.get(childLabel);
+            LWNode child = (LWNode)i.next();
+            LWNode parent = (LWNode)parentHash.get(child);
             
             //if the node has a parent
-            if (!parentLabel.equals("none"))
+            //if (!parentLabel.equals("none"))
+            if (parent != null)
+            {
               //creates the link using the mapped duplicates of the original nodes
-              createLink((String)nodeHash.get(parentLabel), (String)nodeHash.get(childLabel));
+              //createLink((String)nodeHash.get(parentLabel), (String)nodeHash.get(childLabel));
+              
+              LWLink link = new LWLink(parent, child);
+              addLink(link);
+            }
         }
     }
     
