@@ -230,7 +230,7 @@ public class ObjectInspectorPanel  extends JPanel
 		// LWSelection.Listener Interface Implementation
 		/////////
 		public void selectionChanged( LWSelection pSelection) {
-			System.out.println("Selection changed in ObjectInspectorPanel");
+                    if (DEBUG.SELECTION) System.out.println("Selection changed in ObjectInspectorPanel");
 			LWComponent lwc = null;
 			if( pSelection.size() == 1 )  {
 				debug( "Object Inspector single selection");

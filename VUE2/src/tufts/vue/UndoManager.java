@@ -19,6 +19,7 @@ public class UndoManager
     private LWMap mMap; // the map who's modifications we're tracking
     
     private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
+    private Map mHierarchyChanges = new HashMap(); // all property changes, mapped by component, since last mark
     //private Map mHierarchyChanges = new HashMap(); // all hierarchy changes, mapped by component, since last mark
     private LWCEvent mLastEvent; // most recent event since last mark
     private int mChangeCount; // individual property changes since last mark
@@ -29,41 +30,47 @@ public class UndoManager
     static class UndoAction {
         String name;
         Map propertyChanges;
-        int propertyChangeCount;
-        UndoAction(String name, Map propertyChanges, int propCount) {
+        Map hierarchyChanges;
+        int changeCount;
+        UndoAction(String name, Map hierarchyChanges, Map propertyChanges, int changeCount) {
             this.name = name;
+            this.hierarchyChanges = hierarchyChanges;
             this.propertyChanges = propertyChanges;
-            this.propertyChangeCount = propCount;
+            this.changeCount = changeCount;
         }
 
-        void undoPropertyChanges()
+        void undo() {
+            undoHierarchyChanges();
+            undoPropertyChanges();
+            if (hierarchyChanges.size() > 0)
+                VUE.getSelection().clearDeleted();
+        }
+        
+        private void undoHierarchyChanges()
         {
-            if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges " + propertyChanges);
+            if (DEBUG.UNDO) System.out.println(this + " undoHierarchyChanges " + hierarchyChanges);
 
-            Iterator i = propertyChanges.entrySet().iterator();
-            // Handle hierarchy events first
-            boolean hierarchyChanged = false;
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                Map props = (Map) e.getValue();
-                if (props.containsKey(LWKey.HierarchyChanging)) {
-                    undoComponentChanges((LWComponent) e.getKey(), props);
-                    hierarchyChanged = true;
-                    i.remove();
-                }
-            }
-            i = propertyChanges.entrySet().iterator();
+            Iterator i = hierarchyChanges.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
                 undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
             }
-            if (hierarchyChanged)
-                VUE.getSelection().clearDeleted();
+            
+        }
+        private void undoPropertyChanges()
+        {
+            if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges " + propertyChanges);
+
+            Iterator i = propertyChanges.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
+            }
         }
 
         private void undoComponentChanges(LWComponent c, Map props)
         {
-            if (DEBUG.UNDO) System.out.println("\tprocessing component " + c);
+            if (DEBUG.UNDO) System.out.println("\tundoComponentChanges " + c);
             Iterator i = props.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
@@ -106,8 +113,10 @@ public class UndoManager
 
         public String toString() {
             return "UndoAction[" + name
-                + " cnt=" + propertyChangeCount
-                + " propertyChanges=" + propertyChanges.size() + "]";
+                + " cnt=" + changeCount
+                + " hierChange=" + hierarchyChanges.size()
+                + " propChange=" + propertyChanges.size()
+                + "]";
         }
     }
 
@@ -171,7 +180,7 @@ public class UndoManager
 
         sUndoUnderway = true;
         mRedoCaptured = false;
-        mRedoAction.undoPropertyChanges();
+        mRedoAction.undo();
         sUndoUnderway = false;
     }
     
@@ -185,7 +194,7 @@ public class UndoManager
             try {
                 sUndoUnderway = true;
                 mRedoCaptured = false;
-                undoAction.undoPropertyChanges();
+                undoAction.undo();
             } finally {
                 sUndoUnderway = false;
             }
@@ -216,7 +225,7 @@ public class UndoManager
                     name += " ";
                 name += word[i];
             }
-            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + undoAction.propertyChangeCount + ")";
+            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + undoAction.changeCount + ")";
             Actions.Undo.setEnabled(true);
         } else {
             Actions.Undo.setEnabled(false);
@@ -259,9 +268,10 @@ public class UndoManager
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
     {
-        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mChangeCount);
+        UndoAction newUndoAction = new UndoAction(name, mHierarchyChanges, mPropertyChanges, mChangeCount);
         if (DEBUG.UNDO) System.out.println(this + " marked " + mChangeCount + " property changes under '" + name + "'");
         mPropertyChanges = new HashMap();
+        mHierarchyChanges = new HashMap();
         mLastEvent = null;
         mChangeCount = 0;
         return newUndoAction;
@@ -294,7 +304,7 @@ if (true)return;
         if (e.getWhat() == LWKey.HierarchyChanging || e.getWhat().startsWith("hier.")) {
             recordHierarchyChangingEvent(e);
         } else if (e.hasOldValue()) {
-            recordUndoablePropertyChangeEvent(e);
+            recordPropertyChangeEvent(e);
         } else {
             if (DEBUG.UNDO) {
                 System.out.println(" (ignored: no old value)");
@@ -313,23 +323,22 @@ if (true)return;
 
         //if (DEBUG.UNDO) System.out.println(" (HIERARCHY)");
 
-        recordUndoableChangeEvent(LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
-        //new Undoable(old) { void undo() { parent.children = (ArrayList) old; } });        
+        recordUndoableChangeEvent(mHierarchyChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
         mLastEvent = e;
     }
     
-    private void recordUndoablePropertyChangeEvent(LWCEvent e)
+    private void recordPropertyChangeEvent(LWCEvent e)
     {
         // e.getComponent can really be list... todo: warn us if list (should only be for hier events)
-        recordUndoableChangeEvent(e.getWhat(), e.getComponent(), e.getOldValue());
+        recordUndoableChangeEvent(mPropertyChanges, e.getWhat(), e.getComponent(), e.getOldValue());
         mLastEvent = e;
     }
 
-    private void recordUndoableChangeEvent(String propertyKey, LWComponent component, Object oldValue)
+    private void recordUndoableChangeEvent(Map map, String propertyKey, LWComponent component, Object oldValue)
     {
         boolean compressed = false; // already had one of these props: can ignore all subsequent
         
-        Map cPropList = (Map) mPropertyChanges.get(component);
+        Map cPropList = (Map) map.get(component);
         if (cPropList != null) {
             //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
             Object value = cPropList.get(propertyKey);
@@ -339,7 +348,7 @@ if (true)return;
             }
         } else {
             cPropList = new HashMap();
-            mPropertyChanges.put(component, cPropList);
+            map.put(component, cPropList);
         }
         
         if (!compressed) {
