@@ -226,8 +226,8 @@ public class Resource
                     ext = spec.substring(i+1);
             }
         }
-        if (ext.length() > 3)
-            ext = ext.substring(0,3);
+        if (ext.length() > 4)
+            ext = ext.substring(0,4);
 
         return ext;
     }
