@@ -642,6 +642,8 @@ public class MapViewer extends javax.swing.JPanel
     private static final Line2D Xaxis = new Line2D.Float(-3000, 0, 3000, 0);
     private static final Line2D Yaxis = new Line2D.Float(0, -3000, 0, 3000);
 
+    //public boolean isOpaque() {return false;}
+
     private int paints=0;
     private boolean repaintingSelector = false;
     public void paint(Graphics g)
@@ -653,6 +655,9 @@ public class MapViewer extends javax.swing.JPanel
         }
         try {
             if (repaintingSelector && draggedSelectorBox != null) {
+                //g.setColor(getBackground());
+                //Rectangle cb = g.getClipBounds();
+                //g.fillRect(cb.x, cb.y, cb.width, cb.height);
                 redrawSelectorBox((Graphics2D)g);
                 repaintingSelector = false;
             } else {
@@ -1666,8 +1671,12 @@ public class MapViewer extends javax.swing.JPanel
             if (repaintingSelector)
                 System.out.println("already repainting selector");//todo: debug
             repaintingSelector = true;
-            paintImmediately(repaintRect);
-            //repaint(repaintRect);
+            
+            if (OPTIMIZED_REPAINT)
+                //paintImmediately(repaintRect);
+                repaint(repaintRect);
+            else
+                repaint();
             
             // must paint immediately or might miss cleaning up some old boxes
             // (RepaintManager coalesces repaint requests that are close temporally)
@@ -1799,8 +1808,10 @@ public class MapViewer extends javax.swing.JPanel
                 //-------------------------------------------------------
                 dragResizeSelectorBox(screenX, screenY);
                 return;
-            } else
+            } else {
                 draggedSelectorBox = null;
+                lastPaintedSelectorBox = null;
+            }
 
             float mapX = screenToMapX(screenX);
             float mapY = screenToMapY(screenY);
@@ -2104,7 +2115,8 @@ public class MapViewer extends javax.swing.JPanel
                 draggedSelectorBox.height++;
                 RR(draggedSelectorBox);
                 draggedSelectorBox = null;
-                
+                lastPaintedSelectorBox = null;
+
                 // bounds cache hack
                 if (!VueSelection.isEmpty())
                     draggedSelectionGroup.useSelection(VueSelection);
