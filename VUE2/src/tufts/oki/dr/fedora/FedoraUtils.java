@@ -105,25 +105,7 @@ public class FedoraUtils {
         return saveFileName;
     }
     
-    public static AbstractAction getFedoraAction(osid.dr.InfoField infofield) throws osid.dr.DigitalRepositoryException {
-        final Dissemination dissemination = (Dissemination)infofield;
-        try {
-            AbstractAction fedoraAction = new AbstractAction(infofield.getInfoPart().getDisplayName()) {
-                public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
-                    try {
-                      DR dr = (DR) dissemination.getBehavior().getFedoraObject().getDR();
-                      String fedoraUrl = dr.getFedoraProperties().getProperty("url.fedora.get","http://hosea.lib.tufts.edu:8080/fedora/get");
-                      openURL(fedoraUrl+"/"+dissemination.getBehavior().getFedoraObject().getId().getIdString()+"/"
-                        +dissemination.getBehavior().getId().getIdString()+"/"+dissemination.getId().getIdString()+"/");
-                     } catch(Exception ex) { } 
-                }
-
-            };
-            return fedoraAction;
-        } catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraAction: " + ex);
-        } 
-    }
+     
      public static AbstractAction getFedoraAction(osid.dr.InfoRecord infoRecord,osid.dr.DigitalRepository dr) throws osid.dr.DigitalRepositoryException {
          final DR mDR = (DR)dr;
          final InfoRecord mInfoRecord = (InfoRecord)infoRecord;
