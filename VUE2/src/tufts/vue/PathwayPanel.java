@@ -379,20 +379,6 @@ public class PathwayPanel extends JPanel implements ActionListener
             path_forward.setEnabled(t);
             path_last.setEnabled(t);
         }
-
-        static void updateEnabledActions()
-        {
-            LWPathway pathway = VUE.getActivePathway();
-            if (pathway != null && pathway.length() > 1) {
-                boolean atFirst = pathway.atFirst();
-                boolean atLast = pathway.atLast();
-                path_rewind.setEnabled(!atFirst);
-                path_backward.setEnabled(!atFirst);
-                path_forward.setEnabled(!atLast);
-                path_last.setEnabled(!atLast);
-            } else
-                setAllEnabled(false);
-        }
     }
 
     /**Reacts to actions dispatched by the buttons*/
@@ -493,12 +479,22 @@ public class PathwayPanel extends JPanel implements ActionListener
         
         updateAddRemoveActions();
 
-        PlayerAction.updateEnabledActions();
-
-        if (getSelectedPathway() != null)
-            btnPathwayLock.setEnabled(true);
-        else
-            btnPathwayLock.setEnabled(false);
+        LWPathway pathway = VUE.getActivePathway();
+        if (pathway != null && pathway.length() > 1) {
+            boolean atFirst = pathway.atFirst();
+            boolean atLast = pathway.atLast();
+            path_rewind.setEnabled(!atFirst);
+            path_backward.setEnabled(!atFirst);
+            path_forward.setEnabled(!atLast);
+            path_last.setEnabled(!atLast);
+            btnElementUp.setEnabled(!atFirst);
+            btnElementDown.setEnabled(!atLast);
+        } else {
+            PlayerAction.setAllEnabled(false);
+            btnElementUp.setEnabled(false);
+            btnElementDown.setEnabled(false);
+        }
+        btnPathwayLock.setEnabled(pathway != null);
     }
     
     /** Delete's a pathway and all it's contents */

@@ -863,7 +863,7 @@ public abstract class LWContainer extends LWComponent
     {
         // Move to FRONT of list, so it will paint first (visually on bottom)
         int idx = children.indexOf(c);
-        if (idx == 0)
+        if (idx <= 0)
             return false;
         notify(LWKey.HierarchyChanging);
         //System.out.println("sendToBack " + c);
@@ -891,7 +891,7 @@ public abstract class LWContainer extends LWComponent
     {
         // Move toward the FRONT of list, so it will paint sooner (visually on bottom)
         int idx = children.indexOf(c);
-        if (idx == 0) 
+        if (idx <= 0) 
             return false;
         notify(LWKey.HierarchyChanging);
         //System.out.println("sendBackward " + c);
