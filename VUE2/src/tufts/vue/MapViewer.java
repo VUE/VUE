@@ -817,8 +817,10 @@ public class MapViewer extends javax.swing.JPanel
             //System.out.println("task run " + this);
             float mapX = screenToMapX(lastMouseX);
             float mapY = screenToMapY(lastMouseY);
+            // use deepest to penetrate into groups
             LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
-            //System.out.println("RolloverTask: hit=" + hit);
+            //LWComponent hit = getMap().findChildAt(mapX, mapY);
+            if (DEBUG_ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
             //if (hit != null && VueSelection.size() <= 1)
             if (hit != null)
                 setRollover(hit);
@@ -854,7 +856,7 @@ public class MapViewer extends javax.swing.JPanel
                 newScale - oldScale > RolloverMinZoomDeltaTrigger) {
                 //c.setScale(1f);
                 rollover = c;
-                System.out.println("setRollover: " + c);
+                if (DEBUG_ROLLOVER) System.out.println("setRollover: " + c);
                 c.setRollover(true);
                 c.setZoomedFocus(true);
                 if (c instanceof LWNode) {
@@ -872,7 +874,7 @@ public class MapViewer extends javax.swing.JPanel
     void clearRollover()
     {
         if (rollover != null) {
-            System.out.println("clrRollover: " + rollover);
+            if (DEBUG_ROLLOVER) System.out.println("clrRollover: " + rollover);
             if (rolloverTask != null) {
                 rolloverTask.cancel();
                 rolloverTask = null;
@@ -1594,6 +1596,7 @@ public class MapViewer extends javax.swing.JPanel
 
     private void setSelectionBoxResizeHandles(Rectangle2D.Float r)
     {
+        // TODO: don't ever let these get so close that they overlap...
         // set the 4 corners
         resizeControl.handles[0].setLocation(r.x, r.y);
         resizeControl.handles[2].setLocation(r.x + r.width, r.y);
@@ -2512,7 +2515,10 @@ public class MapViewer extends javax.swing.JPanel
 
             float mapX = screenToMapX(e.getX());
             float mapY = screenToMapY(e.getY());
+            // use deepest to penetrate into groups
             LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
+            //LWComponent hit = getMap().findChildAt(mapX, mapY);
+            if (DEBUG_ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
 
             if (hit != mMouseOver) {
                 if (mMouseOver != null) {

@@ -851,8 +851,7 @@ public class VUE
         map.addNode(new LWNode("WWWWWWWWWWWWWWWWWWWW"));
         map.addNode(new LWNode("iiiiiiiiiiiiiiiiiiii"));
         
-        map.addNode(LWNode.createTextNode("jumping"));
-        //map.addNode(NodeTool.createTextNode("jumping"));
+        map.addNode(NodeTool.createTextNode("jumping"));
 
         // Experiment in internal actions -- only works
         // partially here because they're all auto sized
