@@ -180,7 +180,7 @@ public final class LWGroup extends LWContainer
             c.notify("added", getParent());
         }
         getParent().notify("childrenAdded", this);
-        getParent().deleteChild(this);
+        getParent().deleteChildPermanently(this);
     }
 
     public String getLabel()
@@ -189,6 +189,12 @@ public final class LWGroup extends LWContainer
             return "[LWGroup #" + getID() + " nChild=" + children.size() + "]";
         else
             return super.getLabel();
+    }
+
+    /** groups are transparent -- defer to parent for background fill color */
+    public java.awt.Color getFillColor()
+    {
+        return getParent() == null ? null : getParent().getFillColor();
     }
 
     public void setLocation(float x, float y)
