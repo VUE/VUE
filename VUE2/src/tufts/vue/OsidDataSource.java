@@ -35,6 +35,10 @@ public class OsidDataSource extends VueDataSource{
  
     private JComponent resourceViewer;
     private String address;
+    
+    public OsidDataSource() {
+    }
+    
     public OsidDataSource(String DisplayName, String address){
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
