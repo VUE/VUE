@@ -468,7 +468,8 @@ public abstract class VueTool extends AbstractAction
     private static final Color sOverColor = Color.gray;
     //private static final Color sDownColor = new Color(211,211,211);
     private static final Color sDownColor = sOverColor;
-    private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
+    //private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
+    private static final EtchedBorder sEtchedBorder = new EtchedBorder();
     
     class ToolIcon implements Icon
     {
@@ -493,9 +494,13 @@ public abstract class VueTool extends AbstractAction
 
         private Icon mRawIcon;
         private boolean mIsDown;
-        private boolean mPaintGradient = false;
+        //private boolean mPaintGradient = false;
 
-        private final static boolean OffsetWhenDown = false; // set to true of "up" state appears as a button
+        // OffsetWhenDown: nudge the icon when in the down state.
+        // Set to true of "up" state appears as a button -- can
+        // turn on otherwise but will need to adjust whole button so
+        // icon stays centered.
+        private final static boolean OffsetWhenDown = false;
         private final static boolean debug = false;
 
         protected ToolIcon(Icon rawIcon, int t)
@@ -558,10 +563,10 @@ public abstract class VueTool extends AbstractAction
                 g2.setColor(c.getBackground());
                 g2.draw3DRect(0,0, w-1,h-1, !mIsDown);
             } else if (mType == ROLLOVER) {
-                new EtchedBorder().paintBorder(c, g, 0, 0, w, h);
-                // draw a plain flat border
-                //g2.setColor(Color.darkGray);
-                //g2.drawRect(0,0, w-1,h-1);
+                // Draw an etched rollover border:
+                sEtchedBorder.paintBorder(c, g, 0, 0, w, h);
+                // this make it look like button-pressed:
+                //g2.draw3DRect(0,0, w-1,h-1, false);
             }
 
             // now fill the icon
@@ -590,29 +595,11 @@ public abstract class VueTool extends AbstractAction
             }
         }
 
+        // can be overriden to do anything really fancy
         void drawGraphic(Component c, Graphics2D g, int x, int y)
         {
             mRawIcon.paintIcon(c, g, x, y);
         }
-
-        /*
-          void drawGraphic_nodeTool(Grahpics2D g)
-          {
-          g2.setColor(sShapeColor);
-          RectangularShape shape = getShape();
-          if (shape instanceof RoundRectangle2D) {
-          // hack to deal with arcs being too small on a tiny icon
-          shape = getShapeInstance();
-          // plus 2 on x/y inset for mac?
-          ((RoundRectangle2D)shape).setRoundRect(xInset, yInset, 20,12, 8,8);
-          } else
-          shape.setFrame(xInset,yInset, 20,12);
-          //shape.setFrame(xInset,yInset, w-xInset*2, h-yInset*2);                
-          g2.fill(shape);
-          g2.setColor(Color.black);
-          g2.draw(shape);
-          }
-        */
     }
     
 	

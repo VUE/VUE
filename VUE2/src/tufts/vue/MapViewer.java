@@ -157,6 +157,10 @@ public class MapViewer extends javax.swing.JComponent
         inScrollPane = (getParent() instanceof JViewport);
         if (inScrollPane) {
             mViewport = (JViewport) getParent();
+            // todo perf: auto-scroll is slowing down operations that
+            // don't need it whenever the mouse is dragged just beyond
+            // the edge of the map
+            setAutoscrolls(true);
             //scrollerCoords = true;
             // don't know if this every worked: weren't
             // able to even get focus listening to the viewport!
@@ -289,8 +293,6 @@ public class MapViewer extends javax.swing.JComponent
         setZoomFactor(getMap().getUserZoom(), false, null);
         //mUserOrigin = (Point2D.Float) getMap().getUserOrigin();
         //setMapOriginOffset(p.getX(), p.getY());
-
-        setAutoscrolls(true);
     }
     
     
