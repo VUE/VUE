@@ -14,18 +14,22 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Vector;
 public class TypeFactory {
+
     
     /** Creates a new instance of TypeFactory */
     public static Type getIntegerType() {
         Operator eqOperator = new DefaultOperator("equal","=",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
-                Object value2 = s1.getValue();
+                Object value2 = s2.getValue();
+                System.out.println("COMPARING "+ value1+ " AND " + value2+ "CLASSES ="+value1.getClass()); 
                 if(!(value1 instanceof Integer) || !(value2 instanceof Integer))
                     return false;
                 else {
                     int v1 = ((Integer)value1).intValue();
                     int v2 = ((Integer)value2).intValue();
+                    System.out.println("COMPARING "+ v1+ " AND " + v2);
+                
                     if(v1 == v2) 
                         return true;
                     else 
@@ -33,10 +37,10 @@ public class TypeFactory {
                 }
             }
         };
-        Operator gtOperator = new DefaultOperator("greater",">",true) {
+        Operator gtOperator = new DefaultOperator("smaller","<",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
-                Object value2 = s1.getValue();
+                Object value2 = s2.getValue();
                 if(!(value1 instanceof Integer) || !(value2 instanceof Integer))
                     return false;
                 else {
@@ -52,7 +56,7 @@ public class TypeFactory {
         Operator ltOperator = new DefaultOperator("greater",">",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
-                Object value2 = s1.getValue();
+                Object value2 = s2.getValue();
                 if(!(value1 instanceof Integer) || !(value2 instanceof Integer))
                     return false;
                 else {
@@ -66,7 +70,7 @@ public class TypeFactory {
             }
         };
                       
-        Type type = new DefaultType("integer");
+        Type type = new DefaultType(Type.INTEGER_TYPE);
         type.getOperators().add(eqOperator);   
         type.getOperators().add(gtOperator);
         type.getOperators().add(ltOperator);
@@ -79,7 +83,7 @@ public class TypeFactory {
        Operator eqOperator = new DefaultOperator("equals","equals",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
-                Object value2 = s1.getValue();
+                Object value2 = s2.getValue();
                 if(!(value1 instanceof String) || !(value2 instanceof String))
                     return false;
                 else {
@@ -92,8 +96,42 @@ public class TypeFactory {
                 }
             }
         };
-        Type type = new DefaultType("String");
-        type.getOperators().add(eqOperator);   
+        Operator stOperator = new DefaultOperator("starts","starts with",false) {
+            public boolean compare(Statement s1,Statement s2) {
+                Object value1  = s1.getValue();
+                Object value2 = s2.getValue();
+                if(!(value1 instanceof String) || !(value2 instanceof String))
+                    return false;
+                else {
+                    String v1 = (String) value1;
+                    String v2 = (String) value2;
+                    if(v1.startsWith(v2)) 
+                        return true;
+                    else 
+                        return false;
+                }
+            }
+        };
+        Operator endOperator = new DefaultOperator("ends","ends with",false) {
+            public boolean compare(Statement s1,Statement s2) {
+                Object value1  = s1.getValue();
+                Object value2 = s2.getValue();
+                if(!(value1 instanceof String) || !(value2 instanceof String))
+                    return false;
+                else {
+                    String v1 = (String) value1;
+                    String v2 = (String) value2;
+                    if(v1.endsWith(v2)) 
+                        return true;
+                    else 
+                        return false;
+                }
+            }
+        };
+        Type type = new DefaultType(Type.STRING_TYPE);
+        type.getOperators().add(eqOperator);  
+        type.getOperators().add(stOperator);
+        type.getOperators().add(endOperator);
         return type;
     }
     // currently returns only string and integer types;

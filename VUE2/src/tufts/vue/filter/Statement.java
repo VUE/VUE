@@ -20,6 +20,12 @@ public class Statement {
     public Statement() {
     }
     
+    public Statement(String key,String value) {
+        setKey(new Key(key, TypeFactory.getStringType()));
+        setOperator(TypeFactory.getStringType().getDefaultOperator());
+        setValue(value);
+    }
+    
     /**
     public void setType(Type type) {
         this.type= type;
@@ -53,7 +59,10 @@ public class Statement {
     public Object getValue() {
        return this.value;
     }
-        
     
+  
+    public boolean compare(Statement statement2) {
+        return getOperator().compare(this, statement2);
+    }
         
 }

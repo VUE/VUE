@@ -64,27 +64,7 @@ public class NodeFilterEditor extends JPanel{
         //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
         nodeFilterTable.getColumnModel().getColumn(NodeFilterTableModel.OPERATOR_COL).setCellEditor(new OperatorCellEditor()); 
              
-        /**
-        keyEditor.addItemListener(new ItemListener() {
-             public void itemStateChanged(ItemEvent e) {
-                 System.out.println("Item State Changed"+ e.SELECTED);
-                 if( e.getStateChange() == e.SELECTED) {
-                     Key key = (Key) e.getItem();
-                     int row = nodeFilterTableModel.getNodeFilter().indexOf(key);
-                     if(row >= 0) {
-                         nodeFilterTableModel.setValueAt(key.getType(), row, NodeFilterTableModel.TYPE_COL);
-                         nodeFilterTableModel.setValueAt(key.getType().getDefaultOperator(),row, NodeFilterTableModel.OPERATOR_COL);
-                         nodeFilterTableModel.setValueAt(key,row, NodeFilterTableModel.KEY_COL);
-                         nodeFilterTableModel.fireTableRowsUpdated(row,row);
-                         nodeFilterTableModel.fireTableDataChanged();
-                     }
-                     //operatorEditor.addItem("Hello");
-                     //typeEditor.setText(key.getType().getDisplayName());
-                     
-                 }
-             }
-         });
-*/
+       
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -169,9 +149,13 @@ public class NodeFilterEditor extends JPanel{
         public void setValueAt(Object value, int row, int col) {
             Statement statement = (Statement) nodeFilter.get(row);
             Key key = statement.getKey();
-            if(col == VALUE_COL) 
-                statement.setValue(value);
-            else if(col == KEY_COL)  {
+            if(col == VALUE_COL) { 
+                if(statement.getKey().getType().getDisplayName().equals(Type.INTEGER_TYPE)) {
+                    statement.setValue(new Integer((String)value));
+                } else {
+                     statement.setValue(value);
+                }
+            } else if(col == KEY_COL)  {
                 statement.setKey((Key)value);
                 setValueAt(((Key)value).getType().getDefaultOperator(),row,OPERATOR_COL);
                 setValueAt(((Key)value).getDefaultValue(), row,VALUE_COL);
@@ -180,7 +164,6 @@ public class NodeFilterEditor extends JPanel{
                // fireTableRowsUpdated(row,row);
                 
             }else if(col == OPERATOR_COL)  {
-                System.out.println("Operator ="+value+" class ="+value.getClass());
                 if(value instanceof Operator)
                     statement.setOperator((Operator)value);
             }
@@ -207,9 +190,7 @@ public class NodeFilterEditor extends JPanel{
         }
 
         public void actionPerformed(ActionEvent e) {
-            //m_model.addProperty(DC_FIELDS[0], "");
-          // AddDialog addDialog = new AddDialog(model);
-            if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
+           if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
                 Key key = (Key) tufts.vue.VUE.getActiveMap().getMapFilterModel().get(0);
                 Statement stmt = new Statement();
                 stmt.setKey(key);
@@ -230,7 +211,8 @@ public class NodeFilterEditor extends JPanel{
      */
     
     public class OperatorCellEditor extends DefaultCellEditor {
-       /** setting the defaultCellEditor **/ 
+       /** setting the defaultCellEditor **/
+        JComboBox editor = null;
         public OperatorCellEditor() {
             super(new JTextField(""));
         }
@@ -239,9 +221,18 @@ public class NodeFilterEditor extends JPanel{
             TableModel tableModel = table.getModel();
             if (tableModel instanceof NodeFilterTableModel) {
                 NodeFilterTableModel nodeFilterTableModel  = (NodeFilterTableModel) tableModel;
-                return new JComboBox((Vector)((Statement)(nodeFilterTableModel.getNodeFilter().get(row))).getKey().getType().getOperators());
+                editor =  new JComboBox((Vector)((Statement)(nodeFilterTableModel.getNodeFilter().get(row))).getKey().getType().getSettableOperators());
+                return editor;
             }
             return (new JTextField(""));
+        }
+        
+         public Object getCellEditorValue() {
+            if(editor!= null) {
+                return editor.getSelectedItem();
+            } else
+               throw new RuntimeException("No Keys present");
+         
         }
     }
     /** not used currently.  **/

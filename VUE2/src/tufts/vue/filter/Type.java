@@ -16,6 +16,9 @@ import java.util.List;
 
 public interface Type{
     
+    public static final String STRING_TYPE = "String";
+    public static final String INTEGER_TYPE = "Integer";
+    
     /** Creates a new instance of Class */
     public void setDisplayName(String displayName);
     public String getDisplayName();

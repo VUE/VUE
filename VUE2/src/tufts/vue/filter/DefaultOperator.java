@@ -58,7 +58,7 @@ public class DefaultOperator implements Operator {
      */
     
     public boolean isSettable(){
-        return true;
+        return settable;
     }
     
     public void setSettable(boolean settable) {
