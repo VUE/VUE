@@ -147,15 +147,15 @@ public class PathwayTable extends JTable
                     //LWComponent c = tableModel.getElement(row);
 
                     if (c instanceof LWPathway){
-                        newText = newText + c.getLabel();
+                        newText = newText + c.getDisplayLabel();
                         notesText = c.getNotes();
                         path = (LWPathway) c;
                     } else {
                         //path = tableModel.getCurrentPathway();
                         path = VUE.getActivePathway(); // is this too much an assumption at this point?
-                        newText = newText + path.getLabel() 
+                        newText = newText + path.getDisplayLabel() 
                             + " / " 
-                            + c.getLabel();
+                            + c.getDisplayLabel();
                         
                         //notesText = comp.getNotes();
                         notesText = path.getElementNotes(c);
@@ -309,12 +309,12 @@ public class PathwayTable extends JTable
                 else
                     this.setBackground(bgColor);
                 this.setFont(currentFont);
-                this.setText(p.getLabel());
+                this.setText(p.getDisplayLabel());
                 
             } else if (c != null) {
                 setFont(normalFont);
                 setBackground(bgColor);
-                setText(c.getLabel());
+                setText(c.getDisplayLabel());
 
                 LWPathway activePath = VUE.getActivePathway();
                 LWPathway elementPath = getTableModel().getPathwayForElementAt(row);

@@ -146,19 +146,28 @@ public class PathwayTableModel extends DefaultTableModel {
     }
 
     /** for PathwayTable */
-    LWComponent getElement(int row){
-        if (getPathwayList() == null)
-            return null;
-        return (LWComponent) getList().get(row);
-        /*
-        Iterator i = pathways.iterator();
-        int idx = 0;
+    LWComponent getElement(int pRow){
+        Iterator i = getPathwayIterator();
+        int row = 0;
         while (i.hasNext()) {
             LWPathway p = (LWPathway) i.next();
-            if (cnt == row)
+            if (row++ == pRow)
                 return p;
-            idx++;
+            if (p.isOpen()) {
+                Iterator ci = p.getElementIterator();
+                while (ci.hasNext()) {
+                    LWComponent c = (LWComponent) ci.next();
+                    if (row++ == pRow)
+                        return c;
+                }
+            }
         }
+        throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
+        
+        /* works but slower
+        if (getPathwayList() == null)
+            return null;
+        return (LWComponent) getList().get(pRow);
         */
     }
 
@@ -224,7 +233,7 @@ public class PathwayTableModel extends DefaultTableModel {
                 case 0: return new Boolean(p.isVisible());
                 case 1: return p.getStrokeColor();
                 case 2: return new Boolean(p.isOpen());
-                case 3: return p.getLabel();
+                case 3: return p.getDisplayLabel();
                 case 4: return new Boolean(p.hasNotes());
                 case 5: return new Boolean(p.isLocked());
                 }
@@ -234,7 +243,7 @@ public class PathwayTableModel extends DefaultTableModel {
             } 
         } else {
             try {
-                if (col == 3) return c.getLabel();
+                if (col == 3) return c.getDisplayLabel();
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);

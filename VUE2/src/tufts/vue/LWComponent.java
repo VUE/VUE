@@ -202,13 +202,17 @@ public class LWComponent
         return this.category;
     }
     */
-    public String getID()
-    {
+    public String getID() {
         return this.ID;
     }
-    public String getLabel()
-    {
+    public String getLabel() {
         return this.label;
+    }
+    public String getDisplayLabel() {
+        if (getLabel() == null)
+            return getClass().getName() + " #" + getID();
+        else
+            return getLabel();
     }
 
     /** does this support a user editable label? */

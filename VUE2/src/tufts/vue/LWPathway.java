@@ -200,17 +200,17 @@ public class LWPathway extends LWContainer
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removed " + c);
         if (length() == 0)
             mCurrentIndex = -1;
-        c.removePathwayRef(this);
-        if (!deleting) {
-            // If deleting, component will remove us as listener itself.
-            // If we remove it here while deleting, we'll get a concurrent
-            // modification exception from LWCompononent.notifyLWCListeners
-            if (!contains(c)) // in case in multiple times
+
+        if (!contains(c)) { // in case in multiple times
+            c.removePathwayRef(this);
+            if (!deleting) {
+                // If deleting, component will remove us as listener itself.
+                // If we remove it here while deleting, we'll get a concurrent
+                // modification exception from LWCompononent.notifyLWCListeners
                 c.removeLWCListener(this);
+            }
+            disposeElementProperties(c);  // only remove property if last time appears in list.
         }
-        
-        if (!contains(c)) // only remove property if last time appears in list.
-            disposeElementProperties(c);
 
         // If what we just deleted was the current item, the currentIndex
         // doesn't change, but we call this to make sure we set the selection.
