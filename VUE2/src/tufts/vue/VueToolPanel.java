@@ -56,7 +56,7 @@ public class VueToolPanel extends JPanel
     private Map mToolButtons = new HashMap();
 	
     /** background color **/
-    static private Color mBakColor; // = VueResources.getColor("toolbar.background");
+    static private Color mBakColor;
 	
 	
     /***

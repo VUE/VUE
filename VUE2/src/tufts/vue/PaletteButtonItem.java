@@ -39,15 +39,8 @@ import javax.swing.border.*;
  *
  *
  **/
-public class PaletteButtonItem extends JMenuItem {
-
-    private static final Color ButtonBackgroundColor = VueResources.getColor("toolbar.background");
-
-
-    ///////////
-    // Fields
-    ///////////
-
+public class PaletteButtonItem extends JMenuItem
+{
     /*  what's teh current icon to render for this menu item */
     private Icon mCurrentIcon = null;
 	
@@ -68,11 +61,10 @@ public class PaletteButtonItem extends JMenuItem {
      *  Constructor - creates a default PaletteButtonItem
      **/
     public PaletteButtonItem() {
-        super();
         setRolloverEnabled( true);
         this.addMouseListener( new PaletteButtonItem.PBMouseListener() );
         this.addActionListener( new PaletteButtonItem.PaletteItemActionListener() );
-        setBackground(ButtonBackgroundColor);
+        setBackground(VueTheme.getToolbarColor());
     }
 	
 	
