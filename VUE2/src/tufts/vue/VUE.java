@@ -248,7 +248,7 @@ public class VUE
     public static MapViewer getActiveViewer()
     {
         Object c = tabbedPane.getSelectedComponent();
-        
+        System.out.println("getting active viewer...");
         if(c instanceof JScrollPane){
             
             String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
@@ -260,8 +260,10 @@ public class VUE
             }
             
         }
-        
-        return (MapViewer) c;
+        MapViewer view = (MapViewer) c;
+        LWMap map = view.getMap();
+        //call LWPathwayControl.setPathwayManager(map.getPathwayManager());
+        return view;
         
     }
     

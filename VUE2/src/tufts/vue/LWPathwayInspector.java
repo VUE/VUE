@@ -98,7 +98,8 @@ public class LWPathwayInspector extends InspectorWindow
         
         path = new PathwayTab();
         
-        this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
+        if(pathway != null)
+            this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
         
         /**instantiating and setting up tabbed pane*/
         pane = new JTabbedPane();
@@ -150,14 +151,17 @@ public class LWPathwayInspector extends InspectorWindow
     private JPanel getNotes(){
         
         area = new JTextArea();
-        area.setText(pathway.getComment());
-        area.setWrapStyleWord(true);
-        area.setLineWrap(true);
-        area.addKeyListener(new KeyAdapter(){
-           public void keyTyped(KeyEvent e){
-               pathway.setComment(area.getText());
-           }
-        });
+        if(pathway != null) {
+            area.setText(pathway.getComment());
+            area.setWrapStyleWord(true);
+            area.setLineWrap(true);
+            area.addKeyListener(new KeyAdapter(){
+               public void keyTyped(KeyEvent e){
+                   pathway.setComment(area.getText());
+               }
+            });
+        }else
+            area.setEditable(false);
         
         JLabel north = new JLabel("Pathway Notes", JLabel.CENTER);
         
@@ -183,25 +187,27 @@ public class LWPathwayInspector extends InspectorWindow
                this.setCellSelectionEnabled(true);
                this.setBorder(border);
                /**creates a color chooser when pathway color is selected*/
-               this.addMouseListener(new MouseAdapter(){
-                   
-                   public void mouseClicked(MouseEvent e){
-                        int row = getSelectedRow();
-                        int col = getSelectedColumn();
-                        if(row==3 && col==1){
-                            
-                            JColorChooser choose = new JColorChooser();
-                            Color newColor = choose.showDialog((Component)null, 
-                                "Choose Pathway Color", 
-                                (Color)model.getValueAt(row, col));
-                            if(newColor != null)
-                                model.setValueAt(newColor, row, col);
-                        }
-                        
-                   }
-                   
-                   
-                });
+               if(pathway != null){
+                   this.addMouseListener(new MouseAdapter(){
+
+                       public void mouseClicked(MouseEvent e){
+                            int row = getSelectedRow();
+                            int col = getSelectedColumn();
+                            if(row==3 && col==1){
+
+                                JColorChooser choose = new JColorChooser();
+                                Color newColor = choose.showDialog((Component)null, 
+                                    "Choose Pathway Color", 
+                                    (Color)model.getValueAt(row, col));
+                                if(newColor != null)
+                                    model.setValueAt(newColor, row, col);
+                            }
+
+                       }
+
+
+                    });
+               }
                
                TableColumn col = this.getColumn(this.getColumnName(1));
                InfoRenderer rend = new InfoRenderer();
@@ -239,9 +245,9 @@ public class LWPathwayInspector extends InspectorWindow
         public int getColumnCount() {return columns;}
 
         public Object getValueAt(int row, int col) {
-
+            
             if(col == 0) return rowNames[row];
-            else if(col == 1){
+            else if(col == 1 && pathway != null){
                 if(row == 0){
                     return pathway.getLabel();
                 }
@@ -259,6 +265,7 @@ public class LWPathwayInspector extends InspectorWindow
         }
 
         public boolean isCellEditable(int row, int col){
+            if(pathway == null) return false;
             if(col==0 || row==3 || row==1) return false;
             return true;
         }
@@ -336,6 +343,9 @@ public class LWPathwayInspector extends InspectorWindow
         textPanel.setLayout(new FlowLayout());
         textPanel.add(text);
         textPanel.add(submit);
+        if(pathway == null)
+            text.setEditable(false);
+        
         
         pathPanel.add(scrollPane, BorderLayout.CENTER);
         pathPanel.add(buttons, BorderLayout.EAST);

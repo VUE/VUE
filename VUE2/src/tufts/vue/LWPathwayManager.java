@@ -61,7 +61,6 @@ public class LWPathwayManager {
         pathways.add(pathway);
         if(current == null)
             current = pathway;              
-        //System.out.println("manager adding a pathway...");
     }
     
     public void removePathway(LWPathway pathway){

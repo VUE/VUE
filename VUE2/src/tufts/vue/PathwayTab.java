@@ -264,7 +264,8 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //returns the number of row (nodes of the pathway)
         public synchronized int getRowCount()
         {
-            return pathway.length();
+            if(pathway != null) return pathway.length();
+            return 0;
         }
         
         public int getColumnCount()

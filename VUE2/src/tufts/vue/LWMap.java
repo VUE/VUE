@@ -44,8 +44,7 @@ public class LWMap extends LWContainer
         manager = new LWPathwayManager();
     }
 
-    public LWPathwayManager getPathwayManagerInstance(){
-        if(manager==null) manager = new LWPathwayManager();       
+    public LWPathwayManager getPathwayManager(){       
         return manager;
     }
     
@@ -221,7 +220,9 @@ public class LWMap extends LWContainer
 
         return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
     }
+
     */
 
     
+
 }
