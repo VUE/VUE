@@ -138,7 +138,6 @@ public class PathwayTool extends VueSimpleTool
     }
     private static class  PathwayToolPanel extends JPanel {
         
-        private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
         
         public PathwayToolPanel() {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -151,12 +150,12 @@ public class PathwayTool extends VueSimpleTool
             Font f = combo.getFont();
             Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
             combo.setFont(menuFont);
-            combo.setBackground(VueTheme.getVueColor());
+            combo.setBackground(VueTheme.getToolbarColor());
             combo.setFocusable(false);
 
             // A total hack so the visible height of the combo-box is squeezed down a bit
             // Setting the size only appears to work for the width, not the height.
-            combo.setBorder(new MatteBorder(2,0,2,0, ToolbarColor));
+            combo.setBorder(new MatteBorder(2,0,2,0, VueTheme.getToolbarColor()));
             //combo.setBorder(new EmptyBorder(2,0,2,0)); // so height get's squeezed
             //combo.setPreferredSize(new Dimension(150, 18));
             //combo.setSize(new Dimension(150, 18));

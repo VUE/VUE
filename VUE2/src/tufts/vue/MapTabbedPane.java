@@ -32,11 +32,12 @@ import javax.swing.border.*;
 public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
-    private static final Color BgColor = VueResources.getColor("toolbar.background");
-        
+    private Color BgColor;
     private String name;
+    
     MapTabbedPane(String name) {
         this.name = name;
+        BgColor = VueTheme.getToolbarColor();
     }
         
     private int mWasSelected = -1;
