@@ -189,8 +189,8 @@ public class MapInspectorPanel  extends JPanel
 		JTextField mAuthorEditor = null;
 		JLabel mDate = null;
 		JLabel mLocation = null;
-                JTextField mDescriptionEditor = null;
-		
+                JTextArea mDescriptionEditor = null;
+		JButton saveButton = null;
 		PropertyPanel mPropPanel = null;
 		
 		public InfoPanel() {
@@ -212,16 +212,23 @@ public class MapInspectorPanel  extends JPanel
 			mTitleEditor = new JTextField();
 			
 			mAuthorEditor = new JTextField();
-                        mDescriptionEditor = new JTextField();
-			mDate = new JLabel();
+                        mDescriptionEditor = new JTextArea();
+                        mDescriptionEditor.setRows(5);
+                        mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+                        mDate = new JLabel();
 			mLocation = new JLabel();
+                        saveButton = new JButton("Save");
 			mPropPanel  = new PropertyPanel();
+                        saveButton.addActionListener(this);
+			
+                        
 			mPropPanel.addProperty( "Title:", mTitleEditor);
 			mPropPanel.addProperty("Author:", mAuthorEditor);
 			mPropPanel.addProperty("Date:", mDate);
 			mPropPanel.addProperty("Location:",mLocation);
                         mPropPanel.addProperty("Description:",mDescriptionEditor);
 			mInfoBox.add( mPropPanel);
+                        mInfoBox.add(saveButton,BorderLayout.EAST);
 		}
 		
 		public String getName() {
@@ -240,6 +247,7 @@ public class MapInspectorPanel  extends JPanel
 			mDate.setText( mMap.getDate() );
 			mTitleEditor.setText( mMap.getLabel() );
 			mAuthorEditor.setText( mMap.getAuthor() );
+                        mDescriptionEditor.setText(mMap.getDescrition());
 			File file = mMap.getFile() ;
 			String path = "";
 			if( file != null) {
@@ -252,17 +260,16 @@ public class MapInspectorPanel  extends JPanel
 			if( mMap != null) {
 				mMap.setLabel( mTitleEditor.getText() );
 				mMap.setAuthor(  mAuthorEditor.getText() );
+                                mMap.setDescription(mDescriptionEditor.getText());
 				}
 		}
 		
 		public void actionPerformed( ActionEvent pEvent) {
 			Object source = pEvent.getSource();
-			if( source == mTitleEditor) {
+                        System.out.println("Action Performed :"+source);
+			if( (source == saveButton) || (source == mTitleEditor) || (source == mAuthorEditor) || (source == mDescriptionEditor) ) {
 				saveInfo();
-				}
-			if( source == mAuthorEditor ) {
-				saveInfo();
-				}
+			}
 		}
 		
 		public void propertyChange( PropertyChangeEvent pEvent) {
@@ -303,8 +310,7 @@ public class MapInspectorPanel  extends JPanel
 			mPathScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mPathScrollPane.setLocation(new Point(8, 9));
 			mPathScrollPane.setVisible(true);
-			mPathScrollPane.getViewport().add( mPathDisplay);
-                        
+			mPathScrollPane.getViewport().add( mPathDisplay); 
                         add(mPathScrollPane, BorderLayout.CENTER);
 		}
 		

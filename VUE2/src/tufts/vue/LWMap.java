@@ -43,6 +43,9 @@ public class LWMap extends LWContainer
     /** the date **/
     private String mDate = null;
     
+    /**description **/
+    
+    private String mDescription = null;
     /** the current Map Filter **/
     LWCFilter mLWCFilter = new LWCFilter();
 
@@ -222,6 +225,15 @@ public class LWMap extends LWContainer
     	mAuthor = pName;
     }
     
+    
+    public String getDescrition() {
+        return mDescription;
+    }
+    
+    public void setDescription(String pDescription) {
+        mDescription = pDescription;
+    }
+        
     public String getDate() {
     	return mDate;
    }
