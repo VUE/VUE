@@ -378,7 +378,11 @@ public abstract class LWContainer extends LWComponent
         c.setParent(null);
 
         // If this child was scaled inside us (as all children are except groups)
-        // besure to restore it's scale back to 1 when de-parenting it.
+        // be sure to restore it's scale back to 1 when de-parenting it.
+        // todo: maybe better to handle this in LWNode somehow as that's only
+        // place nodes actually get scaled at all right now -- either that or
+        // when it's added back into it's new parent, which can set it based
+        // on whatever scale policy it implements.
         if (c.getScale() != 1f)
             c.setScale(1f);
     }

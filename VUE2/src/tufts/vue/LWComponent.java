@@ -847,7 +847,7 @@ public class LWComponent
         if (this.scale == scale)
             return;
         this.scale = scale;
-        notify(LWKey.Scale); // todo: why do we need to notify if scale is changed? try removing this
+        //notify(LWKey.Scale); // todo: why do we need to notify if scale is changed? try removing this
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
@@ -1227,7 +1227,7 @@ public class LWComponent
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
         if (mEventsDisabled) {
-            if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
+            if (DEBUG.EVENTS) System.out.println(e + " (dispatch skipped: events disabled)");
             return;
         }
         
@@ -1268,8 +1268,11 @@ public class LWComponent
                                    + "\n\torphan=" + this
                                    + "\n\tevent=" + e
                                    + "\n\tlisteners=" + listeners);
-            } else if (DEBUG.EVENTS || DEBUG.PARENTING)
-                System.out.println("FYI: orphan node event " + e);
+                if (DEBUG.PARENTING) new Throwable().printStackTrace();
+            } else if ((DEBUG.EVENTS || DEBUG.PARENTING) && !(this instanceof LWGroup))
+                // dragged selection group is a null parented object, so we're
+                // ignoring all groups for purposes of this diagnostic for now.
+                System.out.println(e + " (FYI: orphan node event)");
         }
     }
     
