@@ -818,20 +818,25 @@ public class LWComponent
         }
         return c;
     }
-    
+
     public float getStrokeWidth()
     {
         return this.strokeWidth;
     }
+    void takeStrokeWidth(float w) {
+        this.strokeWidth = w;
+    }
+    
     public void setStrokeWidth(float w)
     {
         if (this.strokeWidth != w) {
             float oldStrokeWidth = this.strokeWidth;
-            this.strokeWidth = w;
+            takeStrokeWidth(w);
             if (w > 0)
                 this.stroke = new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
             else
                 this.stroke = STROKE_ZERO;
+            // todo: caching the stroke is kind of overkill
             if (getParent() != null) {
                 // because stroke affects bounds-width, may need to re-layout parent
                 getParent().layout();
@@ -1228,6 +1233,11 @@ public class LWComponent
         this.width = w;
         this.height = h;
     }
+
+    float mAspect = 0;
+    public void setAspect(float aspect) {
+        mAspect = aspect;
+    }
     
     /** set component to this many pixels in size */
     public void setSize(float w, float h)
@@ -1236,6 +1246,20 @@ public class LWComponent
             return;
         if (DEBUG.LAYOUT) out("*** setSize   (LWC)  " + w + "x" + h);
         Size old = new Size(width, height);
+        if (mAspect > 0) {
+            if (w <= 0) w = 1;
+            if (h <= 0) h = 1;
+            double newAspect = w / h;
+            // a = w / h
+            // w = a*h
+            // h = w/a
+            //System.out.println("aspect=" + mAspect);
+            if (newAspect < mAspect)
+                h = (float) (w / mAspect);
+            else if (newAspect > mAspect)
+                w = (float) (h * mAspect);
+                
+        }
         takeSize(w, h);
         if (getParent() != null && !(getParent() instanceof LWMap))
             getParent().layout();
