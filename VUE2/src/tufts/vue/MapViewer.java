@@ -207,22 +207,22 @@ public class MapViewer extends javax.swing.JPanel
         Rectangle screenRect = new Rectangle();
         // Make sure we round out to the largest possible pixel rectangle
         // that contains all map coordinates
-        /*
         screenRect.x = (int) Math.floor(mapRect.getX() * zoomFactor - getOriginX());
         screenRect.y = (int) Math.floor(mapRect.getY() * zoomFactor - getOriginY());
         screenRect.width = (int) Math.ceil(mapRect.getWidth() * zoomFactor);
         screenRect.height = (int) Math.ceil(mapRect.getHeight() * zoomFactor);
-        */
+        /*
         screenRect.x = (int) Math.round(mapRect.getX() * zoomFactor - getOriginX());
         screenRect.y = (int) Math.round(mapRect.getY() * zoomFactor - getOriginY());
         screenRect.width = (int) Math.round(mapRect.getWidth() * zoomFactor);
         screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
+        */
         return screenRect;
     }
     Rectangle2D screenToMapRect(Rectangle screenRect)
     {
         if (screenRect.width < 0 || screenRect.height < 0)
-            throw new IllegalArgumentException("screenDim<0");
+            throw new IllegalArgumentException("screenDim<0 " + screenRect);
         Rectangle2D mapRect = new Rectangle2D.Float();
         mapRect.setRect(screenToMapX(screenRect.x),
                         screenToMapY(screenRect.y),
@@ -254,6 +254,9 @@ public class MapViewer extends javax.swing.JPanel
         //System.out.println("reshape1 " + this);
         // todo: do viewport zoom
         repaint(250);
+        requestFocus();
+        new MapViewerEvent(this, MapViewerEvent.PANZOOM).raise();
+        
     }
 
     public ConceptMap getMap()
@@ -266,7 +269,21 @@ public class MapViewer extends javax.swing.JPanel
         if (this.map != null)
             unloadMap();
         this.map = map;
-        // fixme todo: add all the components
+
+        java.util.Iterator i;
+        i = map.getNodeIterator();
+        while (i.hasNext()) {
+            Node node = (Node) i.next();
+            System.out.println("loaded " + node + " " + node.getPosition());
+            addNode(new LWNode(node));
+        }
+        i = map.getLinkIterator();
+        while (i.hasNext()) {
+            Link l = (Link) i.next();
+            LWComponent c1 = findLWComponent(l.getItem1());
+            LWComponent c2 = findLWComponent(l.getItem2());
+            addLink(new LWLink(l, c1, c2));
+        }
         this.map.addMapListener(this);
     }
     
@@ -516,7 +533,6 @@ public class MapViewer extends javax.swing.JPanel
             g2.draw(Yaxis);
         }
         
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         paintLWComponents(g2);
         
         // Restore us to raw screen coordinates & turn off
@@ -595,6 +611,7 @@ public class MapViewer extends javax.swing.JPanel
             setSize(prefSize);
 
             setSelectionColor(Color.yellow);
+            selectAll();
             //setSelectionColor(SystemColor.textHighlight);
             //setBackground(DEFAULT_NODE_COLOR);
             //setBorder(null);
@@ -742,23 +759,18 @@ public class MapViewer extends javax.swing.JPanel
     private boolean firstPaint = true;
     void paintLWComponents(Graphics2D g2)
     {
-        /*
-         * Draw the components.
-         * Draw links first so their ends aren't visible.
-         */
-
-        // anti-alias text
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         // anti-alias shapes by default
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_DEFAULT);
-
+        // anti-alias text
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         // Do we need fractional metrics?  Gives us slightly more accurate
         // string widths on noticable on long strings
         //g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         
-        // now render all the LWComponents
-        java.util.Iterator i;
+        /*
+         * Draw the components.
+         * Draw links first so their ends aren't visible.
+         */
 
         if (firstPaint) {
             firstPaint = false;
@@ -779,9 +791,9 @@ public class MapViewer extends javax.swing.JPanel
         // render the LWNodes
         drawComponentList(g2, nodeViews);
 
-        // render the current selection on top if it's a node
-        //if (selection != null && selection instanceof LWNode)
-        //  drawComponent(selection, g2);
+        // render the current selection on top
+        //if (lastSelection != null && selectionList.size() == 1)
+        //  drawComponent(g2, lastSelection);
         
         // render the current indication on top
         if (indication != null)
