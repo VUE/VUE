@@ -118,7 +118,8 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
     }
     /**
      * Run the system page format dialog using the last used
-     * PageFormat as the default setup.
+     * PageFormat as the default setup.  If user hits cancel
+     * on the dialog, null is returned.
      */
     private PageFormat getPageFormatInteractive(PrinterJob job)
     {
@@ -148,6 +149,7 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
         new Thread(this).start();
     }
 
+    // this should be private
     public void run()
     {
         try {
