@@ -230,14 +230,15 @@ class LWCInspector extends javax.swing.JPanel
         }
         setAllEnabled(true);
 
-        String id = "" + selection.size();
+        String id = "<selection> ";
         if (selection.allOfSameType())
-            id += " (" + selection.first().getClass().getName() + ")";
+            id += selection.first().getClass().getName();
         else
-            id += " components";
-
-        LWComponent c = selection.first();
+            id += "LWComponent";
+        id += "[" + selection.size() + "]";
         
+        LWComponent c = selection.first();
+        // grab first in selection for moment
         idField.setText(id);
         labelField.setBackground(c.getFillColor());
         loadText(labelField, "");
@@ -344,6 +345,16 @@ class LWCInspector extends javax.swing.JPanel
             c.setStrokeWidth(w);
         }
     }
+    private void setFonts(String text)
+        throws NumberFormatException
+    {
+        Iterator i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setXMLfont(text);
+        }
+    }
+
 
     public void actionPerformed(ActionEvent e)
     {
@@ -359,9 +370,8 @@ class LWCInspector extends javax.swing.JPanel
             else if (src == categoryField)  c.setCategory(text);
             else if (src == notesField)     c.setNotes(text);
             else if (src == resourceField)  c.setResource(text);
-            else if (src == fontField)      c.setXMLfont(text);
+            else if (src == fontField)      setFonts(text);
             else if (src == fillColorField) setFillColors(text);
-            //else if (src == fillColorField) c.setXMLfillColor(text);
             else if (src == textColorField)     c.setXMLtextColor(text);
             else if (src == strokeColorField)   c.setXMLstrokeColor(text);
             else if (src == strokeField)        setStrokeWidths(text);
