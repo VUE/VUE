@@ -21,7 +21,6 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 	// Statics
 	/////////////////
 	
-	static public final String kLinkColor = "linkColor";
 	static public final String kFillColor = "fillColor";
 	static public final String kStrokeColor = "strokeColor";
 	static public final String kTextColor = "textColor";
@@ -36,7 +35,8 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 												kFont
 												};
 												
-	static final String  []  sLinkProperties = {  kLinkColor,
+	static final String  []  sLinkProperties = {  kStrokeColor,
+												kStrokeWeight,
 												kTextColor,
 												kLinkArrowState,
 												kFont
@@ -105,10 +105,8 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 			
 			if( obj instanceof LWLink ) {
 				LWLink link = (LWLink) obj;
-				if( pName.equals(kLinkColor) ) {
-					return link.getStrokeColor();
-					}
-				else
+
+				
 				if( pName.equals( kLinkArrowState) ) {
 					Integer state = new Integer( link.getArrowState() );
 					return state;
@@ -160,10 +158,7 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 			
 			if( obj instanceof LWLink ) {
 				LWLink link = (LWLink) obj;
-				if( pName.equals( kLinkColor) ) {
-					link.setStrokeColor( (Color) pValue);
-					}
-				else
+
 				if( pName.equals( kLinkArrowState) ) {
 					int state = ((Integer) pValue).intValue();
 					link.setArrowState( state);
@@ -262,8 +257,7 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 			Color color = new Color(0,0,0);;
 			Class theClass = null;
 			
-			if( pName.equals( kLinkColor) ||
-				pName.equals(kFillColor) ||
+			if( pName.equals(kFillColor) ||
 				pName.equals( kStrokeColor) ||
 				pName.equals( kTextColor) ) {
 				theClass = color.getClass();
