@@ -67,7 +67,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     //final static String XML_MAPPING = VueResources.getURL("mapping.lw").getFile();
     final static java.net.URL XML_MAPPING =  VueResources.getURL("mapping.lw");
     private static String  FAVORITES_MAPPING;
-    private static int FAVORITES = DataSource.FAVORITES;
+   private static int FAVORITES = 1;
     private static int newFavorites = 0;
     JTextField keywords;
     boolean fileOpen = false;
@@ -104,7 +104,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
           
     
             MapResource favResource = new MapResource(displayName);
-            favResource.setType(DataSource.FAVORITES);
+            favResource.setType(1);
             
             
             FavoritesNode favRoot= new FavoritesNode(favResource);
@@ -120,6 +120,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         
         
         searchResultsPane = new JPanel();
+        searchResultsPane.setLayout(new BorderLayout());
+        JScrollPane jsp = new JScrollPane();
+        searchResultsPane.add(jsp,BorderLayout.CENTER,0);
+        
+        
         JPanel favSearchPanel = createfavSearchPanel(favoritesTree,favoritesPane,searchResultsPane,displayName);
         
         favoritesPane.addTab("Search",favSearchPanel);
@@ -527,7 +532,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     ResourceNode childNode = (ResourceNode)favRoot.getChildAt(outi);
                     
                     foundit = compareNode(searchString,childNode,serRoot,false);
-                  //  System.out.println("And here "+ childNode.toString()+foundit);
+                //  System.out.println("And here "+ childNode.toString()+foundit);
                     
                 }
                 
@@ -538,17 +543,24 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             
       
-            serResultTree.expandRow(0);
-           
-            serResultTree.setRootVisible(false);
+           serResultTree.setRootVisible(true);
             serResultTree.setShowsRootHandles(true);
+             serResultTree.expandRow(0);
+              serResultTree.setRootVisible(false);
+           
            
             
             JScrollPane fPane = new JScrollPane(serResultTree);
+              
+          
             
-            this.searchResultsPane.setLayout(new BorderLayout());
-            this.searchResultsPane.add(fPane,BorderLayout.NORTH,index);
-            index = index + 1;
+            //this.searchResultsPane.setLayout(new BorderLayout());
+           this.searchResultsPane.remove(0);
+         
+            this.searchResultsPane.add(fPane,BorderLayout.CENTER,0);
+            this.searchResultsPane.validate();
+          serResultTree.setRootVisible(false);
+           
             
             this.favoritesPane.setSelectedIndex(1);
             
