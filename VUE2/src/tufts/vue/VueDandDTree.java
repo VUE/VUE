@@ -18,7 +18,9 @@ import javax.swing.tree.*;
 import java.util.Vector;
 import javax.swing.event.*;
 import osid.dr.*;
-
+  import osid.filing.*;
+import tufts.oki.remoteFiling.*;
+import tufts.oki.localFiling.*;
 
 import java.awt.geom.Point2D;
 
@@ -39,13 +41,21 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         DnDConstants.ACTION_LINK |
         DnDConstants.ACTION_MOVE;
         private final boolean debug = true;
+        private final int FAVORITES = 4;
         private final boolean sametree = true;
         private final int newfavoritesnode = 0;
-        public VueDandDTree(FavoritesNode root){ 
-            super(root,"Favorites");
+       
+        
+    public VueDandDTree(FavoritesNode root){ 
+            
+            super(root);
+           
             this.setEditable(true);
             this.setShowsRootHandles(true);
+            this.expandRow(0);
             this.setExpandsSelectedPaths(true);
+            this.getModel().addTreeModelListener(new VueTreeModelListener());
+
             VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
             this.setCellRenderer(renderer);
             new DropTarget(this, // component
@@ -57,7 +67,8 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     public void drop(DropTargetDropEvent e ) {       
         java.awt.Point dropLocation = e.getLocation();
         TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
-        if (isvalidDropNode(treePath)){
+        ResourceNode dropNode = (ResourceNode)treePath.getLastPathComponent();
+        if ((dropNode.getResource()).getType() == FAVORITES){
             if (e.isLocalTransfer()) 
                 e.acceptDrop(DnDConstants.ACTION_MOVE);
             else 
@@ -71,89 +82,56 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
             try {
                 if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
-                    if (debug) System.out.println("RESOURCE FOUND");
+                    if (debug) System.out.println("RESOURCE FOUND" );
+                  
                     resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
+                    DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)treePath.getLastPathComponent();
                     java.util.Iterator iter = resourceList.iterator();
                     DefaultTreeModel model = (DefaultTreeModel)this.getModel(); 
+                    
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
-                        ResourceNode newNode =new  ResourceNode(resource);
-                        model.insertNodeInto(newNode, node, 0);
-                        this.expandRow(node.getLevel());
+                        System.out.println("RESOURCE FOUND 2" + resource + resource.getTitle() + resource.getSpec());
+                         
+                                   if (resource instanceof CabinetResource){
+                             
+                                     CabinetEntry entry = ((CabinetResource)resource).getEntry();
+                                      CabinetNode cabNode = null;
+                                       if (entry instanceof RemoteCabinetEntry)
+                                                cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.REMOTE);
+                                         else
+                                                 cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.LOCAL);
+                                   
+                                        cabNode.explore();
+                             
+                                      this.setRootVisible(true);
+                                        model.insertNodeInto(cabNode, rootNode, (rootNode.getChildCount()));
+                                      this.expandPath(new TreePath(rootNode.getPath()));
+                                    
+                                      this.setRootVisible(false);
+                                    }
+                         else {
+                             
+                             ResourceNode newNode =new ResourceNode(resource);
+                             this.setRootVisible(true);
+                              model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
+                              this.expandPath(new TreePath(rootNode.getPath()));
+                            this.expandRow(0);
+                            this.setRootVisible(false);
+                             
+                         }   
+                      
+                      
+                          }
                     }
-                }
+                
             } catch (Exception ex) {
                 ex.printStackTrace();
                 //System.out.println(ex);
                 //continue;
             }
             
-            /**
-            for (int i = 0; i < dataFlavors.length; i++) {
-                DataFlavor flavor = dataFlavors[i];
-                Object data = null;
-                if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
-                try {
-                    data = transfer.getTransferData(flavor);
-                } catch (Exception ex) {
-                      System.out.println("getTransferData: " + ex);
-                }
-                try {
-                    if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
-                         if (debug) System.out.println("RESOURCE FOUND");
-                         resourceList = (java.util.List) transfer.getTransferData(flavor);
-                         DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-                         java.util.Iterator iter = resourceList.iterator();
-                         DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-
-                         while(iter.hasNext()) {
-                            Resource resource = (Resource) iter.next();
-                            ResourceNode newNode =new  ResourceNode(resource);             
-                            model.insertNodeInto(newNode, node, 0);  
-                            this.expandRow(node.getLevel());
-                        }
-
-                    }else if (flavor.isFlavorJavaFileListType()) {
-                        if (debug) System.out.println("FILE LIST FOUND");
-                        fileList = (java.util.List) transfer.getTransferData(flavor);
-                        java.util.Iterator iter = fileList.iterator();
-                        while (iter.hasNext()) {
-                            java.io.File file = (java.io.File) iter.next();
-                            DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-                            FileNode newNode = new FileNode(file);
-                            DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-                            model.insertNodeInto(newNode, node, 0);    
-                            this.setRootVisible(true);
-                            this.expandRow(node.getLevel());
-                            this.setRootVisible(false);
-                            System.out.println("node level " + node.getLevel());
-                        }
-                        success = true;
-                    } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN)) {
-                        // checking isFlavorTextType() above should be
-                        // enough, but some Windows apps (e.g.,
-                        // Netscape-6) are leading the flavor list with
-                        // 20-30 mime-types of "text/uri-list", but the
-                        // reader only ever spits out the first character.
-
-                            resourceName = readTextFlavor(flavor, transfer);
-                            if (resourceName != null){
-                                DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-                                DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-                                DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(resourceName);
-                                model.insertNodeInto(newNode, node, 0);  
-                                  this.expandRow(node.getLevel());
-                            }
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    //System.out.println(ex);
-                    //continue;
-                }
-
-            }
-             */
+            
             e.dropComplete(success);
             }else{
                 if (debug) System.out.println("Invalid Drop Node");
@@ -161,133 +139,105 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
 
     }
    
-   //A special node for book mark files
  
- public boolean isvalidDropNode(TreePath  treePath){
-                    
+  class VueTreeModelListener implements TreeModelListener {
+    public void treeNodesChanged(TreeModelEvent e) {
+        ResourceNode node;
+        node = (ResourceNode)
+                 (e.getTreePath().getLastPathComponent());
+
+        /*
+         * If the event lists children, then the changed
+         * node is the child of the node we've already
+         * gotten.  Otherwise, the changed node and the
+         * specified node are the same.
+         */
+        try {
+            int index = e.getChildIndices()[0];
+            node = (ResourceNode)
+                   (node.getChildAt(index));
+        } catch (NullPointerException exc) {}
+
+        System.out.println("The user has finished editing the node.");
+        System.out.println("New value: " + node.getUserObject());
+        
+       MapResource resource = (MapResource)node.getResource();
+        resource.setTitle(node.getUserObject().toString());
+        clearSelection();
      
-                     
-                    if (treePath.getLastPathComponent() instanceof FavoritesNode){
-                      
-                      return true;
-                  
-                       }
-                 else {
-                    
-                      return false;
-                 }
-     }
-    
+        
+    }
+    public void treeNodesInserted(TreeModelEvent e) {
+    }
+    public void treeNodesRemoved(TreeModelEvent e) {
+    }
+    public void treeStructureChanged(TreeModelEvent e) {
+    }
+}
+
+  
  
  
  
   
  class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer {
     protected VueDandDTree tree;
-   // protected ResultNode lastNode;
+   
     private String metaData;
            
    public VueDandDTreeCellRenderer(VueDandDTree pTree) {
-        this.tree = pTree;
         
-                   
-                    
-              
        
+                this.tree = pTree;
         
                 tree.addMouseMotionListener(new MouseMotionAdapter() {
              
-             public void mouseClicked(MouseEvent me){
+                         public void mouseClicked(MouseEvent me){
                  
-                if  (me.getClickCount() == 1) {
-                     TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
+                         if  (me.getClickCount() == 1) {
+                        TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
+                               }
+                           }
+                         public void mouseMoved(MouseEvent me) {
+                         TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
+                         
                 
-                if (treePath!=null) {
-                   
-              if (treePath.getLastPathComponent() instanceof FileNode){
-                      FileNode node = (FileNode)treePath.getLastPathComponent();
-                      File fromNodeFile = node.getFile();
-                     
-              }
-               }
-                    
-             }
-             }
-            public void mouseMoved(MouseEvent me) {
-                TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
-                
-                if (treePath!=null) {
-                   
-                     if (treePath.getLastPathComponent() instanceof FileNode){
-                      FileNode node = (FileNode)treePath.getLastPathComponent();
-                            }
-                        }
-        
-        
-            
                             }          
             
-        });
+                  });
+                  
+                   
+
    
-    }
-     /* -----------------------------------  */
-                public Component getTreeCellRendererComponent(
-                            JTree tree,
-                            Object value,
-                            boolean sel,
-                            boolean expanded,
-                            boolean leaf,
-                            int row,
-                            boolean hasFocus) {
+    } 
+ 
+   public Component getTreeCellRendererComponent(JTree tree,Object value, boolean sel,boolean expanded,boolean leaf,int row,
+                            boolean hasFocus) 
+   {
                                 
                        
                      Icon leafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
                      Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
                      Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
                      
-                  
-                     
-                     
-            super.getTreeCellRendererComponent(
-                            tree, value, sel,
-                            expanded, leaf, row,
-                            hasFocus);
+                 
+                   super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             
-                       
-                    
-                     
-                       if (value instanceof FavoritesNode)
+                       if ((((ResourceNode)value).getResource()).getType()==FAVORITES) 
                       {
                           
-                 
-                        if ( ((FavoritesNode)value).getChildCount() >0 )
-                        {
-                          setIcon(activeIcon);
+                                   if ((((DefaultMutableTreeNode)value).getChildCount()) > 0 ){ setIcon(activeIcon);}
+                                   else {setIcon(inactiveIcon);}
+                        
                           
-                        }
-                        else
-                        {
-                            setIcon(inactiveIcon);
-                          
-                        }
+                       }
                        
-                          
-                        }
                        else if (leaf){ setIcon(leafIcon);}
                      
                        else {setIcon(activeIcon);}
-                           
-                           
-                       
-                     
-
-            return this;
- }
-
-                
-                  /*---------------------------------*/
-   
-   
+     
+                    return this;
+                  }
 
  }
 
