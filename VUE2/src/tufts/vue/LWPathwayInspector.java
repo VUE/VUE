@@ -113,7 +113,7 @@ public class LWPathwayInspector extends InspectorWindow
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
-        this.setSize(400, 450);
+        this.setSize(420, 450);
         /**unselects checkbox in VUE window menu on closing*/
         super.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {setButton(false);}});
@@ -133,15 +133,15 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setPathway(LWPathway pathway){
         this.pathway = pathway;
-        if(pathway!=null) map = pathway.getPathwayMap();
-        if(pathway != null)
-            setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
-        else
-            setTitle("PATHWAY INSPECTOR");
+        //if(pathway!=null) map = pathway.getPathwayMap();
+        //if(pathway != null)
+        //    setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
+        //else
+        //    setTitle("PATHWAY INSPECTOR");
         
-        pathwayTab.setPathway(pathway);
-        notes.setNotes();        
-        model.fireTableDataChanged();        
+        //pathwayTab.setPathway(pathway);
+        //notes.setNotes();        
+        //model.fireTableDataChanged();        
     }
     
     public void notifyPathwayTab(){

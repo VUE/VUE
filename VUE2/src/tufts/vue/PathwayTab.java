@@ -43,14 +43,19 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  */
 
 /**A class which displays nodes in a pathway */
-public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener, DocumentListener, KeyListener
+public class PathwayTab extends JPanel implements   ActionListener,
+                                                    //ListSelectionListener,
+                                                    DocumentListener,
+                                                    KeyListener,
+                                                    TableModelListener
 {    
     //necessary widgets
     private PathwayTable pathwayTable = null;
     private PathwayTableModel tableModel = null;
-    private JButton remove = null, plus = null; //moveUp, moveDown, submit 
+    public JButton removeElement = null, addElement = null, moveUp = null, moveDown = null; //, submit 
     private JTextField text;
-    //private PathwayControl pathwayControl;
+    private JLabel pathLabel = null;//, nodeLabel = null, slashLabel = new JLabel(" / ");
+    
     private JDialog parent;
     private JPanel buttons = null, pnPanel = null, pcPanel = null, buttonPanel = null;
     private JLabel pathName = null;
@@ -61,22 +66,29 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     private JButton firstButton, lastButton, forwardButton, backButton;
     private JButton removeButton, createButton;
     //private JComboBox pathwayList;
+    private JPanel southNotes = null;
+    private JTextArea notesArea = null;
     
     private LWPathwayManager pathwayManager = null;
     
     private final String noPathway = "                          ";
     private final String emptyLabel = "empty";
     
+    private LWPathway dispPath = null;
+    private LWComponent dispComp = null;
     /* end Pathway Control Properties */
     
-    
+    private String[] colNames = {"A", "B", "C", "D", "E"};
+    private int[] colWidths = {20,20,20,100,20};
+ 
     /** Creates a new instance of PathwayTab */
     public PathwayTab(JDialog parent) 
     {   
         this.parent = parent;
         
         setLayout(new GridLayout(2,1,5,0));
-        
+        pathLabel = new JLabel();
+        //nodeLabel = new JLabel();
         //used but not added to GUI
         setPathwayControl();
         setPathwayNameLabel();
@@ -104,10 +116,18 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
    
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         
+        //pathway table setup
+        tableModel = new PathwayTableModel(this);   
         
-        tableModel = new PathwayTableModel(this);
         pathwayTable = new PathwayTable(this);
         pathwayTable.setModel(tableModel);
+        pathwayTable.setDefaultRenderer(String.class, new javax.swing.table.DefaultTableCellRenderer());        
+        
+        for(int i = 0; i < 5; i++){
+            TableColumn col = pathwayTable.getColumn(colNames[i]);
+            //col.setPreferredWidth(colWidths[i]);
+            if(i != 3) col.setMaxWidth(colWidths[i]);
+        } 
         
         northPanel.add(new JLabel("Highlight a path to playback:"));
         northPanel.add(buttonPanel);
@@ -127,15 +147,18 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         add(pathwayPanel);
         
         JPanel notesPanel = new JPanel(new BorderLayout());
-        JPanel southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
      
-        southNotes.add(new JLabel("Notes: "));
-        southNotes.add(new JLabel("Path 3 / "));
-        southNotes.add(new JLabel("Node 15"));
+        //southNotes.add(new JLabel("Notes: "));
+        southNotes.add(pathLabel);
+        pathLabel.setText("Notes: ");
+        //southNotes.add(slashLabel);
+        //southNotes.add(nodeLabel);
         notesPanel.add(southNotes, BorderLayout.NORTH);
         
-        JTextArea notesArea = new JTextArea("Notes area.");
+        notesArea = new JTextArea("");
         notesArea.setColumns(5);
+        notesArea.addKeyListener(this);
         notesPanel.add(notesArea, BorderLayout.CENTER);
         
         add(notesPanel);
@@ -173,13 +196,9 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         setButton(forwardButton);
         setButton(lastButton);
         
-        //pathwayList = new JComboBox();
-        //pathwayList.setRenderer(new PathwayRenderer());
-        //pathwayList.addItemListener(this);
-        
         JPanel mainPanel = new JPanel();
         mainPanel.add(new JLabel("Select:"));
-        //mainPanel.add(pathwayList);
+        
         mainPanel.add(new JLabel("???"));
         pcPanel.add(mainPanel, BorderLayout.CENTER);
     }
@@ -218,29 +237,29 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     public void setButtons(){
         
         buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        plus = new JButton("+");
-        plus.setPreferredSize(new Dimension(bWidth, bHeight));
-        plus.addActionListener(this);
-        plus.setEnabled(false);
-        remove = new JButton("-");
-        remove.setPreferredSize(new Dimension(bWidth, bHeight));
-        remove.addActionListener(this);
-        remove.setEnabled(false);
+        addElement = new JButton("+");
+        addElement.setPreferredSize(new Dimension(bWidth, bHeight));
+        addElement.addActionListener(this);
+        addElement.setEnabled(false);
+        removeElement = new JButton("-");
+        removeElement.setPreferredSize(new Dimension(bWidth, bHeight));
+        removeElement.addActionListener(this);
+        removeElement.setEnabled(false);
         
         //toggles the add button's availability depending on the selection
         VUE.ModelSelection.addListener( new LWSelection.Listener() {
                 public void selectionChanged(LWSelection selection)
                 {
                     if (!selection.isEmpty() && VUE.getActiveMap().getPathwayManager().length() > 0)
-                      plus.setEnabled(true);
+                      addElement.setEnabled(true);
                     else
-                      plus.setEnabled(false);
+                      addElement.setEnabled(false);
                 }
             }     
         );
         
-        buttons.add(plus);
-        buttons.add(remove);
+        buttons.add(addElement);
+        buttons.add(removeElement);
         
     }
     /*
@@ -309,11 +328,11 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         
         //disables the add button if the pathway is not selected
         if (pathway == null)
-          plus.setEnabled(false);
+          addElement.setEnabled(false);
         
         //if the pathway is selected and map items are selected, enable the add button
         else if (!VUE.ModelSelection.isEmpty())
-          plus.setEnabled(true);
+          addElement.setEnabled(true);
     }
     
     /**Gets the current pathway associated with the pathway table*/
@@ -333,6 +352,10 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     
     public PathwayTableModel getPathwayTableModel(){
         return this.tableModel;
+    }
+    
+    public PathwayTable getPathwayTable(){
+        return this.pathwayTable;
     }
     
     /**Notifies the table of data change*/
@@ -357,143 +380,58 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
                     addPathway(new LWPathway(text.getText()));
                     pathName.setText("Edit Name:");
                     text.setText(this.getCurrentPathway().getLabel());
-                }
+                }                
         }
+        if (notesArea.isFocusOwner())
+            if(dispPath != null){
+                if(dispComp != null){
+                    dispComp.setNotes(notesArea.getText());
+                }else
+                    dispPath.setNotes(notesArea.getText());
+            }        
     }
     
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
-        //gets the selected row number
         int selected = pathwayTable.getSelectedRow();
         
-        //moves up the selected row 
-        /*if (e.getSource() == moveUp)
-        {   
-            ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, --selected);
-            pathwayTable.setRowSelectionInterval(selected, selected);
-            submit.setEnabled(false);
-        }
-        
-        //moves down the selected row
-        else if (e.getSource() == moveDown)
-        {   
-            ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, ++selected);
-            pathwayTable.setRowSelectionInterval(selected, selected);
-            submit.setEnabled(false);
-        }
-        
-        //removes the selected row
-        else*/
-        
-        if (e.getSource() == remove)
-        {    
-             if (selected != -1)
-             {
-                //((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);     
-                //submit.setEnabled(false);
+        if (e.getSource() == removeElement){    
+             Object obj = this.getPathwayTableModel().getElement(selected);
+             if (obj != null && obj instanceof LWComponent){   
+                LWComponent comp = (LWComponent)obj;
+                this.getPathwayTableModel().removeElement(comp);
+                //this.getPathwayTableModel().fireTableDataChanged();               
              }  
-        }        
-        
-        //add selected elements to the pathway where the table is selected
-        else if (e.getSource() == plus)
-        {
-            LWComponent array[] = VUE.ModelSelection.getArray();
-              
-            //adds everything in the current selection 
-            for (int i = 0; i < array.length; i++)
-            {
-                //((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], ++selected);
-            }
-            
-            pathwayTable.setRowSelectionInterval(selected, selected);
+        }            
+        else if (e.getSource() == addElement){
+            LWComponent array[] = VUE.ModelSelection.getArray();             
+            this.getPathwayTableModel().addElements(array);            
+            //this.getPathwayTableModel().fireTableDataChanged();
         }
-
-        //submit
-        /*
-         else
-        {            
-            LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selected);
-            element.setNotes(text.getText());
-            //submit.setEnabled(false);
-        }
-        */
         else if (e.getSource() == firstButton){
           this.getCurrentPathway().getFirst();
-          
         }
-            
-        //moves to the last node of the pathway
         else if (e.getSource() == lastButton){
           this.getCurrentPathway().getLast();
-          
         }
-        //moves to the next node of the pathway
         else if (e.getSource() == forwardButton){
           this.getCurrentPathway().getNext();
-          
         }
-        //moves to the previous node of the pathway
         else if (e.getSource() == backButton){
           this.getCurrentPathway().getPrevious();
-          
         }
-        
-        //temporarily here
         else if (e.getSource() == removeButton){
-          removePathway(this.getCurrentPathway());
-          //pathName.setText("Path Name:");
+            removePathway(this.getCurrentPathway());
         }
-        
         else if (e.getSource() == createButton){    
-                //parent.setSize(350, 350);
-                //pathName.setText("Path Name:");
-                //text.setText("");
-                PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
-                dialog.show();
+            PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
+            dialog.show();
         }
           
-        //notifies the change to the panel
+        this.getPathwayTableModel().fireTableDataChanged();
         updateControlPanel();
         VUE.getActiveViewer().repaint();
-    }
-    
-    /**Reacts to list selections dispatched by the table*/
-    public void valueChanged(ListSelectionEvent le)
-    {
-        ListSelectionModel lsm = (ListSelectionModel)le.getSource();
-
-        //if there is a row selected
-        if (!lsm.isSelectionEmpty())
-        {
-            int selectedRow = lsm.getMinSelectionIndex();
-            remove.setEnabled(true);
-            
-            //LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
-            //text.setText(element.getNotes());
-      
-            //if the selected row is the last row, then disables the move down button
-            /*if(selectedRow == pathwayTable.getRowCount() - 1)
-                moveDown.setEnabled(false);
-            else
-                moveDown.setEnabled(true);
-            
-            //if the selected row is the first row, then disables the move up button
-            if(selectedRow == 0)
-                moveUp.setEnabled(false);
-            else
-                moveUp.setEnabled(true);*/
-        }
-        
-        //if no row is selected, then disables all buttons
-        else
-        {
-            //moveDown.setEnabled(false);
-            //moveUp.setEnabled(false);
-            remove.setEnabled(false);
-            //submit.setEnabled(false);
-            //text.setText("comment");
-        }
     }
    
     /**document listener's methods*/
@@ -555,6 +493,7 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
    
     /*** Pathway Control methods ***/
     /**Sets the pathway manager to the given pathway manager*/
+    
     public void setPathwayManager(LWPathwayManager pathwayManager)
     {
         this.pathwayManager = pathwayManager;
@@ -597,9 +536,9 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
     public void setCurrentPathway(LWPathway pathway)
     {
-        if(this.getPathwayManager() != null)
-            this.getPathwayManager().setCurrentPathway(pathway);
-        
+        //if(this.getPathwayManager() != null)
+        //    this.getPathwayManager().setCurrentPathway(pathway);
+        this.getPathwayTableModel().setCurrentPathway(pathway);
             
         //sets to the first node if there is no current node set
         if(pathway != null)
@@ -614,62 +553,40 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     /**Returns the currently selected pathway*/
     public LWPathway getCurrentPathway()
     {
-        return this.getPathwayManager().getCurrentPathway();
+        //return this.getPathwayManager().getCurrentPathway();
+        return this.getPathwayTableModel().getCurrentPathway();
     }
     
     /**A method which updates the widgets accordingly*/
     public void updateControlPanel()
     {
-        //if there is a pathway currently selected
-        if (this.getCurrentPathway() != null)
-        {
+        if (this.getCurrentPathway() != null){
             LWComponent currentElement = this.getCurrentPathway().getCurrent();
             
-            //temporarily here 
             removeButton.setEnabled(true);
             
-            //if there is a node in the pathway
-            if(currentElement != null)
-            {
-                //sets the label to the current node's label
-                //nodeLabel.setText(currentElement.getLabel());
-          
-                //if it is the first node in the pathway, then disables first and back buttons
-                if (this.getCurrentPathway().isFirst())
-                {
+            if(currentElement != null){
+                if (this.getCurrentPathway().isFirst()){
                     backButton.setEnabled(false);
                     firstButton.setEnabled(false);
-                }
-          
-                else
-                {
+                }else{
                     backButton.setEnabled(true);
                     firstButton.setEnabled(true);
                 }
           
-                //if it is the last node in the pathway, then disables last and forward buttons
-                if (this.getCurrentPathway().isLast())
-                {
+                if (this.getCurrentPathway().isLast()){
                     forwardButton.setEnabled(false);
                     lastButton.setEnabled(false);
-                }
-            
-                else
-                {
+                }else {
                     forwardButton.setEnabled(true);
                     lastButton.setEnabled(true);
                 }
-            }
-            
-            //if there is no node in the pathway, disables every button
-            else
-            {
+            }else{
                 firstButton.setEnabled(false);
                 lastButton.setEnabled(false);
                 forwardButton.setEnabled(false);
                 backButton.setEnabled(false);
-                //nodeLabel.setText(emptyLabel);
-            }
+            }           
         }
         
         //if currently no pathway is selected, disables all buttons and resets the label
@@ -693,6 +610,23 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         //pathwayList.setSelectedIndex(0);
         
         //pathwayList.removeItem(oldPathway);
-        pathwayManager.removePathway(oldPathway);
+        //pathwayManager.removePathway(oldPathway);
+        ((PathwayTableModel)this.pathwayTable.getModel()).removePathway(oldPathway);
     }
+    
+    public void updateLabels(String text, String notes, LWPathway path, LWComponent comp){
+        pathLabel.setText(text);   
+        pathLabel.repaint();
+        
+        notesArea.setText(notes);
+        notesArea.repaint();
+        
+        dispPath = path;
+        dispComp = comp;
+    }
+    
+    public void tableChanged(javax.swing.event.TableModelEvent tableModelEvent) {
+        this.repaint();
+    }
+    
 }

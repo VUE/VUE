@@ -64,15 +64,22 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     {
         if (e.getSource() == okButton)
         {
-            //calls addPathway method defined in PathwayControl
-            tab.addPathway(new LWPathway(textField.getText()));
-            dispose();
+            String pathLabel = textField.getText();
+            if(tab.getPathwayTableModel().isRepeat(pathLabel)){
+                JOptionPane option = new JOptionPane(
+                    "Please rename this pathway.",
+                    JOptionPane.INFORMATION_MESSAGE);
+                JDialog dialog = option.createDialog(okButton, "Pathway Name Already Exists");
+                dialog.show();
+            }
+            else{
+                tab.getPathwayTableModel().addPathway(new LWPathway(pathLabel));
+                dispose();
+            }
         }
 
         else if (e.getSource() == cancelButton)
         {
-            //selects empty pathway if the cancel button was pressed
-            //tab.getPathwayList().setSelectedItem(noPathway);
             dispose();
         }
     }
@@ -83,13 +90,13 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 
     public void keyTyped(KeyEvent e) 
     {
-        //when enter is pressed
         if(e.getKeyChar()== KeyEvent.VK_ENTER)
         {
             //if the ok button or the text field has the focus, add a designated new pathway
             if (okButton.isFocusOwner() || textField.isFocusOwner())
             {    
                 //tab.addPathway(new LWPathway(textField.getText()));
+                
                 tab.getPathwayTableModel().addPathway(new LWPathway(textField.getText()));
                 dispose();                  
             }

@@ -9,7 +9,10 @@
 
 package tufts.vue;
 
-import java.util.ArrayList;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.table.*;
+import java.awt.*;
 
 /**
  *
@@ -17,9 +20,10 @@ import java.util.ArrayList;
  */
 public class LWPathwayManager {
     
-    private ArrayList pathways = new ArrayList();
+    private ArrayList pathways = null;
     private LWPathway current = null;
     private LWMap map = null;
+    private boolean currentOpen = false;
     
     /* beginning of castor mapping methods */
     
@@ -42,27 +46,83 @@ public class LWPathwayManager {
         return map;
     }
     
-    /* iterates through arraylist of pathways */
+    /* iterates through arraylist of pathways elements */
     public java.util.Iterator getPathwayIterator() {
         return pathways.iterator();
     }
     
     /* methods for accessing data from and manipulating the arraylist */
-    public LWPathway getPathway(int index)
-    {
-        return (LWPathway)pathways.get(index);
+    public Object getPathwaysElement(int index){
+        return pathways.get(index);
+    }
+    
+    public boolean getCurrentOpen(){
+        return this.currentOpen;
+    }
+    
+    public void setCurrentOpen(boolean currentOpen){
+        this.currentOpen = currentOpen;
+        if(this.currentOpen){
+            this.showPathwayElements();
+        }else{
+            this.hidePathwayElements();
+        }
+    }
+    
+    public void setCurrentOpen(){
+        boolean newValue = !this.currentOpen;
+        this.setCurrentOpen(newValue);
+    }
+    
+    public int getPathwayIndex(LWPathway path){
+        return this.pathways.indexOf(path);
     }
 
-    public void setPathwayList(ArrayList pathways)
-    {
-        System.out.println("setting the pathways in the manager");
+    public void setPathwayList(ArrayList pathways){
         this.pathways = pathways;
     }
      
-    public ArrayList getPathwayList()
-    {
-        System.out.println("getting the pathways in the manager");
+    public ArrayList getPathwayList(){
         return pathways;
+    }
+    
+    public void addPathwayElement(LWComponent comp){
+        if(this.getCurrentOpen()){
+            this.hidePathwayElements();
+            this.getCurrentPathway().addElement(comp);
+            this.showPathwayElements();
+        }else
+            this.getCurrentPathway().addElement(comp);
+    }
+    
+    public void addPathwayElements(LWComponent[] array){
+        if(this.getCurrentOpen()){
+            this.hidePathwayElements();
+            for (int i = 0; i < array.length; i++){
+                this.getCurrentPathway().addElement(array[i]);                        
+            }
+            this.showPathwayElements();
+        }else{
+            for (int i = 0; i < array.length; i++){
+                this.getCurrentPathway().addElement(array[i]);                        
+            }
+        }
+    }
+    
+    private void showPathwayElements(){
+        LWPathway pathway = this.getCurrentPathway();
+        java.util.List list = pathway.getElementList();
+        this.pathways.addAll(this.getCurrentIndex()+1, list);
+    }
+    
+    private void hidePathwayElements(){
+        LWPathway pathway = this.getCurrentPathway();
+        Iterator iter = pathway.getElementIterator();
+        while(iter.hasNext()){
+            LWComponent comp = (LWComponent)iter.next();
+            if(pathways.contains(comp))
+                pathways.remove(comp);   
+        }
     }
     
     public LWPathway getCurrentPathway() {
@@ -70,15 +130,15 @@ public class LWPathwayManager {
     }
     
     public void setCurrentPathway(LWPathway pathway) {
+        if(this.getCurrentPathway() != null && !this.getCurrentPathway().equals(pathway) && this.getCurrentOpen())
+            this.hidePathwayElements();
         current = pathway;
-        
-        VUE.getPathwayInspector().setPathway(pathway);
         VUE.getActiveViewer().repaint();
     }
    
-    public LWPathway getFirst(){
+    public Object getFirst(){
         if (length() != 0)
-            return (LWPathway)pathways.get(0);        
+            return pathways.get(0);        
         else
             return null;
     }
@@ -94,23 +154,21 @@ public class LWPathwayManager {
     
     public void setCurrentIndex(int index)
     {
-        System.out.println("Current Pathway is now " + index);
-        try
-        {
-            current = (LWPathway)pathways.get(index);
-        }
-        
-        catch (IndexOutOfBoundsException ie)
-        {
-            current = null;
+        try{
+            this.setCurrentPathway((LWPathway)pathways.get(index));
+        }catch (IndexOutOfBoundsException ie){
+            if(this.getFirst() != null)
+                this.setCurrentPathway((LWPathway)this.getFirst());
+            else
+                this.setCurrentPathway(null);
         }
     }
     
     /**End of Castor Interface*/
     
-    public LWPathway getLast(){
+    public Object getLast(){
         if (length() != 0)
-            return (LWPathway)pathways.get(length() - 1);        
+            return pathways.get(length() - 1);        
         else
             return null;
     }
@@ -121,22 +179,28 @@ public class LWPathwayManager {
     
     public void addPathway(LWPathway pathway){
         pathways.add(pathway);
-        
-        //if(current == null)
-        current = pathway;              
+        this.setCurrentPathway(pathway);
+    }
+    
+    public void removeElement(LWComponent comp){
+        if(this.getCurrentOpen()){
+            this.hidePathwayElements();
+            this.getCurrentPathway().removeElement(comp);
+            this.showPathwayElements();
+        }else
+            this.getCurrentPathway().removeElement(comp);
     }
     
     public void removePathway(LWPathway pathway){
         pathways.remove(pathway);
         
-        if(current == pathway)
-          current = getFirst();
-    }
-    
-    /*    
-    public void setPathway(int index, LWPathway pathway)
-    {
-        pathways.set(index, pathway);
-    }
-    */    
+        if(current.equals(pathway)){
+            if(this.getFirst() != null && this.getFirst() instanceof LWPathway)
+                this.setCurrentPathway((LWPathway)this.getFirst());
+            else{
+                this.setCurrentPathway(null);
+            }
+        }
+            
+    } 
 }

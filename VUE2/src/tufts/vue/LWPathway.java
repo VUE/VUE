@@ -30,7 +30,7 @@ public class LWPathway //extends tufts.vue.LWComponent
     private String label = "";
     private int currentIndex;
     private String notes = "";
-    //private boolean isShowing = false;
+    private boolean isShowing = false;
     
     /**default constructor used for marshalling*/
     public LWPathway() {
@@ -60,6 +60,14 @@ public class LWPathway //extends tufts.vue.LWComponent
     
     public LWMap getPathwayMap(){
         return map;
+    }
+    
+    public void setIsShowing(boolean isShowing){
+        this.isShowing = isShowing;
+    }
+    
+    public boolean getIsShowing(){
+        return isShowing;
     }
     
     public void drawPathway(Graphics2D g){
@@ -287,6 +295,19 @@ public class LWPathway //extends tufts.vue.LWComponent
     
     public int getCurrentIndex(){
         return currentIndex;
+    }
+    
+    public int getElementIndex(LWComponent comp){
+        Iterator iter = this.elementList.iterator();
+        int index = 0;
+        while(iter.hasNext()){
+            LWComponent c = (LWComponent)iter.next();
+            if(c.equals(comp)){
+                return index;
+            }
+            index++;
+        }
+        return -1;
     }
     
     public String getLabel() {
