@@ -130,13 +130,21 @@ public class VueToolbarController
                         if (rawIcon != null) {
                             tool.setGeneratedIcons(rawIcon);
                         } else {
-                            tool.setIcon( VueResources.getImageIcon( pName+".up"));
-                            tool.setDownIcon( VueResources.getImageIcon( pName+".down"));
-                            tool.setSelectedIcon( VueResources.getImageIcon(pName+".selected"));
-                            tool.setDisabledIcon( VueResources.getImageIcon(pName+".disabled"));
-                            tool.setRolloverIcon( VueResources.getImageIcon( pName+".rollover"));
-                            tool.setMenuItemIcon( VueResources.getImageIcon( pName+".menu"));
-                            tool.setMenuItemSelectedIcon( VueResources.getImageIcon( pName+".menuselected"));
+                            Icon i;
+                            if ((i = VueResources.getImageIcon(pName+".up")) != null)
+                                tool.setIcon(i);
+                            if ((i = VueResources.getImageIcon(pName+".down")) != null)
+                                tool.setDownIcon(i);
+                            if ((i = VueResources.getImageIcon(pName+".selected")) != null)
+                                tool.setSelectedIcon(i);
+                            if ((i = VueResources.getImageIcon(pName+".disabled")) != null)
+                                tool.setDisabledIcon(i);
+                            if ((i = VueResources.getImageIcon(pName+".rollover")) != null)
+                                tool.setRolloverIcon(i);
+                            if ((i = VueResources.getImageIcon(pName+".menu")) != null)
+                                tool.setMenuItemIcon(i);
+                            if ((i = VueResources.getImageIcon(pName+".menuselected")) != null)
+                                tool.setMenuItemSelectedIcon(i);
                         }
 
                         tool.setShortcutKey(VueResources.getChar( pName+".shortcutKey"));

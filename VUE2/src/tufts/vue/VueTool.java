@@ -3,6 +3,7 @@ package tufts.vue;
 import java.util.*;
 import java.lang.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -438,7 +439,8 @@ public abstract class VueTool extends AbstractAction
 	public Icon getOverlayDownIcon() {
 		return mOverlayDownIcon;
 	}
-	public void setGeneratedIcons( Icon pIcon) {
+	public void setGeneratedIcons(Icon pIcon) {
+            System.out.println(this + " generating icons from " + pIcon);
             mRawIcon = pIcon;
             setIcon(new ToolIcon(mRawIcon, ToolIcon.UP));
             setDownIcon(new ToolIcon(mRawIcon, ToolIcon.DOWN));
@@ -479,7 +481,7 @@ public abstract class VueTool extends AbstractAction
         static final int MENU_SELECTED = 6; // SUB-MENU: Rollover (palette menu)
             
         static final int width = 38;
-        static final int height = 27;
+        static final int height = 26;
         //static final int arc = 15; // arc of rounded toolbar button border
 
         private Insets insets = new Insets(1,1,0,0);
@@ -493,6 +495,7 @@ public abstract class VueTool extends AbstractAction
         private boolean mIsDown;
         private boolean mPaintGradient = false;
 
+        private final static boolean OffsetWhenDown = false; // set to true of "up" state appears as a button
         private final static boolean debug = false;
 
         protected ToolIcon(Icon rawIcon, int t)
@@ -500,9 +503,11 @@ public abstract class VueTool extends AbstractAction
             mRawIcon = rawIcon;
             mType = t;
             mIsDown = (t == DOWN || t == SELECTED || t == MENU_SELECTED);
-            mPaintGradient = mIsDown || t == ROLLOVER;
-            if (mPaintGradient)
-                mColor = Color.gray;
+            //mPaintGradient = mIsDown || t == ROLLOVER;
+            //if (mPaintGradient)
+            if (mIsDown)
+                mColor = Color.lightGray;
+            //mColor = Color.gray;
                 //mColor = ToolbarColor;
             if (debug) {
                 if (t == MENU) mColor = Color.pink;
@@ -548,32 +553,41 @@ public abstract class VueTool extends AbstractAction
             GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw*.33f,h/2,mColor,true);
             // Set gradient for the whole button.
 
-
-            if (true||mIsDown) {
+            if (mIsDown) {
                 // Draw the 3d button border -- raised/lowered depending on down state                
                 g2.setColor(c.getBackground());
                 g2.draw3DRect(0,0, w-1,h-1, !mIsDown);
-            } else {
+            } else if (mType == ROLLOVER) {
+                new EtchedBorder().paintBorder(c, g, 0, 0, w, h);
                 // draw a plain flat border
-                g2.setColor(Color.darkGray);
-                g2.drawRect(0,0, w-1,h-1);
+                //g2.setColor(Color.darkGray);
+                //g2.drawRect(0,0, w-1,h-1);
             }
 
             // now fill the icon
-            if (mPaintGradient)
+            if (mIsDown) {
                 g2.setPaint(gradient);
+                g2.fillRect(1,1, w-2,h-2);
+            }
             else
                 g2.setColor(mColor);
-            g2.fillRect(1,1, w-2,h-2);
+            //g2.fillRect(1,1, w-2,h-2);
+            // skipping the fill here creates the flush-look
                 
             // if we're down, nudge icon
-            if (mIsDown)
+            if (OffsetWhenDown && mIsDown)
                 g2.translate(1,1);
 
             // now draw the actual graphic in the center
+            //int ix = Math.round((w - mRawIcon.getIconWidth()) / 2f);
+            //int iy = Math.round((h - mRawIcon.getIconHeight()) / 2f);
             int ix = (w - mRawIcon.getIconWidth()) / 2;
             int iy = (h - mRawIcon.getIconHeight()) / 2;
             drawGraphic(c, g2, ix, iy);
+            if (DEBUG.BOXES) {
+                g2.setColor(Color.red);
+                g2.drawRect(ix, iy, mRawIcon.getIconWidth(), mRawIcon.getIconHeight());
+            }
         }
 
         void drawGraphic(Component c, Graphics2D g, int x, int y)

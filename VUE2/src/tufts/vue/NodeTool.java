@@ -157,14 +157,15 @@ public class NodeTool extends VueTool
 	public void setID(String pID) {
             super.setID(pID);
             //System.out.println(this + " ID set");
-            getShape(); // cache it for fast response first time
+            //getShape(); // cache it for fast response first time
+            setGeneratedIcons(new ShapeIcon());
         }
 
         public RectangularShape getShapeInstance()
         {
             if (shapeClass == null) {
                 String shapeClassName = getAttribute("shapeClass");
-                System.out.println(this + " got shapeClass " + shapeClassName);
+                //System.out.println(this + " got shapeClass " + shapeClassName);
                 try {
                     this.shapeClass = getClass().getClassLoader().loadClass(shapeClassName);
                 } catch (Exception e) {
@@ -189,182 +190,76 @@ public class NodeTool extends VueTool
                     
         }
 
-        //private static final Color bgColor = new Color(127,127,127);
-        //private static final Color bgColor = new Color(230,230,230);
-        //private static final Color fillColor = new Color(175,191,198);
-        private static final int ICON_DEFAULT = 0;
-        private static final int ICON_DOWN = 1;
-        private static final int ICON_SELECTED = 2;
-
-        //private static final Color sShapeColor = new Color(255,178,208); // diagnostic color
+        static final int nearestEven(double d)
+        {
+            if (Math.floor(d) == d && d % 2 == 1) // if exact odd integer, just increment
+                return (int) d+1;
+            if (Math.floor(d) % 2 == 0)
+                return (int) Math.floor(d);
+            else
+                return (int) Math.ceil(d);
+        }
+        static final int nearestOdd(double d)
+        {
+            if (Math.floor(d) == d && d % 2 == 0) // if exact even integer, just increment
+                return (int) d+1;
+            if (Math.floor(d) % 2 == 1)
+                return (int) Math.floor(d);
+            else
+                return (int) Math.ceil(d);
+        }
+        
         private static final Color sShapeColor = new Color(165,178,208); // melanie's steel blue
-        private static final Color sButtonColor = new Color(222,222,222);
-        private static final Color sOverColor = Color.gray;
-        //private static final Color sDownColor = new Color(211,211,211);
-        private static final Color sDownColor = sOverColor;
-        //private static final Color sOverColor = Color.white;
-        //private static final Color sOverColor = new Color(244,244,244);
+        private static int sWidth;
+        private static int sHeight;
+
+        static {
+            // Select a width/height that will perfectly center
+            // within the parent button icon.  If parent width
+            // is even, our width should be even, if odd, we
+            // should be odd.  This is independent of the
+            // 50% size of the parent button we're using
+            // as a baseline (before the pixel tweak).
+            if (ToolIcon.width % 2 == 0)
+                sWidth = nearestEven(ToolIcon.width / 2);
+            else
+                sWidth = nearestOdd(ToolIcon.width / 2);
+            if (ToolIcon.height % 2 == 0)
+                sHeight = nearestEven(ToolIcon.height / 2);
+            else
+                sHeight = nearestOdd(ToolIcon.height / 2);
+        }
         
         class ShapeIcon implements Icon
         {
-            final int width = 38;
-            final int height = 27;
-            final int xInset = 7;
-            final int yInset = 6;
-            final int arc = 15; // arc of rounded toolbar button border
+            public int getIconWidth() { return sWidth; }
+            public int getIconHeight() { return sHeight; }
 
-            int type = ICON_DEFAULT;
-
-            private Color mColor = new Color(230,230,230);
-            //private Color mColor = new Color(200,200,200);
-            //private Color mColor = Color.gray;
-
-            private boolean mIsDown = false;
-            private boolean mDrawButton = false;
-
-            protected ShapeIcon(int type)
+            private RectangularShape mShape;
+            ShapeIcon()
             {
-                this.type = type;
+                mShape = getShapeInstance();
+                if (mShape instanceof RoundRectangle2D) {
+                    // hack to deal with arcs being too small on a tiny icon
+                    ((RoundRectangle2D)mShape).setRoundRect(0, 0, sWidth,sHeight, 8,8);
+                } else
+                    mShape.setFrame(0,0, sWidth,sHeight);
             }
             
-            protected ShapeIcon(Color c, boolean drawButton, boolean down) {
-                mColor = c;
-                mDrawButton = drawButton; // else: draw rounded border
-                mIsDown = down;
-            }
-            
-            protected ShapeIcon(Color c) {
-                this(c, false, false);
-            }
-            
-            public int getIconWidth() { return width; }
-            public int getIconHeight() { return height; }
-
-            static final private boolean roundButton = false;
-            static final private boolean debug = false;
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                if (debug) {
-                    g2.setColor(Color.red);
-                    g2.fillRect(0,0, 99,99);
-                }
-                if (VueUtil.isMacPlatform())
-                    g2.translate(3,3);
-                else
-                    g2.translate(1,1);
-
-                int w = width;
-                int h = height;
-                
-                float gw = width;
-                //GradientPaint gradient = new GradientPaint(gw/2,0,Color.white,gw/2,h/2,mColor,true);
-                //GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw/2,h/2,mColor,true);
-                GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw*.33f,h/2,mColor,true);
-                // Set gradient for the whole button.
-                if (mColor.equals(sDownColor))
-                    g2.setPaint(gradient);
-                else
-                    g2.setColor(mColor);
-
-                if (!roundButton||mDrawButton) {
-                    g2.setColor(ToolbarColor);
-                    //g2.setColor(mColor);
-                    //g2.setColor(Color.white);
-                    //g2.draw3DRect(0,0, w,h, !mIsDown);
-                    //g2.draw3DRect(0,0, w-1,h-1, !mIsDown);
-                    g2.draw3DRect(0,0, w-2,h-2, !mIsDown);
-                    //g2.draw3DRect(1,1, w-2,h-2, !mIsDown);
-                    if (true) {
-                        g2.setPaint(gradient);
-                        g2.fillRect(1,1, w-3,h-3);
-                    }
-                    //g2.fillRect(2,2, w-4,h-4);
-                    //g2.drawRect(0,0, w-3,h-3);
-                } else {
-                    g2.fillRoundRect(0,0, w-3,h-3, arc,arc);
-                    g2.setColor(Color.black);
-                    g2.drawRoundRect(0,0, w-3,h-3, arc,arc);
-                }
-                
-                if (mIsDown)
-                    g2.translate(1,1);
-                
+                mShape.setFrame(x, y, sWidth, sHeight);
                 g2.setColor(sShapeColor);
-                RectangularShape shape = getShape();
-                if (shape instanceof RoundRectangle2D) {
-                    // hack to deal with arcs being too small on a tiny icon
-                    shape = getShapeInstance();
-                    // plus 2 on x/y inset for mac?
-                    ((RoundRectangle2D)shape).setRoundRect(xInset, yInset, 20,12, 8,8);
-                } else
-                    shape.setFrame(xInset,yInset, 20,12);
-                //shape.setFrame(xInset,yInset, w-xInset*2, h-yInset*2);                
-                g2.fill(shape);
+                g2.fill(mShape);
                 g2.setColor(Color.black);
-                g2.draw(shape);
+                g2.draw(mShape);
+            }
+
+            public String toString() {
+                return "ShapeIcon[" + mShape + "]";
             }
         }
 
-        private boolean debug = false;
         
-        // TOOLBAR: Unselected/default
-        public Icon getIcon() {
-            //return new ShapeIcon(ICON_DEFAULT);
-            if (debug) return new ShapeIcon(Color.magenta);
-            return new ShapeIcon(sButtonColor);
-	}
-        // TOOLBAR: Rollover
-        public Icon getRolloverIcon() {
-            if (debug) return new ShapeIcon(Color.yellow);
-            return new ShapeIcon(sOverColor);
-	}
-        // TOOLBAR: flashes briefly after sub-menu item selected
-        // or hen the mouse is being held down over it, but only
-        // AFTER the sub-menu was displayed, then you hold mouse
-        // down, and the sub-menu goes away, and you get this icon.
-        // Rarely seen, so maybe don't even bother with anything different.
-	public Icon getDownIcon() {
-            if (debug) return new ShapeIcon(Color.red, false, true);
-            return getSelectedIcon();
-
-        }
-        // TOOLBAR: Selected (down)
-	public Icon getSelectedIcon() {
-            if (debug) return new ShapeIcon(Color.orange);
-            return new ShapeIcon(sDownColor, false, true);
-	}
-
-        // SUB-MENU: default display
-	public Icon getMenuItemIcon() {
-            //return mMenuItemIcon;
-            return new ShapeIcon(sButtonColor, true, false);
-	}
-        
-        // SUB-MENU: Rollver (or down-simulation)
-	public Icon getMenuItemSelectedIcon() {
-            //return mMenuItemSelectedIcon;
-            if (debug) return new ShapeIcon(Color.green, true, true);
-            return new ShapeIcon(sOverColor, true, true);
-	}
-	
-	public Icon getDisabledIcon() {
-            return new ShapeIcon(Color.cyan);
-	}
-
-
-        // The corner icon
-	public Icon getOverlayUpIcon() {
-            return mOverlayUpIcon;
-	}
-	public Icon getOverlayDownIcon() {
-            return getOverlayUpIcon();
-            // down-overlay out of position?
-            // Oh, for down, whole icon supposed to
-            // move down and to the right...
-            //return mOverlayDownIcon;
-	}
-
     }
-    
 }

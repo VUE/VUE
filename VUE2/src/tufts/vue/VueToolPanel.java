@@ -71,7 +71,7 @@ public class VueToolPanel extends JPanel
              this.setBackground( VueResources.getColor( "toolbar.background") );
 		
          this.setLayout( new BorderLayout() );
-         this.setBorder( new EmptyBorder(0,0,0,0) );
+         this.setBorder( new EmptyBorder(0,2,2,0) );//tlbr
 		
          mMainToolPanel = new JPanel();
          mMainBox = Box.createHorizontalBox();
