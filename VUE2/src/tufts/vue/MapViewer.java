@@ -187,6 +187,7 @@ public class MapViewer extends javax.swing.JComponent
     {
         //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
+        setFocusable(false); // not till setVsible
         
         setLayout(null);
         //setLayout(new NoLayout());
@@ -708,7 +709,11 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.SCROLL) System.out.println(this + " setMapOriginOffset " + panelX + "," + panelY);
         mOffset.x = panelX;
         mOffset.y = panelY;
-        getMap().setUserOrigin(panelX, panelY);
+        // todo: when in scroll region, user origin being offset 12 or so pixels
+        // (probably width of scroll bar) -- would be nice to keep normalized to 0
+        // so doesn't always offset it (will it do that cumulative every time we start??)
+        if (VUE.getActiveViewer() == this)
+            getMap().setUserOrigin(panelX, panelY);
         if (!inScrollPane && update) {
             repaint();
             new MapViewerEvent(this, MapViewerEvent.PAN).raise();
@@ -898,7 +903,7 @@ public class MapViewer extends javax.swing.JComponent
     Rectangle2D screenToMapRect(Rectangle screenRect)
     {
         if (screenRect.width < 0 || screenRect.height < 0)
-            throw new IllegalArgumentException("screenDim<0 " + screenRect);
+            throw new IllegalArgumentException("screenDim<0 " + screenRect + " in " + this);
         Rectangle2D mapRect = new Rectangle2D.Float();
         mapRect.setRect(screenToMapX(screenRect.x),
                         screenToMapY(screenRect.y),
@@ -1024,12 +1029,12 @@ public class MapViewer extends javax.swing.JComponent
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (DEBUG.SCROLL||DEBUG_PAINT||DEBUG.EVENTS)
-            System.out.println(this + "      reshape: "
-                               + w + "x" + h
-                               + " "
-                               + x + "," + y
-                               + (ignore?" (IGNORING)":""));
+        if (DEBUG.SCROLL||DEBUG_PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
+            out("      reshape: "
+                + w + "x" + h
+                + " "
+                + x + "," + y
+                + (ignore?" (IGNORING)":""));
         //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
         super.reshape(x,y, w,h);
         if (ignore && activeTextEdit != null)
@@ -1074,9 +1079,7 @@ public class MapViewer extends javax.swing.JComponent
         this.map = null;
     }
     
-    //private UndoMangera
     private void loadMap(LWMap map)
-
     {
         if (map == null)
             throw new IllegalArgumentException("loadMap: null LWMap");
@@ -1773,7 +1776,7 @@ public class MapViewer extends javax.swing.JComponent
         // paint the focus border if needed (todo: change to some extra-pane method)
         //-------------------------------------------------------
         
-        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this && hasFocus()) {
+        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this /*&& hasFocus()*/) {
             g.setColor(COLOR_ACTIVE_VIEWER);
             g.drawRect(0, 0, getWidth()-1, getHeight()-1);
             g.drawRect(1, 1, getWidth()-3, getHeight()-3);
@@ -4468,6 +4471,7 @@ public class MapViewer extends javax.swing.JComponent
         this.VueSelection = VUE.ModelSelection;
         if (VUE.getActiveViewer() != this) {
             if (DEBUG.FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
+            setFocusable(true);
             //new Throwable("REAL GRAB").printStackTrace();
             MapViewer activeViewer = VUE.getActiveViewer();
             // why are we checking this again if we just checked it???
@@ -4515,6 +4519,7 @@ public class MapViewer extends javax.swing.JComponent
     public void focusGained(FocusEvent e)
     {
         if (DEBUG.FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        // do NOT grab focus if we're not actually visible
         grabVueApplicationFocus("focusGained");
         repaint();
         new MapViewerEvent(this, MapViewerEvent.FOCUSED).raise();
@@ -4536,6 +4541,7 @@ public class MapViewer extends javax.swing.JComponent
             // todo: only do this if we've just been opened
             //if (!isAnythingCurrentlyVisible())
             //zoomTool.setZoomFitContent(this);//todo: go thru the action
+            setFocusable(true);
             grabVueApplicationFocus("setVisible");
             requestFocus();
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
@@ -4543,6 +4549,7 @@ public class MapViewer extends javax.swing.JComponent
             // only need to do this if this viewer displaying a different MAP
             repaint();
         } else {
+            setFocusable(false);
             new MapViewerEvent(this, MapViewerEvent.HIDDEN).raise();
         }
     }
@@ -4796,6 +4803,10 @@ public class MapViewer extends javax.swing.JComponent
     //-------------------------------------------------------
     // debugging stuff
     //-------------------------------------------------------
+
+    private void out(String s) {
+        System.out.println(this + " " + s);
+    }
     
     private boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
     //private boolean DEBUG.MOUSE = true;

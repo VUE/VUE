@@ -1,9 +1,3 @@
-/*
- * PrintAction.java
- *
- * Created on June 6, 2003, 12:12 PM
- */
-
 package tufts.vue.action;
 
 import tufts.vue.*;
@@ -18,13 +12,20 @@ import java.awt.event.ActionEvent;
 
 
 /**
- * @author Daisuke Fujiwara
+ * PrintAction and inner class PrintJob.  PrintAction handles figuring
+ * out the print style we want (whole map or just visible view) and
+ * creating a PrintJob to handle it, as well as caching the last used
+ * Format.  PrintJob handles the actual printing.  PrintJob can be
+ * threaded, tho this is currently disabled due to java bugs that can
+ * leave the VUE app raised over the print dialogs sometimes.  This
+ * means that VUE can't repaint itself while the print dialogs are
+ * active.
+ * 
  * @author Scott Fraize
  * @version March 2004
  */
 
-/**A class which handles the printing task of the currently active map*/
-public class PrintAction extends tufts.vue.Actions$VueAction implements Printable, Runnable
+public class PrintAction extends tufts.vue.Actions$VueAction
 {
     private static PrintAction singleton;
     public static PrintAction getPrintAction() {
@@ -34,70 +35,10 @@ public class PrintAction extends tufts.vue.Actions$VueAction implements Printabl
     }
 
     private boolean isPrintUnderway;
-    private boolean isPrintingView;
-    private String jobName;
     
     private PrintAction() {
         super("Print...");
     }
-
-    private boolean isPrintingView() {
-        return isPrintingView;
-    }
-
-    public int print(Graphics graphics, PageFormat format, int pageIndex)
-        throws java.awt.print.PrinterException
-    {
-        if (pageIndex > 0) {
-            out("page " + pageIndex + " requested, ending print job.");
-            return Printable.NO_SUCH_PAGE;
-        }
-
-        out("asked to render page " + pageIndex + " in " + out(format));
-        final MapViewer viewer = VUE.getActiveViewer();
-        final LWMap map = viewer.getMap();
-        final Rectangle2D bounds;
-
-        if (isPrintingView())
-            bounds = viewer.getVisibleMapBounds();
-        else
-            bounds = map.getBounds();
-
-        if (bounds.isEmpty()) {
-            out("Empty page: skipping print.");
-            return Printable.NO_SUCH_PAGE;
-        }
-            
-        Dimension page = new Dimension((int) format.getImageableWidth() - 1,
-                                       (int) format.getImageableHeight() - 1);
-
-        out("requested map bounds: " + bounds);
-        
-        Graphics2D g2 = (Graphics2D) graphics;
-        
-        g2.translate(format.getImageableX(), format.getImageableY());
-
-        // draw border outline of page
-        g2.setColor(Color.gray);
-        g2.setStroke(VueConstants.STROKE_ONE);
-        g2.drawRect(0, 0, page.width, page.height);
-            
-        // compute zoom & offset for visible map components
-        Point2D offset = new Point2D.Double();
-        double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset);
-        g2.translate(-offset.getX(), -offset.getY());
-        g2.scale(scale,scale);
-        // set up the DrawContext
-        DrawContext dc = new DrawContext(g2, scale);
-        dc.setPrinting(true);
-        dc.setAntiAlias(true);
-        // render the map
-        map.draw(dc);
-          
-        out("page " + pageIndex + " rendered.");
-        return Printable.PAGE_EXISTS;
-    }
-
 
     private PrinterJob printerJob;
     private PrinterJob getPrinterJob()
@@ -145,146 +86,191 @@ public class PrintAction extends tufts.vue.Actions$VueAction implements Printabl
             out("ignoring [" + ae.getActionCommand() + "]; print already underway.");
             return;
         }
-        this.jobName = VUE.getActiveMap().getDisplayLabel();
-        Rectangle2D bounds = VUE.getActiveMap().getBounds();
+        LWMap map = VUE.getActiveMap();
+        Rectangle2D bounds = map.getBounds();
         if (bounds.isEmpty()) {
-            out("nothing to print");
+            out("nothing to print in " + map);
             return;
         }
-        isPrintUnderway = true;
-        setEnabled(false);
-        isPrintingView = ae.getActionCommand().indexOf("View") >= 0;
-        //new Thread(this).start();
+        boolean viewerPrint = ae.getActionCommand().indexOf("View") >= 0;
+
         // if any tool windows open in W2K/1.4.2 when start this thread,
         // the print dialog get's obscured!
-        run();
+        
+        isPrintUnderway = true;
+        setEnabled(false);
+        try {
+            if (DEBUG.Enabled)
+                new PrintJob(VUE.getActiveViewer(), viewerPrint).start();
+            else
+                new PrintJob(VUE.getActiveViewer(), viewerPrint).runPrint();
+        } catch (Exception e) {
+            out("exception creating or running PrintJob");
+            e.printStackTrace();
+            isPrintUnderway = false;
+            setEnabled(true);
+        }
     }
 
-    // this should be private
-    public void run()
+    private class PrintJob extends Thread implements Printable
     {
-        try {
+        private LWMap map;
+        private String jobName;
+        private boolean isPrintingView;
+        private Rectangle2D bounds; // map bounds of print job
+        
+        private PrintJob(MapViewer viewer, boolean viewerPrint) {
+            super("VUE PrintJob");
+            this.map = viewer.getMap();
+            this.jobName = map.getDisplayLabel();
+            this.isPrintingView = viewerPrint;
+
+            // be sure to grab bounds info now -- sometimes it's possible
+            // that the viewer bounds go negative once the model print dialog
+            // boxes go active and VUE is hung without being able to reshape
+            // or repaint itself.  (That's not a problem when we run this
+            // in a thread, but there's a java bug with that right now, tho
+            // it's safer to do it this way anyway).
+            if (isPrintingView())
+                this.bounds = viewer.getVisibleMapBounds();
+            else
+                this.bounds = map.getBounds();
+            out(viewerPrint ? "printing: viewer contents" : "printing: whole map");
+            out("requested map bounds: " + bounds);
+        }
+
+        private boolean isPrintingView() {
+            return isPrintingView;
+        }
+        
+        public void run() {
             out("print thread active");
+            runPrint();
+            out("print thread complete");
+        }
+        
+        private void runPrint() {
+            try {
+                runDialogsAndPrint();
+            } catch (Exception e) {
+                out("print exception: " + e);
+                e.printStackTrace();
+            } finally {
+                isPrintUnderway = false;
+            }
+            PrintAction.this.setEnabled(true);
+        }
+
+        private void runDialogsAndPrint() 
+            throws java.awt.print.PrinterException
+        {
+            out("PrintJob starting for " + this.map);
             PrinterJob job = getPrinterJob();
             if (job.printDialog()) {
-                try {
-                    //PageFormat format = getPageFormat(job);
-                    PageFormat format = getPageFormatInteractive(job);
-                    out("format: " + out(format));
-                    if (format != null) {
-                        job.setJobName(this.jobName);
-                        job.setPrintable(this, format);
-                        // try setting pageable to see if it then
-                        // skips system dialog (we'd like a no-dialog option)
-                        //job.setPrintService(job.getPrintService());
-                        job.print();
-                    }
-                } catch (Exception ex) {
-                    out("print exception:" + ex);
-                    ex.printStackTrace();
+                //PageFormat format = getPageFormat(job);
+                PageFormat format = getPageFormatInteractive(job);
+                out("format: " + outpf(format));
+                if (format != null) {
+                    job.setJobName(jobName);
+                    job.setPrintable(this, format);
+                    // try setting pageable to see if it then
+                    // skips system dialog (we'd like a no-dialog option)
+                    //job.setPrintService(job.getPrintService());
+
+                    // this only *sometimes* works as a workaround
+                    // for the vue ap mysteriously being raised above
+                    // the system print dialog...
+                    //VUE.frame.toBack();
+                    
+                    job.print();
                 }
             }
-        } catch (Exception e) {
-            out("print dialog exception: " + e);
-        } finally {
-            isPrintUnderway = false;
         }
-        setEnabled(true);
-        out("print thread complete");
+
+        public int print(Graphics gc, PageFormat format, int pageIndex)
+            throws java.awt.print.PrinterException
+        {
+            if (pageIndex > 0) {
+                out("page " + pageIndex + " requested, ending print job.");
+                return Printable.NO_SUCH_PAGE;
+            }
+
+            out("asked to render page " + pageIndex + " in " + outpf(format));
+
+            Dimension page = new Dimension((int) format.getImageableWidth() - 1,
+                                           (int) format.getImageableHeight() - 1);
+
+            Graphics2D g = (Graphics2D) gc;
+
+            if (DEBUG.Enabled) {
+                g.setColor(Color.lightGray);
+                g.fillRect(0,0, 9999,9999);
+            }
+        
+            g.translate(format.getImageableX(), format.getImageableY());
+
+            // Don't need to clip if printing whole map, as computed zoom
+            // should have made sure everything is within page size
+            //if (!isPrintingView())
+            //g.clipRect(0, 0, page.width, page.height);
+                        
+            if (DEBUG.Enabled) {
+                //g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                // draw border outline of page
+                g.setColor(Color.gray);
+                g.setStroke(VueConstants.STROKE_TWO);
+                g.drawRect(0, 0, page.width, page.height);
+                //g.setComposite(AlphaComposite.Src);
+            }
+        
+            // compute zoom & offset for visible map components
+            Point2D offset = new Point2D.Double();
+            double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset);
+            g.translate(-offset.getX(), -offset.getY());
+            g.scale(scale,scale);
+
+            if (isPrintingView())
+                g.clipRect((int) Math.floor(bounds.getX()),
+                            (int) Math.floor(bounds.getY()),
+                            (int) Math.ceil(bounds.getWidth()),
+                            (int) Math.ceil(bounds.getHeight()));
+        
+            if (DEBUG.Enabled) {
+                g.setColor(Color.red);
+                g.setStroke(VueConstants.STROKE_TWO);
+                g.draw(bounds);
+            }
+            
+            // set up the DrawContext
+            DrawContext dc = new DrawContext(g, scale);
+            dc.setPrinting(true);
+            dc.setAntiAlias(true);
+            // render the map
+            map.draw(dc);
+          
+            out("page " + pageIndex + " rendered.");
+            return Printable.PAGE_EXISTS;
+        }
+
+        private void out(String s) {
+            System.out.println("PringJob[" + jobName + "] " + s);
+        }
+        
     }
+
+        
 
     private void out(String s) {
-        System.out.println("PrintAction[" + jobName + "] " + s);
+        System.out.println("PrintAction: " + s);
     }
 
-    private static String out(PageFormat p) {
+    private static String outpf(PageFormat p) {
         if (p == null) return null;
         final String[] o = {"LANDSCAPE", "PORTRAIT", "REVERSE LANDSCAPE"};
         return
             "PageFormat[" + o[p.getOrientation()]
             + " " + p.getImageableX() + "," + p.getImageableY()
-            + " " + p.getImageableWidth() + "x" + p.getImageableHeight();
+            + " " + p.getImageableWidth() + "x" + p.getImageableHeight()
+            + "]";
     }
-
-
-
-
-    
-    public int OLD_print(Graphics graphics, PageFormat page, int pageIndex)
-        throws java.awt.print.PrinterException
-    {
-        MapViewer viewer = VUE.getActiveViewer();
-        LWMap map = VUE.getActiveMap();
-        // will need to translate GC to origin offset of map: printing starts at coords 0,0 (of course)
-        Rectangle2D bounds = map.getBounds();
-        int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
-        Dimension view = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
-        int totalPages;
-        
-        //calcuates the total page number using the component view and the paper view
-        if (page.getOrientation() == PageFormat.PORTRAIT)
-            totalPages = (int)Math.ceil((view.getHeight() / page.getImageableHeight()));
-          
-        else
-            totalPages = (int)Math.ceil((view.getWidth() / page.getImageableWidth()));
-         
-        //if the page number is less than one, make it one
-        //maybe not necessary?
-        if (totalPages <= 1)
-            totalPages = 1;
-        
-        System.out.println("total page number is " + totalPages);
-        
-        //printing pages
-        if(pageIndex < totalPages)
-            {
-                Graphics2D g2 = (Graphics2D)graphics;
-                int xClip = 0, yClip = 0;
-                double xTranslation, yTranslation;
-            
-                if (page.getOrientation() == PageFormat.LANDSCAPE)
-                    {
-                        xClip = (int)page.getImageableWidth() * pageIndex;
-                        xTranslation = page.getImageableX() - xClip;
-                
-                        System.out.println("xClip is " + xClip);
-                        System.out.println("xTranslation is " + xTranslation);
-                
-                        //translate it to the printable section of the paper
-                        g2.translate(xTranslation, page.getImageableY());
-                        g2.setClip(xClip, 0, (int)page.getImageableWidth() - 1, (int)page.getImageableHeight() - 1);
-                    }
-            
-                else
-                    {
-                        //translate it to the printable section of the paper
-                        g2.translate(page.getImageableX(), page.getImageableY());
-                        g2.setClip(0, 0, (int)page.getImageableWidth() - 1, (int)page.getImageableHeight() - 1);
-                    }
-                final double scale = 0.5;
-                g2.scale(scale,scale);
-                //printing the currently selected map using the given graphics object
-                //viewer.paintComponent(g2);
-                DrawContext dc = new DrawContext(g2);
-                dc.setPrinting(true);
-                dc.setAntiAlias(true);
-                map.draw(dc);
-                g2.scale(1/scale,1/scale);
-          
-                //border outline of the map
-                g2.setColor(Color.black);
-                g2.drawRect(xClip, yClip,
-                            (int)page.getImageableWidth() - 2,
-                            (int)page.getImageableHeight() - 2);
-            
-                return Printable.PAGE_EXISTS;
-            }
-        
-        //if it is an out of bound page number then the page doesn't exist
-        else 
-            return Printable.NO_SUCH_PAGE;
-    }
-    
-    
-    
 }

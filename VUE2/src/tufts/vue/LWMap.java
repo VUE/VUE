@@ -342,8 +342,11 @@ public class LWMap extends LWContainer
     /** for viewer to report user origin sets via pan drags */
     void setUserOrigin(float x, float y)
     {
-        this.userOriginX = x;
-        this.userOriginY = y;
+        if (userOriginX != x || userOriginY != y){
+            this.userOriginX = x;
+            this.userOriginY = y;
+            mChanges++;
+        }
     }
     /** for persistance */
     public Point2D.Float getUserOrigin() {

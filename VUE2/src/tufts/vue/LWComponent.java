@@ -1075,7 +1075,9 @@ public class LWComponent
     public boolean doesRelativeDrawing() { return false; }    
 
     /**
-     * Return bounds, including any stroke width.
+     * Return bounds for hit detection & clipping.  This will vary
+     * depenending on current stroke width, if in a visible pathway,
+     * etc.
      */
     public Rectangle2D getBounds()
     {

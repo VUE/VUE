@@ -110,7 +110,7 @@ public class MapTabbedPane extends JTabbedPane
         return title;
     }
 
-    private void updateTitleAt(int i) {
+    private void updateTitleTextAt(int i) {
         if (i >= 0) {
             MapViewer viewer = getViewerAt(i);
             setTitleAt(i, viewerToTabTitle(viewer));
@@ -124,14 +124,32 @@ public class MapTabbedPane extends JTabbedPane
         MapViewerEvent.DISPLAYED |
         MapViewerEvent.FOCUSED |
         MapViewerEvent.ZOOM;        // title includes zoom
+
+    private static MapTabbedPane lastFocusPane;
+    private static int lastFocusIndex = -1;
     public void mapViewerEventRaised(MapViewerEvent e) {
-        if ((e.getID() & TitleChangeMask) != 0)
-            updateTitleAt(indexOfComponent(e.getMapViewer()));
+        if ((e.getID() & TitleChangeMask) != 0) {
+            int i = indexOfComponent(e.getMapViewer());
+            if (i >= 0) {
+                updateTitleTextAt(i);
+                if (e.getID() == MapViewerEvent.FOCUSED) {
+                    if (lastFocusPane != null) {
+                        //lastFocusPane.setIconAt(lastFocusIndex, null);
+                        lastFocusPane = null;
+                    }
+                    if (VUE.multipleMapsVisible()) {
+                        lastFocusPane = this;
+                        lastFocusIndex = i;
+                        //setIconAt(i, new BlobIcon(5,5, Color.green));
+                    }
+                }
+            }
+        }
     }
     
     public void LWCChanged(LWCEvent e) {
         if (e.getSource() instanceof LWMap)
-            updateTitleAt(findTabWithMap((LWMap)e.getSource()));
+            updateTitleTextAt(findTabWithMap((LWMap)e.getSource()));
     }
         
     public void addViewer(MapViewer viewer) {
@@ -146,7 +164,7 @@ public class MapTabbedPane extends JTabbedPane
         // care to hear from it's children), and even that
         // we'd only like to see, e.g., LABEL events.
         // -- create bit masks in LWCEvent
-        updateTitleAt(indexOfComponent(c)); // first time just needed for tooltip
+        updateTitleTextAt(indexOfComponent(c)); // first time just needed for tooltip
     }
         
     /*
