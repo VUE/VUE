@@ -199,12 +199,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             {
                 HierarchyNode hierarchyNode = (HierarchyNode)i.next();
                 
-                System.out.println("updating the node " + hierarchyNode.getId());
-                
                 if (newLabel == null)
-                {
-                    System.out.println("null label");
-                    
+                {   
                     /*
                     String parentDisplayName = "";
                     
@@ -221,6 +217,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 }
                 
                 hierarchyNode.updateDisplayName(newLabel);
+                revalidateTree(hierarchyNode);
             }
         }
         
@@ -376,7 +373,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             }
         }
         
-        validateHierarchyNodeLinkLabels();
+        //validateHierarchyNodeLinkLabels();
     }
     
     
