@@ -315,6 +315,58 @@ public class VUE
     static void initUI() {
         initUI(false);
     }
+
+    static class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel {
+        public String getDescription() { return super.getDescription() + " (VUE Derivative)"; }
+        public void initComponentDefaults(UIDefaults table)
+        {
+            super.initComponentDefaults(table);
+            //table.put("TitledBorder.font", fontMedium.deriveFont(Font.BOLD));
+            //table.put("Button.font", getFont());
+
+            Font font = table.getFont("Label.font");
+            //System.out.println(font);
+            font = makeFont(font.deriveFont(10f));
+            //System.out.println(font);
+            
+            table.put("Label.font", font);
+            table.put("Tree.font", font);
+            table.put("TextField.font", font);
+            table.put("TextArea.font", font);
+            table.put("TextPane.font", font);
+            table.put("Table.font", font);
+            table.put("TableHeader.font", font);
+            //table.put("ComboBox.font", font);
+
+            /*
+            Object newFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/NewFolder.gif");
+            Object upFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/UpFolder.gif");
+            Object homeFolderIcon = LookAndFeel.makeIcon(getClass(), "icons/HomeFolder.gif");
+            Object detailsViewIcon = LookAndFeel.makeIcon(getClass(), "icons/DetailsView.gif");
+            Object listViewIcon = LookAndFeel.makeIcon(getClass(), "icons/ListView.gif");
+            Object directoryIcon = LookAndFeel.makeIcon(getClass(), "icons/Directory.gif");
+            Object fileIcon = LookAndFeel.makeIcon(getClass(), "icons/File.gif");
+            Object computerIcon = LookAndFeel.makeIcon(getClass(), "icons/Computer.gif");
+            Object hardDriveIcon = LookAndFeel.makeIcon(getClass(), "icons/HardDrive.gif");
+            Object floppyDriveIcon = LookAndFeel.makeIcon(getClass(), "icons/FloppyDrive.gif");
+            */
+        }
+
+        private static javax.swing.plaf.FontUIResource makeFont(Font font) {
+            return new javax.swing.plaf.FontUIResource(font);
+        }
+        private javax.swing.plaf.FontUIResource getFont() {
+            return new javax.swing.plaf.FontUIResource(VueConstants.MediumFont);
+        }
+    }
+
+    private static void installVueAquaLAF() {
+        try {
+            javax.swing.UIManager.setLookAndFeel(new VueAquaLookAndFeel());
+        } catch (javax.swing.UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+    }
     
     private static boolean useMacLAF = false;
     static void initUI(boolean debug)
@@ -324,10 +376,11 @@ public class VUE
         //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
         
         if (useMacLAF) {
-            // not using metal, so theme will have no effect
+            // not using metal, so theme will have no effect -- need a LAF to change things.
             // if on mac, java look & feel will have been defaulted to mac look
             // if on PC and you specify mac theme, our Metal theme won't be installed
-           themeSet = true; 
+            installVueAquaLAF();
+            themeSet = true;
         } else {
             // by default, force windows L&F on the mac.
             if (VueUtil.isMacPlatform())
