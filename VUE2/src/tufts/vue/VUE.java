@@ -226,35 +226,12 @@ public class VUE
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         inspectorTool.addTool(new LWCInspector());
         
+        //addtion by the power team
         pathwayInspector = new LWPathwayInspector(frame);
-
-        // Needed change this because what if we don't have an
-        // active map?  (getActiveMap() can return null here!)
-        // So can't depend having a map yet at this point.
-        // -- SF 2003-07-01 11:43.21 Tuesday
-        //added by Daisuke Fujiwara
-        LWPathwayManager manager = getActiveMap().getPathwayManager();
-        control = new PathwayControl(frame, manager);
+        control = new PathwayControl(frame);
         
-        //pathwayInspector.setPathway(manager.getCurrentPathway());
-        //pathwayInspector = new LWPathwayInspector(frame, manager.getCurrentPathway());
-        
-        //accomodates pathway manager swapping when the displayed map is changed
-        // We'll eventually need to figure out another way to listen for this now that
-        // we have multiple tabbed-panes with the split-view -- SF
-        tabbedPane.addChangeListener(
-            new ChangeListener()
-            {
-                public void stateChanged(ChangeEvent ce)
-                {
-                    System.out.println("map is being changed");
-                    control.setPathwayManager(getActiveMap().getPathwayManager());
-                }
-            }
-        );
-        
-        //End of addition by Daisuke Fujiwara
-        
+        //end of addition
+           
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),

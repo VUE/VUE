@@ -179,6 +179,16 @@ public class LWPathway extends tufts.vue.LWComponent
     }
     
     public void removeElement(LWComponent element) {
+        
+        if (element.equals(getCurrent()))
+        {
+            if (isFirst(element))
+                setCurrent(getNext(element));
+            
+            else
+                setCurrent(getPrevious(element));
+        }
+        
         boolean success = elementList.remove(element);
         if(!success)
             System.err.println("LWPathway.removeElement: element does not exist in pathway");
