@@ -210,7 +210,7 @@ public class Publisher extends JDialog implements ActionListener {
            if(component.hasResource()){
                Resource resource = component.getResource();
                if(resource.isLocalFile()) {
-                    File file = new File(resource.getSpec().substring(8));
+                   File file = new File(resource.toURLString().substring(8));
                     if(file.isFile()) {
                         Vector row = new Vector();
                         row.add(new Boolean(true));
