@@ -67,8 +67,8 @@
 	
 	<xsl:template match="child">
 		<fo:block font-size="28pt" line-height="50pt" text-align="center">
-			<!--<xsi:value-of select="type"/>:-->
-				"<xsl:value-of select="@label"/>"
+			<xsl:value-of select="@xsi:type"/>:
+				<xsl:value-of select="@label"/>
 		</fo:block>
 		<fo:block font-weight="bold" font-size="24pt"
 			line-height="36pt" font-family="sans-serif" text-align="left">
@@ -77,6 +77,12 @@
 		<fo:block font-size="16pt" line-height="36pt" text-align="left">
 			location x:<xsl:value-of select="@x"/>, y:<xsl:value-of select="@y"/>
 			width: <xsl:value-of select="@width"/>, height: <xsl:value-of select="@height"/>
+		</fo:block>
+		<fo:block font-size="16pt"
+			line-height="36pt" font-family="sans-serif" text-align="left">	
+			<xsl:if test="starts-with(@xsi:type, 'n')">
+			AutoSized: <xsl:value-of select="@autoSized"/>
+			</xsl:if>
 		</fo:block>
 		<fo:block font-size="16pt"
 			line-height="36pt" font-family="sans-serif" text-align="left">
@@ -89,10 +95,20 @@
 		<fo:block font-size="16pt"
 			line-height="36pt" font-family="sans-serif" text-align="left">
 			Fill Color: <xsl:value-of select="fillColor"/>, Font: <xsl:value-of select="font"/>
-		</fo:block>		
+		</fo:block>
+		
+		<fo:block font-size="16pt"
+			line-height="36pt" font-family="sans-serif" text-align="left">	
+			<xsl:if test="starts-with(@xsi:type, 'l')">
+			Text Color: <xsl:value-of select="textColor"/>, ID1: <xsl:value-of select="ID1"/>,
+			ID2: <xsl:value-of select="ID1"/>
+			</xsl:if>
+		</fo:block>	
+					
 		<fo:block>
 			<xsl:apply-templates select="resource"/>
 		</fo:block>
+		
 	</xsl:template>
 	
 	<xsl:template match="resource">
