@@ -294,13 +294,15 @@ public class VUE
         menuBar.add(optionsMenu);
         menuBar.add(helpMenu);
         //adding actions
-        SaveAction saveAction = new SaveAction("Save",false);
-        SaveAction saveAsAction = new SaveAction("Save As...");
+        SaveAction saveAction = new SaveAction("Save");
+        SaveAction saveAsAction = new SaveAction("Save As...", "saveAs");
         OpenAction openAction = new OpenAction("Open");
+        SaveAction htmlAction = new SaveAction("Save As HTML...", "html");
         fileMenu.add(new JMenuItem("New"));
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
         fileMenu.add(saveAsAction);
+        fileMenu.add(htmlAction);
         fileMenu.add(new JMenuItem("Export ..."));
         fileMenu.addSeparator();
         fileMenu.add(new JMenuItem("Quit"));

@@ -22,18 +22,21 @@ import org.exolab.castor.mapping.MappingException;
 import java.io.OutputStreamWriter;
 
 import org.xml.sax.InputSource;
-
 import tufts.vue.*;
+
 
 public class OpenAction extends AbstractAction
 {
-    final String XML_MAPPING = "concept_map.xml";
     
+    
+    
+    final String XML_MAPPING = "concept_map.xml";
     /** Creates a new instance of OpenAction */
     public OpenAction() {
     }
     public OpenAction(String label) {
         super(label);
+        System.out.println("in openAction constructor...");
           putValue(Action.SHORT_DESCRIPTION,label);
     }
 
@@ -82,6 +85,7 @@ public class OpenAction extends AbstractAction
     private Unmarshaller getUnmarshaller()
     {
         if (this.unmarshaller == null) {
+            
             this.unmarshaller = new Unmarshaller();
             Mapping mapping = new Mapping();
             try {
