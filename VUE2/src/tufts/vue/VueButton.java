@@ -32,6 +32,7 @@ public class VueButton extends JButton {
         Icon i;
         if ((i = VueResources.getImageIcon(name+"."+DOWN)) != null)     setPressedIcon(i);
         if ((i = VueResources.getImageIcon(name+"."+DISABLED)) != null) setDisabledIcon(i);
+        setBorder(null);
         setBorderPainted(false);
         //setBackground(Color.white);
         //setBackground(Color.red);
