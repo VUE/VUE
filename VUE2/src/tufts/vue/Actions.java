@@ -20,6 +20,7 @@ import javax.swing.AbstractAction;
  * @author Scott Fraize
  * @version 6/19/03
  */
+
 class Actions {
     static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
     static final int CTRL = Event.CTRL_MASK;

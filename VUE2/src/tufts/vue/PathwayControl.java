@@ -21,6 +21,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.awt.*;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
@@ -390,7 +392,10 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             if (value instanceof LWPathway)
             {    
                 LWPathway pathway = (LWPathway)value;
-                setText(pathway.getLabel());
+                if(pathway.getLabel().length() > 15)
+                    setText(pathway.getLabel().substring(0, 13) + "...");
+                else
+                    setText(pathway.getLabel());
             }
             
             //if it is a string, then displays the string itself
@@ -415,7 +420,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     }    
     
     /**A dialog displayed when the user chooses to add a new pathway to the current map */
-    private class PathwayDialog extends JDialog implements ActionListener
+    private class PathwayDialog extends JDialog 
+        implements ActionListener, KeyListener
     {
         JButton okButton, cancelButton;
         JTextField textField;
@@ -434,9 +440,11 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             cancelButton = new JButton("Cancel");
             
             okButton.addActionListener(this);
+            okButton.addKeyListener(this);
             cancelButton.addActionListener(this);
             
             textField = new JTextField("default", 18);
+            textField.addKeyListener(this);
             textField.setPreferredSize(new Dimension(40, 20));
             
             JPanel buttons = new JPanel();
@@ -467,6 +475,23 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             else if (e.getSource() == cancelButton)
                 dispose();
         }
+        
+        public void keyPressed(KeyEvent e) {}
+        
+        public void keyReleased(KeyEvent e) {}
+        public void keyTyped(KeyEvent e) {
+            if(e.getKeyChar()==KeyEvent.VK_ENTER){
+                if(e.getSource().equals(okButton) 
+                    || e.getSource().equals(textField))
+                {    
+                    addPathway(new LWPathway(textField.getText()));
+                    dispose();                  
+                }
+                else if(e.getSource().equals(cancelButton))
+                    dispose(); //does catch event?
+            }
+        }
+        
     }
     
     private class DisplayAction extends AbstractAction

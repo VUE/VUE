@@ -9,6 +9,8 @@ import java.awt.BasicStroke;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import java.util.List;
+
 // this is really ours
 //import java.awt.PColor;
 
@@ -133,7 +135,7 @@ public class LWComponent
     protected Color fillColor = null;           //style
     protected Color textColor = COLOR_TEXT;     //style
     protected Color strokeColor = COLOR_STROKE; //style
-    protected float strokeWidth = 0f;            //style
+    protected float strokeWidth = 0f;           //style
     protected Font font = null;                 //style
     //protected Font font = FONT_DEFAULT;
     
@@ -414,6 +416,15 @@ public class LWComponent
             
         }
         return list;
+    }
+    
+    //needed for pathways to access a node's links - jay briedis
+    public List getLinks(){
+        return this.links;
+    }
+    
+    public void setLinks(List links){
+        this.links = links;
     }
 
     public LWLink getLinkTo(LWComponent c)
