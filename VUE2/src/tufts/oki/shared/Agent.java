@@ -4,7 +4,7 @@
  * Created on October 21, 2003, 5:31 PM
  */
 
-package src.tufts.shared;
+package tufts.oki.shared;
 import osid.*;
 import osid.shared.SharedException;
 import java.util.*;

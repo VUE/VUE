@@ -4,7 +4,7 @@
  * Created on October 22, 2003, 8:05 AM
  */
 
-package src.tufts.shared;
+package tufts.oki.shared;
 import java.util.*;
 
 /**

@@ -4,7 +4,7 @@
  * Created on Oct. 22, 2003, 8:15 AM
  */
 
-package src.tufts.shared;
+package tufts.oki.shared;
 import java.util.*;
 import osid.shared.SharedException;
 
@@ -253,6 +253,5 @@ public class Group extends Agent implements osid.shared.Group {
      */
     public boolean isEmpty () {
         return (agents.isEmpty() && subgroups.isEmpty());
-    }
-
+    }  
 }

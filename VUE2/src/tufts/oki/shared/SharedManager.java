@@ -4,8 +4,8 @@
  * Created on October 22, 2003, 8:30 AM
  */
 
-package src.tufts.shared;
-import osid_mjn.*;
+package tufts.oki.shared;
+import tufts.oki.*;
 import java.util.*;
 import java.io.*;
 import osid.shared.SharedException;
@@ -21,7 +21,7 @@ import osid.shared.SharedException;
  *
  *  @author  Mark Norton
  */
-public class SharedManager extends OsidManager implements osid.shared.SharedManager {
+public class SharedManager extends osid.OsidManager implements osid.shared.SharedManager {
     public static final String SERIALIZED_FILE_NAME = "c:/java/serialized/osid_shared_manager.sid";
     private Vector ids = null;
     private Vector agents = null;
@@ -122,7 +122,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *  @author Mark Norton
      */
     public void deleteGroup(osid.shared.Id id) throws osid.shared.SharedException {
-        osid_mjn.shared.Group gp = (osid_mjn.shared.Group)this.getGroup (id);
+        tufts.oki.shared.Group gp = (tufts.oki.shared.Group)this.getGroup (id);
         if (!gp.isEmpty()) {
             throw new osid.shared.SharedException ("Group is not empty.");
         }
@@ -332,7 +332,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      */
     public void writeState() throws osid.shared.SharedException {
         try {
-            FileOutputStream fout = new FileOutputStream (osid_mjn.shared.SharedManager.SERIALIZED_FILE_NAME);
+            FileOutputStream fout = new FileOutputStream (tufts.oki.shared.SharedManager.SERIALIZED_FILE_NAME);
             ObjectOutputStream  oout = new ObjectOutputStream (fout);
             oout.writeObject (agents);
             oout.writeObject (groups);
@@ -366,7 +366,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
             //  Open up the serilization file, if it exists.
             FileInputStream fin = null;
             try {
-                fin = new FileInputStream (osid_mjn.shared.SharedManager.SERIALIZED_FILE_NAME);
+                fin = new FileInputStream (tufts.oki.shared.SharedManager.SERIALIZED_FILE_NAME);
             }
             catch (java.io.IOException exio) {
                 //  This error is most likely to be a file not found, which means
@@ -425,4 +425,17 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
     public boolean isRestored() {
         return (restored);
     }    
+    
+    public osid.OsidOwner getOwner() throws osid.OsidException {
+    }
+    
+    public void osidVersion_1_0() throws osid.OsidException {
+    }
+    
+    public void updateConfiguration(java.util.Map map) throws osid.OsidException {
+    }
+    
+    public void updateOwner(osid.OsidOwner osidOwner) throws osid.OsidException {
+    }
+    
 }

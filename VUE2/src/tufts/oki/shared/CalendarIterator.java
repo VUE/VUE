@@ -4,7 +4,7 @@
  * Created on September 19, 2003, 2:42 PM
  */
 
-package src.tufts.shared;
+package tufts.oki.shared;
 import java.util.*;
 
 /**
@@ -22,7 +22,7 @@ public class CalendarIterator implements osid.shared.CalendarIterator {
     
     /** Creates a new instance of CalendarIterator */
     public CalendarIterator(Vector vector) {
-        assert (vector != null) : "Vector passed is null.";
+        //assert (vector != null) : "Vector passed is null.";
 
         calendar_vector = vector;
     }
