@@ -42,14 +42,15 @@ public class UndoManager
         void undo() {
             undoHierarchyChanges();
             undoPropertyChanges();
-            if (hierarchyChanges.size() > 0)
+            if (hierarchyChanges != null && hierarchyChanges.size() > 0)
                 VUE.getSelection().clearDeleted();
         }
         
         private void undoHierarchyChanges()
         {
             if (DEBUG.UNDO) System.out.println(this + " undoHierarchyChanges " + hierarchyChanges);
-
+            if (hierarchyChanges == null)
+                return;
             Iterator i = hierarchyChanges.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
@@ -60,7 +61,8 @@ public class UndoManager
         private void undoPropertyChanges()
         {
             if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges " + propertyChanges);
-
+            if (propertyChanges == null)
+                return;
             Iterator i = propertyChanges.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
@@ -112,11 +114,13 @@ public class UndoManager
         }
 
         public String toString() {
-            return "UndoAction[" + name
-                + " cnt=" + changeCount
-                + " hierChange=" + hierarchyChanges.size()
-                + " propChange=" + propertyChanges.size()
-                + "]";
+            String s = "UndoAction[" + name
+                + " cnt=" + changeCount;
+            if (hierarchyChanges != null)
+                s += " hierChange=" + hierarchyChanges.size();
+            if (propertyChanges != null)
+                s += " propChange=" + propertyChanges.size();
+            return s + "]";
         }
     }
 
@@ -268,10 +272,20 @@ public class UndoManager
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
     {
-        UndoAction newUndoAction = new UndoAction(name, mHierarchyChanges, mPropertyChanges, mChangeCount);
+        Map saveHier = null;
+        Map saveProp = null;
+        
+        if (mHierarchyChanges.size() > 0) {
+            saveHier = mHierarchyChanges;
+            mHierarchyChanges = new HashMap();
+        }
+        if (mPropertyChanges.size() > 0) {
+            saveProp = mPropertyChanges;
+            mPropertyChanges = new HashMap();
+        }
+        
+        UndoAction newUndoAction = new UndoAction(name, saveHier, saveProp, mChangeCount);
         if (DEBUG.UNDO) System.out.println(this + " marked " + mChangeCount + " property changes under '" + name + "'");
-        mPropertyChanges = new HashMap();
-        mHierarchyChanges = new HashMap();
         mLastEvent = null;
         mChangeCount = 0;
         return newUndoAction;
