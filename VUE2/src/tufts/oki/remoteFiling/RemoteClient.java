@@ -62,8 +62,8 @@ public class RemoteClient {
             throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
         }
         server = host;             //  Cache the server name.
-        username = username;       //  Cache the user name.
-        password = password;       //  Cache the password.
+        this.username = username;       //  Cache the user name.
+        this.password = password;       //  Cache the password.
     }
 
     /**
@@ -138,6 +138,14 @@ public class RemoteClient {
     
     public static String getServerName () {
         return server;
+    }
+    
+    public static String getUserName() {
+        return username;
+    }
+    
+    public static String getPassword() {
+        return password;
     }
 
 }

@@ -490,6 +490,6 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
         return fn.toString();
     }
      public String getUrl() {
-        return "ftp://" + RemoteClient.getServerName() + this.getFullName();
+        return "ftp://"+RemoteClient.getUserName()+":"+RemoteClient.getPassword()+"@"+ RemoteClient.getServerName() + this.getFullName();
     }
 }
