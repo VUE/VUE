@@ -80,7 +80,7 @@ public class ActionUtil {
     }
     
     /**A static method which creates an appropriate marshaller and marshal the active map*/
-    public static void marshallFile(File file)
+    public static void marshallMap(File file)
     {
         Marshaller marshaller = null;
         
