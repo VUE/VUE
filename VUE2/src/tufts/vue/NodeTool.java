@@ -148,9 +148,10 @@ public class NodeTool extends VueTool
             
         public SubTool() {}
 
-	public void X_setID(String pID) {
+	public void setID(String pID) {
             super.setID(pID);
-            System.out.println(this + " ID set");
+            //System.out.println(this + " ID set");
+            getShape(); // cache it for fast response first time
         }
 
         public RectangularShape getShapeInstance()
