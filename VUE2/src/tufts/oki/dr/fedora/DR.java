@@ -71,14 +71,14 @@ public class DR implements osid.dr.DigitalRepository {
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of DR */
-    public DR(String id,String displayName,String description,URL address,String userName,String password) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {
+    public DR(String conf,String id,String displayName,String description,URL address,String userName,String password) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {
         this.id = new PID(id);
         this.displayName = displayName;
         this.description = description;
         this.address = address;
         this.userName = userName;
         this.password = password;
-        this.configuration = getResource("fedora.conf");
+        this.configuration = getResource(conf);
         
         setFedoraProperties(configuration);
         loadFedoraObjectAssetTypes();
