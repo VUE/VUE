@@ -1279,39 +1279,40 @@ public class MapViewer extends javax.swing.JComponent
      */
     public void LWCChanged(LWCEvent e)
     {
-        adjustScrollRegion();
-        // todo: optimize -- we get tons of location events
-        // when dragging, esp if there are children if
-        // we have those events turned in...
-        //if (!isRightSide)
-        //System.out.println(e + " delivered to " + this);
-
-        // ignore as handled in drag (todo: something cleaner: need these is prop change not from map)
-        //if (e.getWhat() == LWKey.Location || e.getWhat() == LWKey.Size) 
-        //return;
-
-        //if (e.getWhat() == LWKey.HierarchyChanging) // ignore these as always paired with something else (EXCEPT during undo!)
+        final String key = e.getWhat();
+        //if (key == LWKey.HierarchyChanging) // ignore these as always paired with something else (EXCEPT during undo!)
         //    return;
-        if (e.getWhat() == LWKey.Added) // depend on childAdded 
+        if (key == LWKey.Added) // depend on childAdded 
             // || e.getWhat.equals("childRemoved"))
+            //if (key.startsWith("hier.child")) {
             // todo: deleting even will set up for repainting that node,
             // but the childRemoved event's component object is the whole map --
             // thus we'll repaint everything on every delete (or childAdded)
             return;
-        //if (e.getWhat().startsWith("hier.child")) {
-        if (e.getWhat().startsWith("hier.")) { // todo perf: figure out cases we can ignore
+
+        adjustScrollRegion();
+        // TODO: OPTIMIZE -- we get tons of location events
+        // when dragging, esp if there are children if
+        // we have those events turned in...
+
+        // ignore as handled in drag (todo: something cleaner: need these is prop change not from map)
+        //if (key == LWKey.Location || key == LWKey.Size) 
+        //return;
+
+        if (key.startsWith("hier.")) { // todo perf: figure out cases we can ignore
             // childAdded would clip if added outside edge
             // of any existing components! (huh?)
             repaint();
             return;
         }
-        if (e.getWhat() == LWKey.Deleting) {
+        if (key == LWKey.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
         }
         // ignore events from ourself: they're there only
         // to notify any other map viewers listenting to this map.
-        if (e.getSource() == this || e.getSource() == this.inputHandler)
+        //if (e.getSource() == this || e.getSource() == this.inputHandler) -- this already filtered by LWCEvent dispatch
+        if (e.getSource() == this.inputHandler)
             return;
         if (paintedSelectionBounds != null) {
             // this will handle any size shrinkages -- old selection bounds

@@ -342,10 +342,14 @@ public class LWMap extends LWContainer
     public void setUserOrigin(Point2D.Float p) {
         setUserOrigin((float) p.getX(), (float) p.getY());
     }
-    /** for persistance */
+
+    /** for persistance.  Note that as maps can be in more than
+     * one viewer, each with it's own zoom, we take on only
+     * the zoom value set in the more recent viewer to change
+     * it's zoom.
+     */
     public void setUserZoom(double zoom) {
         this.userZoom = zoom;
-        //notify("userZoom");//todo perf: mapviewer may be doing needless repaints
     }
     /** for persistance */
     public double getUserZoom() {

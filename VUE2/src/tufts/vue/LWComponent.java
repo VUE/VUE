@@ -1214,11 +1214,11 @@ public class LWComponent
     private static class LWCListenerProxy implements Listener
     {
         Listener listener;
-        Object eventKey;
+        private Object eventMask;
 
-        public LWCListenerProxy(Listener listener, Object eventKey) {
+        public LWCListenerProxy(Listener listener, Object eventMask) {
             this.listener = listener;
-            this.eventKey = eventKey;
+            this.eventMask = eventMask;
         }
 
         /** this should never actually get used, as we pluck the real listener
@@ -1227,10 +1227,23 @@ public class LWComponent
             listener.LWCChanged(e);
         }
 
+        public boolean isListeningFor(LWCEvent e)
+        {
+            if (eventMask instanceof Object[]) {
+                final Object[] eventKeys = (Object[]) eventMask;
+                for (int i = 0; i < eventKeys.length; i++)
+                    if (eventKeys[i] == e.getWhat())
+                        return true;
+                return false;
+            } else
+                return eventMask == e.getWhat();
+        }
+        
+
         public String toString() {
             String s = listener.toString();
-            if (eventKey != null)
-                s += " filter<" + eventKey + ">";
+            if (eventMask != null)
+                s += " filter<" + eventMask + ">";
             return s;
         }
     }
@@ -1260,10 +1273,12 @@ public class LWComponent
     public synchronized void addLWCListener(Listener listener) {
         addLWCListener(listener, null);
     }
-    public synchronized void addLWCListener(Listener listener, Object eventKey)
+
+    // TODO: eventMask should be of an LWKey enumeration type (java 1.5) or an
+    // array of such enums.
+    public synchronized void addLWCListener(Listener listener, Object eventMask)
     {
         if (listeners == null)
-            //listeners = new java.util.ArrayList();
             listeners = new LWCListenerList();
         if (listeners.contains(listener)) {
             // do nothing (they're already listening to us)
@@ -1272,15 +1287,12 @@ public class LWComponent
                 if (DEBUG.META) new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
             }
         } else {
-            if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\t+++ADDS " + this);
-
-            //listeners.add(new LWCListenerProxy(listener, eventKey));
-            //listeners.add(listener);
-            
-            if (eventKey == null)
+            if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\t+++ADDS " + this
+                                                 + (eventMask==null?"":(" eventMask=" + eventMask)));
+            if (eventMask == null)
                 listeners.add(listener);
             else
-                listeners.add(new LWCListenerProxy(listener, eventKey));
+                listeners.add(new LWCListenerProxy(listener, eventMask));
         }
     }
     public synchronized void removeLWCListener(Listener listener)
@@ -1415,7 +1427,7 @@ public class LWComponent
             Listener l = listener_array[i];
             if (l instanceof LWCListenerProxy) {
                 LWCListenerProxy lp = (LWCListenerProxy) l;
-                if (lp.eventKey != null && lp.eventKey != e.getWhat()) {
+                if (!lp.isListeningFor(e)) {
                     if (DEBUG.EVENTS && DEBUG.META)
                         System.out.println(l + " (filtered)");
                     continue;

@@ -35,5 +35,4 @@ public interface LWKey {
 
     public String LinkArrows = "linkArrows"; // link arrow state (0,1,2)
     
-    
 }

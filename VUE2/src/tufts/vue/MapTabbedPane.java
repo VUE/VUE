@@ -13,11 +13,6 @@ import javax.swing.JScrollPane;
 public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
-    final int TitleChangeMask =
-        MapViewerEvent.DISPLAYED |
-        MapViewerEvent.FOCUSED |
-        MapViewerEvent.ZOOM;        // title includes zoom
-    
     private static final Color BgColor = VueResources.getColor("toolbar.background");
         
     private String name;
@@ -80,65 +75,70 @@ public class MapTabbedPane extends JTabbedPane
         setFocusable(false);
     }
         
-
-    /*
-    private String getViewerTitle(MapViewer viewer) {
-        String title = viewer.getMap().getLabel();
-        
-        int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
-        // Present the zoom factor as a percentange
-        // truncated down to 2 digits
-        title += " (";
-        if ((displayZoom / 100) * 100 == displayZoom)
-            title += (displayZoom / 100) + "%";
-        else
-            title += (((float) displayZoom) / 100f) + "%";
-        title += ")";
-        return title;
-    }
-    */
-
     private String mapToTabTitle(LWMap map) {
         String title = map.getLabel();
         if (title.toLowerCase().endsWith(".vue") && title.length() > 4)
             title = title.substring(0, title.length() - 4);
         return title;
     }
+
+    private static final int precision = 1; // max # of digits after decimal place
+    private String viewerToTabTitle(MapViewer viewer) {
+        String title = mapToTabTitle(viewer.getMap());
+
+        title += " (";
+        if (viewer.getZoomFactor() < 1) {
+            // Present the zoom factor as a percentange
+            // truncated down to 1 digit
+            int displayZoom = (int) Math.round(viewer.getZoomFactor() * 1000);
+            if ((displayZoom / 10) * 10 == displayZoom)
+                title += (displayZoom / 10);
+            else
+                title += (((float) displayZoom) / 10f);
+        } else {
+            title += Math.round(viewer.getZoomFactor() * 100);
+        }
+        title += "%)";
+        return title;
+    }
+
+    private void updateTitleAt(int i) {
+        MapViewer viewer = getViewerAt(i);
+        if (i >= 0) {
+            setTitleAt(i, viewerToTabTitle(viewer));
+            LWMap map = viewer.getMap();
+            if (map.getFile() != null)
+                setToolTipTextAt(i, map.getFile().toString());
+        }
+    }
     
+    final int TitleChangeMask =
+        MapViewerEvent.DISPLAYED |
+        MapViewerEvent.FOCUSED |
+        MapViewerEvent.ZOOM;        // title includes zoom
     public void mapViewerEventRaised(MapViewerEvent e) {
         if ((e.getID() & TitleChangeMask) != 0)
-            ;//setTitleFromViewer(e.getMapViewer());
+            updateTitleAt(indexOfComponent(e.getMapViewer()));
     }
     
     public void LWCChanged(LWCEvent e) {
-        Object src = e.getSource();
-        //if (src instanceof LWMap && e.getWhat() == LWKey.Label) // already filtered for label
-        if (src instanceof LWMap) {
-            //System.out.println("MapTabbedPane " + e);
-            LWMap map = (LWMap) src;
-            int i = findTabWithMap(map);
-            if (i >= 0) {
-                setTitleAt(i, mapToTabTitle(map));
-                if (map.getFile() != null)
-                    setToolTipTextAt(i, map.getFile().toString());
-            }
-        }
+        if (e.getSource() instanceof LWMap)
+            updateTitleAt(findTabWithMap((LWMap)e.getSource()));
     }
         
     public void addViewer(MapViewer viewer) {
         Component c = viewer;
         if (!this.name.startsWith("*"))
             c = new JScrollPane(viewer);
+        addTab(viewerToTabTitle(viewer), c);
         LWMap map = viewer.getMap();
-        addTab(mapToTabTitle(map), c);
         map.addLWCListener(this, LWKey.Label);
         // todo perf: we should be able to ask to listen only
         // for events from this object directly (that we don't
         // care to hear from it's children), and even that
         // we'd only like to see, e.g., LABEL events.
         // -- create bit masks in LWCEvent
-        if (map.getFile() != null)
-            setToolTipTextAt(indexOfComponent(c), map.getFile().toString());
+        updateTitleAt(indexOfComponent(c)); // first time just needed for tooltip
     }
         
     /*
@@ -190,7 +190,12 @@ public class MapTabbedPane extends JTabbedPane
     }
         
     public MapViewer getViewerAt(int index) {
-        Object c = getComponentAt(index);
+        Object c;
+        try {
+            c = getComponentAt(index);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
         MapViewer viewer = null;
         if (c instanceof MapViewer)
             viewer = (MapViewer) c;

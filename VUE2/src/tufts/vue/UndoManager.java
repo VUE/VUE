@@ -19,10 +19,9 @@ public class UndoManager
     private LWMap mMap; // the map who's modifications we're tracking
     
     private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
-    private Map mHierarchyChanges = new HashMap(); // all property changes, mapped by component, since last mark
-    //private Map mHierarchyChanges = new HashMap(); // all hierarchy changes, mapped by component, since last mark
+    private Map mHierarchyChanges = new HashMap(); // all hierarchy changes, mapped by component (LWContainer's), since last mark
     private LWCEvent mLastEvent; // most recent event since last mark
-    private int mChangeCount; // individual property changes since last mark
+    private int mChangeCount; // total recorded changes since last mark
 
     /**
      * A list (map) of components each with a list (map) of property changes to them.
