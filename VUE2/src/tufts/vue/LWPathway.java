@@ -168,6 +168,12 @@ public class LWPathway extends LWContainer
             if (added.size() == 1)
                 setIndex(length()-1);
             notify("pathway.add", new Undoable(added) { void undo() { undoAddChildren((List)old); }} );
+            // todo: although should not ever see more than one pathway.add or pathway.delete
+            // per user action, it's a theoretically possible combination for the UndoManager to
+            // see, and this is not a compressable event, it's cumulative (if we do see more
+            // than one of them, we don't want to throw away all the events after first), so
+            // would be better to have some way of marking the event as cumulative (e.g., starts
+            // with "*") and have the UndoManager handle it.
         }
     }
 
@@ -631,11 +637,12 @@ public class LWPathway extends LWContainer
             boolean selected = (getCurrent() == c && VUE.getActivePathway() == this);
             strokeWidth = BaseStroke;
 
-            // because we're drawing under the object, only half of
-            // the amount we add to to the stroke width is visible
-            // outside the edge of the object, except for links,
-            // which are one-dimensional, so we use a narrower
-            // stroke width for them.
+            // [OLD: now on top] because we're drawing under the
+            // object, only half of the amount we add to to the stroke
+            // width is visible outside the edge of the object, except
+            // for links, which are one-dimensional, so we use a
+            // narrower stroke width for them.
+            
             /*
             if (c instanceof LWLink)
                 ;//strokeWidth++;
