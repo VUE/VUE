@@ -43,10 +43,12 @@ import osid.dr.*;
 public class FavoritesWindow extends JPanel implements ActionListener, ItemListener 
 {
     private DisplayAction displayAction = null;
-    public  VueDandDTree favoritesTree ;
+    private VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
     final static String XML_MAPPING = "lw_mapping.xml";
-    
+    private static java.util.prefs.Preferences prefs;
+    private static String  FAVORITES_MAPPING;
+    private static int newFavorites = 0;
     /** Creates a new instance of HierarchyTreeWindow */
     public FavoritesWindow(String displayName ) 
     {
@@ -55,19 +57,32 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
        JTabbedPane favoritesPane = new JTabbedPane();
        
     
-        FavoritesNode browseRoot = new FavoritesNode("Bookmarks");
+    
  
-         favoritesTree = new VueDandDTree(browseRoot);
-         this.setFavoritesTree(favoritesTree); 
        
+           prefs = tufts.vue.VUE.prefs;
+        try {
+          
+            FAVORITES_MAPPING = prefs.get("mapping.favorites","") ;
+        }catch(Exception e) { System.out.println("Favorites"+e);}
+        
+           
+            File f  = new File(FAVORITES_MAPPING);
+                         
+            SaveVueJTree restorefavtree = unMarshallMap(f);
+            System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
+            VueDandDTree favoritesTree =restorefavtree.restoreTree();
+            this.setFavoritesTree(favoritesTree); 
+           
+          System.out.println("Favorites--"+ FAVORITES_MAPPING);
         JPanel searchResultsPane = new JPanel();
         FavSearchPanel favSearchPanel = new FavSearchPanel(favoritesTree,favoritesPane,searchResultsPane);
             
-         favoritesPane.add("Search",favSearchPanel);
+         favoritesPane.addTab("Search",favSearchPanel);
          
           
          
-        favoritesPane.add("Search Results",searchResultsPane);
+        favoritesPane.addTab("Search Results",searchResultsPane);
        
        
        
@@ -82,7 +97,10 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
           
          add(favoritesPane,BorderLayout.CENTER);
          
-        
+          
+                         
+                         
+                        
          
         
     }
@@ -150,16 +168,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         menuItem = new JMenuItem("Remove Resource");
         menuItem.addActionListener(this);
         popup.add(menuItem);
-        /*
          menuItem = new JMenuItem("Save Favorites");
         menuItem.addActionListener(this);
         popup.add(menuItem);
-         menuItem = new JMenuItem("Restore Favorites");
-        menuItem.addActionListener(this);
-        popup.add(menuItem);
         
-        */
-
+       
         //Add listener to the text area so the popup menu can come up.
         MouseListener popupListener = new PopupListener(popup);
         favoritesTree.addMouseListener(popupListener);
@@ -188,7 +201,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                  
                
                      
-                 FavoritesNode newNode= new FavoritesNode("New Bookmark Folder");
+                 FavoritesNode newNode= new FavoritesNode("New Favorites Folder" + newFavorites);
+                 newFavorites = newFavorites +1 ;
                    if (model.getRoot() != dn){
                  FavoritesNode node = (FavoritesNode)dn.getParent();
                     model.insertNodeInto(newNode, node, 0);  
@@ -206,8 +220,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                      {
                    DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
                                  
-                    FavoritesNode newNode= new FavoritesNode("New Bookmark Folder");
-                     model.insertNodeInto(newNode, dn, 0);  
+                    FavoritesNode newNode= new FavoritesNode("New Favorites Folder" + newFavorites);
+                    newFavorites = newFavorites +1 ; 
+                    model.insertNodeInto(newNode, dn, 0);  
                      favoritesTree.expandRow(dn.getLevel());
                       this.setFavoritesTree(favoritesTree);
             
@@ -248,13 +263,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         
                  
                         SaveVueJTree sfavtree = new SaveVueJTree(favoritesTree);
-                       
-                          File f  = new File("C:\\temp\\savetree.xml");
+                         
+                         File f  = new File(FAVORITES_MAPPING);
                           marshallMap(f,sfavtree);
                             }
              else if (e.getActionCommand().toString().equals("Restore Favorites")){
                  
-                          File f  = new File("C:\\temp\\savetree.xml");
+                         // File f  = new File("C:\\temp\\savetree.xml");
+                         System.out.println("before mapping - fav");
+                          File f  = new File(FAVORITES_MAPPING);
+                          System.out.println("after mapping - fav");
                           SaveVueJTree restorefavtree = unMarshallMap(f);
                           System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
                           VueDandDTree vueTree =restorefavtree.restoreTree();
@@ -278,7 +296,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                 
                     if (tp.getLastPathComponent() instanceof FavoritesNode){
             
-                      System.out.println("a book mark node so nothing to show");
+                     
                          }
                      else
                     {
@@ -328,7 +346,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         private void maybeShowPopup(MouseEvent e) {
             if (e.isPopupTrigger()) {
                
-                //System.out.println("ha ha " + e.getX() + e.getY());
+                
                 popup.show(e.getComponent(),
                            e.getX(), e.getY());
             }
@@ -339,7 +357,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     {
         Marshaller marshaller = null;
         
-        //if (this.marshaller == null) {
+        
         Mapping mapping = new Mapping();
             
         try 
@@ -350,22 +368,18 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             mapping.loadMapping(XML_MAPPING);
             marshaller.setMapping(mapping);
             
-            System.out.println("start of marshall");
+           
             marshaller.marshal(favoritesTree);
-            System.out.println("end of marshall");
             
             writer.flush();
             writer.close();
             
         } 
-        catch (Exception e) 
-        {
-            System.err.println("FavoritesWindow.marshallMap " + e);
-        }
-        //}
+        catch (Exception e) {System.err.println("FavoritesWindow.marshallMap " + e);}
+      
     }
     
-    /**A static method which creates an appropriate unmarshaller and unmarshal the given concept map*/
+
    
     public  SaveVueJTree unMarshallMap(File file)
     {
@@ -402,22 +416,58 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
      
      JTabbedPane fp;
      JPanel sp;
+     JTextField keywords;
      FavSearchPanel(VueDandDTree favortiesTree, JTabbedPane fp, JPanel sp){
      
+         setLayout(new BorderLayout());
         this.fp = fp;
         this.sp = sp;
         JPanel queryPanel =  new JPanel();        
      
+        GridBagLayout gridbag = new GridBagLayout();
+        GridBagConstraints c = new GridBagConstraints();
+        queryPanel.setLayout(gridbag);
+        Insets defaultInsets = new Insets(2,2,2,2);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        
+     //adding the top label   
+        c.weightx = 1.0;
+        c.gridx=0;
+        c.gridy=0;
+        c.gridwidth=3;
+        c.ipady = 10;
+        c.insets = defaultInsets;
+        c.anchor = GridBagConstraints.NORTH;
+        JLabel topLabel = new JLabel("Search Favorites");
+        gridbag.setConstraints(topLabel, c);
+        queryPanel.add(topLabel);
+        
+        
+    //adding the search box and the button
+        c.gridx=0;
+        c.gridy=1;
+        c.gridwidth=2;
+        c.ipady=0;
+        keywords = new JTextField();
+        keywords.setPreferredSize(new Dimension(100,20));
+        gridbag.setConstraints(keywords, c);
+        queryPanel.add(keywords);
+        
+        c.gridx=2;
+        c.gridy=1;
+        c.gridwidth=1;
+        JButton searchButton = new JButton("Search");
+        searchButton.setPreferredSize(new Dimension(80,20));
        
+        gridbag.setConstraints(searchButton,c);
+        queryPanel.add(searchButton);
+        
      
         
-        queryPanel.setLayout(new BorderLayout()); 
-        final JTextField queryBox = new JTextField();
-        queryPanel.add(queryBox,BorderLayout.NORTH);
-        JButton searchButton = new JButton("Search");     
-        searchButton.setPreferredSize(new Dimension(250,30));      
-        queryPanel.add(searchButton,BorderLayout.SOUTH);
-        this.add(queryPanel,BorderLayout.NORTH);
+       
+        JPanel qp = new JPanel(new BorderLayout());
+        qp.add(queryPanel,BorderLayout.NORTH);
+        this.add(qp,BorderLayout.CENTER);
      
         
         
@@ -428,7 +478,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
            
                 JScrollPane jsp = new JScrollPane();
                 
-                String searchString = queryBox.getText();
+                String searchString = keywords.getText();
                         
                if (!searchString.equals("")){
                             
@@ -473,7 +523,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         serResultTree.expandRow(0);
                         JScrollPane fPane = new JScrollPane(serResultTree);
                         FavSearchPanel.this.sp.setLayout(new BorderLayout());
-                        FavSearchPanel.this.sp.add(fPane,BorderLayout.CENTER,index);
+                        FavSearchPanel.this.sp.add(fPane,BorderLayout.NORTH,index);
                         index = index + 1;
                         
                         FavSearchPanel.this.fp.setSelectedIndex(1);
@@ -493,10 +543,9 @@ public boolean compareNode(String searchString, DefaultMutableTreeNode Node, Def
   
                              
         if (searchString.compareToIgnoreCase(Node.toString()) == 0){
-            System.out.println("Do I come to search bef?"+"top Node" + serRoot+"this NOde" +Node);
-            
+          
                addSearchNode(serRoot,Node);     
-      System.out.println("Do I come to search aft?"+"top Node" + serRoot+"this NOde" +Node);
+    
            foundsomething = true;
                                    
                                 
@@ -511,17 +560,16 @@ public boolean compareNode(String searchString, DefaultMutableTreeNode Node, Def
                        int endIndex = startIndex + lenSearchString;
                        boolean found = false;
                             
-                     while ((endIndex < lenthisString) && !found){
+                     while ((endIndex <= lenthisString) && !found){
                             String   testString  = thisString.substring(startIndex,endIndex);
                            
                               if (searchString.compareToIgnoreCase(testString)== 0){
-                                  System.out.println("Do I come to search bef add?"+"top Node" + serRoot+"this NOde" +Node);
-            
+                             
                             
                                  
                                    addSearchNode(serRoot,Node);  
                                    
-                                   System.out.println("Do I come to search bef adft?"+"top Node" + serRoot+"this NOde" +Node);
+                                  
             
                                   
                                         found = true;
