@@ -34,6 +34,7 @@ public class OpenAction extends AbstractAction
     }
     public OpenAction(String label) {
         super(label);
+          putValue(Action.SHORT_DESCRIPTION,label);
     }
 
     public void actionPerformed(ActionEvent e)
