@@ -458,7 +458,6 @@ public class LWMap extends LWContainer
             if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
             return;
         }
-        mCachedBounds = null;
         // consider flushing bounds if layout() called also (any child layout bubbles up to us)
         // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
         String what = e.getWhat();
@@ -471,6 +470,12 @@ public class LWMap extends LWContainer
             markChange(e);
         }
         super.notifyLWCListeners(e);
+        flushBounds();
+    }
+
+    private void flushBounds() {
+        mCachedBounds = null;
+        if (DEBUG.EVENTS&&DEBUG.META) out(this + " flushed cached bounds");
     }
 
     private void markChange(Object e) {
@@ -485,7 +490,7 @@ public class LWMap extends LWContainer
     
     public java.awt.geom.Rectangle2D getBounds()
     {
-        if (mCachedBounds == null) {
+        if (true||mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator());
             try {
                 setEventsSuspended();

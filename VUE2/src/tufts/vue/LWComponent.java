@@ -1321,6 +1321,28 @@ public class LWComponent
             throw new UnsupportedOperationException("lastIndexOf");
         }
     }
+
+    /**
+     * Move @param listener - existing listener, to the front of the
+     * notification list, so it get's notifications before anyone else.
+     */
+    public synchronized void setPriorityLWCListener(Listener listener) {
+        int i = listeners.indexOf(listener);
+        
+        if (i > 0) {
+            if (i == 1) {
+                // swap first two
+                listeners.set(1, listeners.set(0, listener));
+            } else {
+                // remove & add back at the front
+                listeners.remove(listener);
+                listeners.add(0, listener);
+            }
+        } else if (i == 0) {
+            ; // already priority listener
+        } else
+            throw new IllegalArgumentException(this + " " + listener + " not already a listener");
+    }
     
     public synchronized void addLWCListener(Listener listener) {
         addLWCListener(listener, null);

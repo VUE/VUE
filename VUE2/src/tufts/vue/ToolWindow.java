@@ -90,8 +90,12 @@ public class ToolWindow extends JWindow
         // that mouse listening tools don't disable the resize corner
         MouseListener[] ml = c.getMouseListeners();
         out("added " + c + " mouseListeners=" + ml.length);
-        if (ml.length > 0)
-            mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
+        if (ml.length > 0) {
+            if (DEBUG.Enabled)
+                mContentPane.contentPanel.setBorder(new LineBorder(Color.darkGray, 5));
+            else
+                mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
+        }
     }
 
     public void add(JComponent c) {

@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
+import javax.swing.border.*;
 
 /**
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
@@ -160,6 +161,7 @@ public class MapTabbedPane extends JTabbedPane
         Component c = viewer;
         if (true || !this.name.startsWith("*")) {
             JScrollPane scrollPane = new JScrollPane(viewer);
+            //scrollPane.setViewportBorder(new LineBorder(Color.green, 50));
             scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
             c = scrollPane;

@@ -4,8 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import javax.swing.JViewport;
-import javax.swing.border.*;
 
 /**
  * MapPanner.java
@@ -32,6 +30,10 @@ public class MapPanner extends javax.swing.JPanel
     private Point2D mapStart; // where map origin was at mouse press
     private LWMap map; // active map
 
+    // Enable this to keep viewport always visible in panner: (it causes while-you-drag
+    // zoom adjusting tho, which can be a bit disorienting)
+    private static final boolean ViewerAlwaysVisible = false;
+    
     /**
      * Get's global (thru AWT hierarchy) MapViewerEvent's
      * to know what to display & when to update.  It's
@@ -135,7 +137,7 @@ public class MapPanner extends javax.swing.JPanel
         int x = e.getX();
         int y = e.getY();
 
-        if (mapViewer.inScrollPane()) {
+        if (false&&mapViewer.inScrollPane()) {
             if (x < 0 || x > getWidth() || y < 0 || y > getHeight()) {
                 lastDrag = e.getPoint();
                 return;
@@ -153,12 +155,15 @@ public class MapPanner extends javax.swing.JPanel
             lastDrag = e.getPoint();
             
         } else {
-            // hack till we disallow the maprect from going beyond edge
-            if (x < 0) x = 0;
-            else if (x > getWidth()-2) x = getWidth()-2;
-            if (y < 0) y = 0;
-            else if (y > getHeight()-2) y = getHeight()-2;
-        
+            
+            if (ViewerAlwaysVisible) {
+                // hack till we disallow the maprect from going beyond edge
+                if (x < 0) x = 0;
+                else if (x > getWidth()-2) x = getWidth()-2;
+                if (y < 0) y = 0;
+                else if (y > getHeight()-2) y = getHeight()-2;
+            }
+                
             double factor = this.zoomFactor / mapViewer.getZoomFactor();
             double dragOffsetX = (x - dragStart.getX()) / factor;
             double dragOffsetY = (y - dragStart.getY()) / factor;
@@ -182,25 +187,20 @@ public class MapPanner extends javax.swing.JPanel
                 return;
         }
 
-        Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
-        Rectangle   viewerBounds = new Rectangle(mapViewer.getVisibleWidth()-1, mapViewer.getVisibleHeight()-1);
-
-        if (viewerBounds.isEmpty()) {
-            out("nothing to paint");
+        if (mapViewer.getVisibleWidth() < 1 || mapViewer.getVisibleHeight() < 1) {
+            out("nothing to paint"); 
             return;
         }
-        
-        //Rectangle2D.Float mapViewerRect = (Rectangle2D.Float) mapViewer.screenToMapRect(viewerBounds);
-        Rectangle2D mapViewerRect = mapViewer.getVisibleMapBounds();
-        /*
-        if (mapViewer.getParent() instanceof JViewport) {
-            JViewport vp = (JViewport) mapViewer.getParent();
-            Point vpos = vp.getViewPosition();
-            mapViewerRect.x = vpos.x;
-            mapViewerRect.y = vpos.y;
-        }
-        */
-        Rectangle2D pannerRect = mapViewerRect.createUnion(allComponentBounds);
+
+        //final Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
+        final Rectangle2D allComponentBounds = mapViewer.getMap().getBounds();
+        final Rectangle2D mapViewerRect = mapViewer.getVisibleMapBounds();
+        final Rectangle2D pannerRect;
+
+        if (ViewerAlwaysVisible)
+            pannerRect = mapViewerRect.createUnion(allComponentBounds);
+        else
+            pannerRect = allComponentBounds;
 
         Dimension pannerViewportSize = getSize();
         pannerViewportSize.width -= 1;
@@ -210,14 +210,13 @@ public class MapPanner extends javax.swing.JPanel
         Point2D offset = new Point2D.Double();
         
         zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
-                                             0,
+                                             DEBUG.MARGINS ? 0 : 5,
                                              pannerRect,
                                              offset);
                                             
 
         g2.translate(-offset.getX(), -offset.getY());
         g2.scale(zoomFactor, zoomFactor);
-        //g2.setColor(Color.white);
         g2.setColor(mapViewer.getBackground());
         g2.fill(mapViewerRect);
 
@@ -239,23 +238,20 @@ public class MapPanner extends javax.swing.JPanel
          */
         mapViewer.getMap().draw(dc);
         
-        g2.setColor(Color.red);
-        // todo: de-scale us before drawing -- actually -- do on a glass pane as we're
-        // very expensively rederawing the whole map here...
-        if (!VueUtil.isMacPlatform()) {
-            dc.setAntiAlias(false);
-            //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-            g2.setStroke(STROKE_ONE);
+        /*
+         * Show where the edge of the visible viewer region overlaps the map
+         */
+        if (VueUtil.isMacPlatform()) {
+            // this still relvant for mac? 
+            dc.setAbsoluteStrokeWidth(1);
         } else {
-            g2.setStroke(new BasicStroke((float)(1/this.zoomFactor)));
+            dc.setAntiAlias(false);
+            g2.setStroke(STROKE_ONE);
         }
+        g2.setColor(Color.red);
         g2.draw(mapViewerRect);
-
-        //System.out.println(pannerRect);
-        //System.out.println(mapViewerRect);
-
-        g2.scale(1/zoomFactor, 1/zoomFactor);
-        g2.translate(offset.getX(), offset.getY());
+        //g2.scale(1/zoomFactor, 1/zoomFactor);
+        //g2.translate(offset.getX(), offset.getY());
     }
 
     public void mouseClicked(MouseEvent e) { if (DEBUG.MOUSE) out(e); }

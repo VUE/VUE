@@ -34,6 +34,7 @@ public class MapViewer extends javax.swing.JComponent
                , LWComponent.Listener
                , LWSelection.Listener
                , VueToolSelectionListener
+               , VUE.ActiveViewerListener
 {
     // rename this class LWViewer or LWCanvas?
     static final int  RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
@@ -108,6 +109,8 @@ public class MapViewer extends javax.swing.JComponent
         return inScrollPane;
     }
     
+    private JComponent mIndicator = new JPanel();
+    
     private InputHandler inputHandler = new InputHandler();
     public void addNotify() {
         super.addNotify();
@@ -121,7 +124,28 @@ public class MapViewer extends javax.swing.JComponent
             //scrollerCoords = true;
             // don't know if this every worked: weren't
             // able to even get focus listening to the viewport!
-            if (DEBUG.SCROLL) setBackground(Color.lightGray.brighter());
+            JScrollPane sp = (JScrollPane) mViewport.getParent();
+
+            mIndicator = new JComponent() {
+                    final Color bg = new Color(100,255,111);
+                    final Color line = bg.darker();
+                    public void paintComponent(Graphics g) {
+                        int w = getWidth();
+                        int h = getHeight();
+                        if (VUE.getActiveViewer() == MapViewer.this) {
+                            g.setColor(bg);
+                            g.fillRect(0,0,w,h);
+                        }
+                        if (MapViewer.this.hasFocus()) {
+                            g.setColor(line);
+                            g.drawLine(w/2, 0, w/2, h);
+                            g.drawLine(0, h/2, w, h/2);
+                            //g.drawLine(1,1, w-2,h-2);
+                            //g.drawLine(1,h-2, w-2,1);
+                        }
+                    }
+                };
+            sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, mIndicator);
         } else {
             //scrollerCoords = false;
             mViewport = null;
@@ -248,6 +272,8 @@ public class MapViewer extends javax.swing.JComponent
         setZoomFactor(getMap().getUserZoom(), false, null);
         //mUserOrigin = (Point2D.Float) getMap().getUserOrigin();
         //setMapOriginOffset(p.getX(), p.getY());
+
+        VUE.addActiveViewerListener(this);
     }
     
     
@@ -398,7 +424,7 @@ public class MapViewer extends javax.swing.JComponent
     }
 
     void fireViewerEvent(int id) {
-        if (!sDragUnderway && (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this))
+        if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this))
             new MapViewerEvent(this, id).raise();
     }
     
@@ -999,25 +1025,27 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     /**
-     * Iterate over all components and return a bounding box
-     * for the whole set.  This can't be a ConceptMap method
-     * because we don't actually know the component sizes
-     * until they're rendered (e.g., font metrics taken into
-     * account, etc). todo: have only in LWMap
+     * Return a bounding box for all the LWComponents in the
+     * displayed map, including room for possible selection handles or
+     * rendered selection highlights.  Will in effect be just a bit
+     * bigger than getMap().getBounds(). todo: account for zoom?
      */
-    private final int SelectionStrokeMargin = SelectionStrokeWidth/2;
+    
+    private final float SelectionStrokeMargin = SelectionStrokeWidth/2;
     public Rectangle2D.Float getAllComponentBounds() {
         Rectangle2D.Float r = (Rectangle2D.Float) getMap().getBounds().clone();
         // because the selection stroke is rendered at scale (gets bigger
         // as we zoom in) we account for it here in the total bounds
         // needed to see everything on the map.
-        if (!DEBUG_MARGINS) {
+        if (!DEBUG.MARGINS) {
             r.x -= SelectionStrokeMargin;
             r.y -= SelectionStrokeMargin;
             r.width += SelectionStrokeWidth;
             r.height += SelectionStrokeWidth;
         }
-        return growForSelection(r); // now grow it for the selection handles
+        Rectangle2D.Float rr = growForSelection(r); // now grow it for the selection handles
+        if (DEBUG.SCROLL) out("getAllComponentBounds " + rr);
+        return rr;
     }
     
     
@@ -1171,7 +1199,7 @@ public class MapViewer extends javax.swing.JComponent
     // We grow the bounds here to include for the possability of any selection
     // handles that may be need to be drawn around components.
     private Rectangle growRect(Rectangle r, int pad) {
-        if (!DEBUG_MARGINS) {
+        if (!DEBUG.MARGINS) {
             final int margin = pad;
             final int adjust = margin * 2;
             r.x -= margin;
@@ -1209,7 +1237,7 @@ public class MapViewer extends javax.swing.JComponent
     
     // same as grow for selection, but operates on map coordinates
     private Rectangle2D.Float growForSelection(Rectangle2D.Float r) {
-        if (!DEBUG_MARGINS) {
+        if (!DEBUG.MARGINS) {
             float margin = (float) (SelectionHandleSize * mZoomInverse);
             float adjust = margin * 2;
             r.x -= margin;
@@ -1799,11 +1827,16 @@ public class MapViewer extends javax.swing.JComponent
         // paint the focus border if needed (todo: change to some extra-pane method)
         //-------------------------------------------------------
         
-        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this /*&& hasFocus()*/) {
+        /*
+          // TODO: setViewportBorder, or if scroll bars always there, setCorner to green block
+        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this
+        //&& hasFocus()
+        ) {
             g.setColor(COLOR_ACTIVE_VIEWER);
             g.drawRect(0, 0, getWidth()-1, getHeight()-1);
             g.drawRect(1, 1, getWidth()-3, getHeight()-3);
         }
+        */
         
         if (OPTIMIZED_REPAINT) {
             // debug: shows the repaint region
@@ -1976,6 +2009,11 @@ public class MapViewer extends javax.swing.JComponent
             g2.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
             //g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
             g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
+
+            Point center = getVisibleCenter();
+            dc.setAbsoluteStrokeWidth(0.5f);
+            g2.drawLine(0, center.y, 9999, center.y);
+            g2.drawLine(center.x, 0, center.x, 9999);
         }
         
         if (DEBUG_SHOW_ORIGIN && mZoomFactor >= 6.0) {
@@ -2927,9 +2965,7 @@ public class MapViewer extends javax.swing.JComponent
             // DEBUGGING
             //-------------------------------------------------------
             
-            // BUTTON1_DOWN_MASK Doesn't appear to be getting set in mac Java 1.4!
-            //if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
-            if (e.isShiftDown() && !e.isControlDown()) {
+            if (/*e.isShiftDown() &&*/ !e.isControlDown()) {
                 char c = e.getKeyChar();
                 if ("DEBUG".charAt(kk++) == c) {
                     if (kk == 5) {
@@ -2963,6 +2999,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
+                else if (c == 'm') { DEBUG.MARGINS = !DEBUG.MARGINS; }
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
                 else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
@@ -4139,6 +4176,8 @@ public class MapViewer extends javax.swing.JComponent
     public void focusLost(FocusEvent e) {
         if (DEBUG.FOCUS) out("focusLost (to " + e.getOppositeComponent() +")");
         
+        mIndicator.repaint();
+        
         if (VueUtil.isMacPlatform()) {
             
             // On Mac, our manual tool-tip popups sometimes (and
@@ -4176,6 +4215,11 @@ public class MapViewer extends javax.swing.JComponent
         // used to determine what viewer all the toolbar menu actions
         // should act upon)
         repaint();
+
+    }
+    
+    public void activeViewerChanged(MapViewer viewer) {
+        mIndicator.repaint();
     }
     
     void grabVueApplicationFocus(String from) {
@@ -4193,7 +4237,7 @@ public class MapViewer extends javax.swing.JComponent
                     oldActiveMap = activeViewer.getMap();
                 VUE.setActiveViewer(this);
                 
-                // TODO: getMap().setPriorityListener(this);
+                getMap().setPriorityLWCListener(this);
                 // TODO: VUE.getSelection().setPriorityListener(this);
                 
                 // outline view switching: TODO: make an active map listener instead of this
@@ -4218,7 +4262,9 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
         }
+        mIndicator.repaint();
     }
+    
     public void focusGained(FocusEvent e) {
         if (DEBUG.FOCUS) out("focusGained (from " + e.getOppositeComponent() + ")");
         // do NOT grab focus if we're not actually visible
@@ -4500,11 +4546,6 @@ public class MapViewer extends javax.swing.JComponent
     
     final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
     Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
-    
-    private final boolean DEBUG_MARGINS = false;
-    
-    
-    
     
     
 }

@@ -21,7 +21,7 @@ public class ZoomTool extends VueTool
         1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
         //, 96, 128, 256, 384, 512
     };
-    static private final int ZOOM_FIT_PAD = 8;
+    static private final int ZOOM_FIT_PAD = 20; // make this is > SelectionStrokeWidth & SelectionHandleSize
     static private final double MaxZoom = ZoomDefaults[ZoomDefaults.length - 1];
 
     
@@ -241,8 +241,11 @@ public class ZoomTool extends VueTool
     /** fit everything in the current map into the current viewport */
     public static void setZoomFit()
     {
-        setZoomFitRegion(VUE.getActiveViewer().getAllComponentBounds(),
-                         DEBUG.SCROLL ? 0 : ZOOM_FIT_PAD);
+        setZoomFitRegion(VUE.getActiveMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD);
+        // while it would be nice to call getActiveViewer().getAllComponentBounds
+        // as a way to get bounds with max selection edges, etc, it computes some
+        // of it's size based on current zoom, which we're about to change, so
+        // we can't use it as our zoom fit becomes a circular, cycling computation.
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion)

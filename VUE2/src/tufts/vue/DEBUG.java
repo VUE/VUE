@@ -20,7 +20,8 @@ public class DEBUG
     public static boolean SCROLL = false; // MapViewer scroll-bars / scrolling
     public static boolean FOCUS = true; // AWT focus events, VUE MapViewer application focus
     public static boolean EVENTS = false;
-    public static boolean INIT = false; // startup / initializations
+    public static boolean INIT = true; // startup / initializations
+    public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
 
     public static boolean DR = false; // digital repository & data sources
     
