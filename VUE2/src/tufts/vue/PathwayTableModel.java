@@ -231,9 +231,9 @@ public class PathwayTableModel extends DefaultTableModel
             // 2 problems: need to add end-of-action undo
             // marker, and as single-line edit will blow
             // away any newlines in the label.
-            
+
             if (getElement(row) instanceof LWPathway)
-                return col == 1;  // if pathway, color also editable
+                return col == 1 || col == 3;  // if pathway, color & label editable
         }
         return false;
     }

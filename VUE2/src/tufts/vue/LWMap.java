@@ -73,7 +73,6 @@ public class LWMap extends LWContainer
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
         setLabel(label);
-        //mPathwayManager = new LWPathwayManager(this);
         mPathways = new LWPathwayList(this);
         markDate();
         markAsSaved();
@@ -305,7 +304,7 @@ public class LWMap extends LWContainer
         int pathIndex = 0;
         while (i.hasNext()) {
             LWPathway path = (LWPathway) i.next();
-            if (path.isVisible()) {
+            if (path.isVisible() && path.hasChildren()) {
                 dc.setIndex(pathIndex++);
                 path.drawPathway(dc.create());
             }
@@ -425,10 +424,12 @@ public class LWMap extends LWContainer
         addChild(c);
         return c;
     }
+    /*
     private void removeLWC(LWComponent c)
     {
         removeChild(c);
     }
+    */
 
     /**
      * Every single event anywhere in the map will ultimately end up

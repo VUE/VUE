@@ -28,12 +28,12 @@ import javax.swing.event.*;
 
 public class PathwayTable extends JTable
 {
-    private final ImageIcon close = VueResources.getImageIcon("pathwayClose");
-    private final ImageIcon open = VueResources.getImageIcon("pathwayOpen");
-    private final ImageIcon notes = VueResources.getImageIcon("notes");
-    private final ImageIcon lock = VueResources.getImageIcon("lock");
-    private final ImageIcon eyeOpen = VueResources.getImageIcon("pathwayOn");
-    private final ImageIcon eyeClosed = VueResources.getImageIcon("pathwayOff");
+    private ImageIcon close;
+    private ImageIcon open;
+    private ImageIcon notes;
+    private ImageIcon lock;
+    private ImageIcon eyeOpen;
+    private ImageIcon eyeClosed;
     
     private final Font currentFont = new Font("SansSerif", Font.BOLD, 12);
     private final Font normalFont = new Font("SansSerif", Font.PLAIN, 10);
@@ -50,6 +50,13 @@ public class PathwayTable extends JTable
     public PathwayTable(PathwayTableModel model) {
         super(model);
 
+        this.close = VueResources.getImageIcon("pathwayClose");
+        this.open = VueResources.getImageIcon("pathwayOpen");
+        this.notes = VueResources.getImageIcon("notes");
+        this.lock = VueResources.getImageIcon("lock");
+        this.eyeOpen = VueResources.getImageIcon("pathwayOn");
+        this.eyeClosed = VueResources.getImageIcon("pathwayOff");
+    
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
