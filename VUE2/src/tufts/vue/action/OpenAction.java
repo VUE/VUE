@@ -45,26 +45,24 @@ public class OpenAction extends AbstractAction
         putValue(Action.SHORT_DESCRIPTION,label);
     }
 
+
+    // workaround for rapid-succession Ctrl-O's which pop multiple open dialogs
+    private static final Object LOCK = new Object();
+    private static boolean openUnderway = false; 
     public void actionPerformed(ActionEvent e)
     {
-        /*
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Open Map");
-        chooser.setFileFilter(new VueFileFilter());
-        if (VueUtil.isCurrentDirectoryPathSet()) 
-            chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        int option = chooser.showDialog(tufts.vue.VUE.frame, "Open");
-        String fileName = "test.xml";
-        if (option == JFileChooser.APPROVE_OPTION) {
-            fileName = chooser.getSelectedFile().getAbsolutePath();
-            VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getP //if it isn't a file name with the right extention 
-                if (!fileName.endsWith("." + extension))
-                fileName += "." + extension;arent());
-         */
-           
-        File file = ActionUtil.openFile("Open Map", "vue");
-        displayMap(file);
-        System.out.println("Action["+e.getActionCommand()+"] completed.");
+        synchronized (LOCK) {
+            if (openUnderway)
+                return;
+            openUnderway = true;
+        }
+        try {
+            File file = ActionUtil.openFile("Open Map", "vue");
+            displayMap(file);
+            System.out.println("Action["+e.getActionCommand()+"] completed.");
+        } finally {
+            openUnderway = false;
+        }
     }
 
     
