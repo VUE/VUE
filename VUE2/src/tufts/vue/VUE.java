@@ -216,7 +216,7 @@ public class VUE
         // loading preferences
         prefs = java.util.prefs.Preferences.userRoot().node("/");
         try {
-            FileInputStream fis = new FileInputStream(VUE_CONF);
+            FileInputStream fis = new FileInputStream(getResource(VUE_CONF).getPath());
             prefs.importPreferences(fis);
         } catch (Exception e) { System.out.println(e);}
 
