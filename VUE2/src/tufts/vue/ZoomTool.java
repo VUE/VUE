@@ -12,6 +12,7 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 
 public class ZoomTool extends VueTool
+    implements VueConstants
 {
     static private final int ZOOM_MANUAL = -1;
     static private final double[] ZoomDefaults = {
@@ -162,7 +163,7 @@ public class ZoomTool extends VueTool
     {
         MapViewer viewer = VUE.getActiveViewer();
         
-        if (adjustViewport) {
+        if (!DEBUG_SCROLL && adjustViewport) {
             if (focus == null) {
                 // If no user selected zoom focus point, zoom in to
                 // towards the map location at the center of the
@@ -196,7 +197,7 @@ public class ZoomTool extends VueTool
     {
         Point2D.Double offset = new Point2D.Double();
         MapViewer viewer = VUE.getActiveViewer();
-        double newZoom = computeZoomFit(viewer.getSize(),
+        double newZoom = computeZoomFit(viewer.getVisibleSize(),
                                         edgePadding,
                                         mapRegion,
                                         offset);

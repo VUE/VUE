@@ -248,7 +248,10 @@ public class VUE
         System.out.println("LookAndFeel: \"" + lafName + "\" " + UIManager.getLookAndFeel());
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
-            UIManager.getLookAndFeelDefaults().put("TabbedPane.background", toolbarColor);
+            UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
+            UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
+            // Why, in metal, is the default window "gray" background color neither lightGray
+            // nor equal to the SystemColor.control???
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.blue);
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.light", Color.orange);
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.focus", Color.yellow);
@@ -466,7 +469,8 @@ public class VUE
         System.out.println("VUE.main completed.");
     }
 
-    public static void setViewerScrollbarsDisplayed(boolean add)
+    /*
+    private static void setViewerScrollbarsDisplayed(boolean add)
     {
         if (add) {
             JScrollPane scroller = new JScrollPane(mMapTabsLeft.getComponentAt(0));
@@ -475,17 +479,20 @@ public class VUE
             //mMapTabsLeft.setComponentAt(0, scroller);
         }
     }
+    */
 
-    public static int openMapCount()
-    {
+    public static int openMapCount() {
         return mMapTabsLeft.getTabCount();
     }
     
-    public static void setActiveViewer(MapViewer viewer)
-    {
+    public static void setActiveViewer(MapViewer viewer) {
         ActiveViewer = viewer;
     }
 
+    public static MapViewer getActiveViewer() {
+        return ActiveViewer;
+    }
+    
     public static boolean multipleMapsVisible()
     {
         if (viewerSplit == null)
@@ -496,29 +503,7 @@ public class VUE
             
     }
     
-    public static MapViewer getActiveViewer()
-    {
-        /*   
-        Object c = mMapTabsLeft.getSelectedComponent();
-        if(c instanceof JScrollPane){
-            
-            String title = mMapTabsLeft.getTitleAt(mMapTabsLeft.getSelectedIndex());
-            title = title.substring(0, title.length()-4);
-            for(int i = 0; i < mMapTabsLeft.getTabCount(); i++){
-                if(mMapTabsLeft.getTitleAt(i).equals(title)){
-                    return (MapViewer) mMapTabsLeft.getComponentAt(i);
-                }
-            }
-        } 
-        */
-        // don't know how this will impact the pathway stuff, but we're (?)
-        // ActiveViewer now has to be maintained seperately, so we
-        // can't query the tabbed panes.
-        return ActiveViewer;
-
-    }
-    
-    public static JTabbedPane getTabbedPane(){
+    public static JTabbedPane getTabbedPane() {
         return mMapTabsLeft;
     }
 
@@ -530,23 +515,6 @@ public class VUE
             return null;
     }
 
-    /*
-    public static void addViewer(MapViewer viewer)
-    {
-        mMapTabsLeft.addTab(viewer.getMap().getLabel(), viewer);
-    }
-    */
-    
-    /*
-    public static void closeViewer(Component c)
-    {
-        // todo: as closeMap
-        mMapTabsLeft.remove(c);
-        mMapTabsRight.remove(c);
-    }
-    */
-
-    
     public static void closeMap(LWMap map)
     {
         // TODO: check for modifications and ask for save!
@@ -575,6 +543,13 @@ public class VUE
                 mWasSelected = selected;
             }
         }
+
+        /*
+        public void setSelectedComponent(Component c) {
+            if (c instanceof MapViewer){
+            }
+        }
+        */
         
         public void addNotify()
         {
@@ -585,12 +560,12 @@ public class VUE
             }
         }
         
-        public void addTab(LWMap map, Component c)
+        public void addTab(LWMap pMap, Component c)
         {
             //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
-            //super.addTab(map.getLabel(), new JScrollPane(c));
-            super.addTab(map.getLabel(), c);
-            map.addLWCListener(this);
+            //super.addTab(pMap.getLabel(), c instanceof JScrollPane ? c : new JScrollPane(c));
+            super.addTab(pMap.getLabel(), c);
+            pMap.addLWCListener(this);
             // todo perf: we should be able to ask to listen only
             // for events from this object directly (that we don't
             // care to hear from it's children), and even that
@@ -612,12 +587,47 @@ public class VUE
             }
         }
 
+        public int indexOfComponent(Component component) {
+            for (int i = 0; i < getTabCount(); i++) {
+                Component c = getComponentAt(i);
+                if ((c != null && c.equals(component)) ||
+                    (c == null && c == component)) { 
+                    return i;
+                }
+                if (component instanceof MapViewer && c instanceof JScrollPane) {
+                    if (component == ((JScrollPane)c).getViewport().getView())
+                        return i;
+                }
+            }
+            return -1; 
+        }
+
+        public MapViewer getViewerAt(int index)
+        {
+            Object c = getComponentAt(index);
+            MapViewer viewer = null;
+            if (c instanceof MapViewer)
+                viewer = (MapViewer) c;
+            else if (c instanceof JScrollPane)
+                viewer = (MapViewer) ((JScrollPane)c).getViewport().getView();
+            return viewer;
+        }
+        
+        public LWMap getMapAt(int index)
+        {
+            MapViewer viewer = getViewerAt(index);
+            if (viewer != null)
+                return viewer.getMap();
+            else
+                return null;
+        }
+        
         private int findTabWithMap(LWMap map)
         {
             int tabs = getTabCount();
             for (int i = 0; i < tabs; i++) {
-                MapViewer viewer = (MapViewer) getComponentAt(i);
-                if (viewer.getMap() == map)
+                LWMap m = getMapAt(i);
+                if (m != null && m == map)
                     return i;
             }
             return -1;
@@ -637,40 +647,40 @@ public class VUE
     }
     
 
-    public static void displayMap(LWMap map)
+    public static void displayMap(LWMap pMap)
     {
         //System.out.println("VUE.displayMap " + map);
         MapViewer mapViewer = null;
-        // todo: figure out if we're already displaying this map
 
         //System.out.println("VUE.displayMap Looking for " + map.getFile());
-        /*
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
-            MapViewer mv = (MapViewer) mMapTabsLeft.getComponentAt(i);
-            File existingFile = mv.getMap().getFile();
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
             //System.out.println("VUE.displayMap matching " + existingFile);
-            if (existingFile != null && existingFile.equals(map.getFile())) {
-                mapViewer = mv;
-                System.err.println("VUE.displayMap found existing open map " + map + " in " + mv);
+            if (existingFile != null && existingFile.equals(pMap.getFile())) {
+                //mapViewer = mv;
+                System.err.println("VUE.displayMap found existing open map " + map);
+                //System.err.println("VUE.displayMap found existing open map " + map + " in " + mv);
                 // TODO: pop dialog asking to revert existing if there any changes.
                 //break;
             }
         }
-        */
         
-        final boolean useScrollbars = false; // in-progress feature
-        JScrollPane sp = null;
+        //final boolean useScrollbars = false; // in-progress feature
+        //JScrollPane sp = null;
         if (mapViewer == null) {
 
-            mapViewer = new tufts.vue.MapViewer(map);
+            mapViewer = new tufts.vue.MapViewer(pMap);
             System.out.println("VUE.displayMap: currently active viewer: " + getActiveViewer());
             if (getActiveViewer() == null)
                 setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
             System.out.println("VUE.displayMap:      created new viewer: " + mapViewer);
-            if (useScrollbars)
-                mMapTabsLeft.addTab(map, sp = new JScrollPane(mapViewer));
-            else
-                mMapTabsLeft.addTab(map, mapViewer);
+            //if (useScrollbars)
+            //    mMapTabsLeft.addTab(map, sp = new JScrollPane(mapViewer));
+            //else
+                mMapTabsLeft.addTab(pMap, mapViewer);
 
             // put BACKINGSTORE mode on a diag switch and test
             // performance difference -- the obvious difference is
@@ -685,25 +695,21 @@ public class VUE
             //
             //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             
-            MapViewer mv2 = new tufts.vue.MapViewer(map, true);
-            mMapTabsRight.addTab(map, mv2);
+            MapViewer mv2 = new tufts.vue.MapViewer(pMap, true);
+            mMapTabsRight.addTab(pMap, mv2);
 
             //mMapTabsLeft.requestFocus();
             
         }
-         
-        int idx = mMapTabsLeft.indexOfComponent(mapViewer);
+
+        mMapTabsLeft.setSelectedComponent(mapViewer);
+        
         /*
-        //mMapTabsLeft.setBackgroundAt(idx, Color.blue);
-        mMapTabsLeft.setForegroundAt(mMapTabsLeft.getSelectedIndex(), Color.black);
-        mMapTabsLeft.setForegroundAt(idx, Color.blue);
-        // need to add a listener to change colors -- PC gui feedback of which
-        // tab is selected is completely horrible.
-        */
         if (useScrollbars)
             mMapTabsLeft.setSelectedComponent(sp);
         else
             mMapTabsLeft.setSelectedComponent(mapViewer);
+        */
 
     }
     
@@ -806,6 +812,7 @@ public class VUE
         viewMenu.add(Actions.ZoomOut);
         viewMenu.add(Actions.ZoomFit);
         viewMenu.add(Actions.ZoomActual);
+        /*
         viewMenu.addSeparator();
         viewMenu.add(new JMenuItem("Resources"));
         viewMenu.add(new JMenuItem("Collection"));
@@ -813,6 +820,7 @@ public class VUE
         viewMenu.add(new JMenuItem("Pathway"));
         viewMenu.add(new JMenuItem("Toolbar"));
         viewMenu.add(new JMenuItem("Overview"));
+        */
         
         JMenu fontMenu = new JMenu("Font");
 

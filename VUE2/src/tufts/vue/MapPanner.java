@@ -79,7 +79,7 @@ public class MapPanner extends javax.swing.JPanel
         }
 
         Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
-        Rectangle   viewerBounds = new Rectangle(mapViewer.getWidth()-1, mapViewer.getHeight()-1);
+        Rectangle   viewerBounds = new Rectangle(mapViewer.getScreenWidth()-1, mapViewer.getScreenHeight()-1);
 
         if (viewerBounds.isEmpty())
             return;

@@ -204,6 +204,13 @@ public class LWMap extends LWContainer
         if (path != null) {
             path.drawPathway(dc.g);
         }
+
+        if (DEBUG_SCROLL || DEBUG_CONTAINMENT) {
+            dc.g.setColor(java.awt.Color.red);
+            dc.g.setStroke(STROKE_ONE);
+            dc.g.draw(getBounds());
+        }
+        
     }
 
     protected LWComponent findChildByID(String ID)
@@ -295,7 +302,7 @@ public class LWMap extends LWContainer
         Rectangle2D bounds = getBounds(getChildIterator());
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
         setFrame(bounds);
-        System.out.println(this + " getBounds: " + bounds);
+        //System.out.println(this + " getBounds: " + bounds);
         return bounds;
     }
     

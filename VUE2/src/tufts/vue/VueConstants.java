@@ -84,5 +84,6 @@ public interface VueConstants
     static boolean DEBUG_EVENTS = false;
     static boolean DEBUG_BOXES = false;
     static boolean DEBUG_ROLLOVER = false;
+    static boolean DEBUG_SCROLL = false;
     
 }
