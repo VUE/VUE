@@ -127,15 +127,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         );
     }
     
-    /* not used at this point
-    public PathwayControl(LWPathway pathway)
-    {
-        this();
-        pathwayList.addItem(pathway);
-        setCurrentPathway(pathway);
-    }
-    */
-    
     /**A constructor with a pathway manager as an argument*/
     public PathwayControl(JFrame parent, LWPathwayManager pathwayManager)
     {
@@ -156,15 +147,12 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         
         //iterting through to add existing pathways to the combo box list
         for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
-        {
-            pathwayList.addItem((LWPathway)i.next());           
-        }
+           pathwayList.addItem((LWPathway)i.next());           
         
-        //sets the current pathway to the current pathway 
+        //sets the current pathway to the current pathway of the manager
         LWPathway pathway;
         if ((pathway = this.pathwayManager.getCurrentPathway()) != null)
           setCurrentPathway(pathway);
-        
     }
     
     /**Returns the currently associated pathway manager*/
@@ -178,10 +166,11 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {
         currentPathway = pathway;
         
+        //sets to the first node if there is no current node set
         if ((currentPathway.getCurrent() == null) && (currentPathway.getFirst() != null) )
             currentPathway.setCurrent(currentPathway.getFirst());
         
-        System.out.println("selecting to the pathway: " + pathway.getLabel());
+        System.out.println("selecting the pathway to be displayed to: " + pathway.getLabel());
         pathwayList.setSelectedItem(pathway);
         
         updateControlPanel();
@@ -194,6 +183,16 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     public LWPathway getCurrentPathway()
     {
         return currentPathway;
+    }
+    
+    /**Saves the current pathway so that it can be restored next time the pathway manager is chosen*/
+    public void saveCurrentPathway()
+    {
+         if (pathwayManager != null)
+         {
+            //System.out.println("setting the current pathway in the manager to : " + currentPathway.getLabel());
+            pathwayManager.setCurrentPathway(currentPathway);
+         }
     }
     
     /**
@@ -279,19 +278,19 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {
         pathwayList.addItem(newPathway);
         pathwayManager.addPathway(newPathway);
+        
+        //switches to the newly added pathway
+        pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
     }
     
     /**Removes the given pathway from the combo box list and the pathway manager*/
     public void removePathway(LWPathway oldPathway)
     {
-        //sets to the no pathway selected
+        //switches to the no pathway selected
         pathwayList.setSelectedIndex(0);
         
         pathwayList.removeItem(oldPathway);
         pathwayManager.removePathway(oldPathway);
-        
-        //updates the inspector
-        VUE.getPathwayInspector().setPathway(null);
     }
     
     /**Reacts to actions dispatched by the buttons*/
@@ -329,14 +328,10 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             //if the pathway was selected, then sets the current pathway to the selected pathway and updates accordingly
             if (pathwayList.getSelectedItem() instanceof LWPathway)
             {
-                System.out.println("pathway selected");
                 currentPathway = (LWPathway)pathwayList.getSelectedItem();
                 
-                if (pathwayManager != null)
-                {
-                    System.out.println("setting the current pathway in the manager to : " + currentPathway.getLabel());
-                    pathwayManager.setCurrentPathway(currentPathway);
-                }
+                //if (pathwayManager != null)
+                   // pathwayManager.setCurrentPathway(currentPathway);
                 
                 //update the inspector here
                 VUE.getPathwayInspector().setPathway(currentPathway);
@@ -350,9 +345,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 System.out.println("selecting empty string");
                 currentPathway = null;
                 
-                //if there is a pathwayManager currently set 
-                if (pathwayManager != null)
-                    pathwayManager.setCurrentPathway(currentPathway);
+                //if (pathwayManager != null)
+                   // pathwayManager.setCurrentPathway(currentPathway);
                 
                 //update the inspector here
                 VUE.getPathwayInspector().setPathway(currentPathway);
@@ -362,13 +356,9 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly
             else if (pathwayList.getSelectedItem().equals(addPathway))
-            {
-                System.out.println("adding a new pathway");
-                
+            {    
                 PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
                 dialog.show();
-                
-                pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
             }
         } 
     }
@@ -465,16 +455,12 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         {
             if (e.getSource() == okButton)
             {
-                System.out.println("ok button");
                 addPathway(new LWPathway(textField.getText()));
                 dispose();
             }
             
             else if (e.getSource() == cancelButton)
-            {
-                System.out.println("cancel button");
                 dispose();
-            }
         }
     }
     

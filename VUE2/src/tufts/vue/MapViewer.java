@@ -2178,8 +2178,13 @@ public class MapViewer extends javax.swing.JPanel
                 
                 //added by Daisuke Fujiwara
                 //accomodates pathway manager swapping when the displayed map is changed
-                //System.out.println("map is being changed");
-                VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
+                
+                if (this == VUE.getActiveViewer())
+                {
+                    VUE.getPathwayControl().saveCurrentPathway();
+                    System.out.println("setting the pathway manager: " + this.map.getLabel());
+                    VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
+                }
                 //end of addition
                 
                 if (oldActiveMap != this.map)
