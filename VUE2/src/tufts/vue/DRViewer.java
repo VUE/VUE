@@ -645,9 +645,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if(value.toString().equals("")) 
                 value = "title";
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-            panel.add(new JLabel(value.toString()));
-            panel.add(triangleLabel);
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setBorder(BorderFactory.createEmptyBorder(0, 2,0,0));
+            panel.add(new JLabel(value.toString()),BorderLayout.CENTER);
+            panel.add(triangleLabel,BorderLayout.EAST);
             panel.setBackground(Color.WHITE);
             return panel;
         }
@@ -659,9 +660,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if(value.toString().equals("")) 
                 value = "contains";
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-            panel.add(new JLabel(value.toString()));
-            panel.add(triangleLabel);
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setBorder(BorderFactory.createEmptyBorder(0, 2,0,0));
+            panel.add(new JLabel(value.toString()),BorderLayout.CENTER);
+            panel.add(triangleLabel,BorderLayout.EAST);
             panel.setBackground(Color.WHITE);
             return panel;
         }
