@@ -38,7 +38,6 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     /** Creates a new instance of ResourcePropertiesEditor */
     
     public PropertiesEditor(Properties properties,boolean editable) {
-        System.out.println("Created new instance of properties editor");
         tableModel = new PropertiesTableModel(properties, editable);
         setResourePropertiesPanel();
     }
@@ -47,6 +46,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     private void setResourePropertiesPanel() {
         propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
+        propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         JScrollPane conditionsScrollPane=new JScrollPane(propertiesTable);
         conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel propertiesPanel=new JPanel();
