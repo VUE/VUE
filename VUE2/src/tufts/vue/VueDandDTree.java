@@ -40,13 +40,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         DnDConstants.ACTION_MOVE;
        private final boolean debug = true;
        private final boolean sametree = true;
-       
+       private final int newfavoritesnode = 0;
     
        public VueDandDTree(FavoritesNode root){ 
           
                
-                 super(root,"Bookmarks");
+                 super(root,"Favorites");
                  this.setEditable(true);
+                 
                 
                  VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
                   this.setCellRenderer(renderer);
@@ -122,7 +123,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                        model.insertNodeInto(newNode, node, 0);    
                       
                        this.expandRow(node.getLevel());
-                   
+                        System.out.println("node level " + node.getLevel());
                                                         
                                                 }
                             success = true;
@@ -197,7 +198,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
      
                      
                     if (treePath.getLastPathComponent() instanceof FavoritesNode){
-                      System.out.println("Are we here now?");   
+                      
                       return true;
                   
                        }
@@ -215,9 +216,13 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     protected VueDandDTree tree;
    // protected ResultNode lastNode;
     private String metaData;
-    
+           
    public VueDandDTreeCellRenderer(VueDandDTree pTree) {
         this.tree = pTree;
+        
+                   
+                    
+              
        
         
                 tree.addMouseMotionListener(new MouseMotionAdapter() {
@@ -255,6 +260,64 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         });
    
     }
+     /* -----------------------------------  */
+                  public Component getTreeCellRendererComponent(
+                            JTree tree,
+                            Object value,
+                            boolean sel,
+                            boolean expanded,
+                            boolean leaf,
+                            int row,
+                            boolean hasFocus) {
+                                
+                     Icon leafIcon = new ImageIcon("icon_document.gif");
+                     Icon inactiveIcon = new ImageIcon("icon_folder_inactive.gif");
+                     Icon activeIcon = new ImageIcon("icon_folder_active.gif");
+
+            super.getTreeCellRendererComponent(
+                            tree, value, sel,
+                            expanded, leaf, row,
+                            hasFocus);
+            
+                       
+                    
+                     
+                       if (value instanceof FavoritesNode)
+                      {
+                          System.out.println("Value--fav " + value);
+                        if ( ((FavoritesNode)value).getChildCount() >0 )
+                        {
+                          setIcon(activeIcon);
+                        }
+                        else
+                        {
+                            setIcon(inactiveIcon);
+                        }
+                       
+                          System.out.println("Value--faaav " + value);
+                      }
+                       else{
+                           
+                           if (leaf){
+                               if (value instanceof FavoritesNode){
+                                    System.out.println("Value--fav in leaf" + value);
+                               }
+                               else{
+                                   
+                                 System.out.println("Value--leaf" + value); 
+                              setIcon(leafIcon);
+                             System.out.println("Value--leaaaf" + value);  
+                               }
+                           }
+                           
+                       }
+                     
+
+            return this;
+ }
+
+                
+                  /*---------------------------------*/
    
    
 
