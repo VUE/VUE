@@ -63,6 +63,14 @@ public class MapPanner extends javax.swing.JPanel
     
     private void setViewer(MapViewer mapViewer)
     {
+
+        // TODO: create a special event that happens in a map whenever
+        // an UndoManager.mark occurs (a new UndoAction is generated)
+        // -- this is an accurate large-granularity change event that
+        // we could use for repainting the panner (as we don't want to
+        // repaint it for every event that happens during a drag, for
+        // instance -- that would slow things down too much).
+
         if (this.mapViewer != mapViewer) {
             this.mapViewer = mapViewer;
             repaint();

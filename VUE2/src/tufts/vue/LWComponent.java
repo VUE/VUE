@@ -431,6 +431,7 @@ public class LWComponent
     protected float strokeWidth = 0f;            //style
     protected Font font = FONT_DEFAULT;
     //protected Font font = null;                 //style -- if we leave null won't bother to persist this value
+    protected boolean autoSized = true; // compute size from label & children
     
     /*
      * Runtime only information
@@ -475,17 +476,19 @@ public class LWComponent
             System.err.println(e);
             return null;
         }
-        c.setFillColor(getFillColor());
-        c.setTextColor(getTextColor());
-        c.setStrokeColor(getStrokeColor());
-        c.setStrokeWidth(getStrokeWidth());
-        c.font = this.font;
-        c.scale = this.scale;
-        c.setLabel(this.label); // use setLabel so new TextBox will be created
         c.x = this.x;
         c.y = this.y;
         c.width = this.width;
         c.height = this.height;
+        c.autoSized = this.autoSized;
+        c.font = this.font;
+        c.scale = this.scale;
+        
+        c.setFillColor(getFillColor());
+        c.setTextColor(getTextColor());
+        c.setStrokeColor(getStrokeColor());
+        c.setStrokeWidth(getStrokeWidth());
+        c.setLabel(this.label); // use setLabel so new TextBox will be created
         
         if (hasResource())
             c.setResource(getResource());
@@ -495,6 +498,24 @@ public class LWComponent
         return c;
     }
 
+    
+    /** If true, compute node size from label & children */
+    public boolean isAutoSized() {
+        return this.autoSized;
+    }
+    public void setAutoSized(boolean tv)
+    {
+        if (autoSized == tv)
+            return;
+        Object old = tv ? Boolean.FALSE : Boolean.TRUE;
+        this.autoSized = tv;
+        if (autoSized)
+            layout();
+        notify("node.autosized", new Undoable(old) { void undo(boolean b) { setAutoSized(b); }} );
+        // this is really as a side-effect of setSize -- may only need this event
+        // if we optimize setSize to by default be an internal non-event raising setter
+    }
+    
     private boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
     }
@@ -989,11 +1010,13 @@ public class LWComponent
     {
         if (this.width == w && this.width == h)
             return;
-        Object old = new Point2D.Float(this.width, this.height);
+        Object old = null;
+        if (!isAutoSized())
+            old = new Point2D.Float(this.width, this.height);
         setSize0(w, h);
         updateConnectedLinks();
-        // todo: put autoSized on LWComponent, and only deliver event if autoSized == false
-        notify(LWKey.Size, old); // todo perf: can we optimize this event out?
+        if (!isAutoSized())
+            notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
     /** set on screen visible component size to this many pixels in size -- used for user set size from

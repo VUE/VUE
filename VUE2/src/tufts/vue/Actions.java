@@ -207,7 +207,7 @@ class Actions
             }
             public void act(LWNode c) {
                 c.setAutoSized(true);
-                c.layout();
+                //c.layout();
             }
         };
 

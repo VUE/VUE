@@ -92,6 +92,9 @@
 		<field name="strokeWidth" type="float">
 			<bind-xml name="strokeWidth" node="attribute"/>
 		</field>
+		<field name="autoSized" type="boolean">
+			<bind-xml name="autoSized" node="attribute"/>
+		</field>
                 
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
@@ -127,9 +130,6 @@
 	
 	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
 		<map-to xml="node"/>
-		<field name="autoSized" type="boolean">
-			<bind-xml name="autoSized" node="attribute"/>
-		</field>
 		<field name="nodeShape">
 			<bind-xml name="nodeShape" node="element"/>
 		</field>

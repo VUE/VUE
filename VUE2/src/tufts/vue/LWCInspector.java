@@ -14,47 +14,43 @@ class LWCInspector extends javax.swing.JPanel
                LWComponent.Listener,
                ActionListener
 {
-    private LWSelection selection;
-
-    JLabel idField = new JLabel();
-    JLabel locationField = new JLabel();
-    JLabel sizeField = new JLabel();
-    JTextField labelField = new JTextField(15);
-    JTextField fontField = new JTextField();
-    JTextField strokeField = new JTextField();
-    JTextField fillColorField = new JTextField();
-    JTextField textColorField = new JTextField();
-    JTextField strokeColorField = new JTextField();
-    JTextField categoryField = new JTextField();
-    JTextField resourceField = new JTextField();
-    JTextField notesField = new JTextField();
-    JPanel extraPanel = new JPanel();
+    private JLabel idField = new JLabel();
+    private JLabel locationField = new JLabel();
+    private JLabel sizeField = new JLabel();
+    private JTextField labelField = new JTextField(15);
+    private JTextField fontField = new JTextField();
+    private JTextField strokeField = new JTextField();
+    private JTextField fillColorField = new JTextField();
+    private JTextField textColorField = new JTextField();
+    private JTextField strokeColorField = new JTextField();
+    private JTextField categoryField = new JTextField();
+    private JTextField resourceField = new JTextField();
+    private JTextField notesField = new JTextField();
+    private JPanel extraPanel = new JPanel();
     
+    //private JTextArea notesField = new JTextArea(1, 20);
+
+    private JPanel fieldPane = new JPanel();
+    private JPanel resourceMetadataPanel = new JPanel();
+    private JPanel metadataPane = new JPanel();
+
+    //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
+    private Object[] labelTextPairs = {
+        "-ID",      idField,
+        "-Location",locationField,
+        "-Size",    sizeField,
+        "Label",    labelField,
+        "Font",     fontField,
+        "Stroke",   strokeField,
+        "Fill Color",fillColorField,
+        "Text Color",textColorField,
+        "Stroke Color",strokeColorField,
+        "Resource", resourceField,
+        //"Category", categoryField,
+        //"-Notes",    notesField,
+        //"Extra",    extraPanel,
+    };
     
-    //JTextArea notesField = new JTextArea(1, 20);
-
-    JPanel fieldPane = new JPanel();
-    JPanel resourceMetadataPanel = new JPanel();
-    JPanel metadataPane = new JPanel();
-
-    
-        //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
-        Object[] labelTextPairs = {
-          //  "-ID",      idField,
-          //  "-Location",locationField,
-          //  "-Size",    sizeField,
-           "Label",    labelField,
-       //     "Font",     fontField,
-         //   "Stroke",   strokeField,
-          //  "Fill Color",fillColorField,
-      //      "Text Color",textColorField,
-        //   "Stroke Color",strokeColorField,
-            //"Category", categoryField,
-            "Resource", resourceField,
-            //"-Notes",    notesField,
-            //"Extra",    extraPanel,
-        };
-
     public LWCInspector()
     {
         //setBorder(LineBorder.createBlackLineBorder());
@@ -99,12 +95,12 @@ class LWCInspector extends javax.swing.JPanel
         VUE.ModelSelection.addListener(this);
     }
 
-    public void setUpMetadataPane() {
+    private void setUpMetadataPane() {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(layout);
         metadataPane.add(resourceMetadataPanel);
-        
     }
+    
     /*
     private void removeListeners(Component c, Class listenerType)
     {
@@ -216,7 +212,6 @@ class LWCInspector extends javax.swing.JPanel
     private LWComponent lwc; // temporary
     public void setSelection(LWSelection selection)
     {
-        this.selection = selection;
         //System.err.println("Inspector setSelection: " + sl);
 
         if (selection.size() == 1)
@@ -247,7 +242,6 @@ class LWCInspector extends javax.swing.JPanel
 
     private void loadSelection(LWSelection selection)
     {
-        this.selection = selection;
         if (selection.isEmpty()) {
             setAllEnabled(false);
             return;
@@ -288,7 +282,7 @@ class LWCInspector extends javax.swing.JPanel
                 this.lwc.removeLWCListener(this);
             this.lwc = lwc;
             if (this.lwc != null) {
-                this.lwc.addLWCListener(this, new Object[] { LWKey.Label, LWKey.Resource });
+                this.lwc.addLWCListener(this);
                 setAllEnabled(true);
             } else
                 setAllEnabled(false);
@@ -302,21 +296,10 @@ class LWCInspector extends javax.swing.JPanel
         setAllEnabled(true);
         //System.out.println(this + " loading " + c);
 
-        //        if (c instanceof LWNode) { // todo: instanceof Node interface
-            if (c.getResource() != null)
-                loadText(resourceField, c.getResource().toString());
-            else
-                loadText(resourceField, "");
-            // We're allowing resources on Links now (everything can have a resource)
-            //resourceField.setEditable(true);
-            //resourceLabel.setVisible(true);
-            //resourceField.setVisible(true);
-            //        } else {
-            //            loadText(resourceField, "");
-            //            resourceField.setEditable(false);
-            ////resourceLabel.setVisible(false);
-            ////resourceField.setVisible(false);
-            //        }
+        if (c.getResource() != null)
+            loadText(resourceField, c.getResource().toString());
+        else
+            loadText(resourceField, "");
 
         String id = c.getID();
         if (c.getParent() == null)
@@ -380,27 +363,23 @@ class LWCInspector extends javax.swing.JPanel
         }
         */
     }
-    //static JComponent lastp = null;
 
-    private void setFillColors(String text)
-    {
-        Iterator i = selection.iterator();
+    private void setFillColors(String text) {
+        Iterator i = VUE.getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLfillColor(text);
         }
     }
-    private void setTextColors(String text)
-    {
-        Iterator i = selection.iterator();
+    private void setTextColors(String text) {
+        Iterator i = VUE.getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLtextColor(text);
         }
     }
-    private void setStrokeColors(String text)
-    {
-        Iterator i = selection.iterator();
+    private void setStrokeColors(String text) {
+        Iterator i = VUE.getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLstrokeColor(text);
@@ -409,7 +388,7 @@ class LWCInspector extends javax.swing.JPanel
     private void setStrokeWidths(String text)
         throws NumberFormatException
     {
-        Iterator i = selection.iterator();
+        Iterator i = VUE.getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             float w = Float.parseFloat(text);
@@ -419,7 +398,7 @@ class LWCInspector extends javax.swing.JPanel
     private void setFonts(String text)
         throws NumberFormatException
     {
-        Iterator i = selection.iterator();
+        Iterator i = VUE.getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setXMLfont(text);

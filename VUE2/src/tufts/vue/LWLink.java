@@ -113,6 +113,11 @@ public class LWLink extends LWComponent
     public boolean supportsUserLabel() {
         return true;
     }
+
+    /** @return true: links are always autoSized */
+    public boolean isAutoSized() { return false; }
+    /** do nothing: links are always autoSized */
+    public void setAutoSized(boolean t) {}
     
     public boolean handleSingleClick(MapMouseEvent e)
     {

@@ -189,7 +189,7 @@ public class LWNode extends LWContainer
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
         if (getShape() != null)
             newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
-        newNode.autoSized = this.autoSized;
+
         newNode.setSize(super.getWidth(), super.getHeight()); // make sure shape get's set with old size
         //else if (getNodeShape() != null) // todo: for backward compat only 
         //newNode.setNodeShape(getNodeShape());
@@ -321,6 +321,7 @@ public class LWNode extends LWContainer
     
     
     /** If true, compute node size from label & children */
+    /*
     public boolean isAutoSized() {
         return this.autoSized;
     }
@@ -334,6 +335,7 @@ public class LWNode extends LWContainer
             // this if we optimize setSize to by default be an internal non-event raising setter
         }
     }
+    */
 
     private boolean isSameShape(Shape s1, Shape s2) {
         if (s1 == null || s2 == null)
@@ -932,6 +934,8 @@ public class LWNode extends LWContainer
 
     public Color getRenderFillColor()
     {
+        if (DEBUG.LAYOUT) if (!isAutoSized()) return Color.green;
+            
         Color c = getFillColor();
         if (getParent() instanceof LWNode) {
             if (c != null && c.equals(getParent().getRenderFillColor()))
