@@ -36,6 +36,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     
     //pathway currently being kept track of
     private LWPathway currentPathway;
+    private LWPathwayManager pathwayManager;
     
     private final String noPathway = "";
     private final String addPathway = "add a new pathway";
@@ -45,6 +46,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     public PathwayControl() 
     {   
         currentPathway = null;
+        pathwayManager = null;
         pathwayList = new JComboBox();
         
         setLayout(new BorderLayout());
@@ -100,7 +102,15 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     {
         this();
         pathwayList.addItem(pathway);
+        pathwayList.setSelectedItem(pathway);
         setCurrentPathway(pathway);
+    }
+    
+    public PathwayControl(LWPathwayManager pathwayManager)
+    {
+        this();
+        this.pathwayManager = pathwayManager;
+        
     }
     
     /**Sstes the current pathway to the given pathway and updates the control panel accordingly*/
@@ -124,7 +134,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        PathwayControl control = new PathwayControl();
+        PathwayControl control = new PathwayControl(new LWPathway(0));
         
         //setting up pathway control in a tool window
         ToolWindow window = new ToolWindow("Pathway Control", null);
@@ -258,6 +268,8 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 System.out.println("adding a new pathway");
                 pathwayList.addItem(new LWPathway(0));
                 pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
+                
+                //if adding a new pathway, then must change the manager data as well
             }
             
             else
@@ -306,4 +318,13 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             return this;
         }   
     }    
+    
+    private class newPathwayDialog extends JDialog
+    {
+        public newPathwayDialog()
+        {
+            super();
+        }
+        
+    }
 }

@@ -25,4 +25,7 @@ public interface MapItem
     public String getID();
     public String getLabel();
     public String getMetaData();
+    
+    //added by Daisuke
+    public String getNotes();
 }

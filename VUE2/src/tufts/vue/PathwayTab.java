@@ -24,17 +24,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 
 /**
  *
  * @author  Daisuke Fujiwara
  */
+
 /**A class which displays nodes in a pathway */
-public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener
+public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener, DocumentListener
 {    
     //necessary widgets
     private JTable pathwayTable;
-    private JButton moveUp, moveDown, remove;
+    private JButton moveUp, moveDown, remove, submit;
     private JTextArea text;
     
     /** Creates a new instance of PathwayTab */
@@ -58,20 +62,26 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         moveUp = new JButton("Up");
         moveDown = new JButton("Down");
         remove = new JButton("Remove");
+        submit = new JButton("Submit");
         
-        text = new JTextArea("empty comment");
+        text = new JTextArea();
         text.setEditable(true);
         text.setLineWrap(true);
         text.setWrapStyleWord(true);
         text.setPreferredSize(new Dimension(100, 50));
         
+        Document document = text.getDocument();
+        document.addDocumentListener(this);
+        
         moveUp.addActionListener(this);
         moveDown.addActionListener(this);
         remove.addActionListener(this);
+        submit.addActionListener(this);
         
         moveUp.setEnabled(false);
         moveDown.setEnabled(false);
         remove.setEnabled(false);
+        submit.setEnabled(false);
         
         buttons.add(moveUp);
         buttons.add(moveDown);
@@ -80,6 +90,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new FlowLayout());
         textPanel.add(text);
+        textPanel.add(submit);
         
         add(scrollPane, BorderLayout.CENTER);
         add(buttons, BorderLayout.EAST);
@@ -90,6 +101,12 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     public PathwayTab(LWPathway pathway)
     {
         this();
+        setPathway(pathway);
+    }
+    
+    //sets the table's pathway to the given pathway
+    public void setPathway(LWPathway pathway)
+    {
         ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
     }
     
@@ -104,6 +121,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {
             selected--;
             pathwayTable.setRowSelectionInterval(selected, selected);
+            submit.setEnabled(false);
         }
         
         //moves down the selected row
@@ -111,16 +129,26 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {
             selected++; 
             pathwayTable.setRowSelectionInterval(selected, selected);
+            submit.setEnabled(false);
         }
         
         //removes the selected row
-        else
+        else if (e.getSource() == remove)
         {    
              if (selected != -1)
              {
                 ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);
+                submit.setEnabled(false);
              }  
         }        
+        
+        //submit
+        else
+        {            
+            Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
+            node.setNotes(text.getText());
+            submit.setEnabled(false);
+        }
     }
     
     /**Reacts to list selections dispatched by the table*/
@@ -133,6 +161,9 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
+            
+            Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
+            text.setText(node.getNotes());
             
             //if the selected row is the last row, then disables the move down button
             if(selectedRow == pathwayTable.getRowCount() - 1)
@@ -153,7 +184,27 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             moveDown.setEnabled(false);
             moveUp.setEnabled(false);
             remove.setEnabled(false);
+            submit.setEnabled(false);
+            text.setText("comment");
         }
+    }
+   
+    public void removeUpdate(javax.swing.event.DocumentEvent documentEvent) 
+    {
+        if(pathwayTable.getSelectedRow() != -1)
+          submit.setEnabled(true);
+    }
+    
+    public void changedUpdate(javax.swing.event.DocumentEvent documentEvent) 
+    {
+        if(pathwayTable.getSelectedRow() != -1)
+          submit.setEnabled(true);
+    }
+    
+    public void insertUpdate(javax.swing.event.DocumentEvent documentEvent) 
+    {
+       if(pathwayTable.getSelectedRow() != -1)
+         submit.setEnabled(true);
     }
     
     /**
@@ -161,11 +212,17 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
      */
     public static void main(String[] args) 
     {
+        /**
         //setting up the tool window
         ToolWindow window = new ToolWindow("Pathway Control", null);
         window.setSize(400, 300);
         window.addTool(new PathwayTab(new LWPathway(0)));
         window.setVisible(true);
+         **/
+        
+        InspectorWindow window = new InspectorWindow(null, "test");
+        window.getContentPane().add(new PathwayTab(new LWPathway(0)));
+        window.show();
     }
     
     /**A model used by the table which displays nodes of the pathway*/
@@ -187,6 +244,12 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         public synchronized void setPathway(LWPathway pathway)
         {
             this.pathway = pathway;
+        }
+        
+        //returns the current pathway
+        public synchronized LWPathway getPathway()
+        {
+            return pathway;
         }
         
         //returns the number of row (nodes of the pathway)
