@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
+import javax.swing.JViewport;
 
 /**
  * MapMouseEvent.java
@@ -87,7 +88,11 @@ public class MapMouseEvent extends MouseEvent
 
 
     public MapViewer getViewer() {
-        return (MapViewer) super.getSource();
+        Object src = super.getSource();
+        if (src instanceof JViewport)
+            return (MapViewer) ((JViewport)src).getView();
+        else
+            return (MapViewer) src;
     }
     public LWMap getMap() {
         return getViewer().getMap();
