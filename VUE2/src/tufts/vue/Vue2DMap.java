@@ -16,6 +16,8 @@ import java.util.ArrayList;
 public class Vue2DMap extends LWGroup
     implements ConceptMap
 {
+    public static final String CASTOR_XML_MAPPING = "vue2d_map.xml";
+
     /*
     class CVector extends java.util.Vector {
         // Used to set parent refs & ID's on child nodes.
