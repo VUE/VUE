@@ -18,6 +18,7 @@ public class ToolWindow
     implements MouseListener, MouseMotionListener
 {
     final int TitleHeight = 11;
+    //final int TitleHeight = 44;
     final int ResizeCornerSize = 14;
     
     public static void main(String args[])
@@ -44,7 +45,27 @@ public class ToolWindow
         {
             return "color[" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "]";
         }
-        
+
+
+        public class CloseIcon implements Icon
+        {
+            private Color color = Color.BLACK;
+            private final int height = 5;
+            private final int width = 5;
+    
+            public CloseIcon() {}
+            public CloseIcon(Color color) { this.color = color; }
+            public int getIconWidth() { return width; }
+            public int getIconHeight() { return height; }
+    
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                //Graphics2D g2d = (Graphics2D) g;
+                g.setColor(color);
+                x=y=0;
+                g.drawRect(x, y, x+width, y+height);
+            }
+        }
+            
         ToolPanel(String title)
         {
             // todo -- need to have at least title click-able
@@ -82,9 +103,35 @@ public class ToolWindow
                 contentPanel.add(titlePanel, BorderLayout.NORTH);
             }
 
+            /*
+            titlePanel.setLayout(new BorderLayout());
+            if (title != null) {
+                JLabel l = new JLabel(title);
+                l.setFont(new Font("SansSerf", Font.PLAIN, 9));
+                l.setForeground(SystemColor.activeCaptionText);
+                l.setSize(l.getPreferredSize());
+                titlePanel.add(l, BorderLayout.WEST);
+
+                /*
+                //System.out.println("lh=" + l.getHeight());
+                int y = ((TitleHeight - l.getHeight())+1) / 2;
+                if (VueUtil.isMacPlatform())
+                    y++;
+                l.setLocation(2, y);
+                *
+            }
+
+            JButton b = new JButton(new CloseIcon());
+            b.setPressedIcon(new CloseIcon(Color.gray));
+            b.setRolloverIcon(new CloseIcon(Color.red));
+            titlePanel.add(b, BorderLayout.EAST);
+        */
+            
+                //b.setLocation(getWidth() - b.getWidth(), 0);
+            
             if (title != null) {
                 //titlePanel.setLayout(new FlowLayout());
-                titlePanel.setLayout(null);
+                titlePanel.setLayout(null); // for manual layout
                 JLabel l = new JLabel(title);
                 l.setFont(new Font("SansSerf", Font.PLAIN, 9));
                 l.setForeground(SystemColor.activeCaptionText);
@@ -110,6 +157,66 @@ public class ToolWindow
         }
     }
     
+    
+    /**
+     * We provide our own glass pane so that it can paint the resize corner.
+     */
+    class GlassPane extends JComponent {
+    //class GlassPane extends Component {
+        
+        public void paint(Graphics g)
+        {
+            paintResizeCorner((Graphics2D)g);
+        }
+        
+        public void X_paint(Graphics g)
+        {
+            g.setColor(Color.red);
+            int w = getWidth();
+            int h = getHeight();
+            g.drawRect(w-10,h-10,w,h);
+        }
+
+        private void paintResizeCorner(Graphics2D g)
+        {
+            int w = getWidth();
+            int h = getHeight();
+            int right = w - 1;
+            int bottom = h - 1;
+            int x = w - ResizeCornerSize;
+            int y = h - ResizeCornerSize;
+            //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            //g.setStroke(VueConstants.STROKE_HALF);
+            // attempt to deal with mac double-stroke(?) bug on last line drawn
+            // could it possibly happen if our size is an odd integer?
+            g.setColor(Color.gray);
+            for (int i = 0; i < ResizeCornerSize/2; i++) {
+                g.drawLine(x,bottom, right,y);
+                x += 2;
+                y += 2;
+            }
+            g.setColor(SystemColor.control);
+        }
+
+        public GlassPane()
+        {
+            //addMouseListener(new tufts.vue.MouseAdapter("GlassPane"));
+            //setLayout(new FlowLayout());
+            //add(new JLabel("foobie"));
+        }
+
+        /*
+        public MyGlassPane(AbstractButton aButton, 
+                           JMenuBar menuBar,
+                           Container contentPane) {
+            CBListener listener = new CBListener(aButton, menuBar,
+                                                 this, contentPane);
+            addMouseListener(listener);
+            addMouseMotionListener(listener);
+        }
+        */
+    }
+
     private ToolPanel toolPanel;
     private String title;
     public ToolWindow(String title, Frame owner)
@@ -121,6 +228,9 @@ public class ToolWindow
         setBackground(SystemColor.control);
         this.title = title;
         setContentPane(toolPanel = new ToolPanel(title));
+        Component gp = new GlassPane();
+        setGlassPane(gp);
+        gp.setVisible(true);
         pack();
         //setLocationRelativeTo(owner);
         //setFocusableWindowState(false); // nothing can get input
@@ -160,7 +270,8 @@ public class ToolWindow
         // a bit until/if we fix it.
     }
 
-    public void paint(Graphics g)
+    /*
+    public void X_paint(Graphics g)
     {
         // todo: better to actually NOT paint the title
         // as a jcomponent, in case our content panel
@@ -180,6 +291,7 @@ public class ToolWindow
         }
         g.setColor(SystemColor.control);
     }
+    */
 
     public void setSize(int width, int height)
     {
