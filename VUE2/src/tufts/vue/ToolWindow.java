@@ -40,6 +40,11 @@ public class ToolWindow
         //JButton hideButton = new JButton("X");
             
         
+        String ctos(Color c)
+        {
+            return "color[" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "]";
+        }
+        
         ToolPanel(String title)
         {
             // todo -- need to have at least title click-able
@@ -68,7 +73,9 @@ public class ToolWindow
             } else {
                 //hideButton.setBackground(SystemColor.activeCaption);
                 //titlePanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+                //System.out.println("ActiveCaption=" + ctos(SystemColor.activeCaption));
                 titlePanel.setBackground(SystemColor.activeCaption);
+                titlePanel.setForeground(SystemColor.activeCaptionText);
                 titlePanel.setBorder(new LineBorder(SystemColor.activeCaptionBorder));
                 contentPanel.setBackground(SystemColor.control);
                 contentPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
@@ -80,8 +87,8 @@ public class ToolWindow
                 titlePanel.setLayout(null);
                 JLabel l = new JLabel(title);
                 l.setFont(new Font("SansSerf", Font.PLAIN, 9));
-                //l.setForeground(SystemColor.activeCaptionText);
-                l.setForeground(Color.darkGray);
+                l.setForeground(SystemColor.activeCaptionText);
+                //l.setForeground(Color.darkGray);
                 l.setSize(l.getPreferredSize());
                 titlePanel.add(l);
                 //System.out.println("lh=" + l.getHeight());
