@@ -792,22 +792,41 @@ public class VUE
     }
     
     
-    public static void displayMap(LWMap pMap) {
-        out("displayMap " + pMap);
-        MapViewer leftViewer = null;
-        MapViewer rightViewer = null;
-        
-        //System.out.println("VUE.displayMap Looking for " + map.getFile());
+    /**
+     * If we already have open a map tied to the given file, display it.
+     * Otherwise, open it anew and display it.
+     */
+    public static void displayMap(File mapFile) {
+        out("displayMap " + mapFile);
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
             if (map == null)
                 continue;
             File existingFile = map.getFile();
-            //System.out.println("VUE.displayMap matching " + existingFile);
+            if (existingFile != null && existingFile.equals(mapFile)) {
+                out("displayMap found existing open map " + map);
+                mMapTabsLeft.setSelectedIndex(i);
+                return;
+            }
+        }
+        OpenAction.displayMap(mapFile);
+    }
+    
+    /**
+     * Create a new viewer and display the given map in it.
+     */
+    public static void displayMap(LWMap pMap) {
+        out("displayMap " + pMap);
+        MapViewer leftViewer = null;
+        MapViewer rightViewer = null;
+        
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                //leftViewer = mv;
-                System.err.println("VUE.displayMap found existing open map " + map);
-                //System.err.println("VUE.displayMap found existing open map " + map + " in " + mv);
+                System.err.println("** VUE.displayMap found open map with same file! " + map);
                 // TODO: pop dialog asking to revert existing if there any changes.
                 //break;
             }

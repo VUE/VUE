@@ -20,11 +20,7 @@ package tufts.vue;
 
 import java.io.File;
 import java.util.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import javax.swing.*;
@@ -43,7 +39,7 @@ public class VueUtil extends tufts.Util
         
         if (platformURL.endsWith(VueResources.getString("vue.extension"))) {
             try {
-                tufts.vue.action.OpenAction.displayMap(new File(new java.net.URL(platformURL).getFile()));
+                tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
             } catch(Exception ex) {
                 ex.printStackTrace();
                 tufts.Util.openURL(platformURL);
