@@ -911,10 +911,9 @@ public class MapViewer extends javax.swing.JPanel
         }
     }
 
-    private static LWComponent mTipLWC;
-    private static JComponent mTipComponent;
-    private static Popup mTipWindow;
-    private static LWComponent mMouseOver;
+    private static JComponent sTipComponent;
+    private static Popup sTipWindow;
+    private static LWComponent sMouseOver;
 
     /**
      * Pop a tool-tip near the given LWComponent.
@@ -925,10 +924,10 @@ public class MapViewer extends javax.swing.JPanel
      */
     void setTip(LWComponent pLWC, JComponent pJComponent, Rectangle2D pTipRegion)
     {
-        if (pJComponent != mTipComponent && pJComponent != null) {
+        if (pJComponent != sTipComponent && pJComponent != null) {
 
-            if (mTipWindow != null)
-                mTipWindow.hide();
+            if (sTipWindow != null)
+                sTipWindow.hide();
             
             // since we're not using the regular tool-tip code, just the swing pop-up
             // factory, we have to set these properties ourselves:
@@ -948,8 +947,11 @@ public class MapViewer extends javax.swing.JPanel
             //------------------------------------------------------------------
 
             // Get the component bounding box, tho limit to what's visible in the window
+            // Make sure it is outsize the tip region also.
             Rectangle viewer = new Rectangle(0,0, getWidth(), getHeight());
-            Box lwc = new Box(viewer.intersection(mapToScreenRect(pLWC.getShapeBounds())));
+            Rectangle2D avoidRegion = pTipRegion.createUnion(pLWC.getShapeBounds());
+            Box lwc = new Box(viewer.intersection(mapToScreenRect(avoidRegion)));
+            //Box lwc = new Box(viewer.intersection(mapToScreenRect(pLWC.getShapeBounds())));
             Box rollover = new Box(mapToScreenRect(pTipRegion));
             
             SwingUtilities.convertPointToScreen(lwc.ul, this);
@@ -995,9 +997,9 @@ public class MapViewer extends javax.swing.JPanel
             // memory but should work (use WeakReferences to help)
             
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
-	    mTipWindow = popupFactory.getPopup(this, pJComponent, glass.x, glass.y);
-	    mTipWindow.show();
-            mTipComponent = pJComponent;
+	    sTipWindow = popupFactory.getPopup(this, pJComponent, glass.x, glass.y);
+	    sTipWindow.show();
+            sTipComponent = pJComponent;
         }
         
     }
@@ -1021,10 +1023,10 @@ public class MapViewer extends javax.swing.JPanel
     
     void clearTip()
     {
-        mTipComponent = null;
-        if (mTipWindow != null) {
-            mTipWindow.hide();
-            mTipWindow = null;
+        sTipComponent = null;
+        if (sTipWindow != null) {
+            sTipWindow.hide();
+            sTipWindow = null;
         }
     }
 
@@ -1322,6 +1324,12 @@ public class MapViewer extends javax.swing.JPanel
                 Actions.setAllIgnored(false);
             }
         }
+    }
+
+    void cancelLabelEdit()
+    {
+        if (activeTextEdit != null)
+            remove(activeTextEdit);
     }
 
     /**
@@ -2236,12 +2244,16 @@ public class MapViewer extends javax.swing.JPanel
         private LWComponent hitComponent = null;
         private Point2D originAtDragStart;
         private Point viewportAtDragStart;
+        private boolean mLabelEditWasActiveAtMousePress;
         public void mousePressed(MouseEvent e)
         {
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
             
+            mLabelEditWasActiveAtMousePress = (activeTextEdit != null);
+            if (DEBUG_FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
+            clearTip();
             grabVueApplicationFocus("mousePressed");
             requestFocus();
 
@@ -2586,23 +2598,23 @@ public class MapViewer extends javax.swing.JPanel
             //LWComponent hit = getMap().findChildAt(mapX, mapY);
             if (DEBUG_ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
 
-            if (hit != mMouseOver) {
-                if (mMouseOver != null) {
+            if (hit != sMouseOver) {
+                if (sMouseOver != null) {
                     clearTip(); // in case it had a tip displayed
                     MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
-                    mMouseOver.mouseExited(mme);
+                    sMouseOver.mouseExited(mme);
                 }
             }
             if (hit != null) {
                 MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
-                if (hit == mMouseOver)
+                if (hit == sMouseOver)
                     hit.mouseMoved(mme);
                 else
                     hit.mouseEntered(mme);
             } else
                 clearTip(); // if over nothing, always make sure no tip displayed
             
-            mMouseOver = hit;
+            sMouseOver = hit;
 
             if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouse.x = lastMouseX;
@@ -2635,25 +2647,25 @@ public class MapViewer extends javax.swing.JPanel
         public void mouseEntered(MouseEvent e)
         {
             if (DEBUG_ROLLOVER) System.out.println(e);
-            if (mMouseOver != null) {
-                mMouseOver.mouseExited(new MapMouseEvent(e));
-                mMouseOver = null;
+            if (sMouseOver != null) {
+                sMouseOver.mouseExited(new MapMouseEvent(e));
+                sMouseOver = null;
             }
         }
 
         public void mouseExited(MouseEvent e)
         {
             if (DEBUG_ROLLOVER) System.out.println(e);
-            if (false&&mMouseOver != null) {
-                mMouseOver.mouseExited(new MapMouseEvent(e));
-                mMouseOver = null;
+            if (false&&sMouseOver != null) {
+                sMouseOver.mouseExited(new MapMouseEvent(e));
+                sMouseOver = null;
             }
 
             // turned off to be SURE we get into a show/hide loop if pop-up obscures
             // the trigger region and mouse statys over it...  Okay, this should
             // never happen...
 
-            //clearTip();//todo: on a timer instead so no flashing of rollover the tip
+            clearTip();//todo: on a timer instead so no flashing of rollover the tip
 
             // would still be nice to do this tho because we get a mouse
             // exited when you rollover the tip-window itself, and if
@@ -3173,11 +3185,10 @@ public class MapViewer extends javax.swing.JPanel
             if (isSingleClickEvent(e)) {
                 if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
 
-                // move to arrow tool
-
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
 
                     boolean handled = false;
+                    // move to arrow tool?
 
                     if (activeTool == TextTool) {
                         activateLabelEdit(hitComponent);
@@ -3195,10 +3206,21 @@ public class MapViewer extends javax.swing.JPanel
                         (activeTool == TextTool || hitComponent.isSelected() && hitComponent != justSelected))
                         activateLabelEdit(hitComponent);
                     
-                } else if (activeTool == TextTool) {
-                    Actions.NewText.act();
-                } else if (activeTool == NodeTool) {
-                    Actions.NewNode.act();
+                } else if (activeTool == TextTool || activeTool == NodeTool) {
+                    
+                    // on mousePressed, we request focus, and if there
+                    // was an activeTextEdit TextBox, it lost focus
+                    // and closed itself out -- treat this click as an
+                    // edit-cancel in case of node/text tool so doesn't
+                    // create a new item if they were just finishing
+                    // the edit via the click on the map
+                    
+                    if (!mLabelEditWasActiveAtMousePress) {
+                        if (activeTool == NodeTool)
+                            Actions.NewNode.act();
+                        else
+                            Actions.NewText.act();
+                    }
                 }
                 /*
                 if (activeTool.supportsClick()) {
@@ -3724,11 +3746,11 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_FINDPARENT_OFF = false;
-    private boolean DEBUG_FOCUS = false;
     private boolean DEBUG_TIMER_ROLLOVER = true;
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
-    static boolean DEBUG_PAINT = false;
+    static boolean DEBUG_PAINT = false; // for all maps
+    static boolean DEBUG_FOCUS = false; // for all maps
 
     private Point mouse = new Point();
 
