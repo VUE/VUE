@@ -122,8 +122,19 @@ public class UndoManager
         Actions.Undo.putValue(Action.NAME, name);
     }
     
+    /** figure the name of the undo action from the last LWCEvent we processed */
+    public void markChangesForUndo() {
+        markChangesAsUndo(null);
+    }
+
+    private LWCEvent mLastEvent;
     public synchronized void markChangesAsUndo(String name)
     {
+        if (name == null) {
+            if (mLastEvent == null)
+                return;
+            name = mLastEvent.getWhat();
+        }
         if (DEBUG.UNDO) System.out.println("UNDO: marking " + name);
         UndoAction newUndoAction = new UndoAction(name, mPropertyChanges);
         mUndoActions.add(newUndoAction);
@@ -136,7 +147,6 @@ public class UndoManager
             if (DEBUG.UNDO) System.out.println("\tredo: " + e);
             return;
         }
-        
         if (DEBUG.UNDO) System.out.print("UNDO: " + e);
         String propName = e.getWhat();
         LWComponent c = e.getComponent(); // can be list...
@@ -152,12 +162,14 @@ public class UndoManager
                     if (DEBUG.UNDO) System.out.println(" (compressed)");
                 } else {
                     propList.put(propName, oldValue);
+                    mLastEvent = e;
                     //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
                     if (DEBUG.UNDO) System.out.println(" (stored)");
                 }
             } else {
                 propList = new HashMap();
                 propList.put(propName, oldValue);
+                mLastEvent = e;
                 mPropertyChanges.put(c, propList);
                 //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
                 if (DEBUG.UNDO) System.out.println(" (stored)");

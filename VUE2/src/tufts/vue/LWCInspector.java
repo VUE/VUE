@@ -453,7 +453,7 @@ class LWCInspector extends javax.swing.JPanel
             else
                 set = false;
             if (set)
-                VUE.getUndoManager().markChangesAsUndo(src.toString());
+                VUE.getUndoManager().markChangesForUndo();
             else
                 return;
         } catch (Exception ex) {
