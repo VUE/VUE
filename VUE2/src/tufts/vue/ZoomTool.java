@@ -150,36 +150,51 @@ public class ZoomTool extends VueTool
         return false;
     }
 
+    private static final Point CENTER_FOCUS = new Point(); // marker only
+    private static final Point DONT_FOCUS = new Point(); // marker only
+    
     public static void setZoom(double zoomFactor)
     {
-        setZoom(zoomFactor, true, null);
+        setZoom(zoomFactor, true, CENTER_FOCUS, false);
     }
     public static void setZoom(double zoomFactor, Point focus)
     {
-        setZoom(zoomFactor, true, focus);
+        setZoom(zoomFactor, true, focus, false);
     }
     
-    private static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus)
+    private static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus, boolean reset)
     {
         MapViewer viewer = VUE.getActiveViewer();
         
         //        if (!DEBUG_SCROLL && adjustViewport) {
         if (adjustViewport) {
-            if (focus == null) {
+            if (focus == null || focus == CENTER_FOCUS) {
                 // If no user selected zoom focus point, zoom in to
                 // towards the map location at the center of the
                 // viewport.
-                focus = new Point(viewer.getVisibleWidth() / 2,
-                                  viewer.getVisibleHeight() / 2);
+
+                focus = viewer.getVisiblePanelCenter();
+                
+                //focus = new Point(viewer.getVisibleWidth() / 2,
+                //viewer.getVisibleHeight() / 2);
                 // this probably doesn't compute right if we're scrolled...
             }
+
+            //viewer.scrollMapLocationToScreenLocation(mapAnchor, focus);
+            
+            /*
             Point2D mapAnchor = viewer.screenToMapPoint(focus);
             double offsetX = (mapAnchor.getX() * newZoomFactor) - focus.getX();
             double offsetY = (mapAnchor.getY() * newZoomFactor) - focus.getY();
             viewer.setMapOriginOffset(offsetX, offsetY);
+            */
+
         }
+
+        if (focus == DONT_FOCUS)
+            focus = null;
         
-        viewer.setZoomFactor(newZoomFactor);
+        viewer.setZoomFactor(newZoomFactor, reset, focus);
         
     }
     
@@ -204,17 +219,24 @@ public class ZoomTool extends VueTool
                                         mapRegion,
                                         offset);
         if (newZoom > MaxZoom) {
-            setZoom(MaxZoom, true, null);
+            setZoom(MaxZoom, true, CENTER_FOCUS, true);
             Point2D mapAnchor = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
             Point focus = new Point(viewer.getVisibleWidth()/2, viewer.getVisibleHeight()/2);
             double offsetX = (mapAnchor.getX() * MaxZoom) - focus.getX();
             double offsetY = (mapAnchor.getY() * MaxZoom) - focus.getY();
             viewer.setMapOriginOffset(offsetX, offsetY);
+            viewer.resetScrollRegion();
         } else {
-            setZoom(newZoom, false, null);
-            viewer.setMapOriginOffset(offset.getX(), offset.getY());
+            setZoom(newZoom, false, DONT_FOCUS, true);
+            // don't adjust the scroll region, we've already got
+            // the adjustment here -- tho will need work for scrolling!
+            
+            if (viewer.getParent() instanceof JViewport)
+                ;
+            else
+                viewer.setMapOriginOffset(offset.getX(), offset.getY());
+            
         }
-        viewer.resetScrollRegion();
     }
     
     /*
