@@ -424,7 +424,7 @@ public class LWComponent
     private UserMapType mUserMapType = null;
     private java.util.Map mUserPropertyValues = new java.util.HashMap();
    private boolean mIsFiltered = false;
-   private NodeFilter nodeFilter = new NodeFilter();
+   private NodeFilter nodeFilter = null;
     
     // persistent impl
     protected float width = 10;
@@ -464,6 +464,7 @@ public class LWComponent
     {
         if (DEBUG.PARENTING)
             System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
+        nodeFilter = new NodeFilter();
     }
 
     /** Create a component with duplicate content & style.

@@ -22,11 +22,11 @@ import java.awt.*;
 import java.util.*;
 import java.util.ArrayList;
 
-public class NodeFilterEditor extends JPanel{
+public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener{
     NodeFilter nodeFilter;
     boolean editable = false;
-    JComboBox keyEditor;
-    JComboBox operatorEditor;
+    KeyCellEditor keyEditor;
+    OperatorCellEditor operatorEditor;
     JTable nodeFilterTable;
     AddButtonListener addButtonListener = null;
     DeleteButtonListener deleteButtonListener = null;
@@ -36,14 +36,17 @@ public class NodeFilterEditor extends JPanel{
     
     /** Creates a new instance of NodeFilterEditor */
     public NodeFilterEditor( NodeFilter nodeFilter,boolean editable) {
-        System.out.println("Created new instance of node filter editor");
         this.nodeFilter = nodeFilter;
+        tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this);
         setNodeFilterPanel();
     }
     
     public NodeFilterEditor( NodeFilter nodeFilter) {
         this.nodeFilter = nodeFilter;
         setNodeFilterPanel();
+    }
+     public void mapFilterModelChanged(MapFilterModelEvent e) {
+        nodeFilter.fireTableDataChanged();
     }
     
     private void setNodeFilterPanel() {
@@ -71,12 +74,11 @@ public class NodeFilterEditor extends JPanel{
         deleteButton.addActionListener(deleteButtonListener);
         
         /** setting editors ***/
-        keyEditor = new JComboBox(tufts.vue.VUE.getActiveMap().getMapFilterModel().getKeyVector());
-        nodeFilterTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(keyEditor));
+        keyEditor = new KeyCellEditor();
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
+        operatorEditor = new OperatorCellEditor();
         //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
-        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(new OperatorCellEditor());
-        
-        
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);        
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -84,20 +86,16 @@ public class NodeFilterEditor extends JPanel{
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
-        
-        
-        
         //innerPanel.add(labelPanel);
         innerPanel.add(nodeFilterPanel);
-        innerPanel.add(bottomPanel);
-        
+        innerPanel.add(bottomPanel);        
         add(innerPanel);
-        //setSize(300, 300);
-        
+        //setSize(300, 300);        
         validate();
     }
     
     public void setNodeFilter(NodeFilter nodeFilter)  {
+        this.nodeFilter = nodeFilter;
         nodeFilterTable.setModel(nodeFilter);
         addButton.removeActionListener(addButtonListener);
         addButtonListener = new AddButtonListener(nodeFilter);
@@ -105,8 +103,14 @@ public class NodeFilterEditor extends JPanel{
         deleteButton.removeActionListener(deleteButtonListener);
         deleteButtonListener = new DeleteButtonListener(nodeFilterTable, sListener);
         deleteButton.addActionListener(deleteButtonListener);
+        keyEditor = new KeyCellEditor();
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
+        operatorEditor = new OperatorCellEditor();
+        //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);         
     }
     
+  
     public class AddButtonListener implements ActionListener {
         private  NodeFilter model;
         public AddButtonListener(NodeFilter model) {
@@ -121,6 +125,7 @@ public class NodeFilterEditor extends JPanel{
                 stmt.setOperator(key.getType().getDefaultOperator());
                 stmt.setValue(key.getDefaultValue());
                 model.addStatement(stmt);
+                tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(model);
                 model.fireTableDataChanged();
             }
         }
@@ -212,16 +217,7 @@ public class NodeFilterEditor extends JPanel{
             typeEditor.setEditable(false);
             
             keyEditor.setPreferredSize(new Dimension(80,20));
-            keyEditor.addItemListener(new ItemListener() {
-                public void itemStateChanged(ItemEvent e) {
-                    if( e.getStateChange() == e.SELECTED) {
-                        Key key = (Key) e.getItem();
-                        operatorEditor.addItem("Hello");
-                        typeEditor.setText(key.getType().getDisplayName());
-                        
-                    }
-                }
-            });
+       
             GridBagLayout gridbag = new GridBagLayout();
             GridBagConstraints c  = new GridBagConstraints();
             c.insets = new Insets(2,2, 2, 2);
@@ -367,7 +363,6 @@ public class NodeFilterEditor extends JPanel{
             // will only be invoked if an existing row is selected
             int r=m_sListener.getSelectedRow();
             ((NodeFilter) table.getModel()).remove(r);
-            ((NodeFilter) table.getModel()).fireTableRowsDeleted(r,r);
             if(r> 0)
                 table.setRowSelectionInterval(r-1, r-1);
             else if(table.getRowCount() > 0)

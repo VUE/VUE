@@ -13,7 +13,8 @@ package tufts.vue.filter;
 
 import java.util.*;
 import javax.swing.table.*;
-public class NodeFilter extends AbstractTableModel  {
+import javax.swing.event.*;
+public class NodeFilter extends AbstractTableModel  implements MapFilterModel.Listener {
     public static final int KEY_COL = 0;
     public static final int OPERATOR_COL = 1;
     public static final int VALUE_COL = 2;
@@ -30,26 +31,51 @@ public class NodeFilter extends AbstractTableModel  {
         this(false);
     }
     
+    public void mapFilterModelChanged(MapFilterModelEvent e) {
+        Vector removeStatements = new Vector();
+        Iterator i = statementVector.iterator();
+        while(i.hasNext()) {
+            Statement statement = (Statement)i.next();
+            if(statement.getKey() == e.getKey() && e.getAction() == MapFilterModelEvent.KEY_DELETED) {
+                removeStatements.add(statement);
+            }
+        }
+        removeAll(removeStatements);
+        // setNodeFilter(nodeFilter);
+    }
     public synchronized void add(Statement statement) {
         statementVector.add(statement);
     }
     
-    public void remove(Statement statement) {
-        statementVector.remove(statement);
+    public  synchronized void remove(Statement statement) {
+        remove(statementVector.indexOf(statement));
     }
     
-    public void remove(int i) {
+    public  synchronized void remove(int i) {
         statementVector.remove(i);
+        fireTableRowsDeleted(i,i);
+        fireTableDataChanged();
+        fireTableStructureChanged();
     }
     
-    public void addAll(NodeFilter statements) {
+    public  synchronized  void addAll(NodeFilter statements) {
         statementVector.addAll(statements.getStatementVector());
     }
-    public void removeAll(NodeFilter statements) {
-        statementVector.removeAll(statements.getStatementVector());
+    /** nned to fire tableRowsDeleted **/
+    public synchronized  void removeAll(NodeFilter statements) {
+        removeAll(statements.getStatementVector());
     }
-    public void removeAllElements() {
+    public synchronized  void removeAll(Vector statements) {
+        Iterator i = statements.iterator();
+        while(i.hasNext()) {
+            Statement s = (Statement)i.next();
+            statementVector.remove(s);
+        }
+    }
+    public  synchronized void removeAllElements() {
         statementVector.removeAllElements();
+        fireTableRowsDeleted(0, size()-1);
+        fireTableDataChanged();
     }
     public int size() {
         return statementVector.size();
@@ -82,7 +108,7 @@ public class NodeFilter extends AbstractTableModel  {
     }
     
     
-  
+    
     
     public void addStatement(Statement statement) {
         add(statement);

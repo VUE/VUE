@@ -12,16 +12,17 @@ package tufts.vue.filter;
  * @author  akumar03
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.table.*;
 public class MapFilterModel  extends AbstractTableModel{
     
     /** Creates a new instance of MapMetadataModel */
-    
+    public interface Listener extends java.util.EventListener {
+        public void mapFilterModelChanged(MapFilterModelEvent e);
+    }
     private Vector keyVector;
     boolean editable;
+    private List listeners = new ArrayList();
     public MapFilterModel(boolean editable) {
         this();
         this.editable = editable;
@@ -31,9 +32,46 @@ public class MapFilterModel  extends AbstractTableModel{
     }
     public synchronized void add(Key key) {
         keyVector.add(key);
+        notifyListeners(new MapFilterModelEvent(key,MapFilterModelEvent.KEY_ADDED));
     }
-    public void remove(Key key) {
-        keyVector.remove(key);
+    public synchronized void remove(Key key) {
+        int i = keyVector.indexOf(key);
+        keyVector.remove(keyVector.indexOf(key));
+        notifyListeners(new MapFilterModelEvent(key,MapFilterModelEvent.KEY_DELETED));
+    }
+    
+    public synchronized void remove(int i) {
+        remove(get(i));
+    }
+        
+    /** adds the listeners if it doesn't exitst **/
+    public synchronized void addListener(Listener l){
+        if(listeners.indexOf(l) < 0)
+            listeners.add(l);
+      
+    }
+    public synchronized void removeListener(Listener l) {
+        listeners.remove(l);
+    }
+    private synchronized void notifyListeners(MapFilterModelEvent e)  {
+        Iterator i = listeners.iterator();
+        while (i.hasNext()) {
+            Listener l = (Listener) i.next();
+            try {
+                l.mapFilterModelChanged(e);
+            } catch (Exception ex) {
+                System.err.println(this + " notifyListeners: exception during selection change notification:"
+                + "\n\tselection: " + this
+                + "\n\tfailing listener: " + l);
+                ex.printStackTrace();
+                //java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        }
+    }
+    
+    /** for Actions.java */
+    java.util.List getListeners() {
+        return this.listeners;
     }
     
     public void addAll(MapFilterModel keys) {

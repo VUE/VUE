@@ -26,15 +26,18 @@ public class MapFilterModelEditor extends JPanel {
     MapFilterModel mapFilterModel;
     JTable mapFilterTable;
     AddButtonListener addButtonListener = null;
+    DeleteButtonListener deleteButtonListener = null;
+    MapFilterModelSelectionListener sListener = null;
     boolean editable = false;
     JButton addButton=new tufts.vue.VueButton("add");
     JButton deleteButton=new tufts.vue.VueButton("delete");
-     
+    
     
     /** Creates a new instance of MapFilterModelEditor */
     public MapFilterModelEditor(MapFilterModel mapFilterModel) {
         this.mapFilterModel = mapFilterModel;
         setMapFilterModelPanel();
+        
     }
     private void setMapFilterModelPanel() {
         mapFilterTable = new JTable(mapFilterModel);
@@ -48,11 +51,13 @@ public class MapFilterModelEditor extends JPanel {
         // addConditionButton
         addButtonListener = new AddButtonListener(mapFilterModel);
         addButton.addActionListener(addButtonListener);
-        // deleteConditionButton
-       
+        
+        sListener= new MapFilterModelSelectionListener(deleteButton, -1);
+        mapFilterTable.getSelectionModel().addListSelectionListener(sListener);
+        deleteButtonListener = new DeleteButtonListener(mapFilterTable, sListener);
+        deleteButton.addActionListener(deleteButtonListener);
+        
         deleteButton.setEnabled(false);
-        
-        
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -71,13 +76,17 @@ public class MapFilterModelEditor extends JPanel {
     }
     
     public void setMapFilterModel(MapFilterModel mapFilterModel) {
+        this.mapFilterModel = mapFilterModel;
         mapFilterTable.setModel(mapFilterModel);
         addButton.removeActionListener(addButtonListener);
         addButtonListener = new AddButtonListener(mapFilterModel);
         addButton.addActionListener(addButtonListener);
+        deleteButton.removeActionListener(deleteButtonListener);
+        deleteButtonListener = new DeleteButtonListener(mapFilterTable, sListener);
+        deleteButton.addActionListener(deleteButtonListener);
     }
     
-  
+    
     public class AddButtonListener implements ActionListener {
         private  MapFilterModel model;
         public AddButtonListener(MapFilterModel model) {
@@ -147,7 +156,7 @@ public class MapFilterModelEditor extends JPanel {
             getContentPane().add(typePanel);
             getContentPane().add(southPanel);
             pack();
-            setLocation(500,300);
+            setLocation(MapFilterModelEditor.this.getLocationOnScreen());
             show();
             
         }
@@ -157,6 +166,68 @@ public class MapFilterModelEditor extends JPanel {
             model.addKey(key);
             System.out.println("ADDED KEY of Type = "+((Type)typeEditor.getSelectedItem()).getDisplayName());
             model.fireTableDataChanged();
+        }
+    }
+    
+    public class MapFilterModelSelectionListener  implements ListSelectionListener {
+        private int m_selectedRow;
+        private JButton m_deleteButton;
+        
+        public MapFilterModelSelectionListener(JButton deleteButton, int selectedRow) {
+            m_selectedRow=selectedRow;
+            m_deleteButton=deleteButton;
+            updateButtons();
+        }
+        
+        public void valueChanged(ListSelectionEvent e) {
+            //Ignore extra messages.
+            if (e.getValueIsAdjusting()) return;
+            
+            ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+            if (lsm.isSelectionEmpty()) {
+                m_selectedRow=-1;
+            } else {
+                m_selectedRow=lsm.getMinSelectionIndex();
+            }
+            updateButtons();
+        }
+        
+        public int getSelectedRow() {
+            return m_selectedRow;
+        }
+        
+        public void setSelectedRow(int row) {
+            this.m_selectedRow = row;
+        }
+        private void updateButtons() {
+            if (getSelectedRow()==-1) {
+                m_deleteButton.setEnabled(false);
+            } else {
+                m_deleteButton.setEnabled(true);
+            }
+        }
+    }
+    
+    public class DeleteButtonListener implements ActionListener {
+        private JTable table;
+        private MapFilterModelSelectionListener m_sListener;
+        
+        public DeleteButtonListener(JTable table,MapFilterModelSelectionListener sListener) {
+            this.table = table;
+            m_sListener=sListener;
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            // will only be invoked if an existing row is selected
+            if(JOptionPane.showConfirmDialog(tufts.vue.VUE.getInstance(),"All Statments in nodes with this key will be deleted. Are you sure?","Delete Key",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                int r=m_sListener.getSelectedRow();
+                ((MapFilterModel) table.getModel()).remove(r);
+                ((MapFilterModel) table.getModel()).fireTableRowsDeleted(r,r);
+                if(r> 0)
+                    table.setRowSelectionInterval(r-1, r-1);
+                else if(table.getRowCount() > 0)
+                    table.setRowSelectionInterval(0,0);
+            }
         }
     }
 }
