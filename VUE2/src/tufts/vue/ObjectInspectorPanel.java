@@ -262,7 +262,7 @@ public class ObjectInspectorPanel  extends JPanel
 	
 
 
-	private static boolean sDebug = true;
+    private static boolean sDebug = false;
 	private void debug( String str) {
 		if( sDebug) {
 			System.out.println( str);

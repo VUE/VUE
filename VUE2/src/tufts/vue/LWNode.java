@@ -445,7 +445,7 @@ public class LWNode extends LWContainer
     public void addChild(LWComponent c)
     {
         super.addChild(c);
-        setScale(getScale());// todo: only to propagate color toggle hack
+        setScale(getScale()); // make sure children get shrunk
         layout();
     }
 

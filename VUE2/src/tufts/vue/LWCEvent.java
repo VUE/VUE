@@ -35,15 +35,21 @@ public class LWCEvent
     //one of them is always null
     private LWComponent component = null;
     private ArrayList components = null;
+    private Object oldValue = null;
     
     private String what;
     
     // todo: we still using both src & component?
-    public LWCEvent(Object source, LWComponent c, String what)
+    public LWCEvent(Object source, LWComponent c, String what, Object oldValue)
     {
         this.source = source;
         this.component = c;
         this.what = what;
+        this.oldValue = oldValue;
+    }
+
+    public LWCEvent(Object source, LWComponent c, String what) {
+        this (source, c, what, null);
     }
 
     public LWCEvent(Object source, ArrayList components, String what)
@@ -71,6 +77,11 @@ public class LWCEvent
     public String getWhat()
     {
         return this.what;
+    }
+
+    public Object getOldValue()
+    {
+        return this.oldValue;
     }
 
     public String toString()

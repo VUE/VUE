@@ -2835,11 +2835,13 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
                 else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == 'Z') { resetScrollRegion(); }
+
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'C') { DEBUG.SCROLL = !DEBUG.SCROLL; }
                 else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
+                else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else
                     did = false;
                 if (did) {

@@ -112,6 +112,7 @@ public class LWComponent
     /** called directly by TextBox after document edit with setDocument=false */
     void setLabel0(String label, boolean setDocument)
     {
+        Object old = this.label;
         if (label == null || this.label == label)
             return;
         if (this.label != null && this.label.equals(label))
@@ -127,7 +128,7 @@ public class LWComponent
                 getLabelBox().setText(label);
         }
         layout();
-        notify(LWCEvent.Label);
+        notify(LWCEvent.Label, old);
     }
 
     TextBox getLabelBox()
@@ -144,6 +145,7 @@ public class LWComponent
     
     public void setNotes(String notes)
     {
+        Object old = this.notes;
         if (notes == null) {
             this.notes = null;
         } else {
@@ -154,7 +156,7 @@ public class LWComponent
                 this.notes = null;
         }
         layout();
-        notify(LWCEvent.Notes);
+        notify(LWCEvent.Notes, old);
     }
 
     // todo: setMetaData still relevant?
@@ -173,9 +175,10 @@ public class LWComponent
     }
     public void setResource(Resource resource)
     {
+        Object old = this.resource;
         this.resource = resource;
         layout();
-        notify(LWCEvent.Resource);
+        notify(LWCEvent.Resource, old);
     }
    
 
@@ -457,8 +460,9 @@ public class LWComponent
     }
     public void setFillColor(Color color)
     {
+        Object old = this.fillColor;
         this.fillColor = color;
-        notify(LWCEvent.FillColor);
+        notify(LWCEvent.FillColor, old);
     }
 
     /** for persistance */
@@ -478,10 +482,11 @@ public class LWComponent
     }
     public void setTextColor(Color color)
     {
+        Object old = this.textColor;
         this.textColor = color;
         if (labelBox != null)
             labelBox.copyStyle(this); // todo better: handle thru style.textColor notification?
-        notify(LWCEvent.TextColor);
+        notify(LWCEvent.TextColor, old);
     }
     /** for persistance */
     public String getXMLtextColor()
@@ -500,8 +505,9 @@ public class LWComponent
     }
     public void setStrokeColor(Color color)
     {
+        Object old = this.strokeColor;
         this.strokeColor = color;
-        notify(LWCEvent.StrokeColor);
+        notify(LWCEvent.StrokeColor, old);
     }
     /** for persistance */
     public String getXMLstrokeColor()
@@ -544,6 +550,7 @@ public class LWComponent
     public void setStrokeWidth(float w)
     {
         if (this.strokeWidth != w) {
+            float oldStrokeWidth = this.strokeWidth;
             this.strokeWidth = w;
             if (w > 0)
                 this.stroke = new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
@@ -554,7 +561,7 @@ public class LWComponent
                 getParent().layout();
             }
             layout();
-            notify(LWCEvent.StrokeWidth);
+            notify(LWCEvent.StrokeWidth, new Float(oldStrokeWidth));
         }
     }
     public Font getFont()
@@ -563,12 +570,14 @@ public class LWComponent
     }
     public void setFont(Font font)
     {
+        Object old = this.font;
         this.font = font;
         if (labelBox != null)
             labelBox.copyStyle(this);
         layout();
-        notify(LWCEvent.Font);
+        notify(LWCEvent.Font, old);
     }
+    
     /** to support XML persistance */
     public String getXMLfont()
     {
@@ -795,7 +804,7 @@ public class LWComponent
     void setScale(float scale)
     {
         this.scale = scale;
-        notify(LWCEvent.Scale);
+        notify(LWCEvent.Scale); // todo: why do we need to notify if scale is changed? try removing this
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
@@ -1169,10 +1178,15 @@ public class LWComponent
         notifyLWCListeners(new LWCEvent(this, contents, what));
     }
 
+    private void notify(String what, Object oldValue)
+    {
+        notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
+    }
+
     protected void notify(String what)
     {
         // todo: we still need both src & component? (this,this)
-        notifyLWCListeners(new LWCEvent(this, this, what));
+        notifyLWCListeners(new LWCEvent(this, this, what, null));
     }
     
     /**a notify with an array of components

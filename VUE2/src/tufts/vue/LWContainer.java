@@ -358,7 +358,7 @@ public abstract class LWContainer extends LWComponent
         }
         if (!this.children.remove(c))
             throw new IllegalStateException(this + " didn't contain child for removal: " + c);
-        c.setParent(null);
+        c.setParent(null); // leave parent ref place for undo -- but -- ack need this!
 
         // gunk to handle scale stuff
         //if (c.isManagedColor()) c.setFillColor(COLOR_NODE_DEFAULT);
