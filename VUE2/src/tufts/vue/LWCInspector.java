@@ -366,6 +366,22 @@ class LWCInspector extends javax.swing.JPanel
             c.setXMLfillColor(text);
         }
     }
+    private void setTextColors(String text)
+    {
+        Iterator i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setXMLtextColor(text);
+        }
+    }
+    private void setStrokeColors(String text)
+    {
+        Iterator i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setXMLstrokeColor(text);
+        }
+    }
     private void setStrokeWidths(String text)
         throws NumberFormatException
     {
@@ -403,8 +419,8 @@ class LWCInspector extends javax.swing.JPanel
             else if (src == resourceField)  c.setResource(text);
             else if (src == fontField)      setFonts(text);
             else if (src == fillColorField) setFillColors(text);
-            else if (src == textColorField)     c.setXMLtextColor(text);
-            else if (src == strokeColorField)   c.setXMLstrokeColor(text);
+            else if (src == textColorField)     setTextColors(text);
+            else if (src == strokeColorField)   setStrokeColors(text);
             else if (src == strokeField)        setStrokeWidths(text);
             //            else if (src == strokeField) {
             //                float w = Float.parseFloat(text);
