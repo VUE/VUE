@@ -30,14 +30,16 @@ public class PrintAction extends AbstractAction implements Printable {
         
         if (param == 0)
         {
-            MapViewer currentMap = (MapViewer)VUE.tabbedPane.getSelectedComponent();
+            Graphics2D g2 = (Graphics2D)graphics;
+            MapViewer currentMap = VUE.getActiveViewer();
             Dimension size = currentMap.getSize();
             
-            graphics.setClip(0, 0, size.width, size.height);
-            currentMap.paintComponent(graphics);
+            g2.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+            g2.setClip(0, 0, size.width, size.height);
+            currentMap.paintComponent(g2);
          
-            graphics.setColor(Color.black);
-            graphics.drawRect(0, 0, size.width - 1, size.height - 1);
+            g2.setColor(Color.black);
+            g2.drawRect(0, 0, size.width - 1, size.height - 1);
             
             return Printable.PAGE_EXISTS;
         }
@@ -49,25 +51,8 @@ public class PrintAction extends AbstractAction implements Printable {
     public void actionPerformed(ActionEvent ae)
     {
         PrinterJob job = PrinterJob.getPrinterJob();
-        
-        PageFormat format = new PageFormat();//job.defaultPage();
-        Paper paper = format.getPaper();
-        
-        int offset = 300;
-        double x, y, width, height;
-        x = paper.getImageableX() + offset;
-        y = paper.getImageableY() + offset;
-        width = paper.getImageableWidth() - offset;
-        height = paper.getImageableHeight() - offset;
-        
-        paper.setImageableArea(x, y, width, height);
-        
-        paper.setSize(paper.getWidth() - 50, paper.getHeight() - 50);
-        System.out.println(paper.getImageableX() + ", " + paper.getImageableY());
-        format.setPaper(paper);
-        
-        format = job.validatePage(format);
-        job.setPrintable(this, format);
+     
+        job.setPrintable(this);
         
         try
         {

@@ -38,7 +38,6 @@ public class ImageConversion extends AbstractAction {
         //the conversion is done using the ImageIO class's static method
         try
         {
-            System.out.println(location);
             ImageIO.write(image, format, new File(location));
         }
         catch (Exception e)
@@ -72,6 +71,8 @@ public class ImageConversion extends AbstractAction {
         
         try 
         {
+            boolean proceed = true;
+            
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save JPEG File");
             //chooser.setFileFilter(new VueFileFilter());
@@ -82,40 +83,47 @@ public class ImageConversion extends AbstractAction {
             int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
         
             if (option == JFileChooser.APPROVE_OPTION) {
-                /*
-                if (chooser.getSelectedFile().isExist())
+                
+                if (chooser.getSelectedFile().exists())
                 {
-                    
+                  int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 
+                          "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                  
+                  if (n == JOptionPane.NO_OPTION)
+                      proceed = false;
+                } 
+                
+                if (proceed)
+                {
+                    String fileName = chooser.getSelectedFile().getAbsolutePath();
+                
+                    //if it isn't a file name with the right extention 
+                    if (!(fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")))
+                        fileName += ".jpeg";
+                
+                    // if they choose nothing, fileName will be null -- detect & abort
+                
+                    VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+        
+                    //retrives the current map and gets its size
+                    MapViewer currentMap = VUE.getActiveViewer();
+                    Dimension size = currentMap.getSize();
+        
+                    //creates an image object and sets up the graphics object of the image
+                    BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
+                    Graphics g = mapImage.getGraphics();
+                    g.setClip(0, 0, size.width, size.height);
+        
+                    //let the map draws to the image object's graphic object
+                    currentMap.paintComponent(g);
+                
+                    //outlining the returned image
+                    g.setColor(Color.black);
+                    g.drawRect(0, 0, size.width - 1, size.height - 1);
+        
+                    //begins the conversion to the file
+                    convert(mapImage, fileName, "jpeg");
                 }
-                */
-                String fileName = chooser.getSelectedFile().getAbsolutePath();
-                
-                //if it isn't a file name with the right extention 
-                if (!(fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")))
-                    fileName += ".jpeg";
-                
-                // if they choose nothing, fileName will be null -- detect & abort
-                
-                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-        
-                //retrives the current map and gets its size
-                MapViewer currentMap = VUE.getActiveViewer();
-                Dimension size = currentMap.getSize();
-        
-                //creates an image object and sets up the graphics object of the image
-                BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-                Graphics g = mapImage.getGraphics();
-                g.setClip(0, 0, size.width, size.height);
-        
-                //let the map draws to the image object's graphic object
-                currentMap.paintComponent(g);
-                
-                //outlining the returned image
-                g.setColor(Color.black);
-                g.drawRect(0, 0, size.width - 1, size.height - 1);
-        
-                //begins the conversion to the file
-                convert(mapImage, fileName, "jpeg");
             }
        }
         

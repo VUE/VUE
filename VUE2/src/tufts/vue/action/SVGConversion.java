@@ -114,6 +114,8 @@ public class SVGConversion extends AbstractAction {
         //displays the file chooser so that the user can select the file to save the SVG image into
         try 
         {
+            boolean proceed = true; 
+            
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save SVG File");
             //chooser.setFileFilter(new VueFileFilter());
@@ -124,18 +126,31 @@ public class SVGConversion extends AbstractAction {
             int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
         
             if (option == JFileChooser.APPROVE_OPTION) {
-                String fileName = chooser.getSelectedFile().getAbsolutePath();
-                // if they choose nothing, fileName will be null -- detect & abort
                 
-                //if the file name doesn't have the right extension
-                if (!fileName.endsWith(".svg"))
-                    fileName += ".svg";
+                if (chooser.getSelectedFile().exists())
+                {
+                  int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 
+                          "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                  
+                  if (n == JOptionPane.NO_OPTION)
+                      proceed = false;
+                } 
                 
-                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+                if (proceed)
+                {
+                    String fileName = chooser.getSelectedFile().getAbsolutePath();
+                    // if they choose nothing, fileName will be null -- detect & abort
                 
-                //gets the currently selected map
-                MapViewer currentMap = (MapViewer)VUE.tabbedPane.getSelectedComponent();
-                createSVG(currentMap, fileName);
+                    //if the file name doesn't have the right extension
+                    if (!fileName.endsWith(".svg"))
+                        fileName += ".svg";
+                
+                     VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+                
+                    //gets the currently selected map
+                    MapViewer currentMap = VUE.getActiveViewer();
+                    createSVG(currentMap, fileName);
+                }
             }
        }
         
