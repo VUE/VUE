@@ -420,10 +420,11 @@ public class MapViewer extends javax.swing.JComponent
         //------------------------------------------------------------------
         
         if (inScrollPane) {
-            if (mapAnchor != null && !pReset)
+            if (mapAnchor != null && !pReset) {
                 mViewport.placeMapLocationAtViewCenter(mapAnchor);
-            else
+            } else {
                 adjustCanvasSize(false, true, true);
+            }
         } else {
             if (mapAnchor != null) {
                 setMapOriginOffset(offset.x, offset.y);
@@ -458,14 +459,20 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public void setPreferredSize(Dimension d) {
-        //d.width = (int) (1024 * mZoomFactor);
-        //d.height = (int) (768 * mZoomFactor);
-        if (DEBUG.SCROLL) out(" setPreferred: " + out(d));
+        if (DEBUG.SCROLL) out("setPreferred: " + out(d));
         super.setPreferredSize(d);
     }
+    /*
+    public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        if (DEBUG.SCROLL) out("getPreferred: " + out(d));
+        return d;
+    }
+    */
 
     public void setSize(Dimension d) {
-        if (DEBUG.SCROLL) out("      setSize: " + out(d));
+        if (DEBUG.SCROLL) out("     setSize: " + out(d));
+        // new Throwable("SETSIZE " + out(d)).printStackTrace();
         super.setSize(d);
     }
     
@@ -725,7 +732,7 @@ public class MapViewer extends javax.swing.JComponent
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
         if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
-            out("      reshape: "
+            out("     reshape: "
                 + w + " x " + h
                 + " "
                 + x + "," + y
@@ -1449,8 +1456,7 @@ public class MapViewer extends javax.swing.JComponent
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
-        if (paints == 0 && inScrollPane)
-            adjustCanvasSize();
+        //if (paints == 0 && inScrollPane) adjustCanvasSize();
         if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
@@ -2984,7 +2990,7 @@ public class MapViewer extends javax.swing.JComponent
             int dx = lastDrag.x - mouse.x;
             int dy = lastDrag.y - mouse.y;
             if (inScrollPane) {
-                panScrollRegion(dx, dy, true);
+                panScrollRegion(dx, dy);
             } else {
                 setMapOriginOffset(originAtDragStart.getX() + dx,
                                    originAtDragStart.getY() + dy);
@@ -4045,7 +4051,8 @@ public class MapViewer extends javax.swing.JComponent
         LWNode origin = new LWNode("ORIGIN", 0,0);
         origin.setShape(new Rectangle2D.Float());
         origin.setStrokeWidth(0);
-        //origin.setStrokeWidth(6);
+        origin.setFillColor(Color.darkGray);
+        origin.setTextColor(Color.lightGray);
         Actions.FontBold.actOn(origin);
 
         LWNode end = new LWNode("400x300");
