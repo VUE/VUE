@@ -195,7 +195,7 @@ implements LWSelection.Listener {
         JScrollPane mInfoScrollPane = null;
         JPanel labelPanel;
         JLabel objectLabel;
-        JPanel previewPanel = new JPanel(new BorderLayout());
+        //JPanel previewPanel = new JPanel(new BorderLayout());
         JComponent mPreview = null;
         LWComponent mComponent;
         public InfoPanel() {
@@ -208,10 +208,10 @@ implements LWSelection.Listener {
             labelPanel = new JPanel(new BorderLayout());
             labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
             labelPanel.add(objectLabel,BorderLayout.WEST);
-            previewPanel.setPreferredSize(new Dimension(75,75));
-            previewPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            //previewPanel.setPreferredSize(new Dimension(75,75));
+            //previewPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             //previewPanel.setBorder(BorderFactory.createLoweredBevelBorder());
-            labelPanel.add(previewPanel,BorderLayout.EAST);
+            //labelPanel.add(previewPanel,BorderLayout.EAST);
             setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
             add(labelPanel,BorderLayout.NORTH);
             add(new LWCInfoPanel(),BorderLayout.CENTER);
@@ -243,6 +243,8 @@ implements LWSelection.Listener {
             // To get the preview, the resource may have to do an initial
             // load of the content, which may take a while, so we do this
             // in a thread.
+            /// Remove Preview
+            /**
             new Thread() {
                 public void run() {
                     JComponent preview = null;
@@ -264,6 +266,7 @@ implements LWSelection.Listener {
                     }
                 }
             }.start();
+             */
         }
     }
     
