@@ -640,6 +640,10 @@ public class VUE
      */
     private static boolean askSaveIfModified(LWMap map)
     {
+        final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
+        // oddly, mac is reversing order of these buttons
+        final Object[] macOrderButtons = { "Cancel", "Don't Save", "Save" };
+        
         /*
           int response = JOptionPane.showConfirmDialog(VUE.frame,
           "'" + map.getLabel() + "' "
@@ -663,9 +667,12 @@ public class VUE
              JOptionPane.YES_NO_CANCEL_OPTION,
              JOptionPane.QUESTION_MESSAGE,
              null,
-             new Object[] { "Save", "Don't Save", "Cancel"}, // todo: reversed order on mac!
+             VueUtil.isMacPlatform() ? macOrderButtons : defaultOrderButtons,
              "Save"
              );
+
+        if (VueUtil.isMacPlatform())
+            response = (macOrderButtons.length-1) - response;
 
         if (response == JOptionPane.YES_OPTION) {
             return SaveAction.saveMap(map);
