@@ -337,13 +337,20 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private JComponent ttResource;
         private String ttLastString;
+        private boolean hadTitle = false;
         public JComponent getToolTipComponent()
         {
-            if (ttResource == null || !ttLastString.equals(mLWC.getResource().getSpec())) {
+            boolean hasTitle = mLWC.getResource().getTitle() != null;
+            if (ttResource == null
+                || !ttLastString.equals(mLWC.getResource().getSpec())
+                || hadTitle != hasTitle)
+            {
+                hadTitle = hasTitle;
                 ttLastString = mLWC.getResource().getSpec();
                 ttResource = new AALabel("<html>&nbsp;<b>"
-                                         + ttLastString
-                                         + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
+                                         + ttLastString + "</b>"
+                                         + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
+                                         + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
                 ttResource.setFont(FONT_MEDIUM);
             }
             return ttResource;

@@ -398,11 +398,18 @@ class MapDropTarget
     // for us.
     private LWNode createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
     {
-        if (resourceTitle == null)
-            resourceTitle = createResourceTitle(resourceName);
+        Resource resource = new Resource(resourceName);
+
+        if (resourceTitle == null) {
+            resource.setTitleFromContent();
+            if (resource.getTitle() != null)
+                resourceTitle = resource.getTitle();
+            else
+                resourceTitle = createResourceTitle(resourceName);
+        }
 
         LWNode node = NodeTool.createNode(resourceTitle);
-        node.setResource(new Resource(resourceName));
+        node.setResource(resource);
         if (p != null) {
             node.setCenterAt(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?

@@ -19,8 +19,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.net.*;
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
+import java.io.*;
+import java.util.regex.*;
 import fedora.server.types.gen.*;
 
 
@@ -47,10 +47,13 @@ public class Resource
     String spec;
     
     /** the metadata property map **/
- 	private    Map mProperties = new HashMap();
- 	
- 	/** property name cache **/
- 	private String [] mPropertyNames = null;
+    private    Map mProperties = new HashMap();
+    
+    /** property name cache **/
+    private String [] mPropertyNames = null;
+
+    /** an optional resource title */
+    private String mTitle;
 
     private URL url = null;
     
@@ -191,28 +194,28 @@ public class Resource
         this.size = size;
     }
 
+    public void setTitle(String title)
+    {
+        mTitle = title;
+    }
+
+    public String getTitle()
+    {
+        return mTitle;
+    }
+
     public void setSpec(String spec) {
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
         try {
             url = new URL(this.spec);
-
             /*
-            System.err.println("Opening connection...");
-            URLConnection conn = url.openConnection();
-            //System.err.println("Connecting...");
-            //conn.connect();
-            System.err.println("Getting headers...");
-            System.err.println("Headers: " + conn.getHeaderFields());
-            */
-            
-            /*
-            String fname = url.getFile();
-            System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
-            java.io.File file = new java.io.File(fname);
-            System.out.println("\t" + file + " exists=" +file.exists());
-            file = new java.io.File(spec);
-            System.out.println("\t" + file + " exists=" +file.exists());
+              String fname = url.getFile();
+              System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
+              java.io.File file = new java.io.File(fname);
+              System.out.println("\t" + file + " exists=" +file.exists());
+              file = new java.io.File(spec);
+              System.out.println("\t" + file + " exists=" +file.exists());
             */
         } catch (MalformedURLException e) {
             // Okay for url to be null: means local file
@@ -222,6 +225,76 @@ public class Resource
             System.err.println(e);
         }
     }
+
+    public void setTitleFromContent()
+    {
+        if (url != null) {
+            try {
+                System.err.println("Opening connection to " + url);
+                URLConnection conn = url.openConnection();
+                //System.err.println("Connecting...");
+                //conn.connect();
+                //System.err.println("Getting headers...");
+                //System.err.println("Headers: " + conn.getHeaderFields());
+                //Object content = conn.getContent();
+                //System.err.println("GOT CONTENT[" + content + "]"); // is stream
+                String title = searchURLforTitle(conn);
+                // TODO: do NOT do this if it came from a .url shortcut -- we
+                // already have the file-name
+                if (title != null)
+                    setTitle(title);
+            } catch (Exception e) {
+                System.err.println("Resource title scrape: " + e);
+            }
+        }
+    }
+
+    private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+).*",
+                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+    private static String searchURLforTitle(URLConnection url_conn)
+    {
+        String title = null;
+        try {
+            title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
+            title = title.trim();
+            //System.out.println("*** got title ["+title+"]");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return title;
+    }
+
+    /** search a stream for a single regex -- one matching group only.
+     * Only search the first n bytes of input stream. */
+    private static String searchStreamForRegex(InputStream in, Pattern regex, int bytes)
+    {
+        String result = null;
+        try {
+            System.out.println("*** Searching for regex in " + in);
+            if (!(in instanceof BufferedInputStream)) {
+                // this handles a possibly "chunked" http stream,
+                // which would only hand back, say, 23 bytes the first
+                // time, as Yahoo's http server did.
+                in = new BufferedInputStream(in, bytes);
+            }
+            byte[] buf = new byte[bytes];
+            int len = in.read(buf);
+            in.close();
+            String str = new String(buf, 0, len);
+            System.out.println("*** Got string of length " + len);
+            //System.out.println("*** String[" + str + "]");
+            Matcher m = regex.matcher(str);
+            if (m.lookingAt()) {
+                result = m.group(1);
+                System.out.println("*** regex found ["+result+"]");
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return result;
+    }
+
+    
     
     /** Return exactly whatever we were handed at creation time.  We
      * need this because if it's a local file (file: URL or just local
