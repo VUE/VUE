@@ -190,11 +190,10 @@ public class LWComponent
     {
         String notes = unescapeNewlines(text);
         // hack in case castor xml indent was on when save was done
-        /*
-        System.out.println("got notes " + notes);
-        notes.replaceAll("            ", " ");
-        System.out.println("fixed notes " + notes);
-        */
+        // (didn't used to be a problem, but castor must have
+        // changed how it handles this recently)
+        notes = notes.replaceAll("\n            %nl;", "");
+        notes = notes.replaceAll("\n            ", " ");
         setNotes(notes);
     }
 
