@@ -504,7 +504,7 @@ public class VUE
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
         frame.pack();
         if (nodr)
-            frame.setSize(700,350);
+            frame.setSize(750,350);
         else
             frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
         frame.validate();
@@ -921,12 +921,15 @@ public class VUE
         arrangeMenu.add(alignMenu);
         
         if (toolWindows != null) {
+            int accel_index = 0;
             for (int i = 0; i < toolWindows.length; i++) {
                 //System.out.println("adding " + toolWindows[i]);
                 Window window = toolWindows[i];
                 if (window == null)
                     continue;
                 WindowDisplayAction windowAction = new WindowDisplayAction(window);
+                windowAction.putValue(Action.ACCELERATOR_KEY,
+                                      KeyStroke.getKeyStroke(KeyEvent.VK_1 + accel_index++, Actions.COMMAND));
                 JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
                 windowAction.setLinkedButton(checkBox);
                 windowMenu.add(checkBox);

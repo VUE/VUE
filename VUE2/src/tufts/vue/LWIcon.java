@@ -796,7 +796,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;  }
 
         void doDoubleClickAction() {
-            System.out.println(this + " Behavior action?");
+            VUE.objectInspectorPanel.activateNotesTab();
+            VUE.objectInspector.setVisible(true);
         }
         
         private JComponent ttBehavior;
@@ -893,7 +894,6 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         private static final String Indent = "&nbsp;&nbsp;&nbsp;&nbsp;";
         private static final String RightMargin = Indent;
-        //private static final String RightMargin = "&nbsp;&nbsp;&nbsp;";
         
         private String getChildHtml(LWComponent c, int indent)
         {

@@ -37,34 +37,6 @@ public class LinkToolPanel extends LWCToolPanel
     private AbstractButton mArrowStartButton;
     private AbstractButton mArrowEndButton;
 
-    /**
-     * Handles property changes for a single property, issuing PropertyChangeEvents.
-     * todo: promote class
-     */
-    private static abstract class PropertyHandler implements LWPropertyHandler, ActionListener {
-        private final Object mPropertyKey;
-        private final PropertyChangeListener mChangeListener;
-        //protected Object mOldValue;
-        
-        public PropertyHandler(Object propertyKey, PropertyChangeListener listener) {
-            mPropertyKey = propertyKey;
-            mChangeListener = listener;
-        }
-        public Object getPropertyKey() { return mPropertyKey; }
-        public abstract Object getPropertyValue();
-        /** load the property value into the property producer */
-        public abstract void setPropertyValue(Object value);
-
-        public void actionPerformed(ActionEvent ae) {
-            Object newValue = getPropertyValue();
-            mChangeListener.propertyChange
-                (new PropertyChangeEvent(ae.getSource(),
-                                         mPropertyKey.toString(),
-                                         null, // no old value for now
-                                         newValue));
-        }
-    }
-    
     protected void buildBox()
     {
         final AbstractButton linkStraight = new VueButton.Toggle("linkTool.line");
@@ -91,8 +63,8 @@ public class LinkToolPanel extends LWCToolPanel
         addComponent(mFontPanel);
         addComponent(mTextColorButton);
 
-        final PropertyHandler arrowPropertyHandler =
-            new PropertyHandler(LWKey.LinkArrows, this) {
+        final LWPropertyHandler arrowPropertyHandler =
+            new LWPropertyHandler(LWKey.LinkArrows, this) {
                 public Object getPropertyValue() {
                     int arrowState = LWLink.ARROW_NONE;
                     if (mArrowStartButton.isSelected())
@@ -107,8 +79,8 @@ public class LinkToolPanel extends LWCToolPanel
                       mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
                 }
             };
-        final PropertyHandler curvePropertyHandler =
-            new PropertyHandler(LWKey.LinkCurves, this) {
+        final LWPropertyHandler curvePropertyHandler =
+            new LWPropertyHandler(LWKey.LinkCurves, this) {
                 public Object getPropertyValue() {
                     if (linkStraight.isSelected())
                         return new Integer(0);

@@ -21,7 +21,8 @@ package tufts.vue.gui;
 import tufts.vue.DEBUG;
 import tufts.vue.VueAction;
 import tufts.vue.LWComponent;
-import tufts.vue.LWPropertyHandler;
+import tufts.vue.LWPropertyProducer;
+import tufts.vue.LWPropertyChangeEvent;
 
 import java.io.*;
 import java.awt.*;
@@ -51,7 +52,7 @@ import javax.swing.border.*;
 // forthcoming tool package.
 
 public abstract class MenuButton extends JButton
-    implements ActionListener, LWPropertyHandler
+    implements ActionListener, LWPropertyProducer
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
 // menu-popups would automatically work also.
 {
@@ -223,10 +224,12 @@ public abstract class MenuButton extends JButton
         mPropertyName = pName;
     }
     */
+    /*
     public String getPropertyName() {
         return mPropertyKey == null ? null : mPropertyKey.toString();
         //return mPropertyName;
     }
+    */
     
     public void setPropertyKey(Object key) {
         mPropertyKey = key;
@@ -378,12 +381,13 @@ public abstract class MenuButton extends JButton
     }
 	
     /** fire a property change event even if old & new values are the same */
+    // COULD USE Component.firePropertyChange!  all this is getting us is diagnostics!
     protected void firePropertyChanged(Object oldValue, Object newValue)
     {
-        if (getPropertyName() != null) {
+        if (getPropertyKey() != null) {
             PropertyChangeListener[] listeners = getPropertyChangeListeners();
             if (listeners.length > 0) {
-                PropertyChangeEvent event = new PropertyChangeEvent(this, getPropertyName(), oldValue, newValue);
+                PropertyChangeEvent event = new LWPropertyChangeEvent(this, getPropertyKey(), oldValue, newValue);
                 for (int i = 0; i< listeners.length; i++) {
                     if (DEBUG.TOOL) System.out.println(this + " fires " + event + " to " + listeners[i]);
                     listeners[i].propertyChange(event);
@@ -428,7 +432,7 @@ public abstract class MenuButton extends JButton
     }
 	
     public String toString() {
-        return getClass().getName() + "[" + getPropertyName() + "]";
+        return getClass().getName() + "[" + getPropertyKey() + "]";
     }
 }
 

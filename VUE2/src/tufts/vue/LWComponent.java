@@ -159,7 +159,7 @@ public class LWComponent
             setFrame(r.x, r.y, r.width, r.height);
         } else {
             out(this + " setProperty: unknown key [" + key + "] with value [" + val + "]");
-            //new Throwable().printStackTrace();
+            new Throwable("UNKNOWN PROPERTY VALUE").printStackTrace();
         }
     }
     

@@ -36,10 +36,13 @@ import javax.swing.border.*;
  * A ToolWindow is ultimately meant to be contain multiple tools,
  * although it's really only ready to go for one tool per window
  * in it's current state.
+ *
+ * Focus handling for these is quite imperfect right now,
+ * so Command/Ctrl-W to close a ToolWindow only sometimes works.
  */
 
 public class ToolWindow extends JWindow
-    implements MouseListener, MouseMotionListener
+    implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
     private final static Font TitleFont = new Font("SansSerf", Font.PLAIN, 10);
@@ -62,6 +65,8 @@ public class ToolWindow extends JWindow
         //setUndecorated(true);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addKeyListener(this);
+        addFocusListener(this);
         if (debug) out("contentPane=" + getContentPane());
         mContentPane = new ContentPane(mTitle);
         //getContentPane().add(mContentPane);
@@ -75,7 +80,7 @@ public class ToolWindow extends JWindow
         setGlassPane(gp);
         gp.setVisible(true);
 
-        
+
         pack();
         if (DEBUG.Enabled) out("constructed.");
         
@@ -97,9 +102,42 @@ public class ToolWindow extends JWindow
         */
     }
 
+    // todo: problem: we can see this, but the global Command-W action is ALSO
+    // getting activated!
+    public void keyPressed(KeyEvent e)
+    {
+        if (DEBUG.KEYS) out("[" + e.paramString() + "]");
+
+        if (e.getKeyCode() == KeyEvent.VK_W && (e.getModifiers() & Actions.COMMAND) != 0)
+            hide();
+    }
+
+    public void keyReleased(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {}
+    
+    public void focusLost(FocusEvent e)
+    {
+        if (DEBUG.FOCUS) out("focusLost to " + e.getOppositeComponent());
+        Actions.CloseMap.setEnabled(true); // hack
+    }
+    
+    private Component focusReturn;
+    public void focusGained(FocusEvent e)
+    {
+        if (DEBUG.FOCUS) out("focusGained from " + e.getOppositeComponent());
+        focusReturn = e.getOppositeComponent();
+        Actions.CloseMap.setEnabled(false); // hack
+    }
     public void setVisible(boolean show) {
+        if (DEBUG.FOCUS) out("setVisible " + show);
         if (show && isRolledUp())
             setRolledUp(false);
+        else if (!show) {
+            if (focusReturn != null) {
+                if (DEBUG.FOCUS) out("returning focus to " + focusReturn);
+                focusReturn.requestFocus();
+            }
+        }
         super.setVisible(show);
     }
 
@@ -275,6 +313,7 @@ public class ToolWindow extends JWindow
     public void mousePressed(MouseEvent e)
     {
         if (DEBUG.MOUSE) out(e);
+        requestFocus(); // must do this to get key input
         //System.out.println(e);
         dragStart = e.getPoint();
         // todo: will need to check this on the glass pane
@@ -360,6 +399,7 @@ public class ToolWindow extends JWindow
             setLayout(new BorderLayout());
             titlePanel.setPreferredSize(new Dimension(0, TitleHeight));
             contentPanel.setLayout(new BorderLayout());
+            addKeyListener(ToolWindow.this);
 
             /*
             if (hideButton != null) {
@@ -556,6 +596,8 @@ public class ToolWindow extends JWindow
     public static void main(String args[]) {
         debug=true;
         DEBUG.BOXES=true;
+        DEBUG.KEYS=true;
+        DEBUG.MOUSE=true;
         ToolWindow tw = new ToolWindow("Title", null);
         JPanel p = new JPanel();
         p.setBorder(new TitledBorder("Yippity Vue Tool"));

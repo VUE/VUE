@@ -33,7 +33,7 @@ import javax.swing.border.*;
 /**
    
 A property editor panel for LWComponents.  General usage: a series of small
-JComponents that are also LWPropertyHandlers.
+JComponents that are also LWPropertyProducers
 
  There are to major pieces to how these work:
      1 - change state of a gui component, and at least one property
@@ -52,9 +52,16 @@ JComponents that are also LWPropertyHandlers.
      internal state, as well as flow out to the LWComponents (and in
      that case, ignore the callback coming from the LWComponent, telling
      us their property's just changed).
+
+In total: Mediates back and forth between the selection and tool states.
+The VueBeanState caching is a bit of a fuzzy, but we're keeping it for now.
               
  */
- 
+
+// TODO: break out the default color & font property crap, and make this
+// an abstract class that only has the property change code, VueBeanState
+// caching code, and the handling of multi-selection code (uh, that TDB).
+
 public class LWCToolPanel extends JPanel
     implements ActionListener, PropertyChangeListener, LWComponent.Listener
 {
@@ -79,7 +86,7 @@ public class LWCToolPanel extends JPanel
 
     private Box mBox;
 
-    private ArrayList mPropertyHandlers = new ArrayList(); // hash-map by property??
+    private ArrayList mPropertyProducers = new ArrayList(); // hash-map by property??
 
     public LWCToolPanel()
     {
@@ -235,15 +242,15 @@ public class LWCToolPanel extends JPanel
      * also add to our tracking list of these for property updates */
     public void addComponent(Component c) {
         mBox.add(c);
-        if (c instanceof LWPropertyHandler)
-            addPropertyProducer((LWPropertyHandler) c);
+        if (c instanceof LWPropertyProducer)
+            addPropertyProducer((LWPropertyProducer) c);
     }
 
     // todo: would be even sweeter to on addNotify (first time only!)
     // search our entire component hierarchy for property handlers
     // and automatically add them
-    protected void addPropertyProducer(LWPropertyHandler p) {
-        mPropertyHandlers.add(p);
+    protected void addPropertyProducer(LWPropertyProducer p) {
+        mPropertyProducers.add(p);
     }
 
     protected JComponent getBox() {
@@ -286,15 +293,15 @@ public class LWCToolPanel extends JPanel
         
         setIgnorePropertyChangeEvents(true);
 
-        Iterator i = mPropertyHandlers.iterator();
+        Iterator i = mPropertyProducers.iterator();
         while (i.hasNext()) {
-            LWPropertyHandler dest = (LWPropertyHandler) i.next();
-            copyProperty(source, dest);
+            LWPropertyProducer dest = (LWPropertyProducer) i.next();
+            loadProperty(source, dest);
         }
         setIgnorePropertyChangeEvents(false);
     }
 
-    private void copyProperty(Object source, LWPropertyHandler dest) {
+    private void loadProperty(Object source, LWPropertyProducer dest) {
         if (DEBUG.TOOL) System.out.println(dest + " loading [" + dest.getPropertyKey() + "] from " + source);
         Object value = null;
         if (source instanceof VueBeanState)
@@ -302,8 +309,10 @@ public class LWCToolPanel extends JPanel
         else //if (source instanceof LWComponent)
             value = ((LWComponent)source).getPropertyValue(dest.getPropertyKey());
 
-        if (value != null)
+        if (value != null) {
+            if (DEBUG.TOOL) out("loadProperty " + source + " -> " + dest);
             dest.setPropertyValue(value);
+        }
     }
 
 
@@ -335,20 +344,20 @@ public class LWCToolPanel extends JPanel
 
     private void loadToolValue(Object propertyKey, LWComponent src) {
         boolean success = false;
-        Iterator i = mPropertyHandlers.iterator();
+        Iterator i = mPropertyProducers.iterator();
         while (i.hasNext()) {
-            LWPropertyHandler propertyProducer = (LWPropertyHandler) i.next();
+            LWPropertyProducer propertyProducer = (LWPropertyProducer) i.next();
             if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
             if (propertyProducer.getPropertyKey() == propertyKey) {
-                if (DEBUG.TOOL) System.out.println(this + " matched key [" + propertyKey + "] to " + propertyProducer);
+                if (DEBUG.TOOL) out("matched key [" + propertyKey + "] to " + propertyProducer);
                 Object value = src.getPropertyValue(propertyKey);
                 propertyProducer.setPropertyValue(value);
-                mState.setPropertyValue((String) propertyKey, value);
+                mState.setPropertyValue(propertyKey.toString(), value);
                 success = true;
             }
         }
         if (!success) {
-            if (DEBUG.TOOL) System.out.println(this + " loadToolValue: no LWPropertyHandler for " + propertyKey + " in " + src);
+            if (DEBUG.TOOL) System.out.println(this + " loadToolValue: no LWPropertyProducer for " + propertyKey + " in " + src);
         }
     }
     
@@ -367,9 +376,6 @@ public class LWCToolPanel extends JPanel
         mIgnoreEvents = t;
     }
 
-    // I think we may ONLY need this if the tool panel cannot actually
-    // operate on something that's currently selected.  Is it really useful
-    // for the tool panel to even OPERATE if nothing is selected??
 
     /** This is called when some gui sub-component of the LWCToolPanel
      * has changed state, indicating a different property value.  We
@@ -378,34 +384,41 @@ public class LWCToolPanel extends JPanel
      * the current default state reprsented by this tool panel, used
      * for initializing new LWComponents.
      */
-    
+    // What's handy about this is simply that JComponents already have
+    // a list of listeners we can use, and addListener methods.
+    // So maybe try subclassing PropertyChangeEvent with LWPropertyChangeEvent
+    // or something, and only pay attention to THOSE property changes.
+    // Still make sure we don't have a looping issue, tho I think that's handled.
     public void propertyChange(PropertyChangeEvent e)
     {
-        if (mIgnoreEvents) {
-            if (DEBUG.TOOL) out("propertyChange: skipping " + e);
-            return;
-        }
-        String name = e.getPropertyName();
+        if (e instanceof LWPropertyChangeEvent) {
 
-        if( !name.equals("ancestor") ) {
-            if (DEBUG.TOOL) out("propertyChange: " + name + " " + e);
+            final String propertyName = e.getPropertyName();
+
+            if (mIgnoreEvents) {
+                if (DEBUG.TOOL) out("propertyChange: skipping " + e + " name=" + propertyName);
+                return;
+            }
+            
+            if (DEBUG.TOOL) out("propertyChange: [" + propertyName + "] " + e);
 	  		
-            VueBeans.applyPropertyValueToSelection(VUE.getSelection(), name, e.getNewValue());
+            VueBeans.applyPropertyValueToSelection(VUE.getSelection(), propertyName, e.getNewValue());
             if (VUE.getUndoManager() != null)
-                VUE.getUndoManager().markChangesAsUndo(e.getPropertyName());
+                VUE.getUndoManager().markChangesAsUndo(propertyName);
 
             if (mState != null)
-                mState.setPropertyValue(name, e.getNewValue());
+                mState.setPropertyValue(propertyName, e.getNewValue());
             else
                 out("mState is null");
 
             if (mDefaultState != null)
-                mDefaultState.setPropertyValue(name, e.getNewValue());
+                mDefaultState.setPropertyValue(propertyName, e.getNewValue());
             else
                 out("mDefaultState is null");
 
         } else {
-            if (DEBUG.TOOL) System.out.println(this + " ignored ancestor propertyChange: " + e);
+            // We're not interested in "ancestor" events, icon change events, etc.
+            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: " + e + " name=" + e.getPropertyName());
         }
 
     }

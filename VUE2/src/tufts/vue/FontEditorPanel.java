@@ -35,7 +35,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  *
  **/
 public class FontEditorPanel extends Box
-    implements ActionListener, LWPropertyHandler, VueConstants
+    implements ActionListener, LWPropertyProducer, VueConstants
 {
     private static String [] sFontSizes = { "8","9","10","12","14","18","24","36","48"};
     
@@ -158,9 +158,13 @@ public class FontEditorPanel extends Box
           mTextColorButton.addActionListener(this);
         */
          
-        JLabel label = new JLabel("   Text: ");
-        label.setFont(VueConstants.FONT_SMALL);
-        add(label);
+        if (false) {
+            JLabel label = new JLabel("   Text: ");
+            label.setFont(VueConstants.FONT_SMALL);
+            add(label);
+        } else {
+            add(Box.createHorizontalStrut(3));
+        }
         add(mFontCombo);
         add(mSizeField);
         add(Box.createHorizontalStrut(1)); // add this affects vertical preferred size of mSizeField!
@@ -233,10 +237,12 @@ public class FontEditorPanel extends Box
     public void setPropertyKey(Object key) {
         mPropertyKey = key;
     }
- 	
+
+    /*
     public String getPropertyName() {
         return mPropertyKey == null ? null : mPropertyKey.toString();
     }
+    */
 
     public Object getPropertyKey() {
         return mPropertyKey;
@@ -277,19 +283,20 @@ public class FontEditorPanel extends Box
     }
  	
  	
-    /**
+    /*
      * setValue
      * Generic property editor access
-     **/
+
+    // get rid of this: should be handled in LWPropertyHandler
     public void setValue( Object pValue) {
         if( pValue instanceof Font)
             setFontValue((Font) pValue);
     }
- 	
+    **/
     
     private void fireFontChanged( Font pOld, Font pNew) {
         PropertyChangeListener [] listeners = getPropertyChangeListeners() ;
-        PropertyChangeEvent  event = new PropertyChangeEvent( this, getPropertyName(), pOld, pNew);
+        PropertyChangeEvent  event = new LWPropertyChangeEvent(this, getPropertyKey(), pOld, pNew);
         if (listeners != null) {
             for( int i=0; i<listeners.length; i++) {
                 if (DEBUG.TOOL) System.out.println(this + " fireFontChanged to " + listeners[i]);
