@@ -39,7 +39,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
     FilterApplyPanel filterApplyPanel = null;
     
     /** Creates a new instance of FilterPanel */
-    public FilterPanel() {   
+    public FilterPanel() {
         super();
         VUE.addActiveMapListener(this);
         //setMinimumSize( new Dimension( 150,200) );
@@ -47,7 +47,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         VueResources.initComponent( mTabbedPane, "tabPane");
         filterCreatePanel = new FilterCreatePanel();
         filterApplyPanel = new FilterApplyPanel();
-        //mTabbedPane.setBackground(VueResources.getColor("filterPanelColor"));        
+        //mTabbedPane.setBackground(VueResources.getColor("filterPanelColor"));
         //filterCreatePanel.setBackground(VueResources.getColor("filterPanelColor"));
         //filterApplyPanel.setBackground(VueResources.getColor("filterPanelColor"));
         mTabbedPane.addTab(filterCreatePanel.getName(),filterCreatePanel);
@@ -55,6 +55,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         mTabbedPane.setSelectedComponent(filterApplyPanel);
         mTabbedPane.setBorder(BorderFactory.createEmptyBorder());
         setLayout(new BorderLayout());
+        setBackground(VueResources.getColor("filterPanelColor"));
         add( mTabbedPane,BorderLayout.CENTER );
         setMap(VUE.getActiveMap());
         validate();
@@ -150,6 +151,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             
             setLayout( new BorderLayout() );
             setBorder( new EmptyBorder( 4,4,4,4) );
+            
             mMainFilterPanel = new JPanel();
             mMainFilterPanel.setLayout( new BorderLayout() );
             mLowerPanel = new JPanel();
@@ -158,10 +160,10 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mUpperPanel.setLayout( new BorderLayout() );
             
             mActionCombo = new JComboBox();
-            mActionCombo.addItem(LWCFilter.ACTION_SHOW); 
+            mActionCombo.addItem(LWCFilter.ACTION_SHOW);
             mActionCombo.addItem(LWCFilter.ACTION_SELECT);
             mActionCombo.addItem(LWCFilter.ACTION_HIDE);
-           
+            
             
             // disabled for now. May add a modified version later
             mAnyAllCombo = new JComboBox();
@@ -225,7 +227,9 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mFilterScrollPane = new JScrollPane();
             
             filterEditor = new FilterEditor();
-            
+            //filterEditor.setBackground(VueResources.getColor("filterPanelColor"));
+            //mUpperPanel.setBackground(VueResources.getColor("filterPanelColor"));
+            //mLowerPanel.setBackground(VueResources.getColor("filterPanelColor"));
             mFilterBox.add(mUpperPanel);
             mFilterBox.add(filterEditor);
             mFilterBox.add(mLowerPanel);
@@ -237,7 +241,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mFilterScrollPane.setVisible(true);
             mFilterScrollPane.getViewport().add( mMainFilterPanel);
             mFilterScrollPane.setBorder( BorderFactory.createEmptyBorder());
-            
+            //mMainFilterPanel.setBackground(VueResources.getColor("filterPanelColor"));
             add( BorderLayout.CENTER, mFilterScrollPane );
         }
         
@@ -262,11 +266,11 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mMoreButton.enable( hasMap);
             mFewerButton.enable( hasMap);
             /**
-            if (hasMap)
-                mFilter = pMap.getLWCFilter();
-            else
-                mFilter = new LWCFilter();
-            **/
+             * if (hasMap)
+             * mFilter = pMap.getLWCFilter();
+             * else
+             * mFilter = new LWCFilter();
+             **/
             
             
             if(pMap.getLWCFilter() == null) {
@@ -274,8 +278,8 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
                 System.out.println("Created new filter for map ="+pMap);
             }
             if(pMap.getLWCFilter().getStatements() == null) {
-                 pMap.getLWCFilter().setStatements(new Vector());
-                 System.out.println("Created new statements ="+pMap.getLWCFilter());
+                pMap.getLWCFilter().setStatements(new Vector());
+                System.out.println("Created new statements ="+pMap.getLWCFilter());
             }
             mFilter = pMap.getLWCFilter();
             filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
@@ -290,44 +294,44 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mAnyAllCombo.setSelectedIndex( val);
             //buildFilterBox( pMap);
             /**
-            mMainFilterPanel.remove(filterEditor);
-
-            filterEditor = new FilterEditor();
-            mFilter.setStatements(filterEditor.getFilterTableModel());          
-            mMainFilterPanel.add(BorderLayout.CENTER, filterEditor);
+             * mMainFilterPanel.remove(filterEditor);
+             *
+             * filterEditor = new FilterEditor();
+             * mFilter.setStatements(filterEditor.getFilterTableModel());
+             * mMainFilterPanel.add(BorderLayout.CENTER, filterEditor);
              */
             mMainFilterPanel.validate();
-           
-   
-
+            
+            
+            
             
             
         }
         
         public LWCFilter makeNewFIlter() {
-            LWCFilter filter = new LWCFilter();  
+            LWCFilter filter = new LWCFilter();
             LWCFilter.LogicalStatement [] satements = new LWCFilter.LogicalStatement[ mStatementEditors.size() ];
             return filter;
         }
         
-      /**  
+        /**
         public void buildFilterBox(  LWMap pMap) {
-            
+       
             LWCFilter filter = null;
-            
+       
             if( pMap != null) {
                 filter = pMap.getLWCFilter();
             }
             System.out.println(" - building Filter Box");
-            
+       
             if( filter == null) {
                 filter = new LWCFilter( pMap);
             }
-            
+       
             LWCFilter.LogicalStatement [] statements = filter.getLogicalStatements();
             mFilterBox.removeAll();
             mStatementEditors.removeAllElements();
-            
+       
             for( int i=0; i< statements.length; i++) {
                 System.out.println("   !!! adding statement "+statements[i]);
                 FilterStatementEditor fse = new FilterStatementEditor( filter, statements[i] );
@@ -347,7 +351,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mMainFilterPanel.validate();
             validate();
         }
-        **/
+         **/
         public LWCFilter makeFilter() {
             LWCFilter filter = new LWCFilter( mStatementEditors );
             //LWCFilter filter = new LWCFilter(filterEditor.getFilterTableModel());
@@ -408,12 +412,11 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         
         public void actionPerformed( ActionEvent pEvent) {
             Object source = pEvent.getSource();
-            
+            filterEditor.stopEditing();
             if( source == mFilterButton )
                 applyFilter();
-            else
-                if( source == mClearFilterButton )
-                    clearFilter();
+            else if( source == mClearFilterButton )
+                clearFilter();
         }
         
     }
@@ -446,13 +449,13 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         }
         public void updatePanel( LWMap pMap) {
             // update the display
-             if(mapFilterModelEditor == null) {
+            if(mapFilterModelEditor == null) {
                 mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
                 add(mapFilterModelEditor);
             }else {
                 mapFilterModelEditor.setMapFilterModel(pMap.getMapFilterModel());
-            }        
+            }
             validate();
-        }  
-    } 
+        }
+    }
 }

@@ -48,22 +48,27 @@ public class FilterEditor extends JPanel {
     public FilterTableModel getFilterTableModel() {
         return this.filterTableModel;
     }
-        
+    
     /**
      * public FilterEditor(FilterTableModel filterTableModel) {
      * this.filterTableModel = filterTableModel;
      * setFilterEditorPanel();
      * }
      **/
-  
+    
+    public void stopEditing() {
+        if(filterTable.isEditing()) {
+            filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
+        }
+        filterTable.removeEditor();
+    }
+    
+    
     private void setFilterEditorPanel() {
         filterTable = new JTable(filterTableModel);
         filterTable.addFocusListener(new FocusListener() {
             public void focusLost(FocusEvent e) {
-                if(filterTable.isEditing()) {
-                    filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
-                }
-                filterTable.removeEditor();
+              //  stopEditing();
             }
             public void focusGained(FocusEvent e) {
             }
@@ -146,7 +151,7 @@ public class FilterEditor extends JPanel {
         public void setFilters(Vector filters) {
             this.filters = filters;
             fireTableDataChanged();
-           
+            
         }
         
         public void addStatement(Statement statement) {
@@ -282,8 +287,8 @@ public class FilterEditor extends JPanel {
             super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                editor =  new JComboBox((Vector)((Statement)(VUE.getActiveMap().getLWCFilter().getStatements().get(row))).getKey().getType().getOperators());
-                return editor;  
+            editor =  new JComboBox((Vector)((Statement)(VUE.getActiveMap().getLWCFilter().getStatements().get(row))).getKey().getType().getOperators());
+            return editor;
         }
         
         public Object getCellEditorValue() {
@@ -304,13 +309,13 @@ public class FilterEditor extends JPanel {
             super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                keys.removeAllElements();
-                keys.add(keyAnywhere);
-                keys.add(keyLabel);
-                keys.add(keyNotes);
-                keys.addAll(VUE.getActiveMap().getMapFilterModel().getKeyVector());
-                editor = new JComboBox(keys);
-                return editor;
+            keys.removeAllElements();
+            keys.add(keyAnywhere);
+            keys.add(keyLabel);
+            keys.add(keyNotes);
+            keys.addAll(VUE.getActiveMap().getMapFilterModel().getKeyVector());
+            editor = new JComboBox(keys);
+            return editor;
         }
         
         
