@@ -419,6 +419,8 @@ class Actions {
                     }
                 }
 
+                // TODO BUG: if both parent & child in selection for deletion,
+                // we run into trouble.
                 LWContainer parent = c.getParent();
                 if (parent == null)
                     // right now this can happen because links are auto-deleted if
