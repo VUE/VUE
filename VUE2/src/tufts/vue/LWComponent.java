@@ -236,6 +236,7 @@ public class LWComponent
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
     protected transient boolean rollover = false;
+    protected transient boolean isZoomedFocus = false;
 
     protected transient LWContainer parent = null;
 
@@ -350,13 +351,19 @@ public class LWComponent
     {
         if (c == null || (c.getRGB() & 0xFFFFFF) == 0)
             return null;
+        //return "#" + Long.toHexString(c.getRGB() & 0xFFFFFFFF);
         return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
     }
     static Color StringToColor(String xml)
     {
+        if (xml.trim().length() < 1)
+            return null;
+        
 	Color c = null;
         try {
             Integer intval = Integer.decode(xml);
+            //Long longval = Long.decode(xml); // transparency test -- works,just need gui
+            //c = new Color(longval.intValue(), true);
             c = new Color(intval.intValue());
         } catch (NumberFormatException e) {
             System.err.println("LWComponent.StringToColor[" + xml + "] " + e);
@@ -523,6 +530,7 @@ public class LWComponent
      * endpoints) we can re-do this as getAllConnections(), which
      * will can return just the linkRefs and none of the endpoints)
      */
+    /*
     public java.util.List getAllConnectedNodes()
     {
         java.util.List list = new java.util.ArrayList(this.links.size());
@@ -540,11 +548,38 @@ public class LWComponent
         }
         return list;
     }
+    */
+    
+    /** include all links and far endpoints of links connected to this component */
+    public java.util.List getAllConnectedComponents()
+    {
+        java.util.List list = new java.util.ArrayList(this.links.size());
+        java.util.Iterator i = this.links.iterator();
+        while (i.hasNext()) {
+            LWLink l = (LWLink) i.next();
+            list.add(l);
+            if (l.getComponent1() != this)
+                list.add(l.getComponent1());
+            else if (l.getComponent2() != this) // todo opt: remove extra check eventually
+                list.add(l.getComponent2());
+            else
+                // todo: actually, I think we want to support these
+                throw new IllegalStateException("link to self on " + this);
+            
+        }
+        return list;
+    }
     
     //needed for pathways to access a node's links - jay briedis
     // todo: this same as getLinkRefs
     public List getLinks(){
         return this.links;
+    }
+
+    /** get all links to us + to any descendents */
+    // TODO: return immutable versions
+    public List getAllLinks() {
+        return getLinks();
     }
     
     public void setLinks(List links){
@@ -595,16 +630,6 @@ public class LWComponent
         setLocation(this.x + dx,
                     this.y + dy);
     }
-    public void setLocation(float x, float y)
-    {
-        //System.out.println(this + " setLocation("+x+","+y+")");
-        this.x = x;
-        this.y = y;
-        updateConnectedLinks();
-        
-        //notify("location"); // todo: does anyone need this?
-        // also: if enable, don't forget to put in setX/getX!
-    }
 
     public void setFrame(Rectangle2D r)
     {
@@ -626,6 +651,19 @@ public class LWComponent
         }
     }
     
+    private boolean linkNotificationDisabled = false;
+    public void setLocation(float x, float y)
+    {
+        //System.out.println(this + " setLocation("+x+","+y+")");
+        this.x = x;
+        this.y = y;
+        if (!linkNotificationDisabled)
+            updateConnectedLinks();
+        
+        //notify("location"); // todo: does anyone need this?
+        // also: if enable, don't forget to put in setX/getX!
+    }
+    
     public void setLocation(double x, double y)
     {
         setLocation((float) x, (float) y);
@@ -640,6 +678,14 @@ public class LWComponent
     {
         setLocation((float) p.getX() - getWidth()/2,
                     (float) p.getY() - getHeight()/2);
+    }
+
+    // special case for mapviewer rollover zooming to skip calling updateConnectedLinks
+    void setCenterAtQuietly(Point2D p)
+    {
+        linkNotificationDisabled = true;
+        setCenterAt(p);
+        linkNotificationDisabled = false;
     }
     
     public Point2D getLocation()
@@ -972,13 +1018,25 @@ public class LWComponent
             this.indicated = indicated;
         }
     }
-    public void setRollover(boolean rollover)
+    public void setRollover(boolean tv)
     {
-        if (this.rollover != rollover) {
-            this.rollover = rollover;
+        if (this.rollover != tv) {
+            this.rollover = tv;
         }
-        //if (getParent() != null)
-        //    getParent().setRollover(rollover);
+    }
+    public void setZoomedFocus(boolean tv)
+    {
+        if (this.isZoomedFocus != tv) {
+            this.isZoomedFocus = tv;
+        }
+        if (getParent() != null) {
+            getParent().setFocusComponent(tv ? this : null);
+        }
+    }
+
+    public boolean isZoomedFocus()
+    {
+        return isZoomedFocus;
     }
     
     public boolean isIndicated()
@@ -988,6 +1046,11 @@ public class LWComponent
     public boolean isRollover()
     {
         return this.rollover;
+    }
+
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
+    {
+        return excluded == this ? null : this;
     }
 
     /** pesistance default */

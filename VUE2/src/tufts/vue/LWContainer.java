@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.util.List;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,6 +22,7 @@ import java.awt.geom.Rectangle2D;
 public abstract class LWContainer extends LWComponent
 {
     protected ArrayList children = new java.util.ArrayList();
+    protected LWComponent focusComponent;
     
     /** for use during restore */
     private int idStringToInt(String idStr)
@@ -435,7 +437,8 @@ VueAction: Zoom 100% n=1
         this.children.clear();
         this.children = null;
     }
-    
+
+    /*
     public java.util.List getAllConnectedNodes()
     {
         // todo opt: could cache this list, or organize as giant iterator tree
@@ -452,6 +455,31 @@ VueAction: Zoom 100% n=1
         }
         return list;
     }
+    */
+
+    public java.util.List getAllConnectedComponents()
+    {
+        java.util.List list = super.getAllConnectedComponents();
+        list.addAll(children);
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            list.addAll(c.getAllConnectedComponents());
+        }
+        return list;
+    }
+
+    public java.util.List getAllLinks()
+    {
+        java.util.List list = new java.util.ArrayList();
+        list.addAll(super.getAllLinks());
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            list.addAll(c.getAllLinks());
+        }
+        return list;
+    }
     
     public java.util.List getAllDescendents()
     {
@@ -465,62 +493,165 @@ VueAction: Zoom 100% n=1
         }
         return list;
     }
+
+    public void setFocusComponent(LWComponent c)
+    {
+        this.focusComponent = c;
+    }
     
-    /**
-     * Only called AFTER we've determined that mapX, mapY already
-     * lie within the bounds of this LWComponent via contains(x,y)
-     * -- REALLY?  No, I don't think so anymore...
+    /*
+     * Find child at mapX, mapY -- may actually return this component also.
      */
-
-    public LWComponent findLWComponentAt(float mapX, float mapY)
+    private static ArrayList curvedLinks = new ArrayList();
+    public LWComponent findChildAt(float mapX, float mapY)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findLWComponentAt[" + getLabel() + "]");
+        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findChildAt[" + getLabel() + "]");
+
+        // if there's a focus (zoomed) component, it's always on top
+        if (focusComponent != null && focusComponent.contains(mapX, mapY)) {
+            if (focusComponent instanceof LWContainer)
+                return ((LWContainer)focusComponent).findChildAt(mapX, mapY);
+            else
+                return focusComponent;
+        }
+
+        curvedLinks.clear();
         // hit detection must traverse list in reverse as top-most
         // components are at end
-        java.util.ListIterator i = children.listIterator(children.size());
-        while (i.hasPrevious()) {
+        for (ListIterator i = children.listIterator(children.size()); i.hasPrevious();) {
             LWComponent c = (LWComponent) i.previous();
+            if (c instanceof LWLink && ((LWLink)c).getControlCount() > 0) {
+                curvedLinks.add(c);
+                continue;
+            }
             if (c.contains(mapX, mapY)) {
                 if (c.hasChildren())
-                    return ((LWContainer)c).findLWComponentAt(mapX, mapY);
+                    return ((LWContainer)c).findChildAt(mapX, mapY);
                 else
                     return c;
             }
         }
-        return this;
+        // we check curved links last because they can take up so much
+        // hit-space (the entire interior of their arc)
+        for (Iterator i = curvedLinks.iterator(); i.hasNext();) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.contains(mapX, mapY))
+                return c;
+        }
+        return defaultHitComponent();
     }
 
-    public LWComponent findLWComponentAt(Point2D p)
+    public LWComponent findChildAt(Point2D p)
     {
-        return findLWComponentAt((float)p.getX(), (float)p.getY());
+        return findChildAt((float)p.getX(), (float)p.getY());
     }
 
-    /** Code is duplicated from above here, but subclasses (e.g.,
-     * LWGroup) handle this differently, but we can't reuse
+
+    /** Code is mostly duplicated from above here, but subclasses (e.g.,
+     * LWGroup) handle this differently, and we can't reuse
      * above code due to recursive usage.
-     * todo: is this still being taken advantage of?
      */
-    public LWComponent findLWSubTargetAt(float mapX, float mapY)
+
+    /*
+     * Find deepest child at mapX, mapY -- may actually return this component also.
+     */
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findLWSubTargetAt[" + getLabel() + "]");
+        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
+        if (DEBUG_CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
+
+        if (focusComponent != null && focusComponent.contains(mapX, mapY))
+            return focusComponent.findDeepestChildAt(mapX, mapY, excluded);
+        
+        // hit detection must traverse list in reverse as top-most
+        // components are at end
+        
+        curvedLinks.clear();
+        
+        for (ListIterator i = children.listIterator(children.size()); i.hasPrevious();) {
+            LWComponent c = (LWComponent) i.previous();
+            if (c == excluded)
+                continue;
+            if (c instanceof LWLink && ((LWLink)c).getControlCount() > 0) {
+                curvedLinks.add(c);
+                continue;
+            }
+            if (c instanceof LWContainer) {
+                LWContainer container = (LWContainer) c;
+                // focus component may temporarily extend outside the bounds
+                // of it's parent, so we have to check them manually, as
+                // opposed for checking the parent bounds below before
+                // we bother to look within the container.
+                if (container.focusComponent != null && container.focusComponent.contains(mapX, mapY))
+                    return container.focusComponent.findDeepestChildAt(mapX, mapY, excluded);
+            }
+            if (c.contains(mapX, mapY))
+                return c.findDeepestChildAt(mapX, mapY, excluded);
+        }
+        // we check curved links last because they can take up so much
+        // hit-space (the entire interior of their arc)
+        for (Iterator i = curvedLinks.iterator(); i.hasNext(); ) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.contains(mapX, mapY))
+                return c;
+        }
+                 
+        return defaultHitComponent();
+    }
+
+    /*
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
+    {
+        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
+        if (DEBUG_CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
+        if (focusComponent != null && focusComponent.contains(mapX, mapY)) {
+            if (focusComponent instanceof LWContainer)
+                return ((LWContainer)focusComponent).findDeepestChildAt(mapX, mapY, excluded);
+            else
+                return focusComponent;
+        }
         // hit detection must traverse list in reverse as top-most
         // components are at end
         java.util.ListIterator i = children.listIterator(children.size());
         while (i.hasPrevious()) {
             LWComponent c = (LWComponent) i.previous();
+            if (c == excluded)
+                continue;
+            boolean childHasFocusComponent = false;
+            if (c instanceof LWContainer) {
+                LWContainer container = (LWContainer) c;
+                // focus component may temporarily extend outside the bounds
+                // of it's parent, so we have to check them manually
+                //childHasFocusComponent = (container.focusComponent != null);
+                if (container.focusComponent != null && container.focusComponent.contains(mapX, mapY))
+                    return container.focusComponent.findDeepestChildAt(mapX, mapY, excluded);
+            }
+            //if (childHasFocusComponent || c.contains(mapX, mapY)) {
             if (c.contains(mapX, mapY)) {
+                //return c.findDeepestChildAt(mapX, mapY, excluded);
                 if (c.hasChildren())
-                    return ((LWContainer)c).findLWSubTargetAt(mapX, mapY);
+                    return ((LWContainer)c).findDeepestChildAt(mapX, mapY, excluded);
                 else
                     return c;
             }
         }
+        return defaultHitComponent();
+    }
+    */
+
+    protected LWComponent defaultHitComponent()
+    {
         return this;
     }
 
-    public LWComponent findLWSubTargetAt(Point2D p)
+    public LWComponent findDeepestChildAt(float mapX, float mapY)
     {
-        return findLWSubTargetAt((float)p.getX(), (float)p.getY());
+        return findDeepestChildAt(mapX, mapY, null);
+    }
+        
+    public LWComponent findDeepestChildAt(Point2D p)
+    {
+        return findDeepestChildAt((float)p.getX(), (float)p.getY(), null);
     }
 
     
@@ -539,6 +670,8 @@ VueAction: Zoom 100% n=1
                 //if (c != excluded && c.contains(mapX, mapY)) {
                 // todo: why do skip if node is selected here???
                 // was a reason once but now I think this is a bug
+                // OR: was this to make sure we never found
+                // the node we're dragging itself?
                 if (!c.isSelected() && c.contains(mapX, mapY)) {
                     if (c.hasChildren())
                         return ((LWContainer)c).findLWNodeAt(mapX, mapY);
@@ -749,6 +882,10 @@ VueAction: Zoom 100% n=1
         c.setScale(scale);
     }
 
+    public void mouseEntered(MapMouseEvent e)
+    {
+    }
+
     public void draw(DrawContext dc)
     {
         int nodes = 0;
@@ -770,7 +907,7 @@ VueAction: Zoom 100% n=1
                 System.out.println("      mvrr="+MapViewer.RepaintRegion);
                 }*/
                 
-            LWComponent rollover = null;
+            LWComponent focused = null;
             java.util.Iterator i = getChildIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
@@ -778,8 +915,8 @@ VueAction: Zoom 100% n=1
                 // make sure the rollover is painted on top
                 // a bit of a hack to do this here -- better MapViewer
                 //if (c.isRollover() && c.getParent() instanceof LWNode) {
-                if (c.isRollover()) {
-                    rollover = c;
+                if (c.isZoomedFocus()) {
+                    focused = c;
                     continue;
                 }
                 
@@ -799,9 +936,11 @@ VueAction: Zoom 100% n=1
                 }
             }
 
-            if (rollover != null) {
-                _drawChild(dc, rollover);
-            }
+            if (focused != null) {
+                setFocusComponent(focused);
+                _drawChild(dc, focused);
+            } else
+                setFocusComponent(null);
                 
             if (MapViewer.DEBUG_PAINT) // todo: remove MapViewer reference
                 System.out.println(this + " painted " + links + " links, " + nodes + " nodes");

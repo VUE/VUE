@@ -149,6 +149,10 @@ public final class LWGroup extends LWContainer
                           (float)bounds.getY());
     }
     
+    public void setZoomedFocus(boolean tv)
+    {
+        // the group object never takes zoomed focus
+    }
 
 
     /**
@@ -227,8 +231,11 @@ public final class LWGroup extends LWContainer
     
     // todo: Can't sanely support scaling of a group because
     // we'd also have to scale the space between the
-    // the children, and scale is already a hack feature
-    // that I'm hoping we'll be able to make go away.
+    // the children -- to make this work we'll have
+    // to set the scale for the whole group, draw it
+    // (and tell the children NOT to set their scale values
+    // individually) and sort out the rest of a mess
+    // getting all that to work will imply.
     void setScale(float scale)
     {
         // intercept any attempt at scaling us and turn it off
@@ -246,6 +253,9 @@ public final class LWGroup extends LWContainer
     }
     public boolean contains(float x, float y)
     {
+        // TODO PERF: track and check group bounds here instead of every component!
+        // Right now we're calling contains twice on everything in a group
+        // when use findDeepestComponent
         java.util.Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -267,16 +277,22 @@ public final class LWGroup extends LWContainer
         return false;
     }
     
+    protected LWComponent defaultHitComponent()
+    {
+        return null;
+    }
+    
     /**
      * A hit on any component in the group finds the whole group,
      * not that component.  A hit within the bounds of the entire
      * group but not on any component hits <b>nothing</b>
      */
-    public LWComponent findLWComponentAt(float mapX, float mapY)
+    public LWComponent findChildAt(float mapX, float mapY)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findLWComponentAt " + getLabel());
+        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findChildAt " + getLabel());
         // hit detection must traverse list in reverse as top-most
         // components are at end
+        //todo: handle focusComponent here?
         java.util.ListIterator i = children.listIterator(children.size());
         while (i.hasPrevious()) {
             LWComponent c = (LWComponent) i.previous();
@@ -301,6 +317,25 @@ public final class LWGroup extends LWContainer
     {
         return false;
     }
+
+    private static final Rectangle2D EmptyBounds = new Rectangle2D.Float();
+    // is this needed?
+    public Rectangle2D X_getBounds()
+    {
+        Rectangle2D bounds = null;
+        Iterator i = getChildIterator();
+        if (i.hasNext()) {
+            bounds = new Rectangle2D.Float();
+            bounds.setRect(((LWComponent)i.next()).getBounds());
+        } else
+            return EmptyBounds;
+
+        while (i.hasNext())
+            bounds.add(((LWComponent)i.next()).getBounds());
+        System.out.println(this + " getBounds: " + bounds);
+        return bounds;
+    }
+    
     
     public void draw(java.awt.Graphics2D g)
     {
@@ -318,7 +353,10 @@ public final class LWGroup extends LWContainer
             }
         }
         if (DEBUG_CONTAINMENT) {
-            g.setColor(java.awt.Color.red);
+            if (isRollover())
+                g.setColor(java.awt.Color.green);
+            else
+                g.setColor(java.awt.Color.red);
             if (isIndicated())
                 g.setStroke(STROKE_INDICATION);
             else
