@@ -99,14 +99,6 @@ public class LWComponent
     	return mIsFiltered;
     }
 
-    /**
-     * isFiltered
-     * @return true - if should be hidden; false if not
-     **/
-    public boolean mayHaveVisibleChildren() {
-    	return mIsFiltered;
-    }
-    
     public void setID(String ID)
     {
         if (this.ID != null)
@@ -118,9 +110,9 @@ public class LWComponent
         // a new component creation, and to undo it is actually a delete.
         // UndoManager handles the hierarchy end of this, but we need this here
         // to differentiate hierarchy events that are just reparentings from
-        // creations.
+        // new creation events.
 
-        notify("new.component", new Undoable() { void undo() { removeFromModel(); }} );
+        notify(LWKey.Created, new Undoable() { void undo() { removeFromModel(); }} );
     }
     
     public void setLabel(String label)
