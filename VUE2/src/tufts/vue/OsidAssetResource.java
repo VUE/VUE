@@ -101,7 +101,7 @@ public class OsidAssetResource extends MapResource
                 this.spec = (o != null) ? (String)o : asset.getDisplayName();
             }
         }
-        catch (osid.OsidException ex)
+        catch (Exception ex)
         {
             this.spec = asset.getDisplayName();
         }

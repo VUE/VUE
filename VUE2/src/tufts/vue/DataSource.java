@@ -25,16 +25,14 @@ import tufts.oki.shared.*;
 
 
 public class DataSource {
- 
-    public static final int FILING_LOCAL = 0;
     public static final int FAVORITES = 1;
+    public static final int FILING_LOCAL = 0;
     public static final int FILING_REMOTE = 2;
     public static final int DR_FEDORA = 3;
     public static final int GOOGLE = 4;
-     public static final int OTHER = 5;
-    
+    public static final int OSID_DR = 5;
     public static final int BREAK = 6;
-   
+    
     private String id;
     private int type;
     private String displayName;
@@ -47,6 +45,7 @@ public class DataSource {
     private JComponent resourceViewer;
     private boolean autoConnect = false;
     private int publishMode = Publisher.PUBLISH_NO_MODES;
+    private static osid.OsidOwner owner = new osid.OsidOwner();
     
     /** Creates a new instance of DataSource */
     
@@ -54,7 +53,6 @@ public class DataSource {
     }
     
     /**  Creates a DataSource given an id, display name, and name. */
-    
     public DataSource(String id,String displayName,String name) throws java.net.MalformedURLException{
        // System.out.println("CREATING DATASOURCE "+ id+":"+displayName);
         this.id = id;
@@ -65,7 +63,6 @@ public class DataSource {
     }
     
     /**  Creates a DataSource given an id, display name, name, and type. */
-    
     public DataSource(String id,String displayName,String name,int type) throws java.net.MalformedURLException,osid.filing.FilingException {
         this(id,displayName,name);
         this.type=type;
@@ -81,9 +78,6 @@ public class DataSource {
         this.type=type;
         this.password = password;
         setViewer();
-            
-        
-   
     }
     
     /**
@@ -128,9 +122,9 @@ public class DataSource {
             Vector cabVector = new Vector();
             RemoteFilingManager manager = new RemoteFilingManager();   // get a filing manager
             manager.createClient(address,userName,password);       // make a connection to the ftp site
-           
+           // System.out.println("can I connect?");
             RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots();
-             
+             //System.out.println("can I connect? 2");
             osid.shared.Agent agent = null; //  This may cause problems later.
             while(rootCabs.hasNext()){
                 RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
@@ -171,16 +165,12 @@ public class DataSource {
         }
         else  if (type== GOOGLE) {
             this.resourceViewer = new TuftsGoogle(displayName,searchURL);
-            
+        }    
+        else  if (type== OSID_DR) {
+            this.resourceViewer = new OsidAssetViewer(address,this.owner);
         }else if (type == BREAK){
             this.resourceViewer = new JPanel(); 
-        }else if (type == OTHER){
-            System.out.println("Put your viewer here");
-          
-            //this.resourceViewer = Your viewer;
-        }
-        
-        else {
+        } else {
             this.resourceViewer = new JLabel(displayName+" : No Viewer Available");  
         }
     }

@@ -77,15 +77,14 @@ public class MapResource implements Resource {
         // in...
         
         if (this.url == null)
-            txt = "file://" + spec;
+            txt = spec;
         else
             txt = this.url.toString();
-        /*
-        if (spec.startsWith(java.io.File.separator))
+
+        if ( (!spec.startsWith("file")) && (!spec.startsWith("http")) )
+        {
             txt = "file://" + spec;
-        else
-            txt = spec;
-         */
+        }
         return txt;
     }
     
