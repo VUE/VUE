@@ -85,6 +85,18 @@ public class VUE
         }
     }
 
+    static {
+        if (false && VueUtil.isMacPlatform()) {
+            final String usmbProp = "apple.laf.useScreenMenuBar";
+            final String appNameProp = "com.apple.mrj.application.apple.menu.about.name";
+            if (System.getProperty(usmbProp) == null)
+                System.setProperty(usmbProp, "true");
+            // setting appNameProp here doesn't do anything anything since VM
+            // has already made use of this property...
+            System.setProperty(appNameProp, "VUE");
+        }
+    }
+
     public static void main(String[] args)
     {
         String laf = null;
@@ -176,12 +188,12 @@ public class VUE
         frame.setLocation(x, y);
         
         frame.show();
-
+        
         ToolWindow pannerTool = new ToolWindow("Panner", frame);
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner(mapViewer1));
         pannerTool.show();
-        
+
         ToolWindow inspectorTool = new ToolWindow("", frame);
         inspectorTool.addTool(new MapItemInspector());
         inspectorTool.show();
