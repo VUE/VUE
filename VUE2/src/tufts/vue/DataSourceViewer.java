@@ -26,10 +26,10 @@ public class DataSourceViewer  extends JPanel{
     DataSource activeDataSource;
     DRBrowser drBrowser;
     JPopupMenu popup;
-    JList dataSourceList;
+    DataSourceList dataSourceList;
     JPanel resourcesPanel;
 
-    public DataSourceViewer(DRBrowser drBrowser) {
+    public DataSourceViewer(DRBrowser drBrowser){
         
        // super("DataSource",true,true,true);// incase we dicide to use JInternalFrame
         setLayout(new BorderLayout());
@@ -40,7 +40,8 @@ public class DataSourceViewer  extends JPanel{
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
         loadDataSources();
-        dataSourceList = new JList(dataSources);
+        dataSourceList = new DataSourceList(dataSources);
+        
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
