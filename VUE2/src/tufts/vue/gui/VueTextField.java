@@ -67,8 +67,8 @@ public class VueTextField extends JTextField implements MouseListener,FocusListe
     public void mouseClicked(MouseEvent e) {
         if(longText.length() > LENGTH) {
             if((e.getButton() == MouseEvent.BUTTON1) && (e.getClickCount() == 2)) {
-                super.setText(longText);
                 super.setEditable(true);
+                super.setText(longText);               
             }
         }
     }
@@ -89,7 +89,8 @@ public class VueTextField extends JTextField implements MouseListener,FocusListe
     }
     
     public void focusLost(FocusEvent e) {
-        setText(this.getText());
+        if(super.isEditable())
+            setText(this.getText());
     }
     
 }
