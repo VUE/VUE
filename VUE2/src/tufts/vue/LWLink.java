@@ -7,6 +7,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.QuadCurve2D;
+import java.awt.geom.CubicCurve2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
@@ -28,17 +29,26 @@ import javax.swing.JTextArea;
  * @version 6/1/03
  */
 public class LWLink extends LWComponent
-    implements Link
+    implements Link,
+               LWSelection.ControlListener
 {
+    // TODO: are we fully going to allow endpoints to be null?  Everyone who
+    // calls getComponent[12] or getItem[12] will have to be prepared for that...
     private LWComponent ep1;
     private LWComponent ep2;
     private Line2D.Float line = new Line2D.Float();
-    private QuadCurve2D.Float curve = null;
+    private QuadCurve2D.Float quadCurve = null;
+    private CubicCurve2D.Float cubicCurve = null;
+    private Shape curve = null;
     private boolean isCurved = false;
+    private boolean isCubicCurve = false;
     
     private float centerX;
     private float centerY;
-    
+    private float startX;       // todo: either consistently use these or the values in this.line
+    private float startY;
+    private float endX;
+    private float endY;
     private String endPoint1_ID; // used only during restore
     private String endPoint2_ID; // used only during restore
     
@@ -74,10 +84,104 @@ public class LWLink extends LWComponent
         setEndPoint2(ep2);
         setStrokeWidth(2f); //todo config: default link width
         //computeLinkEndpoints();
-
-        setTextColor(Color.red); // todo: TEMPORARY ANGLE DEBUG
+        //setTextColor(Color.red); // todo: TEMPORARY ANGLE DEBUG
     }
 
+    /*
+    public void setSelected(boolean selected)
+    {
+        boolean wasSelected = this.selected;
+        super.setSelected(selected);
+        if (wasSelected != selected && isCurved) {
+            //notify("requestSelectionHandle", getCtrlPoint())
+            if (selected)
+                VUE.ModelSelection.addSelectionControl(getCtrlPoint(), this);
+            else
+                VUE.ModelSelection.removeSelectionControl(this);
+        }
+        }*/
+
+    /** interface ControlListener handler
+     * One of our control points (an endpoint or curve control point).
+     */
+    public void controlPointMoved(int index, Point2D p)
+    {
+        //System.out.println("LWLink: control point " + index + " moved");
+        
+        if (index == 0) {
+            if (ep1 != null) {
+                // TODO: removeEndpoint & notify
+                ep1.removeLinkRef(this);
+                ep1 = null;
+                endPoint1_ID = null;
+            }
+            startX = (float) p.getX();
+            startY = (float) p.getY();
+            endpointMoved = true;
+        } else if (index == 1) {
+            if (ep2 != null) {
+                // TODO: as above;
+                ep2.removeLinkRef(this);
+                ep2 = null;
+                endPoint2_ID = null;
+            }
+            endX = (float) p.getX();
+            endY = (float) p.getY();
+            endpointMoved = true;
+        } else if (index == 2) {
+            setCtrlPoint0(p);
+        } else if (index == 3) {
+            setCtrlPoint1(p);
+        } else
+            throw new IllegalArgumentException("LWLink ctrl point > 2");
+
+    }
+
+    /** interface ControlListener handler */
+    public void controlPointDropped(int index, Point2D p)
+    {
+        // TODO: add getParentMap to LWComponent to ensure getting whole map...
+        LWComponent c = getParent().findLWNodeAt((float)p.getX(), (float)p.getY());
+        // TODO BUG: above doesn't work if everything is selected
+        System.out.println("LWLink: control point " + index + " dropped on " + c);
+        // TODO: CAN WE CONSOLODATE NEW LINK CREATION CODE HERE FROM MAPVIEWER???
+        // (e.g., handle re-linking from one node to another doing an increment,
+        // or perhaps when doing an endpoing drag, don't allow to connect two
+        // nodes that are already connected).
+        if (c != null && c instanceof LWNode) {
+            if (index == 0 && ep1 == null && (ep2 != c || false/*isCubic*/))
+                setEndPoint1(c);
+            else if (index == 1 && ep2 == null && (ep1 != c || false/*isCubic*/))
+                setEndPoint2(c);
+        }
+    }
+
+    private Point2D.Float[] controlPoints = new Point2D.Float[2];
+    /** interface ControlListener */
+    public Point2D.Float[] getControlPoints()
+    {
+        if (endpointMoved)
+            computeLinkEndpoints();
+        // todo opt: don't create these new Point2D's all the time --
+        // we iterate through this ALOT
+        controlPoints[0] = new Point2D.Float(startX, startY);
+        controlPoints[1] = new Point2D.Float(endX, endY);
+        if (isCurved) {
+            if (isCubicCurve) {
+                controlPoints[2] = (Point2D.Float) cubicCurve.getCtrlP1();
+                controlPoints[3] = (Point2D.Float) cubicCurve.getCtrlP2();
+            } else {
+                controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
+            }
+        }
+
+        return controlPoints;
+    }
+    
+    /** called by LWComponent.updateConnectedLinks to let
+     * us know something we're connected to has moved,
+     * and thus we need to recompute our drawn shape.
+     */
     void setEndpointMoved(boolean tv)
     {
         this.endpointMoved = tv;
@@ -85,16 +189,117 @@ public class LWLink extends LWComponent
 
     public boolean isCurved()
     {
-        return isCurved;
+        return this.isCurved;
     }
 
+    /** set this link to be curved or not.  defaults to a Quadradic (1 control point) curve. */
     public void setCurved(boolean curved)
     {
         this.isCurved = curved;
-        if (isCurved && curve == null) {
-            this.curve = new QuadCurve2D.Float();
-            computeLinkEndpoints();
+        System.out.println(this + " SET CURVED " + curved + " cubic="+isCubicCurve);
+        if (isCurved) {
+            if (isCubicCurve) {
+                this.curve = this.cubicCurve = new CubicCurve2D.Float();
+                this.controlPoints = new Point2D.Float[4];
+                this.cubicCurve.ctrlx1 = Float.MIN_VALUE;
+            } else {
+                this.curve = this.quadCurve = new QuadCurve2D.Float();
+                this.controlPoints = new Point2D.Float[3];
+                this.quadCurve.ctrlx = Float.MIN_VALUE;
+            }
+        } else {
+            this.controlPoints = new Point2D.Float[2];
+            this.quadCurve = null;
+            this.cubicCurve = null;
+            this.curve = null;
         }
+        endpointMoved = true;
+    }
+
+    /** for persistance or setting CubicCurve */
+    public void setControlCount(int points)
+    {
+        System.out.println(this + " setting CONTROL COUNT " + points);
+        if (points > 2)
+            throw new IllegalArgumentException("LWLink: max 2 control points " + points);
+        this.isCurved = (points > 0);
+        this.isCubicCurve = (points > 1);
+        setCurved(isCurved);
+    }
+
+    /** for persistance */
+    public int getControlCount()
+    {
+        if (isCurved)
+            return isCubicCurve ? 2 : 1;
+        return 0;
+    }
+
+    /** for persistance */
+    public Point2D.Float getPoint1()
+    {
+        return new Point2D.Float(startX, startY);
+    }
+    /** for persistance */
+    public Point2D.Float getPoint2()
+    {
+        return new Point2D.Float(endX, endY);
+    }
+    /** for persistance */
+    public void setPoint1(Point2D.Float p)
+    {
+        startX = p.x;
+        startY = p.y;
+    }
+    /** for persistance */
+    public void setPoint2(Point2D.Float p)
+    {
+        endX = p.x;
+        endY = p.y;
+    }
+    
+    /** for persistance */
+    public Point2D getCtrlPoint0()
+    {
+        return isCurved ? (isCubicCurve ? cubicCurve.getCtrlP1() : quadCurve.getCtrlPt()) : null;
+    }
+    /** for persistance */
+    public Point2D getCtrlPoint1()
+    {
+        return (isCurved && isCubicCurve) ? cubicCurve.getCtrlP2() : null;
+    }
+    
+    /** for persistance and ControlListener */
+    public void setCtrlPoint0(Point2D point)
+    {
+        if (!isCurved) { // during a restore, this is how we know we're curved
+            setCurved(true);
+            System.out.println("implied curved link by setting control point 0 " + this);
+        }
+        if (isCubicCurve) {
+            cubicCurve.ctrlx1 = (float) point.getX();
+            cubicCurve.ctrly1 = (float) point.getY();
+        } else {
+            quadCurve.ctrlx = (float) point.getX();
+            quadCurve.ctrly = (float) point.getY();
+        }
+        endpointMoved = true;
+    }
+
+    /** for persistance and ControlListener */
+    public void setCtrlPoint1(Point2D point)
+    {
+        if (!isCurved) { // during a restore, this is how we know we're curved
+            setCurved(true);
+            System.out.println("implied curved link by setting a control point 1 " + this);
+            if (!isCubicCurve) {
+                System.out.println("implied cubic curve by setting control point 1 " + this);
+                this.isCubicCurve = true;
+            }
+        }
+        cubicCurve.ctrlx2 = (float) point.getX();
+        cubicCurve.ctrly2 = (float) point.getY();
+        endpointMoved = true;
     }
 
     protected void removeFromModel()
@@ -107,7 +312,8 @@ public class LWLink extends LWComponent
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()
     {
-        return ep1.getParent() == ep2 || ep2.getParent() == ep1;
+        // todo fix: if parent is null this may provide incorrect results
+        return (ep1 != null && ep1.getParent() == ep2) || (ep2 != null && ep2.getParent() == ep1);
     }
     
     public Shape getShape()
@@ -121,13 +327,14 @@ public class LWLink extends LWComponent
         // return stroked shape?
     }
 
+    /** @deprecated */
     public Line2D getLine()
     {
         if (endpointMoved)
             computeLinkEndpoints();
         return this.line;
     }
-    
+
     private final int MaxZoom = 1; //todo: get from Zoom code
     private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
     public boolean intersects(Rectangle2D rect)
@@ -138,9 +345,8 @@ public class LWLink extends LWComponent
         if (true || w <= SmallestScaleableStrokeWidth) {
             //if (isCurved) { System.err.println("curve intersects=" + rect.intersects(curve.getBounds2D())); }
             if (isCurved) {
-                if (curve.intersects(rect)) // why isn't this working?
+                if (curve.intersects(rect)) // checks entire INTERIOR (concave region) of the curve
                 //if (curve.getBounds2D().intersects(rect)) // todo perf: cache bounds -- why THIS not working???
-                //if (rect.intersects(curve.getBounds2D()))
                     return true;
             } else {
                 if (rect.intersectsLine(this.line))
@@ -224,6 +430,7 @@ public class LWLink extends LWComponent
         return x >= sx && x <= ex && y >= sy && y <= ey;
     }
     
+    /* TODO FIX: not everybody is going to be okay with these returning null... */
     public LWComponent getComponent1() { return ep1; }
     public LWComponent getComponent2() { return ep2; }
     public MapItem getItem1() { return ep1; }
@@ -236,8 +443,10 @@ public class LWLink extends LWComponent
         //if (c == null) System.err.println(this + " endPoint1 set to null");
         //else
         c.addLinkRef(this);
-        if (this.ep2 != null)
-            computeLinkEndpoints();
+        //if (this.ep2 != null)
+        //computeLinkEndpoints();
+        endpointMoved = true;
+        notify("link.endpointChanged");
         //System.out.println(this + " ep1 = " + c);
     }
     void setEndPoint2(LWComponent c)
@@ -247,8 +456,10 @@ public class LWLink extends LWComponent
         //if (c == null) System.err.println(this + " endPointd2 set to null");
         //else
         c.addLinkRef(this);
-        if (this.ep1 != null)
-            computeLinkEndpoints();
+        //if (this.ep1 != null)
+        //computeLinkEndpoints();
+        endpointMoved = true;
+        notify("link.endpointChanged");
         //System.out.println(this + " ep2 = " + c);
     }
     // interface
@@ -331,11 +542,33 @@ public class LWLink extends LWComponent
         return list;
     }
     
-    /** a links location is always a computed value -- ignore setLocation calls */
     public void setLocation(float x, float y)
     {
-        //throw new RuntimeException("cannot set link location");
-        // This okay -- just ignore it.
+        float dx = x - getX();
+        float dy = y - getY();
+        //System.out.println(getLabel() + " setLocation");
+        if (ep1 == null) {
+            startX += dx;
+            startY += dy;
+            endpointMoved = true;
+        }
+        if (ep2 == null) {
+            endX += dx;
+            endY += dy;
+            endpointMoved = true;
+        }
+        if (isCurved) {
+            if (isCubicCurve) {
+                cubicCurve.ctrlx1 += dx;
+                cubicCurve.ctrly1 += dy;
+                cubicCurve.ctrlx2 += dx;
+                cubicCurve.ctrly2 += dy;
+            } else {
+                quadCurve.ctrlx += dx;
+                quadCurve.ctrly += dy;
+            }
+            endpointMoved = true;
+        }
     }
 
     
@@ -514,32 +747,73 @@ public class LWLink extends LWComponent
     
 
     /**
-     * Compute the endpoints of the link based on the edges
-     * of the shapes they connect.
+     * Compute the endpoints of this link based on the edges
+     * of the shapes we're connecting.  To do this we draw
+     * a line from the center of one shape to the center of
+     * the other, and set the link endpoints to the places where
+     * this line crosses the edge of each shape.  If one of
+     * the shapes is a straight line, or for some reason
+     * a shape doesn't have a facing "edge", or if anything
+     * unpredicatable happens, we just leave the connection
+     * point as the center of the object.
      */
     private void computeLinkEndpoints()
     {
+        //if (ep1 == null || ep2 == null) throw new IllegalStateException("LWLink: attempting to compute shape w/out endpoints");
         // we clear this at the top in case another thread
         // (e.g., AWT paint) clears it again while we're
         // in here
         endpointMoved = false;
 
-        float startX = ep1.getCenterX();
-        float startY = ep1.getCenterY();
-        float endX = ep2.getCenterX();
-        float endY = ep2.getCenterY();
-
-        float ctrlX = 0;
-        float ctrlY = 0;
-        if (isCurved) {
-            ctrlX = startX - (startX - endX) / 2;
-            ctrlY = startY - (startY - endY) / 2;
-            ctrlX += 120;
-            ctrlY += 20;
+        if (ep1 != null) {
+            startX = ep1.getCenterX();
+            startY = ep1.getCenterY();
+        }
+        if (ep2 != null) {
+            endX = ep2.getCenterX();
+            endY = ep2.getCenterY();
         }
 
+        
+        // TODO: sort out setting cubic control points when
+        // we're in here the first time and we haven't even
+        // computed the real intersected endpoints yet.
+        // (same applies to quadcurves but seems to be working better)
+
+        if (isCurved) {
+            //-------------------------------------------------------
+            // INTIALIZE CONTROL POINTS
+            //-------------------------------------------------------
+            this.centerX = startX - (startX - endX) / 2;
+            this.centerY = startY - (startY - endY) / 2;
+            if (isCubicCurve) {
+                if (cubicCurve.ctrlx1 == Float.MIN_VALUE) {
+                    // unintialized control points
+                    float offX = Math.abs(startX - centerX) * 0.66f;
+                    float offY = Math.abs(startY - centerY) * 0.66f;
+                    cubicCurve.ctrlx1 = startX + offX;
+                    cubicCurve.ctrly1 = startY + offY;
+                    cubicCurve.ctrlx2 = endX - offX;
+                    cubicCurve.ctrly2 = endY - offY;
+                    
+                    // tmp
+                    cubicCurve.ctrlx1 = centerX;
+                    cubicCurve.ctrly1 = centerY;
+                    cubicCurve.ctrlx2 = centerX;
+                    cubicCurve.ctrly2 = centerY;
+                }
+            } else {
+                if (quadCurve.ctrlx == Float.MIN_VALUE) {
+                    // unintialized control points
+                    quadCurve.ctrlx = centerX;
+                    quadCurve.ctrly = centerY;
+                }
+            }
+        }
+        
+
         float srcX, srcY;
-        Shape ep1Shape = ep1.getShape();
+        Shape ep1Shape = ep1 == null ? null : ep1.getShape();
         // if either endpoint shape is a straight line, we don't need to
         // bother computing the shape intersection -- it will just
         // be the default connection point -- the center point.
@@ -551,8 +825,13 @@ public class LWLink extends LWComponent
         
         if (ep1Shape != null && !(ep1Shape instanceof Line2D)) {
             if (isCurved) {
-                srcX = ctrlX;
-                srcY = ctrlY;
+                if (isCubicCurve) {
+                    srcX = cubicCurve.ctrlx1;
+                    srcY = cubicCurve.ctrly1;
+                } else {
+                    srcX = quadCurve.ctrlx;
+                    srcY = quadCurve.ctrly;
+                }
             } else {
                 srcX = endX;
                 srcY = endY;
@@ -563,11 +842,16 @@ public class LWLink extends LWComponent
             if (!Float.isNaN(intersection[0])) startX = intersection[0];
             if (!Float.isNaN(intersection[1])) startY = intersection[1];
         }
-        Shape ep2Shape = ep2.getShape();
+        Shape ep2Shape = ep2 == null ? null : ep2.getShape();
         if (ep2Shape != null && !(ep2Shape instanceof Line2D)) {
             if (isCurved) {
-                srcX = ctrlX;
-                srcY = ctrlY;
+                if (isCubicCurve) {
+                    srcX = cubicCurve.ctrlx2;
+                    srcY = cubicCurve.ctrly2;
+                } else {
+                    srcX = quadCurve.ctrlx;
+                    srcY = quadCurve.ctrly;
+                }
             } else {
                 srcX = startX;
                 srcY = startY;
@@ -581,6 +865,7 @@ public class LWLink extends LWComponent
         
         this.centerX = startX - (startX - endX) / 2;
         this.centerY = startY - (startY - endY) / 2;
+
         
         // Set our location to the midpoint between
         // the nodes we're connecting.
@@ -593,10 +878,55 @@ public class LWLink extends LWComponent
         //todo: eventually have LWComponent setLocation
         // tell all connected links to recompute themselves...
 
-        setSize(Math.abs(startX - endX),
-                Math.abs(startY - endY));
-        setX(this.centerX - getWidth()/2);
-        setY(this.centerY - getHeight()/2);
+        // We only set the size & location here so LWComponent.getBounds
+        // can do something reasonable with us for computing/drawing
+        // a selection box, and for LWMap.getBounds in computing entire
+        // area need to display everything on the map (so we need
+        // to include control point so a curve swinging out at the
+        // edge is sure to be included in visible area).
+
+        if (isCurved) {
+            //-------------------------------------------------------
+            // INTIALIZE CONTROL POINTS
+            //-------------------------------------------------------
+            if (isCubicCurve) {
+                if (false&&cubicCurve.ctrlx1 == Float.MIN_VALUE) {
+                    // unintialized control points
+                    float offX = Math.abs(startX - centerX) * 0.66f;
+                    float offY = Math.abs(startY - centerY) * 0.66f;
+                    cubicCurve.ctrlx1 = startX + offX;
+                    cubicCurve.ctrly1 = startY + offY;
+                    cubicCurve.ctrlx2 = endX - offX;
+                    cubicCurve.ctrly2 = endY - offY;
+                }
+            } else {
+                if (false&&quadCurve.ctrlx == Float.MIN_VALUE) {
+                    // unintialized control points
+                    quadCurve.ctrlx = centerX;
+                    quadCurve.ctrly = centerY;
+                }
+            }
+
+            Rectangle2D.Float bounds = new Rectangle2D.Float();
+            bounds.width = Math.abs(startX - endX);
+            bounds.height = Math.abs(startY - endY);
+            bounds.x = centerX - bounds.width/2;
+            bounds.y = centerY - bounds.height/2;
+            if (isCubicCurve) {
+                bounds.add(cubicCurve.ctrlx1, cubicCurve.ctrly1);
+                bounds.add(cubicCurve.ctrlx2, cubicCurve.ctrly2);
+            } else {
+                bounds.add(quadCurve.ctrlx, quadCurve.ctrly);
+            }
+            setSize(bounds.width, bounds.height);
+            setX(bounds.x);
+            setY(bounds.y);
+        } else {
+            setSize(Math.abs(startX - endX),
+                    Math.abs(startY - endY));
+            setX(this.centerX - getWidth()/2);
+            setY(this.centerY - getHeight()/2);
+        }
 
         if (VueUtil.StrokeBug05) {
             startX -= 0.5;
@@ -609,9 +939,22 @@ public class LWLink extends LWComponent
         // Set the stroke line
         //-------------------------------------------------------
         this.line.setLine(startX, startY, endX, endY);
-        if (this.isCurved)
-            curve.setCurve(startX, startY, ctrlX, ctrlY, endX, endY);
-
+        if (this.isCurved) {
+            if (isCubicCurve) {
+                cubicCurve.x1 = startX;
+                cubicCurve.y1 = startY;
+                cubicCurve.x2 = endX;
+                cubicCurve.y2 = endY;
+                //cubicCurve.setCurve(startX, startY, ctrlX, ctrlY, ctrlX, ctrlY + 20, endX, endY);
+            } else {
+                quadCurve.x1 = startX;
+                quadCurve.y1 = startY;
+                quadCurve.x2 = endX;
+                quadCurve.y2 = endY;
+                //quadCurve.setCurve(startX, startY, ctrlX, ctrlY, endX, endY);
+            }
+        }
+        
         // if there are any links connected to this link, make sure they
         // know that this endpoint has moved.
         updateConnectedLinks();
@@ -672,11 +1015,16 @@ public class LWLink extends LWComponent
         double rotation1 = 0;
         double rotation2 = 0;
         if (isCurved) {
-            rotation1 = computeAngle(line.getX1(), line.getY1(), curve.getCtrlX(), curve.getCtrlY());
-            rotation2 = computeAngle(line.getX2(), line.getY2(), curve.getCtrlX(), curve.getCtrlY());
+            if (isCubicCurve) {
+                rotation1 = computeAngle(startX, startY, cubicCurve.ctrlx1, cubicCurve.ctrly1);
+                rotation2 = computeAngle(endX, endY, cubicCurve.ctrlx2, cubicCurve.ctrly2);
+            } else {
+                rotation1 = computeAngle(startX, startY, quadCurve.ctrlx, quadCurve.ctrly);
+                rotation2 = computeAngle(endX, endY, quadCurve.ctrlx, quadCurve.ctrly);
+            }
         } else {
             rotation1 = computeAngle(line.getX1(), line.getY1(), line.getX2(), line.getY2());
-            rotation2 = rotation1 + Math.PI;  // add 180 degrees
+            rotation2 = rotation1 + Math.PI;  // flip: add 180 degrees
         }
         
         AffineTransform savedTransform = gg.getTransform();
@@ -716,14 +1064,15 @@ public class LWLink extends LWComponent
         //if (strokeWidth > MAX_RENDER_WIDTH)
         //    strokeWidth = MAX_RENDER_WIDTH;
         
-        BasicStroke stroke;
+        BasicStroke stroke = this.stroke;
 
         // If either end of this link is scaled, scale stroke
         // to smallest of the scales (even better: render the stroke
         // in a variable width narrowing as it went...)
         // todo: cache this scaled stroke
         // todo: do we really even want this functionality?
-        if (ep1.getScale() != 1f || ep2.getScale() != 1f) {
+        if (ep1 != null && ep2 != null) { // todo cleanup
+        if ((ep1 != null && ep1.getScale() != 1f) || (ep2 != null && ep2.getScale() != 1f)) {
             float strokeWidth = getStrokeWidth();
             if (ep1.getScale() < ep2.getScale())
                 strokeWidth *= ep1.getScale();
@@ -734,6 +1083,7 @@ public class LWLink extends LWComponent
         } else {
             //g.setStroke(this.stroke);
             stroke = this.stroke;
+        }
         }
     
         //-------------------------------------------------------
@@ -754,55 +1104,45 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         // Draw the stroke
         //-------------------------------------------------------
-        if (isSelected())
-            g.setColor(COLOR_SELECTION);
-        else if (isIndicated())
+
+        if (isIndicated())
             g.setColor(COLOR_INDICATION);
+        else if (isSelected())
+            g.setColor(COLOR_SELECTION);
         else
             g.setColor(getStrokeColor());
 
         g.setStroke(stroke);
         
-        
-        if (isCurved && isSelected()) {
-            // draw control point
-            final int boxSize = 7;
-            int x = (int)curve.getCtrlX();
-            int y = (int)curve.getCtrlY();
-            x -= boxSize/2;
-            y -= boxSize/2;
-            // DRAW AS WHITE-BORDED SELECTION BOX so looks
-            // just like a regular selection box -- something
-            // we know wants us to drag it...
-            g.fillRect(x, y, boxSize, boxSize);
-            // turn off anit-aliasing for this -- 
-            // handle this in a seperate paintSelection pass
-            // off the main paint loop??
-            /*
-            g.setColor(Color.green);
-            g.drawRect(x, y, boxSize, boxSize);
-            g.setColor(COLOR_SELECTION);
-            */
-            // move to after drawArrows after debug so
-            // control point always visible on top in case has been
-            // moved to same place as an arrow
-        }
-        
         if (this.isCurved) {
+            // draw the curve
             g.draw(this.curve);
 
-            g.setStroke(new BasicStroke(0.1f));
-            g.setColor(Color.black);
-            Line2D ctrlLine = new Line2D.Float(line.getP1(), curve.getCtrlPt());
-            g.draw(ctrlLine);
-            ctrlLine.setLine(line.getP2(), curve.getCtrlPt());
-            g.draw(ctrlLine);
+            if (isSelected()) {
+                // draw faint lines to control points if selected
+                g.setColor(COLOR_SELECTION);
+                //g.setColor(Color.red);
+                //g.setStroke(new BasicStroke(0.5f));
+                g.setStroke(new BasicStroke(0.2f));
+                // todo opt: less object allocation
+                if (isCubicCurve) {
+                    Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
+                    g.draw(ctrlLine);
+                    ctrlLine.setLine(line.getP2(), cubicCurve.getCtrlP2());
+                    g.draw(ctrlLine);
+                } else {
+                    Line2D ctrlLine = new Line2D.Float(line.getP1(), quadCurve.getCtrlPt());
+                    g.draw(ctrlLine);
+                    ctrlLine.setLine(line.getP2(), quadCurve.getCtrlPt());
+                    g.draw(ctrlLine);
+                }
+                g.setStroke(stroke);
+            }
             //g.drawLine((int)line.getX1(), (int)line.getY1(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
             //g.drawLine((int)line.getX2(), (int)line.getY2(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
-            if (isSelected()) g.setColor(COLOR_SELECTION);
-            g.setStroke(stroke);
-        } else
+        } else {
             g.draw(this.line);
+        }
 
         // todo: conditional
         drawArrows(g);
@@ -820,24 +1160,43 @@ public class LWLink extends LWComponent
                 float lx = getLabelX();
                 float ly = getLabelY();
                 textBox.setMapLocation(lx, ly);
+
+                // We force a fill color on link labels to make sure we create
+                // a contrast between the text and the background, which otherwise
+                // would include the usually black link stroke in the middle, obscuring
+                // some of the text.
+                // todo perf: only set opaque-bit/background once/when it changes.
+                // (probably put a textbox factory on LWComponent and override in LWLink)
+                Color c = getFillColor();
+                if (c == null)
+                    c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
+                textBox.setBackground(c);
+                textBox.setOpaque(true);
+                
                 // todo: only need to do above set location when computing line
                 // or text changes somehow (content, font) or alignment changes
                 g.translate(lx, ly);
                 textBox.draw(g);
+                if (isSelected()) {
+                    Dimension s = textBox.getSize();
+                    g.setColor(COLOR_SELECTION);
+                    g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
+                    // -- i guess we could compute based on zoom level -- maybe MapViewer could
+                    // keep such a stroke handy for us...
+                    g.drawRect(0,0, s.width, s.height);
+                }
                 g.translate(-lx, -ly);
+                
             }
-
-            /*
-            g.setColor(getTextColor());
-            g.setFont(getFont());
-            FontMetrics fm = g.getFontMetrics();
-            float w = fm.stringWidth(label);
-            g.drawString(label, centerX - w/2, centerY - (strokeWidth/2));
-            */
         }
-
     }
 
+    public String paramString()
+    {
+        return " " + startX+","+startY
+            + " -> " + endX+","+endY
+            +  " ctrl=" + getControlCount();
+    }
 
     // these two to support a special dynamic link
     // which we use while creating a new link
