@@ -18,6 +18,8 @@ public class TypeFactory {
     
     /** Creates a new instance of TypeFactory */
     public static Type getIntegerType() {
+        return new IntergerType();
+        /**
         Operator eqOperator = new DefaultOperator("equal","=",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
@@ -75,11 +77,14 @@ public class TypeFactory {
         type.getOperators().add(gtOperator);
         type.getOperators().add(ltOperator);
         return type;
+         */
     }
     
     
     
     public static Type getStringType() {
+        return new StringType();
+        /**
        Operator eqOperator = new DefaultOperator("equals","equals",true) {
             public boolean compare(Statement s1,Statement s2) {
                 Object value1  = s1.getValue();
@@ -133,12 +138,13 @@ public class TypeFactory {
         type.getOperators().add(stOperator);
         type.getOperators().add(endOperator);
         return type;
+         */
     }
     // currently returns only string and integer types;
     public static List getAllTypes() {
         List typeList = new Vector();
         typeList.add(getIntegerType());
-        typeList.add(getStringType());
+        typeList.add(new StringType());
         return typeList;
     }
 }

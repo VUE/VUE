@@ -25,7 +25,8 @@ public interface Type{
     public List getOperators();
     public Operator getDefaultOperator();
     public List getSettableOperators();
-    
+    /** true if s2 is true given s1 **/
+    public boolean compare(Statement s1,Statement s2);
     public boolean isValidKey();
     public boolean isValidValue();
 }

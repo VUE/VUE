@@ -18,7 +18,7 @@ public class DefaultType implements tufts.vue.filter.Type {
     /** Creates a new instance of DefaultType */
     
     String displayName;
-    List operatorList = new Vector();
+    protected List operatorList = new Vector();
     public DefaultType() {
     }
     
@@ -78,5 +78,8 @@ public class DefaultType implements tufts.vue.filter.Type {
         return displayName;
     }
     
+     public boolean compare(Statement s1,Statement s2) {
+         throw new RuntimeException("Not implemented");
+     }
     
 }
