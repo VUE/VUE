@@ -513,7 +513,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasNotes(); }
         
         void doDoubleClickAction() {
-            VUE.objectInspectorPanel.activateNotesTab();
+            //VUE.objectInspectorPanel.activateNotesTab();
+            VUE.objectInspectorPanel.setTab(ObjectInspectorPanel.NOTES_TAB);
             VUE.objectInspector.setVisible(true);
         }
     
@@ -796,7 +797,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;  }
 
         void doDoubleClickAction() {
-            VUE.objectInspectorPanel.activateNotesTab();
+            //VUE.objectInspectorPanel.activateNotesTab();
+            VUE.objectInspectorPanel.setTab(ObjectInspectorPanel.INFO_TAB);
             VUE.objectInspector.setVisible(true);
         }
         
@@ -869,7 +871,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasChildren(); }
 
         void doDoubleClickAction() {
-            VUE.objectInspectorPanel.activateTreeTab();
+            //VUE.objectInspectorPanel.activateTreeTab();
+            VUE.objectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
             VUE.objectInspector.setVisible(true);
         }
         
