@@ -149,7 +149,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         informationArea.setSize(WIDTH-50, HEIGHT/3);
         
         JLabel dsLabel = new JLabel("Where would you like to save the map:");
-       dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
+        dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
       
         JPanel buttonPanel = new JPanel();
         publishMapRButton = new JRadioButton("Export Map");
