@@ -74,10 +74,10 @@ public class LWLink extends LWComponent
     {
         return ep1.getParent() == ep2 || ep2.getParent() == ep1;
     }
-    /*
+    
     public Line2D getLine(){
         return this.line;
-    }*/
+    }
     
     private final int MaxZoom = 1; //todo: get from Zoom code
     private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
