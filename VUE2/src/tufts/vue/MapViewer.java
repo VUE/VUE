@@ -5,12 +5,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.util.Iterator;
 import javax.swing.*;
+
 import tufts.oki.dr.fedora.*;
+import tufts.vue.shape.*;
 
 import osid.dr.*;
 
@@ -521,6 +521,7 @@ public class MapViewer extends javax.swing.JComponent
         boolean ignore = (getX() == x && getY() == y && getWidth() == w && getHeight() == h);
         if (inScrollPane||DEBUG_PAINT||DEBUG_EVENTS)
             System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
+        super.reshape(x,y, w,h);
         if (ignore)
             return;
         /*
@@ -536,7 +537,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         */
         //System.out.println(" ul start: "+p);
-        super.reshape(x,y, w,h);
+        //
         //if (p!=null) p = getLocationOnScreen();
         //System.out.println("ul finish: "+p);
 
@@ -1572,7 +1573,20 @@ public class MapViewer extends javax.swing.JComponent
             LWComponent c = (LWComponent) it.next();
             if (inDrag || c.getStrokeWidth() == 0) {
                 //g2.setColor(c.getStrokeColor());
-                g2.draw(c.getShape());
+                Shape shape = c.getShape();
+                g2.draw(shape);
+                if (shape instanceof RectangularPoly2D) {
+                    if (((RectangularPoly2D)shape).getSides() > 4) {
+                        Ellipse2D inscribed = new Ellipse2D.Float();
+                        inscribed.setFrame(shape.getBounds());
+                        g2.draw(inscribed);
+                        inscribed.setFrame(c.getX(),
+                                           c.getY()+(c.getHeight()-c.getWidth())/2,
+                                           c.getWidth(),
+                                           c.getWidth());
+                        g2.draw(inscribed);
+                    }
+                }
             }
         }
         g2.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() / zoomFactor)));
@@ -2755,17 +2769,33 @@ public class MapViewer extends javax.swing.JComponent
                 sMouseOver = null;
             }
 
-            // turned off to be SURE we get into a show/hide loop if pop-up obscures
-            // the trigger region and mouse statys over it...  Okay, this should
-            // never happen...
+            // If you roll the mouse into a tip window, the MapViewer
+            // will get a mouseExited -- we clear the tip if this
+            // happens as we never want the tip to obscure anything.
+            // This is slighly dangerous in that if for some reason
+            // the tip has been placed over it's own activation
+            // region, and you put the mouse over the intersection
+            // area of the tip and the activation region, we'll enter
+            // a show/hide loop: mouse into trigger region pops tip
+            // window, which comes up under where the mouse is already
+            // at, immediately triggering a mouseExited on the
+            // MapViewer, which bring us here in mouseExited to clear
+            // the tip, and when it clears, the mouse enters the map
+            // again, and triggers the tip window again, looping for
+            // as long as you leave the mouse there (because you can
+            // still move the mouse away this isn't a fatal error).
+            // But since this is still very undesirable, we take great
+            // pains in placing the tip window to never overlap the
+            // trigger region. (see setTip)
 
-            clearTip();//todo: on a timer instead so no flashing of rollover the tip
+            clearTip();
 
-            // would still be nice to do this tho because we get a mouse
+            // Is still nice to do this tho because we get a mouse
             // exited when you rollover the tip-window itself, and if
             // it's right at the edge of the node and you're going for
             // the resize-control, better to have the note clear out
-            // so you don't accidentally hit the tip when going for the control.
+            // so you don't accidentally hit the tip when going for
+            // the control.
         }
         
         //private int drags=0;
@@ -3068,7 +3098,7 @@ public class MapViewer extends javax.swing.JComponent
             // don't sent event notifications for location & size changes
             // for performance)
             if (mouseWasDragged)
-                getMap().notifyLWCListeners(new LWCEvent(MapViewer.this, getMap(), "repaint"));
+                getMap().notify(MapViewer.this, "repaint");
 
             //-------------------------------------------------------
             // reset all in-drag only state
