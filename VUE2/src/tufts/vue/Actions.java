@@ -52,14 +52,14 @@ class Actions
     
     static final Action SelectAll =
         new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
-            public void act() {
+            void act() {
                 VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
             }
         };
     static final Action DeselectAll =
         new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
-            public void act() {
+            void act() {
                 VUE.getSelection().clear();
             }
         };
@@ -70,7 +70,7 @@ class Actions
             public void act(Iterator i) {
                 VUE.getActivePathway().add(i);
             }
-            public boolean enabledFor(LWSelection s) {
+            boolean enabledFor(LWSelection s) {
                 // items can be added to pathway as many times as you want
                 return VUE.getActivePathway() != null && s.size() > 0;
             }
@@ -82,7 +82,7 @@ class Actions
             public void act(Iterator i) {
                 VUE.getActivePathway().remove(i);
             }
-            public boolean enabledFor(LWSelection s) {
+            boolean enabledFor(LWSelection s) {
                 LWPathway p = VUE.getActivePathway();
                 return p != null && s.size() > 0 && (s.size() > 1 || p.contains(s.first()));
             }
@@ -113,7 +113,7 @@ class Actions
                 VUE.displayMap((LWMap)hierarchyMap);
             }
             
-            public boolean enabledFor(LWSelection s) {
+            boolean enabledFor(LWSelection s) {
                 return s.size() == 1 && s.first() instanceof LWNode;
             }
         };
@@ -789,7 +789,7 @@ class Actions
             // todo: listen to map viewer display event to tag
             // with currently displayed map name
             boolean undoable() { return false; }
-            public void act() {
+            void act() {
                 VUE.closeMap(VUE.getActiveMap());
             }
         };
@@ -797,14 +797,14 @@ class Actions
         new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
             boolean undoable() { return false; }
-            public void act() { VUE.getUndoManager().undo(); }
+            void act() { VUE.getUndoManager().undo(); }
 
         };
     static final Action Redo =
         new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT))
         {
             boolean undoable() { return false; }
-            public void act() { VUE.getUndoManager().redo(); }
+            void act() { VUE.getUndoManager().redo(); }
         };
 
     static final VueAction NewNode =
@@ -856,19 +856,19 @@ class Actions
     static final Action ZoomIn =
         //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
         new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT)) {
-            public void act() {
+            void act() {
                 ZoomTool.setZoomBigger(null);
             }
         };
     static final Action ZoomOut =
         new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
-            public void act() {
+            void act() {
                 ZoomTool.setZoomSmaller(null);
             }
         };
     static final Action ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
-            public void act() {
+            void act() {
                 ZoomTool.setZoomFit();
             }
         };
@@ -876,7 +876,7 @@ class Actions
         new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
             // no way to listen for zoom change events to keep this current
             //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
-            public void act() {
+            void act() {
                 ZoomTool.setZoom(1.0);
             }
         };

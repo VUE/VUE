@@ -4082,9 +4082,9 @@ public class MapViewer extends javax.swing.JComponent
                     
                     if (!mLabelEditWasActiveAtMousePress) {
                         if (activeTool == NodeTool)
-                            Actions.NewNode.act();
+                            Actions.NewNode.fire(this);
                         else
-                            Actions.NewText.act();
+                            Actions.NewText.fire(this);
                     }
                 }
                 /*
@@ -4471,32 +4471,23 @@ public class MapViewer extends javax.swing.JComponent
                 if (activeViewer != null)
                     oldActiveMap = activeViewer.getMap();
                 VUE.setActiveViewer(this);
-                
-                //added by Daisuke Fujiwara
-                //accomodates pathway manager swapping when the displayed map is changed
-                //can this be moved to setActiveViewer method????
 
-                /*
-                if (VUE.getPathwayInspector() != null) {
-                    if (DEBUG.FOCUS) System.err.println("Setting pathway manager to: " + getMap().getPathwayManager());
-                    VUE.getPathwayInspector().setPathwayManager(getMap().getPathwayManager());
-                }
-                */
+                // TODO: getMap().setPriorityListener(this);
+                // TODO: VUE.getSelection().setPriorityListener(this);
                 
-                // outline view switching
+                // outline view switching: TODO: make an active map listener instead of this
                 if (VUE.getOutlineViewTree() != null) // in case just running MapViewer w/out VUE app
                     VUE.getOutlineViewTree().switchMap(getMap());
                     
-                // hierarchy view switching
+                // hierarchy view switching: TODO: make an active map listener instead of this(?)
                 if (VUE.getHierarchyTree() != null)
                 {
                     if (this.map instanceof LWHierarchyMap)
                       VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
                     else
                       VUE.getHierarchyTree().setHierarchyModel(null);
+                // end of addition by Daisuke
                 }
-                
-                // end of addition by Daisuke 
                 
                 if (oldActiveMap != this.map) {
                     if (DEBUG.FOCUS) System.out.println("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");

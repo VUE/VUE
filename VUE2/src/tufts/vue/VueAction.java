@@ -112,6 +112,15 @@ public class VueAction extends javax.swing.AbstractAction
     }
 
     // To update action's enabled state after an action is performed.
+
+    // todo: create a single VueAction LWSelection listener that then
+    // dispatches selection updates to all the actions (and then see
+    // how many ms all together are taking), and for performance can
+    // break down selection once into a selection info object for
+    // action's to check against (size, #nodes, #links, etc)
+    // also considure just putting all that info directly in
+    // the selection.
+    
     private void updateActionListeners()
     {
         Iterator i = VUE.getSelection().getListeners().iterator();

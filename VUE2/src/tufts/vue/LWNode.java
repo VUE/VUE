@@ -82,6 +82,7 @@ public class LWNode extends LWContainer
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
     private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
+    // put back to constant??  Also TODO: Text nodes left-aligned, not centered, and for real disallow BG color.
     //private static final float TextWidthFudgeFactor = 1;
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
 
