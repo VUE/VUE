@@ -76,7 +76,13 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
     private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
     //private static final Insets ButtonInsets = NoInsets;
      
-     public NodeToolPanel() {
+    public NodeToolPanel() {
+        this(false);
+    }
+
+    public NodeToolPanel(boolean textOnly) {
+        //System.out.println("*** CONSTRUCTED " + this);
+        //new Throwable().printStackTrace();
          //super(BoxLayout.X_AXIS);
          setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
          // squeeze everything to keep the font editor panel from going right
@@ -153,9 +159,11 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          //mStrokeButton.setBorderPainted(false);
          mStrokeButton.setMargin(ButtonInsets);
  		
-         box.add( mFillColorButton);
-         box.add( mStrokeColorButton);
-         box.add( mStrokeButton);
+         if (!textOnly) {
+             box.add( mFillColorButton);
+             box.add( mStrokeColorButton);
+             box.add( mStrokeButton);
+         }
          box.add( mFontPanel);
          box.add( mTextColorButton);
  		
@@ -171,10 +179,11 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	
  	
  	
-     private void initDefaultState() {
-         LWNode node = new LWNode();
-         mDefaultState = VueBeans.getState( node);
-         setValue( mDefaultState);
+     protected void initDefaultState() {
+         //System.out.println("NodeToolPanel.initDefaultState");
+         LWNode node = new LWNode("NodeToolPanel.initializer");
+         mDefaultState = VueBeans.getState(node);
+         setValue(mDefaultState);
      }
  	
  	/**
@@ -182,7 +191,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	 * Generic property editor access
  	 **/
  	public void setValue( Object pValue) {
-            System.out.println("NTP setValue " + pValue);
+            //System.out.println("NTP setValue " + pValue);
  		VueBeanState state = null;
  		
  		enablePropertyChangeListeners( false);
@@ -205,11 +214,9 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  		
  		Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
  		float weightVal = 1;
- 		if( weight != null) {
-	 		weightVal = weight.floatValue();
- 			}
- 				
- 		mStrokeButton.setStroke( weight.floatValue() );
+ 		if( weight != null)
+                    weightVal = weight.floatValue();
+ 		mStrokeButton.setStroke(weightVal);
  		
  		Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kFillColor);
  		mFillColorButton.setColor( fill);
@@ -252,9 +259,10 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	 }
  	 
  	public void propertyChange( PropertyChangeEvent pEvent) {
- 		System.out.println("Node property chaged: "+pEvent.getPropertyName());
+            //System.out.println("Node property chaged: "+pEvent.getPropertyName());
   		String name = pEvent.getPropertyName();
   		if( !name.equals("ancestor") ) {
+ 		System.out.println("Node property chaged: "+ pEvent.getPropertyName() + " " + pEvent);
 	  		
 	  		VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
   			if( mState != null) {

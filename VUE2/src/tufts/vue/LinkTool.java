@@ -1,5 +1,3 @@
-
-
 package tufts.vue;
 
 import java.lang.*;
@@ -28,6 +26,10 @@ public class LinkTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
+        return getLinkToolPanel();
+    }
+
+    static LinkToolPanel getLinkToolPanel() {
         if (sLinkContextualPanel == null)
             sLinkContextualPanel = new LinkToolPanel();
         return sLinkContextualPanel;
@@ -215,13 +217,10 @@ public class LinkTool extends VueTool
                 link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
             }
             
-           /**
-           // init link based on user defined state
-            VueBeanState state = sLinkContextualPanel.getValue();
-            if( state != null) {
-            	state.applyState( link);
-            	}
-           **/
+            // init link based on user defined state
+            VueBeanState state = getLinkToolPanel().getValue();
+            if (state != null)
+            	state.applyState(link);
             
             commonParent.addChild(link);
             // We ensure a paint sequence here because a link to a link

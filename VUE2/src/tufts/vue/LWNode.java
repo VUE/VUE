@@ -199,7 +199,8 @@ public class LWNode extends LWContainer
     /** for save/restore only */
     public LWNode()
     {
-        setNodeShape(StandardShapes[3]);
+        setShape(new java.awt.geom.Rectangle2D.Float());
+        //setNodeShape(StandardShapes[3]);
         setAutoSized(false);
         //todo: remove this setShape eventually (or change to plain rectangle)
         // this is only here for temporary backward compat

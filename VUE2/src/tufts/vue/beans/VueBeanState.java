@@ -72,7 +72,7 @@ public class VueBeanState implements VueBeanInfo   {
 			String name = propertyNames[i];
 				Object value = VueBeans.getPropertyValue( pObject, name);
 				if (value != null) {
-					mProperties.put(name, value);
+                                    mProperties.put(name, value);
 					}
 			}
 	}
@@ -111,9 +111,7 @@ public class VueBeanState implements VueBeanInfo   {
 	 * Returns true if has property name; false if not
 	 **/
 	public boolean hasProperty( String pName) {
-		boolean hasIt = false;
-		
-		return hasIt;
+            return mProperties.containsKey(pName);
 	} 
 
 
@@ -200,6 +198,11 @@ public class VueBeanState implements VueBeanInfo   {
 	 		mSupport.firePropertyChange(propertyName, oldValue, newValue);
 			}
 	}
+
+    public String toString()
+    {
+        return "VueBeanState[" + mInfo + " " + mProperties + "]";
+    }
 
 
 }

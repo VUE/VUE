@@ -17,7 +17,9 @@ import tufts.vue.beans.*;
  *
  **/
  
- public class TextToolPanel extends JPanel implements  PropertyChangeListener {
+// public class TextToolPanel extends JPanel implements  PropertyChangeListener {
+ public class TextToolPanel extends NodeToolPanel
+ {
  
  	////////////
  	// Statics
@@ -30,28 +32,30 @@ import tufts.vue.beans.*;
 	////////////
 	
 	
- 	 	
  	
  	/** Text color menu editor **/
- 	ColorMenuButton mTextColorButton = null;
+ 	//ColorMenuButton mTextColorButton = null;
  	 	
  	/** the Font selection combo box **/
- 	FontEditorPanel mFontPanel = null;
+ 	//FontEditorPanel mFontPanel = null;
  	
  	
-	VueBeanState mDefaultState = null;
+     //VueBeanState mDefaultState = null;
 	
-	Object mState = null;
+     //Object mState = null;
 	
-	 	 	
  	
  	/////////////
  	// Constructors
  	//////////////////
  	
  	public TextToolPanel() {
- 		
-  		Color bakColor = VueResources.getColor("toolbar.background");
+            super(true);
+        }
+
+     /*
+ 	public TextToolPanel() {
+            Color bakColor = VueResources.getColor("toolbar.background");
  		Box box = Box.createHorizontalBox();
  		setBackground( bakColor);
  		
@@ -83,63 +87,62 @@ import tufts.vue.beans.*;
  		
  		initDefaultState();
  	}
- 	
+     */ 	
  	
  	////////////////
  	// Methods
  	/////////////////
  	
- 	private void initDefaultState() {
+     protected void initDefaultState() {
+         //System.out.println("TextToolPanel.initDefaultState");
+         mDefaultState = VueBeans.getState(NodeTool.initTextNode(new LWNode()));
+     }
  	
- 		LWNode node = new LWNode();
- 		node.setIsTextNode( true);
- 		mDefaultState = VueBeans.getState( node);
- 	}
- 	
- 	
- 	/**
- 	 * setValue
- 	 * Generic property editor access
- 	 **/
- 	public void setValue( Object pValue) {
- 		VueBeanState state = null;
- 		if( pValue instanceof LWComponent) {
- 			state = VueBeans.getState( pValue);
- 			}
- 		else
- 		if( pValue instanceof VueBeanState ) {
- 			state = (VueBeanState) pValue;
- 			}
+     /**
+      * setValue
+      * Generic property editor access
+      **/
+
+     public void setValue( Object pValue) {
+         VueBeanState state = null;
+         if( pValue instanceof LWComponent) {
+             state = VueBeans.getState( pValue);
+         }
+         else
+             if( pValue instanceof VueBeanState ) {
+                 state = (VueBeanState) pValue;
+             }
  		
- 		if( state == null)  {
- 			state = mDefaultState;
- 			}
+         if( state == null)  {
+             state = mDefaultState;
+         }
  		
- 		mState = state;
+         mState = state;
  		
- 		// strop listening since we are chinging the proeprty values.
- 		enablePropertyListeners( false);
+         // strop listening since we are chinging the proeprty values.
+         enablePropertyChangeListeners( false);
  		
- 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
- 		mFontPanel.setValue( font);
+         Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+         mFontPanel.setValue( font);
  		
+         Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+         mTextColorButton.setColor( text);
  		
- 		
- 		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
- 		mTextColorButton.setColor( text);
- 		
- 		// start listening again
- 		enablePropertyListeners( true);
- 	}
+         // start listening again
+         enablePropertyChangeListeners( true);
+     }
  	
  	/**
  	 * getValue
  	 *
  	 **/
+     /*
  	public Object getValue() {
  		return mState;
  	}
- 	
+     */
+
+     /*
 	private void enablePropertyListeners( boolean pEnable) {
 
 	if( pEnable) {
@@ -160,6 +163,7 @@ import tufts.vue.beans.*;
   			
   			}
   	}
+     */
  	
  	
  	

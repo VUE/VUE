@@ -8,8 +8,8 @@ import javax.swing.*;
 
 public class TextTool extends VueTool
 {
-	/** the contextual tool panel **/
-	TextToolPanel mTextContextualPanel = null;
+    /** the contextual tool panel **/
+    private static TextToolPanel sTextToolPanel;
 	
     public TextTool() {
         super();
@@ -23,13 +23,15 @@ public class TextTool extends VueTool
         
     }
     
+    static TextToolPanel getTextToolPanel()
+    {
+        if (sTextToolPanel == null)
+            sTextToolPanel = new TextToolPanel();
+        return sTextToolPanel;
+    }
+    
     public JPanel getContextualPanel() {
-        
-        if( mTextContextualPanel == null) {
-        	mTextContextualPanel = new TextToolPanel();
-        	}
-        	
-        return mTextContextualPanel;
+        return getTextToolPanel();
     }
     
     

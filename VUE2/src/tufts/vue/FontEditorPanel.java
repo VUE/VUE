@@ -241,7 +241,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
  	 **/
     public void setValue( Object pValue) {
         //new Throwable("FEP SETVALUE").printStackTrace();
-        System.out.println("FEP: setValue " + pValue);
+        //System.out.println("FEP: setValue " + pValue);
  		
         if( pValue instanceof Font) {
             Font font = (Font) pValue;
@@ -274,7 +274,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     }
     
     public void actionPerformed( ActionEvent pEvent) {
-        System.out.println("FEP: actionPerformed " + pEvent);
+        //System.out.println("FEP: actionPerformed " + pEvent);
         Font old = mFont;
         Font font = makeFont();
         if( (old == null) || ( !old.equals( font)) ) {

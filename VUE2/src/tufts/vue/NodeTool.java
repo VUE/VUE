@@ -42,7 +42,7 @@ public class NodeTool extends VueTool
         return singleton;
     }
     
-    private static NodeToolPanel getNodeToolPanel()
+    static NodeToolPanel getNodeToolPanel()
     {
         if (sNodeToolPanel == null)
             sNodeToolPanel = new NodeToolPanel();
@@ -108,10 +108,8 @@ public class NodeTool extends VueTool
     {
         LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
         VueBeanState state = getNodeToolPanel().getValue();
-        if( state != null) {
-        	state.applyState( node);
-        	}
-        
+        if (state != null)
+            state.applyState( node);
         node.setAutoSized(true);
         return node;
     }
@@ -119,9 +117,9 @@ public class NodeTool extends VueTool
     {
         return createNode(null);
     }
-    public static LWNode createTextNode(String text)
+    
+    static LWNode initTextNode(LWNode node)
     {
-        LWNode node = createNode(text);
         node.setIsTextNode( true);
         node.setAutoSized(true);
         node.setShape(new java.awt.geom.Rectangle2D.Float());
@@ -129,11 +127,16 @@ public class NodeTool extends VueTool
         node.setFillColor(COLOR_TRANSPARENT);
         node.setFont(LWNode.DEFAULT_TEXT_FONT);
         
-        VueBeanState state = getNodeToolPanel().getValue();
-        if (state != null) {
+        return node;
+    }
+    
+    public static LWNode createTextNode(String text)
+    {
+        LWNode node = new LWNode();
+        initTextNode(node);
+        VueBeanState state = TextTool.getTextToolPanel().getValue();
+        if (state != null)
             state.applyState( node);
-        }
-        
         return node;
     }
     

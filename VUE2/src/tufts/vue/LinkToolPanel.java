@@ -72,158 +72,160 @@ import tufts.vue.beans.*;
  	
      private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
      public LinkToolPanel() {
- 		
-            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+         //new Throwable("LINKTOOLPANEL CREATED").printStackTrace();
+         
+         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-                Color bakColor = VueResources.getColor("toolbar.background");
-		Box box = Box.createHorizontalBox();
- 		setBackground( bakColor);
-                setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
+         Color bakColor = VueResources.getColor("toolbar.background");
+         Box box = Box.createHorizontalBox();
+         setBackground( bakColor);
+         setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
                 
- 		Color [] linkColors = VueResources.getColorArray( "linkColorValues");
- 		String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
- 		mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
- 		ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
-		BlobIcon fillBlob = new BlobIcon();
-		fillBlob.setOverlay( fillIcon );
-		mLinkColorButton.setIcon(fillBlob);
- 		mLinkColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
- 		mLinkColorButton.setBorderPainted(false);
- 		mLinkColorButton.setMargin(ButtonInsets);
- 		mLinkColorButton.setBackground( bakColor);
- 		mLinkColorButton.addPropertyChangeListener( this);
+         Color [] linkColors = VueResources.getColorArray( "linkColorValues");
+         String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
+         mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
+         ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
+         BlobIcon fillBlob = new BlobIcon();
+         fillBlob.setOverlay( fillIcon );
+         mLinkColorButton.setIcon(fillBlob);
+         mLinkColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
+         mLinkColorButton.setBorderPainted(false);
+         mLinkColorButton.setMargin(ButtonInsets);
+         mLinkColorButton.setBackground( bakColor);
+         mLinkColorButton.addPropertyChangeListener( this);
  		
  		
- 		 Color [] textColors = VueResources.getColorArray( "textColorValues");
- 		 String [] textColorNames = VueResources.getStringArray( "textColorNames");
- 		 mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
- 		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-		if( textIcon == null) System.out.println("issing resource: textColorIcon");
-		BlobIcon textBlob = new BlobIcon();
-		textBlob.setOverlay( textIcon );
-		mTextColorButton.setIcon(textBlob);
- 		mTextColorButton.setPropertyName("nodeTextColor");
- 		mTextColorButton.setBackground( bakColor);
- 		mTextColorButton.setBorderPainted(false);
- 		mTextColorButton.setMargin(ButtonInsets);
- 		mTextColorButton.addPropertyChangeListener( this);
+         Color [] textColors = VueResources.getColorArray( "textColorValues");
+         String [] textColorNames = VueResources.getStringArray( "textColorNames");
+         mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
+         ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
+         if( textIcon == null) System.out.println("issing resource: textColorIcon");
+         BlobIcon textBlob = new BlobIcon();
+         textBlob.setOverlay( textIcon );
+         mTextColorButton.setIcon(textBlob);
+         mTextColorButton.setPropertyName("nodeTextColor");
+         mTextColorButton.setBackground( bakColor);
+         mTextColorButton.setBorderPainted(false);
+         mTextColorButton.setMargin(ButtonInsets);
+         mTextColorButton.addPropertyChangeListener( this);
  		
- 		mFontPanel = new FontEditorPanel();
- 		mFontPanel.addPropertyChangeListener( this);
+         mFontPanel = new FontEditorPanel();
+         mFontPanel.addPropertyChangeListener( this);
 
  		
-		mArrowStartButton = new JToggleButton();
-		mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
-		mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
-		mArrowStartButton.setBackground( bakColor);
-		mArrowStartButton.setBorderPainted(false);
- 		mArrowStartButton.setMargin(ButtonInsets);
-		mArrowStartButton.addActionListener( this);
+         mArrowStartButton = new JToggleButton();
+         mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
+         mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
+         mArrowStartButton.setBackground( bakColor);
+         mArrowStartButton.setBorderPainted(false);
+         mArrowStartButton.setMargin(ButtonInsets);
+         mArrowStartButton.addActionListener( this);
 		
-		mArrowEndButton = new JToggleButton();
-		mArrowEndButton.setIcon( VueResources.getImageIcon( "arrowEndOffIcon") );
-		mArrowEndButton.setSelectedIcon( VueResources.getImageIcon("arrowEndOnIcon") );
-		mArrowEndButton.addActionListener( this);
- 		mArrowEndButton.setMargin(ButtonInsets);
-                mArrowEndButton.setBorderPainted(false);
+         mArrowEndButton = new JToggleButton();
+         mArrowEndButton.setIcon( VueResources.getImageIcon( "arrowEndOffIcon") );
+         mArrowEndButton.setSelectedIcon( VueResources.getImageIcon("arrowEndOnIcon") );
+         mArrowEndButton.addActionListener( this);
+         mArrowEndButton.setMargin(ButtonInsets);
+         mArrowEndButton.setBorderPainted(false);
 		
-		mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
-		LineIcon lineIcon = new LineIcon( 16,12);
-		mStrokeButton.setIcon( lineIcon);
-		mStrokeButton.setStroke( (float) 1);
- 		mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
- 		mStrokeButton.setBackground( bakColor);
- 		mStrokeButton.addPropertyChangeListener( this );
- 		mStrokeButton.setMargin(ButtonInsets);
-		mStrokeButton.setBorderPainted(false);
+         mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
+         LineIcon lineIcon = new LineIcon( 16,12);
+         mStrokeButton.setIcon( lineIcon);
+         mStrokeButton.setStroke( (float) 1);
+         mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
+         mStrokeButton.setBackground( bakColor);
+         mStrokeButton.addPropertyChangeListener( this );
+         mStrokeButton.setMargin(ButtonInsets);
+         mStrokeButton.setBorderPainted(false);
  		
  		
- 		box.add( mLinkColorButton);
- 		box.add( mArrowStartButton);
- 		box.add( mStrokeButton);
- 		box.add( mArrowEndButton);
- 		box.add( mFontPanel);
- 		box.add( mTextColorButton);
+         box.add( mLinkColorButton);
+         box.add( mArrowStartButton);
+         box.add( mStrokeButton);
+         box.add( mArrowEndButton);
+         box.add( mFontPanel);
+         box.add( mTextColorButton);
  		
- 		this.add( box);
+         this.add( box);
  	
- 		initDefaultState();
- 	}
- 	
- 	
- 	////////////////
- 	// Methods
- 	/////////////////
+         initDefaultState();
+     }
  	
  	
- 	private void initDefaultState() {
- 		LWLink  link = new LWLink();
- 		mDefaultState = VueBeans.getState( link);
- 	}
+     ////////////////
+     // Methods
+     /////////////////
  	
  	
- 	/**
- 	 * setValue
- 	 * Generic property editor access
- 	 **/
- 	public void setValue( Object pValue) {
+     private void initDefaultState() {
+         LWLink  link = LWLink.setDefaults(new LWLink());
+         mDefaultState = VueBeans.getState(link);
+     }
+ 	
+ 	
+     /**
+      * setValue
+      * Generic property editor access
+      **/
+     public void setValue( Object pValue) {
+         //System.out.println("LinkToolPanel setValue " + pValue);
+         VueBeanState state = null;
+         if( pValue instanceof LWComponent) {
+             state = VueBeans.getState( pValue);
+             //System.out.println("got state " + state);
+         }
+ 			
+         mState = state;
+ 		
+         // stop listening while we change the values
+         enablePropertyListeners( false);
+ 		
+         if( mState.hasProperty( VueLWCPropertyMapper.kFont) ) {
+             Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+             mFontPanel.setValue( font);
+         }
+         else {
+             debug("missing font property in state");
+         }
+ 		
+         if( mState.hasProperty( VueLWCPropertyMapper.kStrokeWeight) ) {
+             Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
+             mStrokeButton.setStroke( weight.floatValue() );
+         }
+         else {
+             debug("missing stroke weight proeprty in state.");
+         }
+ 			
+         if( mState.hasProperty( VueLWCPropertyMapper.kLinkArrowState) ) {
+             Integer arrows = (Integer) state.getPropertyValue( VueLWCPropertyMapper.kLinkArrowState );
+             int arrowState = arrows.intValue();
+             mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
+             mArrowEndButton.setSelected( (arrowState % LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
+         }
+         else {
+             debug("missing arrow state property in state");
+         }
+ 		
+         if( mState.hasProperty( VueLWCPropertyMapper.kStrokeColor) ) {
+             Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
+             mLinkColorButton.setColor( fill);
+         }
+         else {
+             debug(" missing link stroke color property.");
+         }
+ 		
+         if( mState.hasProperty( VueLWCPropertyMapper.kTextColor) ) {
+             Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+             mTextColorButton.setColor( text);
+         }
+         else {
+             debug("missing text color property in state.");
+         }
+         // all done setting... start listening  again.
+         enablePropertyListeners( true);
+     }
 
- 		VueBeanState state = null;
- 		if( pValue instanceof LWComponent) {
- 			state = VueBeans.getState( pValue);
- 			}
- 			
- 			
- 		mState = state;
- 		
- 		// stop listening while we change the values
- 		enablePropertyListeners( false);
- 		
- 		if( mState.hasProperty( VueLWCPropertyMapper.kFont) ) {
-	 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
- 			mFontPanel.setValue( font);
- 			}
- 		else {
- 			debug("missing font property in state");
- 			}
- 		
- 		if( mState.hasProperty( VueLWCPropertyMapper.kStrokeWeight) ) {
-			Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
-			mStrokeButton.setStroke( weight.floatValue() );
- 			}
- 		else {
- 			debug("missing stroke weight proeprty in state.");
- 			}
- 			
- 		if( mState.hasProperty( VueLWCPropertyMapper.kLinkArrowState) ) {
- 			Integer arrows = (Integer) state.getPropertyValue( VueLWCPropertyMapper.kLinkArrowState );
- 			int arrowState = arrows.intValue();
- 			mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
- 			mArrowEndButton.setSelected( (arrowState % LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
- 			}
- 		else {
- 			debug("missing arrow state property in state");
- 			}
- 		
- 		if( mState.hasProperty( VueLWCPropertyMapper.kStrokeColor) ) {
- 			Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
- 			mLinkColorButton.setColor( fill);
- 			}
- 		else {
- 			debug(" missing link stroke color property.");
- 			}
- 		
- 		if( mState.hasProperty( VueLWCPropertyMapper.kTextColor) ) {
- 			Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
- 			mTextColorButton.setColor( text);
- 			}
- 		else {
- 			debug("missing text color property in state.");
- 			}
- 		// all done setting... start listening  again.
- 		enablePropertyListeners( true);
- 	}
- 	
+     
  	/**
  	 * getValue
  	 *

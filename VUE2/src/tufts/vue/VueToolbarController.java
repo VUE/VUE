@@ -35,13 +35,6 @@ public class VueToolbarController
 	
         static private VueToolbarController sController;
 	
-	/** Contextual tool panels for various selection types **/
-        static private NodeToolPanel sNodeSelectionContextualPanel;
-        static private TextToolPanel sTextSelectionContextualPanel;
-        static private LinkToolPanel sLinkSelectionContextualPanel;
-	
-	
-	
 	//////////
 	// Fields
 	//////////
@@ -434,7 +427,7 @@ public class VueToolbarController
 	 			}
 	 		else
 	 		if( c instanceof LWLink) {
-	 			tool = controller.getTool( "linkToolo");
+	 			tool = controller.getTool( "linkTool");
 	 			}
 	 		}
 	 	if( tool != null) {
@@ -443,26 +436,6 @@ public class VueToolbarController
 	 	return panel;
 	 }
 	 
-	 
-     private static NodeToolPanel getNodeSelectionContextualPanel()
-     {
-         if (sNodeSelectionContextualPanel == null)
-             sNodeSelectionContextualPanel = new NodeToolPanel();
-         return sNodeSelectionContextualPanel;
-     }
-
-     private static LinkToolPanel getLinkSelectionContextualPanel()
-     {
-         if (sLinkSelectionContextualPanel == null)
-             sLinkSelectionContextualPanel = new LinkToolPanel();
-         return sLinkSelectionContextualPanel;
-     }
-     private static TextToolPanel getTextSelectionContextualPanel()
-     {
-         if (sTextSelectionContextualPanel == null)
-             sTextSelectionContextualPanel = new TextToolPanel();
-         return sTextSelectionContextualPanel;
-     }
      
      private JPanel getContextualPanelForSelection() {
          JPanel panel = null;
@@ -471,17 +444,18 @@ public class VueToolbarController
              LWComponent c = (LWComponent) selection.get(0);
              if( c instanceof LWNode) {
                  if( ((LWNode) c).isTextNode() ) {
-                     panel = getTextSelectionContextualPanel();
+                     panel = TextTool.getTextToolPanel();
                  }
                  else {
-                     panel = getNodeSelectionContextualPanel();
+                     panel = NodeTool.getNodeToolPanel();
                  }
              }
              else
                  if( c instanceof LWLink) {
-                     panel = getLinkSelectionContextualPanel();
+                     panel = LinkTool.getLinkToolPanel();
                  }
          }
+         //System.out.println(this + " getContextualPanelForSelection returning " + panel);
          return panel;
      }
 	 
@@ -557,3 +531,31 @@ public class VueToolbarController
     }
      
 }
+
+
+
+     // Contextual tool panels for various selection types 
+     //static private NodeToolPanel sNodeSelectionContextualPanel;
+     //static private TextToolPanel sTextSelectionContextualPanel;
+     //static private LinkToolPanel sLinkSelectionContextualPanel;
+     /*
+     private static NodeToolPanel getNodeSelectionContextualPanel()
+     {
+         if (sNodeSelectionContextualPanel == null)
+             sNodeSelectionContextualPanel = new NodeToolPanel();
+         return sNodeSelectionContextualPanel;
+     }
+
+     private static LinkToolPanel getLinkSelectionContextualPanel()
+     {
+         if (sLinkSelectionContextualPanel == null)
+             sLinkSelectionContextualPanel = new LinkToolPanel();
+         return sLinkSelectionContextualPanel;
+     }
+     private static TextToolPanel getTextSelectionContextualPanel()
+     {
+         if (sTextSelectionContextualPanel == null)
+             sTextSelectionContextualPanel = new TextToolPanel();
+         return sTextSelectionContextualPanel;
+     }
+     */

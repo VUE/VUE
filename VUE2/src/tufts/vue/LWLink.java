@@ -93,15 +93,19 @@ public class LWLink extends LWComponent
     {
         if (ep1 == null || ep2 == null)
             throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
-        //this.ep1 = ep1;
-        //this.ep2 = ep2;
         setSize(10,10);
-        setFont(FONT_LINKLABEL);
-        setTextColor(COLOR_LINK_LABEL);
+        setDefaults(this);
         setComponent1(ep1);
         setComponent2(ep2);
-        setStrokeWidth(1f); //todo config: default link width / query LinkTool
         computeLinkEndpoints();
+    }
+
+    static LWLink setDefaults(LWLink l)
+    {
+        l.setFont(FONT_LINKLABEL);
+        l.setTextColor(COLOR_LINK_LABEL);
+        l.setStrokeWidth(1f); //todo config: default link width
+        return l;
     }
 
     public boolean supportsUserLabel() {
