@@ -34,7 +34,7 @@ import javax.swing.border.*;
 /**
  * @author  Daisuke Fujiwara
  */
-public class LWOutlineView extends ToolWindow
+public class LWOutlineView extends ToolWindow implements VUE.ActiveMapListener
 {
     private OutlineViewTree tree = null;
     
@@ -45,6 +45,7 @@ public class LWOutlineView extends ToolWindow
         
         tree = new OutlineViewTree();
         VUE.getSelection().addListener(tree);
+        VUE.addActiveMapListener(this);
         
         //tree.setBorder(new EmptyBorder(4,4,4,4));
 
@@ -66,7 +67,8 @@ public class LWOutlineView extends ToolWindow
  
     // TODO: change tree to active map listener, and get rid
     // of this class (use ToolWindow and just add the OutlineTreeView)
-    public void switchMap(LWMap map)
+    //public void switchMap(LWMap map)
+    public void activeMapChanged(LWMap map)
     {
         tree.switchContainer(map);
         //outlineLabel.setText("Map: " + map.getLabel());
