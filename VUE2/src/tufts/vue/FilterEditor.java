@@ -260,7 +260,7 @@ public class FilterEditor extends JPanel{
         /** setting the defaultCellEditor **/
         JComboBox editor = null;
         public OperatorCellEditor() {
-            super(new JTextField(""));
+            super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             
@@ -270,7 +270,7 @@ public class FilterEditor extends JPanel{
                 editor =  new JComboBox((Vector)((Statement)(filterTableModel.getFilters().get(row))).getKey().getType().getOperators());
                 return editor;
             }
-            return (new JTextField(""));
+            return (new JComboBox());
         }
         
         public Object getCellEditorValue() {
@@ -280,10 +280,7 @@ public class FilterEditor extends JPanel{
                 throw new RuntimeException("No Keys present");
             
         }
-        public int getClickCountToStart() {
-            return 0;
-        }
-        
+
     }
     
     public class KeyCellEditor extends DefaultCellEditor {
@@ -291,9 +288,10 @@ public class FilterEditor extends JPanel{
         Vector keys;
         JComboBox editor = null;
         public KeyCellEditor() {
-            super(new JTextField(""));
+            super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            System.out.println("Started editor");
             TableModel tableModel = table.getModel();
             if (tableModel instanceof FilterTableModel) {
                 FilterTableModel filterTableModel  = (FilterTableModel) tableModel;
@@ -303,11 +301,13 @@ public class FilterEditor extends JPanel{
                 keys.add(keyNotes);
                 keys.addAll(VUE.getActiveMap().getMapFilterModel().getKeyVector());
                 editor = new JComboBox(keys);
+                System.out.println("Returned editor");            
                 return editor;
             }
-            return (new JTextField(""));
+            return (new JComboBox());
         }
         
+      
         
         public Object getCellEditorValue() {
             if(editor!= null) {
