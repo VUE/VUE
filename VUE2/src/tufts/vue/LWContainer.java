@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -229,9 +230,16 @@ public abstract class LWContainer extends LWComponent
         java.util.Iterator i = component.getLinkRefs().iterator();
         while (i.hasNext()) {
             LWLink l = (LWLink) i.next();
+            LWContainer parent1 = null;
+            LWContainer parent2 = null;
+            if (l.getComponent1() != null)
+                parent1 = l.getComponent1().getParent();
+            if (l.getComponent2() != null)
+                parent2 = l.getComponent2().getParent();
             // don't need to do anything if link doesn't cross a (logical) parent boundry
-            if (l.getComponent1().getParent() == l.getComponent2().getParent())
-                continue;
+            if (parent1 == parent2)
+                    continue;
+            
             // also don't need to do anything if link is BETWEEN a parent and a child
             // (in which case, at the moment, we don't even see the link)
             if (l.isParentChildLink())
@@ -437,6 +445,11 @@ VueAction: Zoom 100% n=1
             }
         }
         return this;
+    }
+
+    public LWComponent findLWSubTargetAt(Point2D p)
+    {
+        return findLWSubTargetAt((float)p.getX(), (float)p.getY());
     }
 
     
@@ -665,6 +678,10 @@ VueAction: Zoom 100% n=1
         if (this.children.size() > 0) {
 
             Rectangle clipBounds = g.getClipBounds();
+
+            // fudge clip bounds to deal with anti-aliasing
+            // edges that are being missed.
+            clipBounds.grow(1,1);
             
             /*if (false) {
                 System.out.println("DRAWING " + this);
