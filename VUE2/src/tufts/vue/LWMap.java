@@ -316,7 +316,7 @@ public class LWMap extends LWContainer
         int pathIndex = 0;
         while (i.hasNext()) {
             LWPathway path = (LWPathway) i.next();
-            if (path.isVisible() && path.hasChildren()) {
+            if (path.isVisible() && !path.isFiltered() && path.hasChildren()) {
                 dc.setIndex(pathIndex++);
                 path.drawPathway(dc.create());
             }

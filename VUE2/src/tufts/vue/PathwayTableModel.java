@@ -75,10 +75,8 @@ public class PathwayTableModel extends DefaultTableModel
 
     private LWPathwayList getPathwayList() {
         return mMap == null ? null : mMap.getPathwayList();
-        //return VUE.getActiveMap() == null ? null : VUE.getActiveMap().getPathwayList();
     }
     Iterator getPathwayIterator() {
-        //return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathwayList().iterator();
         return mMap == null ? VueUtil.EmptyIterator : mMap.getPathwayList().iterator();
     }
     

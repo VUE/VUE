@@ -34,7 +34,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     private PathwayTable mPathwayTable;
     private PathwayTableModel mTableModel;
     
-    private AbstractButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock;
+    private AbstractButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock, btnPathwayShowOnly;
     private AbstractButton btnElementRemove, btnElementAdd, btnElementUp, btnElementDown;
     
     private JLabel pathLabel;           // updated for current PathwayTable selection
@@ -48,9 +48,6 @@ public class PathwayPanel extends JPanel implements ActionListener
     private final Color bgColor = new Color(241, 243, 246);
     private final Color altbgColor = new Color(186, 196, 222);
     
-    private final String[] colNames = {"A", "B", "C", "D", "E", "F"};
-    private final int[] colWidths = {20,20,13,100,20,20};
- 
     private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
     private static final Action path_backward = new PlayerAction("pathway.control.backward");
     private static final Action path_forward = new PlayerAction("pathway.control.forward");
@@ -73,14 +70,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         //-------------------------------------------------------
 
         mTableModel = new PathwayTableModel();
-
         mPathwayTable = new PathwayTable(mTableModel);
         mPathwayTable.setBackground(bgColor);
-        for (int i = 0; i < colWidths.length; i++){
-            TableColumn col = mPathwayTable.getColumn(colNames[i]);
-            if (i == 2) col.setMinWidth(colWidths[i]);
-            if (i != 3) col.setMaxWidth(colWidths[i]);
-        }
         
         //-------------------------------------------------------
         // Setup selected pathway VCR style controls for current
@@ -98,9 +89,11 @@ public class PathwayPanel extends JPanel implements ActionListener
         // Setup pathway master add/remove/lock control
         //-------------------------------------------------------
          
-        btnPathwayCreate = new VueButton("pathways.add", this);
-        btnPathwayDelete = new VueButton("pathways.delete", this);
-        btnPathwayLock   = new VueButton("pathways.lock", this);
+        btnPathwayCreate   = new VueButton("pathways.add", this);
+        btnPathwayDelete   = new VueButton("pathways.delete", this);
+        btnPathwayLock     = new VueButton("pathways.lock", this);
+        btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
+        
         
         JPanel pathwayMasterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
                 public void addNotify() {
@@ -117,6 +110,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                     add(btnPathwayCreate);
                     add(btnPathwayDelete);
                     add(btnPathwayLock);
+                    add(btnPathwayShowOnly);
                     
                     //JLabel help = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
                     //help.setBackground(altbgColor);
@@ -419,8 +413,48 @@ public class PathwayPanel extends JPanel implements ActionListener
         else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
         else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).show(); }
         else if (btn == btnPathwayLock)     { pathway.setLocked(!pathway.isLocked()); }
+        else if (btn == btnPathwayShowOnly) {
+            toggleHideEverythingButCurrentPathway();
+        }
 
         VUE.getUndoManager().mark();
+    }
+
+    private LWPathway excluseDisplay;
+    private synchronized void toggleHideEverythingButCurrentPathway()
+    {
+        LWMap map = VUE.getActiveMap();
+        LWPathway pathway = VUE.getActivePathway();
+        
+        if (pathway == null || map == null)
+            return;
+
+        Iterator i = map.getAllDescendents().iterator();
+        if (excluseDisplay != pathway) {
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                c.setIsFiltered(!c.inPathway(pathway));
+            }
+            excluseDisplay = pathway;
+        } else {
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                c.setIsFiltered(false);
+            }
+            excluseDisplay = null;
+        }
+
+        i = map.getPathwayList().iterator();
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            if (excluseDisplay == null)
+                p.setIsFiltered(false);
+            else
+                p.setIsFiltered(p != pathway);
+        }
+        
+        mTableModel.fireTableDataChanged(); // so will gray filtered items
+        map.notify(this, "pathway.exclusive.display");
     }
    
     private void updateAddRemoveActions()

@@ -44,7 +44,9 @@ public class PathwayTable extends JTable
     private final LineBorder normalBorder = null;//new LineBorder(regular, 2);
     
     private int lastSelectedRow = -1;
-    private static final boolean showHeaders = true;    //sets whether or not table column headers are shown(?)
+
+    private final boolean showHeaders = true; // sets whether or not table column headers are shown
+    private final int[] colWidths = {20,20,13,100,20,20};
     
     public PathwayTable(PathwayTableModel model) {
         super(model);
@@ -81,6 +83,13 @@ public class PathwayTable extends JTable
         this.setDefaultRenderer(Object.class, new LabelRenderer());
         this.setDefaultEditor(Color.class, new ColorEditor());
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        final String[] colNames = {"A", "B", "C", "D", "E", "F"};
+        for (int i = 0; i < colWidths.length; i++){
+            TableColumn col = getColumn(colNames[i]);
+            if (i == 2) col.setMinWidth(colWidths[i]);
+            if (i != 3) col.setMaxWidth(colWidths[i]);
+        }
 
         this.getSelectionModel().addListSelectionListener
             (new ListSelectionListener() {
@@ -252,10 +261,14 @@ public class PathwayTable extends JTable
                                     int row, 
                                     int col)
         {
-            this.setForeground(Color.black);
-            this.setBorder(normalBorder);
-            
             LWComponent c = getTableModel().getElement(row);
+
+            if (c.isFiltered())
+                setForeground(Color.lightGray);
+            else
+                setForeground(Color.black);
+
+            this.setBorder(normalBorder);
             
             if (c instanceof LWPathway){
                 LWPathway p = (LWPathway) c;

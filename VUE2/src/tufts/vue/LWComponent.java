@@ -1220,7 +1220,7 @@ public class LWComponent
         Iterator i = pathwayRefs.iterator();
         while (i.hasNext()) {
             LWPathway path = (LWPathway) i.next();
-            if (path.isVisible())
+            if (path.isVisible() && !path.isFiltered())
                 path.drawComponentDecorations(dc, this);
         }
         

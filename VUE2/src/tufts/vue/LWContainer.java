@@ -725,7 +725,7 @@ public abstract class LWContainer extends LWComponent
             java.util.ListIterator i = children.listIterator(children.size());
             while (i.hasPrevious()) {
                 LWComponent c = (LWComponent) i.previous();
-                if (c.isHidden())
+                if (c.isHidden() || c.isFiltered())
                     continue;
                 if (!(c instanceof LWNode))
                     continue;

@@ -107,6 +107,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
         mFontCombo.setFont(menuFont);
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
+        mFontCombo.setMaximumSize(mFontCombo.getPreferredSize());
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
         //mFontCombo.setMaximumSize(new Dimension(50,50)); // no effect
@@ -143,6 +144,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         f = mSizeField.getFont();
         Font sizeFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
         mSizeField.setFont( sizeFont);
+        mSizeField.setMaximumSize(mSizeField.getPreferredSize());
  		
         mBoldButton = new JToggleButton();
         mBoldButton.setSelectedIcon( sBoldOn);
