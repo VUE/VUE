@@ -1,7 +1,7 @@
 
 <project name="vue" default="vuedemo" basedir=".">
 
-<!-- $Revision: 1.5 $ / $Date: 2004-06-17 01:36:12 $ -->
+<!-- $Revision: 1.6 $ / $Date: 2004-06-18 19:35:18 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -213,6 +213,14 @@
     <echo message="lib.home is ${lib.home}"/>
 
     <javac srcdir="${basedir}" 
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}">
+      <classpath refid="compile.classpath.oki1and2"/>
+      <include name="tufts/vue/OsidAsset*.java"/>
+    </javac>
+
+    <javac srcdir="${basedir}" 
               debug="${compile.debug}"
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}">
@@ -235,14 +243,6 @@
            optimize="${compile.optimize}">
       <classpath refid="compile.classpath.oki2"/>
       <include name="tufts/oki/repository/fedora/*.java"/>
-    </javac>
-
-    <javac srcdir="${basedir}" 
-             debug="${compile.debug}"
-        deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
-      <classpath refid="compile.classpath.oki1and2"/>
-      <include name="tufts/vue/OsidAssetViewer.java"/>
     </javac>
 
     <javac srcdir="${basedir}" 
