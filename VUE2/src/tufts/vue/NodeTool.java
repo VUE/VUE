@@ -209,10 +209,13 @@ public class NodeTool extends VueTool
                 return (int) Math.ceil(d);
         }
         
-        private static final Color sShapeColor = new Color(165,178,208); // melanie's steel blue
+        //private static final Color sShapeColor = new Color(165,178,208); // Melanie's steel blue
+        private static final Color sShapeColor = new Color(93,98,162); // Melanie's icon blue/purple
+        private static final Color sShapeColorLight = VueUtil.factorColor(sShapeColor, 1.3);
+        private static GradientPaint sShapeGradient;
         private static int sWidth;
         private static int sHeight;
-
+        
         static {
 
             // Select a width/height that will perfectly center within
@@ -232,6 +235,12 @@ public class NodeTool extends VueTool
                 sHeight = nearestEven(ToolIcon.height / 2);
             else
                 sHeight = nearestOdd(ToolIcon.height / 2);
+
+            sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColorLight, sWidth/2,sHeight/2,sShapeColor,true); // horizontal dark center
+            //sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColor, sWidth/2,sHeight/2,sShapeColorLight,true); // horizontal light center
+            //sShapeGradient = new GradientPaint(0,sHeight/2,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // vertical
+            //sShapeGradient = new GradientPaint(0,0,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // diagonal
+            
         }
         
         class ShapeIcon implements Icon
@@ -252,11 +261,15 @@ public class NodeTool extends VueTool
             
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g;
-                mShape.setFrame(x, y, sWidth, sHeight);
-                g2.setColor(sShapeColor);
+                g2.translate(x,y);
+                if (sShapeGradient != null)
+                    g2.setPaint(sShapeGradient);
+                else
+                    g2.setColor(sShapeColor);
                 g2.fill(mShape);
                 g2.setColor(Color.black);
                 g2.draw(mShape);
+                g2.translate(-x,-y);
             }
 
             public String toString() {

@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.util.*;
 import java.io.File;
+import java.awt.Color;
 
 public class VueUtil
 {
@@ -343,6 +344,21 @@ public class VueUtil
         VueUtil.centerOnScreen(frame);
         frame.show();
     }
+
+    static final double sFactor = 0.9;
+    public static Color darkerColor(Color c) {
+        return factorColor(c, sFactor);
+    }
+    public static Color brighterColor(Color c) {
+        return factorColor(c, 1/sFactor);
+    }
+    public static Color factorColor(Color c, double factor)
+    {
+	return new Color((int)(c.getRed()  *factor),
+			 (int)(c.getGreen()*factor),
+			 (int)(c.getBlue() *factor));
+    }
+    
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
          javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      

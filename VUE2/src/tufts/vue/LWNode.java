@@ -920,20 +920,12 @@ public class LWNode extends LWContainer
     private static final float ZoomAlpha = 0.8f;
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ZoomAlpha);
 
-    private static Color darkerColor(Color c)
-    {
-        final double FACTOR = 0.9;
-	return new Color((int)(c.getRed()  *FACTOR),
-			 (int)(c.getGreen()*FACTOR),
-			 (int)(c.getBlue() *FACTOR));
-    }
-
     public Color getRenderFillColor()
     {
         Color c = getFillColor();
         if (getParent() instanceof LWNode) {
             if (c != null && c.equals(getParent().getRenderFillColor()))
-                c = darkerColor(c);
+                c = VueUtil.darkerColor(c);
         }
         return c;
     }
