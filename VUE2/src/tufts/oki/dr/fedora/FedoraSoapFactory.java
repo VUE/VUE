@@ -105,7 +105,7 @@ public class FedoraSoapFactory {
         return disseminationList;
     }
     
-    
+    /**
     public static  MIMETypedStream getDisseminationStream(Dissemination dissemination) throws osid.dr.DigitalRepositoryException {
         Call call;
         MIMETypedStream stream;
@@ -122,6 +122,7 @@ public class FedoraSoapFactory {
         return stream;
         
     }
+     */
     // not used anymore
     /**
      * public static  FieldSearchResult search(DR dr,String term,String maxResults,String[] resField)  throws osid.dr.DigitalRepositoryException {
@@ -301,7 +302,7 @@ public class FedoraSoapFactory {
         }
         return call;
     }
-    
+    /**
     private static Call getCallDissemination(Dissemination dissemination) throws osid.dr.DigitalRepositoryException {
         Call call;
         DR dr = dissemination.getBehavior().getFedoraObject().getDR();
@@ -328,7 +329,7 @@ public class FedoraSoapFactory {
         }
         return call;
     }
-    
+    **/
     private static Call getCallSearch(DR dr)  throws osid.dr.DigitalRepositoryException {
         Call call;
         try {
