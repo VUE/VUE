@@ -553,6 +553,13 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     }
     
     /**
+     *  Return a URL string for this LocalByteStore.
+     */
+    public String getUrl() {
+        String fn = getFile().getAbsolutePath();
+        return "file://" + fn;
+    }
+    /**
      *  Get the string character that separates path nodes.
      */
     public String separator () {
