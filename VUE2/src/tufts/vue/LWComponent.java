@@ -112,7 +112,12 @@ public class LWComponent
         // to differentiate hierarchy events that are just reparentings from
         // new creation events.
 
-        notify(LWKey.Created, new Undoable() { void undo() { removeFromModel(); }} );
+        notify(LWKey.Created, new Undoable() {
+                void undo() {
+                    // parent may already have deleted it for us, so only delete if need be
+                    if (!isDeleted())
+                        removeFromModel();
+                }} );
     }
     
     public void setLabel(String label)
@@ -1248,8 +1253,19 @@ public class LWComponent
 
         public String toString() {
             String s = listener.toString();
-            if (eventMask != null)
-                s += " filter<" + eventMask + ">";
+            if (eventMask != null) {
+                s += ":only<";
+                if (eventMask instanceof Object[]) {
+                    Object[] eventKeys = (Object[]) eventMask;
+                    for (int i = 0; i < eventKeys.length; i++) {
+                        if (i>0) s+= ",";
+                        s += eventKeys[i];
+                    }
+                } else {
+                    s += eventMask;
+                }
+                s += ">";
+            }
             return s;
         }
     }
@@ -1519,10 +1535,20 @@ public class LWComponent
      * Do any cleanup needed now that this LWComponent has
      * been removed from the model
      */
-    protected void removeFromModel()
+    protected void removeFromModel() {
+        removeFromModel(true);
+    }
+
+    protected void removeFromModel(boolean first)
     {
-        if (isDeleted())
-            throw new IllegalStateException("Attempt to delete already deleted: " + this);
+        if (isDeleted()) {
+            if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(lwc): ignoring (already removed)");
+            return;
+        }
+        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(lwc), first="+first);
+            //throw new IllegalStateException(this + ": attempt to delete already deleted");
+        if (first)
+            notify(LWKey.Deleting);
         removeAllLWCListeners();
         disconnectFromLinks();
         setDeleted(true);
@@ -1531,6 +1557,7 @@ public class LWComponent
     /** undelete */
     protected void restoreToModel()
     {
+        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " restoreToModel");
         if (!isDeleted()) {
             throw new IllegalStateException("Attempt to restore already restored: " + this);
             //out("FYI: already restored: " + this);
@@ -1548,9 +1575,8 @@ public class LWComponent
     private void setDeleted(boolean deleted) {
         if (deleted) {
             this.scale = -1;
-            if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS) {
-                if (parent != null) System.out.println(this + " parent not yet null in setDeleted true (ok for undo of creates)");
-            }
+            if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS)
+                if (parent != null) out(this + " parent not yet null in setDeleted true (ok for undo of creates)");
             this.parent = null;
         } else
             this.scale = 1;
@@ -1707,6 +1733,8 @@ public class LWComponent
         String cname = getClass().getName();
         String s = cname.substring(cname.lastIndexOf('.')+1);
         s += "[" + getID();
+        if (getID() != null && getID().length() < 2)
+            s += " ";
         if (getLabel() != null) {
             if (isAutoSized())
                 s += " \"" + escapeWhitespace(getLabel()) + "\"";

@@ -211,10 +211,11 @@ public abstract class LWContainer extends LWComponent
     protected void addChildInternal(LWComponent c)
     {
         if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
-        if (c.getParent() != null) {
+        if (c.getParent() != null && c.getParent().getChildList().contains(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
             if (DEBUG.PARENTING)
                 new Throwable("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()).printStackTrace();
+                //out(this + " auto-deparenting " + c + " from " + c.getParent()).printStackTrace();
             if (c.getParent() == this) {
                 if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
                 // this okay -- in fact useful for child node re-drop on existing parent to trigger
@@ -226,7 +227,6 @@ public abstract class LWContainer extends LWComponent
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
-
         ensureID(c);
     }
 
@@ -376,7 +376,7 @@ public abstract class LWContainer extends LWComponent
             }
             */
         }
-        c.setParent(null);
+        //c.setParent(null);
 
         // If this child was scaled inside us (as all children are except groups)
         // be sure to restore it's scale back to 1 when de-parenting it.
@@ -394,24 +394,42 @@ public abstract class LWContainer extends LWComponent
      * Children will be left as orphans -- up to caller what
      * to do with those.
      */
-    public void removeChildren(Iterator i)
+    protected void removeChildren(Iterator i)
     {
         notify(LWKey.HierarchyChanging);
 
-        ArrayList deletedChildren = new ArrayList();
+        ArrayList removedChildren = new ArrayList();
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.getParent() == this) {
                 removeChildInternal(c);
-                deletedChildren.add(c);
+                removedChildren.add(c);
             } else
                 throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
         }
-        if (deletedChildren.size() > 0) {
-            notify(LWKey.ChildrenRemoved, deletedChildren);
+        if (removedChildren.size() > 0) {
+            notify(LWKey.ChildrenRemoved, removedChildren);
             layout();
         }
+    }
+
+    /**
+     * @param possibleChildren should contain at least one child of this container
+     * to be reparented.  Children not in this container are ignored.
+     */
+    public void reparentTo(LWContainer newParent, Iterator possibleChildren)
+    {
+        notify(LWKey.HierarchyChanging);
+
+        List reparenting = new ArrayList();
+        while (possibleChildren.hasNext()) {
+            LWComponent c = (LWComponent) possibleChildren.next();
+            if (c.getParent() == this)
+                reparenting.add(c);
+        }
+        removeChildren(reparenting.iterator());
+        newParent.addChildren(reparenting.iterator());
     }
 
     /**
@@ -427,8 +445,7 @@ public abstract class LWContainer extends LWComponent
         // anything changes.
         c.notify(LWKey.Deleting);
         removeChild(c);
-        c.removeFromModel();
-        //c.notify(LWKey.Deleted);
+        c.removeFromModel(false);
     }
 
     protected void removeChildrenFromModel()
@@ -439,21 +456,34 @@ public abstract class LWContainer extends LWComponent
         Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.notify(LWKey.Deleting);
+            //c.notify(LWKey.Deleting);
             c.removeFromModel();
-            //c.notify(LWKey.Deleted);
         }
     }
     
-    protected void removeFromModel()
+    protected void removeFromModel(boolean first)
     {
+        if (isDeleted()) {
+            if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(container): ignoring (already removed)");
+            return;
+        }
+        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(container), first="+first);
+        if (first) notify(LWKey.Deleting);
         removeChildrenFromModel();
-        super.removeFromModel();
+        super.removeFromModel(false);
         if (this.children == VUE.ModelSelection) // todo: tmp debug
             throw new IllegalStateException("attempted to delete selection");
-        // help the gc
-        //this.children.clear();
-        //this.children = null;
+    }
+    
+    protected void restoreToModel()
+    {
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setParent(this);
+            c.restoreToModel();
+        }
+        super.restoreToModel();
     }
 
     /*
