@@ -440,7 +440,7 @@ public abstract class VueTool extends AbstractAction
 		return mOverlayDownIcon;
 	}
 	public void setGeneratedIcons(Icon pIcon) {
-            System.out.println(this + " generating icons from " + pIcon);
+            //System.out.println(this + " generating icons from " + pIcon);
             mRawIcon = pIcon;
             setIcon(new ToolIcon(mRawIcon, ToolIcon.UP));
             setDownIcon(new ToolIcon(mRawIcon, ToolIcon.DOWN));
