@@ -1641,8 +1641,10 @@ public class VUE
                 fullScreenOldParent.add(viewer);
             }
             if (VUE.getMainWindow() != null) {
-                VUE.getMainWindow().setLocation(fullScreenOldVUELocation); // mac window manger not allowing
-                VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
+                if (fullScreenOldVUELocation != null)
+                    VUE.getMainWindow().setLocation(fullScreenOldVUELocation); // mac window manger not allowing
+                if (fullScreenOldVUESize != null)
+                    VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
                 //VUE.getMainWindow.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
                 VUE.getMainWindow().setVisible(true);
             }
@@ -1663,7 +1665,7 @@ public class VUE
                     // have to create full screen native win on mac every time or it comes
                     // back trying to avoid the dock??
                     if (cachedFSWnative != null)
-                        cachedFSWnative.setTitle("OLD-full-native"); // important for tufts.macosx hacks
+                        cachedFSWnative.setTitle("_old-mac-full-native"); // '_' important for macosx hacks
                     cachedFSWnative = VUE.createFrame("VUE-FULL-NATIVE");
                     cachedFSWnative.setUndecorated(true);
                     cachedFSWnative.setLocation(0,0);
@@ -1713,8 +1715,10 @@ public class VUE
             fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
             fullScreenNative = goNative;
             if (VUE.getMainWindow() != null) {
-                fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
-                fullScreenOldVUESize = VUE.getMainWindow().getSize();
+                //fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
+                //fullScreenOldVUESize = VUE.getMainWindow().getSize();
+                //if (fullScreenWindow != VUE.getMainWindow())
+                //VUE.getMainWindow().setVisible(false);
             }
 
             if (goNative) {
@@ -1734,7 +1738,7 @@ public class VUE
                     }
                 }
                 */
-                if (DEBUG.Enabled) out("fsw=" + fullScreenWindow.getPeer().getClass());
+                //if (DEBUG.Enabled) out("fsw=" + fullScreenWindow.getPeer().getClass());
                     
                 //fullScreenWindow.addKeyListener(inputHandler);
                 //w.enableInputMethods(true);
@@ -1755,8 +1759,10 @@ public class VUE
                     
             if (fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
                 VUE.getMainWindow().setVisible(false);
-                VUE.getMainWindow().setSize(0,0);
-                tufts.Util.setOffScreen(VUE.getMainWindow());
+
+                //VUE.getMainWindow().setSize(0,0);
+                //tufts.Util.setOffScreen(VUE.getMainWindow());
+                
                 //VUE.getMainWindow().setLocation(0,0);
                 //VUE.getMainWindow().setLocation(3072,2048);
                 //VUE.getMainWindow().setExtendedState(Frame.ICONIFIED);
