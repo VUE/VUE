@@ -1308,6 +1308,9 @@ public class LWComponent
                 System.out.println("already listening to us: " + listener + " " + this);
                 if (DEBUG.META) new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
             }
+        } else if (listener == this) {
+            // This is likely to produce event loops, and the exception is here as a safety measure.
+            throw new IllegalArgumentException(this + " attempt to add self as LWCEvent listener: not allowed");
         } else {
             if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\t+++ADDS " + this
                                                  + (eventMask==null?"":(" eventMask=" + eventMask)));

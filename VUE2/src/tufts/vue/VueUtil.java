@@ -300,6 +300,18 @@ public class VueUtil
         }
     }
 
+    public static void dumpCollection(Collection c) {
+        System.out.println("Collection of size: " + c.size() + " (" + c.getClass().getName() + ")");
+        dumpIterator(c.iterator());
+    }
+    public static void dumpIterator(Iterator i) {
+        int x = 0;
+        while (i.hasNext()) {
+            System.out.println((x<10?" ":"") + x + ": " + i.next());
+            x++;
+        }
+    }
+
     
     public static void  setCurrentDirectoryPath(String cdp) {
         currentDirectoryPath = cdp;

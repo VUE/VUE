@@ -4,8 +4,19 @@ import java.util.*;
 import javax.swing.Action;
 
 /**
- * Records all changes that take place in a map and
- * provides for arbitrarily marking named points of rollback.
+ * UndoManager
+ *
+ * Records all changes that take place in a LWMap (as seen from
+ * LWCEvent delivery off the LWMap) and provides for arbitrarily
+ * marking named points of rollback.
+ *
+ * For robustness, if the application fails to mark any changes,
+ * they'll either have been rolled undo another undo action, or
+ * stuffed into an un-named Undo action if they attempt an undo while
+ * there are unmarked changes.
+ *
+ * @author Scott Fraize
+ * @version February 2004
  */
 
 public class UndoManager
@@ -13,16 +24,22 @@ public class UndoManager
 {
     private static boolean sUndoUnderway = false;
 
-    private ArrayList mUndoActions = new ArrayList(); // the list of undo actions (named groups of property changes)
-    private ArrayList mRedoActions = new ArrayList(); // the list of redo actions (named groups of property changes)
+    /** The list of undo actions (named groups of property changes) */
+    private ArrayList mUndoActions = new ArrayList(); 
+    /** The list of redo actions (named groups of property changes generated from Undo's) */
+    private ArrayList mRedoActions = new ArrayList(); 
     
-    private LWMap mMap; // the map who's modifications we're tracking
+    /** The map who's modifications we're tracking. */
+    private LWMap mMap; 
     
-    private Map mComponentChanges = new HashMap(); // all changes, mapped by component, since last mark
-    private LinkedList mUndoSequence = new LinkedList();
-    
-    private LWCEvent mLastEvent; // most recent event since last mark
-    private int mChangeCount; // total recorded changes since last mark
+    /** All recorded changes since last mark, mapped by component (for detecting & ignoring repeats) */
+    private Map mComponentChanges = new HashMap();
+    /** All recorded changes since last mark, kept in sequential order */
+    private List mUndoSequence = new ArrayList(); 
+    /** The last LWCEvent we didn't ignore since last mark -- used for guessing at good Undo action title names */
+    private LWCEvent mLastEvent;
+    /** The total number of recorded or compressed changes since last mark (will be >= mUndoSequence.size()) */
+    private int mChangeCount;
 
     /**
      * A named sequence of triples: LWComponent, property key, and old value.
@@ -31,7 +48,8 @@ public class UndoManager
      */
     private static class UndoAction {
         String name;
-        List undoSequence;
+        List undoSequence; // list of UndoItem's -- will be sorted by sequence index before first use
+        boolean sorted = false;
 
         UndoAction(String name, List undoSequence) {
             this.name = name;
@@ -40,14 +58,43 @@ public class UndoManager
         
         void undo() {
             if (DEBUG.UNDO) System.out.println(this + " undoing sequence of size " + changeCount());
-            ListIterator i = undoSequence.listIterator(undoSequence.size());
+
+            if (!sorted) {
+                Collections.sort(undoSequence);
+                sorted = true;
+                if (DEBUG.UNDO){
+                    System.out.println("=======================================================");
+                    VueUtil.dumpCollection(undoSequence);
+                    System.out.println("-------------------------------------------------------");
+                }
+            }
+
             boolean hierarchyChanged = false;
+            
+            //-------------------------------------------------------
+            // First, process all hierarchy events
+            //-------------------------------------------------------
+            
+            ListIterator i = undoSequence.listIterator(undoSequence.size());
             while (i.hasPrevious()) {
                 UndoItem undoItem = (UndoItem) i.previous();
-                undoItem.undo();
-                if (undoItem.propKey == LWKey.HierarchyChanging)
+                if (undoItem.propKey == LWKey.HierarchyChanging) {
+                    undoItem.undo();
                     hierarchyChanged = true;
+                }
             }
+
+            //-------------------------------------------------------
+            // Second, process all property change events
+            //-------------------------------------------------------
+            
+            i = undoSequence.listIterator(undoSequence.size());
+            while (i.hasPrevious()) {
+                UndoItem undoItem = (UndoItem) i.previous();
+                if (undoItem.propKey != LWKey.HierarchyChanging)
+                    undoItem.undo();
+            }
+            
             if (hierarchyChanged)
                 VUE.getSelection().clearDeleted();
         }
@@ -64,22 +111,24 @@ public class UndoManager
         }
     }
 
-    private static class UndoItem
+    private static class UndoItem implements Comparable
     {
         LWComponent component;
         String propKey;
         Object oldValue;
+        int index;
 
-        UndoItem(LWComponent c, String propertyKey, Object oldValue) {
+        UndoItem(LWComponent c, String propertyKey, Object oldValue, int index) {
             this.component = c;
             this.propKey = propertyKey;
             this.oldValue = oldValue;
+            this.index = index;
         }
 
         void undo() {
             if (DEBUG.UNDO) System.out.println("UNDOING: " + this);
             if (propKey == LWKey.HierarchyChanging) {
-                undoHierarchyChange(component, oldValue);
+                undoHierarchyChange((LWContainer) component, oldValue);
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
@@ -87,19 +136,19 @@ public class UndoManager
             }
         }
             
-        private void undoHierarchyChange(LWComponent c, Object oldValue)
+        private void undoHierarchyChange(LWContainer parent, Object oldValue)
         {
-            if (DEBUG.UNDO) System.out.println("\trestoring children of " + c + " to " + oldValue);
-            LWContainer parent = (LWContainer) c;
+            if (DEBUG.UNDO) System.out.println("\trestoring children of " + parent + " to " + oldValue);
             parent.children = (List) oldValue;
             Iterator ci = parent.children.iterator();
             // now make sure all the children are properly parented,
             // and none of them are marked as deleted.
             while (ci.hasNext()) {
                 LWComponent child = (LWComponent) ci.next();
-                if (parent instanceof LWPathway)
-                    ; // special case: todo: something cleaner (pathways don't "own" their children)
-                else {
+                if (parent instanceof LWPathway) {
+                    // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
+                    ((LWPathway)parent).addChildRefs(child);
+                } else {
                     if (child.isDeleted())
                         child.restoreToModel();
                     child.setParent(parent);
@@ -107,9 +156,13 @@ public class UndoManager
             }
             parent.setScale(parent.getScale());
             parent.layout();
-            parent.notify(LWKey.HierarchyChanging);
+            parent.notify(LWKey.HierarchyChanged);
         }
 
+        public int compareTo(Object o) {
+            return index - ((UndoItem)o).index;
+        }
+        
         public String toString() {
             Object old = oldValue;
             if (oldValue instanceof Collection) {
@@ -117,8 +170,10 @@ public class UndoManager
                 if (c.size() > 1)
                     old = c.getClass().getName() + "{" + c.size() + "}";
             }
-            return "UndoItem[" + component
-                + " key=" + propKey
+            return "UndoItem["
+                + index + (index<10?" ":"")
+                + " " + propKey
+                + " " + component
                 + " old=" + old
                 + "]";
         }
@@ -159,13 +214,11 @@ public class UndoManager
 
     void flush() {
         mUndoActions.clear();
-        //mPropertyChanges.clear();
-        //mHierarchyChanges.clear();
         mComponentChanges.clear();
     }
 
     private boolean checkAndHandleUnmarkedChanges() {
-        if (mChangeCount > 0) {
+        if (mUndoSequence.size() > 0) {
             new Throwable(this + " UNMARKED CHANGES! " + mComponentChanges).printStackTrace();
             java.awt.Toolkit.getDefaultToolkit().beep();
             boolean olddb = DEBUG.UNDO;
@@ -247,12 +300,15 @@ public class UndoManager
         markChangesAsUndo(null);
     }
 
+    /**
+     * If only one property changed, use the name of that property,
+     * otherwise use the @param aggregateName for the group of property
+     * changes that took place.
+     */
+    
     public void mark(String aggregateName) {
-        // If only one property changed, use the name of that property,
-        // otherwise use the aggregateName for the group of property
-        // changes that took place.
         String name = null;
-        if (mChangeCount == 1 && mLastEvent != null)
+        if (mUndoSequence.size() == 1 && mLastEvent != null)
             name = mLastEvent.getWhat();
         else
             name = aggregateName;
@@ -261,7 +317,7 @@ public class UndoManager
 
     public synchronized void markChangesAsUndo(String name)
     {
-        if (mChangeCount == 0) // if nothing changed, don't bother adding an UndoAction
+        if (mUndoSequence.size() == 0) // if nothing changed, don't bother adding an UndoAction
             return;
         if (name == null) {
             if (mLastEvent == null)
@@ -296,8 +352,8 @@ public class UndoManager
     public void LWCChanged(LWCEvent e) {
         if (sUndoUnderway) {
 if (true)return;
-            if (!mRedoCaptured && mChangeCount > 0) 
-                throw new Error("Undo Error: have changes at start of redo record: " + mChangeCount + " " + mComponentChanges + " " + e);
+            if (!mRedoCaptured && mUndoSequence.size() > 0) 
+                throw new Error("Undo Error: have changes at start of redo record: " + mUndoSequence.size() + " " + mComponentChanges + " " + e);
             mRedoCaptured = true;
             if (DEBUG.UNDO) System.out.print("\tredo: " + e);
         } else {
@@ -370,19 +426,22 @@ if (true)return;
         if (compressed) {
             // If compressed, still make sure the current property change UndoItem is
             // at the end of the undo sequence.
-            if (existingPropertyValue.index != mUndoSequence.size() - 1) {
-                UndoItem undoItem = (UndoItem) mUndoSequence.remove(existingPropertyValue.index);
-                if (DEBUG.UNDO) System.out.println("Moving index "
-                                                   +existingPropertyValue.index+" to end index "+mUndoSequence.size()
-                                                   + " " + undoItem);
-                existingPropertyValue.index = mUndoSequence.size();
-                mUndoSequence.add(undoItem);
+            //if (existingPropertyValue.index != mUndoSequence.size() - 1) {
+            if (mUndoSequence.size() > 1) {
+                UndoItem undoItem = (UndoItem) mUndoSequence.get(existingPropertyValue.index);
+                if (DEBUG.UNDO&&DEBUG.META) System.out.println("Moving index "
+                                                               +existingPropertyValue.index+" to end index "+mChangeCount
+                                                               + " " + undoItem);
+                undoItem.index = mChangeCount++;
+                //existingPropertyValue.index = mChangeCount++;
+                //existingPropertyValue.index = mUndoSequence.size();
+                //mUndoSequence.add(undoItem);
             }
         } else {
             if (oldValue == HIERARCHY_CHANGE)
                 oldValue = ((ArrayList)((LWContainer)component).children).clone();
             cPropMap.put(propertyKey, new IndexedProperty(mUndoSequence.size(), oldValue));
-            mUndoSequence.add(new UndoItem(component, propertyKey, oldValue));
+            mUndoSequence.add(new UndoItem(component, propertyKey, oldValue, mChangeCount));
             mChangeCount++;
             if (DEBUG.UNDO) {
                 System.out.println(" (stored: " + oldValue + ")");

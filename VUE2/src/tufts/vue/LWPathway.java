@@ -180,14 +180,16 @@ public class LWPathway extends LWContainer
     private void removeChildRefs(LWComponent c) {
         // We only do the ref removes if we don't still contain it, which is possible
         // since pathway's can contain multiple entries for the same LWComponent.
+        if (DEBUG.UNDO) System.out.println(this + " removeChildRefs " + c);
         if (!contains(c)) {
             c.removePathwayRef(this);
             c.removeLWCListener(this);
         }
     }
-    private void addChildRefs(LWComponent c) {
+    void addChildRefs(LWComponent c) {
         // We only do the ref add's if the component doesn't already think it's in us,
         // which can happen since pathway's can contain multiple entries for the same LWComponent.
+        if (DEBUG.UNDO) System.out.println(this + " addChildRefs " + c);
         if (!c.inPathway(this)) {
             c.addPathwayRef(this);
             c.addLWCListener(this);
@@ -332,18 +334,28 @@ public class LWPathway extends LWContainer
         else
             setIndex(mCurrentIndex);
 
-        removingComponent = c; // todo: should be able to remove this now that we don't deliver events back to source
-        notify("pathway.remove-index", new Undoable(c) { void undo() { addChildRefs((LWComponent)old); }} );
-        removingComponent = null;
+        //removingComponent = c; // todo: can we remove this now that we don't deliver events back to source?
+        //
+        // This is now handled via special case in UndoManager, which we need there anyway so we don't set
+        // pathway children's parent to the pathway.  If fix that, could handle addChildRefs by
+        // making this an uncompressable event (e.g., "*pathway.remove" or something) so that
+        // it keeps each call in the undo list.
+        //
+        //notify("pathway.remove-index", new Undoable(c) { void undo() { addChildRefs((LWComponent)old); }} );
+        //
+        //removingComponent = null;
     }
     
     public synchronized void LWCChanged(LWCEvent e)
     {
+        /*
         if (e.getComponent() == removingComponent) {
             //if (DEBUG.PATHWAY || DEBUG.EVENTS) System.out.println(e + " ignoring: already deleting in " + this);
             new Throwable(e + " ignoring: already deleting in " + this).printStackTrace();
             return;
         }
+        */
+        
         if (e.getWhat() == LWKey.Deleting) {
             removeAll(e.getComponent());
         } else if (super.listeners != null) {

@@ -28,12 +28,12 @@ import javax.swing.event.*;
 
 public class PathwayTable extends JTable
 {
-    private ImageIcon close;
-    private ImageIcon open;
-    private ImageIcon notes;
-    private ImageIcon lock;
-    private ImageIcon eyeOpen;
-    private ImageIcon eyeClosed;
+    private final ImageIcon close;
+    private final ImageIcon open;
+    private final ImageIcon notes;
+    private final ImageIcon lock;
+    private final ImageIcon eyeOpen;
+    private final ImageIcon eyeClosed;
     
     private final Font currentFont = new Font("SansSerif", Font.BOLD, 12);
     private final Font normalFont = new Font("SansSerif", Font.PLAIN, 10);

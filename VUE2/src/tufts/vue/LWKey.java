@@ -27,6 +27,7 @@ public interface LWKey {
     //public String ChildRemoved = "hier.childRemoved";// the parent component's remove-notify
     public String ChildrenRemoved = "hier.childrenRemoved";// the parent component's group remove-notify
     public String HierarchyChanging = "hier.changing"; // pre-change event for any hierarchy change
+    public String HierarchyChanged = "hier.changed"; // post-change event for hierarchy changes during undo operations
 
     public String Deleting = ":deleting"; // the component's just-before-delete notify
     public String Deleted = "deleted"; // the component's after-delete notify
