@@ -34,12 +34,12 @@ class Actions {
     }
 
     //-------------------------------------------------------
-    // selection actions
+    // Selection actions
     //-------------------------------------------------------
     
     static final Action SelectAll =
         new MapAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
-            boolean enabledFor(LWSelection l) { return true; }
+            boolean enabledFor(LWSelection s) { return true; }
             public void act()
             {
                 VUE.ModelSelection.setTo(VUE.getActiveViewer().getMap().getChildIterator());
@@ -47,24 +47,33 @@ class Actions {
         };
     static final Action DeselectAll =
         new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
-            boolean enabledFor(LWSelection l) { return l.size() > 0; }
+            boolean enabledFor(LWSelection s) { return s.size() > 0; }
             public void act()
             {
                 VUE.ModelSelection.clear();
             }
         };
+
+    //-------------------------------------------------------
+    // Edit actions
+    //-------------------------------------------------------
+
     static final Action Cut =
         new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
+            public boolean isEnabled() { return false; }
             void Xact(LWComponent c) {
             }
         };
+
     static final Action Copy =
         new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
+            public boolean isEnabled() { return false; }
             void Xact(LWComponent c) {
             }
         };
     static final Action Paste =
         new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
+            public boolean isEnabled() { return false; }
             void Xact(LWComponent c) {
             }
         };
@@ -73,10 +82,10 @@ class Actions {
         // todo: call this duplicate?
         new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
             List newCopies = new java.util.ArrayList();
-            boolean mayModifySelection() { return true; }
-            boolean enabledFor(LWSelection l)
+            // boolean mayModifySelection() { return true; } // only matters if CONCURRENTLY: todo rename
+            boolean enabledFor(LWSelection s)
             {
-                return l.size() > 0 && !l.allOfType(LWLink.class);
+                return s.size() > 0 && !s.allOfType(LWLink.class);
             }
             void act(Iterator i) {
                 newCopies.clear();
@@ -86,8 +95,20 @@ class Actions {
             void act(LWComponent c) {
                 // doesn't currently make sense to duplicate links seperately
                 // -- will need to handle via LWContainer duplicate
-                if (c instanceof LWLink)
+                if (c instanceof LWLink) {
+                    //todo: implement cut/copy/paste before making this
+                    // more sophisitcated -- will have to work out
+                    // separte code to compute what links to add to
+                    // to cut group beforehand, and then other code
+                    // of how to reproduce them later... (e.g.,
+                    // process all links first). -- ACTUALLY --
+                    // should put everything in cut buffer first,
+                    // and figure out the link grabs at paste time,
+                    // which could theoretically depend on the paste context.
+                    LWLink l = (LWLink) c;
+                    //if (!l.bothEndsInSelection()) {
                     return;
+                }
                 LWComponent copy = c.duplicate();
                 copy.setLocation(c.getX()+10, c.getY()+10);
                 c.getParent().addChild(copy);
@@ -103,11 +124,11 @@ class Actions {
         new MapAction("Group", keyStroke(KeyEvent.VK_G, COMMAND))
         {
             boolean mayModifySelection() { return true; }
-            boolean enabledFor(LWSelection l)
+            boolean enabledFor(LWSelection s)
             {
                 // enable only when two or more objects in selection,
                 // and all share the same parent
-                return l.size() >= 2 && l.allHaveSameParent();
+                return s.size() >= 2 && s.allHaveSameParent();
             }
             void act(LWSelection selection)
             {
@@ -124,9 +145,9 @@ class Actions {
         new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT))
         {
             boolean mayModifySelection() { return true; }
-            boolean enabledFor(LWSelection l)
+            boolean enabledFor(LWSelection s)
             {
-                return l.countTypes(LWGroup.class) > 0;
+                return s.countTypes(LWGroup.class) > 0;
             }
             void act(java.util.Iterator i)
             {
@@ -140,9 +161,9 @@ class Actions {
     static final Action Rename =
         new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
         {
-            boolean enabledFor(LWSelection l)
+            boolean enabledFor(LWSelection s)
             {
-                return l.size() == 1 && !(l.first() instanceof LWGroup);
+                return s.size() == 1 && !(s.first() instanceof LWGroup);
             }
             void act(LWComponent c) {
                 VUE.getActiveViewer().activateLabelEdit(c);
@@ -166,11 +187,11 @@ class Actions {
                       "Raise object to the top, completely unobscured",
                       keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT))
         {
-            boolean enabledFor(LWSelection l)
+            boolean enabledFor(LWSelection s)
             {
-                if (l.size() == 1)
-                    return !l.first().getParent().isOnTop(l.first());
-                return l.size() >= 2;
+                if (s.size() == 1)
+                    return !s.first().getParent().isOnTop(s.first());
+                return s.size() >= 2;
             }
             void act(LWSelection selection) {
                 LWContainer.bringToFront(selection);
@@ -189,11 +210,11 @@ class Actions {
                       "Make sure this object doesn't obscure any other object",
                       keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT))
         {
-            boolean enabledFor(LWSelection l)
+            boolean enabledFor(LWSelection s)
             {
-                if (l.size() == 1)
-                    return !l.first().getParent().isOnBottom(l.first());
-                return l.size() >= 2;
+                if (s.size() == 1)
+                    return !s.first().getParent().isOnBottom(s.first());
+                return s.size() >= 2;
             }
             void act(LWSelection selection) {
                 LWContainer.sendToBack(selection);
@@ -203,7 +224,7 @@ class Actions {
     static final MapAction BringForward =
         new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND))
         {
-            boolean enabledFor(LWSelection l) { return BringToFront.enabledFor(l); }
+            boolean enabledFor(LWSelection s) { return BringToFront.enabledFor(s); }
             void act(LWSelection selection) {
                 LWContainer.bringForward(selection);
                 BringToFront.checkEnabled();
@@ -212,7 +233,7 @@ class Actions {
     static final MapAction SendBackward =
         new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND))
         {
-            boolean enabledFor(LWSelection l) { return SendToBack.enabledFor(l); }
+            boolean enabledFor(LWSelection s) { return SendToBack.enabledFor(s); }
             void act(LWSelection selection) {
                 LWContainer.sendBackward(selection);
                 BringToFront.checkEnabled();
@@ -269,9 +290,16 @@ class Actions {
         static float centerX, centerY;
         static float totalWidth, totalHeight; // added width/height of all in selection
         // obviously not thread-safe here
-        
-        private AlignAction(String name) { super(name); }
-        boolean enabledFor(LWSelection l) { return l.size() >= 2; }
+  
+        private AlignAction(String name)
+        {
+            super(name);
+        }
+        private AlignAction(String name, int keyCode)
+        {
+            super(name, keyStroke(keyCode, COMMAND+SHIFT));
+        }
+        boolean enabledFor(LWSelection s) { return s.size() >= 2; }
         void act(LWSelection selection)
         {
             Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
@@ -287,6 +315,8 @@ class Actions {
             float y = selection.first().getY();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
+                if (c instanceof LWLink)
+                    continue;
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
@@ -316,42 +346,48 @@ class Actions {
             return array;
         }
     };
-        
-    private static final Action[] ALIGN_ACTIONS = {
-        new AlignAction("Align Left Edges") {
-            void align(LWComponent c) { c.setLocation(minX, c.getY()); }
-        },
-        new AlignAction("Align Right Edges") {
-            void align(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
-        }
-    };
-    static final Action AlignLeftEdges = new AlignAction("Align Left Edges") {
+
+    static final Action AlignLeftEdges = new AlignAction("Align Left Edges", KeyEvent.VK_LEFT) {
             void align(LWComponent c) { c.setLocation(minX, c.getY()); }
         };
-    static final Action AlignRightEdges = new AlignAction("Align Right Edges") {
+    static final Action AlignRightEdges = new AlignAction("Align Right Edges", KeyEvent.VK_RIGHT) {
             void align(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
         };
-    static final Action AlignTopEdges = new AlignAction("Align Top Edges") {
+    static final Action AlignTopEdges = new AlignAction("Align Top Edges", KeyEvent.VK_UP) {
             void align(LWComponent c) { c.setLocation(c.getX(), minY); }
         };
-    static final Action AlignBottomEdges = new AlignAction("Align Bottom Edges") {
+    static final Action AlignBottomEdges = new AlignAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
             void align(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
         };
-    static final Action AlignCentersColumn = new AlignAction("Align Centers in Column") {
+    static final AlignAction AlignCentersColumn = new AlignAction("Align Centers in Column") {
             void align(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
         };
-    static final Action AlignCentersRow = new AlignAction("Align Centers in Row") {
+    static final AlignAction AlignCentersRow = new AlignAction("Align Centers in Row") {
             void align(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
         };
-    static final Action DistributeVertically = new AlignAction("Distribute Vertically") {
-            //boolean enabledFor(LWSelection l) { return l.size() >= 3; }
+    static final Action MakeRow = new AlignAction("Make Row", KeyEvent.VK_R) {
+            void align(LWSelection selection) {
+                AlignCentersRow.align(selection);
+                maxX = minX + totalWidth;
+                DistributeHorizontally.align(selection);
+            }
+        };
+    static final Action MakeColumn = new AlignAction("Make Column", KeyEvent.VK_C) {
+            void align(LWSelection selection) {
+                AlignCentersColumn.align(selection);
+                maxY = minY + totalHeight;
+                DistributeVertically.align(selection);
+            }
+        };
+    static final AlignAction DistributeVertically = new AlignAction("Distribute Vertically", KeyEvent.VK_V) {
+            boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             // only 2 in selection is useful with our minimum layout region setting
             void align(LWSelection selection)
             {
                 LWComponent[] comps = sortByY(sortByX(selection.getArray()));
                 float layoutRegion = maxY - minY;
-                if (layoutRegion < totalHeight)
-                    layoutRegion = totalHeight;
+                //if (layoutRegion < totalHeight)
+                //  layoutRegion = totalHeight;
                 float verticalGap = (layoutRegion - totalHeight) / (selection.size() - 1);
                 float y = minY;
                 for (int i = 0; i < comps.length; i++) {
@@ -362,14 +398,14 @@ class Actions {
             }
         };
 
-    static final Action DistributeHorizontally = new AlignAction("Distribute Horizontally") {
-            //boolean enabledFor(LWSelection l) { return l.size() >= 3; }
+    static final AlignAction DistributeHorizontally = new AlignAction("Distribute Horizontally", KeyEvent.VK_H) {
+            boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             void align(LWSelection selection)
             {
                 LWComponent[] comps = sortByX(sortByY(selection.getArray()));
                 float layoutRegion = maxX - minX;
-                if (layoutRegion < totalWidth)
-                    layoutRegion = totalWidth;
+                //if (layoutRegion < totalWidth)
+                //  layoutRegion = totalWidth;
                 float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
                 float x = minX;
                 for (int i = 0; i < comps.length; i++) {
@@ -380,6 +416,22 @@ class Actions {
             }
         };
 
+
+    public static final Action[] ALIGN_MENU_ACTIONS = {
+        AlignLeftEdges,
+        AlignRightEdges,
+        AlignTopEdges,
+        AlignBottomEdges,
+        null,
+        AlignCentersColumn,
+        AlignCentersRow,
+        null,
+        MakeRow,
+        MakeColumn,
+        null,
+        DistributeVertically,
+        DistributeHorizontally
+    };
         
     //-----------------------------------------------------------------------------
     // VueActions
@@ -613,7 +665,7 @@ class Actions {
         }
         
         /** Is this action enabled given this selection? */
-        boolean enabledFor(LWSelection l) { return l.size() > 0; }
+        boolean enabledFor(LWSelection s) { return s.size() > 0; }
         
         /** the action may result in an event that has the viewer
          * change what's in the current selection (e.g., on delete,
@@ -625,9 +677,15 @@ class Actions {
         {
             act(selection.iterator());
         }
-        // automatically apply the action serially to everything in the
-        // selection -- override if this isn't what the action
-        // needs to do.
+
+        /**
+         * Automatically apply the action serially to everything in the
+         * selection -- override if this isn't what the action
+         * needs to do.
+         *
+         * Note that the default is to descend into instances LWGroup
+         * and apply the action seperately to each child.
+         */
         void act(java.util.Iterator i)
         {
             while (i.hasNext()) {
