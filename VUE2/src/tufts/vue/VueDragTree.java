@@ -25,97 +25,60 @@ import java.util.Iterator;
  *
  * @author  rsaigal
  */
-public class VueDragTree extends JTree implements DragGestureListener,
-		DragSourceListener {
+public class VueDragTree extends JTree implements DragGestureListener,DragSourceListener,TreeSelectionListener {
     
-      private DefaultMutableTreeNode oldnode;          
+    private DefaultMutableTreeNode oldnode;     
+    private ResourceSelection resourceSelection = null;
                  
-    public VueDragTree(Object obj, String treeName) {
-       
-        //create the treemodel
-       
+    public VueDragTree(Object obj, String treeName) { 
         if (obj instanceof FavoritesNode){
-         
-          
-               setModel(new DefaultTreeModel((FavoritesNode)obj));
-                  this.setShowsRootHandles(true);
-                   this.expandRow(0);
-              
-          
+            setModel(new DefaultTreeModel((FavoritesNode)obj));
+            this.setShowsRootHandles(true);
+            this.expandRow(0);
         }
         else{
-          
-             setModel(createTreeModel(obj, treeName));
-              this.expandRow(0);
-              this.expandRow(1);
-       
-        }
-        
-       
-                              
+            setModel(createTreeModel(obj, treeName));
+            this.expandRow(0);
+            this.expandRow(1);
+        }        
         implementDrag(this);
-        
-      
+        resourceSelection = new ResourceSelection();
+        addTreeSelectionListener(this);
     }   
   
      
-    private void  implementDrag(VueDragTree Tree){
-      
+    private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
-
-		dragSource.createDefaultDragGestureRecognizer(
-					Tree, // component where drag originates
-					DnDConstants.ACTION_COPY_OR_MOVE, // actions
-					Tree); // drag gesture recognizer
-
-                
- 
-		addTreeExpansionListener(new TreeExpansionListener(){
-			public void treeCollapsed(TreeExpansionEvent e) {
-			}
-			public void treeExpanded(TreeExpansionEvent e) {
-				TreePath path = e.getPath();
-                                
-                                if(path != null) {
-                                       
-                                  
-					if (path.getLastPathComponent() instanceof FileNode){
-                                            FileNode node = (FileNode)path.getLastPathComponent();
-					if( !node.isExplored()) {
-						DefaultTreeModel model = 
-									(DefaultTreeModel)getModel();
-						node.explore();
-						model.nodeStructureChanged(node);
-					}
-                                        }
-				}
-			}
-		});
+	dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
+        addTreeExpansionListener(new TreeExpansionListener(){
+                public void treeCollapsed(TreeExpansionEvent e) {}
+                public void treeExpanded(TreeExpansionEvent e) {
+                        TreePath path = e.getPath();
+                        if(path != null) {
+                                if (path.getLastPathComponent() instanceof FileNode){
+                                    FileNode node = (FileNode)path.getLastPathComponent();
+                                    if( !node.isExplored()) {
+                                        DefaultTreeModel model = 
+                                                                (DefaultTreeModel)getModel();
+                                        node.explore();
+                                        model.nodeStructureChanged(node);
+                                    }
+                                }
+                        }
+                }
+        });
          
-                VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer(Tree);
-               
-         
-              
-                  Tree.setCellRenderer(renderer);
-                  
-                ToolTipManager.sharedInstance().registerComponent(Tree);
-        
-       
-        
+        VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer(tree);
+        tree.setCellRenderer(renderer);
+        ToolTipManager.sharedInstance().registerComponent(tree);
     }
     
     
   
    
     private DefaultTreeModel createTreeModel(Object obj, String treeName ){
-        
-        
-          
-      
-           DefaultMutableTreeNode root = new DefaultMutableTreeNode(treeName); 
-          
-   
-       if (obj instanceof AssetIterator){
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(treeName); 
+        if (obj instanceof AssetIterator){
             AssetIterator i = (AssetIterator)obj;
             try{
                 if(!i.hasNext()) {
@@ -144,10 +107,8 @@ public class VueDragTree extends JTree implements DragGestureListener,
              }
             
             
-        }else {}
-       //todo we need a constructor with just tree name      
-     return new DefaultTreeModel(root);
-       
+        }
+        return new DefaultTreeModel(root);  
     }
    
     //****************************************
@@ -155,33 +116,23 @@ public class VueDragTree extends JTree implements DragGestureListener,
    public void dragGestureRecognized(DragGestureEvent e)
     {
         // drag anything ...
-         TreePath path = getLeadSelectionPath();
-      
-     oldnode = (DefaultMutableTreeNode)path.getLastPathComponent();
-       
-        
+        TreePath path = getLeadSelectionPath();
+        oldnode = (DefaultMutableTreeNode)path.getLastPathComponent();
         Object resource = getObject();
-        
         if (resource != null) {
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
 			new VueDragTreeNodeSelection(resource), // transferable
 			this);  // drag source listener
         }
     }
+   
     public void dragDropEnd(DragSourceDropEvent e) {
-       
-       
         if (e.getDropAction() == DnDConstants.ACTION_MOVE){
-            
-         
            DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-           model.removeNodeFromParent(oldnode);             
-                   
-           
+           model.removeNodeFromParent(oldnode);              
         }
-    
-    
     }
+    
     public void dragEnter(DragSourceDragEvent e) { }
     public void dragExit(DragSourceEvent e) {}
     public void dragOver(DragSourceDragEvent e) {}
@@ -196,8 +147,41 @@ public class VueDragTree extends JTree implements DragGestureListener,
         return (node.getUserObject());
     }
     
+ public void valueChanged(TreeSelectionEvent e) {
+     try {
+         if(e.getPath().getLastPathComponent() != null && !e.isAddedPath()) {
+             resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
+         }else if(e.getPath().getPathComponent(0) != null) {
+             resourceSelection.add(createResource(e.getPath().getLastPathComponent()));
+         }
+     } catch(Exception ex) {
+         VueUtil.alert(null,ex.toString(),"Error in VueDragTree Selection");
+     }
+ } 
 
- 
+ private Resource createResource(Object object) throws osid.dr.DigitalRepositoryException,osid.OsidException {
+     if(object instanceof String) {
+         return new Resource((String)object);
+     } else if(object instanceof osid.dr.Asset) {
+         Asset asset = (Asset)object; 
+         Resource resource = new Resource(asset.getDisplayName());
+         resource.setAsset(asset);
+         return resource;
+     } else if(object instanceof FileNode) {
+         FileNode fileNode = (FileNode) object;
+         return new Resource(fileNode.getFile().getName());
+     } else if(object instanceof AssetNode) {
+         Asset asset = ((AssetNode)object).getAsset(); 
+         Resource resource = new Resource(asset.getDisplayName());
+         resource.setAsset(asset);
+         return resource;
+     } else if(object instanceof DefaultMutableTreeNode) {
+         return new Resource(((DefaultMutableTreeNode)object).toString());
+         
+     }else {
+         throw new RuntimeException(object.getClass()+" : Not Supported");
+     }
+ }
  
  
  //Cell Renderer
@@ -206,7 +190,7 @@ class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
    // protected ResultNode lastNode;
     private String metaData;
     
-public VueDragTreeCellRenderer(VueDragTree pTree) {
+    public VueDragTreeCellRenderer(VueDragTree pTree) {
         this.tree = pTree;
         metaData = "default metadata";
        
