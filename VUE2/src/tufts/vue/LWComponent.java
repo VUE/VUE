@@ -1006,13 +1006,13 @@ public class LWComponent
     /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
-        if (this.width == w && this.width == h)
+        if (width == w && height == h)
             return;
         if (DEBUG.LAYOUT) out("*** " + this + " setSize  (LWC)  " + w + "x" + h);
-        Object old = null;
-        if (!isAutoSized())
-            old = new Point2D.Float(this.width, this.height);
+        Size old = new Size(width, height);
         setSize0(w, h);
+        //if (width == old.width && height == old.height)
+        //    return;
         updateConnectedLinks();
         if (!isAutoSized())
             notify(LWKey.Size, old); // todo perf: can we optimize this event out?
