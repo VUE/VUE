@@ -31,8 +31,9 @@ public class Resource
         this.referenceCreated = System.currentTimeMillis();
     }
 
-    public void setAsset(Asset asset) {
+    public void setAsset(Asset asset) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.asset = asset;
+        this.spec = ((FedoraObject)asset).getDefaultViewURL();
         this.castorFedoraObject = new CastorFedoraObject((FedoraObject)asset);
     }
     
@@ -41,9 +42,10 @@ public class Resource
         return this.asset;
     }
     
-    public void setCastorFedoraObject(CastorFedoraObject castorFedoraObject) {
+    public void setCastorFedoraObject(CastorFedoraObject castorFedoraObject) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.castorFedoraObject = castorFedoraObject; 
         this.asset = this.castorFedoraObject.getFedoraObject();
+        this.spec =  ((FedoraObject)this.castorFedoraObject.getFedoraObject()).getDefaultViewURL();
     }
     
     public CastorFedoraObject getCastorFedoraObject() {

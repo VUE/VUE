@@ -40,8 +40,9 @@ public class DataSourceViewer  extends JPanel{
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
         loadDataSources();
-        dataSourceList = new DataSourceList(dataSources);
         
+        dataSourceList = new DataSourceList(dataSources);
+        dataSourceList.setSelectedIndex(1);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
@@ -55,7 +56,7 @@ public class DataSourceViewer  extends JPanel{
                DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
             }
         });
-        /**
+       /**
        dataSourceList.addMouseListener(new MouseAdapter() {
            public void mouseClicked(MouseEvent e) {
                if(e.getButton() == e.BUTTON3) {
@@ -63,7 +64,7 @@ public class DataSourceViewer  extends JPanel{
                }
            }
        });
-        **/
+       **/
         JScrollPane jSP = new JScrollPane(dataSourceList);
         add(jSP,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
@@ -124,11 +125,15 @@ public class DataSourceViewer  extends JPanel{
          // this should be created automatically from a config file. That will be done in future.
   
         DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
+        ds1.setDisplayColor(Color.BLACK);
         dataSources.add(ds1);
         DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora",DataSource.DR_FEDORA);
+        ds2.setDisplayColor(Color.RED);
         dataSources.add(ds2);
         setActiveDataSource(ds2);
+       
         DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
+        ds3.setDisplayColor(Color.BLUE);
         dataSources.add(ds3);
        
       

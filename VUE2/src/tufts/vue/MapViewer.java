@@ -2599,6 +2599,8 @@ public class MapViewer extends javax.swing.JPanel
                         // todo: some kind of animation or something to show
                         // we're "opening" this node -- maybe an indication
                         // flash -- we'll need another thread for that.
+                        resource.displayContent();
+                        /**
                         if(resource.getAsset() != null) {
                             //AssetViewer a = new AssetViewer(resource.getAsset());
                             //a.setSize(600,400);
@@ -2607,8 +2609,9 @@ public class MapViewer extends javax.swing.JPanel
                         } else {
                             resource.displayContent();
                         }
+                         */
                         System.out.println("opening resource for: " + hitComponent);
-                        } else*/
+                       // } else
                         activateLabelEdit(hitComponent);
                 } else if (hitComponent instanceof LWLink)
                     // todo: need LWComponent flag as to if supports displaying a label
