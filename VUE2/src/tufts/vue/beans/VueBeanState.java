@@ -88,7 +88,9 @@ public class VueBeanState implements VueBeanInfo   {
 	 **/
 	public String [] getPropertyNames() {
 		String [] names = null;
-		
+		if( mInfo != null) {
+			names = mInfo.getPropertyNames();
+			}
 		return names;
 	}	
 
@@ -149,6 +151,7 @@ public class VueBeanState implements VueBeanInfo   {
 		
 		String[] propertyNames = getPropertyNames();
 		System.out.println( "*** applyState: "+ pBean.getClass().getName() );
+		System.out.println( "  names:  "+ propertyNames );
 		if( propertyNames != null) {
 			for (int i = 0; i < propertyNames.length; i++) {
 				String name = propertyNames[i];
