@@ -255,7 +255,7 @@ public class Resource
         String title = null;
         try {
             title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
-            title = title.trim();
+            title = title.replace('\n', ' ').trim();
             //System.out.println("*** got title ["+title+"]");
         } catch (Exception e) {
             System.out.println(e);

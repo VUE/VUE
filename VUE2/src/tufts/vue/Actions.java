@@ -795,9 +795,9 @@ class Actions
     // VueActions
     //-----------------------------------------------------------------------------
     static final Action NewMap =
-        new VueAction("New")
+        new VueAction("New Map")
         {
-            int count = 1;
+            private int count = 1;
             public void act()
             {
                 LWMap map = new LWMap("New Map " + count++);

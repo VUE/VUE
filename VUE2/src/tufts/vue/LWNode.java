@@ -25,12 +25,17 @@ import java.util.Iterator;
 public class LWNode extends LWContainer
     implements Node
 {
+    public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
+    public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
+    public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
+    public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
+    public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
+    
     //------------------------------------------------------------------
     // Constants affecting the internal layout of nodes & any children
     //------------------------------------------------------------------
-    static final float ChildScale = 0.75f;   // % scale-down of children
-    static final float NODE_DEFAULT_STROKE_WIDTH = 1f;
-    static final Color NODE_DEFAULT_STROKE_COLOR = Color.darkGray;
+    static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
+    //static final float ChildScale = 0.75f;   // % scale-down of children
 
     private static final boolean AlwaysShowIcon = false;
         
@@ -150,18 +155,18 @@ public class LWNode extends LWContainer
     LWNode(String label, float x, float y, RectangularShape shape)
     {
         super.label = label; // todo: this for debugging
-        setFillColor(COLOR_NODE_DEFAULT);
+        setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
             setNodeShape(StandardShapes[4]);
         else
             setShape(shape);
-        setStrokeWidth(NODE_DEFAULT_STROKE_WIDTH);
-        setStrokeColor(NODE_DEFAULT_STROKE_COLOR);
+        setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);
+        setStrokeColor(DEFAULT_NODE_STROKE_COLOR);
         setLocation(x, y);
         //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
         setSize(10,10);
         setLabel(label);
-        setFont(FONT_NODE_DEFAULT);
+        setFont(DEFAULT_NODE_FONT);
     }
     
     // internal convenience

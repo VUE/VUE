@@ -281,26 +281,6 @@ public class VUE
         mMapTabsRight.setTabPlacement(SwingConstants.BOTTOM);
         mMapTabsRight.setPreferredSize(new Dimension(300,400));
 
-        if (true||args.length < 1) { // pathway code currently blowing us out unless we have these maps loaded
-            //-------------------------------------------------------
-            // Temporary: create example map(s)
-            //-------------------------------------------------------
-            //LWMap map1 = new LWMap("Test Nodes");
-            //LWMap map2 = new LWMap("Example Map");
-            //LWMap map1 = new LWMap("Map 1");
-            LWMap map2 = new LWMap("Map 2");
-
-            //installExampleNodes(map1);
-            installExampleMap(map2);
-
-            //map1.setFillColor(new Color(255, 255, 192));
-            
-            //displayMap(map1);
-            displayMap(map2);
-            
-        }
-        
-        
         //-------------------------------------------------------
         // create a an application frame and layout components
         //-------------------------------------------------------
@@ -314,8 +294,24 @@ public class VUE
         if (!nodr)  {
             drBrowser = new DRBrowser();
             toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        } else {
+            //-------------------------------------------------------
+            // create example map(s)
+            //-------------------------------------------------------
+            //LWMap map1 = new LWMap("Test Nodes");
+            //LWMap map2 = new LWMap("Example Map");
+            //LWMap map1 = new LWMap("Map 1");
+            LWMap map2 = new LWMap("Map 2");
+
+            //installExampleNodes(map1);
+            installExampleMap(map2);
+
+            //map1.setFillColor(new Color(255, 255, 192));
+            
+            //displayMap(map1);
+            displayMap(map2);
         }
-			        
+        
         // DEMO FIX:
         // no lwinspector in left
         //toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
@@ -510,7 +506,18 @@ public class VUE
 
     public static void closeMap(LWMap map)
     {
-        // TODO: check for modifications and ask for save!
+        if (map.isModified()) {
+            int response = JOptionPane.showConfirmDialog(VUE.frame,
+                                                         "Map has been modified. Save changes before closing?"
+                                                         + (DEBUG_EVENTS?("[modifications="+map.getModCount()+"]"):""),
+                                                         " Save changes?",
+                                                         JOptionPane.YES_NO_CANCEL_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+                System.out.println("Save map...");
+            } else if (response == JOptionPane.CANCEL_OPTION) {
+                return;
+            }
+        }
         mMapTabsLeft.closeMap(map);
         mMapTabsRight.closeMap(map);
     }

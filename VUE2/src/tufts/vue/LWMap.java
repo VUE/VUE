@@ -72,8 +72,7 @@ public class LWMap extends LWContainer
     	java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
     	String dateStr = df.format( date);
     	setDate( dateStr);
-
-
+        markAsSaved();
     }
 
     public void setFile(File file)
@@ -86,7 +85,20 @@ public class LWMap extends LWContainer
     {
         return this.file;
     }
-    
+
+    public void markAsModified()
+    {
+        if (mChanges == 0)
+            mChanges = 1;
+    }
+    public void markAsSaved()
+    {
+        mChanges = 0;
+    }
+    public boolean isModified() {
+        return mChanges > 0;
+    }
+    long getModCount() { return mChanges; } 
     
     /**
      * getLWCFilter()
@@ -217,6 +229,7 @@ public class LWMap extends LWContainer
             LWComponent c = (LWComponent) i.next();
             c.layout();
         }
+        markAsSaved();
     }
     
     public void draw(DrawContext dc){
@@ -228,7 +241,7 @@ public class LWMap extends LWContainer
 
         if (DEBUG_SCROLL || DEBUG_CONTAINMENT) {
             dc.g.setColor(java.awt.Color.red);
-            dc.g.setStroke(new java.awt.BasicStroke(1f / (float) dc.g.getTransform().getScaleX()));
+            dc.setAbsoluteStrokeWidth(1);
             dc.g.draw(getBounds());
         }
         
@@ -370,7 +383,8 @@ public class LWMap extends LWContainer
     
     /**
      * return the shape bounds for all LWComponents in the iterator
-     * (does NOT include stroke widths)
+     * (does NOT include stroke widths) -- btw -- would make
+     * more sense to put these in the LWContainer class.
      */
     public static Rectangle2D getShapeBounds(java.util.Iterator i)
     {
@@ -380,6 +394,40 @@ public class LWMap extends LWContainer
             rect.setRect(((LWComponent)i.next()).getShapeBounds());
             while (i.hasNext())
                 rect.add(((LWComponent)i.next()).getShapeBounds());
+        }
+        return rect;
+    }
+
+    /** returing a bounding rectangle that includes all the upper left
+     * hand corners of the given components */
+    public static Rectangle2D.Float getULCBounds(java.util.Iterator i)
+    {
+        Rectangle2D.Float rect = new Rectangle2D.Float();
+
+        if (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            rect.x = c.getX();
+            rect.y = c.getY();
+            while (i.hasNext())
+                rect.add(((LWComponent)i.next()).getLocation());
+        }
+        return rect;
+    }
+    /** returing a bounding rectangle that includes all the lower right
+     * hand corners of the given components */
+    public static Rectangle2D.Float getLRCBounds(java.util.Iterator i)
+    {
+        Rectangle2D.Float rect = new Rectangle2D.Float();
+
+        if (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            rect.x = c.getX() + c.getWidth();
+            rect.y = c.getY() + c.getHeight();
+            while (i.hasNext()) {
+                c = (LWComponent) i.next();
+                rect.add(c.getX() + c.getWidth(),
+                         c.getY() + c.getHeight());
+            }
         }
         return rect;
     }

@@ -166,6 +166,7 @@ public class ActionUtil {
             writer.close();
 
             map.setFile(file);
+            map.markAsSaved();
         } 
         catch (Exception e) 
         {

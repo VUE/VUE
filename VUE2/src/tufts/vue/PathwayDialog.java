@@ -24,6 +24,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     public PathwayDialog(PathwayTab tab, Point location)
     {
         super(tab.getDialogParent(), "New Pathway Name", true);
+        //super(tab.getParentFrame(), "New Pathway Name", true);
         this.tab = tab;
         setSize(250, 100);
         setLocation(location);

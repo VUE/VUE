@@ -64,6 +64,14 @@ public class DrawContext
                                 : RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
     }
 
+    /** set a stroke with that stays constant on-screen at given
+     * width independent of any current scaling (presuming
+     * scaling is same in X/Y direction's -- only tracks X scale factor).
+     */
+    public void setAbsoluteStrokeWidth(float width)
+    {
+        this.g.setStroke(new java.awt.BasicStroke(width / (float) this.g.getTransform().getScaleX()));
+    }
 
     public DrawContext create()
     {

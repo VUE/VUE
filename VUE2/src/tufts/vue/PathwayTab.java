@@ -57,6 +57,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
     private JTextField text;
     private JLabel pathLabel = null;//, nodeLabel = null, slashLabel = new JLabel(" / ");
     
+    //private Frame parent;
     private JDialog parent;
     private JPanel buttons = null, pnPanel = null, pcPanel = null, buttonPanel = null;
     private JLabel pathName = null;
@@ -100,6 +101,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
  
     /** Creates a new instance of PathwayTab */
     public PathwayTab(JDialog parent) 
+    //public PathwayTab(Frame parent) 
     {   
         this.parent = parent;
         this.setBorder(BorderFactory.createMatteBorder(4, 4, 7, 4, bgColor));
@@ -292,6 +294,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
     }
     
     public JDialog getDialogParent(){
+    //public Frame getParentFrame(){
         return parent;
     }
     /*

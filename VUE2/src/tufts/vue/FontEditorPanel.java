@@ -106,11 +106,14 @@ import tufts.vue.beans.VueLWCPropertyMapper;
 
      // as this can sometimes take a while, we can call this manually
      // during startup to control when we take the delay.
+     private static Object sFontNamesLock = new Object();
      static void loadFontNames()
      {
-         if (sFontNames == null){
-             //new Throwable("Loading system fonts...").printStackTrace();
-             sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+         synchronized (sFontNamesLock) {
+             if (sFontNames == null){
+                 //new Throwable("Loading system fonts...").printStackTrace();
+                 sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+             }
          }
      }
  	

@@ -17,7 +17,7 @@ import javax.swing.border.EmptyBorder;
  *
  * @author  Daisuke Fujiwara
  */
-public class LWOutlineView extends InspectorWindow 
+public class LWOutlineView extends InspectorWindow
 {
     private OutlineViewTree tree = null;
     //private JLabel outlineLabel = null;

@@ -446,7 +446,7 @@ public class MapViewer extends javax.swing.JComponent
         adjustScrollRegion(false, true);
     }
 
-    private void adjustScrollRegion() {
+    void adjustScrollRegion() {
         adjustScrollRegion(false, false);
     }
     
@@ -2249,10 +2249,7 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
 
-        if (DEBUG_SHOW_MOUSE_LOCATION && resizeControl.draggedBounds != null) {
-            dc.g.setColor(Color.red);
-            dc.g.draw(mapToScreenRect(resizeControl.draggedBounds));
-        }
+        if (DEBUG_SHOW_MOUSE_LOCATION) resizeControl.draw(dc); // debug
 
         /*
         it = VueSelection.iterator();
@@ -3997,10 +3994,15 @@ public class MapViewer extends javax.swing.JComponent
         private boolean active = false;
         private LWSelection.ControlPoint[] handles = new LWSelection.ControlPoint[8];
 
-        private Rectangle2D.Float originalSelectionBounds;
-        private Rectangle2D.Float draggedBounds;
+        // These are all in MAP coordinates
+        private Rectangle2D.Float mOriginalGroup_bounds;
+        private Rectangle2D.Float mOriginalGroupULC_bounds;
+        private Rectangle2D.Float mOriginalGroupLRC_bounds;
+        private Rectangle2D.Float mCurrent;
+        private Rectangle2D.Float mNewDraggedBounds;
         private Rectangle2D.Float[] original_lwc_bounds;
         private Box2D resize_box = null;
+        private Point2D mapMouseDown;
 
         ResizeControl()
         {
@@ -4009,8 +4011,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         /** interface ControlListener */
-        public LWSelection.ControlPoint[] getControlPoints()
-        {
+        public LWSelection.ControlPoint[] getControlPoints() {
             return handles;
         }
 
@@ -4023,12 +4024,17 @@ public class MapViewer extends javax.swing.JComponent
         public void controlPointPressed(int index, MapMouseEvent e)
         {
             System.out.println(this + " resize control point " + index + " pressed");
-            originalSelectionBounds = (Rectangle2D.Float) VueSelection.getShapeBounds();
-            //originalSelectionBounds = (Rectangle2D.Float) VueSelection.getBounds();
-            resize_box = new Box2D(originalSelectionBounds);
-            draggedBounds = resize_box.getRect();
-            //draggedBounds = (Rectangle2D.Float) originalSelectionBounds.getBounds2D();
+            mOriginalGroup_bounds = (Rectangle2D.Float) VueSelection.getShapeBounds();
+            mOriginalGroupULC_bounds = LWMap.getULCBounds(VueSelection.iterator());
+            mOriginalGroupLRC_bounds = LWMap.getLRCBounds(VueSelection.iterator());
+            resize_box = new Box2D(mOriginalGroup_bounds);
+            mNewDraggedBounds = resize_box.getRect();
+            //mNewDraggedBounds = (Rectangle2D.Float) mOriginalGroup_bounds.getBounds2D();
 
+            //------------------------------------------------------------------
+            // save the original locations & sizes of everything in the selection
+            //------------------------------------------------------------------
+            
             original_lwc_bounds = new Rectangle2D.Float[VueSelection.size()];
             Iterator i = VueSelection.iterator();
             int idx = 0;
@@ -4037,6 +4043,19 @@ public class MapViewer extends javax.swing.JComponent
                 if (!(c instanceof LWLink)) 
                     original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getShapeBounds();
                 //original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
+            }
+            mapMouseDown = e.getMapPoint();
+        }
+
+        void draw(DrawContext dc) { // debug
+            if (mNewDraggedBounds != null) {
+                dc.g.setColor(Color.orange);
+                dc.g.setStroke(STROKE_HALF);
+                dc.g.draw(mapToScreenRect(mNewDraggedBounds));
+                dc.g.setColor(Color.green);
+                dc.g.draw(mapToScreenRect(mOriginalGroupULC_bounds));
+                dc.g.setColor(Color.red);
+                dc.g.draw(mapToScreenRect(mOriginalGroupLRC_bounds));
             }
         }
 
@@ -4048,23 +4067,53 @@ public class MapViewer extends javax.swing.JComponent
             // control points are indexed starting at 0 in the upper left,
             // and increasing clockwise ending at 7 at the middle left point.
             
+            /*
                  if (isTopCtrl(i))    resize_box.setULY(e.getMapY());
             else if (isBottomCtrl(i)) resize_box.setLRY(e.getMapY());
                  if (isLeftCtrl(i))   resize_box.setULX(e.getMapX());
             else if (isRightCtrl(i))  resize_box.setLRX(e.getMapX());
-            
-            draggedBounds = resize_box.getRect();
+            */
 
-            dragResizeReshapeSelection(i, VueSelection.iterator(), VueSelection.size() > 1 && e.isAltDown());
+            if (isTopCtrl(i)) {
+                resize_box.setULY(e.getMapY());
+            } else if (isBottomCtrl(i)) {
+                resize_box.setLRY(e.getMapY());
+            }
+            if (isLeftCtrl(i)) {
+                resize_box.setULX(e.getMapX());
+            } else if (isRightCtrl(i)) {
+                resize_box.setLRX(e.getMapX());
+            }
+
+            mNewDraggedBounds = resize_box.getRect();
+            float scaleX;
+            float scaleY;
+
+            /*
+            if (isLeftCtrl(i)) {
+                scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
+                scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
+            } else {
+                scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
+                scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
+            }
+            */
+
+            scaleX = mNewDraggedBounds.width / mOriginalGroup_bounds.width;
+            scaleY = mNewDraggedBounds.height / mOriginalGroup_bounds.height;
+            //dragResizeReshapeSelection(i, VueSelection.iterator(), VueSelection.size() > 1 && e.isAltDown());
+            
+            dragResizeReshape(i,
+                              VueSelection.iterator(),
+                              scaleX, scaleY,
+                              VueSelection.size() == 1 || e.isAltDown());
         }
 
         /** @param cpi - control point index (which ctrl point is being moved) */
         // todo: consider moving this code to LWGroup so that they can resize
-        private void dragResizeReshapeSelection(int cpi, Iterator i, boolean repositionOnly)
+        private void dragResizeReshape(int cpi, Iterator i, float scaleX, float scaleY, boolean reshapeObjects)
         {
             int idx = 0;
-            float scaleX = draggedBounds.width / originalSelectionBounds.width;
-            float scaleY = draggedBounds.height / originalSelectionBounds.height;
             //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
@@ -4073,36 +4122,105 @@ public class MapViewer extends javax.swing.JComponent
                 if (c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible
                     continue;
                 Rectangle2D.Float c_original_bounds = original_lwc_bounds[idx++];
-                Rectangle2D.Float c_new_bounds = new Rectangle2D.Float();
+                //Rectangle2D.Float c_new_bounds = new Rectangle2D.Float();
 
-                if (c.supportsUserResize() && repositionOnly == false) {
+                if (c.supportsUserResize() && reshapeObjects) {
                     //-------------------------------------------------------
                     // Resize
                     //-------------------------------------------------------
-                    c_new_bounds.width = c_original_bounds.width * scaleX;
-                    c_new_bounds.height = c_original_bounds.height * scaleY;
+                    float c_new_width = c_original_bounds.width * scaleX;
+                    float c_new_height = c_original_bounds.height * scaleY;
                     if (c instanceof LWNode)
                         ((LWNode)c).setAutoSized(false);
-                    c.setAbsoluteSize(c_new_bounds.width, c_new_bounds.height);
+                    c.setAbsoluteSize(c_new_width, c_new_height);
                 }
                 
+                //-------------------------------------------------------
+                // Don't try to reposition child nodes -- they're parents
+                // handle they're layout.
+                //-------------------------------------------------------
                 if ((c.getParent() instanceof LWNode) == false) {
                     //-------------------------------------------------------
                     // Reposition (todo: needs work in the case of not resizing)
                     //-------------------------------------------------------
-                    // if our parent is a node, parent handles positioning -- don't move it here
-                    c_new_bounds.x = draggedBounds.x + (c_original_bounds.x - originalSelectionBounds.x) * scaleX;
-                    c_new_bounds.y = draggedBounds.y + (c_original_bounds.y - originalSelectionBounds.y) * scaleY;
 
+                    // Todo: move this class to own file, and make
+                    // static methods that can operate on any collection
+                    // of lw components (not just selection) so could
+                    // generically use this for LWGroup resize also.
+                    // (or, if groups really just put everything in
+                    // the selection, it would automatically work).
+
+
+                    float c_new_x;
+                    float c_new_y;
+                    
+                    if (reshapeObjects){
+                        // when reshaping, we can adjust the component origin smoothly with the scale
+                        // because their lower right edge is also growing with the scale.
+                        c_new_x = mNewDraggedBounds.x + (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
+                        c_new_y = mNewDraggedBounds.y + (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
+                    } else {
+                        // when just repositioning, we have to compute the new component positions
+                        // based on their lower right corner.
+                        float c_original_lrx = c_original_bounds.x + c_original_bounds.width;
+                        float c_original_lry = c_original_bounds.y + c_original_bounds.height;
+                        float c_new_lrx;
+                        float c_new_lry;
+                        float c_delta_x;
+                        float c_delta_y;
+
+                        if (false&&isRightCtrl(cpi)) {
+                            c_delta_x = (mOriginalGroupLRC_bounds.x - c_original_bounds.x) * scaleX;
+                            c_delta_y = (mOriginalGroupLRC_bounds.y - c_original_bounds.y) * scaleY;
+                            //c_delta_x = (c_original_bounds.x - mOriginalGroupLRC_bounds.x) * scaleX;
+                            //c_delta_y = (c_original_bounds.y - mOriginalGroupLRC_bounds.y) * scaleY;
+                        } else {
+                            c_delta_x = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
+                            c_delta_y = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
+                        }
+                        
+                        //c_delta_x = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
+                        //c_delta_y = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
+
+                        if (false) {
+                            // this was crap
+                            c_new_lrx = c_original_lrx + c_delta_x;
+                            c_new_lry = c_original_lry + c_delta_y;
+                            //c_new_lrx = mNewDraggedBounds.x + (c_original_lrx - mOriginalGroup_bounds.x) * scaleX;
+                            //c_new_lry = mNewDraggedBounds.y + (c_original_lry - mOriginalGroup_bounds.y) * scaleY;
+                            c_new_x = c_new_lrx - c_original_bounds.width;
+                            c_new_y = c_new_lry - c_original_bounds.height;
+
+                            // put back into drag region
+                            c_new_x += mNewDraggedBounds.x;
+                            c_new_y += mNewDraggedBounds.y;
+                        } else {
+                            c_new_x = mNewDraggedBounds.x + c_delta_x;
+                            c_new_y = mNewDraggedBounds.y + c_delta_y;
+                        }
+                        
+
+                        
+                        //c_new_x = mNewDraggedBounds.x + (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
+                        //c_new_y = mNewDraggedBounds.y + (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
+                        
+                        // this moves everything as per regular selection drag -- don't think we'll need that here
+                        //c_new_x = c_original_bounds.x + ((float)mapMouseDown.getX() - resize_box.lr.x);
+                        //c_new_y = c_original_bounds.y + ((float)mapMouseDown.getY() - resize_box.lr.y);
+                    }
+
+                    if (reshapeObjects){
                     if (isLeftCtrl(cpi)) {
-                        if (c_new_bounds.x + c.getWidth() > resize_box.lr.x)
-                            c_new_bounds.x = resize_box.lr.x - c.getWidth();
+                        if (c_new_x + c.getWidth() > resize_box.lr.x)
+                            c_new_x = resize_box.lr.x - c.getWidth();
                     }
                     if (isTopCtrl(cpi)) {
-                        if (c_new_bounds.y + c.getHeight() > resize_box.lr.y)
-                            c_new_bounds.y = resize_box.lr.y - c.getHeight();
+                        if (c_new_y + c.getHeight() > resize_box.lr.y)
+                            c_new_y = resize_box.lr.y - c.getHeight();
                     }
-                    c.setLocation(c_new_bounds.x, c_new_bounds.y);
+                    }
+                    c.setLocation(c_new_x, c_new_y);
                 }
             }
         }
@@ -4111,7 +4229,7 @@ public class MapViewer extends javax.swing.JComponent
         public void controlPointDropped(int index, MapMouseEvent e)
         {
             //System.out.println("MapViewer: resize control point " + index + " dropped");
-            draggedBounds = null;
+            mNewDraggedBounds = null;
             Actions.NodeMakeAutoSized.checkEnabled();
         }
 
@@ -4354,8 +4472,14 @@ public class MapViewer extends javax.swing.JComponent
         n5.setLocation(150, 200);
         n6.setLocation(150, 250);
         //map.addNode(n1);
-        map.addNode(n2);
-        map.addNode(n3);
+        //map.addNode(n2);
+        //map.addNode(n3);
+
+        // group resize testing
+        map.addNode(new LWNode("aaa", 100,100));
+        map.addNode(new LWNode("bbb", 150,130));
+        map.addNode(new LWNode("ccc", 200,160));
+
         /*
         map.addNode(n4);
         map.addNode(n5);

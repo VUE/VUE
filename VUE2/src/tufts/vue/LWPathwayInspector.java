@@ -57,7 +57,7 @@ import java.util.Vector;
  *
  * @author  Jay Briedis
  */
-public class LWPathwayInspector extends InspectorWindow 
+public class LWPathwayInspector extends InspectorWindow
 {
     
     /**Pane holds three tabs: general info, nodes in path, pathway notes*/
@@ -91,7 +91,7 @@ public class LWPathwayInspector extends InspectorWindow
  
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
-        this.setResizable(true);
+        //this.setResizable(true);//tool-window?
         
         InfoTable table = new InfoTable();
         notes = new Notes();

@@ -280,13 +280,14 @@ class TextBox extends JTextPane
 
     private boolean isFinishEditKeyPress(KeyEvent e)
     {
-        // reversed logic of below description for now
         return
             e.getKeyCode() == KeyEvent.VK_ENTER &&
-          // (e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
-            !(e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
-              || (e.getModifiersEx() != 0 && !e.isShiftDown()));
-
+            (
+             e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
+             || (e.getModifiersEx() != 0 && !e.isShiftDown())
+             )
+            == true;
+        //== false; // reversed logic of below description
 
         // if we hit return key either on numpad ("enter" key), or
         // with any modifier down except a shift alone (in case of

@@ -1117,7 +1117,7 @@ public class LWComponent
                                             + "\n\tdeleted=" + this
                                             + "\n\tattempted notification=" + e);
 
-        if (listeners != null) {
+        if (listeners != null && listeners.size() > 0) {
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext()) {
                 Listener l = (Listener) i.next();
@@ -1134,6 +1134,8 @@ public class LWComponent
                     java.awt.Toolkit.getDefaultToolkit().beep();
                 }
             }
+        } else {
+            if (DEBUG_EVENTS) System.out.println(e + " -> " + "<NO LISTENERS>");
         }
 
         // todo: have a seperate notifyParent? -- every parent

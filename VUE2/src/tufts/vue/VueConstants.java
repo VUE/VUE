@@ -15,8 +15,6 @@ public interface VueConstants
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
     //static Font LinkLabelFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    static Font FONT_NODE_DEFAULT = VueResources.getFont("node.font");    
-    static Font FONT_TEXT_DEFAULT = VueResources.getFont("text.font");    
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 18);
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
     static Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10);
@@ -83,9 +81,9 @@ public interface VueConstants
     static boolean DEBUG_CONTAINMENT = false;
     static boolean DEBUG_PARENTING = false;
     static boolean DEBUG_LAYOUT = false;
-    static boolean DEBUG_EVENTS = false;
     static boolean DEBUG_BOXES = false;
     static boolean DEBUG_ROLLOVER = false;
+    static boolean DEBUG_EVENTS = false;
     static boolean DEBUG_SCROLL = false;
     
 }

@@ -18,6 +18,7 @@ public class NodeTool extends VueTool
 	// Fields
 	/////////////
 	
+    
     private static NodeTool singleton = null;
     
     /** the contextual tool panel **/
@@ -126,7 +127,7 @@ public class NodeTool extends VueTool
         node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
         node.setFillColor(COLOR_TRANSPARENT);
-        node.setFont(FONT_TEXT_DEFAULT);
+        node.setFont(LWNode.DEFAULT_TEXT_FONT);
         
         VueBeanState state = getNodeToolPanel().getValue();
         if (state != null) {

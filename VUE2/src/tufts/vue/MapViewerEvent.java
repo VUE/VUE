@@ -39,8 +39,7 @@ public class MapViewerEvent
                                + " dispatching to "
                                + listener.getClass().getName()
                                + "@" +  Integer.toHexString(listener.hashCode()));
-            if (id == PAN)
-                new Throwable().printStackTrace();
+            //if (id == PAN) new Throwable().printStackTrace();
         }
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
