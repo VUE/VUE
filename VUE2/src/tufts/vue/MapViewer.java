@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+//import java.util.*;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
@@ -273,11 +274,13 @@ public class MapViewer extends javax.swing.JPanel
     
     public void LWCChanged(LWCEvent e)
     {
-        // todo: optimize -- we get tons of location events
+        // TODO: OPTIMIZE -- we get tons of location events
         // when dragging, esp if there are children!
-        System.out.println(e);
+        System.out.println("MapViewer: " + e);
         if (e.getWhat().equals("location"))
             return;
+        if (e.getWhat().equals("removed"))
+            removeFromSelection(e.getComponent()); // ensure isn't in selection
         if (e.getSource() == this)
             return;
         repaint();
@@ -908,7 +911,12 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
-
+    java.util.List getSelectionList()
+    {
+        return selectionList;
+    }
+    
+    // todo: rename: selectionAdd, selectionRemove, selectionClear
     protected void addToSelection(LWComponent c)
     {
         // todo: multiple views of same map will need to keep
@@ -931,6 +939,11 @@ public class MapViewer extends javax.swing.JPanel
         selectionList.remove(c);
         if (lastSelection == c)
             lastSelection = null;
+        if (justSelected == c)
+            justSelected = null;
+        // todo: hey, what about RECOMPUTING selection bounds?
+        if (selectionList.size() == 0)
+            selectionBounds = null;
     }
     protected void clearSelection()
     {
@@ -943,9 +956,11 @@ public class MapViewer extends javax.swing.JPanel
         }
         selectionList.clear();
         lastSelection = null;
+        justSelected = null;
     }
 
-    // todo temporary
+        
+
     private JPopupMenu mapPopup = null;
     private JPopupMenu cPopup = null;
     private JPopupMenu getMapPopup()
@@ -964,8 +979,16 @@ public class MapViewer extends javax.swing.JPanel
         // this is just example menu code for the moment
         if (cPopup == null) {
             cPopup = new JPopupMenu("Item Menu");
-            cPopup.add("Rename");
-            cPopup.add("Delete");
+            cPopup.add(VUE.Actions.Copy);
+            cPopup.add(VUE.Actions.Rename);
+            cPopup.add(VUE.Actions.Delete);
+            cPopup.add(VUE.Actions.BringToFront);
+            cPopup.add(VUE.Actions.SendToBack);
+            cPopup.add(VUE.Actions.BringForward);
+            cPopup.add(VUE.Actions.SendBackward);
+            cPopup.addSeparator();
+            
+            cPopup.add(VUE.Actions.Ungroup);
         }
         return cPopup;
     }
@@ -1039,9 +1062,9 @@ public class MapViewer extends javax.swing.JPanel
                 activateLabelEdit(lastSelection);
                 return;
             } 
-            if (key == KeyEvent.VK_DELETE && lastSelection != null) {
-                map.removeChild(lastSelection);
-                repaint();
+            if (key == KeyEvent.VK_DELETE) {
+                // todo: can't we add this to a keymap for the MapViewer JComponent?
+                VUE.Actions.Delete.actionPerformed(new ActionEvent(this, 0, "Delete-via-key"));
                 return;
             }
             
@@ -1152,12 +1175,14 @@ public class MapViewer extends javax.swing.JPanel
             {
                 //-------------------------------------------------------
                 // MOUSE: We've pressed the right button down, so pop
-                // a context menu depending on what's under us.
+                // a context menu depending on what's in selection.
                 //-------------------------------------------------------
                 
-                if (hitComponent == null) {
-                    getMapPopup().show(MapViewer.this, e.getX(), e.getY());
+                if (selectionList.size() == 0) {
+                    getMapPopup().show(e.getComponent(), e.getX(), e.getY());
                 } else {
+                    // if (hitComponent instanceof LWGroup) // change existing to LWContainer
+                    //  add group/ungroup options
                     getComponentPopup().show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -1192,7 +1217,7 @@ public class MapViewer extends javax.swing.JPanel
                     // Also: mark drag start in case they start dragging
                     //-------------------------------------------------------
                     
-                    if (lastSelection != hitComponent) {
+                    if (lastSelection != hitComponent || selectionList.size() > 1) {
                         clearSelection();
                         addToSelection(hitComponent);
                     }
@@ -1578,10 +1603,7 @@ public class MapViewer extends javax.swing.JPanel
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
             if (selectionList.size() > 0)
                 new MapSelectionEvent(MapViewer.this, selectionList).raise();
-            //new MapSelectionEvent(this, ((LWComponent)selectionList.get(0)).getMapItem()).raise();
-            
             repaint();
-            
         } else {
             new MapViewerEvent(this, MapViewerEvent.HIDDEN).raise();
         }
@@ -1654,8 +1676,6 @@ public class MapViewer extends javax.swing.JPanel
         JFrame frame = new JFrame("VUE Concept Map Viewer");
         //JFrame frame = new EventFrame("VUE Concept Map Viewer");
         frame.setContentPane(mapView);
-        
-        
         frame.setBackground(Color.gray);
         frame.setSize(500,400);
         frame.pack();
@@ -1666,7 +1686,6 @@ public class MapViewer extends javax.swing.JPanel
             frame.setLocation(p);
         }
         frame.show();
-        //frame.repaint(); // currently needed to compute text sizes
     }
 
     static void installExampleNodes(Vue2DMap map)
