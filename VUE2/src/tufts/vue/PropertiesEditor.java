@@ -69,6 +69,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         addPropertyButton.setToolTipText("Add Metadata");
         deletePropertyButton.setToolTipText("Delete Metadata");
         questionLabel.setToolTipText("Add or delete resource metadata");
+        // TODO: make table resize with window just like the JTable in the
+        // NodeFilterEditor.  
         propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,150));
         propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
