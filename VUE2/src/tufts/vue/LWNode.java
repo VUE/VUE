@@ -645,7 +645,8 @@ public class LWNode extends LWContainer
         // todo perf: allow for skipping of searching for minimum size
         // if current size already big enough for content
 
-        if (/*hasChildren() &&*/ growShapeUntilContainsContent(nodeShape, content)) {
+        // todo: we shouldn't even by trying do a layout if have no children or label...
+        if ((hasLabel() || hasChildren()) && growShapeUntilContainsContent(nodeShape, content)) {
             // content x/y is now at the center location of our MINUMUM size,
             // even tho our current size may be bigger and require moving it..
             minSize.fit(nodeShape);
