@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.*;
 import javax.swing.*;
+import tufts.vue.action.*;
 
 /**
  * Vue application class.
@@ -148,6 +149,16 @@ public class VUE
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
         //vuePanel.add(splitPane);
+        
+        // adding the menu
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+        menuBar.add(menu);
+        
+        //adding actions
+        SaveAction saveAction = new SaveAction("Save");
+        menu.add(saveAction);
+        frame.setJMenuBar(menuBar);
         frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
