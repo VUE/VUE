@@ -44,6 +44,12 @@ import javax.swing.border.*;
  * @version June 2004
  *
  */
+
+// as this class is now specialized to handle vue LWKey properties,
+// it's no longer generic gui.  Can create subclass, VuePopupMenu,
+// that does the LWPropertyHandler impl, and move that to the
+// forthcoming tool package.
+
 public abstract class MenuButton extends JButton
     implements ActionListener, LWPropertyHandler
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover

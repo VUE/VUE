@@ -35,11 +35,17 @@ import java.awt.geom.Rectangle2D;
  * Provide an immutable single line of text with an exact bounding
  * box determined by font metrics of all characters in the string.
  *
+ * We can't use just a TextLayout object, as there are Mac/PC platform
+ * differences in the way the bounds offsets are provided, so we
+ * handle that here in draw(), as well as provide for some visual debugging
+ * diagnostics.
+ *
  * @see java.awt.font.TextLayout
  */
 
 public class TextRow
 {
+    // todo: cache the bounds more consistently
     private String text;
     private Graphics2D g2d;
     private TextLayout row;
