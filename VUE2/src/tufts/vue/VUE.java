@@ -132,27 +132,26 @@ public class VUE
          * create an example map (this will become
          * map loading code after the viewer is up)
          */
-        ConceptMap map1 = new ConceptMap("Example One");
-        ConceptMap map2 = new ConceptMap("Example Two");
-        ConceptMap map3 = new ConceptMap("Empty Map");
+        Vue2DMap map1 = new Vue2DMap("Example One");
+        Vue2DMap map2 = new Vue2DMap("Example Two");
+        Vue2DMap map3 = new Vue2DMap("Empty Map");
+
+        installExampleMap(map1);
+        installExampleMap(map2);
+        installExampleNodes(map1);
         
         /*
          * create the map viewer
          */
-        MapViewer mapViewer1 = new tufts.vue.MapViewer(map1);
-        //Container mapViewer2 = new tufts.vue.MapViewer(map1);
-        Container mapViewer3 = new tufts.vue.MapViewer(map2);
-        Container mapViewer4 = new tufts.vue.MapViewer(map3);
 
-        installExampleMap(map1);
-        installExampleMap(map2);
-        installExampleNodes(map1, mapViewer1);
+        MapViewer mapViewer1 = new tufts.vue.MapViewer(map1);
+        MapViewer mapViewer2 = new tufts.vue.MapViewer(map2);
+        MapViewer mapViewer3 = new tufts.vue.MapViewer(map3);
 
         tabbedPane = new JTabbedPane();        
         tabbedPane.addTab(map1.getLabel(), mapViewer1);
-        //tabbedPane.addTab(map1.getLabel() + "[View 2]", mapViewer2);
-        tabbedPane.addTab(map2.getLabel(), mapViewer3);
-        tabbedPane.addTab(map3.getLabel(), mapViewer4);
+        tabbedPane.addTab(map2.getLabel(), mapViewer2);
+        tabbedPane.addTab(map3.getLabel(), mapViewer3);
         
         tabbedPane.setSelectedIndex(0);
         tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
@@ -218,59 +217,52 @@ public class VUE
 
     }
 
-
-    static void installExampleNodes(ConceptMap map, MapViewer view)
+    static void installExampleNodes(Vue2DMap map)
     {
-        view.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
-        view.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
-        view.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
-        view.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
-        view.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
-
-        /*
-          view.addLWC(new LWNode(map.addNode(new Node("Oval")), 0)).setFillColor(Color.red);
-        view.addLWC(new LWNode(map.addNode(new Node("Circle")), 1)).setFillColor(Color.green);
-        view.addLWC(new LWNode(map.addNode(new Node("Square")), 2)).setFillColor(Color.orange);
-        view.addLWC(new LWNode(map.addNode(new Node("Rectangle")), 3)).setFillColor(Color.blue);
-        view.addLWC(new LWNode(map.addNode(new Node("Rounded Rectangle")), 4)).setFillColor(Color.yellow);
-        */
+        map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
+        map.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
+        map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
+        map.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
+        map.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
+        
+        map.addNode(new LWNode("One"));
+        map.addNode(new LWNode("Two"));
+        map.addNode(new LWNode("Three"));
+        map.addNode(new LWNode("Four"));
     }
     
-    static void installExampleMap(ConceptMap map)
+    static void installExampleMap(Vue2DMap map)
     {
         /*
          * create some test nodes & links
          */
-        Node n1 = new Node("Google", new Resource("http://www.google.com/"));
-        Node n2 = new Node("Program Files", new Resource("C:\\Program Files"));
-        Node n3 = new Node("readme.txt", new Resource("readme.txt"));
-        Node n4 = new Node("Slash", new Resource("file:///"));
-        n1.setPosition(100, 30);
-        n2.setPosition(100, 100);
-        n3.setPosition(50, 180);
-        n4.setPosition(200, 180);
+        LWNode n1 = new LWNode("Google", new Resource("http://www.google.com/"));
+        LWNode n2 = new LWNode("Program Files", new Resource("C:\\Program Files"));
+        LWNode n3 = new LWNode("readme.txt", new Resource("readme.txt"));
+        LWNode n4 = new LWNode("Slash", new Resource("file:///"));
+        n1.setLocation(100, 30);
+        n2.setLocation(100, 100);
+        n3.setLocation(50, 180);
+        n4.setLocation(200, 180);
         map.addNode(n1);
         map.addNode(n2);
         map.addNode(n3);
         map.addNode(n4);
-        map.addLink(new Link(n1, n2));
-        map.addLink(new Link(n2, n3));
-        map.addLink(new Link(n2, n4));
-
-        map.addNode(new Node("One"));
-        map.addNode(new Node("Two"));
-        map.addNode(new Node("Three"));
-        map.addNode(new Node("Four"));
-
+        map.addLink(new LWLink(n1, n2));
+        map.addLink(new LWLink(n2, n3));
+        map.addLink(new LWLink(n2, n4));
     }
 
-    public static ConceptMap getActiveMap()
+    public static MapViewer getActiveViewer()
     {
-        MapViewer mapViewer = (MapViewer) tabbedPane.getSelectedComponent();
-        return mapViewer.getMap();
+        return (MapViewer) tabbedPane.getSelectedComponent();
+    }
+    public static Vue2DMap getActiveMap()
+    {
+        return getActiveViewer().getMap();
     }
 
-    public static void displayMap(ConceptMap map)
+    public static void displayMap(Vue2DMap map)
     {
         // todo: figure out if we're already displaying this map
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
@@ -360,7 +352,7 @@ public class VUE
         HTMLConversion htmlAction = new HTMLConversion("Html");
         ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("Imap");
-        SVGConversion svgAction = new SVGConversion("SVG");
+        //SVGConversion svgAction = new SVGConversion("SVG");
         PrintAction printAction = new PrintAction("Print");
         
         JToolBar toolBar = new JToolBar();
@@ -371,9 +363,9 @@ public class VUE
         toolBar.add(htmlAction);
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
-        toolBar.add(svgAction);
+        //toolBar.add(svgAction);
         toolBar.add(printAction);
-        toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+        //toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
         frame.addWindowListener(new WindowListener(){

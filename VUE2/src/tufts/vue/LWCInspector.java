@@ -11,16 +11,16 @@ class LWCInspector extends javax.swing.JPanel
     implements VueConstants,
                MapSelectionListener,
                LWCListener,
-               MapItemListener,
                ActionListener
 {
     java.util.List selectionList;
 
     JLabel idField = new JLabel();
-    JLabel fontField = new JLabel();
     JLabel locationField = new JLabel();
     JLabel sizeField = new JLabel();
+    JTextField fontField = new JTextField();
     JTextField labelField = new JTextField(15);
+    JTextField colorField = new JTextField();
     JTextField categoryField = new JTextField();
     JTextField resourceField = new JTextField();
     JTextField notesField = new JTextField();
@@ -50,8 +50,9 @@ class LWCInspector extends javax.swing.JPanel
             "-ID",      idField,
             "-Location",locationField,
             "-Size",    sizeField,
-            "-Font",    fontField,
+            "Font",     fontField,
             "Label",    labelField,
+            "Fill Color",colorField,
             "Category", categoryField,
             "Resource", resourceField,
             "Notes",    notesField,
@@ -142,23 +143,19 @@ class LWCInspector extends javax.swing.JPanel
     }
     
 
-    // todo: will need to change this to display
-    // a LWComponent...
-    
-    public void mapItemChanged(MapItemEvent e)
-    {
-        MapItem mi = e.getSource();
-        if (this.mapItem != mi)
-            throw new IllegalStateException("unexpected event " + e);
-        loadItem(mi, this.lwc);
-    }
     public void LWCChanged(LWCEvent e)
     {
         if (e.getSource() == this)
             return;
         if (this.lwc != e.getComponent())
-            throw new IllegalStateException("unexpected update event");
-        loadItem(this.mapItem, this.lwc);
+            return;
+            /* this possible now because children of our displayed LWC
+               will pass their events up to us also.
+            throw new IllegalStateException("unexpected update event: " + e
+                                            + "\n\tshowing: " + lwc
+                                            + "\n\t    got: " + e.getComponent());
+            */
+        loadItem(this.lwc);
     }
     
     public void eventRaised(MapSelectionEvent e)
@@ -177,7 +174,6 @@ class LWCInspector extends javax.swing.JPanel
             c.setText(text);
     }
 
-    private MapItem mapItem; // temporary
     private LWComponent lwc; // temporary
     public void setSelection(java.util.List sl)
     {
@@ -188,22 +184,11 @@ class LWCInspector extends javax.swing.JPanel
             return;
 
         LWComponent lwc = (LWComponent) sl.get(0);
-        MapItem mapItem = lwc.getMapItem();
-        loadItem(mapItem, lwc);
+        loadItem(lwc);
     }
 
-    private void loadItem(MapItem mapItem, LWComponent lwc)
+    private void loadItem(LWComponent lwc)
     {
-        // handling both a MapItem and a LWC here
-        // is a temporary hack until we change
-        // elimate seperate concept map objects and
-        // implement as an interface.
-        if (this.mapItem != mapItem) {
-            if (this.mapItem != null)
-                this.mapItem.removeChangeListener(this);
-            this.mapItem = mapItem;
-            this.mapItem.addChangeListener(this);
-        }
         if (this.lwc != lwc) {
             if (this.lwc != null)
                 this.lwc.removeLWCListener(this);
@@ -211,11 +196,10 @@ class LWCInspector extends javax.swing.JPanel
             this.lwc.addLWCListener(this);
         }
 
-        if (mapItem != null) {
-            if (mapItem instanceof Node) {
-                Node node = (Node) mapItem;
-                if (node.getResource() != null)
-                    loadText(resourceField, node.getResource().toString());
+        if (lwc != null) {
+            if (lwc instanceof LWNode) { // todo: instanceof Node interface
+                if (lwc.getResource() != null)
+                    loadText(resourceField, lwc.getResource().toString());
                 else
                     loadText(resourceField, "");
                 resourceField.setEditable(true);
@@ -228,22 +212,23 @@ class LWCInspector extends javax.swing.JPanel
                 //resourceField.setVisible(false);
             }
 
-            //loadText(idField, mapItem.getID());
-            idField.setText(mapItem.getID());
-            loadText(labelField, mapItem.getLabel());
-            loadText(categoryField, mapItem.getCategory());
-            loadText(notesField, mapItem.getNotes());
+            idField.setText(lwc.getID());
+            loadText(labelField, lwc.getLabel());
+            loadText(categoryField, lwc.getCategory());
+            loadText(notesField, lwc.getNotes());
             //loadText(widthField, new Float(lwc.getWidth()));
             //loadText(heightField, new Float(lwc.getHeight()).toString());
 
             locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
             sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
-            Font f = lwc.getFont();
-            String fontSize = ""+f.getSize();
-            if (lwc.getScale() != 1)
-                fontSize += " (" + (f.getSize()*lwc.getScale()) + ")";
-            fontField.setText(f.getName() + "-" + fontSize);
-            //sizeField.setText(mapItem.getWidth() + "x" + mapItem.getHeight());
+            //Font f = lwc.getFont();
+            //if (lwc.getScale() != 1)
+            //  fontString += " (" + (f.getSize()*lwc.getScale()) + ")";
+            fontField.setText(lwc.getXMLfont());
+            //fontField.setText(f.getName() + "-" + fontSize);
+            //sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
+
+            colorField.setText(lwc.getXMLfillColor());
         }
         
     }
@@ -251,19 +236,23 @@ class LWCInspector extends javax.swing.JPanel
     public void actionPerformed(ActionEvent e)
     {
         //if (this.component == null)
-        if (this.mapItem == null)
+        if (this.lwc == null)
             return;
         String text = e.getActionCommand();
         Object src = (JTextComponent) e.getSource();
         //System.out.println("Inspector " + e);
         if (src == labelField)
-            mapItem.setLabel(text);
+            lwc.setLabel(text);
         else if (src == categoryField)
-            mapItem.setCategory(text);
+            lwc.setCategory(text);
         else if (src == notesField)
-            mapItem.setNotes(text);
+            lwc.setNotes(text);
         else if (src == resourceField)
-            mapItem.setResource(text);
+            lwc.setResource(text);
+        else if (src == fontField)
+            lwc.setXMLfont(text);
+        else if (src == colorField)
+            lwc.setXMLfillColor(text);
         else
             return;
         transferFocus(); // this isn't going to next field

@@ -17,7 +17,8 @@ import javax.swing.border.LineBorder;
  * @author Scott Fraize
  * @version 3/10/03
  */
-class LWNode extends LWComponent
+public class LWNode extends LWGroup
+    implements Node
 {
     private final int VerticalChildGap = 2;
     
@@ -27,6 +28,7 @@ class LWNode extends LWComponent
     private float borderWidth = 2;
     private ImageIcon imageIcon = null;
     private boolean fixedAspect = false;
+    private boolean autoSized = true; // compute size from label & children
 
     // Internal spacial layout
     private final int padX = 12;
@@ -35,23 +37,52 @@ class LWNode extends LWComponent
     private float fontStringWidth;
 
     
-    public LWNode(Node node)
+    public LWNode(String label)
     {
-        super(node);
-        super.setLocation(node.getX(), node.getY());
-
+        this(label, 0, 0);
+    }
+        
+    // internal convenience
+    LWNode(String label, float x, float y)
+    {
+        setLabel(label);
         // set default shape -- todo: get this from NodeTool
         setShape(StandardShapes[4]);
         setFillColor(COLOR_NODE_DEFAULT);
+        setLocation(x, y);
+    }
+    // internal convenience
+    LWNode(String label, Resource resource)
+    {
+        this(label, 0, 0);
+        setResource(resource);
+    }
+    // for save/restore only
+    public LWNode()
+    {
+        setShape(StandardShapes[4]);//todo: from persist
     }
     
     // temporary convience
     LWNode(String label, int shapeType)
     {
-        this(new Node(label));
+        this(label);
         setShape(StandardShapes[shapeType]);
     }
 
+    public void setIcon(javax.swing.ImageIcon icon) {}
+    public javax.swing.ImageIcon getIcon() { return null; }
+    
+    /** If true, compute node size from label & children */
+    public boolean isAutoSized()
+    {
+        return this.autoSized;
+    }
+    public boolean setAutoSized(boolean tv)
+    {
+        return this.autoSized = tv;
+    }
+    
     public Shape getShape()
     {
         return this.boundsShape;
@@ -63,8 +94,19 @@ class LWNode extends LWComponent
         setShape(nodeShape.getShape());
     }
     
+    // for persistance
+    public void setShape(Shape shape)
+    {
+        setShape((RectangularShape)shape);
+    }
     private void setShape(RectangularShape shape)
     {
+        //System.out.println("SETSHAPE " + shape + " in " + this);
+        //System.out.println("SETSHAPE bounds " + shape.getBounds());
+        //if (shape instanceof RoundRectangle2D.Float) {
+        //    RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
+        //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
+        //}
         this.boundsShape = shape;
         this.drawnShape = (RectangularShape) shape.clone();
         adjustDrawnShape();
@@ -80,26 +122,17 @@ class LWNode extends LWComponent
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
     }
 
-    public Node getNode()
-    {
-        return (Node) getMapItem();
-    }
-
     public void addChild(LWComponent c)
     {
-        //System.out.println(getMapItem().getLabel() + " ADDS " + c);
         super.addChild(c);
         //c.setScale(getScale() * ChildScale);
         //setScale(getScale());// to prop color toggle hack
         setScale(getLayer());// to prop color toggle hack
-        getNode().addChild((Node)c.getMapItem());
         layout();
     }
     public void removeChild(LWComponent c)
     {
-        System.out.println(getMapItem().getLabel() + " REMOVES " + c);
         super.removeChild(c);
-        getNode().removeChild((Node)c.getMapItem());
         c.setScale(1f);
         if (c.isManagedColor())
             c.setFillColor(COLOR_NODE_DEFAULT);
@@ -200,6 +233,7 @@ class LWNode extends LWComponent
     private FontMetrics fontMetrics;
     private String lastLabel;
     
+    /*
     public void mapItemChanged(MapItemEvent e)
     {
         System.out.println("mapItemChanged in LWNode " + e);
@@ -209,13 +243,12 @@ class LWNode extends LWComponent
             layout();
             lastLabel = mi.getLabel();
         }
-        /*
-        if  (e.getWhat().endsWith("Child")) {
-            // add or remove child -- recompute size
-            layout();
-        }
-        */
+        //if  (e.getWhat().endsWith("Child")) {
+          //  // add or remove child -- recompute size
+            //layout();
+        //}
     }
+*/
     
     private Rectangle2D getAllChildrenBounds()
     {
@@ -267,7 +300,7 @@ class LWNode extends LWComponent
       
     private void setPreferredSize()
     {
-        String label = getMapItem().getLabel();
+        String label = getLabel();
         //System.out.println("setPreferredSize " + label);
         if (this.fontMetrics == null) {
             //new Throwable("null FontMetrics in " + this).printStackTrace();
@@ -347,22 +380,16 @@ class LWNode extends LWComponent
             return (this.height+this.fontHeight) / 2f;
     }
 
-    public boolean absoluteDrawing()
-    {
-        return true;
-    }
-    
     public void draw(Graphics2D g)
     {
         g.translate(getX(), getY());
-        super.draw(g);
         float scale = getScale();
         if (scale != 1f)
             g.scale(scale, scale);
         g.setFont(getFont());
         this.fontMetrics = g.getFontMetrics();
 
-        String label = getNode().getLabel();
+        String label = getLabel();
 
         // System.out.println("draw " + label);
 
@@ -432,10 +459,19 @@ class LWNode extends LWComponent
             }
         */
 
-        /*
-         * draw children
-         */
+        //-------------------------------------------------------
+        // Restore graphics context
+        //-------------------------------------------------------
+        if (scale != 1f)
+            g.scale(1/scale, 1/scale);
+        g.translate(-getX(), -getY());
 
+        //-------------------------------------------------------
+        // Draw any children
+        //-------------------------------------------------------
+        super.draw(g);
+
+        /*
         if (hasChildren()) {
             if (scale != 1f)
                 g.scale(1/scale, 1/scale);
@@ -446,6 +482,7 @@ class LWNode extends LWComponent
                 c.draw((Graphics2D) g.create());
             }
         }
+        */
     }
 
     static class NodeShape {

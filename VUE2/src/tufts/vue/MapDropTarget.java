@@ -19,16 +19,17 @@ class MapDropTarget
 
     private final int ACCEPTABLE_DROP_TYPES = DnDConstants.ACTION_COPY_OR_MOVE | DnDConstants.ACTION_LINK;
 
-    ConceptMap conceptMap;
+    //ConceptMap conceptMap;
     java.awt.Container mapContainer;
     java.awt.Point lastPoint;
 
     private final boolean debug = true;
     
-    public MapDropTarget(java.awt.Container mapContainer, ConceptMap conceptMap)
+    //public MapDropTarget(java.awt.Container mapContainer, ConceptMap conceptMap)
+    public MapDropTarget(java.awt.Container mapContainer)
     {
        this.mapContainer = mapContainer;
-       this.conceptMap = conceptMap;
+       //this.conceptMap = conceptMap;
     }
 
     public void dragEnter(DropTargetDragEvent e)
@@ -187,9 +188,12 @@ class MapDropTarget
 
         if (resourceTitle == null)
             resourceTitle = createResourceTitle(resourceName);
-            
+
+        /*
         Node n = new Node(resourceTitle, new Resource(resourceName), location);
         conceptMap.addNode(n);
+        */
+        throw new RuntimeException("tmp unimp");
         //((MapViewer)mapContainer).setSelection(((MapViewer)mapContainer).findLWNode(n));
         //todo:fixme
     }
@@ -197,10 +201,16 @@ class MapDropTarget
     void createNewNode(java.awt.Image image, java.awt.Point p)
     {
         Point2D location = dropToMapLocation(p);
-        Node n = new Node("Image Label", location);
+
+        throw new RuntimeException("tmp unimp");
+        
+        /*
+          Node n = new Node("Image Label", location);
         conceptMap.addNode(n);
         LWNode lwNode = ((MapViewer)mapContainer).findLWNode(n);
         lwNode.setImage(image);
+        */
+        
         //((MapViewer)mapContainer).setSelection(lwNode);
         //todo:fixme
     }

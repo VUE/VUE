@@ -1,67 +1,157 @@
 package tufts.vue;
 
+import java.util.ArrayList;
+
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+// this is really ours
+//import java.awt.PColor;
+
 /**
  * LWComponent.java
  * 
  * Light-weight component base class for creating components to be
- * rendered by the ConceptMapView class, or anyone who wants to do
- * their own rendering and hit-detection.
+ * rendered by the MapViewer class.
  *
  * @author Scott Fraize
  * @version 3/10/03
  */
 
-class LWComponent
-    implements VueConstants,
-               MapItemListener,
+public class LWComponent
+    implements MapItem,
+               VueConstants,
                LWCListener
-// todo: consider subclassing the abstract RectangularShape?
 {
+    public void setID(String ID)
+    {
+        if (this.ID != null)
+            throw new IllegalStateException("Can't set ID to [" + ID + "], already set on " + this);
+        //System.out.println("setID [" + ID + "] on " + this);
+        this.ID = ID;
+    }
+    public void setLabel(String label)
+    {
+        this.label = label;
+        notify("label");
+    }
+    public void setNotes(String notes)
+    {
+        this.notes = notes;
+        notify("notes");
+    }
+    public void setMetaData(String metaData)
+    {
+        this.metaData = metaData;
+        notify("meta-data");
+    }
+    public void setCategory(String category)
+    {
+        this.category = category;
+        notify("category");
+    }
+    public void setResource(Resource resource)
+    {
+        this.resource = resource;
+        notify("resource");
+    }
+    public void setResource(String urn)
+    {
+        if (urn == null || urn.length() == 0)
+            setResource((Resource)null);
+        else
+            setResource(new Resource(urn));
+    }
+    public Resource getResource()
+    {
+        return this.resource;
+    }
+    public String getCategory()
+    {
+        return this.category;
+    }
+    public String getID()
+    {
+        return this.ID;
+    }
+    public String getLabel()
+    {
+        return this.label;
+    }
+    public String getNotes()
+    {
+        return this.notes;
+    }
+    public String getMetaData()
+    {
+        return this.metaData;
+    }
+
+    public String OLD_toString()
+    {
+        String s = getClass().getName() + "[id=" + getID();
+        if (getLabel() != null)
+            s += " \"" + getLabel() + "\"";
+        s += "]";
+        return s;
+    }
+
+    /*
+     * Persistent information
+     */
+    private static final String EMPTY = "";
+
+    // persistent core
+    private String ID = null;
+    private String label = null;
+    private String notes = null;
+    private String metaData = null;
+    private String category = null;
+    private Resource resource = null;
     private float x;
     private float y;
+    
+    // persistent impl
     protected float width;
     protected float height;
+    //protected PColor fillColor = new PColor(COLOR_FILL); // todo: use PColor in constants
+    //protected PColor textColor = new PColor(COLOR_TEXT);
+    //protected PColor strokeColor = new PColor(COLOR_STROKE);
     protected Color fillColor = COLOR_FILL;
     protected Color textColor = COLOR_TEXT;
     protected Color strokeColor = COLOR_STROKE;
     protected float strokeWidth = 1f;
-    protected Font font = FONT_DEFAULT;
-    protected boolean isAutoSized = true;
-
-    protected boolean displayed = true;
-    protected boolean selected = false;
-    protected boolean indicated = false;
-
-    protected LWComponent parent = null;
-
-    protected MapItem mapItem;
+    //protected Font font = FONT_DEFAULT;
+    protected Font font = null;
     
-    private java.util.List links = new java.util.ArrayList();
-    private java.util.List children = new java.util.ArrayList();
+    /*
+     * Runtime only information
+     */
+    protected transient boolean displayed = true;
+    protected transient boolean selected = false;
+    protected transient boolean indicated = false;
+
+    protected transient LWGroup parent = null;
+
+    // list of LWLinks that contain us as an endpoint
+    private transient ArrayList links = new ArrayList();
 
     // Scale exists ONLY to support the child-node
     // convenience feature.
-    protected float scale = 1.0f;
+    protected transient float scale = 1.0f;
     protected final float ChildScale = 0.75f;
 
-    private java.util.List lwcListeners;
+    private transient java.util.List lwcListeners;
 
-    //changed constructor to public so call from ImageMapper works
-    protected LWComponent() {}
-    protected LWComponent(MapItem mapItem)
+    /** for save/restore only & internal use only */
+    public LWComponent()
     {
-        if (mapItem == null)
-            throw new java.lang.IllegalArgumentException("LWNode: node is null");
-        this.mapItem = mapItem;
-        this.mapItem.addChangeListener(this);
+        //System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
     }
-
+    
     // If the component has an area, it should
     // implement getShape().  Links, for instance,
     // don't need to implement this.
@@ -69,14 +159,9 @@ class LWComponent
     {
         return null;
     }
-
-    public boolean isAutoSized()
+    public void setShape(Shape shape)
     {
-        return this.isAutoSized;
-    }
-    public boolean setAutoSized(boolean tv)
-    {
-        return this.isAutoSized = tv;
+        throw new RuntimeException("UNIMPLEMNTED setShape in " + this);
     }
     public Color getFillColor()
     {
@@ -85,7 +170,19 @@ class LWComponent
     public void setFillColor(Color color)
     {
         this.fillColor = color;
+        notify("fillColor");
     }
+    /** for persistance */
+    public String getXMLfillColor()
+    {
+        return ColorToString(getFillColor());
+    }
+    /** for persistance */
+    public void setXMLfillColor(String xml)
+    {
+        setFillColor(StringToColor(xml));
+    }
+    
     public Color getTextColor()
     {
         return this.textColor;
@@ -93,7 +190,19 @@ class LWComponent
     public void setTextColor(Color color)
     {
         this.textColor = color;
+        notify("textColor");
     }
+    /** for persistance */
+    public String getXMLtextColor()
+    {
+        return ColorToString(getTextColor());
+    }
+    /** for persistance */
+    public void setXMLtextColor(String xml)
+    {
+        setTextColor(StringToColor(xml));
+    }
+    
     public Color getStrokeColor()
     {
         return this.strokeColor;
@@ -101,7 +210,37 @@ class LWComponent
     public void setStrokeColor(Color color)
     {
         this.strokeColor = color;
+        notify("strokeColor");
     }
+    /** for persistance */
+    public String getXMLstrokeColor()
+    {
+        return ColorToString(getStrokeColor());
+    }
+    /** for persistance */
+    public void setXMLstrokeColor(String xml)
+    {
+        setStrokeColor(StringToColor(xml));
+    }
+    static String ColorToString(Color c)
+    {
+        if ((c.getRGB() & 0xFFFFFF) == 0)
+            return null;
+        return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
+    }
+    static Color StringToColor(String xml)
+    {
+	Color c = COLOR_DEFAULT;
+        try {
+            Integer intval = Integer.decode(xml);
+            c = new Color(intval.intValue());
+        } catch (NumberFormatException e) {
+            System.err.println("[" + xml + "] " + e);
+        }
+        return c;
+    }
+    
+    
     public float getStrokeWidth()
     {
         return this.strokeWidth;
@@ -109,11 +248,7 @@ class LWComponent
     public void setStrokeWidth(float w)
     {
         this.strokeWidth = w;
-    }
-    public boolean isManagedColor()
-    {
-        return getFillColor() == COLOR_NODE_DEFAULT
-            || getFillColor() == COLOR_NODE_INVERTED;
+        notify("strokeWidth");
     }
     public Font getFont()
     {
@@ -123,35 +258,40 @@ class LWComponent
     {
         this.font = font;
         layout();
+        notify("font");
     }
+    /** to support XML persistance */
+    public String getXMLfont()
+    {
+        //if (this.font == null || this.font == getParent().getFont())
+        //return null;
+        
+	String strStyle;
+	if (font.isBold()) {
+	    strStyle = font.isItalic() ? "bolditalic" : "bold";
+	} else {
+	    strStyle = font.isItalic() ? "italic" : "plain";
+	}
+        return font.getName() + "-" + strStyle + "-" + font.getSize();
+    }
+    /** to support XML persistance */
+    public void setXMLfont(String xml)
+    {
+        setFont(Font.decode(xml));
+    }
+    
     /**
      * If this item supports children,
      * lay them out.
      */
     protected void layout() {}
     
-    public void mapItemChanged(MapItemEvent e)
+    public boolean isManagedColor()
     {
-        System.out.println(e);
-        //MapItem mi = e.getSource();
-        //setLocation(mi.getPosition());
+        return getFillColor() == COLOR_NODE_DEFAULT
+            || getFillColor() == COLOR_NODE_INVERTED;
     }
-
-    /**
-     * does this component paint on the map as a whole?
-     * (e.g., links do this) -- If not, translate
-     * into component coord space before it paints.
-     */
-    public boolean absoluteDrawing()
-    {
-        return false;
-    }
-
-    public MapItem getMapItem()
-    {
-        return this.mapItem;
-    }
-
+    
     public float getLabelX()
     {
         return getCenterX();
@@ -161,21 +301,48 @@ class LWComponent
         return getCenterY();
     }
     
-    public void addLink(LWLink link)
+    /* for tracking who's linked to us */
+    void addLinkRef(LWLink link)
     {
         this.links.add(link);
     }
-    
-    public void removeLink(LWLink link)
+    /* for tracking who's linked to us */
+    void removeLinkRef(LWLink link)
     {
         this.links.remove(link);
     }
-
-    public java.util.List getLinks()
+    /* tell us all the links who have us as one of their endpoints */
+    java.util.List getLinkRefs()
     {
         return this.links;
     }
 
+    /*
+    public java.util.Iterator getNodeIterator()
+    {
+        return
+            new java.util.Iterator() {
+                java.util.Iterator i = getChildIterator();
+                boolean hasAnother = true;
+                LWComponent c = next
+                public boolean hasNext()
+                {
+                    return i.hasNext();
+                }
+		public Object next()
+                {
+                    LWLink lwl = (LWLink) i.next();
+                    if (lwl.getComponent1() == LWComponent.this)
+                        return lwl.getComponent2();
+                    else
+                        return lwl.getComponent1();
+                }
+		public void remove() {
+		    throw new UnsupportedOperationException();
+                }
+            };
+            }*/
+    
     /**
      * Return an iterator over all link endpoints,
      * which will all be instances of LWComponent.
@@ -186,7 +353,7 @@ class LWComponent
     {
         return
             new java.util.Iterator() {
-                java.util.Iterator i = getLinks().iterator();
+                java.util.Iterator i = getLinkRefs().iterator();
                 public boolean hasNext() {return i.hasNext();}
 		public Object next()
                 {
@@ -204,38 +371,22 @@ class LWComponent
 
     public boolean isChild()
     {
-        return this.parent != null;
+        return this.parent != null || parent instanceof Vue2DMap; // todo: kind of a hack
     }
-    public LWComponent getParent()
+    void setParent(LWGroup c)
+    {
+        this.parent = c;
+    }
+    public LWGroup getParent()
     {
         return this.parent;
     }
 
-    public void addChild(LWComponent c)
-    {
-        this.children.add(c);
-        c.parent = this;
-    }
-    public void removeChild(LWComponent c)
-    {
-        this.children.remove(c);
-        c.parent = null;
-    }
-
     public boolean hasChildren()
     {
-        return this.children.size() > 0;
+        return false;
     }
 
-    public java.util.List getChildList()
-    {
-        return this.children;
-    }
-    public java.util.Iterator getChildIterator()
-    {
-        return this.children.iterator();
-    }
-    
     public LWLink getLinkTo(LWComponent c)
     {
         java.util.Iterator i = this.links.iterator();
@@ -256,18 +407,6 @@ class LWComponent
     {
         this.scale = scale;
         //System.out.println("Scale set to " + scale + " in " + this);
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            // todo: temporary hack color change for children
-            if (c.isManagedColor()) {
-                if (getFillColor() == COLOR_NODE_DEFAULT)
-                    c.setFillColor(COLOR_NODE_INVERTED);
-                else
-                    c.setFillColor(COLOR_NODE_DEFAULT);
-            }
-            c.setScale(scale * ChildScale);
-        }
     }
     
     public float getScale()
@@ -284,7 +423,7 @@ class LWComponent
         //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
-        notify("location");
+        // notify("location"); // todo: does anyone need this?
     }
     
     public void setLocation(double x, double y)
@@ -310,11 +449,19 @@ class LWComponent
 
     public float getX() { return this.x; }
     public float getY() { return this.y; }
+    public void setX(float x) { this.x = x; }
+    public void setY(float y) { this.y = y; }
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }
 
+    // these 4 for persistance
+    public float getAbsoluteWidth() { return this.width; }
+    public float getAbsoluteHeight() { return this.height; }
+    public void setAbsoluteWidth(float w) { this.width = w; }
+    public void setAbsoluteHeight(float h) { this.height = h; }
+    
     public Rectangle2D getBounds()
     {
         return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
@@ -435,23 +582,20 @@ class LWComponent
     
     public void draw(java.awt.Graphics2D g)
     {
-        // System.err.println("drawing " + this);
+        throw new RuntimeException("UNIMPLEMNTED draw in " + this);
     }
-    
 
     public void LWCChanged(LWCEvent e)
     {
         if (e.getSource() == this)
             return;
         System.out.println(e);
-        //MapItem mi = e.getSource();
-        //setLocation(mi.getPosition());
     }
     
     public void addLWCListener(LWCListener listener)
     {
         if (lwcListeners == null)
-            lwcListeners = new java.util.ArrayList();
+            lwcListeners = new ArrayList();
         lwcListeners.add(listener);
     }
     public void removeLWCListener(LWCListener listener)
@@ -467,11 +611,14 @@ class LWComponent
         java.util.Iterator i = lwcListeners.iterator();
         while (i.hasNext())
             ((LWCListener)i.next()).LWCChanged(e);
-        //if (parent != null)
-        //parent.notifyLWCListeners(e);
+        if (parent != null)
+            parent.notifyLWCListeners(e);
     }
+    
     protected void notify(String what)
     {
+        if (lwcListeners == null)
+            return;
         notifyLWCListeners(new LWCEvent(this, this, what));
     }
     
@@ -503,9 +650,21 @@ class LWComponent
         return this.indicated;
     }
     
+    /** pesistance default */
+    public void addObject(Object obj)
+    {
+        System.err.println("Unhandled XML obj: " + obj);
+    }
+
     public String toString()
     {
-        return super.toString() + "["+x+","+y + " " + width + "x" + height + " " + getMapItem() + "]";
+        String s = getClass().getName() + "[id=" + getID();
+        if (getLabel() != null)
+            s += " \"" + getLabel() + "\"";
+        s += " " + x+","+y;
+        s += " " + width + "x" + height;
+        s += "]";
+        return s;
     }
     
 }

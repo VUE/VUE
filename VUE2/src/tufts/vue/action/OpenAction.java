@@ -27,10 +27,9 @@ import tufts.vue.*;
 
 public class OpenAction extends AbstractAction
 {
-    
-    
-    
-    final String XML_MAPPING = "concept_map.xml";
+    final String XML_MAPPING = "vue2d_map.xml";
+    //final String XML_MAPPING = "concept_map.xml";
+
     /** Creates a new instance of OpenAction */
     public OpenAction() {
     }
@@ -54,7 +53,7 @@ public class OpenAction extends AbstractAction
             VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
             VUE.activateWaitCursor();
             try {
-                ConceptMap loadedMap = loadMap(fileName);
+                Vue2DMap loadedMap = loadMap(fileName);
                 VUE.displayMap(loadedMap);
             } finally {
                 VUE.clearWaitCursor();
@@ -63,14 +62,14 @@ public class OpenAction extends AbstractAction
         System.out.println("Action["+e.getActionCommand()+"] performed!");
     }
 
-    private ConceptMap loadMap(String filename)
+    private Vue2DMap loadMap(String filename)
     {
         try {
             Unmarshaller unmarshaller = getUnmarshaller();
             if (debug) System.err.println("Unmarshalling from " + filename);
-            ConceptMap map = (ConceptMap) unmarshaller
+            Vue2DMap map = (Vue2DMap) unmarshaller
                 .unmarshal(new InputSource(new FileReader(filename)));
-            if (debug) System.err.println("Resloving links in " + map);
+            if (debug) System.err.println("Resolving links in " + map);
             map.resolvePersistedLinks();
             return map;
         } catch (Exception e) {
@@ -91,9 +90,9 @@ public class OpenAction extends AbstractAction
             try {
                 if (debug) System.err.println("Loading " + XML_MAPPING + "...");
                 mapping.loadMapping(XML_MAPPING);
-                if (debug) System.err.println("Loaded " + XML_MAPPING);
+                if (debug) System.err.println(" Loaded " + XML_MAPPING + ".");
                 unmarshaller.setMapping(mapping);
-                if (debug) System.err.println("Unmarshaller mapping has been set.");
+                if (debug) System.err.println("The loaded mapping has been set on the unmarshaller.");
             } catch (Exception e) {
                 System.err.println("OpenAction.getUnmarshaller: " + e);
             }
@@ -108,6 +107,6 @@ public class OpenAction extends AbstractAction
         new OpenAction().loadMap(args[0]);
     }
 
-    private static boolean debug = false;
+    private static boolean debug = true;
 
 }

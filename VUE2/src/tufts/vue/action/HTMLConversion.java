@@ -89,8 +89,7 @@ public class HTMLConversion extends AbstractAction {
     }
     
     private void selectHTMLFile() {
-        MapViewer currentMap = (MapViewer)VUE.tabbedPane.getSelectedComponent();
-        String label = currentMap.getMap().getLabel();
+        String label = VUE.getActiveMap().getLabel();
         try {
             
             JFileChooser chooser = new JFileChooser();

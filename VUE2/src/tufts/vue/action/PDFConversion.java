@@ -90,8 +90,7 @@ public class PDFConversion extends AbstractAction {
     }
     
     private void selectPDFFile() {
-        MapViewer currentMap = (MapViewer)VUE.tabbedPane.getSelectedComponent();
-        String label = currentMap.getMap().getLabel();
+        String label = VUE.getActiveMap().getLabel();
         try {
             
             JFileChooser chooser = new JFileChooser();

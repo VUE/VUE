@@ -9,42 +9,112 @@ import java.awt.geom.Rectangle2D;
 /**
  * LWLink.java
  *
- * Draws a view of a Link on a java.awt.Graphics context,
+ * Draws a view of a Link on a java.awt.Graphics2D context,
  * and offers code for user interaction.
  *
+ * Note that links have position (always their mid-point) only so that
+ * there's a place to connect for another link and/or a place for
+ * the label.  Having a size doesn't actually make much sense, tho
+ * we inherit from LWComponent.
+ *
  * @author Scott Fraize
- * @version 3/10/03
+ * @version 6/1/03
  */
-class LWLink extends LWComponent
+public class LWLink extends LWComponent
+    implements Link
 {
     private static final float WEIGHT_RENDER_RATIO = 2f;
     private static final float MAX_RENDER_WIDTH = 16f;
+
+    // interface
     
-    private Link link;
+    // used only during save
+    public String getEndPoint1_ID()
+    {
+        //System.err.println("getEndPoint1_ID called for " + this);
+        if (this.c1 == null)
+            return this.endPoint1_ID;
+        else
+            return this.c1.getID();
+    }
+    // used only during save
+    public String getEndPoint2_ID()
+    {
+        //System.err.println("getEndPoint2_ID called for " + this);
+        if (this.c2 == null)
+            return this.endPoint2_ID;
+        else
+            return this.c2.getID();
+    }
+
+    // used only during restore
+    public void setEndPoint1_ID(String s)
+    {
+        this.endPoint1_ID = s;
+    }
+    // used only during restore
+    public void setEndPoint2_ID(String s)
+    {
+        this.endPoint2_ID = s;
+    }
+    public boolean isOrdered()
+    {
+        return this.ordered;
+    }
+    public void setOrdered(boolean ordered)
+    {
+        this.ordered = ordered;
+    }
+    public int getWeight()
+    {
+        return this.weight;
+    }
+    public void setWeight(int w)
+    {
+        this.weight = w;
+    }
+    public int incrementWeight()
+    {
+        this.weight += 1;
+        return this.weight;
+    }
+
+    // impl
+    
+    private String endPoint1_ID; // used only during restore
+    private String endPoint2_ID; // used only during restore
+    
+    private int weight = 1;
+    private boolean ordered = false;
+    private int endPoint1Style = 0;
+    private int endPoint2Style = 0;
     private LWComponent c1;
     private LWComponent c2;
-
     private Line2D line = new Line2D.Float();
     
-    public LWLink(Link link, LWComponent c1, LWComponent c2)
+    /**
+     * Used ONLY for restore -- must be public so can be reflected
+     */
+    public LWLink()
     {
-        if (link == null || c1 == null || c2 == null)
-            throw new java.lang.IllegalArgumentException("LWLink: link=" + link + " c1=" + c1 + " c2=" + c2);
-        this.link = link;
+    }
+
+    /**
+     * Create a new link between two LWC's
+     */
+    public LWLink(LWComponent c1, LWComponent c2)
+    {
+        if (c1 == null || c2 == null)
+            throw new java.lang.IllegalArgumentException("LWLink: c1=" + c1 + " c2=" + c2);
         this.c1 = c1;
         this.c2 = c2;
         setSize(10,10);
         setFont(FONT_LINKLABEL);
         setTextColor(COLOR_LINK_LABEL);
-        c1.addLink(this);
-        c2.addLink(this);
+        c1.addLinkRef(this);
+        c2.addLinkRef(this);
     }
 
-    public boolean absoluteDrawing()
-    {
-        return true;
-    }
-    
     public boolean intersects(Rectangle2D rect)
     {
         return rect.intersectsLine(this.line);
@@ -58,19 +128,10 @@ class LWLink extends LWComponent
             x -= 0.5f;
             y -= 0.5f;
         }
-        float maxDist = (link.getWeight() * WEIGHT_RENDER_RATIO) / 2;
+        float maxDist = (getWeight() * WEIGHT_RENDER_RATIO) / 2;
         return line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1;
     }
     
-    public MapItem getMapItem()
-    {
-        return link;
-    }
-    public Link getLink()
-    {
-        return link;
-    }
-
     public LWComponent getComponent1()
     {
         return c1;
@@ -78,6 +139,24 @@ class LWLink extends LWComponent
     public LWComponent getComponent2()
     {
         return c2;
+    }
+    public MapItem getItem1()
+    {
+        return c1;
+    }
+    public MapItem getItem2()
+    {
+        return c2;
+    }
+    void setEndPoint1(LWComponent c)
+    {
+        this.c1 = c;
+        System.out.println(this + " ep1 = " + c);
+    }
+    void setEndPoint2(LWComponent c)
+    {
+        this.c2 = c;
+        System.out.println(this + " ep2 = " + c);
     }
     public java.util.Iterator getLinkEndpointsIterator()
     {
@@ -89,6 +168,7 @@ class LWLink extends LWComponent
         
     }
 
+    /*
     public void X_setLocation(float x, float y)
     {
         float dx = getX() - x;
@@ -108,12 +188,12 @@ class LWLink extends LWComponent
             c2.setLocation(c2.getX() - dx, c2.getY() - dy);
         super.setLocation(x,y);
     }
+    */
     
     private static final int clearBorder = 4;
     private Rectangle2D box = new Rectangle2D.Float();
     public void draw(Graphics2D g)
     {
-        super.draw(g);
         // Draw the connecting line
 
         float startX, startY, endX, endY, locX, locY;
@@ -190,25 +270,21 @@ class LWLink extends LWComponent
             g.setColor(getStrokeColor());
         
         float strokeWidth = 0f;
-        if (this.link == null) {
-            // possible while dragging out a new link
-            g.setStroke(STROKE_TWO);
-        } else {
-            // set the stroke width
-            strokeWidth = this.link.getWeight() * WEIGHT_RENDER_RATIO;
-            if (strokeWidth > MAX_RENDER_WIDTH)
-                strokeWidth = MAX_RENDER_WIDTH;
-            // If either end of this link is scaled, scale stroke
-            // to smallest of the scales (even better: render the stroke
-            // in a variable width narrowing as it went...)
-            if (c1.getScale() != 1f || c2.getScale() != 1f) {
-                if (c1.getScale() < c2.getScale())
-                    strokeWidth *= c1.getScale();
-                else
-                    strokeWidth *= c2.getScale();
-            }
-            g.setStroke(new BasicStroke(strokeWidth));
+        // set the stroke width
+        strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
+        if (strokeWidth > MAX_RENDER_WIDTH)
+            strokeWidth = MAX_RENDER_WIDTH;
+        // If either end of this link is scaled, scale stroke
+        // to smallest of the scales (even better: render the stroke
+        // in a variable width narrowing as it went...)
+        if (c1.getScale() != 1f || c2.getScale() != 1f) {
+            if (c1.getScale() < c2.getScale())
+                strokeWidth *= c1.getScale();
+            else
+                strokeWidth *= c2.getScale();
         }
+        g.setStroke(new BasicStroke(strokeWidth));
+    
         if (VueUtil.StrokeBug05) {
             startX -= 0.5;
             startY -= 0.5;
@@ -236,16 +312,13 @@ class LWLink extends LWComponent
         }
         g.draw(this.line);
 
-        MapItem mi = getMapItem();
-        if (mi != null) {
-            String label = mi.getLabel();
-            if (label != null && label.length() > 0) {
-                g.setColor(getTextColor());
-                g.setFont(getFont());
-                FontMetrics fm = g.getFontMetrics();
-                float w = fm.stringWidth(label);
-                g.drawString(label, locX - w/2, locY - (strokeWidth/2));
-            }
+        String label = getLabel();
+        if (label != null && label.length() > 0) {
+            g.setColor(getTextColor());
+            g.setFont(getFont());
+            FontMetrics fm = g.getFontMetrics();
+            float w = fm.stringWidth(label);
+            g.drawString(label, locX - w/2, locY - (strokeWidth/2));
         }
 
         

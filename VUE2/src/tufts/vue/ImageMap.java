@@ -57,8 +57,7 @@ public class ImageMap extends AbstractAction {
     }
 
     private void createJpeg(){
-            
-            MapViewer currentMap = (MapViewer)VUE.tabbedPane.getSelectedComponent();
+            MapViewer currentMap = (MapViewer) VUE.tabbedPane.getSelectedComponent();
             Dimension size = currentMap.getSize();
             BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
             Graphics g = mapImage.getGraphics();
@@ -99,15 +98,13 @@ public class ImageMap extends AbstractAction {
             +"\" border=0 usemap=\"#map\" HEIGHT="+size.height+" WIDTH="+size.width+">";
         out += "<map name=\"map\">";
 
-        java.util.List list = (java.util.List) currentMap.getAllLWNodes();
-        java.util.Iterator iter = list.iterator();
+        java.util.Iterator iter =  currentMap.getMap().getNodeIterator();
         
         //create a mapping for ever node using its component's coordinates
         while(iter.hasNext()){
             LWNode node = (LWNode)iter.next();
             String shape = "rect";
-            MapItem item = node.getMapItem();
-            String label = item.getLabel();
+            String label = node.getLabel();
             String res = "";
             int ox = (int)node.getX();
             int oy = (int)node.getY();
@@ -115,8 +112,8 @@ public class ImageMap extends AbstractAction {
             int oh = (int)node.getHeight();
             String href = "";
             
-            if(item.getResource() != null){
-                Resource resource = item.getResource();
+            if(node.getResource() != null){
+                Resource resource = node.getResource();
                 res = resource.toString();
                 if(!res.startsWith("http://")) res = "file:///" + res;
             } 

@@ -21,15 +21,19 @@ public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
     implements VueConstants
-               , MapListener
-               //, AWTEventListener
+               , LWCListener
 {
+    /*
+    java.util.List nodeList = new java.util.ArrayList();
+    java.util.List linkList = new java.util.ArrayList();
+    java.util.List componentList = new java.util.ArrayList();
+    java.util.List pathwayList = new java.util.ArrayList();
     java.util.List components = new java.util.ArrayList();
-    java.util.List nodeViews = new java.util.ArrayList();
-    java.util.List linkViews = new java.util.ArrayList();
+    */
+
     java.util.List tools = new java.util.ArrayList();
 
-    protected ConceptMap map;                   // the map we're displaying & interacting with
+    protected Vue2DMap map;                   // the map we're displaying & interacting with
     private MapTextEdit activeTextEdit;          // Current on-map text edit
 
     //-------------------------------------------------------
@@ -41,7 +45,8 @@ public class MapViewer extends javax.swing.JPanel
     protected boolean draggingSelectionBox;     // currently dragged selection box
     protected Rectangle2D selectionBounds;  // max bounds of all components in current selection
     protected java.util.List selectionList = new java.util.ArrayList();
-    //protected LWComponent selection;    // current selection
+
+    //LWComponent dragComponent;
 
     //-------------------------------------------------------
     // For dragging out new links
@@ -71,7 +76,7 @@ public class MapViewer extends javax.swing.JPanel
     private VueTool activeTool;
     private ZoomTool zoomTool; // todo: get rid of this hard reference
     
-    public MapViewer(ConceptMap map)
+    public MapViewer(Vue2DMap map)
     {
         super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
@@ -83,7 +88,7 @@ public class MapViewer extends javax.swing.JPanel
         addMouseMotionListener(ih);
         addKeyListener(ih);
 
-        MapDropTarget mapDropTarget = new MapDropTarget(this, map);
+        MapDropTarget mapDropTarget = new MapDropTarget(this);
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
         // todo: tab to show/hide all tool windows
@@ -113,11 +118,9 @@ public class MapViewer extends javax.swing.JPanel
 
         */
 
-        //setSize(300,200);
         setPreferredSize(new Dimension(400,300));
-        setBackground(Color.white);
+        setBackground(map.getFillColor());
         setFont(VueConstants.DefaultFont);
-
         loadMap(map);
 
         /*
@@ -128,13 +131,6 @@ public class MapViewer extends javax.swing.JPanel
         */
     }
 
-    public boolean isEmpty()
-    {
-        return components.size() + linkViews.size() + nodeViews.size() == 0;
-    }
-      
-
-    
     void addTool(VueTool tool)
     {
         tools.add(tool);
@@ -150,7 +146,7 @@ public class MapViewer extends javax.swing.JPanel
     {
         this.mapOriginX = screenX;
         this.mapOriginY = screenY;
-        this.map.setOrigin(mapOriginX, mapOriginY);
+        //this.map.setOrigin(mapOriginX, mapOriginY);
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
     }
     public void setMapOriginOffset(double screenX, double screenY) {
@@ -260,197 +256,50 @@ public class MapViewer extends javax.swing.JPanel
         // when switching tabs
     }
 
-    public ConceptMap getMap()
+    Vue2DMap getMap()
     {
         return this.map;
-    }
-
-    void loadMap(ConceptMap map)
-    {
-        if (map == null)
-            return;
-        if (this.map != null)
-            unloadMap();
-        this.map = map;
-
-        java.util.Iterator i;
-        i = map.getNodeIterator();
-        while (i.hasNext()) {
-            Node node = (Node) i.next();
-            System.out.println("loaded " + node);
-            addNode(new LWNode(node));
-        }
-
-        i = map.getLinkIterator();        
-        while (i.hasNext()) {
-            Link link = (Link) i.next();
-            //System.out.println("loaded " + l + " "+findLWComponent(l.getItem1())+" "+l.getItem2());
-            System.out.println("loaded " + link);
-            LWComponent c1 = findLWComponent(link.getItem1());
-            LWComponent c2 = findLWComponent(link.getItem2());
-            addLink(new LWLink(link, c1, c2));
-        }
-        this.map.addMapListener(this);
     }
     
     void unloadMap()
     {
+        this.map = null;
+    }
+    
+    void loadMap(Vue2DMap map)
+    {
+        if (map == null)
+            throw new IllegalArgumentException("loadMap: null Vue2DMap");
         if (this.map != null)
-            this.map.removeMapListener(this);
-        this.components.clear();
-    }
-
-    LWNode findLWNode(Node node)
-    {
-        java.util.Iterator i = nodeViews.iterator();
-        while (i.hasNext()) {
-            LWNode nv = (LWNode) i.next();
-            if (nv.getNode() == node)
-                return nv;
-        }
-        return null;
+            unloadMap();
+        this.map = map;
+        this.map.addLWCListener(this);
+        repaint();
     }
     
-    LWComponent findLWComponent(MapItem mapItem)
+    public void LWCChanged(LWCEvent e)
     {
-        java.util.Iterator i = new VueUtil.GroupIterator(nodeViews, linkViews);
-
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getMapItem() == mapItem)
-                return c;
-        }
-        return null;
-    }
-
-    public void mapItemAdded(MapEvent e)
-    {
-        MapItem src = e.getItem();
-        if (src instanceof Node)
-            addNode(new LWNode((Node) src));
-        else if (src instanceof Link) {
-            Link link = (Link) src;
-            LWComponent c1 = findLWComponent(link.getItem1());
-            LWComponent c2 = findLWComponent(link.getItem2());
-            addLink(new LWLink(link, c1, c2));
-        }
-        else {
-            throw new RuntimeException("unhandled: " + e);
-            //fixme: real exception
-        }
-    }
-    
-    public void mapItemRemoved(MapEvent e)
-    {
-        removeLWC(findLWComponent(e.getItem()));
-    }
-    
-    public void mapItemChanged(MapEvent e)
-    {
-        System.out.println("MapViewer repaint on " + e);
+        // todo: optimize -- we get tons of location events
+        // when dragging, esp if there are children!
+        System.out.println(e);
+        if (e.getWhat().equals("location"))
+            return;
+        if (e.getSource() == this)
+            return;
         repaint();
     }
 
-    private LWNode addNode(LWNode nv)
-    {
-        nodeViews.add(nv);
-        repaint();
-        return nv;
-    }
-    private LWLink addLink(LWLink lv)
-    {
-        linkViews.add(lv);
-        repaint();
-        return lv;
-    }
-    LWComponent addLWC(LWComponent c)
-    {
-        if (c instanceof LWNode)
-            nodeViews.add(c);
-        else if (c instanceof LWLink)
-            linkViews.add(c);
-        else
-            components.add(c);
-        repaint();
-        return c;
-    }
-    
-    public java.util.List getAllLWNodes(){
-        return nodeViews;
-    }
-    
-    private boolean removeLWC(LWComponent c)
-    {
-        boolean success = false;
-        if (c instanceof LWNode)
-            success = nodeViews.remove(c);
-        else if (c instanceof LWLink)
-            success = linkViews.remove(c);
-        else
-            success = components.remove(c);
-        repaint();
-        return success;
-    }
-    /*
-    public LWComponent addComponent(LWComponent c)
-    {
-        components.add(c);
-        repaint();
-        return c;
-    }
-    public boolean removeNode(LWNode nv)
-    {
-        boolean success = nodeViews.remove(nv);
-        repaint();
-        return success;
-    }
-    public boolean removeLink(LWLink lv)
-    {
-        boolean success = linkViews.remove(lv);
-        repaint();
-        return success;
-    }
-    */
-
-    public LWComponent getLWComponentAt(float mapX, float mapY)
-    {
-        java.util.List hits = new java.util.ArrayList();
-        
-        java.util.Iterator i = new VueUtil.GroupIterator(components, nodeViews, linkViews);
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.contains(mapX, mapY)) {
-                hits.add(c);
-                //hits.add(c.getComponentAt(mapX, mapY));
-                // LWC.getComponentAt(x,y) returns self
-                // if no child hits
-            }
-        }
-        return findClosestCenter(hits, mapX, mapY);
-    }
-
-    public LWNode getLWNodeAt(float mapX, float mapY)
-    {
-        java.util.List hits = new java.util.ArrayList();
-        
-        java.util.Iterator i = nodeViews.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.contains(mapX, mapY))
-                hits.add(c);
-        }
-        return (LWNode) findClosestCenter(hits, mapX, mapY);
-    }
     /**
      * Used to look for a node we can drop the given
      * node onto.
      */
+    /*
     public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
     {
         java.util.List hits = new java.util.ArrayList();
         //float centerX = dragging.getCenterX();
         //float centerY = dragging.getCenterY();
-        java.util.Iterator i = nodeViews.iterator();
+        java.util.Iterator i = nodeList.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             // if either mouse or the center of the dragged component
@@ -462,22 +311,54 @@ public class MapViewer extends javax.swing.JPanel
         }
         return (LWNode) findClosestCenter(hits, mapX, mapY);
     }
+    */
+    public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
+    {
+        return map.findLWNodeAt(mapX, mapY, dragging);
+    }
     
-    public java.util.List getLWComponentsHitBy(Rectangle2D mapRect)
+    public LWComponent getLWComponentAt(float mapX, float mapY)
+    {
+        return map.findLWComponentAt(mapX, mapY);
+
+        /*
+        // hit detection must traverse list in reverse as top-most
+        // components are at end
+        java.util.ListIterator i = components.listIterator(components.size());
+        while (i.hasPrevious()) {
+            LWComponent c = (LWComponent) i.previous();
+            if (c.contains(mapX, mapY))
+                return c.findComponentAt(mapX, mapY); // if no children, will return self
+        }
+        return null;
+        */
+    }
+    
+    /**
+     * Add all nodes hit by this box to a list for doing selection.
+     * If NO nodes are in the list, search for links within the region
+     * instead.
+     */
+    private java.util.List computeSelection(Rectangle2D mapRect)
     {
         java.util.List hits = new java.util.ArrayList();
         
-        java.util.Iterator i = new VueUtil.GroupIterator(components, nodeViews);
-        //java.util.Iterator i = nodeViews.iterator();
+        //java.util.Iterator i = new VueUtil.GroupIterator(componentList, nodeList);
+        java.util.Iterator i = getMap().getChildIterator();  // todo: DEPTH ITERATOR
+
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (!(c instanceof LWNode))
+                continue;
             if (c.intersects(mapRect))
                 hits.add(c);
         }
         if (hits.size() == 0) {
-            i = linkViews.iterator();
+            i = getMap().getChildIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
+                if (!(c instanceof LWLink))
+                    continue;
                 if (c.intersects(mapRect))
                     hits.add(c);
             }
@@ -559,7 +440,8 @@ public class MapViewer extends javax.swing.JPanel
      */
     public Rectangle2D getAllComponentBounds()
     {
-        return getComponentBounds(new VueUtil.GroupIterator(components, nodeViews, linkViews));
+        //return getComponentBounds(new VueUtil.GroupIterator(componentList, nodeList, linkList));
+        return getComponentBounds(getMap().getChildIterator());
     }
     
     public Rectangle2D getComponentBounds(java.util.Iterator i)
@@ -614,6 +496,9 @@ public class MapViewer extends javax.swing.JPanel
     private static final Line2D Xaxis = new Line2D.Float(-3000, 0, 3000, 0);
     private static final Line2D Yaxis = new Line2D.Float(0, -3000, 0, 3000);
 
+    /**
+     * Java Swing JComponent.paintComponent -- paint the map on the map viewer canvas
+     */
     public void paintComponent(Graphics g)
     {
         // paint the background
@@ -641,11 +526,43 @@ public class MapViewer extends javax.swing.JPanel
             g2.draw(Yaxis);
         }
         
-        paintLWComponents(g2);
-        //super.paintChildren(g2);
+        //-------------------------------------------------------
+        // Paint all the nodes & links
+        // Nodes are responsible for painting their children.
+        //-------------------------------------------------------
         
+        // anti-alias shapes by default
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // anti-alias text
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        // Do we need fractional metrics?  Gives us slightly more accurate
+        // string widths on noticable on long strings
+        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        this.map.draw(g2);
+        if (creationLink.isDisplayed())
+            creationLink.draw(g2);
+            //drawComponent(g2, creationLink);
+        // render the current indication on top
+        //if (indication != null)
+        //indication.draw(g2);
+            //drawComponent(g2, indication);
+
+        /*
+        if (dragComponent != null) {
+            g2.setComposite(java.awt.AlphaComposite.SrcOver);
+            dragComponent.draw(g2);
+        }
+        */
+
+        //-------------------------------------------------------
+        //-------------------------------------------------------
+        //paintLWComponents(g2);
+        ////super.paintChildren(g2);
+        
+        //-------------------------------------------------------
         // Restore us to raw screen coordinates & turn off
-        // anti-aliasing to draw selection(s)
+        // anti-aliasing to draw selection indicators
+        //-------------------------------------------------------
         
         if (zoomFactor != 1)
             g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
@@ -655,6 +572,7 @@ public class MapViewer extends javax.swing.JPanel
         paintSelection(g2);
 
         if (DEBUG_SHOW_ORIGIN && zoomFactor >= 6.0) {
+            //g2.setComposite(java.awt.AlphaComposite.Xor);
             g2.translate(-getOriginX(), -getOriginY());
             g2.setStroke(new java.awt.BasicStroke(1f));
             g2.setColor(Color.black);
@@ -686,7 +604,7 @@ public class MapViewer extends javax.swing.JPanel
         
         MapTextEdit(LWComponent lwc)
         {
-            super(lwc.getMapItem().getLabel());
+            super(lwc.getLabel());
             if (getColumns() < 4)
                 setColumns(4);
             this.lwc = lwc;
@@ -731,7 +649,7 @@ public class MapViewer extends javax.swing.JPanel
         public void actionPerformed(ActionEvent e)
         {
             //System.out.println("MapTextEdit " + e);
-            lwc.getMapItem().setLabel(e.getActionCommand());
+            lwc.setLabel(e.getActionCommand());
             removeLabelEdit();
         }
 
@@ -745,9 +663,13 @@ public class MapViewer extends javax.swing.JPanel
         
         public void focusLost(FocusEvent e)
         {
+            System.out.println("map edit focusLost");
             removeLabelEdit();
         }
-        public void focusGained(FocusEvent e) { }
+        public void focusGained(FocusEvent e)
+        {
+            System.out.println("map edit focusGained");
+        }
     
     
         public void X_paint(Graphics g)
@@ -802,8 +724,8 @@ public class MapViewer extends javax.swing.JPanel
 
     void activateLabelEdit(LWComponent lwc)
     {
-        if (lwc.getMapItem() == null)
-            return;
+        //if (lwc.getMapItem() == null)
+        //  return;
         if (activeTextEdit != null && activeTextEdit.lwc == lwc)
             return;
         removeLabelEdit();
@@ -813,7 +735,10 @@ public class MapViewer extends javax.swing.JPanel
         float eh = screenToMapDim(activeTextEdit.getHeight());
         float cx = lwc.getX() + (lwc.getWidth() - ew) / 2f;
         float cy;
-        if (lwc.isAutoSized() && !lwc.hasChildren())
+        LWNode node = null;
+        if (lwc instanceof LWNode)
+            node = (LWNode) lwc;
+        if (node != null && node.isAutoSized() && !node.hasChildren())
             cy = lwc.getY() + (lwc.getHeight() - eh) / 2f;
         else
             cy = lwc.getLabelY();
@@ -828,6 +753,7 @@ public class MapViewer extends javax.swing.JPanel
         activeTextEdit.requestFocus();
     }
     
+    /*
     private void drawComponentList(Graphics2D g2, java.util.List componentList)
     {
         java.util.Iterator i = componentList.iterator();
@@ -837,23 +763,15 @@ public class MapViewer extends javax.swing.JPanel
                 drawComponent(g2, c);
         }
     }
-    
     private void drawComponent(Graphics2D g2, LWComponent c)
     {
-        final boolean translate = !c.absoluteDrawing();
         try {
-            Graphics2D lg = (Graphics2D) g2.create();
-            if (translate)
-                lg.translate(c.getX(), c.getY());
-            c.draw(lg);
+            c.draw((Graphics2D) g2.create());
         } catch (Throwable e) {
             System.err.println("Render exception: " + e);
             e.printStackTrace();
         }
     }
-
-        
-    private boolean firstPaint = true;
     void paintLWComponents(Graphics2D g2)
     {
         // anti-alias shapes by default
@@ -864,29 +782,24 @@ public class MapViewer extends javax.swing.JPanel
         // string widths on noticable on long strings
         g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         
-        /*
-         * Draw the components.
-         * Draw links first so their ends aren't visible.
-         */
-
-        if (firstPaint) {
-            firstPaint = false;
-            // render nodes so links can compute their location
-            drawComponentList(g2, nodeViews);
-        }
+        //-------------------------------------------------------
+        // Draw the components.
+        // Draw links first so their ends aren't visible.
+        //-------------------------------------------------------
         
         // render the LWLinks first so ends are obscured later
         // when the LWNodes are rendered.
-        //drawComponentList(g2, linkViews);
+        //drawComponentList(g2, linkList);
         
         // render any arbitrary LWComponents
-        drawComponentList(g2, components);
+        drawComponentList(g2, componentList);
         
         // render the LWNodes
-        drawComponentList(g2, nodeViews);
+        // (also need to render nodes b4 links so links can compute their location)
+        drawComponentList(g2, nodeList);
 
         // render the LWLinks LAST so sure to see links to child nodes
-        drawComponentList(g2, linkViews);
+        drawComponentList(g2, linkList);
         
         if (creationLink.isDisplayed())
             drawComponent(g2, creationLink);
@@ -898,8 +811,8 @@ public class MapViewer extends javax.swing.JPanel
         // render the current indication on top
         if (indication != null)
             drawComponent(g2, indication);
-
     }
+*/
 
 
     void paintSelection(Graphics2D g2)
@@ -1065,7 +978,6 @@ public class MapViewer extends javax.swing.JPanel
         static final int KEY_TOOL_ARROW = KeyEvent.VK_A;
         static final int KEY_ABORT_ACTION = KeyEvent.VK_ESCAPE;
         
-
         LWComponent dragComponent;
         LWComponent linkSource;
         boolean mouseWasDragged = false;
@@ -1113,6 +1025,11 @@ public class MapViewer extends javax.swing.JPanel
 
             if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {
                 activateLabelEdit(lastSelection);
+                return;
+            } 
+            if (key == KeyEvent.VK_DELETE && lastSelection != null) {
+                map.removeChild(lastSelection);
+                repaint();
                 return;
             }
             
@@ -1412,7 +1329,9 @@ public class MapViewer extends javax.swing.JPanel
             
             if (dragComponent != null) {
 
-                if (!dragComponent.hasChildren()) {
+                if (true || dragComponent.hasChildren()) {
+                    repaint();
+                } else {
                     //-------------------------------------------------------
                     // Do some repaint optimzation:
                     // This makes a big difference when cavas is big.
@@ -1440,10 +1359,8 @@ public class MapViewer extends javax.swing.JPanel
                     rr.grow(SelectionHandleSize-1,SelectionHandleSize-1);
                     // todo: ALSO: need to grow by stroke width of a dragged link
                     // as it's corners are beyond point with a wide stroke
-                    //repaint(rr);
-                    repaint();
-                } else
-                    repaint();
+                    repaint(rr);
+                }
             }
         }
 
@@ -1459,16 +1376,21 @@ public class MapViewer extends javax.swing.JPanel
                     LWLink lwl = linkDest.getLinkTo(linkSource);
                     if (lwl != null) {
                         // There's alreay a link tween these two -- increment the weight
-                        lwl.getLink().incrementWeight();
+                        lwl.incrementWeight();
                     } else {
-                        getMap().addLink(new Link(linkSource.getMapItem(), linkDest.getMapItem()));
+                        //getMap().addLink(new Link(linkSource.getMapItem(), linkDest.getMapItem()));
+                        getMap().addLink(new LWLink(linkSource, linkDest));
                     }
                 }
                 linkSource = null;
             } else if (mouseWasDragged && dragComponent instanceof LWNode) {
                 // drop one node on another -- add as child
                 LWNode droppedChild = (LWNode) dragComponent;
-                LWNode targetParent = (LWNode) indication;
+                LWGroup targetParent = (LWNode) indication;
+
+                if (targetParent == null)
+                    targetParent = getMap();
+                
                 /*
                 if (targetParent == null)
                     System.out.println("DE-PARENTING " + droppedChild);
@@ -1481,10 +1403,18 @@ public class MapViewer extends javax.swing.JPanel
                 // won't get updated properly -- this isn't a current requirement,
                 // but we should support it.
                 //removeLWC(droppedChild);
-                if (droppedChild.getParent() != null)
-                    droppedChild.getParent().removeChild(droppedChild);
-                if (targetParent != null)
+                
+                if (targetParent != null && targetParent != droppedChild.getParent()) {
+                    // we were over a valid parent -- reparent
                     targetParent.addChild(droppedChild);
+                }
+                /*
+                else if (droppedChild.getParent() != null &&
+                           droppedChild.getParent() != getMap()) {
+                    // we weren't over a valid parent -- remove from
+                    // existing parent if there was one
+                    droppedChild.getParent().removeChild(droppedChild);
+                    } */
             }
             
             dragComponent = null;
@@ -1497,7 +1427,7 @@ public class MapViewer extends javax.swing.JPanel
                 //System.out.println("dragged " + draggedSelectionBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectionBox);
                 //System.out.println("map " + hitRect);
-                java.util.List list = getLWComponentsHitBy(hitRect);
+                java.util.List list = computeSelection(hitRect);
                 //java.util.List list = getLWComponentsHitBy(screenToMapRect(draggedSelectionBox));
                 java.util.Iterator i = list.iterator();
                 LWComponent lwc = null;
@@ -1542,7 +1472,7 @@ public class MapViewer extends javax.swing.JPanel
                 }
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
                 if (hitComponent instanceof LWNode) {
-                    Resource resource = ((LWNode)hitComponent).getNode().getResource();
+                    Resource resource = hitComponent.getResource();
                     if (resource != null) {
                         // todo: some kind of animation or something to show
                         // we're "opening" this node -- maybe an indication
@@ -1563,7 +1493,7 @@ public class MapViewer extends javax.swing.JPanel
                 return directHit;
             
             java.util.List targets = new java.util.ArrayList();
-            java.util.Iterator i = new VueUtil.GroupIterator(nodeViews, linkViews);
+            java.util.Iterator i = getMap().getChildIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 if (c.targetContains(x, y) && isValidLinkTarget(c))
@@ -1572,20 +1502,6 @@ public class MapViewer extends javax.swing.JPanel
             return findClosestEdge(targets, x, y);
         }
     
-        /**
-         * Make sure we don't create any loops
-         */
-        public boolean isValidParentTarget(LWComponent parentTarget)
-        {
-            if (parentTarget == dragComponent)
-                return false;
-            if (parentTarget.getParent() == dragComponent)
-                return false;
-            //if (dragComponent.getParent() == parentTarget)
-            //return false;
-            return true;
-        }
-        
         /**
          * Make sure we don't create any links back on themselves.
          */
@@ -1611,13 +1527,24 @@ public class MapViewer extends javax.swing.JPanel
             return ok;
         }
         
+        /**
+         * Make sure we don't create any loops
+         */
+        public boolean isValidParentTarget(LWComponent parentTarget)
+        {
+            if (parentTarget == dragComponent)
+                return false;
+            if (parentTarget.getParent() == dragComponent)
+                return false;
+            return true;
+        }
+        
     }
 
     public void addNotify()
     {
         super.addNotify();
         requestFocus();
-
         /*
         LWContainer c = new LWContainer();
         add(c.getAWTComponent());
@@ -1627,10 +1554,9 @@ public class MapViewer extends javax.swing.JPanel
     }
 
     protected String paramString() {
-	return map + super.paramString();
+	return getMap() + super.paramString();
     }
 
-    
     public void setVisible(boolean doShow)
     {
         super.setVisible(doShow);
@@ -1648,6 +1574,7 @@ public class MapViewer extends javax.swing.JPanel
         }
     }
 
+    /*
     public Component findComponentAt(int x, int y) {
         System.out.println("MapViewer findComponentAt " + x + "," + y);
         return super.findComponentAt(x,y);
@@ -1667,7 +1594,6 @@ public class MapViewer extends javax.swing.JPanel
         //System.err.println("processEvent[" + e.paramString() + "] on " + e.getSource().getClass().getName());
         super.processEvent(e);
     }
-
     static class EventFrame extends JFrame
     {
         public EventFrame(String title)
@@ -1691,28 +1617,29 @@ public class MapViewer extends javax.swing.JPanel
         }
 
     }
+    */
 
     public static void main(String[] args) {
         /*
          * create an example map
          */
-        tufts.vue.ConceptMap map = new tufts.vue.ConceptMap("Example Map");
+        //tufts.vue.ConceptMap map = new tufts.vue.ConceptMap("Example Map");
+        tufts.vue.Vue2DMap map = new tufts.vue.Vue2DMap("Example Map");
         
         /*
          * create the viewer
          */
         //JComponent mapView = new MapViewer(map);
         //mapView.setPreferredSize(new Dimension(400,300));
+        installExampleNodes(map);
         MapViewer mapView = new tufts.vue.MapViewer(map);
 
-        installExampleMap(map);
-        
         /*
          * create a an application frame with some components
          */
 
-        //JFrame frame = new JFrame("VUE Concept Map Viewer");
-        JFrame frame = new EventFrame("VUE Concept Map Viewer");
+        JFrame frame = new JFrame("VUE Concept Map Viewer");
+        //JFrame frame = new EventFrame("VUE Concept Map Viewer");
         frame.setContentPane(mapView);
         
         
@@ -1729,38 +1656,39 @@ public class MapViewer extends javax.swing.JPanel
         //frame.repaint(); // currently needed to compute text sizes
     }
 
-    static void installExampleMap(ConceptMap map)
+    static void installExampleNodes(Vue2DMap map)
     {
-        /*
-         * create some test nodes & links
-         */
-        Node n1 = new Node("Test node1");
-        Node n2 = new Node("Test node2");
-        Node n3 = new Node("foo.txt", new Resource("/tmp/foo.txt"));
-        Node n4 = new Node("Tester Node Four");
-        Node n5 = new Node("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-        Node n6 = new Node("abcdefghijklmnopqrstuvwxyz");
+        // create some test nodes & links
+        LWNode n1 = new LWNode("Test node1");
+        LWNode n2 = new LWNode("Test node2");
+        LWNode n3 = new LWNode("foo.txt");
+        LWNode n4 = new LWNode("Tester Node Four");
+        LWNode n5 = new LWNode("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+        LWNode n6 = new LWNode("abcdefghijklmnopqrstuvwxyz");
         
-        n1.setPosition(100, 50);
-        n2.setPosition(100, 100);
-        n3.setPosition(50, 150);
-        n4.setPosition(150, 150);
-        n5.setPosition(150, 200);
-        n6.setPosition(150, 250);
+        n3.setResource("/tmp/foo.txt");
+        
+        n1.setLocation(100, 50);
+        n2.setLocation(100, 100);
+        n3.setLocation(50, 150);
+        n4.setLocation(150, 150);
+        n5.setLocation(150, 200);
+        n6.setLocation(150, 250);
         map.addNode(n1);
         map.addNode(n2);
         map.addNode(n3);
         map.addNode(n4);
         map.addNode(n5);
         map.addNode(n6);
-        map.addLink(new Link(n1, n2));
-        map.addLink(new Link(n2, n3));
-        map.addLink(new Link(n2, n4));
+        map.addLink(new LWLink(n1, n2));
+        map.addLink(new LWLink(n2, n3));
+        map.addLink(new LWLink(n2, n4));
 
-        map.addNode(new Node("One"));
-        map.addNode(new Node("Two"));
-        map.addNode(new Node("Three"));
-        map.addNode(new Node("Four"));
+        map.addNode(new LWNode("One"));
+        map.addNode(new LWNode("Two"));
+        map.addNode(new LWNode("Three"));
+        map.addNode(new LWNode("Four"));
 
     }
+
 }

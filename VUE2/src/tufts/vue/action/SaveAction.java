@@ -27,7 +27,8 @@ import tufts.vue.*;
  */
 public class SaveAction extends AbstractAction
 {
-    final String XML_MAPPING = "concept_map.xml";
+    //final String XML_MAPPING = "concept_map.xml";
+    final String XML_MAPPING = "vue2d_map.xml";
     private static  String fileName = "test.xml";
     private Marshaller marshaller = null;
     private boolean saveAs = true;
@@ -67,19 +68,20 @@ public class SaveAction extends AbstractAction
     }
     
     
-    public void actionPerformed(ActionEvent e) {
-      
+    public void actionPerformed(ActionEvent e)
+    {
+        System.out.println("Action["+e.getActionCommand()+"] invoked...");
         try {  
             if (isSaveAs()){
                 selectFile();
             }    
             marshaller = getMarshaller();
             marshaller.marshal(tufts.vue.VUE.getActiveMap());
-        
+            System.out.println("Saved " + getFileName());
         }catch(Exception ex) {
             System.out.println(ex);
         }
-        System.out.println("Action["+e.getActionCommand()+"] performed!");
+        System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
     
     
@@ -104,15 +106,18 @@ public class SaveAction extends AbstractAction
  
     private Marshaller getMarshaller()
     {
+        //this.marshaller = null; // SF temporary debug -- always reload
+        
         if (this.marshaller == null) {
-            
             Mapping mapping = new Mapping();
             try {
-                this.marshaller = new Marshaller(new FileWriter(fileName));
+                this.marshaller = new Marshaller(new FileWriter(getFileName()));
+                System.out.println("Marshaller loading mapping: " + XML_MAPPING);
                 mapping.loadMapping(XML_MAPPING);
                 marshaller.setMapping(mapping);
+                System.out.println("Marshaller mapping has been set to: " + XML_MAPPING);
             } catch (Exception e) {
-                System.err.println("OpenAction.getMarshaller: " + e);
+                System.err.println("SaveAction.getMarshaller: " + e);
             }
         }
         return this.marshaller;
