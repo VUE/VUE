@@ -15,21 +15,21 @@
     doesn't let us set a VUE icon for the file, or install a JVM if
     one isn't present.  The targets for creating VUE-lib.jar and
     VUE-core.jar are for convenience.  The VUE-lib.jar portion is huge
-    and slow to create, where's VUE-core.jar is just the VUE classes
+    and slow to create, whereas VUE-core.jar is just the VUE classes
     and resources, and is quick to create.  This is convenient for
     frequently moving around just VUE-core.jar and running via:
 
         java -cp VUE-core.jar:VUE-lib.jar tufts.vue.VUE
 
-    Mac Version: a Mac OS X Application directory has been
-    pre-configured in VUE.app.  Building mac-dist will copy
-    the current VUE.jar into it and then it's ready to go
-    as a Mac OS X app.  Just drop the folder into /Applications
-    (or wherever you like), double-click it and you're off
-    and running.
+    Mac Version: a Mac OS X Application directory can be build with
+    the mac-dist target. It uses template info in the MacOS directory
+    to create build/VUE.app, and then copy the current VUE.jar there,
+    at which point it's ready to go as a Mac OS X app.  Just drop the folder
+    into /Applications (or wherever you like), double-click it and
+    you're off and running.
   </description>
 
-<!-- $Revision: 1.11 $ / $Date: 2004-08-06 22:05:43 $ -->
+<!-- $Revision: 1.12 $ / $Date: 2004-09-10 19:44:00 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -44,6 +44,7 @@
   <property name="dist.home"   value="${basedir}/dist"/>
   <property name="dist.src"    value="${dist.home}/src"/>
   <property name="lib.home"    value="../lib"/>
+  <property name="vue.jar"     value="${build.home}/VUE.jar"/>
 
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -389,12 +390,21 @@
     </jar>
   </target>
 
+  <target name="check-third-party-jars-against_VUE.jar">
+    <!-- This target will set the property "vue.jar.current" if the support libraries that go into VUE.jar are 
+         already older than the current VUE.jar (meaning, we don't need to rebuild VUE.jar) -->
+    <uptodate property="vue.jar.current" targetfile="${vue.jar}">
+      <srcfiles dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+      <srcfiles dir="." includes="VUE-core.jar"/>
+    </uptodate>
+  </target>
   
   <target name="jar"
-          depends="jar-core"
+          depends="jar-core,check-third-party-jars-against_VUE.jar" unless="vue.jar.current"
           description="Create VUE.jar - a single, distributable, runnable jar file containing VUE and all supporting libraries.">
     <tstamp/>
-    <jar destfile="${build.home}/VUE.jar" compress="true" index="true" update="false">
+    <echo message="Building ${vue.jar}..."/>
+    <jar destfile="${vue.jar}" compress="true" index="true" update="false">
       <manifest>
         <attribute name="Description" value="Tufts VUE 0.9 (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
@@ -406,8 +416,9 @@
     </jar>
   </target>
 
+
   <target name="jar-lib"
-          description="Create VUE-lib.jar - a jar file containing the kitchen-sink set of libraries to run VUE.">
+          description="Create VUE-lib.jar - a separate jar file containing the kitchen-sink set of third party libraries to run VUE (dev convenience target).">
     <echo message="Jaring: ${info.jarfiles}"/>
     <jar destfile="VUE-lib.jar" compress="false" index="true" update="false">
       <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
@@ -424,6 +435,21 @@
     </jar>
   </target>
      
+
+  <target name="clean"
+          description="Delete all build and intermediate files, leaving only the sources.">
+    <delete dir="${build.home}"/>
+    <delete file="VUE-core.jar"/>
+    <delete file="VUE-lib.jar"/>
+    <delete file="VUE-lib-minimal.jar"/>
+  </target>
+
+  <target name="clean-emacs">
+    <delete verbose="true">
+      <fileset dir="." defaultexcludes="no" includes="**/*~"/>
+    </delete>
+  </target>
+  
   
 <!-- ==================== Tasks to run VUE  ================================ -->
 
@@ -437,7 +463,7 @@
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
-          <arg value="-mac"/>
+          <arg value="-useMacLookAndFeel"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>    
@@ -446,7 +472,7 @@
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
           <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
-          <arg value="-mac"/>
+          <arg value="-useMacLookAndFeel"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>
@@ -461,7 +487,7 @@
     <property name="mac.contents" value="${mac.appdir}/Contents"/>
     <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
 
-    <target name="mac-dist" depends="" description="Creates a Mac OS X distributable Applcation directory (build VUE.jar first).">
+    <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory.">
       <mkdir dir="${mac.contents}/MacOS"/>
       <mkdir dir="${mac.contents}/Resources/Java"/>
       <echo file="${mac.contents}/PkgInfo" message="APPL${mac.bundle_signature}"/>
@@ -469,13 +495,20 @@
       <chmod file="${mac.contents}/MacOS/JavaApplicationStub" perm="755" verbose="true"/>
       <copy file="MacOS/Info.plist" todir="${mac.contents}" verbose="true"/>
       <copy file="MacOS/VUE.icns" todir="${mac.contents}/Resources" verbose="true"/>
-      <copy file="${build.home}/VUE.jar" todir="${mac.contents}" verbose="true"/>
+      <copy file="${vue.jar}" todir="${mac.contents}" verbose="true"/>
     </target>
 
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
       <echo message="Distribution jar files: ${info.jarfiles}"/>
       <echo message="Runtime classpath: ${info.classpath}"/>
+    </target>
+
+    <target name="info-jarlib">
+      <echo message="Jar Library Extensions Info (jarlib-display test/example)"/>
+      <jarlib-display>
+        <fileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+      </jarlib-display>
     </target>
 
     
