@@ -33,6 +33,8 @@ public class MapPanner extends javax.swing.JPanel
         setBackground(Color.white);
         // addMouseListener(this);
         // addMouseMotionListener(this);
+
+        // VUE.addEventListener(this, MapViewerEvent.class);
     }
 
     public void mapViewerEventRaised(MapViewerEvent e)
@@ -59,12 +61,23 @@ public class MapPanner extends javax.swing.JPanel
         //g.drawRect(0,0, getWidth()-1, getHeight()-1);
         Graphics2D g2 = (Graphics2D) g;
         Point2D offset = new Point2D.Double();
+
+        Rectangle2D allComponentBounds = viewer.getAllComponentBounds();
+        //Rectangle vb = viewer.getBounds();
+        Rectangle vb = new Rectangle(viewer.getWidth()-1, viewer.getHeight()-1);
+        if (vb.getX() != 0 || vb.getY() != 0) {
+            System.err.println("OFFSET IN VIEWER BOUNDS " + vb);
+            // todo: is this a factor?
+            vb.x = vb.y = 0;
+        }
+        Rectangle2D viewerRect = viewer.screenToMapRect(vb);
+        Rectangle2D pannerRect = viewerRect.createUnion(allComponentBounds);
+        
         zoomFactor = ZoomTool.computeZoomFit(getSize(),
                                              0, // todo: allow for gap w/out offsettig viewport
-                                             viewer.getAllComponentBounds(),
+                                             pannerRect,
                                              offset);
 
-        Rectangle2D viewerRect = viewer.screenToMapRect(viewer.getBounds());
         
         g2.translate(-offset.getX(), -offset.getY());
         g2.scale(zoomFactor, zoomFactor);
@@ -82,6 +95,7 @@ public class MapPanner extends javax.swing.JPanel
     public void mousePressed(MouseEvent e)
     {
         dragStart = e.getPoint();
+        repaint();
     }
     public void mouseReleased(MouseEvent e)
     {

@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * LWLink.java
@@ -36,6 +37,11 @@ class LWLink extends LWComponent
         c2.addLink(this);
     }
 
+    public boolean intersects(Rectangle2D rect)
+    {
+        return rect.intersectsLine(this.line);
+    }
+    
     public MapItem getMapItem()
     {
         return link;
@@ -68,9 +74,8 @@ class LWLink extends LWComponent
         super.setLocation(x,y);
     }
     
-    private static final Font linkFont = new Font("SansSerif", Font.PLAIN, 11);
     private static final int clearBorder = 4;
-
+    private Rectangle2D box = new Rectangle2D.Float();
     public void draw(Graphics2D g)
     {
         super.draw(g);
@@ -93,9 +98,9 @@ class LWLink extends LWComponent
         // todo: make a handle?
         g.setColor(Color.lightGray);
         g.setStroke(STROKE_ONE);
-        //g.drawRect(this.x, this.y, getWidth(), getHeight());
-        //g.drawRect((int)this.x, (int)this.y, (int)getWidth(), (int)getHeight());
-        g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
+        //g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
+        box.setRect(getX(), getY(), getWidth(), getHeight());
+        g.draw(box);
 
         /*
          * Draw the link
@@ -108,17 +113,30 @@ class LWLink extends LWComponent
         else
             g.setColor(COLOR_DEFAULT);
         
+        float strokeWidth = 0f;
         if (this.link == null) {
             // possible while dragging out a new link
             g.setStroke(STROKE_TWO);
         } else {
-            float width = this.link.getWeight() * WEIGHT_RENDER_RATIO;
-            if (width > MAX_RENDER_WIDTH)
-                width = MAX_RENDER_WIDTH;
-            g.setStroke(new BasicStroke(width));
+            strokeWidth = this.link.getWeight() * WEIGHT_RENDER_RATIO;
+            if (strokeWidth > MAX_RENDER_WIDTH)
+                strokeWidth = MAX_RENDER_WIDTH;
+            g.setStroke(new BasicStroke(strokeWidth));
         }
         this.line.setLine(sx, sy, ex, ey);
         g.draw(this.line);
+        
+        MapItem mi = getMapItem();
+        if (mi != null) {
+            String label = mi.getLabel();
+            if (label != null && label.length() > 0) {
+                g.setFont(SmallFont);
+                FontMetrics fm = g.getFontMetrics();
+                float w = fm.stringWidth(label);
+                g.drawString(label, lx - w/2, ly-(strokeWidth/2));
+            }
+        }
+
         
         //g.drawLine((int)sx, (int)sy, (int)ex, (int)ey);
         //g.drawLine(sx, sy, ex, ey);
@@ -134,13 +152,6 @@ class LWLink extends LWComponent
         g.fillRect(clearBorder, clearBorder, w, h);
         */
         
-        /*
-        g.setFont(linkFont);
-        FontMetrics fm = g.getFontMetrics();
-        String name = "Link"+hashCode();
-        int w = fm.stringWidth(name);
-        g.drawString(name, lx - w/2, ly);
-        */
     }
 
 

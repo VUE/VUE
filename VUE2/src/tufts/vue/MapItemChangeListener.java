@@ -1,5 +1,7 @@
 package tufts.vue;
 
+//rename ItemListener
+
 public interface MapItemChangeListener
     extends java.util.EventListener
 {

@@ -112,6 +112,7 @@ public class ToolWindow
         // -- probably use BoxLayout
         toolPanel.contentPanel.add(c, BorderLayout.CENTER);
         setBackground(c.getBackground());
+        pack();
         // double-buffering isn't happening on the PC during
         // resize for some reason -- keeping the background
         // color in sync here reduces the repaint clutter

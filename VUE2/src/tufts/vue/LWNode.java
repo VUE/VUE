@@ -228,7 +228,8 @@ class LWNode extends LWComponent
         if (isIndicated())
             g.setColor(COLOR_INDICATION);
         //else if (isSelected())
-            //g.setColor(COLOR_SELECTION);
+        //g.setColor(COLOR_SELECTION);
+         // this looks messy w/selection boxes, which are same color
         else
             g.setColor(COLOR_DEFAULT);
         g.setStroke(new java.awt.BasicStroke(borderWidth));

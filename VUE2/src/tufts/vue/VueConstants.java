@@ -9,6 +9,7 @@ public interface VueConstants
     // todo: move most of this stuff to prefs
     
     static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
+    static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
     
     // todo: create our own cursors for most of these

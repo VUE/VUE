@@ -1,69 +1,115 @@
 package tufts.vue;
 
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.BorderLayout;
-import javax.swing.BoxLayout;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.JPanel;
 
 /*
- * Temporary hack implementation placeholder
- * Need to do something nice here.
+ * rename ItemInspector
  */
 
 class MapItemInspector extends javax.swing.JPanel
-    implements MapSelectionListener, MapItemChangeListener
+    implements VueConstants,
+               MapSelectionListener,
+               MapItemChangeListener,
+               ActionListener
 {
     MapItem mapItem;
 
-    JTextField idField = new JTextField(15);
+    JTextField idField = new JTextField();
     JTextField labelField = new JTextField(15);
-    JTextField categoryField = new JTextField(15);
-    JTextField resourceField = new JTextField(15);
-    JTextArea notesField = new JTextArea(1, 20);
+    JTextField categoryField = new JTextField();
+    JTextField resourceField = new JTextField();
+    JTextField notesField = new JTextField();
+    //JTextArea notesField = new JTextArea(1, 20);
 
-    JLabel resourceLabel = new JLabel("Resource");
-    
-    JPanel labelPane = new JPanel();
     JPanel fieldPane = new JPanel();
 
-    private static final Font defaultFont = new Font("SansSerif", Font.PLAIN, 10);
-    private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 9);
-    
     public MapItemInspector()
     {
-        // todo: report a preferred size
-        setFont(defaultFont); // todo: make this effective
-        labelPane.setLayout(new GridLayout(0, 1));
-        labelPane.setFont(defaultFont);
-        labelPane.add(new JLabel("ID"));
-        labelPane.add(new JLabel("Label"));
-        labelPane.add(new JLabel("Category"));
-        labelPane.add(resourceLabel).setVisible(false);
-        labelPane.add(new JLabel("Notes"));
-        
-        //fieldPane.setLayout(new GridLayout(0, 1));
-        fieldPane.setLayout(new BoxLayout(fieldPane, BoxLayout.Y_AXIS));
-        fieldPane.add(idField);
-        idField.setEditable(false);
-        fieldPane.add(labelField);
-        fieldPane.add(categoryField);
-        resourceField.setFont(smallFont);
-        fieldPane.add(resourceField).setVisible(false);
-        notesField.setFont(smallFont);
-        notesField.setBorder(new BevelBorder(BevelBorder.LOWERED));
-        fieldPane.add(notesField);
-
         setBorder(new TitledBorder("Item Inspector"));
+        
+        GridBagLayout gridBag = new GridBagLayout();
+        GridBagConstraints c = new GridBagConstraints();
+        fieldPane.setLayout(gridBag);
+
+        /*
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.anchor = GridBagConstraints.WEST;
+        c.weightx = 1.0;
+        //gridbag.setConstraints(actionLabel, c);
+        //textControlsPane.add(actionLabel);
+        */
+
+        String[] labels = { "ID", "Label", "Category", "Resource", "Notes" };
+        JTextComponent[] textFields = {idField, labelField, categoryField, resourceField, notesField};
+        //idField.setBorder(LineBorder.createBlackLineBorder());
+        idField.setBorder(new EmptyBorder(1,1,1,1));
+        idField.setEditable(false);
+        if (VueUtil.isMacPlatform())
+            idField.setBackground(SystemColor.window);
+        if (!(notesField instanceof JTextField))
+            notesField.setBorder(LineBorder.createGrayLineBorder());
+        
+        addLabelTextRows(labels, textFields, gridBag, fieldPane);
+
         setLayout(new BorderLayout());
-        add(labelPane, BorderLayout.CENTER);
-        add(fieldPane, BorderLayout.EAST);
+        add(fieldPane, BorderLayout.CENTER);
 
     }
+
+    public void actionPerformed(ActionEvent e)
+    {
+        if (this.mapItem == null)
+            return;
+        String text = e.getActionCommand();
+        Object src = (JTextComponent) e.getSource();
+        //System.out.println("Inspector " + e);
+        if (src == labelField)
+            mapItem.setLabel(text);
+        else if (src == categoryField)
+            mapItem.setCategory(text);
+        else if (src == notesField)
+            mapItem.setNotes(text);
+        else if (src == resourceField)
+            mapItem.setResource(text);
+
+    }
+
+    private void addLabelTextRows(String[] labels,
+                                  JTextComponent[] textFields,
+                                  GridBagLayout gridbag,
+                                  Container container)
+    {
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.EAST;
+        int numLabels = labels.length;
+
+        for (int i = 0; i < numLabels; i++) {
+            c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
+            c.fill = GridBagConstraints.NONE;      //reset to default
+            c.weightx = 0.0;                       //reset to default
+
+            JLabel label = new JLabel(labels[i] + ": ");
+            label.setFont(SmallFont);
+            gridbag.setConstraints(label, c);
+            container.add(label);
+
+            c.gridwidth = GridBagConstraints.REMAINDER;     //end row
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+
+            JTextComponent field = textFields[i];
+            field.setFont(SmallFont);
+            if (field instanceof JTextField)
+                ((JTextField)field).addActionListener(this);
+            gridbag.setConstraints(field, c);
+            container.add(field);
+        }
+    }
+    
 
     public void mapItemSelected(MapItem mapItem)
     {
@@ -100,11 +146,14 @@ class MapItemInspector extends javax.swing.JPanel
                     resourceField.setText(node.getResource().toString());
                 else
                     resourceField.setText("");
-                resourceLabel.setVisible(true);
-                resourceField.setVisible(true);
+                resourceField.setEditable(true);
+                //resourceLabel.setVisible(true);
+                //resourceField.setVisible(true);
             } else {
-                resourceLabel.setVisible(false);
-                resourceField.setVisible(false);
+                resourceField.setText("");
+                resourceField.setEditable(false);
+                //resourceLabel.setVisible(false);
+                //resourceField.setVisible(false);
             }
             idField.setText(mapItem.getID());
             labelField.setText(mapItem.getLabel());

@@ -27,14 +27,15 @@ public abstract class EventRaiser
 
     public void raise()
     {
-        // get the root parent
+        // get the root parent -- todo: only
+        // need to do this once / listen to AWT hierarcy events
+        // really: move to a registration system
         Component parent = source;
         while (parent.getParent() != null)
             parent = parent.getParent();
         deliverToChildren((Container)parent);
         if (parent instanceof Window) {
-            Window w = (Window) parent;
-            Window[] owned = w.getOwnedWindows();
+            Window[] owned = ((Window)parent).getOwnedWindows();
             //System.err.println(java.util.Arrays.asList(owned);
             for (int i = 0; i < owned.length; i++) {
                 deliverToChildren(owned[i]);
@@ -44,18 +45,24 @@ public abstract class EventRaiser
 
     abstract void dispatch(Object listener);
 
+    private void doDispatch(Object target)
+    {
+        //System.out.println("DISPATCHING " + this + " to " + target);
+        dispatch(target);
+    }
+
     private void deliverToChildren(Container parent)
     {
         Class clazz = getListenerClass();
         if (clazz.isInstance(parent))
-            dispatch(parent);
+            doDispatch(parent);
         Component[] comps = parent.getComponents();
         for (int i = 0; i < comps.length; i++) {
             //System.err.println("checking child " + comps[i]);
             if (comps[i] instanceof Container)
                 deliverToChildren((Container)comps[i]);
             else if (clazz.isInstance(comps[i]))
-                dispatch(comps[i]);
+                doDispatch(comps[i]);
         }
     }
     

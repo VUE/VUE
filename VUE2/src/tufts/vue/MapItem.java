@@ -17,12 +17,14 @@ public abstract class MapItem
     private String notes = EMPTY;
     private String metaData = EMPTY;
     private String category = EMPTY;
+    private Resource resource = null;
+    
     private float x;
     private float y;
 
     public MapItem()
     {
-        this.ID = super.toString(); // temporary
+        this.ID = super.toString();
     }
     public MapItem(String label)
     {
@@ -89,12 +91,13 @@ public abstract class MapItem
         this.y = y;
         notify("position");
     }
+    /* 
     public void setID(String ID)
     {
         if (this.inNotify) return;
         this.ID = ID;
         notify("ID");
-    }
+        }*/
 
     public void setLabel(String label)
     {
@@ -123,7 +126,26 @@ public abstract class MapItem
         this.category = category;
         notify("category");
     }
+    public void setResource(Resource resource)
+    {
+        if (this.inNotify) return;
+        this.resource = resource;
+        notify("resource");
+    }
     
+    public void setResource(String urn)
+    {
+        if (urn == null || urn.length() == 0)
+            setResource((Resource)null);
+        else
+            setResource(new Resource(urn));
+    }
+    
+    public Resource getResource()
+    {
+        return this.resource;
+    }
+
     public String getCategory()
     {
         return this.category;
@@ -132,6 +154,7 @@ public abstract class MapItem
     public String getID()
     {
         return this.ID;
+        //return this.ID + " ("+x+","+y+")";
     }
 
     public String getLabel()

@@ -5,8 +5,6 @@ import java.awt.geom.Point2D;
 
 public class Node extends MapItem
 {
-    private Resource resource = null;
-    // using awt Point for now
     private javax.swing.ImageIcon icon = null;
 
     public Node(String label)
@@ -38,19 +36,10 @@ public class Node extends MapItem
         return super.toString() + " resource=" + getResource();
     }
 
-    public void setResource(Resource resource)
-    {
-        this.resource = resource;
-    }
 
     public void setIcon(javax.swing.ImageIcon icon)
     {
         this.icon = icon;
-    }
-
-    public Resource getResource()
-    {
-        return this.resource;
     }
 
     public javax.swing.ImageIcon getIcon()

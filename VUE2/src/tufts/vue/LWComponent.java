@@ -15,7 +15,8 @@ import java.awt.geom.Rectangle2D;
  */
 
 class LWComponent
-    implements VueConstants, MapItemChangeListener
+    implements VueConstants,
+               MapItemChangeListener
 // todo: consider subclassing the abstract RectangularShape???
 {
     private float x;
@@ -23,7 +24,7 @@ class LWComponent
     protected float width;
     protected float height;
     protected boolean displayed = true;
-    protected boolean selected = false; // todo: remove?
+    protected boolean selected = false;
     protected boolean indicated = false;
 
     protected MapItem mapItem;
@@ -129,10 +130,9 @@ class LWComponent
             && y >= this.y && y <= (this.y+height);
     }
     
-
     public boolean intersects(Rectangle2D rect)
     {
-        return false; // todo: fixme
+        return rect.intersects(getX(), getY(), getWidth(), getHeight());
     }
 
     /**

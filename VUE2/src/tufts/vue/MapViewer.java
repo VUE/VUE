@@ -1,4 +1,4 @@
-package tufts.vue;
+ package tufts.vue;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -34,7 +34,8 @@ public class MapViewer extends javax.swing.JPanel
     // Selection support
     //-------------------------------------------------------
     protected LWComponent lastSelection;   // the most recently selected component
-    protected Rectangle selectionBox;     // currently dragged selection box
+    protected Rectangle draggedSelectionBox;     // currently dragged selection box
+    protected boolean draggingSelectionBox;     // currently dragged selection box
     protected Rectangle2D selectionBounds;  // max bounds of all components in current selection
     protected java.util.List selectionList = new java.util.ArrayList();
     //protected LWComponent selection;    // current selection
@@ -203,10 +204,16 @@ public class MapViewer extends javax.swing.JPanel
         Rectangle screenRect = new Rectangle();
         // Make sure we round out to the largest possible pixel rectangle
         // that contains all map coordinates
+        /*
         screenRect.x = (int) Math.floor(mapRect.getX() * zoomFactor - getOriginX());
         screenRect.y = (int) Math.floor(mapRect.getY() * zoomFactor - getOriginY());
         screenRect.width = (int) Math.ceil(mapRect.getWidth() * zoomFactor);
         screenRect.height = (int) Math.ceil(mapRect.getHeight() * zoomFactor);
+        */
+        screenRect.x = (int) Math.round(mapRect.getX() * zoomFactor - getOriginX());
+        screenRect.y = (int) Math.round(mapRect.getY() * zoomFactor - getOriginY());
+        screenRect.width = (int) Math.round(mapRect.getWidth() * zoomFactor);
+        screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
         return screenRect;
     }
     Rectangle2D screenToMapRect(Rectangle screenRect)
@@ -224,16 +231,7 @@ public class MapViewer extends javax.swing.JPanel
     public void setZoomFactor(double zoomFactor)
     {
         this.zoomFactor = zoomFactor;
-        // Set the title of any parent frame to show the %zoom
-        int displayZoom = (int) (zoomFactor * 10000.0);
-        // round the display value down to 2 digits
-        if ((displayZoom / 100) * 100 == displayZoom)
-            setTitleMessage((displayZoom / 100) + "%");
-        else
-            setTitleMessage( (((float) displayZoom) / 100f) + "%");
-
         new MapViewerEvent(this, MapViewerEvent.PANZOOM).raise();
-
         repaint();
     }
                     
@@ -322,6 +320,7 @@ public class MapViewer extends javax.swing.JPanel
     
     public void mapItemChanged(MapEvent e)
     {
+        repaint();
     }
 
     public LWComponent addComponent(LWComponent c)
@@ -378,11 +377,20 @@ public class MapViewer extends javax.swing.JPanel
     {
         java.util.List hits = new java.util.ArrayList();
         
-        java.util.Iterator i = new VueUtil.GroupIterator(components, nodeViews, linkViews);
+        //java.util.Iterator i = new VueUtil.GroupIterator(components, nodeViews, linkViews);
+        java.util.Iterator i = nodeViews.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.intersects(mapRect))
                 hits.add(c);
+        }
+        if (hits.size() == 0) {
+            i = linkViews.iterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (c.intersects(mapRect))
+                    hits.add(c);
+            }
         }
         return hits;
     }
@@ -538,39 +546,61 @@ public class MapViewer extends javax.swing.JPanel
     }
 
     class MapTextField extends JTextField
-        implements ActionListener
+        implements ActionListener,
+                   java.awt.event.KeyListener
     {
         private LWComponent lwc;
         
         MapTextField(LWComponent lwc)
         {
             super(lwc.getMapItem().getLabel());
+            if (getColumns() < 4)
+                setColumns(4);
             this.lwc = lwc;
             addActionListener(this);
-            Font f = new Font(DefaultFont.getName(),
-                              DefaultFont.getStyle(),
-                              (int) (DefaultFont.getSize() * zoomFactor));
+            addKeyListener(this);
+            Font baseFont;
+            if (lwc instanceof LWLink)
+                baseFont = SmallFont;
+            else
+                baseFont = DefaultFont;
+            baseFont = DefaultFont; // todo: link placement ugly
+            Font f = new Font(baseFont.getName(),
+                              baseFont.getStyle(),
+                              (int) (baseFont.getSize() * zoomFactor));
             //System.out.println(DefaultFont.getAttributes());
             setFont(f);
             FontMetrics fm = getFontMetrics(f);
             //System.out.println("margin="+getMargin());
             Dimension prefSize = getPreferredSize();
-            prefSize.width += 6*zoomFactor;
 
+            //prefSize.width += 6*zoomFactor;
             // this stringWidth isn't doing squat for us -- either
             // because fractional metrics aren't on, or becasue this
             // font isn't *exactly* the same font that was rendered in
             // the scaled graphics context
-            int textWidth = fm.stringWidth(getText());
-            if (prefSize.width < textWidth)
-                prefSize.width = textWidth;
-            
+            //int textWidth = fm.stringWidth(getText());
+            //if (prefSize.width < textWidth)
+            //prefSize.width = textWidth;
+
+            int newWidth = mapToScreenDim(lwc.getWidth()*0.85);
+            if (prefSize.width < newWidth)
+                prefSize.width = newWidth;
             prefSize.height = fm.getAscent() + fm.getDescent();
             setSize(prefSize);
+
             setSelectionColor(Color.yellow);
             //setSelectionColor(SystemColor.textHighlight);
             //setBackground(DEFAULT_NODE_COLOR);
             //setBorder(null);
+
+            /*
+            System.out.println("Actions supported:");
+            Object[] actions = getActions();
+            for (int i=0; i < actions.length; i++) {
+                System.out.println("\t" + i + " " + actions[i]);
+            }
+            */
         }
 
         public void actionPerformed(ActionEvent e)
@@ -580,6 +610,14 @@ public class MapViewer extends javax.swing.JPanel
             removeLabelEdit();
         }
 
+        public void keyPressed(KeyEvent e)
+        {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+                removeLabelEdit();
+        }
+        public void keyReleased(KeyEvent e) {}
+        public void keyTyped(KeyEvent e) {}
+        
         public void X_paint(Graphics g)
         {
             //System.out.println("paint mtf");
@@ -718,7 +756,7 @@ public class MapViewer extends javax.swing.JPanel
         drawComponentList(g2, linkViews);
         
         if (dynamicLink.isDisplayed())
-            dynamicLink.draw(g2);
+            drawComponent(g2, dynamicLink);
 
         // render any arbitrary LWComponents
         drawComponentList(g2, components);
@@ -767,13 +805,13 @@ public class MapViewer extends javax.swing.JPanel
             }
         }
         
-        if (selectionBox != null) {
+        if (draggedSelectionBox != null) {
             // draw the selection drag box
             // todo: consider doing this on the glass pane for speed?
             g2.setXORMode(COLOR_SELECTION_DRAG);
             g2.setStroke(STROKE_SELECTION_DYNAMIC);
-            g2.drawRect(selectionBox.x, selectionBox.y,
-                        selectionBox.width, selectionBox.height);
+            g2.drawRect(draggedSelectionBox.x, draggedSelectionBox.y,
+                        draggedSelectionBox.width, draggedSelectionBox.height);
         } else if (selectionBounds != null) {
             g2.setStroke(new java.awt.BasicStroke(1f));
             //System.out.println("mapSelectionBounds="+selectionBounds);
@@ -872,26 +910,6 @@ public class MapViewer extends javax.swing.JPanel
         addToSelection(c);
     }
     
-
-    /*
-    void setSelection(LWComponent newSelection)
-    {
-        boolean doPaint = false;
-        if (this.selection != null) {
-            this.selection.setSelected(false);
-            doPaint = true;
-        }
-        this.selection = newSelection;
-        if (newSelection != null) {
-            this.selection.setSelected(true);
-            repaint();
-            new MapSelectionEvent(this, newSelection.getMapItem()).raise();
-            //System.out.println("selected: " + newSelection + " " + newSelection.getMapItem());
-        }
-        if (doPaint)
-            repaint();
-            }*/
-
     // todo temporary
     JPopupMenu mapPopup = null;
     JPopupMenu cPopup = null;
@@ -899,6 +917,11 @@ public class MapViewer extends javax.swing.JPanel
     static final int RIGHT_BUTTON_MASK =
         java.awt.event.InputEvent.BUTTON2_MASK
         | java.awt.event.InputEvent.BUTTON3_MASK;
+    static final int NO_MODIFIERS_MASK =
+        java.awt.event.InputEvent.SHIFT_MASK
+        | java.awt.event.InputEvent.CTRL_MASK
+        | java.awt.event.InputEvent.META_MASK
+        | java.awt.event.InputEvent.ALT_MASK;
     
     class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener
@@ -1100,6 +1123,7 @@ public class MapViewer extends javax.swing.JPanel
                     dragOffset.setLocation(0,0);
                     dynamicLink.setSource(linkSource);
                     dynamicLink.setDisplayed(true);
+                    dynamicLinkEndpoint.setLocation(mapX, mapY);
                     dragComponent = dynamicLinkEndpoint;
                 } else if (e.isShiftDown()) {
                     if (hitComponent.isSelected())
@@ -1118,7 +1142,11 @@ public class MapViewer extends javax.swing.JPanel
                     }
                 }
             } else {
-                clearSelection();
+                if (!e.isShiftDown())
+                    // don't clear if shift down -- we may have missed our target
+                    // and have to manually do all our selection over again
+                    clearSelection();
+                draggingSelectionBox = true;
             }
             if (!editActivated)
                 removeLabelEdit();
@@ -1133,7 +1161,7 @@ public class MapViewer extends javax.swing.JPanel
             }
             // Workaround for known Apple Mac OSX Java 1.4.1 bug:
             // Radar #3164718 "Control-drag generates mouseMoved, not mouseDragged"
-            if (dragComponent != null)
+            if (dragComponent != null && VueUtil.isMacPlatform())
                 mouseDragged(e);
         }
 
@@ -1171,16 +1199,16 @@ public class MapViewer extends javax.swing.JPanel
             }
 
             // selection box
-            if (dragComponent == null) {
+            if (dragComponent == null && draggingSelectionBox) {
                 int sx = dragStart.x < screenX ? dragStart.x : screenX;
                 int sy = dragStart.y < screenY ? dragStart.y : screenY;
-                selectionBox = new Rectangle(sx, sy,
+                draggedSelectionBox = new Rectangle(sx, sy,
                                              Math.abs(dragStart.x - screenX),
                                              Math.abs(dragStart.y - screenY));
                 repaint();
                 return;
             } else
-                selectionBox = null;
+                draggedSelectionBox = null;
 
             float mapX = screenToMapX(screenX);
             float mapY = screenToMapY(screenY);
@@ -1227,19 +1255,20 @@ public class MapViewer extends javax.swing.JPanel
                 linkSource = null;
             }
             dragComponent = null;
+            draggingSelectionBox = false;
 
             if (indication != null)
                 clearIndicated();
             
-            if (selectionBox != null) {
-                java.util.List list = getLWComponentsHitBy(screenToMapRect(selectionBox));
+            if (draggedSelectionBox != null) {
+                java.util.List list = getLWComponentsHitBy(screenToMapRect(draggedSelectionBox));
                 java.util.Iterator i = list.iterator();
                 LWComponent lwc = null;
                 while (i.hasNext()) {
                     lwc = (LWComponent) i.next();
                     addToSelection(lwc);
                 }
-                selectionBox = null;
+                draggedSelectionBox = null;
             }
             if (selectionList.size() == 1) {
                 new MapSelectionEvent(MapViewer.this,
@@ -1255,7 +1284,8 @@ public class MapViewer extends javax.swing.JPanel
         private final boolean isDoubleClickEvent(MouseEvent e)
         {
             return e.getClickCount() == 2
-                && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0;
+                && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
+                && (e.getModifiers() & NO_MODIFIERS_MASK) == 0;
         }
         
         public void mouseClicked(MouseEvent e)
@@ -1306,32 +1336,10 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
-
-    private Frame parentFrame = null;
-    private String lastTitleMessage = null;
-    // todo: ultimately make this an event a parent Container could honor
-    void setTitleMessage(String s)
-    {
-        String title = "VUE: " + map.getLabel();
-        if (s != null)
-            title += " [" + s + "]";
-        if (parentFrame != null)
-            parentFrame.setTitle(title);
-        lastTitleMessage = title;
-    }
-    
     public void addNotify()
     {
         super.addNotify();
-        Component c = this.getParent();
-        while (c != null && !(c instanceof Frame))
-            c = c.getParent();
-        this.parentFrame = (Frame) c;
-        //System.out.println("MapViewer parent=" + c);
-        //if (c instanceof RootPaneContainer)
-        //  System.out.println("glassPane=" + ((RootPaneContainer)c).getGlassPane());
         requestFocus();
-        setZoomFactor(1.0); //todo fixme: relying on title side-effect for now
     }
     
     public void setVisible(boolean doShow)
@@ -1339,9 +1347,6 @@ public class MapViewer extends javax.swing.JPanel
         super.setVisible(doShow);
         if (doShow) {
             requestFocus();
-            if (lastTitleMessage != null && parentFrame != null)
-                parentFrame.setTitle(lastTitleMessage);
-            
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
             if (selectionList.size() > 0)
                 new MapSelectionEvent(this, ((LWComponent)selectionList.get(0)).getMapItem())

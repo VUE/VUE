@@ -16,14 +16,13 @@ public class ZoomTool extends VueTool
     static final int KEY_ZOOM_FIT   = KeyEvent.VK_0;
     static final int KEY_ZOOM_ACTUAL= KeyEvent.VK_1;
     
-    static private final int ZOOM_ACTUAL = 11; // index of the value 1.0 in ZoomDefaults
     static private final int ZOOM_MANUAL = -1;
     static private final double[] ZoomDefaults = {
-        1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
+        1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
         1.0,
         1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
     };
-    private int curZoom = ZOOM_ACTUAL;
+    private int curZoom = ZOOM_MANUAL;
     private Point2D zoomPoint = null;
 
     private static final int ZOOM_FIT_PAD = 16;

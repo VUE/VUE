@@ -1,5 +1,6 @@
 package tufts.vue;
 
+//todo: make this an interface
 public abstract class VueTool
 {
     protected MapViewer mapView;

@@ -36,10 +36,31 @@ public class VUE
     }
 
     static class VueFrame extends JFrame
+        implements MapViewerListener
     {
         VueFrame()
         {
             super("VUE: Tufts Concept Map Tool");
+        }
+        public void mapViewerEventRaised(MapViewerEvent e)
+        {
+            if (e.getID() != MapViewerEvent.HIDDEN)
+                setTitleFromViewer(e.getMapViewer());
+        }
+
+        private void setTitleFromViewer(MapViewer viewer)
+        {
+            String title = "VUE: " + viewer.getMap().getLabel();
+            
+            int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
+            // round the display value down to 2 digits
+            title += " [";
+            if ((displayZoom / 100) * 100 == displayZoom)
+                title += (displayZoom / 100) + "%";
+            else
+                title += (((float) displayZoom) / 100f) + "%";
+            title += "]";
+            setTitle(title);
         }
     }
 
@@ -122,7 +143,6 @@ public class VUE
         splitPane.setRightComponent(tabbedPane);
 
 
-        //JFrame frame = new JFrame("VUE: Tufts Concept Map Tool");
         JFrame frame = new VueFrame();
         JPanel vuePanel = new VuePanel();
         vuePanel.setLayout(new BorderLayout());
@@ -154,7 +174,6 @@ public class VUE
         
         //ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         ToolWindow inspectorTool = new ToolWindow("", frame);
-        inspectorTool.setSize(250,100);
         inspectorTool.addTool(new MapItemInspector());
         inspectorTool.show();
     }
