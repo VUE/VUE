@@ -136,6 +136,9 @@ public class DataSourceViewer  extends JPanel{
         ds3.setDisplayColor(Color.BLUE);
         dataSources.add(ds3);
        
+        DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
+        ds4.setDisplayColor(Color.YELLOW);
+        dataSources.add(ds4);
       
         //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.CENTER);
         //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.SOUTH);
