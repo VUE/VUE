@@ -40,7 +40,7 @@ public class LWNode extends LWContainer
     
     private static final boolean AlwaysShowIcon = false;
         
-    private static final int EdgePadY = 2;
+    private static final int EdgePadY = 3;
     private static final int PadTop = EdgePadY;
 
     private static final int IconWidth = 22; // 22 is min width that will fit "www" in our icon font
