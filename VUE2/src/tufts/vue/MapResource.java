@@ -14,7 +14,6 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 import java.util.regex.*;
-import fedora.server.types.gen.*;
 
 
 public class MapResource implements Resource {
