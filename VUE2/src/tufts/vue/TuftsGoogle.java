@@ -168,7 +168,7 @@ public class TuftsGoogle extends JPanel implements ActionListener{
            while(i.hasNext()) {
                Result r = (Result)i.next();
               // resultVector.add(r.getUrl());
-               resultVector.add(r.getTitle());
+               resultVector.add(r.getUrl());
                System.out.println(r.getTitle()+" "+r.getUrl());
            } 
           
