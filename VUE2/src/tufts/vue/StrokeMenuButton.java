@@ -1,79 +1,37 @@
 package tufts.vue;
 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.Color;
+import javax.swing.Icon;
 
 /**
  * StrokeMenuButton
  *
- * This class provides a popup radio button selector component.
- * It is used for the main tool bar tool
+ * This class provides a popup button selector component for stroke widths.
  *
- * @author csb
- * @version 1.0
+ * @author Scott Fraize
+ * @version March 2004
  **/
 public class StrokeMenuButton extends MenuButton
 {
-    static private Color sDefaultFillColor = new Color( 255,255,255);
-    static private Color sDefaultLineColor = new Color( 0,0,0);
-    static private int sDefaultWidth = 24;
-    static private int sDefaultHeight = 16;
+    static private int sIconWidth = 24;
+    static private int sIconHeight = 16;
 	
-    /** The currently selected Color item--if any **/
+    /** The value of the currently selected stroke width item--if any **/
     protected float mStroke = 1;
 			
-    protected ButtonGroup mGroup = new ButtonGroup();
-	
-	
-    /**
-     * Constructor
-     *
-     *  Creates a new StrokeMenuButton with the passed array of items
-     * as it's palette menu.
-     * 
-     *  It will preselect the first item in the array as
-     *  its default selection and use its images for its own view.
-     *
-     * @param pItems  an array of StrokeMenuButtonItems for the menu.
-     **/
-    /*
-    public StrokeMenuButton(  float [] pValues, String [] pMenuNames, Icon [] pIcons, boolean pHasCustom) {
-        super();
-        buildMenu( pValues, pMenuNames, pIcons, pHasCustom);
-		
-        StrokeMenuPopupAdapter ourPopupAdapter;
-        ourPopupAdapter = new StrokeMenuPopupAdapter( mPopup);
-        this.addMouseListener(  ourPopupAdapter );
-    }
-    */
-	
-    public StrokeMenuButton(  float [] pValues, String [] pMenuNames, boolean pGenerateIcons, boolean pHasCustom)
+    //protected ButtonGroup mGroup = new ButtonGroup();
+    
+    public StrokeMenuButton(float [] pValues, String [] pMenuNames, boolean pGenerateIcons, boolean pHasCustom)
     {
-        LineIcon [] icons = null;
-        if( pGenerateIcons) {
-            int num = 0;
-            if( pValues != null)  {
-                num = pValues.length;
-            }
-			
-            icons = new LineIcon[num];
-            for( int i=0; i<num; i++) {
-                LineIcon icon = new LineIcon( sDefaultWidth, sDefaultHeight);
-                icon.setColor( sDefaultFillColor);
-                //icon.setLineColor( sDefaultLineColor);
-                icon.setColor( sDefaultLineColor);
-                icon.setWeight( pValues[i] );
-                icons[i] = icon;
-            }
-        }
+        Float[] values = new Float[pValues.length];
+        // I really hope this is one if the things java 1.5 has automatic support for...
+        for (int i = 0; i < pValues.length; i++)
+            values[i] = new Float(pValues[i]);
+
         
-        buildMenu( pValues, pMenuNames, icons, pHasCustom);
+        buildMenu(values, pMenuNames, false);
     }
-	
+
     public StrokeMenuButton() {}
 	
     public void setStroke( float pValue) {
@@ -85,96 +43,28 @@ public class StrokeMenuButton extends MenuButton
             icon.setWeight( mStroke);
         }
     }
-	 
     public float getStroke() {
         return mStroke;
     }
-	  
     public void setPropertyValue(Object o) {
         setStroke(((Float)o).floatValue());
     }
     public Object getPropertyValue() {
         return new Float(getStroke());
     }
-	 
-    /**
-     * buildMenu
-     * This method builds the list of itemss for the popup
-     *
-     **/
-    public void buildMenu( float [] pStrokes, String [] pNames,  Icon [] pIcons, boolean pHasCustom) {
-        mPopup = new JPopupMenu();
-			
-        if( pStrokes != null) {
-            addStrokes( pStrokes, pNames, pIcons);
-        }
-        if( pHasCustom ) {
-            // add the last custom stroke item
-			 	
-            StrokeMenuItem item = new StrokeMenuItem( true);
-            mPopup.add( item);
-            mGroup.add( item);
-        }
-		
+
+    /** factory for superclass buildMenu */
+    protected Icon makeIcon(Object value) {
+        return new LineIcon(sIconWidth, sIconHeight, ((Float)value).floatValue());
     }
-		
-    private void addStrokes( float [] pStrokes, String [] pNames, Icon [] pIcons) {
-        int num = pStrokes.length;
-			
-        for( int i=0; i< num; i++ ) {
-            StrokeMenuItem item = null;
-            item = new StrokeMenuItem( pStrokes[i] ) ;
-            if( pIcons[i] != null ) {
-                item.setIcon( pIcons[i] );
-            }
-            item.setText( pNames[i]);
-            mPopup.add( item);
-            mGroup.add( item);
-        }
-    }
-	  
-    private class StrokeMenuItem extends JRadioButtonMenuItem implements ActionListener {
-	
-        /** the color this item represents **/
-        private float mMenuStroke = 0;
-		
-        /** is this a custom color item? **/
-        private boolean mIsCustomItem = false;
-		
-        /**
-         * Constructor
-         * @param the float stroke value for this item.
-         **/
-        public StrokeMenuItem( float pStroke) {
-            super();
-            mMenuStroke = pStroke;
-			
-            addActionListener( this);
-			
-			
-        }
-        public StrokeMenuItem( boolean pIsCustom) {
-            super("Custom...");
-            mIsCustomItem = pIsCustom;
-            addActionListener( this);
-        }
-		
-        public void actionPerformed( ActionEvent pEvent) {
-			
-            float oldStroke = getStroke();
-			
-            if( mIsCustomItem ) {
-                float newStroke = 1; // do dialog here FIX: todo:
-                if( newStroke != 0  ) {
-                    mMenuStroke =  newStroke;
-                    handleMenuSelection(new Float(newStroke));
-                }
-            }
-            else {
-                handleMenuSelection(new Float(mMenuStroke));
-            }
-        }
-    }
+    
+    /*
+      Will need to enhance MenuButton to have an overridable addMenuItem or somethign
+      if we still want to support the button group.
+      mGroup.add( item);
+      As WELL as an item menu factory, so it could return JRadioButtonMenuItem's
+      instead (and in that method we could add it to the group for us here).
+    */
 
 }
 

@@ -329,6 +329,11 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         VUE.initUI(true);
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueUtil.displayComponent(new LWCToolPanel());
+        JComboBox b = new JComboBox();
+        b.addItem("one");
+        b.addItem("two");
+        VueUtil.displayComponent(b);
+        
     }
  	
 }
