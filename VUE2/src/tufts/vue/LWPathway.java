@@ -9,6 +9,7 @@
 package tufts.vue;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.awt.Color;
@@ -18,7 +19,7 @@ import java.awt.BasicStroke;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 
-public class LWPathway //extends tufts.vue.LWComponent 
+public class LWPathway
     implements Pathway
 {
     private LinkedList elementList = null;
@@ -31,12 +32,15 @@ public class LWPathway //extends tufts.vue.LWComponent
     private int currentIndex;
     private String notes = "";
     private boolean isShowing = false;
+    private boolean mDoingXMLRestore = false;
     
     /**default constructor used for marshalling*/
     public LWPathway() {
         //added by Daisuke
         elementList = new LinkedList();    
         currentIndex = -1;
+        mDoingXMLRestore = true;
+        //System.out.println(this + " XML restore creation");
     }
     
     public LWPathway(LWMap map, String label) {
@@ -206,11 +210,16 @@ public class LWPathway //extends tufts.vue.LWComponent
             }
        }
     }
-   
+
     public void moveElement(int oldIndex, int newIndex) {
+        throw new UnsupportedOperationException("LWPathway.moveElement");
+        // will need to clean up add/remove element code at bottom
+        // and track addPathRefs before can put this back in
+        /*
         LWComponent element = getElement(oldIndex);
         removeElement(oldIndex);
         addElement(element, newIndex);
+        */
     }
     
     /**accessor methods used also by xml marshalling process*/
@@ -239,14 +248,52 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public java.util.List getElementList() {
-         System.out.println("LWPathway.getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
+        System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
         return elementList;
     }
     
     public void setElementList(java.util.List elementList) {
         this.elementList = (LinkedList)elementList;
         if (elementList.size() >= 1) currentIndex = 0;
-        System.out.println("LWPathway.setElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
+        System.out.println(this + " setElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
+    }
+
+    private List idList = null;
+    public List getElementIDList() {
+        if (idList == null) {
+            idList = new ArrayList();
+            if (mDoingXMLRestore) {
+                Iterator i = getElementIterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    idList.add(c.getID());
+                }
+            }
+        }
+        System.out.println(this + " getElementIDList: " + idList);
+        return idList;
+    }
+
+
+    /*
+    public void setElementIDList(List idList) {
+        System.out.println(this + " setElementIDList: " + idList);
+        this.idList = idList;
+    }
+    */
+    
+    void completeXMLRestore(LWMap map)
+    {
+        System.out.println(this + " completeXMLRestore, map=" + map);
+        this.map = map;
+        Iterator i = idList.iterator();
+        while (i.hasNext()) {
+            String id = (String) i.next();
+            LWComponent c = this.map.findChildByID(id);
+            System.out.println("\tpath adding " + c);
+            addElement(c);
+        }
+        mDoingXMLRestore = false;
     }
     
     /** Interface for the linked list used by the Castor mapping file*/
@@ -327,11 +374,25 @@ public class LWPathway //extends tufts.vue.LWComponent
     public void setNotes(String notes) {
         this.notes = notes;
     }
+
+
+    public String toString()
+    {
+        return "LWPathway[" + label
+            + " n="
+            + (elementList==null?-1:elementList.size())
+            + " idx="+currentIndex
+            + " map=" + map
+            + "]";
+    }
+
+    
 /*****************************/    
-/**methods below are not used*/    
+/**methods below are not used (actually: moveElement uses them -- SMF) */    
 /*****************************/
     
     /** adds an element at the specified location within the pathway*/
+    /*
     public void addElement(LWComponent element, int index){
         if(elementList.size() >= index){
             elementList.add(index, element);
@@ -341,8 +402,9 @@ public class LWPathway //extends tufts.vue.LWComponent
             System.out.println("LWPathway.addElement(element, index), index out of bounds");
         }
     }
-    
+    */
     /** adds an element in between two other elements, if they are adjacent*/
+    /*
     public void addElement(LWComponent element, LWComponent adj1, LWComponent adj2){
         int index1 = elementList.indexOf(adj1);
         int index2 = elementList.indexOf(adj2);
@@ -383,4 +445,5 @@ public class LWPathway //extends tufts.vue.LWComponent
           return null;
         
     }
+    */
 }

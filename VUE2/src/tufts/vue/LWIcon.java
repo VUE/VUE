@@ -72,7 +72,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         public static final boolean COORDINATES_MAP = false;
         public static final boolean COORDINATES_COMPONENT  = true;
         
-        private LWComponent mBlockLWC;
+        private LWComponent mLWC;
         
         private LWIcon mIconResource;
         private LWIcon mIconNotes;
@@ -111,7 +111,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             for (int i = 0; i < mIcons.length; i++)
                 mIcons[i].setSize(iconWidth, iconHeight);
 
-            this.mBlockLWC = lwc;
+            this.mLWC = lwc;
         }
         
         /**
@@ -133,7 +133,7 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         public String toString()
         {
-            return "LWIcon.Block[" + super.x+","+super.y + " " + super.width+"x"+super.height + " " + mBlockLWC + "]";
+            return "LWIcon.Block[" + super.x+","+super.y + " " + super.width+"x"+super.height + " " + mLWC + "]";
         }
 
         //public float getWidth() { return super.width; }
@@ -202,11 +202,11 @@ public abstract class LWIcon extends Rectangle2D.Float
             LWIcon tipIcon = null;
 
             // todo: collapse & delegate down to instance classes
-            if (mBlockLWC.hasResource() && mIconResource.contains(cx, cy)) {
+            if (mLWC.hasResource() && mIconResource.contains(cx, cy)) {
                 tipIcon = mIconResource;
-            } else if (mBlockLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
+            } else if (mLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
                 tipIcon = mIconNotes;
-            } else if (mBlockLWC.inPathway() && mIconPathway.contains(cx, cy)) {
+            } else if (mLWC.inPathway() && mIconPathway.contains(cx, cy)) {
                 tipIcon = mIconPathway;
             }
             
@@ -216,10 +216,35 @@ public abstract class LWIcon extends Rectangle2D.Float
                 Rectangle2D.Float tipRegion = (Rectangle2D.Float) tipIcon.getBounds2D();
                 if (mCoordsLocal) {
                     // translate tipRegion from component to map coords
-                    tipRegion.x += mBlockLWC.getX();
-                    tipRegion.y += mBlockLWC.getY();
+                    float s = mLWC.getScale();
+                    if (s != 1) {
+                        tipRegion.x *= s;
+                        tipRegion.y *= s;
+                        tipRegion.width *= s;
+                        tipRegion.height *= s;
+                    }
+                    tipRegion.x += mLWC.getX();
+                    tipRegion.y += mLWC.getY();
                 }
-                e.getViewer().setTip(mBlockLWC, tipComponent, tipRegion);
+
+                // if node, compute avoid region node+tipRegion,
+                // if link avoid = label+entire tip block
+                Rectangle2D avoidRegion = null;
+                if (mLWC instanceof LWLink) {
+                    float w = 1, h = 1;
+                    if  (mLWC.labelBox != null) {
+                        w = mLWC.labelBox.getMapWidth();
+                        h = mLWC.labelBox.getMapHeight();
+                    }
+                    // Stay away from the link label:
+                    avoidRegion = new Rectangle2D.Float(mLWC.getLabelX(), mLWC.getLabelY(), w,h);
+                    // Stay way from the whole icon block:
+                    Rectangle2D.union(avoidRegion, this, avoidRegion);
+                } else {
+                    avoidRegion = mLWC.getShapeBounds();
+                }
+                
+                e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
             }
         }
 
@@ -237,14 +262,14 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
 
             // todo: collapse & delegate down to instance classes
-            if (mBlockLWC.hasResource() && mIconResource.contains(cx, cy)) {
-                mBlockLWC.getResource().displayContent();
+            if (mLWC.hasResource() && mIconResource.contains(cx, cy)) {
+                mLWC.getResource().displayContent();
                 handled = true;
-            } else if (mBlockLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
+            } else if (mLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
                 VUE.objectInspectorPanel.activateNotesTab();
                 VUE.objectInspector.setVisible(true);
                 handled = true;
-            } else if (mBlockLWC.inPathway() && mIconPathway.contains(cx, cy)) {
+            } else if (mLWC.inPathway() && mIconPathway.contains(cx, cy)) {
                 VUE.pathwayInspector.setVisible(true);
                 handled = true;
             }
@@ -299,7 +324,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         void draw(DrawContext dc)
         {
             super.draw(dc);
-            dc.g.setColor(Color.black);
+            //dc.g.setColor(Color.black);
+            dc.g.setColor(mColor);
             dc.g.setFont(FONT_ICON);
             String extension = NoResource;
             if (mLWC.hasResource())
@@ -314,7 +340,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             row.draw(xoff, yoff);
 
             // an experiment in semantic zoom
-            if (dc.zoom >= 8.0 && mLWC.hasResource()) {
+            //if (dc.zoom >= 8.0 && mLWC.hasResource()) {
+            if (mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
                 dc.g.setFont(MinisculeFont);
                 dc.g.setColor(Color.gray);
                 dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));

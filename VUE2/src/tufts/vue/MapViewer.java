@@ -918,11 +918,12 @@ public class MapViewer extends javax.swing.JPanel
     /**
      * Pop a tool-tip near the given LWComponent.
      *
-     * @param pLWC - the component to place it near
      * @param pJComponent - the JComponent to display in the tool-tip window
+     * @param pAvoidRegion - the region to avoid (usually LWComponent bounds)
      * @param pTipRegion - the region, in map coords, that triggered this tool-tip
      */
-    void setTip(LWComponent pLWC, JComponent pJComponent, Rectangle2D pTipRegion)
+    //    void setTip(LWComponent pLWC, JComponent pJComponent, Rectangle2D pTipRegion)
+    void setTip(JComponent pJComponent, Rectangle2D pAvoidRegion, Rectangle2D pTipRegion)
     {
         if (pJComponent != sTipComponent && pJComponent != null) {
 
@@ -946,16 +947,17 @@ public class MapViewer extends javax.swing.JPanel
             // Try left of component first, then top, then right
             //------------------------------------------------------------------
 
-            // Get the component bounding box, tho limit to what's visible in the window
-            // Make sure it is outsize the tip region also.
+            // always add the tip region to the avoid region
+            // (need for links, and for nodes in case icon somehow outside bounds)
+            Rectangle2D.union(pTipRegion, pAvoidRegion, pAvoidRegion);
+            // For the total avoid region, limit to what's visible in the window,
+            // as we never to "avoid" anything that's off-screen (not visible in the viewer).
             Rectangle viewer = new Rectangle(0,0, getWidth(), getHeight());
-            Rectangle2D avoidRegion = pTipRegion.createUnion(pLWC.getShapeBounds());
-            Box lwc = new Box(viewer.intersection(mapToScreenRect(avoidRegion)));
-            //Box lwc = new Box(viewer.intersection(mapToScreenRect(pLWC.getShapeBounds())));
+            Box avoid = new Box(viewer.intersection(mapToScreenRect(pAvoidRegion)));
             Box rollover = new Box(mapToScreenRect(pTipRegion));
             
-            SwingUtilities.convertPointToScreen(lwc.ul, this);
-            SwingUtilities.convertPointToScreen(lwc.lr, this);
+            SwingUtilities.convertPointToScreen(avoid.ul, this);
+            SwingUtilities.convertPointToScreen(avoid.lr, this);
             SwingUtilities.convertPointToScreen(rollover.ul, this);
             //SwingUtilities.convertPointToScreen(rollover.lr, this); // unused
 
@@ -964,18 +966,18 @@ public class MapViewer extends javax.swing.JPanel
             // Default placement starts from left of component,
             // at same height as the rollover region that triggered us
             // in the component.
-            Point glass = new Point(lwc.ul.x - tip.width,  rollover.ul.y);
+            Point glass = new Point(avoid.ul.x - tip.width,  rollover.ul.y);
 
             if (glass.x < 0) {
                 // if would go off left of screen, try placing above the component
-                glass.x = lwc.ul.x;
-                glass.y = lwc.ul.y - tip.height;
+                glass.x = avoid.ul.x;
+                glass.y = avoid.ul.y - tip.height;
                 keepTipOnScreen(glass, tip);
                 // if too tall and would then overlap rollover region, move to right of component
                 //if (glass.y + tip.height >= placementLeft.y) {
                 // if too tall and would then overlap component, move to right of component
-                if (glass.y + tip.height > lwc.ul.y) {
-                    glass.x = lwc.lr.x;
+                if (glass.y + tip.height > avoid.ul.y) {
+                    glass.x = avoid.lr.x;
                     glass.y = rollover.ul.y;
                 }
                 // todo: consider moving tall tips from tip to right
@@ -1562,10 +1564,26 @@ public class MapViewer extends javax.swing.JPanel
             // no resize handles if only links or groups
             resizeControl.active = false;
         } else {
-            if (VueSelection.size() > 1)
+            if (VueSelection.size() > 1) {
                 g2.draw(mapSelectionBounds);
+            } else {
+                // Only one in selection:
+                // Special case to keep control handles out of way of node icons
+                // when node is scaled way down:
+                if (VueSelection.first().getScale() < 0.6) {
+                    final float grow = SelectionHandleSize/2;
+                    mapSelectionBounds.x -= grow;
+                    mapSelectionBounds.y -= grow;
+                    // for purposes here, don't need to make bigger at right,
+                    // or even do the height at all, but lets at least keep it
+                    // symmetrical around the node or will look off.
+                    mapSelectionBounds.width += grow*2;
+                    mapSelectionBounds.height += grow*2;
+                }
+            }
             //if (!inDrag)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
+
             setSelectionBoxResizeHandles(mapSelectionBounds);
             resizeControl.active = true;
             for (int i = 0; i < resizeControl.handles.length; i++) {
@@ -1662,9 +1680,19 @@ public class MapViewer extends javax.swing.JPanel
         g.draw(SelectionHandle);
     }
 
+    static final float sMinSelectEdge = SelectionHandleSize * 2;
     private void setSelectionBoxResizeHandles(Rectangle2D.Float r)
     {
-        // TODO: don't ever let these get so close that they overlap...
+        // don't let control boxes overlap:
+        if (r.width < sMinSelectEdge) {
+            r.x -= (sMinSelectEdge - r.width)/2;
+            r.width = sMinSelectEdge;
+        }
+        if (r.height < sMinSelectEdge) {
+            r.y -= (sMinSelectEdge - r.height)/2;
+            r.height = sMinSelectEdge;
+        }
+
         // set the 4 corners
         resizeControl.handles[0].setLocation(r.x, r.y);
         resizeControl.handles[2].setLocation(r.x + r.width, r.y);
@@ -2011,6 +2039,8 @@ public class MapViewer extends javax.swing.JPanel
         public void keyPressed(KeyEvent e)
         {
             if (DEBUG_KEYS) System.out.println("[" + e.paramString() + "]");
+
+            clearTip();
 
             // FYI, Java 1.4.1 sends repeat key press events for
             // non-modal keys that are being held down (e.g. not for
@@ -3720,6 +3750,33 @@ public class MapViewer extends javax.swing.JPanel
         //void setLRY(int y) { lr.y = (y < ul.y) ? ul.y : y; }
     }
 
+
+    /**
+     * Convenience method that calculates the union of two rectangles
+     * without allocating a new rectangle.
+     *
+     * @param x the x-coordinate of the first rectangle
+     * @param y the y-coordinate of the first rectangle
+     * @param width the width of the first rectangle
+     * @param height the height of the first rectangle
+     * @param dest  the coordinates of the second rectangle; the union
+     *    of the two rectangles is returned in this rectangle
+     * @return the <code>dest</code> <code>Rectangle</code>
+
+    public static Rectangle computeUnion(Rectangle2D src, Rectangle2D dest) {
+        int x1 = (x < dest.x) ? x : dest.x;
+        int x2 = ((x+width) > (dest.x + dest.width)) ? (x+width) : (dest.x + dest.width);
+        int y1 = (y < dest.y) ? y : dest.y;
+        int y2 = ((y+height) > (dest.y + dest.height)) ? (y+height) : (dest.y + dest.height);
+
+        dest.x = x1;
+        dest.y = y1;
+        dest.width = (x2 - x1);
+        dest.height= (y2 - y1);
+        return dest;
+    }
+     */
+    
     protected String paramString() {
 	return getMap() + super.paramString();
     }

@@ -72,7 +72,7 @@ public class LWLink extends LWComponent
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
-                         14, 12,
+                         12, 12,
                          Color.darkGray,
                          LWIcon.Block.HORIZONTAL,
                          LWIcon.Block.COORDINATES_MAP);

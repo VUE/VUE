@@ -45,10 +45,20 @@ public class LWPathwayManager {
     public LWMap getMap(){
         return map;
     }
-    
+
     /* iterates through arraylist of pathways elements */
     public java.util.Iterator getPathwayIterator() {
         return pathways.iterator();
+    }
+    
+    void completeXMLRestore()
+    {
+        System.out.println(this + " completeXMLRestore");
+        Iterator i = getPathwayIterator();
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            p.completeXMLRestore(getMap());
+        }
     }
     
     /* methods for accessing data from and manipulating the arraylist */
@@ -79,10 +89,12 @@ public class LWPathwayManager {
     }
 
     public void setPathwayList(ArrayList pathways){
+        //System.out.println(this + " setPathwayList *** " + pathways);
         this.pathways = pathways;
     }
      
     public ArrayList getPathwayList(){
+        //System.out.println(this + " getPathwayList *** " + pathways);
         return pathways;
     }
     
@@ -202,5 +214,10 @@ public class LWPathwayManager {
             }
         }
             
-    } 
+    }
+
+    public String toString()
+    {
+        return "LWPathwayManger[pathways=" + (pathways==null?-1:pathways.size()) + " map=" +  getMap() + "]";
+    }
 }

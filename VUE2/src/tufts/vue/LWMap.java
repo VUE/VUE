@@ -28,13 +28,13 @@ public class LWMap extends LWContainer
     private double userZoom = 1;
     private File file;
     
-    private LWPathwayManager manager = null;
+    private LWPathwayManager mPathwayManager = null;
     
     // only to be used during a restore from persisted
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
-        manager = new LWPathwayManager(this);
+        mPathwayManager = new LWPathwayManager(this);
     }
 
     public LWMap(String label)
@@ -45,7 +45,7 @@ public class LWMap extends LWContainer
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
         setLabel(label);
-        manager = new LWPathwayManager(this);
+        mPathwayManager = new LWPathwayManager(this);
     }
 
     public void setFile(File file)
@@ -60,12 +60,13 @@ public class LWMap extends LWContainer
     }
     
     public LWPathwayManager getPathwayManager(){ 
-        return manager;
+        return mPathwayManager;
     }
     
     public void setPathwayManager(LWPathwayManager manager)
     {
-        this.manager = manager;
+        mPathwayManager = manager;
+        mPathwayManager.setMap(this);
     }
     
     private int nextID = 1;
@@ -81,6 +82,7 @@ public class LWMap extends LWContainer
         setChildScaleValues();
         //setScale(getScale());
         setChildParentReferences();
+        mPathwayManager.completeXMLRestore();
         this.nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
@@ -170,7 +172,7 @@ public class LWMap extends LWContainer
     
     LWPathway addPathway(LWPathway c)
     {
-        manager.addPathway(c);
+        mPathwayManager.addPathway(c);
         return c;
     }
     
