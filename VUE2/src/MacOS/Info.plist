@@ -22,8 +22,6 @@
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>
 	<string>VUE.icns</string>
-	<key>XCFBundleIconFile</key>
-	<string>GenericJavaApp.icns</string>
 
 	<key>CFBundleDocumentTypes</key>
 	<array>
