@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.beans.*;
+import tufts.vue.gui.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -27,7 +29,6 @@ import java.beans.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import tufts.vue.beans.*;
 
 /**
  * LWCToolPanel
@@ -328,6 +329,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
         DEBUG.Enabled = DEBUG.INIT = true;
+        DEBUG.TOOL = DEBUG.EVENTS = true;
+        DEBUG.BOXES = true;
         VUE.initUI(true);
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueUtil.displayComponent(new LWCToolPanel());

@@ -28,6 +28,8 @@ package tufts.vue;
  * @author  akumar03
  */
 
+import tufts.vue.gui.VueButton;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;

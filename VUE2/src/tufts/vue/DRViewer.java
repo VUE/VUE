@@ -29,6 +29,10 @@ package tufts.vue;
  * @author  akumar03
  */
 
+
+import tufts.oki.dr.fedora.*;
+import tufts.vue.gui.VueButton;
+
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -36,7 +40,6 @@ import javax.swing.event.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
-import tufts.oki.dr.fedora.*;
 import osid.dr.*;
 import java.util.ArrayList;
 import java.util.Hashtable;

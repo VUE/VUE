@@ -860,6 +860,7 @@ public class VUE
         editMenu.add(Actions.NewText);
         editMenu.add(Actions.Rename);
         editMenu.add(Actions.Duplicate);
+        editMenu.add(Actions.Delete);
         editMenu.addSeparator();
         editMenu.add(Actions.Cut);
         editMenu.add(Actions.Copy);

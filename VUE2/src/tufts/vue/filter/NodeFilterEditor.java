@@ -49,8 +49,8 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     AddButtonListener addButtonListener = null;
     DeleteButtonListener deleteButtonListener = null;
     NodeFilterSelectionListener sListener = null;
-    JButton addButton=new tufts.vue.VueButton("add");
-    JButton deleteButton=new tufts.vue.VueButton("delete");
+    JButton addButton=new tufts.vue.gui.VueButton("add");
+    JButton deleteButton=new tufts.vue.gui.VueButton("delete");
     
     /** Creates a new instance of NodeFilterEditor */
     public NodeFilterEditor( NodeFilter nodeFilter,boolean editable) {

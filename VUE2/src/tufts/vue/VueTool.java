@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.*;
+
 import java.util.*;
 import java.lang.*;
 import javax.swing.*;

@@ -631,7 +631,7 @@ public class LWNode extends LWContainer
         Size request = new Size(getWidth(), getHeight());
         Size min;
         
-        if (true||mIsRectShape) {
+        if (mIsRectShape) {
             isCenterLayout = false;
             min = layout_boxed();
         } else {

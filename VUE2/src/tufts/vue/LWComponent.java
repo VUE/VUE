@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 
-import tufts.vue.beans.UserMapType;
+import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
 
 /**
@@ -61,7 +61,7 @@ public class LWComponent
     private Resource resource = null;
     private float x;
     private float y;
-    private UserMapType mUserMapType = null;
+    private UserMapType mUserMapType = null; // I think this is totally vestigal -- remove
     private java.util.Map mUserPropertyValues = new java.util.HashMap();
     private boolean mIsFiltered = false;
     private NodeFilter nodeFilter = null;

@@ -45,6 +45,7 @@ import java.util.Vector;
 import java.util.List;
 import java.util.ArrayList;
 
+import tufts.vue.gui.VueButton;
 import tufts.oki.dr.fedora.*;
 import fedora.server.types.gen.*;
 import fedora.server.utilities.DateUtility;

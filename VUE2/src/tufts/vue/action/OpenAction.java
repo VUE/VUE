@@ -64,9 +64,6 @@ public class OpenAction extends AbstractAction
            
         File file = ActionUtil.openFile("Open Map", "vue");
         displayMap(file);
-        
-        
-        
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
 
@@ -78,7 +75,6 @@ public class OpenAction extends AbstractAction
             VUE.activateWaitCursor();
             try 
             {
-                //LWMap loadedMap = loadMap(fileName);
                 LWMap loadedMap = loadMap(file.getAbsolutePath());
                 VUE.displayMap(loadedMap);
             } 
@@ -87,21 +83,13 @@ public class OpenAction extends AbstractAction
                 VUE.clearWaitCursor();
             }
         }
-        
-        
     }
     
     public static LWMap loadMap(String filename)
     {
         try 
         {
-            
-            //Unmarshaller unmarshaller = ActionUtil.getUnmarshaller();
             if (debug) System.err.println("Unmarshalling from " + filename);
-            
-            //LWMap map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
-            //map.completeXMLRestore();
-            //return map;
             File file = new File(filename);
             LWMap map = ActionUtil.unmarshallMap(file);
             return map;

@@ -47,8 +47,8 @@ public class MapFilterModelEditor extends JPanel {
     DeleteButtonListener deleteButtonListener = null;
     MapFilterModelSelectionListener sListener = null;
     boolean editable = false;
-    JButton addButton=new tufts.vue.VueButton("add");
-    JButton deleteButton=new tufts.vue.VueButton("delete");
+    JButton addButton=new tufts.vue.gui.VueButton("add");
+    JButton deleteButton=new tufts.vue.gui.VueButton("delete");
     
     
     /** Creates a new instance of MapFilterModelEditor */

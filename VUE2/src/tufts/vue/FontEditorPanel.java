@@ -18,6 +18,9 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.*;
+import tufts.vue.beans.VueLWCPropertyMapper;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -25,8 +28,6 @@ import java.io.*;
 import java.beans.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
-
-import tufts.vue.beans.VueLWCPropertyMapper;
 
 
 /**

@@ -32,22 +32,22 @@ package tufts.vue;
  * in  FilterTableModel.
  */
 
+import tufts.vue.filter.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 import java.awt.event.*;
 import java.awt.*;
-
 import java.util.*;
-import tufts.vue.filter.*;
 
 public class FilterEditor extends JPanel  {
     public static final Key keyLabel = new Key("Label", TypeFactory.getStringType());
     public static final Key keyAnywhere = new Key("Anywhere", TypeFactory.getStringType());
     public static final Key keyNotes = new Key("Notes", TypeFactory.getStringType());
-    JButton addButton=new tufts.vue.VueButton("add");
-    JButton deleteButton=new tufts.vue.VueButton("delete");
+    JButton addButton=new tufts.vue.gui.VueButton("add");
+    JButton deleteButton=new tufts.vue.gui.VueButton("delete");
         
     
     FilterTableModel filterTableModel;

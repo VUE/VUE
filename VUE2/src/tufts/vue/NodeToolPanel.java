@@ -18,7 +18,9 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.*;
 import tufts.vue.beans.*;
+
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.geom.RectangularShape;

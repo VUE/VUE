@@ -20,7 +20,7 @@ package tufts.vue;
 
 import java.awt.event.MouseEvent;
 
-class MouseAdapter implements javax.swing.event.MouseInputListener
+public class MouseAdapter implements javax.swing.event.MouseInputListener
 {
     private String name = "";
     public MouseAdapter() {}

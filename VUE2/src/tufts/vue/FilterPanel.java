@@ -29,6 +29,9 @@ package tufts.vue;
  * @author  akumar03
  */
 
+import tufts.vue.gui.VueButton;
+import tufts.vue.filter.*;
+
 import java.io.*;
 import java.util.*;
 import java.awt.*;
@@ -37,8 +40,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-
-import tufts.vue.filter.*;
 
 
 public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{

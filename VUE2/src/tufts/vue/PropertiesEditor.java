@@ -24,6 +24,7 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.VueButton;
 
 import javax.swing.*;
 import javax.swing.border.*;
