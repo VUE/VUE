@@ -12,6 +12,7 @@ package tufts.vue;
 
 import java.util.Vector;
 import java.util.ArrayList;
+import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -174,7 +175,9 @@ public class LWMap extends LWContainer
     public java.awt.geom.Rectangle2D getBounds()
     {
         System.out.println("LWMap getbounds");
-        return LWMap.getBounds(getChildIterator());
+        Rectangle2D bounds = getBounds(getChildIterator());
+        setSize((float)bounds.getWidth(), (float)bounds.getHeight());
+        return bounds;
     }
     
     /**
@@ -191,6 +194,11 @@ public class LWMap extends LWContainer
         }
         return rect;
     }
+
+    /*public Dimension getSize()
+    {
+        return new Dimension(getWidth(), getHeight());
+        }*/
     
     /*
     public static Rectangle2D getBounds(java.util.Iterator i)
