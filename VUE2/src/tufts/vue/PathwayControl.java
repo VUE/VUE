@@ -135,7 +135,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {
         //saveCurrentPathway();
         this.pathwayManager = pathwayManager;
-        
+         //selects empty pathway if the cancel button was pressed
         //clears the combo box list 
         //come up with a better way
         pathwayList.removeAllItems();
@@ -489,15 +489,15 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             if(e.getKeyChar()==KeyEvent.VK_ENTER)
             {
                 //if the ok button or the text field has the focus, add a designated new pathway
-                if(e.getSource().equals(okButton) 
-                    || e.getSource().equals(textField))
+                if(e.getSource().equals(okButton) || e.getSource().equals(textField))
                 {    
                     addPathway(new LWPathway(textField.getText()));
                     dispose();                  
                 }
                 
                 //else if the cancel button has the focus, just aborts it
-                else if(e.getSource().equals(cancelButton))
+                else
+                //if(e.getSource().equals(cancelButton))
                 {
                     //selects empty pathway if the cancel button was pressed
                     pathwayList.setSelectedItem(noPathway);
