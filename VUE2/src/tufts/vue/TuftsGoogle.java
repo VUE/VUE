@@ -41,7 +41,7 @@ public class TuftsGoogle extends JPanel implements ActionListener{
             "20" 
       };
     private static  String searchURL;
-    private static String  XML_MAPPING;
+    private static URL  XML_MAPPING = VueResources.getURL("mapping.google");
     private static String query;
     
     private static int NResults = 10;
@@ -126,7 +126,7 @@ public class TuftsGoogle extends JPanel implements ActionListener{
         
 //--------------------------------------------------------------------
             searchURL = VueResources.getString("url.google");
-            XML_MAPPING = VueResources.getString("mapping.google");
+            
 
     }
     
@@ -239,11 +239,12 @@ public class TuftsGoogle extends JPanel implements ActionListener{
         if (unmarshaller == null) {
             unmarshaller = new Unmarshaller();
             Mapping mapping = new Mapping();
+            System.out.println("XML_MAPPING =" +XML_MAPPING);
             try {
                 mapping.loadMapping(XML_MAPPING);
                 unmarshaller.setMapping(mapping);
             } catch (Exception e) {
-                System.out.println("getUnmarshaller: " + XML_MAPPING+e);
+                System.out.println("TuftsGoogle.getUnmarshaller: " + XML_MAPPING+e);
            }
         }
         return unmarshaller;
