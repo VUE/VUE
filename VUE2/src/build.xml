@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.36 $ / $Date: 2005-03-24 23:38:05 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.36 2005-03-24 23:38:05 sfraize Exp $ -->
+<!-- $Revision: 1.37 $ / $Date: 2005-03-25 21:37:45 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.37 2005-03-25 21:37:45 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -459,6 +459,9 @@
   <target name="jar-lib"
           description="Create VUE-lib.jar - a separate jar file containing the kitchen-sink set of third party libraries to run VUE (dev convenience target).">
     <echo message="Jaring: ${info.jarfiles}"/>
+    <!-- There is a bunch of of crap in the lib file we really don't need: figure out how to exclude. -->
+    <!-- Stuff like .java sources, .html files and .txt files, and from axis-ant.jar, a big fat js.jar (javascript) & bsf.jar files? -->
+    <!-- Also: do we really need the /hyph/*.hyp files?  Are these Hyphenation Dictionaries? -->
     <jar destfile="VUE-lib.jar" compress="false" index="true" update="false">
       <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
         and cannont include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->

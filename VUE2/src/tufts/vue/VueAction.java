@@ -39,6 +39,9 @@ public class VueAction extends javax.swing.AbstractAction
     private static List AllActionList = new ArrayList();
 
     private static boolean allIgnored = false;
+
+    private final String permanentName;
+    
     /** Set's all action events to be temporarily ignored.
         E.g., used while a TextBox edit is active */
     // todo: may want to allow NewItem actions as they automatically
@@ -52,6 +55,7 @@ public class VueAction extends javax.swing.AbstractAction
     public VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
     {
         super(name, icon);
+        this.permanentName = name;
         if (shortDescription != null)
             putValue(SHORT_DESCRIPTION, shortDescription);
         else
@@ -104,6 +108,14 @@ public class VueAction extends javax.swing.AbstractAction
     public String getActionName()
     {
         return (String) getValue(Action.NAME);
+    }
+    /**
+     * @return the base name for this action that never changes.  E.g.:,
+     * for UndoAction, return just "Undo" instead of "Undo <most recent action>"
+     */
+    public String getPermanentActionName()
+    {
+        return this.permanentName;
     }
     public void setActionName(String s)
     {

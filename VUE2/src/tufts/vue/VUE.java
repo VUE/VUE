@@ -41,7 +41,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.290 2005-03-24 23:38:05 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.291 2005-03-25 21:37:45 sfraize Exp $
     
 /**
  * Vue application class.
@@ -445,6 +445,7 @@ public class VUE
 
 
     public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
+    public static final boolean NARRAVISION = !TUFTS;
     public static final String NAME = VueResources.getString("application.name");
     
     
@@ -534,6 +535,8 @@ public class VUE
         splitPane.setContinuousLayout(false);
         splitPane.setOneTouchExpandable(true);
         splitPane.setLeftComponent(toolPanel);
+        if (VUE.NARRAVISION)
+            splitPane.setDividerLocation(0);
         //splitPane.setLeftComponent(leftScroller);
         
         viewerSplit = new JSplitPane();
@@ -700,10 +703,13 @@ public class VUE
         //frame.setContentPane(splitPane);
         //frame.setBackground(Color.white);
         frame.pack();
-        if (nodr)
+        if (nodr) {
             frame.setSize(750,450);
-        else
+        } else {
             frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
+            if (VUE.NARRAVISION)
+                frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        }
         out("validating frame...");
         frame.validate();
         out("frame validated");
@@ -793,7 +799,8 @@ public class VUE
         
         if (drBrowser != null) {
             drBrowser.loadDataSourceViewer();
-            splitPane.resetToPreferredSizes();
+            if (VUE.TUFTS) // leave collapsed if NarraVision
+                splitPane.resetToPreferredSizes();
         }
 
         out("loading fonts...");
@@ -1530,7 +1537,7 @@ public class VUE
                         keyName += ": \t\t";
                     else
                         keyName += ": \t";
-                    text += keyName + a.getActionName();
+                    text += keyName + a.getPermanentActionName();
                     text += "\n";
                 }
             }
