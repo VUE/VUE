@@ -18,7 +18,8 @@ import java.awt.BasicStroke;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 
-public class LWPathway extends tufts.vue.LWComponent implements Pathway
+public class LWPathway //extends tufts.vue.LWComponent 
+    implements Pathway
 {
     private LinkedList elementList = null;
     private int weight = 1;
@@ -26,8 +27,9 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
     private boolean ordered = false;
     private Color borderColor = Color.blue;
     private LWMap map = null;
-    
+    private String label = "";
     private int currentIndex;
+    private String notes = "";
     
     /**default constructor used for marshalling*/
     public LWPathway() {
@@ -43,7 +45,7 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
     
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(String label) {
-        super.setLabel(label);
+        this.setLabel(label);
         elementList = new LinkedList();
         currentIndex = -1;
     }
@@ -256,7 +258,22 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
     public int getCurrentIndex(){
         return currentIndex;
     }
-   
+    
+    public String getLabel() {
+        return this.label;
+    }
+    
+    public String getNotes() {
+        return this.notes;
+    }
+    
+    public void setLabel(String label) {
+        this.label = label;
+    }
+    
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
 /*****************************/    
 /**methods below are not used*/    
 /*****************************/
@@ -335,5 +352,4 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
           return null;
         
     }
-    
 }
