@@ -186,6 +186,8 @@ ActionListener {
                     propertiesEditor.setProperties(c.getResource().getProperties(), false);
                 else
                     propertiesEditor.setProperties(c.getResource().getProperties(), true);
+            } else {
+                propertiesEditor.clear();
             }
         }
     }

@@ -120,6 +120,10 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
     }
     
+    public void clear() {
+       setProperties(new Properties(), true);
+    }
+    
     // a model for Properties table
     public class PropertiesTableModel extends AbstractTableModel {
         java.util.List m_conditions;
