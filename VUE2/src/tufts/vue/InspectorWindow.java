@@ -28,6 +28,7 @@ public class InspectorWindow extends JDialog {
 
     public InspectorWindow() {
         this((JFrame)null, "Default Window");
+        //setUndecorated(true); // no effect
     }
     
     public InspectorWindow(JFrame owner, String title, Point loc){

@@ -4298,6 +4298,7 @@ public class MapViewer extends javax.swing.JComponent
             if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
             //new Throwable("REAL GRAB").printStackTrace();
             MapViewer activeViewer = VUE.getActiveViewer();
+            // why are we checking this again if we just checked it???
             if (activeViewer != this) {
                 LWMap oldActiveMap = null;
                 if (activeViewer != null)
