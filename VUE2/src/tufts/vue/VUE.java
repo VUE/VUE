@@ -286,25 +286,41 @@ public class VUE
     static final MapAction Group =
         new MapAction("Group", keyStroke(KeyEvent.VK_G, META))
         {
-            // enable only when two or more objects in selection
-            boolean enabledFor(java.util.List l) { return l.size() > 1; }
-            void Xact(java.util.List selectionList)
+            boolean mayModifySelection() { return true; }
+            boolean enabledFor(LWSelection l)
             {
-                //getMap().createGroup(selectionList);
+                // enable only when two or more objects in selection
+                return l.size() > 1 && l.allHaveSameParent();
+            }
+            void act(LWSelection selection)
+            {
+                LWComponent c = selection.first(); // all have same parent
+                c.getParent().addChild(LWGroup.create(selection));
             }
         };
     static final MapAction Ungroup =
         new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, META+SHIFT))
         {
-            void act(LWComponent c) {
-                if (c instanceof LWGroup)
-                    System.out.println("found group " + c);
+            boolean mayModifySelection() { return true; }
+            boolean enabledFor(LWSelection l)
+            {
+                return l.countTypes(LWGroup.class) > 0;
+            }
+            void act(LWComponent c)
+            {
+                if (c instanceof LWGroup) {
+                    System.out.println("dispersing group " + c);
+                    ((LWGroup)c).disperse();
+                }
             }
         };
     static final MapAction Rename =
         new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
         {
-            boolean enabledFor(java.util.List l) { return l.size() == 1; }
+            boolean enabledFor(LWSelection l)
+            {
+                return l.size() == 1 && !(l.first() instanceof LWGroup);
+            }
             void act(LWComponent c) {
                 getActiveViewer().activateLabelEdit(c);
             }
@@ -312,23 +328,28 @@ public class VUE
     static final MapAction Delete =
         new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
         {
-            void act(java.util.List selectionList)
+            boolean mayModifySelection() { return true; }
+            void act(LWComponent c) {
+                c.getParent().removeChild(c);
+            }
+            /*
+            void act(LWSelection selection)
             {
                 // need to copy list as selection gets modified as we delete
-                Object[] comps = selectionList.toArray();
+                Object[] comps = selection.toArray();
                 for (int i = 0; i < comps.length; i++) {
                     LWComponent c = (LWComponent) comps[i];
                     c.getParent().removeChild(c);
                 }
-            }
+                }*/
         };
     static final MapAction BringToFront =
         new MapAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
                       keyStroke(KeyEvent.VK_CLOSE_BRACKET, META+SHIFT))
         {
-            void act(java.util.List selection) {
-                LWGroup.bringToFront(selection);
+            void act(LWSelection selection) {
+                LWContainer.bringToFront(selection);
             }
         };
     static final MapAction SendToBack =
@@ -336,22 +357,22 @@ public class VUE
                       "Make sure this object doesn't obscure any other object",
                       keyStroke(KeyEvent.VK_OPEN_BRACKET, META+SHIFT))
         {
-            void act(java.util.List selection) {
-                LWGroup.sendToBack(selection);
+            void act(LWSelection selection) {
+                LWContainer.sendToBack(selection);
             }
         };
     static final MapAction BringForward =
         new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, META))
         {
-            void act(java.util.List selection) {
-                LWGroup.bringForward(selection);
+            void act(LWSelection selection) {
+                LWContainer.bringForward(selection);
             }
         };
     static final MapAction SendBackward =
         new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, META))
         {
-            void act(java.util.List selection) {
-                LWGroup.sendBackward(selection);
+            void act(LWSelection selection) {
+                LWContainer.sendBackward(selection);
             }
         };
     static final MapAction NewNode =
@@ -371,9 +392,6 @@ public class VUE
                 MapViewer viewer = getActiveViewer();
                 LWNode node = new LWNode("new node");
                 Point mousePress = viewer.getLastMousePoint();
-                //System.out.println("    mousePress: " + mousePress);
-                //System.out.println("lastMousePress: " + lastMousePress);
-                
                 Point2D newNodeLocation = viewer.screenToMapPoint(mousePress);
                 
                 if (mousePress.equals(lastMousePress) &&
@@ -437,27 +455,30 @@ public class VUE
         }
         public void actionPerformed(ActionEvent ae)
         {
-            java.util.List selectionList = getActiveViewer().getSelectionList();
+            LWSelection selection = getActiveViewer().getSelection();
             //todo: if no active viewer, try a static MapViewer in case it's running alone
             System.out.println(ae);
-            System.out.println(ae.getActionCommand() + " " + selectionList);
-            /*
-            if (selectionList.size() == 0) {
-                System.err.println("MapAction: nothing in selection!");
-                return;
-            }
-            */
-            if (enabledFor(selectionList)) {
-                act(selectionList);
+            System.out.println(ae.getActionCommand() + " " + selection);
+            if (enabledFor(selection)) {
+                if (mayModifySelection())
+                    selection = (LWSelection) selection.clone();
+                act(selection);
                 getActiveViewer().repaint();
             } else
                 System.out.println("Not enabled given this selection.");//todo: disable action
         }
-        boolean enabledFor(java.util.List l) { return l.size() > 0; }
+
+        /** Is this action enabled given this selection? */
+        boolean enabledFor(LWSelection l) { return l.size() > 0; }
+        /** the action may result in an event that has the viewer
+         * change what's in the current selection (e.g., on delete,
+         * the viewer makes sure the deleted object is no longer
+         * in the selection group */
+        boolean mayModifySelection() { return false; }
         
-        void act(java.util.List selectionList)
+        void act(LWSelection selection)
         {
-            act(selectionList.iterator());
+            act(selection.iterator());
         }
         // automatically apply the action serially to everything in the
         // selection -- override if this or isn't what the action

@@ -17,7 +17,7 @@ import javax.swing.border.LineBorder;
  * @author Scott Fraize
  * @version 3/10/03
  */
-public class LWNode extends LWGroup
+public class LWNode extends LWContainer
     implements Node
 {
     private final int VerticalChildGap = 2;
@@ -121,6 +121,11 @@ public class LWNode extends LWGroup
         imageIcon = new ImageIcon(image, "Image Description");
         setShape(new Rectangle2D.Float());
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
+    }
+
+    public Rectangle2D getBounds()
+    {
+        return getShape().getBounds2D();
     }
 
     public void addChild(LWComponent c)
@@ -426,14 +431,19 @@ public class LWNode extends LWGroup
             //g.setColor(COLOR_SELECTION);
         else
             g.setColor(getStrokeColor());
+        
         if (imageIcon == null) {
             //g.setStroke(new java.awt.BasicStroke(borderWidth));
             // todo: cache this stroke object
-            float w = getStrokeWidth();
-            if (w > 0f) {
-                g.setStroke(new java.awt.BasicStroke(getStrokeWidth()));
-                g.draw(drawnShape);
+            if (isIndicated()) {
+                g.setStroke(STROKE_INDICATION);
+            } else {
+                float w = getStrokeWidth();
+                if (w > 0f) {
+                    g.setStroke(new java.awt.BasicStroke(getStrokeWidth()));
+                }
             }
+            g.draw(drawnShape);
         }
 
         if (false) {

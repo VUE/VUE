@@ -120,7 +120,8 @@ public class LWComponent
     //protected PColor fillColor = new PColor(COLOR_FILL); // todo: use PColor in constants
     //protected PColor textColor = new PColor(COLOR_TEXT);
     //protected PColor strokeColor = new PColor(COLOR_STROKE);
-    protected Color fillColor = COLOR_FILL;
+    //protected Color fillColor = COLOR_FILL;
+    protected Color fillColor = null;
     protected Color textColor = COLOR_TEXT;
     protected Color strokeColor = COLOR_STROKE;
     protected float strokeWidth = 1f;
@@ -134,7 +135,7 @@ public class LWComponent
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
 
-    protected transient LWGroup parent = null;
+    protected transient LWContainer parent = null;
 
     // list of LWLinks that contain us as an endpoint
     private transient ArrayList links = new ArrayList();
@@ -224,7 +225,7 @@ public class LWComponent
     }
     static String ColorToString(Color c)
     {
-        if ((c.getRGB() & 0xFFFFFF) == 0)
+        if (c == null || (c.getRGB() & 0xFFFFFF) == 0)
             return null;
         return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
     }
@@ -373,16 +374,16 @@ public class LWComponent
     {
         return this.parent != null || parent instanceof Vue2DMap; // todo: kind of a hack
     }
-    void setParent(LWGroup c)
+    void setParent(LWContainer c)
     {
         this.parent = c;
     }
-    public LWGroup getParent()
+    public LWContainer getParent()
     {
         return this.parent;
     }
 
-    public boolean hasChildren()
+    public boolean hasChildren()// todo: can we get rid of this?
     {
         return false;
     }
@@ -417,6 +418,11 @@ public class LWComponent
     public float getLayer()
     {
         return this.scale;
+    }
+    public void translate(float dx, float dy)
+    {
+        setLocation(this.x + dx,
+                    this.y + dy);
     }
     public void setLocation(float x, float y)
     {

@@ -64,8 +64,7 @@
                 
 	</class>
 
-	<class name="tufts.vue.LWGroup" extends="tufts.vue.LWComponent">
-		<map-to xml="group"/>
+	<class name="tufts.vue.LWContainer" extends="tufts.vue.LWComponent">
                 <!--
                 <field name="nodeList" type="tufts.vue.LWNode" collection="arraylist">
 			<bind-xml name="node"/>
@@ -79,7 +78,11 @@
 		</field>
 	</class>
 	
-	<class name="tufts.vue.LWNode" extends="tufts.vue.LWGroup">
+	<class name="tufts.vue.LWGroup" extends="tufts.vue.LWContainer">
+		<map-to xml="group"/>
+	</class>
+	
+	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
 		<map-to xml="node"/>
 		<field name="autoSized" type="boolean">
 			<bind-xml name="autoSized" node="attribute"/>
@@ -96,7 +99,7 @@
 		</field>
 	</class>
 
-	<class name="tufts.vue.Vue2DMap" extends="tufts.vue.LWGroup">
+	<class name="tufts.vue.Vue2DMap" extends="tufts.vue.LWContainer">
 		<map-to xml="vue2d-map"/>
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                         <bind-xml matches="*"/> 

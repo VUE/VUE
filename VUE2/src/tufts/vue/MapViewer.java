@@ -18,6 +18,8 @@ import javax.swing.text.JTextComponent;
  * @author Scott Fraize
  * @version 3/16/03
  */
+
+//todo: rename LWViewer
 public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
@@ -37,7 +39,7 @@ public class MapViewer extends javax.swing.JPanel
     protected Rectangle draggedSelectionBox;     // currently dragged selection box
     protected boolean draggingSelectionBox;     // currently dragged selection box
     protected Rectangle2D selectionBounds;  // max bounds of all components in current selection
-    protected java.util.List selectionList = new java.util.ArrayList();
+    protected LWSelection selectionList = new LWSelection();
 
     //LWComponent dragComponent;
 
@@ -128,6 +130,12 @@ public class MapViewer extends javax.swing.JPanel
     void addTool(VueTool tool)
     {
         tools.add(tool);
+    }
+
+    // todo: singleton!
+    LWSelection getSelection()
+    {
+        return selectionList;
     }
 
     /**
@@ -310,11 +318,9 @@ public class MapViewer extends javax.swing.JPanel
         repaint();
     }
 
-    /**
+    /*
      * Used to look for a node we can drop the given
      * node onto.
-     */
-    /*
     public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
     {
         java.util.List hits = new java.util.ArrayList();
@@ -332,28 +338,11 @@ public class MapViewer extends javax.swing.JPanel
         }
         return (LWNode) findClosestCenter(hits, mapX, mapY);
     }
-    */
     public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
     {
-        return map.findLWNodeAt(mapX, mapY, dragging);
+        return this.map.findLWNodeAt(mapX, mapY, dragging);
     }
-    
-    public LWComponent getLWComponentAt(float mapX, float mapY)
-    {
-        return map.findLWComponentAt(mapX, mapY);
-
-        /*
-        // hit detection must traverse list in reverse as top-most
-        // components are at end
-        java.util.ListIterator i = components.listIterator(components.size());
-        while (i.hasPrevious()) {
-            LWComponent c = (LWComponent) i.previous();
-            if (c.contains(mapX, mapY))
-                return c.findComponentAt(mapX, mapY); // if no children, will return self
-        }
-        return null;
-        */
-    }
+    */
     
     /**
      * Add all nodes hit by this box to a list for doing selection.
@@ -368,7 +357,7 @@ public class MapViewer extends javax.swing.JPanel
 
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (!(c instanceof LWNode))
+            if (c instanceof LWLink)
                 continue;
             if (c.intersects(mapRect))
                 hits.add(c);
@@ -456,42 +445,14 @@ public class MapViewer extends javax.swing.JPanel
      * for the whole set.  This can't be a ConceptMap method
      * because we don't actually know the component sizes
      * until they're rendered (e.g., font metrics taken into
-     * account, etc).
+     * account, etc). todo: move to vue2dmap
      */
     public Rectangle2D getAllComponentBounds()
     {
         //return getComponentBounds(new VueUtil.GroupIterator(componentList, nodeList, linkList));
-        return getComponentBounds(getMap().getChildIterator());
+        return Vue2DMap.getBounds(getMap().getChildIterator());
     }
     
-    public Rectangle2D getComponentBounds(java.util.Iterator i)
-    {
-        float xMin = Float.POSITIVE_INFINITY;
-        float yMin = Float.POSITIVE_INFINITY;
-        float xMax = Float.NEGATIVE_INFINITY;
-        float yMax = Float.NEGATIVE_INFINITY;
-        
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            float x = c.getX();
-            float y = c.getY();
-            float mx = x + c.getWidth();
-            float my = y + c.getHeight();
-            if (x < xMin) xMin = x;
-            if (y < yMin) yMin = y;
-            if (mx > xMax) xMax = mx;
-            if (my > yMax) yMax = my;
-        }
-
-        // In case there's nothing in there
-        if (xMin == Float.POSITIVE_INFINITY) xMin = 0;
-        if (yMin == Float.POSITIVE_INFINITY) yMin = 0;
-        if (xMax == Float.NEGATIVE_INFINITY) xMax = 0;
-        if (yMax == Float.NEGATIVE_INFINITY) yMax = 0;
-
-        return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
-    }
-
     public void setIndicated(LWComponent c)
     {
         if (indication != c) {
@@ -935,11 +896,6 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
-    java.util.List getSelectionList()
-    {
-        return selectionList;
-    }
-    
     // todo: rename: selectionAdd, selectionRemove, selectionClear
     protected void addToSelection(LWComponent c)
     {
@@ -1085,7 +1041,7 @@ public class MapViewer extends javax.swing.JPanel
             
             int key = e.getKeyCode();
 
-            if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {
+            if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {//todo: handle via action only
                 activateLabelEdit(lastSelection);
                 return;
             } 
@@ -1193,7 +1149,7 @@ public class MapViewer extends javax.swing.JPanel
             float mapX = screenToMapX(e.getX());
             float mapY = screenToMapY(e.getY());
 
-            this.hitComponent = getLWComponentAt(mapX, mapY);
+            this.hitComponent = getMap().findLWComponentAt(mapX, mapY);
             if (DEBUG_MOUSE)
                 System.err.println("\ton " + hitComponent);
 
@@ -1211,8 +1167,6 @@ public class MapViewer extends javax.swing.JPanel
                 if (selectionList.size() == 0) {
                     getMapPopup().show(e.getComponent(), e.getX(), e.getY());
                 } else {
-                    // if (hitComponent instanceof LWGroup) // change existing to LWContainer
-                    //  add group/ungroup options
                     getComponentPopup().show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -1226,6 +1180,8 @@ public class MapViewer extends javax.swing.JPanel
                     //-------------------------------------------------------
                     // Mod-drag off a component: NEW LINK CREATION
                     //-------------------------------------------------------
+                    if (hitComponent instanceof LWGroup)
+                        hitComponent = ((LWGroup)hitComponent).findLWSubTargetAt(mapX, mapY);
                     linkSource = hitComponent;
                     dragOffset.setLocation(0,0);
                     creationLink.setSource(linkSource);
@@ -1246,14 +1202,22 @@ public class MapViewer extends javax.swing.JPanel
                     // Clear any existing selection, and set to hitComponent.
                     // Also: mark drag start in case they start dragging
                     //-------------------------------------------------------
-                    
-                    if (lastSelection != hitComponent || selectionList.size() > 1) {
+
+                    if (!hitComponent.isSelected()) {
+                        //&& (lastSelection != hitComponent || selectionList.size() > 1)) {
                         clearSelection();
                         addToSelection(hitComponent);
                     }
-                    dragComponent = hitComponent;
-                    dragOffset.setLocation(hitComponent.getX() - mapX,
-                                           hitComponent.getY() - mapY);
+                    if (selectionList.size() > 1) {
+                        dragComponent = LWGroup.createTemporary(selectionList);
+                        // todo opt: could cache this group instead of creating
+                        // every click -- might speed up huge selections
+                    } else {
+                        dragComponent = hitComponent;
+                    }
+                    dragOffset.setLocation(dragComponent.getX() - mapX,
+                                           dragComponent.getY() - mapY);
+                        
 
                 }
             } else {
@@ -1297,11 +1261,6 @@ public class MapViewer extends javax.swing.JPanel
             int screenX = e.getX();
             int screenY = e.getY();
             
-            // Stop all dragging if the mouse leaves our component
-            // todo: auto-pan as we get close to edge
-            if (!e.getComponent().contains(screenX, screenY))
-                return;
-
             if (toolKeyDown == KEY_TOOL_PAN) {
                 // drag the entire map
                 if (originBeforeDrag != null) {
@@ -1314,6 +1273,11 @@ public class MapViewer extends javax.swing.JPanel
                 }
             }
             
+            // Stop all dragging if the mouse leaves our component
+            // todo: auto-pan as we get close to edge
+            if (!e.getComponent().contains(screenX, screenY))
+                return;
+
             // selection box
             if (dragComponent == null && draggingSelectionBox) {
                 int sx = dragStart.x < screenX ? dragStart.x : screenX;
@@ -1338,6 +1302,9 @@ public class MapViewer extends javax.swing.JPanel
             Rectangle2D repaintRegion = null;
 
             if (dragComponent != null) {
+                //-------------------------------------------------------
+                // Compute repaint region
+                //-------------------------------------------------------
                 repaintRegion = dragComponent.getBounds();
                 if (dragComponent instanceof LWLink) {
                     LWLink lwl = (LWLink) dragComponent;
@@ -1355,8 +1322,14 @@ public class MapViewer extends javax.swing.JPanel
                     repaintRegion.add(lwl.getComponent1().getBounds());
                     repaintRegion.add(lwl.getComponent2().getBounds());
                 }
+                //-------------------------------------------------------
+                // Reposition the component due to mouse drag
+                //-------------------------------------------------------
                 dragComponent.setLocation((float) (mapX + dragOffset.getX()),
                                           (float) (mapY + dragOffset.getY()));
+                //-------------------------------------------------------
+                // Compute more repaint region
+                //-------------------------------------------------------
                 repaintRegion.add(dragComponent.getBounds());
                 if (dragComponent instanceof LWLink) {
                     LWLink lwl = (LWLink) dragComponent;
@@ -1377,9 +1350,10 @@ public class MapViewer extends javax.swing.JPanel
                     setIndicated(over);
                     repaintRegion.add(over.getBounds());
                 }
-            } else if (dragComponent instanceof LWNode) {
+          //} else if (dragComponent instanceof LWNode) {
+            } else if (dragComponent instanceof LWContainer) {
                 // regular drag -- check for node drop onto another
-                LWNode over = getLWNodeUnder(mapX, mapY, dragComponent);
+                LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
                 if (indication != null && indication != over) {
                     repaintRegion.add(indication.getBounds());
                     clearIndicated();
@@ -1449,7 +1423,6 @@ public class MapViewer extends javax.swing.JPanel
                         // There's alreay a link tween these two -- increment the weight
                         lwl.incrementWeight();
                     } else {
-                        //getMap().addLink(new Link(linkSource.getMapItem(), linkDest.getMapItem()));
                         getMap().addLink(new LWLink(linkSource, linkDest));
                     }
                 }
@@ -1457,7 +1430,7 @@ public class MapViewer extends javax.swing.JPanel
             } else if (mouseWasDragged && dragComponent instanceof LWNode) {
                 // drop one node on another -- add as child
                 LWNode droppedChild = (LWNode) dragComponent;
-                LWGroup targetParent = (LWNode) indication;
+                LWContainer targetParent = (LWNode) indication;
 
                 if (targetParent == null)
                     targetParent = getMap();
@@ -1509,7 +1482,7 @@ public class MapViewer extends javax.swing.JPanel
                 draggedSelectionBox = null;
             }
             if (selectionList.size() > 0) {
-                selectionBounds = getComponentBounds(selectionList.iterator());
+                selectionBounds = selectionList.getBounds();
                 new MapSelectionEvent(MapViewer.this, selectionList).raise();
             }
             repaint();
@@ -1535,7 +1508,7 @@ public class MapViewer extends javax.swing.JPanel
             if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
             if (isSingleClickEvent(e)) {
-                if (hitComponent != null) {
+                if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
                     if (hitComponent.isSelected() && hitComponent != justSelected)
                         activateLabelEdit(hitComponent);
                 }
@@ -1558,7 +1531,7 @@ public class MapViewer extends javax.swing.JPanel
 
         public LWComponent findLWLinkTargetAt(float x, float y)
         {
-            LWComponent directHit = getLWComponentAt(x, y);
+            LWComponent directHit = getMap().findLWSubTargetAt(x, y);
             if (directHit != null)
                 return directHit;
             
@@ -1579,8 +1552,9 @@ public class MapViewer extends javax.swing.JPanel
         {
             if (linkTarget == linkSource)
                 return false;
-            if (linkTarget.getParent() == linkSource
-                || linkSource.getParent() == linkTarget)
+            if (linkTarget instanceof Vue2DMap ||
+                linkTarget.getParent() == linkSource ||
+                linkSource.getParent() == linkTarget)
                 return false;
             
             boolean ok = true;

@@ -12,8 +12,9 @@ package tufts.vue;
 
 import java.util.Vector;
 import java.util.ArrayList;
+import java.awt.geom.Rectangle2D;
 
-public class Vue2DMap extends LWGroup
+public class Vue2DMap extends LWContainer
     implements ConceptMap
 {
     public static final String CASTOR_XML_MAPPING = "vue2d_map.xml";
@@ -152,5 +153,43 @@ public class Vue2DMap extends LWGroup
     {
         return null;
     }
+
+    public java.awt.geom.Rectangle2D getBounds()
+    {
+        System.out.println("Vue2DMap getbounds");
+        return Vue2DMap.getBounds(getChildIterator());
+    }
+    
+    /**
+     * return the bounds for all LWComponents in the iterator
+     */
+    public static Rectangle2D getBounds(java.util.Iterator i)
+    {
+        float xMin = Float.POSITIVE_INFINITY;
+        float yMin = Float.POSITIVE_INFINITY;
+        float xMax = Float.NEGATIVE_INFINITY;
+        float yMax = Float.NEGATIVE_INFINITY;
+        
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            float x = c.getX();
+            float y = c.getY();
+            float mx = x + c.getWidth();
+            float my = y + c.getHeight();
+            if (x < xMin) xMin = x;
+            if (y < yMin) yMin = y;
+            if (mx > xMax) xMax = mx;
+            if (my > yMax) yMax = my;
+        }
+
+        // In case there's nothing in there
+        if (xMin == Float.POSITIVE_INFINITY) xMin = 0;
+        if (yMin == Float.POSITIVE_INFINITY) yMin = 0;
+        if (xMax == Float.NEGATIVE_INFINITY) xMax = 0;
+        if (yMax == Float.NEGATIVE_INFINITY) yMax = 0;
+
+        return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
+    }
+
     
 }

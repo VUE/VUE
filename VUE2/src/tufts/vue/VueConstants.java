@@ -50,11 +50,12 @@ public interface VueConstants
 
     static java.awt.Stroke STROKE_ONE = new java.awt.BasicStroke(1f);
     static java.awt.Stroke STROKE_TWO = new java.awt.BasicStroke(2f);
+    static java.awt.Stroke STROKE_INDICATION = new java.awt.BasicStroke(3f);
     static java.awt.Stroke STROKE_DEFAULT = STROKE_ONE;
     static java.awt.Stroke STROKE_SELECTION = new java.awt.BasicStroke(1f);
     static java.awt.Stroke STROKE_SELECTION_DYNAMIC = new java.awt.BasicStroke(1f);
 
-
+    static boolean DEBUG_CONTAINMENT = false;
 
     
 }
