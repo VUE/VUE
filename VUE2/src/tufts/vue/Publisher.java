@@ -13,6 +13,16 @@ import javax.swing.border.LineBorder;
 import java.util.Vector;
 import java.util.Iterator;
 import javax.swing.table.*;
+import java.io.*;
+import java.net.*;
+import org.apache.commons.net.ftp.*;
+
+
+import fedora.server.management.FedoraAPIM;
+import fedora.server.utilities.StreamUtility;
+import fedora.client.ingest.AutoIngestor;
+
+import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
@@ -24,6 +34,7 @@ public class Publisher extends JDialog implements ActionListener {
     private final int PUBLISH_CMAP = 1; // the map with selected resources in IMSCP format
     private final int PUBLISH_ALL = 2; // all resources published to fedora and map published with pointers to resources.
     private int publishMode = PUBLISH_MAP; 
+    private final int BUFFER_SIZE = 10240;// size for transferring files
     private int stage; // keep tracks of the screen
     JPanel modeSelectionPanel;
     JPanel resourceSelectionPanel;
@@ -34,7 +45,10 @@ public class Publisher extends JDialog implements ActionListener {
     JRadioButton publishMapRButton;
     JRadioButton publishCMapRButton;
     JRadioButton publishAllRButton;
-    Vector resources;
+    Vector resourceVector;
+    File activeMapFile;
+    ResourceTableModel resourceTableModel;
+    JTable resourceTable;
     
     public Publisher() {
         nextButton = new JButton("Next >");
@@ -46,13 +60,15 @@ public class Publisher extends JDialog implements ActionListener {
         nextButton.addActionListener(this);
         backButton.addActionListener(this);
         setUpModeSelectionPanel();
-        getContentPane().setLayout(new GridLayout(1,0));
+      
         getContentPane().add(modeSelectionPanel);
-        getContentPane().setSize(300, 500);
+     
         stage = 1;
+        
         setLocation(300,300);
         setModal(true);
-        pack();
+        setSize(600, 250);
+        setResizable(false);
         show();
        
     }
@@ -139,11 +155,10 @@ public class Publisher extends JDialog implements ActionListener {
         c.gridx =0;
         c.gridy =1;
         c.gridheight = 2;
-        //c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
         JPanel resourceListPanel = new JPanel();
         JComponent resourceListPane = getResourceListPane();
         resourceListPanel.add(resourceListPane);
-        resourceListPanel.setSize(500, 200);
         gridbag.setConstraints(resourceListPanel,c);
         resourceSelectionPanel.add(resourceListPanel);
         
@@ -167,24 +182,18 @@ public class Publisher extends JDialog implements ActionListener {
     }
     
     private JComponent getResourceListPane() {
-        String[] columnNames = {"Selection","Display Name","Size","Status"};
-        //String[] columnNames = {"Selecetd","Display Name","Size"};
-        Object[][] resources = {{new Boolean(true),"readme.txt",new Integer(1)},
-                                {new Boolean(true),"readme.txt",new Integer(1)},
-                                {new Boolean(true),"readme.txt",new Integer(1)}};
-        //setLocalResourceObject(resources,VUE.getActiveMap());
-                                
         Vector columnNamesVector = new Vector();
         columnNamesVector.add("Selection");
         columnNamesVector.add("Display Name");
         columnNamesVector.add("Size ");
         columnNamesVector.add("Status");
-        Vector resourceVector = new Vector();
-        setLocalResourceVector(resourceVector,VUE.getActiveMap());
-        ResourceTableModel resourceTableModel = new ResourceTableModel(resourceVector, columnNamesVector);
+        resourceVector = new Vector();
         
-        JTable resourceTable = new JTable(resourceTableModel);
-       
+        setLocalResourceVector(resourceVector,VUE.getActiveMap());
+        resourceTableModel = new ResourceTableModel(resourceVector, columnNamesVector);
+        
+        resourceTable = new JTable(resourceTableModel);
+        resourceTable.setPreferredScrollableViewportSize(new Dimension(500, 70));
 
       //  resourceList.setDefaultRenderer(String.class,resourceTableCellRenderer);
         return new JScrollPane(resourceTable);
@@ -192,6 +201,7 @@ public class Publisher extends JDialog implements ActionListener {
         
     }
     private void setLocalResourceVector(Vector vector,LWContainer map) {
+
        
        Iterator i = map.getChildIterator();
 
@@ -200,13 +210,15 @@ public class Publisher extends JDialog implements ActionListener {
            if(component.hasResource()){
                Resource resource = component.getResource();
                if(resource.isLocalFile()) {
-                   Vector row = new Vector();
-                   row.add(new Boolean(true));
-                   row.add(resource);
-                   row.add(new Long(resource.getSize()));
-                   row.add("Ready");
-                  
-                   vector.add(row);
+                    File file = new File(resource.getSpec().substring(8));
+                    if(file.isFile()) {
+                        Vector row = new Vector();
+                        row.add(new Boolean(true));
+                        row.add(resource);
+                        row.add(new Long(file.length()));
+                        row.add("Ready");
+                        vector.add(row);
+                    }
                }
            }
            if(component instanceof LWContainer) {
@@ -214,8 +226,176 @@ public class Publisher extends JDialog implements ActionListener {
            }
        }
     }
+    
+    public void publishMap() {
+        try {
+            saveActiveMap();
+            String transferredFileName = transferFile(activeMapFile,activeMapFile.getName());
+            File METSfile = createMETSFile( transferredFileName,"obj-binary.xml");
+            String pid = ingestToFedora(METSfile);
+            System.out.println("Published Map: id = "+pid);
+        } catch (Exception ex) {
+             VueUtil.alert(null, ex.getMessage(), "Publish Error");
+        }
+    }
+    
+    public void publishCMap() {
+        try {
+            File savedCMap = createIMSCP();
+           // String transferredFileNameLocal = activeMapFile.getName().split("\\.")[0] +".zip";
+            String transferredFileName = transferFile(savedCMap,savedCMap.getName());
+            File METSfile = createMETSFile( transferredFileName,"obj-vue-concept-map-mc.xml");
+            String pid = ingestToFedora(METSfile);
+            System.out.println("Published CMap: id = "+pid);
+        } catch (Exception ex) {
+             VueUtil.alert(null, ex.getMessage(), "Publish Error");
+             ex.printStackTrace();
+        }
+   
+    }
+    
+    public  void publishAll() {
+        try {
+            
+        Iterator i = resourceVector.iterator();
+        while(i.hasNext()) {
+            Vector vector = (Vector)i.next();
+            Resource r = (Resource)(vector.elementAt(1));
+            Boolean b = (Boolean)(vector.elementAt(0));
+            File file = new File(r.getSpec().substring(8));
+            if(file.isFile() && b.booleanValue()) {
+                 String transferredFileName = transferFile(file,file.getName());
+                 File METSFile = createMETSFile( transferredFileName,"obj-binary.xml");
+                 String pid = ingestToFedora(METSFile);
+                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" pid ="+pid);
+              
+            }    
+           publishMap();
+        }
+            System.out.println("Publish All");
+        } catch (Exception ex) {
+            VueUtil.alert(null, ex.getMessage(), "Publish Error");
+             ex.printStackTrace();
+        }
+    }
+    
+    private void saveActiveMap() throws IOException {
+        LWMap map = tufts.vue.VUE.getActiveMap();
+        activeMapFile = map.getFile();
+        if(activeMapFile == null) {
+            String prefix = "vueMap";
+            String suffix = ".xml";
+            activeMapFile  = File.createTempFile(prefix,suffix);
+        }
+        ActionUtil.marshallMap(activeMapFile, map);    
+    }
+    
+    private String  transferFile(File  file,String fileName) throws IOException,osid.filing.FilingException {
+        String host = "dl.tccs.tufts.edu";
+        String url = "http://dl.tccs.tufts.edu/~vue/fedora/";
+        int port = 21;
+        String userName = "vue";
+        String password = "vue@at";
+        String directory = "public_html/fedora";
+        
+       // saveActiveMap(); // saving the activeMap;
+        
+        // transfering it to web-server
+          
+        FTPClient client = new FTPClient();
+        client.connect(host,port);
+        client.login(userName,password);
+        client.changeWorkingDirectory(directory); 
+        client.setFileType(FTP.BINARY_FILE_TYPE);
+        client.storeFile(fileName,new FileInputStream(file));
+        client.logout();
+        client.disconnect();
+        fileName = url+fileName;
+        return fileName;
+    }
+    
+    private File createMETSFile(String fileName,String templateFileName) throws IOException, FileNotFoundException, javax.xml.rpc.ServiceException{
+        StringBuffer sb = new StringBuffer();
+        String s = new String();
+        FileInputStream fis = new FileInputStream(new File(templateFileName));
+        DataInputStream in = new DataInputStream(fis); 
+
+        byte[] buf = new byte[BUFFER_SIZE];
+        int ch;
+        int len;
+        while((len =fis.read(buf)) > 0) {
+            s = s+ new String(buf);
+          
+        }
+        fis.close();
+        in.close();
+      //  s = sb.toString();
+        String r =  s.replaceAll("%file.location%", fileName).trim();
+        
+        //writing the to outputfile
+        File METSfile = File.createTempFile("vueMETSMap",".xml");
+        FileOutputStream fos = new FileOutputStream(METSfile);
+        fos.write(r.getBytes());
+        fos.close();
+        return METSfile;
+        
+    }
+    
+    private String ingestToFedora(File METSfile) throws IOException, FileNotFoundException, javax.xml.rpc.ServiceException{
+        AutoIngestor a = new AutoIngestor("130.64.77.144", 8080,"fedoraAdmin","fedoraAdmin");
+        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest");
+        
+        System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
+        return pid;
+    }
+        
+    
+    
+    private File createIMSCP() throws IOException,URISyntaxException {
+        
+        LWMap map = tufts.vue.VUE.getActiveMap();
+        IMSCP imscp = new IMSCP();
+        saveActiveMap();
+        System.out.println("Writing Active Map : "+activeMapFile.getName());
+        imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);
+        
+        Iterator i = resourceVector.iterator();
+        
+        while(i.hasNext()) {
+            Vector vector = (Vector)i.next();
+            Resource r = (Resource)(vector.elementAt(1));
+            Boolean b = (Boolean)(vector.elementAt(0));
+            File file = new File(r.getSpec().substring(8));
+            if(file.isFile() && b.booleanValue()) {
+                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" index ="+vector.indexOf(r));
+                 resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),3);
+                 imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
+                 resourceTable.setValueAt("Done",resourceVector.indexOf(vector),3);
+                 
+            }    
+           
+        }
+       
+        imscp.closeZOS();
+        return imscp.getFile();
+        
+    }
+    
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == cancelButton) {   
+            this.dispose();
+        }
+        if(e.getSource() == finishButton) {
+            if(stage == 1) {
+                if(publishMapRButton.isSelected())
+                    publishMap();
+            }else {
+                if(publishCMapRButton.isSelected())
+                    publishCMap();
+                if(publishAllRButton.isSelected())
+                    publishAll();
+            }
+                
             this.dispose();
         }
         if(e.getSource() == nextButton) {
@@ -254,46 +434,7 @@ public class Publisher extends JDialog implements ActionListener {
         }
         
     }
-    
-    public class ResourceTable extends JTable {
-        
-        public ResourceTable(Vector data,Vector title) {
-            super(data,title);
-       
-        }
-        
-    }
-    public class ResourceTableCellRenderer extends DefaultTableCellRenderer{
-        
-        private final Font selectedFont = new Font("SansSerif", Font.BOLD, 12);
-        private final Font normalFont = new Font("SansSerif", Font.PLAIN, 12);
-
-        public ResourceTableCellRenderer(){
-
-        }
-
-        public Component getTableCellRendererComponent(JTable table,
-                                               Object value,
-                                               boolean isSelected,
-                                               boolean hasFocus,
-                                               int row,
-                                               int col) {
-        System.out.println("value class: "+value.getClass());
-        System.out.println("this class:  "+this.getClass());
-        
-            if(col == 0){
-                JCheckBox box = new JCheckBox();
-                return box;
-            }
-            else if(col == 1){
-                JLabel lab = new JLabel(((Resource)value).getSpec());
-                return lab;
-            }
-            return new JLabel("None");
-        }
-   }
-    
-    
+ 
     public class ResourceTableModel  extends AbstractTableModel {
         
         public final Object[] longValues = {"Selection", "123456789012345678901234567890","12356789","Processing...."};
@@ -302,9 +443,9 @@ public class Publisher extends JDialog implements ActionListener {
                 
         public ResourceTableModel (Vector data,Vector columnNames) {
             super();
+            
             this.data = data;
             this.columnNames = columnNames;
-            System.out.println("Initialized ResourceTableModel ="+data.size()+ " : columnsize ="+columnNames.size());
         }
         
                                             
@@ -322,7 +463,6 @@ public class Publisher extends JDialog implements ActionListener {
 
 
         public Object getValueAt(int row, int col) {
-            System.out.println("Reading "+ row+" , "+col+" : "+((Vector)data.elementAt(row)).elementAt(col));
             return ((Vector)data.elementAt(row)).elementAt(col);
         }
 

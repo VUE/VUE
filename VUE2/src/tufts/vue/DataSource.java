@@ -61,7 +61,6 @@ public class DataSource {
         this.address = address;
         this.userName = user;
         this.password = password;
-        
     }
     
     /**

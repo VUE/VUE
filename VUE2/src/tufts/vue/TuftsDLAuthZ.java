@@ -52,7 +52,7 @@ public class TuftsDLAuthZ {
     private VueQualifier root = null;           //  The root qualifier.
     private osid.shared.SharedManager sharedMgr = null;
     private tufts.oki.authentication.AuthenticationManager authNMgr = null;
-    private tufts.oki.authorization.VueAuthorizationManager authZMgr = null;
+    private tufts.oki.authorization.AuthorizationManager authZMgr = null;
     private osid.shared.Agent userAgent = null; //  The default user.
     
     /** 
@@ -71,7 +71,7 @@ public class TuftsDLAuthZ {
         sharedMgr = (tufts.oki.shared.SharedManager) osid.OsidLoader.getManager("osid.shared.SharedManager", "tufts.oki.shared", myOwner);      
         authNMgr = (tufts.oki.authentication.AuthenticationManager) osid.OsidLoader.getManager("osid.authentication.AuthenticationManager", "tufts.oki.authentication", myOwner);      
         authNMgr.initManager (sharedMgr);
-        authZMgr = (tufts.oki.authorization.VueAuthorizationManager) osid.OsidLoader.getManager("osid.authorization.AuthorizationManager", "tufts.oki.authorization", myOwner);      
+        authZMgr = (tufts.oki.authorization.AuthorizationManager) osid.OsidLoader.getManager("osid.authorization.AuthorizationManager", "tufts.oki.authorization", myOwner);      
         authZMgr.initManager ((osid.shared.Agent) null, sharedMgr);
         
         //  Initialize the functions, qualifiers, and their types.
