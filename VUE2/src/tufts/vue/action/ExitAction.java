@@ -4,7 +4,7 @@
  * Created on April 30, 2003, 3:04 PM
  */
 
-package euclid.VUEDevelopment.src.tufts.vue.action;
+package tufts.vue.action;
 
 /**
  *
@@ -18,6 +18,10 @@ public class ExitAction extends AbstractAction {
     
     /** Creates a new instance of exitAction */
     public ExitAction() {
+    }
+    
+    public ExitAction(String label) {
+        super(label);
     }
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
