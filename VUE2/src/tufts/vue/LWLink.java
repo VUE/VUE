@@ -141,16 +141,22 @@ public class LWLink extends LWComponent
     }
 
     private void setStartPoint(Point2D p) {
+        setStartPoint((float)p.getX(), (float)p.getY());
+    }
+    private void setStartPoint(float x, float y) {
         Object old = new Point2D.Float(startX, startY);
-        startX = (float) p.getX();
-        startY = (float) p.getY();
+        startX = x;
+        startY = y;
         endpointMoved = true;
         notify("link.ep1.location", new Undoable(old) { void undo() { setStartPoint((Point2D) old); }} );
     }
     private void setEndPoint(Point2D p) {
+        setEndPoint((float)p.getX(), (float)p.getY());
+    }
+    private void setEndPoint(float x, float y) {
         Object old = new Point2D.Float(endX, endY);
-        endX = (float) p.getX();
-        endY = (float) p.getY();
+        endX = x;
+        endY = y;
         endpointMoved = true;
         notify("link.ep2.location", new Undoable(old) { void undo() { setEndPoint((Point2D) old); }} );
     }
@@ -357,7 +363,6 @@ public class LWLink extends LWComponent
     /** for persistance */
     public Point2D getCtrlPoint0()
     {
-
         if (curveControls == 0)
             return null;
         else if (curveControls == 2)
@@ -555,7 +560,7 @@ public class LWLink extends LWComponent
         else if (ep2 == c)
             setComponent2(null);
         else
-            throw new IllegalArgumentException(this + "cannot disconnect: not connected to " + c);
+            throw new IllegalArgumentException(this + " cannot disconnect: not connected to " + c);
     }
             
     void setComponent1(LWComponent c)
@@ -671,26 +676,25 @@ public class LWLink extends LWComponent
         return list;
     }
     
+    /**
+     * Any free (unattached) endpoints get translated by
+     * how much we're moving, as well as any control points.
+     * If both ends of this link are connected and it has
+     * no control points (it's straight, not curved) calling
+     * setLocation will have absolutely no effect on it.
+     */
+
     public void setLocation(float x, float y)
     {
-        //Object old = new Point2D.Float(x, y);
         float dx = x - getX();
         float dy = y - getY();
-        //System.out.println(getLabel() + " setLocation");
 
-        // Any free (unattached) endpoints get translated by
-        // how much we're moving, as well as any control points.
-        
-        if (ep1 == null) {
-            startX += dx;
-            startY += dy;
-            endpointMoved = true;
-        }
-        if (ep2 == null) {
-            endX += dx;
-            endY += dy;
-            endpointMoved = true;
-        }
+        if (ep1 == null)
+            setStartPoint(startX + dx, startY + dy);
+
+        if (ep2 == null)
+            setEndPoint(endX + dx, endY + dy);
+
         if (curveControls == 1) {
             setCtrlPoint0(quadCurve.ctrlx + dx,
                           quadCurve.ctrly + dy);
@@ -700,8 +704,6 @@ public class LWLink extends LWComponent
             setCtrlPoint1(cubicCurve.ctrlx2 + dx,
                           cubicCurve.ctrly2 + dy);
         }
-
-        //notify(LWKey.Location, old);
     }
 
     
