@@ -75,15 +75,16 @@ public class NodeToolPanel extends LWCToolPanel
         }
 
 
-        protected void X_handleMenuSelection(ActionEvent e) {
-            setIcon(((AbstractButton)e.getSource()).getIcon());
+        protected void handleMenuSelection(ActionEvent e) {
+            Icon i = ((AbstractButton)e.getSource()).getIcon();
+            System.out.println(this + " handeMenuSelection: selection was " + i);
+            if (i != null)
+                setButtonIcon(i);// note: inefficient as creates a new set of VueButtonIcons every time
             super.handleMenuSelection(e);
-            // We don't need to handle setting the property
-            // as the shape setter action does that.
         }
         
         public void setPropertyValue(Object o) {
-            //System.out.println(this + " setProp " + o);
+            System.out.println(this + " setPropertyValue " + o);
             mSelectedAction = o;
             //setShape((RectangularShape)o);
         }

@@ -676,7 +676,7 @@ public class LWPathway extends LWContainer
     }
     
     
-    private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
     private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.Src;
     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
@@ -709,7 +709,7 @@ public class LWPathway extends LWContainer
         dc.g.setColor(getStrokeColor());
         
         strokeWidth += c.getStrokeWidth();
-        if (selected) {
+        if (!selected) {
             dc.g.setStroke(new BasicStroke(strokeWidth));
         } else {
             if (DEBUG.PATHWAY && dc.getIndex() % 2 != 0) dash_phase = c.getStrokeWidth();
@@ -738,6 +738,7 @@ public class LWPathway extends LWContainer
         if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         Line2D.Float connector = new Line2D.Float();
 
+        /*
         BasicStroke connectorStroke =
             new BasicStroke(4,
                             BasicStroke.CAP_BUTT
@@ -745,6 +746,9 @@ public class LWPathway extends LWContainer
                             , 0f
                             , new float[] { dash_length, dash_length }
                             , dash_phase);
+        */
+
+        BasicStroke connectorStroke = new BasicStroke(4);
 
         dc.g.setColor(getStrokeColor());
         dc.g.setStroke(connectorStroke);

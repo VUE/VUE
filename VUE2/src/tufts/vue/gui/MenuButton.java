@@ -152,9 +152,10 @@ public abstract class MenuButton extends JButton implements ActionListener
             super.setIcon(i);
             super.setRolloverIcon(new VueButtonIcon(i, VueButtonIcon.ROLLOVER));
         } else {
-            final int pad = 6;
-            //Dimension d = new Dimension(i.getIconWidth()+pad, i.getIconHeight()+pad);
-            Dimension d = new Dimension(21,21);
+            final int pad = 7;
+            Dimension d = new Dimension(i.getIconWidth()+pad, i.getIconHeight()+pad);
+            if (d.width < 21) d.width = 21; // todo: config
+            if (d.height < 21) d.height = 21; // todo: config
             VueButtonIcon.installGenerated(this, i, d);
             System.out.println("MenuButton " + this + " *** installed generated, setPreferredSize " + d);
             setPreferredSize(d);
@@ -174,6 +175,7 @@ public abstract class MenuButton extends JButton implements ActionListener
         return mPropertyName;
     }
 
+    /** Set the property value, AND change the displayed menu icon to approriate selection for that value */
     public abstract void setPropertyValue(Object propertyValue);
     public abstract Object getPropertyValue();
 
@@ -262,6 +264,7 @@ public abstract class MenuButton extends JButton implements ActionListener
             if (i != null)
                 setButtonIcon(i);
         }
+        System.out.println(this + " handleMenuSelection " + e);
         handleValueSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
     }
     

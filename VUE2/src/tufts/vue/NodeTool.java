@@ -321,8 +321,8 @@ public class NodeTool extends VueTool
                     g2.setColor(sShapeColor);
                 g2.fill(mShape);
                 g2.setColor(Color.black);
-                //g2.setStroke(STROKE_EIGHTH);
-                //g2.draw(mShape);
+                g2.setStroke(STROKE_HALF);
+                g2.draw(mShape);
                 g2.translate(-x,-y);
             }
 
