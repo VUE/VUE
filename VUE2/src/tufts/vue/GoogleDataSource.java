@@ -97,8 +97,9 @@ public class GoogleDataSource extends VueDataSource{
     
     
     private String createAddress() {
-        
-        String address = url+"/search?site="+site+"&client="+client+"&output=xml_no_dtd";
+        if(url.indexOf("http://") >=0 && url.length() > 7) 
+            url = url.substring(7); 
+        String address = "http://"+url+"/search?site="+site+"&client="+client+"&output=xml_no_dtd";
         return address;
     }
     
