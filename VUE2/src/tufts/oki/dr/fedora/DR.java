@@ -159,12 +159,16 @@ public class DR implements osid.dr.DigitalRepository {
      *     @return Asset
      *     @throws DigitalRepositoryException if there is a general failure or if the Type is unknown
      */
-    public Asset createAsset(String displayName, String description, osid.shared.Type assetType) throws osid.dr.DigitalRepositoryException {
+    public Asset createAsset(String displayName, String description, osid.shared.Type assetType) throws osid.dr.DigitalRepositoryException{
         if(!assetTypes.contains(assetType))
             assetTypes.add(assetType);
-        FedoraObject obj = new FedoraObject(this,displayName,description,assetType);
-        assets.add(obj);
-        return obj;
+        try {
+            FedoraObject obj = new FedoraObject(this,displayName,description,assetType);
+            assets.add(obj);
+            return obj;
+        } catch(osid.shared.SharedException ex) {
+            throw new osid.dr.DigitalRepositoryException("DR.createAsset"+ex.getMessage());
+        }
     }
     
     /**     Delete an Asset from this DigitalRepository.
