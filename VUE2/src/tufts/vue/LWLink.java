@@ -42,6 +42,8 @@ public class LWLink extends LWComponent
     private QuadCurve2D.Float quadCurve = null;
     private CubicCurve2D.Float cubicCurve = null;
     private Shape curve = null;
+    private float mCurveCenterX;
+    private float mCurveCenterY;
 
     private int curveControls = 0; // 0=straight, 1=quad curved, 2=cubic curved
     
@@ -1009,6 +1011,7 @@ public class LWLink extends LWComponent
             setSize(bounds.width, bounds.height);
             setX(bounds.x);
             setY(bounds.y);
+
         } else {
             setSize(Math.abs(startX - endX),
                     Math.abs(startY - endY));
@@ -1025,11 +1028,41 @@ public class LWLink extends LWComponent
             quadCurve.y1 = startY;
             quadCurve.x2 = endX;
             quadCurve.y2 = endY;
+
+            // compute approximate on-curve "center" for label
+
+            // We compute a line from the center of control line 1 to
+            // the center of control line 2: that line segment is a
+            // tangent to the curve who's center is on the curve.
+            // (See QuadCurve2D.subdivide)
+            
+            float ctrlx1 = (quadCurve.x1 + quadCurve.ctrlx) / 2;
+            float ctrly1 = (quadCurve.y1 + quadCurve.ctrly) / 2;
+            float ctrlx2 = (quadCurve.x2 + quadCurve.ctrlx) / 2;
+            float ctrly2 = (quadCurve.y2 + quadCurve.ctrly) / 2;
+            mCurveCenterX = (ctrlx1 + ctrlx2) / 2;
+            mCurveCenterY = (ctrly1 + ctrly2) / 2;
+            
         } else if (curveControls == 2) {
             cubicCurve.x1 = startX;
             cubicCurve.y1 = startY;
             cubicCurve.x2 = endX;
             cubicCurve.y2 = endY;
+
+            // compute approximate on-curve "center" for label
+            // (See CubicCurve2D.subdivide)
+            float centerx = (cubicCurve.ctrlx1 + cubicCurve.ctrlx2) / 2;
+            float centery = (cubicCurve.ctrly1 + cubicCurve.ctrly2) / 2;
+            float ctrlx1 = (cubicCurve.x1 + cubicCurve.ctrlx1) / 2;
+            float ctrly1 = (cubicCurve.y1 + cubicCurve.ctrly1) / 2;
+            float ctrlx2 = (cubicCurve.x2 + cubicCurve.ctrlx2) / 2;
+            float ctrly2 = (cubicCurve.y2 + cubicCurve.ctrly2) / 2;
+            float ctrlx12 = (ctrlx1 + centerx) / 2;
+            float ctrly12 = (ctrly1 + centery) / 2;
+            float ctrlx21 = (ctrlx2 + centerx) / 2;
+            float ctrly21 = (ctrly2 + centery) / 2;
+            mCurveCenterX = (ctrlx12 + ctrlx21) / 2;
+            mCurveCenterY = (ctrly12 + ctrly21) / 2;
         }
         
         layout();
@@ -1084,8 +1117,11 @@ public class LWLink extends LWComponent
     {
         if (arrowState < 0 || arrowState > ARROW_BOTH)
             throw new IllegalArgumentException("arrowState < 0 || > " + ARROW_BOTH + ": " + arrowState);
-        mArrowState = arrowState;
-        notify("arrowState");
+        if (mArrowState != arrowState) {
+            mArrowState = arrowState;
+            layout();
+            notify("arrowState");
+        }
     }
 
     public int getArrowState()
@@ -1191,6 +1227,29 @@ public class LWLink extends LWComponent
             g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));//todo:config
             g.draw(getShape());
         }
+
+        /*
+         * Split the curves into green & red halves for debugging
+        if (curveControls == 1) {
+            QuadCurve2D left = new QuadCurve2D.Float();
+            QuadCurve2D right = new QuadCurve2D.Float();
+            quadCurve.subdivide(left,right);
+            g.setColor(Color.red);
+            g.setStroke(STROKE_TWO);
+            g.draw(left);
+            g.setColor(Color.green);
+            g.draw(right);
+        } else if (curveControls == 2) {
+            CubicCurve2D left = new CubicCurve2D.Float();
+            CubicCurve2D right = new CubicCurve2D.Float();
+            cubicCurve.subdivide(left,right);
+            g.setColor(Color.red);
+            g.setStroke(STROKE_TWO);
+            g.draw(left);
+            g.setColor(Color.green);
+            g.draw(right);
+        }
+        */
         
         //-------------------------------------------------------
         // Draw the stroke
@@ -1230,6 +1289,7 @@ public class LWLink extends LWComponent
                 if (curveControls == 2) {
                     Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
                     g.draw(ctrlLine);
+                    //float clx1 = line.x1 + cubicCurve.ctrlx
                     ctrlLine.setLine(line.getP2(), cubicCurve.getCtrlP2());
                     g.draw(ctrlLine);
                 } else {
@@ -1286,9 +1346,13 @@ public class LWLink extends LWComponent
                 // (probably put a textbox factory on LWComponent and override in LWLink)
 
                     //c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
-                if (fillColor != null)
-                    textBox.setBackground(fillColor);
-                textBox.setOpaque(true);
+                if (!DEBUG_BOXES) {
+                    if (fillColor != null) {
+                        textBox.setBackground(fillColor);
+                        textBox.setOpaque(true);
+                    }
+                } else
+                    textBox.setOpaque(false);
                 
                 g.translate(lx, ly);
                 //if (isZoomedFocus()) g.scale(getScale(), getScale());
@@ -1310,8 +1374,19 @@ public class LWLink extends LWComponent
                 
                 //if (isZoomedFocus()) g.scale(1/getScale(), 1/getScale());
                 g.translate(-lx, -ly);
-                //textBoxWidth = textBox.getWidth();
-                //textBoxHeight = textBox.getHeight();
+                
+                if (false) { // debug
+                    // draw label in center of bounding box just for
+                    // comparing to our on-curve center computation
+                    lx = getCenterX() - textBox.getMapWidth() / 2;
+                    ly = getCenterY() - textBox.getMapHeight() / 2;
+                    g.translate(lx,ly);
+                    //textBox.setBackground(Color.lightGray);
+                    textBox.setOpaque(false);
+                    g.setColor(Color.blue);
+                    textBox.draw(dc);
+                    g.translate(-lx,-ly);
+                }
             }
         }
 
@@ -1343,10 +1418,61 @@ public class LWLink extends LWComponent
     }
 
 
+    //private Point2D.Float[] mPoints = null;
+    //private int mPointCount;
     public void layout()
     {
-        float cx = getCenterX();
-        float cy = getCenterY();
+        float cx;
+        float cy;
+
+        if (curveControls > 0) {
+            cx = mCurveCenterX;
+            cy = mCurveCenterY;
+        } else {
+            cx = getCenterX();
+            cy = getCenterY();
+        }
+        
+        /*
+         * For very fancy computation of curve center, use below
+         * code and then walk the segments computing actual
+         * length of curve, then walk again searching for
+         * segment at middle of that distance...
+         
+        if (curveControls > 0) {
+            if (mPoints == null)
+                mPoints = new Point2D.Float[128];
+            // If curved, guess at center of curve via middle segment
+            PathIterator i = new java.awt.geom.FlatteningPathIterator(getShape().getPathIterator(null), 0.1);
+            float[] point = new float[2];
+            int pcnt = 0;
+            while (!i.isDone()) {
+                i.currentSegment(point);
+                if (mPoints[pcnt] == null)
+                    mPoints[pcnt] = new Point2D.Float();
+                mPoints[pcnt].x = point[0];
+                mPoints[pcnt].y = point[1];
+                //System.out.println(point[0] + "," + point[1]);
+                pcnt++;
+                i.next();
+            }
+            mPointCount = pcnt;
+            if (pcnt == 2) {
+                cx = getCenterX();
+                cy = getCenterY();
+            } else {
+                int centerp = (int) (pcnt/2+0.5);
+                cx = mPoints[centerp].x;
+                cy = mPoints[centerp].y;
+            }
+            System.out.println("CURVE POINTS: " + pcnt);
+        } else {
+            cx = getCenterX();
+            cy = getCenterY();
+        }
+        */            
+
+        
         float totalHeight = 0;
         float totalWidth = 0;
 
@@ -1358,7 +1484,9 @@ public class LWLink extends LWComponent
         totalWidth += mIconBlock.getWidth();
         totalHeight += mIconBlock.getHeight();
 
-        boolean putBelow = false;
+        boolean putBelow =
+            hasResource() ||
+            (hasLabel() && labelBox.getMapWidth() < totalWidth);
 
         float lx = 0;
         float ly = 0;
