@@ -304,7 +304,8 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     //sets the table's pathway to the given pathway
     public void setPathway(LWPathway pathway)
     {
-        ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
+        //((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
+        
         
         //disables the add button if the pathway is not selected
         if (pathway == null)
