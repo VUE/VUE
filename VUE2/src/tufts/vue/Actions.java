@@ -104,11 +104,12 @@ class Actions {
             {
                 return l.countTypes(LWGroup.class) > 0;
             }
-            void act(LWComponent c)
+            void act(java.util.Iterator i)
             {
-                if (c instanceof LWGroup) {
-                    System.out.println("dispersing group " + c);
-                    ((LWGroup)c).disperse();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    if (c instanceof LWGroup)
+                        ((LWGroup)c).disperse();
                 }
             }
         };
