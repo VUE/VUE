@@ -18,12 +18,13 @@ class DRBrowser extends javax.swing.JTabbedPane
         JInternalFrame fileBrowser = new JInternalFrame("File System");
         JScrollPane jSP = new JScrollPane(tree);
         SearchPanel searchPanel = new SearchPanel(400,600);
+      /**
         DigitalRepository dr = new DR();
         FedoraTree  fedoraTree= new FedoraTree(dr);
         JScrollPane jspFedora  = new JScrollPane(fedoraTree);
-        
+        **/
         add("File", jSP);
-        add("FEDORA",jspFedora);
+       // add("FEDORA",jspFedora);
         add("Search", searchPanel);
         
     }

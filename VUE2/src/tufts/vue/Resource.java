@@ -6,6 +6,9 @@ package tufts.vue;
  * repository reference, which is TBD.  This needs
  * more work.
  */
+
+import osid.dr.*;
+
 public class Resource
 {
     static final long SIZE_UNKNOWN = -1;
@@ -14,7 +17,7 @@ public class Resource
     long accessAttempted;
     long accessSuccessful;
     long size = SIZE_UNKNOWN;
-    
+    private Asset asset;
     String spec;
 
     public Resource() {   
@@ -26,6 +29,14 @@ public class Resource
         this.referenceCreated = System.currentTimeMillis();
     }
 
+    public void setAsset(Asset asset) {
+        this.asset = asset;
+    }
+    
+    public Asset getAsset() {
+        return this.asset;
+    }
+    
     public Object toDigitalRepositoryReference()
     {
         return null;

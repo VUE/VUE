@@ -8,6 +8,9 @@ public interface VueConstants
 {
     // todo: move most of this stuff to prefs
 
+    static String installDir = "C:\\anoop\\euclid\\VUEDevelopment\\src\\";
+    
+    
     static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
     static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
