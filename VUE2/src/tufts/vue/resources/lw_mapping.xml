@@ -218,8 +218,20 @@
                     -->
                 </field>
         </class>
+    
+        
+         <class name="tufts.vue.PropertyEntry">
+            <map-to xml="propertyEntry"/>
+            <field name="entryKey" type="java.lang.Object" >
+                <bind-xml name="entryKey" node="element" />
+            </field>
+            <field name="entryValue" type="java.lang.Object" >
+                <bind-xml name="entryValue" node="element" />
+            </field>
+         </class>
 
-		<class name="tufts.vue.MapResource">
+        
+	<class name="tufts.vue.MapResource">
 		
 		<field name="referenceCreated" type="long">
 			<bind-xml name="referenceCreated" node="attribute"/>
@@ -242,6 +254,10 @@
 		<field name="type" type="integer">
 			<bind-xml name="type" node="element" />
 		</field>
+                <field name="propertyList" set-method="setPropertyList" type="tufts.vue.PropertyEntry" collection="vector">
+			<bind-xml name="property" />
+		</field>
+
 		<!--
 		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
 			<bind-xml name="castorFedoraObject" node="element"/>
@@ -254,6 +270,10 @@
 		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
 			<bind-xml name="castorFedoraObject" node="element"/>
 		</field>
+	</class>
+       
+        <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
+            <map-to xml="cabinetResource"/>
 	</class>
 		
 		<!-- FEDORA OBJECTS -->
