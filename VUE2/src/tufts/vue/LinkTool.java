@@ -70,6 +70,10 @@ public class LinkTool extends VueTool
             // todo: pick up current default stroke color & stroke width
             // and apply to creationLink
             creationLink.setTemporaryEndPoint1(linkSource);
+            VueBeanState state = getLinkToolPanel().getCurrentState();
+            if (state != null) {
+            	state.applyState(creationLink);
+            }
             invisibleLinkEndpoint.setLocation(e.getMapPoint());
             e.setDragRequest(invisibleLinkEndpoint);
             // using a LINK as the dragComponent is a mess because geting the
@@ -232,16 +236,30 @@ public class LinkTool extends VueTool
             }
             LWLink link = new LWLink(pLinkSource, pLinkDest);
 
+            /*
             if (getSelectedSubTool().getID().equals("linkTool.curve")) {
                 link.setControlCount(1);
                 // new ctrl points are on-center of curve: set ctrl pt off center a bit so can see curve
                 link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
             }
+            */
             
             // init link based on user defined state
             VueBeanState state = getLinkToolPanel().getCurrentState();
-            if (state != null)
-            	state.applyState(link);
+            if (state != null) {
+                //System.out.println("sst: " + getSelectedSubTool());
+                // override the curve count from the contextual tool state with
+                // the state from the main link tool state.
+                String id = getSelectedSubTool().getID();
+                if (id.endsWith("1"))
+                    state.setPropertyValue(LWKey.LinkCurves, new Integer(1));
+                else if (id.endsWith("2"))
+                    state.setPropertyValue(LWKey.LinkCurves, new Integer(2));
+                else
+                    state.setPropertyValue(LWKey.LinkCurves, new Integer(0));
+
+                state.applyState(link);
+            }
             
             commonParent.addChild(link);
             // We ensure a paint sequence here because a link to a link

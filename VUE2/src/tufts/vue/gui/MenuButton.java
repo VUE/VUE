@@ -241,8 +241,9 @@ public abstract class MenuButton extends JButton
         //return mPropertyName;
     }
 
-    /** Set the property value, AND change the displayed menu icon to approriate selection for that value */
+    /** Load the property value, AND change the displayed menu icon to approriate selection for that value */
     public abstract void setPropertyValue(Object propertyValue);
+    /** @return the current property value as represented by this menu */
     public abstract Object getPropertyValue();
 
     /*
@@ -287,9 +288,9 @@ public abstract class MenuButton extends JButton
      * the needed JMenuItem's using the Action.NAME & Action.SMALL_ICON & MenuButton.ValueKey
      * values stored in the action. The action is not actually fired when the menu
      * item is selected (this used to be the case, but no longer).
-     * 
-     * If values are actions, the action's will be expected to value under key
-     * MenuButton.ValueKey representing the value of the object.
+     * The action's will be expected to hava a value under the key
+     * MenuButton.ValueKey representing the value of the object.  (This only
+     * works for actions that set specific values every time they fire).
      *
      * OLD:
      * If values are actions, the default handleValueSelection won't ever
@@ -346,16 +347,17 @@ public abstract class MenuButton extends JButton
     }
 		
     protected void handleMenuSelection(ActionEvent e) {
-        if (false) {
-            // this allows for generically copying the sub-menu icon up to the
-            // button icon: for now we're only allow cases that use a named
-            // property key, and the button icon get's updated via the property
-            // change.
-            // BUT: if a shape icon, will need this every time! How gross...
-            Icon i = ((AbstractButton)e.getSource()).getIcon();
-            if (i != null)
-                setButtonIcon(i);
-        }
+
+        // Note: based on the action event, if the source JMenuItem had an icon set,
+        // we could automatically set the displayed button icon to the same here.
+        // This doesn't help us tho, as MenuButtons need to be able to handle
+        // property value changes happening outside of this component, and then
+        // reflecting that value, which means in the LWPropertyProducer.setPropertyValue,
+        // we have to provide a specific mapping from the given property value to the
+        // selected menu item anyway.  (Altho: if all our JMenuItems had a "property.value"
+        // set in them, we could search thru them every time to figure out which icon
+        // to set as a default...)
+
         if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
         handleValueSelection(((JComponent)e.getSource()).getClientProperty(ValueKey));
     }

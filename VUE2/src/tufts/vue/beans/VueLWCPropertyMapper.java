@@ -50,7 +50,8 @@ public class VueLWCPropertyMapper
                                                   LWKey.StrokeWidth,
                                                   LWKey.TextColor,
                                                   LWKey.Font,
-                                                  LWKey.LinkArrows
+                                                  LWKey.LinkArrows,
+                                                  LWKey.LinkCurves
     };
 												
     static final String [] sTextProperties = {  LWKey.TextColor, LWKey.Font };

@@ -823,7 +823,7 @@ public class VUE
             JButton r = new JButton(Actions.Redo);
             JButton p = new JButton(printAction);
             JButton v = new JButton(printAction);
-            v.setText("Print View");
+            v.setText("Print Visible");
             
             u.setBackground(Color.white);
             r.setBackground(Color.white);
@@ -853,7 +853,7 @@ public class VUE
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
-        fileMenu.add(printAction).setText("Print View...");
+        fileMenu.add(printAction).setText("Print Visible...");
         fileMenu.add(publishAction);
         //fileMenu.add(exportMenu);
         fileMenu.addSeparator();

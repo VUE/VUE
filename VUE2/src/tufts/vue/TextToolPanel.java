@@ -39,8 +39,7 @@ public class TextToolPanel extends LWCToolPanel
         addComponent(mTextColorButton);
     }
      
-    protected void initDefaultState() {
-        //System.out.println("TextToolPanel.initDefaultState");
-        super.mDefaultState = VueBeans.getState(NodeTool.initTextNode(new LWNode()));
+    protected VueBeanState getDefaultState() {
+        return VueBeans.getState(NodeTool.initTextNode(new LWNode()));
     }
 }

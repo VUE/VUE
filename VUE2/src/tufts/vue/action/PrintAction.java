@@ -55,7 +55,7 @@ public class PrintAction extends tufts.vue.VueAction
     private boolean isPrintUnderway;
     
     private PrintAction() {
-        super("Print...");
+        super("Print Map...");
     }
 
     private PrinterJob printerJob;
@@ -107,7 +107,7 @@ public class PrintAction extends tufts.vue.VueAction
             out("nothing to print in " + map);
             return;
         }
-        boolean viewerPrint = ae.getActionCommand().indexOf("View") >= 0;
+        boolean viewerPrint = ae.getActionCommand().indexOf("Visible") >= 0;
 
         // if any tool windows open in W2K/1.4.2 when start this thread,
         // the print dialog get's obscured!

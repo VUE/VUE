@@ -71,6 +71,12 @@ public class VueResources
         Cache.put(key, icon);
         return icon;
     }
+    /**
+     * @return Icon
+     **/
+    public static Icon getIcon(String key)  {
+        return getImageIcon(key);
+    }
 
     private static ImageIcon loadImageIcon(String file) {
         ImageIcon icon = null;

@@ -82,7 +82,7 @@ public class NodeToolPanel extends LWCToolPanel
 
         /** @param o an instance of RectangularShape */
         public void setPropertyValue(Object value) {
-            if (true||DEBUG.TOOL) System.out.println(this + " setPropertyValue " + value.getClass() + " [" + value + "]");
+            if (DEBUG.TOOL) System.out.println(this + " setPropertyValue " + value.getClass() + " [" + value + "]");
 
             if (mShape == null || !mShape.getClass().equals(value.getClass())) {
                 mShape = (RectangularShape) value;

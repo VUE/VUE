@@ -129,7 +129,7 @@ public class LWComponent
         if (key == LWKey.Location)      return getLocation();
         if (key == LWKey.Hidden)        return new Boolean(isHidden());
              
-        if (DEBUG.Enabled) out(this + " note: unsupported property [" + key + "]");
+        if (DEBUG.Enabled) out(this + " note: getPropertyValue; unsupported property [" + key + "]");
         //return UnsupportedPropertyValue;
         return null;
         //throw new RuntimeException("Unknown property key[" + key + "]");
@@ -159,7 +159,7 @@ public class LWComponent
             setFrame(r.x, r.y, r.width, r.height);
         } else {
             out(this + " setProperty: unknown key [" + key + "] with value [" + val + "]");
-            new Throwable("UNKNOWN PROPERTY VALUE").printStackTrace();
+            new Throwable("FYI: Unhandled Property").printStackTrace();
         }
     }
     

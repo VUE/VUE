@@ -256,11 +256,15 @@ public class LWCToolPanel extends JPanel
     protected JComponent getBox() {
         return mBox;
     }
+
+    protected VueBeanState getDefaultState() {
+        return VueBeans.getState(new LWNode("LWCToolPanel.initializer"));
+    }
     
     protected void initDefaultState() {
         //System.out.println("NodeToolPanel.initDefaultState");
-        LWNode node = new LWNode("LWCToolPanel.initializer");
-        mDefaultState = VueBeans.getState(node);
+        mDefaultState = getDefaultState();
+        out("default state initialized to " + mDefaultState);
         loadValues(mDefaultState);
     }
 
@@ -269,7 +273,7 @@ public class LWCToolPanel extends JPanel
     }
         
     /** load values from either a LWComponent, or a VueBeanState */
-    void loadValues(Object source) {
+    private void loadValues(Object source) {
         if (DEBUG.TOOL) out("loadValues0 (LWCToolPanel) " + source);
         VueBeanState state = null;
  		
@@ -319,7 +323,7 @@ public class LWCToolPanel extends JPanel
     private LWComponent singleSelection = null;
     // currenly only called from VueToolbarController
     void loadSelection(LWSelection s) {
-        if (DEBUG.Enabled) out("loadSelection " + s);
+        if (DEBUG.TOOL) out("loadSelection " + s);
         if (s.size() == 1) {
             if (singleSelection != null)
                 singleSelection.removeLWCListener(this);
@@ -361,12 +365,6 @@ public class LWCToolPanel extends JPanel
         }
     }
     
-    public void LWCChanged(LWCEvent e) {
-        // if we don't handle this property, loadToolValue will ignore this event
-        loadToolValue(e.getWhat(), e.getComponent());
-    }
- 	
-    
     public VueBeanState getCurrentState() {
         return mState;
     }
@@ -377,6 +375,17 @@ public class LWCToolPanel extends JPanel
     }
 
 
+    private boolean mIgnoreLWCEvents = false;
+    public void LWCChanged(LWCEvent e) {
+        // if we don't handle this property, loadToolValue will ignore this event
+        if (mIgnoreLWCEvents) {
+            if (DEBUG.TOOL) out("ignoring during propertyChange: " + e);
+        } else {
+            loadToolValue(e.getWhat(), e.getComponent());
+        }
+    }
+ 	
+    
     /** This is called when some gui sub-component of the LWCToolPanel
      * has changed state, indicating a different property value.  We
      * get this as a PropertyChangeEvent here, apply it as we can to
@@ -402,7 +411,10 @@ public class LWCToolPanel extends JPanel
             
             if (DEBUG.TOOL) out("propertyChange: [" + propertyName + "] " + e);
 	  		
+            mIgnoreLWCEvents = true;
             VueBeans.applyPropertyValueToSelection(VUE.getSelection(), propertyName, e.getNewValue());
+            mIgnoreLWCEvents = false;
+            
             if (VUE.getUndoManager() != null)
                 VUE.getUndoManager().markChangesAsUndo(propertyName);
 
@@ -415,6 +427,8 @@ public class LWCToolPanel extends JPanel
                 mDefaultState.setPropertyValue(propertyName, e.getNewValue());
             else
                 out("mDefaultState is null");
+
+            if (DEBUG.TOOL && DEBUG.META) out("new state " + mState);
 
         } else {
             // We're not interested in "ancestor" events, icon change events, etc.

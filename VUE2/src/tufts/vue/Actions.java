@@ -134,10 +134,6 @@ implements VueConstants {
     
     /**End of Addition by Daisuke Fujiwara*/
     
-    //-----------------------------------------------------------------------------
-    // Link actions
-    //-----------------------------------------------------------------------------
-    
     /** Action to Edit Datasource **/
     static final Action editDataSource = new AbstractAction("Edit DataSource") {
         public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
@@ -147,39 +143,45 @@ implements VueConstants {
     };
         
     
+    //-----------------------------------------------------------------------------
+    // Link actions
+    //-----------------------------------------------------------------------------
     
     static final LWCAction LinkMakeStraight =
-    new LWCAction("Make Straight") {
-        boolean enabledFor(LWSelection s) {
-            if (!s.containsType(LWLink.class))
-                return false;
-            return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 0 : true;
-        }
-        public void act(LWLink c) { c.setControlCount(0); }
-    };
+        new LWCAction("Straight", VueResources.getIcon("linkTool.line.raw")) {
+            void init() { putValue("property.value", new Integer(0)); } // for use in a MenuButton
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWLink.class))
+                    return false;
+                return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 0 : true;
+            }
+            public void act(LWLink c) { c.setControlCount(0); }
+        };
     static final LWCAction LinkMakeQuadCurved =
-    new LWCAction("Make Curved (1 point)") {
-        boolean enabledFor(LWSelection s) {
-            if (!s.containsType(LWLink.class))
-                return false;
-            return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 1 : true;
-        }
-        public void act(LWLink c) { c.setControlCount(1); }
-    };
+        new LWCAction("Curved", VueResources.getIcon("linkTool.curve1.raw")) {
+            void init() { putValue("property.value", new Integer(1)); }
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWLink.class))
+                    return false;
+                return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 1 : true;
+            }
+            public void act(LWLink c) { c.setControlCount(1); }
+        };
     static final LWCAction LinkMakeCubicCurved =
-    new LWCAction("Make Curved (2 points)") {
-        boolean enabledFor(LWSelection s) {
-            if (!s.containsType(LWLink.class))
-                return false;
-            return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 2 : true;
-        }
-        public void act(LWLink c) { c.setControlCount(2); }
-    };
+        new LWCAction("S-Curved", VueResources.getIcon("linkTool.curve2.raw")) {
+            void init() { putValue("property.value", new Integer(2)); }
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWLink.class))
+                    return false;
+                return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 2 : true;
+            }
+            public void act(LWLink c) { c.setControlCount(2); }
+        };
     static final Action LinkArrows =
-    new LWCAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)) {
-        boolean enabledFor(LWSelection s) { return s.containsType(LWLink.class); }
-        public void act(LWLink c) { c.rotateArrowState(); }
-    };
+        new LWCAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)/*, VueResources.getIcon("outlineIcon.link")*/) {
+            boolean enabledFor(LWSelection s) { return s.containsType(LWLink.class); }
+            public void act(LWLink c) { c.rotateArrowState(); }
+        };
     
     
     /** Helper for menu creation.  Null's indicate good places
@@ -906,10 +908,12 @@ implements VueConstants {
      * each action to be tight & focused.
      */
     public static class LWCAction extends VueAction
-    implements LWSelection.Listener {
+        implements LWSelection.Listener
+    {
         LWCAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon) {
             super(name, shortDescription, keyStroke, icon);
             VUE.getSelection().addListener(this);
+            init();
         }
         LWCAction(String name, String shortDescription, KeyStroke keyStroke) {
             this(name, shortDescription, keyStroke, null);
@@ -922,6 +926,9 @@ implements VueConstants {
         }
         LWCAction(String name, KeyStroke keyStroke) {
             this(name, null, keyStroke, null);
+        }
+        LWCAction(String name, KeyStroke keyStroke, Icon icon) {
+            this(name, null, keyStroke, icon);
         }
         void act() {
             LWSelection selection = VUE.getSelection();
@@ -941,6 +948,9 @@ implements VueConstants {
                 System.err.println(getActionName() + ": Not enabled given this selection: " + selection);
             }
         }
+
+        /** option initialization code called at end of constructor */
+        void init() {}
         
         /*
           //debug

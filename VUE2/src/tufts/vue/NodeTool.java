@@ -249,8 +249,7 @@ public class NodeTool extends VueTool
                         void act(LWNode n) { n.setShape(getShapeInstance()); }
                     };
                 shapeSetterAction.putValue("property.value", getShape()); // this may be handy
-                // Really: MenuButton.ValueKey
-                //shapeSetterAction.putValue(LWKey.Shape, getShape()); // this may be handy
+                // key is from: MenuButton.ValueKey
             }
             return shapeSetterAction;
         }
@@ -387,7 +386,7 @@ public class NodeTool extends VueTool
             }
 
             public String toString() {
-                return "ShapeIcon[" + mShape + "]";
+                return "ShapeIcon[" + sWidth + "x" + sHeight + " " + mShape + "]";
             }
         }
 

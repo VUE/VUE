@@ -30,31 +30,45 @@ import javax.swing.*;
 
 
 /**
- * An an editor panel for LWLink properties.
+ * A property editor panel for LWLink's.
  */
 public class LinkToolPanel extends LWCToolPanel
 {
-    private AbstractButton mArrowStartButton;
-    private AbstractButton mArrowEndButton;
-
     protected void buildBox()
     {
+        /*
         final AbstractButton linkStraight = new VueButton.Toggle("linkTool.line");
-        final AbstractButton linkCurved = new VueButton.Toggle("linkTool.curve");
+        final AbstractButton linkCurved = new VueButton.Toggle("linkTool.curve1");
+        final AbstractButton linkCurvedS = new VueButton.Toggle("linkTool.curve2");
         ButtonGroup linkTypeGroup = new ButtonGroup();
-        
         linkTypeGroup.add(linkStraight);
         linkTypeGroup.add(linkCurved);
+        linkTypeGroup.add(linkCurvedS);
+        */
 
-        mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
-        mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
+        final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
+        final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
         
         JLabel label = new JLabel("   Link: ");
         label.setFont(VueConstants.FONT_SMALL);
 
         addComponent(label);
-        addComponent(linkStraight);
-        addComponent(linkCurved);
+        //addComponent(linkStraight);
+        //addComponent(linkCurved);
+        //addComponent(linkCurvedS);
+        
+        //LinkMenuButton linkTypeMenu = new LinkMenuButton();
+        final Action[] LinkTypeActions = new Action[] { 
+            Actions.LinkMakeStraight,
+            Actions.LinkMakeQuadCurved,
+            Actions.LinkMakeCubicCurved
+        };
+        
+        AbstractButton linkTypeMenu = new VuePopupMenu(LWKey.LinkCurves, LinkTypeActions);
+        linkTypeMenu.setToolTipText("Link Style");
+                
+        linkTypeMenu.addPropertyChangeListener(this);
+        addComponent(linkTypeMenu);
         addComponent(Box.createHorizontalStrut(3));
         addComponent(mArrowStartButton);
         addComponent(mArrowEndButton);
@@ -79,6 +93,13 @@ public class LinkToolPanel extends LWCToolPanel
                       mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
                 }
             };
+
+        addPropertyProducer(arrowPropertyHandler);
+        mArrowStartButton.addActionListener(arrowPropertyHandler);
+        mArrowEndButton.addActionListener(arrowPropertyHandler);
+
+        
+        /*
         final LWPropertyHandler curvePropertyHandler =
             new LWPropertyHandler(LWKey.LinkCurves, this) {
                 public Object getPropertyValue() {
@@ -95,22 +116,17 @@ public class LinkToolPanel extends LWCToolPanel
                         linkCurved.setSelected(true);
                 }
             };
-        
         addPropertyProducer(curvePropertyHandler);
         linkStraight.addActionListener(curvePropertyHandler);
         linkCurved.addActionListener(curvePropertyHandler);
+        */
         
-        addPropertyProducer(arrowPropertyHandler);
-        mArrowStartButton.addActionListener(arrowPropertyHandler);
-        mArrowEndButton.addActionListener(arrowPropertyHandler);
-
     }
      
-    protected void initDefaultState() {
-        LWLink link = LWLink.setDefaults(new LWLink());
-        mDefaultState = VueBeans.getState(link);
+    protected VueBeanState getDefaultState() {
+        return VueBeans.getState(LWLink.setDefaults(new LWLink()));
     }
- 	
+            
     public static void main(String[] args) {
         System.out.println("LinkToolPanel:main");
         VUE.initUI(true);
@@ -118,129 +134,50 @@ public class LinkToolPanel extends LWCToolPanel
     }
 }
 
-             
-        /*
-        final LWPropertyHandler arrowPropertyProducer =
-            new LWPropertyHandler() {
-                public Object getPropertyKey() { return LWKey.LinkArrows; }
-                public Object getPropertyValue() {
-                    int arrowState = LWLink.ARROW_NONE;
-                    if (mArrowStartButton.isSelected())
-                        arrowState |= LWLink.ARROW_EP1;
-                    if (mArrowEndButton.isSelected())
-                        arrowState |= LWLink.ARROW_EP2;
-                    return new Integer(arrowState);
-                }
-                public void setPropertyValue(Object o) {
-                    int arrowState = ((Integer)o).intValue();
-                    mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);
-                      mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
-                }
-            };
-        ActionListener arrowButtonActionListener = new ActionListener() {
-                public void actionPerformed(ActionEvent ae) {
-                    Object oldValue = new Integer(0); // how to get this?
-                    Object newValue = arrowPropertyProducer.getPropertyValue();
-                    propertyChange(new PropertyChangeEvent(ae.getSource(), LWKey.LinkArrows, oldValue, newValue));
-                }
-            };
-        */
 
-        /*
-        final LWPropertyHandler curvePropertyProducer =
-            new LWPropertyHandler() {
-                public Object getPropertyKey() { return LWKey.LinkCurves; }
-                public Object getPropertyValue() {
-                    if (linkStraight.isSelected())
-                        return new Integer(0);
-                    else
-                        return new Integer(1);
-                }
-                public void setPropertyValue(Object o) {
-                    int curves = ((Integer)o).intValue();
-                    if (curves == 0)
-                        linkStraight.setSelected(true);
-                    else
-                        linkCurved.setSelected(true);
-                }
-            };
-        ActionListener curveActionListener = new ActionListener() {
-                public void actionPerformed(ActionEvent ae) {
-                    Object oldValue = new Integer(0); // how to get this?
-                    Object newValue = curvePropertyProducer.getPropertyValue();
-                    propertyChange(new PropertyChangeEvent(ae.getSource(), LWKey.LinkCurves, oldValue, newValue));
-                }
-            };
+/*
+    private static class LinkMenuButton extends MenuButton {
+        private static Action[] LinkTypes = new Action[] { 
+                          Actions.LinkMakeStraight,
+                          Actions.LinkMakeQuadCurved,
+                          Actions.LinkMakeCubicCurved
+        };
 
-        //addPropertyProducer(curvePropertyProducer);
-        //linkStraight.addActionListener(curveActionListener);
-        //linkCurved.addActionListener(curveActionListener);
-        
-        //addPropertyProducer(arrowPropertyProducer);
-        //mArrowStartButton.addActionListener(arrowButtonActionListener);
-        //mArrowEndButton.addActionListener(arrowButtonActionListener);
-            
-        */
+        private int mCurves = -1;
 
+        LinkMenuButton() {
+            setPropertyKey(LWKey.LinkCurves);
+            buildMenu(LinkTypes);
+            setPropertyValue(new Integer(0));
+        }
 
-    /*
-    public void actionPerformed(ActionEvent pEvent) {
-        Object source = pEvent.getSource();
- 		
-        if (source instanceof JToggleButton) {
-            JToggleButton button = (JToggleButton) source;
-            if (button == mArrowStartButton || button == mArrowEndButton) {
-                Object oldValue = new Integer(0); // how to get this?
-                Object newValue = mArrowPropertyHandler.getPropertyValue();
-                propertyChange(new PropertyChangeEvent(button, LWKey.LinkArrows, oldValue, newValue));
+        /** set our menu-state to reflect the given integer property value 
+        public void setPropertyValue(Object propertyValue) {
+            System.out.println(this + " set value " + propertyValue);
+            int newValue = ((Integer)propertyValue).intValue();
+            if (mCurves != newValue) {
+                mCurves = newValue;
+
+                // if we move selecting the icon to an automatic
+                // process via "property.value" searches thru the
+                // JMenuItems (presuming menu icons same as button
+                // icon) and we generically support an
+                // objectPropertyValue in MenuButton, we could
+                // eliminate this whole class, and just have a
+                // MenuButton (or VueMenuButton) that initializes with
+                // the action array & the property key (and it could
+                // do a setPropertyValue to the first property.value
+                // in the list)
+
+                // So the whole init could look like:
+                // new VueMenuButton(LWKey.LinkCurves, LinkTypes);
+
+                setButtonIcon((Icon) LinkTypes[mCurves].getValue(Action.SMALL_ICON));
             }
         }
+        public Object getPropertyValue() {
+            System.out.println(this + " get value " + mCurves);
+            return new Integer(mCurves);
+        }
     }
-    */
- 	
- 	
-         /*
-         getBox().add(label);
-         getBox().add(mArrowStartButton);
-         getBox().add(mArrowEndButton);
-         getBox().add(mStrokeColorButton);
-         getBox().add(mStrokeButton);
-         getBox().add(mFontPanel);
-         getBox().add(mTextColorButton);
-         */
-
-     /*
-     void loadValues(Object pValue) {
-         super.loadValues(pValue);
-         if (!(pValue instanceof LWLink))
-             return;
- 		
-         setIgnorePropertyChangeEvents(true);
-
-         // ick: we're relying on the side-effect of mState having been set in parent call
-         // TODO: either force everything to use a loadValues(state), or have a loadValues(LWComponent)
-         // and loadValues(VueBeanState), or perhaps get rid of the hairy-ass VueBeanState crap
-         // alltogether.
-         if (mState.hasProperty(LWKey.LinkArrows)) {
-             int arrowState = mState.getIntValue(LWKey.LinkArrows);
-             mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);
-               mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
-         } else
-             System.out.println(this + " missing arrow state property in state");
- 		
-         setIgnorePropertyChangeEvents(false);
-     }
-     */
-         /*
-         Color [] linkColors = VueResources.getColorArray( "linkColorValues");
-         String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
-         mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
-         ImageIcon fillIcon = VueResources.getImageIcon("linkFillIcon");
-         BlobIcon fillBlob = new BlobIcon();
-         fillBlob.setOverlay( fillIcon );
-         mLinkColorButton.setIcon(fillBlob);
-         mLinkColorButton.setPropertyName(LWKey.StrokeColor);
-         mLinkColorButton.setBorderPainted(false);
-         mLinkColorButton.setMargin(ButtonInsets);
-         mLinkColorButton.addPropertyChangeListener( this);
-         */
+*/

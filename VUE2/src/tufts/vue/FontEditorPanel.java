@@ -163,14 +163,13 @@ public class FontEditorPanel extends Box
             label.setFont(VueConstants.FONT_SMALL);
             add(label);
         } else {
-            add(Box.createHorizontalStrut(3));
+            add(Box.createHorizontalStrut(4));
         }
         add(mFontCombo);
         add(mSizeField);
         add(Box.createHorizontalStrut(1)); // add this affects vertical preferred size of mSizeField!
         add(mBoldButton);
         add(mItalicButton);
-        add(Box.createHorizontalStrut(3));
         //add(mTextColorButton);
  	
         setFontValue(FONT_DEFAULT);

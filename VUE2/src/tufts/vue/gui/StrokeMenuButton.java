@@ -79,14 +79,5 @@ public class StrokeMenuButton extends MenuButton
     protected Icon makeIcon(Object value) {
         return new LineIcon(sIconWidth, sIconHeight, ((Float)value).floatValue());
     }
-    
-    /*
-      Will need to enhance MenuButton to have an overridable addMenuItem or somethign
-      if we still want to support the button group.
-      mGroup.add( item);
-      As WELL as an item menu factory, so it could return JRadioButtonMenuItem's
-      instead (and in that method we could add it to the group for us here).
-    */
-
 }
 

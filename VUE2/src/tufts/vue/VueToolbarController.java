@@ -131,13 +131,22 @@ public class VueToolbarController
      * vue properties file.
      *
      **/
-    public VueTool loadTool( String pName) {
+    public VueTool loadTool(String pName) {
 		
-        String className = VueResources.getString( pName+".class") ;
+        final String classKey = pName+".class";
+        final String className = VueResources.getString(classKey);
+
+        if (className == null) {
+            System.err.println(this + " loadTool["
+                               + pName + "]; missing class key in resources: [" + classKey + "]");
+            return null;
+        }
+		
         VueTool tool = null;
-		
+
         try {
-            Class toolClass = getClass().getClassLoader().loadClass( className);
+            //if (DEBUG.Enabled) System.out.println("Loading tool class " + className);
+            Class toolClass = getClass().getClassLoader().loadClass(className);
 
             if (DEBUG.Enabled) System.out.println("Loading tool " + pName + " " + toolClass);
             tool = (VueTool) toolClass.newInstance();
