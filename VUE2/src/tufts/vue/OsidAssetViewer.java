@@ -37,6 +37,7 @@ import javax.swing.event.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import osid.repository.*;
 import osid.dr.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import tufts.vue.gui.VueButton;
-import tufts.oki.dr.fedora.*;
+import tufts.oki.repository.fedora.*;
 import fedora.server.types.gen.*;
 import fedora.server.utilities.DateUtility;
 
@@ -59,17 +60,19 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
     JPanel SearchResults;
     JPanel Search;
     JPanel AdvancedSearch;
-    osid.dr.AssetIterator resultObjectsIterator;
+    osid.repository.AssetIterator resultObjectsIterator20;
+    osid.dr.AssetIterator resultObjectsIterator10;
     
     JTextField keywords;
     JComboBox maxReturns;
+    JComboBox searchTypesComboBox;
+    JPanel searchTypesPanel;
     
-    osid.dr.DigitalRepository dr; // Digital Repository connected to.
+    osid.dr.DigitalRepository digitalRepository = null; // Repository connected to.
+    osid.repository.Repository repository = null; // Repository connected to.
     
-    osid.dr.AssetIterator assetIterator;
+    osid.repository.AssetIterator assetIterator;
     SearchCriteria searchCriteria;
-    SearchType searchType;
-    SearchType advancedSearchType;
     JButton searchButton = new JButton();
     JButton advancedSearchButton = new JButton();
     JButton nextButton = new JButton();
@@ -86,8 +89,9 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         "20",
     };
     private osid.OsidOwner owner = new osid.OsidOwner();
+    private osid.OsidContext context = new osid.OsidContext();
     
-    /** Creates a new instance of DRViewer */
+    /** Creates a new instance of Viewer */
     public OsidAssetViewer(String implementation, osid.OsidOwner owner) 
     {
         this.owner = owner;
@@ -109,37 +113,87 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         maxReturnsAdvancedSearch.setEditable(true);
         
         searchCriteria  = new SearchCriteria();
-        searchType = new SearchType("Search");
-        advancedSearchType = new SearchType("Advanced Search");
+//        searchType = new SearchType("Search");
+//        advancedSearchType = new SearchType("Advanced Search");
 
-        try {
 
-            osid.dr.DigitalRepositoryManager drm = (osid.dr.DigitalRepositoryManager)osid.OsidLoader.getManager(
-                "osid.dr.DigitalRepositoryManager",
-                implementation,
-                owner);
-            osid.dr.DigitalRepositoryIterator dri = drm.getDigitalRepositories();
-            if (dri.hasNext())
+        boolean isOSID20 = false;
+        boolean isOSID10 = false;
+        try 
+        {
+            osid.OsidManager osidManager = null;
+
+            // OSID 1.0 first
+            try
             {
-                dr = dri.next();
+                osidManager = osid.OsidLoader.getManager(
+                    "osid.dr.DigitalRepositoryManager",
+                    implementation,
+                    owner);            
+                osidManager.osidVersion_1_0();
+                isOSID10 = true;
             }
-            else
+            catch (Throwable t) 
             {
-                System.out.println("Cannot instantiate any DR Manager or find any digital repository");
+/*
+                // OSID 2.0 didn't work, try OSID rc6.1
+                try
+                {
+                    osidManager = osid.OsidLoader.getManager(
+                        "osid.repository.RepositoryManager",
+                        implementation,
+                        owner);            
+                    osidManager.osidVersion_2_0();
+                    isOSID20 = true;
+                }
+                catch (Throwable t1)
+                {
+*/
+                    t.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                    "Cannot Create Instantiate or Repository\n" + t.getClass().getName() + ":\n" + t.getMessage(),
+                    "OSID DR Alert",
+                    JOptionPane.ERROR_MESSAGE);
+//                }
             }
-
-            
-        } catch(osid.OsidException ex) {
-            System.out.println("package is " + implementation);
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-            "Cannot Create Instantiate or Digital Repository\n" + ex.getClass().getName() + ":\n" + ex.getMessage(),
-            "OSID DR Alert",
-            JOptionPane.ERROR_MESSAGE);
+            if (isOSID20)
+            {
+                osid.repository.RepositoryManager repositoryManager = (osid.repository.RepositoryManager)osidManager;
+                osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
+                if (repositoryIterator.hasNextRepository())
+                {
+                    repository = repositoryIterator.nextRepository();
+                }
+                else
+                {
+                    System.out.println("Cannot find any repository");
+                }
+            }
+            if (isOSID10)
+            {
+                osid.dr.DigitalRepositoryManager digitalRepositoryManager = 
+                    (osid.dr.DigitalRepositoryManager)osidManager;
+                osid.dr.DigitalRepositoryIterator digitalRepositoryIterator = 
+                    digitalRepositoryManager.getDigitalRepositories();
+                if (digitalRepositoryIterator.hasNext())
+                {
+                    digitalRepository = digitalRepositoryIterator.next();
+                }
+                else
+                {
+                    System.out.println("Cannot find any repository");
+                }
+            }
+        }
+        catch (Throwable t2)
+        {
+            t2.printStackTrace();
         }
         keywords = new JTextField();
+        setSearchTypes();
         setSearchPanel();
         setAdvancedSearchPanel();
+        tabbedPane.addTab("Type" , searchTypesPanel);
         tabbedPane.addTab("Search" , Search);
         tabbedPane.addTab("Advanced Search",AdvancedSearch);
         tabbedPane.addTab("Search Results",SearchResults);
@@ -155,6 +209,50 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         add(tabbedPane,BorderLayout.CENTER);
     }
     
+    private void setSearchTypes()
+    {
+        //Create a combo box for the search types
+        java.util.Vector typeVector = new java.util.Vector();
+        try
+        {
+            osid.shared.TypeIterator typeIterator = null;
+            if (this.repository != null)
+            {
+                typeIterator = this.repository.getSearchTypes();
+            }
+            else
+            {
+                typeIterator = this.digitalRepository.getSearchTypes();
+            }
+//            while (typeIterator.hasNextType())
+            while (typeIterator.hasNext())
+            {
+//                osid.shared.Type type = typeIterator.nextType();
+                osid.shared.Type type = typeIterator.next();
+                typeVector.addElement(new String(type.getDomain() + "," + type.getAuthority() + "," + type.getKeyword())); 
+            }
+        }
+        catch (osid.OsidException oex)
+        {
+        }
+        String items[] = new String[typeVector.size()];
+        for (int i=0; i < typeVector.size(); i++)
+        {
+            items[i] = (String)typeVector.elementAt(i);
+        }
+        searchTypesComboBox = new javax.swing.JComboBox(items);
+        searchTypesComboBox.setVisible(true);
+        searchTypesComboBox.setEditable(false);
+        
+        this.searchTypesPanel = new JPanel();
+        JLabel typesLabel = new JLabel("Search Types: ");
+        typesLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        searchTypesPanel.add(typesLabel);
+        searchTypesPanel.add(searchTypesComboBox);
+        searchTypesPanel.setVisible(true);
+        searchTypesComboBox.validate();
+        searchTypesPanel.validate();
+    }
     
     /**
      * @Setup  searchPanel
@@ -165,17 +263,14 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         Search = new JPanel(new BorderLayout());
         Search.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
         JPanel SearchPanel = new JPanel();
-        //SearchPanel.setBackground(Color.LIGHT_GRAY);
+        
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         SearchPanel.setLayout(gridbag);
         Insets defaultInsets = new Insets(2,2,2,2);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
-        
-        
-        
-        
+                
         //adding the label Keywords
         c.gridx = 0;
         c.gridy = 1;
@@ -195,8 +290,6 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
         SearchPanel.add(keywords);
-        
-        
         
         // adding the number of search results tab.
         c.gridx=0;
@@ -222,10 +315,8 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         searchButton.addActionListener(this);
         gridbag.setConstraints(searchButton,c);
         SearchPanel.add(searchButton);
-        
         Search.add(SearchPanel,BorderLayout.NORTH);
-        Search.validate();
-        
+        Search.validate();        
     }
     
     private void setAdvancedSearchPanel() {
@@ -261,8 +352,6 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         questionLabel.setPreferredSize(new Dimension(22, 17));
         questionLabel.setToolTipText("Add or Delete conditions using +/- buttons. Click on table cell to modify  conditions");
         
-        
-        
         advancedSearchButton = new JButton("Advanced Search");
         advancedSearchButton.setSize(new Dimension(100,20));
         advancedSearchButton.setEnabled(false);
@@ -273,6 +362,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         
         // setting editors for columns
         // field column.
+/*
         try {
             JComboBox comboBox = new JComboBox(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr));
             conditionsTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
@@ -281,6 +371,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         } catch(Exception ex) {
             System.out.println("Can't set the editors"+ex);
         }
+*/
         ConditionSelectionListener sListener= new ConditionSelectionListener(deleteConditionButton, -1);
         conditionsTable.getSelectionModel().addListSelectionListener(sListener);
         // ..and add listeners to the buttons
@@ -357,19 +448,63 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
     }
     
     
+    public osid.shared.Type stringToType(String typeString)
+    {
+        String domain = "";
+        String authority = "";
+        String keyword = "";
+        
+        java.util.StringTokenizer st = new java.util.StringTokenizer(",");
+        int tokenCount = 0;
+        while (st.hasMoreTokens())
+        {
+            String token = st.nextToken();
+            if (tokenCount == 0)
+            {
+                domain = token;
+            }
+            else if (tokenCount == 1)
+            {
+                authority = token;
+            }
+            else if (tokenCount == 2)
+            {
+                keyword = token;
+            }
+            tokenCount++;
+        }
+        return new tufts.oki.repository.fedora.Type(domain,authority,keyword,"");
+    }
+
     private void performSearch() {
         
         try {
             searchButton.setEnabled(false);
-            System.out.println("Searching OSID DR...");
-            resultObjectsIterator = dr.getAssetsBySearch(keywords.getText(),null);
-            VueDragTree tree = new VueDragTree(getOsidAssetResourceIterator(resultObjectsIterator),"OSID DR Search Results");
+            System.out.println("Searching OSID Repository...");
+            
+            String selectedType = (String)(this.searchTypesComboBox.getSelectedItem());
+            osid.shared.Type searchType = stringToType(selectedType);
+            
+            VueDragTree tree = null;
+/*
+            if (this.repository != null)
+            {
+                resultObjectsIterator20 = this.repository.getAssetsBySearch(keywords.getText(),searchType);
+                tree = new VueDragTree(getOsidAssetResourceIterator20(resultObjectsIterator20),"Repository Search Results");
+            }
+            else
+            {
+*/
+                resultObjectsIterator10 = this.digitalRepository.getAssetsBySearch(keywords.getText(),searchType);
+                tree = new VueDragTree(getOsidAssetResourceIterator10(resultObjectsIterator10),"Repository Search Results");
+//            }
+
             tree.setRootVisible(false);
             jsp = new JScrollPane(tree);
             setSearchResultsPanel();
             countError = 0;
         }  catch (Exception ex) {
-                VueUtil.alert(this, "OSID DR","Search Error");
+                VueUtil.alert(this, "OSID","Search Error");
             System.out.println("OSID DR Viewer performing search :"+ex);
         } finally {
             searchButton.setEnabled(true);
@@ -391,8 +526,24 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
             nextButton.setEnabled(false);
             searchCriteria.setSearchOperation(SearchCriteria.RESUME_FIND_OBJECTS);
             searchCriteria.setResults(0);
-            resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType);
-            VueDragTree tree = new VueDragTree(resultObjectsIterator,"ECL Search Results");
+
+            String selectedType = (String)(this.searchTypesComboBox.getSelectedItem());
+            osid.shared.Type searchType = stringToType(selectedType);
+            
+            VueDragTree tree = null;
+/*
+            if (this.repository != null)
+            {
+                resultObjectsIterator20 = this.repository.getAssetsBySearch(keywords.getText(),searchType);
+                tree = new VueDragTree(resultObjectsIterator20,"Search Results");
+            }
+            else
+            {
+*/
+                resultObjectsIterator10 = this.digitalRepository.getAssetsBySearch(keywords.getText(),searchType);
+                tree = new VueDragTree(resultObjectsIterator10,"Search Results");
+//            }
+
             tree.setRootVisible(false);
             jsp = new JScrollPane(tree);
             setSearchResultsPanel();
@@ -405,16 +556,35 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         }
     }    
     
-    private Iterator getOsidAssetResourceIterator(osid.dr.AssetIterator assetIterator)  
-    throws osid.dr.DigitalRepositoryException, osid.OsidException
+    private Iterator getOsidAssetResourceIterator20(osid.repository.AssetIterator assetIterator)  
+    throws osid.repository.RepositoryException
     {
         Vector resources = new Vector();
-        while(assetIterator.hasNext()) 
+        while(assetIterator.hasNextAsset()) 
         {
-            osid.dr.Asset nextAsset = assetIterator.next();
-            resources.add(new OsidAssetResource(nextAsset,this.owner));
+            osid.repository.Asset nextAsset = assetIterator.nextAsset();
+            resources.add(new OsidAssetResource(nextAsset,this.context));
         }
         return resources.iterator();
+    }
+
+    private Iterator getOsidAssetResourceIterator10(osid.dr.AssetIterator assetIterator)  
+    throws osid.repository.RepositoryException
+    {
+        try
+        {
+            Vector resources = new Vector();
+            while(assetIterator.hasNext()) 
+            {
+                osid.dr.Asset nextAsset = assetIterator.next();
+                resources.add(new OsidAssetResource(nextAsset,this.owner));
+            }
+            return resources.iterator();
+        }
+        catch (osid.dr.DigitalRepositoryException dre)
+        {
+            throw new osid.repository.RepositoryException(dre.getMessage());
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -465,7 +635,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
     }
     
     public osid.dr.DigitalRepository getDR() {
-        return dr;
+        return digitalRepository;
     }
     
     
@@ -541,6 +711,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
                 cond = (Condition) m_conditions.get(row);
             if(col == 0)
                 cond.setProperty((String)value);
+/*
             if(col == 1) {
                 try {
                     cond.setOperator(ComparisonOperator.fromValue(FedoraUtils.getAdvancedSearchOperatorsActuals((tufts.oki.dr.fedora.DR)dr,(String)value)));
@@ -549,6 +720,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
                     cond.setOperator(ComparisonOperator.ge);
                 }
             }
+*/
             if(col == 2)
                 cond.setValue((String)value);
             // row = -1 adds new condions else replace the existing one.
@@ -624,11 +796,13 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         
         public void actionPerformed(ActionEvent e) {
             Condition cond=new Condition();
+/*
             try {
                 cond.setProperty(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr)[0]);
             } catch (Exception ex) {
+*/
                 cond.setProperty("label");
-            }
+//            }
             cond.setOperator(ComparisonOperator.has);
             cond.setValue("");
             m_model.getConditions().add(cond);

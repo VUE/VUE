@@ -118,6 +118,11 @@ public class VueDataSource implements DataSource{
         
     }
     
+    public void setAutoConnect(boolean b)
+    {
+        this.isAutoConnect = b;
+    }
+    
     public void  setResourceViewer(){
         
      this.resourceViewer = new JPanel();   

@@ -215,7 +215,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof RemoteFileDataSource) type = 2;
         else  if (ds instanceof FedoraDataSource) type = 3;
         else  if (ds instanceof GoogleDataSource) type = 4;
-        else type = 5;
+        else  if (ds instanceof OsidDataSource) type = 5;
+        else type = 6;
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
@@ -233,7 +234,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof RemoteFileDataSource) type = 2;
         else  if (ds instanceof FedoraDataSource) type = 3;
         else  if (ds instanceof GoogleDataSource) type = 4;
-        else type = 5;
+        else  if (ds instanceof OsidDataSource) type = 5;
+        else type = 6;
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.removeElement(ds);
@@ -245,7 +247,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         int i =0; Vector dsVector;
         String breakTag = "";
-        int NOOFTYPES = 5;
+        int NOOFTYPES = 6;
         
         
         if (!(dataSourceList.getContents().isEmpty()))dataSourceList.getContents().clear();
@@ -416,12 +418,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         Vector dataSource2 = new Vector();
         Vector dataSource3 = new Vector();
         Vector dataSource4 = new Vector();
+        Vector dataSource5 = new Vector();
         
         allDataSources.add(dataSource0);
         allDataSources.add(dataSource1);
         allDataSources.add(dataSource2);
         allDataSources.add(dataSource3);
         allDataSources.add(dataSource4);
+        allDataSources.add(dataSource5);
         
         
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
