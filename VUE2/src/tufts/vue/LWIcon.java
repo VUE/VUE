@@ -144,6 +144,9 @@ public abstract class LWIcon extends Rectangle2D.Float
             this.mLWC = lwc;
         }
 
+        public float getIconWidth() { return mIconWidth; }
+        public float getIconHeight() { return mIconHeight; }
+
         public void setOrientation(boolean vertical)
         {
             mVertical = vertical;

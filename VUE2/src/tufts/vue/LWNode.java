@@ -117,21 +117,8 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
     
-    /*
-    public LWNode(String label, String shapeName, float x, float y)
-    {
-        super.label = label; // todo: this for debugging
-        setFillColor(COLOR_NODE_DEFAULT);
-        setNodeShape(getNamedNodeShape(shapeName));
-        setStrokeWidth(2f);//todo config: default node stroke
-        setLocation(x, y);
-        //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
-        setSize(10,10);
-        setLabel(label);
-    }
-    */
-
-    // create a duplicate style
+    /** Duplicate this node.
+     * @return the new node -- will be an exact copy, except for any pathway state from the source node */
     public LWComponent duplicate()
     {
         LWNode newNode = (LWNode) super.duplicate();
@@ -145,7 +132,7 @@ public class LWNode extends LWContainer
         return newNode;
     }
     
-    /** for save/restore only */
+    /** for castor restore only */
     public LWNode()
     {
         setShape(new java.awt.geom.Rectangle2D.Float());
@@ -155,23 +142,6 @@ public class LWNode extends LWContainer
         // this is only here for temporary backward compat
         // with saved map files that have no shape information
     }
-    
-    // Enable this to use differently shaped generated icons
-    // depending on if the resource is local or not
-    /*
-    public void X_setResource(Resource resource)
-    {
-        if (resource != null) {
-            if (resource.isLocalFile())
-                genIcon = new Rectangle2D.Float(0,0, 20,15);
-            else
-                genIcon = new RoundRectangle2D.Float(0,0, 20,15, 10,10);
-        }
-        // need to call this last because it calls layout, which checks getResource
-        // and references genIcon
-        super.setResource(resource);
-    }
-    */
     
     public boolean supportsUserLabel() {
         return true;
@@ -1647,7 +1617,8 @@ public class LWNode extends LWContainer
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
     //private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
-    private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
+    private static final float TextWidthFudgeFactor = 1 + 0.05f; // 5% fudge
+    //private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
     // put back to constant??  Also TODO: Text nodes left-aligned, not centered, and for real disallow BG color.
     //private static final float TextWidthFudgeFactor = 1;
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
