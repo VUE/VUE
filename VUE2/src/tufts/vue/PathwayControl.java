@@ -6,11 +6,14 @@
 
 package tufts.vue;
 
+import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JComboBox;
+import javax.swing.JTextField;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.border.LineBorder;
 import java.awt.FlowLayout;
@@ -21,7 +24,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.Component;
-
+import java.awt.Container;
+import java.awt.Dimension;
+import java.util.Iterator;
 /**
  *
  * @author  Daisuke Fujiwara
@@ -73,7 +78,6 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         
         pathwayList.setRenderer(new pathwayRenderer());
         //pathwayList.setMaximumRowCount();
-        //pathwayList.setEditable(true);
         pathwayList.addItemListener(this);
         pathwayList.addItem(noPathway);
         pathwayList.addItem(addPathway);
@@ -92,25 +96,47 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         descriptionPanel.add(new JLabel("Label:"));
         descriptionPanel.add(nodeLabel);
         
-        add(pathwayList, BorderLayout.SOUTH);
-        add(buttonPanel, BorderLayout.NORTH);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(pathwayList);
+        bottomPanel.add(buttonPanel);
+        
+        add(bottomPanel, BorderLayout.SOUTH);
         add(descriptionPanel, BorderLayout.CENTER);
     }
     
-    /**Another constructor which takes a given pathway as an argument*/
+    /*
     public PathwayControl(LWPathway pathway)
     {
         this();
         pathwayList.addItem(pathway);
-        pathwayList.setSelectedItem(pathway);
         setCurrentPathway(pathway);
     }
+    */
     
     public PathwayControl(LWPathwayManager pathwayManager)
     {
         this();
+        setPathwayManager(pathwayManager);
+    }
+    
+    public void setPathwayManager(LWPathwayManager pathwayManager)
+    {
         this.pathwayManager = pathwayManager;
         
+        //iterting through
+        for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
+        {
+            pathwayList.addItem((LWPathway)i.next());           
+        }
+        
+        if (this.pathwayManager.length() == 0)
+          setCurrentPathway(this.pathwayManager.getPathway(0));
+        
+    }
+    
+    public LWPathwayManager getPathwayManger()
+    {
+        return pathwayManager;
     }
     
     /**Sstes the current pathway to the given pathway and updates the control panel accordingly*/
@@ -120,6 +146,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         
         //setting the current node of the pathway to the first node
         currentPathway.setCurrent(currentPathway.getFirst());
+        pathwayList.setSelectedItem(pathway);
         
         updateControlPanel();
     }
@@ -134,13 +161,19 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        PathwayControl control = new PathwayControl(new LWPathway(0));
+        PathwayControl control = new PathwayControl(new LWPathwayManager(1));
         
+        /*
         //setting up pathway control in a tool window
         ToolWindow window = new ToolWindow("Pathway Control", null);
         window.addTool(control);
         window.setSize(400, 300);
         window.setVisible(true);
+        */
+        
+        InspectorWindow window = new InspectorWindow(null, "test");
+        window.getContentPane().add(control);
+        window.show();
     }
     
     /**A method which updates the widgets accordingly*/
@@ -266,7 +299,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             else if (pathwayList.getSelectedItem().equals(addPathway))
             {
                 System.out.println("adding a new pathway");
-                pathwayList.addItem(new LWPathway(0));
+                
+                newPathwayDialog dialog = new newPathwayDialog(null);
+                dialog.show();
+                
                 pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
                 
                 //if adding a new pathway, then must change the manager data as well
@@ -319,11 +355,74 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         }   
     }    
     
-    private class newPathwayDialog extends JDialog
+    private class newPathwayDialog extends JDialog implements ActionListener
     {
+        JButton okButton, cancelButton;
+        JTextField textField;
+        
+        public newPathwayDialog(JFrame frame)
+        {
+            super(frame, "New Pathway Name", true);
+            setSize(200, 200);
+            setUpUI();
+        }
+        
+        /*
         public newPathwayDialog()
         {
-            super();
+            super(null, "New Pathway Name", true);
+            setUpUI();
+        }
+        */
+        public void setUpUI()
+        {
+            okButton = new JButton("Ok");
+            cancelButton = new JButton("Cancel");
+            
+            okButton.addActionListener(this);
+            cancelButton.addActionListener(this);
+            
+            textField = new JTextField("default", 20);
+            textField.addActionListener(this);
+            textField.setPreferredSize(new Dimension(50, 20));
+            
+            JPanel buttons = new JPanel();
+            buttons.setLayout(new FlowLayout());
+            buttons.add(okButton);
+            buttons.add(cancelButton);
+            
+            JPanel textPanel = new JPanel();
+            textPanel.setLayout(new FlowLayout());
+            textPanel.add(textField);
+            
+            Container dialogContentPane = getContentPane();
+            dialogContentPane.setLayout(new BorderLayout());
+            
+            dialogContentPane.add(textPanel, BorderLayout.CENTER);
+            dialogContentPane.add(buttons, BorderLayout.SOUTH);
+        }
+        
+        public void actionPerformed(java.awt.event.ActionEvent e) 
+        {
+            if (e.getSource() == okButton)
+            {
+                System.out.println("ok button");
+                
+                //might not be the best way to go 
+                pathwayList.addItem(new LWPathway(textField.getText()));
+                dispose();
+            }
+            
+            else if (e.getSource() == cancelButton)
+            {
+                System.out.println("cancel button");
+                dispose();
+            }
+            
+            else if (e.getSource() == textField)
+            {
+                System.out.println("text field");
+            }
         }
         
     }
