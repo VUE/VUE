@@ -1,4 +1,22 @@
 /*
+ * -----------------------------------------------------------------------------
+ *
+ * <p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
+ *
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * Tufts University. All rights reserved.</p>
+ *
+ * -----------------------------------------------------------------------------
+ */
+
+/*
  * Class.java
  *
  * Created on June 13, 2003, 4:50 PM
@@ -229,6 +247,47 @@ public class ActionUtil {
             map = null;
         }
         //}
+        
+        return map;
+    }
+    
+    public static LWMap unmarshallMap(java.net.URL url)
+    {
+        Unmarshaller unmarshaller = null;
+        LWMap map = null; 
+        Mapping mapping = new Mapping();
+            
+        try 
+        {
+            unmarshaller = new Unmarshaller();
+            mapping.loadMapping(XML_MAPPING);    
+            unmarshaller.setMapping(mapping);  
+            
+            InputStream istream = url.openStream();
+            map = (LWMap) unmarshaller.unmarshal(new InputSource(istream));
+            map.setFile(null); // appears as a modification, so be sure to do completeXMLRestore last.
+            map.completeXMLRestore();
+            istream.close();
+        } 
+        
+        catch (MappingException me)
+        {
+            me.printStackTrace(System.err);
+            JOptionPane.showMessageDialog(null, "Error in mapping file, closing the application", 
+              "LW_Mapping Exception", JOptionPane.PLAIN_MESSAGE);
+                
+            // besides being very unfriendly, this could really hamper
+            // debbugging!
+            //System.exit(0);
+        }
+        
+        catch (Exception e) 
+        {
+            System.err.println("XML_MAPPING ="+XML_MAPPING.getFile());
+            System.err.println("ActionUtil.unmarshallMap: " + e);
+            e.printStackTrace();
+            map = null;
+        }
         
         return map;
     }
