@@ -4,31 +4,31 @@ package tufts.vue;
  * TextBox.java
  *
  * A multi-line editable text object that supports left/center/right
- * aligment for it's lines of text.
+ * aligment for its lines of text.
  *
  * Used in two modes: (1) "normal" mode -- used to paint multi-line
  * text objects (labels, notes, etc) and (2) "edit".  In normal mode,
  * this JComponent has no parent -- it isn't added to any AWT
  * hierarchy -- it's only used to paint as part of the
- * LWMap/LWContainer paint tree (via the draw(Graphics2D) method.  In
+ * LWMap/LWContainer paint tree (via the draw(Graphics2D)) method.  In
  * edit mode, it's temporarily added to the canvas so it can receive
- * user input.  Only once instance of these is ever added & fully
- * active at the same time.  We have to do some funky wrangling to
- * deal with zoom , because the JComponent can't paint and interact on
- * a zoomed (scaled) graphics context (unless we were to implement
- * mouse event retargeting, which is a future possibility).  So if
- * there is a scale active on the currently displayed map, we manually
- * derive a new font for the whole text object (the Document) and set
- * it to that temporarily while it's active in edit mode, and then
- * re-set it upon removal.  Note that users of this class (e.g.,
- * LWNode) should not bother to paint it (call draw()) if it's in edit
- * mode (getParent() != null) as the AWT/Swing tree is dealing with
- * that while it's in it's activated edit state.
+ * user input.  Only one instance of these is ever added and active in
+ * AWT at the same time.  We have to do some funky wrangling to deal
+ * with zoom, because the JComponent can't paint and interact on a
+ * zoomed (scaled) graphics context (unless we were to implement mouse
+ * event retargeting, which is a future possibility).  So if there is
+ * a scale active on the currently displayed map, we manually derive a
+ * new font for the whole text object (the Document) and set it to
+ * that temporarily while it's active in edit mode, and then re-set it
+ * upon removal.  Note that users of this class (e.g., LWNode) should
+ * not bother to paint it (call draw()) if it's in edit mode
+ * (getParent() != null) as the AWT/Swing tree is dealing with that
+ * while it's in it's activated edit state.
  *
  * We use a JTextPane because it supports a StyledDocument, which is
  * what we need to be able to set left/center/right aligment for all
  * the paragraphs in the document.  This is a bit heavy weight for our
- * uses right now as we only make use of font at a time for the whole
+ * uses right now as we only make use of one font at a time for the whole
  * document (this is the heaviest weight text component in Swing).
  * JTextArea would have worked for us, except it only supports it's
  * fixed default of left-aligned text.  However, eventually we're
@@ -73,6 +73,7 @@ class TextBox extends JTextPane
     private float mapY;
     private float mapWidth;
     private float mapHeight;
+    private boolean wasOpaque; /** were we opaque before we started an edit? */
         
     TextBox(LWComponent lwc)
     {
@@ -109,6 +110,8 @@ class TextBox extends JTextPane
         return this.lwc;
     }
 
+
+
     /*
      * When activated for editing, draw an appropriate background color
      * for the node -- the we need to do because if it's a small on-screen
@@ -122,10 +125,17 @@ class TextBox extends JTextPane
      */
     private Font savedFont = null;
     private String savedText;
+    private boolean keyWasPressed = false;
     private static final int MinEditSize = 12;
-    public void addNotify()
+    void saveCurrentText()
     {
         savedText = getText();
+    }
+    public void addNotify()
+    {
+        if (getText().length() < 1)
+            setText("label");
+        keyWasPressed = false;
         super.addNotify();
         // note: we get a a flash/move if we add the border before the super.addNotify()
         setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
@@ -147,11 +157,20 @@ class TextBox extends JTextPane
             }
         }
             
+        wasOpaque = isOpaque();
         if (lwc instanceof LWNode) {
             Color c = lwc.getFillColor();
             if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
                 c = lwc.getParent().getFillColor();
+            // todo: could also consider using map background if the node itself
+            // is transpatent (has no fill color)
             if (c != null) {
+                // note that if we set opaque to false, interaction speed is
+                // noticably slowed down in edit mode because it has to consider
+                // repainting the entire map each cursor blink as the object
+                // is transparent, and thus it's background is the displayed
+                // map.  So if we can guess at a reasonable fill color in edit mode,
+                // we temporarily set us to opaque.
                 setOpaque(true);
                 setBackground(c);
             }
@@ -171,7 +190,8 @@ class TextBox extends JTextPane
             savedFont = null;
             setSize(getPreferredSize());
         }
-        setOpaque(false);
+        if (wasOpaque != isOpaque())
+            setOpaque(wasOpaque);
         if (debug) System.out.println("removeNotify: insets="+getInsets());
     }
 
@@ -237,6 +257,7 @@ class TextBox extends JTextPane
 
     public void keyPressed(KeyEvent e)
     {
+        keyWasPressed = true;
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             setText(savedText);
             getParent().remove(this);
@@ -260,8 +281,12 @@ class TextBox extends JTextPane
         if (debug) System.out.println("TextBox focusLost to " + e.getOppositeComponent());
         if (getParent() != null)
             getParent().remove(this);
-        lwc.setLabel0(getText(), false);
-        System.out.println("Label set to: [" + getText() + "]");
+        if (keyWasPressed) {
+            // only do this if they typed something (so we don't wind up with "label"
+            // for the label on an accidental edit activation)
+            lwc.setLabel0(getText(), false);
+            System.out.println("Label set to: [" + getText() + "]");
+        }
     }
     public void focusGained(FocusEvent e)
     {
@@ -422,6 +447,9 @@ class TextBox extends JTextPane
         super.paintComponent(g);
         //super.paint(g);
 
+        // draw a border for links -- why?
+        // and even if, better to handle in LWLink
+        /*
         if (lwc instanceof LWLink) {
             Dimension s = getSize();
             if (lwc.isSelected())
@@ -431,6 +459,7 @@ class TextBox extends JTextPane
             g.setStroke(MinStroke);
             g.drawRect(0,0, s.width-1, s.height-2);
         }
+        */
         
         if (debug) {
             Dimension s = getPreferredSize();
