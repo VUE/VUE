@@ -591,7 +591,6 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.inPathway(); }
 
         void doDoubleClickAction() {
-            //VUE.sMapInspector.setVisible(true); //TODO: show the right panel
             VUE.sMapInspector.showTab("Pathway");
         }
         
@@ -705,7 +704,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasMetaData(); }
 
         void doDoubleClickAction() {
-            System.out.println(this + ": ACTION");
+            System.out.println(this + " Meta-Data Action?");
         }
         
         private JComponent ttMetaData;
@@ -774,7 +773,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;  }
 
         void doDoubleClickAction() {
-            System.out.println("Behavior action?");
+            System.out.println(this + " Behavior action?");
         }
         
         private JComponent ttBehavior;
