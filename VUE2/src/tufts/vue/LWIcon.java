@@ -63,6 +63,7 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     abstract boolean isShowing();
     abstract public JComponent getToolTipComponent();
+    //todo: make getToolTipComponent static & take lwc arg in case anyone else wants these
 
     public static class Block extends Rectangle2D.Float
     {
@@ -202,13 +203,10 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             // todo: collapse & delegate down to instance classes
             if (mBlockLWC.hasResource() && mIconResource.contains(cx, cy)) {
-                //tipComponent = getResourceToolTip();
                 tipIcon = mIconResource;
             } else if (mBlockLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
-                //tipComponent = getNotesToolTip();
                 tipIcon = mIconNotes;
             } else if (mBlockLWC.inPathway() && mIconPathway.contains(cx, cy)) {
-                //tipComponent = getPathwayToolTip();
                 tipIcon = mIconPathway;
             }
             
@@ -342,8 +340,6 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         //-------------------------------------------------------
         
-        //final static Color pencilColor = new Color(61, 0, 88);
-
         final static GeneralPath pencil_body = new GeneralPath();
         final static GeneralPath pencil_point = new GeneralPath();
         final static GeneralPath pencil_tip = new GeneralPath();
@@ -466,8 +462,6 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         static float iconWidth = (float) (MaxX * scale);
         static float iconHeight = (float) (MaxY * scale);
-
-        //final static Color color = new Color(61, 0, 88);
 
         //-------------------------------------------------------
 
