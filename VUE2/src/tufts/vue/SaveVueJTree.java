@@ -19,7 +19,7 @@ public class SaveVueJTree {
     
     private SaveNode saveTreeRoot;
     
-    /** Creates a new instance of Class */
+   
     public SaveVueJTree() {
     }
 
