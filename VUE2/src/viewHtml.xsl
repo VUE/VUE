@@ -7,10 +7,10 @@
 		<xsl:apply-templates/>
 	</xsl:template>
 
-	<xsl:template match="vue2d-map">
+	<xsl:template match="LW-MAP">
 		<HTML>
 			<HEAD>
-				<TITLE>XML to HTML Test</TITLE>
+				<TITLE><xsl:value-of select="@label"/></TITLE>
 			</HEAD>
 			<BODY>
 				<p><H1 align="center">
@@ -32,12 +32,20 @@
 					Properties:
 				</B></H3>
 					<p>
-						<B>fill color:</B><xsl:value-of select="fillColor"/>,
-						<B>font:</B> <xsl:value-of select="font"/>
-					</p>		
+						<B>Fill Color:</B><xsl:value-of select="fillColor"/>,
+						<B>Font:</B> <xsl:value-of select="font"/>, 
+					</p>
+					<p>	
+						<B>User Zoom:</B> <xsl:value-of select="userZoom"/>, 
+						<B>User Origin:</B><xsl:apply-templates select="userOrigin"/>
+					</p>							
 				<xsl:apply-templates select="child"/>
 			</BODY>
-		</HTML>	
+		</HTML>		
+	</xsl:template>
+		
+	<xsl:template match="userOrigin">
+		(<B>x:</B> <xsl:value-of select="@x"/>, <B>y:</B> <xsl:value-of select="@y"/>)
 	</xsl:template>
 	
 	<xsl:template match="child">
@@ -66,6 +74,14 @@
 			</xsl:if>
 			<B>font:</B><xsl:value-of select="font"/>
 		</P>
+		
+			  
+			<xsl:if test="starts-with(@xsi:type,'p')">
+				<P><B>weight:</B><xsl:value-of select="weight"/>,
+				<B>ordered:</B><xsl:value-of select="ordered"/>,
+				</P><p><B>comment:</B><xsl:value-of select="comment"/></p>
+			</xsl:if>
+		
 		<P>
 			  
 			<xsl:if test="starts-with(@xsi:type,'l')">
@@ -73,7 +89,16 @@
 				<B>ID2:</B><xsl:value-of select="ID2"/>
 			</xsl:if>
 		</P>
+		<xsl:if test="starts-with(@xsi:type,'p')">
+			<P><B><H3>Pathway Elements: </H3></B></P>
+			<P><xsl:apply-templates select="elementList"/></P>
+		</xsl:if>
 		<P><H3>Resource: <xsl:apply-templates select="resource"/></H3></P>		
+	</xsl:template>
+	
+	<xsl:template match="elementList">
+		<p><B>Element:</B> <xsl:value-of select="@label"/>, 
+			<B>Type:</B> <xsl:value-of select="@xsi:type"/></p>
 	</xsl:template>
 	
 	<xsl:template match="resource">
