@@ -29,200 +29,199 @@ import javax.swing.border.*;
 
 public class PathwayPanel extends JPanel implements ActionListener
 {    
-    private PathwayTable pathwayTable = null;
-    private PathwayTableModel tableModel = null;
-    private JButton removeElement, addElement, moveUp, moveDown;
-
-    private JLabel pathLabel = null;//, nodeLabel = null, slashLabel = new JLabel(" / ");
+    private Frame mParentFrame;
     
-    private JFrame parent;
-    private JPanel buttons = null;
-    private JPanel buttonPanel = null;
-    private JLabel pathName = null;
+    private PathwayTable mPathwayTable;
+    private PathwayTableModel mTableModel;
     
-    //private Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
-    //private Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
-    private Font defaultFont = null;
-    private Font highlightFont = null;
+    private AbstractButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock;
+    private AbstractButton btnElementRemove, btnElementAdd, btnElementUp, btnElementDown;
+    private AbstractButton firstButton, backButton, forwardButton, lastButton;
     
-    private JButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock;
-    private JButton firstButton, backButton, forwardButton, lastButton;
-    private JPanel southNotes = null;
-    private JTextArea notesArea = null;
-    
-    private final String noPathway = "                          ";
-    private final String emptyLabel = "empty";
-    
-    private Color bgColor = new Color(241, 243, 246);
-    private Color altbgColor = new Color(186, 196, 222);
+    private JLabel pathLabel;           // updated for current PathwayTable selection
+    private JLabel pathElementLabel;    // updated for current PathwayTable selection
+    private JTextArea notesArea;        // updated for current PathwayTable selection
     
     private LWComponent mDisplayedComponent;
     private LWPathway mDisplayedComponentPathway;
     private boolean mNoteKeyWasPressed = false;
 
-    /* end Pathway Control Properties */
+    private final Color bgColor = new Color(241, 243, 246);
+    private final Color altbgColor = new Color(186, 196, 222);
     
-    private String[] colNames = {"A", "B", "C", "D", "E", "F"};
-    private int[] colWidths = {20,20,13,100,20,20};
+    private final String[] colNames = {"A", "B", "C", "D", "E", "F"};
+    private final int[] colWidths = {20,20,13,100,20,20};
  
-    /** Creates a new instance of PathwayPanel */
-
-    public PathwayPanel(JFrame parent) 
+    public PathwayPanel(Frame parent) 
     {   
-        this.parent = parent;
-        this.setBorder(BorderFactory.createMatteBorder(4, 4, 7, 4, bgColor));
-        defaultFont = this.getFont();
-        highlightFont = this.getFont();
-        highlightFont.deriveFont(Font.BOLD);
+        //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
+        //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
+        final Font defaultFont = getFont();
+        final Font boldFont = defaultFont.deriveFont(Font.BOLD);
+    
+        mParentFrame = parent;
+        setBorder(new EmptyBorder(4, 4, 7, 4));
+
+        //-------------------------------------------------------
+        // Set up the PathwayTableModel, PathwayTable & Listeners
+        //-------------------------------------------------------
+
+        mTableModel = new PathwayTableModel();
+
+        mPathwayTable = new PathwayTable(mTableModel);
+        mPathwayTable.setBackground(bgColor);
+        for (int i = 0; i < colWidths.length; i++){
+            TableColumn col = mPathwayTable.getColumn(colNames[i]);
+            if (i == 2) col.setMinWidth(colWidths[i]);
+            if (i != 3) col.setMaxWidth(colWidths[i]);
+        }
         
-        setupPathwayControl();
+        Border controlBorder = BorderFactory.createMatteBorder(8, 0, 0, 5, Color.red);
+        //Border controlBorder = BorderFactory.createEmptyBorder(8, 0, 0, 5);
+        
+        //-------------------------------------------------------
+        // Setup selected pathway VCR style controls for current
+        // element
+        //-------------------------------------------------------
+        
+        JPanel VCRpanel = new JPanel(new GridLayout(1, 4, 0, 0));
+        //VCRpanel.setPreferredSize(new Dimension(80, 20));
+        //VCRpanel.setBackground(altbgColor);
+        
+        firstButton =   new VueButton("pathway.control.rewind", this);
+        backButton =    new VueButton("pathway.control.backward", this);
+        forwardButton = new VueButton("pathway.control.forward", this);
+        lastButton =    new VueButton("pathway.control.last", this);
+       
+        VCRpanel.add(firstButton);
+        VCRpanel.add(backButton);
+        VCRpanel.add(forwardButton);
+        VCRpanel.add(lastButton);
+
+        JPanel playbackPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        JLabel playBackLabel = new JLabel("Highlight a path to playback:  ");
+        playBackLabel.setFont(defaultFont);
+        //playBackLabel.setBackground(altbgColor);
+        
+        //playbackPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
+        //playbackPanel.setBorder(controlBorder);
+        playbackPanel.add(playBackLabel);
+        playbackPanel.add(VCRpanel);        
+        
+        //-------------------------------------------------------
+        // Setup pathway master add/remove/lock control
+        //-------------------------------------------------------
          
         btnPathwayCreate = new VueButton("pathways.add", this);
         btnPathwayDelete = new VueButton("pathways.delete", this);
-        btnPathwayLock = new VueButton("pathways.lock", this);
+        btnPathwayLock   = new VueButton("pathways.lock", this);
         
-        JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        editPathwaysPanel.setBackground(bgColor);
+        JPanel pathwayMasterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
+                public void addNotify() {
+                    super.addNotify();
+                    setBackground(new Color(66,76,105));
+                    setBorder(new EmptyBorder(2,2,2,4));
 
-        Border matteBorder = BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor);
-        JLabel lab = new JLabel("Pathways:");
-        lab.setFont(defaultFont);
-        lab.setBorder(matteBorder);
+                    //JLabel label = new JLabel("Pathways:");
+                    //label.setFont(defaultFont);
+                    //label.setForeground(Color.white);
+                    //label.setBorder(new EmptyBorder(0,0,2,2));
+                    //add(label);
         
-        JPanel pathwayMaster = new JPanel();
-        pathwayMaster.setLayout(new BoxLayout(pathwayMaster, BoxLayout.X_AXIS));
-        pathwayMaster.setBorder(matteBorder);
-        pathwayMaster.setBackground(bgColor);
-        pathwayMaster.add(btnPathwayCreate);
-        pathwayMaster.add(btnPathwayDelete);
-        pathwayMaster.add(btnPathwayLock);
-        
-        editPathwaysPanel.add(lab);
-        editPathwaysPanel.add(pathwayMaster);
-        
-        /*
-        JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-        questionLabel.setPreferredSize(new Dimension(22, 17));
-        questionLabel.setBackground(altbgColor);
-        questionLabel.setToolTipText("Check boxes below to display paths on the map. Click on path's layer to make a specific path active for editing or playback.");
-        */
-        
-        JLabel filler = new JLabel(" ");
-        filler.setBackground(altbgColor);
-        
-        JLabel playBackLabel = new JLabel("Highlight a path to playback:   ");
-        playBackLabel.setFont(defaultFont);
-        playBackLabel.setBackground(altbgColor);
-        
-        JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        buttonGroupPanel.setBackground(altbgColor);
-        buttonGroupPanel.setBorder(null);
-        buttonGroupPanel.add(playBackLabel);
-        buttonGroupPanel.add(buttonPanel); // buttonPanel setup in setupPathwayControl
-        
-        
-        JPanel northPanel = new JPanel(new BorderLayout(0,0));
-        northPanel.setBackground(altbgColor);
-        
-        //questionLabel.setBorder(BorderFactory.createMatteBorder(0, 5, 0, 0, this.altbgColor));
-        buttonGroupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
-        //northPanel.add(questionLabel, BorderLayout.WEST);
-        northPanel.add(buttonGroupPanel, BorderLayout.EAST);
-        
-        //pathway table setup
-        tableModel = new PathwayTableModel();
-        tableModel.addTableModelListener(new TableModelListener() {
-                public void tableChanged(TableModelEvent e) {
-                    if (DEBUG.PATHWAY) System.out.println(this + " " + e);
-                    updateTextAreas();
-                    updateEnabledStates();
+                    add(btnPathwayCreate);
+                    add(btnPathwayDelete);
+                    add(btnPathwayLock);
+                    
+                    //JLabel help = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+                    //help.setBackground(altbgColor);
+                    //help.setToolTipText("Check boxes below to display paths on the map. "
+                    //"Click on path's layer to make a specific path active for editing or playback.");
+                    //add(questionLabel, BorderLayout.WEST);
                 }
-            });
+            };
         
         
-        pathwayTable = new PathwayTable(tableModel);
-        pathwayTable.setBackground(bgColor);
+        //-------------------------------------------------------
+        // Selected pathway add/remove element buttons
+        //-------------------------------------------------------
         
-        for (int i = 0; i < colWidths.length; i++){
-            TableColumn col = pathwayTable.getColumn(colNames[i]);
-            if (i == 2) col.setMinWidth(colWidths[i]);
-            if (i != 3) col.setMaxWidth(colWidths[i]);
-        } 
-        
-        JScrollPane tablePane = new JScrollPane(pathwayTable);
-        
-        setupButtons();
-        //toggles the add button's availability depending on the selection
-        VUE.ModelSelection.addListener(new LWSelection.Listener() {
-                public void selectionChanged(LWSelection s) {
-                    if (s.size() == 1 && s.first().inPathway(getSelectedPathway())) {
-                        getSelectedPathway().setCurrentElement(s.first());
-                        tableModel.fireTableDataChanged();
-                        //updateTextAreas();
-                        // todo: changes to map selection are never updating
-                        // the text areas
-                        // (btw: should not need updateTextAreas() call above,
-                        // and it doesn't appear to be helping anyway)
-                    } else
-                        updateEnabledStates();
+        btnElementAdd = new VueButton("add", this);
+        btnElementRemove = new VueButton("delete", this);
+        btnElementUp = new VueButton("move-up", this);
+        btnElementDown = new VueButton("move-down", this);
+
+        JPanel elementControlPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
+                public void addNotify() {
+                    super.addNotify();
+                    setBackground(new Color(98,115,161));
+                    setBorder(new EmptyBorder(2,2,2,5));
+                    //setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
+
+                    JLabel label = new JLabel("OBJECT to pathway");
+                    label.setFont(boldFont);
+                    label.setForeground(Color.white);
+                    label.setBackground(getBackground());
+                    label.setBorder(new EmptyBorder(0,0,2,2)); //tlbr
+                    
+                    //JPanel control = new JPanel();
+                    JPanel control = this;
+                    //control.setLayout(new BoxLayout(control, BoxLayout.X_AXIS));
+                    //control.setBackground(getBackground());
+                    //control.setBorder(new EmptyBorder(0,0,0,5));
+                    control.add(label);
+                    control.add(btnElementAdd);
+                    control.add(btnElementRemove);
+                    control.add(btnElementUp);
+                    control.add(btnElementDown);
+                    
+                    //add(control, BorderLayout.EAST);
                 }
-            }     
-        );
+            };
+                
+        //-------------------------------------------------------
+        // Layout for the table components 
+        //-------------------------------------------------------
         
-        JLabel addLabel = new JLabel("Add/remove selected pathway object(s)");
-        addLabel.setFont(defaultFont);
-        addLabel.setBackground(altbgColor);
-        
-        buttons.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
-        addLabel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
-        
-        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        southPanel.setBackground(altbgColor);
-        southPanel.add(addLabel);
-        southPanel.add(buttons); // buttons panel setup in setupButtons() method
-        
-        /* Layout for the table components */
-        
-        GridBagLayout bagLayout = new GridBagLayout();
+        GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints gc = new GridBagConstraints();
         
         JPanel tablePanel = new JPanel();
-        tablePanel.setBackground(bgColor);
-        tablePanel.setLayout(bagLayout);
+        //tablePanel.setBackground(bgColor);
+        tablePanel.setLayout(gridBag);
         
         gc.gridwidth = GridBagConstraints.REMAINDER;
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.weightx = 1.0;
         gc.gridheight = 1;
         
-        northPanel.setPreferredSize(new Dimension(this.getWidth(), 30));
-        northPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
-        bagLayout.setConstraints(northPanel, gc);
-        tablePanel.add(northPanel);
+        //-------------------------------------------------------
+        // add pathway create/delete/lock control panel
+        gridBag.setConstraints(pathwayMasterPanel, gc);
+        tablePanel.add(pathwayMasterPanel);
         
+        //-------------------------------------------------------
+        // add pathway element add/remove control panel
+        gc.insets = new Insets(3,0,3,0);
+        gridBag.setConstraints(elementControlPanel, gc);
+        tablePanel.add(elementControlPanel);
+        gc.insets = new Insets(0,0,0,0);
+        
+        //-------------------------------------------------------
+        // add the PathwayTable
         gc.fill = GridBagConstraints.BOTH;
         gc.weighty = 3.0;
         gc.gridheight = 18;
-        tablePane.setPreferredSize(new Dimension(this.getWidth(), 220));
-        tablePane.setBorder(BorderFactory.createMatteBorder(0,1,0,1,Color.gray));
-        bagLayout.setConstraints(tablePane, gc);
+        JScrollPane tablePane = new JScrollPane(mPathwayTable);
+        tablePane.setPreferredSize(new Dimension(getWidth(), 180));
+        //tablePane.setBorder(BorderFactory.createMatteBorder(0,1,0,1,Color.gray));
+        gridBag.setConstraints(tablePane, gc);
         tablePanel.add(tablePane);
         
-        gc.weighty = 0.0;
-        gc.gridheight = 1;
-
-        //southPanel.setPreferredSize(new Dimension(this.getWidth(), 30));
-        //southPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
+        //-------------------------------------------------------
+        // Add the selected item text label
+        //gc.weighty = 0.0;
+        //gc.gridheight = 1;
         
-        southPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
-        bagLayout.setConstraints(southPanel, gc);
-        tablePanel.add(southPanel);
-        
-        /* End of Layout for table components */
-        
-        southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        southNotes.setBackground(bgColor);
-        southNotes.add(pathLabel = new JLabel("Notes: " ));
         
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
@@ -230,7 +229,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         notesArea.setAutoscrolls(true);
         notesArea.setLineWrap(true);
         notesArea.setBackground(Color.white);
-        notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
+        //notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        //notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
         notesArea.addKeyListener(new KeyAdapter() {
                 public void keyPressed(KeyEvent e) { mNoteKeyWasPressed = true; }
                 public void keyReleased(KeyEvent e) { if (e.getKeyCode() == KeyEvent.VK_ENTER) ensureNotesSaved(); }
@@ -246,12 +246,24 @@ public class PathwayPanel extends JPanel implements ActionListener
             });
 
 
+        //JPanel noteLabelPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.LEFT));
+        JPanel noteLabelPanel = new VueUtil.JPanel_aa();
+        noteLabelPanel.setLayout(new BoxLayout(noteLabelPanel, BoxLayout.X_AXIS));
+        noteLabelPanel.add(new JLabel("Notes: "));
+        noteLabelPanel.add(pathLabel = new JLabel(""));
+        noteLabelPanel.add(pathElementLabel = new JLabel(""));
+        pathLabel.setFont(boldFont);
+        pathElementLabel.setFont(boldFont);
+        pathElementLabel.setForeground(Color.red.darker());
+
         JPanel notesPanel = new JPanel(new BorderLayout(0,0));
-        notesPanel.setBackground(bgColor);
-        notesPanel.add(southNotes, BorderLayout.NORTH);
+        notesPanel.add(noteLabelPanel, BorderLayout.NORTH);
+        notesPanel.setBorder(new EmptyBorder(7,0,0,0));
         notesPanel.add(new JScrollPane(notesArea), BorderLayout.CENTER);
         
-        /* Layout for pathways tab */
+        //-------------------------------------------------------
+        // Now layout the whole PathwayPanel
+        //-------------------------------------------------------
         
         GridBagLayout bag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -262,24 +274,58 @@ public class PathwayPanel extends JPanel implements ActionListener
         c.gridheight = 1;
         c.weightx = 1.0;
         
-        editPathwaysPanel.setPreferredSize(new Dimension(this.getWidth(), 35));
-        bag.setConstraints(editPathwaysPanel, c);
-        add(editPathwaysPanel);
+        bag.setConstraints(pathwayMasterPanel, c);
+        add(pathwayMasterPanel);
         
         c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
+        c.weighty = 2.0;
         c.gridheight = 11;
-        tablePanel.setPreferredSize(new Dimension(this.getWidth(), 250));
+        //tablePanel.setPreferredSize(new Dimension(getWidth(), 250));
         bag.setConstraints(tablePanel, c);
         add(tablePanel);
         
+        c.weighty = 1.0;
         c.gridheight = 8;
-        notesPanel.setPreferredSize(new Dimension(this.getWidth(), 180));
+        notesPanel.setPreferredSize(new Dimension(getWidth(), 80));
         bag.setConstraints(notesPanel, c);
         add(notesPanel);
+
+        add(playbackPanel);
+        
+        //-------------------------------------------------------
         
         updateEnabledStates();
-        /* End of Layout for pathways tab */
+
+        //-------------------------------------------------------
+        // Set up the listeners
+        //-------------------------------------------------------
+        
+        mTableModel.addTableModelListener(new TableModelListener() {
+                public void tableChanged(TableModelEvent e) {
+                    if (DEBUG.PATHWAY) System.out.println(this + " " + e);
+                    updateTextAreas();
+                    updateEnabledStates();
+                }
+            });
+        
+        //toggles the add button's availability depending on the selection
+        VUE.ModelSelection.addListener(new LWSelection.Listener() {
+                public void selectionChanged(LWSelection s) {
+                    if (s.size() == 1 && s.first().inPathway(getSelectedPathway())) {
+                        getSelectedPathway().setCurrentElement(s.first());
+                        mTableModel.fireTableDataChanged();
+                        //updateTextAreas();
+                        // todo: changes to map selection are never updating
+                        // the text areas
+                        // (btw: should not need updateTextAreas() call above,
+                        // and it doesn't appear to be helping anyway)
+                    } else
+                        updateEnabledStates();
+                }
+            }     
+        );
+        
+        
     }
 
     private void ensureNotesSaved() {
@@ -305,55 +351,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     private LWPathway getSelectedPathway() {
         return VUE.getActivePathway();
     }
-    
-    private void setupPathwayControl(){
-        //pcPanel = new JPanel(new BorderLayout());
-        
-        /* buttons that are not used */
-        buttonPanel = new JPanel(new GridLayout(1, 4, 0, 0));
-        buttonPanel.setPreferredSize(new Dimension(80, 20));
-        buttonPanel.setBackground(altbgColor);
-        
-        firstButton = new VueButton("pathway.control.rewind");
-        //firstButton.setBackground(this.altbgColor);
-        firstButton.addActionListener(this);
-        
-        backButton = new VueButton("pathway.control.backward");
-        //backButton.setBackground(this.altbgColor);
-        backButton.addActionListener(this);
-        
-        forwardButton = new VueButton("pathway.control.forward");
-        //forwardButton.setBackground(this.altbgColor);
-        forwardButton.addActionListener(this);
-        
-        lastButton = new VueButton("pathway.control.last");
-        //lastButton.setBackground(this.altbgColor);
-        lastButton.addActionListener(this);
-       
-        buttonPanel.add(firstButton);
-        buttonPanel.add(backButton);
-        buttonPanel.add(forwardButton);
-        buttonPanel.add(lastButton);
-    }
 
-    private void setupButtons() {
-        addElement = new VueButton("add");
-        addElement.setBackground(this.altbgColor);
-        addElement.addActionListener(this);
-        addElement.setEnabled(false);
-        
-        removeElement = new VueButton("delete");
-        removeElement.setBackground(this.altbgColor);
-        removeElement.addActionListener(this);
-        removeElement.setEnabled(false);
-        
-        buttons = new JPanel(new GridLayout(1, 2, 0, 0));
-        buttons.setBackground(altbgColor);
-        buttons.add(addElement);
-        buttons.add(removeElement);
-        //buttons.setPreferredSize(new Dimension(40,24));
-        
-    }
     
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
@@ -364,7 +362,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         if (pathway == null && btn != btnPathwayCreate)
             return;
         
-        if (btn == removeElement) {
+        if (btn == btnElementRemove) {
             
             // This is a heuristic to try and best guess what the user
             // might want to actually remove.  If nothing in
@@ -386,15 +384,19 @@ public class PathwayPanel extends JPanel implements ActionListener
                 pathway.remove(VUE.ModelSelection.iterator());
             }
         }
-        else if (btn == addElement)     { pathway.add(VUE.ModelSelection.iterator()); }
+        else if (btn == btnElementAdd)     { pathway.add(VUE.ModelSelection.iterator()); }
+
         else if (btn == firstButton)    { pathway.setFirst(); }
         else if (btn == lastButton)     { pathway.setLast(); }
         else if (btn == forwardButton)  { pathway.setNext(); }
         else if (btn == backButton)     { pathway.setPrevious(); }
         
         else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
-        else if (btn == btnPathwayCreate)   { new PathwayDialog(this.parent, this.tableModel, getLocationOnScreen()).show(); }
+        else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).show(); }
         else if (btn == btnPathwayLock)     { pathway.setLocked(!pathway.isLocked()); }
+
+        else if (btn == btnElementUp)   { pathway.sendBackward(pathway.getCurrent()); }
+        else if (btn == btnElementDown) { pathway.bringForward(pathway.getCurrent()); }
 
         VUE.getUndoManager().mark();
     }
@@ -406,8 +408,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         LWPathway path = getSelectedPathway();
         
         if (path == null || path.isLocked()) {
-            addElement.setEnabled(false);
-            removeElement.setEnabled(false);
+            btnElementAdd.setEnabled(false);
+            btnElementRemove.setEnabled(false);
             btnPathwayDelete.setEnabled(false);
             return;
         }
@@ -420,12 +422,12 @@ public class PathwayPanel extends JPanel implements ActionListener
         // if any viable index, AND path is open so you can see
         // it selected, enable the remove button.
         if (path.getCurrentIndex() >= 0 && path.isOpen()) {
-            removeElement.setEnabled(true);
+            btnElementRemove.setEnabled(true);
             removeDone = true;
         }
             
         if (selection.size() > 0) {
-            addElement.setEnabled(true);
+            btnElementAdd.setEnabled(true);
             if (!removeDone) {
                 // if at least one element in selection is on current path,
                 // enable remove.  Theoretically should only get here if
@@ -440,12 +442,12 @@ public class PathwayPanel extends JPanel implements ActionListener
                         break;
                     }
                 }
-                removeElement.setEnabled(enabled);
+                btnElementRemove.setEnabled(enabled);
             }
         } else {
-            addElement.setEnabled(false);
+            btnElementAdd.setEnabled(false);
             if (!removeDone)
-                removeElement.setEnabled(false);
+                btnElementRemove.setEnabled(false);
         }
     }
 
@@ -523,24 +525,23 @@ public class PathwayPanel extends JPanel implements ActionListener
             mDisplayedComponent = null;
             mDisplayedComponentPathway = null;
             pathLabel.setText("");
+            pathElementLabel.setText("");
             notesArea.setText("");
             return;
         }
-        LWComponent c = tableModel.getElement(pathwayTable.getLastSelectedRow());
         
-        String labelText = "Notes: " + pathway.getLabel();
-        String notesText = "";
-
+        LWComponent c = mTableModel.getElement(mPathwayTable.getLastSelectedRow());
+        
         if (c instanceof LWPathway) {
-            notesText = c.getNotes();
+            pathLabel.setText(pathway.getLabel());
+            pathElementLabel.setText("");
+            notesArea.setText(c.getNotes());
         } else if (c != null) {
-            notesText = pathway.getElementNotes(c);
-            labelText += " / " + c.getDisplayLabel();
+            pathLabel.setText(pathway.getLabel() + " : ");
+            pathElementLabel.setText(c.getDisplayLabel());
+            notesArea.setText(pathway.getElementNotes(c));
         }
-        pathLabel.setText(labelText);
-        notesArea.setText(notesText);
         mNoteKeyWasPressed = false;
-        
         mDisplayedComponent = c;
         mDisplayedComponentPathway = pathway;
     }

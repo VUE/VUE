@@ -842,61 +842,61 @@ public abstract class LWContainer extends LWComponent
             comps[i].getParent().sendBackward(comps[i]);
     }
 
-    private boolean bringToFront(LWComponent c)
+    public boolean bringToFront(LWComponent c)
     {
-        notify(LWKey.HierarchyChanging);
         // Move to END of list, so it will paint last (visually on top)
         int idx = children.indexOf(c);
         int idxLast = children.size() - 1;
         if (idx == idxLast)
             return false;
+        notify(LWKey.HierarchyChanging);
         //System.out.println("bringToFront " + c);
         children.remove(idx);
         children.add(c);
         // we layout the parent because a parent node will lay out
         // it's children in the order they appear in this list
-        notify("hier.order.front", c);
+        notify("hier.move.front", c);
         c.getParent().layoutChildren();
         return true;
     }
-    private boolean sendToBack(LWComponent c)
+    public boolean sendToBack(LWComponent c)
     {
-        notify(LWKey.HierarchyChanging);
         // Move to FRONT of list, so it will paint first (visually on bottom)
         int idx = children.indexOf(c);
         if (idx == 0)
             return false;
+        notify(LWKey.HierarchyChanging);
         //System.out.println("sendToBack " + c);
         children.remove(idx);
         children.add(0, c);
-        notify("hier.order.back", c);
+        notify("hier.move.back", c);
         c.getParent().layoutChildren();
         return true;
     }
-    private boolean bringForward(LWComponent c)
+    public boolean bringForward(LWComponent c)
     {
-        notify(LWKey.HierarchyChanging);
         // Move toward the END of list, so it will paint later (visually on top)
         int idx = children.indexOf(c);
         int idxLast = children.size() - 1;
         if (idx == idxLast)
             return false;
+        notify(LWKey.HierarchyChanging);
         //System.out.println("bringForward " + c);
         swap(idx, idx + 1);
-        notify("hier.order.forward", c);
+        notify("hier.move.forward", c);
         c.getParent().layoutChildren();
         return true;
     }
-    private boolean sendBackward(LWComponent c)
+    public boolean sendBackward(LWComponent c)
     {
-        notify(LWKey.HierarchyChanging);
         // Move toward the FRONT of list, so it will paint sooner (visually on bottom)
         int idx = children.indexOf(c);
         if (idx == 0) 
             return false;
+        notify(LWKey.HierarchyChanging);
         //System.out.println("sendBackward " + c);
         swap(idx, idx - 1);
-        notify("hier.order.backward", c);
+        notify("hier.move.backward", c);
         c.getParent().layoutChildren();
         return true;
     }

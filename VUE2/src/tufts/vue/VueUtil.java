@@ -372,6 +372,26 @@ public class VueUtil
         }
     }
 
+    /** a JPanel that anti-aliases text */
+    public static class JPanel_aa extends javax.swing.JPanel {
+        public JPanel_aa(java.awt.LayoutManager layout) {
+            super(layout, true);
+        }
+        public JPanel_aa() {}
+
+        public void paint(java.awt.Graphics g) {
+            // only works when, of course, the panel is asked
+            // to redraw -- but if you mess with subcomponents
+            // and just they repaint, we lose this.
+            // todo: There must be a way to stick this in a global
+            // property somewhere.
+            ((java.awt.Graphics2D)g).setRenderingHint
+                (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                 java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            super.paint(g);
+        }
+    }
+    
     // This is for testing individual components.
     public static void displayComponent(javax.swing.JComponent comp)
     {

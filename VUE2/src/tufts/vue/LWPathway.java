@@ -113,6 +113,22 @@ public class LWPathway extends LWContainer
         }      
         return c;
     }
+
+    public boolean bringForward(LWComponent c)
+    {
+        boolean moved = super.bringForward(c);
+        if (moved)
+            setCurrentElement(c);
+        return moved;
+    }
+    public boolean sendBackward(LWComponent c)
+    {
+        boolean moved = super.sendBackward(c);
+        if (moved)
+            setCurrentElement(c);
+        return moved;
+    }
+    
     
     /**
      * Set the current index to @param i, and also set the
