@@ -26,7 +26,7 @@ import tufts.vue.filter.*;
  * meta-data definitions, etc.
  *
  * As LWCEvent's issued by changes to LWComponents are bubbled up
- * through their parents, listenting to the map for LWCevents will
+ * through their parents, listenting to the map for LWCEvents will
  * tell you about every change that happens anywhere in the map.
  * For instance: the UndoManager is just another listener on the map.
  *
@@ -34,33 +34,28 @@ import tufts.vue.filter.*;
  * ready to be embedded / rendered as a child of another LWContainer/LWMap.
  *
  * @author Scott Fraize
+ * @author Anoop Kumar (meta-data)
  * @version March 2004
  */
 
 public class LWMap extends LWContainer
     implements ConceptMap
 {
-    // these for persistance use only
-    private float userOriginX;
-    private float userOriginY;
-    private double userZoom = 1;
+    /** file we were opened from of saved to, if any */
     private File file;
     
-    //private LWPathwayManager mPathwayManager = null;
-    private LWPathwayList mPathways = null;
-    
-    /** user map types **/
-    private UserMapType [] mUserTypes = null;
+    /** the list of LWPathways, if any */
+    private LWPathwayList mPathways;
     
     /** the author of the map **/
-    private String mAuthor = null;
+    private String mAuthor;
     
-    /** the date **/
-    private String mDate = null;
+    /** the date created (modified?) **/
+    private String mDate;
     
-    /**description **/
-    
-    private String mDescription = null;
+    /** user description **/
+    private String mDescription;
+
     /** the current Map Filter **/
     LWCFilter mLWCFilter = new LWCFilter();
     
@@ -68,19 +63,26 @@ public class LWMap extends LWContainer
     Properties metadata = new Properties();
     
     /** Map Metadata-  this is for adding specific metadata and filtering **/
-    
     MapFilterModel  mapFilterModel = new MapFilterModel();
     
-    private long mChanges = 0;
+    /** user map types -- is this still used? **/
+    private UserMapType[] mUserTypes;
+    
+    private long mChanges = 0;    // guaranteed >= actual change count
     private Rectangle2D mCachedBounds = null;
     
     
+    // these for persistance use only
+    private float userOriginX;
+    private float userOriginY;
+    private double userZoom = 1;
+
     
     // only to be used during a restore from persisted
     public LWMap() {
         setLabel("<map-during-XML-restoration>");
         //setEventsSuspended();
-        markDate();
+        //markDate();
     }
     
     public LWMap(String label) {
@@ -132,12 +134,6 @@ public class LWMap extends LWContainer
     public void markAsSaved() {
         System.out.println(this + " marking " + mChanges + " modifications as current");
         mChanges = 0;
-        /*
-        if (getUndoManager() == null)
-            setUndoManager(new UndoManager(this));
-        else
-            getUndoManager().flush();
-         */
         // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public boolean isModified() {
@@ -267,28 +263,17 @@ public class LWMap extends LWContainer
     public void setMapFilterModel(MapFilterModel mapFilterModel) {
         this.mapFilterModel = mapFilterModel;
     }
-    /*
-    public LWPathwayManager getPathwayManager(){
-        return mPathwayManager;
-    }
-     */
+
     public LWPathwayList getPathwayList() {
         return mPathways;
     }
+
     /** for persistance restore only */
     public void setPathwayList(LWPathwayList l){
         System.out.println(this + " pathways set to " + l);
         mPathways = l;
         mPathways.setMap(this);
     }
-    
-    /*
-    public void setPathwayManager(LWPathwayManager manager)
-    {
-        mPathwayManager = manager;
-        mPathwayManager.setMap(this);
-    }
-     */
     
     private int nextID = 1;
     protected String getNextUniqueID() {
