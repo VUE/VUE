@@ -18,8 +18,11 @@ import java.io.*;
 
 public class VUE
     implements VueConstants
-{   
-    public static final String CASTOR_XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
+{
+    public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
+    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = getResource("lw_mapping.xml");
+    //    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = ClassLoader.getSystemResource("lw_mapping.xml");
+    //public final java.net.URL CASTOR_XML_MAPPING_RESOURCE = getClass().getResource("lw_mapping.xml");
     public static final String VUE_CONF = "vue.conf";
     
     // preferences for the application 
@@ -46,6 +49,23 @@ public class VUE
     
     //added by Daisuke Fujiwara
     public static PathwayControl control;
+
+    public static java.net.URL getResource(String name)
+    {
+        java.net.URL url = null;
+        java.io.File f = new java.io.File(name);
+        if (f.exists()) {
+            try {
+                url = f.toURL();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (url == null)
+            url = ClassLoader.getSystemResource(name);
+        System.out.println("resource \"" + name + "\" found at " + url);
+        return url;
+    }
     
     static {
         /*
@@ -155,6 +175,7 @@ public class VUE
     
     private VUE() {}
     
+    static JPanel toolPanel;//todo: tmp hack
     public static void main(String[] args)
     {
         String laf = null;
@@ -195,7 +216,6 @@ public class VUE
             LWMap map1 = new LWMap("Map 1");
             LWMap map2 = new LWMap("Map 2");
 
-            //installExampleMap(map1);
             installExampleNodes(map1);
             installExampleMap(map2);
 
@@ -211,9 +231,11 @@ public class VUE
         // create a an application frame and layout components
         //-------------------------------------------------------
         
-        JPanel toolPanel = new JPanel();
+        toolPanel = new JPanel();
+        //JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        if (args.length < 1 || !args[0].equals("-nodr"))
+            toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
 
         JSplitPane splitPane = new JSplitPane();
@@ -278,9 +300,14 @@ public class VUE
         if (args.length > 0) {
             VUE.activateWaitCursor();
             try {
-                LWMap map = OpenAction.loadMap(args[0]);
-                if (map != null)
-                    displayMap(map);
+                OpenAction oa = new OpenAction();
+                for (int i = 0; i < args.length; i++) {
+                    if (args[i].charAt(0) == '-')
+                        continue;
+                    LWMap map = oa.loadMap(args[i]);
+                    if (map != null)
+                        displayMap(map);
+                }
             } finally {
                 VUE.clearWaitCursor();
             }
@@ -590,11 +617,15 @@ public class VUE
         map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
         map.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
         map.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
+        //map.addLWC(new LWNode("Triangle", 5)).setFillColor(Color.orange);
+        //map.addLWC(new LWNode("Diamond", 6)).setFillColor(Color.yellow);
         
         map.addNode(new LWNode("One"));
         map.addNode(new LWNode("Two"));
         map.addNode(new LWNode("Three"));
         map.addNode(new LWNode("Four"));
+        map.addNode(new LWNode("WWWWWWWWWWWWWWWWWWWW"));
+        map.addNode(new LWNode("iiiiiiiiiiiiiiiiiiii"));
         
         map.addNode(LWNode.createTextNode("jumping"));
 
@@ -602,6 +633,7 @@ public class VUE
         // partially here because they're all auto sized
         // based on text, and since haven't been painted yet,
         // and so don't really know their size.
+        // Addendum: with new TextBox, above no longer true.
         LWSelection s = new LWSelection();
         s.setTo(map.getChildIterator());
         Actions.MakeColumn.act(s);
