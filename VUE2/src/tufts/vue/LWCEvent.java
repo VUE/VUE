@@ -5,8 +5,12 @@ import java.util.ArrayList;
 public class LWCEvent
 {
     private Object source;
+    
+    //a LWCevent can either hold a single component or an array of components
+    //one of them is always null
     private LWComponent component = null;
     private ArrayList components = null;
+    
     private String what;
     
     // todo: we still using both src & component?
@@ -52,7 +56,7 @@ public class LWCEvent
         if (component != null && component != source)
             s += " c=" + component;
         
-        //want more information?
+        //basic information.. if more information wants to be stringfied, need to code this part
         else if (components != null)
             s += " ArrayList";
               

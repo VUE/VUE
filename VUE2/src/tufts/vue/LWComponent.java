@@ -804,9 +804,12 @@ public class LWComponent
         notifyLWCListeners(new LWCEvent(this, c, what));
     }
 
-    protected void notify(String what, ArrayList childrenList)
+    /**a notify with an array of components
+       added by Daisuke Fujiwara
+     */
+    protected void notify(String what, ArrayList componentList)
     {
-        notifyLWCListeners(new LWCEvent(this, childrenList, what));
+        notifyLWCListeners(new LWCEvent(this, componentList, what));
     }
     
     /**
