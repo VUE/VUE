@@ -230,7 +230,7 @@ public class ZoomTool extends VueTool
             // don't adjust the scroll region, we've already got
             // the adjustment here -- tho will need work for scrolling!
             
-            if (viewer.getParent() instanceof JViewport)
+            if (viewer.inScrollPane())
                 ;
             else
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
