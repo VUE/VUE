@@ -120,6 +120,13 @@ public class LWLink extends LWComponent
         }
         }*/
 
+    public boolean handleSingleClick(MapMouseEvent e)
+    {
+        // returning true will disallow label-edit
+        // when single clicking over an icon.
+        return mIconBlock.contains(e.getMapX(), e.getMapY());
+    }
+    
     public boolean handleDoubleClick(MapMouseEvent e)
     {
         return mIconBlock.handleDoubleClick(e);

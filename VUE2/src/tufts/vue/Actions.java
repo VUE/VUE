@@ -63,7 +63,7 @@ class Actions {
             }
         };
     static final Action DeselectAll =
-        new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
+        new MapAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             public void act()
             {

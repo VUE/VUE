@@ -1905,6 +1905,8 @@ public class MapViewer extends javax.swing.JPanel
         m.add(Actions.SendToBack);
         m.add(Actions.SendBackward);
         m.addSeparator();
+        m.add(Actions.DeselectAll);
+        m.addSeparator();
         m.add(Actions.Delete);
         m.addSeparator();
         m.add(Actions.AddPathwayNode);

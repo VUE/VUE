@@ -327,8 +327,8 @@ public abstract class LWContainer extends LWComponent
                 LWComponent topMostParentThatIsSiblingOfLink = component.getParentWithParent(commonParent);
                 if (topMostParentThatIsSiblingOfLink == null) {
                     // this could happen for stuff in cutbuffer w/out parent?
-                    System.err.println("*** couldn't find common parent for " + component);
-                    new Throwable().printStackTrace();
+                    System.err.println("note: couldn't find common parent for " + component);
+                    new Throwable("ELPOTOAP debug (ignorable stack trace)").printStackTrace();
                 } else
                     commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
             }
