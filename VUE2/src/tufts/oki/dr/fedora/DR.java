@@ -107,7 +107,7 @@ public class DR implements osid.dr.DigitalRepository {
         java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
         try {
             System.out.println("Fedora Properties"+conf.getPath());
-            FileInputStream fis = new FileInputStream(conf.getPath());
+            FileInputStream fis = new FileInputStream(conf.getFile().replaceAll("%20"," "));
             prefs.importPreferences(fis);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
