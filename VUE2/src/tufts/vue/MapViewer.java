@@ -3278,6 +3278,8 @@ public class MapViewer extends javax.swing.JComponent
             if (hit != sMouseOver) {
                 if (sMouseOver != null) {
                     clearTip(); // in case it had a tip displayed
+                    if (sMouseOver == rollover)
+                        clearRollover();
                     MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
                     sMouseOver.mouseExited(mme);
                 }
@@ -3339,6 +3341,8 @@ public class MapViewer extends javax.swing.JComponent
         public void mouseExited(MouseEvent e)
         {
             if (DEBUG_ROLLOVER) System.out.println(e);
+            if (sMouseOver != null && sMouseOver == rollover)
+                clearRollover();
             if (false&&sMouseOver != null) {
                 sMouseOver.mouseExited(new MapMouseEvent(e));
                 sMouseOver = null;
