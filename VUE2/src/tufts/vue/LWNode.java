@@ -250,7 +250,7 @@ public class LWNode extends LWContainer
         } else {
             // by default, a double-click anywhere else in
             // node opens the resource
-            if (notesIcon.contains(cx, cy)) {
+            if (hasNotes() && notesIcon.contains(cx, cy)) {
                 System.out.println("***NOTES HIT");
                 VUE.objectInspector.setVisible(true);
             } else if (hasResource()) {
