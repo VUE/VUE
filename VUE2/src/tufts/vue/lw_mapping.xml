@@ -126,6 +126,36 @@
 		</field>
 	</class>
         -->
-	
-        
+	<!-- FEDORA OBJECTS -->
+	<class name="tufts.dr.fedora.FedoraObject">
+		<map-to xml="object"/>
+		<field name="ID" type="java.lang.String">
+			<bind-xml name="pid" node="attribute"/>
+		</field>
+		<field name="behaviorList" type="tufts.dr.fedora.Behavior" collection="vector">
+			<bind-xml name="bdef"/>
+		</field>
+		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
+			<bind-xml matches="*" />
+		</field>
+	</class>
+	<class name="tufts.dr.fedora.Behavior">
+		<field name="ID" type="java.lang.String">
+			<bind-xml name="pid" node="attribute"/>
+		</field>
+		<field name="disseminationList" type="tufts.dr.fedora.Dissemination" collection="vector">
+			<bind-xml name="method"/>
+		</field>
+		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
+			<bind-xml matches="*" />
+		</field>
+	</class>
+	<class name="tufts.dr.fedora.Dissemination">
+		<field name="name" type="java.lang.String">
+			<bind-xml name="name" node="attribute"/>
+		</field>
+		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
+			<bind-xml matches="*" />
+		</field>
+	</class>  
 </mapping>
