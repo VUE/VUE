@@ -479,7 +479,8 @@ implements VueConstants {
          */
         frame.show();
         if (splashScreen != null)
-            splashScreen.setVisible(false);
+            splashScreen.toFront(); // this not working...
+        
         System.out.println("after showing frame...");
         if (args.length > 0) {
             try {
@@ -509,6 +510,13 @@ implements VueConstants {
                 ex.printStackTrace();
             }
         }
+
+        if (splashScreen != null) {
+            splashScreen.setVisible(false);
+            splashScreen.dispose();
+            splashScreen = null; // so can be garbage collected
+        }
+        
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
