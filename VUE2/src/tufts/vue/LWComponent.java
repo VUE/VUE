@@ -11,9 +11,6 @@ import java.awt.geom.Rectangle2D;
 
 import java.util.List;
 
-// this is really ours
-//import java.awt.PColor;
-
 /**
  * LWComponent.java
  * 
@@ -42,10 +39,32 @@ public class LWComponent
     }
     public void setLabel(String label)
     {
+        setLabel0(label, true);
+    }
+    /** called directly by TextBox after document edit with setDocument=false */
+    void setLabel0(String label, boolean setDocument)
+    {
+        if (label == null || this.label == label)
+            return;
+        if (this.label != null && this.label.equals(label))
+            return;
         this.label = label;
+        // todo opt: only do this if node or link
+        if (labelBox == null)
+            getLabelBox();
+        else if (setDocument)
+            getLabelBox().setText(label);
         layout();
         notify("label");
     }
+
+    TextBox getLabelBox()
+    {
+        if (this.labelBox == null)
+            this.labelBox = new TextBox(this, this.label);
+        return this.labelBox;
+    }
+    
     public void setNotes(String notes)
     {
         this.notes = notes;
@@ -120,7 +139,7 @@ public class LWComponent
 
     // persistent core
     private String ID = null;
-    private String label = null;
+    protected String label = null; // protected for debugging purposes
     private String notes = null;
     private String metaData = null;
     private String category = null;
@@ -135,13 +154,14 @@ public class LWComponent
     protected Color fillColor = null;           //style
     protected Color textColor = COLOR_TEXT;     //style
     protected Color strokeColor = COLOR_STROKE; //style
-    protected float strokeWidth = 0f;           //style
-    protected Font font = null;                 //style
-    //protected Font font = FONT_DEFAULT;
+    protected float strokeWidth = 0f;            //style
+    //protected Font font = null;                 //style // why did we want this null?
+    protected Font font = FONT_DEFAULT;
     
     /*
      * Runtime only information
      */
+    protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
     protected transient boolean displayed = true;
     protected transient boolean selected = false;
@@ -181,8 +201,8 @@ public class LWComponent
         c.setStrokeColor(getStrokeColor());
         c.setStrokeWidth(getStrokeWidth());
         c.font = this.font;
-        c.label = this.label;
         c.scale = this.scale;
+        c.setLabel(this.label); // use setLabel so new TextBox will be created
         return c;
     }
     
@@ -195,6 +215,19 @@ public class LWComponent
         this.fillColor = color;
         notify("fillColor");
     }
+
+    /*public String getXMLlabelText()
+    {
+        String s = getLabel();
+        s.replaceAll("t", "X");
+        s.replaceAll("\n", "<n>");
+        return s;
+    }
+    public void setXMLlabelText(String s)
+    {
+        System.out.println("setXMLlabelText " + s);
+        }*/
+    
     /** for persistance */
     public String getXMLfillColor()
     {
@@ -213,6 +246,8 @@ public class LWComponent
     public void setTextColor(Color color)
     {
         this.textColor = color;
+        if (labelBox != null)
+            labelBox.copyStyle(this); // todo better: handle thru style.textColor notification?
         notify("textColor");
     }
     /** for persistance */
@@ -285,6 +320,8 @@ public class LWComponent
     public void setFont(Font font)
     {
         this.font = font;
+        if (labelBox != null)
+            labelBox.copyStyle(this);
         layout();
         notify("font");
     }
@@ -316,13 +353,21 @@ public class LWComponent
         return c != null && (COLOR_NODE_DEFAULT.equals(c) || COLOR_NODE_INVERTED.equals(c));
     }
     
+    /** default label X position impl: center the label */
     public float getLabelX()
     {
-        return getCenterX();
+        float x = getCenterX();
+        if (labelBox != null)
+            x -= (labelBox.getMapWidth() / 2) + 1;
+        return x;
     }
+    /** default label Y position impl: center the label */
     public float getLabelY()
     {
-        return getCenterY();
+        float y = getCenterY();
+        if (labelBox != null)
+            y -= labelBox.getMapHeight() / 2;
+        return y;
     }
     
     /*
@@ -523,14 +568,9 @@ public class LWComponent
     public void setAbsoluteWidth(float w) { this.width = w; }
     public void setAbsoluteHeight(float h) { this.height = h; }
     
-    // If the component has an area, it should
-    // implement getShape().  Links, for instance,
-    // don't need to implement this.
-    // todo: that seems a bit inconsistent...  Why
-    // don't links just return their line??
+    /** return border shape of this object */
     public Shape getShape()
     {
-        //return getBounds(); ?
         return null;
     }
     public void setShape(Shape shape)
@@ -561,7 +601,8 @@ public class LWComponent
     }
 
     /**
-     * Return internal bounds of the shape.
+     * Return internal bounds of the border shape, not including
+     * the width of any stroked border.
      */
     public Rectangle2D getShapeBounds()
     {
@@ -571,6 +612,7 @@ public class LWComponent
     
     /**
      * Default implementation: checks bounding box
+     * Subclasses should override and compute via shape.
      */
     public boolean contains(float x, float y)
     {
@@ -578,10 +620,13 @@ public class LWComponent
             && y >= this.y && y <= (this.y+getHeight());
     }
     
+    /**
+     * Default implementation: checks bounding box
+     * Subclasses should override and compute via shape.
+     */
     public boolean intersects(Rectangle2D rect)
     {
         return rect.intersects(getBounds());
-        //return rect.intersects(getX(), getY(), getWidth(), getHeight());
     }
 
     /**
@@ -797,6 +842,15 @@ public class LWComponent
         System.err.println("Unhandled XML obj: " + obj);
     }
 
+
+    /** subclasses override this to add info to toString()
+     (return super.paramString() + new info) */
+    public String paramString()
+    {
+        return " " + x+","+y
+            +  " " + width + "x" + height;
+    }
+
     public String toString()
     {
         String cname = getClass().getName();
@@ -806,8 +860,7 @@ public class LWComponent
             s += " \"" + getLabel() + "\"";
         if (getScale() != 1f)
             s += " z" + getScale();
-        s += " " + x+","+y;
-        s += " " + width + "x" + height;
+        s += paramString();
         s += "]";
         return s;
     }
