@@ -453,7 +453,7 @@ class Actions {
             {
                 return s.countTypes(LWGroup.class) > 0;
             }
-            void act(java.util.Iterator i)
+            void act(Iterator i)
             {
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
@@ -467,7 +467,7 @@ class Actions {
         {
             boolean enabledFor(LWSelection s)
             {
-                return s.size() == 1 && !(s.first() instanceof LWGroup);
+                return s.size() == 1 && s.first().supportsUserLabel();
             }
             void act(LWComponent c) {
                 // todo: throw interal exception if c not in active map
@@ -573,6 +573,7 @@ class Actions {
         new MapAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND))
         {
             void act(LWComponent c) {
+                //System.out.println("BOLDING " + c);
                 Font f = c.getFont();
                 int newStyle = f.getStyle() ^ Font.BOLD;;
                 c.setFont(new Font(f.getName(), newStyle, f.getSize()));
@@ -1050,15 +1051,23 @@ class Actions {
          * Note that the default is to descend into instances of LWGroup
          * and apply the action seperately to each child, and NOT
          * do apply the action to any nodes that are children of
-         * other nodes.
+         * other nodes. If the child is already in selection (e.g.
+         * a select all was done) be sure NOT do act on it, otherwise
+         * the action will be done twice).
          */
-        void act(java.util.Iterator i)
+        void act(Iterator i)
         {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 act(c);
-                if (c instanceof LWGroup)
-                    act(((LWGroup)c).getChildIterator());
+                if (c instanceof LWGroup) {
+                    Iterator gi = ((LWGroup)c).getChildIterator();
+                    while (gi.hasNext()) {
+                        LWComponent gc = (LWComponent) gi.next();
+                        if (!gc.isSelected())
+                            act(gc);
+                    }
+                }
             }
         }
         void act(LWComponent c)
