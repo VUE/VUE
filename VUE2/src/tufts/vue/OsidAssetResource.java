@@ -47,7 +47,7 @@ public class OsidAssetResource extends MapResource
         try
         {
             this.owner = owner;
-            this.asset20 = asset20;
+            this.asset20 = asset;
             setAsset(asset20);
         }
         catch (Throwable t)
@@ -62,7 +62,7 @@ public class OsidAssetResource extends MapResource
         try
         {
             this.owner = owner;
-            this.asset10 = asset10;
+            this.asset10 = asset;
             setAsset(asset10);
         }
         catch (Throwable t)
@@ -112,24 +112,23 @@ public class OsidAssetResource extends MapResource
             }
             catch (Exception ex) 
             {
-                this.spec = (String)asset.getContent();            
+                setSpec((String)asset.getContent());            
                 System.out.println("No VUE integration record.  Fetching Asset's content " + this.spec);
             }
             Object o = mProperties.get("spec");
-            if (this.spec == null)
+            if (getSpec() == null)
             {
-                this.spec = (o != null) ? (String)o : asset.getDisplayName();
+                setSpec( (o != null) ? (String)o : asset.getDisplayName() );
             }
         }
         catch (Exception ex)
         {
-            this.spec = asset.getDisplayName();
+            setSpec(asset.getDisplayName());
         }
     }
 
     public void setAsset(osid.dr.Asset asset) throws osid.dr.DigitalRepositoryException 
     {
-        this.asset10 = asset;
         try
         {
             java.util.Properties osid_registry_properties = new java.util.Properties();
@@ -140,18 +139,12 @@ public class OsidAssetResource extends MapResource
                 sharedImplementation,
                 this.owner);
 
-System.out.println("here0a");
             setType(Resource.ASSET_OKIDR);
-System.out.println("here0a");
             String displayName = asset.getDisplayName();
-System.out.println("here0b");
             setTitle(displayName);
-System.out.println("here0c");
             mProperties.put("title",displayName);
-System.out.println("here0d");
             try
             {
-System.out.print("here1");
                 osid.dr.InfoRecord record = asset10.getInfoRecord(sharedManager.getId(VUE_INTEGRATION_RECORD));
                 // replace the above with integration by type, if added to OSID 2.0
                 if (record != null)
@@ -168,21 +161,18 @@ System.out.print("here1");
             }
             catch (Exception ex) 
             {
-System.out.print("here2");
-                this.spec = (String)asset10.getContent();            
+                setSpec( (String)asset10.getContent() );            
                 System.out.println("No VUE integration record.  Fetching Asset's content " + this.spec);
             }
-System.out.print("here3");
             Object o = mProperties.get("spec");
-            if (this.spec == null)
+            if (getSpec() == null)
             {
-                this.spec = (o != null) ? (String)o : asset10.getDisplayName();
+                setSpec( (o != null) ? (String)o : asset10.getDisplayName() );
             }
-System.out.print("here4");
         }
         catch (Exception ex)
         {
-            this.spec = asset10.getDisplayName();
+            setSpec(asset10.getDisplayName());
         }
     }
 

@@ -137,6 +137,7 @@ public class VueUtil
         // todo: spawn this in another thread just in case it hangs
         
         // there appears to be no point in quoting the URL...
+
         String quotedURL;
         if (true || url.charAt(0) == '\'')
             quotedURL = url;
@@ -203,7 +204,7 @@ public class VueUtil
     {
         url = url.replaceAll(" ", "%20");
         System.err.println("Opening Mac URL: [" + url + "]");
-        if (url.indexOf(':') < 0 && !url.startsWith("/")) {
+        if ( (url.indexOf(':') < 0) && (!(url.startsWith("/"))) ) {
             // OSX won't default to use current directory
             // for a relative reference, so we prepend
             // the current directory manually.
