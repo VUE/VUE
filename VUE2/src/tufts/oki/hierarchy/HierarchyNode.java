@@ -53,8 +53,8 @@ public class HierarchyNode implements osid.hierarchy.Node
         {
             Object nextElement = e.nextElement();
             //for each child node, retrieves the hierarchy node associated with it and adds to the node vector
-            //System.out.println("the class is " + nextElement.getClass().getName());
-            DefaultMutableTreeNode childTreeNode = (DefaultMutableTreeNode) nextElement;
+            
+            DefaultMutableTreeNode childTreeNode = (DefaultMutableTreeNode) nextElement; 
             children.addElement((osid.hierarchy.Node) (childTreeNode.getUserObject()));
         }
 
