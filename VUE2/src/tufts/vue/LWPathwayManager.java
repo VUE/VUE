@@ -52,6 +52,30 @@ public class LWPathwayManager {
             return null;
     }
     
+    /**Interface for Castor by Daisuke Fujiwara
+       In order to prevent redundancy, the current pathway is saved as an index instead of the entire pathway
+     */
+    
+    public int getCurrentIndex()
+    {
+        return pathways.indexOf(current);
+    }
+    
+    public void setCurrentIndex(int index)
+    {
+        try
+        {
+            current = (LWPathway)pathways.get(index);
+        }
+        
+        catch (IndexOutOfBoundsException ie)
+        {
+            current = null;
+        }
+    }
+    
+    /**End of Castor Interface*/
+    
     public LWPathway getLast(){
         if (length() != 0)
             return (LWPathway)pathways.get(length() - 1);        
