@@ -11,9 +11,11 @@ package tufts.oki.dr.fedora;
  * @author  akumar03
  */
 
-import javax.swing.AbstractAction;
-import java.util.ResourceBundle;
 import java.io.*;
+import java.net.URL;
+import java.util.prefs.Preferences;
+import java.util.ResourceBundle;
+import javax.swing.AbstractAction;
 
 public class FedoraUtils {
     
@@ -21,6 +23,7 @@ public class FedoraUtils {
     public static final String SEPARATOR = ",";
     public static final String NOT_DEFINED = "Property not defined";
     
+    private static java.util.Map prefsCache = new java.util.HashMap();
   
     public static java.util.Vector stringToVector(String str) {
         java.util.Vector vector = new java.util.Vector();
@@ -40,22 +43,35 @@ public class FedoraUtils {
         return processString;
     }
     
-    public static String getFedoraProperty(DR dr,String pLookupKey)  throws osid.dr.DigitalRepositoryException{
-        java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
-        String pValue = NOT_DEFINED;
+    public static String getFedoraProperty(DR dr,String pLookupKey)
+        throws osid.dr.DigitalRepositoryException
+    {
         try {
-            FileInputStream fis = new FileInputStream(dr.getConfiguration().getPath().replaceAll("%20"," "));
-            prefs.importPreferences(fis);
-            pValue = prefs.get(pLookupKey,NOT_DEFINED);
-            fis.close();
-        } catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraProperty "+ex.getMessage());
+            return getPreferences(dr.getConfiguration()).get(pLookupKey, NOT_DEFINED);
+        } catch (Exception ex) {
+            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraProperty: " + ex);
         } 
-        return pValue;   
-        
+    }
+
+    public static Preferences getPreferences(URL url)
+        throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException
+    {
+        Preferences prefs = (Preferences) prefsCache.get(url);
+        if (prefs != null)
+            return prefs;
+        String filename = url.getFile().replaceAll("%20"," ");
+        prefs = Preferences.userRoot().node("/");
+        System.out.println("*** FedoraUtils.getPreferences: loading & caching prefs from \"" + filename + "\"");
+        InputStream stream = new BufferedInputStream(new FileInputStream(filename));
+        prefs.importPreferences(stream);
+        prefsCache.put(url, prefs);
+        stream.close();
+        return prefs;
     }
     
-    public static String[] getFedoraPropertyArray(DR dr,String pLookupKey) throws osid.dr.DigitalRepositoryException{
+    public static String[] getFedoraPropertyArray(DR dr,String pLookupKey)
+        throws osid.dr.DigitalRepositoryException
+    {
         String pValue = getFedoraProperty(dr,pLookupKey);
         return pValue.split(SEPARATOR);
     }
@@ -105,7 +121,7 @@ public class FedoraUtils {
             };
             return fedoraAction;
         } catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraAction "+ex.getMessage());
+            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraAction: " + ex);
         } 
     }
     

@@ -119,7 +119,7 @@ public class DR implements osid.dr.DigitalRepository {
         fedoraProperties = new Properties();
         try {
             System.out.println("Fedora Properties " + conf);
-            Preferences prefs = loadPreferences(conf);
+            Preferences prefs = FedoraUtils.getPreferences(conf);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", ""));
@@ -128,23 +128,6 @@ public class DR implements osid.dr.DigitalRepository {
             System.out.println("Fedora soap access = "+fedoraProperties.getProperty("url.fedora.soap.access"));
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
  
-    }
-
-    private static java.util.Map prefsCache = new java.util.HashMap();
-    static Preferences loadPreferences(URL url)
-        throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException
-    {
-        String filename = url.getFile().replaceAll("%20"," ");
-        Preferences prefs = (Preferences) prefsCache.get(filename);
-        if (prefs != null)
-            return prefs;
-        prefs = Preferences.userRoot().node("/");
-        System.out.println("*** DR.loadPreferences: loading & caching prefs from \"" + filename + "\"");
-        InputStream stream = new BufferedInputStream(new FileInputStream(filename));
-        prefs.importPreferences(stream);
-        prefsCache.put(filename, prefs);
-        stream.close();
-        return prefs;
     }
     
     private void loadFedoraObjectAssetTypes() {

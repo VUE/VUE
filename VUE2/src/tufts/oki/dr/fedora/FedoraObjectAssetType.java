@@ -46,7 +46,7 @@ public class FedoraObjectAssetType extends osid.shared.Type {
     {
         Vector infoStructures = new Vector();
         try {
-            Preferences prefs = DR.loadPreferences(dr.getConfiguration());
+            Preferences prefs = FedoraUtils.getPreferences(dr.getConfiguration());
             String infoStructureString = prefs.get(type,"fedora-system:3");
             Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);
             Iterator i = infoStructureVector.iterator();
