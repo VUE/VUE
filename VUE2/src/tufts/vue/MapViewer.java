@@ -2817,7 +2817,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     private void buildAssetMenu(Asset asset) {
-        
+        sAssetMenu.removeAll();
         osid.dr.InfoRecordIterator i;
         try {
             i = asset.getInfoRecords();
