@@ -63,6 +63,7 @@ public class PathwayTable extends JTable
         this.setShowVerticalLines(false);
         this.setShowHorizontalLines(true);
         this.setGridColor(Color.lightGray);
+        this.setIntercellSpacing(new Dimension(0,1));
         this.setBackground(bgColor);
         //this.setSelectionBackground(selectedbgColor);
         this.setDragEnabled(false);
