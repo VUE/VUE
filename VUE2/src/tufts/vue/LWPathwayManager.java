@@ -36,6 +36,15 @@ public class LWPathwayManager {
         pathways.set(index, pathway);
     }
     
+    public ArrayList getPathways()
+    {
+        return pathways;
+    }
+    
+    public void setPathways(ArrayList pathways)
+    {
+        this.pathways = pathways;
+    }
     
     public LWPathway getCurrentPathway() {
         return current;

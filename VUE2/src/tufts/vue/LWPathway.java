@@ -361,6 +361,15 @@ public class LWPathway extends tufts.vue.LWComponent
         System.out.println("MapViewer event: "+e);
     }
    
+    public void setCurrentIndex(int i)
+    {
+        currentIndex = i;
+    }
+    
+    public int getCurrentIndex()
+    {
+        return currentIndex;
+    }
     /*
     public void dividePathway(Node node1, Node node2){
         
