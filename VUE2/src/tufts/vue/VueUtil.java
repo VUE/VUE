@@ -43,8 +43,8 @@ public class VueUtil
         } else {
             UnixPlatform = true;
         }
-        if (isMacPlatform())
-            StrokeBug05 = true;
+        //if (isMacPlatform()) 
+        //  StrokeBug05 = true; // todo: only if mrj.version < 69.1, where they fixed this bug
         if (StrokeBug05)
             System.out.println("Stroke compensation active (0.5 unit offset bug)");
     }
