@@ -151,7 +151,7 @@ class MapDropTarget
             System.out.println("\thitComponent=" + hitComponent);
         }
         
-        boolean modifierKeyWasDown = (dropAction != DnDConstants.ACTION_COPY);
+        boolean modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
         // COPY action is default action.
         
         // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
