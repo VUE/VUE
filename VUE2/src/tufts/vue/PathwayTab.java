@@ -159,8 +159,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //submit
         else
         {            
-            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
-            //node.setNotes(text.getText());
             LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selected);
             element.setNotes(text.getText());
             submit.setEnabled(false);
@@ -178,8 +176,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
             
-            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
-            //text.setText(node.getNotes());
             LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
             text.setText(element.getNotes());
       
@@ -301,8 +297,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
                 switch(column)
                 {                    
                     case 0:
-                        //Node rowNode = pathway.getNode(row);
-                        //return rowNode.getLabel();
                         LWComponent rowElement = pathway.getElement(row);
                         return rowElement.getLabel();
                     //case 1:
@@ -328,7 +322,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
-            //pathway.removeNode(pathway.getNode(row));
             pathway.removeElement(pathway.getElement(row));
             fireTableRowsDeleted(row, row);  
         }
