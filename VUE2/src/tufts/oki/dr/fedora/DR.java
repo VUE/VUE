@@ -550,11 +550,12 @@ public class DR implements osid.dr.DigitalRepository {
                 url = f.toURL();
             } catch (Exception e) {
                 e.printStackTrace();
+                f = null;
             }
         }
         if (url == null)
             url = getClass().getResource(name);
-        System.out.println("fedora.conf = "+url.getFile());
+        System.out.println("DR.getResource(" + name + ") = " + url + " f=" + f);
         return url;
     }
     
