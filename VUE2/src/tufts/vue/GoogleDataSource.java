@@ -41,13 +41,13 @@ public class GoogleDataSource extends VueDataSource{
     public GoogleDataSource(){
         
     }
-    public GoogleDataSource(String DisplayName, String address){
+    public GoogleDataSource(String DisplayName, String address) throws DataSourceException{ 
         this.setDisplayName(DisplayName);
         this.setAddress(address);
         this.setResourceViewer();
     }
     
-    public GoogleDataSource(String displayName,String url,String site,String client) {
+    public GoogleDataSource(String displayName,String url,String site,String client)  throws DataSourceException{
         this.client = client;
         this.site =site;
         this.url = url;
@@ -57,18 +57,20 @@ public class GoogleDataSource extends VueDataSource{
     }
     
     
-    public void  setResourceViewer(){
+    public void  setResourceViewer()throws DataSourceException{
         
         try{
             this.resourceViewer = new TuftsGoogle(this.getDisplayName(),this.getAddress());
             DataSourceViewer.refreshDataSourcePanel(this);
-        }catch (Exception ex){VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");};
+        }catch (Exception ex){
+            throw new DataSourceException("GoogleDataSource.setResourceViewer:"+ex.getMessage());
+        }
     }
     
     public JComponent getResourceViewer(){
         return this.resourceViewer;
     }
-    public void setAddress(String address) {
+    public void setAddress(String address)  throws DataSourceException {
         this.address = address;
         setResourceViewer();
     }
@@ -76,21 +78,21 @@ public class GoogleDataSource extends VueDataSource{
     public String getUrl() {
         return this.url;
     }
-    public void setUrl(String url) {
+    public void setUrl(String url)  throws DataSourceException {
         this.url = url;
         setAddress(createAddress());
     }
     public String getSite() {
         return this.site;
     }
-    public void setSite(String site) {
+    public void setSite(String site)  throws DataSourceException{
         this.site = site;
         setAddress(createAddress());
     }
     public String getClient() {
         return this.client;
     }
-    public void setClient(String client) {
+    public void setClient(String client)  throws DataSourceException{
         this.client = client;
         setAddress(createAddress());
     }

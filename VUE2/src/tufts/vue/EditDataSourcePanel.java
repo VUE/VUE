@@ -88,14 +88,14 @@ public class EditDataSourcePanel extends JPanel{
             fileSelectButton  = new JButton("Browse...");
             fileSelectButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                     JFileChooser chooser = new JFileChooser();
-                     chooser.setDialogTitle("Select Folder");
-                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                     chooser.setFileFilter(new VueFileFilter());
-                     int option = chooser.showDialog(tufts.vue.VUE.getInstance(), "Select");
-                     if(option ==  JFileChooser.APPROVE_OPTION) {
-                         pathField.setText(chooser.getSelectedFile().getAbsolutePath());
-                     }
+                    JFileChooser chooser = new JFileChooser();
+                    chooser.setDialogTitle("Select Folder");
+                    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    chooser.setFileFilter(new VueFileFilter());
+                    int option = chooser.showDialog(tufts.vue.VUE.getInstance(), "Select");
+                    if(option ==  JFileChooser.APPROVE_OPTION) {
+                        pathField.setText(chooser.getSelectedFile().getAbsolutePath());
+                    }
                 }
             });
             dsNameField = new JTextField();
@@ -106,10 +106,16 @@ public class EditDataSourcePanel extends JPanel{
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        FileDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        FileDataSourcePanel.this.dataSource.setAddress(pathField.getText());
-                        dialog.hide();
-                        dialog.dispose();
+                        try {
+                            FileDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                            FileDataSourcePanel.this.dataSource.setAddress(pathField.getText());
+                        } catch(Exception ex) {
+                            if(DEBUG.DR) System.out.println(ex);
+                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            dialog.hide();
+                            dialog.dispose();
+                        }
                     }
                 }
             });
@@ -136,7 +142,7 @@ public class EditDataSourcePanel extends JPanel{
             this.add(dsNameField);
             
             c.gridwidth =1;
-             
+            
             c.weightx = 0.0;
             gridbag.setConstraints(pathLabel,c);
             this.add(pathLabel);
@@ -145,7 +151,7 @@ public class EditDataSourcePanel extends JPanel{
             c.fill = GridBagConstraints.HORIZONTAL;
             gridbag.setConstraints(pathField,c);
             this.add(pathField);
-       
+            
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.fill = GridBagConstraints.NONE;
             c.weightx = 0.0;
@@ -198,9 +204,15 @@ public class EditDataSourcePanel extends JPanel{
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        FavoritesDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        dialog.hide();
-                        dialog.dispose();
+                        try {
+                            FavoritesDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                        } catch(Exception ex) {
+                            if(DEBUG.DR) System.out.println(ex);
+                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            dialog.hide();
+                            dialog.dispose();
+                        }
                     }
                 }
             });
@@ -285,12 +297,18 @@ public class EditDataSourcePanel extends JPanel{
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        RemoteFileDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        RemoteFileDataSourcePanel.this.dataSource.setAddress(addressField.getText());
-                        RemoteFileDataSourcePanel.this.dataSource.setUserName(userField.getText());
-                        RemoteFileDataSourcePanel.this.dataSource.setPassword(new String(passwordField.getPassword()));
-                        dialog.hide();
-                        dialog.dispose();
+                        try {
+                            RemoteFileDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                            RemoteFileDataSourcePanel.this.dataSource.setAddress(addressField.getText());
+                            RemoteFileDataSourcePanel.this.dataSource.setUserName(userField.getText());
+                            RemoteFileDataSourcePanel.this.dataSource.setPassword(new String(passwordField.getPassword()));
+                        } catch(Exception ex) {
+                            if(DEBUG.DR) System.out.println(ex);
+                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            dialog.hide();
+                            dialog.dispose();
+                        }
                     }
                 }
             });
@@ -415,12 +433,18 @@ public class EditDataSourcePanel extends JPanel{
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        FedoraDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        FedoraDataSourcePanel.this.dataSource.setAddress(addressField.getText());
-                        FedoraDataSourcePanel.this.dataSource.setUserName(userField.getText());
-                        FedoraDataSourcePanel.this.dataSource.setPassword(new String(passwordField.getPassword()));
-                        dialog.hide();
-                        dialog.dispose();
+                        try {
+                            FedoraDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                            FedoraDataSourcePanel.this.dataSource.setAddress(addressField.getText());
+                            FedoraDataSourcePanel.this.dataSource.setUserName(userField.getText());
+                            FedoraDataSourcePanel.this.dataSource.setPassword(new String(passwordField.getPassword()));
+                        } catch(Exception ex) {
+                            if(DEBUG.DR) System.out.println(ex);
+                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            dialog.hide();
+                            dialog.dispose();
+                        }
                     }
                 }
             });
@@ -543,12 +567,18 @@ public class EditDataSourcePanel extends JPanel{
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        GoogleDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        GoogleDataSourcePanel.this.dataSource.setUrl(addressField.getText());
-                        GoogleDataSourcePanel.this.dataSource.setClient(clientField.getText());
-                        GoogleDataSourcePanel.this.dataSource.setSite(siteField.getText());
-                        dialog.hide();
-                        dialog.dispose();
+                        try {
+                            GoogleDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                            GoogleDataSourcePanel.this.dataSource.setUrl(addressField.getText());
+                            GoogleDataSourcePanel.this.dataSource.setClient(clientField.getText());
+                            GoogleDataSourcePanel.this.dataSource.setSite(siteField.getText());
+                        } catch(Exception ex) {
+                            if(DEBUG.DR) System.out.println(ex);
+                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            dialog.hide();
+                            dialog.dispose();
+                        }
                     }
                 }
             });
@@ -660,10 +690,16 @@ public class EditDataSourcePanel extends JPanel{
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        OsidDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        OsidDataSourcePanel.this.dataSource.setAddress(addressField.getText());
-                        dialog.hide();
-                        dialog.dispose();
+                        try {
+                            OsidDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                            OsidDataSourcePanel.this.dataSource.setAddress(addressField.getText());
+                        } catch(Exception ex) {
+                            if(DEBUG.DR) System.out.println(ex);
+                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            dialog.hide();
+                            dialog.dispose();
+                        }
                     }
                 }
             });
@@ -700,7 +736,7 @@ public class EditDataSourcePanel extends JPanel{
             c.weightx = 1.0;
             gridbag.setConstraints(addressField,c);
             this.add(addressField);
-
+            
             c.anchor = GridBagConstraints.EAST;
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.weightx = 1.0;

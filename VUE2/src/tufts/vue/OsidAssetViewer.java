@@ -94,7 +94,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
     private osid.OsidContext context = new osid.OsidContext();
     
     /** Creates a new instance of Viewer */
-    public OsidAssetViewer(String implementation, osid.OsidOwner owner) 
+    public OsidAssetViewer(String implementation, osid.OsidOwner owner) throws DataSourceException
     {
         this.owner = owner;
         setLayout(new BorderLayout());
@@ -156,7 +156,8 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
                         + "implementation=[" + implementation + "]\n"
                         + t.getClass().getName() + ":\n" + t.getMessage();
                     System.err.println(message);
-                    JOptionPane.showMessageDialog(this, message, "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                    throw new DataSourceException(message);
+ //                   JOptionPane.showMessageDialog(this, message, "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
 //                }
             }
             if (isOSID20)

@@ -39,7 +39,7 @@ public class OsidDataSource extends VueDataSource{
     public OsidDataSource() {
     }
     
-    public OsidDataSource(String DisplayName, String address){
+    public OsidDataSource(String DisplayName, String address) throws DataSourceException{
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
 //          this.setAutoConnect(false);
@@ -57,12 +57,11 @@ public class OsidDataSource extends VueDataSource{
         
     }
      
-   public void  setResourceViewer(){
+   public void  setResourceViewer() throws DataSourceException{
              
-       try{
+       
           this.resourceViewer = new OsidAssetViewer(this.address,new osid.OsidOwner());
-              
-       }catch (Exception ex){}; 
+
    }
 
    public JComponent getResourceViewer(){

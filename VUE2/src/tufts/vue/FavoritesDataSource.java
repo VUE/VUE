@@ -38,7 +38,7 @@ public class FavoritesDataSource extends VueDataSource{
         
         
     }
-    public FavoritesDataSource(String DisplayName){
+    public FavoritesDataSource(String DisplayName) throws DataSourceException{
           this.setDisplayName(DisplayName);   
            this.setResourceViewer();
         
@@ -47,7 +47,7 @@ public class FavoritesDataSource extends VueDataSource{
     
    
     
-   public void  setResourceViewer(){
+   public void  setResourceViewer() throws DataSourceException{
        
            this.resourceViewer = new FavoritesWindow(this.getDisplayName());
 

@@ -11,11 +11,11 @@ package tufts.vue;
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
-
+ 
 /*
  * RemoteFileDataSource.java
  *
@@ -47,97 +47,98 @@ import tufts.oki.shared.*;
 
 
 public class RemoteFileDataSource extends VueDataSource{
- 
+    
     private JComponent resourceViewer;
- 
+    
     private String UserName;
     private String password;
     
-      public RemoteFileDataSource(){
+    public RemoteFileDataSource(){
         
         
     }
-    public RemoteFileDataSource(String DisplayName, String address, String username, String password){
-          this.setDisplayName(DisplayName); 
-          this.setUserName(username);
-          this.setPassword(password);
-          this.setAddress(address);
-          
-          
+    public RemoteFileDataSource(String DisplayName, String address, String username, String password) throws DataSourceException {
+        this.setDisplayName(DisplayName);
+        this.setUserName(username);
+        this.setPassword(password);
+        this.setAddress(address);
         
-     }
-
-
-      public void setAddress(String address){
+        
+        
+    }
+    
+    
+    public void setAddress(String address) throws DataSourceException {
         
         super.setAddress(address);
         this.setResourceViewer();
         
     }
-   
-
-     public void setUserName(String username){
+    
+    
+    public void setUserName(String username){
         
         this.UserName = username;
         
     }
-     public String getUserName(){
+    public String getUserName(){
         
         return this.UserName;
         
     }
-     
-      public void setPassword(String password){
+    
+    public void setPassword(String password){
         
         this.password = password;
         
     }
-        public String getPassword(){
+    public String getPassword(){
         
         return this.password;
         
     }
-   public void  setResourceViewer(){
-          
-              Vector cabVector = new Vector();
-            try{
+    public void  setResourceViewer() throws DataSourceException {
+        
+        Vector cabVector = new Vector();
+        try{
             RemoteFilingManager manager = new RemoteFilingManager();   // get a filing manager
-            manager.createClient(this.getAddress(),this.getUserName(),this.getPassword());       // make a connection to the ftp site 
-            RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots(); 
+            manager.createClient(this.getAddress(),this.getUserName(),this.getPassword());       // make a connection to the ftp site
+            RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots();
             osid.shared.Agent agent = null; //  This may cause problems later.
             while(rootCabs.hasNext()){
                 RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
-                CabinetResource res = new CabinetResource (rootNode);
-                cabVector.add (res);
-               
-            }   
-            }catch (Exception ex) {VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}
-
-            VueDragTree fileTree = new VueDragTree (cabVector.iterator(), this.getDisplayName());
-            JScrollPane rSP = new JScrollPane (fileTree);
-            JPanel localPanel = new JPanel();
-            localPanel.setMinimumSize(new Dimension(290,100));
-            localPanel.setLayout(new BorderLayout());
-            localPanel.add(rSP,BorderLayout.CENTER);
-            this.resourceViewer = localPanel;
-            DataSourceViewer.refreshDataSourcePanel(this);
-           
-
-   
-   }
-
-   public JComponent getResourceViewer(){
-       
-          return this.resourceViewer;   
-       
-   }
- 
-   
+                CabinetResource res = new CabinetResource(rootNode);
+                cabVector.add(res);
+                
+            }
+        }catch (Exception ex)  {
+            throw new DataSourceException("GoogleDataSource.setResourceViewer:"+ex.getMessage());
+        }
+        VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
+        JScrollPane rSP = new JScrollPane(fileTree);
+        JPanel localPanel = new JPanel();
+        localPanel.setMinimumSize(new Dimension(290,100));
+        localPanel.setLayout(new BorderLayout());
+        localPanel.add(rSP,BorderLayout.CENTER);
+        this.resourceViewer = localPanel;
+        DataSourceViewer.refreshDataSourcePanel(this);
+        
+        
+        
+    }
+    
+    public JComponent getResourceViewer(){
+        
+        return this.resourceViewer;
+        
+    }
+    
+    
     
 }
 
 
-    
+
 
 
 

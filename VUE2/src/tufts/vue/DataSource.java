@@ -43,7 +43,7 @@ public interface DataSource{
      * Set the Display Name of Data Source
      */
    
-    public void setDisplayName(String DisplayName);
+    public void setDisplayName(String DisplayName) throws DataSourceException;
      /**
      * Return the address associated with the DataSource. It may be an IP address or any 
      * address that makes sense for the DataSource. It is a string 
@@ -72,7 +72,7 @@ public interface DataSource{
      *
      */
        
-    public void setResourceViewer();
+    public void setResourceViewer() throws DataSourceException;
     
      /**
      *Returns a JComponent that is the Viewer for the DataSource

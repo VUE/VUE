@@ -180,7 +180,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                activeDataSource.setResourceViewer();
+                try {
+                    activeDataSource.setResourceViewer();
+                } catch(Exception ex){
+                    if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
+                }
                 refreshDataSourceList();
                 
             }
@@ -444,18 +448,23 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     /**
      *If load datasources fails this method is called
      */
-
+    
     private void loadDefaultDataSources() {
-        DataSource ds1 = new LocalFileDataSource("My Computer","");
-        addDataSource(ds1);
-        DataSource ds2 = new FavoritesDataSource("My Favorites");
-        addDataSource(ds2);
-        DataSource ds3 = new FedoraDataSource("Tufts Digital Library","snowflake.lib.tufts.edu", "test","test");
-        addDataSource(ds3);
-        DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
-        addDataSource(ds4);
-        saveDataSourceViewer();
-        setActiveDataSource(ds1);
+        try {
+            DataSource ds1 = new LocalFileDataSource("My Computer","");
+            addDataSource(ds1);
+            DataSource ds2 = new FavoritesDataSource("My Favorites");
+            addDataSource(ds2);
+            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","snowflake.lib.tufts.edu", "test","test");
+            addDataSource(ds3);
+            DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
+            addDataSource(ds4);
+            saveDataSourceViewer();
+            setActiveDataSource(ds1);
+        } catch(Exception ex) {
+            if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
+        }
+        
     }
     /*
      * static method that returns all the datasource where Maps can be published.

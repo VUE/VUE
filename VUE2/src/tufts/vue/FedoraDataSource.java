@@ -44,8 +44,8 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
         
         
     }
-    public FedoraDataSource(String DisplayName, String address, String username, String password){
-        this.setDisplayName(DisplayName);
+    public FedoraDataSource(String displayName, String address, String username, String password) throws DataSourceException{
+        this.setDisplayName(displayName);
         this.setAddress(address);
         this.setUserName(username);
         this.setPassword(password);
@@ -79,12 +79,14 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
     }
     
     
-    public void  setResourceViewer(){
+    public void  setResourceViewer() throws DataSourceException{
         
         try{
             this.resourceViewer = new DRViewer("fedora.conf",this.getDisplayName(),this.getDisplayName(),this.getDisplayName(),new URL("http",this.getAddress(),8080,"fedora/"),this.getUserName(),this.getPassword());
             
-        }catch (Exception ex){VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");};
+        }catch (Exception ex){
+            throw new DataSourceException("FedoraDataSource.setResourceViewer "+ex);
+        }
     }
     
     public JComponent getResourceViewer(){

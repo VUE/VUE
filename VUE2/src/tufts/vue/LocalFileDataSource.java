@@ -55,13 +55,14 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         
     }
     
-    public LocalFileDataSource(String DisplayName, String address){
-        this.setDisplayName(DisplayName);
+    public LocalFileDataSource(String displayName, String address) throws DataSourceException{
+        
+        this.setDisplayName(displayName);
         this.setAddress(address);
         
     }
     
-    public void setAddress(String address) {
+    public void setAddress(String address)  throws DataSourceException{
         super.setAddress(address);
         this.setResourceViewer();
     }

@@ -35,6 +35,7 @@ import javax.swing.JPanel;
 
 public class VueDataSource implements DataSource{
   
+    public static final String RESOURCEVIEWER_ERROR = "No ResourceViewer Available";
     String displayName;
     String address;
     String Id;
@@ -50,7 +51,7 @@ public class VueDataSource implements DataSource{
         
     }
     
-    public VueDataSource(String DisplayName){
+    public VueDataSource(String DisplayName) throws DataSourceException{
         
      this.displayName = DisplayName;   
      this.setResourceViewer();
@@ -63,7 +64,7 @@ public class VueDataSource implements DataSource{
       return this.displayName;   
      }
    
-    public void setDisplayName(String DisplayName){
+    public void setDisplayName(String DisplayName)  throws DataSourceException{
         
         this.displayName = DisplayName;  
         
@@ -81,7 +82,7 @@ public class VueDataSource implements DataSource{
          
          
      }
-     public void setAddress(String address){
+     public void setAddress(String address)  throws DataSourceException{
          
          this.address = address;
          
@@ -102,7 +103,7 @@ public class VueDataSource implements DataSource{
         return this.Id; 
     }
    
-    public void setId(String Id){
+    public void setId(String Id)  throws DataSourceException{
       
         this.Id = Id;
         
@@ -118,14 +119,15 @@ public class VueDataSource implements DataSource{
         
     }
     
-    public void setAutoConnect(boolean b)
+    public void setAutoConnect(boolean b)  throws DataSourceException
     {
         this.isAutoConnect = b;
     }
     
-    public void  setResourceViewer(){
+    public void  setResourceViewer() throws DataSourceException{
         
-     this.resourceViewer = new JPanel();   
+     this.resourceViewer = new JPanel();  
+     throw new DataSourceException(RESOURCEVIEWER_ERROR);
         
     }
     /**
