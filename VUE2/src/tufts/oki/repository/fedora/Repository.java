@@ -92,9 +92,9 @@ public class Repository implements osid.repository.Repository {
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
-    /** Creates a new instance of DR */
+    /** Creates a new instance of Repository */
     public Repository(String conf,String id,String displayName,String description,URL address,String userName,String password)
-        throws osid.repository.RepositoryException, osid.shared.SharedException
+        throws osid.repository.RepositoryException
     {
         System.out.println("Repository CONSTRUCTING["
                            + conf + ", "
@@ -105,7 +105,11 @@ public class Repository implements osid.repository.Repository {
                            + userName + ", "
                            + password + "] " + this);
         
-        this.id = new PID(id);
+        try
+        {
+            this.id = new PID(id);
+        }
+        catch (osid.shared.SharedException sex) {}
         this.displayName = displayName;
         this.description = description;
         this.address = address;
@@ -153,7 +157,7 @@ public class Repository implements osid.repository.Repository {
             while(i.hasNext()) {
                 createFedoraObjectAssetType((String)i.next());
             }
-        } catch (Exception ex) { System.out.println("Unable to load fedora types"+ex);}
+        } catch (Throwable t) { System.out.println("Unable to load fedora types"+t.getMessage());}
     }
     public Properties getFedoraProperties() {
         return fedoraProperties;
@@ -179,8 +183,8 @@ public class Repository implements osid.repository.Repository {
         }
         FedoraObjectAssetType fedoraObjectAssetType = new FedoraObjectAssetType(this,type);
         osid.repository.RecordStructureIterator iter =  fedoraObjectAssetType.getRecordStructures();
-        while(iter.hasNext()) {
-            osid.repository.RecordStructure recordStructure = (osid.repository.RecordStructure)iter.next();
+        while(iter.hasNextRecordStructure()) {
+            osid.repository.RecordStructure recordStructure = (osid.repository.RecordStructure)iter.nextRecordStructure();
             if(recordStructures.indexOf(recordStructure) < 0)
                 recordStructures.add(recordStructure);
         }
@@ -274,8 +278,8 @@ public class Repository implements osid.repository.Repository {
                 osid.repository.Asset asset = new Asset(new PID(assetId+i),this);
                 assetVector.add(asset);
             }
-        } catch(Exception ex) {
-            throw new RepositoryException(ex.getMessage());
+        } catch(Throwable t) {
+            throw new RepositoryException(t.getMessage());
         }
         return (osid.repository.AssetIterator) new AssetIterator(assetVector);
     }
@@ -404,8 +408,8 @@ public class Repository implements osid.repository.Repository {
         searchCriteria.setConditions(condition);
         searchCriteria.setMaxReturns("1");
         osid.repository.AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
-        if(mAssetIterator.hasNext())
-            return  mAssetIterator.next();
+        if(mAssetIterator.hasNextAsset())
+            return  mAssetIterator.nextAsset();
         else
             throw new osid.repository.RepositoryException(osid.repository.RepositoryException.UNKNOWN_ID);
         
@@ -444,19 +448,27 @@ public class Repository implements osid.repository.Repository {
     }
     
     public osid.shared.Type getType() throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        return new Type("repository","tufts.edu","fedora_image","");
     }
     
     public osid.repository.Asset getAssetByDate(osid.shared.Id id, long date) throws osid.repository.RepositoryException {
         return getAsset(id,date);
     }
     
-    public osid.repository.AssetIterator getAssetsBySearch(java.io.Serializable serializable, osid.shared.Type type) throws osid.repository.RepositoryException {
+    public osid.repository.AssetIterator getAssetsBySearch(java.io.Serializable serializable, osid.shared.Type type, osid.shared.Properties properties) throws osid.repository.RepositoryException {
         return getAssets(serializable, type);
     }
     
     public osid.repository.AssetIterator getAssetsByType(osid.shared.Type type) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        return getAssets();
+    }
+    
+    public boolean supportsUpdate() throws osid.repository.RepositoryException {
+        return false;
+    }
+    
+    public boolean supportsVersioning() throws osid.repository.RepositoryException {
+        return false;
     }
     
     public  osid.shared.Id ingest(String fileName,String templateFileName,String fileType, File file,Properties properties) throws osid.repository.RepositoryException, java.net.SocketException,java.io.IOException,osid.shared.SharedException,javax.xml.rpc.ServiceException{

@@ -12,13 +12,13 @@ implements osid.repository.PartStructureIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextPartStructure()
     throws osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.PartStructure next()
+    public osid.repository.PartStructure nextPartStructure()
     throws osid.repository.RepositoryException
     {
         if (i >= vector.size())

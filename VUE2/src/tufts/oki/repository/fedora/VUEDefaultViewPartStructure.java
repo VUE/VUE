@@ -8,7 +8,7 @@ implements osid.repository.PartStructure
     private String displayName = "VUEDefaultViewPartStructure";
     private String description = "Store URL for VUE to view the object";
     private osid.shared.Id id = null;
-    private boolean populatedByDR = false;
+    private boolean populatedByRepository = false;
     private boolean mandatory = false;
     private boolean repeatable = false;
     private osid.shared.Type type = new Type("repository","tufts.edu","vue_part_structure");
@@ -76,10 +76,10 @@ implements osid.repository.PartStructure
         return this.mandatory;
     }
 
-    public boolean isPopulatedByDR()
+    public boolean isPopulatedByRepository()
     throws osid.repository.RepositoryException
     {
-        return this.populatedByDR;
+        return this.populatedByRepository;
     }
 
     public boolean isRepeatable()

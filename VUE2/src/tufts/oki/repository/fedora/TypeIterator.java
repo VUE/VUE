@@ -12,7 +12,7 @@ implements osid.shared.TypeIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextType()
     throws osid.shared.SharedException
     {
         return i < vector.size();
@@ -29,12 +29,6 @@ implements osid.shared.TypeIterator
         {
             throw new osid.shared.SharedException(osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
         }
-    }
-
-    public osid.shared.Type nextProperties()
-    throws osid.shared.SharedException
-    {
-        return nextType();
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

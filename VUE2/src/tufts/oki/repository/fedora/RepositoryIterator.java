@@ -12,13 +12,13 @@ implements osid.repository.RepositoryIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextRepository()
     throws osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.Repository next()
+    public osid.repository.Repository nextRepository()
     throws osid.repository.RepositoryException
     {
         if (i >= vector.size())

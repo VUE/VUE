@@ -12,13 +12,13 @@ implements osid.repository.AssetIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextAsset()
     throws osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.Asset next()
+    public osid.repository.Asset nextAsset()
     throws osid.repository.RepositoryException
     {
         if (i >= vector.size())

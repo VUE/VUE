@@ -58,7 +58,7 @@ implements osid.repository.PartStructure
         throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
     }
 
-    public boolean isPopulatedByDR()
+    public boolean isPopulatedByRepository()
     throws osid.repository.RepositoryException
     {
         throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);

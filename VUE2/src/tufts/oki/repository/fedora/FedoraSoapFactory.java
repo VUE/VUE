@@ -70,8 +70,8 @@ public class FedoraSoapFactory {
                     disseminationList.add(record);
                 }
             }
-        } catch(Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+ex.getMessage());
+        } catch(Throwable t) {
+            throw new osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
         }
         return disseminationList;
     }
@@ -139,9 +139,9 @@ public class FedoraSoapFactory {
             
             
             return new AssetIterator(resultObjects) ;
-        }catch(Exception ex) {
-            ex.printStackTrace();
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.search"+ex.getMessage());
+        }catch(Throwable t) {
+            t.printStackTrace();
+            throw new osid.repository.RepositoryException("FedoraSoapFactory.search"+t.getMessage());
             
         }
     }
@@ -178,8 +178,8 @@ public class FedoraSoapFactory {
                 System.out.println("search return no results");
             }
             return new AssetIterator(resultObjects) ;
-        }catch(Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+ex.getMessage());
+        }catch(Throwable t) {
+            throw new osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
         }
     }
     

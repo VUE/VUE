@@ -216,6 +216,7 @@ public class Asset implements osid.repository.Asset{
      *     @throws RepositoryException if there is a general failure
      */
     public osid.shared.Id getId() throws osid.repository.RepositoryException {
+    
         return pid;
     }
     
@@ -225,6 +226,10 @@ public class Asset implements osid.repository.Asset{
      */
     public osid.repository.RecordIterator getRecords() throws osid.repository.RepositoryException {
         return new RecordIterator(recordVector);
+    }
+    
+    public osid.repository.RecordIterator getRecordsByRecordStructureType(osid.shared.Type recordStructureType) throws osid.repository.RepositoryException {
+        return new RecordIterator(new java.util.Vector());
     }
     
     /**     Get all the Records of the specified InfoStructure for this Asset.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -343,14 +348,14 @@ public class Asset implements osid.repository.Asset{
         while(i.hasNext()) {
             Record record = (Record)i.next();
             osid.repository.PartIterator partIterator = record.getParts();
-            while(partIterator.hasNext()){
-                osid.repository.Part part = partIterator.next();
-                try {
-                    if(part.getId().isEqual(id))
+            while(partIterator.hasNextPart()){
+                osid.repository.Part part = partIterator.nextPart();
+//                try {
+//                    if(part.getId().isEqual(id))
                         return part;
-                } catch (osid.shared.SharedException ex) {
-                    throw new osid.repository.RepositoryException(ex.getMessage());
-                }
+//                } catch (osid.shared.SharedException ex) {
+//                    throw new osid.repository.RepositoryException(ex.getMessage());
+//                }
             }
         }
         return null;

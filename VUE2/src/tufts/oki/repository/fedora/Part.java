@@ -50,9 +50,9 @@ implements osid.repository.Part
 
         osid.repository.PartStructureIterator psi = recordStructure.getPartStructures();
         
-        while (psi.hasNext()) 
+        while (psi.hasNextPartStructure()) 
         {
-            osid.repository.PartStructure partStructure = psi.next();
+            osid.repository.PartStructure partStructure = psi.nextPartStructure();
             try 
             {
                 if (partStructureId.isEqual(partStructure.getId())) 

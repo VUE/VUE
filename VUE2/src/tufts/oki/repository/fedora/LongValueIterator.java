@@ -12,7 +12,7 @@ implements osid.shared.LongValueIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextLongValue()
     throws osid.shared.SharedException
     {
         return i < vector.size();

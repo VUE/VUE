@@ -12,13 +12,13 @@ implements osid.repository.RecordStructureIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextRecordStructure()
     throws osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.RecordStructure next()
+    public osid.repository.RecordStructure nextRecordStructure()
     throws osid.repository.RepositoryException
     {
         if (i >= vector.size())

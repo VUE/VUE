@@ -140,10 +140,10 @@ public class FedoraUtils {
 //                        String fedoraUrl = mRecord.getPart(new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"))).getValue().toString();
                         osid.shared.Id id = new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"));
                         osid.repository.PartIterator partIterator = mRecord.getParts();
-                        while (partIterator.hasNext())
+                        while (partIterator.hasNextPart())
                         {
-                            osid.repository.Part part = partIterator.next();
-                            if (part.getId().isEqual(id))
+                            osid.repository.Part part = partIterator.nextPart();
+//                            if (part.getId().isEqual(id))
                             {
                                 String fedoraUrl = part.getValue().toString();
                                 URL url = new URL(fedoraUrl);
@@ -153,12 +153,12 @@ public class FedoraUtils {
                                 break;
                             }
                         }
-                    } catch(Exception ex) {  }
+                    } catch(Throwable t) {  }
                 }
             };
             return fedoraAction;
-        } catch(Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraUtils.getFedoraAction "+ex.getMessage());
+        } catch(Throwable t) {
+            throw new osid.repository.RepositoryException("FedoraUtils.getFedoraAction "+t.getMessage());
         }
     }
     

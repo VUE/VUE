@@ -1,7 +1,7 @@
 
 <project name="vue" default="vuedemo" basedir=".">
 
-<!-- $Revision: 1.4 $ / $Date: 2004-06-04 20:36:59 $ -->
+<!-- $Revision: 1.5 $ / $Date: 2004-06-17 01:36:12 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -87,10 +87,8 @@
     <pathelement path="${lib.home}/okiReversi.jar"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
     <pathelement path="${lib.home}/okiSIDimpl.jar"/>  
-<!-- <pathelement path="${lib.home}/osid.jar"/>  -->
-<!-- <pathelement path="${lib.home}/OkiSIDs.jar"/>  -->
     <!-- This jar must load after okiSID_rc6_1.jar  -->
-    <pathelement path="okiOSID_v2.jar" />
+    <pathelement path="${lib.home}/okiOSID_v2.jar" />
     
     <pathelement path="${lib.home}/postgresql.jar"/>
     <pathelement path="${lib.home}/saaj.jar"/>
@@ -120,7 +118,6 @@
     <pathelement path="${lib.home}/batik-awt-util.jar"/>
     <pathelement path="${lib.home}/batik-util.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
-<!--     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>  -->
     <pathelement path="${lib.home}/fedorautilities.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
     <pathelement path="${lib.home}/fedora-client.jar"/>
@@ -148,7 +145,6 @@
     
   </path>
 
-
   <path id="compile.classpath.oki2">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiOSID_v2.jar"/>
@@ -158,10 +154,20 @@
     
   </path>
 
+  <path id="compile.classpath.oki1and2">
+    <path refid="compile.classpath.common"/>
+    <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
+    <pathelement path="${lib.home}/xercesImpl.jar"/>
+    <pathelement path="${lib.home}/xml-apis.jar"/>
+    <pathelement path="${lib.home}/apache-commons.jar"/>
+    
+  </path>
 
   <path id="compile.classpath.vue">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -235,8 +241,17 @@
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}">
+      <classpath refid="compile.classpath.oki1and2"/>
+      <include name="tufts/vue/OsidAssetViewer.java"/>
+    </javac>
+
+    <javac srcdir="${basedir}" 
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}">
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/vue/**/*.java"/>
+      <exclude name="tufts/vue/OsidAssetViewer.java"/>
     </javac>
 
     </target>

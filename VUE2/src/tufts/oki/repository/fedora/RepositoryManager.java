@@ -3,22 +3,22 @@ package tufts.oki.repository.fedora;
 public class RepositoryManager
 implements osid.repository.RepositoryManager
 {
-    private osid.OsidOwner owner = null;
+    private osid.OsidContext context = null;
     private java.util.Map configuration = null;
 
-    public osid.OsidOwner getOsidOwner()
+    public osid.OsidContext getOsidContext()
     throws osid.repository.RepositoryException
     {
-        return owner;
+        return this.context;
     }
 
-    public void setOsidOwner(osid.OsidOwner owner)
+    public void assignOsidContext(osid.OsidContext context)
     throws osid.repository.RepositoryException
     {
-        this.owner = owner;
+        this.context = context;
     }
 
-    public void setConfiguration(java.util.Properties configuration)
+    public void assignConfiguration(java.util.Properties configuration)
     throws osid.repository.RepositoryException
     {
         this.configuration = configuration;
@@ -50,6 +50,18 @@ implements osid.repository.RepositoryManager
     throws osid.repository.RepositoryException
     {
         java.util.Vector result = new java.util.Vector();
+        
+        try
+        {
+            result.addElement(new Repository("fedora.conf",
+                                         "",
+                                         "Tufts Digital Library",
+                                         "",
+                                         new java.net.URL("http","vue-dl.tccs.tufts.edu",8080,"fedora/"),
+                                         "test",
+                                         "test"));
+        }
+        catch (Throwable t) {}
         // insert code here to add elements to result vector
         return new RepositoryIterator(result);
     }
@@ -123,7 +135,8 @@ implements osid.repository.RepositoryManager
 
     public osid.repository.AssetIterator getAssetsBySearch(osid.repository.Repository[] repositories
                                                          , java.io.Serializable searchCriteria
-                                                         , osid.shared.Type searchType)
+                                                         , osid.shared.Type searchType
+                                                         , osid.shared.Properties properties)
     throws osid.repository.RepositoryException
     {
         if ( (repositories == null) || (searchCriteria == null) )
@@ -137,10 +150,11 @@ implements osid.repository.RepositoryManager
         {
             for (int i=0, length = repositories.length; i < length; i++)
             {
-                osid.repository.AssetIterator assetIterator = repositories[i].getAssetsBySearch(searchCriteria,searchType);
-                while (assetIterator.hasNext())
+                osid.repository.AssetIterator assetIterator = 
+                    repositories[i].getAssetsBySearch(searchCriteria,searchType,null);
+                while (assetIterator.hasNextAsset())
                 {
-                    result.addElement(assetIterator.next());
+                    result.addElement(assetIterator.nextAsset());
                 }
             }
         }
@@ -170,7 +184,7 @@ implements osid.repository.RepositoryManager
         try
         {
             java.util.Vector result = new java.util.Vector();
-            result.addElement(new Type("repository","giunti","Lobster"));
+            result.addElement(new Type("repository","tufts.edu","fedora_image",""));
             return new TypeIterator(result);
         }
         catch (osid.OsidException oex)

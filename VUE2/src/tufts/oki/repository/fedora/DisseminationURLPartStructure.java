@@ -8,7 +8,7 @@ implements osid.repository.PartStructure
     private String displayName = "DisseminationURL";
     private String description = "A URL to get the dissemination of Fedora Object";
     private osid.shared.Id id = null;
-    private boolean populatedByDR = true;
+    private boolean populatedByRepository = true;
     private boolean mandatory = true;
     private boolean repeatable = false;
     private osid.shared.Type type = new Type("repository","tufts.edu","disseminationURL_part_structure");
@@ -76,10 +76,10 @@ implements osid.repository.PartStructure
         return this.mandatory;
     }
 
-    public boolean isPopulatedByDR()
+    public boolean isPopulatedByRepository()
     throws osid.repository.RepositoryException
     {
-        return this.populatedByDR;
+        return this.populatedByRepository;
     }
 
     public boolean isRepeatable()

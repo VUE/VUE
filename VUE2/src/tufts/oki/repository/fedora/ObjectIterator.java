@@ -12,7 +12,7 @@ implements osid.shared.ObjectIterator
         this.vector = vector;
     }
 
-    public boolean hasNext()
+    public boolean hasNextObject()
     throws osid.shared.SharedException
     {
         return i < vector.size();

@@ -8,7 +8,7 @@ implements osid.repository.PartStructure
     private String displayName = "Parameter PartStructure";
     private String description = "Used to set parameters of disemmination. Parameters are optional in Dissemination and they can be single or multivalued.";
     private osid.shared.Id id = null;
-    private boolean populatedByDR = false;
+    private boolean populatedByRepository = false;
     private boolean mandatory = false;
     private boolean repeatable = false;
     private osid.shared.Type type = new Type("repository","tufts.edu","parameter_part_structure");
@@ -76,10 +76,10 @@ implements osid.repository.PartStructure
         return this.mandatory;
     }
 
-    public boolean isPopulatedByDR()
+    public boolean isPopulatedByRepository()
     throws osid.repository.RepositoryException
     {
-        return this.populatedByDR;
+        return this.populatedByRepository;
     }
 
     public boolean isRepeatable()
