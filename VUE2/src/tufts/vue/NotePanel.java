@@ -30,7 +30,7 @@ public class NotePanel extends JPanel {
 	JTextPane mTextPane = new JTextPane();
 
 	/** the property of the notes **/
-	VuePropertyDescriptor mPropertyDescriptor = null;
+	//VuePropertyDescriptor mPropertyDescriptor = null;
 
 	
 	
