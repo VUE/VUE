@@ -92,11 +92,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             {
                 public void selectionChanged(LWSelection selection)
                 {
-                    if (selection.isEmpty())
-                      add.setEnabled(false);
+                    if (!selection.isEmpty() && getPathway() != null)
+                      add.setEnabled(true);
                     
                     else
-                      add.setEnabled(true);
+                      add.setEnabled(false);
                 }
             }     
         );
@@ -114,13 +114,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         add(scrollPane, BorderLayout.CENTER);
         add(buttons, BorderLayout.EAST);
         add(textPanel, BorderLayout.SOUTH);
-    }
-    
-    /**Another constructor which takes in a pathway as an argument*/
-    public PathwayTab(LWPathway pathway)
-    {
-        //this();
-        //setPathway(pathway);
     }
     
     //sets the table's pathway to the given pathway
