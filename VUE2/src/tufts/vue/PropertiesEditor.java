@@ -27,17 +27,25 @@ import java.util.ArrayList;
 public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     
     PropertiesTableModel tableModel;
+    JTable propertiesTable;
+    PropertiesSelectionListener sListener;
+    AddPropertiesButtonListener addPropertiesButtonListener;
+    DeletePropertiesButtonListener deletePropertiesButtonListener;
+    JButton addPropertyButton=new VueButton("add");
+    JButton deletePropertyButton=new VueButton("delete");
+    
     
     /** Creates a new instance of ResourcePropertiesEditor */
-
+    
     public PropertiesEditor(Properties properties,boolean editable) {
+        System.out.println("Created new instance of properties editor");
         tableModel = new PropertiesTableModel(properties, editable);
-        setResourePropertiesPanel(); 
+        setResourePropertiesPanel();
     }
     
     
     private void setResourePropertiesPanel() {
-        JTable propertiesTable=new JTable(tableModel);
+        propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         JScrollPane conditionsScrollPane=new JScrollPane(propertiesTable);
         conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
@@ -46,17 +54,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         propertiesPanel.add(conditionsScrollPane, BorderLayout.CENTER);
         propertiesPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
-        // GRID: addConditionButton
-        JButton addPropertyButton=new VueButton("add");
-        // GRID: deleteConditionButton
-        JButton deletePropertyButton=new VueButton("delete");
-        //setting the listeners
-        PropertiesSelectionListener sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
-        propertiesTable.getSelectionModel().addListSelectionListener(sListener);
-        addPropertyButton.addActionListener(new AddPropertiesButtonListener(tableModel));
-        deletePropertyButton.addActionListener(new DeletePropertiesButtonListener(propertiesTable,sListener));
-
-        // setting the properties editor for fields 
+        
+        // setting the properties editor for fields
         JComboBox comboBox = new JComboBox(DC_FIELDS);
         propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
         
@@ -72,6 +71,12 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         //disable buttons if not editable
         if(tableModel.isEditable()) {
+            sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
+            propertiesTable.getSelectionModel().addListSelectionListener(sListener);
+            addPropertiesButtonListener = new AddPropertiesButtonListener(tableModel);
+            addPropertyButton.addActionListener(addPropertiesButtonListener);
+            deletePropertiesButtonListener = new DeletePropertiesButtonListener(propertiesTable,sListener);
+            deletePropertyButton.addActionListener(deletePropertiesButtonListener);
             topPanel.add(addPropertyButton);
             topPanel.add(deletePropertyButton);
         }
@@ -93,25 +98,41 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         //setSize(300, 300);
         
         validate();
-         
+        
     }
     
+    public void setProperties(Properties properties,boolean editable) {
+        tableModel = new PropertiesTableModel(properties,editable);
+        propertiesTable.setModel(tableModel);
+        if(tableModel.isEditable()) {
+            sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
+            propertiesTable.getSelectionModel().addListSelectionListener(sListener);
+            addPropertyButton.removeActionListener(addPropertiesButtonListener);
+            addPropertiesButtonListener = new AddPropertiesButtonListener(tableModel);
+            addPropertyButton.addActionListener(addPropertiesButtonListener);
+            deletePropertyButton.removeActionListener(deletePropertiesButtonListener);
+            deletePropertiesButtonListener = new DeletePropertiesButtonListener(propertiesTable,sListener);
+            deletePropertyButton.addActionListener(deletePropertiesButtonListener);
+            
+        }
+        
+    }
     
     // a model for Properties table
-     public class PropertiesTableModel extends AbstractTableModel {
-         java.util.List m_conditions;
-         Properties properties;
-         boolean editable;
-
-         public PropertiesTableModel(Properties properties,boolean editable) {
+    public class PropertiesTableModel extends AbstractTableModel {
+        java.util.List m_conditions;
+        Properties properties;
+        boolean editable;
+        
+        public PropertiesTableModel(Properties properties,boolean editable) {
             this.editable = editable;
-            setProperties(properties);   
+            setProperties(properties);
         }
-
+        
         public java.util.List getConditions() {
             return m_conditions;
         }
-      
+        
         public Properties getProperties() {
             return properties;
         }
@@ -134,9 +155,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             }
         }
         
-       public boolean isEditable() {
-           return editable;
-       }
+        public boolean isEditable() {
+            return editable;
+        }
         
         public String getColumnName(int col) {
             if (col==0) {
@@ -145,26 +166,26 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
                 return "Value";
             }
         }
-
+        
         public int getRowCount() {
             return m_conditions.size();
         }
-
+        
         public int getColumnCount() {
             return 2;
         }
-
+        
         public Class getColumnClass(int c) {
             return getValueAt(0, c).getClass();
         }
-
+        
         public Object getValueAt(int row, int col) {
             Condition cond=(Condition) m_conditions.get(row);
-            if (col==0) 
+            if (col==0)
                 return cond.getProperty();
             else
                 return cond.getValue();
-           
+            
         }
         
         public void addProperty(String key, String value) {
@@ -175,18 +196,18 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             properties.put(key, value);
             m_conditions.add(cond);
         }
-            
+        
         public boolean isCellEditable(int row, int col) {
             //Note that the data/cell address is constant,
             //no matter where the cell appears onscreen.
             return editable;
         }
-
+        
         /*
          * Don't need to implement this method unless your table's
          * data can change.
          */
-     
+        
         public void setValueAt(Object value, int row, int col) {
             properties.remove(((Condition)m_conditions.get(row)).getProperty());
             Condition cond;
@@ -200,18 +221,18 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
                 cond.setValue((String)value);
             // row = -1 adds new condions else replace the existing one.
             if (row==-1)
-               m_conditions.add(cond);
-            else 
+                m_conditions.add(cond);
+            else
                 m_conditions.set(row, cond);
             
             properties.setProperty(cond.getProperty(), cond.getValue());
             fireTableCellUpdated(row, col);
         }
-    
-
+        
+        
     }
-     
-     public class PropertiesSelectionListener  implements ListSelectionListener {        
+    
+    public class PropertiesSelectionListener  implements ListSelectionListener {
         private int m_selectedRow;
         private JButton m_deleteButton;
         
@@ -251,47 +272,47 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         }
     }
     
-     public class AddPropertiesButtonListener
-            implements ActionListener {
-
+    public class AddPropertiesButtonListener
+    implements ActionListener {
+        
         private PropertiesTableModel m_model;
-
+        
         public AddPropertiesButtonListener(PropertiesTableModel model) {
             m_model=model;
-           
+            
         }
-
+        
         public void actionPerformed(ActionEvent e) {
-         
+            
             m_model.addProperty(DC_FIELDS[0], "");
             m_model.fireTableDataChanged();
         }
-          
+        
     }
-
-     public class DeletePropertiesButtonListener implements ActionListener { 
-       
-          private PropertiesSelectionListener m_sListener;
-          private JTable table;
-          
-          public DeletePropertiesButtonListener(JTable table,PropertiesSelectionListener sListener) {
-     
-              this.table = table;
-              m_sListener=sListener;
-          }
-          
-          public void actionPerformed(ActionEvent e) {
-              // will only be invoked if an existing row is selected
-              int r=m_sListener.getSelectedRow();
-              ((PropertiesTableModel)table.getModel()).getConditions().remove(r);
-              ((PropertiesTableModel)table.getModel()).fireTableRowsDeleted(r,r);
-              if(r> 0)
+    
+    public class DeletePropertiesButtonListener implements ActionListener {
+        
+        private PropertiesSelectionListener m_sListener;
+        private JTable table;
+        
+        public DeletePropertiesButtonListener(JTable table,PropertiesSelectionListener sListener) {
+            
+            this.table = table;
+            m_sListener=sListener;
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+            // will only be invoked if an existing row is selected
+            int r=m_sListener.getSelectedRow();
+            ((PropertiesTableModel)table.getModel()).getConditions().remove(r);
+            ((PropertiesTableModel)table.getModel()).fireTableRowsDeleted(r,r);
+            if(r> 0)
                 table.setRowSelectionInterval(r-1, r-1);
-              else if(table.getRowCount() > 0)
-                  table.setRowSelectionInterval(0,0);
-          }
-      }
-      
+            else if(table.getRowCount() > 0)
+                table.setRowSelectionInterval(0,0);
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */

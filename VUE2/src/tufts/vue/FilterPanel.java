@@ -270,10 +270,10 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             
             mAnyAllCombo.setSelectedIndex( val);
             buildFilterBox( pMap);
-            /** update filter editor**/
+    
             mMainFilterPanel.remove(filterEditor);
             filterEditor = new FilterEditor();
-            mFilter.setStatements(filterEditor.getFilterTableModel());
+            mFilter.setStatements(filterEditor.getFilterTableModel());          
             mMainFilterPanel.add(BorderLayout.CENTER, filterEditor);
             mMainFilterPanel.validate();
            
@@ -426,17 +426,15 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         }
         public void updatePanel( LWMap pMap) {
             // update the display
-            if(mapFilterModelEditor!= null)
-                remove(mapFilterModelEditor);
-            mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
-            add(mapFilterModelEditor);
+            System.out.println("Map Editor "+mapFilterModelEditor);
+            System.out.println("Map Editor Model  "+pMap.getMapFilterModel());
+            if(mapFilterModelEditor == null) {
+                mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
+                add(mapFilterModelEditor);
+            }else {
+                mapFilterModelEditor.setMapFilterModel(pMap.getMapFilterModel());
+            }        
             validate();
-            
-            
-        }
-        
-        
-    }
-    
-    
+        }  
+    } 
 }

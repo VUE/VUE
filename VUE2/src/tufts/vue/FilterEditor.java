@@ -156,7 +156,7 @@ public class FilterEditor extends JPanel{
             Key key = statement.getKey();
             if(col == VALUE_COL) {
                  if(statement.getKey().getType().getDisplayName().equals(Type.INTEGER_TYPE)) {
-                    statement.setValue(new Integer((String)value));
+                    statement.setValue(new Integer(value.toString()));
                 } else {
                      statement.setValue(value);
                 }
@@ -269,7 +269,7 @@ public class FilterEditor extends JPanel{
                 keys.add(keyAnywhere);
                 keys.add(keyLabel);
                 keys.add(keyNotes);
-                keys.addAll(VUE.getActiveMap().getMapFilterModel());
+                keys.addAll(VUE.getActiveMap().getMapFilterModel().getKeyVector());
                 editor = new JComboBox(keys);
                 return editor;
             }

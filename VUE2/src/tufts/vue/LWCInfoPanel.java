@@ -8,27 +8,26 @@ import javax.swing.border.*;
 
 
 class LWCInfoPanel extends javax.swing.JPanel
-    implements VueConstants,
-               LWSelection.Listener,
-               LWComponent.Listener,
-               ActionListener
-{
+implements VueConstants,
+LWSelection.Listener,
+LWComponent.Listener,
+ActionListener {
     private JTextField labelField = new JTextField(15);
     private JTextField resourceField = new JTextField();
-
+    
     private JPanel fieldPane = new JPanel();
     private JPanel resourceMetadataPanel = new JPanel();
     private JPanel metadataPane = new JPanel();
-
+    private PropertiesEditor propertiesEditor = null;
+    
     private Object[] labelTextPairs = {
         "Label",    labelField,
         "Resource", resourceField,
     };
-
+    
     private LWComponent lwc;
     
-    public LWCInfoPanel()
-    {
+    public LWCInfoPanel() {
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         fieldPane.setLayout(gridBag);
@@ -40,22 +39,21 @@ class LWCInfoPanel extends javax.swing.JPanel
         add(metadataPane,BorderLayout.SOUTH);
         VUE.ModelSelection.addListener(this);
     }
-
+    
     private void setUpMetadataPane() {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(layout);
         metadataPane.add(resourceMetadataPanel);
         
     }
-
+    
     private void addLabelTextRows(Object[] labelTextPairs,
-                                  GridBagLayout gridbag,
-                                  Container container)
-    {
+    GridBagLayout gridbag,
+    Container container) {
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.EAST;
         int num = labelTextPairs.length;
-
+        
         for (int i = 0; i < num; i += 2) {
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
             c.fill = GridBagConstraints.NONE;      //reset to default
@@ -66,30 +64,30 @@ class LWCInfoPanel extends javax.swing.JPanel
             if (txt.startsWith("-")) {
                 txt = txt.substring(1);
                 readOnly = true;
-            } 
+            }
             txt += ": ";
-
+            
             JLabel label = new JLabel(txt);
             //JLabel label = new JLabel(labels[i]);
             //label.setFont(VueConstants.SmallFont);
             gridbag.setConstraints(label, c);
             container.add(label);
-
+            
             c.gridwidth = GridBagConstraints.REMAINDER;     //end row
             c.fill = GridBagConstraints.HORIZONTAL;
-          
+            
             c.weightx = 1.0;
-
+            
             JComponent field = (JComponent) labelTextPairs[i+1];
             field.setFont(VueConstants.SmallFont);
             if (field instanceof JTextField)
                 ((JTextField)field).addActionListener(this);
             gridbag.setConstraints(field, c);
             container.add(field);
-
             
-          field  = new JLabel("Metadata");
-          c.gridwidth = GridBagConstraints.REMAINDER;     //end row
+            
+            field  = new JLabel("Metadata");
+            c.gridwidth = GridBagConstraints.REMAINDER;     //end row
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.WEST;
             gridbag.setConstraints(field, c);
@@ -107,12 +105,11 @@ class LWCInfoPanel extends javax.swing.JPanel
         }
     }
     
-
-    public void LWCChanged(LWCEvent e)
-    {
+    
+    public void LWCChanged(LWCEvent e) {
         if (this.lwc != e.getSource())
             return;
-
+        
         if (e.getWhat() == LWKey.Deleting) {
             this.lwc = null;
             setAllEnabled(false);
@@ -120,16 +117,14 @@ class LWCInfoPanel extends javax.swing.JPanel
             loadItem(this.lwc);
     }
     
-    public void selectionChanged(LWSelection selection)
-    {
+    public void selectionChanged(LWSelection selection) {
         if (selection.isEmpty() || selection.size() > 1)
             setAllEnabled(false);
         else
             loadItem(selection.first());
     }
-
-    private void loadText(JTextComponent c, String text)
-    {
+    
+    private void loadText(JTextComponent c, String text) {
         String hasText = c.getText();
         // This prevents flashing where fields of
         // length greater the the visible area do
@@ -138,18 +133,16 @@ class LWCInfoPanel extends javax.swing.JPanel
         if (hasText != text && !hasText.equals(text))
             c.setText(text);
     }
-
-    private void setAllEnabled(boolean tv)
-    {
+    
+    private void setAllEnabled(boolean tv) {
         int pairs = labelTextPairs.length;
         for (int i = 0; i < pairs; i += 2) {
             JComponent field = (JComponent) labelTextPairs[i+1];
             field.setEnabled(tv);
         }
     }
-
-    private void loadItem(LWComponent lwc)
-    {
+    
+    private void loadItem(LWComponent lwc) {
         if (this.lwc != lwc) {
             if (this.lwc != null)
                 this.lwc.removeLWCListener(this);
@@ -160,15 +153,15 @@ class LWCInfoPanel extends javax.swing.JPanel
             } else
                 setAllEnabled(false);
         }
-
+        
         //System.out.println(this + " loadItem " + lwc);
         LWComponent c = this.lwc;
         if (c == null)
             return;
-
+        
         setAllEnabled(true);
         //System.out.println(this + " loading " + c);
-
+        
         if (c.getResource() != null)
             loadText(resourceField, c.getResource().toString());
         else
@@ -176,21 +169,27 @@ class LWCInfoPanel extends javax.swing.JPanel
         
         labelField.setBackground(c.getFillColor());
         loadText(labelField, c.getLabel());
-
+        
         //loading the metadata if it exists
-        if(c.getResource() != null && c.getResource().getProperties() != null) {
-            metadataPane.remove(resourceMetadataPanel);
+        if(propertiesEditor == null) {
+            if(c.getResource() != null && c.getResource().getProperties() != null) {
+                if(c.getResource().getType() == Resource.ASSET_FEDORA)
+                    propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), false);
+                else
+                    propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
+                resourceMetadataPanel = propertiesEditor;
+                metadataPane.add(resourceMetadataPanel);
+            }
+        } else {
             if(c.getResource().getType() == Resource.ASSET_FEDORA)
-                resourceMetadataPanel = new PropertiesEditor(c.getResource().getProperties(), false);
+                propertiesEditor.setProperties(c.getResource().getProperties(), false);
             else
-                resourceMetadataPanel = new PropertiesEditor(c.getResource().getProperties(), true);
-            metadataPane.add(resourceMetadataPanel);
+                propertiesEditor.setProperties(c.getResource().getProperties(), true);
         }
-
+        
     }
-
-    public void actionPerformed(ActionEvent e)
-    {
+    
+    public void actionPerformed(ActionEvent e) {
         if (this.lwc == null)
             return;
         String text = e.getActionCommand();
@@ -213,11 +212,10 @@ class LWCInfoPanel extends javax.swing.JPanel
             System.err.println("LWCInfoPanel: error setting property value ["+text+"] on " + src);
         }
     }
-
-    public String toString()
-    {
+    
+    public String toString() {
         return "LWCInfoPanel@" + Integer.toHexString(hashCode());
     }
-
-
+    
+    
 }

@@ -365,61 +365,19 @@ implements  VUE.ActiveMapListener {
         }
         public void updatePanel( LWMap pMap) {
             // update the display
-            if(propertiesEditor != null)
-                remove(propertiesEditor);
-            propertiesEditor = new PropertiesEditor(pMap.getMetadata(),true);
-            add(propertiesEditor);
+            if(propertiesEditor != null) {
+                propertiesEditor.setProperties(pMap.getMetadata(),true);
+            } else {
+                System.out.println("MAP Properties editor is null");
+                propertiesEditor = new PropertiesEditor(pMap.getMetadata(),true);
+                add(propertiesEditor);
+            }
             validate();
             
             
         }
         
         
-    }
-    
-    public class MapFilterPanel extends JPanel implements ActionListener, PropertyChangeListener {
-        MapFilterModelEditor mapFilterModelEditor = null;
-        
-        public MapFilterPanel() {
-            
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
-            setBorder( new EmptyBorder(4,4,4,4) );
-            
-        }
-        
-        public MapFilterPanel(LWMap map) {
-            
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
-            setBorder( new EmptyBorder(4,4,4,4) );
-            mapFilterModelEditor = new MapFilterModelEditor(map.getMapFilterModel());
-            add(mapFilterModelEditor);
-            
-        }
-        
-        public void actionPerformed(ActionEvent e) {
-        }
-        
-        public void propertyChange(PropertyChangeEvent evt) {
-        }
-        public String getName() {
-            return "Map Filters"; // this should come from VueResources
-        }
-        public void updatePanel( LWMap pMap) {
-            // update the display
-            if(mapFilterModelEditor!= null)
-                remove(mapFilterModelEditor);
-            mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
-            add(mapFilterModelEditor);
-            validate();
-            
-            
-        }
-        
-        
-    }
-    
-    public String toString() {
-        return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
     
     
