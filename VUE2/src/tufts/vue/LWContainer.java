@@ -981,17 +981,7 @@ public abstract class LWContainer extends LWComponent
         
     }
     
-    public void replaceResource(Resource r1,Resource r2) {
-        Iterator i = getAllDescendentsIterator();
-        while(i.hasNext()) {
-            LWComponent component = (LWComponent) i.next();
-            if(component.hasResource()){
-                Resource resource = component.getResource();
-                if(resource.getSpec().equals(r1.getSpec())) 
-                    component.setResource(r2);
-            }
-        }
-    }
+   
 
     void setScale(float scale)
     {

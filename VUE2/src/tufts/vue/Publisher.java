@@ -361,7 +361,7 @@ public class Publisher extends JDialog implements ActionListener {
                     resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                     String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
                     resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                    saveMap.replaceResource(r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
+                    replaceResource(saveMap,r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
                     
                 }
                 
@@ -416,7 +416,7 @@ public class Publisher extends JDialog implements ActionListener {
                 resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                 imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
                 resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                saveMap.replaceResource(r,new MapResource(IMSCP.RESOURCE_FILES+"/"+file.getName()));
+                replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+"/"+file.getName()));
             }            
         }
         saveMap(saveMap);
@@ -481,6 +481,17 @@ public class Publisher extends JDialog implements ActionListener {
         
     }
     
+    private  void replaceResource(LWMap map,Resource r1,Resource r2) {
+        Iterator i = map.getAllDescendentsIterator();
+        while(i.hasNext()) {
+            LWComponent component = (LWComponent) i.next();
+            if(component.hasResource()){
+                Resource resource = component.getResource();
+                if(resource.getSpec().equals(r1.getSpec())) 
+                    component.setResource(r2);
+            }
+        }
+    }
     private void updatePublishPanel() {
         informationArea.setText(PUBLISH_INFORMATION[publishMode]);
         this.dataSourceComboBox.setModel(new DefaultComboBoxModel(DataSourceViewer.getPublishableDataSources(publishMode)));
@@ -488,6 +499,7 @@ public class Publisher extends JDialog implements ActionListener {
     private tufts.oki.dr.fedora.DR getDR() {
         return ((tufts.oki.dr.fedora.DR)((DRViewer)((DataSource)dataSourceComboBox.getSelectedItem()).getResourceViewer()).getDR());
     }
+    
     
     public class ResourceTableModel  extends AbstractTableModel {
         
