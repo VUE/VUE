@@ -17,6 +17,8 @@ public class DEBUG
     public static boolean PATHWAY = false;
     public static boolean OLDPW = false;
 
+    public static boolean META = false; // generic toggle to use in combination with other flags
+
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
 
     /*

@@ -39,7 +39,7 @@ public class MapViewerEvent
                                + " dispatching to "
                                + listener.getClass().getName()
                                + "@" +  Integer.toHexString(listener.hashCode()));
-            //if (id == PAN) new Throwable().printStackTrace();
+            if (DEBUG.META) new Throwable().printStackTrace();
         }
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
@@ -51,7 +51,7 @@ public class MapViewerEvent
         else if (id == HIDDEN) name = "HIDDEN";
         else if (id == PAN) name = "PAN";
         else if (id == ZOOM) name = "ZOOM";
-        return getClass().getName() + "[" + name + " src=" + getSource() + "]";
+        return "MapViewerEvent[" + name + " src=" + getSource() + "]";
     }
     
     

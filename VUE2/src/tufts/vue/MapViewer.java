@@ -1052,8 +1052,8 @@ public class MapViewer extends javax.swing.JComponent
             getX() == x &&
             getY() == y &&
             getWidth() == w &&
-            getHeight() == h &&
-            activeTextEdit == null;
+            getHeight() == h;
+            //activeTextEdit == null;
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
@@ -1065,6 +1065,8 @@ public class MapViewer extends javax.swing.JComponent
                                + (ignore?" (IGNORING)":""));
         //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
         super.reshape(x,y, w,h);
+        if (ignore && activeTextEdit != null)
+            repaint(); // why do we need to do this?
         if (ignore)
             return;
         
@@ -1086,7 +1088,7 @@ public class MapViewer extends javax.swing.JComponent
         //System.out.println("ul finish: "+p);
 
         //if (isShowing()) mLastCorner = getLocationOnScreen();
-        repaint(250);
+        repaint(250); // why the delay?
         //requestFocus();
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
         // may be causing problems on mac --
@@ -2848,6 +2850,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == 'Z') { resetScrollRegion(); }
 
+                else if (c == '+') { DEBUG.META = !DEBUG.META; }
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
