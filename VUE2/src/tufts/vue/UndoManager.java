@@ -105,7 +105,8 @@ public class UndoManager
             if (Character.isLowerCase(uaName.charAt(0)))
                 uaName = Character.toUpperCase(uaName.charAt(0)) + uaName.substring(1);
             name += uaName;
-            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + ua.propertyChanges.size() + ")";
+            //if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + ua.propertyChanges.size() + ")";
+            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + mPropCount + ")";
             Actions.Undo.setEnabled(true);
         } else {
             Actions.Undo.setEnabled(false);
@@ -119,6 +120,7 @@ public class UndoManager
     }
 
     private LWCEvent mLastEvent;
+    private int mPropCount;
     public synchronized void markChangesAsUndo(String name)
     {
         if (name == null) {
@@ -126,11 +128,12 @@ public class UndoManager
                 return;
             name = mLastEvent.getWhat();
         }
-        if (DEBUG.UNDO) System.out.println("UNDO: marking " + name);
         UndoAction newUndoAction = new UndoAction(name, mPropertyChanges);
         mUndoActions.add(newUndoAction);
-        mPropertyChanges = new HashMap();
+        if (DEBUG.UNDO) System.out.println("UNDO: marked  " + name + " with cnt=" + mPropCount);
         setUndoActionLabel(newUndoAction);
+        mPropertyChanges = new HashMap();
+        mPropCount = 0;
     }
 
     public void LWCChanged(LWCEvent e) {
@@ -153,6 +156,7 @@ public class UndoManager
                     if (DEBUG.UNDO) System.out.println(" (compressed)");
                 } else {
                     propList.put(propName, oldValue);
+                    mPropCount++;
                     mLastEvent = e;
                     //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
                     if (DEBUG.UNDO) System.out.println(" (stored)");
@@ -160,6 +164,7 @@ public class UndoManager
             } else {
                 propList = new HashMap();
                 propList.put(propName, oldValue);
+                mPropCount++;
                 mLastEvent = e;
                 mPropertyChanges.put(c, propList);
                 //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
