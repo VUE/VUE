@@ -26,11 +26,14 @@ public class LWOutlineView extends ToolWindow
         super("Outline View", parent);
         
         tree = new OutlineViewTree();
+        VUE.getSelection().addListener(tree);
+        
         //tree.setBorder(new EmptyBorder(4,4,4,4));
 
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setBorder(null);
         //scrollPane.setBorder(new EmptyBorder(0,0,0,0));
+        //scrollPane.addFocusListener(tree);
         
         if (true) {
             // hack to allow resize corner hits till ToolWindow can catch & redispatch mouse events:

@@ -25,17 +25,18 @@ import java.util.ArrayList;
  */
 
 /**A class that represents a tree structure which holds the outline view model*/
-public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener,java.awt.event.FocusListener
+public class OutlineViewTree extends JTree implements java.awt.event.FocusListener, LWComponent.Listener, TreeModelListener, LWSelection.Listener
 { 
     private boolean focused = false;
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
-     
-    private ImageIcon  selectedIcon = null;
+    
     private ImageIcon  nodeIcon = VueResources.getImageIcon("outlineIcon.node");
     private ImageIcon linkIcon = VueResources.getImageIcon("outlineIcon.link");
     private ImageIcon   mapIcon = VueResources.getImageIcon("outlineIcon.map");
+    private ImageIcon  selectedIcon = null;
+    
     /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
     {
@@ -45,26 +46,54 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setCellRenderer(new OutlineViewTreeRenderer());
          this.addFocusListener(this);
          
-         
-         
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
             new TreeSelectionListener() 
             {
                 public void valueChanged(TreeSelectionEvent e) 
-                {
-                    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+                {                      
+                    ArrayList selectedComponents = new ArrayList();
+                    ArrayList selectedHierarchyNodes = new ArrayList();
                     
-                    //if there is no selected node
-                    if (treeNode == null)
-                      selectedNode = null;
-                                
-                    else 
+                    TreePath[] paths = getSelectionPaths();
+                    
+                    //if there is no selected nodes
+                    if (paths == null)
                     {
-                        //retrieves the LWComponent associated with the selected tree node
-                        selectedNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
-                        LWComponent selectedComponent = selectedNode.getLWComponent();
+                        selectedNode = null;
+                        return;
+                    }
+                    
+                    for(int i = 0; i < paths.length; i++)
+                    {
+                        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)paths[i].getLastPathComponent();
+                        tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
+                        LWComponent component = hierarchyNode.getLWComponent();
+                        
+                        //if it is not LWMap, add to the selected components list
+                        if (!(component instanceof LWMap))
+                        {
+                            selectedComponents.add(component);
+                            selectedHierarchyNodes.add(hierarchyNode);
+                        }
+                    }
+                    
+                    if(focused)
+                    {
+                        //System.out.println("setting vue selection: " + selectedComponents.size());
+                        
+                        if(selectedComponents.size() != 0)
+                          VUE.getSelection().setTo(selectedComponents.iterator());
+                    
+                        else
+                          VUE.getSelection().clear();
+                    }
+                    
+                    //saving the reference for the renaming purpose
+                    if(!selectedHierarchyNodes.isEmpty())
+                      selectedNode = (tufts.oki.hierarchy.HierarchyNode)selectedHierarchyNodes.get(0);
      
+                        /*
                         if (selectedComponent instanceof LWMap)
                           selectedIcon = mapIcon;
                         
@@ -73,11 +102,10 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                         
                         else if (selectedComponent instanceof LWLink)
                           selectedIcon = linkIcon;  
-                            
-                        //if the selected node is not an instance of LWMap
-                        if(!(selectedComponent instanceof LWMap) && focused)
-                            VUE.getSelection().setTo(selectedComponent);
-                    }
+                        */
+                        
+                        //if(!(selectedComponent instanceof LWMap) && focused)
+                            //VUE.getSelection().setTo(selectedComponent);
                 }
             }
         );
@@ -123,35 +151,32 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     public void setSelectionPath(LWComponent component)
     {     
         //in case the node inspector's outline tree is not initalized
-        if (hierarchyModel != null)
-        {
-            TreePath path = hierarchyModel.getTreePath(component);
-            super.setSelectionPath(path);
-            super.expandPath(path);
-            super.scrollPathToVisible(path);
-        }
+        
+        TreePath path = hierarchyModel.getTreePath(component);
+        super.setSelectionPath(path);
+        super.expandPath(path);
+        super.scrollPathToVisible(path);
+        
     }
     
+    /**A method that sets the current tree paths to the ones designated by the given list of components*/
     public void setSelectionPaths(ArrayList list)
     {
-        if (hierarchyModel != null)
-        {
-            TreePath[] paths = new TreePath[list.size()];
-            int counter = 0;
+        TreePath[] paths = new TreePath[list.size()];
+        int counter = 0;
             
-            TreePath path;
+        TreePath path;
             
-            for(Iterator i = list.iterator(); i.hasNext();)
-            {  
-              if ((path = hierarchyModel.getTreePath((LWComponent)i.next())) != null)
-              {
+        for(Iterator i = list.iterator(); i.hasNext();)
+        {  
+            if ((path = hierarchyModel.getTreePath((LWComponent)i.next())) != null)
+            {
                 paths[counter] = path;
                 counter++;
-              }
             }
-            
-            super.setSelectionPaths(paths);
         }
+            
+        super.setSelectionPaths(paths);       
     }
     
     /**A wrapper method which determines whether the underlying model contains a node with the given component*/
@@ -172,7 +197,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     
     /**A method that deals with dynamic changes to the tree element*/
     public void treeNodesChanged(TreeModelEvent e)
-    {
+    {     
         //retrieves the selected node
         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
         
@@ -191,8 +216,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             //changes the node's label and sets it as a new object of the tree node
             try
             {
-                selectedNode.changeLWComponentLabel(treeNode.toString());
+                String newLabel = treeNode.toString();
                 treeNode.setUserObject(selectedNode);
+                selectedNode.changeLWComponentLabel(newLabel);
             }
             
             catch (osid.hierarchy.HierarchyException he)
@@ -208,16 +234,28 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     public void treeNodesRemoved(TreeModelEvent e) {}
     public void treeStructureChanged(TreeModelEvent e) {}
     
+    public void focusGained(java.awt.event.FocusEvent e) {
+        //System.out.println("Focus Gained on OutlineView");
+        //VUE.getSelection().removeListener(this);
+        focused = true;
+    }
+    
+    public void focusLost(java.awt.event.FocusEvent e) {
+        //VUE.getSelection().addListener(this);
+        //System.out.println("Focus lost on OutlineView");
+        focused = false;
+    }
+    
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
         System.out.println("Lwc+" +e);
     
         //when a label on a node was changed
-        //Already label filtered. ???
-                
+        //Already label filtered. 
+       
         hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
-        
+            
         //repaints the entire tree
         repaint();       
     }
@@ -225,8 +263,14 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     /** A method for handling LWSelection event **/
     public void selectionChanged(LWSelection selection)
     {
-        System.out.println("selectionChanged being called");
-        //if it is not an empty selection, select the first element in the selection
+        if(focused)
+        {
+           //System.out.println("returning!!!!!!");
+           return;
+        }
+        
+        //System.out.println("selectionChanged being called");
+       
         if (!selection.isEmpty())
           setSelectionPaths(selection);
         
@@ -279,7 +323,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             
             else
             {
-              if (selectedIcon == null ) System.err.println("OutlineViewTree's icon is null --- problem");
+              //if (selectedIcon == null ) System.err.println("OutlineViewTree's icon is null --- problem");
               setIcon(selectedIcon);
             }
             
@@ -289,18 +333,5 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
 
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
-    }
-    
-    public void focusGained(java.awt.event.FocusEvent e) {
-        System.out.println("Focus Gained on OutlineView");
-        VUE.getSelection().removeListener(this);
-        focused = true;
-    }
-    
-    public void focusLost(java.awt.event.FocusEvent e) {
-        VUE.getSelection().addListener(this);
-        System.out.println("Focus lost on OutlineView");
-        focused = false;
-    }
-    
+    }   
 }
