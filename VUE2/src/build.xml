@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.18 $ / $Date: 2004-12-03 04:57:21 $ -->
+<!-- $Revision: 1.19 $ / $Date: 2004-12-03 05:13:49 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -311,6 +311,7 @@
            optimize="${compile.optimize}"
            listfiles="yes"
            >
+      <classpath refid="compile.classpath.vue"/>
       <include name="tufts/*.java"/>
     </javac>
 
@@ -584,9 +585,11 @@ class Version {
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
       <pathconvert pathsep="," property="info.classpath" refid="runtime.classpath"/>
+      <pathconvert pathsep="," property="info.compilepath.common" refid="compile.classpath.common"/>
       <pathconvert pathsep="," property="info.compilepath.vue" refid="compile.classpath.vue"/>
       <echo message="Distribution jar files: ${info.jarfiles}"/>
       <echo message="Runtime classpath: ${info.classpath}"/>
+      <echo message="common compile classpath: ${info.compilepath.common}"/>
       <echo message="tufts/vue compile classpath: ${info.compilepath.vue}"/>
     </target>
 
