@@ -24,7 +24,7 @@ import java.awt.event.ActionEvent;
  */
 
 /**A class which handles the printing task of the currently active map*/
-public class PrintAction extends Actions$VueAction implements Printable, Runnable
+public class PrintAction extends tufts.vue.Actions$VueAction implements Printable, Runnable
 {
     private static PrintAction singleton;
     public static PrintAction getPrintAction() {

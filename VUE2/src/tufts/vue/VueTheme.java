@@ -21,7 +21,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     
     public FontUIResource getMenuTextFont() { return defaultFont;  }
     public FontUIResource getUserTextFont() { return defaultFont; }
-    public FontUIResource getControlTextFont() { return defaultFont; } // labels, buttons & tabs
+    // controls: labels, buttons, tabs, tables, etc.
+    public FontUIResource getControlTextFont() { return defaultFont; }
     
     protected ColorUIResource getSecondary1() { return VueSecondary1; }
     protected ColorUIResource getSecondary2() { return VueSecondary2; }
