@@ -193,9 +193,11 @@ implements  VUE.ActiveMapListener {
         //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
-        
+        private final PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
         public InfoPanel() {
             JPanel innerPanel = new JPanel();
+            lineIcon.setIconWidth(1600);
+            lineIcon.setIconHeight(1);
             BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
             innerPanel.setLayout(boxLayout);
             
@@ -221,11 +223,22 @@ implements  VUE.ActiveMapListener {
             mPropPanel.addProperty("Date:", mDate);
             mPropPanel.addProperty("Location:",mLocation);
             mPropPanel.addProperty("Description:",mDescriptionEditor);
+            mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
             innerPanel.add(mPropPanel);
+            /**
             JPanel metaDataLabelPanel  = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
             metaDataLabelPanel.add(new JLabel("Metadata"));
+             
             innerPanel.add(metaDataLabelPanel);
+             */
+    
+            
+            JPanel linePanel = new JPanel(new BorderLayout());
+            linePanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+            linePanel.add(new JLabel(lineIcon),BorderLayout.CENTER);
+            linePanel.setSize(300, 11);
+            //innerPanel.add(linePanel); //not working need to re-do
             propertiesEditor = new PropertiesEditor(true);
             JPanel metadataPanel = new JPanel(new BorderLayout());
             metadataPanel.add(propertiesEditor,BorderLayout.WEST);
