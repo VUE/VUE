@@ -20,7 +20,7 @@ public class UserMapType {
 	String mName = null;
 	
 	/** arrayh of UserProperty **/
-	Vector mProperties = null;
+	Vector mProperties = new Vector();
 	
 	////////////////
 	// Constructors
@@ -187,6 +187,47 @@ public class UserMapType {
 		return id;
 	}
 	
+	
+	/**
+	 * createUserProperty
+	 * Creates a user Property with the given display name
+	 * @param String the display name
+	 **/
+	public UserProperty createUserProperty( String pName) {
+		String id = makeUserPropertyID( pName);
+		
+		UserProperty prop = new UserProperty( id, pName);
+		return prop;	
+	}
+	
+	
+	private String makeUserPropertyID( String pName) {
+
+		if( pName == null) {
+			pName = "userProperty";
+			}
+		UserProperty [] types = getUserProperties() ;
+		String id = pName.trim();
+		boolean done = false;
+		String root = pName;
+		if( types != null) {
+			int suffix = 0;
+			while( !done) {
+				boolean alreadyExists = false;
+				for(int i=0; (!alreadyExists) && (i < types.length); i++) {
+					alreadyExists = id.equals( types[i].getID() );
+					}
+				if( !alreadyExists ) {
+					done = true;
+					}
+				else {
+					suffix++;
+					id = root + suffix;
+					}
+				}
+			}
+		return id;
+		}
 	
 	/**
 	 * createMapTypeID

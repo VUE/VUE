@@ -23,16 +23,16 @@ public class UserProperty {
 	/////////////
 	
 	/** the id **/
-	String mID;
+	String mID = null;
 	
 	/** display name **/
 	String mName = null;
 		
 	/** arrayh of UserProperty **/
-	int mType;
+	int mType = 0;;
 	
 	/** value **/
-	String mValue;
+	String mValue = null;
 	
 	/** tag array for tagged property **/
 	private String [] mTags = null;
@@ -41,6 +41,15 @@ public class UserProperty {
 	////////////////
 	// Constructors
 	////////////////
+	
+	public UserProperty() {
+		super();
+	}
+	
+	public UserProperty( String pID, String pName) {
+		mID = pID;
+		mName = pName;
+	}
 	
 	
 	
@@ -150,7 +159,7 @@ public class UserProperty {
 		return retValue;
 			}
 
-	public String toSTring() {
+	public String toString() {
 		String str = getDisplayName();
 		if( str == null)
 			str = super.toString();
