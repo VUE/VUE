@@ -48,8 +48,9 @@ public class MapViewer extends javax.swing.JPanel
     //-------------------------------------------------------
     protected LWSelection VueSelection = VUE.ModelSelection;
     protected LWGroup draggedSelectionGroup = LWGroup.createTemporary(VueSelection);
-    protected Rectangle draggedSelectionBox;     // currently dragged selection box
-    protected boolean draggingSelectionBox;     // are we currently dragging a selection box?
+    protected Rectangle draggedSelectorBox;     // currently dragged selection box
+    protected Rectangle lastPaintedSelectorBox; // last selector box drawn
+    protected boolean draggingSelectorBox;     // are we currently dragging a selection box?
     protected boolean inDrag;                   // are we currently in a drag?
 
     //-------------------------------------------------------
@@ -325,7 +326,6 @@ public class MapViewer extends javax.swing.JPanel
         return this.zoomFactor;
     }
     
-    private boolean skipPaint = false;
     public void reshape(int x, int y, int w, int h)
     {
         if (DEBUG_PAINT) System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h);
@@ -643,6 +643,7 @@ public class MapViewer extends javax.swing.JPanel
     private static final Line2D Yaxis = new Line2D.Float(0, -3000, 0, 3000);
 
     private int paints=0;
+    private boolean repaintingSelector = false;
     public void paint(Graphics g)
     {
         long start = 0;
@@ -650,9 +651,13 @@ public class MapViewer extends javax.swing.JPanel
             System.out.print("paint " + paints + " " + g.getClipBounds()+" "); System.out.flush();
             start = System.currentTimeMillis();
         }
-
         try {
-            super.paint(g);
+            if (repaintingSelector && draggedSelectorBox != null) {
+                redrawSelectorBox((Graphics2D)g);
+                repaintingSelector = false;
+            } else {
+                super.paint(g);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("*** Exception painting in: " + this);
@@ -753,7 +758,6 @@ public class MapViewer extends javax.swing.JPanel
         // Draw the map
         //-------------------------------------------------------
 
-        if (!skipPaint)
         this.map.draw(g2);
 
         //-------------------------------------------------------
@@ -787,8 +791,15 @@ public class MapViewer extends javax.swing.JPanel
 
         if (!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
-        if (VueSelection != null)
+
+        /*if (draggedSelectorBox != null) {
+            drawSelectorBox(g2, draggedSelectorBox);
+            if (VueSelection != null && !VueSelection.isEmpty())
+                new Throwable("selection box while selection visible").printStackTrace(); // todo: dev assertion
+                }//else*/
+        if (VueSelection != null && !VueSelection.isEmpty()) {
             drawSelection(g2);
+        }
 
         if (DEBUG_SHOW_MOUSE_LOCATION) {
             g2.setColor(Color.red);
@@ -990,86 +1001,102 @@ public class MapViewer extends javax.swing.JPanel
         add(activeTextEdit);
         activeTextEdit.requestFocus();
     }
+
+    /** redraw the selection box being dragged by the user
+     * (erase old box, draw new box) */
+    private void redrawSelectorBox(Graphics2D g2)
+    {
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+        g2.setXORMode(COLOR_SELECTION_DRAG);
+        g2.setStroke(STROKE_SELECTION_DYNAMIC);
+        // first, erase last selector box if it was there (XOR redraw = undo)
+        if (lastPaintedSelectorBox != null)
+            g2.draw(lastPaintedSelectorBox);
+        // now, draw the new selector box
+        if (draggedSelectorBox == null)
+            throw new IllegalStateException("null selectorBox!");
+        g2.draw(draggedSelectorBox);
+        lastPaintedSelectorBox = new Rectangle(draggedSelectorBox);
+    }
+    
+    /*
+    private void drawSelectorBox(Graphics2D g2, Rectangle r)
+    {
+            
+        // todo opt: would this be any faster done on a glass pane?
+            
+        //-------------------------------------------------------
+        //
+        // 2003-07-09 09:12.55
+        // Below bug appears to have gone away now that we're
+        // using XOR erase/redraw of selector box.
+        //
+        // *** Okay -- all this only happens when repaint optimization is on
+        // -- a bug in repainting with clip region?  might try
+        // manually setting the region instead of using repaint(region)
+        //
+        // TODO BUG: pixels seems to subtly shift for SOME nodes as they
+        // pass in and out of the drag region on PC JVM 1.4 -- doesn't
+        // depend on region on screen -- actually the node!!
+        // Happens to text more often -- somtimes text & strokes.
+        // Happens much more frequently at zoom exactly 100%.
+            
+        // BTW, XOR isn't the problem -- maybe if we used
+        // Graphics2D.draw(Shape) instead of drawRect?
+        // Doesn't appear to have anything to do with the layer of
+        // the node either.  Perhaps if it's shape contains rounded
+        // components?  Or maybe this is an anti-alias bug?
+        // doesn't appear to be anti-alias or fractional-metrics
+        // related for the text, tho switchin AA off stops
+        // it when the whole node is sometimes slightly streteched
+        // or compressed off to the right.
+
+        // Doesn't seem to happen right away either -- have
+        // to zoom in/out some and/or pan the map around first
+        // Poss requirement: change zoom (in worked), then PAN
+        // while at the zoom level, then zoom back to 100%
+        // this seems to do it for the text shifting anyway --
+        // shifting of everything takes something else I guess.
+        //-------------------------------------------------------
+            
+        //g2.setColor(COLOR_SELECTION_DRAG);
+        g2.setXORMode(COLOR_SELECTION_DRAG);
+        g2.setStroke(STROKE_SELECTION_DYNAMIC);
+        g2.drawRect(r.x, r.y, r.width, r.height);
+    }
+    */
+    
     
     // todo: move all this code to LWSelection?
-    // don't want to make LWSelection a LWComponent tho
-    void drawSelection(Graphics2D g2)
+    private void drawSelection(Graphics2D g2)
     {
-        if (VueSelection.size() > 0) {
-            g2.setColor(COLOR_SELECTION);
-            g2.setStroke(STROKE_SELECTION);
-            java.util.Iterator it = VueSelection.iterator();
-            while (it.hasNext()) {
-                LWComponent c = (LWComponent) it.next();
-                drawComponentSelectionBox(g2, c);
-            }
+        g2.setColor(COLOR_SELECTION);
+        g2.setStroke(STROKE_SELECTION);
+        java.util.Iterator it = VueSelection.iterator();
+        while (it.hasNext()) {
+            LWComponent c = (LWComponent) it.next();
+            drawComponentSelectionBox(g2, c);
         }
         
-        if (draggedSelectionBox != null) {
-            //-------------------------------------------------------
-            // draw the selection box being dragged by the user
-            //-------------------------------------------------------
-            
-            // todo opt: would this be any faster done on a glass pane?
-            
-            //-------------------------------------------------------
-            //
-            // *** Okay -- all this only happens when repaint optimization is on
-            // -- a bug in repainting with clip region?  might try
-            // manually setting the region instead of using repaint(region)
-            //
-            // TODO BUG: pixels seems to subtly shift for SOME nodes as they
-            // pass in and out of the drag region on PC JVM 1.4 -- doesn't
-            // depend on region on screen -- actually the node!!
-            // Happens to text more often -- somtimes text & strokes.
-            // Happens much more frequently at zoom exactly 100%.
-            
-            // BTW, XOR isn't the problem -- maybe if we used
-            // Graphics2D.draw(Shape) instead of drawRect?
-            // Doesn't appear to have anything to do with the layer of
-            // the node either.  Perhaps if it's shape contains rounded
-            // components?  Or maybe this is an anti-alias bug?
-            // doesn't appear to be anti-alias or fractional-metrics
-            // related for the text, tho switchin AA off stops
-            // it when the whole node is sometimes slightly streteched
-            // or compressed off to the right.
-
-            // Doesn't seem to happen right away either -- have
-            // to zoom in/out some and/or pan the map around first
-            // Poss requirement: change zoom (in worked), then PAN
-            // while at the zoom level, then zoom back to 100%
-            // this seems to do it for the text shifting anyway --
-            // shifting of everything takes something else I guess.
-            //-------------------------------------------------------
-            
-            //g2.setXORMode(COLOR_SELECTION_DRAG);
-            g2.setColor(COLOR_SELECTION_DRAG);
-            g2.setStroke(STROKE_SELECTION_DYNAMIC);
-            g2.drawRect(draggedSelectionBox.x, draggedSelectionBox.y,
-                        draggedSelectionBox.width, draggedSelectionBox.height);
-            // end paint dragged selection box
-        }// else
-        //if (!VueSelection.isEmpty() && (!inDrag || draggingSelectionBox)) {
-        if (!VueSelection.isEmpty()) {
-            g2.setStroke(STROKE_ONE);
-            // todo opt: don't recompute bounds here every paint ---
-            // can cache in draggedSelectionGroup
-            Rectangle2D selectionBounds = VueSelection.getBounds();
-            /*
-              bounds cache hack
-            if (VueSelection.size() == 1)
-                selectionBounds = VueSelection.first().getBounds();
-            else
-                selectionBounds = draggedSelectionGroup.getBounds();
-            */
-            //System.out.println("mapSelectionBounds="+selectionBounds);
-            Rectangle2D.Float sb = mapToScreenRect2D(selectionBounds);
-            paintedSelectionBounds = mapToScreenRect(selectionBounds);
-            growForSelection(paintedSelectionBounds);
-            //System.out.println("screenSelectionBounds="+sb);
-            drawSelectionBox(g2, sb);
-        }
-
+        //if (!VueSelection.isEmpty() && (!inDrag || draggingSelectorBox)) {
+        
+        g2.setStroke(STROKE_ONE);
+        // todo opt: don't recompute bounds here every paint ---
+        // can cache in draggedSelectionGroup
+        Rectangle2D selectionBounds = VueSelection.getBounds();
+        /*
+          bounds cache hack
+          if (VueSelection.size() == 1)
+          selectionBounds = VueSelection.first().getBounds();
+          else
+          selectionBounds = draggedSelectionGroup.getBounds();
+        */
+        //System.out.println("mapSelectionBounds="+selectionBounds);
+        Rectangle2D.Float sb = mapToScreenRect2D(selectionBounds);
+        paintedSelectionBounds = mapToScreenRect(selectionBounds);
+        growForSelection(paintedSelectionBounds);
+        //System.out.println("screenSelectionBounds="+sb);
+        drawSelectionBox(g2, sb);
     }
 
     static final Rectangle2D SelectionHandle = new Rectangle2D.Float(0,0,0,0);
@@ -1568,7 +1595,7 @@ public class MapViewer extends javax.swing.JPanel
                     //-------------------------------------------------------
                     selectionClear();
                 }
-                draggingSelectionBox = true;
+                draggingSelectorBox = true;
             }
 
             if (dragComponent != null)
@@ -1612,25 +1639,67 @@ public class MapViewer extends javax.swing.JPanel
         }
 
                 
+        /** mouse has moved while dragging out a selector box -- update
+            selector box shape & repaint */
         private void dragResizeSelectorBox(int screenX, int screenY)
         {
             // Set repaint-rect to where old selection is
-            Rectangle repaintRect;
-            if (draggedSelectionBox != null)
-                repaintRect = draggedSelectionBox;
-            else
-                repaintRect = new Rectangle();
+            Rectangle repaintRect = null;
+            if (draggedSelectorBox != null)
+                repaintRect = draggedSelectorBox;
             
             // Set the current selection box
             int sx = dragStart.x < screenX ? dragStart.x : screenX;
             int sy = dragStart.y < screenY ? dragStart.y : screenY;
-            draggedSelectionBox = new Rectangle(sx, sy,
+            draggedSelectorBox = new Rectangle(sx, sy,
+                                                Math.abs(dragStart.x - screenX),
+                                                Math.abs(dragStart.y - screenY));
+
+            // Now add to repaint-rect the new selection
+            if (repaintRect == null)
+                repaintRect = new Rectangle(draggedSelectorBox);
+            else
+                repaintRect.add(draggedSelectorBox);
+
+            repaintRect.width++;
+            repaintRect.height++;
+            if (repaintingSelector)
+                System.out.println("already repainting selector");//todo: debug
+            repaintingSelector = true;
+            paintImmediately(repaintRect);
+            //repaint(repaintRect);
+            
+            // must paint immediately or might miss cleaning up some old boxes
+            // (RepaintManager coalesces repaint requests that are close temporally)
+            // We use an explicit XOR re-draw to erase old and then draw the new
+            // selector box.
+        }
+        
+        /*
+        private void dragResizeSelectorBox(int screenX, int screenY)
+        {
+            // Set repaint-rect to where old selection is
+            Rectangle repaintRect = null;
+            if (OPTIMIZED_REPAINT) {
+                if (draggedSelectorBox != null) {
+                    repaintRect = new Rectangle(draggedSelectorBox);
+                    lastPaintedSelectorBox = draggedSelectorBox;
+                }
+            }
+            
+            // Set the current selection box
+            int sx = dragStart.x < screenX ? dragStart.x : screenX;
+            int sy = dragStart.y < screenY ? dragStart.y : screenY;
+            draggedSelectorBox = new Rectangle(sx, sy,
                                                 Math.abs(dragStart.x - screenX),
                                                 Math.abs(dragStart.y - screenY));
 
             if (OPTIMIZED_REPAINT) {
                 // Now add to repaint-rect the new selection
-                repaintRect.add(draggedSelectionBox);
+                if (repaintRect == null)
+                    repaintRect = new Rectangle(draggedSelectorBox);
+                else
+                    repaintRect.add(draggedSelectorBox);
                 //repaintRect.grow(4,4);
                 // todo java bug: antialiased bottom or right edge of a stroke
                 // (a single pixel's worth) is erased by the dragged selection box
@@ -1641,11 +1710,14 @@ public class MapViewer extends javax.swing.JPanel
                 // to dragged selection box.
                 repaintRect.width++;
                 repaintRect.height++;
-                repaint(repaintRect);
+                repaintingSelector = true;
+                paintImmediately(repaintRect);
+                //repaint(repaintRect);
             } else {
                 repaint();
             }
         }
+        */
 
         
         public void mouseMoved(MouseEvent e)
@@ -1665,7 +1737,7 @@ public class MapViewer extends javax.swing.JPanel
             }
         }
 
-        private int drags=0;
+        //private int drags=0;
         public void mouseDragged(MouseEvent e)
         {
             inDrag = true;
@@ -1708,10 +1780,19 @@ public class MapViewer extends javax.swing.JPanel
             // todo: auto-pan as we get close to edge
             //-------------------------------------------------------
 
-            if (!e.getComponent().contains(screenX, screenY))
-                return;
+            if (!e.getComponent().contains(screenX, screenY)) {
+                // limit the mouse-drag point to container locations
+                if (screenX < 0)
+                    screenX = 0;
+                else if (screenX >= getWidth())
+                    screenX = getWidth()-1;
+                if (screenY < 0)
+                    screenY = 0;
+                else if (screenY >= getHeight())
+                    screenY = getHeight()-1;
+            }
             
-            if (dragComponent == null && draggingSelectionBox) {
+            if (dragComponent == null && draggingSelectorBox) {
                 //-------------------------------------------------------
                 // We're doing a drag select-in-region.
                 // Update the dragged selection box.
@@ -1719,7 +1800,7 @@ public class MapViewer extends javax.swing.JPanel
                 dragResizeSelectorBox(screenX, screenY);
                 return;
             } else
-                draggedSelectionBox = null;
+                draggedSelectorBox = null;
 
             float mapX = screenToMapX(screenX);
             float mapY = screenToMapY(screenY);
@@ -2003,15 +2084,15 @@ public class MapViewer extends javax.swing.JPanel
             }
             
             dragComponent = null;
-            draggingSelectionBox = false;
+            draggingSelectorBox = false;
             mouseWasDragged = false;
 
             if (indication != null)
                 clearIndicated();
             
-            if (draggedSelectionBox != null) {
-                //System.out.println("dragged " + draggedSelectionBox);
-                Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectionBox);
+            if (draggedSelectorBox != null) {
+                //System.out.println("dragged " + draggedSelectorBox);
+                Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
                 //System.out.println("map " + hitRect);
                 java.util.List list = computeSelection(hitRect, e.isControlDown());
                 if (e.isShiftDown())
@@ -2019,10 +2100,10 @@ public class MapViewer extends javax.swing.JPanel
                 else
                     selectionAdd(list.iterator());
 
-                draggedSelectionBox.width++;
-                draggedSelectionBox.height++;
-                RR(draggedSelectionBox);
-                draggedSelectionBox = null;
+                draggedSelectorBox.width++;
+                draggedSelectorBox.height++;
+                RR(draggedSelectorBox);
+                draggedSelectorBox = null;
                 
                 // bounds cache hack
                 if (!VueSelection.isEmpty())
