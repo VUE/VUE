@@ -3835,6 +3835,8 @@ public class MapViewer extends javax.swing.JComponent
                 
             }
 
+            VUE.getUndoManager().mark(); // in case anything happened
+
             if (toolKeyReleased) {
                 toolKeyReleased = false;
                 revertTemporaryTool();

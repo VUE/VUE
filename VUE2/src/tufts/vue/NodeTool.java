@@ -89,6 +89,7 @@ public class NodeTool extends VueTool
         e.getMap().addNode(node);
         VUE.getSelection().setTo(node);
         e.getViewer().activateLabelEdit(node);
+        VUE.getUndoManager().mark("New Node");
         return true;
     }
     /*
