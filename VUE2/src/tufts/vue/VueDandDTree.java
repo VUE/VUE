@@ -67,8 +67,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     public void drop(DropTargetDropEvent e ) {       
         java.awt.Point dropLocation = e.getLocation();
         TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
-        ResourceNode dropNode = (ResourceNode)treePath.getLastPathComponent();
-        if ((dropNode.getResource()).getType() == FAVORITES){
+        
+        
+        if ( (treePath != null) && (((ResourceNode)treePath.getLastPathComponent()).getResource().getType() == FAVORITES) ){
             if (e.isLocalTransfer()) 
                 e.acceptDrop(DnDConstants.ACTION_MOVE);
             else 
@@ -79,6 +80,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             String resourceName = null;
             java.util.List fileList = null;
             java.util.List resourceList = null;
+           
             if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
             try {
                 if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
@@ -86,7 +88,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                   
                     resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
                     DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)treePath.getLastPathComponent();
+                    
                     java.util.Iterator iter = resourceList.iterator();
+                    
+                    
                     DefaultTreeModel model = (DefaultTreeModel)this.getModel(); 
                     
                     while(iter.hasNext()) {
@@ -122,8 +127,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                          }   
                       
                       
-                          }
+                          
                     }
+                }
                 
             } catch (Exception ex) {
                 ex.printStackTrace();
