@@ -171,7 +171,7 @@ public final class LWGroup extends LWContainer
 
         if (DEBUG_PARENTING) System.out.println("dispersing group " + this);
 
-        List children = getChildList();
+        ArrayList children = getChildList();
         Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -187,14 +187,14 @@ public final class LWGroup extends LWContainer
             LWComponent c = (LWComponent) i.next();
             c.notify("added", getParent());
         }
-        getParent().notify("childrenAdded", this);
+        getParent().notify("childrenAdded", children);
         getParent().deleteChildPermanently(this);
     }
 
     public String getLabel()
     {
         if (super.getLabel() == null)
-            return "[LWGroup #" + getID() + " nChild=" + children.size() + "]";
+            return "[LWGroup #" + getID() + " nChild=" + (children==null?-1:children.size()) + "]";
         else
             return super.getLabel();
     }
