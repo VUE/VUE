@@ -69,8 +69,11 @@ public class DataSource {
      */
     private void setViewer () {
         if(type == FAVORITES) {
-            this.resourceViewer = new FavoritesWindow(displayName);
             
+            VUE.favoritesWindow = new FavoritesWindow(displayName);
+            this.resourceViewer =  VUE.favoritesWindow;
+
+                     
         }
         else if(type == FILING_LOCAL) {
             Vector fileVector  = new Vector();
