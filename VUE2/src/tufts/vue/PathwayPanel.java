@@ -530,7 +530,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     private void deletePathway(LWPathway p) {
         // We only ever delete the current pathway, and if's
         // exclusively displayed, make sure to undo the filter.
-        // TODO: handle for undo, tho not a critical undo to handle.
+        // TODO: handle for undo: is critical for undo of the pathway create!
         if (exclusiveDisplay != null)
             toggleHideEverythingButCurrentPathway();
         VUE.getActiveMap().getPathwayList().remove(p);

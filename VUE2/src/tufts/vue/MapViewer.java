@@ -2927,6 +2927,7 @@ public class MapViewer extends javax.swing.JComponent
         Point2D.Float dragOffset = new Point2D.Float();
         
         private int kk = 0;
+        private ToolWindow debugInspector;
         public void keyPressed(KeyEvent e) {
             if (DEBUG_KEYS) out("[" + e.paramString() + "]");
             
@@ -3097,7 +3098,13 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(MapViewer.this); }
-                else
+                else if (c == '!') {
+                    if (debugInspector == null) {
+                        debugInspector = new ToolWindow("Inspector", VUE.frame);
+                        debugInspector.addTool(new LWCInspector());
+                    }
+                    debugInspector.setVisible(true);
+                } else
                     did = false;
                 if (did) {
                     System.err.println("*** diagnostic '" + c + "' toggled (input=" + MapViewer.this + ")");
