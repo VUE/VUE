@@ -91,8 +91,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color [] fillColors = VueResources.getColorArray("fillColorValues");
          String [] fillColorNames = VueResources.getStringArray("fillColorNames");
          mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
-         mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
          mFillColorButton.setPropertyName(LWKey.FillColor);
+         mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
          mFillColorButton.setToolTipText("Fill Color");
          mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
           
@@ -103,8 +103,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
          mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
+         mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
          mStrokeColorButton.setToolTipText("Stroke Color");
          mStrokeColorButton.addPropertyChangeListener(this);
          
@@ -115,9 +115,10 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          float[] strokeValues = VueResources.getFloatArray("strokeWeightValues");
          String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
          mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
+         mStrokeButton.setPropertyName(LWKey.StrokeWidth);
          mStrokeButton.setButtonIcon(new LineIcon(16,16));
          mStrokeButton.setStroke(1f);
-         mStrokeButton.setPropertyName(LWKey.StrokeWidth);
+         //mStrokeButton.setPropertyName(LWKey.StrokeWidth);
          mStrokeButton.setToolTipText("Stroke Width");
          mStrokeButton.addPropertyChangeListener(this);
 
@@ -328,7 +329,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  	
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
-        DEBUG.Enabled = DEBUG.INIT = true;
+        DEBUG.Enabled = true;
+        //DEBUG.INIT = true;
         DEBUG.TOOL = DEBUG.EVENTS = true;
         DEBUG.BOXES = true;
         VUE.initUI(true);

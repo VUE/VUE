@@ -71,7 +71,7 @@ public class NodeToolPanel extends LWCToolPanel
             buildMenu(NodeTool.getTool().getShapeSetterActions());
 
             // start with icon set to that of first item in the menu
-            setIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
+            setButtonIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
         }
 
 
