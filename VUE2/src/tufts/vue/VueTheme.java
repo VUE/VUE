@@ -30,6 +30,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     private ColorUIResource VueSecondary2 = new ColorUIResource(VueColor.darker());
     private ColorUIResource VueSecondary3 = new ColorUIResource(VueColor);
 
+    private ColorUIResource VueLowContrast = new ColorUIResource(VueUtil.factorColor(VueColor, 0.95));
+
     private ColorUIResource TestColor1 = new ColorUIResource(Color.red);
     private ColorUIResource TestColor2 = new ColorUIResource(Color.green);
     private ColorUIResource TestColor3 = new ColorUIResource(Color.blue);
@@ -62,6 +64,18 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     //public ColorUIResource getMenuBackground() {
     //    return new ColorUIResource(Color.green);
     //}
+
+    public static class VueTabbedPaneUI extends javax.swing.plaf.metal.MetalTabbedPaneUI {
+        public static ComponentUI createUI( JComponent x ) {
+            if (DEBUG.Enabled) System.out.println("Creating VueTabbedPaneUI");
+            return new VueTabbedPaneUI();
+        }  
+        protected void paintFocusIndicator(Graphics g, int tabPlacement,
+                                           Rectangle[] rects, int tabIndex, 
+                                           Rectangle iconRect, Rectangle textRect,
+                                           boolean isSelected) {}
+    }
+        
     
     public void addCustomEntriesToTable(UIDefaults table)
     {
@@ -69,6 +83,11 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         table.put("Button.font", getSmallFont());
         table.put("Label.font", getSmallFont());
         table.put("TitledBorder.font", fontMedium.deriveFont(Font.BOLD));
+
+        table.put("TabbedPaneUI", "tufts.vue.VueTheme$VueTabbedPaneUI");
+        
+        //table.put("TabbedPane.focus", VueSecondary3); // annoying focus border: same as selected hides
+        //table.put("TabbedPane.focus", VueLowContrast); // annoying focus border: same as selected hides
 
         // From BasicLookAndFeel:
         //table.put("TabbedPane.selected", Color.white); // selected tab fill & content border
@@ -78,7 +97,6 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         //table.put("TabbedPane.light", Color.green); // edge border
         //table.put("TabbedPane.shadow", Color.red); / /???
         //table.put("TabbedPane.darkShadow", Color.green); // edge border
-        table.put("TabbedPane.focus", VueColor); // annoying focus border: same as selected hides
         // from MetalLookAndFeel:
         //table.put("TabbedPane.tabAreaBackground", Color.red); // ???
         //table.put("TabbedPane.selectHighlight", Color.red); // edge border
