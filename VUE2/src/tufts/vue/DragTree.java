@@ -79,7 +79,7 @@ class DragTree extends JTree implements DragGestureListener,
         for(int j=0;j<roots.length;j++)        
                  {            
                String  mountedDevice = roots[j].getAbsolutePath();        
-               if (j == 0) {
+               if (mountedDevice == "A:\\") {
                    DefaultMutableTreeNode floppyRoot = new DefaultMutableTreeNode(mountedDevice);
                            baseroot.add(floppyRoot);
                }
