@@ -178,6 +178,7 @@ public class MapResource implements Resource {
         return mTitle;
     }
     
+    // todo: resource's should be atomic: don't allow post construction setSpec
     public void setSpec(String spec) {
         //System.out.println(this + " setSpec " + spec);
         this.spec = spec;
@@ -201,6 +202,7 @@ public class MapResource implements Resource {
         }
 
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
+        this.preview = null;
     }
     
     /**
@@ -494,12 +496,23 @@ public class MapResource implements Resource {
         return isImage(this);
     }
 
-    public JComponent getPreview() {
+    public JComponent getPreview()
+    {
+        if (preview != null)
+            return preview;
         
-        preview = new JPanel();
         try {
+            // todo: cache the content type
             URL location = toURL();
-            if(location.openConnection().getContentType().indexOf("text")>=0) {
+            URLConnection conn = location.openConnection();
+            if (conn == null)
+                return null;
+            String contentType = conn.getContentType();
+            // if inaccessable (e.g., offline) contentType will be null
+            if (contentType == null)
+                return null;
+            if (DEBUG.Enabled) System.out.println(this + " getPreview: contentType=" + contentType);
+            if (contentType.indexOf("text") >= 0) {
                 /**
                 JEditorPane editorPane = new JEditorPane(location);
                 Thread.sleep(5);
@@ -514,20 +527,17 @@ public class MapResource implements Resource {
                 editorPane.printAll(g2);
                 preview = new JLabel(new ImageIcon(image.getScaledInstance(75,75,Image.SCALE_FAST)));
                 **/
-                javax.swing.filechooser.FileSystemView view = javax.swing.filechooser.FileSystemView.getFileSystemView();
-                preview =  new JLabel(view.getSystemIcon(File.createTempFile("temp","html")));
-            } else if(location.openConnection().getContentType().indexOf("image")>= 0) {
-                preview = new JLabel(new ImageIcon(location));
-            } else {
-                preview = new JPanel();
+                //javax.swing.filechooser.FileSystemView view = javax.swing.filechooser.FileSystemView.getFileSystemView();
+                //this.preview = new JLabel(view.getSystemIcon(File.createTempFile("temp",".html")));
+                // absurd to create a tmp file during object selection!  Java doesn't give us the
+                // real filesystem icon's anyway (check that on the PC -- this is OSX)
+            } else if (contentType.indexOf("image") >= 0) {
+                this.preview = new JLabel(new ImageIcon(location));
             }
-            
         } catch(Exception ex) {
             ex.printStackTrace();
         }
-        preview.setPreferredSize(new Dimension(75,75));
         return preview;
-        
     }
     
     

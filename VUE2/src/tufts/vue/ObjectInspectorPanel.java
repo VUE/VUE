@@ -194,20 +194,24 @@ implements LWSelection.Listener {
         
         JScrollPane mInfoScrollPane = null;
         JPanel labelPanel;
-        JLabel nodeLabel = null;
-        JComponent iconPanel = new JPanel();
-        LWComponent sComponent;
+        JLabel objectLabel;
+        JPanel previewPanel = new JPanel(new BorderLayout());
+        JComponent mPreview = null;
+        LWComponent mComponent;
         public InfoPanel() {
             setLayout( new BorderLayout() );
             setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
-            nodeLabel = new JLabel("Node");
-            nodeLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
-            nodeLabel.setHorizontalTextPosition(JLabel.LEFT);
-            nodeLabel.setVerticalAlignment(JLabel.TOP);
+            objectLabel = new JLabel("Node");
+            objectLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
+            objectLabel.setHorizontalTextPosition(JLabel.LEFT);
+            objectLabel.setVerticalAlignment(JLabel.TOP);
             labelPanel = new JPanel(new BorderLayout());
             labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
-            labelPanel.add(nodeLabel,BorderLayout.WEST);
-            labelPanel.add(iconPanel,BorderLayout.EAST);
+            labelPanel.add(objectLabel,BorderLayout.WEST);
+            previewPanel.setPreferredSize(new Dimension(75,75));
+            previewPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            //previewPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+            labelPanel.add(previewPanel,BorderLayout.EAST);
             setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
             add(labelPanel,BorderLayout.NORTH);
             add(new LWCInfoPanel(),BorderLayout.CENTER);
@@ -231,30 +235,35 @@ implements LWSelection.Listener {
          * @param LWMap the map
          **/
         public void updatePanel( LWComponent pComponent) {
-            sComponent = pComponent;
-            if(pComponent instanceof LWLink)
-                nodeLabel.setText("Link");
+            mComponent = pComponent;
+            if (DEBUG.Enabled)
+                objectLabel.setText(mComponent.getUniqueComponentTypeLabel());
             else
-                nodeLabel.setText("Node");
-            Thread t = new Thread() {
+                objectLabel.setText(mComponent.getComponentTypeLabel());
+            // To get the preview, the resource may have to do an initial
+            // load of the content, which may take a while, so we do this
+            // in a thread.
+            new Thread() {
                 public void run() {
-                    labelPanel.remove(iconPanel);
-                    if(sComponent.getResource()!= null && sComponent.getResource().getPreview() != null) {
-                        iconPanel = sComponent.getResource().getPreview();
-                        
-                    } else {
-                        iconPanel = new JPanel();
+                    JComponent preview = null;
+                    if (mComponent.hasResource())
+                        preview = mComponent.getResource().getPreview();
+
+                    if (mPreview != preview) {
+                        // the preview JComponent is diferrent: change display
+                        if (mPreview != null)
+                            previewPanel.remove(mPreview);
+                        mPreview = preview;
+                        if (mPreview != null)
+                            previewPanel.add(mPreview, BorderLayout.CENTER);
+                        // panel doesn't always update (probably threading issue)
+                        // so we throw alot out and hope it sticks:
+                        previewPanel.repaint();
+                        validate();
+                        repaint();
                     }
-                    iconPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                    //((Graphics2D)iconPanel.getGraphics()).scale(0.2,0.2);
-                    iconPanel.setPreferredSize(new Dimension(75,75));
-                    labelPanel.add(iconPanel,BorderLayout.EAST);
-                    
-                    labelPanel.validate();
-                    // update the display
                 }
-            };
-            t.start();
+            }.start();
         }
     }
     
@@ -390,8 +399,6 @@ implements LWSelection.Listener {
             mTabbedPane.setSelectedComponent(mNodeFilterPanel);
         }
     }
-    
-    
 }
 
 
