@@ -38,13 +38,16 @@ public abstract class MenuButton extends JButton implements ActionListener
         //setBorder(BorderFactory.createRaisedBevelBorder());
         
         final int borderIndent = 2;
-        setBorder(BorderFactory.createEtchedBorder());
-        //setBorder(new EmptyBorder(2,2,2,2));
+        if (false) {
+            setBorder(BorderFactory.createEtchedBorder());
+        } else {
+            setBorder(new EmptyBorder(2,2,2,2));
+            setContentAreaFilled(false);
+        }
         
         setFont(VueConstants.FONT_ICONIC);
         setText(arrowText);
         setFocusable(false);
-        //setContentAreaFilled(false);
         addActionListener(this);
         addMouseListener(new MouseAdapter(toString()) {
                 public void mousePressed(MouseEvent e) {

@@ -98,7 +98,6 @@ public class PathwayPanel extends JPanel implements ActionListener
         //        JPanel pathwayMasterPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
         JPanel pathwayMasterPanel = new VueUtil.JPanel_aa() {
                 public void addNotify() {
-                    super.addNotify();
                     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
                     setBackground(new Color(66,76,105));
                     setBorder(new EmptyBorder(2,2,2,4));
@@ -119,6 +118,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                     add(Box.createHorizontalStrut(2));
                     add(btnPathwayLock);
                     
+                    super.addNotify();
                     //JLabel help = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
                     //help.setBackground(altbgColor);
                     //help.setToolTipText("Check boxes below to display paths on the map. "
@@ -139,7 +139,6 @@ public class PathwayPanel extends JPanel implements ActionListener
 
         JPanel elementControlPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
                 public void addNotify() {
-                    super.addNotify();
                     setBackground(new Color(98,115,161));
                     setBorder(new EmptyBorder(2,2,2,5));
                     //setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
@@ -150,18 +149,13 @@ public class PathwayPanel extends JPanel implements ActionListener
                     label.setBackground(getBackground());
                     label.setBorder(new EmptyBorder(0,0,2,2)); //tlbr
                     
-                    //JPanel control = new JPanel();
-                    JPanel control = this;
-                    //control.setLayout(new BoxLayout(control, BoxLayout.X_AXIS));
-                    //control.setBackground(getBackground());
-                    //control.setBorder(new EmptyBorder(0,0,0,5));
-                    control.add(label);
-                    control.add(btnElementAdd);
-                    control.add(btnElementRemove);
-                    control.add(btnElementUp);
-                    control.add(btnElementDown);
+                    add(label);
+                    add(btnElementAdd);
+                    add(btnElementRemove);
+                    add(btnElementUp);
+                    add(btnElementDown);
                     
-                    //add(control, BorderLayout.EAST);
+                    super.addNotify();
                 }
             };
                 

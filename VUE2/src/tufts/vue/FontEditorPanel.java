@@ -120,6 +120,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
             sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
             sizeEditor.setColumns(2); // not exactly character columns
+            sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
             //sizeEditor.setPreferredSize(new Dimension(20,10)); // does squat
             
             // the default size for a combo-box editor field is 9 chars
@@ -186,7 +187,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     public void addNotify()
     {
         super.addNotify();
-        System.out.println(this + " adding as parent of " + getParent());
+        //System.out.println(this + " adding as parent of " + getParent());
     }
 
     // as this can sometimes take a while, we can call this manually

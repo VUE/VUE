@@ -61,7 +61,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     
     public void addCustomEntriesToTable(UIDefaults table)
     {
-        table.put("ComboBox.background", Color.white);
+        //table.put("ComboBox.background", Color.white);
         table.put("Button.font", FONT_SMALL);
         table.put("Label.font", FONT_SMALL);
         table.put("TitledBorder.font", FONT_MEDIUM.deriveFont(Font.BOLD));
