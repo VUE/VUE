@@ -149,26 +149,31 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         
         JScrollPane mInfoScrollPane = null;
         
-        //Box mInfoBox = null;
+        Box mInfoBox = null;
         
         public InfoPanel() {
             
             setLayout( new BorderLayout() );
-           // setBorder( new EmptyBorder(4,4,4,4) );
-           /** 
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+           
+         
             mInfoBox = Box.createVerticalBox();
-            mInfoBox.setAlignmentX(Box.LEFT_ALIGNMENT);
-            mInfoBox.setAlignmentY(Box.TOP_ALIGNMENT);
-            
+        
+            JLabel nodeLabel = new JLabel("Node");
+            nodeLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
+            JPanel labelPanel = new JPanel(new BorderLayout());
+            labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
+            labelPanel.add(nodeLabel);
             // DEMO FIXX:  Demo hack
+            mInfoBox.add(labelPanel);
             mInfoBox.add( new LWCInfoPanel() );
-            **/
+       
             mInfoScrollPane = new JScrollPane();
             mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             mInfoScrollPane.setLocation(new Point(8, 9));
             mInfoScrollPane.setVisible(true);
-            mInfoScrollPane.getViewport().add( new LWCInfoPanel());
+            mInfoScrollPane.getViewport().add(mInfoBox);
             mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
             //mInfoScrollPane.getViewport().add(new JPanel());
              

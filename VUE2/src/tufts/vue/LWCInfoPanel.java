@@ -28,7 +28,7 @@ ActionListener {
     private LWComponent lwc;
     
     public LWCInfoPanel() {
-        setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+        //setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         fieldPane.setLayout(gridBag);
@@ -44,7 +44,7 @@ ActionListener {
     private void setUpMetadataPane() {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(new BorderLayout());
-        metadataPane.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+        metadataPane.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
         metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
         
     }
@@ -184,6 +184,7 @@ ActionListener {
                     propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
                 resourceMetadataPanel = propertiesEditor;
                 metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
+                validate();
             }
         } else {
             if(c.getResource() != null && c.getResource().getProperties() != null) {
@@ -193,6 +194,8 @@ ActionListener {
                     propertiesEditor.setProperties(c.getResource().getProperties(), true);
             } else {
                 propertiesEditor.clear();
+               // metadataPane.remove(propertiesEditor);
+               // validate();
             }
         }
     }
