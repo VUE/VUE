@@ -155,7 +155,10 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 model.addStatement(stmt);
                 //tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(model);
                 model.fireTableDataChanged();
+            } else {
+              JOptionPane.showMessageDialog(NodeFilterEditor.this,"To create node filter, please add keys in Map Inspector","No Keys In Map",JOptionPane.YES_OPTION);
             }
+                
         }
         
     }
