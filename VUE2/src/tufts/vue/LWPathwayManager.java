@@ -266,6 +266,7 @@ public class LWPathwayManager {
     public void removePathway(LWPathway pathway){
         this.hidePathwayElements();
         pathways.remove(pathway);
+        pathway.removeFromModel();
         this.showPathwayElements();
         if(current.equals(pathway)){
             if(this.getFirst() != null && this.getFirst() instanceof LWPathway)
