@@ -227,7 +227,7 @@ public class ActionUtil {
         Marshaller marshaller = null;
             
         try {  
-            FileWriter writer = new FileWriter(file);
+            FileWriter writer = new FileWriter(file.getAbsolutePath().replaceAll("%20"," "));
             writer.write("<!-- Do Not Remove:"
                          + " VUE mapping "
                          + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
