@@ -37,8 +37,8 @@ public class RectangularPoly2D extends RectangularShape
 
     public static class Triangle extends RectangularPoly2D { public Triangle() { setSides(3); } }
     public static class Diamond extends RectangularPoly2D { public Diamond() { setSides(4); } }
-    public static class Hexagon extends RectangularPoly2D { public Hexagon() { setSides(5); } }
-    public static class Pentagon extends RectangularPoly2D { public Pentagon() { setSides(6); } }
+    public static class Pentagon extends RectangularPoly2D { public Pentagon() { setSides(5); } }
+    public static class Hexagon extends RectangularPoly2D { public Hexagon() { setSides(6); } }
     public static class Octagon extends RectangularPoly2D { public Octagon() { setSides(8); } }
 
     public void setSides(int sides)
@@ -278,7 +278,7 @@ public class RectangularPoly2D extends RectangularShape
         ypoints[0] = y;
 
         xpoints[1] = x + width;
-        ypoints[1] = y + height/3;
+        ypoints[1] = y + height/2;
 
         xpoints[2] = x + width*3/4;
         ypoints[2] = y + height;
@@ -287,9 +287,43 @@ public class RectangularPoly2D extends RectangularShape
         ypoints[3] = y + height;
 
         xpoints[4] = x;
-        ypoints[4] = y + height/3;
+        ypoints[4] = y + height/2;
     }
 
+    private void new_computeVertices6()
+    {
+        // equalateral polygons are inscribed
+        // inside circles, not rectangles (all points
+        // are on a containing circle) -- this
+        // creates an equal hexagon inside a circle
+        // of the given WIDTH -- height is ignored.
+        // -- can't we just inscribe it in an ellipse?
+        
+        double hw = width/2;
+        double hh = height/2;
+        double qw = hw/2;
+        double qh = Math.sqrt(hw*hw-qw*qw);
+        double cx = x + hw;
+        double cy = y + hh;
+            
+        xpoints[0] = cx + qw;
+        ypoints[0] = cy - qh;
+
+        xpoints[1] = x + width;
+        ypoints[1] = y + hh;
+
+        xpoints[2] = cx + qw;
+        ypoints[2] = cy + qh;
+
+        xpoints[3] = cx - qw;
+        ypoints[3] = cy + qh;
+
+        xpoints[4] = x;
+        ypoints[4] = y + hh;
+        
+        xpoints[5] = cx - qw;
+        ypoints[5] = cy - qh;
+    }
     private void computeVertices6()
     {
         // tan(30) = inset/halfH
@@ -299,11 +333,11 @@ public class RectangularPoly2D extends RectangularShape
         double inset = 0.2257085*width;
         
         /*
-        System.out.println("PENTAGON size=" + width + "x" + height);
-        System.out.println("PENTAGON HALFH=" + halfH);
-        System.out.println("PENTAGON INSET=" + inset);
-        System.out.println("PENTAGON SEGSIZE  TOP=" + (width-(inset*2)));
-        System.out.println("PENTAGON SEGSIZE LEFT=" + Math.sqrt(inset*inset+halfH*halfH));
+        System.out.println("HEXAGON size=" + width + "x" + height);
+        System.out.println("HEXAGON HALFH=" + halfH);
+        System.out.println("HEXAGON INSET=" + inset);
+        System.out.println("HEXAGON SEGSIZE  TOP=" + (width-(inset*2)));
+        System.out.println("HEXAGON SEGSIZE LEFT=" + Math.sqrt(inset*inset+halfH*halfH));
         */
             
         xpoints[0] = x + inset;
