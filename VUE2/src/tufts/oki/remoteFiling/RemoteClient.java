@@ -117,5 +117,9 @@ public class RemoteClient {
             }
         }
     }
+    
+    public static String getServerName () {
+        return server;
+    }
 
 }
