@@ -81,7 +81,7 @@ public class LWNode extends LWContainer
     // font strings, so this pad needs to be big enough to compensate
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
-    private static final float TextWidthFudgeFactor = 1 + 0.15f; // 15% fudge
+    private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
     //private static final float TextWidthFudgeFactor = 1;
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
 

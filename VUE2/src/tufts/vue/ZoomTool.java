@@ -239,6 +239,10 @@ public class ZoomTool extends VueTool
         }
     }
     
+    public static double computeZoomFit(Dimension viewport, int borderGap, Rectangle2D bounds, Point2D offset) {
+        return computeZoomFit(viewport, borderGap, bounds, offset, true);
+    }
+    
     /*
      * Compute two items: the zoom factor that will fit
      * everything within the given bounds into the given
@@ -250,7 +254,8 @@ public class ZoomTool extends VueTool
     public static double computeZoomFit(java.awt.Dimension viewport,
                                         int borderGap,
                                         java.awt.geom.Rectangle2D bounds,
-                                        java.awt.geom.Point2D offset)
+                                        java.awt.geom.Point2D offset,
+                                        boolean centerSmallerDimensionInViewport)
     {
         int viewWidth = viewport.width - borderGap * 2;
         int viewHeight = viewport.height - borderGap * 2;
@@ -272,11 +277,13 @@ public class ZoomTool extends VueTool
         double offsetX = bounds.getX() * newZoom - borderGap;
         double offsetY = bounds.getY() * newZoom - borderGap;
 
-        if (centerVertical)
-            offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
-        else // center horizontal
-            offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
-
+        if (centerSmallerDimensionInViewport) {
+            if (centerVertical)
+                offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
+            else // center horizontal
+                offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+        }
+            
         offset.setLocation(offsetX, offsetY);
         return newZoom;
     }
