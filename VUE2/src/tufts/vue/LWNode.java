@@ -159,6 +159,9 @@ public class LWNode extends LWContainer
             if (genIcon.contains(p)) {
                 // todo: flash the genIcon red or something
                 getResource().displayContent();
+                // todo: some kind of animation or something to show
+                // we're "opening" this node -- maybe an indication
+                // flash -- we'll need another thread for that.
                 return true;
             }
         }
@@ -249,16 +252,37 @@ public class LWNode extends LWContainer
     }
     */
 
+    // old intersects:
+    // If we've never been painted, graphics won't be set.
+    // This is so that LWContainer repaint optimization
+    // will be sure to paint us at least once so we can
+    // compute our bounds based on our size (assuming we're
+    // auto-sized).  todo: find a way to do this cleaner
+    //if (this.graphics == null)
+    //   return true;
+    
     public boolean intersects(Rectangle2D rect)
     {
-        // If we've never been painted, graphics won't be set.
-        // This is so that LWContainer repaint optimization
-        // will be sure to paint us at least once so we can
-        // compute our bounds based on our size (assuming we're
-        // auto-sized).  todo: find a way to do this cleaner
-        //if (this.graphics == null)
-         //   return true;
-        return boundsShape.intersects(rect);
+        final float strokeWidth = getStrokeWidth();
+        if (strokeWidth > 0) {
+            // todo opt: cache this
+            final Rectangle2D.Float r = new Rectangle2D.Float();
+            r.setRect(rect);
+            
+            // todo: this is a hack -- expanding the test rectangle to
+            // compensate for the border width, but it works
+            // mostly -- only a little off on non-rectangular sides
+            // of shapes.
+            
+            final float adj = strokeWidth / 2;
+            r.x -= adj;
+            r.y -= adj;
+            r.width += strokeWidth;
+            r.height += strokeWidth;
+            return boundsShape.intersects(r);
+        } else
+            return boundsShape.intersects(rect);
+        
         //return getBounds().intersects(rect);
     }
 
@@ -266,8 +290,12 @@ public class LWNode extends LWContainer
     {
         if (imageIcon != null)
             return super.contains(x,y);
-
-        return boundsShape.contains(x, y);
+        else
+            return boundsShape.contains(x, y);
+        // to compensate for stroke width here, could get mathy here
+        // and move the x/y strokeWidth units along a line toward
+        // the center of the object, which wouldn't be perfect
+        // but would be reasonable.
     }
     
     void setImage(Image image)
@@ -548,6 +576,8 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         // todo perf: factor out these conditionals
         if (isIndicated()) {
+            // todo: okay, it is GROSS to handle the indication here --
+            // do it all in the viewer!
             g.setColor(COLOR_INDICATION);
             if (STROKE_INDICATION.getLineWidth() > getStrokeWidth())
                 g.setStroke(STROKE_INDICATION);
