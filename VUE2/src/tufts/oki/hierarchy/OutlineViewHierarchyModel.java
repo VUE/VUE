@@ -338,8 +338,11 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);  
                 
             //removes from the hierarch model
-            deleteHierarchyNode(deletedChildNode);
-            reloadTreeModel(parentNode);
+            if (deletedChildNode != null)
+            {
+                deleteHierarchyNode(deletedChildNode);
+                reloadTreeModel(parentNode);
+            }
         }
          
         //if it is a LWLink
@@ -361,15 +364,23 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             if (linkedNode1 != null)
             {
                 HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
-                deleteHierarchyNode(linkNode1);
-                reloadTreeModel(linkedNode1);
+                
+                if (linkNode1 != null)
+                {
+                    deleteHierarchyNode(linkNode1);
+                    reloadTreeModel(linkedNode1);
+                }
             }
               
             if (linkedNode2 != null)
             {
                 HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
-                deleteHierarchyNode(linkNode2);
-                reloadTreeModel(linkedNode2);
+                
+                if (linkNode2 != null)
+                {
+                    deleteHierarchyNode(linkNode2);
+                    reloadTreeModel(linkedNode2);
+                }
             }
         }
         
@@ -468,6 +479,12 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                     for (osid.hierarchy.NodeIterator ni = hierarchyNode.getChildren(); ni.hasNext();)
                       deleteHierarchyNode((HierarchyNode)ni.next()); 
                     
+                    for (Iterator li = container.getLinks().iterator(); li.hasNext();)
+                    {
+                        LWLink link = (LWLink)li.next();       
+                        addHierarchyTreeNode(container, link);
+                    }
+                    
                     for (Iterator ci = container.getChildIterator(); ci.hasNext();)
                     {
                         LWComponent component = (LWComponent)ci.next();
@@ -526,14 +543,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
     {
         try
         {  
-            /*
-            if (childNode == null)
-            {
-                System.err.println("the childNode to be deleted is NULL");
-                return;
-            }
-            */
-            
             for (osid.hierarchy.NodeIterator ni = childNode.getChildren(); ni.hasNext();)
             {
                 HierarchyNode node = (HierarchyNode)ni.next();
