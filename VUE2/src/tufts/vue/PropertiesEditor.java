@@ -89,12 +89,12 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         
         
-        innerPanel.add(labelPanel);
+        //innerPanel.add(labelPanel);
         innerPanel.add(propertiesPanel);
         innerPanel.add(topPanel);
         
         add(innerPanel);
-        setSize(300, 300);
+        //setSize(300, 300);
         
         validate();
          

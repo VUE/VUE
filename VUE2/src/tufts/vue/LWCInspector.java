@@ -135,7 +135,7 @@ class LWCInspector extends javax.swing.JPanel
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
             c.fill = GridBagConstraints.NONE;      //reset to default
             c.weightx = 0.0;                       //reset to default
-
+            c.anchor = GridBagConstraints.WEST;
             String txt = (String) labelTextPairs[i];
             boolean readOnly = false;
             if (txt.startsWith("-")) {
@@ -146,12 +146,13 @@ class LWCInspector extends javax.swing.JPanel
 
             JLabel label = new JLabel(txt);
             //JLabel label = new JLabel(labels[i]);
-            label.setFont(VueConstants.SmallFont);
+            //label.setFont(VueConstants.SmallFont);
             gridbag.setConstraints(label, c);
             container.add(label);
 
             c.gridwidth = GridBagConstraints.REMAINDER;     //end row
             c.fill = GridBagConstraints.HORIZONTAL;
+          
             c.weightx = 1.0;
 
             JComponent field = (JComponent) labelTextPairs[i+1];

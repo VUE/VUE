@@ -150,10 +150,12 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 			setBorder( new EmptyBorder(4,4,4,4) );
 			
 			mInfoBox = Box.createVerticalBox();
+                        mInfoBox.setAlignmentX(Box.LEFT_ALIGNMENT);
+                        mInfoBox.setAlignmentY(Box.TOP_ALIGNMENT);
 		
 			// DEMO FIXX:  Demo hack
 			mInfoBox.add( new LWCInspector() );
-		
+                            
 			mInfoScrollPane = new JScrollPane();
 			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -161,7 +163,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 			mInfoScrollPane.setVisible(true);
 			mInfoScrollPane.getViewport().add( mInfoBox);
 		
-			add( BorderLayout.CENTER, mInfoScrollPane );
+			add( BorderLayout.NORTH, mInfoScrollPane );
 		
 			//mInfoBox.add( new JLabel("Node Info") );
 			// mInfoBox.add( new PropertyPanel() );;
