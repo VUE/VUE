@@ -71,19 +71,20 @@ public class NodeTool extends VueTool
     // todo: if we had a DrawContext here instead of just the graphics,
     // we could query it for zoom factor (passed in from mapViewer) so the stroke width would
     // look right.
-    public void X_drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
         //g.setXORMode(java.awt.Color.blue);
 
         g.draw(r);
         currentShape = getActiveSubTool().getShape();
         currentShape.setFrame(r);
-        g.setColor(COLOR_NODE_DEFAULT);
         g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(currentShape);
-        g.setColor(COLOR_BORDER);
-        g.setStroke(STROKE_TWO); // todo: scale based on the scale in the GC affine transform
+        //g.setColor(COLOR_NODE_DEFAULT);
+        //g.fill(currentShape);
+        //g.setColor(COLOR_BORDER);
+        //g.setStroke(STROKE_ONE); // todo: scale based on the scale in the GC affine transform
         //g.setStroke(new BasicStroke(2f * (float) g.getTransform().getScaleX())); // GC not scaled while drawing selector...
+        g.setColor(COLOR_SELECTION);
         g.draw(currentShape);
         /*
         if (VueUtil.isMacPlatform()) // Mac 1.4.1 handles XOR differently than PC
@@ -93,12 +94,10 @@ public class NodeTool extends VueTool
         */
     }
     
-    public boolean X_handleSelectorRelease(MapMouseEvent e)
+    public boolean handleSelectorRelease(MapMouseEvent e)
     {
         LWNode node = createNode();
         node.setAutoSized(false);
-        
-        	
         node.setFrame(e.getMapSelectorBox());
         e.getMap().addNode(node);
         VUE.ModelSelection.setTo(node);

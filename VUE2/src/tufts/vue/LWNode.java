@@ -238,10 +238,10 @@ public class LWNode extends LWContainer
             cy <= ly + height;
     }
 
-    private JComponent ttResource = null;
-    private JComponent ttNotes = null;
-    private JComponent ttPathway = null;
-    private String ttPathwayHtml = null;
+    private transient JComponent ttResource = null;
+    private transient JComponent ttNotes = null;
+    private transient JComponent ttPathway = null;
+    private transient String ttPathwayHtml = null;
     public void setResource(Resource resource)
     {
         super.setResource(resource);
@@ -253,7 +253,7 @@ public class LWNode extends LWContainer
         ttNotes = null;
     }
 
-    // A JLabel that forces anti-aliasing -- use this if
+    // AALabel: A JLabel that forces anti-aliasing -- use this if
     // you want a tool-tip to be anti-aliased on the PC,
     // because there's no way to set it otherwise.
     // (This is redundant on the Mac which does it automatically)
@@ -415,7 +415,6 @@ public class LWNode extends LWContainer
             // by default, a double-click anywhere else in
             // node opens the resource
             if (hasNotes() && mIconNotes.contains(cx, cy)) {
-                System.out.println("***NOTES HIT");
                 VUE.objectInspectorPanel.activateNotesTab();
                 VUE.objectInspector.setVisible(true);
             } else if (inPathway() && mIconPathway.contains(cx, cy)) {
@@ -448,17 +447,6 @@ public class LWNode extends LWContainer
         return true;
     }
 
-    // todo: remove this eventually
-    static LWNode createTextNode(String text)
-    {
-        LWNode node = new LWNode(text);
-        //node.setNodeShape(StandardShapes[3]);
-        node.setShape(new java.awt.geom.Rectangle2D.Float());
-        node.setStrokeWidth(0f);
-        node.setFillColor(COLOR_TRANSPARENT);
-        return node;
-    }
-    
     public void setIcon(javax.swing.ImageIcon icon) {}
     public javax.swing.ImageIcon getIcon() { return null; }
     
@@ -621,6 +609,7 @@ public class LWNode extends LWContainer
     
     void setScaleOnChild(float scale, LWComponent c)
     {
+        /*
         // todo: temporary hack color change for children
         if (c.isManagedColor()) {
             if (COLOR_NODE_DEFAULT.equals(getFillColor()))
@@ -628,6 +617,7 @@ public class LWNode extends LWContainer
             else
                 c.setFillColor(COLOR_NODE_DEFAULT);
         }
+        */
         c.setScale(scale * ChildScale);
     }
     
@@ -1064,6 +1054,22 @@ public class LWNode extends LWContainer
     
     private static final float ZoomAlpha = 0.8f;
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ZoomAlpha);
+
+    private static Color darkerColor(Color c)
+    {
+        final double FACTOR = 0.9;
+	return new Color((int)(c.getRed()  *FACTOR),
+			 (int)(c.getGreen()*FACTOR),
+			 (int)(c.getBlue() *FACTOR));
+    }
+
+    public Color getRenderFillColor()
+    {
+        Color c = getFillColor();
+        if (c != null && c.equals(getParent().getRenderFillColor()))
+            c = darkerColor(c);
+        return c;
+    }
     
     public void draw(DrawContext dc)
     {
@@ -1089,10 +1095,9 @@ public class LWNode extends LWContainer
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
             imageIcon.paintIcon(null, g, 0, 0);
         } else {
-            Color fillColor = getFillColor();
+            Color fillColor = getRenderFillColor();
             if (fillColor != null) { // transparent if null
                 g.setColor(fillColor);
-                //g.setColor(new Color(128,128,128,128));
                 if (isZoomedFocus())
                     g.setComposite(ZoomTransparency);
                 g.fill(drawnShape);
