@@ -36,13 +36,10 @@ public class VUE
         elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
 
-    //public static Cursor CURSOR_ZOOM_IN;
-    //public static Cursor CURSOR_ZOOM_OUT;
-    
     public static JFrame frame;
     
-    private static JTabbedPane tabbedPane;
-    private static JTabbedPane tabbedPane2;//todo: rename left/right
+    private static MapTabbedPane tabbedPane;
+    private static MapTabbedPane tabbedPane2;//todo: rename left/right
     private static JSplitPane viewerSplit;
     
     //pathway components
@@ -58,17 +55,24 @@ public class VUE
     public static java.net.URL getResource(String name)
     {
         java.net.URL url = null;
+        // First, check the current directory:
         java.io.File f = new java.io.File(name);
+        boolean foundInCWD = false;
         if (f.exists()) {
             try {
                 url = f.toURL();
+                foundInCWD = true;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        // If not found in the current directory, check the classpath:
         if (url == null)
             url = ClassLoader.getSystemResource(name);
-        System.out.println("resource \"" + name + "\" found at " + url);
+        if (foundInCWD)
+            System.out.println("resource \"" + name + "\" found in CWD at " + url);
+        else
+            System.out.println("resource \"" + name + "\" found in classpath at " + url);
         return url;
     }
     
@@ -117,7 +121,10 @@ public class VUE
 
         private void setTitleFromViewer(MapViewer viewer)
         {
-            String title = "VUE: " + viewer.getMap().getLabel();
+            String label = viewer.getMap().getLabel();
+            if (viewer.getMap().getFile() != null)
+                label = viewer.getMap().getFile().getPath();
+            String title = "VUE: " + label;
             
             int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
             // Present the zoom factor as a percentange
@@ -224,11 +231,11 @@ public class VUE
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
 
-        tabbedPane = new JTabbedPane();
+        tabbedPane = new MapTabbedPane();
         tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
         tabbedPane.setPreferredSize(new Dimension(300,400));
         
-        tabbedPane2 = new JTabbedPane();
+        tabbedPane2 = new MapTabbedPane();
         tabbedPane2.setTabPlacement(SwingConstants.BOTTOM);
         tabbedPane2.setPreferredSize(new Dimension(300,400));
 
@@ -347,7 +354,7 @@ public class VUE
         //end of addition
        
         Action[] windowActions = { toolbarWindow.getDisplayAction(),
-        							pannerTool.getDisplayAction(),
+                                   pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
                                    drBrowserTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),
@@ -480,6 +487,60 @@ public class VUE
         tabbedPane2.remove(c);
     }
 
+    static class MapTabbedPane extends JTabbedPane
+        implements LWComponent.Listener
+                   //implements MapViewer.Listener
+    {
+        public void addTab(LWMap map, Component c)
+        {
+            super.addTab(map.getLabel(), c);
+            map.addLWCListener(this);
+            // todo perf: we should be able to ask to listen only
+            // for events from this object directly (that we don't
+            // care to hear from it's children), and even that
+            // we'd only like to see, e.g., LABEL events.
+            // -- create bit masks in LWCEvent
+        }
+
+        public void LWCChanged(LWCEvent e)
+        {
+            LWComponent c = e.getComponent();
+            if (c instanceof LWMap && e.getWhat().equals("label")) {
+                //System.out.println("MapTabbedPane " + e);
+                int i = findTabWithMap((LWMap)c);
+                if (i >= 0)
+                    setTitleAt(i, c.getLabel());
+            }
+        }
+
+        private int findTabWithMap(LWMap map)
+        {
+            int tabs = getTabCount();
+            for (int i = 0; i < tabs; i++) {
+                MapViewer viewer = (MapViewer) getComponentAt(i);
+                if (viewer.getMap() == map)
+                    return i;
+            }
+            return -1;
+        }
+
+        /*
+        // the viewers in the closed split-pane don't get this
+        // event...
+        public void mapViewerEventRaised(MapViewerEvent e)
+        {
+            if ((e.getID() & MapViewerEvent.DISPLAYED) != 0) {
+                int i = indexOfComponent(e.getMapViewer());
+                System.out.println("MapTabbedPane: " + e + " index=" + i);
+                if (i >= 0)
+                    setTitleAt(i, e.getMapViewer().getMap().getLabel());
+            }
+        }
+        */
+        
+    }
+    
+
     public static void displayMap(LWMap map)
     {
         //System.out.println("VUE.displayMap " + map);
@@ -496,6 +557,10 @@ public class VUE
         }
         */
         
+        // TODO: need to subclass JTabbedPane with something that
+        // will listen for name change events on the LWMap's so
+        // we can keep the filenames displayed current.
+        
         final boolean useScrollbars = false; // in-progress feature
         JScrollPane sp = null;
         if (mapViewer == null) {
@@ -504,9 +569,9 @@ public class VUE
                 VUE.ActiveViewer = mapViewer;
             System.out.println("active viewer: " + VUE.getActiveViewer().getMap().getLabel());
             if (useScrollbars)
-                tabbedPane.addTab(map.getLabel(), sp = new JScrollPane(mapViewer));
+                tabbedPane.addTab(map, sp = new JScrollPane(mapViewer));
             else
-                tabbedPane.addTab(map.getLabel(), mapViewer);
+                tabbedPane.addTab(map, mapViewer);
 
             // put BACKINGSTORE mode on a diag switch and test
             // performance difference -- the obvious difference is
@@ -522,8 +587,9 @@ public class VUE
             //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             
             MapViewer mv2 = new tufts.vue.MapViewer(map, true);
-            tabbedPane2.addTab(map.getLabel(), mv2);
+            tabbedPane2.addTab(map, mv2);
         }
+         
         int idx = tabbedPane.indexOfComponent(mapViewer);
         /*
         //tabbedPane.setBackgroundAt(idx, Color.blue);
@@ -592,7 +658,7 @@ public class VUE
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
-        fileMenu.add(saveAsAction);
+        fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(exportMenu);
         fileMenu.addSeparator();
