@@ -243,9 +243,10 @@ class MapDropTarget
         Resource resource =new Resource(resourceTitle);
         try {
             resourceTitle = asset.getDisplayName();
+             resource.setAsset(asset);
         } catch(Exception e) { System.out.println("MapDropTarget.createNewNode " +e ) ; }
-        resource.setSpec(resourceTitle);
-        resource.setAsset(asset);
+      
+       
         LWNode node = NodeTool.createNode(resourceTitle);
         node.setLocation(dropToMapLocation(p));
         node.setResource(resource);
