@@ -369,7 +369,7 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         try
         {  
             deleteNode(childNode.getId());
-            reloadTreeModel(parentNode);
+            //reloadTreeModel(parentNode);
         }
               
         catch(osid.hierarchy.HierarchyException he)
