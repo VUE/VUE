@@ -69,6 +69,11 @@ public class VueDataSource implements DataSource{
         
       }
     
+    public void setisAutoConnect()
+    {
+        this.isAutoConnect = false;
+     
+    }
      
      public String getAddress(){
          
@@ -76,6 +81,13 @@ public class VueDataSource implements DataSource{
          
          
      }
+     public void setAddress(String address){
+         
+         this.address = address;
+         
+         
+     }
+    
     
     
     /*
@@ -90,6 +102,11 @@ public class VueDataSource implements DataSource{
         return this.Id; 
     }
    
+    public void setId(String Id){
+      
+        this.Id = Id;
+        
+    }
     public int getPublishMode(){
         
         return this.publishMode;   

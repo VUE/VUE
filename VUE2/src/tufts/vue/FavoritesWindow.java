@@ -441,8 +441,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             writer.flush();
             writer.close();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("FavoritesWindow.marshallFavorites: " + e);
+           // e.printStackTrace();
+            //System.err.println("FavoritesWindow.marshallFavorites: " + e);
         }
     }
     
@@ -456,8 +456,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             sTree= (SaveVueJTree) unmarshaller.unmarshal(new InputSource(reader));
             reader.close();
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("FavoritesWindow.unmarshallFavorites: " + e);
+           // e.printStackTrace();
+            //System.err.println("FavoritesWindow.unmarshallFavorites: " + e);
             sTree = null;
         }
         return sTree;

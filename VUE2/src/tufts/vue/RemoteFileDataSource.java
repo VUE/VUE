@@ -49,9 +49,14 @@ import tufts.oki.shared.*;
 public class RemoteFileDataSource extends VueDataSource{
  
     private JComponent resourceViewer;
-   private String address;
-    private String username;
+ 
+    private String UserName;
     private String password;
+    
+      public RemoteFileDataSource(){
+        
+        
+    }
     public RemoteFileDataSource(String DisplayName, String address, String username, String password){
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
@@ -62,25 +67,15 @@ public class RemoteFileDataSource extends VueDataSource{
         
      }
 
-      public void setAddress(String address){
-        
-        this.address = address;
-        
-    }
-     public String getAddress(){
-        
-        return this.address;
-        
-    }
-     
+    
      public void setUserName(String username){
         
-        this.username = username;
+        this.UserName = username;
         
     }
      public String getUserName(){
         
-        return this.username;
+        return this.UserName;
         
     }
      
@@ -108,7 +103,7 @@ public class RemoteFileDataSource extends VueDataSource{
                 cabVector.add (res);
                
             }   
-            }catch (Exception ex) {}
+            }catch (Exception ex) {VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}
 
             VueDragTree fileTree = new VueDragTree (cabVector.iterator(), this.getDisplayName());
             JScrollPane rSP = new JScrollPane (fileTree);

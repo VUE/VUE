@@ -86,23 +86,8 @@ public interface DataSource{
      *
      *
      */
-       
-     
-  // public void setAddDataSourcePanel();
-   
-   /**
-     *Set the edit panel associated with the data source
-     *
-     *
-     */
-       
-   
-  // public void setEditDataSourcePanel();
-   
-     /**
-     *Returns a JComponent that is the panel to add the datasource
-     *
-     */
+
+ 
    public JComponent getAddDataSourcePanel();
    
     /**

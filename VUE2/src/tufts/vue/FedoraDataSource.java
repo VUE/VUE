@@ -34,9 +34,14 @@ import java.net.URL;
 public class FedoraDataSource extends VueDataSource{
  
     private JComponent resourceViewer;
-    private String address;
-    private String username;
+  
+    private String UserName;
     private String password;
+    
+      public FedoraDataSource(){
+        
+        
+    }
     public FedoraDataSource(String DisplayName, String address, String username, String password){
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
@@ -46,25 +51,16 @@ public class FedoraDataSource extends VueDataSource{
         
      }
     
-      public void setAddress(String address){
-        
-        this.address = address;
-        
-    }
-     public String getAddress(){
-        
-        return this.address;
-        
-    }
+    
      
      public void setUserName(String username){
         
-        this.username = username;
+        this.UserName = username;
         
     }
      public String getUserName(){
         
-        return this.username;
+        return this.UserName;
         
     }
      
@@ -85,7 +81,7 @@ public class FedoraDataSource extends VueDataSource{
        try{
           this.resourceViewer = new DRViewer("fedora.conf",this.getDisplayName(),this.getDisplayName(),this.getDisplayName(),new URL("http",this.getAddress(),8080,"fedora/"),this.getUserName(),this.getPassword());
               
-       }catch (Exception ex){}; 
+       }catch (Exception ex){VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}; 
    }
 
    public JComponent getResourceViewer(){

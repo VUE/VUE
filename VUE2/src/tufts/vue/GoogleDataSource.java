@@ -34,7 +34,10 @@ import java.net.URL;
 public class GoogleDataSource extends VueDataSource{
  
     private JComponent resourceViewer;
-    private String address;
+    
+    public GoogleDataSource(){
+       
+    }
     public GoogleDataSource(String DisplayName, String address){
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
@@ -42,17 +45,8 @@ public class GoogleDataSource extends VueDataSource{
         
      }
     
-    public void setAddress(String address){
-        
-        this.address = address;
-        
-    }
-     public String getAddress(){
-        
-        return this.address;
-        
-    }
-    
+   
+   
    public void  setResourceViewer(){
              
        try{
@@ -60,7 +54,7 @@ public class GoogleDataSource extends VueDataSource{
         
          this.resourceViewer = new TuftsGoogle(this.getDisplayName(),this.getAddress());
               
-       }catch (Exception ex){}; 
+       }catch (Exception ex){VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}; 
    }
 
    public JComponent getResourceViewer(){

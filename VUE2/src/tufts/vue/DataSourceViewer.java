@@ -30,6 +30,7 @@ package tufts.vue;
 
 import tufts.vue.gui.VueButton;
 
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -39,6 +40,9 @@ import java.util.Vector;
 import java.io.File;
 import java.io.*;
 import java.util.*;
+import java.net.URL;
+
+
 // castor classes
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -65,6 +69,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
+    private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
+    private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
+    
+   
 
     JPopupMenu popup;       // add edit popup
     JDialog addEditDialog = null;   //  The add/edit dialog box.
@@ -73,6 +81,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     AbstractAction deleteAction;
     AbstractAction saveAction;
     AbstractAction refreshAction;
+   
+    
+
 
    
     public static Vector  allDataSources = new Vector();
@@ -100,9 +111,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
            public void valueChanged(ListSelectionEvent e) {
                
               if ((DataSource)((JList)e.getSource()).getSelectedValue()!=null){
-              if (!(((JList)e.getSource()).getSelectedValue() instanceof String)){
+                System.out.print("do I get here?"); 
                DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
-              }
+              
                
             }}
         });
@@ -295,6 +306,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         resourcesPanel.setLayout(new BorderLayout());
         
         resourcesPanel.setBorder(new TitledBorder(activeDataSource.getDisplayName()));
+        
          JPanel dsviewer = (JPanel)ds.getResourceViewer();
         resourcesPanel.add(dsviewer,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
@@ -671,29 +683,48 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
          allDataSources.add(dataSource2);
             allDataSources.add(dataSource3);
          allDataSources.add(dataSource4);
-       
-        
+
          
-           
-               DataSource ds1 = new LocalFileDataSource("My Computer", "");
-               addDataSource(ds1);
+         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         
+
+                 try{
+               SaveDataSourceViewer rViewer = unMarshallMap(f);
+               Vector rsources = rViewer.getSaveDataSources();
+                while (!(rsources.isEmpty())){
+                    DataSource ds = (DataSource)rsources.remove(0);
+                    System.out.println(ds.getDisplayName()+ds.getClass());
+                    try {
+                        ds.setResourceViewer();
+                        addDataSource(ds);
+                        setActiveDataSource(ds);
+                              
+                    } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
+                   
+                }
+                 
+                 
+                }catch (Exception ex) {
+                             
+                VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
+               DataSource ds1 = new LocalFileDataSource("My Computer","");
+                addDataSource(ds1);
                DataSource ds2 = new FavoritesDataSource("My Favorites");
-               addDataSource(ds2);
-               
-             
-               DataSource ds3 = new FedoraDataSource("Tufts Digital Library","vue-dl.tccs.tufts.edu","test","test");
-               addDataSource(ds3);
-       
-        
-               DataSource ds4 = new GoogleDataSource("Tufts Google", VueResources.getString("url.google"));
+                 addDataSource(ds2);
+               DataSource ds3 = new FedoraDataSource("Tufts Digital Library","vue-dl.tccs.tufts.edu", "test","test");
+                 addDataSource(ds3);
+               DataSource ds4 = new GoogleDataSource("Tufts Web",VueResources.getString("url.google"));
                addDataSource(ds4);
+                setActiveDataSource(ds2);
                
-             
+                 }
                
+           
+               
+       
           
-             
-           setActiveDataSource(ds1);
+          
+                
                refreshDataSourceList();
              
              
@@ -729,7 +760,85 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
            
    }
 
+  public static void saveDataSourceViewer(){
+        
+      // if (dataSourceChanged){
+        //    int choice = JOptionPane.showConfirmDialog(null,"Data Sources have been changed. Would you like to save them? ","Confirm Save",JOptionPane.YES_NO_CANCEL_OPTION);
+           //if(choice == 0) {
+                
+                File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
+                Vector sDataSources = new Vector();
+                int size = dataSourceList.getModel().getSize();
+                int i;
+               
+                for (i = 0; i< size; i++){
+                    
+                    if (!(dataSourceList.getModel().getElementAt(i) instanceof String)) sDataSources.add((DataSource)dataSourceList.getModel().getElementAt(i));
+                    
+                }
+               
+                SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
+               
+                marshallMap(f,sViewer);
+               
+               
+            //}
+        //}
+        
+    }
 
+    
+    public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
+        Marshaller marshaller = null;
+        
+       
+        Mapping mapping = new Mapping();
+        
+        
+        try {
+            FileWriter writer = new FileWriter(file);
+            
+            marshaller = new Marshaller(writer);
+            mapping.loadMapping(XML_MAPPING_DEFAULT);
+            marshaller.setMapping(mapping);
+            
+            
+            marshaller.marshal(dataSourceViewer);
+            
+            writer.flush();
+            writer.close();
+            
+        }
+        catch (Exception e) {System.err.println("DRBrowser.marshallMap " + e);}
+        
+    }
+    
+    
+    public  SaveDataSourceViewer unMarshallMap(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException{
+        Unmarshaller unmarshaller = null;
+        SaveDataSourceViewer sviewer = null;
+        
+        
+        
+           Mapping mapping = new Mapping();
+       
+             
+            unmarshaller = new Unmarshaller();
+             mapping.loadMapping(XML_MAPPING_DEFAULT);
+            unmarshaller.setMapping(mapping);
+            
+            FileReader reader = new FileReader(file);
+            
+            sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
+            
+            
+            reader.close();
+            
+         
+        
+        return sviewer;
+    }
+    
 
     
     

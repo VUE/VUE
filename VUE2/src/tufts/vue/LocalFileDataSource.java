@@ -49,7 +49,12 @@ import tufts.oki.shared.*;
 public class LocalFileDataSource extends VueDataSource{
  
     private JComponent resourceViewer;
-    private String address;
+    
+      public LocalFileDataSource(){
+        
+        
+    }
+   
     public LocalFileDataSource(String DisplayName, String address){
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
@@ -57,16 +62,7 @@ public class LocalFileDataSource extends VueDataSource{
         
      }
 
-      public void setAddress(String address){
-        
-        this.address = address;
-        
-    }
-     public String getAddress(){
-        
-        return this.address;
-        
-    }
+  
    public void  setResourceViewer(){
           
              Vector cabVector = new Vector();
@@ -93,7 +89,7 @@ public class LocalFileDataSource extends VueDataSource{
                 CabinetResource res = new CabinetResource(rootNode);
                 cabVector.add(res); 
             }
-               }catch (Exception ex) {}
+               }catch (Exception ex) {VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}
             VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
             fileTree.setRootVisible(true);
             fileTree.setShowsRootHandles(true);

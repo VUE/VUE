@@ -33,6 +33,11 @@ import javax.swing.JComponent;
 public class FavoritesDataSource extends VueDataSource{
  
     private JComponent resourceViewer;
+    
+     public FavoritesDataSource(){
+        
+        
+    }
     public FavoritesDataSource(String DisplayName){
           this.setDisplayName(DisplayName);   
            this.setResourceViewer();
