@@ -40,7 +40,7 @@ public class DataSourceViewer  extends JPanel{
  
     public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google"};
     private static int  filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0;
-    private static boolean  problemloadingfromfile = false, init = true;
+    private static boolean  problemloadingfromfile = false;
     private static String begIndex = "NONE";
     
     
@@ -73,6 +73,7 @@ public class DataSourceViewer  extends JPanel{
        
        
         loadDataSources();
+      
         if (loadingFromFile)dataSourceChanged = false;
         
         
@@ -137,7 +138,7 @@ public class DataSourceViewer  extends JPanel{
         add(dataSourcePanel,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
         
-        init = false;
+       
     }
     /*
     public Vector getDataSources(){
@@ -263,14 +264,9 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
     try{
         ds = new DataSource("id", displayName, name, searchURL,address, user, password, type);
     }catch (Exception ex){
-        if (!(init)){
-        VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
-        }
-        else {
-         
-            problemloadingfromfile = true;
-            
-        }
+        
+        //VueUtil.alert(VUE.getInstance(),"There was a problem adding this Data Source","DataSource not added");
+           System.out.println("There was a problem adding this Data Source");
         return;
     }
     
@@ -1129,6 +1125,7 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
         
         //--Marshalling etc
           favorites = 0;fedora=0;google=0;filingremote = 0;
+          boolean  problemloadingfromfile = true;
           
             boolean debug = false;
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
@@ -1156,7 +1153,7 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
           catch(Exception ex) {problemloadingfromfile = true;}
           }
            
-               // problemloadingfromfile = false;    
+                problemloadingfromfile = false;    
             
             }
             
