@@ -1,6 +1,8 @@
  package tufts.vue;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,10 +49,34 @@ public final class LWGroup extends LWContainer
         LWGroup group = new LWGroup();
         // todo: turn off all events while this reorg is happening?
         // Now grab all the children
+
+        // todo: this does NOT preserve the existing relative
+        // layout order of what we're adding to the group --
+        // that's a bug.
+        HashSet linkSet = new HashSet();
         Iterator i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            //System.out.println("ADDING TO GROUP " + c);
             group.addChildInternal(c);
+
+            //-------------------------------------------------------
+            // If both ends of any link are in the selection,
+            // also add those links as children of the group.
+            //-------------------------------------------------------
+            Iterator li = c.getLinkRefs().iterator();
+            while (li.hasNext()) {
+                LWLink l = (LWLink) li.next();
+                if (!linkSet.add(l)) {
+                    if (DEBUG_PARENTING) System.out.println("["+group.getLabel() + "] GRABBING " + c + " (both ends in group)");
+                    group.addChildInternal(l);
+                }
+            }
+            // If a link was actually in the selection and already
+            // added, this is not problem, as multiple adds are okay.
+            // todo: if this is ever a performance issue, could obviously
+            // optimize this re-parenting away
+            
         }
         group.setSizeFromChildren();
         // todo: catch any child size change events (e.g., due to font)
