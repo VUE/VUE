@@ -66,11 +66,12 @@ import tufts.vue.beans.*;
          mArrowEndButton.setBorderPainted(false);
 		
  		
-         box.add( mLinkColorButton);
-         box.add( mArrowStartButton);
-         box.add( mArrowEndButton);
+         //box.add( mLinkColorButton);
+         //box.add( mArrowStartButton);
+         //box.add( mArrowEndButton);
  		
-         this.add(box, 0);
+         getBox().add(mArrowEndButton, 1);
+         getBox().add(mArrowStartButton, 1);
  	
          initDefaultState();
      }

@@ -163,6 +163,8 @@ public class VueBeans   {
         // all items in the selection. [it should apply properties as it can]
         while (it.hasNext() ) {
             object = it.next();
+            if (object instanceof LWLink && pName == LWKey.FillColor)
+                continue;
             if (tufts.vue.DEBUG.SELECTION) System.out.println("applying " + pName + " to " + object);
             VueBeans.setPropertyValue( object, pName, pValue);
         }

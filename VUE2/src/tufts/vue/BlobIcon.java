@@ -20,7 +20,7 @@ public class BlobIcon implements Icon
     private int mWidth = 0;
 	
     /** the blob color **/
-    private Color mColor = null;
+    protected Color mColor = null;
 	
     /** the overlay icon, if any **/
     private Icon mOverlay = null;

@@ -3,27 +3,24 @@ package tufts.vue;
 import java.awt.*;
 import javax.swing.*;
 
-
 /**
  * LineIcon Class
  *
  * This class extends the BlobIcon and is used to draw a line
  * of a dynamic size horizontally accross the icon.
  *
- * The LineIcon class is used by the STrokeMenuButton class to
- * generate visual stroke weights in a popup menu ands for autogeneration.
+ * The LineIcon class is used by the StrokeMenuButton class to
+ * generate visual stroke weights in a popup menu ands for autogeneration,
+ * as well as the ColorMenuButton class for a colored stroke button
  *
- * @seealso tufts.vue.STrokeMenuButton
- * @seealso  
+ * @see tufts.vue.StrokeMenuButton
+ * @see tufts.vue.ColorMenuButton
  *
  **/
 public class LineIcon extends BlobIcon
 {
     /** the weight of the stroke **/
     private float mWeight;	
-	
-    /** the line color **/
-    private Color mLineColor;
 	
     public LineIcon() {
         super();
@@ -53,39 +50,18 @@ public class LineIcon extends BlobIcon
     public LineIcon(int pWidth, int pHeight, Color pColor, Icon pOverlay) {
         super( pWidth, pHeight, pColor, pOverlay, false);
         mWeight = 0;
-        mLineColor = new Color( 0,0,0);
     }
 	
-	
-	
-    //////////////
-    // Methods
-    ///////////////
-	
-    /**
-     * setWeight
-     * Sets teh strke weight
-     **/
-    public void setWeight( float pWeight) {
+    /** Sets the stroke weight **/
+    public void setWeight(float pWeight) {
         mWeight = pWeight;
     }
 	
-    /**
-     * getWeight
-     * Gets the stroke weight
-     **/
+    /** Gets the stroke weight **/
     public float getWeight() {
         return mWeight;
     }
 	
-	
-    public void setLineColor( Color pColor) {
-        mLineColor = pColor;
-    }
-	
-    public Color getLineColor() {
-        return mLineColor;
-    }
 	
     /**
      * paintIcon
@@ -97,25 +73,24 @@ public class LineIcon extends BlobIcon
      * system.
      * @see java.awt.Icon
      **/
-    public void paintIcon( Component c, Graphics g, int x, int y) {
-		
+    public void paintIcon( Component c, Graphics g, int x, int y)
+    {
+        /*
         Color color = getColor();
-        Color lineColor = getLineColor();
-        if ( color == null) {
+        if (color == null)
             color = c.getBackground();
-        }
         g.setColor( color);
         g.fillRect(x,y, getIconWidth(), getIconHeight());
+        */
 			
-        if( getWeight() > 0 ) {
-            g.setColor( lineColor);
+        if (getWeight() > 0 ) {
+            g.setColor(getColor());
             int weight = (int) getWeight();
             int y1 =  y+ ( (getIconHeight() - weight) /2);
             g.fillRect( x, y1, getIconWidth(), weight );
 			
         }
-			
-        if( getOverlay() != null) {
+        if (getOverlay() != null) {
             getOverlay().paintIcon( c, g, x, y);
             //g.drawImage( getOverlay().getImage(), x, y, null);
         }

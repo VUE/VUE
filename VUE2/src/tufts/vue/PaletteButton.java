@@ -8,251 +8,235 @@ import javax.swing.border.*;
 
 
 /**
-* PaletteButton
-* This class provides a popup radio button selector component.
-* It is used for the main tool bar tool
-*
-* @author csb
-* @author smf
-* @version 1.1
-**/
-public class PaletteButton extends JRadioButton implements ActionListener {
-
-	
+ * PaletteButton
+ * This class provides a popup radio button selector component.
+ * It is used for the main tool bar tool
+ *
+ * @author csb
+ * @author smf
+ * @version 1.1
+ **/
+public class PaletteButton extends JRadioButton implements ActionListener
+{
     private static final Color ButtonBackgroundColor = VueResources.getColor("toolbar.background");
     //private static final Color ButtonBackgroundColor = VueResources.getColor("menubarColor");
     
-	//////////////////
-	//  Fields
-	//////////////////
+    /* this is thr eolumn threshold array to tell when to add another columng in the palette */
+    static int mColThreshold[] = VueResources.getIntArray("menuFlowThreshold") ;
 	
-	/* this is thr eolumn threshold array to tell when to add another columng in the palette */
- 	static int mColThreshold[] = VueResources.getIntArray("menuFlowThreshold") ;
+    // default offsets for drawing popup arrow via code
+    public int mArrowSize = 3;
+    public int mArrowHOffset  = -9;
+    public int mArrowVOffset = -7;
 	
-	// default offsets for drawing popup arrow via code
-	public int mArrowSize = 3;
-	public int mArrowHOffset  = -9;
-	public int mArrowVOffset = -7;
-	
-	/** the popup overlay icons for up and down states **/
-	public Icon mPopupIndicatorIconUp = null;
-	public Icon mPopupIndicatorDownIcon = null;
+    /** the popup overlay icons for up and down states **/
+    public Icon mPopupIndicatorIconUp = null;
+    public Icon mPopupIndicatorDownIcon = null;
 
-		/** The currently selected palette item--if any **/
-	protected PaletteButtonItem mCurSelection = null;
+    /** The currently selected palette item--if any **/
+    protected PaletteButtonItem mCurSelection = null;
 	
-		/** the set of palette items for this buttons menu **/
-	protected PaletteButtonItem [] mItems = null;
+    /** the set of palette items for this buttons menu **/
+    protected PaletteButtonItem [] mItems = null;
 	
-		/** does this button have a popup? **/
-	protected boolean mHasPopup = false;
+    /** does this button have a popup? **/
+    protected boolean mHasPopup = false;
 	
-	/** do we need to draw an arrow via code **/
-	protected boolean mDrawArrowByCode = false;
+    /** do we need to draw an arrow via code **/
+    protected boolean mDrawArrowByCode = false;
 	
-		/** the popup menu **/
-	protected JPopupMenu mPopup = null;
+    /** the popup menu **/
+    protected JPopupMenu mPopup = null;
 
-		/** are we drawing the popup icon indcator with an image or in code? **/
-	protected boolean mUseIconIndicator = true;
+    /** are we drawing the popup icon indcator with an image or in code? **/
+    protected boolean mUseIconIndicator = true;
 	
-		/* the context object */
-	private Object mContext = null;
+    /* the context object */
+    private Object mContext = null;
 	
-		/** the current overlay popup indicator icon **/
-	protected Icon mPopupIndicatorIcon = null;	
-	protected Icon mPopupIndicatorUpIcon = null;	
-	
-	
-
+    /** the current overlay popup indicator icon **/
+    protected Icon mPopupIndicatorIcon = null;	
+    protected Icon mPopupIndicatorUpIcon = null;	
 	
 	
-	
-	///////////////
-	// Constructors
-	////////////////
-	
-	
-	
-	
-	/**
-	 * Constructor
-	 *
-	 * Creates a new PaletteButton with no menus
-	 *
-	 **/
-	public PaletteButton() {
-		super();
-		setBorder( null);
-                setFocusable(false);
-                setBackground(ButtonBackgroundColor);
-	}
+    /**
+     * Constructor
+     *
+     * Creates a new PaletteButton with no menus
+     *
+     **/
+    public PaletteButton() {
+        super();
+        setBorder( null);
+        setFocusable(false);
+        setBackground(ButtonBackgroundColor);
+    }
 	
 	
-	/**
-	 * Constructor
-	 *
-	 *  Creates a new PaletteButton with the passed array of items
-	 * as it's palette menu.
-	 * 
-	 *  It will preselect the first item in the array as
-	 *  its default selection and use its images for its own view.
-	 *
-	 * @param pItems  an array of PaletteButtonItems for the menu.
-	 **/
-	public PaletteButton(  PaletteButtonItem [] pItems) {
-		super();
-		setPaletteButtonItems( pItems );
-		setRolloverEnabled( true);
-		setBorder( null);
-                setFocusable(false);
-                setBackground(ButtonBackgroundColor);
-	}
+    /**
+     * Constructor
+     *
+     *  Creates a new PaletteButton with the passed array of items
+     * as it's palette menu.
+     * 
+     *  It will preselect the first item in the array as
+     *  its default selection and use its images for its own view.
+     *
+     * @param pItems  an array of PaletteButtonItems for the menu.
+     **/
+    public PaletteButton(  PaletteButtonItem [] pItems) {
+        super();
+        setPaletteButtonItems( pItems );
+        setRolloverEnabled( true);
+        setBorder( null);
+        setFocusable(false);
+        setBackground(ButtonBackgroundColor);
+    }
 	
 	
 	
-	//////////////////
-	// Methods
-	//////////////////
+    //////////////////
+    // Methods
+    //////////////////
 	
 	
-	/**
-	 * setContext
-	 * Sets a user context object.
-	 **/
-	 public void setContext( Object pContext) {
-	 	mContext = pContext;
-	 }
+    /**
+     * setContext
+     * Sets a user context object.
+     **/
+    public void setContext( Object pContext) {
+        mContext = pContext;
+    }
 	 
-	 /**
-	  * getContext
-	  * Gets teh user context object
-	  **/
-	 public Object getContext() {
-	 	return mContext;
-	 }
+    /**
+     * getContext
+     * Gets teh user context object
+     **/
+    public Object getContext() {
+        return mContext;
+    }
 	
-	/**
-	 * setPopupIndicatorIcon
-	 * Sets the popup indicator icon icon
-	 *
-	 * @param pIcon the icon
-	 **
-	 public void setPopupIndicatorIcon( Icon pIcon) {
-	 	mPopupIndicatorIcon = pIcon;
-	 }
+    /**
+     * setPopupIndicatorIcon
+     * Sets the popup indicator icon icon
+     *
+     * @param pIcon the icon
+     **
+     public void setPopupIndicatorIcon( Icon pIcon) {
+     mPopupIndicatorIcon = pIcon;
+     }
 	 
-	 /**
-	  * getPopupIndicatorIcon
-	  * Gets teh popup indicator icon
-	  * @return the icon
-	  **/
-	  public Icon getPopupIndicatorIcon() {
-	  	return mPopupIndicatorIcon;
-	  }
+     /**
+     * getPopupIndicatorIcon
+     * Gets teh popup indicator icon
+     * @return the icon
+     **/
+    public Icon getPopupIndicatorIcon() {
+        return mPopupIndicatorIcon;
+    }
 
 
-	/**
-	 * setPopupIconIndicatorEnabled
-	 * This sets the state of the mUseArrowIcon property.  It is
-	 * used to tell how to draw the popup visual cue.  If true,
-	 * then it uses the image, otherwise, it draws the default
-	 * arrow.
-	 * 
-	 **/
-	public void setPopupIconIndicatorEnabled( boolean pState) {
-		mUseIconIndicator = pState;
-	}
+    /**
+     * setPopupIconIndicatorEnabled
+     * This sets the state of the mUseArrowIcon property.  It is
+     * used to tell how to draw the popup visual cue.  If true,
+     * then it uses the image, otherwise, it draws the default
+     * arrow.
+     * 
+     **/
+    public void setPopupIconIndicatorEnabled( boolean pState) {
+        mUseIconIndicator = pState;
+    }
 	
-	/**
-	 * isPopupIconIndicatorEnabled
-	 * This method tells how to draw the popup arrow indicator
-	 * on the button in paint().  If some image should be used, then this
-	 * returns true.  If the default arrow that's drawn by code
-	 * should be used, this returns false.
-	 *
-	 * @ return boolean true if should use image to draw indictor; false if not
-	 **/
-	public boolean isPopupIconIndicatorEnabled() {
-            //return mUseIconIndicator;
-            return false;
-	}
+    /**
+     * isPopupIconIndicatorEnabled
+     * This method tells how to draw the popup arrow indicator
+     * on the button in paint().  If some image should be used, then this
+     * returns true.  If the default arrow that's drawn by code
+     * should be used, this returns false.
+     *
+     * @ return boolean true if should use image to draw indictor; false if not
+     **/
+    public boolean isPopupIconIndicatorEnabled() {
+        //return mUseIconIndicator;
+        return false;
+    }
 
-	/**
-	 * addPaletteItem( PaletteButtonItem pItem)
-	 * This method adds a new PaleeteButtonItem to the PaletteButton's
-	 * menu.
-	 *
-	 * @param pItem the new PaletteButtonItem to be added.
-	 **/
-	public void addPaletteItem( PaletteButtonItem  pItem ) {
-		if( mItems == null) {
-		  mItems = new PaletteButtonItem[1];
-		  mItems[0] = pItem;
-		  }
-		else {
-			int len = mItems.length;
-			PaletteButtonItem newItems[] = new PaletteButtonItem[ len+1];
-			for(int i=0; i< len; i++) {
-				newItems[i] = mItems[i];
-				}
-			newItems[len] = pItem;
-			setPaletteButtonItems( newItems);
-			}
-	}
+    /**
+     * addPaletteItem( PaletteButtonItem pItem)
+     * This method adds a new PaleeteButtonItem to the PaletteButton's
+     * menu.
+     *
+     * @param pItem the new PaletteButtonItem to be added.
+     **/
+    public void addPaletteItem( PaletteButtonItem  pItem ) {
+        if( mItems == null) {
+            mItems = new PaletteButtonItem[1];
+            mItems[0] = pItem;
+        }
+        else {
+            int len = mItems.length;
+            PaletteButtonItem newItems[] = new PaletteButtonItem[ len+1];
+            for(int i=0; i< len; i++) {
+                newItems[i] = mItems[i];
+            }
+            newItems[len] = pItem;
+            setPaletteButtonItems( newItems);
+        }
+    }
 	
 	
-	/**
-	 * removePaletteItem
-	 * This removes an item from the popup menu
-	 * @param pItem the item to remove
-	 **/
-	 public void removePaletteItem( PaletteButtonItem pItem ) {
+    /**
+     * removePaletteItem
+     * This removes an item from the popup menu
+     * @param pItem the item to remove
+     **/
+    public void removePaletteItem( PaletteButtonItem pItem ) {
 	 	
-	 	if( mItems != null) {
-	 		int len = mItems.length;
-	 		PaletteButtonItem [] newItems = null;
-	 		boolean found = false;
-	 		int slot = 0;
-	 		if( len > 1) 
-	 			newItems = new PaletteButtonItem [len-1];
+        if( mItems != null) {
+            int len = mItems.length;
+            PaletteButtonItem [] newItems = null;
+            boolean found = false;
+            int slot = 0;
+            if( len > 1) 
+                newItems = new PaletteButtonItem [len-1];
 	 		
-	 		for( int i=0; i< len; i++) {
-	 		  if( mItems[i].equals( pItem) ) {
-	 		  	found = true;
-	 		  	}
-	 		  else {
-	 		  	newItems[slot] = mItems[i];
-	 		  	slot++;
-	 		  	}
-	 		  }
-	 		if( found) {
-	 			if( len == 1)
-	 				newItems = null;
-	 			setPaletteButtonItems( newItems);
-	 			}
-	 		}
-	 }
+            for( int i=0; i< len; i++) {
+                if( mItems[i].equals( pItem) ) {
+                    found = true;
+                }
+                else {
+                    newItems[slot] = mItems[i];
+                    slot++;
+                }
+            }
+            if( found) {
+                if( len == 1)
+                    newItems = null;
+                setPaletteButtonItems( newItems);
+            }
+        }
+    }
 	
 	
-	/**
-	 * setPaletteButtonItems
-	 * Sets the set of PaletteButtonItems for the popup menu
-	 * @param pItems the array of items.
-	 **/
-	 public void setPaletteButtonItems( PaletteButtonItem [] pItems) {
-	 	mItems = pItems;
-	 	buildPalette();
-	 }
+    /**
+     * setPaletteButtonItems
+     * Sets the set of PaletteButtonItems for the popup menu
+     * @param pItems the array of items.
+     **/
+    public void setPaletteButtonItems( PaletteButtonItem [] pItems) {
+        mItems = pItems;
+        buildPalette();
+    }
 	 
-	 /**
-	  * getPaletteButtonItems
-	  * Gets the array of PaletteButtonItems
-	  * @return the array of items
-	  **/
-	  public PaletteButtonItem[] getPaletteButtonItems() {
-	  	return mItems;
-	  }
+    /**
+     * getPaletteButtonItems
+     * Gets the array of PaletteButtonItems
+     * @return the array of items
+     **/
+    public PaletteButtonItem[] getPaletteButtonItems() {
+        return mItems;
+    }
 	 
 	 
 	  
@@ -314,51 +298,51 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	
     }
 	
-	/**
-	 *  setPropertiesFromItem
-	 * This method sets teh display properties of the button based on
-	 * the properties set in a PaletteButtonMenu item.  This allows the 
-	 * primary tool button to reflect the current selected item on the main toolbar.
-	 *
-	 * @param pItem - the PaletteButtonItem to use as the source
-	 **/
-	public void setPropertiesFromItem( PaletteButtonItem pItem) {
+    /**
+     *  setPropertiesFromItem
+     * This method sets teh display properties of the button based on
+     * the properties set in a PaletteButtonMenu item.  This allows the 
+     * primary tool button to reflect the current selected item on the main toolbar.
+     *
+     * @param pItem - the PaletteButtonItem to use as the source
+     **/
+    public void setPropertiesFromItem( PaletteButtonItem pItem) {
 	
-		this.setIcon( pItem.getIcon() );
-		this.setPressedIcon( pItem.getPressedIcon() );
-		this.setSelectedIcon( pItem.getSelectedIcon() );
-		this.setRolloverIcon( pItem.getRolloverIcon() );
-		this.setDisabledIcon( pItem.getDisabledIcon() );
+        this.setIcon( pItem.getIcon() );
+        this.setPressedIcon( pItem.getPressedIcon() );
+        this.setSelectedIcon( pItem.getSelectedIcon() );
+        this.setRolloverIcon( pItem.getRolloverIcon() );
+        this.setDisabledIcon( pItem.getDisabledIcon() );
 		
-		this.setRolloverEnabled( getRolloverIcon() != null);
-	}
+        this.setRolloverEnabled( getRolloverIcon() != null);
+    }
 	
 	
-	public void setPopupOverlayUpIcon( Icon pIcon) {
-		mPopupIndicatorUpIcon = pIcon;
-	}
+    public void setPopupOverlayUpIcon( Icon pIcon) {
+        mPopupIndicatorUpIcon = pIcon;
+    }
 	
-	public void setPopupOverlayDownIcon( Icon pIcon) {
-		mPopupIndicatorDownIcon = pIcon;
-	}
+    public void setPopupOverlayDownIcon( Icon pIcon) {
+        mPopupIndicatorDownIcon = pIcon;
+    }
 	
-	public void setOverlayIcons( Icon pUpIcon, Icon pDownIcon) {
-		setPopupOverlayUpIcon( pUpIcon);
-		setPopupOverlayDownIcon( pDownIcon);
-	}
+    public void setOverlayIcons( Icon pUpIcon, Icon pDownIcon) {
+        setPopupOverlayUpIcon( pUpIcon);
+        setPopupOverlayDownIcon( pDownIcon);
+    }
 	
 	
-	public void setIcons( Icon pUp, Icon pDown, Icon pSelect, Icon pDisabled, 
-						  Icon pRollover ) {
-		this.setIcon( pUp);
-		this.setPressedIcon( pDown);
-		this.setSelectedIcon( pSelect);
-		this.setDisabledIcon( pDisabled);
-		this.setRolloverIcon( pRollover);
+    public void setIcons( Icon pUp, Icon pDown, Icon pSelect, Icon pDisabled, 
+                          Icon pRollover ) {
+        this.setIcon( pUp);
+        this.setPressedIcon( pDown);
+        this.setSelectedIcon( pSelect);
+        this.setDisabledIcon( pDisabled);
+        this.setRolloverIcon( pRollover);
 		
-		this.setRolloverEnabled(  pRollover != null );
+        this.setRolloverEnabled(  pRollover != null );
 		
-	}
+    }
 
     public void setSelected(boolean b) {
         //System.out.println(this + " setSelected " + b);
@@ -368,77 +352,77 @@ public class PaletteButton extends JRadioButton implements ActionListener {
         //System.out.println("PaletteButton: fireStateChanged, selected="+isSelected() + " " + getIcon());
         super.fireStateChanged();
     }
-	/**
-	 * paint( Graphics g)
-	 * Overrides paint method and renders an additional icon ontop of
-	 * of the normal rendering to indicate if this button contains
-	 * a popup handler.
-	 *
-	 * @param Graphics g the Graphics.
-	 **/
-	public void paint( java.awt.Graphics pGraphics) {
-		super.paint( pGraphics);
+    /**
+     * paint( Graphics g)
+     * Overrides paint method and renders an additional icon ontop of
+     * of the normal rendering to indicate if this button contains
+     * a popup handler.
+     *
+     * @param Graphics g the Graphics.
+     **/
+    public void paint( java.awt.Graphics pGraphics) {
+        super.paint( pGraphics);
 		
-		Dimension dim = getPreferredSize();
-		Insets insets = getInsets();
+        Dimension dim = getPreferredSize();
+        Insets insets = getInsets();
 		
-		// now overlay the popup menu icon indicator
-		// either from an icon or by brute painting
-		if( (!isPopupIconIndicatorEnabled() ) 
-			   &&  (mPopup != null) 
-			   && ( !mPopup.isVisible() ) ) {
-			// draw popup arrow
-			Color saveColor = pGraphics.getColor();
-			pGraphics.setColor( Color.black);
+        // now overlay the popup menu icon indicator
+        // either from an icon or by brute painting
+        if( (!isPopupIconIndicatorEnabled() ) 
+            &&  (mPopup != null) 
+            && ( !mPopup.isVisible() ) ) {
+            // draw popup arrow
+            Color saveColor = pGraphics.getColor();
+            pGraphics.setColor( Color.black);
 			
-			int w = getWidth();
-			int h = getHeight();
+            int w = getWidth();
+            int h = getHeight();
 			
-			int x1 = w + mArrowHOffset;
-			int y = h + mArrowVOffset;
-			int x2 = x1 + (mArrowSize * 2) -1;
+            int x1 = w + mArrowHOffset;
+            int y = h + mArrowVOffset;
+            int x2 = x1 + (mArrowSize * 2) -1;
 			
-			for(int i=0; i< mArrowSize; i++) { 
-				pGraphics.drawLine(x1,y,x2,y);
-				x1++;
-				x2--;
-				y++;
-				}
-			pGraphics.setColor( saveColor);
-			}
-		else  // Use provided popup overlay  icons
-		if(   (mPopup != null) && ( !mPopup.isVisible() ) ) {
+            for(int i=0; i< mArrowSize; i++) { 
+                pGraphics.drawLine(x1,y,x2,y);
+                x1++;
+                x2--;
+                y++;
+            }
+            pGraphics.setColor( saveColor);
+        }
+        else  // Use provided popup overlay  icons
+            if(   (mPopup != null) && ( !mPopup.isVisible() ) ) {
 			
-			Icon overlay = mPopupIndicatorUpIcon;
-			if( isSelected() ) {
+                Icon overlay = mPopupIndicatorUpIcon;
+                if( isSelected() ) {
 				
-				overlay = mPopupIndicatorDownIcon;
-				}
-			if( overlay != null) {
-				overlay.paintIcon( this, pGraphics, insets.top, insets.left);
-				}
-			/***
-			pGraphics.drawImage( mPopupIndicatorIcon.getImage(),
-								 0, 0 ,
-								 //Color.white,
-								 mPopupIndicatorIcon.getImageObserver()  );
-		 ******/
-			}
-	}
+                    overlay = mPopupIndicatorDownIcon;
+                }
+                if( overlay != null) {
+                    overlay.paintIcon( this, pGraphics, insets.top, insets.left);
+                }
+                /***
+                    pGraphics.drawImage( mPopupIndicatorIcon.getImage(),
+                    0, 0 ,
+                    //Color.white,
+                    mPopupIndicatorIcon.getImageObserver()  );
+                ******/
+            }
+    }
 	
-	/**
-	 * actionPerformed( ActionEvent pEvent)
-	 * This method handles remote or direct  selection of a PaletteButtonItem
-	 *
-	 * It will update its own icons based on the selected item
-	 *
-	 * @param pEvent the action event.
-	 **/
-	public void actionPerformed( ActionEvent pEvent) {
-            //System.out.println(pEvent);
-		// fake a click to handle radio selection after menu selection
-		doClick();		
-	}
+    /**
+     * actionPerformed( ActionEvent pEvent)
+     * This method handles remote or direct  selection of a PaletteButtonItem
+     *
+     * It will update its own icons based on the selected item
+     *
+     * @param pEvent the action event.
+     **/
+    public void actionPerformed( ActionEvent pEvent) {
+        //System.out.println(pEvent);
+        // fake a click to handle radio selection after menu selection
+        doClick();		
+    }
 
     public String toString() {
         return "PaletteButton[" + getIcon() + "]";
@@ -584,14 +568,14 @@ public class PaletteButton extends JRadioButton implements ActionListener {
         // I can't find this call anywhere in the java api or our src -- needed anymore?
         // where was this from? -- smf
         /*
-        public boolean isPopupMenuTrigger( MouseEvent pEvent ) {
-            boolean retValue = false;
-            System.out.println(this + " " + pEvent);
+          public boolean isPopupMenuTrigger( MouseEvent pEvent ) {
+          boolean retValue = false;
+          System.out.println(this + " " + pEvent);
                 
-            if(pEvent.getID() == MouseEvent.MOUSE_PRESSED )
-                retValue =true;
-            return retValue;
-        }
+          if(pEvent.getID() == MouseEvent.MOUSE_PRESSED )
+          retValue =true;
+          return retValue;
+          }
         */
         
     } // end of class PBPopupMenu

@@ -17,25 +17,16 @@ import tufts.vue.beans.*;
  
 public class LWCToolPanel extends JPanel implements ActionListener, PropertyChangeListener
 {
-    private static float [] sStrokeValues = { 0,1,2,3,4,5,6};
-    private static String [] sStrokeMenuLabels = { "none",
-                                                   "1 pixel",
-                                                   "2 pixels",
-                                                   "3 pixels",
-                                                   "4 pixels",
-                                                   "5 pixels",
-                                                   "6 pixels"  };
-    
     /** fill button **/
-    ColorMenuButton mFillColorButton = null;
+    ColorMenuButton mFillColorButton;
     /** stroke color editor button **/
-    ColorMenuButton mStrokeColorButton = null;
+    ColorMenuButton mStrokeColorButton;
     /** Text color menu editor **/
-    ColorMenuButton mTextColorButton = null;
+    ColorMenuButton mTextColorButton;
     /** stroke size selector menu **/
-    StrokeMenuButton mStrokeButton = null;
+    StrokeMenuButton mStrokeButton;
     /** the Font selection combo box **/
-    FontEditorPanel mFontPanel = null;
+    FontEditorPanel mFontPanel;
  	
     VueBeanState mDefaultState = null;
     VueBeanState mState = null;
@@ -47,6 +38,17 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     //private static final Insets ButtonInsets = new Insets(-2,-2,-2,-1);
     //private static final Insets ButtonInsets = NoInsets;
 
+    private static final float[] sStrokeValues = { 0,1,2,3,4,5,6};
+    private static final String[] sStrokeMenuLabels
+        = { "none",
+            "1 pixel",
+            "2 pixels",
+            "3 pixels",
+            "4 pixels",
+            "5 pixels",
+            "6 pixels"  };
+
+    private Box box;
     
     public LWCToolPanel() {
         //System.out.println("*** CONSTRUCTED " + this);
@@ -67,52 +69,50 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              setBackground(Color.blue);
          else
              setBackground( bakColor);
-         Box box = Box.createHorizontalBox();
+         this.box = Box.createHorizontalBox();
          //if (false) box.setBackground(Color.green);
          //else box.setBackground(bakColor);
          box.setBackground(bakColor);
          //this.setAlignmentX( LEFT_ALIGNMENT);
  		
+         //-------------------------------------------------------
+         // Fill Color menu
+         //-------------------------------------------------------
+         
          Color [] fillColors = VueResources.getColorArray( "fillColorValues");
          String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
          mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
          mFillColorButton.setColor(VueResources.getColor("defaultFillColor") );
          mFillColorButton.setPropertyName(LWKey.FillColor);
+         mFillColorButton.setToolTipText("Fill Color");
+          
+         //-------------------------------------------------------
+         // Stroke Color menu
+         //-------------------------------------------------------
          
-         //mFillColorButton.setBackground( bakColor);
-         //ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
-         //BlobIcon fillBlob = new BlobIcon();
-         //fillBlob.setOverlay( fillIcon );
-         //mFillColorButton.setIcon(fillBlob);
-         //mFillColorButton.setBorderPainted(false);
-         //mFillColorButton.setMargin(ButtonInsets);
-         // this skips painting background: will technically perform
-         // better as we don't need to fill it with the icon filling
-         // it all, but leaving off for now so we can see region for
-         // debug (not a performance concern)
-         // mFillColorButton.setContentAreaFilled(false);
-
          Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setIcon(new LineIcon(16,16, 3));
+         mStrokeColorButton.setIcon(new LineIcon(20,16, 3));
          mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
+         mStrokeColorButton.setToolTipText("Stroke Color");
          
-         /*
-         //mStrokeColorButton.setBackground( bakColor);
-         ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
-         BlobIcon strokeBlob = new BlobIcon();
-         strokeBlob.setOverlay( strokeIcon );
-         mStrokeColorButton.setPropertyName( LWKey.StrokeColor);
-         mStrokeColorButton.setIcon( strokeBlob);
-         */
-
+         //-------------------------------------------------------
+         // Stroke Width menu
+         //-------------------------------------------------------
          
-         //mStrokeColorButton.setBorderPainted(false);
-         //mStrokeColorButton.setMargin(ButtonInsets);
+         mStrokeButton = new StrokeMenuButton(sStrokeValues, sStrokeMenuLabels, true, false);
+         mStrokeButton.setIcon(new LineIcon(20,16));
+         mStrokeButton.setStroke( (float) 1);
+         mStrokeButton.setPropertyName( LWKey.StrokeWidth);
+         mStrokeButton.setToolTipText("Stroke Width");
 
-         Color [] textColors = VueResources.getColorArray( "textColorValues");
-         String [] textColorNames = VueResources.getStringArray( "textColorNames");
+         //-------------------------------------------------------
+         // Text Color menu
+         //-------------------------------------------------------
+         
+         Color[] textColors = VueResources.getColorArray("textColorValues");
+         String[] textColorNames = VueResources.getStringArray("textColorNames");
          mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
          mTextColorButton.setBackground( bakColor);
          ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
@@ -122,7 +122,12 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          mTextColorButton.setPropertyName(LWKey.TextColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
+         mTextColorButton.setToolTipText("Text Color");
 
+         //-------------------------------------------------------
+         // Font face & size editor
+         //-------------------------------------------------------
+         
          mFontPanel = new FontEditorPanel();
          if (debug)
              mFontPanel.setBackground(Color.green);
@@ -130,23 +135,58 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              mFontPanel.setBackground(bakColor);
          mFontPanel.setPropertyName( LWKey.Font );
  		
-         mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
-         mStrokeButton.setBackground( bakColor);
-         mStrokeButton.setIcon(new LineIcon(16,12));
-         mStrokeButton.setStroke( (float) 1);
-         mStrokeButton.setPropertyName( LWKey.StrokeWidth);
-         mStrokeButton.setMargin(ButtonInsets);
-         //mStrokeButton.setBorderPainted(false);
- 		
+         //-------------------------------------------------------
+         // Optional label for the contextual toolbar
+         //-------------------------------------------------------
+
          JComponent c = getLabelComponent();
          if (c != null)
              box.add(c);
+
+         //-------------------------------------------------------
+         if (debug) {
+             JComponent m = new JMenuBar();
+             //m.setLayout(new BoxLayout(m, BoxLayout.Y_AXIS));
+             //m.setLayout(new FlowLayout());
+             m.setLayout(new BorderLayout());
+             //JComponent m = new JToolBar();
+             final JMenu fillMenu = new JMenu("fill");
+             fillMenu.setIcon(new BlobIcon(20,20, Color.green));
+             fillMenu.add("red");
+             fillMenu.add("green");
+             if (true) {
+                 m.add(BorderLayout.CENTER, fillMenu);
+                 //m.setBorderPainted(false);
+                 box.add(m);
+             } else {
+                 //fillMenu.setFocusable(true);
+                 box.add(fillMenu);
+                 fillMenu.addMouseListener(new MouseAdapter() {
+                         public void mousePressed(MouseEvent e) {
+                             //Component c = e.getComponent(); 	
+                             //mPopup.show(c,  0, (int) c.getBounds().getHeight());
+                             fillMenu.setPopupMenuVisible(!fillMenu.isPopupMenuVisible());
+                         }
+                         public void X_mouseReleased(MouseEvent e) {
+                             fillMenu.setPopupMenuVisible(false);
+                             /*
+                               if( mPopup.isVisible() ) {
+                               //mPopup.setVisible( false);
+                               Component c = e.getComponent(); 	
+                               ((JButton) c).doClick();
+                               }
+                             */
+                         }
+                     });
+             }
+         }
+         //-------------------------------------------------------
          
-         //if (!textOnly) {
+         
+         if (!(this instanceof LinkToolPanel))
              box.add( mFillColorButton);
-             box.add( mStrokeColorButton);
-             box.add( mStrokeButton);
-             //}
+         box.add( mStrokeColorButton);
+         box.add( mStrokeButton);
          box.add( mFontPanel);
          box.add( mTextColorButton);
  		
@@ -154,6 +194,11 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  		
          initDefaultState();
     }
+
+    protected JComponent getBox() {
+        return box;
+    }
+    
 
     protected JComponent getLabelComponent() {
         return null;
@@ -171,7 +216,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     }
         
     void loadValues(Object pValue) {
-        System.out.println("LWCToolPanel.loadValues " + pValue);
+        System.out.println(this + " loadValues (LWCToolPanel) " + pValue);
         VueBeanState state = null;
  		
         if (pValue instanceof LWComponent) {
@@ -208,6 +253,18 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  		
         enablePropertyChangeListeners( true);
     }
+
+    void loadValues(LWSelection s) {
+        // todo: what's the sanest thing to do here?
+        if (s.size() == 1) {
+            loadValues(s.first());
+        } else if (s.size() > 1) {
+            //loadValues(s.first());
+            //mFillColorButton.setColor(null);
+            //mStrokeColorButton.setColor(null);
+            //mTextColorButton.setColor(null);
+        }
+    }
  	
     /**
      * getValue
@@ -233,11 +290,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         }
     }
  	 
-    // todo: recognize re-selection of already selected menu item
-    // (not currently triggering property change event) or put
-    // "unselected" invisible item in all menus for when
-    // selection doesn't fit property value.
-    public void propertyChange( PropertyChangeEvent pEvent) {
+    public void propertyChange( PropertyChangeEvent pEvent)
+    {
         //System.out.println("Node property chaged: "+pEvent.getPropertyName());
         String name = pEvent.getPropertyName();
         if( !name.equals("ancestor") ) {
@@ -246,20 +300,17 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, pEvent.getNewValue());
             if (VUE.getUndoManager() != null)
                 VUE.getUndoManager().markChangesAsUndo(pEvent.getPropertyName());
-            if( mState != null) {
+
+            if (mState != null)
                 mState.setPropertyValue( name, pEvent.getNewValue() );
-            }
-            else {
-                // should never happen
+            else
                 System.out.println("!!! Node ToolPanel mState is null!");
-            }
-            if( mDefaultState != null) {
+
+            if (mDefaultState != null)
                 mDefaultState.setPropertyValue( name, pEvent.getNewValue() );
-            }
-            else {
-                // should never happen
+            else
                 System.out.println("!!! Node ToolPanel mDefaultState is null!");
-            }
+
         }
     }
  	
@@ -267,6 +318,11 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         System.out.println(this + " " + pEvent);
  	
     }
+
+    public String toString() {
+        return getClass().getName();
+    }
+    
  	
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");

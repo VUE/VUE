@@ -294,7 +294,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         }
         public void updatePanel( LWNode node) {
             // update the display
-            System.out.println("Updated Panel ="+node);
+            if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + node);
             if(nodeFilterEditor!= null) {
                 nodeFilterEditor.setNodeFilter(node.getNodeFilter());
             }else {

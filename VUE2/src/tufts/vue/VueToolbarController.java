@@ -486,6 +486,7 @@ public class VueToolbarController
     }
 	 
     void initContextualPanelFromSelection( JPanel panel) {
+        /*
         LWSelection selection = VUE.getSelection();
         LWComponent c = null;
         if (selection != null && selection.size() > 0) {
@@ -495,9 +496,11 @@ public class VueToolbarController
             c = selection.first();
         } else 
             return;
-
+        */
+        
         if (panel instanceof LWCToolPanel)
-            ((LWCToolPanel)panel).loadValues(c);
+            //((LWCToolPanel)panel).loadValues(c);
+            ((LWCToolPanel)panel).loadValues(VUE.getSelection());
         else {
             System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
         }
