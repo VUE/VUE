@@ -520,8 +520,24 @@ public class LWComponent
         //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
+        updateConnectedLinks();
+        
         //notify("location"); // todo: does anyone need this?
         // also: if enable, don't forget to put in setX/getX!
+    }
+
+    /**
+     * Tell all links that have us as an endpoint that we've
+     * moved or resized so the link knows to recompute it's
+     * connection points.
+     */
+    protected void updateConnectedLinks()
+    {
+        java.util.Iterator i = getLinkRefs().iterator();
+        while (i.hasNext()) {
+            LWLink l = (LWLink) i.next();
+            l.setEndpointMoved(true);
+        }
     }
     
     public void setLocation(double x, double y)
@@ -544,6 +560,7 @@ public class LWComponent
         if (DEBUG_LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
         this.width = w;
         this.height = h;
+        updateConnectedLinks();
         // todo: notify?
     }
 
