@@ -19,6 +19,7 @@ import tufts.oki.shared.TypeIterator;
 import java.util.Vector;
 import java.util.Properties;
 import java.util.Iterator;
+import java.util.Enumeration;
 import java.net.*;
 import java.io.*;
 import javax.swing.JOptionPane;
@@ -54,6 +55,8 @@ import fedora.client.ingest.AutoIngestor;
 
 
 public class DR implements osid.dr.DigitalRepository {
+    
+    public static final String[] DC_FIELDS = {"dc:title","dc:creator","dc:subject","dc:date","dc:type","dc:format","dc:identifier","dc:collection","dc:coverage"};
     
     
     // using the vue.conf file.  This is the default file. the file name will be set in the constructor in future.
@@ -427,22 +430,20 @@ public class DR implements osid.dr.DigitalRepository {
         int BUFFER_SIZE = 10240;
         StringBuffer sb = new StringBuffer();
         String s = new String();
-       // FileInputStream fis = new FileInputStream(new File(getResource(templateFileName).getFile()));
-        FileInputStream fis = new FileInputStream(new File(templateFileName));
+        FileInputStream fis = new FileInputStream(new File(getResource(templateFileName).getFile()));
+        //FileInputStream fis = new FileInputStream(new File(templateFileName));
         DataInputStream in = new DataInputStream(fis); 
-
         byte[] buf = new byte[BUFFER_SIZE];
         int ch;
         int len;
         while((len =fis.read(buf)) > 0) {
             s = s+ new String(buf);
-          
         }
         fis.close();
         in.close();
       //  s = sb.toString();
-        String r =  s.replaceAll("%file.location%", fileName).trim();
-        
+        //String r =  s.replaceAll("%file.location%", fileName).trim();
+        String r = updateMetadata(s, fileName,file.getName(),properties);
         //writing the to outputfile
         File METSfile = File.createTempFile("vueMETSMap",".xml");
         FileOutputStream fos = new FileOutputStream(METSfile);
@@ -452,10 +453,18 @@ public class DR implements osid.dr.DigitalRepository {
         String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest"); 
         System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
         return new PID(pid);
+    } 
+   
+    private String updateMetadata(String s,String fileLocation, String fileTitle, Properties dcFields) {
+        String dcMetadata;
+        s = s.replaceAll("%file.location%", fileLocation).trim();
+        s = s.replaceAll("%file.title%", fileTitle).trim();
+        s = s.replaceAll("%dc.Metadata%", getMetadataString(dcFields));
+        return s;
+        
     }
-    
-    
-   private java.net.URL getResource(String name)
+     
+    private java.net.URL getResource(String name)
     {
         java.net.URL url = null;
         java.io.File f = new java.io.File(name);
@@ -470,6 +479,24 @@ public class DR implements osid.dr.DigitalRepository {
            url = getClass().getResource(name);
         System.out.println("fedora.conf = "+url.getFile());
        return url;
+    }
+    
+    public static boolean isSupportedMetadataField(String field){
+        for(int i=0;i<DC_FIELDS.length;i++) {
+            if(DC_FIELDS[i].equalsIgnoreCase(field))
+                return true;
+        }
+        return false;
+    }
+    public static String getMetadataString(Properties dcFields) {
+        String metadata = "";
+        Enumeration e = dcFields.keys();
+        while(e.hasMoreElements()) {
+            String field = (String)e.nextElement();
+            if(isSupportedMetadataField(field)) 
+                metadata += "<"+field+">"+dcFields.getProperty(field)+"</"+field+">";
+        }
+        return metadata;
     }
    
     public String getAddress() {
