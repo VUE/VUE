@@ -81,7 +81,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          BlobIcon fillBlob = new BlobIcon();
          fillBlob.setOverlay( fillIcon );
          mFillColorButton.setIcon(fillBlob);
-         mFillColorButton.setPropertyName( LWKey.FillColor);
+         mFillColorButton.setPropertyName(LWKey.FillColor);
          mFillColorButton.setBorderPainted(false);
          mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
          mFillColorButton.setMargin(ButtonInsets);
@@ -226,6 +226,10 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         }
     }
  	 
+    // todo: recognize re-selection of already selected menu item
+    // (not currently triggering property change event) or put
+    // "unselected" invisible item in all menus for when
+    // selection doesn't fit property value.
     public void propertyChange( PropertyChangeEvent pEvent) {
         //System.out.println("Node property chaged: "+pEvent.getPropertyName());
         String name = pEvent.getPropertyName();
