@@ -35,8 +35,8 @@ import javax.swing.*;
 public class SplashScreen extends JWindow {
     
     /** Creates a new instance of SpashScreen */
-    public final int width = 424;
-    public final int height = 291;
+    //public final int width = 424;
+    //public final int height = 291;
     public final long sleepTime = 5000;
     public SplashScreen() {
         super();
@@ -46,11 +46,13 @@ public class SplashScreen extends JWindow {
     
     private void createSplash() {
         Dimension screen =  Toolkit.getDefaultToolkit().getScreenSize();
+        ImageIcon icon = VueResources.getImageIcon("splashScreen");
+        final int width = icon.getIconWidth();
+        final int height = icon.getIconHeight();
         int x = (screen.width - width)/2;
         int y = (screen.height - height)/2;
         this.setBounds(x, y, width, height);
-        JLabel logoLabel = new JLabel(VueResources.getImageIcon("splashScreen"));
-        
+        JLabel logoLabel = new JLabel(icon);
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(logoLabel,BorderLayout.CENTER);
         this.setVisible(true);
