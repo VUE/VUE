@@ -51,7 +51,8 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
         partsVector.add(this.disseminationURLInfoPart);
         partsVector.add(this.parameterInfoPart);
     }
-    
+
+
     /**
      * Get the display name for this InfoStructure.
      *
@@ -167,7 +168,18 @@ public class DisseminationInfoStructure implements osid.dr.InfoStructure {
             throw new osid.dr.DigitalRepositoryException("Parameter InfoPart doesn't exist");
         return this.parameterInfoPart;
     }
-    
-    
+
+    public String toString() {
+        return super.toString()
+            + "[" + displayName + "]";
+        /*
+            + "[id=" + id
+            + " name=" + displayName
+            + " desc=" + description
+            + " schema=" + schema
+            + " format=" + format
+            + "]";
+        */
+    }
     
 }

@@ -53,6 +53,10 @@ public class PropertyEntry {
     public void setEntryValue(Object entryValue) {
         this.entryValue = entryValue;
     }
+
+    public String toString() {
+        return "PropertyEntry[" + entryKey + " val=" + entryValue + "]";
+    }
     
     
     

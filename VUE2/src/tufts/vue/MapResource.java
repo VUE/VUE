@@ -119,6 +119,7 @@ public class MapResource implements Resource {
             //a.setSize(600,400);
             //a.show();
             //} else
+            // TODO FIX: shouldn't be different for the mac here...
             if (VueUtil.isMacPlatform())
                 VueUtil.openURL(toURLString());
             else

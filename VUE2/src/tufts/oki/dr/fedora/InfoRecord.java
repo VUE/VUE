@@ -166,5 +166,9 @@ public class InfoRecord implements osid.dr.InfoRecord {
         }
         throw new osid.dr.DigitalRepositoryException("No InfoField Found");
     }
+
+    public String toString() {
+        return getClass().getName() + "[fields=" + infoFieldVector.size() + " structure=" + infoStructure + "]";
+    }
     
 }

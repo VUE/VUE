@@ -47,6 +47,10 @@ public class InfoField implements osid.dr.InfoField {
         this.infoPart = infoPart;
         this.value = value;
     }
+
+    public String toString() {
+        return getClass().getName() + "[" + id + " " + value + "]";
+    }
     
     /**
      * Get the unique Id for this InfoField.

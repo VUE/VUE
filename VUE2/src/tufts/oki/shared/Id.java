@@ -93,5 +93,9 @@ public class Id implements osid.shared.Id {
     public boolean isEqual(osid.shared.Id id)  throws osid.shared.SharedException {
         return id_str.equals(id.getIdString());
     }
+
+    public String toString() {
+        return "Id[" + id_str + "]";
+    }
     
 }
