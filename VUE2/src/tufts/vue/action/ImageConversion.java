@@ -82,6 +82,12 @@ public class ImageConversion extends AbstractAction {
             int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
         
             if (option == JFileChooser.APPROVE_OPTION) {
+                /*
+                if (chooser.getSelectedFile().isExist())
+                {
+                    
+                }
+                */
                 String fileName = chooser.getSelectedFile().getAbsolutePath();
                 
                 //if it isn't a file name with the right extention 

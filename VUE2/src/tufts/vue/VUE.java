@@ -361,12 +361,24 @@ public class VUE
         ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("Imap");
         SVGConversion svgAction = new SVGConversion("SVG");
+<<<<<<< VUE.java
+//<<<<<<< VUE.java
+=======
 
+>>>>>>> 1.26
         PrintAction printAction = new PrintAction("Print");
+<<<<<<< VUE.java
+//=======
+=======
 
+>>>>>>> 1.26
         
 
+<<<<<<< VUE.java
+//>>>>>>> 1.24
+=======
 
+>>>>>>> 1.26
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);

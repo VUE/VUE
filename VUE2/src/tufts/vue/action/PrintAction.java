@@ -31,6 +31,9 @@ public class PrintAction extends AbstractAction implements Printable {
         if (param == 0)
         {
             MapViewer currentMap = (MapViewer)VUE.tabbedPane.getSelectedComponent();
+            Dimension size = currentMap.getSize();
+            
+            graphics.setClip(0, 0, size.width, size.height);
             currentMap.paintComponent(graphics);
          
             return Printable.PAGE_EXISTS;
