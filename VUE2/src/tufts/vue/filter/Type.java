@@ -18,6 +18,7 @@ public interface Type{
     
     public static final String STRING_TYPE = "String";
     public static final String INTEGER_TYPE = "Integer";
+    public static final String BOOLEAN_TYPE = "Boolean";
     
     /** Creates a new instance of Class */
     public void setDisplayName(String displayName);

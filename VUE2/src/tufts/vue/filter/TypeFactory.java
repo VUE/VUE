@@ -140,11 +140,15 @@ public class TypeFactory {
         return type;
          */
     }
+    public static Type getBooleanType() {
+        return new BooleanType();
+    }
     // currently returns only string and integer types;
     public static List getAllTypes() {
         List typeList = new Vector();
         typeList.add(getIntegerType());
-        typeList.add(new StringType());
+        typeList.add(getStringType());
+        //typeList.add(getBooleanType());
         return typeList;
     }
 }

@@ -35,7 +35,6 @@ public class StringType extends DefaultType {
             return false;
         String v1 = (String) value1;
         String v2 = (String) value2;
-        System.out.println("COMPARE op1 ="+s1.getOperator().getDisplayName()+" op2 = "+s2.getOperator().getDisplayName()+"VALUES  v1="+v1+" v2="+v2);
         if(s1.getOperator().getDisplayName().equals(OP_EQUAL)){
             if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {
                 return v1.equals(v2);
