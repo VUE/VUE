@@ -257,6 +257,7 @@ public class VUE
         toolPanel = new JPanel();
         //JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
+        DRBrowser drBrowser = new DRBrowser();
         if (args.length < 1 || !args[0].equals("-nodr"))
             toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
@@ -290,6 +291,9 @@ public class VUE
 
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         inspectorTool.addTool(new LWCInspector());
+        
+        ToolWindow drBrowserTool  = new ToolWindow("DR Browser", frame);
+        drBrowserTool.addTool(drBrowser);
         
         // The real tool palette window withtools and contextual tools
         ToolWindow toolbarWindow = new ToolWindow( VueResources.getString("tbWindowName"), frame);
@@ -336,6 +340,7 @@ public class VUE
         Action[] windowActions = { toolbarWindow.getDisplayAction(),
         							pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
+                                   drBrowserTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),
                                    control.getDisplayAction(), 
                                    hierarchyTree.getDisplayAction(),
