@@ -155,8 +155,19 @@ public class PathwayPanel extends JPanel implements ActionListener
         //toggles the add button's availability depending on the selection
         VUE.ModelSelection.addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) {
-                    if (s.size() == 1 && s.first().inPathway(getSelectedPathway()))
+                    if (s.size() == 1 && s.first().inPathway(getSelectedPathway())) {
                         getSelectedPathway().setCurrentElement(s.first());
+                        updateTextAreas();
+                        // todo: changes to map selection are never updating
+                        // the text areas, tho clicking in the PathwayTable
+                        // works, EXCEPT for restored pathways (or the default
+                        // one created internally), where selecting on map
+                        // even stops the current item selected on pathway
+                        // from working!  Think this has something to do
+                        // with pathwaytablemodel adding right listeners.
+                        // (btw: should not need updateTextAreas() call above,
+                        // and it doesn't appear to be helping anyway)
+                    }
                     updateEnabledStates();
                 }
             }     

@@ -1212,16 +1212,25 @@ public class LWComponent
         return (float) Math.sqrt(distanceToCenterSq(x, y));
     }
     
-    public void draw(DrawContext dc)
+    public void drawPathwayDecorations(DrawContext dc)
     {
-        draw(dc.g);
-    }
-    
-    public void draw(java.awt.Graphics2D g)
-    {
-        throw new UnsupportedOperationException("unimplemented draw in " + this);
+        if (pathwayRefs == null)
+            return;
+        
+        Iterator i = pathwayRefs.iterator();
+        while (i.hasNext()) {
+            LWPathway path = (LWPathway) i.next();
+            if (path.isVisible())
+                path.drawComponentDecorations(dc, this);
+        }
+        
     }
 
+    public void draw(DrawContext dc)
+    {
+        drawPathwayDecorations(dc);
+    }
+    
     private static class LWCListenerProxy implements Listener
     {
         Listener listener;

@@ -1179,6 +1179,8 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
 
+        super.draw(dc);
+
         BasicStroke stroke = this.stroke;
 
         // If either end of this link is scaled, scale stroke

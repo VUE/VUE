@@ -979,6 +979,11 @@ public abstract class LWContainer extends LWComponent
 
     public void draw(DrawContext dc)
     {
+        drawChildren(dc);
+    }
+
+    public void drawChildren(DrawContext dc)
+    {
         int nodes = 0;
         int links = 0;
         

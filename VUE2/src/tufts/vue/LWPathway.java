@@ -621,81 +621,81 @@ public class LWPathway extends LWContainer
 
     private static float dash_length = 4;
     private static float dash_phase = 0;
-    public void drawPathway(DrawContext dc){
-        Iterator i = this.getElementIterator();
-        Graphics2D g = dc.g;
 
+    /** for drawing just before the component draw's itself -- this is a draw-under */
+    public void drawComponentDecorations(DrawContext dc, LWComponent c)
+    {
+        int strokeWidth = 4;
+        boolean selected = (getCurrent() == c && VUE.getActivePathway() == this);
+
+        // because we're drawing under the object, only half of the
+        // amount we add to to the stroke width is visible outside the
+        // edge of the object, except for links, which are
+        // one-dimensional, so we use a narrower stroke width for
+        // them.
+        
+        if (c instanceof LWLink)
+            ;//strokeWidth -= 2;
+        else
+            strokeWidth *= 2;
+        
+        if (selected)
+            dc.g.setComposite(PathSelectedTranslucence);
+        else
+            dc.g.setComposite(PathTranslucence);
+        
+        dc.g.setColor(getStrokeColor());
+        
+        strokeWidth += c.getStrokeWidth();
+        if (selected) {
+            dc.g.setStroke(new BasicStroke(strokeWidth));
+        } else {
+            if (DEBUG.PATHWAY && dc.getIndex() % 2 != 0) dash_phase = c.getStrokeWidth();
+            dc.g.setStroke(new BasicStroke(strokeWidth
+                                           , BasicStroke.CAP_BUTT
+                                           , BasicStroke.JOIN_BEVEL
+                                           , 0f
+                                           , new float[] { dash_length, dash_length }
+                                           , dash_phase));
+        }
+        dc.g.draw(c.getShape());
+        dc.g.setComposite(AlphaComposite.Src);
+    }
+    
+    public void drawPathway(DrawContext dc)
+    {
+        /*
         if (DEBUG.PATHWAY) {
         if (dc.getIndex() % 2 == 0)
             dash_phase = 0;
         else
             dash_phase = 0.5f;
         }
+        */
+        
         if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         
-        g.setColor(getStrokeColor());
-        LWComponent last = null;
+        dc.g.setColor(getStrokeColor());
+
         Line2D connector = new Line2D.Float();
 
-        final int BaseStroke = 4;
-
         BasicStroke connectorStroke =
-            new BasicStroke(BaseStroke,
+            new BasicStroke(4,
                             BasicStroke.CAP_BUTT
                             , BasicStroke.JOIN_BEVEL
                             , 0f
                             , new float[] { dash_length, dash_length }
                             , dash_phase);
 
-        
+        LWComponent last = null;
+        Iterator i = this.getElementIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent)i.next();
-
-            int strokeWidth;
-            boolean selected = (getCurrent() == c && VUE.getActivePathway() == this);
-            strokeWidth = BaseStroke;
-
-            // [OLD: now on top] because we're drawing under the
-            // object, only half of the amount we add to to the stroke
-            // width is visible outside the edge of the object, except
-            // for links, which are one-dimensional, so we use a
-            // narrower stroke width for them.
-            
-            /*
-            if (c instanceof LWLink)
-                ;//strokeWidth++;
-            else
-                strokeWidth *= 2;
-            */
-            //if (c instanceof LWLink) strokeWidth -= 2;
-
-            if (selected)
-                g.setComposite(PathSelectedTranslucence);
-            else
-                g.setComposite(PathTranslucence);
-        
-            strokeWidth += c.getStrokeWidth();
-            if (selected) {
-                g.setStroke(new BasicStroke(strokeWidth*2));
-            } else {
-                if (DEBUG.PATHWAY && dc.getIndex() % 2 != 0) dash_phase = c.getStrokeWidth();
-                g.setStroke(new BasicStroke(strokeWidth
-                                            , BasicStroke.CAP_BUTT
-                                            , BasicStroke.JOIN_BEVEL
-                                            , 0f
-                                            , new float[] { dash_length, dash_length }
-                                            , dash_phase));
-            }
-            g.draw(c.getShape());
-
-            // If there was an element in the path before this one,
-            // draw a connector line from that last component to this
-            // one.
             if (last != null) {
-                g.setComposite(PathTranslucence);
+                dc.g.setComposite(PathTranslucence);
                 connector.setLine(last.getCenterPoint(), c.getCenterPoint());
-                g.setStroke(connectorStroke);
-                g.draw(connector);
+                dc.g.setStroke(connectorStroke);
+                dc.g.draw(connector);
             }
             last = c;
         }

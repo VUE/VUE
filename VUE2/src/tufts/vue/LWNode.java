@@ -991,6 +991,9 @@ public class LWNode extends LWContainer
     public void draw(DrawContext dc)
     {
         if (isFiltered() == false) {
+
+            super.drawPathwayDecorations(dc);
+            
             dc.g.translate(getX(), getY());
             float scale = getScale();
             if (scale != 1f) dc.g.scale(scale, scale);
@@ -1030,7 +1033,7 @@ public class LWNode extends LWContainer
             //g.setComposite(childComposite);
             if (isZoomedFocus())
                 dc.g.setComposite(ZoomTransparency);
-            super.draw(dc);
+            super.drawChildren(dc);
         }
     }
         
