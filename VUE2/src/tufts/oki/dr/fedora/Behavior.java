@@ -30,7 +30,7 @@ public class Behavior implements InfoRecord  {
         this.pid = (PID)id;
         this.obj = obj;
         try {
-        disseminationList = FedoraSoapFactory.getDisseminators(this);
+            disseminationList = FedoraSoapFactory.getDisseminators(this);
         } catch(Exception ex) {
             throw new osid.dr.DigitalRepositoryException(ex.getMessage());
         }

@@ -44,6 +44,14 @@ import org.apache.axis.client.Service;
 import javax.xml.rpc.ServiceException;
 import java.rmi.RemoteException ;
 
+// for FTP
+import org.apache.commons.net.ftp.*;
+
+// APIM 
+import fedora.server.management.FedoraAPIM;
+import fedora.server.utilities.StreamUtility;
+import fedora.client.ingest.AutoIngestor;
+
 
 public class DR implements osid.dr.DigitalRepository {
     
@@ -51,6 +59,9 @@ public class DR implements osid.dr.DigitalRepository {
     // using the vue.conf file.  This is the default file. the file name will be set in the constructor in future.
     private String displayName;
     private String description;
+    private URL address;
+    private String userName;
+    private String password;
     private java.util.Vector infoStructures = new java.util.Vector();
     private java.util.Vector assetTypes = new java.util.Vector();
     private java.util.Vector searchTypes = new java.util.Vector();
@@ -60,11 +71,15 @@ public class DR implements osid.dr.DigitalRepository {
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of DR */
-    public DR(String id,String displayName,String description) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {
+    public DR(String id,String displayName,String description,URL address,String userName,String password) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {
         this.id = new PID(id);
         this.displayName = displayName;
         this.description = description;
+        this.address = address;
+        this.userName = userName;
+        this.password = password;
         this.configuration = getResource("fedora.conf");
+        
         setFedoraProperties(configuration);
         loadFedoraObjectAssetTypes();
         //setFedoraProperties(FedoraUtils.CONF);
@@ -82,6 +97,7 @@ public class DR implements osid.dr.DigitalRepository {
     }
    
     public void setFedoraProperties(java.net.URL conf) {
+        String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile()+"/";
         fedoraProperties = new Properties();
         java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
         try {
@@ -90,10 +106,11 @@ public class DR implements osid.dr.DigitalRepository {
             prefs.importPreferences(fis);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
-            fedoraProperties.setProperty("url.fedora.soap.access", prefs.get("url.fedora.soap.access", ""));
-             fedoraProperties.setProperty("url.fedora.get", prefs.get("url.fedora.get", ""));
-             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types",""));
+            fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", ""));
+            fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", ""));
+            fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types",""));
             fis.close();
+            System.out.println("Fedora soap access = "+fedoraProperties.getProperty("url.fedora.soap.access"));
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
  
     }
@@ -386,6 +403,55 @@ public class DR implements osid.dr.DigitalRepository {
     public osid.dr.AssetIterator getAssetsByType(osid.shared.Type type) throws osid.dr.DigitalRepositoryException {
         return null;
     }
+    
+    public  osid.shared.Id ingest(String fileName,String templateFileName, File file,Properties properties) throws osid.dr.DigitalRepositoryException, java.net.SocketException,java.io.IOException,osid.shared.SharedException,javax.xml.rpc.ServiceException{
+        // this part transfers file to a ftp server.  this is required since the content management part of fedora server needs object to be on web server
+        String host = "dl.tccs.tufts.edu";
+        String url = "http://dl.tccs.tufts.edu/~vue/fedora/";
+        int port = 21;
+        String userName = "vue";
+        String password = "vue@at";
+        String directory = "public_html/fedora"; 
+        FTPClient client = new FTPClient();
+        client.connect(host,port);
+        client.login(userName,password);
+        client.changeWorkingDirectory(directory); 
+        client.setFileType(FTP.BINARY_FILE_TYPE);
+        client.storeFile(fileName,new FileInputStream(file));
+        client.logout();
+        client.disconnect();
+        fileName = url+fileName;
+        // this part does the creation of METSFile
+        int BUFFER_SIZE = 10240;
+        StringBuffer sb = new StringBuffer();
+        String s = new String();
+       // FileInputStream fis = new FileInputStream(new File(getResource(templateFileName).getFile()));
+        FileInputStream fis = new FileInputStream(new File(templateFileName));
+        DataInputStream in = new DataInputStream(fis); 
+
+        byte[] buf = new byte[BUFFER_SIZE];
+        int ch;
+        int len;
+        while((len =fis.read(buf)) > 0) {
+            s = s+ new String(buf);
+          
+        }
+        fis.close();
+        in.close();
+      //  s = sb.toString();
+        String r =  s.replaceAll("%file.location%", fileName).trim();
+        
+        //writing the to outputfile
+        File METSfile = File.createTempFile("vueMETSMap",".xml");
+        FileOutputStream fos = new FileOutputStream(METSfile);
+        fos.write(r.getBytes());
+        fos.close();
+        AutoIngestor a = new AutoIngestor(address.getHost(), address.getPort(),"fedoraAdmin","fedoraAdmin");
+        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest"); 
+        System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
+        return new PID(pid);
+    }
+    
     
    private java.net.URL getResource(String name)
     {
