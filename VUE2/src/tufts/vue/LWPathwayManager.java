@@ -16,9 +16,23 @@ public class LWPathwayManager {
     
     private ArrayList pathways = new ArrayList();
     private LWPathway current = null;
+    private LWMap map = null;
     
     public LWPathwayManager() {
         pathways = new ArrayList();
+    }
+    
+    public LWPathwayManager(LWMap map) {
+        pathways = new ArrayList();
+        this.map = map;
+    }
+    
+    public void setMap(LWMap map){
+        this.map = map;
+    }
+    
+    public LWMap getMap(){
+        return map;
     }
     
     public java.util.Iterator getPathwayIterator() {
@@ -45,9 +59,9 @@ public class LWPathwayManager {
     }
     
     public void setCurrentPathway(LWPathway pathway) {
-        System.out.println("current pathway in manager being set to: "+pathway);
         current = pathway;
         VUE.getPathwayInspector().setPathway(pathway);
+        VUE.getActiveViewer().repaint();
     }
    
     public LWPathway getFirst(){

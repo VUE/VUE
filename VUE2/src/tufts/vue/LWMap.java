@@ -34,7 +34,7 @@ public class LWMap extends LWContainer
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
-        manager = new LWPathwayManager();
+        manager = new LWPathwayManager(this);
     }
 
     public LWMap(String label)
@@ -45,7 +45,7 @@ public class LWMap extends LWContainer
         setTextColor(COLOR_TEXT);
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
-        manager = new LWPathwayManager();
+        manager = new LWPathwayManager(this);
     }
     
     public LWPathwayManager getPathwayManager(){       

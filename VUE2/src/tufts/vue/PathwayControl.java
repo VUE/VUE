@@ -88,10 +88,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         removeButton.addActionListener(this);
         
         pathwayList.setRenderer(new pathwayRenderer());
-        //pathwayList.setMaximumRowCount();
         pathwayList.addItemListener(this);
-        //pathwayList.addItem(noPathway);
-        //pathwayList.addItem(addPathway);
         
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
@@ -178,10 +175,20 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         return pathwayManager;
     }
     
+    /**Adds the given pathway to the combo box list and the pathway manager*/
+    public void addPathway(LWPathway newPathway)
+    {
+        pathwayList.addItem(newPathway);
+        pathwayManager.addPathway(newPathway);
+        
+        //switches to the newly added pathway
+        pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);        
+        //this.setCurrentPathway(newPathway);
+    }
+    
     /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
     public void setCurrentPathway(LWPathway pathway)
     {
-        System.out.println("pathway manager: "+pathwayManager);
         this.getPathwayManager().setCurrentPathway(pathway);
         
         //sets to the first node if there is no current node set
@@ -191,16 +198,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
 
             pathwayList.setSelectedItem(pathway);
 
-            updateControlPanel();
-        }
-        
-        /*if(pathway!=null){
-            pathway
-                .getPathwayMap()
-                .getPathwayManager().setCurrentPathway(pathway);
-            pathway
-                .getPathwayMap().draw((Graphics2D)this.getGraphics());
-        }*/
+            updateControlPanel(); 
+        }       
     }
     
     /**Returns the currently selected pathway*/
@@ -297,16 +296,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         }
     }
     
-    /**Adds the given pathway to the combo box list and the pathway manager*/
-    public void addPathway(LWPathway newPathway)
-    {
-        pathwayList.addItem(newPathway);
-        pathwayManager.addPathway(newPathway);
-        
-        //switches to the newly added pathway
-        pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
-    }
-    
     /**Removes the given pathway from the combo box list and the pathway manager*/
     public void removePathway(LWPathway oldPathway)
     {
@@ -321,27 +310,34 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     public void actionPerformed(ActionEvent e)
     {       
         //moves to the first node of the pathway
-        if (e.getSource() == firstButton)
+        if (e.getSource() == firstButton){
           this.getCurrentPathway().getFirst();
+          
+        }
             
         //moves to the last node of the pathway
-        else if (e.getSource() == lastButton)
+        else if (e.getSource() == lastButton){
           this.getCurrentPathway().getLast();
-            
+          
+        }
         //moves to the next node of the pathway
-        else if (e.getSource() == forwardButton)
+        else if (e.getSource() == forwardButton){
           this.getCurrentPathway().getNext();
-            
+          
+        }
         //moves to the previous node of the pathway
-        else if (e.getSource() == backButton)
+        else if (e.getSource() == backButton){
           this.getCurrentPathway().getPrevious();
-            
+          
+        }
+        //////////////////////////////////////////////
         //temporarily here
         else if (e.getSource() == removeButton)
           removePathway(this.getCurrentPathway());
           
         //notifies the change to the panel
         updateControlPanel();
+        VUE.getActiveViewer().repaint();
     }
     
     /**Reacts to item events dispatched by the combo box*/

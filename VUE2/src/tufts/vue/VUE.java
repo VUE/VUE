@@ -616,7 +616,6 @@ public class VUE
         
         //creating test pathways
         if(map.getLabel().equals("Map 1")){
-            System.out.println("Map 1 label::"+map.getLabel());
             LWPathway p1 = new LWPathway("Pathway 1");
             LinkedList linkedlist = new LinkedList();
             linkedlist.add(n1);
@@ -626,7 +625,6 @@ public class VUE
             p1.setElementList(linkedlist);
             map.addPathway(p1);
         }/*else if(map.getLabel().equals("Test Nodes")){        
-            System.out.println("2 map label::"+map.getLabel());
             LWPathway p2 = new LWPathway("Pathway 2");
             
             p2.setComment("A comment.");

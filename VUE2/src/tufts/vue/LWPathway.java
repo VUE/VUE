@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.BasicStroke;
+import java.awt.Stroke;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 /**
@@ -63,9 +64,15 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
     public void drawPathway(Graphics2D g){
         Iterator iter = this.getElementIterator();
         Color oldColor = g. getColor();
+        BasicStroke oldStroke = (BasicStroke)g.getStroke();
+        float width = oldStroke.getLineWidth();
+        BasicStroke currentStroke = new BasicStroke(width*4);
         while(iter.hasNext()){
             LWComponent comp = (LWComponent)iter.next();
             g.setColor(borderColor);
+            g.setStroke(oldStroke);
+            if((LWComponent)elementList.get(this.getCurrentIndex()) == comp)
+                g.setStroke(currentStroke);
             if(comp instanceof LWNode)
                 g.draw(comp.getShape());      
             else if(comp instanceof LWLink){
@@ -245,6 +252,7 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
     
     public void setCurrentIndex(int i){
         currentIndex = i;
+        VUE.getActiveViewer().repaint();
     }
     
     public int getCurrentIndex(){
