@@ -57,6 +57,9 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     JButton nextButton;
     JButton previousButton;
     JLabel noResultsLabel;
+    JLabel returnLabel;
+    JLabel returnLabelAdvancedSearch;  //label for advanced search
+    JComboBox maxReturnsAdvancedSearch;  // combobox for advanced search.
     int count = 0;
     String[] maxReturnItems = { 
             "5",
@@ -75,11 +78,26 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         DRSearchResults = new JPanel();
         tabbedPane = new JTabbedPane();
         
+        returnLabel = new JLabel("Maximum number of returns?");
+        returnLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        
+        
         maxReturns = new JComboBox(maxReturnItems);
         maxReturns.setEditable(true);
+        
+        // Jlabel and 
+        returnLabelAdvancedSearch = new JLabel("Maximum number of returns?");
+        returnLabelAdvancedSearch.setFont(new Font("Arial",Font.PLAIN, 12));
+        
+        maxReturnsAdvancedSearch = new JComboBox(maxReturnItems);
+        maxReturnsAdvancedSearch.setEditable(true);
+        
         searchCriteria  = new SearchCriteria();
         searchType = new SearchType("Search");
         advancedSearchType = new SearchType("Advanced Search");
+        
+        
+        
         try {
             dr = new DR(conf,id,displayName,description,address,userName,password);
         } catch(osid.OsidException ex) {
@@ -124,8 +142,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
         
+        // redundant not required.
      //adding the top label   
        // c.weightx = 1.0;
+        /**
         c.gridx=0;
         c.gridy=0;
         c.gridwidth=3;
@@ -134,12 +154,13 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         topLabel.setFont(new Font("Arial",Font.PLAIN, 12));
         gridbag.setConstraints(topLabel, c);
         DRSearchPanel.add(topLabel);
-        
+        */
         
     //adding the search box 
         c.gridx=0;
         c.gridy=1;
         c.gridwidth=3;
+        c.insets = new Insets(10, 2,2, 2);
         //keywords.setPreferredSize(new Dimension(120,20));
         keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
@@ -151,8 +172,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.gridx=0;
         c.gridy=2;
         c.gridwidth=2;
-        JLabel returnLabel = new JLabel("Maximum number of returns?");
-        returnLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        c.insets = defaultInsets;
+        
         gridbag.setConstraints(returnLabel, c);
         DRSearchPanel.add(returnLabel);
         
@@ -234,6 +255,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          topPanel.add(deleteConditionButton);
          topPanel.add(questionLabel);
          
+         JPanel returnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+         returnPanel.setBorder(BorderFactory.createEmptyBorder(4,6,6,0));
+         returnPanel.add(returnLabelAdvancedSearch);
+         returnPanel.add(maxReturnsAdvancedSearch);
+         
          JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
          bottomPanel.add(advancedSearchButton);
          bottomPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,0));
@@ -246,6 +272,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          
          advancedSearchPanel.add(topPanel);
          advancedSearchPanel.add(innerConditionsPanel);
+         advancedSearchPanel.add(returnPanel);
          advancedSearchPanel.add(bottomPanel);
         
          DRAdvancedSearch.add(advancedSearchPanel,BorderLayout.NORTH);
@@ -306,7 +333,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         try {
            
             searchCriteria.setConditions((fedora.server.types.gen.Condition[])m_model.getConditions().toArray(new Condition[0]));
-            searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+            searchCriteria.setMaxReturns(maxReturnsAdvancedSearch.getSelectedItem().toString());
             searchCriteria.setResults(0);
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
