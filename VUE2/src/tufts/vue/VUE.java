@@ -36,9 +36,9 @@ public class VUE
         elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
 
-	/** teh global resource selection static model **/
-	public static ResourceSelection sResourceSelection = new ResourceSelection();
-	
+    /** teh global resource selection static model **/
+    public static ResourceSelection sResourceSelection = new ResourceSelection();
+    
     public static JFrame frame;
     
     private static MapTabbedPane mMapTabsLeft;
@@ -788,17 +788,11 @@ public class VUE
         
         for (int i = 0; i < toolWindows.length; i++) {
             //System.out.println("adding " + toolWindows[i]);
-            JCheckBoxMenuItem mi = null;
-            if (toolWindows[i] instanceof ToolWindow) {
-                ToolWindow tw = (ToolWindow) toolWindows[i];
-                mi = new JCheckBoxMenuItem(tw.getDisplayAction());
-                tw.setDisplayButton(mi);
-            } else if (toolWindows[i] instanceof InspectorWindow) {
-                mi = new JCheckBoxMenuItem(((InspectorWindow)toolWindows[i]).getDisplayAction());
-            } else
-                System.err.println("*** Window menu IGNORING toolWindow of unknown type " + toolWindows[i]);
-
-            windowMenu.add(mi);
+            Window window = toolWindows[i];
+            WindowDisplayAction windowAction = new WindowDisplayAction(window);
+            JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
+            windowAction.setLinkedButton(checkBox);
+            windowMenu.add(checkBox);
         }
 
         optionsMenu.add(new JMenuItem("Node Types..."));
@@ -827,6 +821,39 @@ public class VUE
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {System.exit(0);}});
 
+    }
+    
+    static class WindowDisplayAction extends AbstractAction
+    {
+        AbstractButton mLinkedButton;
+        Window mWindow;
+        public WindowDisplayAction(Window w)
+        {
+            super("window: " + w.getName());
+            if (w instanceof Frame)
+                putValue(Action.NAME, ((Frame)w).getTitle());
+            else if (w instanceof Dialog)
+                putValue(Action.NAME, ((Dialog)w).getTitle());
+            else if (w instanceof ToolWindow)
+                putValue(Action.NAME, ((ToolWindow)w).getTitle());
+            mWindow = w;
+            mWindow.addComponentListener(new ComponentAdapter() {
+                    public void componentShown(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(true); }
+                    public void componentHidden(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(false); }
+                });
+        }
+        void setLinkedButton(AbstractButton b) {
+            mLinkedButton = b;
+        }
+        private void setButtonState(boolean tv) {
+            if (mLinkedButton != null)
+                mLinkedButton.setSelected(tv);
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (mLinkedButton == null)
+                mLinkedButton = (AbstractButton) e.getSource();
+            mWindow.setVisible(mLinkedButton.isSelected());
+        }
     }
 
 
@@ -889,6 +916,8 @@ public class VUE
         LWLink k1 = new LWLink(n1, n2);
         LWLink k2 = new LWLink(n2, n3);
         LWLink k3 = new LWLink(n2, n4);
+        k1.setLabel("Link label");
+        k1.setNotes("I am link note");
         k3.setControlCount(1);
         k2.setControlCount(2);
         map.addLink(k1);

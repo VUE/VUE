@@ -221,7 +221,8 @@ public class UserMapType {
 	
 	static public UserMapType findUserMapType( LWMap pMap, String pID) {
 
-		return findUserMapType( pMap.getUserMapTypes(), pID);
+            return null;
+		//return findUserMapType( pMap.getUserMapTypes(), pID);
 	}
 	
 	static public UserMapType findUserMapType( UserMapType [] pTypes, String pID) {

@@ -265,49 +265,7 @@ public class ToolWindow
                 }
             });
         */
-        // the above window listeners never seem to happen -- must be because
-        // we're a "raw" window instead of a regular Frame or something.
-        addComponentListener(new ComponentAdapter() {
-                public void componentShown(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(true); }
-                public void componentHidden(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(false); }
-            });
-                
         
-    }
-
-    private void setButtonState(boolean tv)
-    {
-        if (mDisplayButton != null) {
-            mDisplayButton.setSelected(tv);
-            System.out.println("Set button state to " + tv);
-        }
-    }
-
-    public void setDisplayButton(AbstractButton b)
-    {
-        mDisplayButton = b;
-    }
-    
-    class DisplayAction extends AbstractAction
-    {
-        public DisplayAction(String label)
-        {
-            super(label);
-        }
-        public void actionPerformed(ActionEvent e)
-        {
-            if (mDisplayButton == null)
-                mDisplayButton = (AbstractButton) e.getSource();
-            setVisible(mDisplayButton.isSelected());
-        }
-    }
-
-    Action displayAction;
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction(this.mTitle);
-        return displayAction;
     }
 
     public String getTitle()
