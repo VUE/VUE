@@ -49,6 +49,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     DataSource activeDataSource;
     DRBrowser drBrowser;
     JPopupMenu popup;       // add edit popup
+  
     public static DataSourceList dataSourceList;
     JPanel resourcesPanel;
     JDialog addEditDialog = null;   //  The add/edit dialog box.
@@ -142,13 +143,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         dataSourcePanel.add(topPanel,BorderLayout.NORTH);
       
         
-        JScrollPane jSP = new JScrollPane(dataSourceList);
+       JScrollPane dataJSP = new JScrollPane(dataSourceList);
         
       
         
         dataSourceList.addKeyListener(this);
 
-        dataSourcePanel.add(jSP,BorderLayout.CENTER);
+        dataSourcePanel.add(dataJSP,BorderLayout.CENTER);
      
         add(dataSourcePanel,BorderLayout.CENTER);
        

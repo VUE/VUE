@@ -93,7 +93,10 @@ public class DataSourceList extends JList implements DropTargetListener{
                                                       BasicStroke.JOIN_MITER, 
                                                      10.0f, dash1, 0.0f);
                         g2d.setStroke(dashed);
-                        g2d.drawLine(0,3,DataSourceList.this.dsViewer.getSize().width - 50 ,3);
+                        JPanel tpanel =(JPanel)(DataSourceList.this.dsViewer).getComponent(0);
+                        JScrollPane jsp = (JScrollPane)tpanel.getComponent(1);
+                        int width = jsp.getViewport().getViewSize().width;
+                        g2d.drawLine(0, 3, width-10, 3);
 
                  
                    }
