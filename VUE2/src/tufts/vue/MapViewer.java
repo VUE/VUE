@@ -24,7 +24,8 @@ public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
     implements VueConstants
-               , LWCListener
+               , LWComponent.Listener
+               , LWSelection.Listener
 {
     java.util.List tools = new java.util.ArrayList();
 
@@ -34,14 +35,9 @@ public class MapViewer extends javax.swing.JPanel
     //-------------------------------------------------------
     // Selection support
     //-------------------------------------------------------
-    protected LWComponent lastSelection;   // the most recently selected component
-    protected LWComponent justSelected;    // temporary lastSelection for between mouse press&click
+    protected LWSelection VueSelection = VUE.ModelSelection;
     protected Rectangle draggedSelectionBox;     // currently dragged selection box
     protected boolean draggingSelectionBox;     // currently dragged selection box
-    protected Rectangle2D selectionBounds;  // max bounds of all components in current selection
-    protected LWSelection selectionList = new LWSelection();
-
-    //LWComponent dragComponent;
 
     //-------------------------------------------------------
     // For dragging out new links
@@ -119,6 +115,8 @@ public class MapViewer extends javax.swing.JPanel
         setFont(VueConstants.DefaultFont);
         loadMap(map);
 
+        VueSelection.addListener(this);
+
         /*
         Toolkit.getDefaultToolkit().addAWTEventListener(this,
                                                         AWTEvent.INPUT_METHOD_EVENT_MASK
@@ -130,12 +128,6 @@ public class MapViewer extends javax.swing.JPanel
     void addTool(VueTool tool)
     {
         tools.add(tool);
-    }
-
-    // todo: singleton!
-    LWSelection getSelection()
-    {
-        return selectionList;
     }
 
     /**
@@ -200,7 +192,8 @@ public class MapViewer extends javax.swing.JPanel
         else
             return (int) (0.5 + (-dim * zoomFactor));
     }
-    Rectangle mapToScreenRect(Rectangle2D mapRect)
+    /*    
+    Rectangle mapToScreenRectRounded(Rectangle2D mapRect)
     {
         if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
             throw new IllegalArgumentException("mapDim<0");
@@ -211,12 +204,22 @@ public class MapViewer extends javax.swing.JPanel
         screenRect.y = (int) Math.floor(mapRect.getY() * zoomFactor - getOriginY());
         screenRect.width = (int) Math.ceil(mapRect.getWidth() * zoomFactor);
         screenRect.height = (int) Math.ceil(mapRect.getHeight() * zoomFactor);
-        /*
-        screenRect.x = (int) Math.round(mapRect.getX() * zoomFactor - getOriginX());
-        screenRect.y = (int) Math.round(mapRect.getY() * zoomFactor - getOriginY());
-        screenRect.width = (int) Math.round(mapRect.getWidth() * zoomFactor);
-        screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
-        */
+        //screenRect.x = (int) Math.round(mapRect.getX() * zoomFactor - getOriginX());
+        //screenRect.y = (int) Math.round(mapRect.getY() * zoomFactor - getOriginY());
+        //screenRect.width = (int) Math.round(mapRect.getWidth() * zoomFactor);
+        //screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
+        return screenRect;
+    }
+    */
+    Rectangle2D.Float mapToScreenRect(Rectangle2D mapRect)
+    {
+        if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
+            throw new IllegalArgumentException("mapDim<0");
+        Rectangle2D.Float screenRect = new Rectangle2D.Float();
+        screenRect.x = (float) (mapRect.getX() * zoomFactor - getOriginX());
+        screenRect.y = (float) (mapRect.getY() * zoomFactor - getOriginY());
+        screenRect.width = (float) (mapRect.getWidth() * zoomFactor);
+        screenRect.height = (float) (mapRect.getHeight() * zoomFactor);
         return screenRect;
     }
     Rectangle2D screenToMapRect(Rectangle screenRect)
@@ -304,6 +307,11 @@ public class MapViewer extends javax.swing.JPanel
         repaint();
     }
     
+    public void selectionChanged(LWSelection l)
+    {
+        repaint();
+    }
+    
     public void LWCChanged(LWCEvent e)
     {
         // TODO: OPTIMIZE -- we get tons of location events
@@ -311,38 +319,20 @@ public class MapViewer extends javax.swing.JPanel
         System.out.println("MapViewer: " + e);
         if (e.getWhat().equals("location"))
             return;
-        if (e.getWhat().equals("removed"))
-            removeFromSelection(e.getComponent()); // ensure isn't in selection
+        if (e.getWhat().equals("deleted")) {
+            // FYI, the selection itself could listen for this,
+            // but that's a ton of events for this one thing.
+            // todo: maybe have LWContainer check isSelected & manage it in deleteChild?
+            LWComponent c = e.getComponent();
+            boolean wasSelected = c.isSelected();
+            selectionRemove(c); // ensure isn't in selection
+            if (wasSelected && c instanceof LWGroup)
+                selectionAdd(((LWGroup)c).getChildIterator());
+        }
         if (e.getSource() == this)
             return;
         repaint();
     }
-
-    /*
-     * Used to look for a node we can drop the given
-     * node onto.
-    public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
-    {
-        java.util.List hits = new java.util.ArrayList();
-        //float centerX = dragging.getCenterX();
-        //float centerY = dragging.getCenterY();
-        java.util.Iterator i = nodeList.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            // if either mouse or the center of the dragged component
-            // is within the bounds of the component, consider it
-            // a possible drop target (to add dragging as a child)
-            //if (c != dragging && (c.contains(mapX, mapY) || c.contains(centerX, centerY)))
-            if (c != dragging && c.contains(mapX, mapY))
-                hits.add(c);
-        }
-        return (LWNode) findClosestCenter(hits, mapX, mapY);
-    }
-    public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
-    {
-        return this.map.findLWNodeAt(mapX, mapY, dragging);
-    }
-    */
     
     /**
      * Add all nodes hit by this box to a list for doing selection.
@@ -381,10 +371,11 @@ public class MapViewer extends javax.swing.JPanel
         return findClosest(hits, x, y, true);
     }
     
+    /*
     public LWComponent findClosestCenter(java.util.List hits, float x, float y)
     {
         return findClosest(hits, x, y, false);
-    }
+        }*/
     
     // todo: we probably need to abandon this whole closest thing, which was neat,
     // and just go for the cleaner, more traditional layer approach (uppermost
@@ -397,8 +388,8 @@ public class MapViewer extends javax.swing.JPanel
             return null;
         
         java.util.Iterator i;
+        /*
         java.util.List topLayer = new java.util.ArrayList();
-
         if (!toEdge) {
             // scale is a proxy for the layers created by parent/child relationships
             // todo: perhaps do real layering, or have parent handle hit detection...
@@ -419,12 +410,13 @@ public class MapViewer extends javax.swing.JPanel
                 return (LWComponent) topLayer.get(0);
         } else {
             topLayer = hits;
-        }
+            }*/
 
         float shortest = Float.MAX_VALUE;
         float distance;
         LWComponent closest = null;
-        i = topLayer.iterator();
+        //i = topLayer.iterator();
+        i = hits.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (toEdge)
@@ -449,8 +441,8 @@ public class MapViewer extends javax.swing.JPanel
      */
     public Rectangle2D getAllComponentBounds()
     {
-        //return getComponentBounds(new VueUtil.GroupIterator(componentList, nodeList, linkList));
         return Vue2DMap.getBounds(getMap().getChildIterator());
+        //return getComponentBounds(new VueUtil.GroupIterator(componentList, nodeList, linkList));
     }
     
     public void setIndicated(LWComponent c)
@@ -784,7 +776,7 @@ public class MapViewer extends javax.swing.JPanel
             drawComponent(g2, creationLink);
 
         // render the current selection on top
-        //if (lastSelection != null && selectionList.size() == 1)
+        //if (lastSelection != null && VueSelection.size() == 1)
         //  drawComponent(g2, lastSelection);
         
         // render the current indication on top
@@ -815,10 +807,10 @@ public class MapViewer extends javax.swing.JPanel
             g2.drawString("zoom " + getZoomFactor(), 10, 80);
         }
 
-        if (selectionList.size() > 0) {
+        if (VueSelection.size() > 0) {
             g2.setColor(COLOR_SELECTION);
             g2.setStroke(STROKE_SELECTION);
-            java.util.Iterator it = selectionList.iterator();
+            java.util.Iterator it = VueSelection.iterator();
             while (it.hasNext()) {
                 LWComponent c = (LWComponent) it.next();
                 drawComponentSelectionBox(g2, c);
@@ -832,10 +824,11 @@ public class MapViewer extends javax.swing.JPanel
             g2.setStroke(STROKE_SELECTION_DYNAMIC);
             g2.drawRect(draggedSelectionBox.x, draggedSelectionBox.y,
                         draggedSelectionBox.width, draggedSelectionBox.height);
-        } else if (selectionBounds != null) {
-            g2.setStroke(new java.awt.BasicStroke(1f));
+        } else if (VueSelection.size() > 0) {
+            g2.setStroke(STROKE_ONE);
+            Rectangle2D selectionBounds = VueSelection.getBounds();
             //System.out.println("mapSelectionBounds="+selectionBounds);
-            Rectangle sb = mapToScreenRect(selectionBounds);
+            Rectangle2D.Float sb = mapToScreenRect(selectionBounds);
             //System.out.println("screenSelectionBounds="+sb);
             drawSelectionBox(g2, sb);
         }
@@ -843,9 +836,9 @@ public class MapViewer extends javax.swing.JPanel
     }
 
     static final Rectangle2D SelectionHandle = new Rectangle2D.Float(0,0,0,0);
-    static final int SelectionHandleSize = 5; // selection handle fill size -- todo: config
+    static final int SelectionHandleSize = 6; // selection handle fill size -- todo: config
     // exterior drawn box will be 1 pixel bigger
-    private void drawSelectionHandle(Graphics2D g, int x, int y)
+    private void drawSelectionHandle(Graphics2D g, float x, float y)
     {
         SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
         g.setColor(Color.white);
@@ -853,7 +846,7 @@ public class MapViewer extends javax.swing.JPanel
         g.setColor(COLOR_SELECTION);
         g.draw(SelectionHandle);
     }
-    void drawSelectionBox(Graphics2D g, Rectangle r)
+    void drawSelectionBox(Graphics2D g, Rectangle2D.Float r)
     {
         g.draw(r);
         r.x -= SelectionHandleSize/2;
@@ -875,7 +868,7 @@ public class MapViewer extends javax.swing.JPanel
     void drawComponentSelectionBox(Graphics2D g, LWComponent c)
     {
         final int chs = 3; // component handle size -- todo: config
-        Rectangle r = mapToScreenRect(c.getBounds());
+        Rectangle2D.Float r = mapToScreenRect(c.getBounds());
         g.setColor(COLOR_SELECTION);
         g.draw(r);
         r.x -= (chs-1)/2;
@@ -896,51 +889,23 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
-    // todo: rename: selectionAdd, selectionRemove, selectionClear
-    protected void addToSelection(LWComponent c)
+    protected void selectionAdd(LWComponent c)
     {
-        // todo: multiple views of same map will need to keep
-        // track of who's selected in a component with a hashmap
-        // or something.
-        if (!c.isSelected()) {
-            if (DEBUG_SELECTION) System.out.println("addToSelection: " + c);
-            c.setSelected(true);
-            selectionList.add(c);
-            lastSelection = c;
-            justSelected = c;
-        } else
-            if (DEBUG_SELECTION) System.out.println("addToSelection(already): " + c);
-
+        VueSelection.add(c);
     }
-    protected void removeFromSelection(LWComponent c)
+    protected void selectionAdd(java.util.Iterator i)
     {
-        if (DEBUG_SELECTION) System.out.println("removeFromSelection: " + c);
-        c.setSelected(false);
-        selectionList.remove(c);
-        if (lastSelection == c)
-            lastSelection = null;
-        if (justSelected == c)
-            justSelected = null;
-        // todo: hey, what about RECOMPUTING selection bounds?
-        if (selectionList.size() == 0)
-            selectionBounds = null;
+        VueSelection.add(i);
     }
-    protected void clearSelection()
+    protected void selectionRemove(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println("clearSelection: " + selectionList);
-        selectionBounds = null;
-        java.util.Iterator i = selectionList.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setSelected(false);
-        }
-        selectionList.clear();
-        lastSelection = null;
-        justSelected = null;
+        VueSelection.remove(c);
     }
-
-        
-
+    protected void selectionClear()
+    {
+        VueSelection.clear();
+    }
+    
     private JPopupMenu mapPopup = null;
     private JPopupMenu cPopup = null;
     private JPopupMenu getMapPopup()
@@ -998,6 +963,7 @@ public class MapViewer extends javax.swing.JPanel
         LWComponent dragComponent;
         LWComponent linkSource;
         boolean mouseWasDragged = false;
+        LWComponent justSelected;    // for between mouse press & click
 
         /**
          * dragStart: screen location (within this java.awt.Container)
@@ -1040,13 +1006,16 @@ public class MapViewer extends javax.swing.JPanel
             
             int key = e.getKeyCode();
 
+            /*
             if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {//todo: handle via action only
-                activateLabelEdit(lastSelection);
+                VUE.Actions.Rename.actionPerformed(new ActionEvent(this, 0, "Rename-via-viewer-key"));
+                //activateLabelEdit(lastSelection);
                 return;
-            } 
+                }*/
+            
             if (key == KeyEvent.VK_DELETE) {
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                VUE.Actions.Delete.actionPerformed(new ActionEvent(this, 0, "Delete-via-key"));
+                VUE.Actions.Delete.actionPerformed(new ActionEvent(this, 0, "Delete-via-viewer-key"));
                 return;
             }
             
@@ -1165,7 +1134,7 @@ public class MapViewer extends javax.swing.JPanel
                 // a context menu depending on what's in selection.
                 //-------------------------------------------------------
                 
-                if (selectionList.size() == 0) {
+                if (VueSelection.size() == 0) {
                     getMapPopup().show(e.getComponent(), e.getX(), e.getY());
                 } else {
                     getComponentPopup().show(e.getComponent(), e.getX(), e.getY());
@@ -1194,9 +1163,9 @@ public class MapViewer extends javax.swing.JPanel
                     // Shift was down: TOGGLE SELECTION STATUS
                     //-------------------------------------------------------
                     if (hitComponent.isSelected())
-                        removeFromSelection(hitComponent);
+                        selectionRemove(hitComponent);
                     else
-                        addToSelection(hitComponent);
+                        selectionAdd(hitComponent);
                 } else {
                     //-------------------------------------------------------
                     // Vanilla mouse press: SET SELECTION
@@ -1205,14 +1174,15 @@ public class MapViewer extends javax.swing.JPanel
                     //-------------------------------------------------------
 
                     if (!hitComponent.isSelected()) {
-                        //&& (lastSelection != hitComponent || selectionList.size() > 1)) {
-                        clearSelection();
-                        addToSelection(hitComponent);
+                        //&& (lastSelection != hitComponent || VueSelection.size() > 1)) {
+                        selectionClear();
+                        selectionAdd(justSelected = hitComponent);
                     }
-                    if (selectionList.size() > 1) {
-                        dragComponent = LWGroup.createTemporary(selectionList);
+                    if (VueSelection.size() > 1) {
+                        dragComponent = LWGroup.createTemporary(VueSelection);
                         // todo opt: could cache this group instead of creating
                         // every click -- might speed up huge selections
+                        // also, wouldn't need to create until they actually start a drag
                     } else {
                         dragComponent = hitComponent;
                     }
@@ -1225,7 +1195,7 @@ public class MapViewer extends javax.swing.JPanel
                 if (!e.isShiftDown())
                     // don't clear if shift down -- we may have missed our target
                     // and have to manually do all our selection over again
-                    clearSelection();
+                    selectionClear();
                 draggingSelectionBox = true;
             }
             repaint();
@@ -1351,8 +1321,7 @@ public class MapViewer extends javax.swing.JPanel
                     setIndicated(over);
                     repaintRegion.add(over.getBounds());
                 }
-          //} else if (dragComponent instanceof LWNode) {
-            } else if (dragComponent instanceof LWContainer) {
+          } else if (dragComponent instanceof LWNode) {
                 // regular drag -- check for node drop onto another
                 LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
                 if (indication != null && indication != over) {
@@ -1397,13 +1366,13 @@ public class MapViewer extends javax.swing.JPanel
                     }
                     if (linkSource != null)
                         repaintRegion.add(linkSource.getBounds());
-                    Rectangle rr = mapToScreenRect(repaintRegion);
+                    //Rectangle rr = mapToScreenRect(repaintRegion); // todo opt: use rounded version?
                     // We fudge the bounds here to include any selection
                     // handles that may be rendering as we drag the component
-                    rr.grow(SelectionHandleSize-1,SelectionHandleSize-1);
+                    //rr.grow(SelectionHandleSize-1,SelectionHandleSize-1); // todo: restore this!
                     // todo: ALSO: need to grow by stroke width of a dragged link
                     // as it's corners are beyond point with a wide stroke
-                    repaint(rr);
+                    //repaint(rr);
                 }
             }
         }
@@ -1473,18 +1442,8 @@ public class MapViewer extends javax.swing.JPanel
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectionBox);
                 //System.out.println("map " + hitRect);
                 java.util.List list = computeSelection(hitRect);
-                //java.util.List list = getLWComponentsHitBy(screenToMapRect(draggedSelectionBox));
-                java.util.Iterator i = list.iterator();
-                LWComponent lwc = null;
-                while (i.hasNext()) {
-                    lwc = (LWComponent) i.next();
-                    addToSelection(lwc);
-                }
+                selectionAdd(list.iterator());
                 draggedSelectionBox = null;
-            }
-            if (selectionList.size() > 0) {
-                selectionBounds = selectionList.getBounds();
-                new MapSelectionEvent(MapViewer.this, selectionList).raise();
             }
             repaint();
             mouseWasDragged = false;
@@ -1607,8 +1566,7 @@ public class MapViewer extends javax.swing.JPanel
         if (doShow) {
             requestFocus();
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
-            if (selectionList.size() > 0)
-                new MapSelectionEvent(MapViewer.this, selectionList).raise();
+            VUE.ModelSelection.clear(); // same as VueSelection / selectionClear()
             repaint();
         } else {
             new MapViewerEvent(this, MapViewerEvent.HIDDEN).raise();

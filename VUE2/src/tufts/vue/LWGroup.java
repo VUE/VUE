@@ -82,7 +82,7 @@ public class LWGroup extends LWContainer
             c.setParent(null);
             getParent().addChild(c);
         }
-        getParent().removeChild(this);
+        getParent().deleteChild(this);
     }
 
     public String getLabel()

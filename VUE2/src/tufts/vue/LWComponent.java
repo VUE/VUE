@@ -23,9 +23,13 @@ import java.awt.geom.Rectangle2D;
 
 public class LWComponent
     implements MapItem,
-               VueConstants,
-               LWCListener
+               VueConstants
 {
+    public interface Listener extends java.util.EventListener
+    {
+        public void LWCChanged(LWCEvent e);
+    }
+    
     public void setID(String ID)
     {
         if (this.ID != null)
@@ -145,7 +149,7 @@ public class LWComponent
     protected transient float scale = 1.0f;
     protected final float ChildScale = 0.75f;
 
-    private transient java.util.List lwcListeners;
+    private transient java.util.List listeners;
 
     /** for save/restore only & internal use only */
     public LWComponent()
@@ -415,10 +419,6 @@ public class LWComponent
         //return 1f;
         return this.scale;
     }
-    public float getLayer()
-    {
-        return this.scale;
-    }
     public void translate(float dx, float dy)
     {
         setLocation(this.x + dx,
@@ -591,35 +591,30 @@ public class LWComponent
         throw new RuntimeException("UNIMPLEMNTED draw in " + this);
     }
 
-    public void LWCChanged(LWCEvent e)
+    public void addLWCListener(LWComponent.Listener listener)
     {
-        if (e.getSource() == this)
-            return;
-        System.out.println(e);
+        if (listeners == null)
+            listeners = new ArrayList();
+        listeners.add(listener);
     }
-    
-    public void addLWCListener(LWCListener listener)
+    public void removeLWCListener(LWComponent.Listener listener)
     {
-        if (lwcListeners == null)
-            lwcListeners = new ArrayList();
-        lwcListeners.add(listener);
-    }
-    public void removeLWCListener(LWCListener listener)
-    {
-        if (lwcListeners == null)
+        if (listeners == null)
             return;
-        lwcListeners.remove(listener);
+        listeners.remove(listener);
     }
     public void removeAllLWCListeners()
     {
-        lwcListeners = null;
+        listeners.clear();
     }
     public void notifyLWCListeners(LWCEvent e)
     {
-        if (lwcListeners != null) {
-            java.util.Iterator i = lwcListeners.iterator();
-            while (i.hasNext())
-                ((LWCListener)i.next()).LWCChanged(e);
+        if (listeners != null) {
+            java.util.Iterator i = listeners.iterator();
+            while (i.hasNext()) {
+                Listener l = (Listener) i.next();
+                l.LWCChanged(e);
+            }
         }
         if (parent != null)
             parent.notifyLWCListeners(e);
@@ -629,6 +624,10 @@ public class LWComponent
     {
         // todo: we still need both src & component? (this,this)
         notifyLWCListeners(new LWCEvent(this, this, what));
+    }
+    protected void notify(String what, LWComponent c)
+    {
+        notifyLWCListeners(new LWCEvent(this, c, what));
     }
     
     public void setSelected(boolean selected)

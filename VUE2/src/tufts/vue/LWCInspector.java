@@ -9,11 +9,11 @@ import javax.swing.border.*;
 
 class LWCInspector extends javax.swing.JPanel
     implements VueConstants,
-               MapSelectionListener,
-               LWCListener,
+               LWSelection.Listener,
+               LWComponent.Listener,
                ActionListener
 {
-    java.util.List selectionList;
+    LWSelection selection;
 
     JLabel idField = new JLabel();
     JLabel locationField = new JLabel();
@@ -21,7 +21,9 @@ class LWCInspector extends javax.swing.JPanel
     JTextField labelField = new JTextField(15);
     JTextField fontField = new JTextField();
     JTextField strokeField = new JTextField();
-    JTextField colorField = new JTextField();
+    JTextField fillColorField = new JTextField();
+    JTextField textColorField = new JTextField();
+    JTextField strokeColorField = new JTextField();
     JTextField categoryField = new JTextField();
     JTextField resourceField = new JTextField();
     JTextField notesField = new JTextField();
@@ -29,6 +31,22 @@ class LWCInspector extends javax.swing.JPanel
     //JTextArea notesField = new JTextArea(1, 20);
 
     JPanel fieldPane = new JPanel();
+
+        //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
+        Object[] labelTextPairs = {
+            "-ID",      idField,
+            "-Location",locationField,
+            "-Size",    sizeField,
+            "Label",    labelField,
+            "Font",     fontField,
+            "Stroke",   strokeField,
+            "Fill Color",fillColorField,
+            "Text Color",textColorField,
+            "Stroke Color",strokeColorField,
+            "Category", categoryField,
+            "Resource", resourceField,
+            "Notes",    notesField,
+        };
 
     public LWCInspector()
     {
@@ -46,20 +64,6 @@ class LWCInspector extends javax.swing.JPanel
         //textControlsPane.add(actionLabel);
         */
 
-        //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
-        Object[] labelTextPairs = {
-            "-ID",      idField,
-            "-Location",locationField,
-            "-Size",    sizeField,
-            "Label",    labelField,
-            "Font",     fontField,
-            "Stroke",   strokeField,
-            "Fill Color",colorField,
-            "Category", categoryField,
-            "Resource", resourceField,
-            "Notes",    notesField,
-        };
-
         if (!(notesField instanceof JTextField))
             notesField.setBorder(LineBorder.createGrayLineBorder());
         
@@ -73,6 +77,8 @@ class LWCInspector extends javax.swing.JPanel
 
         setLayout(new BorderLayout());
         add(fieldPane, BorderLayout.CENTER);
+
+        VUE.ModelSelection.addListener(this);
     }
 
     /*
@@ -147,22 +153,28 @@ class LWCInspector extends javax.swing.JPanel
 
     public void LWCChanged(LWCEvent e)
     {
-        if (e.getSource() == this)
-            return;
+        System.out.println("LWCInspector: " + e);
         if (this.lwc != e.getComponent())
             return;
+        if (e.getWhat().equals("deleted")) {
+            this.lwc = null;
+            //loadItem(null);
+            setAllEnabled(false);
+        }
+        else if (e.getSource() != this)
+            loadItem(this.lwc);
+
             /* this possible now because children of our displayed LWC
                will pass their events up to us also.
             throw new IllegalStateException("unexpected update event: " + e
                                             + "\n\tshowing: " + lwc
                                             + "\n\t    got: " + e.getComponent());
             */
-        loadItem(this.lwc);
     }
     
-    public void eventRaised(MapSelectionEvent e)
+    public void selectionChanged(LWSelection selection)
     {
-        setSelection(e.getList());
+        setSelection(selection);
     }
 
     private void loadText(JTextComponent c, String text)
@@ -177,17 +189,26 @@ class LWCInspector extends javax.swing.JPanel
     }
 
     private LWComponent lwc; // temporary
-    public void setSelection(java.util.List sl)
+    public void setSelection(LWSelection selection)
     {
-        this.selectionList = sl;
+        this.selection = selection;
         //System.err.println("Inspector setSelection: " + sl);
 
-        if (selectionList.size() > 1)
+        if (selection.size() != 1)
             return;
 
-        LWComponent lwc = (LWComponent) sl.get(0);
-        loadItem(lwc);
+        loadItem(selection.first());
     }
+
+    private void setAllEnabled(boolean tv)
+    {
+        int pairs = labelTextPairs.length;
+        for (int i = 0; i < pairs; i += 2) {
+            JComponent field = (JComponent) labelTextPairs[i+1];
+            field.setEnabled(tv);
+        }
+    }
+                      
 
     private void loadItem(LWComponent lwc)
     {
@@ -195,46 +216,52 @@ class LWCInspector extends javax.swing.JPanel
             if (this.lwc != null)
                 this.lwc.removeLWCListener(this);
             this.lwc = lwc;
-            this.lwc.addLWCListener(this);
+            if (this.lwc != null) {
+                this.lwc.addLWCListener(this);
+                setAllEnabled(true);
+            } else
+                setAllEnabled(false);
         }
 
-        if (lwc != null) {
-            if (lwc instanceof LWNode) { // todo: instanceof Node interface
-                if (lwc.getResource() != null)
-                    loadText(resourceField, lwc.getResource().toString());
-                else
-                    loadText(resourceField, "");
-                resourceField.setEditable(true);
-                //resourceLabel.setVisible(true);
-                //resourceField.setVisible(true);
-            } else {
+        if (lwc == null)
+            return;
+
+        if (lwc instanceof LWNode) { // todo: instanceof Node interface
+            if (lwc.getResource() != null)
+                loadText(resourceField, lwc.getResource().toString());
+            else
                 loadText(resourceField, "");
-                resourceField.setEditable(false);
-                //resourceLabel.setVisible(false);
-                //resourceField.setVisible(false);
-            }
-
-            idField.setText(lwc.getID());
-            labelField.setBackground(lwc.getFillColor());
-            loadText(labelField, lwc.getLabel());
-            loadText(categoryField, lwc.getCategory());
-            loadText(notesField, lwc.getNotes());
-            //loadText(widthField, new Float(lwc.getWidth()));
-            //loadText(heightField, new Float(lwc.getHeight()).toString());
-
-            locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
-            sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
-            //Font f = lwc.getFont();
-            //if (lwc.getScale() != 1)
-            //  fontString += " (" + (f.getSize()*lwc.getScale()) + ")";
-            fontField.setText(lwc.getXMLfont());
-            //fontField.setText(f.getName() + "-" + fontSize);
-            //sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
-
-            colorField.setText(lwc.getXMLfillColor());
-            strokeField.setText(""+lwc.getStrokeWidth());
+            resourceField.setEditable(true);
+            //resourceLabel.setVisible(true);
+            //resourceField.setVisible(true);
+        } else {
+            loadText(resourceField, "");
+            resourceField.setEditable(false);
+            //resourceLabel.setVisible(false);
+            //resourceField.setVisible(false);
         }
         
+        idField.setText(lwc.getID());
+        labelField.setBackground(lwc.getFillColor());
+        loadText(labelField, lwc.getLabel());
+        loadText(categoryField, lwc.getCategory());
+        loadText(notesField, lwc.getNotes());
+        //loadText(widthField, new Float(lwc.getWidth()));
+        //loadText(heightField, new Float(lwc.getHeight()).toString());
+        
+        locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
+        sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
+        //Font f = lwc.getFont();
+        //if (lwc.getScale() != 1)
+        //  fontString += " (" + (f.getSize()*lwc.getScale()) + ")";
+        fontField.setText(lwc.getXMLfont());
+        //fontField.setText(f.getName() + "-" + fontSize);
+        //sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
+        
+        fillColorField.setText(lwc.getXMLfillColor());
+        textColorField.setText(lwc.getXMLtextColor());
+        strokeColorField.setText(lwc.getXMLstrokeColor());
+        strokeField.setText(""+lwc.getStrokeWidth());
     }
 
     public void actionPerformed(ActionEvent e)
@@ -251,7 +278,9 @@ class LWCInspector extends javax.swing.JPanel
             else if (src == notesField)     lwc.setNotes(text);
             else if (src == resourceField)  lwc.setResource(text);
             else if (src == fontField)      lwc.setXMLfont(text);
-            else if (src == colorField)     lwc.setXMLfillColor(text);
+            else if (src == fillColorField) lwc.setXMLfillColor(text);
+            else if (src == textColorField) lwc.setXMLtextColor(text);
+            else if (src == strokeColorField) lwc.setXMLstrokeColor(text);
             else if (src == strokeField) {
                 float w = Float.parseFloat(text);
                 lwc.setStrokeWidth(w);
@@ -275,6 +304,11 @@ class LWCInspector extends javax.swing.JPanel
         // there's a BOODLE of awt code for this -- so
         // why isn't this dead easy???
 
+    }
+
+    public String toString()
+    {
+        return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
 
 

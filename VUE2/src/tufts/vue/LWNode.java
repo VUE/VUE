@@ -133,9 +133,10 @@ public class LWNode extends LWContainer
         super.addChild(c);
         //c.setScale(getScale() * ChildScale);
         //setScale(getScale());// to prop color toggle hack
-        setScale(getLayer());// to prop color toggle hack
+        setScale(getScale());// to prop color toggle hack
         layout();
     }
+
     public void removeChild(LWComponent c)
     {
         super.removeChild(c);
@@ -433,17 +434,17 @@ public class LWNode extends LWContainer
             g.setColor(getStrokeColor());
         
         if (imageIcon == null) {
-            //g.setStroke(new java.awt.BasicStroke(borderWidth));
-            // todo: cache this stroke object
             if (isIndicated()) {
                 g.setStroke(STROKE_INDICATION);
+                g.draw(drawnShape);
             } else {
                 float w = getStrokeWidth();
                 if (w > 0f) {
+                    // todo opt: cache this stroke object
                     g.setStroke(new java.awt.BasicStroke(getStrokeWidth()));
+                    g.draw(drawnShape);
                 }
             }
-            g.draw(drawnShape);
         }
 
         if (false) {

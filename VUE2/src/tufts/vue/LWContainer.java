@@ -17,6 +17,8 @@ import java.awt.geom.Rectangle2D;
  */
 public abstract class LWContainer extends LWComponent
 {
+    static boolean DEBUG_PARENTING = true;
+    
     class CList extends java.util.ArrayList {
         public boolean add(Object obj) {
             boolean tv = super.add(obj);
@@ -79,7 +81,7 @@ public abstract class LWContainer extends LWComponent
 
     protected void addChildInternal(LWComponent c)
     {
-        System.out.println("["+getLabel() + "] ADDS " + c);
+        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDS " + c);
         if (c.getParent() != null)
             c.getParent().removeChild(c);
         this.children.add(c);
@@ -91,17 +93,26 @@ public abstract class LWContainer extends LWComponent
     public void addChild(LWComponent c)
     {
         addChildInternal(c);
-        c.notify("added");
+        c.notify("added", this);
     }
     
-    public void removeChild(LWComponent c)
+    protected void removeChild(LWComponent c)
     {
-        System.out.println("["+getLabel() + "] REMOVES " + c);
+        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (!this.children.remove(c))
             throw new RuntimeException(this + " DIDN'T CONTAIN CHILD FOR REMOVAL: " + c);
-        c.notify("removed");
-        c.removeAllLWCListeners();
         c.setParent(null);
+        notify("childRemoved", c);
+    }
+
+    public void deleteChild(LWComponent c)
+    {
+        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING " + c);
+        removeChild(c);
+        // note that parents of c will not get this event as
+        // c.parent has been nulled by now -- but listeners will get it.
+        c.notify("deleted");
+        c.removeAllLWCListeners();
     }
 
     /**

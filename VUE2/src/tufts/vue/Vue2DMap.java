@@ -126,7 +126,6 @@ public class Vue2DMap extends LWContainer
         return c == this ? null : c;
     }
 
-
     LWNode addNode(LWNode c)
     {
         addChild(c);

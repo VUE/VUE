@@ -17,6 +17,8 @@ public class VUE
 {
     public static final String CASTOR_XML_MAPPING = Vue2DMap.CASTOR_XML_MAPPING;
 
+    public static LWSelection ModelSelection = new LWSelection();
+
     public static Cursor CURSOR_ZOOM_IN;
     public static Cursor CURSOR_ZOOM_OUT;
     
@@ -281,14 +283,18 @@ public class VUE
         
     static final MapAction SelectAll =
         new MapAction("Select All", keyStroke(KeyEvent.VK_A, META)) {
+            boolean enabledFor(LWSelection l) { return true; }
             public void actionPerformed(ActionEvent ae)
             {
+                VUE.ModelSelection.add(getActiveViewer().getMap().getChildIterator());
             }
         };
     static final MapAction DeselectAll =
         new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+META)) {
+            boolean enabledFor(LWSelection l) { return VUE.ModelSelection.size() > 0; }
             public void actionPerformed(ActionEvent ae)
             {
+                VUE.ModelSelection.clear();
             }
         };
     static final MapAction Cut =
@@ -315,7 +321,8 @@ public class VUE
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection l)
             {
-                // enable only when two or more objects in selection
+                // enable only when two or more objects in selection,
+                // and all share the same parent
                 return l.size() > 1 && l.allHaveSameParent();
             }
             void act(LWSelection selection)
@@ -323,7 +330,9 @@ public class VUE
                 LWContainer parent = selection.first().getParent(); // all have same parent
                 LWGroup group = LWGroup.create(selection);
                 parent.addChild(group);
-                //LWSelection.set(group);//todo
+                VUE.ModelSelection.setTo(group);
+                // setting selection here is slightly sketchy in that it's
+                // really a UI policy that belongs to the viewer
             }
         };
     static final MapAction Ungroup =
@@ -358,26 +367,30 @@ public class VUE
         {
             boolean mayModifySelection() { return true; }
             void act(LWComponent c) {
-                c.getParent().removeChild(c);
+                c.getParent().deleteChild(c);
             }
-            /*
-            void act(LWSelection selection)
-            {
-                // need to copy list as selection gets modified as we delete
-                Object[] comps = selection.toArray();
-                for (int i = 0; i < comps.length; i++) {
-                    LWComponent c = (LWComponent) comps[i];
-                    c.getParent().removeChild(c);
-                }
-                }*/
         };
     static final MapAction BringToFront =
         new MapAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
                       keyStroke(KeyEvent.VK_CLOSE_BRACKET, META+SHIFT))
         {
+            boolean enabledFor(LWSelection l)
+            {
+                if (l.size() == 1)
+                    return !l.first().getParent().isOnTop(l.first());
+                return l.size() > 1;
+            }
             void act(LWSelection selection) {
                 LWContainer.bringToFront(selection);
+                checkEnabled();
+            }
+            void checkEnabled()
+            {
+                super.checkEnabled();
+                BringForward.checkEnabled();
+                SendToBack.checkEnabled();
+                SendBackward.checkEnabled();
             }
         };
     static final MapAction SendToBack =
@@ -385,22 +398,33 @@ public class VUE
                       "Make sure this object doesn't obscure any other object",
                       keyStroke(KeyEvent.VK_OPEN_BRACKET, META+SHIFT))
         {
+            boolean enabledFor(LWSelection l)
+            {
+                if (l.size() == 1)
+                    return !l.first().getParent().isOnBottom(l.first());
+                return l.size() > 1;
+            }
             void act(LWSelection selection) {
                 LWContainer.sendToBack(selection);
+                BringToFront.checkEnabled();
             }
         };
     static final MapAction BringForward =
         new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, META))
         {
+            boolean enabledFor(LWSelection l) { return BringToFront.enabledFor(l); }
             void act(LWSelection selection) {
                 LWContainer.bringForward(selection);
+                BringToFront.checkEnabled();
             }
         };
     static final MapAction SendBackward =
         new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, META))
         {
+            boolean enabledFor(LWSelection l) { return SendToBack.enabledFor(l); }
             void act(LWSelection selection) {
                 LWContainer.sendBackward(selection);
+                BringToFront.checkEnabled();
             }
         };
     static final MapAction NewNode =
@@ -409,6 +433,8 @@ public class VUE
             LWNode lastNode = null;
             Point lastMousePress = null;
             Point2D lastNodeLocation = null;
+            
+            boolean enabledFor(LWSelection l) { return true; }
             
             public void actionPerformed(ActionEvent ae)
             {
@@ -444,23 +470,21 @@ public class VUE
             
         };
 
+        // okay, what about zoom actions?  Don't need to 
     static final MapAction ZoomIn =
         new MapAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, META))
         {
             public void actionPerformed(ActionEvent ae)
             {
+                //getActiveViewer().getZoomTool().setZoomBigger();
             }
         };
     }
 
     //componentaction? MapSelectionAction?
-    static class MapAction extends AbstractAction {
-        // handles an action on a selection (single or group)
-
-        // statically listen for selection events as their's
-        // only ever one selection, altho everybody needs
-        // to do their own check, so I guess everyone needs
-        // to listen anyway..
+    static class MapAction extends AbstractAction
+        implements LWSelection.Listener
+    {
         private MapAction(String name, String shortDescription, KeyStroke keyStroke)
         {
             super(name);
@@ -468,6 +492,7 @@ public class VUE
                 putValue(SHORT_DESCRIPTION, shortDescription);
             if (keyStroke != null)
                 putValue(ACCELERATOR_KEY, keyStroke);
+            VUE.ModelSelection.addListener(this);
         }
         private  MapAction(String name)
         {
@@ -483,7 +508,7 @@ public class VUE
         }
         public void actionPerformed(ActionEvent ae)
         {
-            LWSelection selection = getActiveViewer().getSelection();
+            LWSelection selection = VUE.ModelSelection;
             //todo: if no active viewer, try a static MapViewer in case it's running alone
             System.out.println(ae);
             System.out.println(ae.getActionCommand() + " " + selection);
@@ -492,12 +517,22 @@ public class VUE
                     selection = (LWSelection) selection.clone();
                 act(selection);
                 getActiveViewer().repaint();
-            } else
+            } else {
+                Toolkit.getDefaultToolkit().beep();
                 System.out.println("Not enabled given this selection.");//todo: disable action
+            }
         }
 
+        public void selectionChanged(LWSelection selection) {
+            setEnabled(enabledFor(selection));
+        }
+        void checkEnabled() {
+            selectionChanged(VUE.ModelSelection);
+        }
+        
         /** Is this action enabled given this selection? */
         boolean enabledFor(LWSelection l) { return l.size() > 0; }
+        
         /** the action may result in an event that has the viewer
          * change what's in the current selection (e.g., on delete,
          * the viewer makes sure the deleted object is no longer
@@ -509,8 +544,8 @@ public class VUE
             act(selection.iterator());
         }
         // automatically apply the action serially to everything in the
-        // selection -- override if this or isn't what the action
-        // wants to do.
+        // selection -- override if this isn't what the action
+        // needs to do.
         void act(java.util.Iterator i)
         {
             while (i.hasNext()) {
@@ -566,6 +601,7 @@ public class VUE
         editMenu.add(new JMenuItem("Redo"));
         editMenu.addSeparator();
         editMenu.add(Actions.NewNode);
+        editMenu.add(Actions.Rename);
         editMenu.addSeparator();
         editMenu.add(Actions.Cut);
         editMenu.add(Actions.Copy);

@@ -152,7 +152,8 @@ public class ZoomTool extends VueTool
         Point2D.Double offset = new Point2D.Double();
         double newZoom = computeZoomFit(viewport.getSize(),
                                         ZOOM_FIT_PAD,
-                                        this.mapView.getAllComponentBounds(),
+                                        this.mapView.getMap().getBounds(),
+                                        //this.mapView.getAllComponentBounds(),
                                         offset);
         setZoom(newZoom, false);
         this.mapView.setMapOriginOffset(offset.getX(), offset.getY());
