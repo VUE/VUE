@@ -45,11 +45,13 @@ public class VUE
     private static JTabbedPane tabbedPane2;//todo: rename left/right
     private static JSplitPane viewerSplit;
     
+    //pathway components
     public static LWPathwayInspector pathwayInspector;
-    
-    //added by Daisuke Fujiwara
     public static PathwayControl control;
 
+    //hierarchy view component
+    public static LWHierarchyTree hierarchyTree;
+    
     public static java.net.URL getResource(String name)
     {
         java.net.URL url = null;
@@ -163,16 +165,25 @@ public class VUE
         SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_DEFAULT);
     }
     
+    /**Pathway related methods added by the PowerTeam*/
     public static LWPathwayInspector getPathwayInspector(){
         return pathwayInspector;
     }
-
-    //added by Daisuke Fujiwara
+    
     public static PathwayControl getPathwayControl()
     {
         return control;
     }
     
+    /**End of pathway related methods*/
+    
+    /**Hierarchy View related method*/
+    public static LWHierarchyTree getHierarchyTree() 
+    {
+        return hierarchyTree;
+    }
+    
+    /**End of hierarchy view related method*/
     private VUE() {}
     
     static JPanel toolPanel;//todo: tmp hack
@@ -270,15 +281,16 @@ public class VUE
         
         //addtion by the power team
         pathwayInspector = new LWPathwayInspector(frame);
-        System.out.println("before pathway control...");
         control = new PathwayControl(frame);
-        System.out.println("after pathway control...");
+        
+        hierarchyTree = new LWHierarchyTree(frame);
         //end of addition
            
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),
-                                   control.getDisplayAction()
+                                   control.getDisplayAction(), 
+                                   hierarchyTree.getDisplayAction()
                                  };
         
         // adding the menus and toolbars

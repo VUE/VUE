@@ -23,7 +23,7 @@ public class HierarchyTreeModel implements TreeModelListener
     /** Creates a new instance of HierarchyTree */
     public HierarchyTreeModel(LWNode rootNode) 
     {
-        model = new DefaultTreeModel(setUpHierarchy(rootNode));
+        model = new DefaultTreeModel(setUpHierarchy(rootNode, null));
         model.addTreeModelListener(this);
     }
     
@@ -32,8 +32,8 @@ public class HierarchyTreeModel implements TreeModelListener
         return model;  
     }
     
-    public DefaultMutableTreeNode setUpHierarchy(LWNode node)
-    {
+    public DefaultMutableTreeNode setUpHierarchy(LWNode node, LWNode parentNode)
+    {   
         DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(node);
         
         for (Iterator i = node.getLinks().iterator(); i.hasNext();)
@@ -44,7 +44,8 @@ public class HierarchyTreeModel implements TreeModelListener
             if ((nextNode = (LWNode)link.getComponent1()) == node)
               nextNode = (LWNode)link.getComponent2();
             
-            treeNode.add(setUpHierarchy(nextNode));
+            if (!nextNode.equals(parentNode))
+              treeNode.add(setUpHierarchy(nextNode, node));
         }
         
         return treeNode;
@@ -53,8 +54,23 @@ public class HierarchyTreeModel implements TreeModelListener
     public void treeNodesChanged(TreeModelEvent e) 
     {
         //verify this part
-        DefaultMutableTreeNode node;
-        node = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
+        
+        DefaultMutableTreeNode treeNode;
+        treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
+        
+        try 
+        {
+            int index = e.getChildIndices()[0];
+            treeNode = (DefaultMutableTreeNode)(treeNode.getChildAt(index));
+        } 
+        
+        catch (NullPointerException exc) {}
+
+        //not working
+        LWNode node = (LWNode)treeNode.getUserObject();
+        node.setLabel(treeNode.toString());
+        
+        System.out.println("changed to " + node.toString());
     }
     
     /**non used portion of the interface*/
