@@ -853,7 +853,7 @@ public abstract class LWContainer extends LWComponent
         //System.out.println("bringToFront " + c);
         children.remove(idx);
         children.add(c);
-        // we layout the parent because a parent node will lay out
+        // we layout the parent because a parent node may lay out
         // it's children in the order they appear in this list
         notify("hier.move.front", c);
         c.getParent().layoutChildren();

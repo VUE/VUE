@@ -129,7 +129,6 @@ public class LWPathway extends LWContainer
         return moved;
     }
     
-    
     /**
      * Set the current index to @param i, and also set the
      * VUE selection to the component at that index.

@@ -226,7 +226,7 @@ public class LWComponent
         if (getLabel() == null)
             return getClass().getName() + " #" + getID();
         else
-            return getLabel();
+            return getLabel().replace('\n', ' ');
     }
     
     public void setNodeFilter(NodeFilter nodeFilter) {

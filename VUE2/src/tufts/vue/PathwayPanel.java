@@ -58,6 +58,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
         final Font defaultFont = getFont();
         final Font boldFont = defaultFont.deriveFont(Font.BOLD);
+        final Font smallFont = defaultFont.deriveFont((float) boldFont.getSize()-1);
+        final Font smallBoldFont = smallFont.deriveFont(Font.BOLD);
     
         mParentFrame = parent;
         setBorder(new EmptyBorder(4, 4, 7, 4));
@@ -84,9 +86,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         // element
         //-------------------------------------------------------
         
-        JPanel VCRpanel = new JPanel(new GridLayout(1, 4, 0, 0));
-        //VCRpanel.setPreferredSize(new Dimension(80, 20));
-        //VCRpanel.setBackground(altbgColor);
+        JPanel VCRpanel = new JPanel(new GridLayout(1, 4, 1, 0));
         
         firstButton =   new VueButton("pathway.control.rewind", this);
         backButton =    new VueButton("pathway.control.backward", this);
@@ -98,13 +98,10 @@ public class PathwayPanel extends JPanel implements ActionListener
         VCRpanel.add(forwardButton);
         VCRpanel.add(lastButton);
 
-        JPanel playbackPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        JPanel playbackPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         JLabel playBackLabel = new JLabel("Highlight a path to playback:  ");
         playBackLabel.setFont(defaultFont);
-        //playBackLabel.setBackground(altbgColor);
-        
-        //playbackPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
-        //playbackPanel.setBorder(controlBorder);
+        playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
         playbackPanel.add(playBackLabel);
         playbackPanel.add(VCRpanel);        
         
@@ -246,14 +243,15 @@ public class PathwayPanel extends JPanel implements ActionListener
             });
 
 
-        //JPanel noteLabelPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.LEFT));
         JPanel noteLabelPanel = new VueUtil.JPanel_aa();
+        JLabel notesLabel = new JLabel(" Notes: ");
+        notesLabel.setFont(smallFont);
         noteLabelPanel.setLayout(new BoxLayout(noteLabelPanel, BoxLayout.X_AXIS));
-        noteLabelPanel.add(new JLabel("Notes: "));
+        noteLabelPanel.add(notesLabel);
         noteLabelPanel.add(pathLabel = new JLabel(""));
         noteLabelPanel.add(pathElementLabel = new JLabel(""));
-        pathLabel.setFont(boldFont);
-        pathElementLabel.setFont(boldFont);
+        pathLabel.setFont(smallBoldFont);
+        pathElementLabel.setFont(smallBoldFont);
         pathElementLabel.setForeground(Color.red.darker());
 
         JPanel notesPanel = new JPanel(new BorderLayout(0,0));
