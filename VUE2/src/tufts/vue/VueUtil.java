@@ -273,6 +273,8 @@ public class VueUtil
         else
             return true;
     }
-
-
+    
+    public static void alert(javax.swing.JComponent component,String message,String title) {
+         javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      
+    }
 }
