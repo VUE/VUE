@@ -56,7 +56,7 @@ public class NodeTool extends VueTool
     // todo: if we had a DrawContext here instead of just the graphics,
     // we could query it for zoom factor (passed in from mapViewer) so the stroke width would
     // look right.
-    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void X_drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
         //g.setXORMode(java.awt.Color.blue);
 
@@ -78,7 +78,7 @@ public class NodeTool extends VueTool
         */
     }
     
-    public boolean handleSelectorRelease(MapMouseEvent e)
+    public boolean X_handleSelectorRelease(MapMouseEvent e)
     {
         LWNode node = createNode();
         node.setAutoSized(false);
