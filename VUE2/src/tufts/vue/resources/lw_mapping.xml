@@ -340,6 +340,8 @@
 		</field>
 	</class>
        
+        <class name="tufts.vue.URLResource" extends="tufts.vue.MapResource">
+	</class>
         <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
             <map-to xml="cabinetResource"/>
             <field name="extension" type="string">
