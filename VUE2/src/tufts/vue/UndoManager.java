@@ -14,6 +14,7 @@ public class UndoManager
     private static boolean sInUndo = false;
 
     private ArrayList mUndoActions = new ArrayList(); // the list of undo actions (named groups of property changes)
+    private ArrayList mRedoActions = new ArrayList(); // the list of redo actions (named groups of property changes)
     
     private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
     private LWCEvent mLastEvent; // most recent event since last mark
@@ -90,26 +91,49 @@ public class UndoManager
             return null;
     }
 
+    private boolean checkAndHandleUnmarkedChanges() {
+        if (mChangeCount > 0) {
+            new Throwable(this + " UNMARKED CHANGES! " + mPropertyChanges).printStackTrace();
+            java.awt.Toolkit.getDefaultToolkit().beep();
+            boolean olddb = DEBUG.UNDO;
+            DEBUG.UNDO = true;
+            markChangesAsUndo("Unmanaged Actions [last=" + mLastEvent.getWhat() + "]"); // collect whatever's there
+            DEBUG.UNDO = olddb;
+            return true;
+        }
+        return false;
+    }
+
+    private UndoAction mRedoAction;
     public void redo()
     {
-        if (mChangeCount > 0) new Throwable(this + " UNMARKED CHANGES IN REDO! " + mPropertyChanges);
+        checkAndHandleUnmarkedChanges();
+
         if (DEBUG.UNDO) System.out.println(this + ": REDO");
+
+        sInUndo = true;
+        mRedoCaptured = false;
+        mRedoAction.undoPropertyChanges();
+        sInUndo = false;
     }
     
     public void undo()
     {
-        if (mChangeCount > 0) new Throwable(this + " UNMARKED CHANGES IN UNDO! " + mPropertyChanges);
+        checkAndHandleUnmarkedChanges();
         
         UndoAction undoAction = pop();
         if (DEBUG.UNDO) System.out.println("UNDO: undoing " + undoAction);
         if (undoAction != null) {
-            sInUndo = true;
             try {
+                sInUndo = true;
+                mRedoCaptured = false;
                 undoAction.undoPropertyChanges();
             } finally {
                 sInUndo = false;
             }
         }
+        mRedoAction = collectChangesAsUndoAction("Redo " + undoAction.name);
+        Actions.Redo.putValue(Action.NAME, mRedoAction.name);
         setUndoActionLabel(peek());
     }
 
@@ -162,13 +186,19 @@ public class UndoManager
                 return;
             name = mLastEvent.getWhat();
         }
-        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mChangeCount);
+        UndoAction newUndoAction = collectChangesAsUndoAction(name);
         mUndoActions.add(newUndoAction);
-        if (DEBUG.UNDO) System.out.println("UNDO: marked " + mChangeCount + " property changes under '" + name + "'");
         setUndoActionLabel(newUndoAction);
+    }
+
+    private synchronized UndoAction collectChangesAsUndoAction(String name)
+    {
+        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mChangeCount);
+        if (DEBUG.UNDO) System.out.println("UNDO: marked " + mChangeCount + " property changes under '" + name + "'");
         mPropertyChanges = new HashMap();
         mLastEvent = null;
         mChangeCount = 0;
+        return newUndoAction;
     }
 
     /**
@@ -179,13 +209,21 @@ public class UndoManager
      * we handle it specially.
      */
 
+    private boolean mRedoCaptured = false;
     public void LWCChanged(LWCEvent e) {
         if (sInUndo) {
-            if (DEBUG.UNDO) System.out.println("\tredo: " + e);
-            return;
+            if (!mRedoCaptured && mChangeCount > 0) 
+                throw new Error("Undo Error: have changes at start of redo record: " + mChangeCount + " " + mPropertyChanges + " " + e);
+            mRedoCaptured = true;
+            if (DEBUG.UNDO) System.out.print("\tredo: " + e);
+        } else {
+            if (DEBUG.UNDO) System.out.print("UNDO: " + e);
         }
-        if (DEBUG.UNDO) System.out.print("UNDO: " + e);
+        processEvent(e);
+    }
 
+    private void processEvent(LWCEvent e)
+    {
         if (e.hasOldValue()) {
             recordUndoablePropertyChangeEvent(e);
         } else {
