@@ -232,6 +232,22 @@ public class Publisher extends JDialog implements ActionListener {
         setLocalResourceVector(resourceVector,VUE.getActiveMap());
         resourceTableModel = new ResourceTableModel(resourceVector, columnNamesVector);
         resourceTable = new JTable(resourceTableModel);
+        
+        // setting the cell sizes
+        TableColumn column = null;
+        Component comp = null;
+        int headerWidth;
+        int cellWidth;
+        TableCellRenderer headerRenderer = resourceTable.getTableHeader().getDefaultRenderer();
+        resourceTable.getColumnModel().getColumn(0).setPreferredWidth(12);
+        for (int i = 1; i < 4; i++) {
+            column = resourceTable.getColumnModel().getColumn(i);
+            comp = headerRenderer.getTableCellRendererComponent(null, column.getHeaderValue(),false, false, 0, 0);
+            headerWidth = comp.getPreferredSize().width;
+           // comp = resourceTable.getDefaultRenderer(resourceTableModel.getColumnClass(i)).getTableCellRendererComponent(resourceTable,resourceTableModel.longValues[i],false, false, 0, i);
+            cellWidth = resourceTableModel.longValues[i].length();
+            column.setPreferredWidth(Math.max(headerWidth, cellWidth));
+       }
         resourceTable.setPreferredScrollableViewportSize(new Dimension(500,100));
       //  resourceList.setDefaultRenderer(String.class,resourceTableCellRenderer);
         return new JScrollPane(resourceTable);  
@@ -244,16 +260,21 @@ public class Publisher extends JDialog implements ActionListener {
            LWComponent component = (LWComponent) i.next();
            if(component.hasResource()){
                Resource resource = component.getResource();
-               if(resource.getType() == Resource.FILE) {
-                    File file = new File(resource.getSpec());
-                    if(file.isFile()) {
-                        Vector row = new Vector();
-                        row.add(new Boolean(true));
-                        row.add(resource);
-                        row.add(new Long(file.length()));
-                        row.add("Ready");
-                        vector.add(row);
-                    }
+               if(resource.getType() == Resource.URL) {
+                   try {
+                        System.out.println("Resource = "+resource.getSpec());
+                        File file = new File(new URL(resource.getSpec()).getFile());
+                        if(file.isFile()) {
+                            Vector row = new Vector();
+                            row.add(new Boolean(true));
+                            row.add(resource.getSpec());
+                            row.add(new Long(file.length()));
+                            row.add("Ready");
+                            vector.add(row);
+                        }
+                   }catch (Exception ex) {
+                       System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
+                   }
                }
            }
            if(component instanceof LWContainer) {
@@ -283,6 +304,7 @@ public class Publisher extends JDialog implements ActionListener {
             System.out.println("Published CMap: id = "+pid);
         } catch (Exception ex) {
              VueUtil.alert(null, "Publish Not Supported:"+ex.getMessage(), "Publish Error");
+             ex.printStackTrace();
         }
    
     }
@@ -337,14 +359,10 @@ public class Publisher extends JDialog implements ActionListener {
         Iterator i = resourceVector.iterator();       
         while(i.hasNext()) {
             Vector vector = (Vector)i.next();
-            Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-
-            File file = new File(r.getSpec());
-
-
+            File file = new File((String)vector.elementAt(1));
             if(file.isFile() && b.booleanValue()) {
-                 System.out.println("Resource = " + r+" FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
+                 System.out.println("FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
                  resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                  imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
                  resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
@@ -418,7 +436,7 @@ public class Publisher extends JDialog implements ActionListener {
  
     public class ResourceTableModel  extends AbstractTableModel {
         
-        public final Object[] longValues = {"Selection", "123456789012345678901234567890","12356789","Processing...."};
+        public final String[] longValues = {"Selection", "123456789012345678901234567890","12356789","Processing...."};
         Vector data;
         Vector columnNames;
                 
