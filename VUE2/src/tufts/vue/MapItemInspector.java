@@ -13,7 +13,7 @@ import javax.swing.border.*;
 class MapItemInspector extends javax.swing.JPanel
     implements VueConstants,
                MapSelectionListener,
-               MapItemChangeListener,
+               MapItemListener,
                ActionListener
 {
     MapItem mapItem;
@@ -171,12 +171,14 @@ class MapItemInspector extends javax.swing.JPanel
     }
     
 
+    // todo: will need to change this to display
+    // a LWComponent...
     public void mapItemSelected(MapItem mapItem)
     {
         setItem(mapItem);
     }
 
-    public void mapItemChanged(MapItemChangeEvent e)
+    public void mapItemChanged(MapItemEvent e)
     {
         MapItem mi = e.getSource();
         if (this.mapItem != mi)
