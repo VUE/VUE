@@ -130,9 +130,9 @@
 	
 	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
 		<map-to xml="node"/>
-		<field name="nodeShape">
+		<!-- field name="nodeShape">
 			<bind-xml name="nodeShape" node="element"/>
-		</field>
+		</field -->
 		<field name="shape">
 			<bind-xml name="shape" node="element"/>
 		</field>

@@ -10,7 +10,7 @@ import sun.awt.geom.Crossings;
  * This class implements a polygon shape fit into a specified rectanular region.
  * @author Scott Fraize
  */
-public class RectangularPoly2D extends RectangularShape
+public abstract class RectangularPoly2D extends RectangularShape
 {
     public double x;
     public double y;
@@ -35,11 +35,142 @@ public class RectangularPoly2D extends RectangularShape
     /** For persistance */
     public RectangularPoly2D() {}
 
-    public static class Triangle extends RectangularPoly2D { public Triangle() { setSides(3); } }
-    public static class Diamond extends RectangularPoly2D { public Diamond() { setSides(4); } }
-    public static class Pentagon extends RectangularPoly2D { public Pentagon() { setSides(5); } }
-    public static class Hexagon extends RectangularPoly2D { public Hexagon() { setSides(6); } }
-    public static class Octagon extends RectangularPoly2D { public Octagon() { setSides(8); } }
+    protected abstract void computeVertices();
+
+    public static class Triangle extends RectangularPoly2D {
+        public Triangle() { setSides(3); }
+        protected void computeVertices()
+        {
+            xpoints[0] = x + width/2;
+            ypoints[0] = y;
+            
+            xpoints[1] = x;
+            ypoints[1] = y + height;
+            
+            xpoints[2] = x + width;
+            ypoints[2] = y + height;
+        }
+        
+    }
+    public static class Flag extends RectangularPoly2D {
+        public Flag() { setSides(3); }
+        protected void computeVertices()
+        {
+            xpoints[0] = x;
+            ypoints[0] = y;
+            
+            xpoints[1] = x;
+            ypoints[1] = y + height;
+            
+            xpoints[2] = x + width;
+            ypoints[2] = y + height / 2;
+        }
+        
+    }
+    public static class Diamond extends RectangularPoly2D {
+        public Diamond() { setSides(4); }
+        protected void computeVertices()
+        {
+            xpoints[0] = x + width/2;
+            ypoints[0] = y;
+            
+            xpoints[1] = x + width;
+            ypoints[1] = y + height/2;
+            
+            xpoints[2] = x + width/2;
+            ypoints[2] = y + height;
+            
+            xpoints[3] = x;
+            ypoints[3] = y + height/2;
+        }
+    }
+    public static class Pentagon extends RectangularPoly2D {
+        public Pentagon() { setSides(5); }
+        protected void computeVertices()
+        {
+            xpoints[0] = x + width/2;
+            ypoints[0] = y;
+            
+            xpoints[1] = x + width;
+            ypoints[1] = y + height/2;
+            
+            xpoints[2] = x + width*3/4;
+            ypoints[2] = y + height;
+            
+            xpoints[3] = x + width/4;
+            ypoints[3] = y + height;
+            
+            xpoints[4] = x;
+            ypoints[4] = y + height/2;
+        }
+    }
+    public static class Hexagon extends RectangularPoly2D {
+        public Hexagon() { setSides(6); }
+        protected void computeVertices()
+        {
+            // tan(30) = inset/halfH
+            // halfH*tan(30) = inset
+            double halfH = height/2;
+            //double inset = halfH * Math.tan(Math.PI/6);
+            double inset = 0.2257085*width;
+        
+            //System.out.println("HEXAGON size=" + width + "x" + height);
+            //System.out.println("HEXAGON HALFH=" + halfH);
+            //System.out.println("HEXAGON INSET=" + inset);
+            //System.out.println("HEXAGON SEGSIZE  TOP=" + (width-(inset*2)));
+            //System.out.println("HEXAGON SEGSIZE LEFT=" + Math.sqrt(inset*inset+halfH*halfH));
+            
+            xpoints[0] = x + inset;
+            ypoints[0] = y;
+
+            xpoints[1] = x + (width - inset);
+            ypoints[1] = y;
+
+            xpoints[2] = x + width;
+            ypoints[2] = y + halfH;
+
+            xpoints[3] = x + (width - inset);
+            ypoints[3] = y + height;
+
+            xpoints[4] = x + inset;
+            ypoints[4] = y + height;
+        
+            xpoints[5] = x;
+            ypoints[5] = y + halfH;
+        }
+    }
+    public static class Octagon extends RectangularPoly2D {
+        public Octagon() { setSides(8); }
+        protected void computeVertices()
+        {
+            double xInset = width / 3.4;
+            double yInset = height / 3.4;
+            
+            xpoints[0] = x + xInset;
+            ypoints[0] = y;
+            
+            xpoints[1] = x + (width - xInset);
+            ypoints[1] = y;
+            
+            xpoints[2] = x + width;
+            ypoints[2] = y + yInset;
+            
+            xpoints[3] = x + width;
+            ypoints[3] = y + (height - yInset);
+            
+            xpoints[4] = x + (width - xInset);
+            ypoints[4] = y + height;
+            
+            xpoints[5] = x + xInset;
+            ypoints[5] = y + height;
+            
+            xpoints[6] = x;
+            ypoints[6] = y + (height - yInset);
+            
+            xpoints[7] = x;
+            ypoints[7] = y + yInset;
+        }
+    }
 
     public void setSides(int sides)
     {
@@ -207,6 +338,7 @@ public class RectangularPoly2D extends RectangularShape
         computeVertices();
     }
 
+    /*
     private void computeVertices()
     {
         if (sides == 3)
@@ -220,34 +352,8 @@ public class RectangularPoly2D extends RectangularShape
         else if (sides == 8)
             computeVertices8();
     }
+    */
     
-    private void computeVertices3()
-    {
-        xpoints[0] = x + width/2;
-        ypoints[0] = y;
-
-        xpoints[1] = x;
-        ypoints[1] = y + height;
-
-        xpoints[2] = x + width;
-        ypoints[2] = y + height;
-    }
-
-    private void computeVertices4()
-    {
-        xpoints[0] = x + width/2;
-        ypoints[0] = y;
-
-        xpoints[1] = x + width;
-        ypoints[1] = y + height/2;
-
-        xpoints[2] = x + width/2;
-        ypoints[2] = y + height;
-
-        xpoints[3] = x;
-        ypoints[3] = y + height/2;
-    }
-
     /*        
     private void computeVertices5()
         //final double horizontalOffset = 0.118033989; // verticalOffset * tan(18)
@@ -271,24 +377,6 @@ public class RectangularPoly2D extends RectangularShape
         vertices[4] = x;
         vertices[4] = y + dropDown;
         }*/
-
-    private void computeVertices5()
-    {
-        xpoints[0] = x + width/2;
-        ypoints[0] = y;
-
-        xpoints[1] = x + width;
-        ypoints[1] = y + height/2;
-
-        xpoints[2] = x + width*3/4;
-        ypoints[2] = y + height;
-
-        xpoints[3] = x + width/4;
-        ypoints[3] = y + height;
-
-        xpoints[4] = x;
-        ypoints[4] = y + height/2;
-    }
 
     private void new_computeVertices6()
     {
@@ -324,72 +412,7 @@ public class RectangularPoly2D extends RectangularShape
         xpoints[5] = cx - qw;
         ypoints[5] = cy - qh;
     }
-    private void computeVertices6()
-    {
-        // tan(30) = inset/halfH
-        // halfH*tan(30) = inset
-        double halfH = height/2;
-        //double inset = halfH * Math.tan(Math.PI/6);
-        double inset = 0.2257085*width;
-        
-        /*
-        System.out.println("HEXAGON size=" + width + "x" + height);
-        System.out.println("HEXAGON HALFH=" + halfH);
-        System.out.println("HEXAGON INSET=" + inset);
-        System.out.println("HEXAGON SEGSIZE  TOP=" + (width-(inset*2)));
-        System.out.println("HEXAGON SEGSIZE LEFT=" + Math.sqrt(inset*inset+halfH*halfH));
-        */
-            
-        xpoints[0] = x + inset;
-        ypoints[0] = y;
-
-        xpoints[1] = x + (width - inset);
-        ypoints[1] = y;
-
-        xpoints[2] = x + width;
-        ypoints[2] = y + halfH;
-
-        xpoints[3] = x + (width - inset);
-        ypoints[3] = y + height;
-
-        xpoints[4] = x + inset;
-        ypoints[4] = y + height;
-        
-        xpoints[5] = x;
-        ypoints[5] = y + halfH;
-    }
     
-    private void computeVertices8()
-    {
-        double xInset = width / 3.4;
-        double yInset = height / 3.4;
-            
-        xpoints[0] = x + xInset;
-        ypoints[0] = y;
-
-        xpoints[1] = x + (width - xInset);
-        ypoints[1] = y;
-
-        xpoints[2] = x + width;
-        ypoints[2] = y + yInset;
-
-        xpoints[3] = x + width;
-        ypoints[3] = y + (height - yInset);
-
-        xpoints[4] = x + (width - xInset);
-        ypoints[4] = y + height;
-        
-        xpoints[5] = x + xInset;
-        ypoints[5] = y + height;
-
-        xpoints[6] = x;
-        ypoints[6] = y + (height - yInset);
-
-        xpoints[7] = x;
-        ypoints[7] = y + yInset;
-        
-    }
-        
     public PathIterator getPathIterator(AffineTransform affineTransform)
     {
         return new PolyIterator(affineTransform);

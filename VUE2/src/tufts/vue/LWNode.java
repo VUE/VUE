@@ -93,8 +93,8 @@ public class LWNode extends LWContainer
     
     protected RectangularShape drawnShape; // 0 based, not scaled
     protected RectangularShape boundsShape; // map based, scaled, used for computing hits
-    protected NodeShape nodeShape;
-    protected boolean equalAspect = false;
+    //protected NodeShape nodeShape;
+    //protected boolean equalAspect = false;
     //todo: could collapse all of the above into NodeShape if we want to resurrect it
     
     private ImageIcon imageIcon = null;
@@ -157,7 +157,8 @@ public class LWNode extends LWContainer
         super.label = label; // todo: this for debugging
         setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
-            setNodeShape(StandardShapes[4]);
+            //setNodeShape(StandardShapes[4]);
+            setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
         else
             setShape(shape);
         setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);
@@ -176,11 +177,13 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
     // internal convenience todo: remove -- uses old shape impl
+    /*
     LWNode(String label, int shapeType)
     {
         this(label);
         setNodeShape(StandardShapes[shapeType]);
     }
+    */
 
     // create a duplicate style
     public LWComponent duplicate()
@@ -524,12 +527,14 @@ public class LWNode extends LWContainer
     private void setSizeNoLayout(float w, float h)
     {
         if (DEBUG.LAYOUT) out("*** " + this + " setSizeNoLayout " + w + "x" + h);
+        /*
         if (equalAspect) {
             if (w > h)
                 h = w;
             else
                 w = h;
         }
+        */
         super.setSize(w, h);
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
         adjustDrawnShape();
@@ -760,6 +765,7 @@ public class LWNode extends LWContainer
     
     //private float childBaseX = 0;
     //private float childBaseY = 0;
+    private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
     protected void layoutChildren(float[] size)
     {
         if (!hasChildren())
@@ -789,13 +795,14 @@ public class LWNode extends LWContainer
             layoutChildrenSingleColumn(baseX, baseY, size);
         else
             layoutChildrenGrid(baseX, baseY, size, 1);
-        //layoutChildrenGrid(baseX, baseY, size, 2);
 
         if (size != null) {
             size[0] /= getScale();
             size[1] /= getScale();
+            //if (DEBUG.BOXES)
+                child_box.setRect(baseX, baseY, size[0], size[1]);
         }
-        
+
     }
 
         
@@ -1016,6 +1023,12 @@ public class LWNode extends LWContainer
             
             if (scale != 1f) dc.g.scale(1/scale, 1/scale);
             dc.g.translate(-getX(), -getY());
+
+            if (DEBUG.BOXES) {
+                dc.g.setColor(Color.red);
+                dc.g.setStroke(STROKE_HALF);
+                dc.g.draw(child_box);
+            }
         }
 
         //-------------------------------------------------------
@@ -1148,7 +1161,7 @@ public class LWNode extends LWContainer
             // do this relative to the node?
             //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
         }
-        
+
     }
 
     public boolean doesRelativeDrawing() { return false; }
@@ -1252,15 +1265,15 @@ public class LWNode extends LWContainer
     
     
 
-    /** for persistance
-     * @deprecated */
+    /*
+    //@deprecated
     public NodeShape getNodeShape()
     {
         //System.err.println("*** Warning: deprecated use of LWNode.getNodeShape in " + this);
         //return this.nodeShape;
         return null;
     }
-    /** @deprecated */
+    // @deprecated
     public void setNodeShape(NodeShape nodeShape)
     {
         //System.err.println("*** Warning: deprecated use of LWNode.setNodeShape on " + this);
@@ -1289,24 +1302,24 @@ public class LWNode extends LWContainer
             this(name, shape, false);
         }
 
-        /** for XML persistance */
+        // for XML persistance
         public NodeShape() {}
 
         public RectangularShape getShape()
         {
             return shape;
         }
-        /** for XML persistance */
+        // for XML persistance 
         public void setShape(RectangularShape s)
         {
             shape = s;
         }
-        /** for XML persistance */
+        // for XML persistance 
         public boolean isEqualAspect()
         {
             return equalAspect;
         }
-        /** for XML persistance */
+        // for XML persistance 
         public void setEqualAspect(boolean tv)
         {
             equalAspect = tv;
@@ -1316,7 +1329,6 @@ public class LWNode extends LWContainer
             return (RectangularShape) shape.clone();
         }
     }
-
 
     // @deprecated -- remove this -- only here for ancient backward compat
     static final NodeShape StandardShapes[] = {
@@ -1344,7 +1356,7 @@ public class LWNode extends LWContainer
     };
 
     //private final boolean debug = true;
-
+    */
     
     
 }

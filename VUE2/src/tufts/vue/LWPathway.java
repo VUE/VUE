@@ -662,7 +662,7 @@ public class LWPathway extends LWContainer
                                            , dash_phase));
         }
         dc.g.draw(c.getShape());
-        dc.g.setComposite(AlphaComposite.Src);
+        dc.g.setComposite(AlphaComposite.Src);//todo: restore old composite
     }
     
     public void drawPathway(DrawContext dc)
@@ -677,9 +677,6 @@ public class LWPathway extends LWContainer
         */
         
         if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
-        
-        dc.g.setColor(getStrokeColor());
-
         Line2D.Float connector = new Line2D.Float();
 
         BasicStroke connectorStroke =
@@ -690,6 +687,9 @@ public class LWPathway extends LWContainer
                             , new float[] { dash_length, dash_length }
                             , dash_phase);
 
+        dc.g.setColor(getStrokeColor());
+        dc.g.setStroke(connectorStroke);
+        
         LWComponent last = null;
         Iterator i = this.getElementIterator();
         while (i.hasNext()) {
@@ -697,9 +697,7 @@ public class LWPathway extends LWContainer
             if (last != null) {
                 dc.g.setComposite(PathTranslucence);
                 //connector.setLine(last.getCenterPoint(), c.getCenterPoint());
-                VueUtil.computeConnector(last, c, connector);
-                dc.g.setStroke(connectorStroke);
-                dc.g.draw(connector);
+                dc.g.draw(VueUtil.computeConnector(last, c, connector));
                 if (DEBUG.BOXES) {
                     Ellipse2D dot = new Ellipse2D.Float(0,0, 10,10);
                     Point2D.Float corner = (Point2D.Float) connector.getP1();
@@ -712,6 +710,7 @@ public class LWPathway extends LWContainer
                     dot.setFrameFromCenter(connector.getP2(), corner);
                     dc.g.setColor(Color.red);
                     dc.g.fill(dot);
+                    dc.g.setColor(getStrokeColor());
                 }
             }
             last = c;

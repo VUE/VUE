@@ -54,7 +54,8 @@ public class NodeTool extends VueTool
 
     public boolean supportsSelection() { return true; }
     
-    private java.awt.geom.RectangularShape currentShape = new tufts.vue.shape.RectangularPoly2D(4);
+    //private java.awt.geom.RectangularShape currentShape = new tufts.vue.shape.RectangularPoly2D(4);
+    private java.awt.geom.RectangularShape currentShape;
     // todo: if we had a DrawContext here instead of just the graphics,
     // we could query it for zoom factor (passed in from mapViewer) so the stroke width would
     // look right.

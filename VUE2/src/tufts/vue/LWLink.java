@@ -1103,25 +1103,29 @@ public class LWLink extends LWComponent
 
         if (DEBUG.BOXES) {
             // Split the curves into green & red halves for debugging
+            Composite composite = dc.g.getComposite();
+            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            
             if (curveControls == 1) {
                 QuadCurve2D left = new QuadCurve2D.Float();
                 QuadCurve2D right = new QuadCurve2D.Float();
                 quadCurve.subdivide(left,right);
-                g.setColor(Color.red);
+                g.setColor(Color.green);
                 g.setStroke(new BasicStroke(strokeWidth+4));
                 g.draw(left);
-                g.setColor(Color.green);
+                g.setColor(Color.red);
                 g.draw(right);
             } else if (curveControls == 2) {
                 CubicCurve2D left = new CubicCurve2D.Float();
                 CubicCurve2D right = new CubicCurve2D.Float();
                 cubicCurve.subdivide(left,right);
-                g.setColor(Color.red);
+                g.setColor(Color.green);
                 g.setStroke(new BasicStroke(strokeWidth+4));
                 g.draw(left);
-                g.setColor(Color.green);
+                g.setColor(Color.red);
                 g.draw(right);
             }
+            dc.g.setComposite(composite);
         }
         
         //-------------------------------------------------------
@@ -1144,7 +1148,7 @@ public class LWLink extends LWComponent
 
             g.draw(this.curve);
 
-            if (isSelected()) {
+            if (isSelected() || DEBUG.BOXES) {
                 //-------------------------------------------------------
                 // draw faint lines to control points if selected
                 // TODO: need to do this at time we paint the selection,
@@ -1287,6 +1291,19 @@ public class LWLink extends LWComponent
         }
         */
 
+        if (DEBUG.BOXES) {
+            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, 10,10);
+            dot.setFrameFromCenter(startX, startY, startX+5, startY+5);
+            Composite composite = dc.g.getComposite();
+            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            dc.g.setColor(Color.green);
+            dc.g.fill(dot);
+            dot.setFrameFromCenter(endX, endY, endX+5, endY+5);
+            dc.g.setColor(Color.red);
+            dc.g.fill(dot);
+            dc.g.setComposite(composite);
+        }
+                
         if (DEBUG.CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }
 

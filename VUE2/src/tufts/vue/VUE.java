@@ -378,7 +378,10 @@ implements VueConstants {
     static JPanel toolPanel;//todo: tmp hack
     public static void main(String[] args) {
         System.out.println("VUE:main");
-        SplashScreen splashScreen = new SplashScreen();
+        boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
+        if (!nodr) {
+            SplashScreen splashScreen = new SplashScreen();
+        }
         initUI();
         
         //-------------------------------------------------------
@@ -400,7 +403,6 @@ implements VueConstants {
         toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
         DRBrowser drBrowser = null;
-        boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         if (!nodr)  {
             try {
                 drBrowser = new DRBrowser();
@@ -1030,7 +1032,8 @@ implements VueConstants {
     
     static void installExampleNodes(LWMap map) {
         map.setFillColor(new Color(255,255,220));
-        
+
+        /*
         map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
         map.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
         map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
@@ -1044,6 +1047,7 @@ implements VueConstants {
         map.addLWC(triangle);
         //map.addLWC(new LWNode("Triangle", 5)).setFillColor(Color.orange);
         map.addLWC(new LWNode("Diamond", 6)).setFillColor(Color.yellow);
+        */
         
         map.addNode(new LWNode("One"));
         map.addNode(new LWNode("Two"));
