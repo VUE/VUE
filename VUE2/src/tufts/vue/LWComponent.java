@@ -62,7 +62,7 @@ public class LWComponent
     private float x;
     private float y;
     private UserMapType mUserMapType = null; // I think this is totally vestigal -- remove
-    private java.util.Map mUserPropertyValues = new java.util.HashMap();
+    //private java.util.Map mUserPropertyValues = new java.util.HashMap();
     private boolean mIsFiltered = false;
     private NodeFilter nodeFilter = null;
     
@@ -145,10 +145,11 @@ public class LWComponent
         return c;
     }
 
-    /**
+    // Below is last minute hacked in code by Scott Bresnahan
+    // that needs to be re-implemented if we're going to use it.
+    /*
      * getUserMapType
      * @return UserMapType the user map type id
-     **/
     public UserMapType getUserMapType() {
     	return mUserMapType;
     }
@@ -156,7 +157,6 @@ public class LWComponent
     /**
      * setUserMapType
      * @param UserMapTYpe the user map type id for this LWC
-     **/
     public void setUserMapType( UserMapType pMapType) {
     	mUserMapType = pMapType;
     }
@@ -174,18 +174,16 @@ public class LWComponent
      * hasMeteData
      * This returns true if there is user metadata for this component
      * @return true if meta data values exist; false if not
-     **/
    public boolean hasMetaData() {
    	boolean hasData = false;
    	if( mUserPropertyValues != null) {
    		hasData = (getUserMapType() != null) && ( !mUserPropertyValues.isEmpty() ); 
    		}
    	return hasData;
-   } 
-   
-   /**
+   }
+    */
+   /*
     * getMetaDataAsHTML()
-    **/
    public String getMetaDataAsHTML() {
    	String str = "";
    	if( hasMetaData() ) {
@@ -193,6 +191,12 @@ public class LWComponent
    		}
    	return str;
    }
+   */
+
+    public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
+    public boolean hasMetaData() { return false; }
+    public String getMetaDataAsHTML() { return null; }
+   
     
     /**
      * setIsFiltered

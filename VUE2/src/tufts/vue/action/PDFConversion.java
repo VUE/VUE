@@ -30,13 +30,6 @@ import java.io.*;
 import java.awt.*;
 import javax.swing.*;
 
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import java.io.OutputStreamWriter;
-
 import tufts.vue.*;
 
 
@@ -50,8 +43,6 @@ public class PDFConversion extends AbstractAction {
     
     private static  String pdfFileName = "";
     private static  String fileName = "default.xml";
-    final String XML_MAPPING = VueResources.getString("mapping.lw");
-    private Marshaller marshaller = null;
     
     /** Creates a new instance of PDFConversion */
     public PDFConversion() {
@@ -65,15 +56,9 @@ public class PDFConversion extends AbstractAction {
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
         System.out.println("Performing PDF Conversion:" + actionEvent.getActionCommand());
-        try {
-            marshaller = getMarshaller();
-            marshaller.marshal(tufts.vue.VUE.getActiveMap());
-            marshaller = null;
-        }catch(Exception ex) {
-            System.out.println(ex);
-        }
-        
-        
+
+        ActionUtil.marshallMap(new File(fileName), tufts.vue.VUE.getActiveMap());
+
         //convert default.xml to pdf
         selectPDFFile();
         String state = "fop"
@@ -90,21 +75,6 @@ public class PDFConversion extends AbstractAction {
             System.err.println("PDFConversion.actionPerformed error: " +ioe);
         }
         System.out.println("Action["+actionEvent.getActionCommand()+"] performed!");
-    }
-    
-    private Marshaller getMarshaller() {
-        if (this.marshaller == null) {
-            
-            Mapping mapping = new Mapping();
-            try {
-                this.marshaller = new Marshaller(new FileWriter(fileName));
-                mapping.loadMapping(XML_MAPPING);
-                marshaller.setMapping(mapping);
-            } catch (Exception e) {
-                System.err.println("PDFConversion.getMarshaller: " + e);
-            }
-        }
-        return this.marshaller;
     }
     
     private void selectPDFFile() {

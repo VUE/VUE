@@ -67,8 +67,6 @@ public class PDFTransform extends AbstractAction {
     private static  String xmlFileName = "default.xml";
     private static  String foFileName = "default.fo";
     private static  String xslFileName = "viewPDF.xsl";
-    final String XML_MAPPING = VueResources.getString("mapping.lw");
-    private Marshaller marshaller = null;
     
     public PDFTransform() {
     }

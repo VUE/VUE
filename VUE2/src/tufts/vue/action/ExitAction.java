@@ -91,8 +91,21 @@ public class ExitAction extends AbstractAction {
         int i;
          
         for (i =0 ; i< model.getSize(); i++){
+
+            Object o = model.getElementAt(i);
         
-            ds = (DataSource)model.getElementAt(i);
+            if (o instanceof DataSource)
+                ds = (DataSource) o;
+            else {
+                // TODO: somebody fix this or comment out as okay condition (we're
+                // seeing String's in the model -- this was throwing class-cast exceptions
+                // as a String is not a DataSource... SMF 2004-06-10 17:53)
+                System.err.println("Don't know how to save data source model element of type "
+                                   + o.getClass()
+                                   + " object=[" + o + "]"
+                                   );
+                continue;
+            }
          
             if (ds instanceof FavoritesDataSource){
             
@@ -102,14 +115,13 @@ public class ExitAction extends AbstractAction {
             
                     tufts.vue.VueDandDTree ft = ((FavoritesWindow)ds.getResourceViewer()).getFavoritesTree();
                     ft.setRootVisible(true);
-                    System.out.println("This is tree" + (ft.getModel()).getRoot());
+                    System.out.println("This is tree [" + (ft.getModel()).getRoot() + "]");
                     tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
                     File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ds.getDisplayName()+VueResources.getString("save.favorites"));
-                    ((FavoritesWindow)ds.getResourceViewer()).marshallMap(favf,sfavtree);
-                    System.out.println("Favorites Saved"+ds.getDisplayName());
+                    ((FavoritesWindow)ds.getResourceViewer()).marshallFavorites(favf,sfavtree);
+                    System.out.println("Favorites Saved ["+ds.getDisplayName() + "] to " + favf);
                 }
             }
-        
         }
         //tufts.vue.DataSourceViewer.saveDataSourceViewer();
     }

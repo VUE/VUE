@@ -79,7 +79,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
       
        
      public static DataSourceList dataSourceList;
-     final static java.net.URL XML_MAPPING =  VueResources.getURL("mapping.lw");
      
      public DataSourceViewer(DRBrowser drBrowser){
         

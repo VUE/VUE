@@ -40,13 +40,6 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import java.io.OutputStreamWriter;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
@@ -63,9 +56,7 @@ import tufts.vue.*;
 
 public class XMLView extends AbstractAction{ 
     
-    //final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private static  String fileName = "default.xml";
-    private Marshaller marshaller = null;
     private XMLTextPane xmlArea = null;
     private StyledDocument doc = null;
     private ArrayList braces = null;
@@ -92,7 +83,6 @@ public class XMLView extends AbstractAction{
         
         if(VUE.getTabbedPane().getSelectedComponent() instanceof MapViewer) {
 
-            //call marshaller in ActionUtil
             ActionUtil.marshallMap(new File(fileName));
             
             //create html view from default.xml

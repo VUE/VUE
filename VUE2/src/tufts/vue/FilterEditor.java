@@ -157,7 +157,8 @@ public class FilterEditor extends JPanel  {
         }
         
         public void setFilters(Vector filters) {
-            tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this); // this is a hack needs to be fixed.  Filtermodel should be aware of map it belongs to
+            tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this);
+            // this is a hack needs to be fixed.  Filtermodel should be aware of map it belongs to
             this.filters = filters;
             
             fireTableDataChanged();

@@ -25,7 +25,10 @@ import java.util.Properties;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.print.Printable;
+import java.awt.print.PageFormat;
 import java.io.File;
 import tufts.vue.beans.*;
 import tufts.vue.filter.*;
@@ -57,7 +60,7 @@ import tufts.vue.filter.*;
  */
 
 public class LWMap extends LWContainer
-    implements ConceptMap
+    implements ConceptMap, Printable
 {
     /** file we were opened from of saved to, if any */
     private File file;
@@ -80,11 +83,11 @@ public class LWMap extends LWContainer
     /** Metadata for Publishing **/
     Properties metadata = new Properties();
     
-    /** Map Metadata-  this is for adding specific metadata and filtering **/
+    /* Map Metadata-  this is for adding specific metadata and filtering **/
     MapFilterModel  mapFilterModel = new MapFilterModel();
     
-    /** user map types -- is this still used? **/
-    private UserMapType[] mUserTypes;
+    /* user map types -- is this still used? **/
+    //private UserMapType[] mUserTypes;
     
     private long mChanges = 0;    // guaranteed >= actual change count
     private Rectangle2D.Float mCachedBounds = null;
@@ -183,7 +186,8 @@ public class LWMap extends LWContainer
      * @return UserMapType [] the array of map types
      **/
     public UserMapType [] getUserMapTypes() {
-        return mUserTypes;
+        throw new UnsupportedOperationException("de-implemented");
+        //return mUserTypes;
     }
     
     /**
@@ -196,14 +200,14 @@ public class LWMap extends LWContainer
      *  @param pTypes - uthe array of UserMapTypes
      **/
     public void setUserMapTypes( UserMapType [] pTypes) {
-        mUserTypes = pTypes;
-        validateUserMapTypes();
+        throw new UnsupportedOperationException("de-implemented");
+        //mUserTypes = pTypes;
+        //validateUserMapTypes();
     }
     
-    /**
+    /*
      * validateUserMapTypes
      * Searches the list of LW Compone
-     **/
     private void validateUserMapTypes() {
         
         java.util.List list = getAllDescendents();
@@ -220,12 +224,13 @@ public class LWMap extends LWContainer
             }
         }
     }
+     **/
     
-    /**
+    /*
      * hasUserMapType
      * This method verifies that the UserMapType exists for this Map.
      * @return boolean true if exists; false if not
-     **/
+
     private boolean hasUserMapType( UserMapType pType) {
         boolean found = false;
         if( mUserTypes != null) {
@@ -237,6 +242,7 @@ public class LWMap extends LWContainer
         }
         return found;
     }
+     **/
     
     /**
      * getAuthor
@@ -625,6 +631,74 @@ public class LWMap extends LWContainer
     }
     
     
+
+    public int print(Graphics gc, PageFormat format, int pageIndex)
+        throws java.awt.print.PrinterException
+    {
+        if (pageIndex > 0) {
+            out("page " + pageIndex + " requested, ending print job.");
+            return Printable.NO_SUCH_PAGE;
+        }
+
+        out("asked to render page " + pageIndex + " in " + outpf(format));
+
+        Dimension page = new Dimension((int) format.getImageableWidth() - 1,
+                                       (int) format.getImageableHeight() - 1);
+
+        Graphics2D g = (Graphics2D) gc;
+
+        if (DEBUG.Enabled) {
+            g.setColor(Color.lightGray);
+            g.fillRect(0,0, 9999,9999);
+        }
+        
+        g.translate(format.getImageableX(), format.getImageableY());
+
+        // Don't need to clip if printing whole map, as computed zoom
+        // should have made sure everything is within page size
+        //if (!isPrintingView())
+        //g.clipRect(0, 0, page.width, page.height);
+                        
+        if (DEBUG.Enabled) {
+            //g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            // draw border outline of page
+            g.setColor(Color.gray);
+            g.setStroke(VueConstants.STROKE_TWO);
+            g.drawRect(0, 0, page.width, page.height);
+            //g.setComposite(AlphaComposite.Src);
+        }
+        
+        // compute zoom & offset for visible map components
+        Point2D offset = new Point2D.Double();
+        // center vertically only if landscape mode
+        //if (format.getOrientation() == PageFormat.LANDSCAPE)
+        double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset, false);
+        out("rendering at scale " + scale);
+        g.translate(-offset.getX(), -offset.getY());
+        g.scale(scale,scale);
+
+        if (isPrintingView())
+            g.clipRect((int) Math.floor(bounds.getX()),
+                       (int) Math.floor(bounds.getY()),
+                       (int) Math.ceil(bounds.getWidth()),
+                       (int) Math.ceil(bounds.getHeight()));
+        
+        if (DEBUG.Enabled) {
+            g.setColor(Color.red);
+            g.setStroke(VueConstants.STROKE_TWO);
+            g.draw(bounds);
+        }
+            
+        // set up the DrawContext
+        DrawContext dc = new DrawContext(g, scale);
+        dc.setPrinting(true);
+        dc.setAntiAlias(true);
+        // render the map
+        this.draw(dc);
+          
+        out("page " + pageIndex + " rendered.");
+        return Printable.PAGE_EXISTS;
+    }
     
     
     

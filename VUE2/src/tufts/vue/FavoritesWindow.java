@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.action.ActionUtil;
+
 import javax.swing.JFrame;
 import javax.swing.*;
 import java.awt.*;
@@ -64,9 +66,6 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private JPanel searchResultsPane ;
     private JScrollPane browsePane;
     public JTabbedPane favoritesPane;
-    //final static String XML_MAPPING = VueResources.getURL("mapping.lw").getFile();
-    final static java.net.URL XML_MAPPING =  VueResources.getURL("mapping.lw");
-    private static String  FAVORITES_MAPPING;
    private static int FAVORITES = 1;
     private static int newFavorites = 0;
     JTextField keywords;
@@ -85,7 +84,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         //System.out.println("I tried to open" + f);
      
             try {
-            SaveVueJTree restorefavtree = unMarshallMap(f);
+            SaveVueJTree restorefavtree = unMarshallFavorites(f);
             fileOpen = true;
               favoritesTree =restorefavtree.restoreTree();
             favoritesTree.setRootVisible(true);
@@ -423,81 +422,46 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             performSearch();
             
         }
-        
-        
     }
-    
-    
     
     public void itemStateChanged(ItemEvent e) {
         JMenuItem source = (JMenuItem)(e.getSource());
-        
-        
     }
     
     
-    public static void marshallMap(File file,SaveVueJTree favoritesTree) {
+    public static void marshallFavorites(File file,SaveVueJTree favoritesTree) {
         Marshaller marshaller = null;
-        
-        
         Mapping mapping = new Mapping();
         
         try {
             FileWriter writer = new FileWriter(file);
-            
             marshaller = new Marshaller(writer);
-            mapping.loadMapping(XML_MAPPING);
-            marshaller.setMapping(mapping);
-            
-            
+            marshaller.setMapping(ActionUtil.getDefaultMapping());
             marshaller.marshal(favoritesTree);
-            
             writer.flush();
             writer.close();
-            
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("FavoritesWindow.marshallFavorites: " + e);
         }
-        catch (Exception e) {System.err.println("FavoritesWindow.marshallMap " + e);}
-        
-        
     }
     
-    
-    
-    public  SaveVueJTree unMarshallMap(File file) {
+    public  SaveVueJTree unMarshallFavorites(File file) {
         Unmarshaller unmarshaller = null;
         SaveVueJTree sTree = null;
         
-        //if (this.unmarshaller == null) {
-        Mapping mapping = new Mapping();
-        
         try {
-            unmarshaller = new Unmarshaller();
-            mapping.loadMapping(XML_MAPPING);
-            unmarshaller.setMapping(mapping);
-            
+            unmarshaller = new Unmarshaller(ActionUtil.getDefaultMapping());
             FileReader reader = new FileReader(file);
-            
             sTree= (SaveVueJTree) unmarshaller.unmarshal(new InputSource(reader));
-            
             reader.close();
-        }
-        catch (Exception e) {
-            System.err.println("FavoritesWindow.unmarshallMap: " + e);
+        } catch (Exception e) {
             e.printStackTrace();
-           // System.err.println("ActionUtil.unmarshallMap: " + e);
-            //e.printStackTrace();
+            System.err.println("FavoritesWindow.unmarshallFavorites: " + e);
             sTree = null;
         }
-        //}
-        
         return sTree;
     }
-    
-    
-    
-    
-    
-    
     
     public void performSearch(){
         int index = 0;

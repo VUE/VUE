@@ -16,12 +16,6 @@
  * -----------------------------------------------------------------------------
  */
 
-/*
- * Class.java
- *
- * Created on June 13, 2003, 4:50 PM
- */
-
 package tufts.vue.action;
 
 import javax.swing.*;
@@ -34,6 +28,7 @@ import tufts.vue.VueUtil;
 import tufts.vue.VUE;
 import tufts.vue.LWMap;
 import tufts.vue.VueFileFilter;
+import tufts.vue.VueResources;
 
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.MarshalListener;
@@ -50,15 +45,19 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
+ * A class which defines utility methods for any of the action class.
+ * Most of this code is for save/restore persistance thru castor XML.
  *
  * @author  Daisuke Fujiwara
- */
-
-/** A class which defines utility methods for any of the action class
+ * @author  Scott Fraize
+ * 
  */
 public class ActionUtil {
-    final static java.net.URL XML_MAPPING = tufts.vue.VueResources.getURL("mapping.lw");
-    final static java.net.URL XML_MAPPING_OLD = tufts.vue.VueResources.getURL("mapping.lw_old");
+    private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
+    private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
+    private final static URL XML_MAPPING_UNVERSIONED = VueResources.getURL("mapping.lw.version_none");
+    private final static URL XML_MAPPING_OLD_RESOURCES = VueResources.getURL("mapping.lw.version_resource_fix");
+    //final static java.net.URL XML_MAPPING = VueResources.getURL("mapping.lw");
     
     /** Creates a new instance of Class */
     public ActionUtil() {
@@ -165,36 +164,47 @@ public class ActionUtil {
         return file;
     }
     
-    //private static Mapping CachedMapping;
-    private static Mapping getDefaultMapping()
+    /**
+     * Return the current mapping used for saving new VUE data.
+     */
+    public static Mapping getDefaultMapping()
     {
-        //if (CachedMapping == null) {
-        //Mapping mapping = null;
-            try {
-                return loadMapping(XML_MAPPING);
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
-                JOptionPane.showMessageDialog(null, "Mapping file error: will be unable to load or save maps!"
-                                              + "\nMapping url: " + XML_MAPPING
-                                              + "\n" + e,
-                                              "XML Mapping File Exception", JOptionPane.ERROR_MESSAGE);
-            }
-            return null;
-            //CachedMapping = mapping;
-            //  }
-    //return CachedMapping;
+        Object result = _loadMapping(XML_MAPPING_DEFAULT);
+        if (result instanceof Exception) {
+            JOptionPane.showMessageDialog(null, "Mapping file error: will be unable to load or save maps!"
+                                          + "\nMapping url: " + XML_MAPPING_DEFAULT
+                                          + "\n" + result,
+                                          "XML Mapping File Exception", JOptionPane.ERROR_MESSAGE);
+        }
+        return (Mapping) result;
     }
 
+    private static Mapping getMapping(URL mappingSource) {
+        Object result = _loadMapping(mappingSource);
+        if (result instanceof Mapping)
+            return (Mapping) result;
+        else
+            return null;
+    }
+    
     private static HashMap LoadedMappings = new HashMap();
-    private static Mapping loadMapping(URL mappingSource)
-        throws java.io.IOException, org.exolab.castor.mapping.MappingException
+    /** return's a Mapping if succesful, or an Exception if not.
+     * Results are cahced (if load was successful) for future calls.*/
+    private static Object _loadMapping(URL mappingSource)
+    //throws java.io.IOException //, org.exolab.castor.mapping.MappingException
     {
         if (LoadedMappings.containsKey(mappingSource))
             return (Mapping) LoadedMappings.get(mappingSource);
         Mapping mapping = new Mapping();
         System.out.println("Loading mapping " + mappingSource + "...");
-        mapping.loadMapping(mappingSource);
-        System.out.println("Mapping loaded.");
+        try {
+            mapping.loadMapping(mappingSource);
+        } catch (Exception e) { // MappingException or IOException
+            e.printStackTrace();
+            System.err.println("Failed to load mapping " + mappingSource);
+            return e;
+        }
+        System.out.println("*Loaded mapping " + mappingSource);
         LoadedMappings.put(mappingSource, mapping);
         return mapping;
     }
@@ -206,26 +216,26 @@ public class ActionUtil {
     }
 
     
-    //private static final String VersionString = "<!-- VUE Mapping File @version 1.0 -->\n";
-    
-    /**A static method which creates an appropriate marshaller and marshal the given map*/
+    /**
+     * Marshall the given map to XML and write it out to the given file
+     */
     public static void marshallMap(File file, LWMap map)
-    /*
-      // really need to put these in and let everyone handle the exceptions --
-      // otherwise we can't know how it may have failed!
-        throws java.io.IOException,
+    /*throws java.io.IOException,
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException
-    */
+               org.exolab.castor.xml.ValidationException*/
     {
         Marshaller marshaller = null;
             
         try {  
             FileWriter writer = new FileWriter(file);
-            writer.write("<!-- VUE mapping @version 1.0 " + XML_MAPPING + " -->\n");
-            writer.write("<!-- Saved "
-                         + new java.util.Date()
+            writer.write("<!-- Do Not Remove:"
+                         + " VUE mapping "
+                         + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
+                         + " " + XML_MAPPING_DEFAULT
+                         + " -->\n");
+            writer.write("<!-- Do Not Remove:"
+                         + " Saved " + new java.util.Date()
                          + " by " + System.getProperty("user.name")
                          + " on platform " + System.getProperty("os.name")
                          + " " + System.getProperty("os.version")
@@ -305,7 +315,8 @@ public class ActionUtil {
     public static LWMap unmarshallMap(java.net.URL url)
         throws java.io.IOException
     {
-        return unmarshallMap(url, getDefaultMapping());
+        //return unmarshallMap(url, getDefaultMapping());
+        return unmarshallMap(url, null);
     }
 
     /** Unmarshall a LWMap from the given URL using the given mapping */
@@ -314,27 +325,57 @@ public class ActionUtil {
     {
         LWMap map = null;
 
-        // Ignore lines at top of file that are comments.  If there
+        // Scan lines at top of file that are comments.  If there
         // are NO comment lines, file is of one of our original save
         // formats that is not versioned, and that may need special
         // processing for the Resource class to Resource interface
-        // change over.
+        // change over.  The first instance
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
         String line;
         int commentCount = 0;
         boolean oldFormat = false;
-        do {
+        String versionID = null;
+        for (;;) {
             reader.mark(2048);
             line = reader.readLine();
             System.out.println("Top of file[" + line + "]");
+            if (!line.startsWith("<!--"))
+                break;
             commentCount++;
-        } while (line.startsWith("<!--"));
+            // if we're being given an override mapping (or we already found one),
+            // don't bother to search for one based on the version.
+            if (mapping != null)
+                continue;
+            // Scan the comment line for a version tag to base our mapping on:
+            int i = line.indexOf("@version(");
+            if (i >= 0) {
+                String s = line.substring(i);
+                //System.out.println("Found version start:" + s);
+                int x = s.indexOf(')');
+                if (x > 0) {
+                    versionID = s.substring(9,x);
+                    System.out.println("Found version ID[" + versionID + "]");
+                    if (versionID.equals(XML_MAPPING_CURRENT_VERSION_ID)) {
+                        mapping = getDefaultMapping();
+                    } else {
+                        URL mappingURL = VueResources.getURL("mapping.lw.version_" + versionID);
+                        if (mappingURL == null) {
+                            System.err.println("Failed to find mapping for version tag [" + versionID + "], attempting default.");
+                            mapping = getDefaultMapping();
+                        } else {
+                            mapping = getMapping(mappingURL);
+                        }
+                    }
+                }
+            }
+        } 
         reader.reset();
-        commentCount--;
-        if (commentCount < 1) {
+        if (versionID == null) {
             oldFormat = true;
             System.out.println("Save file is of old pre-versioned type.");
+            if (mapping == null)
+                mapping = getMapping(XML_MAPPING_UNVERSIONED);
         }
             
         try {
@@ -354,7 +395,8 @@ public class ActionUtil {
                 if (oldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
                     System.err.println("ActionUtil.unmarshallMap: " + me);
                     System.err.println("Attempting specialized MapResource mapping for old format.");
-                    return unmarshallMap(url, loadMapping(XML_MAPPING_OLD));
+                    // NOTE: delicate recusion here: won't loop as long as we pass in a non-null mapping.
+                    return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES));
                     /*
                     unmarshaller.setMapping(loadMapping(XML_MAPPING_OLD));
                     reader.reset(); // todo: need to make sure buffer is big enough for rollback!
@@ -365,10 +407,8 @@ public class ActionUtil {
                     throw me;
             }
             
-            //map.setFile(file); // appears as a modification, so be sure to do completeXMLRestore last.
-            map.setFile(new File(url.getFile()));
+            map.setFile(new File(url.getFile()));// appears as a modification, so be sure to do completeXMLRestore last.
             map.completeXMLRestore();
-            
             reader.close();
         }
         catch (Exception e) 

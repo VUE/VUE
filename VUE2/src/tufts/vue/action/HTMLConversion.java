@@ -28,10 +28,6 @@ package tufts.vue.action;
  *
  * @author  Jay Briedis
  */
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
 
 import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
@@ -61,8 +57,6 @@ public class HTMLConversion extends AbstractAction
     private static  String htmlFileName = "default.html";
     private static  String xmlFileName = "default.xml";
     private static  String xslFileName = "viewHTML.xsl";
-   // final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
-    private Marshaller marshaller = null;
     
     public HTMLConversion() {
     }
