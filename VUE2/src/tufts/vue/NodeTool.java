@@ -90,6 +90,7 @@ public class NodeTool extends VueTool
     public static LWNode createNode(String name)
     {
         LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
+        node.setAutoSized(true);
         return node;
     }
     public static LWNode createNode()
@@ -99,6 +100,7 @@ public class NodeTool extends VueTool
     public static LWNode createTextNode(String text)
     {
         LWNode node = createNode(text);
+        node.setAutoSized(true);
         node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
         node.setFillColor(COLOR_TRANSPARENT);

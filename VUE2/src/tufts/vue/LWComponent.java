@@ -605,10 +605,12 @@ public class LWComponent
     {
         return getBounds();
     }
+    /*
     public void setShape(Shape shape)
     {
         throw new UnsupportedOperationException("unimplemented setShape in " + this);
     }
+    */
 
     /**
      * Return bounds, including any stroke width.

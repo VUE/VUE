@@ -21,10 +21,11 @@ public class MapPanner extends javax.swing.JPanel
                MouseListener,
                MouseMotionListener
 {
-    private MapViewer mapViewer;
-    private double zoomFactor;
-    private Point dragStart;
-    
+    private MapViewer mapViewer; // active MapViewer
+    private double zoomFactor; // zoomFactor that will fit entire map in the panner
+    private Point dragStart; // where mouse was at mouse press
+    private Point2D mapStart; // where map origin was at mouse press
+
     /**
      * Get's global (thru AWT hierarchy) MapViewerEvent's
      * to know what to display & when to update.  It's
@@ -37,8 +38,8 @@ public class MapPanner extends javax.swing.JPanel
         setPreferredSize(new Dimension(100,100));
         setBackground(SystemColor.control);
         
-        //addMouseListener(this);
-        //addMouseMotionListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
 
         // VUE.addEventListener(this, MapViewerEvent.class);
     }
@@ -69,8 +70,13 @@ public class MapPanner extends javax.swing.JPanel
     {
         super.paintComponent(g);
 
-        if (mapViewer == null)
-            return;
+        if (mapViewer == null) {
+            setViewer(VUE.getActiveViewer());//todo: remove
+            // problem is at startup, somehow we no longer get an active viewer event
+            // -- something got broke
+            if (mapViewer == null)
+                return;
+        }
 
         Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
         Rectangle   viewerBounds = new Rectangle(mapViewer.getWidth()-1, mapViewer.getHeight()-1);
@@ -96,14 +102,21 @@ public class MapPanner extends javax.swing.JPanel
 
         g2.translate(-offset.getX(), -offset.getY());
         g2.scale(zoomFactor, zoomFactor);
-        g2.setColor(Color.white);
+        //g2.setColor(Color.white);
+        g2.setColor(mapViewer.getBackground());
         g2.fill(mapViewerRect);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         mapViewer.getMap().draw(g2);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g2.setColor(Color.red);
-        g2.setStroke(STROKE_ONE);
+        // todo: de-scale us before drawing -- actually -- do on a glass pane as we're
+        // very expensively rederawing the whole map here...
+        if (!VueUtil.isMacPlatform()) {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            g2.setStroke(STROKE_ONE);
+        } else {
+            g2.setStroke(new BasicStroke((float)(1/this.zoomFactor)));
+        }
         g2.draw(mapViewerRect);
 
         //g2.scale(1/zoomFactor, 1/zoomFactor);
@@ -115,33 +128,29 @@ public class MapPanner extends javax.swing.JPanel
     public void mousePressed(MouseEvent e)
     {
         dragStart = e.getPoint();
+        mapStart = mapViewer.getOriginLocation();
         repaint();
     }
     public void mouseReleased(MouseEvent e)
     {
         dragStart = null;
-        //System.err.println(e);
     }
     public void mouseDragged(MouseEvent e)
     {
         if (dragStart == null)
             return;
+
+        // hack till we disallow the maprect from going beyond edge
+        if (e.getX() < 0 || e.getX() > getWidth() || e.getY() < 0 || e.getY() > getHeight())
+            return;
         
-        //System.out.println(e);
-        Point p = e.getPoint();
+        double factor = this.zoomFactor / mapViewer.getZoomFactor();
+        double dragOffsetX = (e.getX() - dragStart.getX()) / factor;
+        double dragOffsetY = (e.getY() - dragStart.getY()) / factor;
 
-        // move the panner
-        /*
-            // moving the window
-            p.x += this.getX();
-            p.y += this.getY();
-            // now we have the absolute screen location
-            p.x -= dragStart.x;
-            p.y -= dragStart.y;
-            setLocation(p);
-
-        //System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
-        */
+        mapViewer.setMapOriginOffset(mapStart.getX() + dragOffsetX,
+                                     mapStart.getY() + dragOffsetY);
+        mapViewer.repaint(); // todo: this happen in MapViewer -- review
     }
     
     public void mouseClicked(MouseEvent e) {}

@@ -131,6 +131,7 @@ public class LWNode extends LWContainer
     public LWNode()
     {
         setNodeShape(StandardShapes[4]);
+        setAutoSized(false);
         //todo: remove this setShape eventually (or change to plain rectangle)
         // this is only here for temporary backward compat
         // with saved map files that have no shape information
@@ -190,7 +191,8 @@ public class LWNode extends LWContainer
     /** for persistance */
     public NodeShape getNodeShape()
     {
-        return this.nodeShape;
+        //return this.nodeShape;
+        return null;
     }
     public void setNodeShape(NodeShape nodeShape)
     {
@@ -200,13 +202,6 @@ public class LWNode extends LWContainer
         // todo: getShapeInstance is redundant during restores
     }
 
-    /*
-    public void setShape(Shape shape)
-    {
-        setShape((RectangularShape)shape);
-    }
-    */
-
     /**
      * @param shape a new instance of a shape for us to use
      */
@@ -215,7 +210,7 @@ public class LWNode extends LWContainer
         //System.out.println("SETSHAPE " + shape + " in " + this);
         //System.out.println("SETSHAPE bounds " + shape.getBounds());
         //if (shape instanceof RoundRectangle2D.Float) {
-        //    RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
+        //RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
         //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
         //}
         this.boundsShape = shape;
@@ -322,6 +317,7 @@ public class LWNode extends LWContainer
     
     private void adjustDrawnShape()
     {
+        if (DEBUG_LAYOUT) System.out.println(this + " adjustDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
         this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
     }
     
@@ -364,7 +360,7 @@ public class LWNode extends LWContainer
     protected void layout()
     {
         if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
-        //if (isAutoSized())
+        if (isAutoSized() || hasChildren())
             setPreferredSize(!isAutoSized());
         layoutChildren();
         

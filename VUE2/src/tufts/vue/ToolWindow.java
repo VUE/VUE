@@ -29,7 +29,7 @@ public class ToolWindow
     }
     
     private Point dragStart;
-    private Dimension dragSizeStart;
+    private Dimension dragSizeStart; // tmp public hack
 
     class ToolPanel extends JPanel
     {
@@ -206,6 +206,17 @@ public class ToolWindow
         }
         super.setLocation(x, y);
     }
+
+
+    protected boolean resizeCornerHit(MouseEvent e)
+    {
+        return
+            e.getX() > getWidth() - ResizeCornerSize &&
+            e.getY() > getHeight() - ResizeCornerSize
+            ||
+            e.getX() > getWidth() - 10 && e.getY() < TitleHeight; // tmp hack extra resize
+        
+    }
     
     public void mousePressed(MouseEvent e)
     {
@@ -213,8 +224,7 @@ public class ToolWindow
         // todo: will need to check this on the glass pane
         // in case underlying panel is also grabbing
         // mouse events (and then redispatch)
-        if (e.getX() > getWidth() - ResizeCornerSize &&
-            e.getY() > getHeight() - ResizeCornerSize)
+        if (resizeCornerHit(e))
             dragSizeStart = getSize();
     }
     public void mouseReleased(MouseEvent e)

@@ -250,7 +250,7 @@ public class MapViewer extends javax.swing.JPanel
     public void setMapOriginOffset(double screenX, double screenY) {
         setMapOriginOffset((float) screenX, (float) screenY);
     }
-    public Point2D getOriginLocation() {
+    public Point2D.Float getOriginLocation() {
         return new Point2D.Float(mapOriginX, mapOriginY);
     }
     public float getOriginX() {
