@@ -39,8 +39,10 @@ public class DataSourceViewer  extends JPanel{
     public final int EDIT_MODE = 1;
  
     public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google"};
-    private static int filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0;String  begIndex = "NONE";
-    //private static int nFavorites = 0,nFilingremote =0 ,nFedora = 0,nGoogle =0;
+    private static int  filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0;
+    private static boolean  problemloadingfromfile = false, init = true;
+    private static String begIndex = "NONE";
+    
     
    private static boolean dataSourceChanged = false, loadingFromFile = false;
     public static java.util.Vector dataSources;
@@ -72,6 +74,8 @@ public class DataSourceViewer  extends JPanel{
        
         loadDataSources();
         if (loadingFromFile)dataSourceChanged = false;
+        
+        
         
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
@@ -132,6 +136,8 @@ public class DataSourceViewer  extends JPanel{
         dataSourcePanel.add(jSP,BorderLayout.CENTER);
         add(dataSourcePanel,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
+        
+        init = false;
     }
     /*
     public Vector getDataSources(){
@@ -248,290 +254,285 @@ public class DataSourceViewer  extends JPanel{
 public void addNewDataSource (String displayName, String name,String searchURL, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
        
 
-
-         DataSource ds;
-       int insertAt = 0,postBreakSpot = 0, preBreakSpot = 0;
-       int preExists = 0, postExists = 0;
-         System.out.println("This is stuff"+"fav" + favorites + "rem" + filingremote+"beg" + begIndex);
+    
+    DataSource ds;
+    int insertAt = 0,postBreakSpot = 0, preBreakSpot = 0;
+    int preExists = 0, postExists = 0;
+    System.out.println("This is stuff"+"fav" + favorites + "rem" + filingremote+"beg" + begIndex);
+    
+    try{
+        ds = new DataSource("id", displayName, name, searchURL,address, user, password, type);
+    }catch (Exception ex){
+        if (!(init)){
+        VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
+        }
+        else {
          
-           try{
-           ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
-           }catch (Exception ex){
-   
-            VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
-            return;  
-           }
-     
-       dataSourceChanged = true;
-       
+            problemloadingfromfile = true;
             
-       if (dataSourceList.getModel().getSize() == 0){//only element in the list
-           
-           if (type == DataSource.FILING_LOCAL)begIndex = "FILING_LOCAL";
-           else if (type == DataSource.FAVORITES)begIndex = "FAVORITES";
-           else if (type == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
-           else if (type == DataSource.DR_FEDORA)begIndex = "DR_FEDORA";
-           else if (type == DataSource.GOOGLE)begIndex = "GOOGLE";
-         
-     
-       }
-       else{//Have to find the right place
-      
-       if (type == DataSource.FILING_LOCAL){
-           
-           
-           if (begIndex.compareTo("FILING_LOCAL") == 0){//local file syatem already exists
-           
-           if (favorites > 0) {insertAt = favorites - 1;}
-           else if (filingremote > 0) {insertAt = filingremote - 1;}
-           else if (fedora > 0){insertAt = fedora - 1;}
-           else if (google > 0){insertAt = google - 1;}
-           else {insertAt = dataSourceList.getModel().getSize();}    
-               
-           }
-           
-           else{//no lcoal file system
-    
-               insertAt = 0;
-               postBreakSpot = 1;
-               begIndex = "FILING_LOCAL";
-     
-           }
-           
-           if (favorites > 0) {favorites = favorites + postBreakSpot + 1;}
-           if (filingremote > 0) {filingremote = filingremote + postBreakSpot + 1;}
-           if (fedora > 0){fedora = fedora + postBreakSpot + 1;}
-           if (google > 0){google = google + postBreakSpot + 1;}
-           
-              
-           
-           }
-       else if (type == DataSource.FAVORITES){ 
-           
-           
-         
-           if ((begIndex.compareTo("FAVORITES") == 0) || (favorites > 0)){//Favorites already exists
-            
-           
-           if (filingremote > 0) {insertAt = filingremote - 1;}
-           else if (fedora > 0){insertAt = fedora - 1;}
-           else if (google > 0){insertAt = google - 1;}
-           else {insertAt = dataSourceList.getModel().getSize();}  
-           
-          
-               
-           }
-           
-           else{//no favorites
-    
-               if (begIndex.compareTo("FILING_LOCAL") == 0){
-           if (filingremote > 0) {preBreakSpot  = filingremote - 1; insertAt = preBreakSpot + 1;}
-           else if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
-           else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
-           else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;} 
-                   favorites = insertAt;
-                   
-               }
-               
-               else{
-                    insertAt = 0;
-                  begIndex = "FAVORITES";
-                 postBreakSpot = 1;
-               
-               
-               }
-                   
-          
-           if (preBreakSpot > 0){preExists = 1;}
-           if (postBreakSpot > 0){postExists = 1;}
-          
-           }
-           
-           if (filingremote > 0) {filingremote = filingremote +preExists + postExists + 1;}
-           if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
-           if (google > 0){google = google + preExists + postExists + 1;}
-           
-      
-       }
-       
-       else if (type == DataSource.FILING_REMOTE){
-           
-           
-           
-           if ((begIndex.compareTo("FILING_REMOTE") == 0) || (filingremote > 0)){//Filingremote already exists
-           
-           if (fedora > 0){insertAt = fedora - 1;}
-           else if (google > 0){insertAt = google - 1;}
-           else {insertAt = dataSourceList.getModel().getSize();}  
-           
-          
-               
-           }
-           
-           else{//no filing remote
-    
-               if (((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)){
-               if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
-                else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
-                 else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;} 
-                   filingremote  = insertAt;
-                   
-               }
-               
-               else{
-                    insertAt = 0;
-                  begIndex = "FILINGREMOTE";
-                 postBreakSpot = 1;
-               
-               
-               }
-                   
-                   
-    
-         
-           if (preBreakSpot > 0){preExists = 1;}
-           if (postBreakSpot > 0){postExists = 1;}
-          
-           
-           }
-          
-           if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
-           if (google > 0){google = google + preExists + postExists + 1;}
-              
-           
-           
-           
-             
-          
-           
-       }
-       
-       else  if (type == DataSource.DR_FEDORA){
-          
-           if ((begIndex.compareTo("FEDORA") == 0) || (fedora > 0)){//Fedora already exists
-            
-           if (google > 0){insertAt = google - 1;}
-           else {insertAt = dataSourceList.getModel().getSize();}  
-           
-          
-               
-           }
-           
-           else{//no fedora
-    
-              
-          if ((((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)) || (begIndex.compareTo("FILING_REMOTE") == 0)){
-         
-              
-              if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
-           else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;} 
-                   fedora = insertAt;
-                   
-               }
-               
-               else{
-                    insertAt = 0;
-                  begIndex = "FEDORA";
-                 postBreakSpot = 1;
-               
-               
-               }
-                   
-                   
-    
-          
-           if (preBreakSpot > 0){preExists = 1;}
-           if (postBreakSpot > 0){postExists = 1;}
-          
-   
-     
-           
-           }
-         
-          
-           if (google > 0){google = google + preBreakSpot + postBreakSpot + 1;}
-           
-           
-      
-     
-       }
-       
-       else {
-           
-             
-           if ((begIndex.compareTo("GOOGLE") == 0) || (google > 0)){//Google already exists
-          
-            insertAt = dataSourceList.getModel().getSize();
-           
-          
-               
-           }
-           
-           else{//no google
-    
-      
-           
-            preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot + 1;
-                   google = insertAt;
-                   
-               
-             
-     
-           }
-           
-         
-   
-           
-       }
-       
- 
-       
+        }
+        return;
     }
-       
-       System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
-           
-             if (preBreakSpot > 0){
-                 
-                 try{
-                 DataSource pds = new DataSource("pds","","","", "", "", "", DataSource.BREAK);
+    
+    dataSourceChanged = true;
+    
+    
+    if (dataSourceList.getModel().getSize() == 0){//only element in the list
+        
+        if (type == DataSource.FILING_LOCAL)begIndex = "FILING_LOCAL";
+        else if (type == DataSource.FAVORITES)begIndex = "FAVORITES";
+        else if (type == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
+        else if (type == DataSource.DR_FEDORA)begIndex = "DR_FEDORA";
+        else if (type == DataSource.GOOGLE)begIndex = "GOOGLE";
+        
+        
+    }
+    else{//Have to find the right place
+        
+        if (type == DataSource.FILING_LOCAL){
             
-                 dataSourceList.getContents().insertElementAt(pds, preBreakSpot);
-                 }catch (Exception EX) {}
-                 preBreakSpot = 0;
-         
-             }
-           
-       
-           if (dataSourceList.getContents().isEmpty()){dataSourceList.getContents().addElement(ds);}
-               
-               
-               else{dataSourceList.getContents().insertElementAt(ds,insertAt);}
-           
-            if (postBreakSpot > 0){
-                 
-                 try{
-                 DataSource bds = new DataSource("bds","","","", "", "", "", DataSource.BREAK);
             
-                 dataSourceList.getContents().insertElementAt(bds, preBreakSpot);
-                 }catch (Exception EX) {}
-                   postBreakSpot = 0;
-             }
-           
-              try{
-           if (active)setActiveDataSource(ds);
-              }catch (Exception ex){setActiveDataSource((DataSource)dataSourceList.getContents().getElementAt(0));}
-       
-       
-        System.out.println("This is stuff at end"+"fav" + favorites + "rem" + filingremote+"fed" +fedora+"goo" + google + "beg"+begIndex);
-           
-       
-        drBrowser.repaint();
-        drBrowser.validate();
-   
-       
+            if (begIndex.compareTo("FILING_LOCAL") == 0){//local file syatem already exists
+                
+                if (favorites > 0) {insertAt = favorites - 1;}
+                else if (filingremote > 0) {insertAt = filingremote - 1;}
+                else if (fedora > 0){insertAt = fedora - 1;}
+                else if (google > 0){insertAt = google - 1;}
+                else {insertAt = dataSourceList.getModel().getSize();}
+                
+            }
+            
+            else{//no lcoal file system
+                
+                insertAt = 0;
+                postBreakSpot = 1;
+                begIndex = "FILING_LOCAL";
+                
+            }
+            
+            if (favorites > 0) {favorites = favorites + postBreakSpot + 1;}
+            if (filingremote > 0) {filingremote = filingremote + postBreakSpot + 1;}
+            if (fedora > 0){fedora = fedora + postBreakSpot + 1;}
+            if (google > 0){google = google + postBreakSpot + 1;}
+            
+            
+            
+        }
+        else if (type == DataSource.FAVORITES){
+            
+            
+            
+            if ((begIndex.compareTo("FAVORITES") == 0) || (favorites > 0)){//Favorites already exists
+                
+                
+                if (filingremote > 0) {insertAt = filingremote - 1;}
+                else if (fedora > 0){insertAt = fedora - 1;}
+                else if (google > 0){insertAt = google - 1;}
+                else {insertAt = dataSourceList.getModel().getSize();}
+                
+                
+                
+            }
+            
+            else{//no favorites
+                
+                if (begIndex.compareTo("FILING_LOCAL") == 0){
+                    if (filingremote > 0) {preBreakSpot  = filingremote - 1; insertAt = preBreakSpot + 1;}
+                    else if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
+                    else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                    else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
+                    favorites = insertAt;
+                    
+                }
+                
+                else{
+                    insertAt = 0;
+                    begIndex = "FAVORITES";
+                    postBreakSpot = 1;
+                    
+                    
+                }
+                
+                
+                if (preBreakSpot > 0){preExists = 1;}
+                if (postBreakSpot > 0){postExists = 1;}
+                
+            }
+            
+            if (filingremote > 0) {filingremote = filingremote +preExists + postExists + 1;}
+            if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
+            if (google > 0){google = google + preExists + postExists + 1;}
+            
+            
+        }
+        
+        else if (type == DataSource.FILING_REMOTE){
+            
+            
+            
+            if ((begIndex.compareTo("FILING_REMOTE") == 0) || (filingremote > 0)){//Filingremote already exists
+                
+                if (fedora > 0){insertAt = fedora - 1;}
+                else if (google > 0){insertAt = google - 1;}
+                else {insertAt = dataSourceList.getModel().getSize();}
+                
+                
+                
+            }
+            
+            else{//no filing remote
+                
+                if (((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)){
+                    if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
+                    else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                    else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
+                    filingremote  = insertAt;
+                    
+                }
+                
+                else{
+                    insertAt = 0;
+                    begIndex = "FILINGREMOTE";
+                    postBreakSpot = 1;
+                    
+                    
+                }
+          
+                if (preBreakSpot > 0){preExists = 1;}
+                if (postBreakSpot > 0){postExists = 1;}
+                
+                
+            }
+            
+            if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
+            if (google > 0){google = google + preExists + postExists + 1;}
+     
+        }
+        
+        else  if (type == DataSource.DR_FEDORA){
+            
+            if ((begIndex.compareTo("FEDORA") == 0) || (fedora > 0)){//Fedora already exists
+                
+                if (google > 0){insertAt = google - 1;}
+                else {insertAt = dataSourceList.getModel().getSize();}
+          
+            }
+            
+            else{//no fedora
+                
+                
+                if ((((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)) || (begIndex.compareTo("FILING_REMOTE") == 0)){
+                    
+                    
+                    if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                    else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
+                    fedora = insertAt;
+                    
+                }
+                
+                else{
+                    insertAt = 0;
+                    begIndex = "FEDORA";
+                    postBreakSpot = 1;
+                    
+                    
+                }
+                
+                
+                
+                
+                if (preBreakSpot > 0){preExists = 1;}
+                if (postBreakSpot > 0){postExists = 1;}
+                
+                
+                
+                
+            }
+            
+            
+            if (google > 0){google = google + preBreakSpot + postBreakSpot + 1;}
+            
+            
+            
+            
+        }
+        
+        else {
+            
+            
+            if ((begIndex.compareTo("GOOGLE") == 0) || (google > 0)){//Google already exists
+                
+                insertAt = dataSourceList.getModel().getSize();
+                
+                
+                
+            }
+            
+            else{//no google
+                
+                
+                
+                preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot + 1;
+                google = insertAt;
+                
+                
+                
+                
+            }
+            
+            
+            
+            
+        }
+        
+        
+        
+    }
+    
+    System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
+    
+    if (preBreakSpot > 0){
+        
+        try{
+            DataSource pds = new DataSource("pds","","","", "", "", "", DataSource.BREAK);
+            
+            dataSourceList.getContents().insertElementAt(pds, preBreakSpot);
+        }catch (Exception EX) {}
+        preBreakSpot = 0;
+        
+    }
+    
+    
+    if (dataSourceList.getContents().isEmpty()){dataSourceList.getContents().addElement(ds);}
+    
+    
+    else{dataSourceList.getContents().insertElementAt(ds,insertAt);}
+    
+    if (postBreakSpot > 0){
+        
+        try{
+            DataSource bds = new DataSource("bds","","","", "", "", "", DataSource.BREAK);
+            
+            dataSourceList.getContents().insertElementAt(bds, preBreakSpot);
+        }catch (Exception EX) {}
+        postBreakSpot = 0;
+    }
+    
+    try{
+        if (active)setActiveDataSource(ds);
+    }catch (Exception ex){setActiveDataSource((DataSource)dataSourceList.getContents().getElementAt(0));}
+    
+    
+    System.out.println("This is stuff at end"+"fav" + favorites + "rem" + filingremote+"fed" +fedora+"goo" + google + "beg"+begIndex);
+    
+    
+    drBrowser.repaint();
+    drBrowser.validate();
+    
+    
 }
 
-           
+
      
     
     public void deleteDataSource(DataSource dataSource) {
@@ -1129,7 +1130,7 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
         //--Marshalling etc
           favorites = 0;fedora=0;google=0;filingremote = 0;
           
-            boolean debug = false; boolean  problemloadingfromfile = true;
+            boolean debug = false;
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
             if(f.exists() && !debug){
@@ -1139,7 +1140,7 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
               
                   problemloadingfromfile = true;
                 
-                  VueUtil.alert(null,"There was a problem loading previously saved DataSources. Using default Data Sources","DataSources not loaded");
+                 System.out.println("There was a problem loading previously saved DataSources. Using default Data Sources");
                 }
                   
             else{
@@ -1155,7 +1156,7 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
           catch(Exception ex) {problemloadingfromfile = true;}
           }
            
-                problemloadingfromfile = false;    
+               // problemloadingfromfile = false;    
             
             }
             
@@ -1267,14 +1268,7 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
            System.out.println("Datasources can't be loaded");
        }
       
-       /**
-       Iterator i = dataSources.iterator();
-       while(i.hasNext() ) {
-           DataSource mDataSource = (DataSource)i.next();
-           if(mDataSource.getType() == DataSource.DR_FEDORA)
-               mDataSources.add(mDataSource);
-       }
-        */
+       
        return mDataSources.iterator();
            
    }
