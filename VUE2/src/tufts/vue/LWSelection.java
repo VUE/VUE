@@ -138,7 +138,7 @@ public class LWSelection extends java.util.ArrayList
 
     private boolean notifyUnderway() {
         if (inNotify) {
-            new Throwable(this + "attempt to change selection during selection change notification: denied.").printStackTrace();
+            new Throwable(this + " attempt to change selection during selection change notification: denied.").printStackTrace();
             java.awt.Toolkit.getDefaultToolkit().beep();            
             return true;
         } else {

@@ -1326,6 +1326,11 @@ public class LWComponent
      * Move @param listener - existing listener, to the front of the
      * notification list, so it get's notifications before anyone else.
      */
+
+    /* Todo: create ChangeSupport style class for managing & notifying
+     * listeners, with setPriority, etc, that LWSelection, the VUE
+     * map & viewer listeners, etc, can all use.
+     */
     public synchronized void setPriorityLWCListener(Listener listener) {
         int i = listeners.indexOf(listener);
         
