@@ -52,24 +52,29 @@ public class ImageConversion extends AbstractAction {
     public void createJpeg(File location)
     {
          //retrives the current map and gets its size
-         MapViewer currentMap = VUE.getActiveViewer();
-                
-         Rectangle2D bounds = currentMap.getAllComponentBounds();
-         int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
-         Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
-        
+         MapViewer currentViewer = VUE.getActiveViewer();
+         LWMap currentMap = VUE.getActiveMap();
+         
+         Rectangle2D bounds = currentViewer.getAllComponentBounds();
+         Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
+         
          //creates an image object and sets up the graphics object of the image
          BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-         Graphics g = mapImage.getGraphics();
-                
-         g.setClip(0, 0, size.width, size.height);
+         Graphics2D g = (Graphics2D) mapImage.getGraphics();
         
-         //let the map draws to the image object's graphic object
-         currentMap.paintComponent(g);
-                
-         //outlining the returned image
-         //g.setColor(Color.black);
-         //g.drawRect(0, 0, size.width - 1, size.height - 1);
+         //draws the background and the border of the image
+         g.setColor(Color.white);
+         g.fillRect(0, 0, size.width, size.height);
+         g.setColor(Color.black);
+         g.drawRect(0, 0, size.width-1, size.height-1);
+             
+         //translate and set the clip for the map content
+         g.translate(-(int)bounds.getX(), -(int)bounds.getY());
+         g.setClip(0, 0, size.width, size.height);
+            
+         DrawContext dc = new DrawContext(g, 1.0);
+         // render the map
+         currentMap.draw(dc);
         
          //begins the conversion to the file
          convert(mapImage, location, "jpeg");

@@ -42,23 +42,36 @@ public class SVGConversion extends AbstractAction {
     public void createSVG(File location)
     {
         //gets the currently selected map
-        MapViewer map = VUE.getActiveViewer();
+        MapViewer currentViewer = VUE.getActiveViewer();
+        LWMap currentMap = VUE.getActiveMap();
         
         //sets up the document object model
         Document document = new DocumentImpl();
         SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
        
-        Rectangle2D bounds = map.getAllComponentBounds();
-        int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
-        Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
+        //Rectangle2D bounds = map.getAllComponentBounds();
+        //int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
+        //Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
         
+        Rectangle2D bounds = currentViewer.getAllComponentBounds();
+        Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
+        
+        //draws the background and the border of the image
+        svgGenerator.setColor(Color.white);
+        svgGenerator.fillRect(0, 0, size.width, size.height);
+        svgGenerator.setColor(Color.black);
+        svgGenerator.drawRect(0, 0, size.width-1, size.height-1);
+        
+        //translate and set the clip for the map content
+        svgGenerator.translate(-(int)bounds.getX(), -(int)bounds.getY());
         svgGenerator.setClip(0, 0, size.width, size.height);
-        
+                
         //renders the map image into the SVGGraphics object
-        map.paintComponent(svgGenerator);
-        
-        //svgGenerator.setColor(Color.black);
-        //svgGenerator.drawRect(0, 0, size.width - 1, size.height - 1);
+        //map.paintComponent(svgGenerator);
+          
+        DrawContext dc = new DrawContext(svgGenerator, 1.0);
+        // render the map
+        currentMap.draw(dc);
         
         try
         {
