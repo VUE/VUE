@@ -88,7 +88,6 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
     }
     
     public JComponent getResourceViewer(){
-        
         return this.resourceViewer;
         
     }

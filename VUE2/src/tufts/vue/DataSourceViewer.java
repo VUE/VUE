@@ -424,23 +424,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             Vector rsources = rViewer.getSaveDataSources();
             while (!(rsources.isEmpty())){
                 DataSource ds = (DataSource)rsources.remove(0);
-                
-                
-                
-                
+                ds.setResourceViewer();
                 System.out.println(ds.getDisplayName()+ds.getClass());
                 try {
-                    
                     addDataSource(ds);
                     setActiveDataSource(ds);
-                    
-                    
                 } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
-                
             }
             saveDataSourceViewer();
             refreshDataSourceList();
-            
         }catch (Exception ex) {
             if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
             //VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
