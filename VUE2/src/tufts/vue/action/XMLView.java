@@ -59,7 +59,24 @@ public class XMLView extends AbstractAction{
     public XMLView(String label) {
         super(label);
         putValue(Action.SHORT_DESCRIPTION,label);
-    }       
+    }
+    
+    class XMLTextPane extends JTextPane implements Scrollable{
+        /*public boolean getScrollableTracksViewportWidth() {
+             if (getParent() instanceof JViewport) {
+                 JViewport port = (JViewport)getParent();
+                 TextUI ui = getUI();
+                 int w = port.getWidth();
+                 Dimension min = ui.getMinimumSize(this);
+                 Dimension max = ui.getMaximumSize(this);
+                 if ((w >= min.width) && (w <= max.width)) {
+                     return true;
+                 }
+             }
+             return false;
+         }*/
+        
+    }
     
     public void actionPerformed(ActionEvent e)
     {   
@@ -67,14 +84,9 @@ public class XMLView extends AbstractAction{
         
         if(VUE.tabbedPane.getSelectedComponent() instanceof MapViewer) {
 
-            try {             
-                marshaller = getMarshaller();
-                marshaller.marshal(tufts.vue.VUE.getActiveMap());
-            }catch(Exception ex) {
-                System.out.println(ex);
-            }
-            //System.out.println("saving to default.xml complete...");
-
+            //call marshaller in ActionUtil
+            ActionUtil.marshallMap(new File(fileName));
+            
             //create html view from default.xml
             File xmlFile = new File(fileName);
             xmlArea = new JTextPane();
@@ -99,10 +111,10 @@ public class XMLView extends AbstractAction{
                 System.out.println("transformer exception: "+te);
             }
             
-            //setAttributes();
-            /*for(int i = 0; i < braces.size(); i++){
+            setAttributes();
+            for(int i = 0; i < braces.size(); i++){
                 System.out.println(braces.get(i));
-            }*/
+            }
             
             JScrollPane pane = new JScrollPane(xmlArea);
 
@@ -125,7 +137,7 @@ public class XMLView extends AbstractAction{
     
     private void setAttributes(){
         SimpleAttributeSet att = new SimpleAttributeSet();
-        StyleConstants.setForeground(att, Color.yellow);
+        StyleConstants.setForeground(att, Color.blue);
         for(int i = 0; i < braces.size(); i++)
             doc.setCharacterAttributes(Integer.parseInt((String)braces.get(i)), 1, att, false);
     }
@@ -144,11 +156,11 @@ public class XMLView extends AbstractAction{
         transformer.setOutputProperty("indent","yes");
         transformer.transform(domSource, result);        
         
-        //Pattern p = Pattern.compile("></|<\\?|</|<|/>|>");
-        Pattern p = Pattern.compile("^</|^+?");
+        Pattern p = Pattern.compile("</|<");
         Matcher m = p.matcher(stringWriter.toString());
         StringBuffer sb = new StringBuffer();
-        int indent = 0;
+        int indent = -2;
+        braces = new ArrayList(); 
         System.out.println("before find...");
         while(m.find()){
             String group = m.group();
@@ -156,93 +168,25 @@ public class XMLView extends AbstractAction{
             String tabInd = "     ";
             System.out.println("group: " + group);
             
-            if(group.equals("^</")){
+            if(group.equals("</")){
+                
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
                 indent--;
-                for(int i = 0; i < indent; i++)
-                    tab += tabInd;
-                
-                //m.appendReplacement(sb, ">\n" + tab + "</");
                 m.appendReplacement(sb, tab + "</");
+                braces.add(Integer.toString(m.start()));
             }
-            else if(group.equals("^")){
+            else if(group.equals("<")){
                 indent++;
                 for(int i = 0; i < indent; i++)
                     tab += tabInd;
                 
-                //m.appendReplacement(sb, "\n" + tab + "</");
                 m.appendReplacement(sb, tab + "<");
-            }/*
-            else if(group.equals("<")){                
-                indent++;
-                for(int i = 0; i < indent; i++)
-                    tab += tabInd;
-                //m.appendReplacement(sb, "<");
+                braces.add(Integer.toString(m.start()));
             }
-            else if(group.equals(">")){
-                for(int i = 0; i < indent; i++)
-                    tab += tabInd;
-                //m.appendReplacement(sb, ">\n" + tab + tabInd);
-                //m.appendReplacement(sb, ">" + tab + tabInd);
-            }*/
         }
         m.appendTail(sb);
-        /*
-        Matcher match = p.matcher(sb.toString());
-        StringBuffer buff = new StringBuffer();
-        int fallback = 0;
-        braces = new ArrayList();
         
-        while(match.find()){
-            String group = match.group();
-            //String tab = "";
-            //String tabInc = "        ";
-            if(group.equals("<?")){
-                //match.appendReplacement(buff, "<?");                
-            }
-            else if(group.equals("</")){
-                
-                //for(int i = 0; i < indent; i++)
-                //    tab += tabInc;
-                //indent--;
-                //match.appendReplacement(buff, "\n" + tab + "</");
-            }
-            else if(group.equals("<")){                
-                //indent++;
-                //for(int i = 0; i < indent; i++)
-                //    tab += tabInc;
-                //match.appendReplacement(buff, tab + "<");
-                fallback--;
-                braces.add(Integer.toString(match.start() + fallback));
-            }
-            else if(group.equals("</")){
-                //for(int i = 0; i < indent; i++)
-                //    tab += tabInc;
-                //match.appendReplacement(buff, "</");
-            }
-            else if(group.equals(">")){
-                //for(int i = 0; i < indent; i++)
-                //    tab += tabInc;
-                //match.appendReplacement(buff, ">\n" + tab + "         ");
-                //braces.add(Integer.toString(match.start()));
-            }
-        }
-        //match.appendTail(buff);
-        */
         return sb.toString();
-    }
- 
-    private Marshaller getMarshaller()
-    {
-        //if (this.marshaller == null) {
-            Mapping mapping = new Mapping();
-            try {
-                this.marshaller = new Marshaller(new FileWriter(fileName));
-                mapping.loadMapping(XML_MAPPING);
-                marshaller.setMapping(mapping);
-            } catch (Exception e) {
-                System.err.println("SaveAction.getMarshaller: " + e);
-            }
-        //}
-        return this.marshaller;
     }
 }

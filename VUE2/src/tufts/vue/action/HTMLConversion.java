@@ -57,18 +57,13 @@ public class HTMLConversion extends AbstractAction
     public void actionPerformed(ActionEvent ae) {
         System.out.println("Performing HTML Conversion:" + ae.getActionCommand());
         
-        try {
-            marshaller = getMarshaller();
-            marshaller.marshal(tufts.vue.VUE.getActiveMap());
-            marshaller = null;
-        }catch(Exception ex) {
-            System.out.println(ex);
-        }
-        System.out.println("done with converting to xml...");
-        selectHTMLFile();
+        ActionUtil.marshallMap(new File(xmlFileName));
+        
+        File result = ActionUtil.selectFile("Save As HTML", "html");
+        if(!result.equals(null)) convert(result);
     }
     
-    public void convert(){
+    public void convert(File result){
         System.out.println("in convert..................");
         TransformerFactory tfactory = TransformerFactory.newInstance();
         
@@ -81,7 +76,7 @@ public class HTMLConversion extends AbstractAction
             
             Templates templates = tfactory.newTemplates( xslSource );
         
-            File result = new File(htmlFileName);
+            
             
             StreamResult out = new StreamResult(result);
             
@@ -99,36 +94,5 @@ public class HTMLConversion extends AbstractAction
         }
         
         System.out.println("finished converting xml to html.");
-    }
-    
-    private void selectHTMLFile() {
-        String label = VUE.getActiveMap().getLabel();
-        try {
-            
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Save as HTML");
-            int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-            if (option == JFileChooser.APPROVE_OPTION) {
-                htmlFileName = chooser.getSelectedFile().getAbsolutePath();
-                if(!htmlFileName.endsWith(".html")) htmlFileName += ".html";
-                System.out.println("saving to file: "+htmlFileName);
-                convert();
-            }     
-        }catch(Exception ex) {System.out.println(ex);}
-    }
-    
-    private Marshaller getMarshaller() {
-        if (this.marshaller == null) {
-            
-            Mapping mapping = new Mapping();
-            try {
-                this.marshaller = new Marshaller(new FileWriter(xmlFileName));
-                mapping.loadMapping(XML_MAPPING);
-                marshaller.setMapping(mapping);
-            } catch (Exception e) {
-                System.err.println("HTMLConversion.getMarshaller: " + e);
-            }
-        }
-        return this.marshaller;
     }
 }

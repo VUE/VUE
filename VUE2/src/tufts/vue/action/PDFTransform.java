@@ -63,33 +63,13 @@ public class PDFTransform extends AbstractAction {
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
         System.out.println("Performing PDF Conversion:" + actionEvent.getActionCommand());
         
-        try {
-            marshaller = getMarshaller();
-            marshaller.marshal(tufts.vue.VUE.getActiveMap());
-            marshaller = null;
-        }catch(Exception ex) {
-            System.out.println(ex);
-        }
+        ActionUtil.marshallMap(new File(xmlFileName));
         
-        selectPDFFile();
+        File pdfFile = ActionUtil.selectFile("Save As PDF", "pdf");
+        if(!pdfFile.equals(null)) convert(pdfFile);
     }
     
-    private Marshaller getMarshaller() {
-        if (this.marshaller == null) {
-            
-            Mapping mapping = new Mapping();
-            try {
-                this.marshaller = new Marshaller(new FileWriter(xmlFileName));
-                mapping.loadMapping(XML_MAPPING);
-                marshaller.setMapping(mapping);
-            } catch (Exception e) {
-                System.err.println("PDFConversion.getMarshaller: " + e);
-            }
-        }
-        return this.marshaller;
-    }
-    
-    public void convert(){
+    public void convert(File pdfFile){
         
         //create new instance of transformer factory
         TransformerFactory factory =
@@ -99,7 +79,7 @@ public class PDFTransform extends AbstractAction {
         File xslFile = new File(xslFileName);
         File xmlFile = new File(xmlFileName);
         File foFile = new File(foFileName);
-        File pdfFile = new File(pdfFileName);
+        
         
         //create a transformer to hold the converted xml object
         Transformer trans = null;
@@ -179,20 +159,5 @@ public class PDFTransform extends AbstractAction {
         }catch(IOException ioe){
             System.out.println("io problems closing pdf file: " + ioe);
         }
-    }
-    
-    private void selectPDFFile() {
-        String label = VUE.getActiveMap().getLabel();
-        try {           
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Save as PDF");
-            int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-            if (option == JFileChooser.APPROVE_OPTION) {
-                pdfFileName = chooser.getSelectedFile().getAbsolutePath();
-                if(!pdfFileName.endsWith(".pdf")) pdfFileName += ".pdf";
-                convert();
-                System.out.println("saving to file: "+pdfFileName);
-            }
-        }catch(Exception ex) {System.out.println(ex);}
     }
 }
