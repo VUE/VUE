@@ -906,11 +906,13 @@ class Actions {
             if (allIgnored)
                 return;
             try {
+                /*
                 String msg = "VueAction: " + getActionName();
                 if (!ae.getActionCommand().equals(getActionName()))
                     msg += " (" + ae.getActionCommand() + ")";
                 msg += " n=" + VUE.ModelSelection.size();
                 System.out.println(msg);
+                */
                 if (enabled()) {
                     act();
                 } else {
