@@ -24,12 +24,14 @@ import tufts.vue.action.ImageMap;
 import java.util.*;
 import java.util.prefs.*;
 import java.io.*;
+import java.net.URL;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.border.*;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -948,26 +950,74 @@ public class VUE
         optionsMenu.add(new JMenuItem("Preferences..."));
          */
         
+        JMenuItem vueOnline = new JMenuItem("Vue Online");
         JMenuItem userGuide = new JMenuItem("User Guide");
         JMenuItem aboutUs = new JMenuItem("About VUE");
+        helpMenu.add(vueOnline); 
         helpMenu.add(userGuide);
         helpMenu.add(aboutUs);
         aboutusTool = new ToolWindow("VUE: About VUE", tufts.vue.VUE.getInstance());
-        JPanel aboutusPanel = new JPanel();
-        aboutusPanel.setMinimumSize(new Dimension(400,400));
+        JPanel backPanel = new JPanel();
+        backPanel.setBorder(new LineBorder(Color.WHITE,20));
+        backPanel.setMinimumSize(new Dimension(275,147));
+      
         
-         JLabel spLabel = new JLabel(VueResources.getImageIcon("splashScreen"));
-        //JTextArea jtf = new JTextArea("Version # 1.0 \n Created By:  Academic Technology \n Tufts University, Medford, MA \n Copyright@Tufts University 2004\nAll Rights Reserved ",5, 1);
-        //jtf.setEditable(false);
-        //jtf.setOpaque(false);
+        JPanel aboutusPanel = new JPanel();
+        JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
+        
+        JLabel jtf = new JLabel("<html> <font color = \"#20316A\"> <br><br>&nbsp;&nbsp;&nbsp;Developed by  Academic Technology <br> &nbsp;&nbsp;&nbsp;Copyright &copy; 2004 Tufts University<br>&nbsp; &nbsp;&nbsp;All Rights Reserved <br><br> &nbsp;&nbsp;&nbsp;Version 0.9 <br><br>&nbsp;&nbsp;&nbsp;<u> http://vue.tccs.tufts.edu</u><br></font></html>");
+  
+        
+       
+        JPanel labelPanel = new JPanel();
+        labelPanel.setLayout(new BorderLayout());
+        labelPanel.add(jtf,BorderLayout.CENTER);
+          
         aboutusPanel.setLayout(new BorderLayout());
-        aboutusPanel.add(spLabel,BorderLayout.CENTER);
-        aboutusTool.addTool(aboutusPanel, true);
+      
+       aboutusPanel.add(spLabel,BorderLayout.CENTER);
+        
+        
+         
+ jtf.addMouseListener(new MouseAdapter(){
+    
+  
+        public void mouseClicked(MouseEvent evt) {
+           
+                try{
+                       VueUtil.openURL("http://vue.tccs.tufts.edu");
+                }catch (Exception ex){}
+            
+        }
+ });
+       
+        labelPanel.setBackground(Color.WHITE);
+       aboutusPanel.add(labelPanel,BorderLayout.SOUTH);
+        
+        backPanel.setLayout(new BorderLayout());
+        backPanel.add(aboutusPanel,BorderLayout.CENTER);
+ 
+      
+       
+            
+     
+        
+                 
+         
+        
+        aboutusTool.addTool(backPanel, false);
         
         userGuide.addActionListener(new ActionListener() {
                public void actionPerformed(ActionEvent e) {
                    try {
                        VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
+                   } catch (Exception ex) { out(ex); }
+               }});
+               
+        vueOnline.addActionListener(new ActionListener() {
+               public void actionPerformed(ActionEvent e) {
+                   try {
+                       VueUtil.openURL("http://vue.tccs.tufts.edu/");
                    } catch (Exception ex) { out(ex); }
                }});
         
