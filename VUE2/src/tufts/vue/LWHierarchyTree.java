@@ -17,6 +17,7 @@ import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractButton;
 import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -30,17 +31,22 @@ import javax.swing.event.TreeModelListener;
  */
 
 /**A class that displays the hierarchy of nodes in a tree*/
-public class LWHierarchyTree extends InspectorWindow implements TreeModelListener
+//public class LWHierarchyTree extends InspectorWindow implements TreeModelListener
+public class LWHierarchyTree extends JPanel implements TreeModelListener
 {
     //private DisplayAction displayAction = null;
     private JTree tree;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     
     /** Creates a new instance of HierarchyTreeWindow */
-    public LWHierarchyTree(JFrame parent) 
+    //    public LWHierarchyTree(JFrame parent) 
+    //    {
+    //  super(parent, "Hierarchy Tree");
+
+    public LWHierarchyTree() 
     {
-        super(parent, "Hierarchy Tree");
-        setSize(500, 300);
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(250, 300));
         
         /**creating a hierarchy tree*/
         tree = new JTree();
@@ -104,8 +110,10 @@ public class LWHierarchyTree extends InspectorWindow implements TreeModelListene
 
         JScrollPane scrollPane = new JScrollPane(tree);
         
-        getContentPane().add(scrollPane);
-        getContentPane().setBackground(Color.white);
+        //getContentPane().add(scrollPane);
+        //getContentPane().setBackground(Color.white);
+        add(scrollPane);
+        setBackground(Color.white);
     }
     
      /**A method that deals with dynamic changes to the tree element*/

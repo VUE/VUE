@@ -53,7 +53,7 @@ public class VUE
     static ObjectInspectorPanel objectInspectorPanel;
     
     //hierarchy view tree window component
-    public static LWHierarchyTree hierarchyTree;
+    private static LWHierarchyTree hierarchyTree;
     
     //overview tree window component
     public static LWOutlineView outlineView;
@@ -476,7 +476,11 @@ public class VUE
         pathwayInspector = new LWPathwayInspector(frame);
         //control = new PathwayControl(frame);
         
-        hierarchyTree = new LWHierarchyTree(frame);
+        //hierarchyTree = new LWHierarchyTree(frame);
+        hierarchyTree = new LWHierarchyTree();
+        ToolWindow htWindow = new ToolWindow("Hierarchy Tree", frame);
+        htWindow.addTool(hierarchyTree);
+
         outlineView = new LWOutlineView(frame);
         //end of addition
        
@@ -486,7 +490,8 @@ public class VUE
             inspectorTool,
             drBrowserTool,
             pathwayInspector,
-            hierarchyTree,
+            htWindow,
+            //hierarchyTree,
             mapInspector,
             objectInspector,
             outlineView,
