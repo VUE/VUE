@@ -191,12 +191,12 @@ public class HierarchyNode implements osid.hierarchy.Node
     /**A method that changes the label associated with the LWComponent*/
     public void changeLWComponentLabel(String label) throws osid.hierarchy.HierarchyException
     {
-        System.err.println(getClass() + ": changeLWComponentLabel: warning: ONLY call this is user has edited the label!");
-        component.setLabel(label);
-        updateDisplayName(label);
-        
-        //creating an undo action
-        VUE.getUndoManager().mark();
+        if (!component.getDisplayLabel().equals(label)) {
+            component.setLabel(label);
+            updateDisplayName(label);
+            //creating an undo action
+            VUE.getUndoManager().mark();
+        }
     }
     
     /**A method that sets the LWComponent associated with the hierarchy node*/
