@@ -274,6 +274,7 @@ public abstract class LWContainer extends LWComponent
         }
     }
     
+    // todo: should probably just get rid of this helper -- not worth bother
     private void ensureLinksPaintOnTopOfAllParents()
     {
         ensureLinksPaintOnTopOfAllParents((LWComponent) this);
