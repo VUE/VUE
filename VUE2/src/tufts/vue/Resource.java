@@ -35,6 +35,10 @@ package tufts.vue;
 import java.util.Properties;
 import javax.swing.JComponent;
 
+// todo: consider adding an optional icon that can be set for the resource
+// todo fix: type isn't always being set in VUE code (e.g., VueDragTree),
+//      and type may not really belong here (e.g., ASSET & FAVORITE types too specific)
+
 public interface Resource {
         
     /*  The follow type codes are defined for resources.

@@ -51,9 +51,9 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
-    private static  Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-    private static Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-    private static  Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+    private static  ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+    private static ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+    private static  ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
     
     public VueDragTree(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
@@ -141,12 +141,10 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             
             Iterator i = (Iterator)obj;
             
-            
             while (i.hasNext()){
                 
                 Object resource = i.next();
          
-                
                 if (resource instanceof CabinetResource) {
                     CabinetEntry entry = ((CabinetResource)resource).getEntry();
                     CabinetNode cabNode = null;
@@ -165,16 +163,9 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                     ResourceNode node = new ResourceNode((Resource)resource);
                     
                     root.add(node);
-                    
-                    
                 }
-                
             }
-            
-            
         }
-        
-
         return new DefaultTreeModel(root);
     }
     
@@ -182,26 +173,35 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     public void dragGestureRecognized(DragGestureEvent e) {
       
-        if (getSelectionPath() != null)
-        {TreePath path = getLeadSelectionPath();
-        
-       
-        
-       
-        oldnode = (ResourceNode)path.getLastPathComponent();
-        ResourceNode parentnode = (ResourceNode)oldnode.getParent();
-       //Object resource = getObject();
-       
-       Resource resource = oldnode.getResource();
-          
-        
-        if (resource != null) {
-            e.startDrag(DragSource.DefaultCopyDrop, // cursor
-            new VueDragTreeNodeSelection(resource), // transferable
-            this);  // drag source listener
+        if (getSelectionPath() != null) {
+            TreePath path = getLeadSelectionPath();
+            oldnode = (ResourceNode)path.getLastPathComponent();
+            ResourceNode parentnode = (ResourceNode)oldnode.getParent();
+
+            //Object resource = getObject();
+            Resource resource = oldnode.getResource();
+            
+            if (DEBUG.DND) System.out.println(this + " dragGestureRecognized " + e);
+            if (DEBUG.DND) System.out.println("selected node is " + oldnode.getClass() + "[" + oldnode + "] resource=" + resource);
+
+            if (resource != null) {
+
+                Image imageIcon = nleafIcon.getImage();
+                if (resource.getType() == Resource.DIRECTORY) {
+                    imageIcon = activeIcon.getImage();
+                } else if (oldnode instanceof CabinetNode) {
+                    CabinetNode cn = (CabinetNode) oldnode;
+                    if (!cn.isLeaf())
+                        imageIcon = activeIcon.getImage();
+                }
+                
+                e.startDrag(DragSource.DefaultCopyDrop, // cursor
+                            imageIcon, // drag image
+                            new Point(-10,-10), // drag image offset
+                            new VueDragTreeNodeSelection(resource), // transferable
+                            this);  // drag source listener
+            }
         }
-        }
-        
     }
     
     
@@ -275,20 +275,17 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         /* -----------------------------------  */   
         
         public Component getTreeCellRendererComponent(
-        JTree tree,
-        Object value,
-        boolean sel,
-        boolean expanded,
-        boolean leaf,
-        int row,
-        boolean hasFocus) {
-            
-            
-            
-            super.getTreeCellRendererComponent(
-            tree, value, sel,
-            expanded, leaf, row,
-            hasFocus);
+                                                      JTree tree,
+                                                      Object value,
+                                                      boolean sel,
+                                                      boolean expanded,
+                                                      boolean leaf,
+                                                      int row,
+                                                      boolean hasFocus)
+        {
+            super.getTreeCellRendererComponent(tree, value, sel,
+                                               expanded, leaf, row,
+                                               hasFocus);
             
             if (value instanceof FavoritesNode) {
                 
@@ -298,25 +295,14 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                 else {
                     setIcon(inactiveIcon);
                 }
-                
-                
             }
             else if (leaf){ setIcon(nleafIcon);}
             else { setIcon(activeIcon); }
-            
-            
-            
-            
-            
-            
-            
             return this;
         }
         
         public String getToolTipText(){
-            
             return meta;
-            
         }
     }
     
@@ -349,15 +335,10 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             if (tp != null){
                 ResourceNode resNode = (ResourceNode)tp.getLastPathComponent();
                 resNode.getResource().displayContent();
-                
-                
             }
-            
-            
         }
-        
-        
     }
+    
  class PopupListener extends MouseAdapter {
     JPopupMenu popup;
     
@@ -474,7 +455,7 @@ class CabinetNode extends ResourceNode {
      */
     public boolean isLeaf() {
         CabinetResource res = (CabinetResource) getUserObject();
-        if (res.getEntry() == null)return true;
+        if (res.getEntry() == null) return true;
         if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
             return false;
         else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet())
