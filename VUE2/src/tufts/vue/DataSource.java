@@ -35,6 +35,7 @@ public class DataSource {
     private String address;   
     private String userName;    
     private String password;
+    private String searchURL;
     private boolean activeDataSource = false;
     private JComponent resourceViewer;
     private boolean autoConnect = false;
@@ -52,6 +53,7 @@ public class DataSource {
         resourceViewer = new JLabel(displayName+" : No Viewer Available");
         
     }
+   
     
     /**  Creates a DataSource given an id, display name, name, and type. */
     public DataSource(String id,String displayName,String name,int type) throws java.net.MalformedURLException,osid.filing.FilingException {
@@ -61,10 +63,11 @@ public class DataSource {
     }
     
     /**  Creates a DataSource given an id, display name, name, address, user name, password and type. */
-    public DataSource (String id, String displayName, String name, String address, String user, String password, int type) throws java.net.MalformedURLException,osid.filing.FilingException {
+    public DataSource (String id, String displayName, String name, String searchURL, String address, String user, String password, int type) throws java.net.MalformedURLException,osid.filing.FilingException {
         this(id, displayName, name);
         this.address = address;
         this.userName = user;
+        this.searchURL = searchURL;
         this.type=type;
         this.password = password;
         setViewer();
@@ -135,7 +138,7 @@ public class DataSource {
             
         } 
         else  if (type== GOOGLE) {
-            this.resourceViewer = new TuftsGoogle();
+            this.resourceViewer = new TuftsGoogle(displayName,searchURL);
            
         } else {
             this.resourceViewer = new JLabel(displayName+" : No Viewer Available");
@@ -156,6 +159,19 @@ public class DataSource {
     
     public String getName() {
         return name;
+    }
+    public void setsearchURL(String searchURL) {
+        this.searchURL = searchURL;
+        try {
+            this.setViewer();
+        }catch (Exception ex){}
+        resourceViewer.validate();
+       // this.setResourceViewer(resourceViewer);
+          
+    }
+    
+    public String getsearchURL() {
+        return searchURL;
     }
     public void setAddress(String address) {
         this.address = address;

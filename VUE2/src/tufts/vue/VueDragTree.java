@@ -152,13 +152,16 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     public void dragGestureRecognized(DragGestureEvent e) {
         // drag anything ...
-        TreePath path = getLeadSelectionPath();
+        if (getSelectionPath() != null)
+        {TreePath path = getLeadSelectionPath();
         oldnode = (DefaultMutableTreeNode)path.getLastPathComponent();
         Object resource = getObject();
+        
         if (resource != null) {
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
             new VueDragTreeNodeSelection(resource), // transferable
             this);  // drag source listener
+        }
         }
     }
     

@@ -113,6 +113,8 @@ public class DataSourceViewer  extends JPanel{
         editAction = new AbstractAction("Edit") {
             public void actionPerformed(ActionEvent e) {
                 showAddEditWindow(1);
+                
+               
                 DataSourceViewer.this.popup.setVisible(false);
             }
         };
@@ -172,9 +174,10 @@ public class DataSourceViewer  extends JPanel{
         return addEditDialog;
     }
     
-    public void addNewDataSource (String displayName, String name, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
+    public void addNewDataSource (String displayName, String name,String searchURL, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
        try{
-        DataSource ds = new DataSource ("id", displayName, name, address, user, password, type);
+          System.out.print("Search string" + searchURL);
+        DataSource ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
         dataSources.addElement (ds);  //  Add datasource to data source vector.
         dataSourceList.getContents().addElement(ds); // SHOULD BE DONE IN SINGE STEP
         if (active) setActiveDataSource(ds);
@@ -226,6 +229,7 @@ public class DataSourceViewer  extends JPanel{
         JComboBox typeField = new JComboBox(dataSourceTypes);    //  This will be a menu, later.
         JTextField dsNameField = new JTextField();
         JTextField nameField = new JTextField();
+        JTextField searchURLField = new JTextField();
         JTextField adrField = new JTextField();
         JTextField userField = new JTextField();
         JTextField pwField = new JTextField();
@@ -238,10 +242,12 @@ public class DataSourceViewer  extends JPanel{
         adrField.setPreferredSize (dim);
         userField.setPreferredSize (dim);
         pwField.setPreferredSize (dim);
-
+        searchURLField.setPreferredSize (dim);
+        
         //  Create the labels.
         JLabel typeLabel =      new JLabel("Data Source Type: ");
         JLabel dsNameLabel = new JLabel("Display Name: ");
+        JLabel searchURLLabel = new JLabel("Search URL");
         JLabel adrLabel =   new JLabel("Address: ");
         JLabel userLabel =   new JLabel("User name: ");
         JLabel pwLabel =     new JLabel("Password: ");
@@ -261,18 +267,28 @@ public class DataSourceViewer  extends JPanel{
         addPanel.add(typeField);        //  1:  type field.
         addPanel.add(dsNameLabel);      //  2:  data source name label.
         addPanel.add(dsNameField);      //  3:  data source field.
+       
+        
         addPanel.add(adrLabel);         //  4:  address label.
         addPanel.add(adrField);         //  5:  address field.
         addPanel.add(userLabel);        //  6:  user label.
         addPanel.add(userField);        //  7:  user field.
         addPanel.add(pwLabel);          //  8:  pw label.
         addPanel.add(pwField);          //  9:  pw field.
+         addPanel.add(searchURLLabel);   //  10:   searchURL Label
+        addPanel.add(searchURLField);   //  11:   searchURL
 
-        addPanel.add(anon1);            //  10:  anonymous label.
-        addPanel.add(anon2);            //  11:  anonymous label.
-        addPanel.add(blank);            //  12:  blank label.
-        addPanel.add(okBut);            //  13:  submit button.
-        //addPanel.add(canBut);         //  14:  cancel button.
+        addPanel.add(anon1);            //  12:  anonymous label.
+        addPanel.add(anon2);            //  13:  anonymous label.
+       
+        addPanel.add(blank);            //  14:  blank label.
+        addPanel.add(okBut);            //  15:  submit button.
+        
+       
+        
+      
+        
+        //addPanel.add(canBut);         //  16:  cancel button.
 
         //  Add a listener for the Submit button.
         okBut.addActionListener (new ActionListener() {
@@ -293,6 +309,9 @@ public class DataSourceViewer  extends JPanel{
                 String userStr = userField.getText();
                 JTextField pwField = (JTextField) panel.getComponent(9);
                 String pwStr = pwField.getText();
+                 JTextField  searchURLField = (JTextField)panel.getComponent(11);
+                 String  searchURLStr = searchURLField.getText();
+                 
                 /**
                 int type = 0;                      
                 if (typeStr.compareTo("favorites") == 0) type = DataSource.FAVORITES;
@@ -310,13 +329,14 @@ public class DataSourceViewer  extends JPanel{
                     return;
                 }
                 try {
-                    dsv.addNewDataSource (dsNameStr, nameStr, adrStr, userStr, pwStr, type,false);
+                    dsv.addNewDataSource (dsNameStr, nameStr, searchURLStr, adrStr, userStr, pwStr, type,false);
                 } catch (Exception ex) {
                     VueUtil.alert(null,"Cannot add Datasource"+nameStr+": "+ex.getMessage(), "Datasource can't be added");
                 }
                 System.out.println ("New data source added.");
 
                 dia.hide();
+                
             }
         });
     }
@@ -324,10 +344,12 @@ public class DataSourceViewer  extends JPanel{
     private void createEditPanel(JPanel editPanel) {
         JTextField dsNameField = new JTextField(activeDataSource.getDisplayName());
         JTextField nameField = new JTextField(activeDataSource.getName());
+        JTextField urlField = new JTextField(activeDataSource.getsearchURL());
         JTextField adrField = new JTextField(activeDataSource.getAddress());
         JTextField userField = new JTextField(activeDataSource.getUserName());
         JTextField pwField = new JTextField(activeDataSource.getPassword());
-
+       
+        
         //  Set them to a uniform size.
         Dimension dim = new Dimension (150, 22);
         dsNameField.setPreferredSize (dim);
@@ -335,12 +357,15 @@ public class DataSourceViewer  extends JPanel{
         adrField.setPreferredSize (dim);
         userField.setPreferredSize (dim);
         pwField.setPreferredSize (dim);
+        urlField.setPreferredSize(dim);
 
         //  Create the labels.
         JLabel dsNameLabel = new JLabel("Display Name: ");
         JLabel adrLabel =   new JLabel("Address: ");
+       
         JLabel userLabel =   new JLabel("User name: ");
         JLabel pwLabel =     new JLabel("Password: ");
+        JLabel searchURLLabel = new JLabel("Search URL");
         JLabel anon1 =        new JLabel("(For anonymous, leave ");
         //anon1.setFont (new Font (typeLabel.getFont().getName(),Font.PLAIN, 10));
         JLabel anon2 =        new JLabel("user and password blank)");
@@ -356,18 +381,28 @@ public class DataSourceViewer  extends JPanel{
         //  Add the gadgets to the Add Panel.
         editPanel.add(dsNameLabel);      //  1:  data source name label.
         editPanel.add(dsNameField);      //  2:  data source field.
+       
         editPanel.add(adrLabel);         //  3:  address label.
         editPanel.add(adrField);         //  4:  address field.
         editPanel.add(userLabel);        //  5:  user label.
         editPanel.add(userField);        //  6:  user field.
         editPanel.add(pwLabel);          //  7:  pw label.
         editPanel.add(pwField);          //  8:  pw field.
+        editPanel.add(searchURLLabel);   //  9:   searchURL Label
+        editPanel.add(urlField);   //  10:   searchURL
 
-        editPanel.add(anon1);            //  10:  anonymous label.
-        editPanel.add(anon2);            //  11:  anonymous label.
-        editPanel.add(blank);            //  12:  blank label.
-        editPanel.add(okBut);            //  13:  submit button.
-        //editPanel.add(canBut);         //  14:  cancel button.
+        editPanel.add(anon1);            //  11:  anonymous label.
+        editPanel.add(anon2);            //  12:  anonymous label.
+        editPanel.add(blank);            //  13:  blank label.
+        editPanel.add(okBut);            //  14:  submit button.
+       
+        
+        
+       
+        
+      
+        
+         //editPanel.add(canBut);         //  15:  cancel button.
         okBut.addActionListener (new ActionListener() {
             public void actionPerformed (ActionEvent ev) {
                 DataSourceViewer dsv = DRBrowser.dsViewer;
@@ -380,6 +415,8 @@ public class DataSourceViewer  extends JPanel{
                 JTextField adrField = (JTextField) panel.getComponent(3);
                 JTextField userField = (JTextField) panel.getComponent(5); 
                 JTextField pwField = (JTextField) panel.getComponent(7);
+              //  System.out.println("This is component 10 " + panel.getComponent(9).getClass()+"---"+panel.getComponent(9)+"===");
+                JTextField urlField = (JTextField) panel.getComponent(9);
                 
                 if(dsNameField.getText().length() < 1) {
                     VueUtil.alert(null, "Datasourcename should be atleast 1 char long", "Invalid DataSource Name");
@@ -394,6 +431,8 @@ public class DataSourceViewer  extends JPanel{
                 activeDataSource.setAddress(adrField.getText());
                 activeDataSource.setUserName(userField.getText());
                 activeDataSource.setPassword(pwField.getText());
+                activeDataSource.setsearchURL(urlField.getText());
+                
                 dia.hide();
             }
         });
@@ -437,7 +476,7 @@ public class DataSourceViewer  extends JPanel{
                     //ds1.setDisplayColor(Color.BLACK);
                     dataSources.add(ds1);
                     dataSourceList.getContents().addElement(ds1);
-                    DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","130.64.77.144","test","test",DataSource.DR_FEDORA);
+                    DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
                     //ds2.setDisplayColor(Color.RED);
                     dataSources.add(ds2);
                     dataSourceList.getContents().addElement(ds2);
@@ -446,11 +485,11 @@ public class DataSourceViewer  extends JPanel{
                     //ds3.setDisplayColor(Color.BLUE);
                     dataSources.add(ds3);
                     dataSourceList.getContents().addElement(ds3);
-                    DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
+                    DataSource ds4 = new DataSource("ds4", "Tufts Web","google",VueResources.getString("url.google"),"","","",DataSource.GOOGLE);
                     //ds4.setDisplayColor(Color.YELLOW);
                     dataSources.add(ds4);
                     dataSourceList.getContents().addElement(ds4);
-                    DataSource ds5 = new DataSource("ds5","UVA: Findiing Aids","uva:fedora","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
+                    DataSource ds5 = new DataSource("ds5","UVA: Findiing Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
                     dataSources.add(ds5);
                     dataSourceList.getContents().addElement(ds5);
 

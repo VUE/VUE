@@ -40,7 +40,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
             "10",
             "20" 
       };
-    private static  String searchURL;
+   private static  String searchURL;
     private static URL  XML_MAPPING = VueResources.getURL("mapping.google");
     private static String query;
     
@@ -50,10 +50,11 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
      private static URL url;
       
     /** Creates a new instance of TuftsGoogle */
-    public TuftsGoogle() {
+    public TuftsGoogle(String displayName, String inputURL) {
          
            
          setLayout(new BorderLayout());
+       
        
          maxReturns = new JComboBox(maxReturnItems);
          maxReturns.setEditable(true);
@@ -76,7 +77,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         c.ipady = 10;
         c.insets = defaultInsets;
         c.anchor = GridBagConstraints.NORTH;
-        JLabel topLabel = new JLabel("Search Tufts Google");
+        JLabel topLabel = new JLabel("Search "+displayName);
         gridbag.setConstraints(topLabel, c);
         googleSearchPanel.add(topLabel);
         
@@ -127,9 +128,10 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
          add(googlePane,BorderLayout.CENTER );
         
 //--------------------------------------------------------------------
-            searchURL = VueResources.getString("url.google");
             
-
+         //searchURL = VueResources.getString("url.google");
+            searchURL = inputURL;
+              
             
             
     }

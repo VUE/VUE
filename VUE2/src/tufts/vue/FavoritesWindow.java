@@ -663,20 +663,29 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
            
             maybeShowPopup(e);
         }
-
-         public void mouseClicked(MouseEvent e) {
+                 public void mouseClicked(MouseEvent e) {
             
               if (vtree.getSelectionPath() != null){
                DefaultMutableTreeNode seltreeNode = (DefaultMutableTreeNode)vtree.getSelectionPath().getLastPathComponent();
                
                   DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)vtree.getClosestPathForLocation(e.getX(), e.getY()).getLastPathComponent();
-               if (treeNode != seltreeNode) {
-                    
-                   vtree.clearSelection();
-               }
-               }  
+                           if (treeNode != seltreeNode) { vtree.clearSelection();}
+                                              
+                              TreeModel vmodel = vtree.getModel();
+                           if(e.getClickCount() == 2) {
+                              
+                             if (((DefaultMutableTreeNode)vmodel.getRoot()).getChildCount() == 1) vtree.clearSelection();
+                                 if (!(seltreeNode instanceof FavoritesNode)) vtree.clearSelection();
+                           
+                           }
+                      
+                  }
+                 
             maybeShowPopup(e);
         }
+
+
+      
 
         public void mouseReleased(MouseEvent e) {
            

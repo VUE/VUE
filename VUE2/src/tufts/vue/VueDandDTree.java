@@ -71,10 +71,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         
         
         
-        if (e.isLocalTransfer())
-            e.acceptDrop(DnDConstants.ACTION_MOVE);
-        else
-            e.acceptDrop(DnDConstants.ACTION_COPY);
+        
         boolean success = false;
         
         Transferable transfer = e.getTransferable();
@@ -223,12 +220,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
               
               else {System.out.println("Vue Dand D tree it should not get here");}
            
-              
+               if (e.isLocalTransfer())
+            e.acceptDrop(DnDConstants.ACTION_MOVE);
               e.dropComplete(true);
         }
         else{
             VueUtil.alert(null, "You can only add resources to a Favorites Folder", "Error Adding Resource to Favorites");
-            e.dropComplete(false);
+           
+            //.dropComplete(false);
         }
         
     
