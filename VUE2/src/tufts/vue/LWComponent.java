@@ -864,4 +864,28 @@ public class LWComponent
         s += "]";
         return s;
     }
+ 
+    /**for hashtable usage 
+       added by Daisuke Fujiwara*/
+    
+    public int hashCode()
+    {
+        if (getID() != null)
+          return Integer.parseInt(getID());
+        
+        else 
+          throw new IllegalStateException("illegal null ID for the component:" + toString());
+    }
+    
+    public boolean equals(LWComponent component)
+    {   
+        //if the ID matches 
+        if(getID().equals(component.getID()))
+          return true;
+        
+        else
+          return false;
+    }
+    
+    /**End of addition by Daisuke Fujiwara*/
 }
