@@ -99,10 +99,17 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
           currentMap.removeLWCListener(this);
         
         //adds itself to the new map's listener list
-        currentMap = newMap;
-        currentMap.addLWCListener(this);
         
-        setMap(currentMap.getChildList(), currentMap.getLabel());
+        if (newMap != null)
+        {
+            currentMap = newMap;
+            currentMap.addLWCListener(this);
+        
+            setMap(currentMap.getChildList(), currentMap.getLabel());
+        }
+        
+        else
+            tree.setModel(null);
     }
     
     /**A method which sets up the tree for the given map*/
@@ -174,14 +181,29 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
             parentTreeNode.add(addedChildTreeNode); 
                
             //for each link associated with the added LWNode, add to the tree node
-            for(Iterator i = addedChild.getLinks().iterator(); i.hasNext();)
+            for (Iterator i = addedChild.getLinks().iterator(); i.hasNext();)
             {
                 LWLink link = (LWLink)i.next();
                 addedChildTreeNode.add(new LWTreeNode(link));
             }
                
+            for (Iterator nodeIterator = ((LWNode)addedChild).getNodeIterator(); nodeIterator.hasNext();)
+            {
+                LWNode subNode = (LWNode)nodeIterator.next();
+                LWTreeNode subTreeNode = new LWTreeNode(subNode);
+                
+                addedChildTreeNode.add(subTreeNode);
+                
+                for (Iterator linkIterator = subNode.getLinks().iterator(); linkIterator.hasNext();)
+                {
+                    LWLink link = (LWLink)linkIterator.next();
+                    subTreeNode.add(new LWTreeNode(link));
+                }
+            }
+            
             //updates the tree
             ((DefaultTreeModel)tree.getModel()).reload(parentTreeNode);
+            tree.scrollPathToVisible(new TreePath(parentTreeNode.getPath()));
         }
              
         //if it is a LWLink
@@ -204,6 +226,8 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
             //updates the tree
             ((DefaultTreeModel)tree.getModel()).reload(linkedTreeNode1);
             ((DefaultTreeModel)tree.getModel()).reload(linkedTreeNode2);
+            tree.scrollPathToVisible(new TreePath(linkedTreeNode1.getPath()));
+            tree.scrollPathToVisible(new TreePath(linkedTreeNode2.getPath()));
         }
     }
     
