@@ -37,15 +37,10 @@ import javax.swing.Icon;
 
 public class ColorMenuButton extends MenuButton
 {
-    //private static BlobIcon  sIcon = new BlobIcon( 16,16, new Color(1,1,244) );
-    //private BlobIcon  sIcon = new BlobIcon(20,16, true);
-
     /** The currently selected Color item--if any **/
     protected Color mCurColor = new Color(0,0,0);
 			
     /**
-     * Constructor
-     *
      *  Creates a new ColorMenuButton with the passed array of items
      * as it's palette menu.
      * 

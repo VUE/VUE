@@ -60,11 +60,17 @@ public class VueButtonIcon implements Icon
         if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
         if (s == null)
             s = new Dimension(0,0);
-        b.setIcon(new VueButtonIcon(raw, UP, s));
-        b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
-        b.setSelectedIcon(new VueButtonIcon(raw, SELECTED, s));
-        b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
-        b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
+        if (tufts.vue.VueUtil.isMacAquaLookAndFeel()) {
+            b.setIcon(raw);
+            //b.setContentAreaFilled(false);
+            //b.setRolloverEnabled(true);
+        } else {
+            b.setIcon(new VueButtonIcon(raw, UP, s));
+            b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
+            b.setSelectedIcon(new VueButtonIcon(raw, SELECTED, s));
+            b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
+            b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
+        }
     }
 
     private static final Color sButtonColor = new Color(222,222,222);

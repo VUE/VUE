@@ -57,7 +57,6 @@ public abstract class MenuButton extends JButton
 // menu-popups would automatically work also.
 {
     protected Object mPropertyKey;
-    //protected String mPropertyName;
     protected JPopupMenu mPopup;
     protected JMenuItem mEmptySelection;
     private Icon mButtonIcon;
@@ -69,37 +68,33 @@ public abstract class MenuButton extends JButton
 
     public MenuButton()
     {
-        //setIcon(sIcon);
-        //mPopup = getPopupMenu();
-        //buildMenu(pColors, pMenuNames, pHasCustom);
-        //setBorder(new CompoundBorder(BorderFactory.createRaisedBevelBorder(), new EmptyBorder(3,3,3,3)));
-        //setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(), new LineBorder(Color.blue, 6)));
-        //setBorder(BorderFactory.createRaisedBevelBorder());
-        
-        final int borderIndent = 2;
         if (false) {
             //setBorder(BorderFactory.createEtchedBorder());
+            //setBorder(new CompoundBorder(BorderFactory.createRaisedBevelBorder(), new EmptyBorder(3,3,3,3)));
+            //setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(), new LineBorder(Color.blue, 6)));
+            //setBorder(BorderFactory.createRaisedBevelBorder());
         } else {
-            setOpaque(false);
+            //setOpaque(false);
+            setContentAreaFilled(false);
             setBorder(null);
             //setBorder(new LineBorder(Color.blue, 2));
             //setBorder(new EmptyBorder(2,2,2,2));
-            //setContentAreaFilled(false);
-            //setRolloverIcon(new VueButtonIcon(null, VueButtonIcon.ROLLOVER, new Dimension(0,0)));
         }
 
         setFocusable(false);
         addActionListener(this);
+        final int borderIndent = 2;
         addMouseListener(new tufts.vue.MouseAdapter(toString()) {
                 public void mousePressed(MouseEvent e) {
-                    if (false&&/*getText() == ArrowText &&*/
+                    /*
+                    if (//getText() == ArrowText &&
                         isButtonActionable && getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
                         actionAreaClicked = true;
                     } else {
-                        actionAreaClicked = false;
-                        Component c = e.getComponent();
-                        getPopupMenu().show(c, 0, (int) c.getBounds().getHeight());
-                    }
+                    */
+                    actionAreaClicked = false;
+                    Component c = e.getComponent();
+                    getPopupMenu().show(c, 0, (int) c.getBounds().getHeight());
                 }
             });
     }
@@ -208,9 +203,12 @@ public abstract class MenuButton extends JButton
           if (d.width < 21) d.width = 21; // todo: config
           if (d.height < 21) d.height = 21; // todo: config
         */
+        //if (DEBUG.BOXES||DEBUG.TOOL) System.out.println(this + " _setIcon " + i);
         Dimension d = getButtonSize();
-        VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
-        //System.out.println(this + " *** installed generated, setPreferredSize " + d);
+        if (true || !tufts.vue.VueUtil.isMacAquaLookAndFeel()) {
+            VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
+            //System.out.println(this + " *** installed generated, setPreferredSize " + d);
+        }
         setPreferredSize(d);
     }
     
