@@ -64,7 +64,8 @@ public class SaveAction extends AbstractAction
     
     public void actionPerformed(ActionEvent e) {
       try {  
-        if(isSaveAs())  selectFile();
+        if (isSaveAs())
+            selectFile();
         marshaller = getMarshaller();
         marshaller.marshal(tufts.vue.VUE.getActiveMap());
         
@@ -72,20 +73,22 @@ public class SaveAction extends AbstractAction
           System.out.println("Action["+e.getActionCommand()+"] performed!");
     }
     
-    private void selectFile() {
-       try {  
+    private void selectFile()
+    {
+        try {  
           
         JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Save Map");
         chooser.setFileFilter(new VueFileFilter());
         if(VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        int option = chooser.showSaveDialog(tufts.vue.VUE.frame);
-   
-        if(option == JFileChooser.APPROVE_OPTION) {
+        int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
+        if (option == JFileChooser.APPROVE_OPTION) {
             fileName = chooser.getSelectedFile().getAbsolutePath();
+            // if they choose nothing, fileName will be null -- detect & abort
             VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
         }
-      }catch(Exception ex) {System.out.println(ex);}   
+       }catch(Exception ex) {System.out.println(ex);}   
     }
  
     private Marshaller getMarshaller()

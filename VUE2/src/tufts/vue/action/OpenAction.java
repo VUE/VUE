@@ -40,10 +40,11 @@ public class OpenAction extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Open Map");
         chooser.setFileFilter(new VueFileFilter());
         if (VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        int option = chooser.showOpenDialog(tufts.vue.VUE.frame);
+        int option = chooser.showDialog(tufts.vue.VUE.frame, "Open");
         String fileName = "test.xml";
         if (option == JFileChooser.APPROVE_OPTION) {
             fileName = chooser.getSelectedFile().getAbsolutePath();
