@@ -469,6 +469,27 @@ public class DR implements osid.dr.DigitalRepository {
         System.out.println("fedora.conf = "+url.getFile());
        return url;
     }
+   
+    public String getAddress() {
+        return this.address.getHost();  
+    }
+    public void setAddress(String address) throws java.net.MalformedURLException {
+
+            this.address = new URL("http",address,8080,"fedora/");
+   
+    }
+    public String getUserName() {
+        return this.userName;
+    }
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+    public String getPassword() {
+        return this.password;
+    }
+    public void setPassword() {
+        this.password = password;
+    }
 
    
 }
