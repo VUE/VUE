@@ -102,6 +102,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
     public PathwayTab(JDialog parent) 
     {   
         this.parent = parent;
+        this.setBorder(BorderFactory.createMatteBorder(4, 4, 7, 4, bgColor));
         defaultFont = this.getFont();
         highlightFont = this.getFont();
         highlightFont.deriveFont(Font.BOLD);
@@ -124,59 +125,68 @@ public class PathwayTab extends JPanel implements   ActionListener,
         lockButton.setPreferredSize(new Dimension(17, 17));
         lockButton.addActionListener(this);
         
-        JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         editPathwaysPanel.setBackground(bgColor);
         
         JLabel lab = new JLabel("Pathways");
         lab.setBackground(bgColor);
         lab.setFont(defaultFont);
         
+        JPanel groupPanel = new JPanel(new GridLayout(1, 3, 0, 0));
+        groupPanel.setPreferredSize(new Dimension(56, 25));
+        groupPanel.add(createButton);
+        groupPanel.add(removeButton);
+        groupPanel.add(lockButton);
+        
+        lab.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
+        groupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
+        
         editPathwaysPanel.add(lab);
-        editPathwaysPanel.add(createButton);
-        editPathwaysPanel.add(removeButton);
-        editPathwaysPanel.add(lockButton);
+        editPathwaysPanel.add(groupPanel);
         
         
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-        questionLabel.setPreferredSize(new Dimension(14, 14));
+        questionLabel.setPreferredSize(new Dimension(22, 17));
         questionLabel.setBackground(altbgColor);
+        questionLabel.setToolTipText("Check boxes below to display paths on the map. Click on path's layer to make a specific path active for editing or playback.");
         
         
         JLabel filler = new JLabel(" ");
         filler.setBackground(altbgColor);
         
         
-        JLabel playBackLabel = new JLabel("Highlight a path to playback:");
+        JLabel playBackLabel = new JLabel("Highlight a path to playback:   ");
         playBackLabel.setFont(defaultFont);
         playBackLabel.setBackground(altbgColor);
         
         JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         buttonGroupPanel.setBackground(altbgColor);
         buttonGroupPanel.setBorder(null);
-        
         buttonGroupPanel.add(playBackLabel);
         buttonGroupPanel.add(buttonPanel); // buttonPanel setup in setPathwayControl
         
-        JPanel northPanel = new JPanel(new BorderLayout());
+        
+        JPanel northPanel = new JPanel(new BorderLayout(0,0));
         northPanel.setBackground(altbgColor);
         
+        questionLabel.setBorder(BorderFactory.createMatteBorder(0, 5, 0, 0, this.altbgColor));
+        buttonGroupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
         northPanel.add(questionLabel, BorderLayout.WEST);
-        northPanel.add(filler, BorderLayout.CENTER);
         northPanel.add(buttonGroupPanel, BorderLayout.EAST);
         
         //pathway table setup
         tableModel = new PathwayTableModel(this);   
+        
         pathwayTable = new PathwayTable(this);
         pathwayTable.setBackground(bgColor);
         pathwayTable.setModel(tableModel);
-        pathwayTable.setDefaultRenderer(String.class, new javax.swing.table.DefaultTableCellRenderer());        
         
         for(int i = 0; i < 5; i++){
             TableColumn col = pathwayTable.getColumn(colNames[i]);
-            //col.setPreferredWidth(colWidths[i]);
             if(i != 3) col.setMaxWidth(colWidths[i]);
         } 
         
+        JScrollPane tablePane = new JScrollPane(pathwayTable);
         
         setButtons();
         
@@ -184,18 +194,49 @@ public class PathwayTab extends JPanel implements   ActionListener,
         addLabel.setFont(defaultFont);
         addLabel.setBackground(altbgColor);
         
-        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        southPanel.setBackground(altbgColor);
+        buttons.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
+        addLabel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
         
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        southPanel.setBackground(altbgColor);
         southPanel.add(addLabel);
         southPanel.add(buttons); // buttons panel setup in setButtons() method
         
-        JPanel tablePanel = new JPanel(new BorderLayout(0,0));
-        tablePanel.setBackground(bgColor);
+        /* Layout for the table components */
         
-        tablePanel.add(northPanel, BorderLayout.NORTH);
-        tablePanel.add(new JScrollPane(pathwayTable), BorderLayout.CENTER);
-        tablePanel.add(southPanel, BorderLayout.SOUTH);
+        GridBagLayout bagLayout = new GridBagLayout();
+        GridBagConstraints gc = new GridBagConstraints();
+        
+        JPanel tablePanel = new JPanel();
+        tablePanel.setBackground(bgColor);
+        tablePanel.setLayout(bagLayout);
+        
+        gc.gridwidth = GridBagConstraints.REMAINDER;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.weightx = 1.0;
+        gc.gridheight = 1;
+        
+        northPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
+        northPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
+        bagLayout.setConstraints(northPanel, gc);
+        tablePanel.add(northPanel);
+        
+        gc.fill = GridBagConstraints.BOTH;
+        gc.weighty = 3.0;
+        gc.gridheight = 18;
+        tablePane.setPreferredSize(new Dimension(this.getWidth(), 220));
+        tablePane.setBorder(BorderFactory.createMatteBorder(0,1,0,1,Color.gray));
+        bagLayout.setConstraints(tablePane, gc);
+        tablePanel.add(tablePane);
+        
+        gc.weighty = 0.0;
+        gc.gridheight = 1;
+        southPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
+        southPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
+        bagLayout.setConstraints(southPanel, gc);
+        tablePanel.add(southPanel);
+        
+        /* End of Layout for table components */
         
         southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
         southNotes.setBackground(bgColor);
@@ -207,12 +248,15 @@ public class PathwayTab extends JPanel implements   ActionListener,
         notesArea.setColumns(5);
         notesArea.addKeyListener(this);
         notesArea.setBackground(Color.white);
-        
+        notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
+     
         JPanel notesPanel = new JPanel(new BorderLayout(0,0));
         notesPanel.setBackground(bgColor);
         
         notesPanel.add(southNotes, BorderLayout.NORTH);
         notesPanel.add(new JScrollPane(notesArea), BorderLayout.CENTER);
+        
+        /* Layout for pathways tab */
         
         GridBagLayout bag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -220,21 +264,26 @@ public class PathwayTab extends JPanel implements   ActionListener,
         
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridheight = 1;
         c.weightx = 1.0;
         
+        editPathwaysPanel.setPreferredSize(new Dimension(this.getWidth(), 20));
         bag.setConstraints(editPathwaysPanel, c);
         add(editPathwaysPanel);
         
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 1.0;
-        c.gridheight = 10;
+        c.gridheight = 11;
+        tablePanel.setPreferredSize(new Dimension(this.getWidth(), 250));
         bag.setConstraints(tablePanel, c);
         add(tablePanel);
         
-        c.gridheight = 4;
+        c.gridheight = 8;
+        notesPanel.setPreferredSize(new Dimension(this.getWidth(), 180));
         bag.setConstraints(notesPanel, c);
         add(notesPanel);
         
+        /* End of Layout for pathways tab */
     }
     
     public void setButton(JButton button){
@@ -251,11 +300,11 @@ public class PathwayTab extends JPanel implements   ActionListener,
     }
     */
     public void setPathwayControl(){
-        pcPanel = new JPanel(new BorderLayout());
+        //pcPanel = new JPanel(new BorderLayout());
         
         /* buttons that are not used */
-        buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout());
+        buttonPanel = new JPanel(new GridLayout(1, 4, 1, 0));
+        buttonPanel.setPreferredSize(new Dimension(79, 19));
         buttonPanel.setBackground(altbgColor);
         
         firstButton.setPreferredSize(new Dimension(19, 19));
@@ -268,11 +317,11 @@ public class PathwayTab extends JPanel implements   ActionListener,
         setButton(forwardButton);
         setButton(lastButton);
         
-        JPanel mainPanel = new JPanel();
+        /*JPanel mainPanel = new JPanel();
         mainPanel.add(new JLabel("Select:"));
         
         mainPanel.add(new JLabel("???"));
-        pcPanel.add(mainPanel, BorderLayout.CENTER);
+        pcPanel.add(mainPanel, BorderLayout.CENTER);*/
     }
     
     public void setPathwayNameLabel(){
@@ -330,7 +379,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
             }     
         );
         
-        buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttons = new JPanel(new GridLayout(0, 2, 1, 0));
         buttons.setBackground(altbgColor);
         
         buttons.add(addElement);

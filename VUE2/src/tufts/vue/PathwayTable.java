@@ -16,6 +16,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.event.*;
 import java.util.ArrayList;
 import java.awt.*;
+import java.awt.event.*;
 /**
  *
  * @author  Jay Briedis
@@ -37,8 +38,8 @@ public class PathwayTable extends JTable{
     private final Font normalFont = new Font("SansSerif", Font.PLAIN, 10);
             
     
-    private final Color regular = Color.lightGray;
-    private final Color selected = Color.white;
+    private final Color bgColor = new Color(241, 243, 246);;
+    private final Color selectedbgColor = Color.white;
     
     private final Color currentNodeColor = Color.red;
     
@@ -58,9 +59,11 @@ public class PathwayTable extends JTable{
         this.setShowHorizontalLines(true);
         this.setGridColor(Color.lightGray);
         
+        this.setBackground(bgColor);
+        //this.setSelectionBackground(selectedbgColor);
+        
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);
-        this.setIntercellSpacing(new Dimension(0,0));
         
         if(showHeaders){
         this.getTableHeader().setVisible(false);
@@ -75,16 +78,20 @@ public class PathwayTable extends JTable{
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer(tab));
         this.setDefaultRenderer(Object.class, new LabelRenderer(tab));
         
+        this.setDefaultEditor(Color.class, new ColorEditor(tab));
+        //this.setDefaultEditor(ImageIcon.class, new ImageEditor(tab));
+        
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
         this.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
             
             public void valueChanged(ListSelectionEvent le){
-                    
                 ListSelectionModel lsm = (ListSelectionModel)le.getSource();
                 if (!lsm.isSelectionEmpty()){
                     int row = lsm.getMinSelectionIndex();
                     int col = getSelectedColumn();
-                    
+                    System.out.println("clicked row, col: "+row+", "+col);    
+                
                     PathwayTableModel tableModel = tab.getPathwayTableModel();
                     if(tableModel != null){
                         Object elem = tableModel.getElement(row);
@@ -98,14 +105,6 @@ public class PathwayTable extends JTable{
                             if(col == 0 || col == 2){
                                 setValueAt(path, row, col);
                             }
-                            else if(col == 1){
-                                Color selColor = JColorChooser.showDialog(tab, 
-                                                                          "Pathway Color Selection",
-                                                                          Color.BLUE);
-                                if(selColor != null)
-                                    setValueAt(selColor, row, col);
-                            }
-                            
                             tableModel.fireTableDataChanged();
                             tab.updateControlPanel();
                             
@@ -153,33 +152,107 @@ public class PathwayTable extends JTable{
         //tab.setCurrentElement(row);
     }
     
-    private class ColorRenderer extends DefaultTableCellRenderer{
+    private class ColorEditor extends AbstractCellEditor
+                         implements TableCellEditor,
+			            ActionListener {
+        PathwayTab tab = null;
+        Color currentColor;
+        JButton button;
+        JColorChooser colorChooser;
+        JDialog dialog;
+        protected static final String EDIT = "edit";
+
+        public ColorEditor(PathwayTab tab) {
+            this.tab = tab;
+            button = new ColorRenderer(tab);
+            button.setActionCommand(EDIT);
+            button.addActionListener(this);
+            //button.setBorderPainted(false);
+            button.setBorder(BorderFactory.createMatteBorder(3,3,3,3,
+                                                  Color.white));
+            colorChooser = new JColorChooser();
+            dialog = JColorChooser.createDialog(button,
+                                            "Pathway Color Selection",
+                                            true,  
+                                            colorChooser,
+                                            this,  
+                                            null);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (EDIT.equals(e.getActionCommand())) {
+                
+                colorChooser.setColor(currentColor);
+                dialog.setVisible(true);
+                fireEditingStopped();
+
+            } else { 
+                currentColor = colorChooser.getColor();
+                if(currentColor != null){
+                    int row = tab.getPathwayTable().getSelectedRow();
+                    tab.getPathwayTable().setValueAt(currentColor, row, 1);
+                    tab.getPathwayTableModel().fireTableDataChanged();
+                }               
+            }
+        }
+
+        public Object getCellEditorValue() {
+            return currentColor;
+        }
+
+        public Component getTableCellEditorComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     int row,
+                                                     int column) {
+            currentColor = (Color)value;
+            button.setBackground(currentColor);
+            return button;
+        }
+    }
+    
+    private class ColorRenderer extends JButton implements TableCellRenderer{
         private PathwayTab tab = null;
+        Border unselectedBorder = null;
+        Border selectedBorder = null;
+        boolean isBordered = true;
         
         public ColorRenderer(PathwayTab tab){
             this.tab = tab;
+            setOpaque(true);
         }
         
         public java.awt.Component getTableCellRendererComponent(
-                                    javax.swing.JTable jTable, 
-                                    Object value, 
-                                    boolean isSelected, 
-                                    boolean hasFocus, 
-                                    int row, 
-                                    int col)
+                                    JTable table, Object color, 
+                                    boolean isSelected, boolean hasFocus, 
+                                    int row, int col)
         {
-            this.setBorder(normalBorder);
+            Color newColor = (Color)color;
+            //this.setBorder(normalBorder);
+            selectedBorder = BorderFactory.createMatteBorder(3,3,3,3,
+                                                  bgColor);
+                    
+            setBorder(selectedBorder);
+            
+            
             Object path = tab.getPathwayTableModel().getElement(row);
             if(path instanceof LWPathway){
-                this.setBackground((Color)value);
+                this.setBackground(newColor);
                 //if(VUE.getPathwayInspector().getCurrentPathway().equals((LWPathway)path))
-                if(((LWPathway)path).getOpen())
-                    this.setBorder(selectedBorder);
+                //if(((LWPathway)path).getOpen())
+                //    this.setBorder(selectedBorder);
             }else{
                 this.setBackground(Color.white);
-                this.setBorder(selectedBorder);
+                Border compBorder = BorderFactory.createMatteBorder(3,3,3,3,
+                                                  bgColor);
+                    
+                setBorder(compBorder);
+                //this.setBorder(selectedBorder);
             }
-            return this;
+            
+            JPanel con = new JPanel(new BorderLayout(0,0));
+            con.add(this, BorderLayout.CENTER);
+            return con;
         }  
     }
     
@@ -188,6 +261,7 @@ public class PathwayTable extends JTable{
         
         public LabelRenderer(PathwayTab tab){
             this.tab = tab;
+            
         }
         
         public java.awt.Component getTableCellRendererComponent(
@@ -202,12 +276,6 @@ public class PathwayTable extends JTable{
             this.setForeground(Color.black);
             this.setFont(normalFont);
             this.setBorder(normalBorder);
-            
-            /*
-            if((path instanceof LWPathway && ((LWPathway)path).getOpen())
-                || path instanceof LWComponent){
-                    this.setBorder(selectedBorder);
-            }*/
             
             if(obj instanceof LWPathway){
                 LWPathway path = (LWPathway)obj;
@@ -233,6 +301,51 @@ public class PathwayTable extends JTable{
         }  
     }
     
+/*    private class LabelEditor extends AbstractCellEditor
+                         implements TableCellEditor,
+			            MouseListener {
+        PathwayTab tab = null;
+        JLabel label = null;
+        int row, col;
+        
+        
+        public LabelEditor(PathwayTab tab) {
+            this.tab = tab;
+            label = new ImageRenderer(tab);
+            label.addMouseListener(this);
+            label.setBorder(normalBorder);
+        }
+
+        public Object getCellEditorValue() {
+            return new Boolean(true);
+        }
+
+        public Component getTableCellEditorComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     int row,
+                                                     int column) {
+            
+            return ((ImageRenderer)label).getTableCellRendererComponent(
+                                    table, value, isSelected, true, 
+                                    row, column);
+        }
+        
+        public void mouseClicked(MouseEvent e) {
+            row = tab.getPathwayTable().getSelectedRow();
+            col = tab.getPathwayTable().getSelectedColumn();
+            System.out.println("mouse clicked row, col: "+row+", "+col);
+            if(col == 0 || col == 2){
+                tab.getPathwayTable().setValueAt(new Boolean(true), row, col);
+                tab.getPathwayTableModel().fireTableDataChanged();  
+            }            
+        }
+        public void mouseEntered(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {}
+        public void mousePressed(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}        
+    }
+  */  
     private class ImageRenderer extends DefaultTableCellRenderer{
         
         private PathwayTab tab = null;

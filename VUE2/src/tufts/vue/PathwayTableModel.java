@@ -144,8 +144,8 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public boolean isCellEditable(int row, int col){
-        Class colClass = this.getColumnClass(col);
-        return colClass == Boolean.class || colClass == String.class;
+        //Class colClass = this.getColumnClass(col);
+        return (col == 1 || col == 3);
     }
     
     public boolean isRepeat(String name){
@@ -190,7 +190,7 @@ public class PathwayTableModel extends DefaultTableModel{
                         case 2:
                             return new Boolean(isOpen);
                         case 3:
-                            return pathway;
+                            return pathway.getLabel();
                         case 4:
                             return new Boolean(hasNotes);
                     }
@@ -198,15 +198,11 @@ public class PathwayTableModel extends DefaultTableModel{
                     System.err.println("exception in the table model, setting pathway cell:" + e);
                 } 
             }else if (elem instanceof LWComponent){
-                //LWPathway pathway = this.manager.getPathwayforElementAt(row);
                 LWComponent comp = (LWComponent)elem;
-                //ArrayList list = new ArrayList();
-                //list.add(pathway);
-                //list.add(comp);
                 try{
                     switch(col){
                         case 3:
-                            return comp;
+                            return comp.getLabel();
                     }
                 }catch (Exception e){
                     System.err.println("exception in the table model, setting pathway element cell:" + e);
@@ -240,13 +236,10 @@ public class PathwayTableModel extends DefaultTableModel{
                         //manager.setCurrentPathway(path);                   
                     }
                     else if(col == 3){
-                        //path.setLabel((String)aValue);
+                        path.setLabel((String)aValue);
                         //manager.setCurrentPathway(path);
                     }
-                    else if(col == 4){
-                        //path.setNotes((String)aValue);
-                        //manager.setCurrentPathway(path);
-                    }
+                    
                 }
             }
             else if (elem instanceof LWComponent){
