@@ -600,7 +600,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             Iterator i = mLWC.pathwayRefs.iterator();
             int n = 0;
             while (i.hasNext()) {
-                tufts.vue.Pathway p = (tufts.vue.Pathway) i.next();
+                //tufts.vue.Pathway p = (tufts.vue.Pathway) i.next();
+                LWPathway p = (LWPathway) i.next();
                 if (n++ > 0)
                     html += "<br>";
                 html += "&nbsp;In path: <b>" + p.getLabel() + "</b>&nbsp;";

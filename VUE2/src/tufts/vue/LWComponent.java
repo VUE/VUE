@@ -1115,13 +1115,16 @@ public class LWComponent
             listeners = new java.util.ArrayList();
         if (listeners.contains(listener))
             new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
-        else
+        else {
+            if (DEBUG.EVENTS) System.out.println(this + " ADDING LISTENER " + listener);
             listeners.add(listener);
+        }
     }
     public synchronized void removeLWCListener(LWComponent.Listener listener)
     {
         if (listeners == null)
             return;
+        if (DEBUG.EVENTS) System.out.println(this + " REMOVING LISTENER " + listener);
         listeners.remove(listener);
     }
     public synchronized void removeAllLWCListeners()
@@ -1165,8 +1168,10 @@ public class LWComponent
         // listeners, eg, inspectors, may need to know to see if the
         // parent changed)
         
-        if (parent != null)
+        if (parent != null) {
+            if (DEBUG.EVENTS) System.out.println(this + " notifying parent " + parent);
             parent.notifyLWCListeners(e);
+        }
     }
     
     /**
