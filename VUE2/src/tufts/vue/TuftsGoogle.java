@@ -82,6 +82,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
        
        
          searchURL = inputURL;
+         System.out.println("search url" + inputURL);
          maxReturns = new JComboBox(maxReturnItems);
          maxReturns.setEditable(true);
          googlePane = new JTabbedPane();
@@ -310,7 +311,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
               
                 
                 String searchString = keywords.getText();
-                 System.out.println("Keywords" + searchString);
+                 System.out.println("Keywords" + searchString + "wowee" + searchURL);
                   
                 
                if (!searchString.equals("")){
@@ -318,7 +319,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                 try {
                     
                    
-       url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&start="+searchStartIndex+"&q="+searchString);
+              url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&start="+searchStartIndex+"&q="+searchString);
             System.out.println("Google search = "+url);
            InputStream input = url.openStream();
            int c;
