@@ -52,25 +52,29 @@ class DragTree extends JTree implements DragGestureListener,
               
                 
 	}
-	public void dragGestureRecognized(DragGestureEvent e) {
-		// drag anything ...
-		e.startDrag(DragSource.DefaultCopyDrop, // cursor
-			new FileSelection(getFile()), // transferable
+    public void dragGestureRecognized(DragGestureEvent e)
+    {
+        // drag anything ...
+        File file = getFile();
+        if (file != null) {
+            e.startDrag(DragSource.DefaultCopyDrop, // cursor
+			new FileSelection(file), // transferable
 			this);  // drag source listener
-	}
-	public void dragDropEnd(DragSourceDropEvent e) {}
-	public void dragEnter(DragSourceDragEvent e) {}
-	public void dragExit(DragSourceEvent e) {}
-	public void dragOver(DragSourceDragEvent e) {}
-	public void dropActionChanged(DragSourceDragEvent e) {}
+        }
+    }
+    public void dragDropEnd(DragSourceDropEvent e) {}
+    public void dragEnter(DragSourceDragEvent e) {}
+    public void dragExit(DragSourceEvent e) {}
+    public void dragOver(DragSourceDragEvent e) {}
+    public void dropActionChanged(DragSourceDragEvent e) {}
 
-        
-	public File getFile() {
-		TreePath path = getLeadSelectionPath();
-		FileNode node = (FileNode)path.getLastPathComponent();
-	
-                return ((File)node.getUserObject());
-	}
+    public File getFile() {
+        TreePath path = getLeadSelectionPath();
+        if (path == null)
+            return null;
+        FileNode node = (FileNode)path.getLastPathComponent();
+        return ((File)node.getUserObject());
+    }
         
 	private DefaultTreeModel createTreeModel() {
 	DefaultMutableTreeNode baseroot = new DefaultMutableTreeNode("Mounted Devices");
