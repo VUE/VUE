@@ -96,7 +96,7 @@ public class FedoraSoapFactory {
                     infoRecord.createInfoField(((DisseminationInfoStructure)infoStructure).getBDEFInfoPart().getId(),objMethods[i].getBDefPID());
                     String disseminationURL = dr.getFedoraProperties().getProperty("url.fedora.get")+pid+"/"+objMethods[i].getBDefPID()+"/"+objMethods[i].getMethodName();
                     infoRecord.createInfoField(((DisseminationInfoStructure)infoStructure).getDisseminationURLInfoPart().getId(), disseminationURL);
-                    disseminationList.add(infoRecord);                    
+                    disseminationList.add(infoRecord);
                 }
             }
         } catch(Exception ex) {
@@ -231,8 +231,10 @@ public class FedoraSoapFactory {
                 ObjectFields[] fields= methodDefs.getResultList();
                 lSearchCriteria.setResults(fields.length);
                 for(int i=0;i<fields.length;i++) {
-                    if(fields[i].getFType().equals("O"))
-                        resultObjects.add(new FedoraObject(dr,fields[i].getPid(),fields[i].getTitle()[0],dr.getAssetType(fields[i].getCModel())));
+                    String title = "No Title";
+                    if(fields[i].getTitle() != null)
+                        title = fields[i].getTitle()[0];
+                    resultObjects.add(new FedoraObject(dr,fields[i].getPid(),title,dr.getAssetType(fields[i].getCModel())));
                 }
             } else {
                 System.out.println("search return no results");
