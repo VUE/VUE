@@ -310,13 +310,13 @@ public class VueToolPanel extends JPanel
 	// DEBUG :
 	
 	
-	protected void processMouseMontionEvent( MouseEvent pEvent) {
+	protected void X_processMouseMontionEvent( MouseEvent pEvent) {
 		debug("  VueToolPanel: processMouseMotionEvent "+pEvent.getID() );
 		super.processMouseEvent( pEvent);
 	}
 
 
-	protected void processMouseEvent( MouseEvent pEvent) {
+	protected void X_processMouseEvent( MouseEvent pEvent) {
 		debug("  porcessMouseEvent() "+ pEvent.getID()  );
 		super.processMouseEvent( pEvent);
 	}
