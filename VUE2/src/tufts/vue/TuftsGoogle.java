@@ -34,13 +34,19 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     JTabbedPane googlePane; 
     JComboBox maxReturns;
     JPanel googleResultsPanel;
+    String searchURL;
+    int prevStartIndex = 0; 
+    int nextStartIndex = 0;
       JTextField keywords;
+      JButton prevButton;
+      JButton nextButton;
+      JButton searchButton;
      String[] maxReturnItems = { 
-            "5",
+           
             "10",
             "20" 
       };
-   private static  String searchURL;
+   //private static  String searchURL;
     private static URL  XML_MAPPING = VueResources.getURL("mapping.google");
     private static String query;
     
@@ -56,6 +62,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
          setLayout(new BorderLayout());
        
        
+         searchURL = inputURL;
          maxReturns = new JComboBox(maxReturnItems);
          maxReturns.setEditable(true);
          googlePane = new JTabbedPane();
@@ -77,9 +84,9 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         c.ipady = 10;
         c.insets = defaultInsets;
         c.anchor = GridBagConstraints.NORTH;
-        JLabel topLabel = new JLabel("Search "+displayName);
-        gridbag.setConstraints(topLabel, c);
-        googleSearchPanel.add(topLabel);
+        //JLabel topLabel = new JLabel("");
+        //gridbag.setConstraints(topLabel, c);
+        //googleSearchPanel.add(topLabel);
         
         
     //adding the search box and the button
@@ -96,7 +103,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         c.gridx=2;
         c.gridy=1;
         c.gridwidth=1;
-        JButton searchButton = new JButton("Search");
+        searchButton = new JButton("Search");
         searchButton.setPreferredSize(new Dimension(80,20));
         searchButton.addActionListener(this);
         gridbag.setConstraints(searchButton,c);
@@ -125,38 +132,84 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
           
          googleResultsPanel = new JPanel(new BorderLayout());
          googlePane.addTab("Search Results",googleResultsPanel);
-         add(googlePane,BorderLayout.CENTER );
+          add(googlePane,BorderLayout.CENTER );
+          JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+                 
+          prevButton = new JButton("Previous");
+          prevButton.setPreferredSize(new Dimension(120,20));
+          prevButton.addActionListener(this);
+          prevButton.setEnabled(false);
+          nextButton = new JButton("Next");
+          nextButton.setPreferredSize(new Dimension(80,20));
+          nextButton.addActionListener(this);
+         
+                 
+          bottomPanel.add(prevButton);
+          bottomPanel.add(nextButton);
+          googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
+                 
+         
         
 //--------------------------------------------------------------------
             
          //searchURL = VueResources.getString("url.google");
-            searchURL = inputURL;
+         
               
             
             
     }
     
     public void actionPerformed(ActionEvent e) {
-        
-                  performSearch();
+                 
+                  if (e.getActionCommand().toString() == "Search") {performSearch(0);
+                 
                   
+                   nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
+                   prevStartIndex = 0;
+                  }
+                   if (e.getActionCommand().toString() == "Previous"){
+                      
+                       
+                       performSearch(prevStartIndex);
+                      
+                       if ( prevStartIndex == 0){prevButton.setEnabled(false);}
+                       
+                       else {
+                           prevStartIndex = prevStartIndex - Integer.parseInt(maxReturns.getSelectedItem().toString());
+                               nextStartIndex = nextStartIndex  - Integer.parseInt(maxReturns.getSelectedItem().toString()); 
+                              
+                       }
+                      
+                       }
+                   if (e.getActionCommand().toString() == "Next"){
+                       
+                      
+                       if (nextStartIndex >0 )prevButton.setEnabled(true);
+                       performSearch(nextStartIndex);
+                        prevStartIndex = nextStartIndex - Integer.parseInt(maxReturns.getSelectedItem().toString());
+                        nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
+                      
+                        
+                        
+                       
+                   }
     }
     
-    public void performSearch(){
+    public void performSearch(int searchStartIndex){
         
                 int index = 0;  
               
                 
                 String searchString = keywords.getText();
                 
-                        
+                  
                 
                if (!searchString.equals("")){
                 
                 try {
                     
                    
-       url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&q="+searchString);
+       url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&start="+searchStartIndex+"&q="+searchString);
             System.out.println("Google search = "+url);
            InputStream input = url.openStream();
            int c;
@@ -177,7 +230,8 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                
                 Result r = (Result)i.next();
                 URLResource urlResource = new URLResource(r.getUrl());
-                urlResource.setTitle(r.getTitle());
+                if (r.getTitle() != null) urlResource.setTitle(r.getTitle());
+                else urlResource.setTitle(r.getUrl().toString());
                 resultVector.add(urlResource);
               //resultVector.add(r.get());
               // resultVector.add(r.getTitle());
@@ -187,16 +241,21 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
            } 
           
                 VueDragTree tree = new VueDragTree(resultVector.iterator(),"GoogleSearchResults");
+      
                 tree.setEditable(true);
+
                 tree.setRootVisible(false);
               
             
 
                 JScrollPane jsp = new JScrollPane(tree);
-         
-                    
                 
-                 googleResultsPanel.add(jsp,BorderLayout.CENTER,0);
+               
+                 
+                 googleResultsPanel.add(jsp,BorderLayout.CENTER);
+                 googleResultsPanel.validate();
+                 
+                 
                  googlePane.setSelectedComponent(googleResultsPanel);    
                     
               
@@ -272,7 +331,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     public void keyTyped(KeyEvent e) {
         if(e.getKeyChar()== KeyEvent.VK_ENTER) {
             
-               performSearch();
+              searchButton.doClick();
             }
         }
     }

@@ -507,8 +507,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             
             
+      
             serResultTree.expandRow(0);
-            if (foundit)serResultTree.setRootVisible(false);
+           
+            serResultTree.setRootVisible(false);
+           
             
             JScrollPane fPane = new JScrollPane(serResultTree);
             

@@ -288,7 +288,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         menuItem = new JMenuItem("Open Resource");
         menuItem.addActionListener(this);
         popup.add(menuItem);
-        System.out.println("Was I in vuedragtree popup menu?");
+       
         
         
         //Add listener to the text area so the popup menu can come up.
@@ -303,7 +303,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             JMenuItem source = (JMenuItem)(e.getSource());
             TreePath tp = this.getSelectionPath();
             
-            System.out.println("This is treePath in here" + tp);;
+           
             
             if (tp != null){
                 ResourceNode resNode = (ResourceNode)tp.getLastPathComponent();
@@ -423,7 +423,7 @@ class CabinetNode extends ResourceNode {
     public void explore() {
         //  If this is not a cabinet, then it cannot be expanded.
         //if(getCabinet() != null) {
-        System.out.println(" Cabinet ="+getUserObject()+ " is dir" +isLeaf()+" Extension = "+((CabinetResource)getUserObject()).getExtension());
+       // System.out.println(" Cabinet ="+getUserObject()+ " is dir" +isLeaf()+" Extension = "+((CabinetResource)getUserObject()).getExtension());
         //if(((CabinetResource)getUserObject()).getExtension().equals("dir")) {
         if(getCabinet() != null) {
             try {
@@ -443,7 +443,7 @@ class CabinetNode extends ResourceNode {
                     
                     while (i.hasNext()) {
                         CabinetEntry ce = (LocalCabinetEntry) i.next();
-                        System.out.println ("CabinetNode explore: "+ce.getDisplayName());
+                       // System.out.println ("CabinetNode explore: "+ce.getDisplayName());
                         CabinetResource res = new CabinetResource(ce);
                          
                         CabinetNode rootNode = new CabinetNode(res, this.type);

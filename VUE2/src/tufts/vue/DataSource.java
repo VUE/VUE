@@ -23,11 +23,11 @@ import tufts.oki.shared.*;
 
 
 public class DataSource {
-    public static final int FAVORITES = 0;
-    public static final int FILING_LOCAL = 1;
-    public static final int FILING_REMOTE = 2;
-    public static final int DR_FEDORA = 3;
-    public static final int GOOGLE = 4;
+    public static final int FAVORITES = 4;
+    public static final int FILING_LOCAL = 0;
+    public static final int FILING_REMOTE = 1;
+    public static final int DR_FEDORA = 2;
+    public static final int GOOGLE = 3;
     private String id;
     private int type;
     private String displayName; 
@@ -162,12 +162,9 @@ public class DataSource {
     }
     public void setsearchURL(String searchURL) {
         this.searchURL = searchURL;
-        try {
-            this.setViewer();
-        }catch (Exception ex){}
-        resourceViewer.validate();
-       // this.setResourceViewer(resourceViewer);
-          
+       try{
+           this.setViewer();
+       }catch (Exception ex){}
     }
     
     public String getsearchURL() {
