@@ -283,6 +283,8 @@ class Actions {
             boolean mayModifySelection() { return true; }
             void act(LWComponent c) {
                 //have to update pathways - jay briedis
+                // TODO: this is the WAY WAY wrong place to do this -- SMF:)
+                // the pathway should listen for for deletions among it's elements.
                 Iterator iter = VUE.getActiveViewer()
                     .getMap()
                     .getPathwayManager()
@@ -305,8 +307,14 @@ class Actions {
                         pathway.removeElement(c);                        
                     }
                 }
-                
-                c.getParent().deleteChild(c);
+
+                LWContainer parent = c.getParent();
+                if (parent == null)
+                    // right now this can happen because links are auto-deleted if
+                    // both their endpoints are deleted
+                    System.err.println("null parent in delete of " + c + " (already deleted)");
+                else
+                    parent.deleteChild(c);
             }
         };
     
@@ -614,6 +622,10 @@ class Actions {
         {
             LWComponent createNewItem(Point2D newLocation)
             {
+                VueTool nodeTool = VueToolbarController.getController().getTool("nodeTool");
+                System.out.println("got nodetool " + nodeTool);
+                //nodeTool.getSubSelected
+                
                 // todo: this is where we'll get the active NodeTool
                 // and have it create the new node based on it's current
                 // settings -- move this logic to NodeTool
