@@ -1189,10 +1189,13 @@ public class LWComponent
             return;
         }
         
-        if (isDeleted())
-            throw new IllegalStateException("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
-                                            + "\n\tdeleted=" + this
-                                            + "\n\tattempted notification=" + e);
+        if (isDeleted()) {
+            System.err.println("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
+                               + "\n\tdeleted=" + this
+                               + "\n\tattempted notification=" + e);
+            new Throwable("ZOMBIE").printStackTrace();
+            return;
+        }
 
         if (listeners != null && listeners.size() > 0) {
             dispatchLWCEvent(this, listeners, e);

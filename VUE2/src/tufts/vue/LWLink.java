@@ -257,32 +257,6 @@ public class LWLink extends LWComponent
         return curveControls > 0;
     }
 
-    /** set this link to be curved or not.  defaults to a Quadradic (1 control point) curve. */
-    /*
-    private void X_setCurved(boolean curved)
-    {
-        this.isCurved = curved;
-        //System.out.println(this + " SET CURVED " + curved + " cubic="+isCubicCurve);
-        if (isCurved) {
-            if (isCubicCurve) {
-                this.curve = this.cubicCurve = new CubicCurve2D.Float();
-                this.controlPoints = new LWSelection.ControlPoint[4];//new Point2D.Float[4];
-                this.cubicCurve.ctrlx1 = Float.MIN_VALUE;
-            } else {
-                this.curve = this.quadCurve = new QuadCurve2D.Float();
-                this.controlPoints = new LWSelection.ControlPoint[3];//new Point2D.Float[3];
-                this.quadCurve.ctrlx = Float.MIN_VALUE;
-            }
-        } else {
-            this.controlPoints = new LWSelection.ControlPoint[2];//new Point2D.Float[2];
-            this.quadCurve = null;
-            this.cubicCurve = null;
-            this.curve = null;
-        }
-        endpointMoved = true;
-    }
-    */
-
     /** for persistance or setting CubicCurve */
     public void setControlCount(int points)
     {
@@ -565,10 +539,8 @@ public class LWLink extends LWComponent
             
     void setComponent1(LWComponent c)
     {
-        if (c == ep1 || (c == null && ep1 == null))
+        if (c == ep1)
             return;
-        if (ep1 == c)
-            System.err.println("*** Warning: ep1 already set to that in " + this + " " + c);
         if (ep1 != null)
             ep1.removeLinkRef(this);            
         Object old = this.ep1;
@@ -581,10 +553,8 @@ public class LWLink extends LWComponent
     }
     void setComponent2(LWComponent c)
     {
-        if (c == ep2 || (c == null && ep2 == null))
+        if (c == ep2)
             return;
-        if (c != null && ep2 == c)
-            System.err.println("*** Warning: ep2 already set to that in " + this + " " + c);
         if (ep2 != null)
             ep2.removeLinkRef(this);            
         Object old = this.ep2;
@@ -706,29 +676,6 @@ public class LWLink extends LWComponent
         }
     }
 
-    
-    /*
-    public void X_setLocation(float x, float y)
-    {
-        float dx = getX() - x;
-        float dy = getY() - y;
-        //System.out.println(this + " ("+x+","+y+") dx="+dx+" dy="+dy);
-        // fixme: moving a link tween links sends
-        // multiple move events to nodes at their
-        // ends, causing them to move nlinks or more times
-        // faster than we're dragging.
-        // todo fixme: what if both are children? better
-        // perhaps to actually have a child move it's parent
-        // around here, yet we can't do generally in setLocation
-        // or then we couldn't individually drag a parent
-        if (!ep1.isChild())
-            ep1.setLocation(ep1.getX() - dx, ep1.getY() - dy);
-        if (!ep2.isChild())
-            ep2.setLocation(ep2.getX() - dx, ep2.getY() - dy);
-        super.setLocation(x,y);
-    }
-    */
-
     /**
      * Compute the intersection point of two lines, as defined
      * by two given points for each line.
@@ -849,41 +796,6 @@ public class LWLink extends LWComponent
         return NoIntersection;
     }
 
-        /*
-          // a different way of computing link connection
-          // points that minimizes over-stroke of
-          // our parent (if we have one)
-          
-        if (ep1.isChild()) {
-            //Point2D p = ep1.nearestPoint(endX, endY);
-            //startX = (float) p.getX();
-            //startY = (float) p.getY();
-            // nearest corner
-            if (endX > startX)
-                startX += ep1.getWidth() / 2;
-            else if (endX < startX)
-                startX -= ep1.getWidth() / 2;
-            if (endY > startY)
-                startY += ep1.getHeight() / 2;
-            else if (endY < startY)
-                startY -= ep1.getHeight() / 2;
-        }
-        if (ep2.isChild()) {
-            //Point2D p = ep2.nearestPoint(startX, startY);
-            //endX = (float) p.getX();
-            //endY = (float) p.getY();
-            // nearest corner
-            if (endX > startX)
-                endX -= ep2.getWidth() / 2;
-            else if (endX < startX)
-                endX += ep2.getWidth() / 2;
-            if (endY > startY)
-                endY -= ep2.getHeight() / 2;
-            else if (endY < startY)
-                endY += ep2.getHeight() / 2;
-        }
-        */
-    
 
     /**
      * Compute the endpoints of this link based on the edges
@@ -1484,7 +1396,7 @@ public class LWLink extends LWComponent
         }
         
         /*
-         * For very fancy computation of curve center, use below
+         * For very fancy computation of a curve "center", use below
          * code and then walk the segments computing actual
          * length of curve, then walk again searching for
          * segment at middle of that distance...
@@ -1661,9 +1573,14 @@ public class LWLink extends LWComponent
     
     public String paramString()
     {
-        return " " + startX+","+startY
-            + " -> " + endX+","+endY
-            +  " ctrl=" + getControlCount();
+        String s =
+            " " + (int)startX+","+(int)startY
+            + " -> " + (int)endX+","+(int)endY;
+        if (getControlCount() == 1)
+            s += " cc1"; // quadratic
+        else if (getControlCount() == 2)
+            s += " cc2"; // cubic
+        return s;
     }
 
     // these two to support a special dynamic link
