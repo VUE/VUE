@@ -30,9 +30,9 @@ import tufts.vue.*;
 /**a class which constructs a PDF file based on the data within the concept map*/
 public class PDFConversion extends AbstractAction {
     
-    private static  String pdfFileName = "default.pdf";
-    private static  String fileName = "C:\\vueproject\\VUEDevelopment\\src\\default.xml";
-    final String XML_MAPPING = "concept_map.xml";
+    private static  String pdfFileName = "";
+    private static  String fileName = "default.xml";
+    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private Marshaller marshaller = null;
     
     /** Creates a new instance of PDFConversion */

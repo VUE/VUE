@@ -30,7 +30,7 @@ import tufts.vue.*;
 public class HTMLConversion extends AbstractAction {
     
     private static  String htmlFileName = "default.html";
-    private static  String fileName = "C:\\vueproject\\VUEDevelopment\\src\\default.xml";
+    private static  String fileName = "default.xml";
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private Marshaller marshaller = null;
     
