@@ -96,7 +96,7 @@ public class ImageMap extends AbstractAction {
                 int oh = (int)node.getHeight();
                 String href = "";
                 if(res.equals("null")) href = "nohref";
-                else href = "href=" + res;
+                else href = "href=\"" + res + "\"";
                 out += "<area " + href
                     +" alt=\""+label
                     +"\" shape=\""+shape

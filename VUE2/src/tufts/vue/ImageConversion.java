@@ -37,10 +37,6 @@ public class ImageConversion extends AbstractAction {
         //the conversion is done using the ImageIO class's static method
         try
         {
-            //String[] files = ImageIO.getReaderFormatNames();
-            //  for (int i = 0; i < files.length; i++)
-            //    System.out.println(files[i]);
-            
             System.out.println(location);
             ImageIO.write(image, format, new File(location));
         }

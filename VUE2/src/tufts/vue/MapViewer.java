@@ -374,6 +374,11 @@ public class MapViewer extends javax.swing.JPanel
         repaint();
         return c;
     }
+    
+    public java.util.List getAllLWNodes(){
+        return nodeViews;
+    }
+    
     private boolean removeLWC(LWComponent c)
     {
         boolean success = false;

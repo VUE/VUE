@@ -302,6 +302,7 @@ public class VUE
         SaveAction saveAsAction = new SaveAction("Save As...", "saveAs");
         OpenAction openAction = new OpenAction("Open");
         SaveAction htmlAction = new SaveAction("Save As HTML...", "html");
+        ExitAction exitAction = new ExitAction("Quit");
         fileMenu.add(new JMenuItem("New"));
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
@@ -309,7 +310,7 @@ public class VUE
         fileMenu.add(htmlAction);
         fileMenu.add(new JMenuItem("Export ..."));
         fileMenu.addSeparator();
-        fileMenu.add(new JMenuItem("Quit"));
+        fileMenu.add(exitAction);
         
         editMenu.add(new JMenuItem("Undo"));
         editMenu.add(new JMenuItem("Redo"));
