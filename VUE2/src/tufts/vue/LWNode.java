@@ -1329,6 +1329,7 @@ public class LWNode extends LWContainer
                 g.draw(dividerMarginLine);
             else
                 g.draw(VueUtil.clipToYCrossings(dividerMarginLine, drawnShape, MarginLinePadY));
+                // todo: don't need to do this every draw: only on layout
             
             mIconBlock.draw(dc);
         }

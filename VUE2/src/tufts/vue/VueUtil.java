@@ -728,36 +728,35 @@ public class VueUtil
      * todo: presumes only 2 crossings: will only handle concave polygons
      * Should relatively easy to extend this to work for non-vertical lines if the need should arise.
      */
-    public static Line2D clipToYCrossings(Line2D line, Shape shape, float pad) {
+    public static Line2D clipToYCrossings(Line2D line, Shape shape, float pad)
+    {
         float x_axis = (float) line.getX1();
         float[] coords = computeYCrossings(x_axis, shape, new float[4]);
         // coords[0] & coords[2], the x values, can be ignored, as they always == x_axis
-        float cross1 = coords[1];
-        float cross2 = coords[3];
-        float y1, y2;
-        //out("cross1, cross2: " + cross1 + "," + cross2);
-        if (cross1 < cross2) {
-            // cross1 is min cross
-            cross1 += pad;
-            cross2 -= pad;
-            y1 = cross1 > line.getY1() ? cross1 : (float) line.getY1();
-            y2 = cross2 < line.getY2() ? cross2 : (float) line.getY2();
+
+        float upper; // y value at top
+        float lower; // y value at bottom
+        if (coords[1] < coords[3]) {
+            // cross1 is min cross (top), cross2 is max cross (bottom)
+            upper = coords[1];
+            lower = coords[3];
         } else {
-            // cross2 is min cross
-            cross2 += pad;
-            cross1 -= pad;
-            y1 = cross2 > line.getY1() ? cross2 : (float) line.getY1();
-            y2 = cross1 < line.getY2() ? cross1 : (float) line.getY2();
+            // cross2 is min cross (top), cross1 is max cross (bottom)
+            upper = coords[3];
+            lower = coords[1];
         }
-        //out("clipping " + out(line));
+        upper += pad;
+        lower -= pad;
+        // clip line to upper & lower (top & bottom)
+        float y1 = Math.max(upper, (float) line.getY1());
+        float y2 = Math.min(lower, (float) line.getY2());
         line.setLine(x_axis, y1, x_axis, y2);
-        //out("      to " + out(line));
         return line;
     }
     
 
     /**
-     * One a line drawn from the center of c1 to the center of c2, compute the the line segment
+     * On a line drawn from the center of c1 to the center of c2, compute the the line segment
      * from the intersection at the edge of shape c1 to the intersection at the edge of shape c2.
      */
     
