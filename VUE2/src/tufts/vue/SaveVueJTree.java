@@ -89,18 +89,18 @@ public class SaveVueJTree {
                                 else{
                                   System.out.println("I am a ha" + nextSNode.getResource().getType());
                                 }  
-                                  //  if (((nextSNode.getResource()).getType()) == FAVORITES){
+                                  if (((nextSNode.getResource()).getType()) == FAVORITES){
                                     //System.out.println("I am a favorite" + nextSNode.getResource());
-                                    //FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
-                                     //model.insertNodeInto(nextFNode,rootNode,0); 
-                                     //restoreModel(model, nextFNode, nextSNode);
-                                //}
-                                //else{
+                                    FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
+                                     model.insertNodeInto(nextFNode,rootNode,0); 
+                                    restoreModel(model, nextFNode, nextSNode);
+                                }
+                                else{
                                     
                                     ResourceNode nextNode = new ResourceNode(nextSNode.getResource());
                                      model.insertNodeInto(nextNode,rootNode,0); 
                                      restoreModel(model, nextNode, nextSNode);
-                                //}
+                                }
                                 
                                               }
                                       }
