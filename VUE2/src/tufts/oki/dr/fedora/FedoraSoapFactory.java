@@ -70,7 +70,7 @@ public class FedoraSoapFactory {
                     if(objMethods[i].getBDefPID().equals(behavior.getId().getIdString())) {
                        if(!objMethods[i].getMethodName().equals("getImage") && !objMethods[i].getMethodName().equals("getItem") ) {
                        Dissemination dissemination =  new Dissemination(new PID(objMethods[i].getMethodName()),behavior);
-                       dissemination.setValue(getDisseminaionStream(dissemination));
+                       dissemination.setValue(getDisseminationStream(dissemination));
                        disseminationList.add(new Dissemination(new PID(objMethods[i].getMethodName()),behavior));
                        }
                     }
@@ -83,7 +83,7 @@ public class FedoraSoapFactory {
         return disseminationList;
     }
      
-    public static  MIMETypedStream getDisseminaionStream(Dissemination dissemination) throws osid.dr.DigitalRepositoryException {
+    public static  MIMETypedStream getDisseminationStream(Dissemination dissemination) throws osid.dr.DigitalRepositoryException {
         Call call;
         MIMETypedStream stream;
         try {

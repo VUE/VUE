@@ -15,6 +15,7 @@ package tufts.oki.dr.fedora;
 import osid.dr.*;
 import java.net.*;
 import java.io.*;
+import java.util.Iterator;
 
 
 // these classses are required for soap implementation of 
@@ -309,7 +310,21 @@ public class FedoraObject implements osid.dr.Asset{
     }
     
     public osid.dr.InfoField getInfoField(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
-         throw new osid.dr.DigitalRepositoryException("Not Implemented");
+        Iterator i = behaviorList.iterator();
+        while(i.hasNext()) {
+            InfoRecord infoRecord = (InfoRecord)i.next();
+            InfoFieldIterator infoFieldIterator = infoRecord.getInfoFields();
+            while(infoFieldIterator.hasNext()){
+                InfoField infoField = infoFieldIterator.next();
+                try {
+                    if(infoField.getId().isEqual(id)) 
+                        return infoField;
+                } catch (osid.shared.SharedException ex) {
+                    throw new osid.dr.DigitalRepositoryException(ex.getMessage());
+                }
+            }
+        }
+        return null;
     }
     
     public osid.dr.InfoFieldIterator getInfoFieldByPart(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
@@ -325,7 +340,17 @@ public class FedoraObject implements osid.dr.Asset{
     }
     
     public osid.dr.InfoRecord getInfoRecord(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
-         throw new osid.dr.DigitalRepositoryException("Not Implemented");
+        Iterator i = behaviorList.iterator();
+        while(i.hasNext()) {
+            InfoRecord infoRecord = (InfoRecord)i.next();
+            try {
+                if(infoRecord.getId().isEqual(id)) 
+                    return infoRecord;
+            } catch (osid.shared.SharedException ex) {
+                throw new osid.dr.DigitalRepositoryException(ex.getMessage());
+            }
+        }
+        return null;
     }
     
     public osid.dr.InfoRecordIterator getInfoRecordsByInfoStructure(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {

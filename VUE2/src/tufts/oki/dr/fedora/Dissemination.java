@@ -105,7 +105,7 @@ public class Dissemination implements InfoField {
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public java.io.Serializable getValue() throws osid.dr.DigitalRepositoryException {
-        return FedoraSoapFactory.getDisseminaionStream(this);
+        return FedoraSoapFactory.getDisseminationStream(this);
     }
     
     /**     Update the for this InfoField.

@@ -11,9 +11,20 @@ import java.util.*;
 
 import osid.dr.*;
 import tufts.oki.dr.fedora.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Text;
+import org.w3c.dom.NodeList;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import fedora.server.types.gen.*;
+
+
 public class Resource
 {
     static final long SIZE_UNKNOWN = -1;
+    static final String[] dcFields = {"dc:title","dc:creator","dc:subject","dc:date","dc:type","dc:format","dc:identifier","dc:collection","dc:coverage"};
     
     long referenceCreated;
     long accessAttempted;
@@ -38,8 +49,28 @@ public class Resource
         this.referenceCreated = System.currentTimeMillis();
     }
 
+    private void setPropertiesByAsset() {
+         try { 
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setValidating(false);
+            InputStream dublinCoreInputStream = new ByteArrayInputStream(((MIMETypedStream)(asset.getInfoField(new PID("getDublinCore")).getValue())).getStream());
+            Document document = factory.newDocumentBuilder().parse(dublinCoreInputStream);
+            for(int i=0;i<dcFields.length;i++) {
+                NodeList list = document.getElementsByTagName(dcFields[i]);
+                if(list != null && list.getLength() != 0) {
+                     // only picks the first element 
+                    if(list.item(0).getFirstChild() != null) 
+                        mProperties.put(dcFields[i], list.item(0).getFirstChild().getNodeValue());
+                }
+             }
+    
+        } catch (Exception ex)  {ex.printStackTrace();}
+        
+    }
+    
     public void setAsset(Asset asset) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.asset = asset;
+        setPropertiesByAsset();
         this.spec = ((FedoraObject)asset).getDefaultViewURL();
         this.castorFedoraObject = new CastorFedoraObject((FedoraObject)asset);
     }
@@ -219,10 +250,12 @@ public class Resource
      	value = mProperties.get( pName);
      	return value;
      }
-    
+     
     public String toString()
     {
         return getSpec();
     }
+    
+    
     
 }
