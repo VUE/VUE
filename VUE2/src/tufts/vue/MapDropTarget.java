@@ -11,6 +11,8 @@ import java.awt.geom.Point2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 
+import osid.dr.*;
+
 
 //todo: rename LWMapDropTarget?
 class MapDropTarget
@@ -90,11 +92,13 @@ class MapDropTarget
         String resourceName = null;
         java.awt.Image droppedImage = null;
         java.util.List fileList = null;
+        java.util.List assetList = null;
         
         if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
         for (int i = 0; i < dataFlavors.length; i++) {
             DataFlavor flavor = dataFlavors[i];
             Object data = null;
+            System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
             
             if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
             try {
@@ -111,6 +115,10 @@ class MapDropTarget
                     break;
                 } else if (flavor.isFlavorJavaFileListType()) {
                     fileList = (java.util.List) transfer.getTransferData(flavor);
+                    break;
+                } else if (flavor.getHumanPresentableName().equals("asset")) {
+                    System.out.println("ASSET FOUND");
+                    assetList = (java.util.List) transfer.getTransferData(flavor);
                     break;
                 } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
                     // && flavor.isFlavorTextType() -- java 1.4 only
@@ -149,6 +157,18 @@ class MapDropTarget
                 createNewNode(file.toString(), file.getName(), new java.awt.Point(x, y));
                 x += 15;
                 y += 15;
+                success = true;
+            }
+            
+        } else if (assetList != null) {
+            java.util.Iterator iter = assetList.iterator();
+            int x = dropLocation.x;
+            int y = dropLocation.y;
+            while(iter.hasNext()) {
+                Asset asset = (Asset) iter.next();
+                createNewNode(asset, new java.awt.Point(x,y));
+                x += 15;
+                y+= 15;
                 success = true;
             }
         } else if (resourceName != null) {
@@ -218,7 +238,20 @@ class MapDropTarget
             // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
             }*/
     }
-
+    
+    private void createNewNode(Asset asset, java.awt.Point p) {
+        String resourceTitle = "Fedora Node";
+        Resource resource =new Resource(resourceTitle);
+        try {
+            resourceTitle = asset.getDisplayName();
+        } catch(Exception e) { System.out.println("MapDropTarget.createNewNode " +e ) ; }
+        resource.setSpec(resourceTitle);
+        resource.setAsset(asset);
+        LWNode node = new LWNode(resourceTitle);
+        node.setLocation(dropToMapLocation(p));
+        node.setResource(resource);
+        viewer.getMap().addNode(node);
+    }
     private Point2D dropToMapLocation(java.awt.Point p)
     {
         return dropToMapLocation(p.x, p.y);
