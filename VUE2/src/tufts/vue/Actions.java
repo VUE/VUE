@@ -423,13 +423,17 @@ class Actions {
         static float totalWidth, totalHeight; // added width/height of all in selection
         // obviously not thread-safe here
   
-        private AlignAction(String name)
+        private AlignAction(String name, KeyStroke keyStroke)
         {
-            super(name);
+            super(name, keyStroke);
         }
         private AlignAction(String name, int keyCode)
         {
             super(name, keyStroke(keyCode, COMMAND+SHIFT));
+        }
+        private AlignAction(String name)
+        {
+            super(name);
         }
         boolean enabledFor(LWSelection s) { return s.size() >= 2; }
         void act(LWSelection selection)
@@ -490,13 +494,13 @@ class Actions {
     static final Action AlignBottomEdges = new AlignAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
             void align(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
         };
-    static final AlignAction AlignCentersColumn = new AlignAction("Align Centers in Column") {
-            void align(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
-        };
-    static final AlignAction AlignCentersRow = new AlignAction("Align Centers in Row") {
+    static final AlignAction AlignCentersRow = new AlignAction("Align Centers in Row", KeyEvent.VK_R) {
             void align(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
         };
-    static final AlignAction MakeRow = new AlignAction("Make Row", KeyEvent.VK_R) {
+    static final AlignAction AlignCentersColumn = new AlignAction("Align Centers in Column", KeyEvent.VK_C) {
+            void align(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
+        };
+    static final AlignAction MakeRow = new AlignAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
             // todo bug: an already made row is shifting everything to the left
             // (probably always, actually)
             void align(LWSelection selection) {
@@ -505,7 +509,7 @@ class Actions {
                 DistributeHorizontally.align(selection);
             }
         };
-    static final AlignAction MakeColumn = new AlignAction("Make Column", KeyEvent.VK_C) {
+    static final AlignAction MakeColumn = new AlignAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
             void align(LWSelection selection) {
                 AlignCentersColumn.align(selection);
                 maxY = minY + totalHeight;
@@ -558,8 +562,8 @@ class Actions {
         AlignTopEdges,
         AlignBottomEdges,
         null,
-        AlignCentersColumn,
         AlignCentersRow,
+        AlignCentersColumn,
         null,
         MakeRow,
         MakeColumn,
