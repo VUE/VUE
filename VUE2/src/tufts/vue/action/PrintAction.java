@@ -15,11 +15,11 @@ import java.awt.event.ActionEvent;
  * PrintAction and inner class PrintJob.  PrintAction handles figuring
  * out the print style we want (whole map or just visible view) and
  * creating a PrintJob to handle it, as well as caching the last used
- * Format.  PrintJob handles the actual printing.  PrintJob can be
+ * PageFormat.  PrintJob handles the actual printing.  PrintJob can be
  * threaded, tho this is currently disabled due to java bugs that can
  * leave the VUE app raised over the print dialogs sometimes.  This
  * means that VUE can't repaint itself while the print dialogs are
- * active.
+ * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
  * @author Scott Fraize
  * @version March 2004
@@ -164,7 +164,7 @@ public class PrintAction extends tufts.vue.VueAction
         private void runDialogsAndPrint() 
             throws java.awt.print.PrinterException
         {
-            out("PrintJob starting for " + this.map);
+            out("job starting for " + this.map);
             PrinterJob job = getPrinterJob();
             if (job.printDialog()) {
                 //PageFormat format = getPageFormat(job);
@@ -185,6 +185,7 @@ public class PrintAction extends tufts.vue.VueAction
                     job.print();
                 }
             }
+            out("job complete.");
         }
 
         public int print(Graphics gc, PageFormat format, int pageIndex)
