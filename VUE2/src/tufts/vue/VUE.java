@@ -453,45 +453,42 @@ public class VUE
         
         // adding the menus and toolbars
         setMenuToolbars(frame, toolWindows);
-        System.out.println("after setting menu toolbars...");
+        out("menu toolbars set.");
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
         //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
-        frame.pack();
-        frame.setSize(800,600);
+        //frame.pack(); // no point in packing if we're about to force a set-size
+        frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
         frame.validate();
         
         VueUtil.centerOnScreen(frame);
         
         // position inspectors pased on frame location
-        int inspectorx = frame.getX() + frame.getWidth() - sMapInspector.getWidth();
-        sMapInspector.setLocation( inspectorx, frame.getY());
-        objectInspector.setLocation( inspectorx, frame.getY() + sMapInspector.getHeight() );
+        //int inspectorx = frame.getX() + frame.getWidth() - sMapInspector.getWidth();
+        int inspectorx = frame.getX() + frame.getWidth();
+        sMapInspector.suggestLocation(inspectorx, frame.getY());
+        objectInspector.suggestLocation(inspectorx, frame.getY() + sMapInspector.getHeight() );
+        pannerTool.suggestLocation(frame.getX() - pannerTool.getWidth(), frame.getY());
         
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.out.println(e);
                 ExitAction.exitVue();
-                
                 //-------------------------------------------------------
                 // if we get here, it means exit was aborted.
                 // (something wasn't saved & they decided to cancel or
                 // there was an error during the save)
                 //-------------------------------------------------------
-                
-                //frame.show();
-                // not working!  How to cancel this windowClose?
-                // According to WindowEvent.java &
-                // WindowAdapter.java, canceling this
-                // windowClosing is supposed to be possible, but
-                // they don't mention how. Anyway, we've overriden
-                // setVisible on VueFrame to make it impossible to
-                // hide it, and that works, so this event just
-                // becomes the they've pressed on the close button
-                // event.
-                
+                //frame.show(); not working!  How to cancel this
+                // windowClose?  According to WindowEvent.java &
+                // WindowAdapter.java, canceling this windowClosing is
+                // supposed to be possible, but they don't mention
+                // how. Anyway, we've overriden setVisible on VueFrame
+                // to make it impossible to hide it, and that works,
+                // so this event just becomes the they've pressed on
+                // the close button event.
                 return;
             }
             public void windowClosed(WindowEvent e) {

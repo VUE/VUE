@@ -22,8 +22,6 @@ import javax.swing.border.*;
 public class ToolWindow extends JWindow
     implements MouseListener, MouseMotionListener
 {
-    //final int TitleHeight = VueUtil.isMacPlatform() ? 11 : 13;
-    //final int TitleHeight = 44;
     private final static int TitleHeight = 14;
     private final static Font TitleFont = new Font("SansSerf", Font.PLAIN, 10);
     private final static int ResizeCornerSize = 14;
@@ -45,12 +43,6 @@ public class ToolWindow extends JWindow
         //setUndecorated(true);
         addMouseListener(this);
         addMouseMotionListener(this);
-        /*
-        if (debug)
-            setBackground(Color.orange);
-        else
-            setBackground(SystemColor.control);
-        */
         if (debug) out("contentPane=" + getContentPane());
         mContentPane = new ContentPane(mTitle);
         //getContentPane().add(mContentPane);
@@ -63,12 +55,14 @@ public class ToolWindow extends JWindow
         Component gp = new GlassPane();
         setGlassPane(gp);
         gp.setVisible(true);
+
         
         pack();
         out("constructed.");
         
         //setLocationRelativeTo(owner);
-        //setFocusableWindowState(false); // nothing can get input
+        //setFocusableWindowState(false); // nothing can get input at all...
+        //setFocusable(false); doesn't appear to do anything; todo: play with later & sub-panels
 
         /*
           // Window open & close only come to us the first time the window happens
@@ -164,7 +158,23 @@ public class ToolWindow extends JWindow
         }
         super.setLocation(x, y);
     }
-
+    
+    public void suggestLocation(int x, int y) {
+        Rectangle limit = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        limit.width += limit.x;
+        limit.height += limit.y;
+        out("suggesting location " + x + "," + y + " in limits " + limit);
+        if (x + getWidth() > limit.width)
+            x = limit.width - getWidth();
+        if (x < limit.x)
+            x = limit.x;
+        if (y + getHeight() > limit.height)
+            y = limit.height - getHeight();
+        if (y < limit.y)
+            y = limit.y;
+        setLocation(x, y);
+    }
+    
     private void setRolledUp(boolean t) {
         if (isRolledUp == t)
             return;
@@ -198,7 +208,7 @@ public class ToolWindow extends JWindow
     
     public void mousePressed(MouseEvent e)
     {
-        if (debug) out(e);
+        if (DEBUG.MOUSE) out(e);
         //System.out.println(e);
         dragStart = e.getPoint();
         // todo: will need to check this on the glass pane
@@ -212,7 +222,7 @@ public class ToolWindow extends JWindow
     
     public void mouseReleased(MouseEvent e)
     {
-        if (debug) out(e);
+        if (DEBUG.MOUSE) out(e);
         dragStart = null;
         dragSizeStart = null;
         //System.err.println(e);
@@ -244,7 +254,7 @@ public class ToolWindow extends JWindow
     }
     
     public void mouseClicked(MouseEvent e) {
-        if (debug) out(e);
+        if (DEBUG.MOUSE) out(e);
         if (e.getClickCount() == 2)
             setRolledUp(!isRolledUp());
     }
@@ -252,10 +262,6 @@ public class ToolWindow extends JWindow
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
     public void mouseMoved(MouseEvent e) {}
-
-    private void out(String s) {
-        System.out.println(this + " " + s);
-    }
 
     private void out(Object o) {
         System.out.println(this + " " + (o==null?"null":o.toString()));
@@ -483,7 +489,7 @@ public class ToolWindow extends JWindow
         }*/
     }
 
-    private static boolean debug = true;
+    private static boolean debug = false;
     public static void main(String args[]) {
         debug=true;
         DEBUG.BOXES=true;
@@ -494,11 +500,18 @@ public class ToolWindow extends JWindow
         p.add(l);
         JTextField tf = new JTextField(5);
         tf.setText("text");
-        tf.setEditable(true);
+        tf.setEditable(true);//no need
         p.add(tf);
         tw.addTool(p);
         tw.setSize(200,200);
         tw.show();
+
+        // why can't we get the tex field to respond to mouse??
+        // must it have an action listener?
+        tw.setFocusable(true);
+        p.setFocusable(true);
+        tf.setFocusable(true);
+        
     }
     
     
