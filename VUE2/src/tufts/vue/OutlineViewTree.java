@@ -337,6 +337,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);   
             setText(label);
             
+            //recalculateSize();
             return this;
         }
     }
@@ -408,7 +409,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         
         public void focusLost(FocusEvent e) 
         {
-            System.out.println("focus lost");
             this.stopCellEditing();
         }     
     }
@@ -457,6 +457,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             
             label = new JTextArea();
             label.setEditable(false);
+            //label.setLineWrap(true);
             
             iconPanel = new IconPanel();
             
@@ -501,6 +502,18 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public void setIcon(ImageIcon icon)
         {
             iconPanel.setIcon(icon);
+        }
+        
+        public void recalculateSize()
+        {
+            System.out.println("recalculating");
+          
+            Dimension labelSize = label.getPreferredSize();
+            int newWidth = iconPanel.getPreferredSize().width + labelSize.width + 20;
+            int newHeight = labelSize.height + 15;
+            
+            Dimension size = new Dimension(newWidth, newHeight);
+            super.setPreferredSize(size);
         }
     }
     
