@@ -85,6 +85,51 @@ public class LWPathway extends LWContainer
         setStrokeColor(getNextColor());
     }
 
+    /** is this a "reveal"-way?  Members start hidden and are made visible as you move
+        through the pathway */
+    public boolean isRevealer() {
+        return true;
+    }
+
+    public boolean isDrawn() {
+        return !isRevealer() && super.isDrawn();
+    }
+
+    public void setVisible(boolean visible) {
+        if (DEBUG.PATHWAY) System.out.println(this + " setVisible " + visible);
+        super.setVisible(visible);
+        if (isRevealer()) {
+            if (visible) {
+                // if "showing" a reveal pathway, we actually hide all the
+                // elements after the current index
+                updateMemberVisibility();
+            } else {
+                if (DEBUG.PATHWAY) System.out.println(this + " setVisible: showing all items");
+                Iterator i = children.iterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    c.setVisible(true);
+                }
+            }
+        }
+    }
+
+    /** for reveal-way's: show all members up to index, hide all post current index */
+    private void updateMemberVisibility()
+    {
+        if (DEBUG.PATHWAY) System.out.println(this + " setVisible: hiding post-index items, showing all others");
+        int index = 0;
+        Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (index > mCurrentIndex)
+                c.setVisible(false);
+            else
+                c.setVisible(true);
+            index++;
+        }
+    }
+
     private static Color getNextColor()
     {
         if (sColorIndex >= ColorTable.length)
@@ -165,6 +210,8 @@ public class LWPathway extends LWContainer
         if (i >= 0 && VUE.getActivePathway() == this)
             VUE.getSelection().setTo(getElement(i));
         mCurrentIndex = i;
+        if (isRevealer())
+            updateMemberVisibility();
         notify("pathway.index");
         // Although this property is actually saved, it doesn't seem worthy of having
         // it be in the undo list -- it's more of a GUI config. (And FYI, I'm not sure if
@@ -287,14 +334,14 @@ public class LWPathway extends LWContainer
     }
     
     /**
-     * Overrides LWContainer removeChildren.  Pathways aren't true
+     * Pathways aren't true
      * parents, so all we want to do is remove the reference to them
      * and raise a change event.  Removes all items in iterator
      * COMPLETELY from the pathway -- all instances are removed.
      * The iterator may contains elements that are not in this pathway:
      * we just make sure any that are in this pathway are removed.
      */
-    //  Todo: factor & comine with remove(int index, bool deleting)
+    //  Todo: factor & combine with remove(int index, bool deleting)
     public void remove(Iterator i)
     {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChildren " + VUE.getSelection());

@@ -264,7 +264,7 @@ public class PathwayTable extends JTable
         {
             LWComponent c = getTableModel().getElement(row);
 
-            if (c.isFiltered())
+            if (c.isFiltered() || c.isHidden())
                 setForeground(Color.lightGray);
             else
                 setForeground(Color.black);

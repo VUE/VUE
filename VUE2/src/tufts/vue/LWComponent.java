@@ -109,6 +109,20 @@ public class LWComponent
         nodeFilter = new NodeFilter();
     }
 
+    public static abstract class Key {
+        public final String name;
+        public Key(String name) {
+            this.name = name;
+        }
+        public abstract void setValue(LWComponent c, Object v);
+        public abstract Object getValue(LWComponent c);
+        public String toString() { return ">" + name; }
+    }
+    public static final Key KEY_FillColor = new Key("fill.color") {
+            public void setValue(LWComponent c, Object val) { c.setFillColor((Color)val); }
+            public Object getValue(LWComponent c) { return c.getFillColor(); }
+        };
+    
 
     /**
      * Get the named property value from this component.
@@ -118,7 +132,10 @@ public class LWComponent
     //public static final Object UnsupportedPropertyValue = "<value-of-unsupported-property>";
     public Object getPropertyValue(final Object key)
     {
-        if (key == LWKey.FillColor)     return getFillColor();
+        if (key instanceof Key) {
+            return ((Key)key).getValue(this);
+        }
+        //if (key == LWKey.FillColor)     return getFillColor();
         if (key == LWKey.TextColor)     return getTextColor();
         if (key == LWKey.StrokeColor)   return getStrokeColor();
         if (key == LWKey.StrokeWidth)   return new Float(getStrokeWidth());
@@ -140,9 +157,12 @@ public class LWComponent
     {
         if (DEBUG.UNDO&&DEBUG.META) out("setProperty [" + key + "] to " + val);
 
+        if (key instanceof Key) {
+            ((Key)key).setValue(this, val);
+        }
         //if (val == UnsupportedPropertyValue) return;
                                            
-             if (key == LWKey.FillColor)        setFillColor( (Color) val);
+        //if (key == LWKey.FillColor)        setFillColor( (Color) val);
         else if (key == LWKey.TextColor)        setTextColor( (Color) val);
         else if (key == LWKey.StrokeColor)      setStrokeColor( (Color) val);
         else if (key == LWKey.StrokeWidth)      setStrokeWidth( ((Float) val).floatValue());
@@ -410,12 +430,24 @@ public class LWComponent
      */
     public String getDisplayLabel() {
         if (getLabel() == null) {
-            String name = getClass().getName();
-            if (name.startsWith("tufts.vue.LW"))
-                name = name.substring(12);
-            return name + " #" + getID();
+            return getUniqueComponentTypeLabel();
         } else
             return getLabel().replace('\n', ' ');
+    }
+
+    /** return a guaranteed unique name for this LWComponent */
+    public String getUniqueComponentTypeLabel() {
+        return getComponentTypeLabel() + " #" + getID();
+    }
+    
+    /** return a type name for this LWComponent */
+    public String getComponentTypeLabel() {
+        String name = getClass().getName();
+        if (name.startsWith("tufts.vue.LW"))
+            name = name.substring(12);
+        else if (name.startsWith("tufts.vue."))
+            name = name.substring(10);
+        return name;
     }
     
     public void setNodeFilter(NodeFilter nodeFilter) {
@@ -480,14 +512,21 @@ public class LWComponent
         }
         return false;
     }
-    public boolean inVisiblePathway()
+    
+    /**
+     * @return true if this component is in a pathway that is
+     * drawn with decorations (e.g., not a reveal-way)
+     */
+    public boolean inDrawnPathway()
     {
         if (pathwayRefs == null)
             return false;
         Iterator i = pathwayRefs.iterator();
-        while (i.hasNext())
-            if (((LWPathway)i.next()).isVisible())
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            if (p.isVisible() && !p.isRevealer())
                 return true;
+        }
         return false;
     }
     
@@ -506,6 +545,8 @@ public class LWComponent
             return;
         }
         pathwayRefs.remove(p);
+        if (p.isRevealer()) // if was a revealer, make sure we're not left invisible if it had us hidden
+            setVisible(true);
         layout();
         //notify("pathway.remove");
     }
@@ -636,7 +677,8 @@ public class LWComponent
             return;
         Object old = this.fillColor;
         this.fillColor = color;
-        notify(LWKey.FillColor, old);
+        notify(KEY_FillColor, old);
+        //notify(LWKey.FillColor, old);
     }
 
     /** for persistance */
@@ -1186,7 +1228,7 @@ public class LWComponent
         //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
         //    strokeWidth = STROKE_INDICATION.getLineWidth();
 
-        if (inVisiblePathway())
+        if (inDrawnPathway())
             strokeWidth += LWPathway.PathwayStrokeWidth;
 
         if (strokeWidth > 0) {
@@ -1393,6 +1435,11 @@ public class LWComponent
         notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
     }
 
+    protected void notify(Key key, Object oldValue)
+    {
+        notifyLWCListeners(new LWCEvent(this, this, key, oldValue));
+    }
+
     protected void notify(String what)
     {
         // todo: we still need both src & component? (this,this)
@@ -1482,9 +1529,11 @@ public class LWComponent
     
     public void setHidden(boolean hidden)
     {
-        Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
-        this.hidden = hidden;
-        notify(LWKey.Hidden, oldValue);
+        if (this.hidden != hidden) {
+            Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
+            this.hidden = hidden;
+            notify(LWKey.Hidden, oldValue);
+        }
     }
 
     public Boolean getXMLhidden() {

@@ -107,8 +107,8 @@ public final class LWGroup extends LWContainer
         Iterator i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWLink) // the only links allowed are ones we grab
-                continue;
+            //if (c instanceof LWLink) // the only links allowed are ones we grab
+            //  continue; // enabled in order to support reveal's with links in them
             moveList.add(c);
             //-------------------------------------------------------
             // If both ends of any link are in the selection,

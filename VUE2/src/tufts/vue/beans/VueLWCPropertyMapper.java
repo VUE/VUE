@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
 public class VueLWCPropertyMapper
     implements VuePropertyMapper
 {
-    static final String [] sNodeProperties = {  LWKey.FillColor,
+    static final String [] sNodeProperties = {  LWKey.FillColor.name,
                                                 LWKey.StrokeColor,
                                                 LWKey.StrokeWidth,
                                                 LWKey.TextColor,

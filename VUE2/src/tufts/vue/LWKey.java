@@ -34,7 +34,8 @@ public interface LWKey {
     public String Notes = "notes"; 
     public String Scale = "scale"; 
     public String Resource = "resource"; 
-    public String FillColor = "fill.color"; 
+    public LWComponent.Key FillColor = LWComponent.KEY_FillColor; 
+    //public String FillColor = "fill.color"; 
     public String TextColor = "text.color"; 
     public String StrokeColor = "stroke.color"; 
     public String StrokeWidth = "stroke.width"; 

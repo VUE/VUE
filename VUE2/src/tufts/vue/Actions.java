@@ -412,8 +412,9 @@ implements VueConstants {
         boolean enabledFor(LWSelection s) {
             // enable only when two or more objects in selection,
             // and all share the same parent
-            return (s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent();
-            //return s.size() >= 2 && s.allHaveSameParent();
+            return s.size() >= 2 && s.allHaveSameParent();
+            // below condition doesn't allow explicit grouping of links, which cause's trouble somewhere...
+            //return (s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent();
         }
         void act(LWSelection selection) {
             LWContainer parent = selection.first().getParent(); // all have same parent

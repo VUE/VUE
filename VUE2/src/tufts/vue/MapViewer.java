@@ -1004,7 +1004,7 @@ public class MapViewer extends javax.swing.JComponent
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.EVENTS && DEBUG.META) out("got " + e);
         
-        final String key = e.getWhat();
+        final Object key = e.getKey();
 
         if (DEBUG.DYNAMIC_UPDATE == false) {
             // this prevents other viewers of same map from updating until an

@@ -79,26 +79,26 @@ public class LWCEvent
     private ArrayList components = null;
     private Object oldValue = null;
     
-    private String what;
+    private Object key;
     
     // todo: we still using both src & component?
-    public LWCEvent(Object source, LWComponent c, String what, Object oldValue)
+    public LWCEvent(Object source, LWComponent c, Object key, Object oldValue)
     {
         this.source = source;
         this.component = c;
-        this.what = what;
+        this.key = key;
         this.oldValue = oldValue;
     }
 
-    public LWCEvent(Object source, LWComponent c, String what) {
-        this (source, c, what, NO_OLD_VALUE);
+    public LWCEvent(Object source, LWComponent c, Object key) {
+        this (source, c, key, NO_OLD_VALUE);
     }
 
-    public LWCEvent(Object source, ArrayList components, String what)
+    public LWCEvent(Object source, ArrayList components, Object key)
     {
         this.source = source;
         this.components = components;
-        this.what = what;
+        this.key = key;
         this.oldValue = NO_OLD_VALUE;
     }
     
@@ -122,8 +122,21 @@ public class LWCEvent
     public ArrayList getComponents() {
         return this.components;
     }
+
     public String getWhat() {
-        return this.what;
+        if (this.key instanceof LWComponent.Key)
+            return ((LWComponent.Key)key).name;
+        else
+            return (String) this.key;
+    }
+    public Object getKey() {
+        return this.key;
+    }
+    public String getKeyName() {
+        if (this.key instanceof LWComponent.Key)
+            return ((LWComponent.Key)key).name;
+        else
+            return (String) this.key;
     }
 
     /**
@@ -142,7 +155,7 @@ public class LWCEvent
 
     public String toString()
     {
-        String s = "LWCEvent[" + what
+        String s = "LWCEvent[" + key
             + " s=" + source;
         
         if (component != null && component != source)

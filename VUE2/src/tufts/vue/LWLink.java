@@ -124,8 +124,29 @@ public class LWLink extends LWComponent
         computeLinkEndpoints();
     }
 
-    private final String Key_LinkStartPoint = "link.start.location";
+    static abstract class LinkKey extends Key {
+        public LinkKey(String name) {
+            super(name);
+        }
+        public void setValue(LWComponent c, Object v) { setValue((LWLink)c, v); }
+        public Object getValue(LWComponent c) { return getValue((LWLink)c); }
+        public abstract void setValue(LWLink l, Object v);
+        public abstract Object getValue(LWLink l);
+    }
+
+    public static final LinkKey Key_LinkStartPoint = new LinkKey("link.start.location") {
+            public void setValue(LWLink l, Object val) {
+                l.setStartPoint((Point2D)val);
+            }
+            public Object getValue(LWLink l) {
+                return l.getPoint1();
+            }
+        };
+
+    //private final String Key_LinkStartPoint = "link.start.location";
     private final String Key_LinkEndPoint = "link.end.location";
+    private final String Key_Control_0 = "link.control.0";
+    private final String Key_Control_1 = "link.control.1";
 
     /**
      * @param key property key (see LWKey)
@@ -158,28 +179,24 @@ public class LWLink extends LWComponent
         // have a bunch of built-in type interpolaters that
         // anyone could use.
         
-        if (key == LWKey.LinkArrows)
-            return new Integer(getArrowState());
-        else if (key == LWKey.LinkCurves)
-            return new Integer(getControlCount());
-        else if (key == Key_LinkStartPoint)
-            return getPoint1();
-        else if (key == Key_LinkEndPoint)
-            return getPoint2();
+             if (key == LWKey.LinkArrows)       return new Integer(getArrowState());
+        else if (key == LWKey.LinkCurves)       return new Integer(getControlCount());
+             //else if (key == Key_LinkStartPoint)     return getPoint1();
+        else if (key == Key_LinkEndPoint)       return getPoint2();
+        else if (key == Key_Control_0)          return getCtrlPoint0();
+        else if (key == Key_Control_1)          return getCtrlPoint1();
         else
             return super.getPropertyValue(key);
     }
 
     public void setProperty(final Object key, Object val)
     {
-        if (key == LWKey.LinkArrows)
-            setArrowState(((Integer) val).intValue());
-        else if (key == LWKey.LinkCurves)
-            setControlCount(((Integer) val).intValue());
-        else if (key == Key_LinkStartPoint)
-            setPoint1((Point2D.Float)val);
-        else if (key == Key_LinkEndPoint)
-            setPoint2((Point2D.Float)val);
+             if (key == LWKey.LinkArrows)       setArrowState(((Integer) val).intValue());
+        else if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());
+             //else if (key == Key_LinkStartPoint)     setStartPoint((Point2D)val);
+        else if (key == Key_LinkEndPoint)       setEndPoint((Point2D)val);
+        else if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
+        else if (key == Key_Control_1)          setCtrlPoint1((Point2D)val);
         else
             super.setProperty(key, val);
     }
@@ -219,7 +236,6 @@ public class LWLink extends LWComponent
         startY = y;
         endpointMoved = true;
         notify(Key_LinkStartPoint, old);
-        //notify("link.ep1.location", new Undoable(old) { void undo() { setStartPoint((Point2D) old); }} );
     }
     private void setEndPoint(Point2D p) {
         setEndPoint((float)p.getX(), (float)p.getY());
@@ -230,7 +246,28 @@ public class LWLink extends LWComponent
         endY = y;
         endpointMoved = true;
         notify(Key_LinkEndPoint, old);
-        //notify("link.ep2.location", new Undoable(old) { void undo() { setEndPoint((Point2D) old); }} );
+    }
+    /** for persistance/init ONLY */
+    public void setPoint1(Point2D p)
+    {
+        startX = (float) p.getX();
+        startY = (float) p.getY();
+    }
+    /** for persistance/init ONLY */
+    public void setPoint2(Point2D p)
+    {
+        endX = (float) p.getX();
+        endY = (float) p.getY();
+    }
+    /** for persistance */
+    public Point2D.Float getPoint1()
+    {
+        return new Point2D.Float(startX, startY);
+    }
+    /** for persistance */
+    public Point2D.Float getPoint2()
+    {
+        return new Point2D.Float(endX, endY);
     }
 
     
@@ -409,29 +446,6 @@ public class LWLink extends LWComponent
     }
 
     /** for persistance */
-    public Point2D.Float getPoint1()
-    {
-        return new Point2D.Float(startX, startY);
-    }
-    /** for persistance */
-    public Point2D.Float getPoint2()
-    {
-        return new Point2D.Float(endX, endY);
-    }
-    /** for persistance */
-    public void setPoint1(Point2D.Float p)
-    {
-        startX = p.x;
-        startY = p.y;
-    }
-    /** for persistance */
-    public void setPoint2(Point2D.Float p)
-    {
-        endX = p.x;
-        endY = p.y;
-    }
-    
-    /** for persistance */
     public Point2D getCtrlPoint0()
     {
         if (curveControls == 0)
@@ -469,7 +483,7 @@ public class LWLink extends LWComponent
             quadCurve.ctrly = y;
         }
         endpointMoved = true;
-        notify("link.control.0", new Undoable(old) { void undo() { setCtrlPoint0((Point2D)old); }} );
+        notify(Key_Control_0, old);
     }
 
     /** for persistance and ControlListener */
@@ -486,7 +500,7 @@ public class LWLink extends LWComponent
         cubicCurve.ctrlx2 = x;
         cubicCurve.ctrly2 = y;
         endpointMoved = true;
-        notify("link.control.1", new Undoable(old) { void undo() { setCtrlPoint1((Point2D)old); }} );
+        notify(Key_Control_1, old);
     }
 
     protected void removeFromModel()

@@ -1075,7 +1075,7 @@ public abstract class LWContainer extends LWComponent
                 // we need to draw just in case any of the children are NOT filtered.
                 if (c.isVisible() && (!c.isFiltered() || c.hasChildren()) && c.intersects(clipBounds)) {
                     _drawChild(dc, c);
-                    if (DEBUG.PAINT) { // todo: remove MapViewer reference
+                    if (DEBUG.PAINT) {
                         if (c instanceof LWLink) links++;
                         else if (c instanceof LWNode) nodes++;
                     }

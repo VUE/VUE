@@ -238,11 +238,11 @@ public class UndoManager
     private static class UndoItem implements Comparable
     {
         LWComponent component;
-        String propKey;
+        Object propKey;
         Object oldValue;
         int index;
 
-        UndoItem(LWComponent c, String propertyKey, Object oldValue, int index) {
+        UndoItem(LWComponent c, Object propertyKey, Object oldValue, int index) {
             this.component = c;
             this.propKey = propertyKey;
             this.oldValue = oldValue;
@@ -261,6 +261,8 @@ public class UndoManager
                         undoAnimated();
                     } catch (Exception e) {
                         System.err.println("Exception during animated undo of [" + propKey + "] on " + component);
+                        if (oldValue != null)
+                            System.err.println("\toldValue is " + oldValue.getClass() + " " + oldValue);
                         e.printStackTrace();
                     }
                 }
@@ -484,7 +486,7 @@ public class UndoManager
             java.awt.Toolkit.getDefaultToolkit().beep();
             boolean olddb = DEBUG.UNDO;
             DEBUG.UNDO = true;
-            markChangesAsUndo("Unnamed Actions [last=" + mLastEvent.getWhat() + "]"); // collect whatever's there
+            markChangesAsUndo("Unnamed Actions [last=" + mLastEvent.getKeyName() + "]"); // collect whatever's there
             DEBUG.UNDO = olddb;
             return true;
         }
@@ -556,7 +558,7 @@ public class UndoManager
     public void mark(String aggregateName) {
         String name = null;
         if (mUndoSequence.size() == 1 && mLastEvent != null)
-            name = mLastEvent.getWhat();
+            name = mLastEvent.getKeyName();
         else
             name = aggregateName;
         markChangesAsUndo(name);
@@ -569,7 +571,7 @@ public class UndoManager
         if (name == null) {
             if (mLastEvent == null)
                 return;
-            name = mLastEvent.getWhat();
+            name = mLastEvent.getKeyName();
         }
         UndoList.add(collectChangesAsUndoAction(name));
         RedoList.clear();
@@ -612,7 +614,7 @@ public class UndoManager
 
     private void processEvent(LWCEvent e)
     {
-        if (e.getWhat() == LWKey.HierarchyChanging || e.getWhat().startsWith("hier.")) {
+        if (e.getKey() == LWKey.HierarchyChanging || e.getKeyName().startsWith("hier.")) {
             recordHierarchyChangingEvent(e);
         } else if (e.hasOldValue()) {
             recordPropertyChangeEvent(e);
@@ -636,8 +638,8 @@ public class UndoManager
     private void recordPropertyChangeEvent(LWCEvent e)
     {
         // e.getComponent can really be list... todo: warn us if list (should only be for hier events)
-        //recordUndoableChangeEvent(mPropertyChanges, e.getWhat(), e.getComponent(), e.getOldValue());
-        recordUndoableChangeEvent(mComponentChanges, e.getWhat(), e.getComponent(), e.getOldValue());
+        //recordUndoableChangeEvent(mPropertyChanges, e.getKey(), e.getComponent(), e.getOldValue());
+        recordUndoableChangeEvent(mComponentChanges, e.getKey(), e.getComponent(), e.getOldValue());
         mLastEvent = e;
     }
 
@@ -656,7 +658,7 @@ public class UndoManager
     }
     
 
-    private void recordUndoableChangeEvent(Map map, String propertyKey, LWComponent component, Object oldValue)
+    private void recordUndoableChangeEvent(Map map, Object propertyKey, LWComponent component, Object oldValue)
     {
         boolean compressed = false; // already had one of these props: can ignore all subsequent
         
