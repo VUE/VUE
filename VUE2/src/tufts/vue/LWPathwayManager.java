@@ -59,13 +59,15 @@ public class LWPathwayManager {
     
     public void addPathway(LWPathway pathway){
         pathways.add(pathway);
-        if(current == null)
-            current = pathway;              
+        
+        //if(current == null)
+        current = pathway;              
     }
     
     public void removePathway(LWPathway pathway){
         pathways.remove(pathway);
+        
         if(current == pathway)
-            current = getFirst();
+          current = getFirst();
     }
 }
