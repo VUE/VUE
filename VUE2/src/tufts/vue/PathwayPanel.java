@@ -84,7 +84,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     /* end Pathway Control Properties */
     
     private String[] colNames = {"A", "B", "C", "D", "E", "F"};
-    private int[] colWidths = {20,20,1,100,20,20};
+    private int[] colWidths = {20,20,13,100,20,20};
  
     /** Creates a new instance of PathwayPanel */
 
@@ -182,6 +182,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         
         for (int i = 0; i < colWidths.length; i++){
             TableColumn col = pathwayTable.getColumn(colNames[i]);
+            if (i == 2) col.setMinWidth(colWidths[i]);
             if (i != 3) col.setMaxWidth(colWidths[i]);
         } 
         
