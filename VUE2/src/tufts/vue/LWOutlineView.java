@@ -17,7 +17,7 @@ import javax.swing.border.EmptyBorder;
  *
  * @author  Daisuke Fujiwara
  */
-public class LWOutlineView extends InspectorWindow
+public class LWOutlineView extends ToolWindow
 {
     private OutlineViewTree tree = null;
     //private JLabel outlineLabel = null;
@@ -25,9 +25,7 @@ public class LWOutlineView extends InspectorWindow
     /** Creates a new instance of LWOutlineView */
     public LWOutlineView(JFrame parent) 
     {
-        super(parent, "Outline View");
-        setSize(500, 300);
-        setBackground(Color.white);
+        super("Outline View", parent);
         
         tree = new OutlineViewTree();
         tree.setBorder(new EmptyBorder(4,4,4,4));
@@ -37,10 +35,12 @@ public class LWOutlineView extends InspectorWindow
         
         //outlineLabel = new JLabel();
         
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(scrollPane, BorderLayout.CENTER);
+        addTool(scrollPane);
+        //getContentPane().setLayout(new BorderLayout());
+        //getContentPane().add(scrollPane, BorderLayout.CENTER);
         //getContentPane().add(outlineLabel, BorderLayout.NORTH);
-        getContentPane().setBackground(Color.white);
+        
+        setSize(500, 300);
     }
  
     public void switchMap(LWMap map)
