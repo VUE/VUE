@@ -1,28 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <mapping>
-	<class name="google.GSP">
-		<field name="RES" type="google.RES">
+	<class name="tufts.google.GSP">
+		<field name="RES" type="tufts.google.RES">
 			<bind-xml name="RES" node="element" />
 		</field>
 		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
 			<bind-xml matches="*" />
 		</field>
 	</class>
-	<class name="google.RES">
+	<class name="tufts.google.RES">
 		<field name="startNumber" type="integer">
 			<bind-xml name="SN" node="attribute" />
 		</field>
 		<field name="endNumber" type="integer">
 			<bind-xml name="EN" node="attribute" />
 		</field>
-		<field name="resultList" type="google.Result" collection="vector">
+		<field name="resultList" type="tufts.google.Result" collection="vector">
 			<bind-xml name="R" />
 		</field>
 		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
 			<bind-xml matches="*" />
 		</field>
 	</class>
-	<class name="google.Result">
+	<class name="tufts.google.Result">
 		<field name="count" type="integer">
 			<bind-xml name="N" type="attribute" />
 		</field>
