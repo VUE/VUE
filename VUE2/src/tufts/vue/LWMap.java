@@ -416,11 +416,11 @@ public class LWMap extends LWContainer
     {
         if (mCachedBoundsOld) {
             mCachedBounds = getBounds(getChildIterator());
-            setEventsEnabled(false);
             try {
+                setEventsSuspended();
                 setFrame(mCachedBounds);
             } finally {
-                setEventsEnabled(true);
+                setEventsResumed();
             }
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
             if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)

@@ -79,7 +79,7 @@ public class LWNode extends LWContainer
     // font strings, so this pad needs to be big enough to compensate
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
-    private static final int TextWidthFudgeAmount = 10;
+    private static final float TextWidthFudgeFactor = 1.1f; // 10% fudge
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
 
     private static final int MarginLinePadY = 5;
@@ -236,7 +236,7 @@ public class LWNode extends LWContainer
         float lx = relativeLabelX() - IconPadRight;
         float ly = relativeLabelY() - PadTop;
         float height = getLabelBox().getHeight() + PadTop;
-        float width = IconPadRight + getLabelBox().getWidth() + TextWidthFudgeAmount;
+        float width = (IconPadRight + getLabelBox().getWidth()) * TextWidthFudgeFactor;
 
         return
             cx >= lx &&
@@ -558,12 +558,13 @@ public class LWNode extends LWContainer
         // down a bit to be centered with the label!
 
         if (!iconShowing()) {
-            width += LabelPadLeft * 2 + TextWidthFudgeAmount; // adjust for scaled fonts understating their width
+            width += LabelPadLeft * 2;
+            width *= TextWidthFudgeFactor; // adjust for scaled fonts understating their width
         } else {
             float dividerY = EdgePadY + text.height;
             // GAK: relativeLabelX barely safe to call here,but only cause it
             // only computes horizontal centering when NOT displaying an icon
-            double stubX = LabelPositionXWhenIconShowing + text.width + TextWidthFudgeAmount;
+            double stubX = LabelPositionXWhenIconShowing + (text.width * TextWidthFudgeFactor);
             double stubHeight = DividerStubAscent;
             
             //dividerUnderline.setLine(0, dividerY, stubX, dividerY);

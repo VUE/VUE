@@ -639,6 +639,23 @@ class Actions
         }
     };
 
+    static final Action FillWidth = new AlignAction("Fill Width") {
+            void align(LWComponent c) {
+                ((LWNode)c).setAutoSized(false);
+                c.setFrame(minX, c.getY(), maxX - minX, c.getHeight());
+                //c.setLocation(minX, c.getY());
+                //c.setSize(maxX - minX, c.getHeight());
+            }
+        };
+    static final Action FillHeight = new AlignAction("Fill Height") {
+            void align(LWComponent c) {
+                ((LWNode)c).setAutoSized(false);
+                c.setFrame(c.getX(), minY, c.getWidth(), maxY - minY);
+                //c.setLocation(c.getX(), minY);
+                //c.setSize(c.getWidth(), maxY - minY);
+            }
+        };
+
     static final Action AlignLeftEdges = new AlignAction("Align Left Edges", KeyEvent.VK_LEFT) {
             void align(LWComponent c) { c.setLocation(minX, c.getY()); }
         };
@@ -721,6 +738,9 @@ class Actions
         null,
         AlignCentersRow,
         AlignCentersColumn,
+        null,
+        FillWidth,
+        FillHeight,
         null,
         MakeRow,
         MakeColumn,

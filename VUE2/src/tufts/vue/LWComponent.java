@@ -858,9 +858,30 @@ public class LWComponent
 
     public void setFrame(Rectangle2D r)
     {
-        if (DEBUG.LAYOUT) System.out.println("*** setFrame " + r + " " + this);
-        setLocation((float)r.getX(), (float)r.getY());
-        setSize((float)r.getWidth(), (float)r.getHeight());
+        setFrame((float)r.getX(), (float)r.getY(),
+                 (float)r.getWidth(), (float)r.getHeight());
+    }
+    
+    public void setFrame(float x, float y, float w, float h)
+    {
+        if (DEBUG.LAYOUT) System.out.println("*** setFrame " + x+","+y + " " + w+"x"+h + " " + this);
+
+        setLocation(x, y);
+        setSize(w, h);
+
+        /* play with this optimization when things more stable
+        
+        Object old = new Rectangle2D.Float(x, y, w, h);
+        try {
+            setEventsSuspended();
+            setLocation(x, y);
+            setSize(w, h);
+        } finally {
+            setEventsResumed();
+        }
+        notify(LWKey.Frame, old);
+
+        */
     }
 
     /**
@@ -1176,10 +1197,23 @@ public class LWComponent
     }
 
     protected boolean mEventsDisabled = false;
-    protected void setEventsEnabled(boolean t) {
+    private void setEventsEnabled(boolean t) {
         if (DEBUG.EVENTS) System.out.println(this + " *** EVENTS ENABLED: " + t);
         mEventsDisabled = !t;
     }
+    private int mEventSuspensions = 0;
+    protected synchronized void setEventsSuspended() {
+        mEventSuspensions++;
+        setEventsEnabled(false);
+    }
+    protected synchronized void setEventsResumed() {
+        mEventSuspensions--;
+        if (mEventSuspensions < 0)
+            throw new IllegalStateException("events suspend/resume unpaired");
+        if (mEventSuspensions == 0)
+            setEventsEnabled(true);
+    }
+    
     
     private static int sEventDepth = 0;
     protected synchronized void notifyLWCListeners(LWCEvent e)

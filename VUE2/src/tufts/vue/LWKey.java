@@ -8,6 +8,7 @@ public interface LWKey {
 
     public String Location = "location"; 
     public String Size = "size";
+    public String Frame = "frame"; // location & size
     
     public String Label = "label"; 
     public String Notes = "notes"; 

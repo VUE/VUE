@@ -1,13 +1,13 @@
-
 package tufts.vue.beans;
 
+import tufts.vue.*;
 
-import java.awt.*;
-import java.awt.geom.Point2D;
 import java.util.*;
 import java.beans.*;
-import javax.swing.*;
-import tufts.vue.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /** This class describes a DynamicPropertyMapper: an object that
 * can get and set dynamic properties of dynamic beans belonging to
@@ -132,6 +132,10 @@ public class VueLWCPropertyMapper
             // Point2D used as Size2D for now
             Point2D.Float p = (Point2D.Float) val;
             c.setSize(p.x, p.y);
+        }
+        else if (key == LWKey.Frame) {
+            Rectangle2D.Float r = (Rectangle2D.Float) val;
+            c.setFrame(r.x, r.y, r.width, r.height);
         }
         else if (key == LWKey.LinkArrows) {
             if (c instanceof LWLink) {

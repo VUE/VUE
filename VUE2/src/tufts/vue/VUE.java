@@ -1339,7 +1339,7 @@ public class VUE
         k2.setControlCount(2);
         map.addLink(k1);
         map.addLink(k2);
-        map.markAsSaved();
+        map.addLink(k3);
         // create test pathways
         if (false) {
             LWPathway p = new LWPathway("Test Pathway");
@@ -1348,6 +1348,8 @@ public class VUE
             p.add(n3);
             map.addPathway(p);
         }
+        
+        map.markAsSaved();
         
         /*else if(map.getLabel().equals("Test Nodes")){        
         }/*else if(map.getLabel().equals("Test Nodes")){        
