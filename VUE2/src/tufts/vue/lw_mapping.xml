@@ -19,6 +19,10 @@
   <!--class name="java.awt.geom.RectangularShape">
     <map-to xml="shape"/>
   </class -->
+  <class name="tufts.vue.shape.RectangularPoly2D">
+    <map-to xml="polygon"/>
+    <field name="sides"><bind-xml node="attribute"/></field>
+  </class>
   <class name="java.awt.geom.Rectangle2D$Float">
     <map-to xml="rectangle"/>
   </class>
@@ -121,11 +125,28 @@
 	
 	<class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
 		<map-to xml="link"/>
+	        <field name="point1">
+			<bind-xml name="point1" node="element"/>
+		</field>
+	        <field name="point2">
+			<bind-xml name="point2" node="element"/>
+		</field>
 		<field name="endPoint1_ID" type="string">
 			<bind-xml name="ID1" node="element"/>
 		</field>
 	        <field name="endPoint2_ID" type="string">
 			<bind-xml name="ID2" node="element"/>
+		</field>
+	        <field name="controlCount">
+			<bind-xml name="controlCount" node="attribute"/>
+		</field>
+                <!-- if isn't curved, these will be null, and thus not saved. so if this
+                     is present, we know it's a curved link-->
+	        <field name="ctrlPoint0">
+			<bind-xml name="ctrlPoint0" node="element"/>
+		</field>
+	        <field name="ctrlPoint1">
+			<bind-xml name="ctrlPoint1" node="element"/>
 		</field>
 	</class>
 
