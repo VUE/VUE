@@ -32,6 +32,7 @@ public class OpenAction extends AbstractAction
     /** Creates a new instance of OpenAction */
     public OpenAction() {
     }
+    
     public OpenAction(String label) {
         super(label);
         System.out.println("in openAction constructor...");

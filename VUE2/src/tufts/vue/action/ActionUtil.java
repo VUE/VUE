@@ -38,7 +38,6 @@ public class ActionUtil {
     public static File selectFile(String title, String extension)
     {
         File file = null;
-        boolean proceed = true;
         
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
@@ -51,6 +50,8 @@ public class ActionUtil {
         
         if (option == JFileChooser.APPROVE_OPTION) 
         {
+            boolean proceed = true;
+            
             if (chooser.getSelectedFile().exists())
               {
                 int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 

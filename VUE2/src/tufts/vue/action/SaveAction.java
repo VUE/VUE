@@ -28,7 +28,8 @@ import tufts.vue.*;
 public class SaveAction extends AbstractAction
 {
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
-    private static  String fileName = "";
+    //private static String fileName = "";
+    private static File file = null;
     private Marshaller marshaller = null;
     private boolean saveAs = true;
    
@@ -56,32 +57,56 @@ public class SaveAction extends AbstractAction
     
     
     public void setFileName(String fileName) {
-        this.fileName = fileName;
+        file = new File(fileName);
     }
     
     public String getFileName() {
-        return this.fileName;
+        return file.getAbsolutePath();
     }
     
     
     public void actionPerformed(ActionEvent e)
     {
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
-        if (isSaveAs()){
-            selectFile();            
+         
+        boolean saveCondition = true;
+        
+        if (isSaveAs() || file == null)
+        {
+          file = (ActionUtil.selectFile("Save Map", "xml"));
+          
+          if (file == null)
+              saveCondition = false;
         }
+        
+        if (saveCondition == true)
+        {
+          ActionUtil.marshallMap(file);
+          System.out.println("Saved " + getFileName());
+        }
+        
+        /**
         marshaller = getMarshaller();
-        try { 
+        
+        try 
+        { 
              marshaller.marshal(tufts.vue.VUE.getActiveMap());
-        }catch(MarshalException ex) {
+        }
+        catch(MarshalException ex) 
+        {
             System.out.println("problem with marshalling: "+ex);
-        }catch(ValidationException ve){
+        }
+        catch(ValidationException ve)
+        {
             System.out.println("problem with validating: "+ve);
         }
-        System.out.println("Saved " + getFileName());
+        
+         */
+       
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
      
+    /**  currently not being used (all of these moved to ActionUtil.java)
     private void selectFile()
     {
         try {  
@@ -121,6 +146,7 @@ public class SaveAction extends AbstractAction
         //}
         return this.marshaller;
     }
+     */
 }
 
 
