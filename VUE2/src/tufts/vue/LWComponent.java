@@ -67,7 +67,22 @@ public class LWComponent
     
     public void setNotes(String notes)
     {
-        this.notes = notes;
+        // tmp hack to workaround NotePanel bugs
+        if (this.links == null) {
+            new Throwable("*** ATTEMPT TO SET NOTES ON A DELETED LWC " + this).printStackTrace();
+            return;
+        }
+        
+        if (notes == null) {
+            this.notes = null;
+        } else {
+            String trimmed = notes.trim();
+            if (trimmed.length() > 0)
+                this.notes = trimmed;
+            else
+                this.notes = null;
+        }
+        layout();
         notify("notes");
     }
     public void setMetaData(String metaData)
@@ -110,9 +125,18 @@ public class LWComponent
         return this.label;
     }
     
+    public boolean hasLabel()
+    {
+        return this.label != null;
+    }
+    
     public String getNotes()
     {
         return this.notes;
+    }
+    public boolean hasNotes()
+    {
+        return notes != null && notes.length() > 0;
     }
     public String getMetaData()
     {
@@ -350,7 +374,10 @@ public class LWComponent
                 this.stroke = new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
             else
                 this.stroke = STROKE_ZERO;
-            layout();
+            if (getParent() != null) {
+                // because stroke affects bounds-width, may need to re-layout parent
+                getParent().layout();
+            }
             notify("strokeWidth");
         }
     }
@@ -631,14 +658,8 @@ public class LWComponent
     public void setY(float y) { this.y = y; }
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
-    public float getBoundsWidth() {
-        return (this.width + this.strokeWidth) * getScale();
-        //return (this.width + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
-    }
-    public float getBoundsHeight() {
-        return (this.height + this.strokeWidth) * getScale();
-        //return (this.height + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
-    }
+    public float getBoundsWidth() { return (this.width + this.strokeWidth) * getScale(); }
+    public float getBoundsHeight() { return (this.height + this.strokeWidth) * getScale(); }
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }
 
@@ -980,9 +1001,12 @@ public class LWComponent
     }
  
     /**for hashtable usage 
-       added by Daisuke Fujiwara*/
+       added by Daisuke Fujiwara
+       Why do we need this over the built-in native hashCode?  the ID
+       isn't always set and this won't work in those cases. --SF
+    */
     
-    public int hashCode()
+    public int broken_hashCode()
     {
         if (getID() != null)
           return Integer.parseInt(getID());
@@ -991,7 +1015,10 @@ public class LWComponent
           throw new IllegalStateException("illegal null ID for the component:" + toString());
     }
     
-    public boolean equals(LWComponent component)
+    // There is no such thing as node "equality" -- either it's
+    // the same object or it's not, so use == to compute equality. --SF
+    // (or allow the default Object.equals, which does the same).
+    public boolean broken_equals(LWComponent component)
     {   
         //if the object comparing with is a null pointer then return false
         if (component == null)
