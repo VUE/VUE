@@ -19,11 +19,12 @@
 package tufts.vue;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.border.*;
+import java.util.Iterator;
 
 /**
  * PathwayTool.java
@@ -135,7 +136,7 @@ public class PathwayTool extends VueSimpleTool
 
         
     }
-    private static class  PathwayToolPanel extends VueUtil.JPanel_aa {
+    private static class  PathwayToolPanel extends JPanel {
         
         private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
         
@@ -147,6 +148,9 @@ public class PathwayTool extends VueSimpleTool
                 add(label);
             }
             JComboBox combo = new JComboBox(new PathwayComboBoxModel());
+            Font f = combo.getFont();
+            Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
+            combo.setFont(menuFont);
             combo.setBackground(VueTheme.getVueColor());
 
             // A total hack so the visible height of the combo-box is squeezed down a bit
