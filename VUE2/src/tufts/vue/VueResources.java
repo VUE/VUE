@@ -1,3 +1,22 @@
+ /*
+ * -----------------------------------------------------------------------------
+ *
+ * <p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
+ *
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * Tufts University. All rights reserved.</p>
+ *
+ * -----------------------------------------------------------------------------
+ */
+
+
 package tufts.vue;
 
 import java.util.*;
@@ -135,28 +154,60 @@ public class VueResources
         return f;
     }
         
-        
-    public static URL getURL(String pLookupKey) {
+    public static URL getURL(String pLookupKey) 
+    {       
         URL url = null;
+            
         try {
-            url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
+            //url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
+            url = sResourceBundle.getClass().getResource(getString(pLookupKey));
             System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+url);
         } catch (Exception e) {
-            alert("  !!! failed to lead due to "+ e.toString() );
-        }
+            alert("  !!! failed to lead due to "+ e.toString() );    
+        }    
+        
         return url;
     }
-	
-    public static File getFile(String pLookupKey) {
-        File file = null;
-        try {
-            file =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")) ;
-            System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+file);
-        } catch (Exception e) {
-            alert("  !!! failed to lead due to "+ e.toString() );
-        }
-        return file;
-    }
+
+        
+     public static File getFile(String pLookupKey) 
+     {
+           File file = null;
+            try {
+                file =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")) ;
+                
+                if (!file.exists())
+                {
+                    System.out.println("getFile is doing class loader thing hopefully YA!!");
+                    //file = new File(ClassLoader.getSystemResource(getString(pLookupKey)).getFile().replaceAll("%20"," "));
+                    URL url = ClassLoader.getSystemResource(getString(pLookupKey));   
+                    System.out.println("the url of the " + pLookupKey + " is " + url);
+                    
+                    file = new File(url.getFile().replaceAll("%20"," "));
+                    System.out.println("finished with " + file.toString());
+                    
+                    if (file == null)
+                        System.err.println("error in getFile method");
+                    
+                    else if (!file.exists())
+                    {
+                        System.err.println("getting screwed");
+                        file = null;
+                    }
+                }
+                
+                else
+                {
+                    System.out.println("file exists!!!!!!!!!!");
+                }
+                
+                System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+file);
+            } catch (Exception e) {
+		alert("  !!! failed to lead due to "+ e.toString() );
+            }
+            return file;
+     }
+    
     /**
      * getString
      * This method returns the String from a properties file
@@ -176,7 +227,6 @@ public class VueResources
         if (DEBUG.INIT) System.out.println("VueResources[" + pLookupKey + "] = " + (result==null?"null":"\"" + result + "\""));
         return result;
     }
-
 	
     /**
      * getStringArray()

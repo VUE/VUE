@@ -1,4 +1,22 @@
 /*
+ * -----------------------------------------------------------------------------
+ *
+ * <p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
+ *
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * Tufts University. All rights reserved.</p>
+ *
+ * -----------------------------------------------------------------------------
+ */
+
+/*
  * DataSourceViewer.java
  *
  * Created on October 15, 2003, 1:03 PM
@@ -59,7 +77,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     AbstractAction saveAction;
     AbstractAction refreshAction;
     
-    final static String XML_MAPPING =  VueResources.getURL("mapping.lw").getFile();
+    //final static String XML_MAPPING =  VueResources.getURL("mapping.lw").getFile();
+    final static java.net.URL XML_MAPPING =  VueResources.getURL("mapping.lw");
     
     public DataSourceViewer(DRBrowser drBrowser){
         
@@ -860,6 +879,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 }
                 else if(type == DataSource.FILING_REMOTE){
                     if (fedora > 0) {nDs = fedora - filingremote - 1;}
+
+
                     else if (google > 0){nDs = google - filingremote - 1;}
                     else if (osid_dr > 0){nDs = osid_dr - filingremote - 1;}
                     else nDs = (dataSourceList.getContents().getSize() - filingremote);
