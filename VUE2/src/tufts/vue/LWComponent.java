@@ -1149,7 +1149,7 @@ public class LWComponent
             parent.notifyLWCListeners(e);
     }
     
-    protected void notify(String what)
+    void notify(String what)
     {
         // todo: we still need both src & component? (this,this)
         notifyLWCListeners(new LWCEvent(this, this, what));
