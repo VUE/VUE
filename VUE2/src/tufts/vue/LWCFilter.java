@@ -60,7 +60,7 @@ public class LWCFilter {
     boolean mIsAny = false;
     
     /** the filter action **/
-    private Object mFilterAction = ACTION_HIDE;
+    private Object mFilterAction = ACTION_SHOW;
     
     /** is the matching inverse of the logical?  A logical NOT **/
     private boolean mIsLogicalNot = false;

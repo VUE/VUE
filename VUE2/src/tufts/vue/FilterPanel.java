@@ -155,9 +155,10 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mUpperPanel.setLayout( new BorderLayout() );
             
             mActionCombo = new JComboBox();
-            mActionCombo.addItem(LWCFilter.ACTION_HIDE);
-            mActionCombo.addItem(LWCFilter.ACTION_SHOW);
+            mActionCombo.addItem(LWCFilter.ACTION_SHOW); 
             mActionCombo.addItem(LWCFilter.ACTION_SELECT);
+            mActionCombo.addItem(LWCFilter.ACTION_HIDE);
+           
             
             // disabled for now. May add a modified version later
             mAnyAllCombo = new JComboBox();
