@@ -32,6 +32,7 @@ public class LWMap extends LWContainer
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
+        manager = new LWPathwayManager();
     }
 
     public LWMap(String label)
