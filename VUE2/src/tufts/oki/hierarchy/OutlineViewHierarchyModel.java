@@ -101,16 +101,17 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
        A boolean flag is used to determine whether to search for the node recursively in sub-levels
      */
     public HierarchyNode findHierarchyNode(HierarchyNode hierarchyNode, LWComponent component, boolean recursive)
+        throws osid.hierarchy.HierarchyException
     {   
         HierarchyNode foundNode = null;
         
-        if (component == null)
+        if (component == null || hierarchyNode == null)
         {
             System.err.println("the component is null in findHierarchyNode method");
             return null;
         }
         
-        try
+        //try
         {
             for (osid.hierarchy.NodeIterator i = hierarchyNode.getChildren(); i.hasNext();)
             {
@@ -136,14 +137,66 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             }
         }
         
-        catch(osid.hierarchy.HierarchyException he)
-        {
-            System.err.println("hierarchy exception");
-        }
+        //catch(osid.hierarchy.HierarchyException he)
+        //{
+            //System.err.println("hierarchy exception");
+        //}
         
         return foundNode;
     }
     
+    public ArrayList findHierarchyNodeByComponentID(HierarchyNode parentNode, String id) throws osid.hierarchy.HierarchyException
+    {
+        if (parentNode == null ||id == null)
+        {
+            System.err.println("null in findHierarchyNodebyID method");
+            return null;
+        }
+        
+        ArrayList nodes = new ArrayList();
+       
+        for (osid.hierarchy.NodeIterator i = parentNode.getChildren(); i.hasNext();)
+        {
+            HierarchyNode childNode = (HierarchyNode)i.next();
+            
+            if(childNode.getLWComponent().getID().equals(id))
+            {
+                nodes.add(childNode);
+            }
+            
+            nodes.addAll(findHierarchyNodeByComponentID(childNode, id));
+        }
+        
+        return nodes;
+    }
+    
+    public void updateHierarchyNodeLabel(String newLabel, String id)
+    {
+        try
+        {
+            ArrayList nodes = findHierarchyNodeByComponentID(getRootNode(), id);
+          
+            for (Iterator i = nodes.iterator(); i.hasNext();)
+            {
+                HierarchyNode hierarchyNode = (HierarchyNode)i.next();
+                hierarchyNode.updateDisplayName(newLabel);
+            }
+            
+            System.out.println("successfully changed the node label");
+        }
+        
+        catch(osid.hierarchy.HierarchyException he)
+        {
+            System.err.println(he.getMessage());
+        }
+        
+        catch(Exception e)
+        {
+            System.err.println("null was found here");
+            e.printStackTrace();
+        }
+    }
+      
     /**Adds a new hierarchy node*/
     public void addHierarchyTreeNode(LWContainer parent, LWComponent addedChild)
     {      
@@ -277,6 +330,20 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             
                 else
                   parentNode = findHierarchyNode(getRootNode(), parent, true);
+                
+                if (parentNode == null) 
+                {
+                    System.err.println("*** NULL parentNode when deleting a hierarchy node in OutlineViewHierarchyModel");
+                    // don't know what right thing to do here, but this exception
+                    // was driving me crazy -- SMF 2003-11-13 18:19.04
+                    return;
+                }
+            
+                //finds the tree node representing the deleted child
+                deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);
+                
+                //removes from the hierarch model
+                deleteHierarchyNode(parentNode, deletedChildNode);
             }
             
             catch (osid.hierarchy.HierarchyException he)
@@ -284,19 +351,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 System.err.println("couldn't get the root");
             }
              
-            if (parentNode == null) 
-            {
-                System.err.println("*** NULL parentNode when deleting a hierarchy node in OutlineViewHierarchyModel");
-                // don't know what right thing to do here, but this exception
-                // was driving me crazy -- SMF 2003-11-13 18:19.04
-                return;
-            }
             
-            //finds the tree node representing the deleted child
-            deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);
-             
-            //removes from the hierarch model
-            deleteHierarchyNode(parentNode, deletedChildNode);
         }
          
         //if it is a LWLink
@@ -313,26 +368,26 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             {
                 linkedNode1 = findHierarchyNode(getRootNode(), component1, true);
                 linkedNode2 = findHierarchyNode(getRootNode(), component2, true);
+                
+                //finds the hierarchy nodes associated with the two components and deletes the tree node representing the link to
+                //the two tree nodes
+                //must check to see if the parent wasn't deleted in the process
+                if (linkedNode1 != null)
+                {
+                    HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
+                    deleteHierarchyNode(linkedNode1, linkNode1);
+                }
+              
+                if (linkedNode2 != null)
+                {
+                    HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
+                    deleteHierarchyNode(linkedNode2, linkNode2);
+                }
             }
             
             catch (osid.hierarchy.HierarchyException he)
             {
                 System.err.println("couldn't find the root");
-            }
-            
-            //finds the hierarchy nodes associated with the two components and deletes the tree node representing the link to
-            //the two tree nodes
-            //must check to see if the parent wasn't deleted in the process
-            if (linkedNode1 != null)
-            {
-                HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
-                deleteHierarchyNode(linkedNode1, linkNode1);
-            }
-              
-            if (linkedNode2 != null)
-            {
-                HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
-                deleteHierarchyNode(linkedNode2, linkNode2);
             }
         }
     }
@@ -482,47 +537,10 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         
         catch (Exception e)
         {
-            System.err.println("Exception in the tree path method: " + e.getMessage());
+            //System.err.println("Exception in the tree path method: " + e.getMessage());
             path = null;
         }
         
         return path;
-    }
-    
-    /**A method which gets called when a component on a map changed its label so the update is reflected
-       to the hierarchy node associated with the component*/
-    public void updateNodeDisplayName(LWComponent component)
-    {   
-        System.out.println("the component to update is " + component);
-        
-        try
-        {
-            if (component == null)
-              return;
-            
-            //find the hierarchy node
-            HierarchyNode node = findHierarchyNode(getRootNode(), component, true);
-        
-            //switch to the new name
-            if (node != null)
-            {
-              node.updateDisplayName(component.getLabel());
-              System.out.println("update completed");
-            }
-            
-            else
-              System.err.println("node was not found in updateNodeDisplayName");
-        }
-        
-        catch (osid.hierarchy.HierarchyException he)
-        {
-            System.err.println("Hierarchy exception doing the updateNodeDisplayName method");
-        }
-        
-        catch (Exception e)
-        {
-            System.err.println("General exception doing the updateNodeDisplayName method");
-            e.printStackTrace();
-        }
     }
 }

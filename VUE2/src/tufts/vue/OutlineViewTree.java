@@ -14,6 +14,8 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.ImageIcon;
+import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * @author  Daisuke Fujiwara
@@ -38,7 +40,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     {
          setModel(null);
          setEditable(true);
-         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+         getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
         
          VUE.getSelection().addListener(this);
@@ -128,6 +130,28 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         }
     }
     
+    public void setSelectionPaths(ArrayList list)
+    {
+        if (hierarchyModel != null)
+        {
+            TreePath[] paths = new TreePath[list.size()];
+            int counter = 0;
+            
+            TreePath path;
+            
+            for(Iterator i = list.iterator(); i.hasNext();)
+            {  
+              if ((path = hierarchyModel.getTreePath((LWComponent)i.next())) != null)
+              {
+                paths[counter] = path;
+                counter++;
+              }
+            }
+            
+            super.setSelectionPaths(paths);
+        }
+    }
+    
     /**A wrapper method which determines whether the underlying model contains a node with the given component*/
     public boolean contains(LWComponent component)
     {
@@ -189,8 +213,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     
         //when a label on a node was changed
         //Already label filtered. ???
-        //hierarchyModel.updateNodeDisplayName(e.getComponent());
-            
+                
+        hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
+        
         //repaints the entire tree
         repaint();       
     }
@@ -198,9 +223,10 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     /** A method for handling LWSelection event **/
     public void selectionChanged(LWSelection selection)
     {
+        System.out.println("selectionChanged being called");
         //if it is not an empty selection, select the first element in the selection
         if (!selection.isEmpty())
-          setSelectionPath(selection.first());
+          setSelectionPaths(selection);
         
         //else deselect
         else 
