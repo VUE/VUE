@@ -70,8 +70,8 @@ public abstract class LWContainer extends LWComponent
             try {
                 String ep1ID = l.getEndPoint1_ID();
                 String ep2ID = l.getEndPoint2_ID();
-                if (ep1ID != null) l.setEndPoint1(topLevelContainer.findChildByID(ep1ID));
-                if (ep2ID != null) l.setEndPoint2(topLevelContainer.findChildByID(ep2ID));
+                if (ep1ID != null) l.setComponent1(topLevelContainer.findChildByID(ep1ID));
+                if (ep2ID != null) l.setComponent2(topLevelContainer.findChildByID(ep2ID));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("*** bad link? " + l);
@@ -222,8 +222,19 @@ public abstract class LWContainer extends LWComponent
         this.children.add(c);
         c.setParent(this);
 
+        ensureID(c);
+    }
+
+    private void ensureID(LWComponent c)
+    {
         if (c.getID() == null)
             c.setID(getNextUniqueID());
+
+        if (c instanceof LWContainer) {
+            Iterator i = ((LWContainer)c).getChildIterator();
+            while (i.hasNext())
+                ensureID((LWComponent) i.next());
+        }
     }
 
     public void addChild(LWComponent c)
@@ -232,6 +243,33 @@ public abstract class LWContainer extends LWComponent
         ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
         c.notify("added", this);
         notify("childAdded", c);
+    }
+    
+    public void addChildren(Iterator i)
+    {
+        ArrayList addedChildren = new ArrayList();
+        
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getParent() == this)
+                throw new IllegalArgumentException(this + " addChildren trying to add exsiting child " + c);
+            addChildInternal(c);
+            addedChildren.add(c);
+        }
+
+        // need to do this afterwords so everyone has a parent to check
+        Iterator in = addedChildren.iterator();
+        while (in.hasNext()) {
+            ensureLinksPaintOnTopOfAllParents((LWComponent) in.next());
+            //c.notify("added", this); todo: need to call this for each child to == addChild??
+        }
+        
+        
+        if (addedChildren.size() > 0) {
+            notify("childrenAdded", addedChildren);
+            //todo: change all these child events to a structureChanged event
+            layout();
+        }
     }
     
     private void ensureLinksPaintOnTopOfAllParents()
@@ -280,10 +318,12 @@ public abstract class LWContainer extends LWComponent
                 // sending link to back and creating a very confusing visual situation,
                 // unless all of our parents happen to be transparent.
                 LWComponent topMostParentThatIsSiblingOfLink = component.getParentWithParent(commonParent);
-                if (topMostParentThatIsSiblingOfLink == null)
-                    System.err.println("### COULDN'T FIND COMMON PARENT FOR " + component);
-                else
-                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l); // <-line 253 -- see debug below
+                if (topMostParentThatIsSiblingOfLink == null) {
+                    // this could happen for stuff in cutbuffer w/out parent?
+                    System.err.println("*** couldn't find common parent for " + component);
+                    new Throwable().printStackTrace();
+                } else
+                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l); // <-was line 253 in bug comment below
                 
 /*
   I think this happened dropping a node on to another where there was a link between them...
@@ -355,23 +395,27 @@ VueAction: Zoom 100% n=1
     {
         ArrayList deletedChildren = new ArrayList();
         
-        int count = 0;
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.getParent() == this) {
                 removeChildInternal(c);
                 deletedChildren.add(c);
-                count++;
-            }
+            } else
+                throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
         }
-        if (count > 0) {
+        if (deletedChildren.size() > 0) {
             notify("childrenRemoved", deletedChildren);
             //todo: change all these child events to a structureChanged event
             layout();
         }
     }
 
-    public void deleteChild(LWComponent c)
+    /**
+     * Delete a child and PERMANENTLY remove it from the model.
+     * Differs from removeChild / removeChildren, which just
+     * de-parent the nodes, tho leave any listeners in place.
+     */
+    public void deleteChildPermanently(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING " + c);
         c.notify("deleting");
@@ -733,7 +777,8 @@ VueAction: Zoom 100% n=1
 
                 // make sure the rollover is painted on top
                 // a bit of a hack to do this here -- better MapViewer
-                if (c.isRollover() && c.getParent() instanceof LWNode) {
+                //if (c.isRollover() && c.getParent() instanceof LWNode) {
+                if (c.isRollover()) {
                     rollover = c;
                     continue;
                 }
@@ -798,6 +843,21 @@ VueAction: Zoom 100% n=1
     {
         child.draw(dc);
     }
+
+    public LWComponent duplicate()
+    {
+        LWContainer containerCopy = (LWContainer) super.duplicate();
+        
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            LWComponent childCopy = c.duplicate();
+            containerCopy.children.add(childCopy);
+            childCopy.setParent(containerCopy);
+        }
+        return containerCopy;
+    }
+    
     
 
     public String paramString()
