@@ -332,10 +332,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         }  catch (Exception ex) {
             if(countError >5) {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
-                //countError = 0;
+                countError = 0;
             }else {
-                searchButton.doClick();
                 countError++;
+                searchButton.doClick();
             }
              System.out.println("DRViewer.performSearch :"+ex);
         }
@@ -356,11 +356,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         } catch (Exception ex) {
             if(countError > 5){ 
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
-                //countError = 0;
+                countError = 0;
            }else {
-                searchButton.doClick();
                 countError++;
-            }
+                searchButton.doClick();
+           }
             ex.printStackTrace();
                        
         }
@@ -379,10 +379,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         } catch (Exception ex) {
              if(countError > 5) {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
-                //countError = 0;
+                countError = 0;
              }else {
-                nextButton.doClick();
                 countError++;
+                nextButton.doClick();
             }
             System.out.println("DRViewer.performMoreSearch :"+ex);
         } 
