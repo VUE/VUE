@@ -659,10 +659,14 @@ implements  VUE.ActiveMapListener {
             } else {
                 mShowButton.setSelected(true);
             }
-            if(mMap.isFiltered()) 
-                mFilterButton.setSelected(false);
-            else
+          
+            if(mFilter.isFilterOn())  {
                 mFilterButton.setSelected(true);
+                mFilterButton.setText("Disable Filter");
+            }else {
+                mFilterButton.setSelected(false);
+                mFilterButton.setText("Apply Filter");
+            }
             // TODO FIX: basically, filter updating is very dumb right now: this doClick is ultimately
             // ALWAYS triggering a setFilter on the current map whenever the active map
             // changes, even if the filter is exactly the same, or there isn't even
@@ -670,7 +674,7 @@ implements  VUE.ActiveMapListener {
             // every time the active map changes, no matter what (which will get expensive
             // with sizeable maps).  There's also a bug where the filter is getting turned
             // off when you switch to another map and then back again.
-            mFilterButton.doClick();
+            //mFilterButton.doClick();
             mMainFilterPanel.validate();
         }
         /** Enabled the current filter, and tell the map of a filter change */
