@@ -122,7 +122,7 @@ public abstract class MenuButton extends JButton
         if (createCustom) {
             JMenuItem item = new JMenuItem("Custom..."); // todo: more control over this item
             item.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) { handleMenuSelection(runCustomChooser()); }});
+                    public void actionPerformed(ActionEvent e) { handleValueSelection(runCustomChooser()); }});
             mPopup.add(item);
         }
 
@@ -132,10 +132,10 @@ public abstract class MenuButton extends JButton
     }
 		
     protected void handleMenuSelection(ActionEvent e) {
-        handleMenuSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
+        handleValueSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
     }
     
-    protected void handleMenuSelection(Object newPropertyValue) {
+    protected void handleValueSelection(Object newPropertyValue) {
         if (newPropertyValue == null) // could be result of custom chooser
             return;
         Object oldValue = getPropertyValue();
