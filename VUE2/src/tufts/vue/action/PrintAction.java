@@ -122,7 +122,12 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
      */
     private PageFormat getPageFormatInteractive(PrinterJob job)
     {
-        return pageFormat = job.pageDialog(getPageFormat(job));
+        PageFormat initial = getPageFormat(job);
+        PageFormat result = job.pageDialog(initial);
+        if (result != initial)
+            return pageFormat = result;
+        else
+            return null; // dialog was canceled
     }
     
     /** If there's anything to print, initiate a print job */
@@ -150,11 +155,17 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
             PrinterJob job = getPrinterJob();
             if (job.printDialog()) {
                 try {
+                    //PageFormat format = getPageFormat(job);
                     PageFormat format = getPageFormatInteractive(job);
                     out("format: " + out(format));
-                    job.setJobName(this.jobName);
-                    job.setPrintable(this, format);
-                    job.print();
+                    if (format != null) {
+                        job.setJobName(this.jobName);
+                        job.setPrintable(this, format);
+                        // try setting pageable to see if it then
+                        // skips system dialog (we'd like a no-dialog option)
+                        //job.setPrintService(job.getPrintService());
+                        job.print();
+                    }
                 } catch (Exception ex) {
                     out("print exception:" + ex);
                     ex.printStackTrace();
