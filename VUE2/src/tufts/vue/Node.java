@@ -6,7 +6,10 @@ import java.awt.geom.Point2D;
 public class Node extends MapItem
 {
     private javax.swing.ImageIcon icon = null;
-
+    
+    public Node() {
+        super("Node");
+    }
     public Node(String label)
     {
         super(label);

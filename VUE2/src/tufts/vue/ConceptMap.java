@@ -19,6 +19,10 @@ public class ConceptMap extends MapItem
 
     private float originX;
     private float originY;
+    
+    public ConceptMap() {   
+        super("Map");
+    }
 
     public ConceptMap(String label)
     {

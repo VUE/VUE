@@ -13,6 +13,8 @@ public class VUE
 {
     public static Cursor CURSOR_ZOOM_IN;
     public static Cursor CURSOR_ZOOM_OUT;
+    
+    public static ConceptMap map1 = null;
 
     static {
         /*
@@ -97,7 +99,7 @@ public class VUE
          * create an example map (this will become
          * map loading code after the viewer is up)
          */
-        ConceptMap map1 = new ConceptMap("Example One");
+        map1 = new ConceptMap("Example One");
         ConceptMap map2 = new ConceptMap("Example Two");
         ConceptMap map3 = new ConceptMap("Empty Map");
         
@@ -210,5 +212,9 @@ public class VUE
         map.addLink(new Link(n1, n2));
         map.addLink(new Link(n2, n3));
         map.addLink(new Link(n2, n4));
+    }
+    
+    public static  ConceptMap getMap() {
+        return map1;
     }
 }

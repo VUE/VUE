@@ -8,6 +8,10 @@ public class Link extends MapItem
     private boolean ordered = true;
     private boolean fixed = false;
 
+    public Link() {
+        
+    }
+    
     public Link(MapItem i1, MapItem i2)
     {
         setItem1(i1);
