@@ -102,8 +102,10 @@ ActionListener {
             
             JComponent field = (JComponent) labelTextPairs[i+1];
             //field.setFont(VueConstants.SmallFont);
-            if (field instanceof JTextField)
+            if (field instanceof JTextField) {
+                //((JTextField)field).setHorizontalAlignment(JTextField.LEFT);
                 ((JTextField)field).addActionListener(this);
+            }
             gridbag.setConstraints(field, c);
             container.add(field);
             
