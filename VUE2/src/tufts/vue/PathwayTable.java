@@ -307,13 +307,15 @@ public class PathwayTable extends JTable{
                 if(path == tab.getCurrentPathway())
                 {
                   System.out.println(path.toString() + " suckaaa");
-                  this.setBackground(Color.red);
-                }
+                  this.setBackground(Color.yellow);
+                } else
+                  this.setBackground(bgColor);
                 
                 this.setFont(currentFont);
                 this.setText(path.getLabel());   
                 
             }else if (obj instanceof LWComponent){
+                this.setBackground(bgColor);
                 LWPathway p = tab.getPathwayTableModel().getManager().getPathwayforElementAt(row);
                 LWComponent c = (LWComponent)obj;
                 this.setText(c.getLabel());
