@@ -52,7 +52,15 @@ public class VueUtil
     public static void main(String args[])
         throws java.io.IOException
     {
-        System.getProperties().list(System.out);
+        //.list(System.out);
+        Hashtable props = System.getProperties();
+        Enumeration e = props.keys();
+        while (e.hasMoreElements()) {
+            Object key = e.nextElement();
+            //System.out.println("[1;36m" + key + "[m=" + props.get(key));
+            System.out.println(key + "=" + props.get(key));
+        }
+        
         if (args.length > 0)
             openURL(args[0]);
         else
