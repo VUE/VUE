@@ -623,7 +623,7 @@ public class LWNode extends LWContainer
         }
 
         setSizeNoLayout(min.width, min.height);
-if (false)
+
         dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
 
         if (getParent() != null && !(getParent() instanceof LWMap)) {
