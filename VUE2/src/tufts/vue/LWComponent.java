@@ -16,7 +16,7 @@ import java.awt.geom.Rectangle2D;
 
 class LWComponent
     implements VueConstants,
-               MapItemChangeListener
+               MapItemListener
 // todo: consider subclassing the abstract RectangularShape???
 {
     private float x;
@@ -40,11 +40,19 @@ class LWComponent
         this.mapItem.addChangeListener(this);
     }
 
-    public void mapItemChanged(MapItemChangeEvent e)
+    public void mapItemChanged(MapItemEvent e)
     {
         //System.out.println(e);
         MapItem mi = e.getSource();
-        setLocation(mi.getPosition());
+        //setLocation(mi.getPosition());
+    }
+
+    // does this component paint on the map as a whole?
+    // (e.g., links do this) -- If not, translate
+    // into component coord space before it paints.
+    public boolean absoluteDrawing()
+    {
+        return false;
     }
 
     public MapItem getMapItem()
@@ -115,6 +123,8 @@ class LWComponent
     public float getY() { return this.y; }
     public float getWidth() { return this.width; }
     public float getHeight() { return this.height; }
+    public float getCenterX() { return this.x + this.width / 2; }
+    public float getCenterY() { return this.y + this.height / 2; }
 
     public Rectangle2D getBounds()
     {
@@ -139,7 +149,7 @@ class LWComponent
      * Does x,y fall within the selection target for this component.
      * This default impl adds a 30 pixel swath to bounding box.
      */
-    public boolean targetContains(int x, int y)
+    public boolean targetContains(float x, float y)
     {
         final int swath = 30; // todo: preference
         float sx = this.x - swath;
@@ -157,10 +167,10 @@ class LWComponent
      * corners, do a distance calculation to the nearest corner.
      * Behaviour undefined if x,y are within component bounds.
      */
-    public float distanceToEdge(float x, float y)
+    public float distanceToEdgeSq(float x, float y)
     {
-        float ex = this.x + width;
-        float ey = this.y + height;
+        float ex = this.x + this.width;
+        float ey = this.y + this.height;
 
         if (x >= this.x && x <= ex) {
             // we're directly above or below this component
@@ -176,21 +186,32 @@ class LWComponent
             float nearCornerY = y > ey ? ey : this.y;
             float dx = nearCornerX - x;
             float dy = nearCornerY - y;
-            return (float) java.lang.Math.sqrt(dx*dx + dy*dy);
+            return dx*dx + dy*dy;
         }
     }
+
+    public float distanceToEdge(float x, float y)
+    {
+        return (float) Math.sqrt(distanceToEdgeSq(x, y));
+    }
+
     
     /**
-     * Return the distance from x,y to the center of
+     * Return the square of the distance from x,y to the center of
      * this components bounding box.
      */
-    public float distanceToCenter(float x, float y)
+    public float distanceToCenterSq(float x, float y)
     {
-        float cx = this.x + width / 2;
-        float cy = this.y + height / 2;
+        float cx = this.x + this.width / 2;
+        float cy = this.y + this.height / 2;
         float dx = cx - x;
         float dy = cy - y;
-        return (float) java.lang.Math.sqrt(dx*dx + dy*dy);
+        return dx*dx + dy*dy;
+    }
+    
+    public float distanceToCenter(float x, float y)
+    {
+        return (float) Math.sqrt(distanceToCenterSq(x, y));
     }
     
     public void draw(java.awt.Graphics2D g)
