@@ -14,6 +14,7 @@ import java.awt.event.*;
  * button tool menu of the VUE Toolbar.
  *
  * T@author scottb
+ * @deprecated -- no longer used -- smf 2004-01-29 19:42.02 
  **/
 public class VueToolPopupAdapter extends MouseAdapter {
     
@@ -122,7 +123,7 @@ public class VueToolPopupAdapter extends MouseAdapter {
     {
         if (sDebug) System.out.println("\tshowing " + mPopup);
         Component c = e.getComponent(); 	
-        mPopup.show(c, 1, c.getBounds().height);
+        mPopup.show(c, 0, c.getBounds().height);
     }
 
     /**

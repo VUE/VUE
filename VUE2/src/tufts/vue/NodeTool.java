@@ -212,6 +212,7 @@ public class NodeTool extends VueTool
         //private static final Color sShapeColor = new Color(165,178,208); // Melanie's steel blue
         private static final Color sShapeColor = new Color(93,98,162); // Melanie's icon blue/purple
         private static final Color sShapeColorLight = VueUtil.factorColor(sShapeColor, 1.3);
+        //private static final boolean sPaintBorder = false;
         private static GradientPaint sShapeGradient;
         private static int sWidth;
         private static int sHeight;
@@ -226,15 +227,20 @@ public class NodeTool extends VueTool
             // This also means if somebody goes to center us in the
             // parent (ToolIcon), that computation will always have an
             // even integer result, thus perfectly pixel aligned.
+            // NOTE: if you paint a 1 pix border on the shape, when
+            // anti-aliased this generally adds a total of 1 pixel to
+            // the height & width.  If painting a border on the
+            // dyanmic shape, you need to account for that for perfect
+            // centering.
             
             if (ToolIcon.width % 2 == 0)
-                sWidth = nearestEven(ToolIcon.width / 2);
-            else
                 sWidth = nearestOdd(ToolIcon.width / 2);
-            if (ToolIcon.height % 2 == 0)
-                sHeight = nearestEven(ToolIcon.height / 2);
             else
+                sWidth = nearestEven(ToolIcon.width / 2);
+            if (ToolIcon.height % 2 == 0)
                 sHeight = nearestOdd(ToolIcon.height / 2);
+            else
+                sHeight = nearestEven(ToolIcon.height / 2);
 
             sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColorLight, sWidth/2,sHeight/2,sShapeColor,true); // horizontal dark center
             //sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColor, sWidth/2,sHeight/2,sShapeColorLight,true); // horizontal light center
@@ -268,7 +274,8 @@ public class NodeTool extends VueTool
                     g2.setColor(sShapeColor);
                 g2.fill(mShape);
                 g2.setColor(Color.black);
-                g2.draw(mShape);
+                //g2.setStroke(STROKE_EIGHTH);
+                //g2.draw(mShape);
                 g2.translate(-x,-y);
             }
 

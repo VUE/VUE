@@ -485,7 +485,8 @@ public abstract class VueTool extends AbstractAction
         static final int height = 26;
         //static final int arc = 15; // arc of rounded toolbar button border
 
-        private Insets insets = new Insets(1,1,0,0);
+        //private Insets insets = new Insets(1,1,0,0);
+        private Insets insets = new Insets(0,0,0,0);
         private int mType = UP;
         private Color mColor = sButtonColor;
         //private Color mColor = new Color(230,230,230);
@@ -519,6 +520,7 @@ public abstract class VueTool extends AbstractAction
                 if (t == MENU_SELECTED) mColor = Color.magenta;
                 if (t == ROLLOVER) mColor = Color.green;
             }
+            //if (t >= MENU) insets = new Insets(-1,-1,1,1);
         }
             
         public int getIconWidth() { return width; }
@@ -528,7 +530,7 @@ public abstract class VueTool extends AbstractAction
          * paint the entire button as an icon plus it's visible icon graphic
          */
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            if (debug) System.out.println("painting " + mRawIcon + " type = " + mType);
+            if (debug) System.out.println("painting " + mRawIcon + " type = " + mType + " on " + c);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             if (mType >= MENU) {

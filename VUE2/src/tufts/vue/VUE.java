@@ -246,7 +246,9 @@ public class VUE
         }
 
         /*
+        //-------------------------------------------------------
         // from java.swing.plaf.basic.BasicLookAndFeel.java:
+        //-------------------------------------------------------
             "TabbedPane.font", dialogPlain12,
             "TabbedPane.background", table.get("control"),
             "TabbedPane.foreground", table.get("controlText"),
@@ -275,7 +277,14 @@ public class VUE
             "ComboBox.disabledBackground", table.get("control"),
             "ComboBox.disabledForeground", table.get("textInactiveText"),
             
+	    "PopupMenu.font", dialogPlain12,
+	    "PopupMenu.background", table.get("menu"),
+	    "PopupMenu.foreground", table.get("menuText"),
+	    "PopupMenu.border", popupMenuBorder,
+            
+        //-------------------------------------------------------
         // from java.swing.plaf.metal.MetalLookAndFeel.java:
+        //-------------------------------------------------------
             "TabbedPane.font", controlTextValue,
             "TabbedPane.tabAreaBackground", getControl(),
             "TabbedPane.background", getControlShadow(),
@@ -300,6 +309,13 @@ public class VUE
 
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
             UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
+
+            // This is doing nothing I can see:
+            //UIManager.getLookAndFeelDefaults().put("Menu.background", Color.white);
+
+            // This tweaks the bg, but the buttons all appear to paint their on bg,
+            // so we only see a thin border of this:
+            //UIManager.getLookAndFeelDefaults().put("PopupMenu.background", Color.white);
 
             // the rest of these are tests
 
