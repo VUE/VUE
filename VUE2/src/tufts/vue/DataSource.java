@@ -50,9 +50,7 @@ public class DataSource {
     
     /**  Creates a DataSource given an id, display name, name, and type. */
     public DataSource(String id,String displayName,String name,int type){
-        this.id = id;
-        this.displayName = displayName;
-        this.name = name;
+        this(id,displayName,name);
         this.type=type;
         setViewer();
     }

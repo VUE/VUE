@@ -194,6 +194,7 @@ public class DataSourceViewer  extends JPanel{
     }
     
     public void addNewDataSource (String displayName, String name, String address, String user, String password, int type, boolean active) {
+        
         DataSource ds = new DataSource ("id", displayName, name, address, user, password, type);
         //  Following example of above, we'd set color here, but I think it should be moved to DataSource, based on type.
         
@@ -218,6 +219,24 @@ public class DataSourceViewer  extends JPanel{
             
         }
     }
+    private boolean checkValidUser(String userName,String password,int type) {
+        if(type == DataSource.DR_FEDORA) {
+            try {
+                TuftsDLAuthZ tuftsDL =  new TuftsDLAuthZ ();
+                osid.shared.Agent user = tuftsDL.authorizeUser (userName,password);
+                System.out.println("Username = "+ userName+" Agent ="+user);
+                if(tuftsDL.isAuthorized (user, TuftsDLAuthZ.AUTH_VIEW))
+                    return true;
+                else
+                    return false;
+            } catch(Exception ex) {
+                VueUtil.alert(null,"DataSourceViewer.checkValidUser - Exception :" +ex, "Validation Error");
+                ex.printStackTrace();
+                return false;
+            }
+        } else 
+            return true;
+    }
 
     public void saveDataSourceViewer(){
           prefs = tufts.vue.VUE.prefs;
@@ -225,16 +244,9 @@ public class DataSourceViewer  extends JPanel{
           
             DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
         }catch(Exception e) { System.out.println("datasources"+e);}
-        
-           
             File f  = new File(DATASOURCES_MAPPING);
-             SaveDataSourceViewer sViewer= new SaveDataSourceViewer(this.dataSources);
-             
-                  marshallMap(f,sViewer);
-            
-            
-            
-            
+            SaveDataSourceViewer sViewer= new SaveDataSourceViewer(this.dataSources);
+            marshallMap(f,sViewer);
     }
         
     private void createAddPanel(JPanel addPanel) {
@@ -320,7 +332,10 @@ public class DataSourceViewer  extends JPanel{
                 else if (typeStr.compareTo("fedora") == 0) type = DataSource.DR_FEDORA;
                  */
                 System.out.println ("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
-
+                if(!checkValidUser( userStr,pwStr,type)) {
+                    VueUtil.alert(null, "Not valid Tufts User. You are not allowed to create this dataSource", "Invalid User");
+                    return;
+                }
                 dsv.addNewDataSource (dsNameStr, nameStr, adrStr, userStr, pwStr, type,false);
                 System.out.println ("New data source added.");
 
