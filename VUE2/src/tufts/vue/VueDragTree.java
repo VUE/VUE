@@ -142,26 +142,24 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             Iterator i = (Iterator)obj;
             
             while (i.hasNext()){
-                
                 Object resource = i.next();
          
                 if (resource instanceof CabinetResource) {
-                    CabinetEntry entry = ((CabinetResource)resource).getEntry();
+                    CabinetResource cabRes = (CabinetResource) resource;
+                    CabinetEntry entry = cabRes.getEntry();
                     CabinetNode cabNode = null;
                     if (entry instanceof RemoteCabinetEntry)
-                        cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.REMOTE);
+                        cabNode = new CabinetNode(cabRes, CabinetNode.REMOTE);
                     else
                         
-                        cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
+                        cabNode = new CabinetNode(cabRes, CabinetNode.LOCAL);
+                    //System.out.println("ADDING CABNODE " + cabNode + " resource title " + cabRes.getTitle());
                     root.add(cabNode);
                     //System.out.println(" I am here in Vue drag" + cabNode.getCabinet());
                    if (cabNode.getCabinet() != null)cabNode.explore();
                     //root.add(new ResourceNode((Resource)resource));
-                }   else{
-                    
-                 
+                } else {
                     ResourceNode node = new ResourceNode((Resource)resource);
-                    
                     root.add(node);
                 }
             }
@@ -496,6 +494,8 @@ class CabinetNode extends ResourceNode {
                     
                     while (i.hasNext()) {
                         CabinetEntry ce = (RemoteCabinetEntry) i.next();
+                        if (ce.getDisplayName().startsWith(".")) // don't display dot files
+                            continue;
                         CabinetResource res = new CabinetResource(ce);
                         CabinetNode rootNode = new CabinetNode(res, this.type);
                         this.add(rootNode);
@@ -507,10 +507,10 @@ class CabinetNode extends ResourceNode {
                     while (i.hasNext()) {
                         CabinetEntry ce = (LocalCabinetEntry) i.next();
                        // System.out.println ("CabinetNode explore: "+ce.getDisplayName());
+                        if (ce.getDisplayName().startsWith(".")) // don't display dot files
+                            continue;
                         CabinetResource res = new CabinetResource(ce);
-                         
                         CabinetNode rootNode = new CabinetNode(res, this.type);
-                         
                         //rootNode.explore();
                         this.add(rootNode);
                     }
@@ -531,13 +531,13 @@ class CabinetNode extends ResourceNode {
      */
     public String toString() {
         CabinetResource res = (CabinetResource) getUserObject();
+        if (res.getTitle() != null)
+            return res.getTitle();
         try {
             CabinetEntry ce = (CabinetEntry) res.getEntry();
             return ce.getDisplayName();
         } catch (Exception e) {
-            if (res.getTitle() != null)return res.mTitle;
-            
-            else return userObject.getClass().toString();
+            return userObject.getClass().toString();
         }
     }
     
