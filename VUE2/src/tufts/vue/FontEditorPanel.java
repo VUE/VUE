@@ -142,7 +142,9 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  		
  		if( pValue instanceof Font) {
  			Font font = (Font) pValue;
- 			mFontCombo.setSelectedItem( font.getFontName() );
+ 			
+ 			String familyName = font.getFamily();
+ 			mFontCombo.setSelectedItem( familyName );
  			mItalicButton.setSelected( (Font.ITALIC & font.getStyle()) == Font.ITALIC );
  			mBoldButton.setSelected( font.isBold() );
  			mSizeField.setValue( font.getSize() );
@@ -197,5 +199,15 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	 	return font;
  	 }
  	
- 	
+ 	private int findFontName( String name) {
+ 		
+ 		//System.out.println("!!! Searching for font: "+name);
+ 		for( int i=0; i< sFontNames.length; i++) {
+ 			if( name.equals(  sFontNames[i]) ) {
+ 				//System.out.println("  FOUND: "+name+" at "+i);
+ 				return i;
+ 				}
+ 			}
+ 		return -1;
+ 	}
  }
