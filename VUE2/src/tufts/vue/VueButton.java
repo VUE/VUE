@@ -4,7 +4,7 @@
  * Created on February 13, 2004, 10:15 AM
  *
  * This claas is a wrapper around JButton to get the look and feel for VUE.
- *VueButtons are currently used in Pathway Panel and Advanced Search.  The button sets the disabled, Up and Down icons.
+ * VueButtons are currently used in Pathway Panel and Advanced Search.  The button sets the disabled, Up and Down icons.
  * All the icons must be present in VueResources in format buttonName.Up, buttonName.down, buttonName.disabled.
  *
  */
@@ -12,8 +12,9 @@
 package tufts.vue;
 
 /**
- *
  * @author  akumar03
+ * @author  Scott Fraize
+ * @version March 2004
  */
 
 import javax.swing.*;
@@ -21,9 +22,9 @@ import java.awt.*;
 
 public class VueButton extends JButton
 {
-    private static String UP = ".up";
-    private static String DOWN = ".down";
-    private static String DISABLED = ".disabled";
+    private static final String UP = ".up";
+    private static final String DOWN = ".down";
+    private static final String DISABLED = ".disabled";
 
     public VueButton(String name, java.awt.event.ActionListener listener)
     {

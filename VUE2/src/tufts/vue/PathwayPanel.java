@@ -364,9 +364,9 @@ public class PathwayPanel extends JPanel implements ActionListener
                 return;
             String cmd = e.getActionCommand();
                  if (cmd.endsWith("rewind"))    pathway.setFirst();
-            else if (cmd.endsWith("last"))      pathway.setLast();
             else if (cmd.endsWith("backward"))  pathway.setPrevious();
             else if (cmd.endsWith("forward"))   pathway.setNext();
+            else if (cmd.endsWith("last"))      pathway.setLast();
             else
                 throw new IllegalArgumentException(this + " " + e);
                  
