@@ -71,36 +71,16 @@ public class LWPathwayManager {
         return pathways.size();
     }
     
-<<<<<<< LWPathwayManager.java
+
     public void addPathway(LWPathway pathway){
         pathways.add(pathway);
         if(current == null)
             current = pathway;              
-=======
-    public boolean addPathway(LWPathway pathway){
-        if(pathways.add(pathway)){
-            if(current.equals(null))
-                current = pathway;
-            return true;    
-        }
-        else return false;
-            
->>>>>>> 1.2
     }
     
-<<<<<<< LWPathwayManager.java
     public void removePathway(LWPathway pathway){
         pathways.remove(pathway);
         if(current == pathway)
             current = getFirst();
-=======
-    public boolean removePathway(LWPathway pathway){
-        if(pathways.remove(pathway)){
-            if(current.equals(pathway))
-                current = getFirst();
-            return true;    
-        }
-        else return false;
->>>>>>> 1.2
     }
 }
