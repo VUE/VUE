@@ -665,6 +665,33 @@ class Actions
             }
         };
 
+    // todo: java isn't allowing unmodifed arrow keys as actions! (they get ignored -- figure
+    // out how to turn off whoever's grabbing them)
+    static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
+            void act(LWComponent c) {
+                float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
+                c.translate(0, -unit);
+            }
+        };
+    static final Action NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
+            void act(LWComponent c) {
+                float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
+                c.translate(0, unit);
+            }
+        };
+    static final Action NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
+            void act(LWComponent c) {
+                float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
+                c.translate(-unit, 0);
+            }
+        };
+    static final Action NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
+            void act(LWComponent c) {
+                float unit = (float) (1.0 / VUE.getActiveViewer().getZoomFactor());
+                c.translate(unit, 0);
+            }
+        };
+
     static final Action AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
             void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
         };
@@ -755,7 +782,18 @@ class Actions
         MakeColumn,
         null,
         DistributeVertically,
-        DistributeHorizontally
+        DistributeHorizontally,
+        null,
+        NudgeUp,
+        NudgeDown,
+        NudgeLeft,
+        NudgeRight
+    };
+    public static final Action[] ARRANGE_SINGLE_MENU_ACTIONS = {
+        NudgeUp,
+        NudgeDown,
+        NudgeLeft,
+        NudgeRight
     };
         
     //-----------------------------------------------------------------------------
@@ -766,10 +804,9 @@ class Actions
         {
             private int count = 1;
             boolean undoable() { return false; }
-            void act()
-            {
-                LWMap map = new LWMap("New Map " + count++);
-                VUE.displayMap(map);
+            boolean enabled() { return true; }
+            void act() {
+                VUE.displayMap(new LWMap("New Map " + count++));
             }
         };
     static final Action CloseMap =
@@ -778,7 +815,6 @@ class Actions
             // todo: listen to map viewer display event to tag
             // with currently displayed map name\
             boolean undoable() { return false; }
-            boolean enabled() { return VUE.openMapCount() > 1; }
             public void act() {
                 VUE.closeMap(VUE.getActiveMap());
             }
@@ -880,28 +916,35 @@ class Actions
     //-----------------------------------------------------------------------------
     // VueAction: actions that don't depend on the selection
     //-----------------------------------------------------------------------------
-    static class VueAction extends javax.swing.AbstractAction
+    public static class VueAction extends javax.swing.AbstractAction
     {
-        VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
+        public VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
         {
             super(name, icon);
             if (shortDescription != null)
                 putValue(SHORT_DESCRIPTION, shortDescription);
             if (keyStroke != null)
                 putValue(ACCELERATOR_KEY, keyStroke);
+            if (DEBUG.Enabled) System.out.println("Constructed: " + this);
         }
-        VueAction(String name, KeyStroke keyStroke) {
+        public VueAction(String name, KeyStroke keyStroke) {
             this(name, null, keyStroke, null);
         }
-        VueAction(String name) {
+        public VueAction(String name) {
             this(name, null, null, null);
         }
 
+        // todo: should be able to get rid of this flag: undo manager
+        // now just does nothing if it detected no changes
         boolean undoable() { return true; }
 
         public String getActionName()
         {
             return (String) getValue(Action.NAME);
+        }
+        public void setActionName(String s)
+        {
+            putValue(Action.NAME, s);
         }
         public void actionPerformed(ActionEvent ae)
         {
@@ -979,7 +1022,7 @@ class Actions
          * the selection changes and will update the actions enabled
          * state based on the return value.
          */
-        boolean enabled() { return true; }
+        boolean enabled() { return VUE.openMapCount() > 0; }
 
         void act() {
             System.err.println("Unhandled VueAction: " + getActionName());
@@ -1027,7 +1070,7 @@ class Actions
      * Provides a number of convenience methods to allow code in
      * each action to be tight & focused.
      */
-    static class LWCAction extends VueAction
+    public static class LWCAction extends VueAction
         implements LWSelection.Listener
     {
         LWCAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
@@ -1076,10 +1119,10 @@ class Actions
         }
         */
 
-        boolean enabled() { return VUE.getActiveMap() != null && enabledFor(VUE.getSelection()); }
+        boolean enabled() { return VUE.openMapCount() > 0 && enabledFor(VUE.getSelection()); }
 
         public void selectionChanged(LWSelection selection) {
-            if (VUE.getActiveMap() == null)
+            if (VUE.openMapCount() < 1)
                 setEnabled(false);
             else
                 setEnabled(enabledFor(selection));

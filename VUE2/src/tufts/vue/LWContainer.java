@@ -135,6 +135,9 @@ public abstract class LWContainer extends LWComponent
     {
         return children != null && children.size() > 0;
     }
+    public boolean isEmpty() {
+        return !hasChildren();
+    }
     public List getChildList()
     {
         return this.children;
@@ -152,6 +155,8 @@ public abstract class LWContainer extends LWComponent
     {
         return getLinkList().iterator();
     }
+
+    
     /*
     public Iterator getPathwayIterator()
     {

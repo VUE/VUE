@@ -1063,7 +1063,7 @@ public class MapViewer extends javax.swing.JComponent
         // when switching tabs
     }
 
-    LWMap getMap()
+    public LWMap getMap()
     {
         return this.map;
     }
@@ -2535,20 +2535,27 @@ public class MapViewer extends javax.swing.JComponent
             return (JMenu) menu;
         }
     }
-    
+    /*
     private static JMenu sArrangeMenu;
     private JMenu getArrangeMenu() {
-        if (sArrangeMenu == null) {
-            sArrangeMenu = new JMenu("Arrange");
-            for (int i = 0; i < Actions.ARRANGE_MENU_ACTIONS.length; i++) {
-                Action a = Actions.ARRANGE_MENU_ACTIONS[i];
-                if (a == null)
-                    sArrangeMenu.addSeparator();
-                else
-                    sArrangeMenu.add(a);
-            }
-        }
+        if (sArrangeMenu == null)
+            sArrangeMenu = buildMenu(new JMenu("Arrange"), Actions.ARRANGE_MENU_ACTIONS);
         return sArrangeMenu;
+    }
+    */
+    
+    private static JMenu buildMenu(String name, Action[] actions) {
+        return buildMenu(new JMenu(name), actions);
+    }
+    private static JMenu buildMenu(JMenu menu, Action[] actions) {
+        for (int i = 0; i < actions.length; i++) {
+            Action a = actions[i];
+            if (a == null)
+                menu.addSeparator();
+            else
+                menu.add(a);
+        }
+        return menu;
     }
 
     private JPopupMenu buildMultiSelectionPopup()
@@ -2557,7 +2564,7 @@ public class MapViewer extends javax.swing.JComponent
 
         m.add(getNodeMenu("Nodes"));
         m.add(getLinkMenu("Links"));
-        m.add(getArrangeMenu());
+        m.add(buildMenu("Arrange", Actions.ARRANGE_MENU_ACTIONS));
         m.addSeparator();
         m.add(Actions.Duplicate);
         m.add(Actions.Group);
@@ -2576,6 +2583,9 @@ public class MapViewer extends javax.swing.JComponent
     private static JMenuItem sNodeMenuItem;
     private static JMenuItem sLinkMenuItem;
     private static JMenuItem sUngroupItem;
+    private static Component sPathAddItem;
+    private static Component sPathRemoveItem;
+    private static Component sPathSeparator;
     private JPopupMenu buildSingleSelectionPopup()
     {
         JPopupMenu m = new JPopupMenu("Component Menu");
@@ -2598,10 +2608,11 @@ public class MapViewer extends javax.swing.JComponent
         m.add(Actions.DeselectAll);
         m.add(Actions.Delete);
         m.addSeparator();
-        m.add(Actions.AddPathwayItem); //15
-        m.add(Actions.RemovePathwayItem); //16
-        m.addSeparator(); //17
+        sPathAddItem = m.add(Actions.AddPathwayItem);
+        sPathRemoveItem = m.add(Actions.RemovePathwayItem);
+        sPathSeparator = m.add(new JPopupMenu.Separator());
         m.add(Actions.HierarchyView);
+        m.add(buildMenu("Nudge", Actions.ARRANGE_SINGLE_MENU_ACTIONS));
         
         // todo: special add-to selection action that adds
         // hitComponent to selection so have way other
@@ -2648,21 +2659,21 @@ public class MapViewer extends javax.swing.JComponent
         }
             
         if (getMap().getPathwayList().getActivePathway() == null) {
-            sSinglePopup.getComponent(15).setVisible(false); // hide path add
-            sSinglePopup.getComponent(16).setVisible(false); // hide path remove
-            sSinglePopup.getComponent(17).setVisible(false); // hide separator
+            sPathAddItem.setVisible(false);
+            sPathRemoveItem.setVisible(false);
+            sPathSeparator.setVisible(false);
         } else {
-            sSinglePopup.getComponent(15).setVisible(true); // show path add
-            sSinglePopup.getComponent(16).setVisible(true); // show path remove
-            sSinglePopup.getComponent(17).setVisible(true); // show separator
+            sPathAddItem.setVisible(true);
+            sPathRemoveItem.setVisible(true);
+            sPathSeparator.setVisible(true);
         }
         
         if (c instanceof LWGroup) {
             sUngroupItem.setVisible(true);
-            sSinglePopup.getComponent(3).setVisible(false); // hide rename
+            sSinglePopup.getComponent(4).setVisible(false); // hide rename
         } else {
             sUngroupItem.setVisible(false);
-            sSinglePopup.getComponent(3).setVisible(true); // show rename
+            sSinglePopup.getComponent(4).setVisible(true); // show rename
         }
 
         return sSinglePopup;
@@ -2796,7 +2807,7 @@ public class MapViewer extends javax.swing.JComponent
         private int kk = 0;
         public void keyPressed(KeyEvent e)
         {
-            if (DEBUG_KEYS) System.out.println("[" + e.paramString() + "]");
+            if (DEBUG_KEYS) System.out.println(MapViewer.this + " [" + e.paramString() + "]");
 
             clearTip();
 
@@ -2938,32 +2949,34 @@ public class MapViewer extends javax.swing.JComponent
                          AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
                     else AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
                 }
-                else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
-                else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
-                else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
-                //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
+                else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
+                else if (c == 'C') { DEBUG.CONTAINMENT = !DEBUG.CONTAINMENT; }
+                else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'F') { DEBUG.FOCUS = !DEBUG.FOCUS; }
-                else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
+                //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
+                else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
-                else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
-                else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
+                else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
+                else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
-                else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
+                else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
+                else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
+                else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
+                else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
+                else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
+                else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
                 else if (c == 'Z') { resetScrollRegion(); }
 
+                else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == '+') { DEBUG.META = !DEBUG.META; }
-                else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
-                else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
-                else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == '?') { DEBUG.SCROLL = !DEBUG.SCROLL; }
-                else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
-                else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
                 else if (c == '}') { DEBUG.PARENTING = !DEBUG.PARENTING; }
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
+                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
                 else
                     did = false;
                 if (did) {
@@ -2975,7 +2988,7 @@ public class MapViewer extends javax.swing.JComponent
         
         public void keyReleased(KeyEvent e)
         {
-            if (DEBUG_KEYS) System.out.println("[" + e.paramString() + "]");
+            if (DEBUG_KEYS) System.out.println(MapViewer.this + "[" + e.paramString() + "]");
 
             if (toolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
@@ -4579,38 +4592,13 @@ public class MapViewer extends javax.swing.JComponent
     */
 
     public static void main(String[] args) {
-        /*
-         * create an example map
-         */
-        //tufts.vue.ConceptMap map = new tufts.vue.ConceptMap("Example Map");
-        tufts.vue.LWMap map = new tufts.vue.LWMap("Example Map");
+        DEBUG.Enabled = true;
+
+        LWMap map = new LWMap("Example Map");
         
-        /*
-         * create the viewer
-         */
-        //JComponent mapView = new MapViewer(map);
-        //VUE.getActiveViewer().setPreferredSize(new Dimension(400,300));
         installExampleNodes(map);
-        MapViewer mapView = new tufts.vue.MapViewer(map);
 
-        /*
-         * create a an application frame with some components
-         */
-
-        JFrame frame = new JFrame("VUE Concept Map Viewer");
-        //JFrame frame = new EventFrame("VUE Concept Map Viewer");
-        frame.setContentPane(mapView);
-        frame.setBackground(Color.gray);
-        frame.setSize(500,400);
-        //frame.pack();
-        if (VueUtil.getJavaVersion() >= 1.4f) {
-            Point p = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
-            p.x -= frame.getWidth() / 2;
-            p.y -= frame.getHeight() / 2;
-            frame.setLocation(p);
-        }
-        frame.validate();
-        frame.show();
+        VueUtil.displayComponent(new MapViewer(map), 400,300);
     }
 
     static void installExampleNodes(LWMap map)
@@ -4637,6 +4625,12 @@ public class MapViewer extends javax.swing.JComponent
         //map.addNode(n2);
         //map.addNode(n3);
 
+        // for print testing & generally handy
+        LWNode origin = new LWNode("ORIGIN", 0,0);
+        origin.setShape(new Rectangle2D.Float());
+        origin.setStrokeWidth(6);
+        map.addNode(origin);
+        
         // group resize testing
         map.addNode(new LWNode("aaa", 100,100));
         map.addNode(new LWNode("bbb", 150,130));

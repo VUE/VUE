@@ -486,7 +486,6 @@ public class LWMap extends LWContainer
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
         return mCachedBounds;
     }
-    
 
     /*
     public java.awt.geom.Rectangle2D getCachedBounds()

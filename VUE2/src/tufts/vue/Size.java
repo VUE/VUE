@@ -3,6 +3,8 @@ package tufts.vue;
 import java.awt.Dimension;
 
 public class Size {
+
+    public static final Size None = new Size();
     
     /**
      * The width dimension; negative values can be used. 
@@ -37,6 +39,15 @@ public class Size {
 
     public float getHeight() {
 	return height;
+    }
+
+    public void fitHeight(float h) {
+        if (height < h)
+            height = h;
+    }
+    public void fitWidth(float w) {
+        if (width < w)
+            width = w;
     }
 
     public void setSize(float width, float height) {
@@ -78,6 +89,6 @@ public class Size {
     }
 
     public String toString() {
-	return "Size[" + width + "x" + height + "]";
+	return "[" + width + "x" + height + "]";
     }
 }

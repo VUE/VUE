@@ -10,6 +10,7 @@ public class DrawContext
     double zoom = 1.0;
     int index;
     private boolean disableAntiAlias = false;
+    private boolean isPrinting = false;
     
     public DrawContext(Graphics2D g, double zoom)
     {
@@ -27,6 +28,21 @@ public class DrawContext
         this.zoom = dc.zoom;
         this.disableAntiAlias = dc.disableAntiAlias;
         this.index = dc.index;
+        this.isPrinting = dc.isPrinting;
+    }
+
+    /**
+     * Mark us rendering for printing.  Note that
+     * rendering any transparency whatsoever during
+     * a print render appears to cause at least the
+     * print preview to fail on Mac OSX (the Preview app)
+     */
+    public void setPrinting(boolean t) {
+        isPrinting = t;
+    }
+
+    public boolean isPrinting() {
+        return isPrinting;
     }
 
     public void disableAntiAlias(boolean tv)

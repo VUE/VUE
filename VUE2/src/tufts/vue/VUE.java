@@ -528,7 +528,6 @@ public class VUE
         return mMapTabsLeft.getTabCount();
     }
     
-    
     public static void addActiveMapListener(ActiveMapListener l) {
         sActiveMapListeners.add(l);
     }
@@ -702,17 +701,6 @@ public class VUE
         //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
         JMenu helpMenu = menuBar.add(new JMenu("Help"));
 
-        if (DEBUG.Enabled) {
-            JComponent u = new JButton(Actions.Undo);
-            JComponent r = new JButton(Actions.Redo);
-            u.setBackground(Color.white);
-            r.setBackground(Color.white);
-            u.setFont(FONT_SMALL);
-            r.setFont(FONT_SMALL);
-            menuBar.add(u).setFocusable(false);
-            menuBar.add(r).setFocusable(false);
-        }
-
         //adding actions
         SaveAction saveAction = new SaveAction("Save", false);
         SaveAction saveAsAction = new SaveAction("Save As...");
@@ -721,7 +709,7 @@ public class VUE
         Publish publishAction = new Publish(frame,"Export");
         
         // Actions added by the power team
-        PrintAction printAction = new PrintAction("Print");
+        PrintAction printAction = PrintAction.getPrintAction();
         PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("HTML");
         ImageConversion imageAction = new ImageConversion("JPEG");
@@ -729,6 +717,23 @@ public class VUE
         SVGConversion svgAction = new SVGConversion("SVG");
         XMLView xmlAction = new XMLView("XML View");
         
+        if (DEBUG.Enabled) {
+            JButton u = new JButton(Actions.Undo);
+            JButton r = new JButton(Actions.Redo);
+            JButton p = new JButton(printAction);
+            JButton v = new JButton(printAction);
+            v.setLabel("Print View");
+            
+            u.setBackground(Color.white);
+            r.setBackground(Color.white);
+            u.setFont(FONT_SMALL);
+            r.setFont(FONT_SMALL);
+            menuBar.add(u).setFocusable(false);
+            menuBar.add(r).setFocusable(false);
+            menuBar.add(p).setFocusable(false);
+            menuBar.add(v).setFocusable(false);
+        }
+
         /*
         JMenu exportMenu = new JMenu("Export");
         exportMenu.add(htmlAction);
@@ -746,6 +751,7 @@ public class VUE
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
+        fileMenu.add(printAction).setLabel("Print View");
         fileMenu.add(publishAction);
         //fileMenu.add(exportMenu);
         fileMenu.addSeparator();
@@ -802,30 +808,12 @@ public class VUE
         //formatMenu.add("Text Justify").setEnabled(false);
         // TODO: ultimately better to break these out in to Node & Link submenus
         formatMenu.addSeparator();
-        for (int i = 0; i < Actions.NODE_MENU_ACTIONS.length; i++) {
-            Action a = Actions.NODE_MENU_ACTIONS[i];
-            if (a == null)
-                formatMenu.addSeparator();
-            else
-                formatMenu.add(a);
-        }
+        buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
         formatMenu.addSeparator();
-        for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
-            Action a = Actions.LINK_MENU_ACTIONS[i];
-            if (a == null)
-                formatMenu.addSeparator();
-            else
-                formatMenu.add(a);
-        }
+        buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
         
-        for (int i = 0; i < Actions.ARRANGE_MENU_ACTIONS.length; i++) {
-            Action a = Actions.ARRANGE_MENU_ACTIONS[i];
-            if (a == null)
-                alignMenu.addSeparator();
-            else
-                alignMenu.add(a);
-        }
-        
+        buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
+
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
         arrangeMenu.add(Actions.SendToBack);
@@ -874,6 +862,20 @@ public class VUE
         frame.setJMenuBar(menuBar);
         //frame.getContentPane().add(toolBar,BorderLayout.NORTH);
     }
+
+    public static JMenu buildMenu(String name, Action[] actions) {
+        return buildMenu(new JMenu(name), actions);
+    }
+    public static JMenu buildMenu(JMenu menu, Action[] actions) {
+        for (int i = 0; i < actions.length; i++) {
+            Action a = actions[i];
+            if (a == null)
+                menu.addSeparator();
+            else
+                menu.add(a);
+        }
+        return menu;
+    }
     
     static class WindowDisplayAction extends AbstractAction {
         AbstractButton mLinkedButton;
@@ -910,7 +912,6 @@ public class VUE
             mWindow.setVisible(mLinkedButton.isSelected());
         }
     }
-    
     
     static void installExampleNodes(LWMap map) {
         map.setFillColor(new Color(255,255,220));

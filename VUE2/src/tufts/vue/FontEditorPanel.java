@@ -197,7 +197,8 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     {
         synchronized (sFontNamesLock) {
             if (sFontNames == null){
-                //new Throwable("Loading system fonts...").printStackTrace();
+                if (DEBUG.Enabled)
+                    new Throwable("FYI: loading system fonts...").printStackTrace();
                 sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
             }
         }

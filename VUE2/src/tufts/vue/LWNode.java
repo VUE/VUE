@@ -58,12 +58,15 @@ public class LWNode extends LWContainer
     private static final int IconMinY = IconPadLeft;
 
     private static final int LabelPadLeft = 6; // distance to right of iconMargin dividerLine
+    private static final int LabelPadX = LabelPadLeft;
+    private static final int LabelPadY = EdgePadY;
     private static final int LabelPositionXWhenIconShowing = IconMargin + LabelPadLeft;
 
     // TODO: need to multiply all these by ChildScale (huh?)
     
     private static final int ChildOffsetX = IconMargin + LabelPadLeft; // X offset of children when icon showing
     private static final int ChildOffsetY = 4; // how far children down from bottom of label divider line
+    private static final int ChildPadY = ChildOffsetY;
     private static final int ChildPadX = 5; // min space at left/right of children
     private static final int ChildVerticalGap = 3; // vertical space between children
     private static final int ChildHorizontalGap = 3; // horizontal space between children
@@ -78,7 +81,8 @@ public class LWNode extends LWContainer
     // font strings, so this pad needs to be big enough to compensate
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
-    private static final float TextWidthFudgeFactor = 1 + 0.15f; // 15% fudge
+    //private static final float TextWidthFudgeFactor = 1 + 0.15f; // 15% fudge
+    private static final float TextWidthFudgeFactor = 1;
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
 
     private static final int MarginLinePadY = 5;
@@ -378,7 +382,7 @@ public class LWNode extends LWContainer
             return;
         if (autoSized == tv)
             return;
-        if (DEBUG.LAYOUT) out("*** " + this + " setAutoSizeNoLayout " + tv);
+        if (DEBUG.LAYOUT) out("*** " + this + " setAutomaticAutoSized " + tv);
         this.autoSized = tv;
     }
     
@@ -521,6 +525,7 @@ public class LWNode extends LWContainer
         if (DEBUG.LAYOUT) out("*** " + this + " setSize         " + w + "x" + h);
         if (isAutoSized() && (w > this.width || h > this.height))
             setAutomaticAutoSized(false);
+        // todo: FIRST, get size from layout, then if it changes, actually set the size!
         setSizeNoLayout(w, h);
         layout();
     }
@@ -528,14 +533,6 @@ public class LWNode extends LWContainer
     private void setSizeNoLayout(float w, float h)
     {
         if (DEBUG.LAYOUT) out("*** " + this + " setSizeNoLayout " + w + "x" + h);
-        /*
-        if (equalAspect) {
-            if (w > h)
-                h = w;
-            else
-                w = h;
-        }
-        */
         super.setSize(w, h);
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
         adjustDrawnShape();
@@ -578,6 +575,7 @@ public class LWNode extends LWContainer
     }
     
     private boolean inLayout = false;
+    private boolean isCenterLayout = false;
     protected void layout()
     {
         if (inLayout) {
@@ -587,41 +585,148 @@ public class LWNode extends LWContainer
         inLayout = true;
         if (DEBUG.LAYOUT) out("*** " + this + " LAYOUT");
 
-        float givenWidth = getWidth();
-        float givenHeight = getHeight();
-
         mIconBlock.layout(); // in order to compute the size & determine if anything showing
 
-        //if (isAutoSized() || hasChildren())
-        //setPreferredSize(!isAutoSized());
+        if (DEBUG.LAYOUT && getLabelBox().getHeight() != getLabelBox().getPreferredSize().height) {
+            // NOTE: prefHeight often a couple of pixels less than getHeight
+            System.err.println("prefHeight != height in " + this);
+            System.err.println("\tpref=" + getLabelBox().getPreferredSize().height);
+            System.err.println("\treal=" + getLabelBox().getHeight());
+        }
 
+        Size request = new Size(getWidth(), getHeight());
+        
+        Size min;
+        if (false&&mIsRectShape) {
+            isCenterLayout = false;
+            min = layout_boxed();
+        } else {
+            isCenterLayout = true;
+            min = layout_centered();
+        }
+
+        if (DEBUG.LAYOUT) out("*** " + this + " computed=" + min);
+
+        // If the size gets set to less than or equal to
+        // minimize size, lock back into auto-sizing.
+        if (request.height <= min.height && request.width <= min.width)
+            setAutomaticAutoSized(true);
+        
+        if (!isAutoSized()) {
+            // we always compute the minimum size, and
+            // never let us get smaller than that -- so
+            // only use given size if bigger than min size.
+            if (min.height < request.height)
+                min.height = request.height;
+            if (min.width < request.width)
+                min.width = request.width;
+        }
+
+        setSizeNoLayout(min.width, min.height);
+if (false)
+        dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
+
+        if (getParent() != null && !(getParent() instanceof LWMap)) {
+            //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
+            getParent().layout();
+        }
+        
+        inLayout = false;
+    }
+
+    private Size getTextSize() {
+        Size s = new Size(getLabelBox().getPreferredSize());
+        s.width *= TextWidthFudgeFactor;
+        return s;
+    }
+
+    private Point2D.Float labelP = new Point2D.Float();
+    private Point2D.Float childP = new Point2D.Float();
+    private static final float CenterPad = 5;
+    private Size layout_centered()
+    {
+        Size box = get_minimum_content_size();
+        Size node = new Size(box);
+        //min.width += CenterPad * 2;
+        //min.height += CenterPad * 2;
+
+        node.fitWidth(getWidth());
+        node.fitHeight(getHeight());
+
+        float xoff = (node.width - box.width) / 2;
+        float yoff = (node.height - box.height) / 2;
+        
+        Size text = getTextSize();
+        labelP.x = xoff + (box.width - text.width) / 2;
+        labelP.y = yoff;
+
+        yoff += text.height + LabelPadY;
+
+        if (iconShowing()) {
+            float yIconBlock = (node.height - mIconBlock.height) / 2;
+            mIconBlock.setLocation(xoff, yIconBlock);
+            xoff += mIconBlock.width;
+        }
+
+        if (hasChildren()) {
+            xoff += ChildPadX;
+            yoff += ChildPadY;
+            childP.x = xoff;
+            childP.y = yoff;
+            layoutChildren(xoff, yoff);
+        }
+        return box;
+    }
+    
+    private Size get_minimum_content_size()
+    {
+        Size box = new Size();
+        Size text = getTextSize();
+
+        //box.width  = LabelPadX + text.width + LabelPadX;
+        //box.height = LabelPadY + text.height + LabelPadY;
+        box.width  = text.width;
+        box.height = text.height + LabelPadY;
+
+        if (iconShowing()) {
+            box.width += mIconBlock.width;
+            box.fitHeight(mIconBlock.height);
+        }
+
+        if (hasChildren()) {
+            Size children = layoutChildren(new Size(), true);
+            box.fitWidth(ChildPadX + children.width + ChildPadX);
+            box.height += ChildOffsetY + children.height + + ChildrenPadBottom;
+        }
+        
+        return box;
+    }
+    
+    private Size layout_boxed()
+    {
+        final float givenWidth = getWidth();
+        final float givenHeight = getHeight();
+
+        Size min = new Size();
         Dimension text = getLabelBox().getPreferredSize(); // may be important to use pref size -- keep for now
-        float width = text.width;
+
+        min.width = text.width * TextWidthFudgeFactor; // adjust for scaled fonts understating their width
+        min.height = EdgePadY + text.height + EdgePadY;
+
         //float width = s.width + PadX;
         //float height = s.height + PadY;
         //float height = getLabelBox().getHeight() + IconHeight/3f;
         //float height = getLabelBox().getHeight() + IconDescent;
-        float height = EdgePadY + text.height + EdgePadY;
         
-        if (DEBUG.LAYOUT && getLabelBox().getHeight() != text.height) {
-            // NOTE: prefHeight often a couple of pixels less than getHeight
-            System.err.println("prefHeight != height in " + this);
-            System.err.println("\tpref=" + text.height);
-            System.err.println("\treal=" + getLabelBox().getHeight());
-        }
-
         // *** set icon Y position in all cases to a centered vertical
         // position, but never such that baseline is below bottom of
         // first icon -- this is tricky tho, as first icon can move
-        // down a bit to be centered with the label!
+         // down a bit to be centered with the label!
 
         if (!iconShowing()) {
-            width += LabelPadLeft * 2;
-            width *= TextWidthFudgeFactor; // adjust for scaled fonts understating their width
+            min.width += LabelPadLeft * 2;
         } else {
             float dividerY = EdgePadY + text.height;
-            // GAK: relativeLabelX barely safe to call here,but only cause it
-            // only computes horizontal centering when NOT displaying an icon
             double stubX = LabelPositionXWhenIconShowing + (text.width * TextWidthFudgeFactor);
             double stubHeight = DividerStubAscent;
             
@@ -630,23 +735,16 @@ public class LWNode extends LWContainer
             dividerStub.setLine(stubX, dividerY, stubX, dividerY - stubHeight);
 
             ////height = PadTop + (float)dividerY + IconDescent; // for aligning 1st icon with label bottom
-            width = (float)stubX + IconPadLeft; // be symmetrical with left padding
+            min.width = (float)stubX + IconPadLeft; // be symmetrical with left padding
             //width += IconPadLeft;
         }
         
-        //-------------------------------------------------------
-        // set size (was setPreferredSize)
-        //-------------------------------------------------------
-
         if (hasChildren()) {
-            float[] size = new float[2];
-            layoutChildren(size);
-            float childrenWidth = size[0];
-            float childrenHeight = size[1];
-            if (width < childOffsetX() + childrenWidth + ChildPadX)
-                width = childOffsetX() + childrenWidth + ChildPadX;
-            height += childrenHeight;
-            height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
+            Size children = layoutChildren(new Size(), false);
+            if (min.width < childOffsetX() + children.width + ChildPadX)
+                min.width = childOffsetX() + children.width + ChildPadX;
+            min.height += children.height;
+            min.height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
         }
         //        else if (iconShowing()) {
         //            height += IconPadBottom;
@@ -682,65 +780,33 @@ public class LWNode extends LWContainer
             float totalIconHeight = (float) mIconBlock.getHeight();
             float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
 
-            if (height < iconPillarHeight)
-                height += iconPillarHeight - height;
+            if (min.height < iconPillarHeight)
+                min.height += iconPillarHeight - min.height;
             else {
                 // special case prettification -- if vertically centering
                 // the icon stack would only drop it down by up to a few
                 // pixels, go ahead and do so because it's so much nicer
                 // to look at.
-                float centerY = (height - totalIconHeight) / 2;
+                float centerY = (min.height - totalIconHeight) / 2;
                 if (centerY > IconPillarPadY+3)
                     centerY = IconPillarPadY+3;
                 iconPillarY = centerY;
             }
             
-            if (!mIsRectShape) {
-                // center pillar at left if we're not rectangular
-                // TODO: this not fully working -- bugs out when
-                // dragging node to smallest size -- icons "rise up"
-                iconPillarY = (givenHeight - totalIconHeight) / 2;
-            }
             mIconBlock.setLocation(iconPillarX, iconPillarY);
         }
 
-        // If the size gets set to less than or equal to
-        // minimize size, lock back into auto-sizing.
-        if (givenHeight <= height && givenWidth <= width)
-            setAutomaticAutoSized(true);
-        
-        if (!isAutoSized()) {
-            // we always compute the minimum size, and
-            // never let us get smaller than that -- so
-            // only use given size if bigger than min size.
-            if (height < givenHeight)
-                height = givenHeight;
-            if (width < givenWidth)
-                width = givenWidth;
-        }
-
-        setSizeNoLayout(width, height);
-        dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, height-MarginLinePadY);
-
-        // todo: handle thru event?
-        //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
-        if (getParent() != null && !(getParent() instanceof LWMap)) {
-            //new Throwable("LAYING OUT PARENT " + this).printStackTrace();
-            getParent().layout();
-        }
-
-        inLayout = false;
+        return min;
     }
 
-    void layoutChildren()
-    {
-        layoutChildren(null);
-    }
-    
     private float childOffsetX() {
+        if (isCenterLayout)
+            return childP.x;
         return iconShowing() ? ChildOffsetX : ChildPadX;
     }
     private float childOffsetY() {
+        if (isCenterLayout)
+            return childP.y;
         float baseY;
         if (iconShowing()) {
             //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
@@ -763,42 +829,59 @@ public class LWNode extends LWContainer
      * the current scale factor of the parent.
      */
     
+    void layoutChildren() {
+        layoutChildren(null, false);
+    }
+    
+    // for computing size only
+    private Size layoutChildren(Size result) {
+        return layoutChildren(0, 0, result);
+    }
 
     private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
-    protected void layoutChildren(float[] size)
+    private Size layoutChildren(Size result, boolean sizeOnly)
     {
         if (!hasChildren())
-            return;
+            return Size.None;
 
-        float baseX = childOffsetX() * getScale();
-        float baseY = childOffsetY() * getScale();
-        
-        baseX += getX();
-        baseY += getY();
+        float baseX = 0;
+        float baseY = 0;
 
-        //System.out.println("layoutChildren " + this);
+        if (!sizeOnly) {
+            baseX = getX() + childOffsetX() * getScale();
+            baseY = getY() + childOffsetY() * getScale();
+        }
 
         //childBaseX = baseX;
         //childBaseY = baseY;
         // for relative-to-parent child layouts
         //baseX = baseY = 0;
+
+        return layoutChildren(baseX, baseY, result);
+    }
         
+    private void layoutChildren(float baseX, float baseY) {
+        layoutChildren(baseX, baseY, null);
+    }
+    
+    private Size layoutChildren(float baseX, float baseY, Size result)
+    {
         if (true)
-            layoutChildrenSingleColumn(baseX, baseY, size);
+            layoutChildrenSingleColumn(baseX, baseY, result);
         else
-            layoutChildrenGrid(baseX, baseY, size, 1);
+            layoutChildrenGrid(baseX, baseY, result, 1);
 
-        if (size != null) {
-            size[0] /= getScale();
-            size[1] /= getScale();
+        if (result != null) {
+            result.width /= getScale();
+            result.height /= getScale();
             //if (DEBUG.BOXES)
-                child_box.setRect(baseX, baseY, size[0], size[1]);
+                child_box.setRect(baseX, baseY, result.width, result.height);
         }
-
+        return result;
     }
 
         
-    protected void layoutChildrenSingleColumn(float baseX, float baseY, float[] size)
+    protected void layoutChildrenSingleColumn(float baseX, float baseY, Size result)
     {
         float y = baseY;
         float maxWidth = 0;
@@ -810,7 +893,7 @@ public class LWNode extends LWContainer
             y += c.getHeight();
             y += ChildVerticalGap * getScale();
 
-            if (size != null) {
+            if (result != null) {
                 // track max width
                 float w = c.getBoundsWidth();
                 if (w > maxWidth)
@@ -818,9 +901,9 @@ public class LWNode extends LWContainer
             }
         }
 
-        if (size != null) {
-            size[0] = maxWidth;
-            size[1] = (y - baseY);
+        if (result != null) {
+            result.width = maxWidth;
+            result.height = (y - baseY);
         }
     }
 
@@ -858,7 +941,7 @@ public class LWNode extends LWContainer
         }
     }
 
-    protected void layoutChildrenGrid(float baseX, float baseY, float[] size, int nColumn)
+    protected void layoutChildrenGrid(float baseX, float baseY, Size result, int nColumn)
     {
         float y = baseY;
         float totalWidth = 0;
@@ -891,9 +974,9 @@ public class LWNode extends LWContainer
         // peel back the last gap as no more columns to right
         totalWidth -= ChildHorizontalGap;
 
-        if (size != null) {
-            size[0] = totalWidth;
-            size[1] = maxHeight;
+        if (result != null) {
+            result.width = totalWidth;
+            result.height = maxHeight;
         }
     }
 
@@ -914,28 +997,32 @@ public class LWNode extends LWContainer
 
     private float relativeLabelX()
     {
-        float offset;
-        if (iconShowing()) {
+        if (isCenterLayout) {
+            return labelP.x;
+        } else if (iconShowing()) {
             //offset = (float) (PadX*1.5 + genIcon.getWidth());
             //offset = (float) genIcon.getWidth() + 7;
             //offset = IconMargin + LabelPadLeft;
             return LabelPositionXWhenIconShowing;
         } else {
+            float offset;
             // horizontally center if no resource icon
             int w = getLabelBox().getPreferredSize().width;
             offset = (this.width - w) / 2;
             offset++;
             //offset = 7;
+            return offset;
         }
-        return offset;
     }
     private float relativeLabelY()
     {
         //return EdgePadY;
         
-        if (hasChildren())
+        if (isCenterLayout) {
+            return labelP.y;
+        } else if (hasChildren()) {
             return EdgePadY;
-        else {
+        } else {
             // only need this in case of small font sizes and an icon
             // is showing -- if so, center label vertically in row with the first icon
             // Actually, no: center in whole node -- gak, we really want both,
@@ -1042,7 +1129,7 @@ public class LWNode extends LWContainer
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
         
-        if (isSelected()) {
+        if (isSelected() && !dc.isPrinting()) {
             LWPathway p = VUE.getActivePathway();
             if (p != null && p.isVisible() && p.getCurrent() == this) {
                 // SPECIAL CASE:
@@ -1092,7 +1179,7 @@ public class LWNode extends LWContainer
         }
         else*/
         
-        if (isIndicated()) {
+        if (isIndicated() && !dc.isPrinting()) {
             // todo: okay, it is GROSS to handle the indication here --
             // do it all in the viewer!
             g.setColor(COLOR_INDICATION);

@@ -1095,7 +1095,7 @@ public class LWLink extends LWComponent
         */
         Graphics2D g = dc.g;
         
-        if (isSelected()) {
+        if (isSelected() && !dc.isPrinting()) {
             g.setColor(COLOR_HIGHLIGHT);
             g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));//todo:config
             g.draw(getShape());
@@ -1132,7 +1132,7 @@ public class LWLink extends LWComponent
         // Draw the stroke
         //-------------------------------------------------------
 
-        if (isIndicated())
+        if (isIndicated() && !dc.isPrinting())
             g.setColor(COLOR_INDICATION);
         //else if (isSelected())
         //  g.setColor(COLOR_SELECTION);
@@ -1148,7 +1148,7 @@ public class LWLink extends LWComponent
 
             g.draw(this.curve);
 
-            if (isSelected() || DEBUG.BOXES) {
+            if (!dc.isPrinting() && (isSelected() || DEBUG.BOXES)) {
                 //-------------------------------------------------------
                 // draw faint lines to control points if selected
                 // TODO: need to do this at time we paint the selection,
@@ -1196,7 +1196,11 @@ public class LWLink extends LWComponent
         //float textBoxWidth = 0;
         //float textBoxHeight = 0;
         //boolean textBoxBeingEdited = false;
-        Color fillColor = isSelected() ? COLOR_HIGHLIGHT : getFillColor();
+        Color fillColor;
+        if (dc.isPrinting() || !isSelected())
+            fillColor = getFillColor();
+        else
+            fillColor = COLOR_HIGHLIGHT;
         if (fillColor == null && getParent() != null)
             fillColor = getParent().getFillColor();
         //fillColor = ContrastFillColor;
