@@ -58,7 +58,8 @@ class Actions {
             boolean enabledFor(LWSelection s) { return true; }
             public void act()
             {
-                VUE.ModelSelection.setTo(VUE.getActiveMap().getChildIterator());
+                //VUE.ModelSelection.setTo(VUE.getActiveMap().getChildIterator());
+                VUE.ModelSelection.setTo(VUE.getActiveMap().getAllDescendents().iterator());
             }
         };
     static final Action DeselectAll =
@@ -165,31 +166,50 @@ class Actions {
     //-------------------------------------------------------
     // Link actions
     //-------------------------------------------------------
+
         
-    static final Action LinkMakeStraight =
+    static final MapAction LinkMakeStraight =
         new MapAction("Make Straight") {
-            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
-            public void act(LWComponent c) { ((LWLink)c).setControlCount(0); }
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWLink.class))
+                    return false;
+                return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 0 : true;
+            }
+            public void act(LWSelection s) { super.act(s); checkLinkEnabled(); }
+            public void act(LWLink c) { c.setControlCount(0); }
         };
-    static final Action LinkMakeQuadCurved =
+    static final MapAction LinkMakeQuadCurved =
         new MapAction("Make Curved (1 point)") {
-            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
-            public void act(LWComponent c) { ((LWLink)c).setControlCount(1); }
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWLink.class))
+                    return false;
+                return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 1 : true;
+            }
+            public void act(LWSelection s) { super.act(s); checkLinkEnabled(); }
+            public void act(LWLink c) { c.setControlCount(1); }
         };
-    static final Action LinkMakeCubicCurved =
+    static final MapAction LinkMakeCubicCurved =
         new MapAction("Make Curved (2 points)") {
-            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
-            public void act(LWComponent c) { ((LWLink)c).setControlCount(2); }
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWLink.class))
+                    return false;
+                return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 2 : true;
+            }
+            public void act(LWSelection s) { super.act(s); checkLinkEnabled(); }
+            public void act(LWLink c) { c.setControlCount(2); }
         };
     static final Action LinkArrows =
         new MapAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)) {
-            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
-            public void act(LWComponent c)
-            {
-                ((LWLink)c).rotateArrowState();
-            }
+            boolean enabledFor(LWSelection s) { return s.containsType(LWLink.class); }
+            public void act(LWLink c) { c.rotateArrowState(); }
         };
 
+    private static final void checkLinkEnabled()
+    {
+        LinkMakeStraight.checkEnabled();
+        LinkMakeQuadCurved.checkEnabled();
+        LinkMakeCubicCurved.checkEnabled();
+    }
     /** Helper for menu creation.  Null's indicate good places
         for menu separators. */
     public static final Action[] LINK_MENU_ACTIONS = {
@@ -240,12 +260,12 @@ class Actions {
             copied_link.setComponent1((LWComponent)sCopies.get(original_link.getComponent1()));
             copied_link.setComponent2((LWComponent)sCopies.get(original_link.getComponent2()));
         }
-        
     }
             
             
     static final MapAction Duplicate =
         new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
+            boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             void act(Iterator i) {
                 sCopies.clear();
@@ -812,38 +832,26 @@ class Actions {
     static final Action ZoomIn =
         //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
         new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT)) {
-            public void act()
-            {
-                // FIX:  zoom tool gone  VUE.getActiveViewer().zoomTool.setZoomBigger();
-                //VUE.getActiveViewer().setZoomBigger();
+            public void act() {
                 ZoomTool.setZoomBigger(null);
             }
         };
     static final Action ZoomOut =
         new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
-            public void act()
-            {
-                //FIX:  zoom tool gone:  VUE.getActiveViewer().zoomTool.setZoomSmaller();
-                //VUE.getActiveViewer().setZoomSmaller();
+            public void act() {
                 ZoomTool.setZoomSmaller(null);
             }
         };
     static final Action ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
-            public void act()
-            {
-                // FIX:  zoom tool gone VUE.getActiveViewer().zoomTool.setZoomFit();
-                //VUE.getActiveViewer().setZoomFit();
+            public void act() {
                 ZoomTool.setZoomFit();
             }
         };
     static final Action ZoomActual =
         new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
             boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
-            public void act()
-            {
-                // FIX:  VUE.getActiveViewer().zoomTool.setZoom(1.0);
-                //VUE.getActiveViewer().setZoom(1.0);
+            public void act() {
                 ZoomTool.setZoom(1.0);
             }
         };
@@ -904,6 +912,8 @@ class Actions {
             System.err.println("Unhandled VueAction: " + getActionName());
         }
         void Xact() {}// for commenting convenience
+
+        public String toString() { return "VueAction[" + getActionName() + "]"; }
     }
 
     static class NewItemAction extends VueAction
@@ -966,11 +976,23 @@ class Actions {
                 VUE.getActiveViewer().repaintSelection();
             } else {
                 // This shouldn't happen as actions should already
-                // be disabled if they're not  appropriate.
+                // be disabled if they're not appropriate, tho
+                // if the action depends on something other than
+                // the selection and isn't listening for it, we'll
+                // get here.
                 java.awt.Toolkit.getDefaultToolkit().beep();
                 System.err.println(getActionName() + ": Not enabled given this selection: " + selection);
             }
         }
+
+        /*
+          //debug
+        public void setEnabled(boolean tv)
+        {
+            super.setEnabled(tv);
+            System.out.println(this + " enabled=" + tv);
+        }
+        */
 
         public void selectionChanged(LWSelection selection) {
             setEnabled(enabledFor(selection));
@@ -1041,6 +1063,7 @@ class Actions {
         }
         
         void Xact(LWComponent c) {}// for commenting convenience
+        public String toString() { return "MapAction[" + getActionName() + "]"; }
     }
     
 }
