@@ -320,16 +320,19 @@ VueAction: Zoom 100% n=1
      */
     public void removeChildren(Iterator i)
     {
+        ArrayList deletedChildren = new ArrayList();
+        
         int count = 0;
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.getParent() == this) {
                 removeChildInternal(c);
+                deletedChildren.add(c);
                 count++;
             }
         }
         if (count > 0) {
-            notify("childrenRemoved");
+            notify("childrenRemoved", deletedChildren);
             //todo: change all these child events to a structureChanged event
             layout();
         }

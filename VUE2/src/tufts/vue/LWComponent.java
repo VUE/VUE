@@ -9,6 +9,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * LWComponent.java
@@ -797,11 +798,17 @@ public class LWComponent
         // todo: we still need both src & component? (this,this)
         notifyLWCListeners(new LWCEvent(this, this, what));
     }
+    
     protected void notify(String what, LWComponent c)
     {
         notifyLWCListeners(new LWCEvent(this, c, what));
     }
 
+    protected void notify(String what, ArrayList childrenList)
+    {
+        notifyLWCListeners(new LWCEvent(this, childrenList, what));
+    }
+    
     /**
      * Do any cleanup needed now that this LWComponent has
      * been removed from the model

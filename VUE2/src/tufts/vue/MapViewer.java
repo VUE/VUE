@@ -2314,7 +2314,7 @@ public class MapViewer extends javax.swing.JPanel
                 if (this == VUE.getActiveViewer())
                 {
                     VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
-                    VUE.getOverviewTree().switchMap(this.map);
+                    VUE.getOutlineViewTree().switchMap(this.map);
                 }
                 //end of addition
                 

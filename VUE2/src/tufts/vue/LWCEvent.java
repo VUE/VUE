@@ -1,11 +1,14 @@
 package tufts.vue;
 
+import java.util.ArrayList;
+
 public class LWCEvent
 {
     private Object source;
-    private LWComponent component;
+    private LWComponent component = null;
+    private ArrayList components = null;
     private String what;
-
+    
     // todo: we still using both src & component?
     public LWCEvent(Object source, LWComponent c, String what)
     {
@@ -14,6 +17,13 @@ public class LWCEvent
         this.what = what;
     }
 
+    public LWCEvent(Object source, ArrayList components, String what)
+    {
+        this.source = source;
+        this.components = components;
+        this.what = what;
+    }
+    
     public Object getSource()
     {
         return this.source;
@@ -22,6 +32,11 @@ public class LWCEvent
     public LWComponent getComponent()
     {
         return this.component;
+    }
+    
+    public ArrayList getComponents()
+    {
+        return this.components;
     }
     
     public String getWhat()
@@ -33,8 +48,14 @@ public class LWCEvent
     {
         String s = "LWCEvent[" + what
             + " " + source;
-        if (component != source)
+        
+        if (component != null && component != source)
             s += " c=" + component;
+        
+        //want more information?
+        else if (components != null)
+            s += " ArrayList";
+              
         return s + "]";
     }
 }

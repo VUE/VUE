@@ -39,7 +39,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
     /** Creates a new instance of LWOverviewTree */
     public LWOutlineViewTree(JFrame parent) 
     {
-        super(parent, "Overview Tree");
+        super(parent, "Outline View");
         setSize(500, 300);
      
         currentMap = null;
@@ -146,9 +146,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
     }
     
     public void addLWTreeNode(LWContainer parent, LWComponent addedChild)
-    { 
-        System.out.println("adding " + addedChild.getLabel());
-        
+    {      
         if (addedChild instanceof LWNode)
         {
             LWTreeNode parentTreeNode;
@@ -191,8 +189,6 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
     
     public void deleteLWTreeNode(LWContainer parent, LWComponent deletedChild)
     {    
-        System.out.println("deleting " + deletedChild.toString());
-        
         if (deletedChild instanceof LWNode)
         {
             LWTreeNode parentTreeNode, deletedChildTreeNode = null;
@@ -319,7 +315,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
     public Action getDisplayAction()
     {
         if (displayAction == null)
-            displayAction = new DisplayAction("Overview Tree");
+            displayAction = new DisplayAction("Outline View");
         
         return (Action)displayAction;
     }
