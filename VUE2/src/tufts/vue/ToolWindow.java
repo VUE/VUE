@@ -27,7 +27,7 @@ public class ToolWindow extends JWindow
     private final static int ResizeCornerSize = 14;
     
     private final String mTitle;
-    private final ContentPane mContentPane;
+    protected final ContentPane mContentPane;
     
     private Point dragStart;
     private Dimension dragSizeStart;
