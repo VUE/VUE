@@ -155,6 +155,9 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, --selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
+            
+            //update the pathway control panel
+            VUE.getPathwayControl().updateControlPanel();
         }
         
         //moves down the selected row
@@ -166,6 +169,9 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, ++selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
+            
+            //update the pathway control panel
+            VUE.getPathwayControl().updateControlPanel();
         }
         
         //removes the selected row
@@ -184,21 +190,19 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         else if (e.getSource() == add)
         {
             LWComponent array[] = VUE.ModelSelection.getArray();
-            
-            //if nothing was selcted then add to the beginning
-            if (selected == -1)
-                selected = 0;
-            
+              
             //adds everything in the current selection 
             for (int i = 0; i < array.length; i++)
             {
-                ((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], selected);
-                selected++;
+                ((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], ++selected);
             }
             
             pathwayTable.setRowSelectionInterval(selected, selected);
+            
+            //update the pathway control panel
+            VUE.getPathwayControl().updateControlPanel();
         }
-        
+
         //submit
         else
         {            
