@@ -19,9 +19,6 @@ public abstract class LWIcon extends Rectangle2D.Float
     static final Font FONT_ICON = VueResources.getFont("node.icon.font");
     static final Color DefaultColor = new Color(61, 0, 88);
     
-    //static final int IconWidth = 22; // 22 is min width that will fit "www" in our icon font
-    //static final int IconHeight = 12;
-
     protected LWComponent mLWC;
     protected Color mColor;
     protected float mMinWidth;
@@ -77,6 +74,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     void layout() {} // subclasses can check for changes in here
     
     abstract boolean isShowing();
+    abstract void doDoubleClickAction();
     abstract public JComponent getToolTipComponent();
     //todo: make getToolTipComponent static & take lwc arg in case anyone else wants these
 
@@ -89,12 +87,14 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
+        /*
         private LWIcon mIconResource;
         private LWIcon mIconNotes;
         private LWIcon mIconPathway;
-        //private LWIcon mIconMetaData;
+        private LWIcon mIconMetaData;
+        */
 
-        private LWIcon[] mIcons = new LWIcon[3];
+        private LWIcon[] mIcons = new LWIcon[4];
 
         private boolean mVertical = true;
         private boolean mCoordsLocal;
@@ -111,17 +111,22 @@ public abstract class LWIcon extends Rectangle2D.Float
             if (c == null)
                 c = DefaultColor;
 
-            mVertical = vertical;
             mCoordsLocal = coord_local;
             mIconWidth = iconWidth;
             mIconHeight = iconHeight;
-            if (vertical)
-                super.width = mIconWidth;
-            else
-                super.height = mIconHeight;
-            mIcons[0] = mIconResource = new LWIcon.Resource(lwc, c);
+            setOrientation(vertical);
+
+            /*
+              mIcons[0] = mIconResource = new LWIcon.Resource(lwc, c);
             mIcons[1] = mIconNotes = new LWIcon.Notes(lwc, c);
             mIcons[2] = mIconPathway = new LWIcon.Pathway(lwc, c);
+            mIcons[3] = mIconMetaData = new LWIcon.MetaData(lwc, c);
+            */
+
+            mIcons[0] = new LWIcon.Resource(lwc, c);
+            mIcons[1] = new LWIcon.Notes(lwc, c);
+            mIcons[2] = new LWIcon.Pathway(lwc, c);
+            mIcons[3] = new LWIcon.MetaData(lwc, c);
 
             for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
@@ -129,6 +134,15 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
 
             this.mLWC = lwc;
+        }
+
+        public void setOrientation(boolean vertical)
+        {
+            mVertical = vertical;
+            if (vertical)
+                super.width = mIconWidth;
+            else
+                super.height = mIconHeight;
         }
         
         /**
@@ -222,13 +236,12 @@ public abstract class LWIcon extends Rectangle2D.Float
             JComponent tipComponent = null;
             LWIcon tipIcon = null;
 
-            // todo: collapse & delegate down to instance classes
-            if (mLWC.hasResource() && mIconResource.contains(cx, cy)) {
-                tipIcon = mIconResource;
-            } else if (mLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
-                tipIcon = mIconNotes;
-            } else if (mLWC.inPathway() && mIconPathway.contains(cx, cy)) {
-                tipIcon = mIconPathway;
+            for (int i = 0; i < mIcons.length; i++) {
+                LWIcon icon = mIcons[i];
+                if (icon.isShowing() && icon.contains(cx, cy)) {
+                    tipIcon = icon;
+                    break;
+                }
             }
             
             // TODO: don't need to do this if there's already a tip showing!
@@ -285,22 +298,16 @@ public abstract class LWIcon extends Rectangle2D.Float
                 cy = e.getMapY();
             }
 
-            // todo: collapse & delegate down to instance classes
-            if (mLWC.hasResource() && mIconResource.contains(cx, cy)) {
-                mLWC.getResource().displayContent();
-                handled = true;
-            } else if (mLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
-                VUE.objectInspectorPanel.activateNotesTab();
-                VUE.objectInspector.setVisible(true);
-                handled = true;
-            } else if (mLWC.inPathway() && mIconPathway.contains(cx, cy)) {
-                VUE.pathwayInspector.setVisible(true);
-                handled = true;
+            for (int i = 0; i < mIcons.length; i++) {
+                LWIcon icon = mIcons[i];
+                if (icon.isShowing() && icon.contains(cx, cy)) {
+                    icon.doDoubleClickAction();
+                    handled = true;
+                    break;
+                }
             }
             return handled;
         }
-        
-        
     }
     
     /**
@@ -321,20 +328,23 @@ public abstract class LWIcon extends Rectangle2D.Float
     
     static class Resource extends LWIcon
     {
-        private static final String NoResource = VueUtil.isMacPlatform() ? "---" : "__";
+        private final static String NoResource = VueUtil.isMacPlatform() ? "---" : "__";
         // On PC, two underscores look better than "---" in default Trebuchet font,
         // which leaves the dashes high in the box.
     
         TextRow mTextRow;
         
-        //Resource(LWComponent lwc) { super(lwc); }
+        Resource(LWComponent lwc) { super(lwc); }
         Resource(LWComponent lwc, Color c) {
             super(lwc, c);
             layout();
         }
 
         boolean isShowing() { return mLWC.hasResource(); }
-        
+
+        void doDoubleClickAction() {
+            mLWC.getResource().displayContent();
+        }
         
         private JComponent ttResource;
         private String ttLastString;
@@ -426,13 +436,13 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     static class Notes extends LWIcon
     {
-        final static float MaxX = 155;
-        final static float MaxY = 212;
+        private final static float MaxX = 155;
+        private final static float MaxY = 212;
 
-        final static float scale = 0.04f;
-        final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+        private final static float scale = 0.04f;
+        private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
 
-        final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+        private final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
 
         static float iconWidth = MaxX * scale;
         static float iconHeight = MaxY * scale;
@@ -440,9 +450,9 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         //-------------------------------------------------------
         
-        final static GeneralPath pencil_body = new GeneralPath();
-        final static GeneralPath pencil_point = new GeneralPath();
-        final static GeneralPath pencil_tip = new GeneralPath();
+        private final static GeneralPath pencil_body = new GeneralPath();
+        private final static GeneralPath pencil_point = new GeneralPath();
+        private final static GeneralPath pencil_tip = new GeneralPath();
 
 
         //static float iconXoff = (super.width - iconWidth) / 2f;
@@ -480,6 +490,10 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         boolean isShowing() { return mLWC.hasNotes(); }
         
+        void doDoubleClickAction() {
+            VUE.objectInspectorPanel.activateNotesTab();
+            VUE.objectInspector.setVisible(true);
+        }
     
         private JComponent ttNotes;
         private String ttLastNotes;
@@ -551,35 +565,38 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     static class Pathway extends LWIcon
     {
-        final static float MaxX = 224;
-        final static float MaxY = 145;
+        private final static float MaxX = 224;
+        private final static float MaxY = 145;
 
-        final static double scale = 0.04f;
-        final static double scaleInv = 1/scale;
-        final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+        private final static double scale = 0.04f;
+        private final static double scaleInv = 1/scale;
+        private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
 
-        final static Stroke stroke = new BasicStroke((float)(0.5/scale));
+        private final static Stroke stroke = new BasicStroke((float)(0.5/scale));
 
         static float iconWidth = (float) (MaxX * scale);
         static float iconHeight = (float) (MaxY * scale);
 
         //-------------------------------------------------------
 
-        final static Line2D line1 = new Line2D.Float( 39,123,  92, 46);
-        final static Line2D line2 = new Line2D.Float(101, 43, 153,114);
-        final static Line2D line3 = new Line2D.Float(163,114, 224, 39);
+        private final static Line2D line1 = new Line2D.Float( 39,123,  92, 46);
+        private final static Line2D line2 = new Line2D.Float(101, 43, 153,114);
+        private final static Line2D line3 = new Line2D.Float(163,114, 224, 39);
 
-        final static Ellipse2D dot1 = new Ellipse2D.Float(  0,95, 62,62);
-        final static Ellipse2D dot2 = new Ellipse2D.Float( 65, 0, 62,62);
-        final static Ellipse2D dot3 = new Ellipse2D.Float(127,90, 62,62);
+        private final static Ellipse2D dot1 = new Ellipse2D.Float(  0,95, 62,62);
+        private final static Ellipse2D dot2 = new Ellipse2D.Float( 65, 0, 62,62);
+        private final static Ellipse2D dot3 = new Ellipse2D.Float(127,90, 62,62);
 
         
         Pathway(LWComponent lwc, Color c) { super(lwc, c); }
         Pathway(LWComponent lwc) { super(lwc); }
 
-        //boolean isShowing() { return mLWC instanceof LWLink || mLWC.inPathway(); }//debug
         boolean isShowing() { return mLWC.inPathway(); }
 
+        void doDoubleClickAction() {
+            VUE.pathwayInspector.setVisible(true);
+        }
+        
         private JComponent ttPathway;
         private String ttPathwayHtml;
         public JComponent getToolTipComponent()
@@ -628,6 +645,98 @@ public abstract class LWIcon extends Rectangle2D.Float
             dc.g.draw(line3);
 
             dc.g.scale(scaleInv,scaleInv);
+            dc.g.translate(-x, -y);
+        }
+    }
+    
+    static class MetaData extends LWIcon
+    {
+        //private final static int w = 28;
+        private final static int w = 16;
+        private final static float MaxX = 221;
+        private final static float MaxY = 114+w;
+
+        private final static double scale = 0.04f;
+        private final static double scaleInv = 1/scale;
+        private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+
+        private static float iconWidth = (float) (MaxX * scale);
+        private static float iconHeight = (float) (MaxY * scale);
+
+        //-------------------------------------------------------
+
+        private final static GeneralPath ul = new GeneralPath();
+        private final static GeneralPath ll = new GeneralPath();
+        private final static GeneralPath ur = new GeneralPath();
+        private final static GeneralPath lr = new GeneralPath();
+        static {
+            ul.moveTo(0,58);
+            ul.lineTo(96,0);
+            ul.lineTo(96,w);
+            ul.lineTo(0,58+w);
+            ul.closePath();
+            ul.transform(t);
+
+            ll.moveTo(0,58);
+            ll.lineTo(96,114);
+            ll.lineTo(96,114+w);
+            ll.lineTo(0,58+w);
+            ll.closePath();
+            ll.transform(t);
+
+            ur.moveTo(125,0);
+            ur.lineTo(221,58);
+            ur.lineTo(221,58+w);
+            ur.lineTo(125,w);
+            ur.closePath();
+            ur.transform(t);
+            
+            lr.moveTo(221,58);
+            lr.lineTo(125,114);
+            lr.lineTo(125,114+w);
+            lr.lineTo(221,58+w);
+            lr.closePath();
+            lr.transform(t);
+        }
+        
+        MetaData(LWComponent lwc, Color c) { super(lwc, c); }
+        MetaData(LWComponent lwc) { super(lwc); }
+
+        boolean isShowing() { return true; }
+
+        void doDoubleClickAction() {
+            System.out.println(this + ": ACTION");
+        }
+        
+        private JComponent ttMetaData;
+        private String ttMetaDataHtml;
+        public JComponent getToolTipComponent()
+        {
+            String html = "<html>";
+            html += "meta-data";
+            if (ttMetaDataHtml == null || !ttMetaDataHtml.equals(html)) {
+                ttMetaData = new AALabel(html);
+                ttMetaData.setFont(FONT_MEDIUM);
+                ttMetaDataHtml = html;
+            }
+            return ttMetaData;
+        }
+
+        
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX() + (getWidth() - iconWidth) / 2;
+            double y = getY() + (getHeight() - iconHeight) / 2;
+            
+            dc.g.translate(x, y);
+            dc.g.setColor(mColor);
+
+            dc.g.fill(ul);
+            dc.g.fill(ur);
+            dc.g.fill(ll);
+            dc.g.fill(lr);
+            
             dc.g.translate(-x, -y);
         }
     }

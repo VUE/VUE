@@ -1476,16 +1476,33 @@ public class LWLink extends LWComponent
         float totalHeight = 0;
         float totalWidth = 0;
 
-        // Call first to have it compute size/determine if showing
-        mIconBlock.layout();
-
-        boolean iconBlockShowing = mIconBlock.isShowing();
-
-        totalWidth += mIconBlock.getWidth();
-        totalHeight += mIconBlock.getHeight();
-
         boolean putBelow = hasResource();
-        //|| (hasLabel() && labelBox.getMapWidth() < totalWidth);
+        
+        // Always call LWIcon.Block.layout first to have it compute size/determine if showing
+        // before asking it if isShowing()
+        
+        boolean vertical = false;
+        if (hasLabel() && !putBelow) {
+            // Check to see if we want to make it vertical
+            mIconBlock.setOrientation(LWIcon.Block.VERTICAL);
+            mIconBlock.layout();
+            vertical = (labelBox.getMapHeight() >= mIconBlock.getHeight());
+            if (!vertical) {
+                mIconBlock.setOrientation(LWIcon.Block.HORIZONTAL);
+                mIconBlock.layout();
+            }
+        } else {
+            // default to horizontal
+            mIconBlock.setOrientation(LWIcon.Block.HORIZONTAL);
+            mIconBlock.layout();
+        }
+        
+        boolean iconBlockShowing = mIconBlock.isShowing(); // must ask isShowing *after* mIconBlock.layout()
+        if (iconBlockShowing) {
+            totalWidth += mIconBlock.getWidth();
+            totalHeight += mIconBlock.getHeight();
+        }
+
 
         float lx = 0;
         float ly = 0;
