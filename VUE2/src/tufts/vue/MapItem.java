@@ -24,6 +24,8 @@ public abstract class MapItem
     private float x;
     private float y;
 
+    protected boolean inNotify = false;
+    
     public MapItem()
     {
     }
@@ -43,19 +45,19 @@ public abstract class MapItem
     }
 
     private java.util.List listeners;
-    public void addChangeListener(MapItemChangeListener listener)
+    public void addChangeListener(MapItemListener listener)
     {
         if (listeners == null)
             listeners = new java.util.ArrayList();
         listeners.add(listener);
     }
-    public void removeChangeListener(MapItemChangeListener listener)
+    public void removeChangeListener(MapItemListener listener)
     {
         if (listeners == null)
             return;
         listeners.remove(listener);
     }
-    public void notifyChangeListeners(MapItemChangeEvent e)
+    public void notifyChangeListeners(MapItemEvent e)
     {
         if (listeners == null)
             return;
@@ -63,16 +65,17 @@ public abstract class MapItem
         try {
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext())
-                ((MapItemChangeListener)i.next()).mapItemChanged(e);
+                ((MapItemListener)i.next()).mapItemChanged(e);
+            if (parent != null)
+                parent.notifyChangeListeners(e);
         } finally {
             this.inNotify = false;
         }
     }
     
-    private boolean inNotify = false;
-    private void notify(String what)
+    protected void notify(String what)
     {
-        notifyChangeListeners(new MapItemChangeEvent(this, what));
+        notifyChangeListeners(new MapItemEvent(this, what));
     }
     
     public float getX()
