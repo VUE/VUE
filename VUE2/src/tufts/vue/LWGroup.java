@@ -47,9 +47,11 @@ public final class LWGroup extends LWContainer
     static LWGroup create(java.util.List selection)
     {
         LWGroup group = new LWGroup();
-        // todo: turn off all events while this reorg is happening?
-        // Now grab all the children
 
+        // Track what links are explicitly in the selection so we
+        // don't "grab" them later even if both endpoints are in the
+        // selection.
+        
         HashSet linksInSelection = new HashSet();
         Iterator i = selection.iterator();
         while (i.hasNext()) {
@@ -58,6 +60,10 @@ public final class LWGroup extends LWContainer
                 linksInSelection.add(c);
         }
 
+        // "Grab" links -- automatically add links
+        // to this group who's endpoints are BOTH
+        // also being added to the group.
+        
         HashSet linkSet = new HashSet();
         List moveList = new java.util.ArrayList();
         i = selection.iterator();
@@ -220,6 +226,7 @@ public final class LWGroup extends LWContainer
     
     public boolean intersects(Rectangle2D rect)
     {
+        // todo opt: use our cached bounds already computed
         java.util.Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();

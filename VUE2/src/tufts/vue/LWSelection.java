@@ -115,7 +115,7 @@ public class LWSelection extends java.util.ArrayList
         c.setSelected(false);
         bounds = null;
         if (!super.remove(c))
-            throw new RuntimeException("LWSelection remove: doesn't contain! " + c);
+            throw new RuntimeException("LWSelection remove: list doesn't contain " + c);
     }
     
     public void clear()
