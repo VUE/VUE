@@ -485,7 +485,7 @@ public class DR implements osid.dr.DigitalRepository {
         client.login(userName,password);
         client.changeWorkingDirectory(directory);
         client.setFileType(FTP.BINARY_FILE_TYPE);
-        client.storeFile(fileName,new FileInputStream(file));
+        client.storeFile(fileName,new FileInputStream(file.getAbsolutePath().replaceAll("%20"," ")));
         client.logout();
         client.disconnect();
         if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Writting to FTP Server:"+(System.currentTimeMillis()-sTime));
