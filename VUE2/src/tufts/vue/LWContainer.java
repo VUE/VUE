@@ -889,6 +889,22 @@ public abstract class LWContainer extends LWComponent
         //if (DEBUG_PARENTING) System.out.println("ensurepaintsequence: " + onBottom + " " + onTop);
         
     }
+    
+    public void replaceResource(Resource r1,Resource r2) {
+        Iterator i = getChildIterator();
+        while(i.hasNext()) {
+            LWComponent component = (LWComponent) i.next();
+            if(component.hasResource()){
+                Resource resource = component.getResource();
+                if(resource == r1) 
+                    component.setResource(r2);
+            }
+            if(component instanceof LWContainer)
+                replaceResource(r1,r2);
+        }
+
+  
+    }
 
     void setScale(float scale)
     {

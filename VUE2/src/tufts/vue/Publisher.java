@@ -42,7 +42,7 @@ public class Publisher extends JDialog implements ActionListener {
     public final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
     public final int WIDTH = 600; 
     public final int HEIGHT = 250;
-    public final String[] PUBLISH_INFORMATION = {"Publish Map","Publish Map and its contents","Publish each item of the map and then the map with references to publish items."};
+    public final String[] PUBLISH_INFORMATION = {" Publish Map"," Publish Map and its contents"," Publish each item of the map and then the map with references to publish items."};
     
     private int publishMode = PUBLISH_MAP; 
     private final int BUFFER_SIZE = 10240;// size for transferring files
@@ -63,8 +63,9 @@ public class Publisher extends JDialog implements ActionListener {
     JTable resourceTable;
     JComboBox dataSourceComboBox;
     
-    public Publisher() {
+    public Publisher(Frame owner,String title) {
         //testing
+        super(owner,title);
         nextButton = new JButton("Next >");
         finishButton = new JButton("Finish");
         cancelButton = new JButton("Cancel");
@@ -95,16 +96,17 @@ public class Publisher extends JDialog implements ActionListener {
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         modeSelectionPanel.setLayout(gridbag);
-        Insets defaultInsets = new Insets(2,2,2,2);
+        Insets defaultInsets = new Insets(2,9,2,2);
         
         ButtonGroup modeSelectionGroup = new ButtonGroup();
         JLabel topLabel = new JLabel("Select the Publish Mode");
         
         //area for displaying information about publishing mode
-        informationArea = new JTextArea("Please select the mode for publication from above");
+        informationArea = new JTextArea(" Please select the mode for publication from above");
         informationArea.setEditable(false);
         informationArea.setLineWrap(true);
         informationArea.setRows(4);
+        informationArea.setBorder(new LineBorder(Color.BLACK));
         //informationArea.setBackground(Color.WHITE);
         informationArea.setSize(WIDTH-50, HEIGHT/3);
         
@@ -146,21 +148,25 @@ public class Publisher extends JDialog implements ActionListener {
         modeSelectionPanel.add(topLabel);
         
         c.gridy = 1;
+        c.insets = new Insets(2,0,2, 2);
         gridbag.setConstraints(buttonPanel, c);
         modeSelectionPanel.add(buttonPanel);
         
         c.gridy = 2;
         c.gridwidth = 6;
+         c.insets = defaultInsets;
         gridbag.setConstraints(informationArea, c);
         modeSelectionPanel.add(informationArea);
 
         c.gridy = 3;
         c.gridwidth =2;
+        c.insets = new Insets(10,9,2, 2);
         gridbag.setConstraints(dsLabel,c);
         modeSelectionPanel.add(dsLabel);
 
         c.gridy = 4;
         c.gridwidth =2;
+        c.insets = defaultInsets;
         gridbag.setConstraints(dataSourceComboBox,c);
         modeSelectionPanel.add(dataSourceComboBox);
 
@@ -222,19 +228,16 @@ public class Publisher extends JDialog implements ActionListener {
         columnNamesVector.add("Display Name");
         columnNamesVector.add("Size ");
         columnNamesVector.add("Status");
-        resourceVector = new Vector();
-        
+        resourceVector = new Vector();   
         setLocalResourceVector(resourceVector,VUE.getActiveMap());
         resourceTableModel = new ResourceTableModel(resourceVector, columnNamesVector);
-        
         resourceTable = new JTable(resourceTableModel);
         resourceTable.setPreferredScrollableViewportSize(new Dimension(500,100));
-
       //  resourceList.setDefaultRenderer(String.class,resourceTableCellRenderer);
-        return new JScrollPane(resourceTable);
-        
-        
+        return new JScrollPane(resourceTable);  
     }
+    
+    
     private void setLocalResourceVector(Vector vector,LWContainer map) {
        Iterator i = map.getChildIterator();
        while(i.hasNext()) {
@@ -276,11 +279,7 @@ public class Publisher extends JDialog implements ActionListener {
             File savedCMap = createIMSCP();
             Properties metadata = new Properties();
             String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
-            /**
-            String transferredFileName = transferFile(savedCMap,savedCMap.getName());
-            File METSfile = createMETSFile( transferredFileName,"obj-vue-concept-map-mc.xml");
-            String pid = ingestToFedora(METSfile);
-             */
+          
             System.out.println("Published CMap: id = "+pid);
         } catch (Exception ex) {
              VueUtil.alert(null, "Publish Not Supported:"+ex.getMessage(), "Publish Error");
@@ -291,25 +290,26 @@ public class Publisher extends JDialog implements ActionListener {
     public  void publishAll() {
         try {
             
-        Iterator i = resourceVector.iterator();
-        while(i.hasNext()) {
-            Vector vector = (Vector)i.next();
-            Resource r = (Resource)(vector.elementAt(1));
-            Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.getSpec());
-            if(file.isFile() && b.booleanValue()) {
-                 resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
-                 String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
-                 resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                 System.out.println("Resource = " + r+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
-              
-            }    
-           publishMap();
-        }
+            Iterator i = resourceVector.iterator();
+            while(i.hasNext()) {
+                Vector vector = (Vector)i.next();
+                Resource r = (Resource)(vector.elementAt(1));
+                Boolean b = (Boolean)(vector.elementAt(0));
+                File file = new File(r.getSpec());
+                if(file.isFile() && b.booleanValue()) {
+                    resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
+                    String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
+                    resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
+                    VUE.getActiveMap().replaceResource(r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
+                    System.out.println("Resource = " + r+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
+                    
+                }
+                publishMap();
+            }
             System.out.println("Publish All");
         } catch (Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
-             ex.printStackTrace();
+            ex.printStackTrace();
         }
     }
     
