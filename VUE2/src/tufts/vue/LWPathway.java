@@ -57,6 +57,7 @@ public class LWPathway extends tufts.vue.LWComponent
     public boolean contains(Node node){
         return nodeList.contains(node);
     }
+    
     /*
     public void dividePathway(Node node1, Node node2){
         LWPathway path1 = new LWPathway();
