@@ -256,27 +256,41 @@ public class VUE
         static final int META = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         static final int CTRL = Event.CTRL_MASK;
         static final int SHIFT = Event.SHIFT_MASK;
+
+        static final private KeyStroke keyStroke(int vk, int mod) {
+            return KeyStroke.getKeyStroke(vk, mod);
+        }
         
     static final MapAction Copy = new MapAction("Copy") {
             void Xact(LWComponent c) {
 
             }};
-    static final MapAction Group = new MapAction("Group") { // enable only when two or more objects in selection
+    static final MapAction Group =
+        new MapAction("Group", keyStroke(KeyEvent.VK_G, CTRL))
+        {
+            // enable only when two or more objects in selection
             boolean enabled(java.util.List l) { return l.size() > 1; }
             void Xact(java.util.List selectionList)
             {
                 //getMap().createGroup(selectionList);
-            }};
-    static final MapAction Ungroup = new MapAction("Ungroup") { // group objects only
+            }
+        };
+    static final MapAction Ungroup =
+        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, CTRL+SHIFT))
+        {
             void act(LWComponent c) {
                 if (c instanceof LWGroup)
                     System.out.println("found group " + c);
-            }};
-    static final MapAction Rename = new MapAction("Rename") { //MapViewer action
+            }
+        };
+    static final MapAction Rename =
+        new MapAction("Rename")
+        {
             boolean enabled(java.util.List l) { return l.size() == 1; }
             void act(LWComponent c) {
                 getActiveViewer().activateLabelEdit(c);
-            }};
+            }
+        };
     static final MapAction Delete = new MapAction("Delete") {
             void act(java.util.List selectionList)
             {
@@ -290,7 +304,7 @@ public class VUE
     static final MapAction BringToFront =
         new MapAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
-                      KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL+SHIFT))
+                      keyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL+SHIFT))
         {
             void act(java.util.List selection) {
                 LWGroup.bringToFront(selection);
@@ -299,25 +313,21 @@ public class VUE
     static final MapAction SendToBack =
         new MapAction("Send to Back",
                       "Make sure this object doesn't obscure any other object",
-                      KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL+SHIFT))
+                      keyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL+SHIFT))
         {
             void act(java.util.List selection) {
                 LWGroup.sendToBack(selection);
             }
         };
     static final MapAction BringForward =
-        new MapAction("Bring Forward",
-                      null,
-                      KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL))
+        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL))
         {
             void act(java.util.List selection) {
                 LWGroup.bringForward(selection);
             }
         };
     static final MapAction SendBackward =
-        new MapAction("Send Backward",
-                      null,
-                      KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL))
+        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL))
         {
             void act(java.util.List selection) {
                 LWGroup.sendBackward(selection);
@@ -333,16 +343,21 @@ public class VUE
         // only ever one selection, altho everybody needs
         // to do their own check, so I guess everyone needs
         // to listen anyway..
-        public MapAction(String name)
+        private MapAction(String name, String shortDescription, KeyStroke keyStroke)
         {
             super(name);
-        }
-        public MapAction(String name, String shortDescription, KeyStroke keyStroke)
-        {
-            this(name);
             if (shortDescription != null)
                 putValue(SHORT_DESCRIPTION, shortDescription);
-            putValue(ACCELERATOR_KEY, keyStroke);
+            if (keyStroke != null)
+                putValue(ACCELERATOR_KEY, keyStroke);
+        }
+        private  MapAction(String name)
+        {
+            this(name, null, null);
+        }
+        private MapAction(String name, KeyStroke keyStroke)
+        {
+            this(name, null, keyStroke);
         }
         public String getActionName()
         {
