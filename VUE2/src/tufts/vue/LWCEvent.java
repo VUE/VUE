@@ -45,8 +45,10 @@ public class LWCEvent
     public LWComponent getComponent()
     {
         if (component == null && components != null && components.size() > 0) {
-            if (/*DEBUG.EVENTS &&*/ components.size() > 1)
+            if (/*DEBUG.EVENTS &&*/ components.size() > 1) {
                 System.out.println(this + " *** RETURNING FIRST IN LIST IN LIU OF LIST OF LENGTH " + components.size());
+                new Throwable().printStackTrace();
+            }
             return (LWComponent) components.get(0);
         } else
             return component;

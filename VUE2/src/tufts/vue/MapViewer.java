@@ -1130,9 +1130,7 @@ public class MapViewer extends javax.swing.JComponent
             VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
         this.map = map;
         this.map.addLWCListener(this);
-
-        //mUndo = new UndoManger(map);
-        
+        this.map.setUndoManager(new UndoManager(this.map));
         repaint();
     }
  
@@ -1288,6 +1286,8 @@ public class MapViewer extends javax.swing.JComponent
         //if (e.getWhat() == LWKey.Location || e.getWhat() == LWKey.Size) 
         //return;
 
+        //if (e.getWhat() == LWKey.HierarchyChanging) // ignore these as always paired with something else (EXCEPT during undo!)
+        //    return;
         if (e.getWhat() == LWKey.Added) // depend on childAdded 
             // || e.getWhat.equals("childRemoved"))
             // todo: deleting even will set up for repainting that node,

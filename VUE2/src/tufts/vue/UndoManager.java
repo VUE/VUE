@@ -44,7 +44,7 @@ public class UndoManager
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
                 Map props = (Map) e.getValue();
-                if (props.containsKey(LWKey.HierarchyChange)) {
+                if (props.containsKey(LWKey.HierarchyChanging)) {
                     undoComponentChanges((LWComponent) e.getKey(), props);
                     hierarchyChanged = true;
                     i.remove();
@@ -68,18 +68,31 @@ public class UndoManager
                 if (DEBUG.UNDO) System.out.println("\tundoing " + e);
                 Object propKey = e.getKey();
                 Object oldValue = e.getValue();
-                if (propKey == LWKey.HierarchyChange) {
-                    if (DEBUG.UNDO) System.out.println("UNDO: restoring children of " + c + " to " + oldValue);
-                    LWContainer parent = (LWContainer) c;
-                    parent.children = (List) oldValue;
-                    parent.setScale(parent.getScale());
-                    parent.notify(LWKey.HierarchyChange);
+                if (propKey == LWKey.HierarchyChanging) {
+                    undoHierarchyChange(c, oldValue);
                 } else if (oldValue instanceof Undoable) {
                     ((Undoable)oldValue).undo();
                 } else {
                     tufts.vue.beans.VueLWCPropertyMapper.setProperty(c, propKey, oldValue);
                 }
             }
+        }
+
+        private void undoHierarchyChange(LWComponent c, Object oldValue)
+        {
+            if (DEBUG.UNDO) System.out.println("UNDO: restoring children of " + c + " to " + oldValue);
+            LWContainer parent = (LWContainer) c;
+            parent.children = (List) oldValue;
+            Iterator ci = parent.children.iterator();
+            // now make sure all the children are properly parented,
+            // and none of them are marked as deleted.
+            while (ci.hasNext()) {
+                LWComponent child = (LWComponent) ci.next();
+                child.setDeleted(false); // in case had been deleted
+                child.setParent(parent);
+            }
+            parent.setScale(parent.getScale());
+            parent.notify(LWKey.HierarchyChanging);
         }
 
         public String toString() {
@@ -252,8 +265,8 @@ if (true)return;
 
     private void processEvent(LWCEvent e)
     {
-        if (e.getWhat() == LWKey.HierarchyChange || e.getWhat().startsWith("hier.")) {
-            recordHierarchyChangeEvent(e);
+        if (e.getWhat() == LWKey.HierarchyChanging || e.getWhat().startsWith("hier.")) {
+            recordHierarchyChangingEvent(e);
         } else if (e.hasOldValue()) {
             recordUndoablePropertyChangeEvent(e);
         } else {
@@ -267,14 +280,14 @@ if (true)return;
     //static class HierUndo extends Undoable { }
 
     private static final Object HIERARCHY_CHANGE = "hierarchy.change";
-    private void recordHierarchyChangeEvent(LWCEvent e)
+    private void recordHierarchyChangingEvent(LWCEvent e)
     {
         LWContainer parent = (LWContainer) e.getSource();
         //Object old = ((ArrayList)parent.children).clone();
 
         //if (DEBUG.UNDO) System.out.println(" (HIERARCHY)");
 
-        recordUndoableChangeEvent(LWKey.HierarchyChange, parent, HIERARCHY_CHANGE);
+        recordUndoableChangeEvent(LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
         //new Undoable(old) { void undo() { parent.children = (ArrayList) old; } });        
         
     }

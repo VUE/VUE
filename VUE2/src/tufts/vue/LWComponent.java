@@ -104,6 +104,14 @@ public class LWComponent
             throw new IllegalStateException("Can't set ID to [" + ID + "], already set on " + this);
         //System.out.println("setID [" + ID + "] on " + this);
         this.ID = ID;
+
+        // special case: if undo of add of any component that was brand new, this is
+        // a new component creation, and to undo it is actually a delete.
+        // UndoManager handles the hierarchy end of this, but we need this here
+        // to differentiate hierarchy events that are just reparentings from
+        // creations (the opposite end of this solution is in removeFromModel, when
+        // we know something has been explicitly deleted).
+        notify("new-component-add", new Undoable() { void undo() { setDeleted(true); }} );
     }
     public void setLabel(String label)
     {
@@ -438,7 +446,8 @@ public class LWComponent
     /** for save/restore only & internal use only */
     public LWComponent()
     {
-        //System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
+        if (DEBUG.PARENTING)
+            System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
     }
 
     /** Create a component with duplicate content & style.
@@ -667,19 +676,19 @@ public class LWComponent
         //return y;
     }
     
-    /*
-    public boolean isChild()
-    {
-        return this.parent != null || parent instanceof LWMap; // todo: kind of a hack
-    }
-    */
     void setParent(LWContainer c)
     {
+        LWContainer old = this.parent;
         this.parent = c;
+        //if (this.parent != null) notify("set-parent", new Undoable(old) { void undo() { setParent((LWContainer)old); }} );
     }
-    public LWContainer getParent()
-    {
+    
+    public LWContainer getParent() {
         return this.parent;
+    }
+
+    public boolean isOrphan() {
+        return this.parent == null;
     }
 
     public boolean hasChildren() {
@@ -1197,7 +1206,7 @@ public class LWComponent
 
     protected boolean mEventsDisabled = false;
     private void setEventsEnabled(boolean t) {
-        if (DEBUG.EVENTS) System.out.println(this + " *** EVENTS ENABLED: from " + !mEventsDisabled + " to " + t);
+        if (DEBUG.EVENTS&&DEBUG.META) System.out.println(this + " *** EVENTS ENABLED: from " + !mEventsDisabled + " to " + t);
         mEventsDisabled = !t;
     }
     private int mEventSuspensions = 0;
@@ -1253,6 +1262,14 @@ public class LWComponent
                 System.out.println(e + " " + parent + " ** PARENT UP-NOTIFICATION");
             }
             parent.notifyLWCListeners(e);
+        } else if (isOrphan()) {
+            if (listeners != null && listeners.size() > 0) {
+                System.out.println("*** ORPHAN NODE w/LISTENERS DELIVERED EVENTS:"
+                                   + "\n\torphan=" + this
+                                   + "\n\tevent=" + e
+                                   + "\n\tlisteners=" + listeners);
+            } else if (DEBUG.EVENTS || DEBUG.PARENTING)
+                System.out.println("FYI: orphan node event " + e);
         }
     }
     
@@ -1365,6 +1382,7 @@ public class LWComponent
         // links nulled only after removeFromModel, so it's a marker
         // for a deleted component
         return this.scale == -1;
+        //return this.parent == null;
     }
     
     /**
@@ -1377,10 +1395,18 @@ public class LWComponent
             throw new IllegalStateException("Attempt to delete already deleted: " + this);
         removeAllLWCListeners();
         disconnectFromLinks();
-        this.scale = -1;
-        // help gc
-        //this.links.clear();
-        //this.links = null;
+        setDeleted(true);
+    }
+
+    void setDeleted(boolean deleted) {
+        if (deleted) {
+            this.scale = -1;
+            if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS) {
+                if (parent != null) System.out.println(this + " parent not yet null in setDeleted true (ok for undo of new)");
+            }
+            this.parent = null;
+        } else
+            this.scale = 1;
     }
 
     private void disconnectFromLinks()

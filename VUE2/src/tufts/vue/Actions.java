@@ -803,13 +803,8 @@ class Actions
                 VUE.getActiveMap().addNode(node);
 
                 //better: run a timer and do this if no activity (e.g., node creation)
-                // for 250ms or something -- todo bug: every other new node not activating label edit
-
-                // todo hack: we need to paint right away so the node can compute it's size,
-                // so that the label edit will show up in the right place..
-                MapViewer viewer = VUE.getActiveViewer();
-                //viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
-                viewer.activateLabelEdit(node);
+                // for 250ms or something
+                VUE.getActiveViewer().activateLabelEdit(node);
                 
                 return node;
             }

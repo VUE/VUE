@@ -116,10 +116,12 @@ public class LWMap extends LWContainer
     {
         System.out.println(this + " marking " + mChanges + " modifications as current");
         mChanges = 0;
+        /*
         if (getUndoManager() == null)
             setUndoManager(new UndoManager(this));
         else
             getUndoManager().flush();
+        */
         // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public boolean isModified() {
@@ -357,6 +359,23 @@ public class LWMap extends LWContainer
     }
     
 
+    /** override of LWComponent: parent == null indicates deleted,
+     * but map parent is always null.  For now always returns
+     * false.  If need to support tracking deleted map, create
+     * a different internal indicator for LWMap's [OLD] */
+    public boolean isDeleted() {
+        return false;
+    }
+
+    /** override of LWComponent: normally, parent == null indicates orphan,
+     * which is considered a problem condition if attempting to deliver
+     * events, but this is normal for the LWMap which as no parent,
+     * so this always returns false.
+     */
+    public boolean isOrphan() {
+        return false;
+    }
+    
     public LWNode addNode(LWNode c)
     {
         addChild(c);

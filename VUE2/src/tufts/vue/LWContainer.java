@@ -251,12 +251,12 @@ public abstract class LWContainer extends LWComponent
         notify(LWKey.ChildAdded, c);
         */
     }
-    
+
     public void addChildren(Iterator i)
     {
         ArrayList addedChildren = new ArrayList();
         
-        notify(LWKey.HierarchyChange);
+        notify(LWKey.HierarchyChanging);
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -367,17 +367,15 @@ public abstract class LWContainer extends LWComponent
             return;
         }
         if (!this.children.remove(c)) {
+            throw new IllegalStateException(this + " didn't contain child for removal: " + c);
+            /*
             if (DEBUG.PARENTING) {
                 System.out.println(this + " FYI: didn't contain child for removal: " + c);
                 if (DEBUG.META) new Throwable().printStackTrace();
-                //throw new IllegalStateException(this + " didn't contain child for removal: " + c);
             }
+            */
         }
-        // we don't set parent to null on removal so it doesn't bother needing to be restored
-        // on undo -- however that means sometimes we try and remove children that have
-        // already been removed, which is why we only have the diagnostic above now instead
-        // of the exception.
-        //c.setParent(null);
+        c.setParent(null);
 
         // If this child was scaled inside us (as all children are except groups)
         // besure to restore it's scale back to 1 when de-parenting it.
@@ -393,7 +391,7 @@ public abstract class LWContainer extends LWComponent
      */
     public void removeChildren(Iterator i)
     {
-        notify(LWKey.HierarchyChange);
+        notify(LWKey.HierarchyChanging);
 
         ArrayList deletedChildren = new ArrayList();
         
@@ -823,6 +821,7 @@ public abstract class LWContainer extends LWComponent
 
     private boolean bringToFront(LWComponent c)
     {
+        notify(LWKey.HierarchyChanging);
         // Move to END of list, so it will paint last (visually on top)
         int idx = children.indexOf(c);
         int idxLast = children.size() - 1;
@@ -839,6 +838,7 @@ public abstract class LWContainer extends LWComponent
     }
     private boolean sendToBack(LWComponent c)
     {
+        notify(LWKey.HierarchyChanging);
         // Move to FRONT of list, so it will paint first (visually on bottom)
         int idx = children.indexOf(c);
         if (idx == 0)
@@ -852,6 +852,7 @@ public abstract class LWContainer extends LWComponent
     }
     private boolean bringForward(LWComponent c)
     {
+        notify(LWKey.HierarchyChanging);
         // Move toward the END of list, so it will paint later (visually on top)
         int idx = children.indexOf(c);
         int idxLast = children.size() - 1;
@@ -865,6 +866,7 @@ public abstract class LWContainer extends LWComponent
     }
     private boolean sendBackward(LWComponent c)
     {
+        notify(LWKey.HierarchyChanging);
         // Move toward the FRONT of list, so it will paint sooner (visually on bottom)
         int idx = children.indexOf(c);
         if (idx == 0) 

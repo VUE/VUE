@@ -5,6 +5,7 @@ abstract class Undoable {
     public Undoable(Object old) {
         this.old = old;
     }
+    public Undoable() {}
 
     /**
      * If your type isn't one we've provided an automatic convenience
