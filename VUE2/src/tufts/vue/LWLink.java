@@ -6,8 +6,10 @@ import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
 
-//import javax.swing.text.*;
 import javax.swing.JTextArea;
 
 /**
@@ -41,7 +43,10 @@ public class LWLink extends LWComponent
     private int endPoint1Style = 0;
     private int endPoint2Style = 0;
     
-    public Area clip = null;
+    // todo: create set of arrow types
+    private final float ArrowBase = 8;
+    private RectangularShape ep1Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+    private RectangularShape ep2Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
     
     /**
      * Used only for restore -- must be public
@@ -63,7 +68,9 @@ public class LWLink extends LWComponent
         setEndPoint1(ep1);
         setEndPoint2(ep2);
         setStrokeWidth(2f); //todo config: default link width
-        computeShape();
+        computeLineShape();
+
+        setTextColor(Color.red); // todo: TEMPORARY ANGLE DEBUG
     }
 
     protected void removeFromModel()
@@ -168,7 +175,7 @@ public class LWLink extends LWComponent
         //else
         c.addLinkRef(this);
         if (this.ep2 != null)
-            computeShape();
+            computeLineShape();
         //System.out.println(this + " ep1 = " + c);
     }
     void setEndPoint2(LWComponent c)
@@ -179,7 +186,7 @@ public class LWLink extends LWComponent
         //else
         c.addLinkRef(this);
         if (this.ep1 != null)
-            computeShape();
+            computeLineShape();
         //System.out.println(this + " ep2 = " + c);
     }
     // interface
@@ -294,7 +301,116 @@ public class LWLink extends LWComponent
         // return stroked shape?
     }
 
-    public void computeShape()
+    /*
+     * Compute the intersection point of two lines, as defined
+     * by two given points for each line.
+     * This already assumes that we know they intersect somewhere (are not parallel), 
+     */
+    private static float[] computeLineIntersection(float s1x1, float s1y1, float s1x2, float s1y2,
+                                                    float s2x1, float s2y1, float s2x2, float s2y2)
+    {
+        // We are defining a line here using the formula:
+        // y = mx + b  -- m is slope, b is y-intercept (where crosses x-axis)
+        
+        boolean m1vertical = (s1x1 == s1x2);
+        boolean m2vertical = (s2x1 == s2x2);
+        float m1 = Float.NaN;
+        float m2 = Float.NaN;
+        if (!m1vertical)
+            m1 = (s1y1 - s1y2) / (s1x1 - s1x2);
+        if (!m2vertical)
+            m2 = (s2y1 - s2y2) / (s2x1 - s2x2);
+        
+        // solve for b using any two points from each line
+        // to solve for b:
+        //      y = mx + b
+        //      y + -b = mx
+        //      -b = mx - y
+        //      b = -(mx - y)
+        // float b1 = -(m1 * s1x1 - s1y1);
+        // float b2 = -(m2 * s2x1 - s2y1);
+        // System.out.println("m1=" + m1 + " b1=" + b1);
+        // System.out.println("m2=" + m2 + " b2=" + b2);
+
+        // if EITHER line is vertical, the x value of the intersection
+        // point will obviously have to be the x value of any point
+        // on the vertical line.
+        
+        float x = 0;
+        float y = 0;
+        if (m1vertical) {   // first line is vertical
+            //System.out.println("setting X to first vertical at " + s1x1);
+            float b2 = -(m2 * s2x1 - s2y1);
+            x = s1x1; // set x to any x point from the first line
+            // using y=mx+b, compute y using second line
+            y = m2 * x + b2;
+        } else {
+            float b1 = -(m1 * s1x1 - s1y1);
+            if (m2vertical) { // second line is vertical (has no slope)
+                //System.out.println("setting X to second vertical at " + s2x1);
+                x = s2x1; // set x to any point from the second line
+            } else {
+                // second line has a slope (is not veritcal: m is valid)
+                float b2 = -(m2 * s2x1 - s2y1);
+                x = (b2 - b1) / (m1 - m2);
+            }
+            // using y=mx+b, compute y using first line
+            y = m1 * x + b1;
+        }
+        //System.out.println("x=" + x + " y=" + y);
+
+        return new float[] { x, y };
+    }
+
+    private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" };
+    
+    private static float[] computeShapeIntersection(Shape shape,
+                                                    float rayX1, float rayY1,
+                                                    float rayX2, float rayY2)
+    {
+        PathIterator i = shape.getPathIterator(null);
+        // todo: only need to flatten if contains curves...
+        // todo: if keep flattener, can ignore CUBICTO code below
+        i = new java.awt.geom.FlatteningPathIterator(i, 0.5);
+        float[] seg = new float[6];
+        float firstX = 0f;
+        float firstY = 0f;
+        float lastX = 0f;
+        float lastY = 0f;
+        int cnt = 0;
+        while (!i.isDone()) {
+            int segType = i.currentSegment(seg);
+            if (cnt == 0) {
+                firstX = seg[0];
+                firstY = seg[1];
+            } else if (segType == PathIterator.SEG_CLOSE) {
+                seg[0] = firstX; 
+                seg[1] = firstY; 
+            }
+            float endX, endY;
+            if (segType == PathIterator.SEG_CUBICTO) {
+                endX = seg[4];
+                endY = seg[5];
+            } else {
+                endX = seg[0];
+                endY = seg[1];
+            }
+            if (cnt > 0) {
+                if (Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
+                    //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
+                    return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1]);
+                    //return new float[] { (lastX + endX) / 2, (lastY + endY) / 2 };
+                }
+            }
+            cnt++;
+            lastX = endX;
+            lastY = endY;
+            i.next();
+        }
+        return new float[] { Float.NaN, Float.NaN };
+    }
+
+    void computeLineShape()
     {
         float startX = ep1.getCenterX();
         float startY = ep1.getCenterY();
@@ -335,6 +451,27 @@ public class LWLink extends LWComponent
                 endY += ep2.getHeight() / 2;
         }
         */
+
+        Shape ep1Shape = ep1.getShape();
+        if (ep1Shape != null && !(ep1Shape instanceof Line2D)) {
+            float[]intersection = computeShapeIntersection(ep1Shape, startX, startY, endX, endY);
+            // If intersection fails for any reason, leave endpoint as center
+            // of object.
+            if (!Float.isNaN(intersection[0]))
+                startX = intersection[0];
+            if (!Float.isNaN(intersection[1]))
+                startY = intersection[1];
+        }
+        Shape ep2Shape = ep2.getShape();
+        if (ep2Shape != null && !(ep2Shape instanceof Line2D)) {
+            float[]intersection = computeShapeIntersection(ep2Shape, startX, startY, endX, endY);
+            // If intersection fails for any reason, leave endpoint as center
+            // of object.
+            if (!Float.isNaN(intersection[0]))
+                endX = intersection[0];
+            if (!Float.isNaN(intersection[1]))
+                endY = intersection[1];
+        }
         
         this.centerX = startX - (startX - endX) / 2;
         this.centerY = startY - (startY - endY) / 2;
@@ -367,12 +504,82 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         this.line.setLine(startX, startY, endX, endY);
     }
+
+    private void drawArrows(Graphics2D gg)
+    {
+        //-------------------------------------------------------
+        // Draw arrows
+        //-------------------------------------------------------
+
+        ////ep1Shape.setFrame(this.line.getP1(), new Dimension(arrowSize, arrowSize));
+        ////ep1Shape.setFrame(this.line.getX1() - arrowSize/2, this.line.getY1(), arrowSize, arrowSize*2);
+        //ep1Shape.setFrame(0,0, arrowSize, arrowSize*2);
+
+        double xdiff = line.getX1() - line.getX2();
+        double ydiff = line.getY1() - line.getY2();
+        double slope = xdiff / ydiff;
+        double slopeInv = 1 / slope;
+        double r0 = -Math.atan(slope);
+        double deg = Math.toDegrees(r0);
+        if (xdiff >= 0 && ydiff >= 0)
+            deg += 180;
+        else if (xdiff <= 0 && ydiff >= 0)
+            deg = -90 - (90-deg);
+
+        if (VueUtil.isMacPlatform()) {
+            final int ew = 8; // error-window: # of degrees around 45 that are fucked up
+            // Mac MRJ 69.1 / Java 1.4.1 java bug: approaching 45 & 225 degrees,
+            // rotations seriously fuck up.
+            if (deg > 45-ew && deg < 45+ew)
+                deg = 45;
+            if (deg > -135-ew && deg < -135+ew)
+                deg = -135;
+        }
+        double r = Math.toRadians(deg);
+
+        AffineTransform savedTransform = gg.getTransform();
+        
+        gg.setColor(this.strokeColor);
+        gg.setStroke(this.stroke);
+        
+        // draw the first arrow
+        gg.translate(line.getX1(), line.getY1());
+        gg.rotate(r);
+        gg.translate(-ArrowBase/2, 0);
+        //gg.setColor(Color.red);
+        gg.fill(ep1Shape);
+        gg.setColor(this.strokeColor);
+        gg.draw(ep1Shape);
+
+        gg.setTransform(savedTransform);
+
+        // draw the second arrow
+        gg.translate(line.getX2(), line.getY2());
+        gg.rotate(r + Math.PI); // rotate 180 degrees for other arrow
+        gg.translate(-ArrowBase/2, 0);
+        //gg.setColor(Color.red);
+        gg.fill(ep2Shape);
+        gg.setColor(this.strokeColor);
+        gg.draw(ep2Shape);
+
+        gg.setTransform(savedTransform);
+
+
+        // diagnostics
+        /*
+        this.label =
+            ((float)xdiff) + "/" + ((float)ydiff) + "=" + (float) slope
+            + " atan=" + (float) r
+            + " deg=[ " + (float) Math.toDegrees(r)
+            + " ]";
+        getLabelBox().setText(this.label);
+        */
+    }
+
     
-    //private static final int clearBorder = 4;
-    //private Rectangle2D box = new Rectangle2D.Float();
     public void draw(Graphics2D g)
     {
-        computeShape(); // compute this.line
+        computeLineShape(); // compute this.line
 
         // Clip the node shape so the link doesn't draw into it.
         // We need to do this instead of just drawing links first
@@ -393,7 +600,9 @@ public class LWLink extends LWComponent
         // for the "edge-of-clip-region" erasing bug!  So that's
         // another thing to look forward to when we don't need
         // this code anymore.
-        if (!viewerCreationLink) {
+        
+        // temporarily disable while we work on arrows
+        if (false&&!viewerCreationLink) {
             if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
                 && !(ep1.getShape() == null && ep2.getShape() == null)) {
                 Area clipArea = new Area(g.getClipBounds());
@@ -472,8 +681,17 @@ public class LWLink extends LWComponent
         g.setStroke(stroke);
         g.draw(this.line);
 
+        // todo: conditional
+        drawArrows(g);
+
+        
+        //-------------------------------------------------------
+        // Paint label if there is one
+        //-------------------------------------------------------
+        
         String label = getLabel();
-        if (label != null && label.length() > 0) {
+        if (label != null && label.length() > 0)
+        {
             TextBox textBox = getLabelBox();
             if (textBox.getParent() == null) {
                 // only draw if we're not an active edit on the map
@@ -484,6 +702,7 @@ public class LWLink extends LWComponent
                 // or text changes somehow (content, font) or alignment changes
                 g.translate(lx, ly);
                 textBox.draw(g);
+                g.translate(-lx, -ly);
             }
 
             /*
@@ -494,17 +713,6 @@ public class LWLink extends LWComponent
             g.drawString(label, centerX - w/2, centerY - (strokeWidth/2));
             */
         }
-
-        
-       
-        // Draw a handle
-        //g.setColor(Color.darkGray);
-        //int w = getWidth() - clearBorder * 2;
-        //int h = getHeight() - clearBorder * 2;
-        //g.fillRect(clearBorder, clearBorder, w, h);
-        
-        //LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
-        //if(path != null) path.drawAgain(g);
     }
 
 
