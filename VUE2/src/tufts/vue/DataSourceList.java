@@ -25,6 +25,10 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+ import osid.filing.*;
+import tufts.oki.remoteFiling.*;
+import tufts.oki.localFiling.*;
+
 
 
 
@@ -96,6 +100,7 @@ public class DataSourceList extends JList implements DropTargetListener{
         DataSource ds = (DataSource)getSelectedValue();
         FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
         VueDandDTree favoritesTree = fw.getFavoritesTree();
+        favoritesTree.setRootVisible(true);
         DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
         FavoritesNode rootNode = (FavoritesNode)model.getRoot();
         
@@ -118,8 +123,34 @@ public class DataSourceList extends JList implements DropTargetListener{
                     java.util.Iterator iter = resourceList.iterator();
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
+                        
+                          if (resource instanceof CabinetResource){
+                             
+                                     CabinetEntry entry = ((CabinetResource)resource).getEntry();
+                                      CabinetNode cabNode = null;
+                                       if (entry instanceof RemoteCabinetEntry)
+                                                cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.REMOTE);
+                                         else
+                                                 cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.LOCAL);
+                                   
+                                        cabNode.explore();
+                             
+                                      
+                                        model.insertNodeInto(cabNode, rootNode, 0);
+                                      favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                                    
+                                      favoritesTree.setRootVisible(false);
+                                    }
+                          else{
                         ResourceNode newNode =new  ResourceNode(resource);
-                        model.insertNodeInto(newNode, rootNode, 0);
+                          
+                                        model.insertNodeInto(newNode, rootNode, 0);
+                                      favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                                    
+                                      favoritesTree.setRootVisible(false);
+                       
+                        
+                          }
                     }
                 }
             } catch (Exception ex) {
@@ -221,6 +252,7 @@ public class DataSourceList extends JList implements DropTargetListener{
         
         e.dropComplete(success);
         favoritesTree.expandRow(0);
+        favoritesTree.setRootVisible(false);
         
     }
     

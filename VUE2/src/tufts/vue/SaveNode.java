@@ -29,21 +29,35 @@ public class SaveNode{
     public SaveNode(ResourceNode resourceNode){
       
             
-    
+        
         Enumeration e = resourceNode.children();
         this.setResource(resourceNode.getResource());
+        System.out.println("Resource Node" + resourceNode.getResource());
         Vector v = new Vector();
        
         while (e.hasMoreElements())
-        {
-            SaveNode child = new SaveNode((ResourceNode)e.nextElement());
+        {    
+              
+               ResourceNode newResNode =(ResourceNode)e.nextElement();
+              if (newResNode.getResource() instanceof CabinetResource)
+            { 
+               //SaveNode child = new SaveNode(new ResourceNode(new MapResource("CabinetNode Placeholder")));
+               //v.add(child);
+            }
            
+          
+            else{
+            
+            SaveNode child = new SaveNode(newResNode);
             v.add(child);
+          
+            }
+           
         }
           
         this.setChildren(v);
      //  System.out.println("I am resource" + this.getResource()+this.getResource().getType()); 
-       
+        
     }
     
     

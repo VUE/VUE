@@ -298,7 +298,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                             model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                             
                             favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                            favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                            //favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
                             favoritesTree.setRootVisible(true);
                             this.setFavoritesTree(favoritesTree);
                             favoritesTree.setRootVisible(false);
@@ -313,7 +313,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                             favoritesTree.expandPath(new TreePath(favresNode.getPath()));
                             TreePath newPath = new TreePath(favNode.getPath());
                             favoritesTree.setSelectionPath(newPath);
-                            favoritesTree.startEditingAtPath(newPath);
+                            //favoritesTree.startEditingAtPath(newPath);
                             
                             favoritesTree.setRootVisible(true);
                             this.setFavoritesTree(favoritesTree);
@@ -337,11 +337,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         
                         
                         model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
-                        
+                         TreePath newPath = new TreePath(favNode.getPath());
+                          favoritesTree.setSelectionPath(newPath);
+                     
+                        favoritesTree.setRootVisible(true);
                         
                         favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                        favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
-                        favoritesTree.setRootVisible(true);
+                      //  favoritesTree.startEditingAtPath(new 
                         favoritesTree.setRootVisible(false);
                         this.setFavoritesTree(favoritesTree);
                         
