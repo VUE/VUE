@@ -253,7 +253,7 @@ public class LWMap extends LWContainer
     
     public void draw(DrawContext dc){
         LWPathway path = this.getPathwayManager().getCurrentPathway();        
-        if (path != null) {
+        if (path != null && path.getShowing()) {
             path.drawPathway((Graphics2D) dc.g.create());
         }
         super.draw(dc);
