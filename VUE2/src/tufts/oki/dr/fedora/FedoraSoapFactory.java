@@ -135,15 +135,20 @@ public class FedoraSoapFactory {
                     ObjectFields[] fields= methodDefs.getResultList(); 
                     for(int i=0;i<fields.length;i++) {
                         if(dr.isFedoraObjectAssetTypeSupported(fields[i].getCModel())) {
-                            resultObjects.add(new FedoraObject(dr,fields[i].getPid(),fields[i].getTitle()[0],dr.getAssetType(fields[i].getCModel())));
+                            String title = "No Title";
+                            if(fields[i].getTitle() != null) 
+                                title = fields[i].getTitle()[0];
+                            resultObjects.add(new FedoraObject(dr,fields[i].getPid(),title,dr.getAssetType(fields[i].getCModel())));
                         }
                     }
             } else {
-                System.out.println("search return no results");
+                System.out.println("search returned no results");
             }
             return new FedoraObjectIterator(resultObjects) ;
         }catch(Exception ex) {
+              ex.printStackTrace();
             throw new osid.dr.DigitalRepositoryException("FedoraSoapFactory.search"+ex.getMessage());
+          
         }  
     }
     
