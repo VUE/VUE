@@ -2,8 +2,13 @@
 @echo off
 REM Change the following two lines to set your JDK path and vue home path
 
+<<<<<<< vue.bat
+set JAVA_HOME=C:\forte_jdk\j2sdk1.4.0
+set VUE_HOME=C:\Daisuke\VUEDevelopment\src
+=======
 set JAVA_HOME=C:\j2sdk1.4.0_03
 set VUE_HOME=C:\anoop\euclid\VUEDevelopment\src
+>>>>>>> 1.4
 
 set JAVA=%JAVA_HOME%\bin\java
 set JAVAC=%JAVA_HOME%\bin\javac
