@@ -950,7 +950,7 @@ public class VUE
         optionsMenu.add(new JMenuItem("Preferences..."));
          */
         
-        JMenuItem vueOnline = new JMenuItem("Vue Online");
+        JMenuItem vueOnline = new JMenuItem("VUE Online");
         JMenuItem userGuide = new JMenuItem("User Guide");
         JMenuItem aboutUs = new JMenuItem("About VUE");
         helpMenu.add(vueOnline); 
