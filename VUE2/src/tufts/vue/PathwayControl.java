@@ -46,7 +46,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     private JComboBox pathwayList;
     
     //pathway currently being kept track of
-    //private LWPathway currentPathway;
     private LWPathwayManager pathwayManager = null;
     
     private final String noPathway = "";
@@ -133,9 +132,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     /**Sets the pathway manager to the given pathway manager*/
     public void setPathwayManager(LWPathwayManager pathwayManager)
     {
-        //saveCurrentPathway();
         this.pathwayManager = pathwayManager;
-         //selects empty pathway if the cancel button was pressed
+        
         //clears the combo box list 
         //come up with a better way
         pathwayList.removeAllItems();
@@ -154,10 +152,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         pathwayList.setSelectedItem(pathwayManager.getCurrentPathway());
         
         updateControlPanel();
-        
-        /*if (this.pathwayManager.getCurrentPathway() != null)
-          setCurrentPathway(pathway);
-          */
     }
     
     /**Returns the currently associated pathway manager*/
@@ -174,7 +168,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         
         //switches to the newly added pathway
         pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);        
-        //this.setCurrentPathway(newPathway);
     }
     
     /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
@@ -183,14 +176,13 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         this.getPathwayManager().setCurrentPathway(pathway);
         
         //sets to the first node if there is no current node set
-        if(pathway != null){
+        if(pathway != null)
+        {
             if ((pathway.getCurrent() == null) && (pathway.getFirst() != null) )
               pathway.getFirst();
-
-            pathwayList.setSelectedItem(pathway);
-
-            updateControlPanel(); 
         }       
+        
+        updateControlPanel(); 
     }
     
     /**Returns the currently selected pathway*/
@@ -213,7 +205,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //PathwayControl control = new PathwayControl(LWPathwayManager.getInstance());
         PathwayControl control = new PathwayControl(null);
         control.show();
     }
@@ -341,22 +332,13 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             if (pathwayList.getSelectedItem() instanceof LWPathway)
             {
                 LWPathway pathway = (LWPathway)pathwayList.getSelectedItem();
-                this.setCurrentPathway(pathway);
-                
-                updateControlPanel();                
-                
+                this.setCurrentPathway(pathway);            
             }
             
             //if "no" pathway was selected, then set the current pathway to nothing and updates accordingly
             else if (pathwayList.getSelectedItem().equals(noPathway))
-            {
-                this.setCurrentPathway(null);
-                
-                //update the inspector here
-                //VUE.getPathwayInspector().setPathway(currentPathway);
-                
-                updateControlPanel();
-            }
+              this.setCurrentPathway(null);
+           
             
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly
             else if (pathwayList.getSelectedItem().equals(addPathway))

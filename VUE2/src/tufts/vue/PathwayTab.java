@@ -22,6 +22,8 @@ import java.awt.Dimension;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.DocumentEvent;
@@ -46,6 +48,18 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     {   
         pathwayTable = new JTable(new PathwayTableModel());
         pathwayTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        pathwayTable.setToolTipText("Double click to select the current elment");
+        pathwayTable.addMouseListener(
+            new MouseAdapter()
+            {
+                public void mouseClicked(MouseEvent me)
+                {
+                    if (me.getClickCount() == 2)
+                       setCurrentElement(pathwayTable.getSelectedRow());
+                }  
+            }
+        );
+        
         ListSelectionModel lsm = pathwayTable.getSelectionModel();
         lsm.addListSelectionListener(this);
         
@@ -124,9 +138,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     {
         ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
         
+        //disables the add button if the pathway is not selected
         if (pathway == null)
           add.setEnabled(false);
         
+        //if the pathway is selected and map items are selected, enable the add button
         else if (!VUE.ModelSelection.isEmpty())
           add.setEnabled(true);
     }
@@ -135,6 +151,15 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     public LWPathway getPathway()
     {
         return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
+    }
+    
+    /**Sets the current node of the pathway to be the selected one from the table*/
+    public void setCurrentElement(int index)
+    {
+       ((PathwayTableModel)pathwayTable.getModel()).getPathway().setCurrentIndex(index);
+       
+        //update the pathway control panel
+        VUE.getPathwayControl().updateControlPanel();
     }
     
     /**Notifies the table of data change*/
@@ -151,10 +176,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         
         //moves up the selected row 
         if (e.getSource() == moveUp)
-        {
-            //selected--;
-            //pathwayTable.setRowSelectionInterval(selected, selected);
-            
+        {   
             ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, --selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
@@ -165,10 +187,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         
         //moves down the selected row
         else if (e.getSource() == moveDown)
-        {
-            //selected++; 
-            //pathwayTable.setRowSelectionInterval(selected, selected);
-            
+        {   
             ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, ++selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
