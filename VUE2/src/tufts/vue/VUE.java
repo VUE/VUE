@@ -288,8 +288,12 @@ public class VUE
 
         viewerSplit = new JSplitPane();
         viewerSplit.setOneTouchExpandable(true);
-        viewerSplit.setLeftComponent(tabbedPane);
         viewerSplit.setRightComponent(tabbedPane2);
+        // NOTE: set left component AFTER set right component -- the
+        // LAST set left/right call determines the default focus component!
+        // It needs to be the LEFT component as the right one isn't
+        // even visible at startup!
+        viewerSplit.setLeftComponent(tabbedPane);
         viewerSplit.setResizeWeight(0.5);
         viewerSplit.setDividerLocation(9999);
 
@@ -575,10 +579,12 @@ public class VUE
         final boolean useScrollbars = false; // in-progress feature
         JScrollPane sp = null;
         if (mapViewer == null) {
+
             mapViewer = new tufts.vue.MapViewer(map);
-            //if (VUE.ActiveViewer == null)
-                VUE.ActiveViewer = mapViewer;
-            System.out.println("active viewer: " + VUE.getActiveViewer().getMap().getLabel());
+            System.out.println("VUE.displayMap: currently active viewer: " + getActiveViewer());
+            if (getActiveViewer() == null)
+                setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
+            System.out.println("VUE.displayMap:      created new viewer: " + mapViewer);
             if (useScrollbars)
                 tabbedPane.addTab(map, sp = new JScrollPane(mapViewer));
             else
@@ -599,6 +605,9 @@ public class VUE
             
             MapViewer mv2 = new tufts.vue.MapViewer(map, true);
             tabbedPane2.addTab(map, mv2);
+
+            //tabbedPane.requestFocus();
+            
         }
          
         int idx = tabbedPane.indexOfComponent(mapViewer);
@@ -778,7 +787,7 @@ public class VUE
         arrangeMenu.add(alignMenu);
         
         for (int i = 0; i < toolWindows.length; i++) {
-            System.out.println("adding " + toolWindows[i]);
+            //System.out.println("adding " + toolWindows[i]);
             JCheckBoxMenuItem mi = null;
             if (toolWindows[i] instanceof ToolWindow) {
                 ToolWindow tw = (ToolWindow) toolWindows[i];
