@@ -362,7 +362,7 @@ public class LWNode extends LWContainer
         if (iconShowing()) {
 
             JComponent tipComponent = null;
-            Rectangle2D tipRegion = null;
+            Rectangle2D.Float tipRegion = null;
             double y = 0;
             if (hasResource() && mIconResource.contains(cx, cy)) {
 
@@ -380,8 +380,14 @@ public class LWNode extends LWContainer
                 tipRegion = mIconPathway;
             }
             
-            if (tipComponent != null)
+            // TODO: don't need to do this if there's already a tip showing!
+            if (tipComponent != null) {
+                // translate tipRegion from node to map coords
+                tipRegion = (Rectangle2D.Float) tipRegion.clone();
+                tipRegion.x += getX();
+                tipRegion.y += getY();
                 e.getViewer().setTip(this, tipComponent, tipRegion);
+            }
             
         }
     }

@@ -396,6 +396,7 @@ public class MapViewer extends javax.swing.JPanel
         //screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
         return screenRect;
     }
+
     Dimension mapToScreenDim(Rectangle2D mapRect)
     {
         Rectangle screenRect = mapToScreenRect(mapRect);
@@ -424,6 +425,12 @@ public class MapViewer extends javax.swing.JPanel
                         screenToMapDim(screenRect.height));
         return mapRect;
     }
+    
+    public Rectangle2D getVisibleMapBounds()
+    {
+        return screenToMapRect(new Rectangle(0,0, getWidth(), getHeight()));
+    }
+    
 
     private int lastMouseX;
     private int lastMouseY;
@@ -831,8 +838,8 @@ public class MapViewer extends javax.swing.JPanel
         }
     }
         
-    private float oldScale;
-    private Point2D oldLoc;
+    private float mZoomoverOldScale;
+    private Point2D mZoomoverOldLoc = null;
     void setRollover(LWComponent c)
     {
         //if (rollover != c && (c instanceof LWNode || c instanceof LWLink)) {
@@ -842,25 +849,25 @@ public class MapViewer extends javax.swing.JPanel
             // for moment rollover is really setTemporaryZoom
             //rollover = c;
             //c.setRollover(true);
-            oldScale = c.getScale();
+            mZoomoverOldScale = c.getScale();
 
             double curZoom = getZoomFactor();
 
-            //double newScale = oldScale / curZoom;
+            //double newScale = mZoomoverOldScale / curZoom;
             double newScale = 1.0 / curZoom;
 
             //if (newScale < 1.0) newScale = 1.0;
             
-            //if (true||oldScale != 1f) {
-            if (newScale > oldScale &&
-                newScale - oldScale > RolloverMinZoomDeltaTrigger) {
+            //if (true||mZoomoverOldScale != 1f) {
+            if (newScale > mZoomoverOldScale &&
+                newScale - mZoomoverOldScale > RolloverMinZoomDeltaTrigger) {
                 //c.setScale(1f);
                 rollover = c;
                 if (DEBUG_ROLLOVER) System.out.println("setRollover: " + c);
                 c.setRollover(true);
                 c.setZoomedFocus(true);
-                if (c instanceof LWNode) {
-                    oldLoc = c.getLocation();
+                if (false&&c instanceof LWNode) {
+                    mZoomoverOldLoc = c.getLocation();
                     Point2D oldCenter = c.getCenterPoint();
                     c.setScale((float)newScale);
                     c.setCenterAtQuietly(oldCenter);
@@ -882,8 +889,8 @@ public class MapViewer extends javax.swing.JPanel
             Rectangle2D bigBounds = rollover.getBounds();
             rollover.setRollover(false);
             rollover.setZoomedFocus(false);
-            if (true||oldScale != 1f) {
-                rollover.setScale(oldScale);
+            if (true||mZoomoverOldScale != 1f) {
+                rollover.setScale(mZoomoverOldScale);
                 //if (rollover.getParent() instanceof LWNode)
                     // have the parent put it back in place
                     //rollover.getParent().layoutChildren();
@@ -893,9 +900,10 @@ public class MapViewer extends javax.swing.JPanel
                 // move mouse back and forth tween two link endpoints
                 // when no delay is on (easier to see in big curved link)
                 // we're seeing the connection point change (still seeing this?)
-                if (rollover instanceof LWNode)
-                    rollover.setLocation(oldLoc);
-
+                if (mZoomoverOldLoc != null) {
+                    rollover.setLocation(mZoomoverOldLoc);
+                    mZoomoverOldLoc = null;
+                }
             }
             repaintMapRegion(bigBounds);
             rollover = null;
@@ -906,58 +914,102 @@ public class MapViewer extends javax.swing.JPanel
     private static JComponent mTipComponent;
     private static Popup mTipWindow;
     private static LWComponent mMouseOver;
-    void setTip(LWComponent lwc, JComponent jc, Rectangle2D tipRegion)
+    void setTip(LWComponent pLWC, JComponent pJComponent, Rectangle2D pTipRegion)
     {
-        if (jc != mTipComponent && jc != null) {
+        if (pJComponent != mTipComponent && pJComponent != null) {
 
             if (mTipWindow != null)
                 mTipWindow.hide();
             
-            PopupFactory popupFactory = PopupFactory.getSharedInstance();
+            // since we're not using the regular tool-tip code, just the swing pop-up
+            // factory, we have to set these properties ourselves:
+            pJComponent.setOpaque(true);
+            pJComponent.setBackground(COLOR_TOOLTIP);
+            pJComponent.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
 
-            jc.setOpaque(true);
-            jc.setBackground(COLOR_TOOLTIP);
-            jc.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
             //c.setIcon(new LineIcon(10,10, Color.red, null));//test -- icons w/tex work
-            
-
             //System.out.println("    size="+c.getSize());
             //System.out.println("prefsize="+c.getPreferredSize());
             //System.out.println(" minsize="+c.getMinimumSize());
 
+            //------------------------------------------------------------------
+            // PLACE THE TOOL-TIP POP-UP WINDOW
+            //
+            // Try left of component first, then top, then right
+            //------------------------------------------------------------------
+
+            // Get the component bounding box, tho limit to what's visible in the window
+            Rectangle viewer = new Rectangle(0,0, getWidth(), getHeight());
+            Box lwc = new Box(viewer.intersection(mapToScreenRect(pLWC.getShapeBounds())));
+            Box rollover = new Box(mapToScreenRect(pTipRegion));
+            
+            SwingUtilities.convertPointToScreen(lwc.ul, this);
+            SwingUtilities.convertPointToScreen(lwc.lr, this);
+            SwingUtilities.convertPointToScreen(rollover.ul, this);
+            //SwingUtilities.convertPointToScreen(rollover.lr, this); // unused
+
+            Dimension tip = pJComponent.getPreferredSize();
+
             // Default placement starts from left of component,
             // at same height as the rollover region that triggered us
             // in the component.
-            Point placementLeft = new Point(mapToScreenX(lwc.getX()),
-                                            mapToScreenY(tipRegion.getY() + lwc.getY()));
-            Point placementTop = new Point(placementLeft.x,
-                                           mapToScreenY(lwc.getY()));
+            Point glass = new Point(lwc.ul.x - tip.width,  rollover.ul.y);
 
-            SwingUtilities.convertPointToScreen(placementLeft, this);
-                                        
-            Dimension tipSize = jc.getPreferredSize();
-            int lwcWidth = mapToScreenDim(lwc.getWidth());
-            int glassX = placementLeft.x - tipSize.width;
-            int glassY = placementLeft.y;
-
-            if (glassX < 3) {
-                SwingUtilities.convertPointToScreen(placementTop, this);
-                glassX = placementTop.x;
-                glassY = placementTop.y - tipSize.height;
+            if (glass.x < 0) {
+                // if would go off left of screen, try placing above the component
+                glass.x = lwc.ul.x;
+                glass.y = lwc.ul.y - tip.height;
+                keepTipOnScreen(glass, tip);
+                // if too tall and would then overlap rollover region, move to right of component
+                //if (glass.y + tip.height >= placementLeft.y) {
+                // if too tall and would then overlap component, move to right of component
+                if (glass.y + tip.height > lwc.ul.y) {
+                    glass.x = lwc.lr.x;
+                    glass.y = rollover.ul.y;
+                }
+                // todo: consider moving tall tips from tip to right
+                // of component -- looks ugly having all that on top.
+                
+                // todo: consider a 2nd pass to ensure not overlapping
+                // the rollover region, to prevent window-exit/enter loop.
+                // (flashes the rollover till mouse moved away)
             }
-            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();            
-            if (glassY + tipSize.height >= screen.height)
-                glassY = screen.height - (tipSize.height + 1);
-            if (glassY < 0)
-                glassY = 0;
+            keepTipOnScreen(glass, tip);
 
-	    mTipWindow = popupFactory.getPopup(this, jc, glassX, glassY);
+            // todo java bug: there are some java bugs, perhaps in the
+            // Popup caching code (happens on PC & Mac both), where
+            // the first time a pop-up appears (actually only seeing
+            // with tall JTextArea's), it's height is truncated.
+            // Sometimes even first 1 or 2 times it appears!  If
+            // intolerable, just implement our own windows and keep
+            // them around as a caching scheme -- will use alot more
+            // memory but should work (use WeakReferences to help)
+            
+            PopupFactory popupFactory = PopupFactory.getSharedInstance();
+	    mTipWindow = popupFactory.getPopup(this, pJComponent, glass.x, glass.y);
 	    mTipWindow.show();
         }
 
-        mTipComponent = jc;
+        mTipComponent = pJComponent;
         //mTipPoint = point;
         
+    }
+
+    private void keepTipOnScreen(Point glass, Dimension tip)
+    {
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        // if would go off bottom, move up
+        if (glass.y + tip.height >= screen.height)
+            glass.y = screen.height - (tip.height + 1);
+        // if would go off top, move back down
+        if (glass.y < 0)
+            glass.y = 0;
+        // if would go off right, move back left
+        if (glass.x + tip.width > screen.width)
+            glass.x = screen.width - tip.width;
+        // if would go off left, just put at left
+        if (glass.x < 0)
+            glass.x = 0;
     }
     
     void clearTip()
@@ -2586,7 +2638,13 @@ public class MapViewer extends javax.swing.JPanel
                 mMouseOver.mouseExited(new MapMouseEvent(e));
                 mMouseOver = null;
             }
-            //clearTip();//todo: on a timer instead so no flashing of rollover the tip
+
+            // turned off to be SURE we get into a show/hide loop if pop-up obscures
+            // the trigger region and mouse statys over it...  Okay, this should
+            // never happen...
+
+            clearTip();//todo: on a timer instead so no flashing of rollover the tip
+
             // would still be nice to do this tho because we get a mouse
             // exited when you rollover the tip-window itself, and if
             // it's right at the edge of the node and you're going for
@@ -3183,7 +3241,7 @@ public class MapViewer extends javax.swing.JPanel
         private Rectangle2D.Float originalSelectionBounds;
         private Rectangle2D.Float draggedBounds;
         private Rectangle2D.Float[] original_lwc_bounds;
-        private Box resize_box = null;
+        private Box2D resize_box = null;
 
         ResizeControl()
         {
@@ -3191,29 +3249,6 @@ public class MapViewer extends javax.swing.JPanel
                 handles[i] = new LWSelection.ControlPoint(COLOR_SELECTION_HANDLE);
         }
         
-        class Box {
-            float ulx, uly; // upper left corner
-            float lrx, lry; // lower right corner
-
-            public Box(Rectangle2D r) {
-                ulx = (float) r.getX();
-                uly = (float) r.getY();
-                lrx = ulx + (float) r.getWidth();
-                lry = uly + (float) r.getHeight();
-            }
-
-            Rectangle2D.Float getRect() {
-                return new Rectangle2D.Float(ulx, uly, lrx - ulx, lry - uly);
-            }
-
-            // These set methods never let the box take negative width or height
-            void setULX(float x) { ulx = (x > lrx) ? lrx : x; }
-            void setULY(float y) { uly = (y > lry) ? lry : y; }
-            void setLRX(float x) { lrx = (x < ulx) ? ulx : x; }
-            void setLRY(float y) { lry = (y < uly) ? uly : y; }
-
-        }
-
         /** interface ControlListener */
         public LWSelection.ControlPoint[] getControlPoints()
         {
@@ -3231,7 +3266,7 @@ public class MapViewer extends javax.swing.JPanel
             System.out.println(this + " resize control point " + index + " pressed");
             originalSelectionBounds = (Rectangle2D.Float) VueSelection.getShapeBounds();
             //originalSelectionBounds = (Rectangle2D.Float) VueSelection.getBounds();
-            resize_box = new Box(originalSelectionBounds);
+            resize_box = new Box2D(originalSelectionBounds);
             draggedBounds = resize_box.getRect();
             //draggedBounds = (Rectangle2D.Float) originalSelectionBounds.getBounds2D();
 
@@ -3301,12 +3336,12 @@ public class MapViewer extends javax.swing.JPanel
                     c_new_bounds.y = draggedBounds.y + (c_original_bounds.y - originalSelectionBounds.y) * scaleY;
 
                     if (isLeftCtrl(cpi)) {
-                        if (c_new_bounds.x + c.getWidth() > resize_box.lrx)
-                            c_new_bounds.x = resize_box.lrx - c.getWidth();
+                        if (c_new_bounds.x + c.getWidth() > resize_box.lr.x)
+                            c_new_bounds.x = resize_box.lr.x - c.getWidth();
                     }
                     if (isTopCtrl(cpi)) {
-                        if (c_new_bounds.y + c.getHeight() > resize_box.lry)
-                            c_new_bounds.y = resize_box.lry - c.getHeight();
+                        if (c_new_bounds.y + c.getHeight() > resize_box.lr.y)
+                            c_new_bounds.y = resize_box.lr.y - c.getHeight();
                     }
                     c.setLocation(c_new_bounds.x, c_new_bounds.y);
                 }
@@ -3337,6 +3372,27 @@ public class MapViewer extends javax.swing.JPanel
     {
         if (DEBUG_FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
 
+        if (VueUtil.isMacPlatform()) {
+
+            // On Mac, our manual tool-tip popups sometimes (and
+            // sometimes inconsistently) when they are a big heavy
+            // weight popups (e.g, 40 lines of notes) will actually
+            // grab the focus away from the app!  We request to get
+            // the focus back, but it doesn't appear that actually
+            // works.
+            
+            String opName = e.getOppositeComponent().getName();
+            // hack: check the name against the special name of Popup$HeavyWeightWindow
+            if (opName != null && opName.equals("###overrideRedirect###")) {
+                if (DEBUG_FOCUS) System.out.println("\tLOST TO POPUP!");
+                //requestFocus();
+                // Actually, requestFocus can ADD to our problems if moving right from one rollover to another...
+                // The bug is this: on Mac, rolling right from a tip that was HeavyWeight to one
+                // that is LightWeight causes the second one (the light-weight) to appear then
+                // immediately dissapear).
+            }
+        }
+
         // need to force revert on temporary tool here in case
         // they let go of the key while another component has focus
         // (e.g., a label edit, or another panel) in 
@@ -3357,7 +3413,7 @@ public class MapViewer extends javax.swing.JPanel
 
     private void grabVueApplicationFocus(String from)
     {
-        if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from);
+        if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus triggered thru " + from);
         if (VUE.getActiveViewer() != this) {
             if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
             //new Throwable("REAL GRAB").printStackTrace();
@@ -3576,6 +3632,54 @@ public class MapViewer extends javax.swing.JPanel
         return returnMenu;
     }   
 // this class will move out of here
+
+    class Box2D {
+        Point2D.Float ul = new Point2D.Float(); // upper left corner
+        Point2D.Float lr = new Point2D.Float(); // lower right corner
+
+        public Box2D(Rectangle2D r) {
+            ul.x = (float) r.getX();
+            ul.y = (float) r.getY();
+            lr.x = ul.x + (float) r.getWidth();
+            lr.y = ul.y + (float) r.getHeight();
+        }
+        
+        Rectangle2D.Float getRect() {
+            return new Rectangle2D.Float(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+        }
+        
+        // These set methods never let the box take negative width or height
+        void setULX(float x) { ul.x = (x > lr.x) ? lr.x : x; }
+        void setULY(float y) { ul.y = (y > lr.y) ? lr.y : y; }
+        void setLRX(float x) { lr.x = (x < ul.x) ? ul.x : x; }
+        void setLRY(float y) { lr.y = (y < ul.y) ? ul.y : y; }
+    }
+    
+    class Box {
+        Point ul = new Point(); // upper left corner
+        Point lr = new Point(); // lower right corner
+        int width;
+        int height;
+
+        public Box(Rectangle r) {
+            ul.x = r.x;
+            ul.y = r.y;
+            lr.x = ul.x + r.width;
+            lr.y = ul.y + r.height;
+            width = r.width;
+            height = r.width;
+        }
+
+        Rectangle getRect() {
+            return new Rectangle(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+        }
+        
+        // These set methods never let the box take negative width or height
+        //void setULX(int x) { ul.x = (x > lr.x) ? lr.x : x; }
+        //void setULY(int y) { ul.y = (y > lr.y) ? lr.y : y; }
+        //void setLRX(int x) { lr.x = (x < ul.x) ? ul.x : x; }
+        //void setLRY(int y) { lr.y = (y < ul.y) ? ul.y : y; }
+    }
 
     protected String paramString() {
 	return getMap() + super.paramString();
