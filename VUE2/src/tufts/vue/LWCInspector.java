@@ -318,6 +318,7 @@ class LWCInspector extends javax.swing.JPanel
         strokeField.setText(""+c.getStrokeWidth());
         
         //loading the metadata if it exists
+        /*
         if(c.getResource() != null && c.getResource().getProperties() != null) {
             metadataPane.remove(resourceMetadataPanel);
             if(c.getResource().getType() == Resource.ASSET_FEDORA)
@@ -326,6 +327,7 @@ class LWCInspector extends javax.swing.JPanel
                 resourceMetadataPanel = new PropertiesEditor(c.getResource().getProperties(), true);
             metadataPane.add(resourceMetadataPanel);
         }
+        */
         /*
         if (false&&c.labelBox != null) {
             //extraPanel.add(p);
