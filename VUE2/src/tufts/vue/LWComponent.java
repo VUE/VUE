@@ -203,6 +203,9 @@ public class LWComponent
         c.font = this.font;
         c.scale = this.scale;
         c.setLabel(this.label); // use setLabel so new TextBox will be created
+        
+        c.setResource(getResource());
+        
         return c;
     }
     
