@@ -71,6 +71,13 @@ class DRBrowser extends JPanel {
         }
     }
 
+    public static void main(String args[]) {
+        DRBrowser drb = new DRBrowser(false);
+        tufts.Util.displayComponent(drb);
+        //drb.loadDataSourceViewer();
+        
+    }
+
 
        
     
