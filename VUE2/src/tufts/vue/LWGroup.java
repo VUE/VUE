@@ -17,6 +17,18 @@ import java.awt.geom.Rectangle2D;
  * for moving, resizing & layering a collection of objects
  * together.
  *
+ * Consider re-architecting group usage to act purely as a selection
+ * convenience -- so they'd actually be transparent to most everything
+ * (e.g., nothing in the GUI would have to know how to handle a
+ * "group") -- it would just always be a group of components that were
+ * selected together (and maybe the selection draws a little
+ * differently).  To really do this would mean a group is no longer
+ * even a container... thus no impact on layering or anything, which
+ * would dramatically simplify all sorts of special case crap.
+ * However, if it's no longer a container, you couldn't drop them
+ * into nodes as children.  Actually, a hybrid is possible --
+ * yes, lets try that.
+ *
  * @author Scott Fraize
  * @version 6/1/03
  */
