@@ -262,6 +262,10 @@ public class UndoManager
         //mRedoAction = collectChangesAsUndoAction("Redo " + undoAction.name);
         //Actions.Redo.putValue(Action.NAME, mRedoAction.name);
         setUndoActionLabel(peek());
+        
+        // We've undo everything: we can mark the map as having been saved
+        if (peek() == null)
+            mMap.markAsSaved();
     }
 
     private void setUndoActionLabel(UndoAction undoAction)
