@@ -330,6 +330,16 @@ class MapDropTarget
                 if (url != null)
                     url = url.trim();
                 if (debug) System.out.println("*** FOUND URL ["+url+"]");
+                int i = url.indexOf("|/");
+                if (i > -1) {
+                    // odd: have found "file:///D|/dir/file.html" example
+                    // where '|' is where ':' should be -- still works
+                    // for Windows 2000 as a shortcut, but NOT using
+                    // Windows 2000 url DLL, so VUE can't open it.
+                    //url = url.replace('|', ':');
+                    url = url.substring(0,i) + ":" + url.substring(i+1);
+                    System.out.println("**PATCHED URL ["+url+"]");
+                }
             }
         } catch (Exception e) {
             System.out.println(e);

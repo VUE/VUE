@@ -149,7 +149,10 @@ public class Resource
                 //a.setSize(600,400);
                 //a.show();
             //} else
-            VueUtil.openURL(toURLString());
+            if (VueUtil.isMacPlatform())
+                VueUtil.openURL(toURLString());
+            else
+                VueUtil.openURL(getSpec());
             this.accessSuccessful = System.currentTimeMillis();
         } catch (Exception e) {
             System.err.println(e);
