@@ -15,6 +15,8 @@ import tufts.vue.LWComponent;
 /**
  *
  * @author  Daisuke Fujiwara
+ * todo: re-implement so doesn't cache a copy of the node name?
+ *      or: make a label change listener on the LWComponent
  */
 
 /**A class that represents a node of a hierarchy structure*/
@@ -66,6 +68,7 @@ public class HierarchyNode implements osid.hierarchy.Node
     /**A method that returns the node's display name*/
     public String getDisplayName() throws osid.hierarchy.HierarchyException 
     {
+        //return component.getDisplayLabel();
         return name;
     }
     

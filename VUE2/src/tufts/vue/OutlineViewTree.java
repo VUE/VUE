@@ -16,8 +16,10 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.ImageIcon;
 
 /**
- *
  * @author  Daisuke Fujiwara
+ * Todo: re-write this class with active map listener, and render right
+ * from the node labels so all we have to do is repaint to refresh.
+ * (still need to modify tree for hierarchy changes tho).
  */
 
 /**A class that represents a tree structure which holds the outline view model*/

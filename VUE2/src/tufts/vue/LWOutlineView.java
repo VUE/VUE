@@ -14,13 +14,11 @@ import java.awt.BorderLayout;
 import javax.swing.border.*;
 
 /**
- *
  * @author  Daisuke Fujiwara
  */
 public class LWOutlineView extends ToolWindow
 {
     private OutlineViewTree tree = null;
-    //private JLabel outlineLabel = null;
     
     /** Creates a new instance of LWOutlineView */
     public LWOutlineView(JFrame parent) 
@@ -31,21 +29,17 @@ public class LWOutlineView extends ToolWindow
         //tree.setBorder(new EmptyBorder(4,4,4,4));
 
         JScrollPane scrollPane = new JScrollPane(tree);
-        scrollPane.setBorder(new EmptyBorder(0,0,0,0));
+        scrollPane.setBorder(null);
+        //scrollPane.setBorder(new EmptyBorder(0,0,0,0));
         
-        // hack to allow resize corner hits till ToolWindow can catch & redispatch mouse events:
-        super.mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
-        super.mContentPane.contentPanel.setBackground(Color.white);
-        scrollPane.setBackground(Color.white);
-        
-        
-        //outlineLabel = new JLabel();
+        if (true) {
+            // hack to allow resize corner hits till ToolWindow can catch & redispatch mouse events:
+            super.mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
+            super.mContentPane.contentPanel.setBackground(Color.white);
+            scrollPane.setBackground(Color.white);
+        }
         
         addTool(scrollPane);
-        //getContentPane().setLayout(new BorderLayout());
-        //getContentPane().add(scrollPane, BorderLayout.CENTER);
-        //getContentPane().add(outlineLabel, BorderLayout.NORTH);
-        
         setSize(500, 300);
     }
  
