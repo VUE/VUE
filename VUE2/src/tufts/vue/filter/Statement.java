@@ -64,6 +64,8 @@ public class Statement {
     
     public void setKey(Key key) {
         this.key = key;
+        setValue(key.getDefaultValue());
+        setOperator(key.getType().getDefaultOperator());
     }
     
     public Key getKey() {
