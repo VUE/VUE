@@ -181,9 +181,6 @@ public class MapViewer extends javax.swing.JPanel
     
     /** The currently selected tool **/
     private VueTool activeTool = ArrowTool;
-    // todo: just so is not null -- need to start with arrow tool as default
-    //java.util.List tools = new java.util.ArrayList();
-
 
     /**
      * getCurrentTool()
@@ -218,12 +215,11 @@ public class MapViewer extends javax.swing.JPanel
             return;
         }
         activeTool = pTool;
-    	System.out.println("MapViewer.toolSelected: " + pTool.getID());
+    	//System.out.println("MapViewer.toolSelected: " + pTool.getID());
             
-        //System.out.println("Setting cursor to " + activeTool.getCursor());
         setMapCursor(activeTool.getCursor());
 
-        if (isDraggingSelectorBox) // in case we change tool vie kbd shortcut in the middle of a drag
+        if (isDraggingSelectorBox) // in case we change tool via kbd shortcut in the middle of a drag
             repaint();
     }
 
@@ -238,13 +234,6 @@ public class MapViewer extends javax.swing.JPanel
         // the tool
 
     }
-
-    /*
-    void addTool(VueTool tool)
-    {
-        tools.add(tool);
-    }
-    */
 
     /**
      * Set's the viewport such that the upper left corner
@@ -400,7 +389,8 @@ public class MapViewer extends javax.swing.JPanel
     /** fit everything in the current map into the current viewport */
     void setZoomFit()
     {
-        setZoomFitContent(this);
+        //setZoomFitContent(this);
+        setZoomFitContent();
         repaint();
     }
     
@@ -487,14 +477,24 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
-    public void setZoomFitContent(java.awt.Component viewport)
+    //    public void setZoomFitContent(java.awt.Component viewport)
+    public void setZoomFitContent()
+    {
+        setZoomFitRegion(getMap().getBounds(), ZOOM_FIT_PAD);
+    }
+    
+    public void setZoomFitRegion(Rectangle2D mapRegion)
+    {
+        setZoomFitRegion(mapRegion, 0);
+    }
+    public void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
         Point2D.Double offset = new Point2D.Double();
-        double newZoom = VueUtil.computeZoomFit(viewport.getSize(),
-                                        ZOOM_FIT_PAD,
-                                        getMap().getBounds(),
-                                        //VUE.getActiveViewer().getAllComponentBounds(),
-                                        offset);
+        double newZoom = VueUtil.computeZoomFit(this.getSize(),
+                                                edgePadding,
+                                                mapRegion,
+                                                //VUE.getActiveViewer().getAllComponentBounds(),
+                                                offset);
         setZoom(newZoom, false);
         setMapOriginOffset(offset.getX(), offset.getY());
     }
@@ -570,6 +570,7 @@ public class MapViewer extends javax.swing.JPanel
         } else
             repaint();
     }
+
     private void repaintMapRegionAdjusted(Rectangle2D mapRect)
     {
         if (OPTIMIZED_REPAINT)
@@ -1508,8 +1509,7 @@ public class MapViewer extends javax.swing.JPanel
         // They require a further mouse action to actually
         // do anythiing.
         static final int KEY_TOOL_PAN   = KeyEvent.VK_SPACE;
-        static final int KEY_TOOL_ZOOM  = KeyEvent.VK_Z;
-        static final int KEY_TOOL_ARROW = KeyEvent.VK_A;
+        static final int KEY_TOOL_ZOOM  = KeyEvent.VK_COMMA;
         static final int KEY_ABORT_ACTION = KeyEvent.VK_ESCAPE;
         
         LWComponent dragComponent;
@@ -1536,6 +1536,7 @@ public class MapViewer extends javax.swing.JPanel
         // a particular tool;
         int toolKeyDown = 0;
         KeyEvent toolKeyEvent = null; // to get at kbd modifiers active at time of keypress
+        VueTool toolKeyOldTool;
 
         public void keyPressed(KeyEvent e)
         {
@@ -1605,34 +1606,28 @@ public class MapViewer extends javax.swing.JPanel
             for (int i = 0; i < tools.length; i++) {
                 VueTool tool = tools[i];
                 if (tool.getShortcutKey() == keyChar) {
-                    
-                    VueToolbarController.getController().setSelectedTool( tool);
+                    VueToolbarController.getController().setSelectedTool(tool);
                     return;
                 }
             }
 
-            if (toolKeyDown == 0 && !isDraggingSelectorBox) {
+            if (toolKeyDown == 0 && !isDraggingSelectorBox && !inDrag) {
+                // don't start dragging map if we're already
+                // dragging something on it.
                 // don't allow to switch if we're in the middle of a drag
                 // todo: actually, should we disallow switching if any mouse down at all?
+                // todo: handle via resources
                 switch (key) {
                 case KEY_TOOL_PAN:
-                    if (dragComponent == null) {
-                        // don't start dragging map if we're already
-                        // dragging something on it.
-                        toolKeyDown = key;
-                        setMapCursor(HandTool.getCursor());
-                    }
+                    //if (dragComponent == null)
+                    toolKeyDown = key;
+                    toolKeyOldTool = activeTool;
+                    toolSelected(HandTool);
                     break;
-                    /*
                 case KEY_TOOL_ZOOM:
                     toolKeyDown = key;
-                    setMapCursor(e.isShiftDown() ? VUE.CURSOR_ZOOM_OUT : VUE.CURSOR_ZOOM_IN);
-                    break;
-                case KEY_TOOL_ARROW:
-                    toolKeyDown = key;
-                    setMapCursor(CURSOR_ARROW);
-                    break;
-                    */
+                    toolKeyOldTool = activeTool;
+                    toolSelected(ZoomTool);
                 }
                 if (toolKeyDown != 0)
                     toolKeyEvent = e;
@@ -1687,7 +1682,8 @@ public class MapViewer extends javax.swing.JPanel
                 /*if (! (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN)) {*/
                     toolKeyDown = 0;
                     toolKeyEvent = null;
-                    toolSelected(activeTool); // restore prior cursor
+                    toolSelected(toolKeyOldTool); // restore prior cursor
+                    toolKeyOldTool = null;
                     //}
             }
         }
@@ -1719,7 +1715,7 @@ public class MapViewer extends javax.swing.JPanel
             // operations and return (e.g., spacebar down for map drag)
             //-------------------------------------------------------
 
-            if (activeTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
+            if (activeTool == HandTool) {
                 originAtDragStart = getOriginLocation();
                 if (getParent() instanceof JViewport)
                     viewportAtDragStart = ((JViewport)getParent()).getViewPosition();
@@ -1728,7 +1724,7 @@ public class MapViewer extends javax.swing.JPanel
                 return;
             }
             /*
-            else if (activeTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
+            else if (activeTool == ZoomTool) {
                 // FIX: zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
                 setZoomPoint(screenToMapPoint(e.getPoint()));
                 if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
@@ -1777,21 +1773,9 @@ public class MapViewer extends javax.swing.JPanel
                 }
             }
 
-            //if (!activeTool.supportsSelectorBox())
+            //if (!activeTool.supportsDraggedSelector())
             //return;
-            //if (activeTool != ArrowTool)
-            //                return;
 
-            /*
-            if (activeTool != ArrowTool
-                && activeTool != LinkTool
-                && activeTool != NodeTool
-                && activeTool != TextTool
-                )
-                return;
-            */
-
-            
             //-------------------------------------------------------
             // Check for hits on map LWComponents
             //-------------------------------------------------------
@@ -1810,7 +1794,10 @@ public class MapViewer extends javax.swing.JPanel
             // java 1.4.0 bug on PC(w2k): isPopupTrigger isn't true for right-click!
             //if ((mods & RIGHT_BUTTON_MASK) != 0 && (mods & java.awt.Event.CTRL_MASK) == 0)
             
-            if ((mods & RIGHT_BUTTON_MASK) != 0 && !e.isControlDown() && !activeTool.usesRightClick())
+            //if ((mods & RIGHT_BUTTON_MASK) != 0 && !e.isControlDown() && !activeTool.usesRightClick())
+            //    && !e.isControlDown()
+            //    && !activeTool.usesRightClick())
+            if (isRightClickEvent(e) && !activeTool.usesRightClick())
             {
                 //-------------------------------------------------------
                 // MOUSE: We've pressed the right button down, so pop
@@ -1917,7 +1904,7 @@ public class MapViewer extends javax.swing.JPanel
                     //-------------------------------------------------------
                     draggedSelectionGroup.useSelection(VueSelection);
                     dragComponent = draggedSelectionGroup;
-                } else if (!e.isShiftDown()) {
+                } else if (!e.isShiftDown() && activeTool.supportsSelection()) {
                     //-------------------------------------------------------
                     // CLEAR CURRENT SELECTION & START DRAGGING FOR A NEW ONE
                     //
@@ -2110,7 +2097,8 @@ public class MapViewer extends javax.swing.JPanel
             int screenY = e.getY();
             Point currentMousePosition = e.getPoint();
             
-            if (activeTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
+            //if (activeTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
+            if (activeTool == HandTool) {
                 // drag the entire map
                 if (originAtDragStart != null) {
                     dragRepositionViewport(currentMousePosition);
@@ -2137,9 +2125,7 @@ public class MapViewer extends javax.swing.JPanel
                     screenY = getHeight()-1;
             }
 
-            //if (activeTool != ArrowTool && activeTool != LinkTool && activeTool != NodeTool)
-            //                return;
-            if (!activeTool.supportsSelectorBox())
+            if (!activeTool.supportsDraggedSelector(e))
                 return;
             
             if (dragComponent == null && isDraggingSelectorBox) {
@@ -2345,15 +2331,21 @@ public class MapViewer extends javax.swing.JPanel
 
             setLastMousePoint(e.getX(), e.getY());
             
-            if (activeTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
-                //setZoomPoint(screenToMapPoint(e.getPoint()));
-                if (draggedSelectorBox != null)
-                    setZoomPoint(screenToMapPoint(draggedSelectorBox.getLocation()));
+            // OKAY, now move to handleSelectorRelease(MouseEvent)
+            if (activeTool == ZoomTool) {
                 if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
-                    || toolKeyEvent != null && toolKeyEvent.isShiftDown())
+                    || toolKeyEvent != null && toolKeyEvent.isShiftDown()) {
                     setZoomSmaller();
-                else
-                    setZoomBigger();
+                } else {
+                    if (draggedSelectorBox != null &&
+                        draggedSelectorBox.getWidth() > 10 && draggedSelectorBox.getHeight() > 10) {
+                        setZoomFitRegion(screenToMapRect(draggedSelectorBox));
+                    } else {
+                        setZoomPoint(screenToMapPoint(e.getPoint()));
+                        setZoomBigger();
+                    }
+                }
+
             }else
             if (linkSource != null) {
                 repaintMapRegionAdjusted(creationLink.getBounds());
@@ -2473,28 +2465,15 @@ public class MapViewer extends javax.swing.JPanel
             if (indication != null)
                 clearIndicated();
             
-            if (draggedSelectorBox != null && !activeTool.supportsSelectorBox())
-                System.err.println("Illegal state warming: we have selector box w/out tool that supports it");
+            if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(e))
+                System.err.println("Illegal state warning: we've drawn a selector box w/out tool that supports it!");
             
-            if (draggedSelectorBox != null && activeTool.supportsSelectorBox()) {
+            if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(e)) {
 
                 //System.out.println("dragged " + draggedSelectorBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
                 //System.out.println("map " + hitRect);
-
                 activeTool.handleSelectorRelease(hitRect);
-
-                /*
-                if (activeTool == NodeTool) {
-                    // NodeTool.createNode(hitRect);
-                    LWNode node = new LWNode("new node");
-                    node.setLocation(hitRect.x, hitRect.y);
-                    node.setAutoSized(false);
-                    node.setSize(hitRect.width, hitRect.height);
-                    VUE.getActiveMap().addNode(node);
-                    VUE.ModelSelection.setTo(node);
-                } else
-                */
 
                 if (activeTool.supportsSelection()) {
                     // todo: e.isControlDown always false? only on mac? on the laptop?
@@ -2552,6 +2531,16 @@ public class MapViewer extends javax.swing.JPanel
             return e.getClickCount() == 1
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
                 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+        }
+
+        private final boolean isRightClickEvent(MouseEvent e)
+        {
+            // 1 click, button 2 or 3 pressed, button 1 not already down & ctrl not down
+            return e.getClickCount() == 1
+                && (e.getButton() == java.awt.event.MouseEvent.BUTTON3 ||
+                    e.getButton() == java.awt.event.MouseEvent.BUTTON2)
+                && (e.getModifiersEx() & java.awt.event.InputEvent.BUTTON1_DOWN_MASK) == 0
+                && !e.isControlDown();
         }
         
         public void mouseClicked(MouseEvent e)
