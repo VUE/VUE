@@ -28,11 +28,14 @@ import javax.swing.ImageIcon;
 /**
  *
  * This is the core graphical object in VUE.
- * Code needs cleanup: particularly the internal layout of the node.
  *
  * @author Scott Fraize
- * @version June 2004
  */
+
+// todo: node layout code could use cleanup, as well as additional layout
+// features (multiple columns).
+// todo: "text" nodes are currently a total hack
+
 public class LWNode extends LWContainer
 {
     /* Mac arial fonts broken in java (no bold or italic) so using verdana on mac right now */
