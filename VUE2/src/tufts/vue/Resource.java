@@ -193,7 +193,7 @@ public class Resource
     {
         String ext = "xxx";
         if (spec.startsWith("http"))
-            ext = "www";
+            ext = "web";
         else if (spec.startsWith("file"))
             ext = "file";
         else {
@@ -204,8 +204,8 @@ public class Resource
                     ext = spec.substring(i+1);
             }
         }
-        if (ext.length() > 5)
-            ext = ext.substring(0,5);
+        if (ext.length() > 4)
+            ext = ext.substring(0,4);
 
         return ext;
     }
