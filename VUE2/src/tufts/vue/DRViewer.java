@@ -31,6 +31,9 @@ public class DRViewer extends JPanel implements ActionListener {
     JComboBox maxReturns;
     osid.dr.DigitalRepository dr;
     osid.dr.AssetIterator assetIterator;
+    tufts.dr.fedora.SearchCriteria searchCriteria;
+    tufts.dr.fedora.SearchType searchType;
+    tufts.dr.fedora.SearchType advancedSearchType;
     JPanel advancedSearchPanel;
     
     String[] maxReturnItems = { 
@@ -63,6 +66,9 @@ public class DRViewer extends JPanel implements ActionListener {
         tabbedPane = new JTabbedPane();
         maxReturns = new JComboBox(maxReturnItems);
         maxReturns.setEditable(true);
+        searchCriteria  = new SearchCriteria();
+        searchType = new SearchType("Search");
+        advancedSearchType = new SearchType("Advanced Search");
         try {
             dr = new DR(id,displayName,description);
             // this part will be taken from the configuration file later.
@@ -229,20 +235,21 @@ public class DRViewer extends JPanel implements ActionListener {
         advancedSearchButton.addActionListener(this);
         gridbag.setConstraints(advancedSearchButton,c);
         container.add(advancedSearchButton);
-    }
+    }   
     
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equals("Search")) {
           osid.dr.AssetIterator resultObjectsIterator;
                 try {
-                    resultObjectsIterator =  FedoraSoapFactory.search((DR)dr,keywords.getText(),maxReturns.getSelectedItem().toString());
-                    //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
+                    searchCriteria.setKeywords(keywords.getText());
+                    searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+                    resultObjectsIterator = dr.getAssets(searchCriteria,searchType); 
                     VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
                     tree.setRootVisible(false);
                     JScrollPane jsp = new JScrollPane(tree);
                     DRSearchResults.setLayout(new BorderLayout());
                     DRSearchResults.add(jsp,BorderLayout.CENTER,0);
-                    tabbedPane.setSelectedComponent(DRViewer.this.DRSearchResults);
+                    tabbedPane.setSelectedComponent(DRSearchResults);
                 } catch (Exception ex) {
 			 	System.out.println(ex);
 		}
@@ -285,15 +292,16 @@ public class DRViewer extends JPanel implements ActionListener {
                     Condition[] cond=new Condition[conditionVector.size()];
                     for(int i=0;i<cond.length;i++)
                         cond[i] = (Condition)conditionVector.get(i);
-                    
-                    resultObjectsIterator =  FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
+                    searchCriteria.setConditions(cond);
+                    searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+                    resultObjectsIterator = dr.getAssets(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
                     //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
                     VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
                     tree.setRootVisible(false);
                     JScrollPane jsp = new JScrollPane(tree);
                     DRSearchResults.setLayout(new BorderLayout());
                     DRSearchResults.add(jsp,BorderLayout.CENTER,0);
-                    tabbedPane.setSelectedComponent(DRViewer.this.DRSearchResults);
+                    tabbedPane.setSelectedComponent(DRSearchResults);
                 } catch (Exception ex) {
 			 	System.out.println(ex);
 		}
