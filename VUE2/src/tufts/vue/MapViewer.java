@@ -608,7 +608,7 @@ public class MapViewer extends javax.swing.JPanel
         // when dragging, esp if there are children if
         // we have those events turned in...
         //if (!isRightSide)
-            System.out.println(e + " delivered to " + this);
+        //System.out.println(e + " delivered to " + this);
         if (e.getWhat().equals("location")
             || e.getWhat().equals("added") // depend on childAdded 
             )
