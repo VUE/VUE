@@ -265,7 +265,22 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
     }
  } 
 
- public class AssetNode extends DefaultMutableTreeNode {
+ 
+/**
+ public class FavoritesNode extends DefaultMutableTreeNode {
+        public FavoritesNode(String displayName){
+            super(displayName);
+            
+        }
+        public void explore() {
+                this.explore();
+		
+		}
+ }    
+   **/ 
+}
+
+class AssetNode extends DefaultMutableTreeNode {
 	private boolean explored = false;
         private Asset asset;
 	public AssetNode(Asset asset) 	{ 
@@ -284,7 +299,7 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
 	}
  }
  
- public class FileNode extends DefaultMutableTreeNode {
+class FileNode extends DefaultMutableTreeNode {
 	private boolean explored = false;
 
 	public FileNode(File file) 	{ 
@@ -335,8 +350,7 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
 		}
 	}
  }
-
- public class FavoritesNode extends DefaultMutableTreeNode {
+ class FavoritesNode extends DefaultMutableTreeNode {
         public FavoritesNode(String displayName){
             super(displayName);
             
@@ -345,10 +359,7 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
                 this.explore();
 		
 		}
- }    
-    
-}
-
+ } 
 
  
   class VueDragTreeNodeSelection extends Vector implements Transferable{
