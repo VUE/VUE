@@ -1,95 +1,98 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?> 
 <mapping>
-	<class name="java.awt.Rectangle">
-		<!-- Rectangle's default castor introspection produces a recursive
+  <class name="java.awt.Rectangle">
+    <!-- Rectangle's default castor introspection produces a recursive
          loop (getBounds returns a Rectangle) that blows stack: this
          gets around it.  May need create also Rectangle2D.
       -->
-		<field name="x" direct="true">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="y" direct="true">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="width" direct="true">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="height" direct="true">
-			<bind-xml node="attribute" />
-		</field>
-	</class>
-	<class name="java.awt.geom.Point2D$Float">
-		<map-to xml="point" />
-		<field name="x" direct="true">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="y" direct="true">
-			<bind-xml node="attribute" />
-		</field>
-	</class>
-	<class name="tufts.vue.LWComponent">
-		<!-- castor can figure out types, we leave string as defaulted.
+    <field name="x" direct="true"><bind-xml node="attribute"/></field>
+    <field name="y" direct="true"><bind-xml node="attribute"/></field>
+    <field name="width" direct="true"><bind-xml node="attribute"/></field>
+    <field name="height" direct="true"><bind-xml node="attribute"/></field>
+  </class>
+  
+  <class name="java.awt.geom.Point2D$Float">
+    <map-to xml="point"/>
+    <field name="x" direct="true"><bind-xml node="attribute"/></field>
+    <field name="y" direct="true"><bind-xml node="attribute"/></field>
+  </class>
+  <!--class name="java.awt.geom.RectangularShape">
+    <map-to xml="shape"/>
+  </class -->
+  <class name="java.awt.geom.Rectangle2D$Float">
+    <map-to xml="rectangle"/>
+  </class>
+  <class name="java.awt.geom.Ellipse2D$Float">
+    <map-to xml="ellipse"/>
+  </class>
+  <class name="java.awt.geom.RoundRectangle2D$Float">
+    <map-to xml="roundRect"/>
+    <field name="arcwidth" direct="true"><bind-xml node="attribute"/></field>
+    <field name="archeight" direct="true"><bind-xml node="attribute"/></field>
+  </class>
+  <class name="tufts.vue.LWNode$NodeShape">
+    <map-to xml="nodeShape"/>
+    <field name="equalAspect" type="boolean">
+      <bind-xml node="attribute"/>
+    </field>
+    <field name="shape">
+      <bind-xml node="element"/>
+    </field>
+  </class>
+  <class name="tufts.vue.LWComponent">
+    <!-- castor can figure out types, we leave string as defaulted.
       -->
-		<field name="ID">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="label">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="notes">
-			<bind-xml node="element" />
-		</field>
-		<field name="metaData">
-			<bind-xml node="element" />
-		</field>
-		<field name="category">
-			<bind-xml node="element" />
-		</field>
+        <field name="ID"><bind-xml node="attribute"/></field>
+		<field name="label"><bind-xml node="attribute"/></field>
+		<field name="notes"><bind-xml node="element"/></field>
+		<field name="metaData"><bind-xml node="element"/></field>
+		<field name="category"><bind-xml node="element"/></field>
 		<field name="resource" type="tufts.vue.Resource">
-			<bind-xml name="resource" node="element" />
+			<bind-xml name="resource" node="element"/>
 		</field>
-		<field name="x" type="float">
-			<bind-xml node="attribute" />
-		</field>
-		<field name="y" type="float">
-			<bind-xml node="attribute" />
-		</field>
-		<!-- impl data -->
+		<field name="x" type="float"><bind-xml node="attribute"/></field>
+		<field name="y" type="float"><bind-xml node="attribute"/></field>
+                
+                <!-- impl data -->
+
 		<field name="absoluteWidth">
-			<bind-xml name="width" node="attribute" />
+			<bind-xml name="width" node="attribute"/>
 		</field>
 		<field name="absoluteHeight">
-			<bind-xml name="height" node="attribute" />
+			<bind-xml name="height" node="attribute"/>
 		</field>
 		<field name="XMLfillColor">
-			<bind-xml name="fillColor" node="element" />
+			<bind-xml name="fillColor" node="element"/>
 		</field>
 		<field name="XMLstrokeColor">
-			<bind-xml name="strokeColor" node="element" />
+			<bind-xml name="strokeColor" node="element"/>
 		</field>
 		<field name="XMLtextColor">
-			<bind-xml name="textColor" node="element" />
+			<bind-xml name="textColor" node="element"/>
 		</field>
 		<field name="XMLfont" type="string">
-			<bind-xml name="font" node="element" />
+			<bind-xml name="font" node="element"/>
 		</field>
 		<field name="strokeWidth" type="float">
-			<bind-xml name="strokeWidth" node="attribute" />
+			<bind-xml name="strokeWidth" node="attribute"/>
 		</field>
-		<!-- Shape doesn't marshall, is ignored because is interface. -->
-		<!-- now it's trying!-->
+                
+                <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
 		</field -->
-		<!-- -->
-		<!--
+                <!-- -->
+
+                <!--
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                         <bind-xml matches="*"/> 
                 </field>
                 -->
+                
 	</class>
+
 	<class name="tufts.vue.LWContainer" extends="tufts.vue.LWComponent">
-		<!--
+                <!--
                 <field name="nodeList" type="tufts.vue.LWNode" collection="arraylist">
 			<bind-xml name="node"/>
 		</field>
@@ -97,67 +100,105 @@
 			<bind-xml name="link"/>
 		</field>
                 -->
-		<field name="childList" type="tufts.vue.LWComponent" collection="arraylist">
-			<bind-xml name="child" />
+        <field name="childList" type="tufts.vue.LWComponent" collection="arraylist">
+			<bind-xml name="child"/>
 		</field>
 	</class>
+	
 	<class name="tufts.vue.LWGroup" extends="tufts.vue.LWContainer">
-		<map-to xml="group" />
+		<map-to xml="group"/>
 	</class>
+	
 	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
-		<map-to xml="node" />
+		<map-to xml="node"/>
 		<field name="autoSized" type="boolean">
-			<bind-xml name="autoSized" node="attribute" />
+			<bind-xml name="autoSized" node="attribute"/>
+		</field>
+		<field name="nodeShape">
+			<bind-xml name="nodeShape" node="element"/>
 		</field>
 	</class>
+	
 	<class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
-		<map-to xml="link" />
+		<map-to xml="link"/>
 		<field name="endPoint1_ID" type="string">
-			<bind-xml name="ID1" node="element" />
+			<bind-xml name="ID1" node="element"/>
 		</field>
-		<field name="endPoint2_ID" type="string">
-			<bind-xml name="ID2" node="element" />
-		</field>
-	</class>
-	<class name="tufts.vue.LWPathway" extends="tufts.vue.LWComponent">
-		<map-to xml="pathway" />
-		<field name="elementList" type="tufts.vue.LWComponent" collection="arraylist">
-			<bind-xml name="elementList" />
-		</field>
-		<!--<field name="borderColor" type="java.awt.Color">
-			<bind-xml name="borderColor" node="element" />
-		</field>-->
-		<field name="current" type="tufts.vue.LWComponent">
-			<bind-xml name="current" node="element" />
-		</field>
-		<field name="weight" type="java.lang.Integer">
-			<bind-xml name="weight" node="element" />
-		</field>
-		<field name="ordered" type="boolean">
-			<bind-xml name="ordered" node="element" />
-		</field>
-		<field name="comment" type="string">
-			<bind-xml name="comment" node="element" />
+	        <field name="endPoint2_ID" type="string">
+			<bind-xml name="ID2" node="element"/>
 		</field>
 	</class>
+
 	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
-		<map-to xml="LW-MAP" />
+		<map-to xml="LW-MAP"/>
 		<field name="userZoom">
-			<bind-xml name="userZoom" />
+			<bind-xml name="userZoom"/>
 		</field>
 		<field name="userOrigin">
-			<bind-xml name="userOrigin" node="element" />
+			<bind-xml name="userOrigin" node="element"/>
 		</field>
-		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
+	
+		<field name="PathwayManager" type="tufts.vue.LWPathwayManager">
+			<bind-xml name="PathwayManager" node="element" />
+		</field>
+		
+        <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
+            <bind-xml matches="*"/> 
+        </field>
+        
+	</class>
+
+	<class name="tufts.vue.LWPathwayManager">
+		<field name="PathwayList" set-method="setPathways" get-method="getPathways" type="tufts.vue.LWPathway" collection="arraylist">
+			<bind-xml name="Pathway" node="element" />
+		</field>
+		<field name="currentIndex" type="integer">
+			<bind-xml name="CurrentPathway" node="attribute" />
+		</field>
+	</class>
+	
+	<class name="tufts.vue.LWPathway">
+		<field name="label" type="string">
+			<bind-xml name="label" node="attribute" />
+		</field>
+		<field name="currentIndex" type="integer">
+			<bind-xml name="CurrentIndex" node="attribute" />
+		</field>
+		<field name="ElementArrayList" type="integer" collection="arraylist">
+			<bind-xml name="Element" node="element" />
+		</field>
+	</class>
+	
+	<!-- FEDORA OBJECTS -->
+	<class name="tufts.dr.fedora.FedoraObject">
+		<map-to xml="object"/>
+		<field name="ID" type="java.lang.String">
+			<bind-xml name="pid" node="attribute"/>
+		</field>
+		<field name="behaviorList" type="tufts.dr.fedora.Behavior" collection="vector">
+			<bind-xml name="bdef"/>
+		</field>
+		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
 			<bind-xml matches="*" />
 		</field>
 	</class>
-	<!--
-	<class name="java.awt.PColor">
-		<map-to xml="color"/>
-		<field name="rgb" type="string">
-			<bind-xml name="stringValue" node="attribute"/>
+	<class name="tufts.dr.fedora.Behavior">
+		<field name="ID" type="java.lang.String">
+			<bind-xml name="pid" node="attribute"/>
+		</field>
+		<field name="disseminationList" type="tufts.dr.fedora.Dissemination" collection="vector">
+			<bind-xml name="method"/>
+		</field>
+		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
+			<bind-xml matches="*" />
 		</field>
 	</class>
-        -->
+	<class name="tufts.dr.fedora.Dissemination">
+		<field name="name" type="java.lang.String">
+			<bind-xml name="name" node="attribute"/>
+		</field>
+		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
+			<bind-xml matches="*" />
+		</field>
+	</class>
 </mapping>
