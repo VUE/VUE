@@ -345,7 +345,6 @@ public class MapViewer extends javax.swing.JPanel
         return this.map;
     }
     
-    
     private void unloadMap()
     {
         this.map.removeLWCListener(this);
@@ -363,7 +362,7 @@ public class MapViewer extends javax.swing.JPanel
         this.map.addLWCListener(this);
         repaint();
     }
-
+ 
     private void RR(Rectangle r)
     {
         if (OPTIMIZED_REPAINT)
