@@ -30,9 +30,13 @@ import tufts.vue.action.*;
 public class Publisher extends JDialog implements ActionListener {
     
     /** Creates a new instance of Publisher */
-    private final int PUBLISH_MAP = 0; // just the map
-    private final int PUBLISH_CMAP = 1; // the map with selected resources in IMSCP format
-    private final int PUBLISH_ALL = 2; // all resources published to fedora and map published with pointers to resources.
+    public final int PUBLISH_MAP = 0; // just the map
+    public final int PUBLISH_CMAP = 1; // the map with selected resources in IMSCP format
+    public final int PUBLISH_ALL = 2; // all resources published to fedora and map published with pointers to resources.
+    public final int SELECTION_COL = 0; // boolean selection column in resource table
+    public final int RESOURCE_COL = 1; // column that displays the name of resource
+    public final int SIZE_COL = 2; // the column that displays size of files.
+    public final int STATUS_COL = 3;// the column that displays the status of objects that will be ingested.
     private int publishMode = PUBLISH_MAP; 
     private final int BUFFER_SIZE = 10240;// size for transferring files
     private int stage; // keep tracks of the screen
@@ -210,7 +214,7 @@ public class Publisher extends JDialog implements ActionListener {
            if(component.hasResource()){
                Resource resource = component.getResource();
                if(resource.isLocalFile()) {
-                   File file = new File(resource.toURLString().substring(8));
+                    File file = new File(resource.getSpec());
                     if(file.isFile()) {
                         Vector row = new Vector();
                         row.add(new Boolean(true));
@@ -243,6 +247,7 @@ public class Publisher extends JDialog implements ActionListener {
         try {
             File savedCMap = createIMSCP();
            // String transferredFileNameLocal = activeMapFile.getName().split("\\.")[0] +".zip";
+
             String transferredFileName = transferFile(savedCMap,savedCMap.getName());
             File METSfile = createMETSFile( transferredFileName,"obj-vue-concept-map-mc.xml");
             String pid = ingestToFedora(METSfile);
@@ -262,12 +267,16 @@ public class Publisher extends JDialog implements ActionListener {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.toURLString().substring(8));
+
+            File file = new File(r.getSpec());
+
             if(file.isFile() && b.booleanValue()) {
+                 resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                  String transferredFileName = transferFile(file,file.getName());
                  File METSFile = createMETSFile( transferredFileName,"obj-binary.xml");
                  String pid = ingestToFedora(METSFile);
-                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" pid ="+pid);
+                 resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
+                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
               
             }    
            publishMap();
@@ -365,12 +374,15 @@ public class Publisher extends JDialog implements ActionListener {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.toURLString().substring(8));
+
+            File file = new File(r.getSpec());
+
+       
             if(file.isFile() && b.booleanValue()) {
-                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" index ="+vector.indexOf(r));
-                 resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),3);
+                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
+                 resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                  imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
-                 resourceTable.setValueAt("Done",resourceVector.indexOf(vector),3);
+                 resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                  
             }    
            

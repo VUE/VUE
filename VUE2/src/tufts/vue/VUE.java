@@ -425,6 +425,13 @@ public class VUE
                 VUE.clearWaitCursor();
             }
         }
+        
+        try {
+            OpenAction.displayMap(new File(System.getProperty("user.dir")+"/tufts/vue/resources/startup.xml"));// this will be loaded using vue resourece
+        } catch(Exception ex) {
+            VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
+            ex.printStackTrace();
+        }
         //setViewerScrollbarsDisplayed(true);
         System.out.println("VUE.main completed.");
     }
@@ -714,6 +721,7 @@ public class VUE
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open");
         ExitAction exitAction = new ExitAction("Quit");
+        Publish publishAction = new Publish("Publish");
         
         /**Actions added by the power team*/
         JMenu exportMenu = new JMenu("Export");
@@ -740,6 +748,7 @@ public class VUE
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
+        fileMenu.add(publishAction);
         fileMenu.add(exportMenu);
         fileMenu.addSeparator();
         fileMenu.add(exitAction);

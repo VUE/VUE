@@ -47,7 +47,15 @@ public class OpenAction extends AbstractAction
          */
            
         File file = ActionUtil.openFile("Open Map", "xml");
+        displayMap(file);
         
+        
+        
+        System.out.println("Action["+e.getActionCommand()+"] completed.");
+    }
+
+    
+    public static void displayMap(File file) {
         if (file != null && file.getName().endsWith(".xml"))
         {
          
@@ -64,10 +72,9 @@ public class OpenAction extends AbstractAction
             }
         }
         
-        System.out.println("Action["+e.getActionCommand()+"] completed.");
+        
     }
-
-    public LWMap loadMap(String filename)
+    public static LWMap loadMap(String filename)
     {
         try 
         {
@@ -90,6 +97,7 @@ public class OpenAction extends AbstractAction
             return null;
         }
     }
+    
     
     /*
     private static Unmarshaller unmarshaller = null;
