@@ -22,7 +22,7 @@ import javax.swing.Icon;
  * VUE application actions (file, viewer/component, etc)
  *
  * @author Scott Fraize
- * @version 6/19/03
+ * @version March 2004
  */
 class Actions
     implements VueConstants

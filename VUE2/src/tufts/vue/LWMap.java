@@ -299,7 +299,7 @@ public class LWMap extends LWContainer
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
 
-        Iterator i = getAllDescendents().iterator();//slow
+        Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.layout();

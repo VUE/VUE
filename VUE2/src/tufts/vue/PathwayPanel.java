@@ -429,7 +429,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         if (pathway == null || map == null)
             return;
 
-        Iterator i = map.getAllDescendents().iterator();
+        Iterator i = map.getAllDescendentsIterator();
         if (excluseDisplay != pathway) {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
@@ -453,8 +453,9 @@ public class PathwayPanel extends JPanel implements ActionListener
                 p.setIsFiltered(p != pathway);
         }
         
-        mTableModel.fireTableDataChanged(); // so will gray filtered items
-        map.notify(this, "pathway.exclusive.display");
+        //mTableModel.fireTableDataChanged(); // so will gray filtered items
+        //map.notify(this, "pathway.exclusive.display");
+        pathway.notify(this, "pathway.exclusive.display");
     }
    
     private void updateAddRemoveActions()

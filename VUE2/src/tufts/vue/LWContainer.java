@@ -513,17 +513,36 @@ public abstract class LWContainer extends LWComponent
         return list;
     }
     
+
     public java.util.List getAllDescendents()
     {
-        java.util.List list = new java.util.ArrayList();
+        List list = new ArrayList();
         list.addAll(children);
         java.util.Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWContainer)
+            if (c.hasChildren())
                 list.addAll(((LWContainer)c).getAllDescendents());
         }
         return list;
+    }
+
+    /**
+     * Lighter weight than getAllDescendents, but must be sure not to modify
+     * map hierarchy (do any reparentings) while iterating or may get concurrent
+     * modification exceptions.
+     */
+    public Iterator getAllDescendentsIterator()
+    {
+        VueUtil.GroupIterator gi = new VueUtil.GroupIterator();
+        gi.add(children.iterator());
+        Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.hasChildren())
+                gi.add(((LWContainer)c).getAllDescendentsIterator());
+        }
+        return gi;
     }
 
     /**

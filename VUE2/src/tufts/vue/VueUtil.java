@@ -244,6 +244,74 @@ public class VueUtil
         public void remove() { throw new UnsupportedOperationException(); }
     };
     
+    public static class GroupIterator extends java.util.ArrayList
+        implements java.util.Iterator
+    {
+        int iterIndex = 0;
+        Iterator curIter;
+        
+        public GroupIterator() {}
+        
+        public GroupIterator(Object i1, Object i2)
+        {
+            this(i1, i2, null);
+        }
+        public GroupIterator(Object i1, Object i2, Object i3)
+        {
+            super(3);
+            if (i1 == null || i2 == null)
+                throw new IllegalArgumentException("null Collection or Iterator");
+            add(i1);
+            add(i2);
+            if (i3 != null)
+                add(i3);
+        }
+
+        public boolean add(Object o) {
+            if (!(o instanceof Collection) &&
+                !(o instanceof Iterator))
+                throw new IllegalArgumentException("Can only add Collection or Iterator: " + o);
+            return super.add(o);
+        }
+
+        public boolean hasNext()
+        {
+            if (curIter == null) {
+                if (iterIndex >= size())
+                    return false;
+                Object next = get(iterIndex);
+                if (next instanceof Iterator)
+                    curIter = (Iterator) next;
+                else
+                    curIter = ((Collection)next).iterator();
+                iterIndex++;
+                if (curIter == null)
+                    return false;
+            }
+            // make the call on the underlying iterator
+            if (curIter.hasNext()) {
+                return true;
+            } else {
+                curIter = null;
+                return hasNext();
+            }
+        }
+
+        public Object next()
+        {
+            if (curIter == null)
+                return null;
+            else
+                return curIter.next();
+        }
+
+        public void remove()
+        {
+            if (curIter != null)
+                curIter.remove();
+        }
+    }
+    /*
     public static class GroupIterator implements java.util.Iterator
     {
         private Object[] iterables = new Object[4];
@@ -304,7 +372,8 @@ public class VueUtil
                 curIter.remove();
         }
     }
-
+    */
+    
     public static void dumpCollection(Collection c) {
         System.out.println("Collection of size: " + c.size() + " (" + c.getClass().getName() + ")");
         dumpIterator(c.iterator());
