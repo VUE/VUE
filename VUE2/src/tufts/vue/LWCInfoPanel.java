@@ -181,12 +181,13 @@ ActionListener {
                 metadataPane.add(resourceMetadataPanel);
             }
         } else {
-            if(c.getResource().getType() == Resource.ASSET_FEDORA)
-                propertiesEditor.setProperties(c.getResource().getProperties(), false);
-            else
-                propertiesEditor.setProperties(c.getResource().getProperties(), true);
+            if(c.getResource() != null && c.getResource().getProperties() != null) {
+                if(c.getResource().getType() == Resource.ASSET_FEDORA)
+                    propertiesEditor.setProperties(c.getResource().getProperties(), false);
+                else
+                    propertiesEditor.setProperties(c.getResource().getProperties(), true);
+            }
         }
-        
     }
     
     public void actionPerformed(ActionEvent e) {
