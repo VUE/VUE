@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.14 $ / $Date: 2004-10-25 02:08:48 $ -->
+<!-- $Revision: 1.15 $ / $Date: 2004-11-13 02:34:20 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -45,6 +45,8 @@
   <property name="dist.src"    value="${dist.home}/src"/>
   <property name="lib.home"    value="../lib"/>
   <property name="vue.jar"     value="${build.home}/VUE.jar"/>
+  <property name="vue-core.jar" value="${basedir}/VUE-core.jar"/>
+  <property name="vue-lib.jar"  value="${basedir}/VUE-lib.jar"/>
 
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -384,7 +386,7 @@
   </target>
 
   <target name="run-jar-core">
-    <jar zipfile="${basedir}/VUE-core.jar" update="true" compress="false" index="true">
+    <jar zipfile="${vue-core.jar}" update="true" compress="false" index="true">
       <!--fileset dir="${src}" includes="**/*.xml"/-->
       <fileset dir="${src}" includes="**/*.conf"/>
       <fileset dir="${src}" includes="**/*.properties"/>
@@ -492,16 +494,45 @@
     <property name="mac.contents" value="${mac.appdir}/Contents"/>
     <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
 
-    <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory.">
+    <target name="mac-dist-common">
       <mkdir dir="${mac.contents}/MacOS"/>
       <mkdir dir="${mac.contents}/Resources/Java"/>
       <echo file="${mac.contents}/PkgInfo" message="APPL${mac.bundle_signature}"/>
       <copy file="MacOS/JavaApplicationStub" todir="${mac.contents}/MacOS" verbose="true"/>
       <chmod file="${mac.contents}/MacOS/JavaApplicationStub" perm="755" verbose="true"/>
-      <copy file="MacOS/Info.plist" todir="${mac.contents}" verbose="true"/>
       <copy file="MacOS/VUE.icns" todir="${mac.contents}/Resources" verbose="true"/>
+    </target>
+    
+    <target name="mac-dist" depends="jar,mac-dist-common" description="Creates a Mac OS X distributable Applcation directory.">
+      <copy file="MacOS/Info.plist" todir="${mac.contents}" verbose="true"/>
       <copy file="${vue.jar}" todir="${mac.contents}" verbose="true"/>
     </target>
+
+    <target name="mac-dist-dev" depends="jar-core,mac-dist-common">
+      <!-- for dev: a quicker build of VUE.app that includes VUE-core.jar & VUE-lib.jar
+           separately, skipping the build of VUE.jar that takes forverever.  Uses
+           the hacked Info-dev.plist that names to two jars instead of the one VUE.jar.
+           Note that you need to make sure you've manually build jar-lib before using this.
+           -->
+      <copy file="MacOS/Info-dev.plist" tofile="${mac.contents}/Info.plist" verbose="true"/>
+      <copy file="${vue-core.jar}" todir="${mac.contents}" verbose="true"/>
+      <copy file="${vue-lib.jar}" todir="${mac.contents}" verbose="true"/>
+    </target>
+
+    <target name="version">
+      <exec outputproperty="datestr" executable="date">
+        <arg value="+%B %e, %Y"/></exec>
+      <buildnumber/>
+      <echo file="version.java">
+package tufts.vue;
+class Version {
+        static final String version="0.2";
+        static final String buildDay = "${datestr}";
+        static final String buildNumber = "${build.number}";
+}
+      </echo>
+    </target>
+    
 
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
