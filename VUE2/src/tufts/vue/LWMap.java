@@ -128,8 +128,6 @@ public class LWMap extends LWContainer
      **/
     private void validateUserMapTypes() {
 
-
-
         java.util.List list = getAllDescendents();
 
 		Iterator it = list.iterator();
@@ -137,9 +135,29 @@ public class LWMap extends LWContainer
 			LWComponent c = (LWComponent) it.next();
 			if ( c.getUserMapType() != null)  {
 				// Check that type still exists...
-				
+				UserMapType type = c.getUserMapType();
+				if( !hasUserMapType( type) ) {
+					c.setUserMapType( null);
+					}
 				}
 			}
+ 	}
+ 	
+ 	/**
+ 	 * hasUserMapType
+ 	 * This method verifies that the UserMapType exists for this Map.
+ 	 * @return boolean true if exists; false if not
+ 	 **/
+ 	private boolean hasUserMapType( UserMapType pType) {
+ 		boolean found = false;
+ 		if( mUserTypes != null) {
+ 			for( int i=0; i< mUserTypes.length; i++) {
+ 				if( pType.getID().equals( mUserTypes[i].getID() ) ) {
+ 					return true;
+ 					}
+ 				}
+ 			}
+ 		return found;
  	}
  	
     /**
