@@ -25,6 +25,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     protected Icon mButtonIcon;
 
     protected static final String ArrowText = "v ";
+    private static boolean isButtonActionable = false;
 
     private boolean actionAreaClicked = false;
 
@@ -51,7 +52,8 @@ public abstract class MenuButton extends JButton implements ActionListener
         addActionListener(this);
         addMouseListener(new MouseAdapter(toString()) {
                 public void mousePressed(MouseEvent e) {
-                    if (/*getText() == ArrowText &&*/ getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
+                    if (/*getText() == ArrowText &&*/
+                        isButtonActionable && getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
                         actionAreaClicked = true;
                     } else {
                         actionAreaClicked = false;
@@ -63,7 +65,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (DEBUG.SELECTION||DEBUG.EVENTS) System.out.println(this + " " + e);
+        if (DEBUG.TOOL||DEBUG.EVENTS) System.out.println(this + " " + e);
         if (actionAreaClicked)
             firePropertySetter();
     }
@@ -99,7 +101,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     public abstract Object getPropertyValue();
 
     public void loadPropertyValue(tufts.vue.beans.VueBeanState state) {
-        if (DEBUG.SELECTION) System.out.println(this + " loading " + getPropertyName() + " from " + state);
+        if (DEBUG.TOOL) System.out.println(this + " loading " + getPropertyName() + " from " + state);
         setPropertyValue(state.getPropertyValue(getPropertyName()));
     }
 	
@@ -203,7 +205,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     }
     protected void firePropertySetter() {
         Object o = getPropertyValue();
-        if (DEBUG.SELECTION||DEBUG.EVENTS) System.out.println(this + " firePropertySetter " + o);
+        if (DEBUG.TOOL||DEBUG.EVENTS) System.out.println(this + " firePropertySetter " + o);
         if (o instanceof Action) {
             if (o instanceof VueAction)
                 ((VueAction)o).fire(this);

@@ -210,17 +210,17 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         
     /** load values from either a LWComponent, or a VueBeanState */
     void loadValues(Object pValue) {
-        //System.out.println(this + " loadValues (LWCToolPanel) " + pValue);
+        if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + pValue);
         VueBeanState state = null;
  		
         if (pValue instanceof LWComponent) {
             if (!isPreferredType(pValue))
                 return;
             state = VueBeans.getState(pValue);
-            if (DEBUG.SELECTION) System.out.println(this + " loadValues (LWCToolPanel) " + state + " from " + pValue);
+            if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + state + " from " + pValue);
         } else if (pValue instanceof VueBeanState) {
             state = (VueBeanState) pValue;
-            if (DEBUG.SELECTION) System.out.println(this + " loadValues (LWCToolPanel) " + state);
+            if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + state);
         }
         if (state == null)
             state = mDefaultState;
@@ -234,7 +234,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
         mTextColorButton.loadPropertyValue(state); // until is a MenuButton, might as will pick up property
 
-        if (false) {
+        if (true) {
           mFillColorButton.loadPropertyValue(state);
         mStrokeColorButton.loadPropertyValue(state);
              mStrokeButton.loadPropertyValue(state);
@@ -244,11 +244,12 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     }
 
     void loadValues(LWSelection s) {
-        // todo: what's the sanest thing to do here?
         if (s.size() == 1) {
             loadValues(s.first());
         } else if (s.size() > 1) {
-            //loadValues(s.first());
+            // todo: if we are to populate the tool bar properties when
+            // there's a multiple selection, what do we use?
+            loadValues(s.first());
             //mFillColorButton.setColor(null);
             //mStrokeColorButton.setColor(null);
             //mTextColorButton.setColor(null);
@@ -264,15 +265,17 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         mIgnoreEvents = t;
     }
 
-    public void propertyChange( PropertyChangeEvent e)
+    public void propertyChange(PropertyChangeEvent e)
     {
-        if (mIgnoreEvents)
+        if (mIgnoreEvents) {
+            if (DEBUG.TOOL) out("ignoring " + e);
             return;
+        }
         String name = e.getPropertyName();
         //if (DEBUG.SELECTION) System.out.println(this + " PROPERTYCHANGE: " + name + " " + e);
 
         if( !name.equals("ancestor") ) {
-            if (DEBUG.SELECTION) System.out.println(this + " propertyChange: " + name + " " + e);
+            if (DEBUG.TOOL) out("propertyChange: " + name + " " + e);
 	  		
             VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, e.getNewValue());
             if (VUE.getUndoManager() != null)

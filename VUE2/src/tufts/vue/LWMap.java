@@ -337,7 +337,7 @@ public class LWMap extends LWContainer
         if (userOriginX != x || userOriginY != y){
             this.userOriginX = x;
             this.userOriginY = y;
-            markChange("userOrigin");
+            //markChange("userOrigin");
         }
     }
     /** for persistance */

@@ -91,8 +91,9 @@ public class BlobIcon implements Icon
         mHeight = pHeight;
     }
 	
-    public void setColor( Color pColor) {
-        mColor = pColor;
+    public void setColor(Color c) {
+        if (DEBUG.TOOL) System.out.println(this + " setColor " + c);
+        mColor = c;
     }
 	
     public Color getColor() {
@@ -153,7 +154,8 @@ public class BlobIcon implements Icon
      * system.
      * @see java.awt.Icon
      **/
-    public void paintIcon( Component c, Graphics g, int x, int y) {
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        //if (DEBUG.TOOL) System.out.println(this + " PAINT on " + c);
 		
         Color color = mColor;
         Color oldColor = g.getColor();

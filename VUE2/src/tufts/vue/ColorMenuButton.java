@@ -51,11 +51,13 @@ public class ColorMenuButton extends MenuButton
      * Sets a the current color.
      */
     public void setColor(Color c) {
+        if (DEBUG.TOOL) System.out.println(this + " setColor " + c);
         mCurColor = c;
         if (mButtonIcon instanceof BlobIcon)
             ((BlobIcon)mButtonIcon).setColor(c);
         if (c == null)
             mPopup.setSelected(super.mEmptySelection);
+        repaint();
     }
 	 
     /**

@@ -7,9 +7,8 @@ import javax.swing.JViewport;
 /**
  * MapViewport -- a viewport that handles a dynamically sized extent.
  *
- * Conceptually this would be better as a static inner class
- * in MapViewer.java, but it's here just to keep the code
- * better organized.
+ * This would be better as a static inner class in MapViewer.java, but
+ * it's here just to keep the code better organized.
  *
  * The viewport code is complicated to deal with the fact that
  * we operate on an infinite canvas and need to guess
@@ -108,13 +107,6 @@ class MapViewport extends JViewport
         if (DEBUG.SCROLL) out("setViewPosition " + out(p));
         super.setViewPosition(p);
     }
-
-    /*
-    public void setViewPosition(Point2D p) {
-        setViewPosition(new Point((int) Math.floor(p.getX() + 0.5),
-                                  (int) Math.floor(p.getY() + 0.5)));
-    }
-    */
 
     public void setVisibleCanvasCorner(Point2D p) {
         setCanvasPosition(new Point2D.Double(-p.getX(), -p.getY()));

@@ -25,6 +25,7 @@ public class DEBUG
     public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
     public static boolean DYNAMIC_UPDATE = false; // components process all LWCEvent's immediately
     public static boolean KEYS = false; // keyboard input
+    public static boolean TOOL = false; // toolbars
 
     public static boolean DR = false; // digital repository & data sources
     
@@ -33,7 +34,7 @@ public class DEBUG
     public static  void setAllEnabled(boolean t) {
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
-            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=t;
+            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=t;
         if (t == false)
             META = false;
     }

@@ -2694,8 +2694,9 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'P') { DEBUG.PAINT = !DEBUG.PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
                 else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
+                else if (c == 'r') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
-                else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
+                else if (c == 'T') { DEBUG.TOOL = !DEBUG.TOOL; }
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
                 else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
@@ -2817,7 +2818,10 @@ public class MapViewer extends javax.swing.JComponent
         private Point viewportAtDragStart;
         private boolean mLabelEditWasActiveAtMousePress;
         public void mousePressed(MouseEvent e) {
-            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+            if (DEBUG.MOUSE) {
+                System.out.println("-----------------------------------------------------------------------------");
+                out("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+            }
             
             mLabelEditWasActiveAtMousePress = (activeTextEdit != null);
             if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
