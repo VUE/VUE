@@ -4,20 +4,21 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DnDConstants;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
+
+import java.awt.datatransfer.*;
 
 import java.awt.geom.Point2D;
 import java.awt.Point;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 
+import java.util.List;
 import java.io.File;
+import java.net.*;
 
 import osid.dr.*;
 
 
-//todo: rename LWMapDropTarget?
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
 {
@@ -102,12 +103,320 @@ class MapDropTarget
         viewer.clearIndicated();        
     }
 
+    // debug
+    private void dumpFlavors(Transferable transfer)
+    {
+        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+
+        System.out.println("TRANSFERABLE: " + transfer + " has " + dataFlavors.length + " dataFlavors:");
+        for (int i = 0; i < dataFlavors.length; i++) {
+            DataFlavor flavor = dataFlavors[i];
+            System.out.print("flavor " + (i<10?" ":"") + i
+                             + " \"" + flavor.getHumanPresentableName() + "\""
+                             + " " + flavor.getMimeType()
+                             );
+            try {
+                Object data = transfer.getTransferData(flavor);
+                System.out.println(" [" + data + "]");
+                if (data instanceof java.net.URL) {
+                    URL url = (URL) data;
+                    System.out.println("\tURL: ref=" + url.getRef());
+                }
+                //if (flavor.getHumanPresentableName().equals("text/uri-list")) readTextFlavor(flavor, transfer);
+            } catch (Exception ex) {
+                System.out.println("\tEXCEPTION: getTransferData: " + ex);
+            }
+        }
+    }
+
     //    public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
     /**
      * Process any transferrable: @param e can be null if don't have a drop event
      * (e.g., could use to process clipboard contents as well as drop events)
      */
     public boolean processTransferable(Transferable transfer, DropTargetDropEvent e)
+    {
+        Point dropLocation = null;
+        int dropAction = DnDConstants.ACTION_MOVE; // default action
+
+        if (e != null) {
+            dropLocation = e.getLocation();
+            dropAction = e.getDropAction();
+        }
+
+        LWComponent hitComponent = null;
+
+        if (dropLocation != null) {
+            hitComponent = viewer.getMap().findChildAt(dropToMapLocation(dropLocation));
+            System.out.println("\thitComponent=" + hitComponent);
+        }
+        
+        boolean modifierKeyWasDown = (dropAction != DnDConstants.ACTION_COPY);
+        // COPY action is default action.
+        
+        // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
+        // changes to dropAction that happen when the drag was
+        // initiated (e.g., ctrl was down) -- this is a BUG, however,
+        // if you press ctrl down AFTER the drop starts, sourceAction
+        // & dropAction will be set to some rediculous number -- so at
+        // least we can detect that by making modifer down the default
+        // if drop action anything other than copy.
+
+        boolean createAsChildren = !modifierKeyWasDown && hitComponent instanceof LWNode;
+
+        // if no drop location (e.g., we did a "Paste") then assume where
+        // they last clicked.
+        if (dropLocation == null)
+            dropLocation = viewer.getLastMousePressPoint();
+        //dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
+        
+        List assetList = null;
+        List fileList = null;        
+        String droppedText = null;
+        DataFlavor foundFlavor = null;
+        Object foundData = null;
+
+        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+        if (debug) System.out.println("TRANSFER: found " + dataFlavors.length + " dataFlavors");
+        //dumpFlavors(transfer);
+
+        try {
+            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.assetFlavor)) {
+                
+                foundFlavor = VueDragTreeNodeSelection.assetFlavor;
+                foundData = transfer.getTransferData(foundFlavor);
+                assetList = (java.util.List) foundData;
+            
+            } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+
+                foundFlavor = DataFlavor.javaFileListFlavor;
+                foundData = transfer.getTransferData(foundFlavor);
+                fileList = (java.util.List) foundData;
+
+            } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            
+                foundFlavor = DataFlavor.stringFlavor;
+                foundData = transfer.getTransferData(DataFlavor.stringFlavor);
+                droppedText = (String) foundData;
+            
+            } else {
+                System.out.println("TRANSFER: found no supported dataFlavors");
+                dumpFlavors(transfer);
+                return false;
+            }
+        } catch (UnsupportedFlavorException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: Transfer lied about supporting " + foundFlavor);
+            return false;
+        } catch (ClassCastException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: Transfer data did not match declared type! flavor="
+                               + foundFlavor + " data=" + foundData.getClass());
+            return false;
+        } catch (java.io.IOException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: data no longer available");
+            return false;
+        }
+
+        System.out.println("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
+                           + "\n\tflavor=" + foundFlavor
+                           + "\n\t  data=[" + foundData + "]");
+
+        boolean success = false;
+
+        if (fileList != null) {
+            if (debug) System.out.println("\tLIST, size= " + fileList.size());
+            java.util.Iterator iter = fileList.iterator();
+            int x = dropLocation.x;
+            int y = dropLocation.y;
+
+            List addedNodes = new java.util.ArrayList();
+            while (iter.hasNext()) {
+                File file = (File) iter.next();
+                if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
+                //if (hitComponent != null && fileList.size() == 1) {
+                if (hitComponent != null) {
+                    if (createAsChildren) {
+                        ((LWNode)hitComponent).addChild(createNewNode(file, null));
+                    } else {
+                        hitComponent.setResource(file.toString());
+                    }
+                } else {
+                    //createNewNode("file:///"+file.toString(), file.getName(), new java.awt.Point(x, y));
+                    addedNodes.add(createNewNode(file, new java.awt.Point(x, y)));
+                    x += 15;
+                    y += 15;
+                }
+                success = true;
+            }
+            if (addedNodes.size() > 0)
+                VUE.ModelSelection.setTo(addedNodes.iterator());
+            
+        } else if (assetList != null) {
+            java.util.Iterator iter = assetList.iterator();
+            int x = dropLocation.x;
+            int y = dropLocation.y;
+            while (iter.hasNext()) {
+                Asset asset = (Asset) iter.next();
+                createNewNode(asset, new java.awt.Point(x,y));
+                x += 15;
+                y += 15;
+                success = true;
+            }
+        } else if (droppedText != null) {
+            // Attempt to make a URL of any string dropped -- if fails,
+            // just treat as regular pasted text.  todo: if newlines
+            // in middle of string, don't do this, or possibly attempt
+            // to split into list of multiple URL's (tho only if *every*
+            // line succeeds as a URL -- prob too hairy to bother)
+            URL url = null;
+            try {
+                url = new URL(droppedText);
+            } catch (MalformedURLException ex) {}
+
+            if (url != null) {
+                if (hitComponent != null) {
+                    if (createAsChildren)
+                        ((LWNode)hitComponent).addChild(createNewNode(url.toString(), null, dropLocation));
+                    else
+                        hitComponent.setResource(url.toString());
+                } else {
+                    createNewNode(url.toString(), null, dropLocation);
+                }
+            } else {
+                createNewTextNode(droppedText, dropLocation);
+            }
+            success = true;
+        }
+
+        return success;
+    }
+    
+
+    private String readTextFlavor(DataFlavor flavor, Transferable transfer)
+    {
+        java.io.Reader reader = null;
+        String value = null;
+        try {
+            reader = flavor.getReaderForText(transfer);
+            if (debug) System.out.println("\treader=" + reader);
+            char buf[] = new char[512];
+            int got = reader.read(buf);
+            value = new String(buf, 0, got);
+            if (debug) System.out.println("\t[" + value + "]");
+            if (reader.read() != -1)
+                System.out.println("there was more data in the reader");
+        } catch (Exception e) {
+            System.err.println("readTextFlavor: " + e);
+        }
+        return value;
+    }
+
+    // todo?: change this to a resource-dropped event (w/location)
+    // then we don't even have to know about the map, or the MapViewer
+    // which for instance can do the zoom conversion of the drop location
+    // for us.
+    private LWNode createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
+    {
+        if (resourceTitle == null)
+            resourceTitle = createResourceTitle(resourceName);
+
+        LWNode node = NodeTool.createNode(resourceTitle);
+        node.setResource(new Resource(resourceName));
+        if (p != null) {
+            node.setCenterAt(dropToMapLocation(p));
+            viewer.getMap().addNode(node);            //set selection to node?
+        } // else: special case: no node location, sp we're creating a child node -- don't add to map
+        return node;
+    }
+
+    private LWNode createNewNode(File file, Point p)
+    {
+        // TODO BUG: adding the file:/// here produces inconsistent results --
+        // that needs to be done in the Resource object!
+        return createNewNode("file://"+file.toString(), file.getName(), p);
+    }
+        
+
+    private void createNewTextNode(String text, java.awt.Point p)
+    {
+        LWNode node = NodeTool.createTextNode(text);
+        node.setCenterAt(dropToMapLocation(p));
+        viewer.getMap().addNode(node);
+    }
+
+    private void createNewNode(java.awt.Image image, java.awt.Point p)
+    {
+        // todo: query the NodeTool for current node shape, etc.
+        LWNode node = NodeTool.createNode();
+        node.setCenterAt(dropToMapLocation(p));
+        node.setImage(image);
+        node.setNotes(image.toString());
+        viewer.getMap().addNode(node);
+        //set selection to node?
+        
+        /*
+        String label = "[image]";
+        if (image instanceof BufferedImage) {
+            BufferedImage bi = (BufferedImage) image;
+            label = "[image "
+                + bi.getWidth() + "x"
+                + bi.getHeight()
+                + " type " + bi.getType()
+                + "]";
+            //System.out.println("BufferedImage: " + bi.getColorModel());
+            // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
+            }*/
+    }
+    
+    private void createNewNode(Asset asset, java.awt.Point p) {
+        String resourceTitle = "Fedora Node";
+        Resource resource =new Resource(resourceTitle);
+        try {
+            resourceTitle = asset.getDisplayName();
+             resource.setAsset(asset);
+        } catch(Exception e) { System.out.println("MapDropTarget.createNewNode " +e ) ; }
+      
+       
+        LWNode node = NodeTool.createNode(resourceTitle);
+        node.setCenterAt(dropToMapLocation(p));
+        node.setResource(resource);
+        viewer.getMap().addNode(node);
+    }
+    private Point2D dropToMapLocation(java.awt.Point p)
+    {
+        return dropToMapLocation(p.x, p.y);
+    }
+
+    private Point2D dropToMapLocation(int x, int y)
+    {
+        return viewer.screenToMapPoint(x, y);
+        /*
+        java.awt.Insets mapInsets = viewer.getInsets();
+        java.awt.Point mapLocation = viewer.getLocation();
+        System.out.println("viewer insets=" + mapInsets);
+        System.out.println("viewer location=" + mapLocation);
+        x -= mapLocation.x;
+        y -= mapLocation.y;
+        x -= mapInsets.left;
+        y -= mapInsets.top;
+        */
+    }
+
+
+    private String createResourceTitle(String resourceName)
+    {
+        int i = resourceName.lastIndexOf('/');//TODO: fileSeparator? test on PC
+        if (i == resourceName.length() - 1)
+            return resourceName;
+        else
+            return i > 0 ? resourceName.substring(i+1) : resourceName;
+        // todo: go search the HTML for <title>
+    }
+
+    /*
+    public boolean OLD_processTransferable(Transferable transfer, DropTargetDropEvent e)
     {
         Point dropLocation = null;
         int dropAction = DnDConstants.ACTION_MOVE; // default action
@@ -134,27 +443,77 @@ class MapDropTarget
         
         boolean success = false;
 
-        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
 
         String resourceName = null;
         String droppedText = null;
         java.awt.Image droppedImage = null;
         java.util.List fileList = null;
         java.util.List assetList = null;
-        
+        DataFlavor foundFlavor = null;
+        Object foundData = null;
+
+        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
         if (debug) System.out.println("TRANSFER: found " + dataFlavors.length + " dataFlavors");
+        dumpFlavors(transfer);
+
+        try {
+            if (VueDragTreeNodeSelection.assetFlavor == null)
+                System.err.println("ASSET FLAVOR IS NULL");
+                
+            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.assetFlavor)) {
+                
+                foundFlavor = VueDragTreeNodeSelection.assetFlavor;
+                foundData = transfer.getTransferData(foundFlavor);
+                assetList = (java.util.List) foundData;
+            
+            } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+
+                foundFlavor = DataFlavor.javaFileListFlavor;
+                foundData = transfer.getTransferData(foundFlavor);
+                fileList = (java.util.List) foundData;
+
+            } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            
+                foundFlavor = DataFlavor.stringFlavor;
+                foundData = transfer.getTransferData(DataFlavor.stringFlavor);
+                droppedText = (String) foundData;
+            
+            } else {
+                System.out.println("TRANSFER: found no supported dataFlavors");
+                dumpFlavors(transfer);
+                return false;
+            }
+        } catch (UnsupportedFlavorException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: Transfer lied about supporting " + foundFlavor);
+            return false;
+        } catch (ClassCastException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: Transfer data did not match declared type! flavor="
+                               + foundFlavor + " data=" + foundData.getClass());
+            return false;
+        } catch (java.io.IOException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: data no longer available");
+            return false;
+        }
+
+        System.out.println("TRANSFER: Found supported flavor " + foundFlavor
+                           + "\n\tdata=[" + foundData + "]");
+
+        
         for (int i = 0; i < dataFlavors.length; i++) {
             DataFlavor flavor = dataFlavors[i];
             Object data = null;
-            System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
+            //System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
             
-            if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
+            //if (debug) System.out.print("FLAVOR " + (i<10?" ":"") + i + " " + flavor.getMimeType());
             try {
                 data = transfer.getTransferData(flavor);
             } catch (Exception ex) {
-                System.out.println("getTransferData: " + ex);
+                System.out.println("\tEXCEPTION: getTransferData: " + ex);
             }
-            if (debug) System.out.println(" transferData=" + data);
+            //if (debug) System.out.println("\ttransferData=" + data);
 
             try {
                 if (data instanceof java.awt.Image) {
@@ -168,6 +527,8 @@ class MapDropTarget
                     System.out.println("ASSET FOUND");
                     assetList = (java.util.List) transfer.getTransferData(flavor);
                     break;
+                } else if (false&&flavor.equals(DataFlavor.stringFlavor)) {
+                    
                 } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
                     //} else if (flavor.isFlavorTextType() || flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
                     // flavor.isFlavorTextType() is picking up text/html, etc, which we don't want here.
@@ -247,126 +608,6 @@ class MapDropTarget
 
         return success;
     }
-
-    private String readTextFlavor(DataFlavor flavor, Transferable transfer)
-    {
-        java.io.Reader reader = null;
-        String value = null;
-        try {
-            reader = flavor.getReaderForText(transfer);
-            if (debug) System.out.println("\treader=" + reader);
-            char buf[] = new char[512];
-            int got = reader.read(buf);
-            value = new String(buf, 0, got);
-            if (debug) System.out.println("\t[" + value + "]");
-            if (reader.read() != -1)
-                System.out.println("there was more data in the reader");
-        } catch (Exception e) {
-            System.err.println("readTextFlavor: " + e);
-        }
-        return value;
-    }
-
-    // todo?: change this to a resource-dropped event (w/location)
-    // then we don't even have to know about the map, or the MapViewer
-    // which for instance can do the zoom conversion of the drop location
-    // for us.
-    private LWNode createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
-    {
-        if (resourceTitle == null)
-            resourceTitle = createResourceTitle(resourceName);
-
-        LWNode node = NodeTool.createNode(resourceTitle);
-        node.setResource(new Resource(resourceName));
-        if (p != null) {
-            node.setCenterAt(dropToMapLocation(p));
-            viewer.getMap().addNode(node);            //set selection to node?
-        } // else: special case: no node location, sp we're creating a child node -- don't add to map
-        return node;
-    }
-
-    private LWNode createNewNode(File file, Point p)
-    {
-        // TODO BUG: adding the file:/// here produces inconsistent results --
-        // that needs to be done in the Resource object!
-        return createNewNode("file:///"+file.toString(), file.getName(), p);
-    }
-        
-
-    private void createNewTextNode(String text, java.awt.Point p)
-    {
-        LWNode node = NodeTool.createTextNode(text);
-        node.setCenterAt(dropToMapLocation(p));
-        viewer.getMap().addNode(node);
-    }
-
-    private void createNewNode(java.awt.Image image, java.awt.Point p)
-    {
-        // todo: query the NodeTool for current node shape, etc.
-        LWNode node = NodeTool.createNode();
-        node.setCenterAt(dropToMapLocation(p));
-        node.setImage(image);
-        node.setNotes(image.toString());
-        viewer.getMap().addNode(node);
-        //set selection to node?
-        
-        /*
-        String label = "[image]";
-        if (image instanceof BufferedImage) {
-            BufferedImage bi = (BufferedImage) image;
-            label = "[image "
-                + bi.getWidth() + "x"
-                + bi.getHeight()
-                + " type " + bi.getType()
-                + "]";
-            //System.out.println("BufferedImage: " + bi.getColorModel());
-            // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
-            }*/
-    }
-    
-    private void createNewNode(Asset asset, java.awt.Point p) {
-        String resourceTitle = "Fedora Node";
-        Resource resource =new Resource(resourceTitle);
-        try {
-            resourceTitle = asset.getDisplayName();
-             resource.setAsset(asset);
-        } catch(Exception e) { System.out.println("MapDropTarget.createNewNode " +e ) ; }
-      
-       
-        LWNode node = NodeTool.createNode(resourceTitle);
-        node.setCenterAt(dropToMapLocation(p));
-        node.setResource(resource);
-        viewer.getMap().addNode(node);
-    }
-    private Point2D dropToMapLocation(java.awt.Point p)
-    {
-        return dropToMapLocation(p.x, p.y);
-    }
-
-    private Point2D dropToMapLocation(int x, int y)
-    {
-        return viewer.screenToMapPoint(x, y);
-        /*
-        java.awt.Insets mapInsets = viewer.getInsets();
-        java.awt.Point mapLocation = viewer.getLocation();
-        System.out.println("viewer insets=" + mapInsets);
-        System.out.println("viewer location=" + mapLocation);
-        x -= mapLocation.x;
-        y -= mapLocation.y;
-        x -= mapInsets.left;
-        y -= mapInsets.top;
-        */
-    }
-
-
-    private String createResourceTitle(String resourceName)
-    {
-        int i = resourceName.lastIndexOf('/');
-        if (i == resourceName.length() - 1)
-            return resourceName;
-        else
-            return i > 0 ? resourceName.substring(i+1) : resourceName;
-        // todo: go search the HTML for <title>
-    }
+    */    
     
 }
