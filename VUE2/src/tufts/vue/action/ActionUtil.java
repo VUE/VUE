@@ -38,7 +38,8 @@ public class ActionUtil {
     public static File selectFile(String extension)
     {
         File file = null;
-    
+        boolean proceed = true;
+        
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Selecting a file");
         //chooser.setFileFilter(new VueFileFilter());
@@ -55,21 +56,24 @@ public class ActionUtil {
                 int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 
                         "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                   
-                if (n == JOptionPane.YES_OPTION)
-                {
-                  String fileName = chooser.getSelectedFile().getAbsolutePath();
-                  
-                  //if it isn't a file name with the right extention 
-                  if (!fileName.endsWith("." + extension))
-                     fileName += extension;
-                
-                  file = new File(fileName); 
-                  
-                  // if they choose nothing, fileName will be null -- detect & abort
-                  VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-                }
+                if (n == JOptionPane.NO_OPTION)
+                  proceed = false;
                 
               } 
+        
+            if (proceed == true)
+              {
+                String fileName = chooser.getSelectedFile().getAbsolutePath();
+                  
+                //if it isn't a file name with the right extention 
+                if (!fileName.endsWith("." + extension))
+                fileName += "." + extension;
+                
+                file = new File(fileName); 
+                  
+                // if they choose nothing, fileName will be null -- detect & abort
+                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+              }
         }
         
         return file;

@@ -33,12 +33,12 @@ public class ImageConversion extends AbstractAction {
     
     /**A method which takes in the image object and the location of the file along with the file format
      and saves the current map to the given file*/
-    public void convert(BufferedImage image, String location, String format)
+    public void convert(BufferedImage image, File location, String format)
     {   
         //the conversion is done using the ImageIO class's static method
         try
         {
-            ImageIO.write(image, format, new File(location));
+            ImageIO.write(image, format, location);
         }
         catch (Exception e)
         {
@@ -63,7 +63,7 @@ public class ImageConversion extends AbstractAction {
         ImageConversion test = new ImageConversion();
         
         test.drawImage((Graphics2D)defaultImage.getGraphics(), new Dimension(300, 400));
-        test.convert(defaultImage, "c:\\test.jpeg", "jpeg");
+        test.convert(defaultImage, new File("c:\\test.jpeg"), "jpeg");
     }
     
     /**A method defined in the interface */
@@ -71,6 +71,7 @@ public class ImageConversion extends AbstractAction {
         
         try 
         {
+            /*
             boolean proceed = true;
             
             JFileChooser chooser = new JFileChooser();
@@ -92,39 +93,40 @@ public class ImageConversion extends AbstractAction {
                   if (n == JOptionPane.NO_OPTION)
                       proceed = false;
                 } 
+              */  
+           File selectedFile = ActionUtil.selectFile("jpeg");
+           
+           if (selectedFile != null)
+             {
+                //String fileName = chooser.getSelectedFile().getAbsolutePath();
                 
-                if (proceed)
-                {
-                    String fileName = chooser.getSelectedFile().getAbsolutePath();
+                //if it isn't a file name with the right extention 
+                //if (!(fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")))
+                  //fileName += ".jpeg";
                 
-                    //if it isn't a file name with the right extention 
-                    if (!(fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")))
-                        fileName += ".jpeg";
+                // if they choose nothing, fileName will be null -- detect & abort
                 
-                    // if they choose nothing, fileName will be null -- detect & abort
-                
-                    VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+                //VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
         
-                    //up to this point
-                    //retrives the current map and gets its size
-                    MapViewer currentMap = VUE.getActiveViewer();
-                    Dimension size = currentMap.getSize();
+                //up to this point
+                //retrives the current map and gets its size
+                MapViewer currentMap = VUE.getActiveViewer();
+                Dimension size = currentMap.getSize();
         
-                    //creates an image object and sets up the graphics object of the image
-                    BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-                    Graphics g = mapImage.getGraphics();
-                    g.setClip(0, 0, size.width, size.height);
+                //creates an image object and sets up the graphics object of the image
+                BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
+                Graphics g = mapImage.getGraphics();
+                g.setClip(0, 0, size.width, size.height);
         
-                    //let the map draws to the image object's graphic object
-                    currentMap.paintComponent(g);
+                //let the map draws to the image object's graphic object
+                currentMap.paintComponent(g);
                 
-                    //outlining the returned image
-                    g.setColor(Color.black);
-                    g.drawRect(0, 0, size.width - 1, size.height - 1);
+                //outlining the returned image
+                g.setColor(Color.black);
+                g.drawRect(0, 0, size.width - 1, size.height - 1);
         
-                    //begins the conversion to the file
-                    convert(mapImage, fileName, "jpeg");
-                }
+                //begins the conversion to the file
+                convert(mapImage, selectedFile, "jpeg");
             }
        }
         
