@@ -139,8 +139,13 @@ public class ActionUtil {
         return file;
     }
     
-    /**A static method which creates an appropriate marshaller and marshal the active map*/
     public static void marshallMap(File file)
+    {
+        marshallMap(file, tufts.vue.VUE.getActiveMap());
+    }
+    
+    /**A static method which creates an appropriate marshaller and marshal the active map*/
+    public static void marshallMap(File file, LWMap map)
     {
         Marshaller marshaller = null;
         
@@ -156,7 +161,7 @@ public class ActionUtil {
             marshaller.setMapping(mapping);
             
             System.out.println("start of marshall");
-            marshaller.marshal(tufts.vue.VUE.getActiveMap());
+            marshaller.marshal(map);
             System.out.println("end of marshall");
             
             writer.flush();

@@ -68,9 +68,11 @@ public class SaveAction extends AbstractAction
         
         if (saveCondition == true)
         {
-          if (file.getName().endsWith(".xml"))
-            ActionUtil.marshallMap(file);
-          
+            if (file.getName().endsWith(".xml")) {
+                LWMap map = tufts.vue.VUE.getActiveMap();
+                map.setLabel(file.getName());
+                ActionUtil.marshallMap(file, map);
+            }
           else if (file.getName().endsWith(".jpeg"))
             new ImageConversion().createJpeg(file);
           

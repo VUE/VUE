@@ -82,8 +82,10 @@ public class OpenAction extends AbstractAction
             //LWMap map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
             //map.completeXMLRestore();
             //return map;
-            
-            return (ActionUtil.unmarshallMap(new File(filename)));
+            File file = new File(filename);
+            LWMap map = ActionUtil.unmarshallMap(file);
+            map.setLabel(file.getName());
+            return map;
         } 
         catch (Exception e) 
         {
