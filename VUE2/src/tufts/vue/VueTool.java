@@ -216,13 +216,9 @@ public abstract class VueTool extends AbstractAction
     }
 
     // rename supportsClickSelection?
-    public boolean supportsSelection()
-    {
-        return false;
-    }
+    public boolean supportsSelection() { return false; }
     
-    // rename supportsSelector
-    public boolean supportsSelectorBox()
+    public boolean supportsDraggedSelector(MouseEvent e)
     {
         return true;
     }
