@@ -46,21 +46,23 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     private Font highlightFont = null;
 
     /* Pathway control properties */
+    /*
     private ImageIcon firstUp = VueResources.getImageIcon("controlRewindUp");
+    private ImageIcon firstDown = VueResources.getImageIcon("controlRewindDown");
+    private ImageIcon firstDisabled = VueResources.getImageIcon("controlRewindDisabled");
     private ImageIcon backUp = VueResources.getImageIcon("controlPlayBackwardUp");
     private ImageIcon forwardUp = VueResources.getImageIcon("controlPlayForwardUp");
     private ImageIcon lastUp = VueResources.getImageIcon("controlForwardUp");
-    private ImageIcon firstDown = VueResources.getImageIcon("controlRewindDown");
     private ImageIcon backDown = VueResources.getImageIcon("controlPlayBackwardDown");
     private ImageIcon forwardDown = VueResources.getImageIcon("controlPlayForwardDown");
     private ImageIcon lastDown = VueResources.getImageIcon("controlForwardDown");
-    private ImageIcon firstDisabled = VueResources.getImageIcon("controlRewindDisabled");
     private ImageIcon backDisabled = VueResources.getImageIcon("controlPlayBackwardDisabled");
     private ImageIcon forwardDisabled = VueResources.getImageIcon("controlPlayForwardDisabled");
     private ImageIcon lastDisabled = VueResources.getImageIcon("controlForwardDisabled");
-    
+
     private ImageIcon lockUpIcon = VueResources.getImageIcon("lockUp");
-        
+    */
+    
     private JButton removeButton, createButton, lockButton;
     private JButton firstButton, backButton, forwardButton, lastButton;
     private JPanel southNotes = null;
@@ -99,11 +101,15 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         removeButton.addActionListener(this);
         removeButton.setEnabled(false);
 
+        lockButton = new VueButton("lock");
+        lockButton.addActionListener(this);
+        /*
         lockButton = new JButton(lockUpIcon);
         lockButton.setSelectedIcon(lockUpIcon);
         lockButton.setBackground(Color.white);
         lockButton.addActionListener(this);
         lockButton.setBorderPainted(false);
+        */
         
         JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         editPathwaysPanel.setBackground(bgColor);
@@ -319,33 +325,21 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         buttonPanel.setPreferredSize(new Dimension(80, 20));
         buttonPanel.setBackground(altbgColor);
         
-        firstButton = new JButton(this.firstUp);
-        firstButton.setSelectedIcon(this.firstDown);
-        firstButton.setDisabledIcon(this.firstDisabled);
+        firstButton = new VueButton("pathway.control.rewind");
+        //firstButton.setBackground(this.altbgColor);
         firstButton.addActionListener(this);
-        firstButton.setBackground(this.altbgColor);
-        firstButton.setBorderPainted(false);
         
-        backButton = new JButton(this.backUp);
-        backButton.setSelectedIcon(this.backDown);
-        backButton.setDisabledIcon(this.backDisabled);
+        backButton = new VueButton("pathway.control.backward");
+        //backButton.setBackground(this.altbgColor);
         backButton.addActionListener(this);
-        backButton.setBackground(this.altbgColor);
-        backButton.setBorderPainted(false);
         
-        forwardButton = new JButton(this.forwardUp);
-        forwardButton.setSelectedIcon(this.forwardDown);
-        forwardButton.setDisabledIcon(this.forwardDisabled);
+        forwardButton = new VueButton("pathway.control.forward");
+        //forwardButton.setBackground(this.altbgColor);
         forwardButton.addActionListener(this);
-        forwardButton.setBackground(this.altbgColor);
-        forwardButton.setBorderPainted(false);
         
-        lastButton = new JButton(this.lastUp);
-        lastButton.setSelectedIcon(this.lastDown);
-        lastButton.setDisabledIcon(this.lastDisabled);
+        lastButton = new VueButton("pathway.control.last");
+        //lastButton.setBackground(this.altbgColor);
         lastButton.addActionListener(this);
-        lastButton.setBackground(this.altbgColor);
-        lastButton.setBorderPainted(false);
        
         buttonPanel.add(firstButton);
         buttonPanel.add(backButton);
@@ -375,10 +369,11 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
-        int selected = pathwayTable.getSelectedRow();
         Object btn = e.getSource();
-
         LWPathway pathway = getSelectedPathway();
+
+        if (pathway == null && btn != createButton)
+            return;
         
         if (btn == removeElement) {
             

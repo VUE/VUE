@@ -224,20 +224,23 @@ public class UndoManager
 
     private void processEvent(LWCEvent e)
     {
-        if (e.hasOldValue()) {
-            recordUndoablePropertyChangeEvent(e);
-        } else {
-            if (DEBUG.UNDO) {
-                System.out.println(" (ignored: no old value)");
-                if (DEBUG.META) new Throwable().printStackTrace();
-            }
+        if (e.getWhat().startsWith("hier.")) {
+            recordHierarchyChangeEvent(e);
         }
     }
 
+    private void recordHierarchyChangeEvent(LWCEvent e)
+    {
+        String propName = e.getWhat();
+        Object parent = e.getSource();
+        boolean compressed = false; // already had one of these props: can ignore all subsequent
+        
+    }
+    
     private void recordUndoablePropertyChangeEvent(LWCEvent e)
     {
         String propName = e.getWhat();
-        LWComponent c = e.getComponent(); // can be list...
+        LWComponent c = e.getComponent(); // can be list... todo: warn us if list (should only be for hier events)
         boolean compressed = false; // already had one of these props: can ignore all subsequent
         
         Object oldValue = e.getOldValue();

@@ -27,10 +27,12 @@ public class VueButton extends JButton {
     public static String DISABLED = "disabled";
     public VueButton(String name) {
         super(VueResources.getImageIcon(name+"."+UP));
-        setSelectedIcon(VueResources.getImageIcon(name+"."+DOWN));
-        setDisabledIcon(VueResources.getImageIcon(name+"."+DISABLED));
+        Icon i;
+        if ((i = VueResources.getImageIcon(name+"."+DOWN)) != null)     setSelectedIcon(i);
+        if ((i = VueResources.getImageIcon(name+"."+DISABLED)) != null) setDisabledIcon(i);
         setBorderPainted(false);
-        setBackground(Color.white);
+        //setBackground(Color.white);
+        setOpaque(false);
         setPreferredSize(new Dimension(17, 17));
         
     }
