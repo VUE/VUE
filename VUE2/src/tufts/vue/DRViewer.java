@@ -82,11 +82,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         }
         keywords = new JTextField();
         setSearchPanel();
-        tabbedPane.addTab("Search",new PolygonIcon(Color.RED) , DRSearch);
+        tabbedPane.addTab("Search" , DRSearch);
         tabbedPane.add("Search Results",DRSearchResults);   
-        tabbedPane.setBackground(new Color(200,200,50));
-        tabbedPane.setBackgroundAt(1,new Color(100,100,50));
-        tabbedPane.setForeground(new Color(100,100,240));
+       // tabbedPane.setBackground(new Color(200,200,50));
+       // tabbedPane.setBackgroundAt(1,new Color(100,100,50));
+        //tabbedPane.setForeground(new Color(100,100,240));
         tabbedPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 /**
