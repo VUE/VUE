@@ -23,7 +23,7 @@ class MapDropTarget
     java.awt.Container mapContainer;
     java.awt.Point lastPoint;
 
-    private final boolean debug = false;
+    private final boolean debug = true;
     
     public MapDropTarget(java.awt.Container mapContainer, ConceptMap conceptMap)
     {
