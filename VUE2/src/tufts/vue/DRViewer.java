@@ -54,6 +54,8 @@ import java.util.ArrayList;
 public class DRViewer extends JPanel implements ActionListener,KeyListener {
     
     public static String  FEDORA_MESG = "Problem accessing FEDORA Server.Please redo search";
+    public static final JLabel triangleLabel = new JLabel(VueResources.getImageIcon("triangleDownIcon"));
+    
     public static int SEARCH_ATTEMPTS = 3;
     public int countError = 0;
     ConditionsTableModel m_model;
@@ -268,8 +270,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         try {
             JComboBox comboBox = new JComboBox(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr));
             conditionsTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
+            conditionsTable.getColumnModel().getColumn(0).setCellRenderer(new FieldCellRenderer());
             comboBox = new JComboBox(FedoraUtils.getAdvancedSearchOperators((tufts.oki.dr.fedora.DR)dr));
             conditionsTable.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(comboBox));
+            conditionsTable.getColumnModel().getColumn(1).setCellRenderer(new CriteriaCellRenderer());
         } catch(Exception ex) {
             System.out.println("Can't set the editors"+ex);
         }
@@ -677,6 +681,32 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         }
     }
     
+      public class FieldCellRenderer extends DefaultTableCellRenderer {
+        Vector keys = new Vector();;
+        JComboBox editor = null;
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            if(value.toString().equals("")) 
+                value = "title";
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+            panel.add(new JLabel(value.toString()));
+            panel.add(triangleLabel);
+            panel.setBackground(Color.WHITE);
+            return panel;
+        }
+    }
     
+    public class CriteriaCellRenderer extends DefaultTableCellRenderer {
+        Vector keys = new Vector();;
+        JComboBox editor = null;
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            if(value.toString().equals("")) 
+                value = "contains";
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+            panel.add(new JLabel(value.toString()));
+            panel.add(triangleLabel);
+            panel.setBackground(Color.WHITE);
+            return panel;
+        }
+    }
     
 }
