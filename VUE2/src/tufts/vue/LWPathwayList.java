@@ -74,8 +74,10 @@ public class LWPathwayList implements LWComponent.Listener
      * the VUE application master for the active pathway.
      */
     public void setActivePathway(LWPathway pathway) {
-        mActive = pathway;
-        getMap().notify(this, "pathway.list.active");
+        if (mActive != pathway) {
+            mActive = pathway;
+            getMap().notify(this, "pathway.list.active");
+        }
     }
 
     private Object get(int i) { return mElements.get(i); }

@@ -249,7 +249,7 @@ public class PathwayTable extends JTable
                 else
                     this.setBackground(bgColor);
                 this.setFont(currentFont);
-                this.setText(p.getDisplayLabel());
+                this.setText(" " + p.getDisplayLabel());
                 
             } else if (c != null) {
                 setFont(normalFont);
@@ -263,9 +263,9 @@ public class PathwayTable extends JTable
                 if (elementPath == activePath && elementPath.getCurrentIndex() == elementIndexInPath) {
                     // This is the current item on the current path
                     this.setForeground(currentNodeColor);
-                    this.setText("* "+this.getText());
+                    this.setText(" * "+this.getText());
                 } else
-                    this.setText("  "+this.getText());
+                    this.setText("   "+this.getText());
             }
             return this;
         }  
