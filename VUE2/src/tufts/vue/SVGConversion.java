@@ -66,6 +66,47 @@ public class SVGConversion extends AbstractAction {
         {
             System.err.println("Couldn't convert to SVG:" + e);
         }
+        
+        //there might be a better way to do this
+        replaceHeader(location);
+    }
+    
+    /**A class which replaces the encoding of the xml to be utf - 8*/
+    public void replaceHeader(String location)
+    {
+        try
+        {
+            File file = new File(location);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+                        
+            String line, content = null;
+            boolean firstLine = true; 
+            
+            //replaces the first line - xml declaration 
+            while ((line = reader.readLine()) != null)
+            {
+                if (firstLine)
+                {
+                    content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
+                    firstLine = false;
+                }
+                
+                else
+                    content += line;
+            }
+            
+            reader.close();
+            
+            FileWriter writer = new FileWriter(file);
+            writer.write(content);
+            writer.flush();
+            writer.close();
+        }
+        
+        catch (Exception e)
+        {
+            System.err.println("Something went wront when replacing the header:" + e);
+        }        
     }
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
