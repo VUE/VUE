@@ -150,8 +150,8 @@ public class PathwayTable extends JTable{
                             + " / " 
                             + comp.getLabel();
                         
-                        notesText = comp.getNotes();
-                        //notesText = path.getElementNotes(comp);
+                        //notesText = comp.getNotes();
+                        notesText = path.getElementNotes(comp);
                     }
                     
                     
@@ -305,10 +305,9 @@ public class PathwayTable extends JTable{
                 //use p for border, font?
                 
                 if(path == tab.getCurrentPathway())
-                {
-                  System.out.println(path.toString() + " suckaaa");
                   this.setBackground(Color.yellow);
-                } else
+             
+                else
                   this.setBackground(bgColor);
                 
                 this.setFont(currentFont);
@@ -352,6 +351,8 @@ public class PathwayTable extends JTable{
         {
             Object path = tab.getPathwayTableModel().getElement(row);
             this.setBorder(normalBorder);
+            this.setBackground(bgColor);
+            
             if(path instanceof LWPathway){
                 
                 if(((LWPathway)path).getOpen())
@@ -370,12 +371,24 @@ public class PathwayTable extends JTable{
                         this.setIcon(close);
                 }
                 else if(col == 4){
+                    if(path == tab.getCurrentPathway())
+                      this.setBackground(Color.yellow);
+             
+                    else
+                      this.setBackground(bgColor);
+                      
                     if(((Boolean)obj).booleanValue())
                         this.setIcon(notes);
                     else
                         this.setIcon(null);
                 }
                 else if(col == 5){
+                    if(path == tab.getCurrentPathway())
+                      this.setBackground(Color.yellow);
+             
+                    else
+                      this.setBackground(bgColor);
+                      
                     if(((Boolean)obj).booleanValue()){
                         this.setIcon(lock);
                     }

@@ -224,8 +224,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             
             else
             {
-              System.out.println("setting the icon of strings");
-              if (selectedIcon == null ) System.out.println("not working sucka");
+              if (selectedIcon == null ) System.err.println("OutlineViewTree's icon is null --- problem");
               setIcon(selectedIcon);
             }
             

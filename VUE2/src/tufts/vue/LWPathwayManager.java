@@ -158,6 +158,7 @@ public class LWPathwayManager {
         
         if (VUE.getActiveMap() != null)
             VUE.getActiveMap().notify(this, LWCEvent.Repaint);
+        
         VUE.getPathwayInspector().repaint();
     }
    

@@ -204,7 +204,20 @@
 		<field name="elementIDList" type="string" collection="collection">
 			<bind-xml name="id" />
 		</field>
+                <field name="elementPropertyList" type="tufts.vue.LWPathwayElementProperty" collection="collection">
+                        <bind-xml name="ElementPropertyList" />
+                </field>
 	</class>
+        
+        <class name="tufts.vue.LWPathwayElementProperty">
+                <field name="elementID" type="string">
+                        <bind-xml name="id" node="attribute"/>
+                </field>
+                <field name="elementNotes" type="string">
+                        <bind-xml name="pathwayNotes" node="element"/>
+                </field>
+        </class>
+
 		<class name="tufts.vue.MapResource">
 		
 		<field name="referenceCreated" type="long">
