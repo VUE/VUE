@@ -719,7 +719,7 @@ public class VUE
         
         " Save changes?",
         JOptionPane.YES_NO_CANCEL_OPTION,
-        JOptionPane.QUESTION_MESSAGE,
+        JOptionPane.PLAIN_MESSAGE,
         null,
         VueUtil.isMacAquaLookAndFeel() ? macAquaOrderButtons : defaultOrderButtons,
         "Save"
@@ -797,7 +797,7 @@ public class VUE
         JMenu viewMenu = menuBar.add(new JMenu("View"));
         JMenu formatMenu = menuBar.add(new JMenu("Format"));
         JMenu arrangeMenu = menuBar.add(new JMenu("Arrange"));
-        JMenu windowMenu = menuBar.add(new JMenu("Tools"));
+        JMenu windowMenu = menuBar.add(new JMenu("Window"));
         JMenu alignMenu = menuBar.add(new JMenu("Arrange/Align"));
         //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
         JMenu helpMenu = menuBar.add(new JMenu("Help"));

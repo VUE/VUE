@@ -695,7 +695,7 @@ public class LWNode extends LWContainer
         }
         if (tries > 0) {
             final float shrink = 1f;
-            System.out.println("Contents of " + shape + "  rought  fit  to " + content + " in " + tries + " tries");
+            if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + "  rought  fit  to " + content + " in " + tries + " tries");
             do {
                 shape.setFrame(0, 0, shape.getWidth() - shrink, shape.getHeight() - shrink);
                 //System.out.println("trying size " + shape + " for content " + content);
@@ -729,9 +729,9 @@ public class LWNode extends LWContainer
         if (tries >= MaxTries) {
             System.err.println("Contents of " + shape + " failed to contain " + content + " after " + tries + " tries.");
         } else if (tries > 0) {
-            if (DEBUG.Enabled) System.out.println("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
+            if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
         } else
-            if (DEBUG.Enabled) System.out.println("Contents of " + shape + " already contains " + content);
+            if (DEBUG.LAYOUT) System.out.println("Contents of " + shape + " already contains " + content);
         if (DEBUG.LAYOUT) System.out.println("*** " + this + " content minput at " + content + " in " + shape);
         return tries > 0;
     }
@@ -940,7 +940,6 @@ public class LWNode extends LWContainer
         min.width = text.width;
         min.height = EdgePadY + text.height + EdgePadY;
 
-
         //float height = getLabelBox().getHeight() + IconHeight/3f;
         //float height = getLabelBox().getHeight() + IconDescent;
         
@@ -950,7 +949,7 @@ public class LWNode extends LWContainer
         // down a bit to be centered with the label!
 
         if (!iconShowing()) {
-            min.width += LabelPadLeft * 2;
+            min.width += LabelPadLeft;
         } else {
             float dividerY = EdgePadY + text.height;
             //double stubX = LabelPositionXWhenIconShowing + (text.width * TextWidthFudgeFactor);
@@ -1040,7 +1039,8 @@ public class LWNode extends LWContainer
         } else {
             // horizontally center if no icons
             //int w = getLabelBox().getPreferredSize().width;
-            mLabelPos.x = (this.width - text.width) / 2 + 1;
+            mLabelPos.x = (min.width - text.width) / 2 + 1;
+            //mLabelPos.x = (this.width - text.width) / 2 + 1;
         }
 
         

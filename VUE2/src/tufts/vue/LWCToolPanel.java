@@ -291,7 +291,7 @@ public class LWCToolPanel extends JPanel
         Component[] children = mBox.getComponents();
         boolean success = false;
         for (int i = 0; i < children.length; i++) {
-            if (children[i] instanceof LWPropertyHandler) { // todo: tool property handler interface (PropertyButton?)
+            if (children[i] instanceof LWPropertyHandler) { // todo perf: cache a list of these
                 LWPropertyHandler ph = (LWPropertyHandler) children[i];
                 if (DEBUG.TOOL&&DEBUG.META) System.out.println("Checking  key [" + propertyKey + "] against " + ph);
                 if (ph.getPropertyKey() == propertyKey) {
@@ -303,12 +303,12 @@ public class LWCToolPanel extends JPanel
             }
         }
         if (!success) {
-            System.err.println(this + " failed to loadToolValue for " + propertyKey + " in " + src);
+            if (DEBUG.TOOL) System.out.println(this + " ignored loadToolValue for " + propertyKey + " in " + src);
         }
     }
     
     public void LWCChanged(LWCEvent e) {
-        // todo: would be good to elimate redundancy when setter was us, tho
+        // if we don't handle this property, loadToolValue will ignore this event
         loadToolValue(e.getWhat(), e.getComponent());
     }
  	
