@@ -242,13 +242,13 @@ public class FedoraUtils {
     
     private static void openURL_Mac(String url)
     throws java.io.IOException {
-        System.err.println("Opening Mac URL: [" + url + "]");
+        System.err.println("tufts.oki.dr.fedora.FedoraUtils.openURL_Mac[" + url + "]");
         if (url.indexOf(':') < 0 && !url.startsWith("/")) {
             // OSX won't default to use current directory
             // for a relative reference, so we prepend
             // the current directory manually.
             url = "file://" + System.getProperty("user.dir") + "/" + url;
-            System.err.println("Opening Mac URL: [" + url + "]");
+            System.err.println("tufts.oki.dr.fedora.FedoraUtils.openURL_Mac[" + url + "]");
         }
         if (getJavaVersion() >= 1.4f) {
             // FYI -- this will not compile using mac java 1.3
