@@ -105,5 +105,11 @@ public interface Resource {
      *
      */
     public JComponent getAssetViewer();
+    
+    /**
+     * Get preview of the object such as thummbnail, small sized image or web-page
+     *that can be displayed in the bowser.
+     */
+    public JComponent getPreview();
       
 }

@@ -31,6 +31,9 @@ import java.net.*;
 import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
@@ -335,4 +338,19 @@ public class CabinetResource extends MapResource{
         VueUtil.openURL(tempFile.getAbsolutePath());
         
     }
+    
+    public JComponent getPreview() {
+        JComponent panel = new JPanel();
+        javax.swing.filechooser.FileSystemView view = javax.swing.filechooser.FileSystemView.getFileSystemView();
+        try{
+                 panel = new JLabel(view.getSystemIcon(new File((new URL(getSpec()).getFile()))));
+
+        } catch(Exception ex) {
+            System.out.println(ex+getSpec());
+            super.getPreview();
+        }
+        panel.setPreferredSize(new Dimension(75,75));
+        return panel;
+    }
+    
 }

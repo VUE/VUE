@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -24,9 +24,15 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 import java.util.regex.*;
-import javax.swing.JComponent;
+import javax.swing.*;
+import javax.swing.text.*;
+import java.awt.*;
+import java.awt.geom.*;
+import java.awt.image.*;
 
+import com.sun.image.codec.jpeg.*;
 /**
+ *
  * The MapResource class is handles a reference
  * to either a local file or a URL.
  */
@@ -48,6 +54,7 @@ public class MapResource implements Resource {
     private String spec;
     private int type;
     private JComponent viewer; // what the holy fucking HELL is a goddamn JComponent doing in here?
+    private JComponent preview = null;
     
     /** the metadata property map **/
     protected   Map mProperties = new Properties();
@@ -94,16 +101,15 @@ public class MapResource implements Resource {
                 txt = "file:///" + spec;
         } else
             txt = this.url.toString();
-
+        
         //if (!spec.startsWith("file") && !spec.startsWith("http"))
         //    txt = "file:///" + spec;
-
+        
         return txt;
     }
     
     public java.net.URL toURL()
-        throws java.net.MalformedURLException
-    {
+    throws java.net.MalformedURLException {
         if (url == null)
             return new java.net.URL(toURLString());
         else
@@ -190,7 +196,7 @@ public class MapResource implements Resource {
         } catch (Exception e) {
             System.err.println(e);
         }
-
+        
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
     }
     
@@ -436,13 +442,48 @@ public class MapResource implements Resource {
     
     public JComponent getAssetViewer(){
         
-     return null;   
+        return null;
         
     }
     public void setAssetViewer(JComponent viewer){
         
-     this.viewer = viewer;   
+        this.viewer = viewer;
         
     }
     
+    public JComponent getPreview() {
+        
+        preview = new JPanel();
+        try {
+            URL location = new URL(spec);
+            if(location.openConnection().getContentType().indexOf("text")>=0) {
+                /**
+                JEditorPane editorPane = new JEditorPane(location);
+                Thread.sleep(5);
+                editorPane.setEditable(false);
+                JButton button = new JButton("Hello");
+                editorPane.setSize(1000, 1000);
+                Dimension size = editorPane.getSize();
+                BufferedImage image = new BufferedImage(size.width,size.height,BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2 = image.createGraphics();
+                g2.setBackground(Color.WHITE);
+                g2.setColor(Color.BLACK);
+                editorPane.printAll(g2);
+                preview = new JLabel(new ImageIcon(image.getScaledInstance(75,75,Image.SCALE_FAST)));
+                **/
+                javax.swing.filechooser.FileSystemView view = javax.swing.filechooser.FileSystemView.getFileSystemView();
+                preview =  new JLabel(view.getSystemIcon(File.createTempFile("temp","html")));
+            } else if(location.openConnection().getContentType().indexOf("image")>= 0) {
+                preview = new JLabel(new ImageIcon(location));
+            } else {
+                preview = new JPanel();
+            }
+            
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        preview.setPreferredSize(new Dimension(75,75));
+        return preview;
+        
+    }
 }

@@ -1,27 +1,27 @@
  /*
- * -----------------------------------------------------------------------------
- *
- * <p><b>License and Copyright: </b>The contents of this file are subject to the
- * Mozilla Public License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License
- * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
- *
- * <p>Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.</p>
- *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
- * Tufts University. All rights reserved.</p>
- *
- * -----------------------------------------------------------------------------
- */
+  * -----------------------------------------------------------------------------
+  *
+  * <p><b>License and Copyright: </b>The contents of this file are subject to the
+  * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+  * except in compliance with the License. You may obtain a copy of the License
+  * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
+  *
+  * <p>Software distributed under the License is distributed on an "AS IS" basis,
+  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+  * the specific language governing rights and limitations under the License.</p>
+  *
+  * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
+  * Tufts University. All rights reserved.</p>
+  *
+  * -----------------------------------------------------------------------------
+  */
 
 
 /*******
-**  ObjectInspectorPanel
-**
-**
-*********/
+ **  ObjectInspectorPanel
+ **
+ **
+ *********/
 
 
 package tufts.vue;
@@ -162,17 +162,17 @@ implements LWSelection.Listener {
     public void selectionChanged( LWSelection pSelection) {
         LWComponent lwc = null;
         if( pSelection.size() == 1 )  {
-           // debug( "Object Inspector single selection");
+            // debug( "Object Inspector single selection");
             lwc = pSelection.first();
-             setLWComponent(lwc);
+            setLWComponent(lwc);
         }
         else if (pSelection.size() == 0) {
             mTreePanel.updatePanel();
         }else {
             
-           // debug("ObjectInspector item selection size is: "+ pSelection.size() );
+            // debug("ObjectInspector item selection size is: "+ pSelection.size() );
         }
-       // setLWComponent(lwc);
+        // setLWComponent(lwc);
         
     }
     
@@ -193,16 +193,21 @@ implements LWSelection.Listener {
     public class InfoPanel extends JPanel {
         
         JScrollPane mInfoScrollPane = null;
+        JPanel labelPanel;
         JLabel nodeLabel = null;
-        
+        JComponent iconPanel = new JPanel();
+        LWComponent sComponent;
         public InfoPanel() {
             setLayout( new BorderLayout() );
-            setBorder( BorderFactory.createEmptyBorder(10,10,10,6)); 
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
             nodeLabel = new JLabel("Node");
             nodeLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
-            JPanel labelPanel = new JPanel(new BorderLayout());
+            nodeLabel.setHorizontalTextPosition(JLabel.LEFT);
+            nodeLabel.setVerticalAlignment(JLabel.TOP);
+            labelPanel = new JPanel(new BorderLayout());
             labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
-            labelPanel.add(nodeLabel);
+            labelPanel.add(nodeLabel,BorderLayout.WEST);
+            labelPanel.add(iconPanel,BorderLayout.EAST);
             setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
             add(labelPanel,BorderLayout.NORTH);
             add(new LWCInfoPanel(),BorderLayout.CENTER);
@@ -226,11 +231,30 @@ implements LWSelection.Listener {
          * @param LWMap the map
          **/
         public void updatePanel( LWComponent pComponent) {
-            if(pComponent instanceof LWLink) 
+            sComponent = pComponent;
+            if(pComponent instanceof LWLink)
                 nodeLabel.setText("Link");
             else
                 nodeLabel.setText("Node");
-            // update the display
+            Thread t = new Thread() {
+                public void run() {
+                    labelPanel.remove(iconPanel);
+                    if(sComponent.getResource()!= null && sComponent.getResource().getPreview() != null) {
+                        iconPanel = sComponent.getResource().getPreview();
+                        
+                    } else {
+                        iconPanel = new JPanel();
+                    }
+                    iconPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                    //((Graphics2D)iconPanel.getGraphics()).scale(0.2,0.2);
+                    iconPanel.setPreferredSize(new Dimension(75,75));
+                    labelPanel.add(iconPanel,BorderLayout.EAST);
+                    
+                    labelPanel.validate();
+                    // update the display
+                }
+            };
+            t.run();
         }
     }
     
@@ -296,22 +320,22 @@ implements LWSelection.Listener {
             
             //if the tree is not intiliazed, hidden, or doesn't contain the given node,
             //then it switches the model of the tree using the given node
-             
-             if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pComponent)) {
+            
+            if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pComponent)) {
                 //panelLabel.setText("Node: " + pNode.getLabel());
-               if(pComponent instanceof LWContainer)  
+                if(pComponent instanceof LWContainer)
                     tree.switchContainer((LWContainer)pComponent);
-               
-               else if (pComponent instanceof LWLink)
+                
+                else if (pComponent instanceof LWLink)
                     tree.switchContainer(null);
-             }
+            }
             
             //if the node is in the model and the panel is visible and intialized,
             //then it sets the selected path to the one which ends with the given node
-               //else   
-               //tree.setSelectionPath(pComponent);
-            }
-              
+            //else
+            //tree.setSelectionPath(pComponent);
+        }
+        
         public void updatePanel() {
             tree.switchContainer(null);
         }
@@ -367,7 +391,7 @@ implements LWSelection.Listener {
         }
     }
     
-
+    
 }
 
 

@@ -361,7 +361,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
         }
         
         public void performSearch() {
-           Thread t = new Thread() {
+            Thread t = new Thread() {
                 public void run() {
                     searchButton.setEnabled(false);
                     try {
@@ -422,6 +422,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
         
     }
     public class ResultsPane extends JPanel {
+        Hit hit;
         public ResultsPane() {
             setLayout(new BorderLayout());
         }
@@ -430,11 +431,22 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
             Vector resourceVector = new Vector();
             Iterator i  = results.iterator();
             while(i.hasNext()){
-                Hit hit = (Hit)i.next();
-                MapResource resource = new MapResource();
+                hit = (Hit)i.next();
+                MapResource resource = new MapResource(){
+                    private String thumb = hit.thumb;
+                    public JComponent getPreview() {
+                        try {
+                            return  new JLabel(new ImageIcon(new URL(thumb)));
+                        } catch(Exception ex) {
+                            System.out.println(ex);
+                            return super.getPreview();
+                        }
+                    }
+                    
+                };
                 Properties properties = new Properties();
                 String displayTitle = hit.title;
-                if(hit.artist.length() > 0) 
+                if(hit.artist.length() > 0)
                     displayTitle += " - " +hit.artist;
                 resource.setTitle(displayTitle);
                 resource.setSpec(hit.artifact);
