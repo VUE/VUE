@@ -90,9 +90,13 @@ public class CabinetResource extends MapResource{
      */
     public void displayContent() {
         try {
+            if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore) {
+                openRemoteByteStore();
+            } else {   
             VueUtil.openURL(getSpec());
+            }
         }
-        catch (java.io.IOException ex) {
+        catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -159,7 +163,7 @@ public class CabinetResource extends MapResource{
         if (this.entry == null)
             return (Properties)this.mProperties;
         else {
-            try {
+            try {if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
                 if (this.entry instanceof RemoteByteStore) {
                     RemoteByteStore bs = (RemoteByteStore) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
@@ -321,4 +325,14 @@ public class CabinetResource extends MapResource{
         this.entry = entry;   
     }
     
+    private void openRemoteByteStore() throws IOException,osid.filing.FilingException{
+        RemoteByteStore rbs = (RemoteByteStore)this.entry;
+        String fileName = rbs.getFullName();
+        File tempFile = new File( System.getProperty("java.io.tmpdir"),rbs.getDisplayName());
+        FileOutputStream fos = new FileOutputStream(tempFile);
+        fos.write(rbs.getBytes());
+        fos.close();
+        VueUtil.openURL(tempFile.getAbsolutePath());
+        
+    }
 }
