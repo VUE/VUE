@@ -722,8 +722,9 @@ public class VUE
     
     
     public static void displayMap(LWMap pMap) {
-        //System.out.println("VUE.displayMap " + map);
-        MapViewer mapViewer = null;
+        out("displayMap " + pMap);
+        MapViewer leftViewer = null;
+        MapViewer rightViewer = null;
         
         //System.out.println("VUE.displayMap Looking for " + map.getFile());
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
@@ -733,7 +734,7 @@ public class VUE
             File existingFile = map.getFile();
             //System.out.println("VUE.displayMap matching " + existingFile);
             if (existingFile != null && existingFile.equals(pMap.getFile())) {
-                //mapViewer = mv;
+                //leftViewer = mv;
                 System.err.println("VUE.displayMap found existing open map " + map);
                 //System.err.println("VUE.displayMap found existing open map " + map + " in " + mv);
                 // TODO: pop dialog asking to revert existing if there any changes.
@@ -741,19 +742,19 @@ public class VUE
             }
         }
         
-        if (mapViewer == null) {
-            mapViewer = new tufts.vue.MapViewer(pMap);
+        if (leftViewer == null) {
+            leftViewer = new MapViewer(pMap, "*LEFT");
+            rightViewer = new MapViewer(pMap, "right");
+            rightViewer.setFocusable(false); // so doesn't grab focus till we're ready
+
             out("displayMap: currently active viewer: " + getActiveViewer());
-            out("displayMap: created new left viewer: " + mapViewer);
+            out("displayMap: created new left viewer: " + leftViewer);
 
-            mMapTabsLeft.addViewer(mapViewer);
-            mMapTabsRight.addViewer(new tufts.vue.MapViewer(pMap, true));
-
-            //if (getActiveViewer() == null)
-                //setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
+            mMapTabsLeft.addViewer(leftViewer);
+            mMapTabsRight.addViewer(rightViewer);
         }
         
-        mMapTabsLeft.setSelectedComponent(mapViewer);
+        mMapTabsLeft.setSelectedComponent(leftViewer);
         
     }
     
@@ -856,16 +857,6 @@ public class VUE
         
         JMenu fontMenu = new JMenu("Font");
         
-        /*
-        // this list bigger than screen & menu isn't scrolling for us!
-        String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-        System.out.println(java.util.Arrays.asList(fonts));
-        for (int i = 0; i < fonts.length; i++) {
-            JMenuItem fm = new JMenuItem(fonts[i]);
-            fontMenu.add(fm);
-        }
-         */
-        
         //formatMenu.add(fontMenu);
         formatMenu.add(Actions.FontSmaller);
         formatMenu.add(Actions.FontBigger);
@@ -920,32 +911,23 @@ public class VUE
         JTextArea jtf = new JTextArea("Version # 1.0 \n Created By:  Academic Technology \n Tufts University, Medford, MA \n Copyright@Tufts University 2004\nAll Rights Reserved ",5, 1);
         aboutusPanel.setLayout(new BorderLayout());
        
-         aboutusPanel.add(jtf,BorderLayout.CENTER);
-         aboutusTool.addTool(aboutusPanel);
-       
+        aboutusPanel.add(jtf,BorderLayout.CENTER);
+        aboutusTool.addTool(aboutusPanel);
+        
         userGuide.addActionListener(new ActionListener() {
-               public void actionPerformed(ActionEvent e) 
-               {
-                   
-               try{
-                   VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
-               }catch (Exception EX) {}
-                   
-               }    
-                   
-                       });
+               public void actionPerformed(ActionEvent e) {
+                   try {
+                       VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
+                   } catch (Exception ex) { out(ex); }
+               }});
         
-          aboutUs.addActionListener(new ActionListener() {
-               public void actionPerformed(ActionEvent e) 
-               {
-     
-                aboutusTool.setLocation(200,200);
-                aboutusTool.setVisible(true);
+        aboutUs.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    aboutusTool.setLocation(200,200);
+                    aboutusTool.setVisible(true);
+                }});
         
-            }
-        });
-        
-        
+          /*
         JToolBar toolBar = new JToolBar();
         toolBar.add(Actions.NewMap);
         toolBar.add(openAction);
@@ -961,8 +943,10 @@ public class VUE
         toolBar.add(svgAction);
         // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         toolBar.add(new JButton(new PolygonIcon(Color.RED)));
+        frame.getContentPane().add(toolBar,BorderLayout.NORTH);
+          */
+
         frame.setJMenuBar(menuBar);
-        //frame.getContentPane().add(toolBar,BorderLayout.NORTH);
     }
 
     public static JMenu buildMenu(String name, Action[] actions) {

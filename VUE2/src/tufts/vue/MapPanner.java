@@ -145,10 +145,12 @@ public class MapPanner extends javax.swing.JPanel
         int y = e.getY();
 
         if (mapViewer.inScrollPane()) {
+            /*
             if (x < 0 || x > getWidth() || y < 0 || y > getHeight()) {
                 lastDrag = e.getPoint();
                 return;
             }
+            */
             int dx = x - lastDrag.x;
             int dy = y - lastDrag.y;
             double factor = mapViewer.getZoomFactor() / this.zoomFactor;
@@ -176,6 +178,10 @@ public class MapPanner extends javax.swing.JPanel
             double dragOffsetY = (y - dragStart.getY()) / factor;
             mapViewer.setMapOriginOffset(mapStart.getX() + dragOffsetX,
                                          mapStart.getY() + dragOffsetY);
+
+            if (mapViewer.inScrollPane())
+                mapViewer.adjustExtent();
+
             mapViewer.repaint();
             repaint();
         }
