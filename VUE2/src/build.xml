@@ -29,7 +29,7 @@
     and running.
   </description>
 
-<!-- $Revision: 1.9 $ / $Date: 2004-08-06 21:00:48 $ -->
+<!-- $Revision: 1.10 $ / $Date: 2004-08-06 21:26:48 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -295,7 +295,7 @@
   <target name="compile" depends="prepare"
     description="Compile Java sources using default javac">
     <mkdir dir="${build.class}"/>
-    <echo message="lib.home is ${lib.home}"/>
+    <!-- echo message="lib.home is ${lib.home}"/ -->
 
     <javac srcdir="${basedir}"
            destdir="${build.class}"
@@ -377,7 +377,7 @@
   <target name="jar-core"
           depends="compile"
           description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">
-    <echo message="top.dir is ${top.dir}"/>
+    <!-- echo message="top.dir is ${top.dir}"/ -->
     <echo message="build.class is ${build.class}"/>
     <jar zipfile="${basedir}/VUE-core.jar" update="true" compress="false" index="true">
       <!--fileset dir="${src}" includes="**/*.xml"/-->
@@ -394,7 +394,7 @@
           depends="jar-core"
           description="Create VUE.jar - a single, distributable, runnable jar file containing VUE and all supporting libraries.">
     <tstamp/>
-    <jar destfile="VUE.jar" compress="true" index="true" update="false">
+    <jar destfile="${build.home}/VUE.jar" compress="true" index="true" update="false">
       <manifest>
         <attribute name="Description" value="Tufts VUE 1.0 (Visual Understanding Environment) [beta]"/>
         <attribute name="Built-By" value="${user.name}"/>
@@ -457,19 +457,19 @@
       </java>
     </target>
 
-    <property name="mac.name"    value="VUE.app"/>
-    <property name="mac.contents" value="${mac.name}/Contents"/>
-    <property name="mac.bundle_signature" value="TVUE"/> <!-- must match Info.plist CFBundleSignature -->
+    <property name="mac.appdir"    value="${build.home}/VUE.app"/>
+    <property name="mac.contents" value="${mac.appdir}/Contents"/>
+    <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
 
     <target name="mac-dist" depends="" description="Creates a Mac OS X distributable Applcation directory (build VUE.jar first).">
       <mkdir dir="${mac.contents}/MacOS"/>
       <mkdir dir="${mac.contents}/Resources/Java"/>
       <echo file="${mac.contents}/PkgInfo" message="APPL${mac.bundle_signature}"/>
-      <copy file="MacOS/JavaApplicationStub" todir="${mac.contents}/MacOS"/>
+      <copy file="MacOS/JavaApplicationStub" todir="${mac.contents}/MacOS" verbose="true"/>
       <chmod file="${mac.contents}/MacOS/JavaApplicationStub" perm="755" verbose="true"/>
-      <copy file="MacOS/Info.plist" todir="${mac.contents}"/>
-      <copy file="MacOS/VUE.icns" todir="${mac.contents}/Resources"/>
-      <copy file="VUE.jar" todir="${mac.contents}"/>
+      <copy file="MacOS/Info.plist" todir="${mac.contents}" verbose="true"/>
+      <copy file="MacOS/VUE.icns" todir="${mac.contents}/Resources" verbose="true"/>
+      <copy file="${build.home}/VUE.jar" todir="${mac.contents}" verbose="true"/>
     </target>
 
     <!-- ==================== Debugging tasks  ================================ -->
