@@ -55,10 +55,13 @@ public class ExitAction extends AbstractAction {
         // exception, the user will never be able to exit the
         // application!
         
+       
         if (tufts.vue.VUE.favoritesWindow != null) {
             //Saving favorites
             
             tufts.vue.VueDandDTree ft =  tufts.vue.VUE.favoritesWindow.getFavoritesTree();
+            ft.setRootVisible(true);
+            System.out.println("This is tree" + (ft.getModel()).getRoot());
             tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
             File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
             FavoritesWindow.marshallMap(favf,sfavtree);
