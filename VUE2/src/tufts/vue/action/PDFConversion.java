@@ -32,7 +32,7 @@ public class PDFConversion extends AbstractAction {
     
     private static  String pdfFileName = "";
     private static  String fileName = "default.xml";
-    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
+    final String XML_MAPPING = VueResources.getString("mapping.lw");
     private Marshaller marshaller = null;
     
     /** Creates a new instance of PDFConversion */

@@ -43,7 +43,7 @@ public class HTMLConversion extends AbstractAction
     private static  String htmlFileName = "default.html";
     private static  String xmlFileName = "default.xml";
     private static  String xslFileName = "viewHTML.xsl";
-    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
+   // final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private Marshaller marshaller = null;
     
     public HTMLConversion() {

@@ -45,7 +45,7 @@ import tufts.vue.*;
 
 public class XMLView extends AbstractAction{ 
     
-    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
+    //final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private static  String fileName = "default.xml";
     private Marshaller marshaller = null;
     private XMLTextPane xmlArea = null;
