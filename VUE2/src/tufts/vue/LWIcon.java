@@ -349,6 +349,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             {
                 hadTitle = hasTitle;
                 ttLastString = mLWC.getResource().getSpec();
+                // todo perf: use StringBuffer
                 ttResource = new AALabel("<html>&nbsp;<b>"
                                          + ttLastString + "</b>"
                                          + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
@@ -603,6 +604,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             while (i.hasNext()) {
                 //tufts.vue.Pathway p = (tufts.vue.Pathway) i.next();
                 LWPathway p = (LWPathway) i.next();
+                // todo perf: use StringBuffer
                 if (n++ > 0)
                     html += "<br>";
                 html += "&nbsp;In path: <b>" + p.getLabel() + "</b>&nbsp;";
@@ -853,6 +855,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             if ((mLWC instanceof LWContainer) == false)
                 return new JLabel("no children: no hierarchy");
             
+            // todo perf: use StringBuffer
             String html = "<html>" + getChildHtml(mLWC, 1);
             if (html.endsWith("<br>"))
                 html = html.substring(0, html.length()-4);
@@ -871,6 +874,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private String getChildHtml(LWComponent c, int indent)
         {
+            // todo perf: use StringBuffer
             String label = null;
             if (indent == 1)
                 label = "&nbsp;<b>" + c.getLabel() + "</b>";

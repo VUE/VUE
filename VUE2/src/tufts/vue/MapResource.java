@@ -399,7 +399,7 @@ public class MapResource implements Resource {
             entry.setEntryValue(mProperties.get(object));
             propertyList.add(entry);
         }
-        System.out.println("getPropertyList : Property = "+propertyList.size());       
+        System.out.println(this + " getPropertyList: " + propertyList);
         return propertyList;
     }
 

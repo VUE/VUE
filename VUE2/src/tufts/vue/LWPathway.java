@@ -39,7 +39,7 @@ public class LWPathway extends LWContainer
     private ArrayList elementPropertyList = new ArrayList();
 
     private transient boolean open = true;
-    private transient boolean mDoingXMLRestore = false;
+    private transient boolean mXMLRestoreUnderway = false;
 
     private static Color[] ColorTable = {
         new Color(153, 51, 51),
@@ -53,7 +53,7 @@ public class LWPathway extends LWContainer
     
     /**default constructor used for marshalling*/
     public LWPathway() {
-        mDoingXMLRestore = true;
+        mXMLRestoreUnderway = true;
     }
 
     LWPathway(String label) {
@@ -259,18 +259,6 @@ public class LWPathway extends LWContainer
         remove(index, false);
     }
 
-    private void disposeElementProperties(LWComponent c)
-    {
-        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
-            LWPathwayElementProperty prop = (LWPathwayElementProperty) i.next();
-            if (prop.getElementID().equals(c.getID())) {
-                if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " dumping property " + prop);
-                i.remove();
-                break;
-            }
-        }
-    }
-    
     /**
      * Overrides LWContainer removeChildren.  Pathways aren't true
      * parents, so nobody should be calling this LWContainer method on us.
@@ -540,10 +528,40 @@ public class LWPathway extends LWContainer
         return super.children;
     }
 
+    private LWComponent findElementByID(String ID)    
+    {
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getID().equals(ID))
+                return c;
+        }
+        new Throwable(this + " couldn't find ID [" + ID + "]").printStackTrace();
+        return null;
+    }
+    
+    void completeXMLRestore(LWMap map)
+    {
+        System.out.println(this + " completeXMLRestore, map=" + map);
+        setParent(map);
+        for (Iterator i = this.idList.iterator(); i.hasNext();) {
+            String id = (String) i.next();
+            LWComponent c = getMap().findChildByID(id);
+            if (DEBUG.PATHWAY) System.out.println("\tpath adding " + c);
+            add(c);
+        }
+        for (Iterator i = this.elementPropertyList.iterator(); i.hasNext();) {
+            LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
+            pep.setComponent(findElementByID(pep.getElementID()));
+        }
+        mXMLRestoreUnderway = false;
+    }
+
+    
     private List idList = new ArrayList();
     /** for persistance: XML save/restore only */
     public List getElementIDList() {
-        if (mDoingXMLRestore) {
+        if (mXMLRestoreUnderway) {
             return idList;
         } else {
             idList.clear();
@@ -561,7 +579,7 @@ public class LWPathway extends LWContainer
     /** for persistance: XML save/restore only */
     public java.util.List getElementPropertyList()
     {
-        if (!mDoingXMLRestore) {
+        if (!mXMLRestoreUnderway) {
             // cull any entries for components that have been deleted
             // or are no longer in the pathway.
             for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
@@ -574,60 +592,23 @@ public class LWPathway extends LWContainer
         return elementPropertyList;
     }
     
-    
-    void completeXMLRestore(LWMap map)
-    {
-        System.out.println(this + " completeXMLRestore, map=" + map);
-        setParent(map);
-        for (Iterator i = this.idList.iterator(); i.hasNext();) {
-            String id = (String) i.next();
-            LWComponent c = getMap().findChildByID(id);
-            if (DEBUG.PATHWAY) System.out.println("\tpath adding " + c);
-            add(c);
-        }
-        for (Iterator i = this.elementPropertyList.iterator(); i.hasNext();) {
-            LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
-            pep.setComponent(findElementByID(pep.getElementID()));
-        }
-        mDoingXMLRestore = false;
-    }
-
-    private LWComponent findElementByID(String ID)
-    {
-        java.util.Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getID().equals(ID))
-                return c;
-        }
-        new Throwable(this + " couldn't find ID [" + ID + "]").printStackTrace();
-        return null;
-    }
-    
-    
-    public String getElementNotes(LWComponent c)
-    {
+    private LWPathwayElementProperty getPep(LWComponent c) {
         if (c == null) return null;
-        
-        //String notes = null;
         for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
             LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
             if (pep.getComponent() == c)
-                return pep.getElementNotes();
+                return pep;
         }
-        //System.out.println("returning notes for " + c + " [" + notes + "]");
         return null;
+        //return new LWPathwayElementProperty(c);
     }
     
-    public boolean hasElementProperties(LWComponent c)
-    {
-        if (c == null) return false;
-        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
-            LWPathwayElementProperty prop = (LWPathwayElementProperty) i.next();
-            if (prop.getElementID().equals(c.getID()))
-                return true;
-        }
-        return false;
+    public String getElementNotes(LWComponent c) {
+        return getPep(c).getElementNotes();
+    }
+    
+    public boolean hasElementProperties(LWComponent c) {
+        return getPep(c) != null;
     }
 
     public void setElementNotes(LWComponent c, String notes)
@@ -637,23 +618,26 @@ public class LWPathway extends LWContainer
         if (notes == null)
             notes = "";
         
-        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
-            LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
-            if (element.getElementID().equals(c.getID())) {
-                Object oldNotes = element.getElementNotes();
-                Object[] undoInfo = {c, oldNotes};
-                element.setElementNotes(notes);
-                notify("pathway.element.notes",
-                       new Undoable(undoInfo) {
-                           void undo(Object[] a) {
-                               setElementNotes((LWComponent) a[0], (String) a[1]);
-                           }
-                       });
-                break;
-            }
-        }
+        LWPathwayElementProperty pep = getPep(c);
+        Object[] undoInfo = { c, pep.getElementNotes() };
+        pep.setElementNotes(notes);
+        notify("pathway.element.notes",
+               new Undoable(undoInfo) {
+                   void undo(Object[] a) {
+                       setElementNotes((LWComponent) a[0], (String) a[1]);
+                   }
+               });
     }
 
+    private void disposeElementProperties(LWComponent c)
+    {
+        LWPathwayElementProperty pep = getPep(c);
+        if (pep != null) {
+            elementPropertyList.remove(pep);
+            if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " dumped properties " + pep);
+        }
+    }
+    
     
     private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
     private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
