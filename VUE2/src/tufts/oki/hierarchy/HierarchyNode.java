@@ -189,11 +189,8 @@ public class HierarchyNode implements osid.hierarchy.Node
     /**A method that changes the label associated with the LWComponent*/
     public void changeLWComponentLabel(String label) throws osid.hierarchy.HierarchyException
     {
-        //component.setLabel(label);
-        // This is not allowed: use component.getDisplayLabel(), or create your own,
-        // but don't override the user's setting for the component label!  Empty (null)
-        // labels are allowed.
-        System.err.println(getClass() + "changeLWComponentLabel: FIX THIS: INAPPROPRIATE OVERRIDE OF NODE LABEL " + component);
+        System.err.println(getClass() + ": changeLWComponentLabel: warning: ONLY call this is user has edited the label!");
+        component.setLabel(label);
         updateDisplayName(label);
     }
     
