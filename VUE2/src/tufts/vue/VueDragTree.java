@@ -39,7 +39,8 @@ public class VueDragTree extends JTree implements DragGestureListener,
     
     private static final String searchURL = "http://googlesearch.tufts.edu/search?submit.y=5&site=tufts01&submit.x=11&output=xml_no_dtd&client=tufts01&q=";
     
-    private static final String  XML_MAPPING = "google.xml";
+    private static final String  XML_MAPPING = "tufts/google/google.xml";
+    private static final String  NXML_MAPPING = "google.xml";
    
     
     private static int NResults = 10;
@@ -313,7 +314,7 @@ public DragTreeCellRenderer(VueDragTree pTree) {
             unmarshaller = new Unmarshaller();
             Mapping mapping = new Mapping();
             try {
-                mapping.loadMapping(XML_MAPPING);
+                mapping.loadMapping(NXML_MAPPING);
                 unmarshaller.setMapping(mapping);
             } catch (Exception e) {
                 System.err.println("getUnmarshaller: " + e);
