@@ -140,10 +140,27 @@ class MapDropTarget
     {
         Point dropLocation = null;
         int dropAction = DnDConstants.ACTION_MOVE; // default action
-
+        boolean modifierKeyWasDown = false;
+        
         if (e != null) {
             dropLocation = e.getLocation();
             dropAction = e.getDropAction();
+
+            // ACTION_MOVE action is default action, so if not that,
+            // assume a modifier key was being held down to change the
+            // from the default OS drag action.  We have no way of
+            // knowing anything about actual keyboard state that
+            // initiated the drag.
+
+            modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
+
+            // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
+            // changes to dropAction that happen when the drag was
+            // initiated (e.g., ctrl was down) -- this is a BUG, however,
+            // if you press ctrl down AFTER the drop starts, sourceAction
+            // & dropAction will be set to some rediculous number -- so at
+            // least we can detect that by making modifer down the default
+            // if drop action anything other than the default.
         }
 
         LWComponent hitComponent = null;
@@ -153,17 +170,6 @@ class MapDropTarget
             System.out.println("\thitComponent=" + hitComponent);
         }
         
-        boolean modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
-        // MOVE action is default action.
-        
-        // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
-        // changes to dropAction that happen when the drag was
-        // initiated (e.g., ctrl was down) -- this is a BUG, however,
-        // if you press ctrl down AFTER the drop starts, sourceAction
-        // & dropAction will be set to some rediculous number -- so at
-        // least we can detect that by making modifer down the default
-        // if drop action anything other than copy.
-
         boolean createAsChildren = !modifierKeyWasDown && hitComponent instanceof LWNode;
 
         // if no drop location (e.g., we did a "Paste") then assume where
@@ -323,7 +329,7 @@ class MapDropTarget
             int len = is.read(buf);
             is.close();
             String str = new String(buf, 0, len);
-            System.out.println("*** size="+str.length() +"["+str+"]");
+            if (debug) System.out.println("*** size="+str.length() +"["+str+"]");
             Matcher m = URL_Line.matcher(str);
             if (m.lookingAt()) {
                 url = m.group(1);
