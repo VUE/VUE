@@ -75,10 +75,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
          favoritesPane.add("Browse", browsePane); 
          
         
-         
+          
           
           createPopupMenu();
-        
+        favoritesPane.setSelectedIndex(2);
+          
          add(favoritesPane,BorderLayout.CENTER);
          
         
@@ -198,7 +199,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                        favoritesTree.expandRow(dn.getLevel());
                  }
               
-           
+                                 this.setFavoritesTree(favoritesTree);
            
                                                  }
                 else
@@ -208,6 +209,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     FavoritesNode newNode= new FavoritesNode("New Bookmark Folder");
                      model.insertNodeInto(newNode, dn, 0);  
                      favoritesTree.expandRow(dn.getLevel());
+                      this.setFavoritesTree(favoritesTree);
             
              
                          }
@@ -229,6 +231,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
            
                              DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
                             model.removeNodeFromParent(dn);
+                          
                                             }
                 }
               //-----------------------------Save/Restore Tree
@@ -422,67 +425,109 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             public void actionPerformed(ActionEvent e){
                 
             int index = 0;
-              
+           
                 JScrollPane jsp = new JScrollPane();
                 
                 String searchString = queryBox.getText();
                         
-                
                if (!searchString.equals("")){
-                   
-                    VueDragTree serResultTree = new VueDragTree("some","Search Results");
-                    //serResultTree.setShowsRootHandles(true);
-                   
-                    DefaultTreeModel serTreeModel = (DefaultTreeModel)serResultTree.getModel();
-                    DefaultMutableTreeNode serTreeRoot = (DefaultMutableTreeNode)serTreeModel.getRoot();
-                    TreeModel favTreeModel = favoritesTree.getModel();
-                    DefaultMutableTreeNode favRoot = (DefaultMutableTreeNode)favTreeModel.getRoot();
-                    
-                    
-                   
-                    Enumeration enum = favRoot.depthFirstEnumeration();
-                    Vector validResultVector = new Vector();
-                      
-                    while (enum.hasMoreElements()){
-                        
-                        DefaultMutableTreeNode o = (DefaultMutableTreeNode)enum.nextElement();
-                      
-                        if (searchString.compareToIgnoreCase(o.toString()) == 0){
-                          
-                         
-                  // DefaultMutableTreeNode foundNode1 = (DefaultMutableTreeNode)o;
-                    System.out.println("outhere" +  o + "Child"+ o.getPath());
-                     System.out.println("outhere fav" +  o + "Child"+ favRoot.getChildCount());
-                             serTreeModel.insertNodeInto(o, serTreeRoot,0);
-                          
-                        }
-                        else {
-                         
-                            int startIndex = 0; 
-                            int lenSearchString = searchString.length();
-                            String thisString = o.toString();
-                            int lenthisString = thisString.length();
-                            int endIndex = startIndex + lenSearchString;
-                            boolean found = false;
                             
-                            while ((endIndex < lenthisString) && !found){
+                         boolean foundit = false;
+                        VueDragTree serResultTree = new VueDragTree("Search", "Search Results");
+                        DefaultTreeModel serTreeModel = (DefaultTreeModel)serResultTree.getModel();
+                        DefaultMutableTreeNode serRoot = (DefaultMutableTreeNode)serTreeModel.getRoot();
+                        
+                        TreeModel favTreeModel = favoritesTree.getModel();
+                        FavoritesNode favRoot = (FavoritesNode)favTreeModel.getRoot();
+                        int childCount = favRoot.getChildCount();
+                        
+                        
+                        if (childCount > 0){
+                         
+                        for (int outi = 0; outi < childCount ; ++outi){
+                        
+                       if (favRoot.getChildAt(outi) instanceof FileNode){
+                         FileNode childNode = (FileNode)favRoot.getChildAt(outi);
+                         childNode.explore();
+                       }
+                       
+                        
+                           DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)favRoot.getChildAt(outi);
+                       
+                              foundit = compareNode(searchString,childNode,serRoot,false);
+           
+                               }
+                
+                        } 
+                        
+                        
+                     if(!foundit){
+                
+                       DefaultMutableTreeNode notfound = new DefaultMutableTreeNode("Nothing found");
+                       serTreeModel.insertNodeInto(notfound, serRoot,0);
+                                         }
+                        
+                        
+                              
+                      
+                        serResultTree.expandRow(0);
+                        JScrollPane fPane = new JScrollPane(serResultTree);
+                        FavSearchPanel.this.sp.setLayout(new BorderLayout());
+                        FavSearchPanel.this.sp.add(fPane,BorderLayout.CENTER,index);
+                        index = index + 1;
+                        
+                        FavSearchPanel.this.fp.setSelectedIndex(1);
+                     
+                        
+                }
+               }
+
+            });
+}
+     
+public boolean compareNode(String searchString, DefaultMutableTreeNode Node, DefaultMutableTreeNode serRoot, boolean foundsomething)
+{
+ 
+  
+    
+  
                              
-                           String   testString  = thisString.substring(startIndex,endIndex);
-                           
-            //  System.out.println(testString+"found"+found+"startInd --"+ startIndex + "LenSearchString"+ lenSearchString +"lenthisstring"+
-              //               lenthisString+"end Index"+endIndex);
-              
-                              if (searchString.compareToIgnoreCase(testString)== 0){
-                                  
+        if (searchString.compareToIgnoreCase(Node.toString()) == 0){
+            System.out.println("Do I come to search bef?"+"top Node" + serRoot+"this NOde" +Node);
+            
+               addSearchNode(serRoot,Node);     
+      System.out.println("Do I come to search aft?"+"top Node" + serRoot+"this NOde" +Node);
+           foundsomething = true;
                                    
-                                 // DefaultMutableTreeNode foundNode1 = (DefaultMutableTreeNode)o;
-                                    System.out.println("outhere" +  o + "Child"+ o.getPath());
-                                     System.out.println("outhere fav" +  o + "Child"+ favRoot.getChildCount());
-                                   serTreeModel.insertNodeInto(o, serTreeRoot,0);
-                                       
-                                    
+                                
+                                           }
+                   
+           else {
+                         
+                       int startIndex = 0; 
+                       int lenSearchString = searchString.length();
+                       String thisString = Node.toString();
+                       int lenthisString = thisString.length();
+                       int endIndex = startIndex + lenSearchString;
+                       boolean found = false;
+                            
+                     while ((endIndex < lenthisString) && !found){
+                            String   testString  = thisString.substring(startIndex,endIndex);
+                           
+                              if (searchString.compareToIgnoreCase(testString)== 0){
+                                  System.out.println("Do I come to search bef add?"+"top Node" + serRoot+"this NOde" +Node);
+            
+                            
+                                 
+                                   addSearchNode(serRoot,Node);  
+                                   
+                                   System.out.println("Do I come to search bef adft?"+"top Node" + serRoot+"this NOde" +Node);
+            
+                                  
                                         found = true;
-                                       
+                               
+                                        foundsomething = true;
+                                   
                                      }
                                  
                                      startIndex = startIndex + 1;
@@ -494,44 +539,65 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                                 
                                 
                             }
-                            
-                            
-                            
-                        }
-                        
-                        
-                 
-                         serResultTree.expandRow(0);
-                     
-                        JScrollPane fPane = new JScrollPane(serResultTree);
-                   
-               
-                   
-                      FavSearchPanel.this.sp.setLayout(new BorderLayout());
-                      FavSearchPanel.this.sp.add(fPane,BorderLayout.CENTER,index);
-                      index = index++;
-                 
-                   FavSearchPanel.this.fp.setSelectedIndex(1);
-                   
-               }
-               }
+      
                   
-                   
-               
-                
-                 
-            
-            });
-                   
-     
-        
-     }
-     
+                if (!(Node.isLeaf())){
+                    
+                                   int childCount = Node.getChildCount();
+                                    if (childCount  > 0){
+                                                             
+                         
+                                               for (int i = 0; i < childCount; ++i){
+                                                         
+                                               DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)Node.getChildAt(i);
+                         
+                                                 if(compareNode(searchString,childNode,serRoot,foundsomething))
+                                                            {
+                                                                         foundsomething = true;   
+                              
+                                                                                  }
+                             
+                             
+                                                                    }
+                          
+                                                                }    
+                                                       }
+                            
+   
+             return foundsomething;
+                          
+    
+ 
  }
+ 
+public void addSearchNode(DefaultMutableTreeNode topNode, DefaultMutableTreeNode Node)
+{
+    
+    
+    DefaultMutableTreeNode newNode = (DefaultMutableTreeNode)Node.clone();
+    
+             if (!(Node.isLeaf())){
+                 
+                 
+          for(int inni = 0; inni < Node.getChildCount(); ++ inni){
+                                  
+          DefaultMutableTreeNode child = (DefaultMutableTreeNode)Node.getChildAt(inni);
+          addSearchNode(newNode,child);
+        
+        
+               }
+             }
+      
+        topNode.add(newNode); 
+            
+    
+        
+
+}
+
      
      
      
-     
-     
+}
 }
 
