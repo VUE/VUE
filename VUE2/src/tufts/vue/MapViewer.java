@@ -900,83 +900,60 @@ public class MapViewer extends javax.swing.JPanel
         }
     }
 
-    //private static String mTipMessage;
+    private static LWComponent mTipLWC;
     private static JComponent mTipComponent;
-    private static Point mTipPoint;
     private static Popup mTipWindow;
-    /*
-    void setRolloverMessage(Point point, String message)
+    void setTip(LWComponent lwc, JComponent jc, Rectangle2D tipRegion)
     {
-        if (message != mTipMessage && message != null) {
-
-            if (mTipWindow != null)
-                mTipWindow.hide();
-            
-            //System.out.println("Creating tip window " + message);
-        
-            //JToolTip tip = new JToolTip();
-            //tip.setComponent(this);
-            JToolTip ttip = createToolTip();
-            ttip.setTipText(message);
-        
-            PopupFactory popupFactory = PopupFactory.getSharedInstance();
-            
-            //if (true) popupFactory.setPopupType(PopupFactory.LIGHT_WEIGHT_POPUP);
-            //else popupFactory.setPopupType(PopupFactory.MEDIUM_WEIGHT_POPUP);
-
-            JLabel l = new JLabel("<html>&nbsp;" + message + "<font size=-2 color=#bbbbbb>x<br>&nbsp;Double-click to open in new window");
-            l.setOpaque(true);
-            l.setBackground(COLOR_TOOLTIP);
-            // fyi, can't do transparency on a window -- what's underneath is GC garbage
-            l.setFont(FONT_MEDIUM);
-            l.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
-            //l.setIcon(new LineIcon(10,10, Color.red, null));
-            Dimension size = l.getPreferredSize();
-            Component tip = l;
-
-            SwingUtilities.convertPointToScreen(point, this);
-            int x = point.x - (size.width + 6);
-            int y = point.y - (size.height / 2);
-
-	    mTipWindow = popupFactory.getPopup(this, tip, x, y);
-	    mTipWindow.show();
-        }
-
-        mTipMessage = message;
-        mTipPoint = point;
-    }
-    */
-    void setTipComponent(Point point, JComponent c)
-    {
-        if (c != mTipComponent && c != null) {
+        if (jc != mTipComponent && jc != null) {
 
             if (mTipWindow != null)
                 mTipWindow.hide();
             
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
 
-            c.setOpaque(true);
-            c.setBackground(COLOR_TOOLTIP);
-            c.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
+            jc.setOpaque(true);
+            jc.setBackground(COLOR_TOOLTIP);
+            jc.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
             //c.setIcon(new LineIcon(10,10, Color.red, null));//test -- icons w/tex work
             
-            Dimension size = c.getPreferredSize();
 
             //System.out.println("    size="+c.getSize());
             //System.out.println("prefsize="+c.getPreferredSize());
             //System.out.println(" minsize="+c.getMinimumSize());
 
-            SwingUtilities.convertPointToScreen(point, this);
-            int x = point.x - size.width;
-            int y = point.y;
-            //int y = point.y - (size.height / 2);
+            // Default placement starts from left of component,
+            // at same height as the rollover region that triggered us
+            // in the component.
+            Point placementLeft = new Point(mapToScreenX(lwc.getX()),
+                                            mapToScreenY(tipRegion.getY() + lwc.getY()));
+            Point placementTop = new Point(placementLeft.x,
+                                           mapToScreenY(lwc.getY()));
 
-	    mTipWindow = popupFactory.getPopup(this, c, x, y);
+            SwingUtilities.convertPointToScreen(placementLeft, this);
+                                        
+            Dimension tipSize = jc.getPreferredSize();
+            int lwcWidth = mapToScreenDim(lwc.getWidth());
+            int glassX = placementLeft.x - tipSize.width;
+            int glassY = placementLeft.y;
+
+            if (glassX < 3) {
+                SwingUtilities.convertPointToScreen(placementTop, this);
+                glassX = placementTop.x;
+                glassY = placementTop.y - tipSize.height;
+            }
+            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();            
+            if (glassY + tipSize.height >= screen.height)
+                glassY = screen.height - (tipSize.height + 1);
+            if (glassY < 0)
+                glassY = 0;
+
+	    mTipWindow = popupFactory.getPopup(this, jc, glassX, glassY);
 	    mTipWindow.show();
         }
 
-        mTipComponent = c;
-        mTipPoint = point;
+        mTipComponent = jc;
+        //mTipPoint = point;
         
     }
     

@@ -559,11 +559,11 @@ public class VUE
         MapViewer mapViewer = null;
         // todo: figure out if we're already displaying this map
 
-        System.out.println("VUE.displayMap Looking for " + map.getFile());
+        //System.out.println("VUE.displayMap Looking for " + map.getFile());
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             MapViewer mv = (MapViewer) mMapTabsLeft.getComponentAt(i);
             File existingFile = mv.getMap().getFile();
-            System.out.println("VUE.displayMap matching " + existingFile);
+            //System.out.println("VUE.displayMap matching " + existingFile);
             if (existingFile != null && existingFile.equals(map.getFile())) {
                 mapViewer = mv;
                 System.err.println("VUE.displayMap found existing open map " + map + " in " + mv);

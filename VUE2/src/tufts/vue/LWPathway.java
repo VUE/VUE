@@ -53,7 +53,8 @@ public class LWPathway //extends tufts.vue.LWComponent
      
     /** adds an element to the end of the pathway */
     public void addElement(LWComponent element) {
-       elementList.add(element); 
+       elementList.add(element);
+       element.addPathwayRef(this);
        if (currentIndex == -1) currentIndex = length() - 1;
        //maybe need to repaint the view?
     }
@@ -200,6 +201,7 @@ public class LWPathway //extends tufts.vue.LWComponent
             LWComponent comp = (LWComponent)elementList.get(i);
             if(comp.equals(element)){
                 this.removeElement(i);
+                element.removePathwayRef(this);
                 //break;
             }
        }

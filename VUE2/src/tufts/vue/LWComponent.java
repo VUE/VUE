@@ -164,8 +164,21 @@ public class LWComponent
     }
     public boolean inPathway()
     {
-        return false;
+        return pathwayRefs != null && pathwayRefs.size() > 0;
     }
+    void addPathwayRef(Pathway p)
+    {
+        if (pathwayRefs == null)
+            pathwayRefs = new ArrayList();
+        pathwayRefs.add(p);
+        layout();
+    }
+    void removePathwayRef(Pathway p)
+    {
+        pathwayRefs.remove(p);
+        layout();
+    }
+    
 
     /** for persistance */
     public String getXMLlabel()
@@ -272,6 +285,7 @@ public class LWComponent
 
     // list of LWLinks that contain us as an endpoint
     private transient java.util.List links = new java.util.ArrayList();
+    protected transient List pathwayRefs;
 
     // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
     protected transient float scale = 1.0f;
@@ -1116,7 +1130,7 @@ public class LWComponent
     }
     public void mouseExited(MapMouseEvent e)
     {
-        System.out.println("MouseExited " + this);
+        System.out.println(" MouseExited " + this);
         //e.getViewer().clearIndicated();
     }
     

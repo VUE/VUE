@@ -104,8 +104,9 @@ public class LWNode extends LWContainer
 	
     private boolean mIsTextNode = false;
 	
-    private NodeIcon resourceIcon = new ResourceIcon();
-    private NodeIcon notesIcon = new NotesIcon(this);
+    private NodeIcon mIconResource = new ResourceIcon();
+    private NodeIcon mIconNotes = new NotesIcon(this);
+    private NodeIcon mIconPathway = new PathwayIcon();
 
     private float iconPillarX;
     private float iconPillarY;
@@ -239,6 +240,8 @@ public class LWNode extends LWContainer
 
     private JComponent ttResource = null;
     private JComponent ttNotes = null;
+    private JComponent ttPathway = null;
+    private String ttPathwayHtml = null;
     public void setResource(Resource resource)
     {
         super.setResource(resource);
@@ -250,17 +253,53 @@ public class LWNode extends LWContainer
         ttNotes = null;
     }
 
+    // A JLabel that forces anti-aliasing -- use this if
+    // you want a tool-tip to be anti-aliased on the PC,
+    // because there's no way to set it otherwise.
+    // (This is redundant on the Mac which does it automatically)
+    class AALabel extends JLabel
+    {
+        AALabel(String s) { super(s); };
+        public void paintComponent(Graphics g) {
+            ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                                             java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            super.paintComponent(g);
+        }
+    }
+    
+
     private JComponent getResourceToolTip()
     {
         if (ttResource == null) {
-            JLabel c = new JLabel("<html>&nbsp;<b>"
-                                  + getResource()
-                                  + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
-            c.setFont(FONT_MEDIUM);
-            ttResource = c;
+            ttResource = new AALabel("<html>&nbsp;<b>"
+                                     + getResource()
+                                     + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
+            ttResource.setFont(FONT_MEDIUM);
         }
         return ttResource;
     }
+    
+    private JComponent getPathwayToolTip()
+    {
+        // We compute this one every time in case the
+        // pathway labels change.
+        String html = "<html>";
+        Iterator i = pathwayRefs.iterator();
+        int n = 0;
+        while (i.hasNext()) {
+            Pathway p = (Pathway) i.next();
+            if (n++ > 0)
+                html += "<br>";
+            html += "&nbsp;In path: <b>" + p.getLabel() + "</b>&nbsp;";
+        }
+        if (ttPathwayHtml == null || !ttPathwayHtml.equals(html)) {
+            ttPathway = new AALabel(html);
+            ttPathway.setFont(FONT_MEDIUM);
+            ttPathwayHtml = html;
+        }
+        return ttPathway;
+    }
+    
     private JComponent getNotesToolTip()
     {
         if (ttNotes == null) {
@@ -323,30 +362,37 @@ public class LWNode extends LWContainer
         if (iconShowing()) {
 
             JComponent tipComponent = null;
+            Rectangle2D tipRegion = null;
             double y = 0;
-            if (hasResource() && resourceIcon.contains(cx, cy)) {
+            if (hasResource() && mIconResource.contains(cx, cy)) {
 
-                //System.out.println("over resource");
                 tipComponent = getResourceToolTip();
-                y = resourceIcon.getY();
+                tipRegion = mIconResource;
                 
-            } else if (hasNotes() && notesIcon.contains(cx, cy)) {
+            } else if (hasNotes() && mIconNotes.contains(cx, cy)) {
                 
-                //System.out.println("over notes");
                 tipComponent = getNotesToolTip();
-                y = notesIcon.getY();
+                tipRegion = mIconNotes;
+
+            } else if (inPathway() && mIconPathway.contains(cx, cy)) {
+                
+                tipComponent = getPathwayToolTip();
+                tipRegion = mIconPathway;
             }
             
-            if (tipComponent != null) {
+            if (tipComponent != null)
+                e.getViewer().setTip(this, tipComponent, tipRegion);
+            
+        }
+    }
+                /*
                 float mapY = getY() + (float) y;
                 Point tp = new Point
                     (e.getViewer().mapToScreenX(getX()),
                      e.getViewer().mapToScreenY(mapY));
                 e.getViewer().setTipComponent(tp, tipComponent);
-            }
-            
-        }
-    }
+                */
+
     public void mouseExited(MapMouseEvent e)
     {
         super.mouseExited(e);
@@ -368,10 +414,12 @@ public class LWNode extends LWContainer
         } else {
             // by default, a double-click anywhere else in
             // node opens the resource
-            if (hasNotes() && notesIcon.contains(cx, cy)) {
+            if (hasNotes() && mIconNotes.contains(cx, cy)) {
                 System.out.println("***NOTES HIT");
                 VUE.objectInspectorPanel.activateNotesTab();
                 VUE.objectInspector.setVisible(true);
+            } else if (inPathway() && mIconPathway.contains(cx, cy)) {
+                VUE.pathwayInspector.setVisible(true);
             } else if (hasResource()) {
                 getResource().displayContent();
                 // todo: some kind of animation or something to show
@@ -515,7 +563,7 @@ public class LWNode extends LWContainer
                 float cy = y - getY();
                 return boundsShape.contains(x, y)
                     || textBoxHit(cx, cy)
-                    || resourceIcon.contains(cx, cy);
+                    || mIconResource.contains(cx, cy);
             }
         }
         // if shape is not rectangular, check textBoxHit & genIcon hit
@@ -739,12 +787,16 @@ public class LWNode extends LWContainer
 
             float y = this.iconPillarY;
             if (hasResource()) {
-                resourceIcon.setFrame(iconX, y, iconWidth, iconHeight);
-                y += resourceIcon.getHeight();
+                mIconResource.setFrame(iconX, y, iconWidth, iconHeight);
+                y += mIconResource.getHeight();
             }
             if (hasNotes()) {
-                notesIcon.setFrame(iconX, y, iconWidth, iconHeight);
-                y += notesIcon.getHeight();
+                mIconNotes.setFrame(iconX, y, iconWidth, iconHeight);
+                y += mIconNotes.getHeight();
+            }
+            if (inPathway()) {
+                mIconPathway.setFrame(iconX, y, iconWidth, iconHeight);
+                y += mIconPathway.getHeight();
             }
 
 
@@ -817,7 +869,7 @@ public class LWNode extends LWContainer
         float baseX = childOffsetX() * getScale();
         float baseY = 0;
         if (iconShowing()) {
-            //baseY = (float) (resourceIcon.getY() + IconHeight + ChildOffsetY);
+            //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
             baseY = (float) dividerUnderline.getY1();
         } else {
             baseY = relativeLabelY() + getLabelBox().getHeight();
@@ -1243,9 +1295,11 @@ public class LWNode extends LWContainer
             g.draw(dividerMarginLine);
 
             if (hasResource())
-                resourceIcon.draw(dc);
+                mIconResource.draw(dc);
             if (hasNotes())
-                notesIcon.draw(dc);
+                mIconNotes.draw(dc);
+            if (inPathway())
+                mIconPathway.draw(dc);
         }
     }
 
@@ -1294,22 +1348,27 @@ public class LWNode extends LWContainer
     }
     private static class NotesIcon extends NodeIcon
     {
-        final static Color pencilColor = new Color(61, 0, 88);
-
-        final static GeneralPath pencil_body = new GeneralPath();
-        final static GeneralPath pencil_point = new GeneralPath();
-        final static GeneralPath pencil_tip = new GeneralPath();
-
-        final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-
         final static float MaxX = 155;
         final static float MaxY = 212;
 
         final static float scale = 0.04f;
         final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
 
+        final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+
         static float iconWidth = MaxX * scale;
         static float iconHeight = MaxY * scale;
+
+
+        //-------------------------------------------------------
+        
+        final static Color pencilColor = new Color(61, 0, 88);
+
+        final static GeneralPath pencil_body = new GeneralPath();
+        final static GeneralPath pencil_point = new GeneralPath();
+        final static GeneralPath pencil_tip = new GeneralPath();
+
+
         //static float iconXoff = (super.width - iconWidth) / 2f;
         //static float iconYoff = (super.height - iconHeight) / 2f;
 
@@ -1378,6 +1437,63 @@ public class LWNode extends LWContainer
             dc.g.draw(pencil_point);
             dc.g.fill(pencil_tip);
 
+            dc.g.translate(-x, -y);
+        }
+    }
+
+    private static class PathwayIcon extends NodeIcon
+    {
+        final static float MaxX = 224;
+        final static float MaxY = 145;
+
+        final static double scale = 0.04f;
+        final static double scaleInv = 1/scale;
+        final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+
+        final static Stroke stroke = new BasicStroke((float)(0.5/scale));
+
+        static float iconWidth = (float) (MaxX * scale);
+        static float iconHeight = (float) (MaxY * scale);
+
+        final static Color color = new Color(61, 0, 88);
+
+        //-------------------------------------------------------
+
+        final static Line2D line1 = new Line2D.Float( 39,123,  92, 46);
+        final static Line2D line2 = new Line2D.Float(101, 43, 153,114);
+        final static Line2D line3 = new Line2D.Float(163,114, 224, 39);
+
+        final static Ellipse2D dot1 = new Ellipse2D.Float(  0,95, 62,62);
+        final static Ellipse2D dot2 = new Ellipse2D.Float( 65, 0, 62,62);
+        final static Ellipse2D dot3 = new Ellipse2D.Float(127,90, 62,62);
+
+        
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX();
+            double y = getY();
+            
+            dc.g.translate(x, y);
+
+            double x2 = (getWidth() - iconWidth) / 2;
+            double y2 = (getHeight() - iconHeight) / 2;
+            dc.g.translate(x2, y2);
+            x += x2;
+            y += y2;
+            
+            dc.g.scale(scale,scale);
+
+            dc.g.setColor(color);
+            dc.g.fill(dot1);
+            dc.g.fill(dot2);
+            dc.g.fill(dot3);
+            dc.g.setStroke(stroke);
+            dc.g.draw(line1);
+            dc.g.draw(line2);
+            dc.g.draw(line3);
+
+            dc.g.scale(scaleInv,scaleInv);
             dc.g.translate(-x, -y);
         }
     }

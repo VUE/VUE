@@ -22,7 +22,8 @@ public interface VueConstants
     static Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10);
     static Font FONT_TINY = new Font("SansSerif", Font.PLAIN, 8);
     static Font FONT_ICON = VueResources.getFont("node.icon.font");
-    static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
+    static Font FONT_LINKLABEL = new Font("Verdana", Font.PLAIN, 11);
+    //static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
     
     static java.awt.Color COLOR_LINK_LABEL = java.awt.Color.darkGray;
     //static java.awt.Color COLOR_SELECTION = new java.awt.Color(74, 133, 255);
