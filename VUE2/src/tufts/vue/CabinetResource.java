@@ -264,7 +264,7 @@ public class CabinetResource extends MapResource{
      *  @author Mark Norton
      */
     public String getTitle() {
-        if (this.entry == null)
+        if (this.entry == null || mTitle != null)
             return this.mTitle;
         else {
             try {
