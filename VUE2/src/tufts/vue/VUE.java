@@ -6,7 +6,8 @@ import javax.swing.event.*;
 import javax.swing.*;
 import tufts.vue.action.*;
 import java.util.LinkedList;
-
+import java.util.prefs.*;
+import java.io.*;
 
 /**
  * Vue application class.
@@ -17,9 +18,13 @@ import java.util.LinkedList;
 
 public class VUE
     implements VueConstants
-{
+{   
     public static final String CASTOR_XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
-
+    public static final String VUE_CONF = "vue.conf";
+    
+    // preferences for the application 
+    public static Preferences prefs;
+    
     /** The currently active viewer (e.g., is visible
         and has focus).  Actions (@see Actions.java) are performed on
         the active model (sometimes querying the active viewer). */
@@ -45,7 +50,11 @@ public class VUE
     static {
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
-        URL imageURL = getClass().getResource(imgLocation);
+        URL imageURL = getClass().getResource(imgLocation);    FileOutputStream fos = new FileOutputStream("vue.conf");
+            prefs.exportSubtree(fos);
+     //       FileInputStream fis = new FileInputStream("tezt.xml");
+     //       prefs.importPreferences(fis);
+        } catch (Exception e) { System.out.println(e);}
         if (imageURL != null)
             button = new JButton(new ImageIcon(imageURL));
         */
@@ -158,6 +167,13 @@ public class VUE
             System.err.println(e);
         }
         
+        // loading preferences
+        prefs = java.util.prefs.Preferences.userRoot().node("/");
+        try {
+            FileInputStream fis = new FileInputStream(VUE_CONF);
+            prefs.importPreferences(fis);
+        } catch (Exception e) { System.out.println(e);}
+
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------

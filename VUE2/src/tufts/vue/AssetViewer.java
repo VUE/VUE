@@ -23,16 +23,16 @@ import java.util.Vector;
 import javax.swing.filechooser.FileSystemView;
 import tufts.dr.fedora.*;
 import java.net.*;
-
 import osid.dr.*;
 import osid.OsidException;
+
 public class AssetViewer extends JFrame {
-    static final String FEDORA_URL= "http://hosea.lib.tufts.edu:8080/fedora/get/";
     public AssetViewer(Asset asset) { 
         super("Asset Viewer");
         JTabbedPane assetPane= new JTabbedPane();
         getContentPane().setLayout(new BorderLayout());
         InfoRecordIterator i;
+       
         try {
             i = asset.getInfoRecords();
             while(i.hasNext()) {
@@ -40,10 +40,11 @@ public class AssetViewer extends JFrame {
                   InfoFieldIterator inf = infoRecord.getInfoFields();
                    JTabbedPane infoRecordPane = new JTabbedPane();
                   //infoRecordPane.setTabPlacement(JTabbedPane.LEFT);
+            
                   while(inf.hasNext()) {
                       InfoField infoField = inf.next();
                       String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getValue().toString();
-                      DisplayPane dPane  = new DisplayPane(FEDORA_URL+method);
+                      DisplayPane dPane  = new DisplayPane(tufts.vue.VUE.prefs.get("url.fedora.get", "")+method);
                       infoRecordPane.addTab(infoField.getValue().toString(),dPane);
                   }
                   assetPane.addTab(infoRecord.getId().getIdString(),infoRecordPane);
