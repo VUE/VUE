@@ -1,7 +1,7 @@
 
 <project name="vue" default="vuedemo" basedir=".">
 
-<!-- $Revision: 1.1 $ / $Date: 2004-05-19 21:52:44 $ -->
+<!-- $Revision: 1.2 $ / $Date: 2004-05-19 23:13:18 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -40,7 +40,7 @@
     <pathelement path="${lib.home}/batik-util.jar"/>
     <pathelement path="${lib.home}/batik.jar"/>
     <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/>
-    <pathelement path="${lib.home}/castor-0.9.4.3.jar"/>
+    <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX -- we only need XML-->
     <pathelement path="${lib.home}/commons-discovery.jar"/>
     <pathelement path="${lib.home}/commons-httpclient.jar"/>
     <pathelement path="${lib.home}/commons-logging.jar"/>
@@ -93,7 +93,7 @@
   <path id="compile.classpath.common">
 
     <pathelement path="."/>                
-    <pathelement path="${lib.home}/castor-0.9.4.3.jar"/>
+    <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX -- we only need XML-->
     <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/>
     <pathelement path="${lib.home}/batik-svggen.jar"/>
     <pathelement path="${lib.home}/batik-awt-util.jar"/>
