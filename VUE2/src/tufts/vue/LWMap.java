@@ -50,6 +50,11 @@ public class LWMap extends LWContainer
         return manager;
     }
     
+    public void setPathwayManager(LWPathwayManager manager)
+    {
+        this.manager = manager;
+    }
+    
     private int nextID = 1;
     private String getNextUniqueID()
     {
