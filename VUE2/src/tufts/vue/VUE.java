@@ -330,18 +330,17 @@ public class VUE
         System.out.println("VUE:main");
         parseArgs(args);
 
-        // Must install theme before any other GUI code or our VueTheme gets ignored
-        //MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
-        //themeSet = true;
-
+        // initUI installs the VueTheme (unless mac look), which must be done
+        // before any other GUI code (including the SlpashScreen)
+        // or our VueTheme gets ignored by swing.
+        initUI();
+        
         Window splashScreen = null;
         if (nodr)
             DEBUG.Enabled = true;
         else
             splashScreen = new SplashScreen();
 
-        initUI();
-        
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
