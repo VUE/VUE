@@ -100,16 +100,15 @@ public class LWNode extends LWContainer
     private Line2D dividerMarginLine = new Line2D.Float();
     private Line2D dividerStub = new Line2D.Float();
 
-    private boolean isRectShape = true;
-	
+    private boolean mIsRectShape = true;
     private boolean mIsTextNode = false;
-	
-    private NodeIcon mIconResource = new ResourceIcon();
-    private NodeIcon mIconNotes = new NotesIcon(this);
-    private NodeIcon mIconPathway = new PathwayIcon();
 
-    private float iconPillarX;
-    private float iconPillarY;
+    private transient LWIcon.Block mIconBlock =
+        new LWIcon.Block(this,
+                         IconWidth, IconHeight,
+                         null,
+                         LWIcon.Block.VERTICAL,
+                         LWIcon.Block.COORDINATES_COMPONENT);
     
     public LWNode(String label)
     {
@@ -238,21 +237,22 @@ public class LWNode extends LWContainer
             cy <= ly + height;
     }
 
-    private transient JComponent ttResource = null;
-    private transient JComponent ttNotes = null;
-    private transient JComponent ttPathway = null;
-    private transient String ttPathwayHtml = null;
+    //private transient JComponent ttResource = null;
+    //private transient JComponent ttNotes = null;
+    //private transient JComponent ttPathway = null;
+    //private transient String ttPathwayHtml = null;
     public void setResource(Resource resource)
     {
         super.setResource(resource);
-        ttResource = null;
+        //ttResource = null;
     }
     public void setNotes(String notes)
     {
         super.setNotes(notes);
-        ttNotes = null;
+        //ttNotes = null;
     }
 
+    /*
     // AALabel: A JLabel that forces anti-aliasing -- use this if
     // you want a tool-tip to be anti-aliased on the PC,
     // because there's no way to set it otherwise.
@@ -313,54 +313,29 @@ public class LWNode extends LWContainer
                 ta.setFont(FONT_SMALL);
                 ta.setLineWrap(true);
                 ta.setWrapStyleWord(true);
-                /*
-                  System.out.println("    size="+ta.getSize());
-                  Dimension ps = ta.getPreferredSize();
-                  System.out.println("prefsize="+ps);
-                  System.out.println(" minsize="+ta.getMinimumSize());
-                */
                 ttNotes = ta;
             } else {
                 ttNotes = new JLabel(notes);
                 ttNotes.setFont(FONT_SMALL);
             }
-            
-                /*
-                if (width > 30)
-                    width = 30;
-                System.out.println("width="+width);
-                JTextArea c = new JTextArea(notes, 1, width);
-                c.setFont(FONT_SMALL);
-                c.setLineWrap(true);
-                c.setWrapStyleWord(true);
-                System.out.println("    size="+c.getSize());
-                Dimension ps = c.getPreferredSize();
-                System.out.println("prefsize="+ps);
-                System.out.println(" minsize="+c.getMinimumSize());
-
-                if (notes.length() < 30) {
-                    ps.width = notes.length();
-                    c.setPreferredSize(ps);
-                    System.out.println("setprefsize="+ps);
-                }
-                */
-
         }
         return ttNotes;
     }
+*/
     
     public void mouseOver(MapMouseEvent e)
     {
-        //System.out.println("MouseOver " + this);
-        float cx = e.getComponentX();
-        float cy = e.getComponentY();
         /*
         if (textBoxHit(cx, cy)) {
             System.out.println("over label");
         } else
         */
-        if (iconShowing()) {
 
+        if (mIconBlock.isShowing())
+            mIconBlock.checkAndHandleMouseOver(e);
+
+        /*
+        if (iconShowing()) {
             JComponent tipComponent = null;
             Rectangle2D.Float tipRegion = null;
             double y = 0;
@@ -388,22 +363,17 @@ public class LWNode extends LWContainer
                 tipRegion.y += getY();
                 e.getViewer().setTip(this, tipComponent, tipRegion);
             }
-            
         }
+        */
     }
-                /*
-                float mapY = getY() + (float) y;
-                Point tp = new Point
-                    (e.getViewer().mapToScreenX(getX()),
-                     e.getViewer().mapToScreenY(mapY));
-                e.getViewer().setTipComponent(tp, tipComponent);
-                */
 
+    /*
     public void mouseExited(MapMouseEvent e)
     {
         super.mouseExited(e);
         e.getViewer().clearTip();
     }
+    */
     
     public boolean handleDoubleClick(MapMouseEvent e)
     {
@@ -420,12 +390,15 @@ public class LWNode extends LWContainer
         } else {
             // by default, a double-click anywhere else in
             // node opens the resource
+            /*
             if (hasNotes() && mIconNotes.contains(cx, cy)) {
                 VUE.objectInspectorPanel.activateNotesTab();
                 VUE.objectInspector.setVisible(true);
             } else if (inPathway() && mIconPathway.contains(cx, cy)) {
                 VUE.pathwayInspector.setVisible(true);
-            } else if (hasResource()) {
+            } else
+            */
+            if (hasResource()) {
                 getResource().displayContent();
                 // todo: some kind of animation or something to show
                 // we're "opening" this node -- maybe an indication
@@ -490,7 +463,7 @@ public class LWNode extends LWContainer
         //}
 
         // optimization hack
-        isRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
         
         this.boundsShape = shape;
         this.drawnShape = (RectangularShape) shape.clone();
@@ -550,17 +523,28 @@ public class LWNode extends LWContainer
         if (imageIcon != null)
             return super.contains(x,y);
         else {
-            if (isRectShape) {
+            // TODO: util irregular shapes can still give access to children
+            // outside their bounds, we're forcing everything in the bounding box
+            // for the moment.
+            if (true) return super.contains(x,y); else
+            if (mIsRectShape) {
                 return boundsShape.contains(x, y);
             } else {
                 float cx = x - getX();
                 float cy = y - getY();
+                // if we end up using these zillion checks, be sure to
+                // first surround with a fast-reject bounding-box check
                 return boundsShape.contains(x, y)
                     || textBoxHit(cx, cy)
-                    || mIconResource.contains(cx, cy);
+                    ;
+                    //|| mIconBlock.contains(cx, cy)
+                    ///|| mIconResource.contains(cx, cy)
+                    ///|| mIconNotes.contains(cx, cy)
+                    ///|| mIconPathway.contains(cx, cy);
+                //todo: be sure above icons get zero width if not displayed!
+                // better: use a single iconPillar check
             }
         }
-        // if shape is not rectangular, check textBoxHit & genIcon hit
         
         // to compensate for stroke width here, could get mathy here
         // and move the x/y strokeWidth units along a line toward
@@ -748,18 +732,23 @@ public class LWNode extends LWContainer
             }
             */
 
-            this.iconPillarX = iconX;
-            this.iconPillarY = IconPillarPadY;
-            //this.iconPillarY = EdgePadY;
-            
+            float iconPillarX = iconX;
+            float iconPillarY = IconPillarPadY;
+            //iconPillarY = EdgePadY;
+
+            // hack just to get size for now
+            mIconBlock.setLocation(0,0);
+            /*
             int icons = 0;
             if (hasResource()) icons++;
             if (hasNotes()) icons++;
             if (hasMetaData()) icons++;
             if (inPathway()) icons++;
+            */
 
-            float iconPillarHeight = icons * IconHeight + IconPillarPadY * 2;
-            float totalIconHeight = icons * IconHeight;
+            //float totalIconHeight = icons * IconHeight;
+            float totalIconHeight = mIconBlock.getHeight();
+            float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
 
             if (height < iconPillarHeight)
                 height += iconPillarHeight - height;
@@ -771,31 +760,16 @@ public class LWNode extends LWContainer
                 float centerY = (height - totalIconHeight) / 2;
                 if (centerY > IconPillarPadY+3)
                     centerY = IconPillarPadY+3;
-                this.iconPillarY = centerY;
+                iconPillarY = centerY;
             }
             
-            if (!isRectShape) {
+            if (!mIsRectShape) {
                 // center pillar at left if we're not rectangular
                 // TODO: this not fully working -- bugs out when
-                // dragging node to smallest size
-                this.iconPillarY = (givenHeight - totalIconHeight) / 2;
+                // dragging node to smallest size -- icons "rise up"
+                iconPillarY = (givenHeight - totalIconHeight) / 2;
             }
-
-            float y = this.iconPillarY;
-            if (hasResource()) {
-                mIconResource.setFrame(iconX, y, iconWidth, iconHeight);
-                y += mIconResource.getHeight();
-            }
-            if (hasNotes()) {
-                mIconNotes.setFrame(iconX, y, iconWidth, iconHeight);
-                y += mIconNotes.getHeight();
-            }
-            if (inPathway()) {
-                mIconPathway.setFrame(iconX, y, iconWidth, iconHeight);
-                y += mIconPathway.getHeight();
-            }
-
-
+            mIconBlock.setLocation(iconPillarX, iconPillarY);
         }
 
         // If the size gets set to less than or equal to
@@ -1272,21 +1246,13 @@ public class LWNode extends LWContainer
     */
     
 
-    private static final String NoResource = VueUtil.isMacPlatform() ? "---" : "__";
-    // On PC, two underscores look better than "---" in default Trebuchet font,
-    // which leaves the dashes high in the box.
-    
-    
-    private static Font MinisculeFont = new Font("SansSerif", Font.PLAIN, 1);
-    //private static Font MinisculeFont = new Font("Arial Narrow", Font.PLAIN, 1);
-
     private void drawNodeDecorations(DrawContext dc)
     {
         Graphics2D g = dc.g;
-        float iconWidth = IconWidth;
-        float iconHeight = IconHeight;
-        float iconX = iconPillarX;
-        float iconY = iconPillarY;
+        //float iconWidth = IconWidth;
+        //float iconHeight = IconHeight;
+        //float iconX = iconPillarX;
+        //float iconY = iconPillarY;
 
         if (DEBUG_BOXES) {
             //-------------------------------------------------------
@@ -1307,209 +1273,19 @@ public class LWNode extends LWContainer
             g.setStroke(STROKE_ONE);
             g.draw(dividerMarginLine);
 
+            mIconBlock.draw(dc);
+            /*
             if (hasResource())
                 mIconResource.draw(dc);
             if (hasNotes())
                 mIconNotes.draw(dc);
             if (inPathway())
                 mIconPathway.draw(dc);
-        }
-    }
-
-
-
-    private static class NodeIcon extends Rectangle2D.Float
-    {
-        void draw(DrawContext dc)
-        {
-            if (DEBUG_BOXES) {
-                dc.g.setColor(Color.red);
-                dc.g.setStroke(STROKE_SIXTEENTH);
-                dc.g.draw(this);
-            }
-        }
-    }
-    private class ResourceIcon extends NodeIcon
-    {
-        void draw(DrawContext dc)
-        {
-            super.draw(dc);
-            dc.g.setColor(Color.black);
-            dc.g.setFont(FONT_ICON);
-            String extension = NoResource;
-            if (hasResource())
-                extension = getResource().getExtension();
-            double x = getX();
-            double y = getY();
-            dc.g.translate(x, y);
-
-            TextRow row = new TextRow(extension, dc.g);
-            float xoff = (IconWidth - row.width) / 2;
-            float yoff = (IconHeight - row.height) / 2;
-            row.draw(xoff, yoff);
-
-            // an experiment in semantic zoom
-            if (dc.zoom >= 8.0 && hasResource()) {
-                dc.g.setFont(MinisculeFont);
-                dc.g.setColor(Color.gray);
-                dc.g.drawString(getResource().toString(), 0, (int)(super.height));
-            }
-
-            
-            dc.g.translate(-x, -y);
-        }
-    }
-    private static class NotesIcon extends NodeIcon
-    {
-        final static float MaxX = 155;
-        final static float MaxY = 212;
-
-        final static float scale = 0.04f;
-        final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
-
-        final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
-
-        static float iconWidth = MaxX * scale;
-        static float iconHeight = MaxY * scale;
-
-
-        //-------------------------------------------------------
-        
-        final static Color pencilColor = new Color(61, 0, 88);
-
-        final static GeneralPath pencil_body = new GeneralPath();
-        final static GeneralPath pencil_point = new GeneralPath();
-        final static GeneralPath pencil_tip = new GeneralPath();
-
-
-        //static float iconXoff = (super.width - iconWidth) / 2f;
-        //static float iconYoff = (super.height - iconHeight) / 2f;
-
-        static {
-            pencil_body.moveTo(0,31);
-            pencil_body.lineTo(55,0);
-            pencil_body.lineTo(150,155);
-            pencil_body.lineTo(98,187);
-            pencil_body.closePath();
-            pencil_body.transform(t);
-
-            pencil_point.moveTo(98,187);
-            pencil_point.lineTo(150,155);
-            pencil_point.lineTo(150,212);
-            pencil_point.closePath();
-
-            /*pencil_point.moveTo(150,155);
-            pencil_point.lineTo(150,212);
-            pencil_point.lineTo(98,187);
             */
-            
-            pencil_point.transform(t);
-
-            pencil_tip.moveTo(132,203);
-            pencil_tip.lineTo(150,192);
-            pencil_tip.lineTo(150,212);
-            pencil_tip.closePath();
-            pencil_tip.transform(t);
-        }
-
-        LWNode node;
-        NotesIcon(LWNode node)
-        {
-            this.node = node;
-        }
-            
-        
-        void draw(DrawContext dc)
-        {
-            super.draw(dc);
-            double x = getX();
-            double y = getY();
-            
-            dc.g.translate(x, y);
-
-            // an experiment in semantic zoom
-            /*
-            if (dc.zoom >= 8.0) {
-                dc.g.setFont(MinisculeFont);
-                dc.g.setColor(Color.gray);
-                dc.g.drawString(this.node.getNotes(), 0, (int)(super.height));
-                }*/
-
-            double x2 = (getWidth() - iconWidth) / 2;
-            double y2 = (getHeight() - iconHeight) / 2;
-            dc.g.translate(x2, y2);
-            x += x2;
-            y += y2;
-            
-            dc.g.setColor(pencilColor);
-            dc.g.fill(pencil_body);
-            dc.g.setStroke(stroke);
-            dc.g.setColor(Color.white);
-            dc.g.fill(pencil_point);
-            dc.g.setColor(pencilColor);
-            dc.g.draw(pencil_point);
-            dc.g.fill(pencil_tip);
-
-            dc.g.translate(-x, -y);
         }
     }
 
-    private static class PathwayIcon extends NodeIcon
-    {
-        final static float MaxX = 224;
-        final static float MaxY = 145;
 
-        final static double scale = 0.04f;
-        final static double scaleInv = 1/scale;
-        final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
-
-        final static Stroke stroke = new BasicStroke((float)(0.5/scale));
-
-        static float iconWidth = (float) (MaxX * scale);
-        static float iconHeight = (float) (MaxY * scale);
-
-        final static Color color = new Color(61, 0, 88);
-
-        //-------------------------------------------------------
-
-        final static Line2D line1 = new Line2D.Float( 39,123,  92, 46);
-        final static Line2D line2 = new Line2D.Float(101, 43, 153,114);
-        final static Line2D line3 = new Line2D.Float(163,114, 224, 39);
-
-        final static Ellipse2D dot1 = new Ellipse2D.Float(  0,95, 62,62);
-        final static Ellipse2D dot2 = new Ellipse2D.Float( 65, 0, 62,62);
-        final static Ellipse2D dot3 = new Ellipse2D.Float(127,90, 62,62);
-
-        
-        void draw(DrawContext dc)
-        {
-            super.draw(dc);
-            double x = getX();
-            double y = getY();
-            
-            dc.g.translate(x, y);
-
-            double x2 = (getWidth() - iconWidth) / 2;
-            double y2 = (getHeight() - iconHeight) / 2;
-            dc.g.translate(x2, y2);
-            x += x2;
-            y += y2;
-            
-            dc.g.scale(scale,scale);
-
-            dc.g.setColor(color);
-            dc.g.fill(dot1);
-            dc.g.fill(dot2);
-            dc.g.fill(dot3);
-            dc.g.setStroke(stroke);
-            dc.g.draw(line1);
-            dc.g.draw(line2);
-            dc.g.draw(line3);
-
-            dc.g.scale(scaleInv,scaleInv);
-            dc.g.translate(-x, -y);
-        }
-    }
 
 
     public String paramString()

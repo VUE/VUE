@@ -42,8 +42,6 @@ public class LWLink extends LWComponent
     private Shape curve = null;
 
     private int curveControls = 0; // 0=straight, 1=quad curved, 2=cubic curved
-    //private boolean isCurved = false;
-    //private boolean isCubicCurve = false;
     
     private float centerX;
     private float centerY;
@@ -71,6 +69,13 @@ public class LWLink extends LWComponent
     public static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
     
     private int arrowState = ARROW_NONE;
+    
+    private transient LWIcon.Block mIconBlock =
+        new LWIcon.Block(this,
+                         14, 12,
+                         Color.darkGray,
+                         LWIcon.Block.HORIZONTAL,
+                         LWIcon.Block.COORDINATES_MAP);
     
     /**
      * Used only for restore -- must be public
@@ -282,22 +287,12 @@ public class LWLink extends LWComponent
         this.controlPoints = new LWSelection.ControlPoint[2 + curveControls];
 
         endpointMoved = true;        
-            
-        //if (points == 0 &&
-        //this.isCurved = (points > 0);
-        //this.isCubicCurve = (points > 1);
-        //setCurved(isCurved);
     }
 
     /** for persistance */
     public int getControlCount()
     {
         return curveControls;
-        /*
-        if (isCurved)
-            return isCubicCurve ? 2 : 1;
-        return 0;
-        */
     }
 
     /** for persistance */
@@ -326,7 +321,7 @@ public class LWLink extends LWComponent
     /** for persistance */
     public Point2D getCtrlPoint0()
     {
-        //return isCurved ? (isCubicCurve ? cubicCurve.getCtrlP1() : quadCurve.getCtrlPt()) : null;
+
         if (curveControls == 0)
             return null;
         else if (curveControls == 2)
@@ -393,6 +388,12 @@ public class LWLink extends LWComponent
             return this.line;
     }
 
+    public void mouseOver(MapMouseEvent e)
+    {
+        if (mIconBlock.isShowing())
+            mIconBlock.checkAndHandleMouseOver(e);
+    }
+    
     private final int MaxZoom = 1; //todo: get from Zoom code
     private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
     public boolean intersects(Rectangle2D rect)
@@ -417,8 +418,8 @@ public class LWLink extends LWComponent
             else
                 return false;
         } else {
-            // todo: finish this!
-            Shape s = this.stroke.createStrokedShape(this.line); // todo: cache this!
+            // todo: finish 
+            Shape s = this.stroke.createStrokedShape(this.line); // todo: cache this
             return s.intersects(rect);
             // todo: ought to compensate for stroke shrinkage
             // due to a link to a child (or remove that feature)
@@ -465,7 +466,9 @@ public class LWLink extends LWComponent
             if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
                 return true;
         }
-        if (this.labelBox != null)
+        if (mIconBlock.contains(x, y))
+            return true;
+        else if (this.labelBox != null)
             return labelBox.containsMapLocation(x, y); // bit of a hack to do this way
         else
             return false;
@@ -1241,6 +1244,7 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         
         String label = getLabel();
+        float textBoxWidth = 0;
         if (label != null && label.length() > 0)
         {
             TextBox textBox = getLabelBox();
@@ -1289,9 +1293,27 @@ public class LWLink extends LWComponent
                 }
                 //if (isZoomedFocus()) g.scale(1/getScale(), 1/getScale());
                 g.translate(-lx, -ly);
-                
+                textBoxWidth = textBox.getWidth();
             }
         }
+
+
+        mIconBlock.setLocation(getLabelX() + textBoxWidth, getLabelY());
+        mIconBlock.draw(dc);
+
+        /*
+        float x = getLabelX()+textBoxWidth;
+        float y = getLabelY();
+        mIconResource.setLocation(x, y);
+        x+=LWIcon.IconWidth;
+        mIconNotes.setLocation(x, y);
+        x+=LWIcon.IconWidth;
+        mIconPathway.setLocation(x, y);
+        
+        mIconResource.draw(dc);
+        mIconNotes.draw(dc);
+        mIconPathway.draw(dc);
+        */
 
         if (DEBUG_CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }
@@ -1309,8 +1331,6 @@ public class LWLink extends LWComponent
         link.centerX = centerX;
         link.centerY = centerY;
         link.ordered = ordered;
-        //link.isCubicCurve = isCubicCurve;
-        //link.setCurved(isCurved);
         if (curveControls > 0) {
             link.setCtrlPoint0(getCtrlPoint0());
             if (curveControls > 1)

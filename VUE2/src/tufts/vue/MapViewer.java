@@ -867,6 +867,7 @@ public class MapViewer extends javax.swing.JPanel
                 c.setRollover(true);
                 c.setZoomedFocus(true);
                 if (false&&c instanceof LWNode) {
+                    // center the zoomed node on it's original center
                     mZoomoverOldLoc = c.getLocation();
                     Point2D oldCenter = c.getCenterPoint();
                     c.setScale((float)newScale);
@@ -914,6 +915,14 @@ public class MapViewer extends javax.swing.JPanel
     private static JComponent mTipComponent;
     private static Popup mTipWindow;
     private static LWComponent mMouseOver;
+
+    /**
+     * Pop a tool-tip near the given LWComponent.
+     *
+     * @param pLWC - the component to place it near
+     * @param pJComponent - the JComponent to display in the tool-tip window
+     * @param pTipRegion - the region, in map coords, that triggered this tool-tip
+     */
     void setTip(LWComponent pLWC, JComponent pJComponent, Rectangle2D pTipRegion)
     {
         if (pJComponent != mTipComponent && pJComponent != null) {
@@ -988,10 +997,8 @@ public class MapViewer extends javax.swing.JPanel
             PopupFactory popupFactory = PopupFactory.getSharedInstance();
 	    mTipWindow = popupFactory.getPopup(this, pJComponent, glass.x, glass.y);
 	    mTipWindow.show();
+            mTipComponent = pJComponent;
         }
-
-        mTipComponent = pJComponent;
-        //mTipPoint = point;
         
     }
 
@@ -1542,7 +1549,7 @@ public class MapViewer extends javax.swing.JPanel
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
-            if (!VueSelection.allOfType(LWLink.class))
+            if (DEBUG_BOXES || !VueSelection.allOfType(LWLink.class))
                 g2.draw(mapSelectionBounds);
             // no resize handles if only links or groups
             resizeControl.active = false;
@@ -2581,6 +2588,7 @@ public class MapViewer extends javax.swing.JPanel
 
             if (hit != mMouseOver) {
                 if (mMouseOver != null) {
+                    clearTip(); // in case it had a tip displayed
                     MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
                     mMouseOver.mouseExited(mme);
                 }

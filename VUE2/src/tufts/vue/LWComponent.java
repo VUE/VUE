@@ -511,7 +511,7 @@ public class LWComponent
         return c != null && (COLOR_NODE_DEFAULT.equals(c) || COLOR_NODE_INVERTED.equals(c));
     }
     
-    /** default label X position impl: center the label */
+    /** default label X position impl: center the label in the bounding box */
     public float getLabelX()
     {
         float x = getCenterX();
@@ -519,7 +519,7 @@ public class LWComponent
             x -= (labelBox.getMapWidth() / 2) + 1;
         return x;
     }
-    /** default label Y position impl: center the label */
+    /** default label Y position impl: center the label in the bounding box */
     public float getLabelY()
     {
         float y = getCenterY();
@@ -1150,7 +1150,7 @@ public class LWComponent
 
     public void mouseEntered(MapMouseEvent e)
     {
-        if (DEBUG_ROLLOVER) System.out.println("MouseEntered " + this);
+        if (DEBUG_ROLLOVER) System.out.println("MouseEntered:     " + this);
         //e.getViewer().setIndicated(this);
         mouseOver(e);
     }
@@ -1165,7 +1165,7 @@ public class LWComponent
     }
     public void mouseExited(MapMouseEvent e)
     {
-        if (DEBUG_ROLLOVER) System.out.println(" MouseExited " + this);
+        if (DEBUG_ROLLOVER) System.out.println(" MouseExited:     " + this);
         //e.getViewer().clearIndicated();
     }
     
