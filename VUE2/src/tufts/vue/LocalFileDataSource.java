@@ -58,10 +58,13 @@ public class LocalFileDataSource extends VueDataSource{
     public LocalFileDataSource(String DisplayName, String address){
           this.setDisplayName(DisplayName); 
           this.setAddress(address);
-          this.setResourceViewer();
         
      }
-
+    
+    public void setAddress(String address) {
+        super.setAddress(address);
+        this.setResourceViewer();
+    }
   
    public void  setResourceViewer(){
           
@@ -101,6 +104,7 @@ public class LocalFileDataSource extends VueDataSource{
             localPanel.setLayout(new BorderLayout());
             localPanel.add(rSP,BorderLayout.CENTER);
             this.resourceViewer = localPanel;
+            DataSourceViewer.refreshDataSourcePanel(this);
    
    }
 
@@ -109,7 +113,6 @@ public class LocalFileDataSource extends VueDataSource{
           return this.resourceViewer;   
        
    }
- 
    
     
 }
