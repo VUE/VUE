@@ -70,7 +70,86 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
          JPanel googleSearch = new JPanel(new BorderLayout());
          
          
+         JLabel returnLabel = new JLabel("Maximum number of returns?");
+          returnLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        
+         
+         
         JPanel googleSearchPanel = new JPanel();
+        
+            
+   /**  
+    * @Setup  searchPanel
+    */
+   
+    
+   
+       // googleSearch = new JPanel(new BorderLayout());
+        googleSearch.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+        
+        //DRSearchPanel.setBackground(Color.LIGHT_GRAY);
+        GridBagLayout gridbag = new GridBagLayout();
+        GridBagConstraints c = new GridBagConstraints();
+        googleSearchPanel.setLayout(gridbag);
+        Insets defaultInsets = new Insets(2,2,2,2);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.WEST;
+        
+     //adding the label Keywords
+        c.gridx = 0;
+        c.gridy = 1;
+        
+        c.insets = new Insets(10,2,2, 2);
+        JLabel keyLabel = new JLabel("Keywords..");
+        keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        gridbag.setConstraints(keyLabel,c);
+        googleSearchPanel.add(keyLabel);
+          
+     
+    //adding the search box 
+        c.gridx=1;
+        c.gridy=1;
+        c.gridwidth=2;
+        c.insets = new Insets(10, 2,2, 2);
+          keywords = new JTextField();
+        //keywords.setPreferredSize(new Dimension(120,20));
+        keywords.addKeyListener(this);
+        gridbag.setConstraints(keywords, c);
+        googleSearchPanel.add(keywords);
+        
+        
+        
+    
+      // adding the number of search results tab.
+        c.gridx=0;
+        c.gridy=2;
+        c.gridwidth=2;
+        c.insets = defaultInsets;
+        
+        gridbag.setConstraints(returnLabel, c);
+        googleSearchPanel.add(returnLabel);
+        
+        c.gridx=2;
+        c.gridy=2;
+        c.gridwidth=1;
+       // maxReturns.setPreferredSize(new Dimension(40,20));
+        gridbag.setConstraints(maxReturns,c);
+        googleSearchPanel.add(maxReturns);
+        
+        c.gridx=2;
+        c.gridy=3;
+        c.insets = new Insets(10, 2,2,2);
+        searchButton = new JButton("Search");
+        //searchButton.setPreferredSize(new Dimension(40,20));
+        searchButton.addActionListener(this);
+        gridbag.setConstraints(searchButton,c);
+        googleSearchPanel.add(searchButton);
+        
+      
+        
+    
+        
+        /*
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         googleSearchPanel.setLayout(gridbag);
@@ -89,7 +168,16 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         //gridbag.setConstraints(topLabel, c);
         //googleSearchPanel.add(topLabel);
         
-        
+        //adding the words Keywords  
+          c.gridx = 0;
+          c.gridy = 0;
+          c.gridwidth = 2;
+          c.insets = new Insets(5, 2,2,2);
+          JLabel keyLabel = new JLabel("Enter Keywords");
+          keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+          gridbag.setConstraints(keyLabel,c);
+          googleSearchPanel.add(keyLabel);
+          
     //adding the search box and the button
         c.gridx=0;
         c.gridy=1;
@@ -125,7 +213,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         gridbag.setConstraints(maxReturns,c);
         googleSearchPanel.add(maxReturns);
         //------------------
-        
+        */
         
          googleSearch.add(googleSearchPanel,BorderLayout.NORTH);
          googlePane.addTab("Search",googleSearch);

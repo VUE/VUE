@@ -36,6 +36,12 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
     //todo make only a favoritesnode  droppable//
     
+    private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+    private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+    private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+            
+    
+    
     private final int ACCEPTABLE_DROP_TYPES =
     
     
@@ -59,6 +65,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         this.getModel().addTreeModelListener(new VueTreeModelListener());
         
         VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
+      
         this.setCellRenderer(renderer);
         new DropTarget(this, // component
         ACCEPTABLE_DROP_TYPES, // actions
@@ -391,10 +398,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         boolean hasFocus) {
             
             
-            Icon leafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-            Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-            Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
-            
+          
             
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
             if ( !(value instanceof FileNode) && ((((ResourceNode)value).getResource()).getType()==FAVORITES) ){
@@ -407,7 +411,12 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 
             }
             
-            else if (leaf){ setIcon(leafIcon);}
+            else if (leaf){ setIcon(nleafIcon);
+            
+           
+            
+            }
+            
             
             else {setIcon(activeIcon);}
             

@@ -32,13 +32,16 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
+    private static  Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+    private static Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+    private static  Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
     
     public VueDragTree(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
-        
+        this.setRootVisible(true);
         this.expandRow(0);
         this.expandRow(1);
-        
+        this.setRootVisible(false);
         implementDrag(this);
         createPopupMenu();
         
@@ -91,7 +94,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                     
                     setSelectionPath(path);
                       
-                   cabNode.getDataModel().reload();
+                   if (cabNode.getCabinet() != null)cabNode.getDataModel().reload();
                  
                     
                    
@@ -134,11 +137,12 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                         
                         cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
                     root.add(cabNode);
-                    cabNode.explore();
+                    //System.out.println(" I am here in Vue drag" + cabNode.getCabinet());
+                   if (cabNode.getCabinet() != null)cabNode.explore();
                     //root.add(new ResourceNode((Resource)resource));
                 }   else{
                     
-                    
+                 
                     ResourceNode node = new ResourceNode((Resource)resource);
                     
                     root.add(node);
@@ -254,10 +258,6 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         int row,
         boolean hasFocus) {
             
-            //    meta =    ((Resource)value).getToolTipInformation();
-            Icon leafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-            Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-            Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
             
             
             super.getTreeCellRendererComponent(
@@ -276,7 +276,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                 
                 
             }
-            else if (leaf){ setIcon(leafIcon);}
+            else if (leaf){ setIcon(nleafIcon);}
             else { setIcon(activeIcon); }
             
             
@@ -477,7 +477,11 @@ class CabinetNode extends ResourceNode {
         //if(getCabinet() != null) {
        // System.out.println(" Cabinet ="+getUserObject()+ " is dir" +isLeaf()+" Extension = "+((CabinetResource)getUserObject()).getExtension());
         //if(((CabinetResource)getUserObject()).getExtension().equals("dir")) {
-        if(getCabinet() != null) {
+       if(getCabinet() != null) {
+ 
+        
+            System.out.println("In cabinet--"+getCabinet());
+            
             try {
                 if (this.type.equals(CabinetNode.REMOTE)) {
                     
