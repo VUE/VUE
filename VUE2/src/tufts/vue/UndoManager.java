@@ -146,19 +146,17 @@ public class UndoManager
         LWComponent c = e.getComponent(); // can be list...
         if (e.hasOldValue()) {
             Object oldValue = e.getOldValue();
-            // if (DEBUG.UNDO) System.out.println("\t given old value " + oldValue);
+            if (DEBUG.UNDO&&DEBUG.META) System.out.println(" old=" + oldValue + " ");
             Map propList = (Map) mPropertyChanges.get(c);
             if (propList != null) {
                 //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
                 Object value = propList.get(propName);
                 if (value != null) {
-                    //if (DEBUG.UNDO) System.out.println("\tIGNORING: found existing property value: " + value);
                     if (DEBUG.UNDO) System.out.println(" (compressed)");
                 } else {
                     propList.put(propName, oldValue);
                     mPropCount++;
                     mLastEvent = e;
-                    //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
                     if (DEBUG.UNDO) System.out.println(" (stored)");
                 }
             } else {
@@ -167,14 +165,12 @@ public class UndoManager
                 mPropCount++;
                 mLastEvent = e;
                 mPropertyChanges.put(c, propList);
-                //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
                 if (DEBUG.UNDO) System.out.println(" (stored)");
             }
         } else {
-            //if (DEBUG.UNDO) System.out.println("\tunhandled");
             if (DEBUG.UNDO) {
                 System.out.println(" (unhandled)");
-                new Throwable().printStackTrace();
+                if (DEBUG.META) new Throwable().printStackTrace();
             }
         }
     }
