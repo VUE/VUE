@@ -101,14 +101,17 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     {   
                         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)paths[i].getLastPathComponent();
                         tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
+                        
                         LWComponent component = hierarchyNode.getLWComponent();
                         
                         //if it is not LWMap, add to the selected components list
                         if (!(component instanceof LWMap))
                         {
                             selectedComponents.add(component);
-                            selectedHierarchyNodes.add(hierarchyNode);
                         }
+                            
+                        selectedHierarchyNodes.add(hierarchyNode);
+                        
                     }
                     
                     if(!selectionFromVUE)
@@ -235,7 +238,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         catch (NullPointerException exc) {}
        
         //might want to come up with an exception
-        if(treeNode != (DefaultMutableTreeNode)getModel().getRoot() && selectedNode != null)
+        //if(treeNode != (DefaultMutableTreeNode)getModel().getRoot() && selectedNode != null)
+        if (selectedNode != null)
         {
             //changes the node's label and sets it as a new object of the tree node
             try
@@ -435,7 +439,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         
         /** When the focus is lost and if the text area has been modified, it changes the tree node value */
         public void focusLost(FocusEvent e) 
-        {
+        {    
             if (modified)
             {
                 this.stopCellEditing();
