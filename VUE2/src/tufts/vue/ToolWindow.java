@@ -41,8 +41,8 @@ import javax.swing.border.*;
  * so Command/Ctrl-W to close a ToolWindow only sometimes works.
  */
 
-//public class ToolWindow extends JWindow
-public class ToolWindow extends JFrame // will need on mac version, so convert to factory
+public class ToolWindow extends JWindow
+//public class ToolWindow extends JFrame // will need on mac version, so convert to factory
     implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
@@ -63,9 +63,9 @@ public class ToolWindow extends JFrame // will need on mac version, so convert t
     
     public ToolWindow(String title, Frame owner)
     {
-        //super(owner);
+        super(owner);
         managedTitleBar = true;
-        setUndecorated(managedTitleBar);
+        //setUndecorated(managedTitleBar);
         //if (((Object)this) instanceof JWindow)
         //managedTitleBar = true;
         //if (owner instanceof JFrame) setRootPane(((JFrame)owner).getRootPane()); // no help getting menu bars shared on mac
