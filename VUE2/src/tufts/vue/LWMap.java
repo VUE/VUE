@@ -181,9 +181,10 @@ public class LWMap extends LWContainer
     }
 
     /**
-     * This sets the LWC Filter to filter out node and link componenets.
-     * This should be anytime the filtering is to change, even if we 
-     * already have our filter set to to the given filter.  We will
+     * This tells us there's a new LWCFilter or filter state in effect
+     * for the filtering of node's & links.
+     * This should be called anytime the filtering is to change, even if we 
+     * already have our filter set to the given filter.  We will
      * apply / clear as appropriate to the state of the filter.
      * @param LWCFilter the filter to install and/or update against
      **/
@@ -203,7 +204,6 @@ public class LWMap extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setIsFiltered(false);
-            c.layout();
         }
     }
     
