@@ -263,7 +263,26 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
          return metaData;
         
     }
-} 
+ } 
+
+class AssetNode extends DefaultMutableTreeNode {
+	private boolean explored = false;
+        private Asset asset;
+	public AssetNode(Asset asset) 	{ 
+            this.asset = asset;
+            setUserObject(asset); 
+	}
+        public  Asset getAsset() {
+            return this.asset;
+        }
+	public String toString(){
+            String returnString = "Fedora Object";
+            try {
+                returnString = asset.getDisplayName();
+            } catch (Exception e) { System.out.println("FedoraNode.toString() "+e);}
+            return returnString;
+	}
+}
     
 }
 
@@ -318,24 +337,7 @@ class FileNode extends DefaultMutableTreeNode {
 		}
 	}
 }
-class AssetNode extends DefaultMutableTreeNode {
-	private boolean explored = false;
-        private Asset asset;
-	public AssetNode(Asset asset) 	{ 
-            this.asset = asset;
-            setUserObject(asset); 
-	}
-        public  Asset getAsset() {
-            return this.asset;
-        }
-	public String toString(){
-            String returnString = "Fedora Object";
-            try {
-                returnString = asset.getDisplayName();
-            } catch (Exception e) { System.out.println("FedoraNode.toString() "+e);}
-            return returnString;
-	}
-}
+
   class FavoritesNode extends DefaultMutableTreeNode {
         public FavoritesNode(String displayName){
             super(displayName);
