@@ -507,7 +507,10 @@ public class LWNode extends LWContainer
                 g.setStroke(this.stroke);
             g.draw(drawnShape);
         } else if (getStrokeWidth() > 0) {
-            g.setColor(getStrokeColor());
+            if (LWSelection.DEBUG_SELECTION && isSelected())
+                g.setColor(COLOR_SELECTION);
+            else
+                g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
             g.draw(drawnShape);
         }       

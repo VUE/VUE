@@ -5,7 +5,7 @@ import java.awt.geom.Rectangle2D;
 
 public class LWSelection extends java.util.ArrayList
 {
-    static final boolean DEBUG_SELECTION = false;
+    public static final boolean DEBUG_SELECTION = false;
 
     private java.util.List listeners = new java.util.ArrayList();
     private Rectangle2D bounds = null;
