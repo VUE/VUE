@@ -19,6 +19,9 @@
 package tufts.vue;
 
 import java.util.*;
+import java.awt.Point;
+import java.awt.Color;
+import java.awt.geom.Point2D;
 import javax.swing.Action;
 
 /**
@@ -49,7 +52,7 @@ public class UndoManager
     private UndoActionList RedoList = new UndoActionList("Redo"); 
     
     /* The map who's modifications we're tracking. */
-    private LWMap mMap; 
+    protected LWMap mMap; 
     
     /* All recorded changes since last mark, mapped by component (for detecting & ignoring repeats) */
     private Map mComponentChanges = new HashMap();
@@ -229,6 +232,9 @@ public class UndoManager
         }
     }
 
+    /**
+     * A single property change on a single component.
+     */
     private static class UndoItem implements Comparable
     {
         LWComponent component;
@@ -250,7 +256,132 @@ public class UndoManager
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
+                if (DEBUG.Enabled) {
+                    try {
+                        undoAnimated();
+                    } catch (Exception e) {
+                        System.err.println("Exception during animated undo of [" + propKey + "] on " + component);
+                        e.printStackTrace();
+                    }
+                }
                 component.setProperty(propKey, oldValue);
+            }
+        }
+
+        private void undoAnimated() {
+            // redo not working if we suspend events here...
+            // please don't tell me redo was happening by capturing
+            // the zillions of animated events...
+            
+            // Also going to be tricky: animating through changes
+            // in a bunch of nodes at the same time -- right now
+            // a group drag animates each one back into place
+            // one at a time in sequence...
+
+            // Also: SEE COMMENT in LWLink.getPropertyValue
+                    
+            // experimental for animated presentation
+            //component.getChangeSupport().setEventsSuspended();
+            if (oldValue instanceof Point)
+                animatedChange((Point)oldValue);
+            else if (oldValue instanceof Point2D)
+                animatedChange((Point2D)oldValue);
+            else if (oldValue instanceof Color)
+                animatedChange((Color)oldValue);
+            else if (oldValue instanceof Size)
+                animatedChange((Size)oldValue);
+            else if (oldValue instanceof Integer)
+                animatedChange((Integer)oldValue);
+            else if (oldValue instanceof Float)
+                animatedChange((Float)oldValue);
+            //component.getChangeSupport().setEventsResumed();
+        }
+
+        private static final int segments = 5;
+        
+        private static void repaint() {
+            //VUE.getActiveMap().notify("repaint");
+            VUE.getActiveViewer().paintImmediately(0,0,4096,3072);
+            //try { Thread.sleep(100); } catch (Exception e) {}
+        }
+
+        private void animatedChange(Size endValue) {
+            Size curValue = (Size) component.getPropertyValue(propKey);
+            final float winc = (endValue.width - curValue.width) / segments;
+            final float hinc = (endValue.height - curValue.height) / segments;
+            Size value = new Size(curValue);
+            
+            for (int i = 0; i < segments; i++) {
+                value.width += winc;
+                value.height += hinc;
+                component.setProperty(propKey, value);
+                repaint();
+            }
+        }
+        private void animatedChange(Float endValue) {
+            Float curValue = (Float) component.getPropertyValue(propKey);
+            final float inc = (endValue.floatValue() - curValue.floatValue()) / segments;
+            Float value;
+            
+            for (int i = 1; i < segments+1; i++) {
+                value = new Float(curValue.intValue() + inc * i);
+                component.setProperty(propKey, value);
+                repaint();
+            }
+        }
+        private void animatedChange(Integer endValue) {
+            Integer curValue = (Integer) component.getPropertyValue(propKey);
+            final float inc = (endValue.intValue() - curValue.intValue()) / segments;
+            Integer value;
+            
+            for (int i = 1; i < segments+1; i++) {
+                value = new Integer((int) (curValue.intValue() + inc * i));
+                component.setProperty(propKey, value);
+                repaint();
+            }
+        }
+        
+        private void animatedChange(Color endValue) {
+            Color curValue = (Color) component.getPropertyValue(propKey);
+            final int rinc = (endValue.getRed() - curValue.getRed()) / segments;
+            final int ginc = (endValue.getGreen() - curValue.getGreen()) / segments;
+            final int binc = (endValue.getBlue() - curValue.getBlue()) / segments;
+            Color value;
+            
+            for (int i = 1; i < segments+1; i++) {
+                value = new Color(curValue.getRed() + rinc * i,
+                                  curValue.getGreen() + ginc * i,
+                                  curValue.getBlue() + binc * i);
+                component.setProperty(propKey, value);
+                repaint();
+            }
+        }
+
+        private void animatedChange(Point2D endValue) {
+            Point2D curValue = (Point2D) component.getPropertyValue(propKey);
+            final double xinc = (endValue.getX() - curValue.getX()) / segments;
+            final double yinc = (endValue.getY() - curValue.getY()) / segments;
+            Point2D.Double value = new Point2D.Double(curValue.getX(), curValue.getY());
+            
+            for (int i = 0; i < segments; i++) {
+                value.x += xinc;
+                value.y += yinc;
+                component.setProperty(propKey, value);
+                repaint();
+            }
+        }
+        
+        private void animatedChange(Point endValue) {
+            Point curValue = (Point) component.getPropertyValue(propKey);
+            final double xinc = (endValue.getX() - curValue.getX()) / segments;
+            final double yinc = (endValue.getY() - curValue.getY()) / segments;
+            Point value = new Point(curValue);
+            
+            for (int i = 0; i < segments; i++) {
+                value.x += xinc;
+                value.y += yinc;
+                component.setProperty(propKey, value);
+                repaint();
             }
         }
             
