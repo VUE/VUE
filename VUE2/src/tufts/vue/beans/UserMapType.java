@@ -40,6 +40,18 @@ public class UserMapType {
 		super();
 	}
 	
+	public UserMapType( UserMapType pType) {
+		mID = pType.getID();
+		mName = pType.getDisplayName();
+		UserProperty [] props = pType.getUserProperties();
+		if( props != null) {
+			UserProperty [] newProps = new UserProperty[ props.length ];
+			for( int i=0; i<props.length; i++) {
+				newProps[i] = new UserProperty( props[i] );
+				}
+			setUserProperties( newProps);
+			}
+	}
 	
 	
 	//////////////
@@ -310,4 +322,6 @@ public class UserMapType {
 			}
 		return str;
 	}
+
+	
 }
