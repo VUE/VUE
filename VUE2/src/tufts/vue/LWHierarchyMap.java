@@ -165,26 +165,28 @@ public class LWHierarchyMap extends LWMap
     }
     
     /**organizes the nodes in a hierarchical manner*/
-    public void layout(LWNode currentNode, int number, int total)
+    public void layout(LWNode currentNode, int number, int total, int layer)
     {   
-        System.out.println("calling layout() on " + currentNode.toString());
         originalNodes.add(currentNode);
         
         LWNode copyNode = (LWNode)nodeHash.get(currentNode);
         LWNode parentNode = (LWNode)parentHash.get(currentNode);
-            
+        
         if(parentNode != null)
           {
+            LWNode parentCopyNode = (LWNode)nodeHash.get(parentNode);
+            
             //set the location
-            Point2D point = parentNode.getLocation();
+            Point2D point = parentCopyNode.getLocation();
             float x = (float)point.getX();
             float y = (float)point.getY();
             
             //location for the node
-            int xIncrement = 50 / total;
+            int xRange = (150 * layer);
+            int xIncrement = xRange / total;
             int xOffSet = number * xIncrement;
             
-            x = x - 25 + xOffSet;
+            x = x - (xRange / 2) + xOffSet;
             y += 60;
             
             copyNode.setLocation(x, y);
@@ -197,8 +199,9 @@ public class LWHierarchyMap extends LWMap
           }
             
         int nextNumber = 0;
-        int nextTotal = currentNode.getLinks().size() - 1; //taking out the parent node
+        int nextTotal = currentNode.getLinks().size(); 
         
+        //doesn't gurantee any special order
         for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
         {
             //links to nodes
@@ -210,7 +213,7 @@ public class LWHierarchyMap extends LWMap
             
             if(!originalNodes.contains(nextNode))
             {
-              layout(nextNode, nextNumber, nextTotal);
+              layout(nextNode, nextNumber, nextTotal, ++layer);
               nextNumber++;
             }
         }
@@ -223,6 +226,6 @@ public class LWHierarchyMap extends LWMap
         createMap();
         
         originalNodes.clear();
-        layout(rootNode, 0, 0);
+        layout(rootNode, 0, 0, 0);
     }
 }
