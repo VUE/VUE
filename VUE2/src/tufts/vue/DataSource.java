@@ -87,13 +87,17 @@ public class DataSource {
             //this.resourceViewer =  VUE.favoritesWindow;
             System.out.println("was I here" + this);
             this.resourceViewer = new FavoritesWindow(displayName);
-
+             System.out.println("Done with Favorties");
                      
         }
          else if(type == FILING_LOCAL) {
-            Vector cabVector = new Vector();
-            System.out.println("Was I here in filing local");
+             
+                
+              Vector cabVector = new Vector();
             LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+            
+            if (address.compareTo("") == 0){
+          
             LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots(); 
             osid.shared.Agent agent = null; //  This may cause problems later.
              System.out.println("Was I here in filing local after. Found cabs ="+rootCabs);
@@ -106,14 +110,34 @@ public class DataSource {
                 cabVector.add (res);
 
                 
-            }    
+            }  
+            }
+            else {
+                
+                osid.shared.Agent agent = null;
+        
+                LocalCabinet rootNode = new LocalCabinet(this.getAddress(),agent,null);
+                CabinetResource res = new CabinetResource (rootNode);
+                   cabVector.add (res);
+                
+                
+                
+            }
             System.out.println("Was I here in Vuedrag" +displayName);
             
             VueDragTree fileTree = new VueDragTree (cabVector.iterator(), displayName);
-            System.out.println("Was I here in Vuedrag 2");
+              fileTree.setRootVisible(true);
+                fileTree.setShowsRootHandles(true);
+              fileTree.expandRow(0);
+             fileTree.setRootVisible(false);
+           
+            
+            JPanel localPanel = new JPanel();
             JScrollPane rSP = new JScrollPane (fileTree);
-            rSP.setPreferredSize(new Dimension(200, 200));
-            this.resourceViewer = rSP;
+            localPanel.setMinimumSize(new Dimension(300,100));
+            localPanel.setLayout(new BorderLayout());
+            localPanel.add(rSP,BorderLayout.CENTER);
+            this.resourceViewer = localPanel;
         }
         else if (type == FILING_REMOTE) {
             //FilingCabDragTree fcdt = new FilingCabDragTree ("ftp", address, userName, password);
@@ -134,8 +158,12 @@ public class DataSource {
             }    
 
             VueDragTree fileTree = new VueDragTree (cabVector.iterator(), displayName);
+            JPanel remotePanel = new JPanel();
             JScrollPane rSP = new JScrollPane (fileTree);
-            this.resourceViewer = rSP;
+            remotePanel.setMinimumSize(new Dimension(300,100));
+            remotePanel.setLayout(new BorderLayout());
+            remotePanel.add(rSP,BorderLayout.CENTER);
+            this.resourceViewer = remotePanel;
         }
 
        

@@ -30,6 +30,7 @@ class DRBrowser extends JPanel {
     {
        
         setLayout(new BorderLayout());
+        
         dsViewer = new DataSourceViewer(this);
         dsViewer.setName("Data Source Viewer"); 
         tufts.vue.VUE.dataSourceViewer = this.dsViewer;

@@ -39,8 +39,10 @@ public class DataSourceViewer  extends JPanel{
     public final int EDIT_MODE = 1;
  
     public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google"};
-    private static int filinglocal,favorites,fedora,google,filingremote,preBreakSpot,postBreakSpot;
-   
+    private static int filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0;String  begIndex = "NONE";
+    //private static int nFavorites = 0,nFilingremote =0 ,nFedora = 0,nGoogle =0;
+    
+   private static boolean dataSourceChanged = false, loadingFromFile = false;
     public static java.util.Vector dataSources;
     DataSource activeDataSource;
     DRBrowser drBrowser;
@@ -52,6 +54,7 @@ public class DataSourceViewer  extends JPanel{
     AbstractAction editAction; 
     AbstractAction deleteAction;
     AbstractAction saveAction;
+    
     final static String XML_MAPPING =  VueResources.getURL("mapping.lw").getFile();
 
     public DataSourceViewer(DRBrowser drBrowser){
@@ -68,6 +71,8 @@ public class DataSourceViewer  extends JPanel{
        
        
         loadDataSources();
+        if (loadingFromFile)dataSourceChanged = false;
+        
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
@@ -82,9 +87,50 @@ public class DataSourceViewer  extends JPanel{
         });
         
         
+         // GRID: addConditionButton
+         JButton addButton=new VueButton("add");
+         addButton.setBackground(this.getBackground());
+        
+         addButton.addActionListener(new ActionListener() {
+               public void actionPerformed(ActionEvent e) {
+                showAddEditWindow(0);
+                
+            }
+        });
+             
+         
+         // GRID: deleteConditionButton
+         JButton deleteButton=new VueButton("delete");
+         deleteButton.setBackground(this.getBackground());
+           deleteButton.addActionListener(new ActionListener() {
+               public void actionPerformed(ActionEvent e) {
+               deleteDataSource(activeDataSource);
+                
+            }
+        });
+         
+         
+        JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+        questionLabel.setPreferredSize(new Dimension(22, 17));
+        questionLabel.setToolTipText("Add or Delete a Data Source");
+        
+         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+         topPanel.add(addButton);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,0));
+         topPanel.add(deleteButton);
+         topPanel.add(questionLabel);
+         topPanel.setMaximumSize(new Dimension(700,20));
+        
+         JPanel  dataSourcePanel = new JPanel();
+         
+         dataSourcePanel.setLayout(new BorderLayout());
+         dataSourcePanel.add(topPanel,BorderLayout.NORTH);
+         
         JScrollPane jSP = new JScrollPane(dataSourceList);
+        
       
-        add(jSP,BorderLayout.CENTER);
+        dataSourcePanel.add(jSP,BorderLayout.CENTER);
+        add(dataSourcePanel,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
     }
     /*
@@ -102,13 +148,13 @@ public class DataSourceViewer  extends JPanel{
         this.activeDataSource = ds;
         ds.setActiveDataSource(true);
         */
-         System.out.println("did it come here? 1" + ds);
+        
         dataSourceList.setSelectedValue(ds,true);
         if (ds.getType() == DataSource.BREAK){
-            System.out.println("did it come here? 2");
+          
             int i = dataSourceList.getSelectedIndex();
             
-            System.out.println("did it come here? 3");
+           
              ds = (DataSource)dataSourceList.getModel().getElementAt(i-1);
              dataSourceList.setSelectedValue(ds,true);
        }
@@ -198,262 +244,305 @@ public class DataSourceViewer  extends JPanel{
     public JDialog getAddEditDialog() {
         return addEditDialog;
     }
-    
-    public void addNewDataSource (String displayName, String name,String searchURL, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
-       try{
-          //System.out.print("Search string" + searchURL );
-           System.out.println("type" + type+ "filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
-        DataSource ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
-        int insertBefore =  0 ; boolean isBeginning = false; postBreakSpot = 0;
-        if (type == DataSource.FILING_LOCAL){
-            
-            if (filinglocal == 0){
-                if (favorites > 0 ){insertBefore = favorites - 1;
-                }
-                else if (filingremote > 0 ){insertBefore = filingremote - 1;}
-                else if (fedora > 0 ) {insertBefore = fedora - 1;}
-                else if(google >0 ){insertBefore = google - 1;}
-                else{}
-            }
-            
-            else{
-                
-                insertBefore = filinglocal;
-                
-            }
-            
-            if ((filinglocal == 0)  && (favorites > 0 || filingremote > 0 || fedora > 0 || google > 0)){postBreakSpot = 1; isBeginning = true;}
-            
-            if (favorites >0 )favorites = postBreakSpot + favorites +1;
-            
-            if (filingremote > 0 ) filingremote = postBreakSpot + filingremote +1;
-            if (fedora > 0 ) fedora = postBreakSpot + fedora + 1;
-            if(google >0 ) google = postBreakSpot + google + 1;
-            
-            filinglocal = filinglocal + 1;
-            
-            
-            
-            
-        }
-        else if (type == DataSource.FAVORITES){
-            
-            
-            if (filingremote > 0 ){insertBefore = filingremote - 1;
-            
-            }
-            else if (fedora > 0 ) {insertBefore = fedora - 1 ;}
-            else if(google >0 ){insertBefore = google - 1;
-            }
-            else {
-                if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
-                
-            }
-            
-            
-            if (favorites == 0) {
-                
-                
-                if (filinglocal >0 ){
-                    
-                    preBreakSpot = insertBefore;
-                    insertBefore = insertBefore + 1;
-                    if (filingremote > 0 ) filingremote = filingremote + 1;
-                    if (fedora > 0 ) fedora = fedora + 1;
-                    if  (google >0 ) google = google +  1;
-                    
-                    
-                }
-                
-                
-                
-                favorites = insertBefore;
-                
-                
-                
-            }
-            if (dataSourceList.getContents().isEmpty()){favorites = favorites + 1;}
-            
-            
-            if (filingremote > 0 ) filingremote = filingremote + 1;
-            if (fedora > 0 ) fedora = fedora + 1;
-            if  (google >0 ) google = google +  1;
-            
-            
-            
-            
-            
-            System.out.println("isnertBef" +insertBefore );
-            
-        }
-        else if (type == DataSource.FILING_REMOTE){
-            
-            System.out.println("fed in remote " + fedora );
-            
-            if (fedora > 0 ) insertBefore = fedora - 1 ;
-            else if(google >0 )insertBefore = google - 1;
-            
-            else {
-                if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
-                
-            }
-            
-            
-            if (filingremote == 0) {
-                
-                if (filinglocal > 0 || favorites > 0 ){
-                    
-                    
-                    preBreakSpot = insertBefore;
-                    insertBefore = insertBefore + 1;
-                    if (fedora > 0 ) fedora = fedora +  1;
-                    if  (google >0 ) google = google  + 1;
-                    
-                }
-                
-                filingremote = insertBefore;
-                
-                
-                
-            }
-            
-            
-            if (dataSourceList.getContents().isEmpty()){filingremote = filingremote + 1;}
-            
-            
-            if (fedora > 0 ) fedora = fedora +  1;
-            if  (google >0 ) google = google  + 1;
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        }
-        else if (type == DataSource.DR_FEDORA){
-            System.out.println("google in fedora " + google );
-            
-            if(google >0 ){insertBefore = google - 1;
-            }
-            else {
-                if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
-                
-            }
-            
-            
-            if (fedora == 0) {
-                
-                if (filinglocal > 0 || favorites > 0 || filingremote > 0){
-                    
-                    preBreakSpot = insertBefore;
-                    insertBefore = insertBefore + 1;
-      
-                }
    
-                fedora = insertBefore;
-                
+public void addNewDataSource (String displayName, String name,String searchURL, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
        
-            }
-            
-            
-            if (dataSourceList.getContents().isEmpty()){fedora = fedora + 1;}
-            
-            if  (google >0 ) google = google + preBreakSpot + 1;
-            
-            System.out.println("isnertBef" +insertBefore + "preBreakSpot" + preBreakSpot);
-            
-            
-            
-            
-            
-        }
-        
-        else {
-            
-            
-            if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
-            
-            if (google == 0) {
-                
-                if (favorites  > 0 | filinglocal > 0 | filingremote > 0 | fedora > 0){
-                    
-                    preBreakSpot = insertBefore;
-                    insertBefore = insertBefore + 1;
-                    
-                }
-                
-                google  = insertBefore;
-                
-                
-                
-            }
-            
-            if (dataSourceList.getContents().isEmpty()){google = google + 1;}
+
+
+         DataSource ds;
+       int insertAt = 0,postBreakSpot = 0, preBreakSpot = 0;
+       int preExists = 0, postExists = 0;
+         System.out.println("This is stuff"+"fav" + favorites + "rem" + filingremote+"beg" + begIndex);
+         
+           try{
+           ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
+           }catch (Exception ex){
+   
+            VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
+            return;  
+           }
      
-        }
-        
-        
-        
-        
-        
+       dataSourceChanged = true;
+       
+            
+       if (dataSourceList.getModel().getSize() == 0){//only element in the list
+           
+           if (type == DataSource.FILING_LOCAL)begIndex = "FILING_LOCAL";
+           else if (type == DataSource.FAVORITES)begIndex = "FAVORITES";
+           else if (type == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
+           else if (type == DataSource.DR_FEDORA)begIndex = "DR_FEDORA";
+           else if (type == DataSource.GOOGLE)begIndex = "GOOGLE";
+         
+     
+       }
+       else{//Have to find the right place
       
-        
-        
-        if (preBreakSpot  > 0){
+       if (type == DataSource.FILING_LOCAL){
+           
+           
+           if (begIndex.compareTo("FILING_LOCAL") == 0){//local file syatem already exists
+           
+           if (favorites > 0) {insertAt = favorites - 1;}
+           else if (filingremote > 0) {insertAt = filingremote - 1;}
+           else if (fedora > 0){insertAt = fedora - 1;}
+           else if (google > 0){insertAt = google - 1;}
+           else {insertAt = dataSourceList.getModel().getSize();}    
+               
+           }
+           
+           else{//no lcoal file system
+    
+               insertAt = 0;
+               postBreakSpot = 1;
+               begIndex = "FILING_LOCAL";
+     
+           }
+           
+           if (favorites > 0) {favorites = favorites + postBreakSpot + 1;}
+           if (filingremote > 0) {filingremote = filingremote + postBreakSpot + 1;}
+           if (fedora > 0){fedora = fedora + postBreakSpot + 1;}
+           if (google > 0){google = google + postBreakSpot + 1;}
+           
+              
+           
+           }
+       else if (type == DataSource.FAVORITES){ 
+           
+           
+         
+           if ((begIndex.compareTo("FAVORITES") == 0) || (favorites > 0)){//Favorites already exists
             
-            DataSource bds = new DataSource("id", ".", "",DataSource.BREAK);
-            if (preBreakSpot != dataSourceList.getContents().getSize()){
-               // dataSources.insertElementAt(bds,preBreakSpot);
-                dataSourceList.getContents().insertElementAt(bds,preBreakSpot);
-            }
-            else{
-                //dataSources.add(bds);
-                dataSourceList.getContents().addElement(bds);
-            }
+           
+           if (filingremote > 0) {insertAt = filingremote - 1;}
+           else if (fedora > 0){insertAt = fedora - 1;}
+           else if (google > 0){insertAt = google - 1;}
+           else {insertAt = dataSourceList.getModel().getSize();}  
+           
+          
+               
+           }
+           
+           else{//no favorites
+    
+               if (begIndex.compareTo("FILING_LOCAL") == 0){
+           if (filingremote > 0) {preBreakSpot  = filingremote - 1; insertAt = preBreakSpot + 1;}
+           else if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
+           else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+           else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;} 
+                   favorites = insertAt;
+                   
+               }
+               
+               else{
+                    insertAt = 0;
+                  begIndex = "FAVORITES";
+                 postBreakSpot = 1;
+               
+               
+               }
+                   
+          
+           if (preBreakSpot > 0){preExists = 1;}
+           if (postBreakSpot > 0){postExists = 1;}
+          
+           }
+           
+           if (filingremote > 0) {filingremote = filingremote +preExists + postExists + 1;}
+           if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
+           if (google > 0){google = google + preExists + postExists + 1;}
+           
+      
+       }
+       
+       else if (type == DataSource.FILING_REMOTE){
+           
+           
+           
+           if ((begIndex.compareTo("FILING_REMOTE") == 0) || (filingremote > 0)){//Filingremote already exists
+           
+           if (fedora > 0){insertAt = fedora - 1;}
+           else if (google > 0){insertAt = google - 1;}
+           else {insertAt = dataSourceList.getModel().getSize();}  
+           
+          
+               
+           }
+           
+           else{//no filing remote
+    
+               if (((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)){
+               if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
+                else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                 else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;} 
+                   filingremote  = insertAt;
+                   
+               }
+               
+               else{
+                    insertAt = 0;
+                  begIndex = "FILINGREMOTE";
+                 postBreakSpot = 1;
+               
+               
+               }
+                   
+                   
+    
+         
+           if (preBreakSpot > 0){preExists = 1;}
+           if (postBreakSpot > 0){postExists = 1;}
+          
+           
+           }
+          
+           if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
+           if (google > 0){google = google + preExists + postExists + 1;}
+              
+           
+           
+           
+             
+          
+           
+       }
+       
+       else  if (type == DataSource.DR_FEDORA){
+          
+           if ((begIndex.compareTo("FEDORA") == 0) || (fedora > 0)){//Fedora already exists
             
-            preBreakSpot = 0;
-        }
-        
-        System.out.println("Insert Before " + insertBefore+"type" + type);
-        
-        if ((insertBefore > 0) || isBeginning){
-            //dataSources.insertElementAt(ds, insertBefore);
-            dataSourceList.getContents().insertElementAt(ds,insertBefore);
-            
-        }
-        else {
-            
-            //dataSources.add(ds);
-            dataSourceList.getContents().addElement(ds);
-        }
-        
-        if (postBreakSpot  > 0){
-            
-            DataSource pds = new DataSource("id", ".", "",DataSource.BREAK);
-            //dataSources.insertElementAt(pds,postBreakSpot);
-            dataSourceList.getContents().insertElementAt(pds,postBreakSpot);
-            postBreakSpot = 0;
-        }
-        
-        
-        
-        System.out.println("filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
-        if (active) setActiveDataSource(ds);
-       }catch (Exception ex){}
-       drBrowser.repaint();
-       drBrowser.validate();
+           if (google > 0){insertAt = google - 1;}
+           else {insertAt = dataSourceList.getModel().getSize();}  
+           
+          
+               
+           }
+           
+           else{//no fedora
+    
+              
+          if ((((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)) || (begIndex.compareTo("FILING_REMOTE") == 0)){
+         
+              
+              if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+           else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;} 
+                   fedora = insertAt;
+                   
+               }
+               
+               else{
+                    insertAt = 0;
+                  begIndex = "FEDORA";
+                 postBreakSpot = 1;
+               
+               
+               }
+                   
+                   
+    
+          
+           if (preBreakSpot > 0){preExists = 1;}
+           if (postBreakSpot > 0){postExists = 1;}
+          
+   
+     
+           
+           }
+         
+          
+           if (google > 0){google = google + preBreakSpot + postBreakSpot + 1;}
+           
+           
+      
+     
+       }
+       
+       else {
+           
+             
+           if ((begIndex.compareTo("GOOGLE") == 0) || (google > 0)){//Google already exists
+          
+            insertAt = dataSourceList.getModel().getSize();
+           
+          
+               
+           }
+           
+           else{//no google
+    
+      
+           
+            preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot + 1;
+                   google = insertAt;
+                   
+               
+             
+     
+           }
+           
+         
+   
+           
+       }
+       
+ 
+       
     }
+       
+       System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
+           
+             if (preBreakSpot > 0){
+                 
+                 try{
+                 DataSource pds = new DataSource("pds","","","", "", "", "", DataSource.BREAK);
+            
+                 dataSourceList.getContents().insertElementAt(pds, preBreakSpot);
+                 }catch (Exception EX) {}
+                 preBreakSpot = 0;
+         
+             }
+           
+       
+           if (dataSourceList.getContents().isEmpty()){dataSourceList.getContents().addElement(ds);}
+               
+               
+               else{dataSourceList.getContents().insertElementAt(ds,insertAt);}
+           
+            if (postBreakSpot > 0){
+                 
+                 try{
+                 DataSource bds = new DataSource("bds","","","", "", "", "", DataSource.BREAK);
+            
+                 dataSourceList.getContents().insertElementAt(bds, preBreakSpot);
+                 }catch (Exception EX) {}
+                   postBreakSpot = 0;
+             }
+           
+              try{
+           if (active)setActiveDataSource(ds);
+              }catch (Exception ex){setActiveDataSource((DataSource)dataSourceList.getContents().getElementAt(0));}
+       
+       
+        System.out.println("This is stuff at end"+"fav" + favorites + "rem" + filingremote+"fed" +fedora+"goo" + google + "beg"+begIndex);
+           
+       
+        drBrowser.repaint();
+        drBrowser.validate();
+   
+       
+}
+
+           
+     
     
     public void deleteDataSource(DataSource dataSource) {
         int currIndex;DataSource nextDs,breakDs = new DataSource(),preBreakDs = new DataSource(); int type; int breakExists = 0;boolean lastElement = false, onlyElement = false;
-          System.out.println("DataSource --filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
+        int nDs;
+        
+        System.out.println("DataSource --del beg"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         int choice = JOptionPane.showConfirmDialog(null,"Do you want to delete Datasource "+dataSource.getDisplayName(),"Confirm Delete",JOptionPane.YES_NO_CANCEL_OPTION);
         if(choice == 0) {
             
-             
+             dataSourceChanged = true;
           currIndex = dataSourceList.getSelectedIndex();
            System.out.println("datasource here crr" + dataSource +"Currindex" + currIndex);
           if (currIndex == 0){//first Elsement
@@ -486,21 +575,42 @@ public class DataSourceViewer  extends JPanel{
                 type = dataSource.getType();
                 
                 if (type == DataSource.FILING_LOCAL){
-                                                    if (filinglocal == 1 ){dataSourceList.getContents().removeElement(breakDs);
-                                                                            }
-                                                    filinglocal = filinglocal -1; 
+                    
+                                                    if (favorites > 0){nDs = favorites -1;}
+                                                    else if (filingremote  > 0){nDs = filingremote - 1;}
+                                                    else if (fedora > 0) {nDs = fedora - 1;}
+                                                    else if (google > 0){nDs = google - 1;}
+                                                    else nDs = dataSourceList.getContents().getSize();
+                                                    
+                                                    if (nDs == 1 ){dataSourceList.getContents().removeElement(breakDs);}
+                                                                           
+                                                                            
+                                                    else {breakExists = 0;}
+                                                        
+       
                                                      if (favorites > 0) favorites = favorites - breakExists - 1; 
                                                      if (fedora > 0) fedora = fedora - breakExists - 1; 
                                                      if (filingremote  > 0) filingremote = filingremote- breakExists - 1; 
                                                      if (google > 0) google = google - breakExists - 1; 
+                                                    
+                                                    
+                                                    System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
                     
                 }
                 else if(type == DataSource.FAVORITES){
-                                                      if (breakExists == 1){
-                                                                           dataSourceList.getContents().removeElement(breakDs);
+                                                    
+                                                   if (filingremote  > 0){nDs = filingremote -favorites- 1;}
+                                                    else if (fedora > 0) {nDs = fedora - favorites - 1;}
+                                                    else if (google > 0){nDs = google - favorites - 1;}
+                                                  
+                                                    else nDs = (dataSourceList.getContents().getSize() - favorites);
+                                      
+                                                        if ((nDs == 1 ) && (breakExists == 1)){dataSourceList.getContents().removeElement(breakDs);
                                                                            favorites = 0;
+                                                                                }
                                                                            
-                                                      }
+                                                                            
+                                                    else {breakExists = 0;}
                                                                            
                                                       if (fedora > 0) fedora = fedora - breakExists - 1; 
                                                       if (filingremote  > 0) filingremote = filingremote- breakExists - 1; 
@@ -508,35 +618,55 @@ public class DataSourceViewer  extends JPanel{
                                                     
                  }
                  else if(type == DataSource.FILING_REMOTE){
-                                                             if (breakExists == 1){
+                                                             if (fedora > 0) {nDs = fedora - filingremote - 1;}
+                                                            else if (google > 0){nDs = google - filingremote - 1;}
+                                                             else nDs = (dataSourceList.getContents().getSize() - filingremote);
+                                                  
+                                                            
+                                                             if ((nDs == 1) && (breakExists == 1)){
                                                                            dataSourceList.getContents().removeElement(breakDs);
                                                                            filingremote = 0;
                                                                            
                                                                 }
+                                                             else {breakExists = 0;}
                                                            
                                                            if (fedora > 0) fedora = fedora - breakExists - 1; 
                                                            if (google > 0) google = google - breakExists - 1; 
                  }
                 
                    else if(type == DataSource.DR_FEDORA) {
-                                                            if (breakExists == 1){
+                                                              if (google > 0){nDs = google - fedora - 1;}
+                                                             else nDs = (dataSourceList.getContents().getSize() - fedora);
+                                                  
+                                                            if ((nDs == 1) && (breakExists == 1)){
                                                                            dataSourceList.getContents().removeElement(breakDs);
                                                                            fedora = 0;
                                                                            
                                                                 }
+                                                            else {breakExists = 0;}
                        
                      
-                                                          if (google > 0) google = google - breakExists - 1; 
+                                                               if (google > 0) google = google - breakExists - 1; 
                      
                      
                  }
                    else{
-                                                       if (google > 0) google = google - 1;
+                                                     nDs = (dataSourceList.getContents().getSize() - google);
+                                                       if ((nDs == 1) && (breakExists == 1)){
+                                                                           dataSourceList.getContents().removeElement(breakDs);
+                                                                           google = 0;
+                                                                           
+                                                                }
+                                                            else {breakExists = 0;}
+                       
+                       
+                                                     
                        
                    }
                 
                  this.setActiveDataSource(nextDs);
                 dataSourceList.getContents().removeElement(dataSource);
+                
               
                
                 
@@ -582,25 +712,42 @@ public class DataSourceViewer  extends JPanel{
                 
                 type = dataSource.getType();
                   if (type == DataSource.FILING_LOCAL){
-                                                    if (filinglocal == 1 ){dataSourceList.getContents().removeElement(breakDs);
-                                                                            breakExists = 1;}
-                                                    filinglocal = filinglocal -1; 
+                    
+                                                    if (favorites > 0){nDs = favorites -1;}
+                                                    else if (filingremote  > 0){nDs = filingremote - 1;}
+                                                    else if (fedora > 0) {nDs = fedora - 1;}
+                                                    else if (google > 0){nDs = google - 1;}
+                                                    else nDs = dataSourceList.getContents().getSize();
+                                                    
+                                                    if (nDs == 1 ){dataSourceList.getContents().removeElement(breakDs);}
+                                                                           
+                                                                            
+                                                    else {breakExists = 0;}
+                                                        
+       
                                                      if (favorites > 0) favorites = favorites - breakExists - 1; 
                                                      if (fedora > 0) fedora = fedora - breakExists - 1; 
                                                      if (filingremote  > 0) filingremote = filingremote- breakExists - 1; 
                                                      if (google > 0) google = google - breakExists - 1; 
+                                                    
+                                                    
+                                                    System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
                     
                 }
-                else if(type == DataSource.FAVORITES){   
-                                                        if (breakExists == 1){
-                                                                           dataSourceList.getContents().removeElement(breakDs);
-                                                                           if (lastElement) favorites = 0;
-                                                                         
-                                                                               
-                                                                               
-                                                                           }
+                else if(type == DataSource.FAVORITES){
+                                                    
+                                                   if (filingremote  > 0){nDs = filingremote- favorites- 1;}
+                                                    else if (fedora > 0) {nDs = fedora - favorites - 1;}
+                                                    else if (google > 0){nDs = google - favorites - 1;}
+                                                  
+                                                    else nDs = (dataSourceList.getContents().getSize() - favorites);
+                                      
+                                                        if ((nDs == 1 ) && (breakExists == 1)){dataSourceList.getContents().removeElement(breakDs);
+                                                                           favorites = 0;
+                                                                                }
                                                                            
-                                                                
+                                                                            
+                                                    else {breakExists = 0;}
                                                                            
                                                       if (fedora > 0) fedora = fedora - breakExists - 1; 
                                                       if (filingremote  > 0) filingremote = filingremote- breakExists - 1; 
@@ -608,45 +755,52 @@ public class DataSourceViewer  extends JPanel{
                                                     
                  }
                  else if(type == DataSource.FILING_REMOTE){
-                     
-                                                           if (breakExists == 1){
+                                                             if (fedora > 0) {nDs = fedora - filingremote - 1;}
+                                                            else if (google > 0){nDs = google - filingremote - 1;}
+                                                             else nDs = (dataSourceList.getContents().getSize() - filingremote);
+                                                  
+                                                            
+                                                             if ((nDs == 1) && (breakExists == 1)){
                                                                            dataSourceList.getContents().removeElement(breakDs);
-                                                                           if (lastElement) filingremote = 0;
+                                                                           filingremote = 0;
                                                                            
                                                                 }
-                     
-                     
-                   
+                                                             else {breakExists = 0;}
+                                                           
                                                            if (fedora > 0) fedora = fedora - breakExists - 1; 
                                                            if (google > 0) google = google - breakExists - 1; 
                  }
                 
                    else if(type == DataSource.DR_FEDORA) {
-                                                                        if (breakExists == 1){
+                                                              if (google > 0){nDs = google - fedora - 1;}
+                                                             else nDs = (dataSourceList.getContents().getSize() - fedora);
+                                                  
+                                                            if ((nDs == 1) && (breakExists == 1)){
                                                                            dataSourceList.getContents().removeElement(breakDs);
-                                                                           if (lastElement) fedora = 0;
+                                                                           fedora = 0;
                                                                            
                                                                 }
+                                                            else {breakExists = 0;}
                        
-                       
-                  
-                                                          if (google > 0) google = google - breakExists - 1; 
+                     
+                                                               if (google > 0) google = google - breakExists - 1; 
                      
                      
                  }
                    else{
-                                     
-                                                                        if (breakExists == 1){
+                                                     nDs = (dataSourceList.getContents().getSize() - google);
+                                                       if ((nDs == 1) && (breakExists == 1)){
                                                                            dataSourceList.getContents().removeElement(breakDs);
-                                                                           if (lastElement) google = 0;
+                                                                           google = 0;
                                                                            
                                                                 }
-                                                                        
-                                                                       
+                                                            else {breakExists = 0;}
+                       
+                       
                                                      
                        
-                       
                    }
+                
                 
               
                 
@@ -660,10 +814,19 @@ public class DataSourceViewer  extends JPanel{
             }
               
               
-              
+            if (dataSourceList.getModel().getSize() > 0){
+                if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.FILING_LOCAL)begIndex = "FILING_LOCAL";
+                else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.FAVORITES)begIndex = "FAVORITES";
+                else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
+                else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.DR_FEDORA)begIndex = "FEDORA";
+                else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.GOOGLE)begIndex = "GOOGLE";
+           
+            }
+            else begIndex = "NONE";
               
           }
           
+        System.out.println("Stuff at end delete" + "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
    
         }
     
@@ -688,6 +851,11 @@ public class DataSourceViewer  extends JPanel{
     }
 
     public static void saveDataSourceViewer(){
+        
+           if (dataSourceChanged){
+       int choice = JOptionPane.showConfirmDialog(null,"Data Sources have been changed. Would you like to save them? ","Confirm Save",JOptionPane.YES_NO_CANCEL_OPTION);
+        if(choice == 0) {
+               
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             Vector sDataSources = new Vector();
             int size = dataSourceList.getModel().getSize();
@@ -699,6 +867,10 @@ public class DataSourceViewer  extends JPanel{
             }
             SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
             marshallMap(f,sViewer);
+            
+           }
+           }
+          
     }
         
     private void createAddPanel(JPanel addPanel) {
@@ -788,17 +960,45 @@ public class DataSourceViewer  extends JPanel{
                 JTextField  searchURLField = (JTextField)panel.getComponent(11);
                 String  searchURLStr = searchURLField.getText();
                  
-                /**
-                int type = 0;                      
-                if (typeStr.compareTo("favorites") == 0) type = DataSource.FAVORITES;
-                else if (typeStr.compareTo("local") == 0) type = DataSource.FILING_LOCAL;
-                else if (typeStr.compareTo("remote") == 0) type = DataSource.FILING_REMOTE;
-                else if (typeStr.compareTo("fedora") == 0) type = DataSource.DR_FEDORA;
-                 */
+             
                 System.out.println ("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
                 if(dsNameStr.length() < 1) {
                     VueUtil.alert(null, "Datasourcename should be atleast 1 char long", "Invalid DataSource Name");
                     return;
+                }
+                
+                if (type == DataSource.DR_FEDORA){
+                    if (adrStr.length() < 1){
+                        VueUtil.alert(null, "Please type a suitable address", "Invalid Address");
+                    return;
+                        
+                        
+                    }
+                      if (userStr.length() < 1){
+                        VueUtil.alert(null, "Please type  a username", "Invalid Username");
+                    return;
+                        
+                        
+                    }
+                    
+                     if (pwStr.length() < 1){
+                        VueUtil.alert(null, "Please type a  password", "Invalid Username");
+                    return;
+                        
+                        
+                    }
+                    
+                }
+                 
+                if (type == DataSource.GOOGLE){
+                
+                     if (searchURLStr.length() < 1){
+                        VueUtil.alert(null, "You need to enter a URL for google search", "Invalid Search String");
+                    return;
+                    
+                     }
+                        
+                    
                 }
                 
                 if((type == 2) && (!checkValidUser( userStr,pwStr,type))) {
@@ -906,12 +1106,14 @@ public class DataSourceViewer  extends JPanel{
                 activeDataSource.setUserName(userField.getText());
                 activeDataSource.setPassword(pwField.getText());
                 activeDataSource.setSearchURL(urlField.getText());
+                
 
                 try {
                     activeDataSource.setViewer();
                 } catch(Exception ex) {
                     ex.printStackTrace();
-                } 
+                }
+                dataSourceChanged = true;
                 setActiveDataSource(activeDataSource); // reset resource panel after edits
                 dia.hide();
             }
@@ -925,14 +1127,22 @@ public class DataSourceViewer  extends JPanel{
         
         
         //--Marshalling etc
-            filinglocal = 0; favorites = 0;fedora=0;google=0;filingremote = 0;preBreakSpot = 0;postBreakSpot =0;
+          favorites = 0;fedora=0;google=0;filingremote = 0;
           
-            boolean debug = false  ;
+            boolean debug = false; boolean  problemloadingfromfile = true;
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
             if(f.exists() && !debug){
-        
-          SaveDataSourceViewer rViewer = unMarshallMap(f);
+                loadingFromFile = true;
+                SaveDataSourceViewer rViewer = unMarshallMap(f);
+                if (rViewer == null){
+              
+                  problemloadingfromfile = true;
+                
+                  VueUtil.alert(null,"There was a problem loading previously saved DataSources. Using default Data Sources","DataSources not loaded");
+                }
+                  
+            else{
           Vector rsources = rViewer.getSaveDataSources();
           while (!(rsources.isEmpty())){
                DataSource ds = (DataSource)rsources.remove(0);
@@ -942,79 +1152,41 @@ public class DataSourceViewer  extends JPanel{
                                          ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
                                          ds.getPassword(), ds.getType(),ds.isActiveDataSource());
                                  }
-          catch(Exception ex) {}
+          catch(Exception ex) {problemloadingfromfile = true;}
           }
            
-            }
-       
+                problemloadingfromfile = false;    
             
-            else{
+            }
+            
+            }
+            
+            if (problemloadingfromfile){
                 
         // this should be created automatically from a config file. That will be done in future.
-                try {  
-                    System.out.println("this is load " + DataSource.FILING_LOCAL+"rem" +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
+               
+                    loadingFromFile = false;
+                 System.out.println("this is load " + DataSource.FILING_LOCAL+"rem" +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
                     
+                  try{
+                      
+                       addNewDataSource("My Computer", "My Computer", "", "", "", "", DataSource.FILING_LOCAL,true);
+                        
+                        
+                     addNewDataSource("My Favorties", "My Favorties", "", "", "", "", DataSource.FAVORITES,true);
                   
-                    DataSource ds = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
-                     try {
-                addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
-                                         ds.getPassword(), ds.getType(),false);
-                                 }catch (Exception ex){}
-                
-                
-                    
-                    ds = new DataSource("ds2", "My Favorites","favorites","","","","",DataSource.FAVORITES);
+                      addNewDataSource("Tufts Digital Library", "Fedora", "", "130.64.77.144", "test", "test", DataSource.DR_FEDORA,true);
                      
-                     
+                      addNewDataSource("UVA Finding Aids", "uva:fedora", "", "dl.lib.virginia.edu", "test", "test", DataSource.DR_FEDORA, false);
+                      addNewDataSource("Tufts Web","google",VueResources.getString("url.google"), "","", "", DataSource.GOOGLE,false);
+                      addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
                    
-                      try {
-                addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
-                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
-                                 }catch (Exception ex){}
-                     
-                     
-                    ds =  new DataSource("ds3", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
-                  try {
-                addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
-                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
-                                 }catch (Exception ex){}
-                     
-                    setActiveDataSource(ds);
-                   
-                    ds= new DataSource("ds4","UVA: Finding Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
                     
-                    try {
-                addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
-                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
-                                 }catch (Exception ex){}
-                    
-                   
-                    ds = new DataSource("ds5", "Tufts Web","google",VueResources.getString("url.google"),"","","",DataSource.GOOGLE);
+                  }catch (Exception ex){System.out.println(" oops problem");}
                  
-                    
-                    try {
-                addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
-                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
-                                 }catch (Exception ex){}
-                    
-                    ds = new DataSource("ds6", "NYU Web","google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9","","","",DataSource.GOOGLE);
-                
-                   
-                    try {
-                addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
-                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
-                                 }catch (Exception ex){}
 
                    
-                }catch (Exception ex) {
-                    System.out.println("Datasources can't be loaded");
-                }
+                
       
             }
             
@@ -1057,26 +1229,28 @@ public class DataSourceViewer  extends JPanel{
        
         Mapping mapping = new Mapping();
             
-        try 
-        {
+        
+            try{
             unmarshaller = new Unmarshaller();
             mapping.loadMapping(XML_MAPPING);    
             unmarshaller.setMapping(mapping);  
             
             FileReader reader = new FileReader(file);
-            
+          
             sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
-            
-            reader.close();
-        } 
-        catch (Exception e) 
-        {
-            System.err.println("DataSourceViewer.SaveDataSourceViewer " + e);
-            e.printStackTrace();
-            sviewer = null;
-        }
+           
        
-        
+            reader.close();
+            
+             }
+            catch (Exception e) 
+                        {
+                         System.err.println("DataSourceViewer.SaveDataSourceViewer " + e);
+                         loadingFromFile = false;
+                          e.printStackTrace();
+                          sviewer = null;
+                                 }
+       
         return sviewer;
     } 
  
