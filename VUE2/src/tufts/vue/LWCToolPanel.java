@@ -69,10 +69,10 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          // Fill Color menu
          //-------------------------------------------------------
          
-         Color [] fillColors = VueResources.getColorArray( "fillColorValues");
-         String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
+         Color [] fillColors = VueResources.getColorArray("fillColorValues");
+         String [] fillColorNames = VueResources.getStringArray("fillColorNames");
          mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
-         mFillColorButton.setColor(VueResources.getColor("defaultFillColor") );
+         mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
          mFillColorButton.setPropertyName(LWKey.FillColor);
          mFillColorButton.setToolTipText("Fill Color");
          mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
@@ -108,18 +108,21 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          
          Color[] textColors = VueResources.getColorArray("textColorValues");
          String[] textColorNames = VueResources.getStringArray("textColorNames");
-         mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
+         mTextColorButton = new ColorMenuButton(textColors, textColorNames, true);
+         mTextColorButton.setPropertyName(LWKey.TextColor);
+         mTextColorButton.setToolTipText("Text Color");
+         mTextColorButton.addPropertyChangeListener(this);
+
+         /*
          mTextColorButton.setText("");
          mTextColorButton.setBackground( bakColor);
          ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
          BlobIcon textBlob = new BlobIcon();
          textBlob.setOverlay( textIcon );
          mTextColorButton.setButtonIcon(textBlob);
-         mTextColorButton.setPropertyName(LWKey.TextColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
-         mTextColorButton.setToolTipText("Text Color");
-         mTextColorButton.addPropertyChangeListener(this);
+         */
 
          //-------------------------------------------------------
          // Font face & size editor
