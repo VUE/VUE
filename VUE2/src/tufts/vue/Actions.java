@@ -72,8 +72,7 @@ class Actions {
     static final Action AddPathwayNode = 
         new MapAction("Add to the Pathway")
         {
-            public void act()//if it isn't the first node, set the curren index to the one before
-            //else keep the same index
+            public void act()
             {
                 LWComponent[] array = VUE.ModelSelection.getArray();
                 
@@ -131,6 +130,35 @@ class Actions {
     }; 
     
     /** End of Jay's Addition*/
+    
+    //-------------------------------------------------------
+    // Alternative View actions
+    //-------------------------------------------------------
+
+    /**Addition by Daisuke Fujiwara*/
+    
+    static final Action HierarchyView = 
+        new MapAction("Hierarchy View")
+        {
+            public void act()
+            {
+                LWHierarchyMap hierarchyMap = new LWHierarchyMap((LWNode)(VUE.ModelSelection.get(0)));
+                hierarchyMap.createHierarchy();
+                
+                VUE.displayMap((LWMap)hierarchyMap);
+            }
+            
+            public boolean enabled()
+            { 
+              if (VUE.ModelSelection.size() != 1 && VUE.ModelSelection.get(0) instanceof LWLink)
+                  return false;
+              
+              else
+                  return true;
+            }
+        };
+        
+    /**End of Addition by Daisuke Fujiwara*/
         
     //-------------------------------------------------------
     // Edit actions

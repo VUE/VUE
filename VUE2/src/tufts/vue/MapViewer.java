@@ -1171,9 +1171,15 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.add(Actions.Delete);
             
             cPopup.addSeparator();
-            //added by Daisuke
+            
+            //added by Daisuke and Jay
+            
             cPopup.add(Actions.AddPathwayNode);
             cPopup.add(Actions.DeletePathwayNode);
+            cPopup.addSeparator();
+            cPopup.add(Actions.HierarchyView);
+            
+            //end of addition
             
             // todo: special add-to selection action that adds
             // hitComponent to selection so have way other
@@ -1457,6 +1463,12 @@ public class MapViewer extends javax.swing.JPanel
                         Actions.AddPathwayNode.setEnabled(false);
                         Actions.DeletePathwayNode.setEnabled(false);
                     }
+                    
+                    if (VUE.ModelSelection.size() == 1 && VUE.ModelSelection.get(0) instanceof LWNode)
+                      Actions.HierarchyView.setEnabled(true);
+                    
+                    else
+                      Actions.HierarchyView.setEnabled(false);
                 }
             }
             else if (hitComponent != null)
