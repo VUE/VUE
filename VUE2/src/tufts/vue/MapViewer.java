@@ -2617,8 +2617,8 @@ public class MapViewer extends javax.swing.JPanel
                 // todo: cleanup -- this conditional makes no sense as we've just set the active viewer to us...
                 if (this == VUE.getActiveViewer())
                 {
-                    if (VUE.getPathwayControl() != null) {
-                        VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
+                    if (VUE.getPathwayInspector().getPathwayControl() != null) {
+                        VUE.getPathwayInspector().getPathwayControl().setPathwayManager(this.map.getPathwayManager());
                         VUE.getOutlineViewTree().switchMap(this.map);
                     }
                 }
