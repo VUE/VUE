@@ -1014,9 +1014,10 @@ public class LWLink extends LWComponent
             } else {
                 bounds.add(quadCurve.ctrlx, quadCurve.ctrly);
             }
-            setEventsEnabled(false);
+            //setEventsEnabled(false);
             try {
-                setSize(bounds.width, bounds.height);//todo
+                // todo check: any problem with events off here?
+                setSize(bounds.width, bounds.height);
                 setX(bounds.x);
                 setY(bounds.y);
             } finally {
@@ -1024,9 +1025,10 @@ public class LWLink extends LWComponent
             }
 
         } else {
-            setEventsEnabled(false);
+            //setEventsEnabled(false);
             try {
-                setSize(Math.abs(startX - endX), Math.abs(startY - endY));//todo
+                // todo check: any problem with events off here?
+                setSize(Math.abs(startX - endX), Math.abs(startY - endY));
                 setX(this.centerX - getWidth()/2);
                 setY(this.centerY - getHeight()/2);
             } finally {
