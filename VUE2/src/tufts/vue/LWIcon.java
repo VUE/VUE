@@ -5,6 +5,7 @@ import java.awt.geom.*;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
+import javax.swing.*;
 import java.util.Iterator;
 
 /**
@@ -87,14 +88,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
-        /*
-        private LWIcon mIconResource;
-        private LWIcon mIconNotes;
-        private LWIcon mIconPathway;
-        private LWIcon mIconMetaData;
-        */
-
-        private LWIcon[] mIcons = new LWIcon[4];
+        private LWIcon[] mIcons = new LWIcon[6];
 
         private boolean mVertical = true;
         private boolean mCoordsLocal;
@@ -116,17 +110,12 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIconHeight = iconHeight;
             setOrientation(vertical);
 
-            /*
-              mIcons[0] = mIconResource = new LWIcon.Resource(lwc, c);
-            mIcons[1] = mIconNotes = new LWIcon.Notes(lwc, c);
-            mIcons[2] = mIconPathway = new LWIcon.Pathway(lwc, c);
-            mIcons[3] = mIconMetaData = new LWIcon.MetaData(lwc, c);
-            */
-
             mIcons[0] = new LWIcon.Resource(lwc, c);
-            mIcons[1] = new LWIcon.Notes(lwc, c);
-            mIcons[2] = new LWIcon.Pathway(lwc, c);
-            mIcons[3] = new LWIcon.MetaData(lwc, c);
+            mIcons[1] = new LWIcon.Behavior(lwc, c);
+            mIcons[2] = new LWIcon.Notes(lwc, c);
+            mIcons[3] = new LWIcon.Pathway(lwc, c);
+            mIcons[4] = new LWIcon.MetaData(lwc, c);
+            mIcons[5] = new LWIcon.Hierarchy(lwc, c);
 
             for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
@@ -505,11 +494,10 @@ public abstract class LWIcon extends Rectangle2D.Float
             // LWIcon tool tips also)
             if (ttNotes == null || !ttLastNotes.equals(mLWC.getNotes())) {
                 ttLastNotes = mLWC.getNotes();
-                int width = ttLastNotes.length();
+                int size = ttLastNotes.length();
                 //System.out.println("width="+width);
 
-                if (width > 30) {
-                    //JTextArea ta = new JTextArea(notes, 1, width);
+                if (size > 50 || ttLastNotes.indexOf('\n') >= 0) {
                     JTextArea ta = new JTextArea(ttLastNotes, 1, 30);
                     ta.setFont(FONT_SMALL);
                     ta.setLineWrap(true);
@@ -570,7 +558,6 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         private final static double scale = 0.04f;
         private final static double scaleInv = 1/scale;
-        private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
 
         private final static Stroke stroke = new BasicStroke((float)(0.5/scale));
 
@@ -741,6 +728,192 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
     }
 
+    static class Behavior extends LWIcon
+    {
+        private final static float sMaxX = 194;
+        private final static float sMaxY = 155;
+
+        private final static double scale = 0.04f;
+        private final static double scaleInv = 1/scale;
+
+        static float iconWidth = (float) (sMaxX * scale);
+        static float iconHeight = (float) (sMaxY * scale);
+
+        //-------------------------------------------------------
+
+        
+        private final static int pw = 15; // plus-sign "stroke" width
+        private final static int bw = 10; // bracket "stroke" width
+        private final static int sl = 52; // bracket stub length
+        private final static Rectangle2D plus_vert = new Rectangle2D.Float(89,16,  pw,123);
+        private final static Rectangle2D plus_horz = new Rectangle2D.Float(37,70,  123,pw);
+        private final static Rectangle2D bracket_left = new Rectangle2D.Float(0,bw-1, bw,sMaxY-bw*2+2);
+        private final static Rectangle2D bracket_right= new Rectangle2D.Float(sMaxX-bw,bw-1, bw,sMaxY-bw*2+2);
+        private final static Rectangle2D bracket_ul = new Rectangle2D.Float(0,0,                sl,bw);
+        private final static Rectangle2D bracket_ur = new Rectangle2D.Float(sMaxX-sl,0,         sl,bw);
+        private final static Rectangle2D bracket_ll = new Rectangle2D.Float(0,sMaxY-bw,         sl,bw);
+        private final static Rectangle2D bracket_lr = new Rectangle2D.Float(sMaxX-sl,sMaxY-bw,  sl,bw);
+
+        
+        Behavior(LWComponent lwc, Color c) { super(lwc, c); }
+        Behavior(LWComponent lwc) { super(lwc); }
+
+        boolean isShowing() { return mLWC.hasResource() && mLWC.getResource().getAsset() != null; }
+
+        void doDoubleClickAction() {
+            System.out.println("Behavior action?");
+        }
+        
+        private JComponent ttBehavior;
+        private String ttBehaviorHtml;
+        public JComponent getToolTipComponent()
+        {
+            String html = "<html>Behavior from: " + mLWC.getResource().getAsset();
+            if (ttBehaviorHtml == null || !ttBehaviorHtml.equals(html)) {
+                ttBehavior = new AALabel(html);
+                ttBehavior.setFont(FONT_SMALL);
+                ttBehaviorHtml = html;
+            }
+            return ttBehavior;
+        }
+        
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX() + (getWidth() - iconWidth) / 2;
+            double y = getY() + (getHeight() - iconHeight) / 2;
+            
+            dc.g.translate(x, y);
+            dc.g.scale(scale,scale);
+
+            dc.g.setColor(mColor);
+            dc.g.fill(plus_vert);
+            dc.g.fill(plus_horz);
+            dc.g.fill(bracket_left);
+            dc.g.fill(bracket_right);
+            dc.g.fill(bracket_ul);
+            dc.g.fill(bracket_ll);
+            dc.g.fill(bracket_ur);
+            dc.g.fill(bracket_lr);
+
+            dc.g.scale(scaleInv,scaleInv);
+            dc.g.translate(-x, -y);
+        }
+    }
+    static class Hierarchy extends LWIcon
+    {
+        private final static float MaxX = 220;
+        private final static float MaxY = 155;
+
+        private final static double scale = 0.04f;
+        private final static double scaleInv = 1/scale;
+
+        private final static Stroke stroke = STROKE_TWO;
+
+        static float iconWidth = (float) (MaxX * scale);
+        static float iconHeight = (float) (MaxY * scale);
+
+        //-------------------------------------------------------
+
+        private final static Line2D line1 = new Line2D.Float(101, 16, 141, 16); // top horiz
+        private final static Line2D line2 = new Line2D.Float( 70, 76, 141, 76); // middle long horiz
+        private final static Line2D line3 = new Line2D.Float(101,136, 141,136); // bottom horiz
+        private final static Line2D line4 = new Line2D.Float(101, 16, 101,136); // vertical
+
+        private final static Rectangle2D box = new Rectangle2D.Float(0,51, 56,56);
+        private final static Rectangle2D rect1 = new Rectangle2D.Float(150,  0, 70,33);
+        private final static Rectangle2D rect2 = new Rectangle2D.Float(150, 63, 70,33);
+        private final static Rectangle2D rect3 = new Rectangle2D.Float(150,122, 70,33);
+
+        
+        Hierarchy(LWComponent lwc, Color c) { super(lwc, c); }
+        Hierarchy(LWComponent lwc) { super(lwc); }
+
+        boolean isShowing() { return mLWC.hasChildren(); }
+
+        void doDoubleClickAction() {
+            //VUE.objectInspectorPanel.activateHierarchyTab();
+            VUE.objectInspector.setVisible(true);
+        }
+        
+        private JLabel ttTree;
+        private String ttTreeHtml;
+        public JComponent getToolTipComponent()
+        {
+            if ((mLWC instanceof LWContainer) == false)
+                return new JLabel("no children: no hierarchy");
+            
+            String html = "<html>" + getChildHtml(mLWC, 1);
+            if (html.endsWith("<br>"))
+                html = html.substring(0, html.length()-4);
+            //System.out.println("HTML [" + html + "]");
+            if (ttTreeHtml == null || !ttTreeHtml.equals(html)) {
+                ttTree = new AALabel(html);
+                ttTree.setFont(FONT_MEDIUM);
+                ttTreeHtml = html;
+            }
+            return ttTree;
+        }
+
+        private static final String Indent = "&nbsp;&nbsp;&nbsp;&nbsp;";
+        private static final String RightMargin = Indent;
+        //private static final String RightMargin = "&nbsp;&nbsp;&nbsp;";
+        
+        private String getChildHtml(LWComponent c, int indent)
+        {
+            String label = null;
+            if (indent == 1)
+                label = "&nbsp;<b>" + c.getLabel() + "</b>";
+            else
+                label = c.getLabel();
+            
+            String html = label + RightMargin + "<br>";
+
+            if (!(c instanceof LWContainer))
+                return html;
+            
+            Iterator i = ((LWContainer)c).getChildIterator();
+            int n = 0;
+            while (i.hasNext()) {
+                LWComponent child = (LWComponent) i.next();
+                //if (n++ > 0) html += "<br>";
+                for (int x = 0; x < indent; x++)
+                    html += Indent;
+                if (indent % 2 == 0)
+                    html += "- ";
+                else
+                    html += "+ ";
+                html += getChildHtml(child, indent + 1);
+            }
+            return html;
+        }
+        
+
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX() + (getWidth() - iconWidth) / 2;
+            double y = getY() + (getHeight() - iconHeight) / 2;
+            
+            dc.g.translate(x, y);
+            dc.g.scale(scale,scale);
+
+            dc.g.setColor(mColor);
+            dc.g.fill(box);
+            dc.g.fill(rect1);
+            dc.g.fill(rect2);
+            dc.g.fill(rect3);
+            dc.g.setStroke(stroke);
+            dc.g.draw(line1);
+            dc.g.draw(line2);
+            dc.g.draw(line3);
+            dc.g.draw(line4);
+
+            dc.g.scale(scaleInv,scaleInv);
+            dc.g.translate(-x, -y);
+        }
+    }
+    
     private static Font MinisculeFont = new Font("SansSerif", Font.PLAIN, 1);
     //private static Font MinisculeFont = new Font("Arial Narrow", Font.PLAIN, 1);
 
