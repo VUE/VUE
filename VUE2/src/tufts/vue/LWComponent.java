@@ -116,7 +116,8 @@ public class LWComponent
         }
         public abstract void setValue(LWComponent c, Object v);
         public abstract Object getValue(LWComponent c);
-        public String toString() { return ">" + name; }
+        public String toString() { return name; } // must == name for now until tool panels handle new key objects
+        //public String toString() { return ">" + name; }
     }
     public static final Key KEY_FillColor = new Key("fill.color") {
             public void setValue(LWComponent c, Object val) { c.setFillColor((Color)val); }
@@ -160,9 +161,10 @@ public class LWComponent
         if (key instanceof Key) {
             ((Key)key).setValue(this, val);
         }
+        // still need this hack for fill color name till toolbars handle the new key objects
+        else if (key == LWKey.FillColor.name)   setFillColor( (Color) val);
         //if (val == UnsupportedPropertyValue) return;
                                            
-        //if (key == LWKey.FillColor)        setFillColor( (Color) val);
         else if (key == LWKey.TextColor)        setTextColor( (Color) val);
         else if (key == LWKey.StrokeColor)      setStrokeColor( (Color) val);
         else if (key == LWKey.StrokeWidth)      setStrokeWidth( ((Float) val).floatValue());
