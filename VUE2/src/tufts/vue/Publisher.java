@@ -149,8 +149,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         informationArea.setSize(WIDTH-50, HEIGHT/3);
         
         JLabel dsLabel = new JLabel("Where would you like to save the map:");
-        dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
-        
+       dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
+      
         JPanel buttonPanel = new JPanel();
         publishMapRButton = new JRadioButton("Export Map");
         publishCMapRButton = new JRadioButton("Export IMSCP Map");
@@ -350,7 +350,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public void publishCMap() {
         try {
             File savedCMap = createIMSCP();
-            if(((DataSource)dataSourceComboBox.getSelectedItem()).getType() == DataSource.FILING_LOCAL) {
+            /*
+           if(((DataSource)dataSourceComboBox.getSelectedItem()).getType() == DataSource.FILING_LOCAL) {
+            
+       
                 InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
                 OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip")));
                 
@@ -367,6 +370,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 System.out.println("Exported Map: id = "+pid);
                 
             }
+            */
             
             this.dispose();
         } catch (Exception ex) {

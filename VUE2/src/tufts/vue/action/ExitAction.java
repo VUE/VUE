@@ -94,7 +94,7 @@ public class ExitAction extends AbstractAction {
         
             ds = (DataSource)model.getElementAt(i);
          
-            if (ds.getType() == DataSource.FAVORITES){
+            if (ds instanceof FavoritesDataSource){
             
                 FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();              
                 if (fw.favoritesTree != null)  {
@@ -111,7 +111,7 @@ public class ExitAction extends AbstractAction {
             }
         
         }
-        tufts.vue.DataSourceViewer.saveDataSourceViewer();
+        //tufts.vue.DataSourceViewer.saveDataSourceViewer();
     }
     
 }

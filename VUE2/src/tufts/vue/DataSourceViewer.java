@@ -703,6 +703,39 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         
     }
+   
+    
+    /*
+    * static method that returns all the datasource where Maps can be published.
+    * Only FEDORA @ Tufts is available at present
+    */
+   public static Vector getPublishableDataSources(int i) {
+       Vector mDataSources = new Vector();
+       try {
+           mDataSources.add(new FedoraDataSource("Tufts Digital Library","vue-dl.tccs.tufts.edu","test","test"));
+           
+       } catch (Exception ex) {
+           System.out.println("Datasources can't be loaded");
+       }
+      
+       /**
+       Iterator i = dataSources.iterator();
+       while(i.hasNext() ) {
+           DataSource mDataSource = (DataSource)i.next();
+           if(mDataSource.getType() == DataSource.DR_FEDORA)
+               mDataSources.add(mDataSource);
+       }
+        */
+       return mDataSources;
+           
+   }
+
+
+
+    
+    
+    
+    
     
     public void keyPressed(KeyEvent e) {
     }    
