@@ -472,15 +472,28 @@ public class MapViewer extends javax.swing.JPanel
         return this.zoomFactor;
     }
     
+    //private Point mLastCorner;
     public void reshape(int x, int y, int w, int h)
     {
         if (DEBUG_PAINT) System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h);
-        //Point p=null;
-        //if (isShowing()) p = getLocationOnScreen();
+        /*
+        Point p=null;
+        if (isShowing()) {
+            p = getLocationOnScreen();
+            if (mLastCorner != null && !p.equals(mLastCorner)) {
+                int dx = mLastCorner.x - p.x;
+                int dy = mLastCorner.y - p.y;
+                setMapOriginOffset(this.mapOriginX - dx,
+                                   this.mapOriginX - dy);
+            }
+        }
+        */
         //System.out.println(" ul start: "+p);
         super.reshape(x,y, w,h);
         //if (p!=null) p = getLocationOnScreen();
         //System.out.println("ul finish: "+p);
+
+        //if (isShowing()) mLastCorner = getLocationOnScreen();
         repaint(250);
         //requestFocus();
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
