@@ -213,6 +213,7 @@ class LWCInspector extends javax.swing.JPanel
             }
 
             idField.setText(lwc.getID());
+            labelField.setBackground(lwc.getFillColor());
             loadText(labelField, lwc.getLabel());
             loadText(categoryField, lwc.getCategory());
             loadText(notesField, lwc.getNotes());
