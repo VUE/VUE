@@ -692,6 +692,10 @@ VueAction: Zoom 100% n=1
                         e.printStackTrace();
                         System.err.println("*** Exception drawing: " + c);
                         System.err.println("***         In parent: " + this);
+                        System.err.println("***    Graphics-start: " + g);
+                        System.err.println("***      Graphics-end: " + gg);
+                        System.err.println("***   Transform-start: " + g.getTransform());
+                        System.err.println("***     Transform-end: " + gg.getTransform());
                     } finally {
                         gg.dispose();
                     }
