@@ -176,6 +176,13 @@ public class ActionUtil {
             
             reader.close();
         } 
+        
+        catch (MappingException me)
+        {
+            System.out.println("exception");
+            System.exit(0);
+        }
+        
         catch (Exception e) 
         {
             System.err.println("ActionUtil.unmarshallMap: " + e);
