@@ -408,53 +408,5 @@
 		</field>
 	</class>
    
-         <!--saving DataSourceViewer-->
-<!--
-<class name = "tufts.vue.SaveDataSourceViewer">
-		<map-to xml ="SaveDataSourceViewer"/>
-		
-		<field name = "SaveDataSources" type = "tufts.vue.DataSource" collection = "vector">
-			<bind-xml name ="dataSource" />
-		</field>
-</class>
-
-<class name = "tufts.vue.DataSource">
-       <map-to xml ="DataSource"/>
-       <field name = "id" type = "string">
-            <bind-xml name ="id" node = "element" />
-       </field>     
-       <field name = "name" type = "string">
-            <bind-xml name ="name" node = "element" />
-       </field>
-       <field name = "displayName" type = "string">
-            <bind-xml name ="displayName" node = "element" />
-       </field>
-       <field name = "type" type = "integer">
-            <bind-xml name ="name" node = "attribute" />
-       </field>
-       
-       <field name = "autoConnect" type = "boolean">
-            <bind-xml name ="autoConnect" node = "attribute" />
-       </field>
-       
-       <field name = "address" type = "string">
-            <bind-xml name ="address" node = "element" />
-       </field>
-       <field name = "userName" type = "string">
-            <bind-xml name ="userName" node = "attribute" />
-       </field>
-        <field name = "searchURL" type = "string">
-            <bind-xml name ="searchURL" node = "element" />
-       </field>
-       <field name = "activeDataSource" type = "boolean">
-            <bind-xml name ="activeDataSource" node = "attribute" />
-       </field>
-       <field name = "password" type = "string">
-            <bind-xml name ="password" node = "attribute" />
-       </field>
- 
- </class>
-
--->
-  
+        
 </mapping>
