@@ -35,87 +35,101 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
     private final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY |
-        DnDConstants.ACTION_LINK;
+        DnDConstants.ACTION_LINK |
+        DnDConstants.ACTION_MOVE;
        private final boolean debug = true;
+       private final boolean sametree = true;
+       
     
        public VueDandDTree(FavoritesNode root){ 
           
                
-             super(root,"Bookmarks");
-             this.setEditable(true);
-             
-            
-       
-                  
-             VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
-      
-         this.setCellRenderer(renderer);
+                 super(root,"Bookmarks");
+                 this.setEditable(true);
+                
+                 VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
+                  this.setCellRenderer(renderer);
          
         
-        new DropTarget(this, // component
-        ACCEPTABLE_DROP_TYPES, // actions
-         this);
+                    new DropTarget(this, // component
+                    ACCEPTABLE_DROP_TYPES, // actions
+                    this);
    
-       
-
-        }
+                                    }
         
-   public void drop(DropTargetDropEvent e ) {
+ public void drop(DropTargetDropEvent e ) {
+               /*
         
-       if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
-            
-            e.acceptDrop(DnDConstants.ACTION_COPY);
-        } else {
-            if (debug) System.out.println("Dtree: rejecting drop");
-            e.rejectDrop();
-            return;
-        }
-       
-            java.awt.Point dropLocation = e.getLocation();
+                        if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
+                                      if (e.isLocalTransfer()) {
+                                          System.out.println("this could be it");
+                                           e.acceptDrop(DnDConstants.ACTION_MOVE);
+                                      }
+                                      else {
+                                    e.acceptDrop(DnDConstants.ACTION_COPY);
+                                      }
+                                     
+                            } 
+                        else {
+                                if (debug) System.out.println("Dtree: rejecting drop");
+                                    e.rejectDrop();
+                                    return;
+                                }
+                *
+                */
+      
+                            if (e.isLocalTransfer()) {
+                                          System.out.println("this could be it");
+                                           e.acceptDrop(DnDConstants.ACTION_MOVE);
+                                      }
+                                      else {
+                                    e.acceptDrop(DnDConstants.ACTION_COPY);
+                                      }
+                            
+                            
+                java.awt.Point dropLocation = e.getLocation();
     
-         TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
+                TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
         
-       if (isvalidDropNode(treePath)){
-         
-          
-        boolean success = false;
-        Transferable transfer = e.getTransferable();
-        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+                  if (isvalidDropNode(treePath)){
+           
+                      boolean success = false;
+                     Transferable transfer = e.getTransferable();
+                     DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
 
-        String resourceName = null;
-         java.util.List fileList = null;
-        java.util.List assetList = null;
+                        String resourceName = null;
+                        java.util.List fileList = null;
+                        java.util.List assetList = null;
         
-          if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
-        for (int i = 0; i < dataFlavors.length; i++) {
-            DataFlavor flavor = dataFlavors[i];
-            Object data = null;
-            System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
+                    if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
+                     for (int i = 0; i < dataFlavors.length; i++) {
+                                     DataFlavor flavor = dataFlavors[i];
+                                        Object data = null;
+                                    System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
             
-            if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
-            try {
-                data = transfer.getTransferData(flavor);
-            } catch (Exception ex) {
-                System.out.println("getTransferData: " + ex);
-            }
-            if (debug) System.out.println(" transferData=" + data);
+                        if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
+                        try {
+                                data = transfer.getTransferData(flavor);
+                                } catch (Exception ex) {
+                              System.out.println("getTransferData: " + ex);
+                                }
+                        if (debug) System.out.println(" transferData=" + data);
 
-            try {
-                if (flavor.isFlavorJavaFileListType()) {
+                        try {
+                             if (flavor.isFlavorJavaFileListType()) {
                     
-                      if (debug) System.out.println("FILE LIST FOUND");
-                    fileList = (java.util.List) transfer.getTransferData(flavor);
+                                     if (debug) System.out.println("FILE LIST FOUND");
+                                         fileList = (java.util.List) transfer.getTransferData(flavor);
                    
-            java.util.Iterator iter = fileList.iterator();
+                                        java.util.Iterator iter = fileList.iterator();
             
-            while (iter.hasNext()) {
-                java.io.File file = (java.io.File) iter.next();
-                if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                 if (file.isDirectory()){
-                      if (debug) System.out.println("Dropping Directories not allowed");
-                     }
-                     else{
-                     System.out.println(" file welcome");
+                                             while (iter.hasNext()) {
+                                               java.io.File file = (java.io.File) iter.next();
+                                                 if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
+                 
+                                                        
+                                                         
+                  
                        DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
 
                        FileNode newNode = new FileNode(file);
@@ -123,11 +137,11 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                        model.insertNodeInto(newNode, node, 0);             
                    
                    
-                     }
-            }
-                success = true;
+                                                        
+                                                }
+                            success = true;
                       
-                    break;
+                                break;
                 } else if (flavor.getHumanPresentableName().equals("asset")) {
                      if (debug) System.out.println("ASSET FOUND");
                     assetList = (java.util.List) transfer.getTransferData(flavor);
@@ -228,7 +242,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
               if (treePath.getLastPathComponent() instanceof FileNode){
                       FileNode node = (FileNode)treePath.getLastPathComponent();
                       File fromNodeFile = node.getFile();
-                      System.out.println("File on click" + fromNodeFile);
+                     
               }
                }
                     
@@ -239,29 +253,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 
                 if (treePath!=null) {
                    
-              if (treePath.getLastPathComponent() instanceof FileNode){
+                     if (treePath.getLastPathComponent() instanceof FileNode){
                       FileNode node = (FileNode)treePath.getLastPathComponent();
-                      
-                   // System.out.println("This is FileNode");  
-                  
-                    
-                 }
-                 else {
-                     // System.out.println("This is FavNode");  
-                 }
-                
-                
-               //  System.out.println("This is in my test");  
-                 
-                }
+                            }
+                        }
         
         
             
-            }
-            
-           
-            
-            
+                            }          
             
         });
    
