@@ -96,7 +96,7 @@ public class NotePanel extends JPanel
      * Set us editing notes for @param pObj LWComponent
      **/
     public void updatePanel(LWComponent pObj) {
-        System.out.println(this + " updatePanel " + pObj);
+        //System.out.println(this + " updatePanel " + pObj);
         if (true||pObj != mObject) {
             saveNotes();
             if (mObject != null && mObject != pObj)

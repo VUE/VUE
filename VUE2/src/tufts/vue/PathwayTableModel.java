@@ -225,8 +225,13 @@ public class PathwayTableModel extends DefaultTableModel
             LWPathway p = getPathwayForElementAt(row);
             if (p.isLocked())
                 return false;
-            if (col == 3) // label always editable
-                return true;
+
+            //if (col == 3) // label always editable
+            //return true;
+            // 2 problems: need to add end-of-action undo
+            // marker, and as single-line edit will blow
+            // away any newlines in the label.
+            
             if (getElement(row) instanceof LWPathway)
                 return col == 1;  // if pathway, color also editable
         }
