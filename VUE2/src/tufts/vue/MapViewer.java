@@ -64,10 +64,10 @@ public class MapViewer extends javax.swing.JPanel
     //-------------------------------------------------------
 
     /** an alias for the global selection -- sometimes taking on the value null */
-    protected LWSelection VueSelection = VUE.ModelSelection;
+    protected LWSelection VueSelection = null;
     /** a group that contains everything in the current selection.
      *  Used for doing operations on the entire group (selection) at once */
-    protected LWGroup draggedSelectionGroup = LWGroup.createTemporary(VueSelection);
+    protected LWGroup draggedSelectionGroup = LWGroup.createTemporary(VUE.ModelSelection);
     /** the currently dragged selection box */
     protected Rectangle draggedSelectorBox;
     /** the last selector box drawn -- for repaint optimization */
@@ -503,8 +503,12 @@ public class MapViewer extends javax.swing.JPanel
         //System.out.println("MapViewer: selectionChanged");
         if (VUE.getActiveMap() != this.map)
             VueSelection = null; // insurance: nothing should be happening here if we're not active
-        else
-            VueSelection = VUE.ModelSelection;
+        else {
+            if (VueSelection != VUE.ModelSelection) {
+                if (DEBUG_FOCUS) System.out.println("*** Pointing to selection: " + this);
+                VueSelection = VUE.ModelSelection;
+            }
+        }
         repaintSelection();
     }
     
@@ -2009,7 +2013,7 @@ public class MapViewer extends javax.swing.JPanel
             
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
-            grabVueApplicationFocus();
+            grabVueApplicationFocus("mousePressed");
             requestFocus();
 
             dragStart.setLocation(e.getX(), e.getY());
@@ -2667,7 +2671,7 @@ public class MapViewer extends javax.swing.JPanel
                 repaint();
             }
             else if (mouseWasDragged && (indication == null || indication instanceof LWNode)) {
-                handleNodeOnNodeDrop();
+                checkAndHandleNodeDropReparenting();
             }
 
             //-------------------------------------------------------
@@ -2755,12 +2759,13 @@ public class MapViewer extends javax.swing.JPanel
          * Take what's in the selection and drop it on the current indication,
          * or on the map if no current indication.
          */
-        private void handleNodeOnNodeDrop()
+        private void checkAndHandleNodeDropReparenting()
         {
             //-------------------------------------------------------
             // check to see if any things could be dropped on a new parent
             // This got alot more complicated adding support for
-            // dropping whole selections of components.
+            // dropping whole selections of components, especially
+            // if there are embedded children selected.
             //-------------------------------------------------------
             
             LWContainer parentTarget;
@@ -2773,7 +2778,14 @@ public class MapViewer extends javax.swing.JPanel
             java.util.Iterator i = VueSelection.iterator();
             while (i.hasNext()) {
                 LWComponent droppedChild = (LWComponent) i.next();
-                if (droppedChild instanceof LWLink) // don't reparent links!
+                // don't reparent links
+                if (droppedChild instanceof LWLink)
+                    continue;
+                // can only pull something out of group via ungroup
+                if (droppedChild.getParent() instanceof LWGroup)
+                    continue;
+                // don't do anything if parent might be reparenting
+                if (droppedChild.getParent().isSelected())
                     continue;
                 // todo: actually re-do drop if anything other than map so will re-layout
                 if ((droppedChild.getParent() != parentTarget || parentTarget instanceof LWNode)
@@ -2921,19 +2933,8 @@ public class MapViewer extends javax.swing.JPanel
                     handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
                 }
                 
-                if (!handled && hitComponent != null && !(hitComponent instanceof LWGroup)) {
-                    // todo: need LWComponent flag as to if supports displaying a label
+                if (!handled && hitComponent != null && hitComponent.supportsUserLabel())
                     activateLabelEdit(hitComponent);
-                }
-
-                /*
-                if (!handled && hitComponent instanceof LWNode) {
-                    activateLabelEdit(hitComponent);
-                }
-                else if (hitComponent instanceof LWLink) {
-                    activateLabelEdit(hitComponent);
-                }
-                */
             }
             }
             hitOnSelectionHandle = false;
@@ -3024,7 +3025,7 @@ public class MapViewer extends javax.swing.JPanel
             int idx = 0;
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (c instanceof LWNode) 
+                if (!(c instanceof LWLink)) 
                     original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getShapeBounds();
                 //original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
             }
@@ -3045,7 +3046,7 @@ public class MapViewer extends javax.swing.JPanel
             
             draggedBounds = resize_box.getRect();
 
-            dragResizeReshapeSelection(i, VueSelection.iterator(), VueSelection.size() > 1 && e.isControlDown());
+            dragResizeReshapeSelection(i, VueSelection.iterator(), VueSelection.size() > 1 && e.isAltDown());
         }
 
         /** @param cpi - control point index (which ctrl point is being moved) */
@@ -3058,15 +3059,17 @@ public class MapViewer extends javax.swing.JPanel
             //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (!(c instanceof LWNode))
+                if (c instanceof LWLink) // must match conditinal aboice where we collect original_lwc_bounds[]
                     continue;
                 if (c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible
                     continue;
                 Rectangle2D.Float c_original_bounds = original_lwc_bounds[idx++];
                 Rectangle2D.Float c_new_bounds = new Rectangle2D.Float();
 
-                if (repositionOnly == false) {
-                    // todo: repositionOnly needs work
+                if (c.supportsUserResize() && repositionOnly == false) {
+                    //-------------------------------------------------------
+                    // Resize
+                    //-------------------------------------------------------
                     c_new_bounds.width = c_original_bounds.width * scaleX;
                     c_new_bounds.height = c_original_bounds.height * scaleY;
                     if (c instanceof LWNode)
@@ -3075,6 +3078,9 @@ public class MapViewer extends javax.swing.JPanel
                 }
                 
                 if ((c.getParent() instanceof LWNode) == false) {
+                    //-------------------------------------------------------
+                    // Reposition (todo: needs work in the case of not resizing)
+                    //-------------------------------------------------------
                     // if our parent is a node, parent handles positioning -- don't move it here
                     c_new_bounds.x = draggedBounds.x + (c_original_bounds.x - originalSelectionBounds.x) * scaleX;
                     c_new_bounds.y = draggedBounds.y + (c_original_bounds.y - originalSelectionBounds.y) * scaleY;
@@ -3133,9 +3139,12 @@ public class MapViewer extends javax.swing.JPanel
         repaint();
     }
 
-    private void grabVueApplicationFocus()
+    private void grabVueApplicationFocus(String from)
     {
+        //if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from);
         if (VUE.getActiveViewer() != this) {
+            if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
+            //new Throwable("REAL GRAB").printStackTrace();
             MapViewer activeViewer = VUE.getActiveViewer();
             if (activeViewer != this) {
                 LWMap oldActiveMap = null;
@@ -3156,18 +3165,21 @@ public class MapViewer extends javax.swing.JPanel
                 }
                 //end of addition
                 
-                if (oldActiveMap != this.map)
-                	// clear and notify since the selected map changed.
+                this.VueSelection = VUE.ModelSelection;
+                if (oldActiveMap != this.map) {
+                    if (DEBUG_FOCUS) System.out.println("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
+                    resizeControl.active = false;
+                    // clear and notify since the selected map changed.
                     VUE.ModelSelection.clearAndNotify();
+                }
             }
         } 
-        this.VueSelection = VUE.ModelSelection;
     }
     public void focusGained(FocusEvent e)
     {
-        grabVueApplicationFocus();
-        repaint();
         if (DEBUG_FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        grabVueApplicationFocus("focusGained");
+        repaint();
         new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
     }
 
@@ -3177,12 +3189,17 @@ public class MapViewer extends javax.swing.JPanel
     public void setVisible(boolean doShow)
     {
         if (DEBUG_FOCUS) System.out.println(this + " setVisible " + doShow);
+        //if (!getParent().isVisible()) {
+        if (doShow && getParent() == null) {
+            if (DEBUG_FOCUS) System.out.println(this + " IGNORING (parent null)");
+            return;
+        }
         super.setVisible(doShow);
         if (doShow) {
             // todo: only do this if we've just been opened
             //if (!isAnythingCurrentlyVisible())
             //zoomTool.setZoomFitContent(this);//todo: go thru the action
-            grabVueApplicationFocus();
+            grabVueApplicationFocus("setVisible");
             requestFocus();
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
             //new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise(); // handled in focusGained
@@ -3340,7 +3357,7 @@ public class MapViewer extends javax.swing.JPanel
 
     public String toString()
     {
-        return "MapViewer<" + (isRightSide ? "right" : "left") + "> "
+        return "MapViewer<" + (isRightSide ? "right" : "*LEFT") + "> "
             + "\'" + getMap().getLabel() + "\' "
             + Integer.toHexString(hashCode());
     }
