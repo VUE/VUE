@@ -24,12 +24,21 @@ import java.awt.RenderingHints;
 
 public class DrawContext
 {
+    // consider getting rid of all the methods and make all the members final.
     public final Graphics2D g;
     private double zoom = 1.0;
     private int index;
     private boolean disableAntiAlias = false;
     private boolean isPrinting = false;
     private boolean isDraftQuality = false;
+
+    private VueTool activeTool;
+    // tracking the active tool for conditional drawing would probably be
+    // better handled through a more comprehensive tool architecture,
+    // that gave the active tool chances to draw whatever it wants
+    // at 4 different points: under everything, over everything,
+    // under the selected object and over the selected object.
+
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
     // that grabs transform scale value.
@@ -42,6 +51,13 @@ public class DrawContext
     public DrawContext(Graphics2D g)
     {
         this(g, 1.0);
+    }
+
+    public void setActiveTool(VueTool tool) {
+        activeTool = tool;
+    }
+    public VueTool getActiveTool() {
+        return activeTool;
     }
     
     /**
@@ -138,6 +154,7 @@ public class DrawContext
         this.index = dc.index;
         this.isPrinting = dc.isPrinting;
         this.isDraftQuality = dc.isDraftQuality;
+        this.activeTool = dc.activeTool;
     }
 
 
