@@ -76,7 +76,7 @@ public class MapViewer extends javax.swing.JComponent
     public interface Listener extends java.util.EventListener {
         public void mapViewerEventRaised(MapViewerEvent e);
     }
-    
+
     protected LWMap map;                   // the map we're displaying & interacting with
     private TextBox activeTextEdit;          // Current on-map text edit
     
@@ -906,6 +906,10 @@ public class MapViewer extends javax.swing.JComponent
         }
         repaint();
     }
+
+    void paintImmediately() {
+        paintImmediately(getVisibleBounds());
+    }
     
     private void RR(Rectangle r) {
         if (OPTIMIZED_REPAINT)
@@ -1529,7 +1533,7 @@ public class MapViewer extends javax.swing.JComponent
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("*paint* Exception painting in: " + this);
-            System.err.println("*paint* VueSelection: " + VueSelection);
+            System.err.println("*paint* VueSelection: " + VueSelection + ", first=" + VueSelection.first());
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
@@ -2046,13 +2050,15 @@ public class MapViewer extends javax.swing.JComponent
         //System.out.println("screenSelectionBounds="+mapSelectionBounds);
         
         // todo: this check is a hack: need to check if any in selection return true for supportsUserResize
-        if (VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
-            ||
-            (VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())) {
+        if (//VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
+            //||
+            //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
+            VueSelection.allOfType(LWLink.class)
+            ) {
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
-            if (DEBUG.BOXES || VueSelection.size() > 1 || !VueSelection.allOfType(LWLink.class))
+            if (DEBUG.BOXES || VueSelection.size() > 1 /*|| !VueSelection.allOfType(LWLink.class)*/)
                 g2.draw(mapSelectionBounds);
             // no resize handles if only links or groups
             resizeControl.active = false;
@@ -2692,9 +2698,10 @@ public class MapViewer extends javax.swing.JComponent
                 }*/
             boolean handled = true;
             
-            if (key == KeyEvent.VK_DELETE) {
+            if (key == KeyEvent.VK_DELETE || key == KeyEvent.VK_BACK_SPACE) {
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                Actions.Delete.fire(this);
+                if (!e.isConsumed())
+                    Actions.Delete.fire(this);
             } else if (key == KEY_ABORT_ACTION) {
                 if (dragComponent != null) {
                     double oldX = viewer.screenToMapX(dragStart.x) + dragOffset.x;
@@ -2877,6 +2884,9 @@ public class MapViewer extends javax.swing.JComponent
         public void keyReleased(KeyEvent e) {
             if (DEBUG.KEYS) out("[" + e.paramString() + "]");
             
+            if (activeTool.handleKeyReleased(e))
+                return;
+
             if (toolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
                 if (sDragUnderway)
@@ -3326,6 +3336,7 @@ public class MapViewer extends javax.swing.JComponent
             //    mouseDragged(e);
             //}
             
+            //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
             if (RolloverAutoZoomDelay >= 0) {
                 if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
                     if (RolloverAutoZoomDelay > 10) {
