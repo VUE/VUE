@@ -27,6 +27,14 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/**
+ * Base class for a VUE tool, that may have sub-tools.
+ *
+ * Sub-classes AbstractAction for addActionListener, although
+ * that usage is probably on it's way out when we get around
+ * to cleaning up the VueTool code & it's supporting GUI classes.
+ */
+
 public abstract class VueTool extends AbstractAction
 {
     /** the tool's unique id **/

@@ -437,8 +437,13 @@ public class PaletteButton extends JRadioButton implements ActionListener
      * @param pEvent the action event.
      **/
     public void actionPerformed( ActionEvent pEvent) {
+        if (DEBUG.TOOL) System.out.println(this + " calling doClick (probably vestigal)");
         //System.out.println(pEvent);
         // fake a click to handle radio selection after menu selection
+        // this appears no longer to be needed, tho I'm leaving it in for
+        // now just in case (todo cleanup: as part of tool VueTool / ToolController re-archtecting)
+        // If we can really do away with this, it means VueTool no longer needs to subclass
+        // AbstractAction in order to add all the buttons as action listeners.
         doClick();		
     }
 

@@ -475,14 +475,6 @@ public class VueToolbarController
     }
 
 
-     
-    /*
-    public void handleMapEvent( Event pEvent) {
-        // FIX: This handles selection events...
-    }
-    */
-	
- 	
     private void out(String s) {
         System.out.println(this + " " + s);
     }
@@ -519,9 +511,14 @@ public class VueToolbarController
         frame.show();
     }
 
-
+     
     /*
-     *  updateToolbar
+    public void handleMapEvent( Event pEvent) {
+        // FIX: This handles selection events...
+    }
+    */
+ 	
+    /*  updateToolbar
      *  This method will update teh existing toolbar of a Map.
      * You should callt his if the prefs or set of tools changes for a map
      *
@@ -551,36 +548,4 @@ public class VueToolbarController
         sToolWindow = pWindow;
     }
     */
-	
-
-    
-     
 }
-
-
-
-     // Contextual tool panels for various selection types 
-     //static private NodeToolPanel sNodeSelectionContextualPanel;
-     //static private TextToolPanel sTextSelectionContextualPanel;
-     //static private LinkToolPanel sLinkSelectionContextualPanel;
-     /*
-     private static NodeToolPanel getNodeSelectionContextualPanel()
-     {
-         if (sNodeSelectionContextualPanel == null)
-             sNodeSelectionContextualPanel = new NodeToolPanel();
-         return sNodeSelectionContextualPanel;
-     }
-
-     private static LinkToolPanel getLinkSelectionContextualPanel()
-     {
-         if (sLinkSelectionContextualPanel == null)
-             sLinkSelectionContextualPanel = new LinkToolPanel();
-         return sLinkSelectionContextualPanel;
-     }
-     private static TextToolPanel getTextSelectionContextualPanel()
-     {
-         if (sTextSelectionContextualPanel == null)
-             sTextSelectionContextualPanel = new TextToolPanel();
-         return sTextSelectionContextualPanel;
-     }
-     */
