@@ -743,7 +743,7 @@ public class VUE
                 // ignores it.
                 System.err.println(this + " JTabbedPane.fireStateChanged: " + e);
             }
-            if (!VueUtil.isMacPlatform()) { // don't mess w/aqua
+            if (!VueUtil.isMacAquaLookAndFeel()) { // don't mess w/aqua
                 int selected = getModel().getSelectedIndex();
                 if (mWasSelected >= 0) {
                     setForegroundAt(mWasSelected, Color.darkGray);
