@@ -28,6 +28,7 @@ ActionListener {
     private LWComponent lwc;
     
     public LWCInfoPanel() {
+        setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         fieldPane.setLayout(gridBag);
@@ -53,8 +54,9 @@ ActionListener {
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.EAST;
         int num = labelTextPairs.length;
-        
+     
         for (int i = 0; i < num; i += 2) {
+            c.insets = new Insets(0, 10, 1, 0);
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
             c.fill = GridBagConstraints.NONE;      //reset to default
             c.weightx = 0.0;                       //reset to default
@@ -75,7 +77,7 @@ ActionListener {
             
             c.gridwidth = GridBagConstraints.REMAINDER;     //end row
             c.fill = GridBagConstraints.HORIZONTAL;
-            
+            c.insets = new Insets(0, 5, 1, 0);
             c.weightx = 1.0;
             
             JComponent field = (JComponent) labelTextPairs[i+1];
@@ -98,12 +100,14 @@ ActionListener {
                     field.setBackground(SystemColor.control);
             }
         }
+        /**
         JLabel field  = new JLabel("Metadata");
         c.gridwidth = GridBagConstraints.REMAINDER;     //end row
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
         gridbag.setConstraints(field, c);
         container.add(field);
+         */
     }
     
     
