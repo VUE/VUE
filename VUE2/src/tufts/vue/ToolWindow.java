@@ -18,8 +18,9 @@ public class ToolWindow
     implements MouseListener, MouseMotionListener
 {
     //final int TitleHeight = VueUtil.isMacPlatform() ? 11 : 13;
-    final int TitleHeight = 15;
     //final int TitleHeight = 44;
+    final int TitleHeight = 14;
+    final Font TitleFont = new Font("SansSerf", Font.PLAIN, 10);
     final int ResizeCornerSize = 14;
     
     public static void main(String args[])
@@ -138,7 +139,7 @@ public class ToolWindow
                 //titlePanel.setLayout(new FlowLayout());
                 titlePanel.setLayout(null); // for manual layout
                 JLabel l = new JLabel(title);
-                l.setFont(new Font("SansSerf", Font.PLAIN, 10));
+                l.setFont(TitleFont);
                 l.setForeground(SystemColor.activeCaptionText);
                 //l.setForeground(Color.darkGray);
                 l.setSize(l.getPreferredSize());
