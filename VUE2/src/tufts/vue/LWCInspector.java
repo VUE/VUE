@@ -354,8 +354,7 @@ class LWCInspector extends javax.swing.JPanel
         strokeColorField.setText(c.getXMLstrokeColor());
         strokeField.setText(""+c.getStrokeWidth());
         
-        //loading the metadat if it exists
-        System.out.println("Resource = " + c.getResource());
+        //loading the metadata if it exists
         if(c.getResource() != null && c.getResource().getProperties() != null) {
             metadataPane.remove(resourceMetadataPanel);
             if(c.getResource().getType() == Resource.ASSET_FEDORA)
@@ -368,7 +367,7 @@ class LWCInspector extends javax.swing.JPanel
         if (false&&c.labelBox != null) {
             //extraPanel.add(p);
             if (lastp != null) {
-                //System.out.println("REMOVING " + lastp);
+            //System.out.println("REMOVING " + lastp);
                 VUE.toolPanel.remove(lastp);
             }
             JPanel np = new JPanel();
