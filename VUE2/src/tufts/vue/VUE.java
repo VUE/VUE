@@ -235,6 +235,10 @@ public class VUE
         return tabbedPane.getTabCount();
     }
     
+    public static LWPathwayManager getPathwayManager(){
+        return LWPathwayManager.getInstance();
+    }
+    
     public static MapViewer getActiveViewer()
     {
         Object c = tabbedPane.getSelectedComponent();

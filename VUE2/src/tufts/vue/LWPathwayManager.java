@@ -14,15 +14,16 @@ import java.util.ArrayList;
  */
 public class LWPathwayManager {
     
-    private ArrayList pathways = null;
-    private LWPathway current = null;
+    private static ArrayList pathways = new ArrayList();
+    private static LWPathway current = new LWPathway();
+    private static LWPathwayManager manager = null;
     
-    public LWPathwayManager() {
+    private LWPathwayManager() {
+        this(1);
         pathways = new ArrayList();
     }
     
-    public LWPathwayManager(int test){
-        this();
+    private LWPathwayManager(int test){
         if(test == 1){
             LWPathway path1 = new LWPathway("Path 1");
             LWPathway path2 = new LWPathway("Path 2");
@@ -35,6 +36,11 @@ public class LWPathwayManager {
             this.addPathway(path4);
             this.addPathway(path5);
         }
+    }
+    
+    public static LWPathwayManager getInstance(){
+        if(manager==null) manager = new LWPathwayManager();
+        return manager;
     }
     
     public java.util.Iterator getPathwayIterator() {
@@ -51,15 +57,16 @@ public class LWPathwayManager {
         pathways.set(index, pathway);
     }
     
+    
     public LWPathway getCurrentPathway() {
         return current;
     }
     
     public void setCurrentPathway(LWPathway pathway) {
-        this.current = pathway;
+        current = pathway;
     }
    
-    public LWPathway getFirst(){
+    public static LWPathway getFirst(){
         return (LWPathway)pathways.get(0);
     }
     
