@@ -54,17 +54,18 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     SearchType advancedSearchType;
     JButton searchButton = new JButton();
     JButton advancedSearchButton = new JButton();
-    JButton nextButton;
+    JButton nextButton = new JButton();
+    JPanel nextButtonPanel = new JPanel();
     JButton previousButton;
     JLabel noResultsLabel;
     JLabel returnLabel;
     JLabel returnLabelAdvancedSearch;  //label for advanced search
     JComboBox maxReturnsAdvancedSearch;  // combobox for advanced search.
+    JScrollPane jsp = new JScrollPane();
     int count = 0;
     String[] maxReturnItems = { 
-            "5",
             "10",
-            "25" 
+            "20",
       };
     
   
@@ -286,20 +287,32 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
       *@ sets up search result panel. 
       */
      
-     private void setSearchResultsPanel(JScrollPane jsp) {
+     private void setSearchResultsPanel() {
+         
+         // need to organize this part
          //noResultsLabel = new JLabel("Search Returned no Results");
          //noResultsLabel.setFont(VueConstants.MediumFont);
          //noResultsLabel.setBackground(Color.WHITE);
-         nextButton = new JButton("more");
+         DRSearchResults.remove(jsp);
+         nextButtonPanel.remove(nextButton);
+         DRSearchResults.remove(nextButtonPanel);
+         
+         nextButton = new JButton("More");
          nextButton.addActionListener(this);
+         nextButtonPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+         
+         nextButtonPanel.add(nextButton);
+         nextButtonPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,0));
          DRSearchResults.setLayout(new BorderLayout());
+         
+         
          DRSearchResults.add(jsp,BorderLayout.CENTER,0);
          /**
          if(searchCriteria.getResults() == 0) 
             DRSearchResults.add(this.noResultsLabel,BorderLayout.NORTH,0);
           */
          if(searchCriteria.getToken() != null)
-            DRSearchResults.add(nextButton,BorderLayout.SOUTH,0);
+            DRSearchResults.add(nextButtonPanel,BorderLayout.SOUTH,0);
          DRSearchResults.validate();
          tabbedPane.setSelectedComponent(DRSearchResults);
      }
@@ -315,13 +328,14 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
-            JScrollPane jsp = new JScrollPane(tree);
-            setSearchResultsPanel(jsp);
+            jsp = new JScrollPane(tree);
+            setSearchResultsPanel();
             countError = 0;
-        } catch (Exception ex) {
-            if(countError >5)
+        }  catch (Exception ex) {
+            if(countError >5) {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
-            else {
+                //countError = 0;
+            }else {
                 searchButton.doClick();
                 countError++;
             }
@@ -338,16 +352,18 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
-            JScrollPane jsp = new JScrollPane(tree);
-            setSearchResultsPanel(jsp);
+            jsp = new JScrollPane(tree);
+            setSearchResultsPanel();
             countError = 0;
         } catch (Exception ex) {
-            if(countError > 5)
+            if(countError > 5){ 
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
-            else {
+                //countError = 0;
+           }else {
                 searchButton.doClick();
                 countError++;
-            }ex.printStackTrace();
+            }
+            ex.printStackTrace();
                        
         }
     }
@@ -359,13 +375,19 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType);
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
-            JScrollPane jsp = new JScrollPane(tree);
-            setSearchResultsPanel(jsp);
+            jsp = new JScrollPane(tree);
+            setSearchResultsPanel();
+            countError = 0;
         } catch (Exception ex) {
-            VueUtil.alert(this,FEDORA_MESG,"Search Error");
-            
+             if(countError > 5) {
+                VueUtil.alert(this, FEDORA_MESG,"Search Error");
+                //countError = 0;
+             }else {
+                nextButton.doClick();
+                countError++;
+            }
             System.out.println("DRViewer.performMoreSearch :"+ex);
-        }
+        } 
         
     }
     public Iterator getAssetResourceIterator(AssetIterator i)  throws osid.dr.DigitalRepositoryException, osid.OsidException{
@@ -384,7 +406,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          if(e.getActionCommand().equals("Advanced Search")) {
           performAdvancedSearch();
         }
-        if(e.getActionCommand().equals("more")) {
+        if(e.getActionCommand().equals("More")) {
             performMoreSearch();
         }
             
