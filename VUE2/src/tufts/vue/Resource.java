@@ -40,6 +40,7 @@ public class Resource
     long size = SIZE_UNKNOWN;
     private Asset asset;
     private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
+    protected transient boolean selected = false;
     String spec;
     
     /** the metadata property map **/
@@ -262,6 +263,13 @@ public class Resource
      	return value;
      }
      
+     public boolean isSelected(){
+         return selected;
+     }
+     
+     public void setSelected(boolean selected) {
+         this.selected = selected;
+     }
     public String toString()
     {
         return getSpec();
