@@ -987,7 +987,7 @@ public abstract class LWContainer extends LWComponent
             LWComponent component = (LWComponent) i.next();
             if(component.hasResource()){
                 Resource resource = component.getResource();
-                if(resource == r1) 
+                if(resource.getSpec().equals(r1.getSpec())) 
                     component.setResource(r2);
             }
         }
