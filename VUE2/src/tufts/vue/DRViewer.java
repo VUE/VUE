@@ -214,7 +214,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          JButton addConditionButton=new VueButton("add");
          addConditionButton.setBackground(this.getBackground());
          // GRID: deleteConditionButton
-         JButton deleteConditionButton=new JButton( VueResources.getImageIcon("deleteLight"));
+         JButton deleteConditionButton=new VueButton("delete");
          deleteConditionButton.setBackground(this.getBackground());
          
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
