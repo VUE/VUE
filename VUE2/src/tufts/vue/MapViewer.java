@@ -164,7 +164,7 @@ public class MapViewer extends javax.swing.JComponent
         // set -- we honor that last user configuration here.
         //-------------------------------------------------------
         if (getMap().getUserZoom() != 1.0)
-            setZoomFactor(getMap().getUserZoom(), false, null);
+            setZoomFactor(getMap().getUserZoom(), false, null, false);
 
         VUE.ModelSelection.addListener(this);
         VUE.addActiveViewerListener(this);
@@ -397,7 +397,7 @@ public class MapViewer extends javax.swing.JComponent
 
      */
     
-    void setZoomFactor(double pZoomFactor, boolean pReset, Point2D mapAnchor) {
+    void setZoomFactor(double pZoomFactor, boolean pReset, Point2D mapAnchor, boolean centerOnAnchor) {
         if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
         
         if (mapAnchor == null && !pReset) {
@@ -411,7 +411,21 @@ public class MapViewer extends javax.swing.JComponent
         Point2D screenPositionOfMapAnchor = null; // offset 
         
         if (!pReset) {
-            if (!inScrollPane) {
+            if (inScrollPane) {
+                // Record the on-screen map location of focus point before
+                // the zoom.
+                /*
+                if (mapAnchor == tufts.vue.ZoomTool.CENTER_MAP_IN_VIEW) {
+                    screenPositionOfMapAnchor = mapAnchor;
+                } else {
+                */
+                if (!centerOnAnchor) {
+                    Point2D canvasPosition = mapToScreenPoint2D(mapAnchor);
+                    Point canvasOffset = getLocation(); // scrolled offset of our canvas in the scroll-pane
+                    screenPositionOfMapAnchor = new Point2D.Double(canvasPosition.getX() + canvasOffset.x,
+                                                                   canvasPosition.getY() + canvasOffset.y);
+                }
+            } else {
                 // This is for non-scroll map viewer: it works to keep the focus
                 // location at the same point on the screen.  
                 //if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
@@ -421,13 +435,6 @@ public class MapViewer extends javax.swing.JComponent
                 offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - focus.getY());
                 //if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
                 setMapOriginOffset(offset.x, offset.y, false);
-            } else {
-                // Record the on-screen map location of focus point before
-                // the zoom.
-                Point2D canvasPosition = mapToScreenPoint2D(mapAnchor);
-                Point canvasOffset = getLocation(); // scrolled offset of our canvas in the scroll-pane
-                screenPositionOfMapAnchor = new Point2D.Double(canvasPosition.getX() + canvasOffset.x,
-                                                               canvasPosition.getY() + canvasOffset.y);
             }
         }
 

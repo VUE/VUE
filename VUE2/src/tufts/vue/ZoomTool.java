@@ -142,8 +142,10 @@ public class ZoomTool extends VueTool
         return false;
     }
 
-    private static final Point2D CENTER_FOCUS = new Point2D.Float(); // marker only
-    private static final Point2D DONT_FOCUS = new Point2D.Float(); // marker only
+    /** special zoom focus marker: use center of view as zoom anchor */
+    private static final Point2D CENTER_FOCUS = new Point2D.Float();
+    /** special zoom focus marker: don't adjust around a focal point: just adjust the zoom */
+    private static final Point2D DONT_FOCUS = new Point2D.Float();
     
     public static void setZoom(double zoomFactor)
     {
@@ -175,7 +177,7 @@ public class ZoomTool extends VueTool
             if (DEBUG.SCROLL) System.out.println("VISIBLE CENTER " + viewer.getVisibleCenter());
             focus = viewer.screenToMapPoint2D(viewer.getVisibleCenter());
         }
-        viewer.setZoomFactor(newZoomFactor, reset, focus);
+        viewer.setZoomFactor(newZoomFactor, reset, focus, false);
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
@@ -188,13 +190,13 @@ public class ZoomTool extends VueTool
                                         offset);
         
         if (viewer.inScrollPane()) {
-            // todo: will need original canvas focus point if want to re-implement
-            // anchoring to arbitrary points for scroll regions.  Note: if do this,
-            // only do it for zoom out: leave zoom in as center focus.
             Point2D center = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
             if (newZoom > MaxZoom)
                 newZoom = MaxZoom;
-            setZoom(newZoom, false, center, false);
+
+            viewer.setZoomFactor(newZoom, false, center, true);
+            //setZoom(newZoom, false, CENTER_MAP_IN_VIEW, false);
+            //setZoom(newZoom, true, center, true);
         } else {
             if (newZoom > MaxZoom) {
                 setZoom(MaxZoom, true, CENTER_FOCUS, true);

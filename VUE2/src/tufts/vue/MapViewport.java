@@ -132,9 +132,13 @@ class MapViewport extends JViewport
     
     public void zoomAdjust(Point2D mapAnchor, Point2D screenPositionOfMapAnchor)
     {
+        final boolean centerZoomStyle = false;
+
         adjustCanvasSize(false, true, true, false, true);
-        placeMapLocationAtViewLocation(mapAnchor, screenPositionOfMapAnchor);
-        //placeMapLocationAtViewCenter(mapAnchor);
+        if (centerZoomStyle || screenPositionOfMapAnchor == null)
+            placeMapLocationAtViewCenter(mapAnchor);
+        else
+            placeMapLocationAtViewLocation(mapAnchor, screenPositionOfMapAnchor);
     }
 
     public void placeMapLocationAtViewLocation(Point2D mapAnchor, Point2D viewLocation)
