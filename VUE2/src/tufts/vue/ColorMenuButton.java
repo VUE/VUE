@@ -1,8 +1,4 @@
-
-
 package tufts.vue;
-
-
 
 import java.io.*;
 import java.awt.*;
@@ -10,7 +6,7 @@ import java.awt.event.*;
 import java.beans.*;
 import java.util.*;
 import javax.swing.*;
-
+import javax.swing.border.*;
 
 /**
 * ColorMenuButton
@@ -25,23 +21,11 @@ public class ColorMenuButton extends JButton implements ActionListener
     //static ImageIcon sIcon = TestResources.getImageIcon( "icon");
 	
     /** FIX:  move this to Resources **/
-    static String sPickerTitle = "Select Custom Color";
+    private static String sPickerTitle = "Select Custom Color";
 	
-    static BlobIcon  sIcon = new BlobIcon( 16,16, new Color(1,1,244) );
-	
-    static String [] sTestNames = { "Black",
-                                    "White",
-                                    "Red",
-                                    "Green",
-                                    "Blue" }; 
-										
-	
-    static Color [] sTestColors = { new Color(0,0,0),
-                                    new Color(255,255,255),
-                                    new Color(255,0,0),
-                                    new Color(0,255,0),
-                                    new Color(0,0,255)  };
-	
+    //private static BlobIcon  sIcon = new BlobIcon( 16,16, new Color(1,1,244) );
+    private static BlobIcon  sIcon = new BlobIcon(16,16, true);
+
     //////////////////
     //  Fields
     //////////////////
@@ -84,12 +68,17 @@ public class ColorMenuButton extends JButton implements ActionListener
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
     public ColorMenuButton(Color [] pColors, String [] pMenuNames, boolean pHasCustom) {
+        //super("v ", sIcon);
         super();
-        buildMenu( pColors, pMenuNames, pHasCustom);
-        setIcon( sIcon );
-        ColorMenuPopupAdapter ourPopupAdapter;
-        ourPopupAdapter = new ColorMenuPopupAdapter( mPopup);
-        this.addMouseListener(  ourPopupAdapter );
+        buildMenu(pColors, pMenuNames, pHasCustom);
+        setIcon(sIcon);
+        addMouseListener(new ColorMenuPopupAdapter(mPopup));
+        setBorder(BorderFactory.createRaisedBevelBorder());
+        //setBorder(new CompoundBorder(BorderFactory.createRaisedBevelBorder(), new EmptyBorder(3,3,3,3)));
+        //setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(), new LineBorder(Color.blue, 6)));
+        setText("v");
+        setFont(VueConstants.FONT_SMALL);
+        setFocusable(false);
     }
 	
     public ColorMenuButton(Color [] pColors, String  [] pMenuNames) {
@@ -155,6 +144,8 @@ public class ColorMenuButton extends JButton implements ActionListener
         else {
             mBlobIcon = null;
         }
+        //setPreferredSize(new Dimension(20,18));
+        //setSize(new Dimension(20,18));
     }
 	
 	 
@@ -194,13 +185,11 @@ public class ColorMenuButton extends JButton implements ActionListener
 
 
     public void handleColorSelection( Color pColor) {
-        // did the color change?
-        if( ! pColor.equals( getColor() ) ) {
-            // yes!
-            Color old = getColor();
-            setColor( pColor);
-            fireColorChanged( old, pColor);
-        }
+        //if( ! pColor.equals( getColor() ) ) {
+        // always fire color changed even if same: could be multiple items in selection
+        Color old = getColor();
+        setColor( pColor);
+        fireColorChanged( old, pColor);
     }
 	
 	
@@ -215,6 +204,12 @@ public class ColorMenuButton extends JButton implements ActionListener
         }
     }
 	
+    public void paint(java.awt.Graphics g) {
+        ((java.awt.Graphics2D)g).setRenderingHint
+            (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+             java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        super.paint(g);
+    }
 	
     /*
      * paint( Graphics g)
@@ -439,5 +434,19 @@ public class ColorMenuButton extends JButton implements ActionListener
         }
 
     }
+
+
+    private static String [] sTestNames = { "Black",
+                                    "White",
+                                    "Red",
+                                    "Green",
+                                    "Blue" }; 
+    private static Color [] sTestColors = { new Color(0,0,0),
+                                    new Color(255,255,255),
+                                    new Color(255,0,0),
+                                    new Color(0,255,0),
+                                    new Color(0,0,255)  };
+	
+    
 }  // end of class
 

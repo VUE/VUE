@@ -70,7 +70,7 @@ import tufts.vue.beans.*;
          box.add( mArrowStartButton);
          box.add( mArrowEndButton);
  		
-         this.add( box);
+         this.add(box, 0);
  	
          initDefaultState();
      }

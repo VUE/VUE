@@ -3,7 +3,6 @@ package tufts.vue;
 import java.awt.*;
 import javax.swing.*;
 
-
 /**
  * BlobIcon Class
  *  This clas is used for creating dynamic color blobs with or without
@@ -11,13 +10,9 @@ import javax.swing.*;
  * like menu icons and buttons.  It is useful in color menus for selecting
  * custom colors where you require an icon in a UI widget.
  *
- * 
- *
  **/
 public class BlobIcon implements Icon
 {
-
-
     /** the icon height **/
     private int mHeight = 0;
 	
@@ -30,24 +25,21 @@ public class BlobIcon implements Icon
     /** the overlay icon, if any **/
     private Icon mOverlay = null;
 	
-	
-    //////////////////
-    // Constructors
-    /////////////////
-	
-    /**
-     * Generic emply BlobIcon constructor
-     **/
-    public BlobIcon() {
-        super();
-    }
-	
+    /** paint a darkened color border? */
+    private boolean mPaintBorder = true;
+    
+    public BlobIcon() {}
+    
     public BlobIcon( int pWidth,int  pHeight) {
-        this( pWidth, pHeight, null, null);
+        this( pWidth, pHeight, null, null, true);
+    }
+    
+    public BlobIcon( int pWidth,int  pHeight, boolean paintBorder) {
+        this( pWidth, pHeight, null, null, paintBorder);
     }
 	
     public BlobIcon( int pWidth, int pHeight, Color pColor) {
-        this( pWidth, pHeight, pColor, null);
+        this( pWidth, pHeight, pColor, null, true);
     }
 	
 	
@@ -58,11 +50,12 @@ public class BlobIcon implements Icon
      * @param pColor - the blob swatch color
      * @param pOverlay - an overlay icon to draw over the blob
      **/
-    public BlobIcon(int pWidth, int pHeight, Color pColor, Icon pOverlay) {
+    public BlobIcon(int pWidth, int pHeight, Color pColor, Icon pOverlay, boolean paintBorder) {
         mWidth = pWidth;
         mHeight = pHeight;
         mColor = pColor;
         mOverlay = pOverlay;
+        mPaintBorder = paintBorder;
     }
 	
 	
@@ -163,24 +156,20 @@ public class BlobIcon implements Icon
     public void paintIcon( Component c, Graphics g, int x, int y) {
 		
         Color color = mColor;
+        Color oldColor = g.getColor();
         if (color == null)
             color = c.getBackground();
 
         g.setColor(color);
         g.fillRect(x,y, mWidth, mHeight);
-        if (mColor != null) {
-            // todo: need to know if we really want this border --
-            // if for a color swatch, yes, if for one of the toolbar menu
-            // item icons, no (the mColor check helps but doesn't fix
-            // whole problem -- sometimes getting right edge flashes
-            // when pop-up menus are up).
+        if (mColor != null && mPaintBorder) {
             g.setColor(color.darker());
-            g.drawRect(x,y, mWidth, mHeight);
+            g.drawRect(x,y, mWidth-1, mHeight-1);
         }
         if( mOverlay != null) {
             mOverlay.paintIcon( c, g, x, y);
             //g.drawImage( mOverlay.getImage(), x, y, null);
         }
-        g.setColor(Color.black); // need to put color back for text...
+        g.setColor(oldColor);
     }
 }

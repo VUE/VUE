@@ -50,7 +50,6 @@ implements VueConstants {
     static ToolWindow sMapInspector;
     static ToolWindow objectInspector;
     static ObjectInspectorPanel objectInspectorPanel;
-    static SplashScreen splashScreen;
     //private static MapInspectorPanel sMapInspectorPanel;
     
     //hierarchy view tree window component
@@ -62,8 +61,6 @@ implements VueConstants {
     public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
     
-    
-   
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
@@ -239,7 +236,7 @@ implements VueConstants {
     }
     
     static void initUI(boolean debug) {
-        MetalLookAndFeel.setCurrentTheme(new VueTheme()); // no freakin effect at all!
+        MetalLookAndFeel.setCurrentTheme(new VueTheme());
         
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
@@ -250,130 +247,34 @@ implements VueConstants {
         try {
             if (lafn != null)
                 javax.swing.UIManager.setLookAndFeel(lafn);
+            //javax.swing.UIManager.setLookAndFeel(new VueLookAndFeel());
         } catch (Exception e) {
             System.err.println(e);
         }
-        
         /*
-        //-------------------------------------------------------
-        // from java.swing.plaf.basic.BasicLookAndFeel.java:
-        //-------------------------------------------------------
-            "TabbedPane.font", dialogPlain12,
-            "TabbedPane.background", table.get("control"),
-            "TabbedPane.foreground", table.get("controlText"),
-            "TabbedPane.highlight", table.get("controlLtHighlight"),
-            "TabbedPane.light", table.get("controlHighlight"),
-            "TabbedPane.shadow", table.get("controlShadow"),
-            "TabbedPane.darkShadow", table.get("controlDkShadow"),
-            "TabbedPane.selected", null,
-            "TabbedPane.focus", table.get("controlText"),
-            "TabbedPane.textIconGap", four,
-            "TabbedPane.tabInsets", tabbedPaneTabInsets,
-            "TabbedPane.selectedTabPadInsets", tabbedPaneTabPadInsets,
-            "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
-            "TabbedPane.contentBorderInsets", tabbedPaneContentBorderInsets,
-            "TabbedPane.tabRunOverlay", new Integer(2),
-         
-            "ComboBox.font", sansSerifPlain12,
-            "ComboBox.background", table.get("window"),
-            "ComboBox.foreground", table.get("textText"),
-            "ComboBox.buttonBackground", table.get("control"),
-            "ComboBox.buttonShadow", table.get("controlShadow"),
-            "ComboBox.buttonDarkShadow", table.get("controlDkShadow"),
-            "ComboBox.buttonHighlight", table.get("controlLtHighlight"),
-            "ComboBox.selectionBackground", table.get("textHighlight"),
-            "ComboBox.selectionForeground", table.get("textHighlightText"),
-            "ComboBox.disabledBackground", table.get("control"),
-            "ComboBox.disabledForeground", table.get("textInactiveText"),
-         
-            "PopupMenu.font", dialogPlain12,
-            "PopupMenu.background", table.get("menu"),
-            "PopupMenu.foreground", table.get("menuText"),
-            "PopupMenu.border", popupMenuBorder,
-         
-        //-------------------------------------------------------
-        // from java.swing.plaf.metal.MetalLookAndFeel.java:
-        //-------------------------------------------------------
-            "TabbedPane.font", controlTextValue,
-            "TabbedPane.tabAreaBackground", getControl(),
-            "TabbedPane.background", getControlShadow(),
-            "TabbedPane.light", getControl(),
-            "TabbedPane.focus", getPrimaryControlDarkShadow(),
-            "TabbedPane.selected", getControl(),
-            "TabbedPane.selectHighlight", getControlHighlight(),
-            "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
-            "TabbedPane.tabInsets", tabbedPaneTabInsets,
-         
-            "ComboBox.background", table.get("control"),
-            "ComboBox.foreground", table.get("controlText"),
-            "ComboBox.selectionBackground", getPrimaryControlShadow(),
-            "ComboBox.selectionForeground", getControlTextColor(),
-            "ComboBox.font", controlTextValue,
-         
-         */
-        //Color toolbarColor = VueResources.getColor("toolbar.background");
         LookAndFeel laf = UIManager.getLookAndFeel();
         String lafName = laf.getName();
         System.out.println("LookAndFeel: \"" + lafName + "\" " + laf);
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
-            
+        // may want to break out default setter if for overrides of windows look & feel
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
-            UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
-            
-            UIManager.getLookAndFeelDefaults().put("Label.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("Button.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("Menu.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("MenuItem.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("TabbedPane.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("CheckBox.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("RadioButton.font", FONT_MEDIUM);
-            UIManager.getLookAndFeelDefaults().put("ToggleButton.font", FONT_MEDIUM);
-            
-            // This is doing nothing I can see:
-            //UIManager.getLookAndFeelDefaults().put("Menu.background", Color.white);
-            
-            // This tweaks the bg, but the buttons all appear to paint their on bg,
-            // so we only see a thin border of this:
-            //UIManager.getLookAndFeelDefaults().put("PopupMenu.background", Color.white);
-            
-            // the rest of these are tests
-            
-            //UIManager.getLookAndFeelDefaults().put("ComboBox.foreground", Color.red);
-            
-            // this doesn't do anything I can see (it does in windows L&F, but not Metal)
-            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonBackground", Color.yellow);
-            // Okay: this works to change selected bg -- the one thing we didn't want to change.
-            //UIManager.getLookAndFeelDefaults().put("ComboBox.selectionBackground", Color.white);
-            
-            // Effect in Windows L&F, but not metal:
-            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonShadow", Color.green);
-            // Effect in Windows L&F, but not metal:
-            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonDarkShadow", Color.red);
-            
-            
-            // Affects tabs but not tab contents background, so looks broken:
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
-            
-            UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
-            // Why, in metal, is the default window "gray" background color neither lightGray
-            // nor equal to the SystemColor.control???
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.blue);
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.light", Color.orange);
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.focus", Color.yellow);
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", Color.magenta);
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.selectHighlight", Color.red);
-        }
+            ...
+        */
+        
     }
     
     static JPanel toolPanel;//todo: tmp hack
     public static void main(String[] args) {
         System.out.println("VUE:main");
-        boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
-        if (!nodr) {
-           splashScreen = new SplashScreen();
-          
-        }
+
+        // Must call initUI before any other GUI code or our VueTheme gets ignored
         initUI();
+
+        boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
+        Window splashScreen = null;
+
+        if (!nodr)
+            splashScreen = new SplashScreen();
         
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
@@ -438,7 +339,6 @@ implements VueConstants {
         
         //splitPane.setRightComponent(mMapTabsLeft);
         splitPane.setRightComponent(viewerSplit);
-        splashScreen.setVisible(false);
         frame = new VueFrame();
         //JPanel vuePanel = new AAPanel();
         JPanel vuePanel = new JPanel();
@@ -578,6 +478,8 @@ implements VueConstants {
          
          */
         frame.show();
+        if (splashScreen != null)
+            splashScreen.setVisible(false);
         System.out.println("after showing frame...");
         if (args.length > 0) {
             try {
@@ -610,7 +512,6 @@ implements VueConstants {
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
-        MetalLookAndFeel.setCurrentTheme(new VueTheme()); // no effect whatsoever
     }
     
     
@@ -777,49 +678,21 @@ implements VueConstants {
         
     }
     
-    private static Color menuColor = VueResources.getColor( "menubarColor");
     private static void  setMenuToolbars(JFrame frame, Window[] toolWindows) {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
         JMenuBar menuBar = new JMenuBar();
-        menuBar.setBackground( menuColor);
         
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.setBackground( menuColor);
-        
-        JMenu editMenu = new JMenu("Edit");
-        editMenu.setBackground( menuColor);
-        
-        JMenu viewMenu = new JMenu("View");
-        viewMenu.setBackground( menuColor);
-        
-        JMenu formatMenu = new JMenu("Format");
-        formatMenu.setBackground( menuColor);
-        
-        JMenu arrangeMenu = new JMenu("Arrange");
-        arrangeMenu.setBackground( menuColor);
-        
-        JMenu windowMenu = new JMenu("Tools");
-        windowMenu.setBackground( menuColor);
-        
-        JMenu alignMenu = new JMenu("Arrange/Align");
-        
-        /*
-        JMenu optionsMenu = new JMenu("Options");
-        optionsMenu.setBackground( menuColor);
-         */
-        
-        JMenu helpMenu = new JMenu("Help");
-        helpMenu.setBackground( menuColor);
-        
-        menuBar.add(fileMenu);
-        menuBar.add(editMenu);
-        menuBar.add(viewMenu);
-        menuBar.add(formatMenu);
-        menuBar.add(arrangeMenu);
-        //menuBar.add(optionsMenu);
-        menuBar.add(windowMenu);
-        menuBar.add(helpMenu);
+        JMenu fileMenu = menuBar.add(new JMenu("File"));
+        JMenu editMenu = menuBar.add(new JMenu("Edit"));
+        JMenu viewMenu = menuBar.add(new JMenu("View"));
+        JMenu formatMenu = menuBar.add(new JMenu("Format"));
+        JMenu arrangeMenu = menuBar.add(new JMenu("Arrange"));
+        JMenu windowMenu = menuBar.add(new JMenu("Tools"));
+        JMenu alignMenu = menuBar.add(new JMenu("Arrange/Align"));
+        //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
+        JMenu helpMenu = menuBar.add(new JMenu("Help"));
+
         //adding actions
         SaveAction saveAction = new SaveAction("Save", false);
         SaveAction saveAsAction = new SaveAction("Save As...");
@@ -827,17 +700,16 @@ implements VueConstants {
         ExitAction exitAction = new ExitAction("Quit");
         Publish publishAction = new Publish(frame,"Export");
         
-        /**Actions added by the power team*/
-        
+        // Actions added by the power team
+        PrintAction printAction = new PrintAction("Print");
         PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("HTML");
         ImageConversion imageAction = new ImageConversion("JPEG");
         ImageMap imageMap = new ImageMap("IMAP");
         SVGConversion svgAction = new SVGConversion("SVG");
-        PrintAction printAction = new PrintAction("Print");
         XMLView xmlAction = new XMLView("XML View");
         
-         /*
+        /*
         JMenu exportMenu = new JMenu("Export");
         exportMenu.add(htmlAction);
         exportMenu.add(pdfAction);
@@ -845,8 +717,8 @@ implements VueConstants {
         exportMenu.add(svgAction);
         exportMenu.add(xmlAction);
         exportMenu.add(imageMap);
-          */
-        /**End of addition*/
+        // End of addition
+        */
         
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));

@@ -40,7 +40,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
 	////////////
 	
  	/** the font list **/
-    static private String[] sFontNames = null;
+    static String[] sFontNames = null;
  
  	
  	/** Text color editor button **/
@@ -108,15 +108,18 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         mFontCombo.setFont(menuFont);
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
         mFontCombo.setMaximumSize(mFontCombo.getPreferredSize());
+
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
         //mFontCombo.setMaximumSize(new Dimension(50,50)); // no effect
         //mFontCombo.setSize(new Dimension(50,50)); // no effect
         //mFontCombo.setBorder(null); // already has no border
-         		
+
         //mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
+        
         mSizeField = new JComboBox(sFontSizes);
-        mSizeField.setEditable(true); 
+        mSizeField.setEditable(true);
+        
         //mSizeField.setPrototypeDisplayValue("100"); // no help in making it smaller
         //System.out.println("EDITOR " + mSizeField.getEditor());
         //System.out.println("EDITOR-COMP " + mSizeField.getEditor().getEditorComponent());

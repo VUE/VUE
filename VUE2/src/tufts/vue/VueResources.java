@@ -13,7 +13,7 @@ import java.io.File;
  *
  * This class provides a central access method to get a variety of
  * resource types.  It also can be modified to support caching of
- * of resources forperformance.
+ * of resources for performance (todo: yes, implement a result cache).
  *
  **/
 public class VueResources
@@ -80,8 +80,8 @@ public class VueResources
         if (icon != null) {
             Point hot = new Point();
             if (data.length > 2) {
-                hot.x = parseInt(data[0]);
-                hot.y = parseInt(data[1]);
+                hot.x = parseInt(data[1]);
+                hot.y = parseInt(data[2]);
             }
             //System.out.println("Creating cursor for " + icon);
             //System.out.println("Creating cursor " + pLookupKey + " " + Arrays.asList(data) + " with hotspot " + hot);

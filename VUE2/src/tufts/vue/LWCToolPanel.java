@@ -75,16 +75,16 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  		
          Color [] fillColors = VueResources.getColorArray( "fillColorValues");
          String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
-         mFillColorButton = new ColorMenuButton( fillColors, fillColorNames, true);
-         mFillColorButton.setBackground( bakColor);
-         ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
-         BlobIcon fillBlob = new BlobIcon();
-         fillBlob.setOverlay( fillIcon );
-         mFillColorButton.setIcon(fillBlob);
+         mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
+         //mFillColorButton.setBackground( bakColor);
+         //ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
+         //BlobIcon fillBlob = new BlobIcon();
+         //fillBlob.setOverlay( fillIcon );
+         //mFillColorButton.setIcon(fillBlob);
+         //mFillColorButton.setBorderPainted(false);
          mFillColorButton.setPropertyName(LWKey.FillColor);
-         mFillColorButton.setBorderPainted(false);
          mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
-         mFillColorButton.setMargin(ButtonInsets);
+         //mFillColorButton.setMargin(ButtonInsets);
 
          // this skips painting background: will technically perform
          // better as we don't need to fill it with the icon filling
@@ -95,14 +95,14 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
          String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
          mStrokeColorButton = new ColorMenuButton( strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setBackground( bakColor);
+         //mStrokeColorButton.setBackground( bakColor);
          ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
          BlobIcon strokeBlob = new BlobIcon();
          strokeBlob.setOverlay( strokeIcon );
          mStrokeColorButton.setPropertyName( LWKey.StrokeColor);
          mStrokeColorButton.setIcon( strokeBlob);
-         mStrokeColorButton.setBorderPainted(false);
-         mStrokeColorButton.setMargin(ButtonInsets);
+         //mStrokeColorButton.setBorderPainted(false);
+         //mStrokeColorButton.setMargin(ButtonInsets);
 
          Color [] textColors = VueResources.getColorArray( "textColorValues");
          String [] textColorNames = VueResources.getStringArray( "textColorNames");
@@ -237,7 +237,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             System.out.println("LWC property changed: "+ pEvent.getPropertyName() + " " + pEvent);
 	  		
             VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, pEvent.getNewValue());
-            VUE.getUndoManager().markChangesAsUndo(pEvent.getPropertyName());
+            if (VUE.getUndoManager() != null)
+                VUE.getUndoManager().markChangesAsUndo(pEvent.getPropertyName());
             if( mState != null) {
                 mState.setPropertyValue( name, pEvent.getNewValue() );
             }
@@ -263,7 +264,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
         VUE.initUI(true);
-        debug = true;
+        FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueUtil.displayComponent(new LWCToolPanel());
     }
  	
