@@ -24,7 +24,7 @@ public class DrawContext
     {
         this.g = dc.g;
         this.zoom = dc.zoom;
-        //this.scale = dc.scale;
+        this.disableAntiAlias = dc.disableAntiAlias;
     }
 
     public void disableAntiAlias(boolean tv)
@@ -65,6 +65,12 @@ public class DrawContext
     }
 
 
+    public DrawContext create()
+    {
+        DrawContext dc = new DrawContext(this);
+        dc.g = (Graphics2D) this.g.create();
+        return dc;
+    }
     
 
     /*
