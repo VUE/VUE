@@ -26,6 +26,8 @@ import javax.swing.event.TreeSelectionListener;
  *
  * @author  Daisuke Fujiwara
  */
+
+/**A class that displays the hierarchy of nodes in a tree*/
 public class LWHierarchyTree extends InspectorWindow 
 {
     private DisplayAction displayAction = null;
@@ -38,21 +40,27 @@ public class LWHierarchyTree extends InspectorWindow
         super(parent, "Hierarchy Tree");
         setSize(500, 300);
         
+        /**creating a hierarchy tree*/
         tree = new JTree();
         tree.setModel(null);
         tree.setEditable(true);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        
+        //mouse listener to let the user open up the resource associated with the selected tree node
         tree.addMouseListener
         (
             new MouseAdapter()
             {
                 public void mouseClicked(MouseEvent me)
                 {
+                    //determines the row and the path of the selected node
                     int selRow = tree.getRowForLocation(me.getX(), me.getY());
                     TreePath selPath = tree.getPathForLocation(me.getX(), me.getY());
-                        
+                
+                    //if there is a selected row
                     if(selRow != -1) 
                     {       
+                        //if the mouse click is a double click, then display the resource associated with the node
                         if(me.getClickCount() == 2) 
                         {
                             LWNode clickedNode = 
@@ -63,6 +71,8 @@ public class LWHierarchyTree extends InspectorWindow
                 }
             }
         );
+        
+        //tree selection listener to keep track of the selected node 
         tree.addTreeSelectionListener(
             new TreeSelectionListener() 
             {
@@ -94,12 +104,15 @@ public class LWHierarchyTree extends InspectorWindow
         );
     }
     
+    /**Sets the model of the tree to the given hierarchy tree model
+       Also stores the reference to the model*/
     public void setTree(HierarchyTreeModel treeModel)
     {
         this.treeModel = treeModel;
         tree.setModel(treeModel.getModel());
     }
     
+    /**A method used by VUE to display the tree*/
     public Action getDisplayAction()
     {
         if (displayAction == null)
@@ -108,6 +121,7 @@ public class LWHierarchyTree extends InspectorWindow
         return (Action)displayAction;
     }
     
+    /**A class which controls the visibility of the tree */
     private class DisplayAction extends AbstractAction
     {
         private AbstractButton aButton;

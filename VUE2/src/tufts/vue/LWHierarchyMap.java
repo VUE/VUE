@@ -148,7 +148,7 @@ public class LWHierarchyMap extends LWMap
             LWNode child = (LWNode)i.next();
             LWNode parent = ((HierarchyData)hierarchyHash.get(child)).getParent();
             
-            //if the node has a parent
+            //if the node has a parent, then create a link
             if (parent != null)
             { 
               LWLink link = new LWLink(parent, child);
@@ -210,7 +210,7 @@ public class LWHierarchyMap extends LWMap
         //return currentNode;
     }
     
-    /**biggest question is whether this should inherit LWMap or return LWMap as a product of a method*/
+    /**A method which calls sub methods to create hierarchy map and tree*/
     public void createHierarchy()
     {    
         computeShortestPath();
@@ -222,6 +222,7 @@ public class LWHierarchyMap extends LWMap
         VUE.getHierarchyTree().setTree(new HierarchyTreeModel(newRootNode));
     }
     
+    /**A class which stores the information of the hierarchy*/
     private class HierarchyData
     {
         private LWNode parentNode;
@@ -233,11 +234,13 @@ public class LWHierarchyMap extends LWMap
           this.distance = distance;
         }
         
+        //gets the distance associated with the given node
         public int getDistance()
         {
           return distance;
         }
         
+        //gets the parent node associated with the given node
         public LWNode getParent()
         {
           return parentNode;

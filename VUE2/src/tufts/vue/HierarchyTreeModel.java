@@ -16,6 +16,8 @@ import javax.swing.event.TreeModelEvent;
  *
  * @author  Daisuke Fujiwara
  */
+
+/**A class which represents a model for the hierarchy tree*/
 public class HierarchyTreeModel implements TreeModelListener
 {
     private DefaultTreeModel model;
@@ -28,20 +30,25 @@ public class HierarchyTreeModel implements TreeModelListener
         model.addTreeModelListener(this);
     }
     
+    /**Returns the model in the form the tree can use*/
     public DefaultTreeModel getModel()
     {   
         return model;  
     }
     
+    /**Sets the currently selected node to the given node*/
     public void setSelectedNode(LWNode node)
     {
         selectedNode = node;
     }
     
+    /**Sets up the tree hierarchy in a recursive fashion
+       As arguments it takes the current node and its parent node*/
     public DefaultMutableTreeNode setUpHierarchy(LWNode node, LWNode parentNode)
     {   
         DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(node);
         
+        //calls itself on the children nodes
         for (Iterator i = node.getLinks().iterator(); i.hasNext();)
         {
             LWLink link = (LWLink)i.next();
@@ -57,11 +64,14 @@ public class HierarchyTreeModel implements TreeModelListener
         return treeNode;
     }
     
+    /**A method which is invoked when the tree node is modified*/
     public void treeNodesChanged(TreeModelEvent e) 
     {
+        //retrieves the selected node
         DefaultMutableTreeNode treeNode;
         treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
         
+        //if appropriate retrieves the child of the selected node
         try 
         {
             int index = e.getChildIndices()[0];
@@ -70,16 +80,12 @@ public class HierarchyTreeModel implements TreeModelListener
         
         catch (NullPointerException exc) {}
         
-        System.out.println("before " + selectedNode.toString());
-        
+        //changes the node's label and sets it as a new object for the tree node
         selectedNode.setLabel(treeNode.getUserObject().toString());
-        
-        System.out.println("changed to " + selectedNode.toString());
-        
         treeNode.setUserObject(selectedNode);
     }
     
-    /**non used portion of the interface*/
+    /**unused portion of the interface*/
     public void treeNodesInserted(TreeModelEvent e) {}
     public void treeNodesRemoved(TreeModelEvent e) {}
     public void treeStructureChanged(TreeModelEvent e) {}
