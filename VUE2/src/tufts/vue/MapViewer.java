@@ -3965,7 +3965,10 @@ public class MapViewer extends javax.swing.JComponent
             // the focus back, but it doesn't appear that actually
             // works.
             
-            String opName = e.getOppositeComponent().getName();
+            Component opComponent = e.getOppositeComponent();
+            String opName = null;
+            if (opComponent != null)
+                opName = opComponent.getName();
             // hack: check the name against the special name of Popup$HeavyWeightWindow
             if (opName != null && opName.equals("###overrideRedirect###")) {
                 if (DEBUG.FOCUS) System.out.println("\tLOST TO POPUP!");
