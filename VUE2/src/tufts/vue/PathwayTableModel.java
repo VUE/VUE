@@ -251,7 +251,8 @@ public class PathwayTableModel extends DefaultTableModel{
 
                 if(path != null){
                     if(col == 0){
-                        path.setShowing();
+                        //path.setShowing();
+                        path.toggleShowing();
                     }
                     else if(col == 1){
                         path.setBorderColor((Color)aValue);

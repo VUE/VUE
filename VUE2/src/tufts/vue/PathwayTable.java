@@ -150,8 +150,8 @@ public class PathwayTable extends JTable{
                             + " / " 
                             + comp.getLabel();
                         
-                        //notesText = comp.getNotes();
-                        notesText = path.getElementNotes(comp);
+                        notesText = comp.getNotes();
+                        //notesText = path.getElementNotes(comp);
                     }
                     
                     
@@ -322,52 +322,7 @@ public class PathwayTable extends JTable{
             return this;
         }  
     }
-    
-/*    private class LabelEditor extends AbstractCellEditor
-                         implements TableCellEditor,
-			            MouseListener {
-        PathwayTab tab = null;
-        JLabel label = null;
-        int row, col;
-        
-        
-        public LabelEditor(PathwayTab tab) {
-            this.tab = tab;
-            label = new ImageRenderer(tab);
-            label.addMouseListener(this);
-            label.setBorder(normalBorder);
-        }
-
-        public Object getCellEditorValue() {
-            return new Boolean(true);
-        }
-
-        public Component getTableCellEditorComponent(JTable table,
-                                                     Object value,
-                                                     boolean isSelected,
-                                                     int row,
-                                                     int column) {
-            
-            return ((ImageRenderer)label).getTableCellRendererComponent(
-                                    table, value, isSelected, true, 
-                                    row, column);
-        }
-        
-        public void mouseClicked(MouseEvent e) {
-            row = tab.getPathwayTable().getSelectedRow();
-            col = tab.getPathwayTable().getSelectedColumn();
-            System.out.println("mouse clicked row, col: "+row+", "+col);
-            if(col == 0 || col == 2){
-                tab.getPathwayTable().setValueAt(new Boolean(true), row, col);
-                tab.getPathwayTableModel().fireTableDataChanged();  
-            }            
-        }
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
-        public void mousePressed(MouseEvent e) {}
-        public void mouseReleased(MouseEvent e) {}        
-    }
-  */  
+ 
     private class ImageRenderer extends DefaultTableCellRenderer{
         
         private PathwayTab tab = null;
@@ -387,7 +342,7 @@ public class PathwayTable extends JTable{
             Object path = tab.getPathwayTableModel().getElement(row);
             this.setBorder(normalBorder);
             if(path instanceof LWPathway){
-                //if(VUE.getPathwayInspector().getCurrentPathway().equals((LWPathway)path))
+                
                 if(((LWPathway)path).getOpen())
                     this.setBorder(selectedBorder);
                 

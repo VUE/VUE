@@ -19,7 +19,7 @@ import java.io.*;
 public class VUE
     implements VueConstants
 {
-    public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
+    //public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
     public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = VueResources.getURL("mapping.lw");
     //    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = ClassLoader.getSystemResource("lw_mapping.xml");
     //public final java.net.URL CASTOR_XML_MAPPING_RESOURCE = getClass().getResource("lw_mapping.xml");
