@@ -71,7 +71,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         
         pathwayList.setRenderer(new pathwayRenderer());
         //pathwayList.setMaximumRowCount();
-        pathwayList.setEditable(false);
+        //pathwayList.setEditable(true);
         pathwayList.addItemListener(this);
         pathwayList.addItem(noPathway);
         pathwayList.addItem(addPathway);

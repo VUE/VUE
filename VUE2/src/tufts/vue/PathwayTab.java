@@ -49,7 +49,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         setBorder(new LineBorder(Color.black));
        
         JScrollPane scrollPane = new JScrollPane(pathwayTable);
-        pathwayTable.setPreferredScrollableViewportSize(getPreferredSize());
+        //pathwayTable.setPreferredScrollableViewportSize(getPreferredSize());
         
         JPanel buttons = new JPanel();
         buttons.setLayout(new FlowLayout());

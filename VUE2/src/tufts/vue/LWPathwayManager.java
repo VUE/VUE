@@ -27,6 +27,16 @@ public class LWPathwayManager {
         return pathways.iterator();
     }
     
+    public LWPathway getPathway(int index)
+    {
+        return (LWPathway)pathways.get(index);
+    }
+    
+    public void setPathway(int index, LWPathway pathway)
+    {
+        pathways.set(index, pathway);
+    }
+    
     public LWPathway getCurrentPathway() {
         return current;
     }
@@ -40,7 +50,7 @@ public class LWPathwayManager {
     }
     
     public LWPathway getLast(){
-        return (LWPathway)pathways.get(length());
+        return (LWPathway)pathways.get(length() - 1);
     }
     
     public int length(){
@@ -52,7 +62,8 @@ public class LWPathwayManager {
             if(current.equals(null))
                 current = pathway;
             return true;    
-        }else return false;
+        }
+        else return false;
             
     }
     
@@ -61,6 +72,7 @@ public class LWPathwayManager {
             if(current.equals(pathway))
                 current = getFirst();
             return true;    
-        }else return false;
+        }
+        else return false;
     }
 }
