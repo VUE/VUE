@@ -229,7 +229,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
+       
         saveDataSourceViewer();
+     
         refreshDataSourceList();
         
         
@@ -439,29 +441,36 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         allDataSources.add(dataSource4);
         allDataSources.add(dataSource5);
         
-        
+        boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         
-        
+        int type;
         try{
             SaveDataSourceViewer rViewer = unMarshallMap(f);
             Vector rsources = rViewer.getSaveDataSources();
             while (!(rsources.isEmpty())){
                 DataSource ds = (DataSource)rsources.remove(0);
+           
+        
+      
+                
                 System.out.println(ds.getDisplayName()+ds.getClass());
                 try {
-                    ds.setResourceViewer();
-                    addDataSource(ds);
+                 
+                   addDataSource(ds);
                     setActiveDataSource(ds);
                     
+                   
                 } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
-                
+                 
             }
-            
+             saveDataSourceViewer();
+             refreshDataSourceList();
             
         }catch (Exception ex) {
             
             //VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
+           
             DataSource ds1 = new LocalFileDataSource("My Computer","");
             addDataSource(ds1);
             DataSource ds2 = new FavoritesDataSource("My Favorites");
@@ -470,7 +479,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             addDataSource(ds3);
             DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
             addDataSource(ds4);
-            setActiveDataSource(ds2);
+            saveDataSourceViewer();
+            setActiveDataSource(ds1);
+           
+            
             
         }
         
@@ -518,10 +530,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public static void saveDataSourceViewer(){
         
-        // if (dataSourceChanged){
-        //    int choice = JOptionPane.showConfirmDialog(null,"Data Sources have been changed. Would you like to save them? ","Confirm Save",JOptionPane.YES_NO_CANCEL_OPTION);
-        //if(choice == 0) {
-        
+      
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         Vector sDataSources = new Vector();
         int size = dataSourceList.getModel().getSize();
@@ -538,9 +547,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         marshallMap(f,sViewer);
         
         
-        //}
-        //}
-        
+       
     }
     
     
