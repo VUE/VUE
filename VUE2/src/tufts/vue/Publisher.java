@@ -262,7 +262,7 @@ public class Publisher extends JDialog implements ActionListener {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.getSpec().substring(8));
+            File file = new File(r.toURLString().substring(8));
             if(file.isFile() && b.booleanValue()) {
                  String transferredFileName = transferFile(file,file.getName());
                  File METSFile = createMETSFile( transferredFileName,"obj-binary.xml");
@@ -365,7 +365,7 @@ public class Publisher extends JDialog implements ActionListener {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.getSpec().substring(8));
+            File file = new File(r.toURLString().substring(8));
             if(file.isFile() && b.booleanValue()) {
                  System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" index ="+vector.indexOf(r));
                  resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),3);
