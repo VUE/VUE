@@ -70,22 +70,28 @@ import tufts.vue.beans.*;
  	
  	public NodeToolPanel() {
  		
+ 		Color bakColor = VueResources.getColor("toolbar.background");
+		this.setBackground( bakColor);
  		Box box = Box.createHorizontalBox();
- 		
+		box.setBackground( bakColor);
+ 		this.setAlignmentX( LEFT_ALIGNMENT);
  		
  		Color [] fillColors = VueResources.getColorArray( "fillColorValues");
  		mFillColorButton = new ColorMenuButton( fillColors, null, true);
- 		ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
+ 		mFillColorButton.setBackground( bakColor);
+		ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
 		BlobIcon fillBlob = new BlobIcon();
 		fillBlob.setOverlay( fillIcon );
 		mFillColorButton.setIcon(fillBlob);
  		mFillColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
  		mFillColorButton.setBorder(null);
+ 		mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
  		mFillColorButton.addPropertyChangeListener( this);
- 		
+
  		Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
  		mStrokeColorButton = new ColorMenuButton( strokeColors, null, true);
- 		ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
+ 		mStrokeColorButton.setBackground( bakColor);
+		ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
 		BlobIcon strokeBlob = new BlobIcon();
 		strokeBlob.setOverlay( strokeIcon );
 		mStrokeColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
@@ -94,7 +100,8 @@ import tufts.vue.beans.*;
  		
  		 Color [] textColors = VueResources.getColorArray( "textColorValues");
  		 mTextColorButton = new ColorMenuButton( textColors, null, true);
- 		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
+ 		mTextColorButton.setBackground( bakColor);
+		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
 		if( textIcon == null) System.out.println("issing resource: textColorIcon");
 		BlobIcon textBlob = new BlobIcon();
 		textBlob.setOverlay( textIcon );
@@ -103,6 +110,7 @@ import tufts.vue.beans.*;
  		mTextColorButton.addPropertyChangeListener( this);
  		
  		mFontPanel = new FontEditorPanel();
+		mFontPanel.setBackground( bakColor);
  		mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
  		mFontPanel.addPropertyChangeListener( this);
 
@@ -111,6 +119,7 @@ import tufts.vue.beans.*;
 		
 		mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
 		LineIcon lineIcon = new LineIcon( 16,12);
+		mStrokeButton.setBackground( bakColor);
 		mStrokeButton.setIcon( lineIcon);
 		mStrokeButton.setStroke( (float) 1);
  		mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);

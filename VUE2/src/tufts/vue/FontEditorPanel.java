@@ -92,6 +92,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  		this.add( box);
  	
  		setFontValue(  FONT_DEFAULT);
+ 		this.initColors( VueResources.getColor("toolbar.background") );
  	}
  	
  	
@@ -135,11 +136,17 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  			Font font = (Font) pValue;
  			mFontCombo.setSelectedItem( font.getFontName() );
  			mItalicButton.setSelected( (Font.ITALIC & font.getStyle()) == Font.ITALIC );
- 			mBoldButton.setSelected( (Font.BOLD & font.getStyle()) == Font.BOLD );
+ 			mBoldButton.setSelected( font.isItalic() );
  			mSizeField.setValue( font.getSize() );
  			
  			}
  	
+ 	}
+ 	
+ 	public void initColors( Color pColor) {
+ 		mFontCombo.setBackground( pColor);
+ 		mBoldButton.setBackground( pColor);
+ 		mItalicButton.setBackground( pColor);
  	}
  	
  	public void fireFontChanged( Font pOld, Font pNew) {
@@ -175,7 +182,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	 		style = style + Font.ITALIC;
  	 		}
  	 	if( mBoldButton.isSelected() ) {
- 	 		style = style + Font.BOLD;
+ 	 		style =  style + Font.BOLD;
  	 		}
  	 		int size = (int) mSizeField.getValue();
  	 		

@@ -73,8 +73,9 @@ import tufts.vue.beans.*;
  	
  	public LinkToolPanel() {
  		
- 		Box box = Box.createHorizontalBox();
- 		
+  		Color bakColor = VueResources.getColor("toolbar.background");
+		Box box = Box.createHorizontalBox();
+ 		setBackground( bakColor);
  		
  		Color [] linkColors = VueResources.getColorArray( "fillColorValues");
  		mLinkColorButton = new ColorMenuButton( linkColors, null, true);
@@ -82,8 +83,9 @@ import tufts.vue.beans.*;
 		BlobIcon fillBlob = new BlobIcon();
 		fillBlob.setOverlay( fillIcon );
 		mLinkColorButton.setIcon(fillBlob);
- 		mLinkColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
+ 		mLinkColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
  		mLinkColorButton.setBorder(null);
+ 		mLinkColorButton.setBackground( bakColor);
  		mLinkColorButton.addPropertyChangeListener( this);
  		
  		
@@ -95,6 +97,7 @@ import tufts.vue.beans.*;
 		textBlob.setOverlay( textIcon );
 		mTextColorButton.setIcon(textBlob);
  		mTextColorButton.setPropertyName("nodeTextColor");
+ 		mTextColorButton.setBackground( bakColor);
  		mTextColorButton.addPropertyChangeListener( this);
  		
  		mFontPanel = new FontEditorPanel();
@@ -106,6 +109,7 @@ import tufts.vue.beans.*;
 		mArrowStartButton = new JToggleButton();
 		mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
 		mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
+		mArrowStartButton.setBackground( bakColor);
 		mArrowStartButton.addActionListener( this);
 		
 		mArrowEndButton = new JToggleButton();
@@ -117,7 +121,8 @@ import tufts.vue.beans.*;
 		LineIcon lineIcon = new LineIcon( 16,12);
 		mStrokeButton.setIcon( lineIcon);
 		mStrokeButton.setStroke( (float) 1);
- 		mStrokeButton.setPropertyName("nodeStrokeWeight");
+ 		mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
+ 		mStrokeButton.setBackground( bakColor);
  		mStrokeButton.addPropertyChangeListener( this );
  		
  		
@@ -160,7 +165,7 @@ import tufts.vue.beans.*;
  		mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
  		mArrowEndButton.setSelected( (arrowState % LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
  		
- 		Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kLinkColor);
+ 		Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
  		mLinkColorButton.setColor( fill);
  		 		
  		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);

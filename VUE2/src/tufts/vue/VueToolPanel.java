@@ -40,6 +40,8 @@ public class VueToolPanel extends JPanel
 	/** the current tool selection (TO DO:  remove this)  **/
 	private VueTool mCurrentTool = null;
 	
+	private Box mMainBox = null;
+	
 	/** a map of PaletteButtons keyed off of the tool ID **/
 	private Map mToolButtons = new HashMap();
 	
@@ -68,17 +70,22 @@ public class VueToolPanel extends JPanel
 		this.setBorder( new EmptyBorder(0,0,0,0) );
 		
 		mMainToolPanel = new JPanel();
+		mMainBox = Box.createHorizontalBox();
+		
 		BoxLayout boxLayout = new BoxLayout( mMainToolPanel, BoxLayout.X_AXIS);
 		mMainToolPanel.setLayout(boxLayout);
+		
 		mMainToolPanel.setBackground( mBakColor);
 
 		mContextualToolPanel = new JPanel();
+		mContextualToolPanel.setAlignmentX( LEFT_ALIGNMENT);
 		BoxLayout ctpLayout = new BoxLayout(  mContextualToolPanel, BoxLayout.X_AXIS); 
 		mContextualToolPanel.setLayout( ctpLayout ); 
 		mContextualToolPanel.setBackground( mBakColor);
 		
+		this.setAlignmentX( LEFT_ALIGNMENT);
 		this.add( BorderLayout.WEST, mMainToolPanel);
-		this.add( BorderLayout.CENTER, mContextualToolPanel);
+		this.add( BorderLayout.EAST, mContextualToolPanel);
 		
 	}
 	
@@ -189,6 +196,7 @@ public class VueToolPanel extends JPanel
 	 * any components already displayed.
 	 **/
 	public void setContextualToolPanel( JPanel pPanel) {
+		
 		
 		mContextualToolPanel.removeAll();
 		if( pPanel != null) {
