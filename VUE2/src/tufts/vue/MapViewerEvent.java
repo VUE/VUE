@@ -35,6 +35,17 @@ public class MapViewerEvent
     {
         ((MapViewerListener)listener).mapViewerEventRaised(this);
     }
+
+    public String toString()
+    {
+        String name = null;
+        if (id == DISPLAYED) name = "DISPLAYED";
+        else if (id == HIDDEN) name = "HIDDEN";
+        else if (id == PAN) name = "PAN";
+        else if (id == ZOOM) name = "ZOOM";
+        return getClass().getName() + "[" + name + " src=" + getSource() + "]";
+    }
+    
     
 }
 
