@@ -362,7 +362,9 @@ public class VUE
             inspectorTool.addTool(new LWCInspector());
         }
         
-        ToolWindow drBrowserTool = new ToolWindow("Data Sources", frame);
+        ToolWindow drBrowserTool = null;
+        //DataSourceViewer currently breaks if more than one DRBrowser
+        //ToolWindow drBrowserTool = new ToolWindow("Data Sources", frame);
         //if (drBrowser != null) drBrowserTool.addTool(drBrowser);
         
         // The real tool palette window withtools and contextual tools

@@ -34,9 +34,9 @@ class DRBrowser extends JPanel {
     {
         DataSourceViewer dsv = new DataSourceViewer(this);
         dsv.setName("Data Source Viewer"); 
-        if (dsViewer != null) {
+        if (dsViewer == null) {
             // set the statics to the first initialized DRBrowser only
-            this.dsViewer = dsv;
+            dsViewer = dsv;
             //tufts.vue.VUE.dataSourceViewer = dsv;
         }
         if (getComponentCount() > 0)
