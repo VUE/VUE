@@ -258,16 +258,16 @@ public class LWPathway
         System.out.println(this + " setElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
     }
 
-    private List idList = null;
+    private List idList = new ArrayList();
     public List getElementIDList() {
-        if (idList == null) {
-            idList = new ArrayList();
-            if (mDoingXMLRestore) {
-                Iterator i = getElementIterator();
-                while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
-                    idList.add(c.getID());
-                }
+        if (mDoingXMLRestore) {
+            return idList;
+        } else {
+            idList.clear();
+            Iterator i = getElementIterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                idList.add(c.getID());
             }
         }
         System.out.println(this + " getElementIDList: " + idList);
@@ -286,7 +286,7 @@ public class LWPathway
     {
         System.out.println(this + " completeXMLRestore, map=" + map);
         this.map = map;
-        Iterator i = idList.iterator();
+        Iterator i = this.idList.iterator();
         while (i.hasNext()) {
             String id = (String) i.next();
             LWComponent c = this.map.findChildByID(id);
