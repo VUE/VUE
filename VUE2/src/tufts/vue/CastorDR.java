@@ -32,7 +32,7 @@ public class CastorDR {
     }
     public DR getDR() {
         try {
-            dr = new DR(id, displayName, description);
+            dr = new DR(id, displayName, description,null,null,null);
             return dr;
         } catch(Exception ex) {
             throw new RuntimeException(ex);

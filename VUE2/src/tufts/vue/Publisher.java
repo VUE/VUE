@@ -262,11 +262,6 @@ public class Publisher extends JDialog implements ActionListener {
         try {
             saveActiveMap();
             String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, null).getIdString();
-            /**
-            String transferredFileName = transferFile(activeMapFile,activeMapFile.getName());
-            File METSfile = createMETSFile( transferredFileName,"obj-binary.xml");
-            String pid = ingestToFedora(METSfile);
-             */
             System.out.println("Published Map: id = "+pid);
         } catch (Exception ex) {
              VueUtil.alert(null,  "Publish Not Supported:"+ex.getMessage(), "Publish Error");
@@ -278,10 +273,12 @@ public class Publisher extends JDialog implements ActionListener {
         try {
             File savedCMap = createIMSCP();
            // String transferredFileNameLocal = activeMapFile.getName().split("\\.")[0] +".zip";
-
+            String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, null).getIdString();
+            /**
             String transferredFileName = transferFile(savedCMap,savedCMap.getName());
             File METSfile = createMETSFile( transferredFileName,"obj-vue-concept-map-mc.xml");
             String pid = ingestToFedora(METSfile);
+             */
             System.out.println("Published CMap: id = "+pid);
         } catch (Exception ex) {
              VueUtil.alert(null, "Publish Not Supported:"+ex.getMessage(), "Publish Error");
@@ -297,14 +294,10 @@ public class Publisher extends JDialog implements ActionListener {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-
             File file = new File(r.getFileName());
-
             if(file.isFile() && b.booleanValue()) {
                  resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
-                 String transferredFileName = transferFile(file,file.getName());
-                 File METSFile = createMETSFile( transferredFileName,"obj-binary.xml");
-                 String pid = ingestToFedora(METSFile);
+                 String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, null).getIdString();
                  resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                  System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
               
@@ -329,58 +322,8 @@ public class Publisher extends JDialog implements ActionListener {
         ActionUtil.marshallMap(activeMapFile, map);    
     }
     
-    private String  transferFile(File  file,String fileName) throws IOException,osid.filing.FilingException {
-        String host = "dl.tccs.tufts.edu";
-        String url = "http://dl.tccs.tufts.edu/~vue/fedora/";
-        int port = 21;
-        String userName = "vue";
-        String password = "vue@at";
-        String directory = "public_html/fedora"; 
-        FTPClient client = new FTPClient();
-        client.connect(host,port);
-        client.login(userName,password);
-        client.changeWorkingDirectory(directory); 
-        client.setFileType(FTP.BINARY_FILE_TYPE);
-        client.storeFile(fileName,new FileInputStream(file));
-        client.logout();
-        client.disconnect();
-        fileName = url+fileName;
-        return fileName;
-    }
     
-    private File createMETSFile(String fileName,String templateFileName) throws IOException, FileNotFoundException, javax.xml.rpc.ServiceException{
-        StringBuffer sb = new StringBuffer();
-        String s = new String();
-        FileInputStream fis = new FileInputStream(new File(templateFileName));
-        DataInputStream in = new DataInputStream(fis); 
-
-        byte[] buf = new byte[BUFFER_SIZE];
-        int ch;
-        int len;
-        while((len =fis.read(buf)) > 0) {
-            s = s+ new String(buf);
-          
-        }
-        fis.close();
-        in.close();
-      //  s = sb.toString();
-        String r =  s.replaceAll("%file.location%", fileName).trim();
-        
-        //writing the to outputfile
-        File METSfile = File.createTempFile("vueMETSMap",".xml");
-        FileOutputStream fos = new FileOutputStream(METSfile);
-        fos.write(r.getBytes());
-        fos.close();
-        return METSfile;
-        
-    }
-    
-    private String ingestToFedora(File METSfile) throws IOException, FileNotFoundException, javax.xml.rpc.ServiceException{
-        AutoIngestor a = new AutoIngestor("130.64.77.144", 8080,"fedoraAdmin","fedoraAdmin");
-        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest"); 
-        System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
-        return pid;
-    }
+  
     
     private File createIMSCP() throws IOException,URISyntaxException {
         
