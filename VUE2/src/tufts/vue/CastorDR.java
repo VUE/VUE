@@ -10,6 +10,7 @@ package  tufts.vue;
  *
  * @author  akumar03
  */
+import java.net.URL;
 import osid.dr.*;
 import tufts.oki.dr.fedora.*;
 public class CastorDR {
@@ -17,6 +18,9 @@ public class CastorDR {
     String id;
     String displayName;
     String description;
+    String address;
+    String userName;
+    String password;
     
     public CastorDR() {
     }
@@ -26,13 +30,16 @@ public class CastorDR {
             this.id = dr.getId().getIdString();
             this.displayName = dr.getDisplayName();
             this.description = dr.getDescription();
+            this.address = dr.getAddress();
+            this.userName = dr.getUserName();
+            this.password  = dr.getPassword();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
     }
     public DR getDR() {
         try {
-            dr = new DR(id, displayName, description,null,null,null);
+            dr = new DR(id, displayName, description,new URL("http",address,8080,"fedora/"),userName,password);
             return dr;
         } catch(Exception ex) {
             throw new RuntimeException(ex);
@@ -57,5 +64,23 @@ public class CastorDR {
     public String getDescription(){
         return this.description;
         
+    }
+    public String getAddress() {
+        return this.address;
+    }
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    public String getUserName() {
+        return this.userName;
+    }
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+    public String getPassword() {
+        return this.password;
+    }
+    public void setPassword() {
+        this.password = password;
     }
 }
