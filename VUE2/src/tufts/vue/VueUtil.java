@@ -15,6 +15,9 @@ import javax.swing.border.*;
 
 public class VueUtil
 {
+    
+    
+    
     private static boolean WindowsPlatform = false;
     private static boolean MacPlatform = false;
     private static boolean UnixPlatform = false;
@@ -848,5 +851,6 @@ public class VueUtil
     public static void alert(javax.swing.JComponent component,String message,String title) {
          javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      
     }
+   
     
 }
