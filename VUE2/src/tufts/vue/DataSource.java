@@ -16,6 +16,10 @@ import javax.swing.border.*;
 import java.util.Vector;
 import java.io.*;
 import java.net.URL;
+import osid.filing.*;
+import tufts.oki.remoteFiling.*;
+import tufts.oki.localFiling.*;
+import tufts.oki.shared.*;
 
 
 public class DataSource {
@@ -50,14 +54,14 @@ public class DataSource {
     }
     
     /**  Creates a DataSource given an id, display name, name, and type. */
-    public DataSource(String id,String displayName,String name,int type) throws java.net.MalformedURLException{
+    public DataSource(String id,String displayName,String name,int type) throws java.net.MalformedURLException,osid.filing.FilingException {
         this(id,displayName,name);
         this.type=type;
         setViewer();
     }
     
     /**  Creates a DataSource given an id, display name, name, address, user name, password and type. */
-    public DataSource (String id, String displayName, String name, String address, String user, String password, int type) throws java.net.MalformedURLException{
+    public DataSource (String id, String displayName, String name, String address, String user, String password, int type) throws java.net.MalformedURLException,osid.filing.FilingException {
         this(id, displayName, name);
         this.address = address;
         this.userName = user;
@@ -69,7 +73,7 @@ public class DataSource {
     /**
      *  Intializes resource viewer and colors based on data source type.
      */
-    private void setViewer () throws java.net.MalformedURLException{
+    private void setViewer () throws java.net.MalformedURLException,osid.filing.FilingException {
         if(type == FAVORITES) {
             
             VUE.favoritesWindow = new FavoritesWindow(displayName);
@@ -77,25 +81,52 @@ public class DataSource {
 
                      
         }
-        else if(type == FILING_LOCAL) {
-            Vector fileVector  = new Vector();
-            if (VueUtil.isWindowsPlatform()) {
-                fileVector.add(new File("C:\\"));
-            } else if (VueUtil.isMacPlatform()) {
-                // todo: if OSX, add dirs in /Volumes (other mounted disks)
-                // Also would be nice if we could label "/" as "Macintosh HD",
-                // or even find out from the OS what the user has it labeled.
-                fileVector.add(new File("/"));
-            } else
-                fileVector.add(new File("/"));
-            VueDragTree fileTree = new VueDragTree(fileVector.iterator(),displayName);
-            JScrollPane jSP = new JScrollPane(fileTree);   
-            this.resourceViewer = jSP;
+         else if(type == FILING_LOCAL) {
+            Vector cabVector = new Vector();
+            System.out.println("Was I here in filing local");
+            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+            LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots(); 
+            osid.shared.Agent agent = null; //  This may cause problems later.
+             System.out.println("Was I here in filing local after");
+            while(rootCabs.hasNext()){
+                LocalCabinetEntry rootNode = (LocalCabinetEntry)rootCabs.next();
+                 CabinetResource res = new CabinetResource (rootNode);
+                cabVector.add (res);
+
+                
+            }    
+            System.out.println("Was I here in Vuedrag" +displayName);
             
+            VueDragTree fileTree = new VueDragTree (cabVector.iterator(), displayName);
+            System.out.println("Was I here in Vuedrag 2");
+            JScrollPane rSP = new JScrollPane (fileTree);
+            this.resourceViewer = rSP;
         }
         else if (type == FILING_REMOTE) {
+            //FilingCabDragTree fcdt = new FilingCabDragTree ("ftp", address, userName, password);
+            //JScrollPane rSP = new JScrollPane (fcdt);
+            //this.resourceViewer = rSP;
             
+            Vector cabVector = new Vector();
+            
+            RemoteFilingManager manager = new RemoteFilingManager();   // get a filing manager
+            manager.createClient(address,userName,password);       // make a connection to the ftp site 
+            RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots(); 
+            osid.shared.Agent agent = null; //  This may cause problems later.
+            while(rootCabs.hasNext()){
+                RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
+                CabinetResource res = new CabinetResource (rootNode);
+                cabVector.add (res);
+               
+            }    
+
+            VueDragTree fileTree = new VueDragTree (cabVector.iterator(), displayName);
+            JScrollPane rSP = new JScrollPane (fileTree);
+            this.resourceViewer = rSP;
         }
+
+       
+       
         else if(type== DR_FEDORA) {
             this.resourceViewer = new DRViewer("fedora.conf", id,displayName,displayName,new URL("http",this.address,8080,"fedora/"),userName,password);
             
