@@ -123,7 +123,7 @@ public class ZoomTool extends VueTool
         setZoom(zoomFactor, true);
     }
     
-    private void setZoom(double newZoomFactor, boolean adjustViewport)
+    void setZoom(double newZoomFactor, boolean adjustViewport)
     {
         curZoom = ZOOM_MANUAL;
         for (int i = 0; i < ZoomDefaults.length; i++) {

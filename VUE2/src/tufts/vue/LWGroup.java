@@ -1,4 +1,4 @@
-package tufts.vue;
+ package tufts.vue;
 
 import java.util.List;
 import java.util.Iterator;
@@ -18,7 +18,7 @@ import java.awt.geom.Rectangle2D;
  * @author Scott Fraize
  * @version 6/1/03
  */
-public class LWGroup extends LWContainer
+public final class LWGroup extends LWContainer
 {
     /** Set size & location of this group based on LWComponents in selection */
     private LWGroup(java.util.List selection)

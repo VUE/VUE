@@ -71,8 +71,7 @@ public class OpenAction extends AbstractAction
             if (debug) System.err.println("Unmarshalling from " + filename);
             Vue2DMap map = (Vue2DMap) unmarshaller
                 .unmarshal(new InputSource(new FileReader(filename)));
-            if (debug) System.err.println("Resolving links in " + map);
-            map.resolvePersistedLinks();
+            map.completeXMLRestore();
             return map;
         } catch (Exception e) {
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);

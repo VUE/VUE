@@ -10,6 +10,12 @@
     <field name="width" direct="true"><bind-xml node="attribute"/></field>
     <field name="height" direct="true"><bind-xml node="attribute"/></field>
   </class>
+  
+  <class name="java.awt.geom.Point2D$Float">
+    <map-to xml="point"/>
+    <field name="x" direct="true"><bind-xml node="attribute"/></field>
+    <field name="y" direct="true"><bind-xml node="attribute"/></field>
+  </class>
 
   <class name="tufts.vue.LWComponent">
     <!-- castor can figure out types, we leave string as defaulted.
@@ -105,7 +111,7 @@
 			<bind-xml name="userZoom"/>
 		</field>
 		<field name="userOrigin">
-			<bind-xml name="userOrigin"/>
+			<bind-xml name="userOrigin" node="element"/>
 		</field>
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                         <bind-xml matches="*"/> 

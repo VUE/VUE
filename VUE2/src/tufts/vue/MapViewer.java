@@ -110,10 +110,16 @@ public class MapViewer extends javax.swing.JPanel
         setFont(VueConstants.DefaultFont);
         loadMap(map);
 
+        //-------------------------------------------------------
+        // If this map was just restored, there might
+        // have been an existing userZoom or userOrigin
+        // set -- we honor that last user configuration here.
+        //-------------------------------------------------------
+        zoomTool.setZoom(getMap().getUserZoom(), false);
         Point2D p = getMap().getUserOrigin();
         setMapOriginOffset(p.getX(), p.getY());
-        zoomTool.setZoom(getMap().getUserZoom());
             
+        // we repaint any time the global selection changes
         VueSelection.addListener(this);
 
         /*

@@ -18,16 +18,49 @@ import java.awt.geom.Rectangle2D;
 public abstract class LWContainer extends LWComponent
 {
     static boolean DEBUG_PARENTING = true;
+
+    protected ArrayList children = new java.util.ArrayList();
     
-    class CList extends java.util.ArrayList {
-        public boolean add(Object obj) {
-            boolean tv = super.add(obj);
-            //System.out.println("added " + obj);
-            return tv;
+    /** for use during restore */
+    private int idStringToInt(String idStr)
+    {
+        int id = -1;
+        try {
+            id = Integer.parseInt(idStr);
+        } catch (Exception e) {
+            System.err.println(e + " invalid ID: '" + idStr + "'");
+        }
+        return id;
+    }
+    /** for use during restore */
+    protected int findGreatestChildID()
+    {
+        int maxID = -1;
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            int curID = idStringToInt(c.getID());
+            if (curID > maxID)
+                maxID = curID;
+            if (c instanceof LWContainer) {
+                curID = ((LWContainer)c).findGreatestChildID();
+                if (curID > maxID)
+                    maxID = curID;
+            }
+        }
+        return maxID;
+    }
+    /** for use during restore */
+    protected void setChildParentReferences()
+    {
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setParent(this);
+            if (c instanceof LWContainer)
+                ((LWContainer)c).setChildParentReferences();
         }
     }
-    
-    protected ArrayList children = new CList();
     
     /*
      * Child handling code
@@ -100,9 +133,9 @@ public abstract class LWContainer extends LWComponent
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDS " + c);
         if (c.getParent() != null)
             c.getParent().removeChild(c);
-        this.children.add(c);
         if (c.getFont() == null)//todo: really want to do this? only if not manually set?
             c.setFont(getFont());
+        this.children.add(c);
         c.setParent(this);
     }
         

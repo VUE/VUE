@@ -151,12 +151,12 @@ public class LWLink extends LWComponent
     void setEndPoint1(LWComponent c)
     {
         this.c1 = c;
-        System.out.println(this + " ep1 = " + c);
+        //System.out.println(this + " ep1 = " + c);
     }
     void setEndPoint2(LWComponent c)
     {
         this.c2 = c;
-        System.out.println(this + " ep2 = " + c);
+        //System.out.println(this + " ep2 = " + c);
     }
     public java.util.Iterator getLinkEndpointsIterator()
     {
