@@ -43,7 +43,7 @@ public class MapViewer extends javax.swing.JPanel
 
     //-------------------------------------------------------
     // temporary debugging attributes
-    private final boolean DRAW_ORIGIN = true;
+    private final boolean DRAW_ORIGIN = false;
     private final boolean SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private int mouseX;
     private int mouseY;
