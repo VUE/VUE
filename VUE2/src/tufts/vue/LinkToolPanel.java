@@ -103,7 +103,8 @@ import tufts.vue.beans.*;
          BlobIcon textBlob = new BlobIcon();
          textBlob.setOverlay( textIcon );
          mTextColorButton.setIcon(textBlob);
-         mTextColorButton.setPropertyName("nodeTextColor");
+         //mTextColorButton.setPropertyName("nodeTextColor");
+         mTextColorButton.setPropertyName(VueLWCPropertyMapper.kTextColor);
          mTextColorButton.setBackground( bakColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
@@ -200,7 +201,7 @@ import tufts.vue.beans.*;
              Integer arrows = (Integer) state.getPropertyValue( VueLWCPropertyMapper.kLinkArrowState );
              int arrowState = arrows.intValue();
              mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
-             mArrowEndButton.setSelected( (arrowState % LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
+             mArrowEndButton.setSelected( (arrowState & LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
          }
          else {
              debug("missing arrow state property in state");
@@ -273,28 +274,28 @@ import tufts.vue.beans.*;
 	 }
   	
  	
- 	public void actionPerformed( ActionEvent pEvent) {
- 		Object source = pEvent.getSource();
+     public void actionPerformed( ActionEvent pEvent) {
+         Object source = pEvent.getSource();
  		
- 		// the arrow on/off buttons where it?
- 		if( source instanceof JToggleButton ) {
- 			JToggleButton button = (JToggleButton) source;
- 			if( (button == mArrowStartButton) || (button == mArrowEndButton) ) {
-				int oldState = -1;
-				int state = LWLink.ARROW_NONE;
-				if( mArrowStartButton.isSelected() ) {
-					state += LWLink.ARROW_EP1;
-					}
-				if( mArrowEndButton.isSelected() ) {
-					state += LWLink.ARROW_EP2;
-					}
-				Integer newValue = new Integer( state);
-				Integer oldValue = new Integer( oldState);
-				PropertyChangeEvent event = new PropertyChangeEvent( button, VueLWCPropertyMapper.kLinkArrowState, oldValue, newValue);
-				propertyChange( event);
-				}
-			}
- 	}
+         // the arrow on/off buttons where it?
+         if( source instanceof JToggleButton ) {
+             JToggleButton button = (JToggleButton) source;
+             if( (button == mArrowStartButton) || (button == mArrowEndButton) ) {
+                 int oldState = -1;
+                 int state = LWLink.ARROW_NONE;
+                 if( mArrowStartButton.isSelected() ) {
+                     state += LWLink.ARROW_EP1;
+                 }
+                 if( mArrowEndButton.isSelected() ) {
+                     state += LWLink.ARROW_EP2;
+                 }
+                 Integer newValue = new Integer( state);
+                 Integer oldValue = new Integer( oldState);
+                 PropertyChangeEvent event = new PropertyChangeEvent( button, VueLWCPropertyMapper.kLinkArrowState, oldValue, newValue);
+                 propertyChange( event);
+             }
+         }
+     }
  	
  	
  	
