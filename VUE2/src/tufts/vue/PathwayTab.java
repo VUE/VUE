@@ -219,6 +219,10 @@ public class PathwayTab extends JPanel implements   ActionListener,
                 {
                     setElemSelection(!sel.isEmpty());
                     if (!sel.isEmpty()){
+                        LWPathway path = VUE.getActivePathway();
+                        addElement.setEnabled(path != null && !path.getLocked());
+                        removeElement.setEnabled(path != null && !path.getLocked() && path.length() > 0);
+                        /*
                         if (VUE.getActiveMap().getPathwayManager().length() > 0
                             && !VUE.getActiveMap().getPathwayManager().getCurrentPathway().getLocked())
                             addElement.setEnabled(true);
@@ -230,6 +234,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
                             removeElement.setEnabled(true);
                         else
                             removeElement.setEnabled(false);
+                        */
                     }else{
                         addElement.setEnabled(false);
                         removeElement.setEnabled(false);
