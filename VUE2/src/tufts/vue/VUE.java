@@ -36,6 +36,8 @@ import javax.swing.border.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+//import com.apple.mrj.*;
+
 /**
  * Vue application class.
  * Create an application frame and layout all the components
@@ -46,6 +48,8 @@ import java.beans.PropertyChangeListener;
 public class VUE
     implements VueConstants
 {
+    private static ToolWindow pannerTool;//debug
+    
     /** The currently active viewer (e.g., is visible
      * and has focus).  Actions (@see Actions.java) are performed on
      * the active model (sometimes querying the active viewer). */
@@ -54,10 +58,14 @@ public class VUE
      * elements in ModelSelection should always be from the ActiveModel */
     static final LWSelection ModelSelection = new LWSelection();
     
-    /** teh global resource selection static model **/
+    /** array of tool windows, used for repeatedly creating JMenuBar's for on all Mac JFrame's */
+    private static Window[] ToolWindows;
+
+            /** teh global resource selection static model **/
     public final static ResourceSelection sResourceSelection = new ResourceSelection();
     
-    public static JFrame frame;
+    public static final VueFrame frame = new VueFrame();
+    //public static final Window parent = new Window();
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
@@ -127,8 +135,47 @@ public class VUE
             //setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
             // On the PC, this is bombing out for me and halting the whole vue application -- doesn't
             // look like the case in the filename matches -- SMF
+            addWindowListener(new WindowAdapter() {
+                    public void windowActivated(WindowEvent e) {
+                        out("VueFrame: activated " + e);
+                        //pannerTool.toFront();
+                        //toolParent.toFront();
+                    }
+                });
+        }
+
+        /*
+        public void show() {
+            out("VueFrame: show");
+            super.show();
+            pannerTool.toFront();
+        }
+        public void toFront()
+        {
+            //if (DEBUG.FOCUS)
+                out("VueFrame: toFront");
+            super.toFront();
+        }
+        */
+        
+        /*
+        public Component add(Component c) {
+            return getContentPane().add(c);
+        }
+        */
+
+        /*
+          once it's displayable (peers created), you can't undo decoration...
+        public void setFullScreen(boolean fullscreen) {
+            if (fullscreen) {
+                setUndecorated(true);
+                tufts.Util.setFullScreen(this);
+            } else {
+                setUndecorated(false);
+            }
         }
         
+        */
         /** never let the frame be hidden -- always ignored */
         public void setVisible(boolean tv) {
             System.out.println("VueFrame setVisible " + tv);
@@ -145,10 +192,12 @@ public class VUE
                 setTitleFromViewer(e.getMapViewer());
         }
         
-        
-        
         private void setTitleFromViewer(MapViewer viewer) {
-            setTitle("VUE: " + viewer.getMap().getLabel());
+            String title = "VUE: " + viewer.getMap().getLabel();
+            //if (viewer.getMap().isCurrentlyFiltered())
+            // will need to listen to map for filter change state or this gets out of date
+            //    title += " (Filtered)";
+            setTitle(title);
             //setTitle("VUE: " + getViewerTitle(viewer));
         }
         
@@ -308,6 +357,12 @@ public class VUE
         }
         out("parsed args " + allArgs);
     }
+
+    static JFrame toolParent = new JFrame();
+    static ToolWindow createToolWindow(String title) {
+        //return new ToolWindow(title, toolParent);
+        return new ToolWindow(title, VUE.frame);
+    }
     
     
     private static JPanel toolPanel;
@@ -322,7 +377,7 @@ public class VUE
         // before any other GUI code (including the SlpashScreen)
         // or our VueTheme gets ignored by swing.
         initUI();
-        
+
         Window splashScreen = null;
         if (nodr)
             DEBUG.Enabled = true;
@@ -432,26 +487,26 @@ public class VUE
         
         //splitPane.setRightComponent(mMapTabsLeft);
         splitPane.setRightComponent(viewerSplit);
-        frame = new VueFrame();
         //JPanel vuePanel = new AAPanel();
         JPanel vuePanel = new JPanel();
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
         
         // Create the tool windows
-        ToolWindow pannerTool = new ToolWindow("Panner", frame);
+        //ToolWindow pannerTool = createToolWindow("Panner", frame);
+        pannerTool = createToolWindow("Panner");
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner());
         
         ToolWindow inspectorTool = null;
         if (nodr) {
-            inspectorTool = new ToolWindow("Inspector", frame);
+            inspectorTool = createToolWindow("Inspector");
             inspectorTool.addTool(new LWCInspector());
         }
         
         ToolWindow drBrowserTool = null;
         //DataSourceViewer currently breaks if more than one DRBrowser
-        //ToolWindow drBrowserTool = new ToolWindow("Data Sources", frame);
+        //ToolWindow drBrowserTool = createToolWindow("Data Sources", frame);
         //if (drBrowser != null) drBrowserTool.addTool(drBrowser);
         
         // The real tool palette window withtools and contextual tools
@@ -459,7 +514,7 @@ public class VUE
         VueToolbarController tbc = VueToolbarController.getController();
         ModelSelection.addListener(tbc);
         /*
-        ToolWindow toolbarWindow = new ToolWindow( VueResources.getString("tbWindowName"), frame);
+        ToolWindow toolbarWindow = createToolWindow( VueResources.getString("tbWindowName"));
         tbc.setToolWindow( toolbarWindow);
         toolbarWindow.getContentPane().add( tbc.getToolbar() );
         toolbarWindow.pack();
@@ -470,12 +525,12 @@ public class VUE
         // Map Inspector
         
         // get the proper scree/main frame size
-        sMapInspector = new ToolWindow(VueResources.getString("mapInspectorTitle"), frame);
+        sMapInspector = createToolWindow(VueResources.getString("mapInspectorTitle"));
         MapInspectorPanel mi = new MapInspectorPanel();
         sMapInspector.addTool(mi);
         
-        //ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
-        objectInspector = new ToolWindow(VueResources.getString("objectInspectorTitle"), frame);
+        //ToolWindow objectInspector = createToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+        objectInspector = createToolWindow(VueResources.getString("objectInspectorTitle"));
         objectInspectorPanel = new ObjectInspectorPanel();
         ModelSelection.addListener(objectInspectorPanel);
         //sResourceSelection.addListener( objectInspectorPanel);
@@ -491,7 +546,7 @@ public class VUE
         }
         
         /*
-        ToolWindow htWindow = new ToolWindow("Hierarchy Tree", frame);
+        ToolWindow htWindow = createToolWindow("Hierarchy Tree", frame);
         hierarchyTree = new LWHierarchyTree();
         htWindow.addTool(hierarchyTree);
          */
@@ -499,7 +554,7 @@ public class VUE
         outlineView = new LWOutlineView(frame);
         //end of addition
         
-        Window[] toolWindows = {
+        VUE.ToolWindows = new Window[] {
             objectInspector,
             sMapInspector,
             drBrowserTool,
@@ -514,16 +569,18 @@ public class VUE
         //buildWindowDisplayActions(toolWindows);
         
         // adding the menus and toolbars
-        frame.setJMenuBar(new VueMenuBar(toolWindows));
+        frame.setJMenuBar(new VueMenuBar(ToolWindows));
         // Attempts to get all the windows to keep the same menu at the top
         // of a mac application are failing... what a bug!
         if (useMacLAF && VueUtil.isMacPlatform()) {
-            for (int i = 0; i < toolWindows.length; i++) {
-                Window w = toolWindows[i];
+            for (int i = 0; i < ToolWindows.length; i++) {
+                Window w = ToolWindows[i];
                 if (w == null)
                     continue;
-                if (w instanceof JFrame)
-                    ((JFrame)w).setJMenuBar(new VueMenuBar(toolWindows));
+                if (false&&w instanceof JFrame)
+                    ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
+                //else if (w instanceof JDialog)
+                //((JDialog)w).setJMenuBar(new VueMenuBar(ToolWindows)); // doesn't work for dialogs: it goes in-window!!!
                 //else if (w instanceof JDialog)
                     //((JDialog)w).setJMenuBar(null);
                 //((JFrame)w).setJMenuBar(buildMenuBar(toolWindows));
@@ -634,6 +691,32 @@ public class VUE
         LinkTool.getLinkToolPanel();
         if (drBrowser != null && drBrowserTool != null)
             drBrowserTool.addTool(new DRBrowser());
+
+        /*
+        if (VueUtil.isMacPlatform()) {
+            MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
+                    public void handleOpenFile(File file) {
+                        System.err.println("MRJOpenDocumentHandler: " + file);
+                        VUE.displayMap(file);
+                    }
+                });
+        }
+        */
+        
+        /*
+        // An attempt to get the mac metal look picked up by something other than a frame:
+        //Window w = new java.awt.VFrame(frame);
+        //Window w = new Frame(); // only full-bread Frame's/JFrame's are picking up mac brushed metal look...
+        Window w = new Dialog(VUE.frame);
+        //Window w = new JWindow(VUE.frame);
+        w.add(new JLabel("Hello."));
+        w.setSize(200,100);
+        w.setBackground(UIManager.getColor("info")); // tried window,control,desktop,windowBorder,menu,activeCaption,info
+        //w.setBackground(SystemColor.control);
+        //w.setBackground(frame.getBackground());
+        w.show();
+        */
+        
         out("main completed.");
     }
     
@@ -814,7 +897,7 @@ public class VUE
     }
     
     /**
-     * Create a new viewer and display the given map in it.
+a     * Create a new viewer and display the given map in it.
      */
     public static void displayMap(LWMap pMap) {
         out("displayMap " + pMap);
@@ -846,7 +929,21 @@ public class VUE
         }
         
         mMapTabsLeft.setSelectedComponent(leftViewer);
-        
+    }
+
+    /**
+     * Factory method for creating frames in VUE.  On PC, this
+     * is same as new new JFrame().  In Mac Look & Feel it adds a duplicate
+     * menu-bar to the frame as every frame needs one
+     * or we lose the mebu-bar.
+     */
+    public static JFrame createFrame()
+    {
+        JFrame frame = new JFrame();
+        if (VueUtil.isMacPlatform() && useMacLAF) {
+            frame.setJMenuBar(new VUE.VueMenuBar());
+        }
+        return frame;
     }
     
     static class VueMenuBar extends JMenuBar
@@ -854,6 +951,10 @@ public class VUE
     {
         // this may be created multiple times as a workaround for the inability
         // to support a single JMenuBar for the whole application on the Mac
+        public VueMenuBar()
+        {
+            this(VUE.ToolWindows);
+        }
         public VueMenuBar(Window[] toolWindows)
         {
             addFocusListener(this);
@@ -1016,7 +1117,7 @@ public class VUE
             helpMenu.add(vueOnline); 
             helpMenu.add(userGuide);
             helpMenu.add(aboutUs);
-            aboutusTool = new ToolWindow("VUE: About VUE", tufts.vue.VUE.getInstance());
+            aboutusTool = createToolWindow("VUE: About VUE");
             JPanel backPanel = new JPanel();
             //backPanel.setBorder(new LineBorder(Color.WHITE,20));
             backPanel.setBorder(new EmptyBorder(20,20,20,20));
