@@ -46,8 +46,8 @@ public class MapViewer extends javax.swing.JPanel
     //-------------------------------------------------------
     // For dragging out new links
     //-------------------------------------------------------
-    private final LWComponent dynamicLinkEndpoint = new LWComponent();
-    private final LWLink dynamicLink = new LWLink(dynamicLinkEndpoint);
+    private final LWComponent invisibleLinkEndpoint = new LWComponent();
+    private final LWLink creationLink = new LWLink(invisibleLinkEndpoint);
     protected LWComponent indication;   // current indication (rollover hilite)
 
     //-------------------------------------------------------
@@ -75,7 +75,7 @@ public class MapViewer extends javax.swing.JPanel
     {
         super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
-        dynamicLink.setDisplayed(false);
+        creationLink.setDisplayed(false);
         //setLayout(new NoLayout());
         setLayout(null);
         InputHandler ih = new InputHandler();
@@ -178,7 +178,7 @@ public class MapViewer extends javax.swing.JPanel
         return (float) ((y + getOriginY()) / zoomFactor);
     }
     float screenToMapDim(int dim) {
-        return (int) (dim / zoomFactor);
+        return (float) (dim / zoomFactor);
     }
     Point2D screenToMapPoint(Point p) {
         return screenToMapPoint(p.x, p.y);
@@ -347,6 +347,7 @@ public class MapViewer extends javax.swing.JPanel
     
     public void mapItemChanged(MapEvent e)
     {
+        System.out.println("MapViewer repaint on " + e);
         repaint();
     }
 
@@ -358,11 +359,11 @@ public class MapViewer extends javax.swing.JPanel
     }
     private LWLink addLink(LWLink lv)
     {
-        repaint();
         linkViews.add(lv);
+        repaint();
         return lv;
     }
-    private LWComponent addLWC(LWComponent c)
+    LWComponent addLWC(LWComponent c)
     {
         if (c instanceof LWNode)
             nodeViews.add(c);
@@ -413,23 +414,44 @@ public class MapViewer extends javax.swing.JPanel
         java.util.Iterator i = new VueUtil.GroupIterator(components, nodeViews, linkViews);
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (c.contains(mapX, mapY)) {
+                hits.add(c);
+                //hits.add(c.getComponentAt(mapX, mapY));
+                // LWC.getComponentAt(x,y) returns self
+                // if no child hits
+            }
+        }
+        return findClosestCenter(hits, mapX, mapY);
+    }
+
+    public LWNode getLWNodeAt(float mapX, float mapY)
+    {
+        java.util.List hits = new java.util.ArrayList();
+        
+        java.util.Iterator i = nodeViews.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
             if (c.contains(mapX, mapY))
                 hits.add(c);
         }
-        return findClosestCenter(hits, mapX, mapY);
+        return (LWNode) findClosestCenter(hits, mapX, mapY);
     }
     /**
      * Used to look for a node we can drop the given
      * node onto.
      */
-    public LWNode getLWNodeUnder(LWNode dragging)
+    public LWNode getLWNodeUnder(float mapX, float mapY, LWComponent dragging)
     {
         java.util.List hits = new java.util.ArrayList();
-        float mapX = dragging.getCenterX();
-        float mapY = dragging.getCenterY();
+        //float centerX = dragging.getCenterX();
+        //float centerY = dragging.getCenterY();
         java.util.Iterator i = nodeViews.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            // if either mouse or the center of the dragged component
+            // is within the bounds of the component, consider it
+            // a possible drop target (to add dragging as a child)
+            //if (c != dragging && (c.contains(mapX, mapY) || c.contains(centerX, centerY)))
             if (c != dragging && c.contains(mapX, mapY))
                 hits.add(c);
         }
@@ -469,6 +491,9 @@ public class MapViewer extends javax.swing.JPanel
         return findClosest(hits, x, y, false);
     }
     
+    // todo: we probably need to abandon this whole closest thing, which was neat,
+    // and just go for the cleaner, more traditional layer approach (uppermost
+    // layer is always hit first).
     protected LWComponent findClosest(java.util.List hits, float x, float y, boolean toEdge)
     {
         if (hits.size() == 1)
@@ -476,10 +501,35 @@ public class MapViewer extends javax.swing.JPanel
         else if (hits.size() == 0)
             return null;
         
+        java.util.Iterator i;
+        java.util.List topLayer = new java.util.ArrayList();
+
+        if (!toEdge) {
+            // scale is a proxy for the layers created by parent/child relationships
+            // todo: perhaps do real layering, or have parent handle hit detection...
+            float smallestScale = 99f;
+            i = hits.iterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (c.getLayer() < smallestScale)
+                    smallestScale = c.getLayer();
+            }
+            i = hits.iterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (c.getLayer() == smallestScale)
+                    topLayer.add(c);
+            }
+            if (topLayer.size() == 1)
+                return (LWComponent) topLayer.get(0);
+        } else {
+            topLayer = hits;
+        }
+
         float shortest = Float.MAX_VALUE;
         float distance;
         LWComponent closest = null;
-        java.util.Iterator i = hits.iterator();
+        i = topLayer.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (toEdge)
@@ -638,41 +688,31 @@ public class MapViewer extends javax.swing.JPanel
             addActionListener(this);
             addFocusListener(this);
             addKeyListener(this);
-            Font baseFont;
-            if (lwc instanceof LWLink)
-                baseFont = SmallFont;
-            else
-                baseFont = DefaultFont;
-            baseFont = DefaultFont; // todo: link placement ugly
-            Font f = new Font(baseFont.getName(),
-                              baseFont.getStyle(),
-                              (int) (baseFont.getSize() * zoomFactor));
+            Font baseFont = lwc.getFont();
+            int pointSize = (int) (baseFont.getSize() * zoomFactor * lwc.getScale());
+            if (pointSize < 10)
+                pointSize = 10;
+            Font f = new Font(baseFont.getName(), baseFont.getStyle(), pointSize);
+            
             //System.out.println(DefaultFont.getAttributes());
             setFont(f);
             FontMetrics fm = getFontMetrics(f);
             //System.out.println("margin="+getMargin());
             Dimension prefSize = getPreferredSize();
 
-            //prefSize.width += 6*zoomFactor;
-            // this stringWidth isn't doing squat for us -- either
-            // because fractional metrics aren't on, or becasue this
-            // font isn't *exactly* the same font that was rendered in
-            // the scaled graphics context
-            //int textWidth = fm.stringWidth(getText());
-            //if (prefSize.width < textWidth)
-            //prefSize.width = textWidth;
-
-            int newWidth = mapToScreenDim(lwc.getWidth()-14);
-            if (prefSize.width < newWidth)
-                prefSize.width = newWidth;
+            int prefWidth = mapToScreenDim(lwc.getWidth()-14);
+            int textWidth = fm.stringWidth(getText()) + 4; // add 4 for borders
+            if (prefWidth < textWidth)
+                prefWidth = textWidth;
+            if (prefWidth < 50)
+                prefWidth = 50;
+            if (prefSize.width < prefWidth)
+                prefSize.width = prefWidth;
             prefSize.height = fm.getAscent() + fm.getDescent();
             setSize(prefSize);
-
             setSelectionColor(Color.yellow);
-            selectAll();
             //setSelectionColor(SystemColor.textHighlight);
-            //setBackground(DEFAULT_NODE_COLOR);
-            //setBorder(null);
+            selectAll();
 
             /*
             System.out.println("Actions supported:");
@@ -763,26 +803,15 @@ public class MapViewer extends javax.swing.JPanel
             return;
         removeLabelEdit();
         activeTextEdit = new MapTextEdit(lwc);
-        /*
-        Point2D offset = lwc.getLabelOffset();
-        float cx = mapToScreenX(lwc.getX() + offset.getX());
-        float cy = mapToScreenY(lwc.getY() + offset.getY()) - activeTextEdit.getHeight();
-        // todo fixme: this positioning is a hack
-        if (activeTextEdit.getBorder() != null) {
-            Insets bi = activeTextEdit.getBorder().getBorderInsets(activeTextEdit);
-            //System.out.println("borderInsets="+bi);
-            cx -= bi.left;
-            cy += bi.top;
-        }
-        cy += 2*zoomFactor;
-        activeTextEdit.setLocation(Math.round(cx), Math.round(cy));
-        */
 
-        // for now, just center in the component
         float ew = screenToMapDim(activeTextEdit.getWidth());
         float eh = screenToMapDim(activeTextEdit.getHeight());
         float cx = lwc.getX() + (lwc.getWidth() - ew) / 2f;
-        float cy = lwc.getY() + (lwc.getHeight() - eh) / 2f;
+        float cy;
+        if (lwc.isAutoSized() && !lwc.hasChildren())
+            cy = lwc.getY() + (lwc.getHeight() - eh) / 2f;
+        else
+            cy = lwc.getLabelY();
         
         activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy));
         // we must add the component to the container in order to get events.
@@ -793,12 +822,13 @@ public class MapViewer extends javax.swing.JPanel
         add(activeTextEdit);
         activeTextEdit.requestFocus();
     }
+    
     private void drawComponentList(Graphics2D g2, java.util.List componentList)
     {
         java.util.Iterator i = componentList.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (c.isDisplayed())
+            if (c.isDisplayed() && c != indication && !c.isChild())
                 drawComponent(g2, c);
         }
     }
@@ -806,25 +836,14 @@ public class MapViewer extends javax.swing.JPanel
     private void drawComponent(Graphics2D g2, LWComponent c)
     {
         final boolean translate = !c.absoluteDrawing();
-        float tx = 0;
-        float ty = 0;
         try {
-            // restore default graphics context
-            g2.setFont(VueConstants.DefaultFont);
-            if (translate) {
-                tx = c.getX();
-                ty = c.getY();
-                g2.translate(tx, ty);
-            }
-            try { 
-                // draw the component
-                c.draw(g2);
-            } finally {
-                if (translate)
-                    g2.translate(-tx, -ty);
-            }
+            Graphics2D lg = (Graphics2D) g2.create();
+            if (translate)
+                lg.translate(c.getX(), c.getY());
+            c.draw(lg);
         } catch (Throwable e) {
             System.err.println("Render exception: " + e);
+            e.printStackTrace();
         }
     }
 
@@ -838,7 +857,7 @@ public class MapViewer extends javax.swing.JPanel
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         // Do we need fractional metrics?  Gives us slightly more accurate
         // string widths on noticable on long strings
-        //g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         
         /*
          * Draw the components.
@@ -853,16 +872,19 @@ public class MapViewer extends javax.swing.JPanel
         
         // render the LWLinks first so ends are obscured later
         // when the LWNodes are rendered.
-        drawComponentList(g2, linkViews);
+        //drawComponentList(g2, linkViews);
         
-        if (dynamicLink.isDisplayed())
-            drawComponent(g2, dynamicLink);
-
         // render any arbitrary LWComponents
         drawComponentList(g2, components);
         
         // render the LWNodes
         drawComponentList(g2, nodeViews);
+
+        // render the LWLinks LAST so sure to see links to child nodes
+        drawComponentList(g2, linkViews);
+        
+        if (creationLink.isDisplayed())
+            drawComponent(g2, creationLink);
 
         // render the current selection on top
         //if (lastSelection != null && selectionList.size() == 1)
@@ -893,6 +915,7 @@ public class MapViewer extends javax.swing.JPanel
             //g2.drawString("(" + mapX + "," +  mapY + ")map", 10, 40);
             g2.drawString("mapX " + mapX, 10, 40);
             g2.drawString("mapY " + mapY, 10, 60);
+            g2.drawString("zoom " + getZoomFactor(), 10, 80);
         }
 
         if (selectionList.size() > 0) {
@@ -923,11 +946,11 @@ public class MapViewer extends javax.swing.JPanel
     }
 
     static final Rectangle2D SelectionHandle = new Rectangle2D.Float(0,0,0,0);
-    static final int selectionHandleSize = 5; // selection handle fill size -- todo: config
+    static final int SelectionHandleSize = 5; // selection handle fill size -- todo: config
     // exterior drawn box will be 1 pixel bigger
     private void drawSelectionHandle(Graphics2D g, int x, int y)
     {
-        SelectionHandle.setFrame(x, y , selectionHandleSize, selectionHandleSize);
+        SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
         g.setColor(Color.white);
         g.fill(SelectionHandle);
         g.setColor(COLOR_SELECTION);
@@ -936,8 +959,8 @@ public class MapViewer extends javax.swing.JPanel
     void drawSelectionBox(Graphics2D g, Rectangle r)
     {
         g.draw(r);
-        r.x -= selectionHandleSize/2;
-        r.y -= selectionHandleSize/2;
+        r.x -= SelectionHandleSize/2;
+        r.y -= SelectionHandleSize/2;
 
         // Draw the four corners
         drawSelectionHandle(g, r.x, r.y);
@@ -1040,6 +1063,7 @@ public class MapViewer extends javax.swing.JPanel
 
         LWComponent dragComponent;
         LWComponent linkSource;
+        boolean mouseWasDragged = false;
 
         /**
          * dragStart: screen location (within this java.awt.Container)
@@ -1089,8 +1113,8 @@ public class MapViewer extends javax.swing.JPanel
             
             if (key == KEY_ABORT_ACTION) {
                 if (dragComponent != null) {
-                    double oldX = dragStart.x + dragOffset.getX();
-                    double oldY = dragStart.y + dragOffset.getY();
+                    double oldX = screenToMapX(dragStart.x) + dragOffset.getX();
+                    double oldY = screenToMapY(dragStart.y) + dragOffset.getY();
                     dragComponent.setLocation(oldX, oldY);
                     dragComponent = null;
                     clearIndicated(); // incase dragging new link
@@ -1224,10 +1248,10 @@ public class MapViewer extends javax.swing.JPanel
                     // Mod-Drag off a component to offer new link creation
                     linkSource = hitComponent;
                     dragOffset.setLocation(0,0);
-                    dynamicLink.setSource(linkSource);
-                    dynamicLink.setDisplayed(true);
-                    dynamicLinkEndpoint.setLocation(mapX, mapY);
-                    dragComponent = dynamicLinkEndpoint;
+                    creationLink.setSource(linkSource);
+                    creationLink.setDisplayed(true);
+                    invisibleLinkEndpoint.setLocation(mapX, mapY);
+                    dragComponent = invisibleLinkEndpoint;
                 } else if (e.isShiftDown()) {
                     if (hitComponent.isSelected())
                         removeFromSelection(hitComponent);
@@ -1251,6 +1275,7 @@ public class MapViewer extends javax.swing.JPanel
                     clearSelection();
                 draggingSelectionBox = true;
             }
+            repaint();
             //if (!editActivated)
             //  removeLabelEdit();
         }
@@ -1270,6 +1295,8 @@ public class MapViewer extends javax.swing.JPanel
 
         public void mouseDragged(MouseEvent e)
         {
+            mouseWasDragged = true;
+            
             if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouseX = e.getX();
                 mouseY = e.getY();
@@ -1300,46 +1327,119 @@ public class MapViewer extends javax.swing.JPanel
                     return;
                 }
             }
-
+            
             // selection box
             if (dragComponent == null && draggingSelectionBox) {
                 int sx = dragStart.x < screenX ? dragStart.x : screenX;
                 int sy = dragStart.y < screenY ? dragStart.y : screenY;
+                Rectangle repaintRect = null;
+                if (draggedSelectionBox != null)
+                    repaintRect = draggedSelectionBox;
+                else
+                    repaintRect = new Rectangle();
                 draggedSelectionBox = new Rectangle(sx, sy,
                                              Math.abs(dragStart.x - screenX),
                                              Math.abs(dragStart.y - screenY));
-                repaint();
+                repaintRect.add(draggedSelectionBox);
+                repaintRect.grow(1,1);
+                repaint(repaintRect);
                 return;
             } else
                 draggedSelectionBox = null;
 
             float mapX = screenToMapX(screenX);
             float mapY = screenToMapY(screenY);
-            
+            Rectangle2D repaintRegion = null;
+
             if (dragComponent != null) {
+                repaintRegion = dragComponent.getBounds();
+                if (dragComponent instanceof LWLink) {
+                    LWLink lwl = (LWLink) dragComponent;
+                    
+                    // todo: will help to add topmost parent of linked-to
+                    // component to rr because text labels are being
+                    // subtly shifted when the clip region passes through
+                    // painted text, and this only appears to apply 
+                    // when zoom level is <= 100%.  Actually, adding
+                    // topmost parent only helps for case of dragging
+                    // a node around a parent that has a link to an
+                    // inner child, thus the clip region freq passes
+                    // thru parent -- it's not even a general fix.
+                    
+                    repaintRegion.add(lwl.getComponent1().getBounds());
+                    repaintRegion.add(lwl.getComponent2().getBounds());
+                }
                 dragComponent.setLocation((float) (mapX + dragOffset.getX()),
                                           (float) (mapY + dragOffset.getY()));
+                repaintRegion.add(dragComponent.getBounds());
+                if (dragComponent instanceof LWLink) {
+                    LWLink lwl = (LWLink) dragComponent;
+                    repaintRegion.add(lwl.getComponent1().getBounds());
+                    repaintRegion.add(lwl.getComponent2().getBounds());
+                }
             }
             
             if (linkSource != null) {
                 // we're dragging a new link looking for an
                 // allowable endpoint
                 LWComponent over = findLWLinkTargetAt(mapX, mapY);
-                if (indication != over)
+                if (indication != null && indication != over) {
+                    repaintRegion.add(indication.getBounds());
                     clearIndicated();
-                if (over != null && isValidLinkTarget(over))
+                }
+                if (over != null && isValidLinkTarget(over)) {
                     setIndicated(over);
+                    repaintRegion.add(over.getBounds());
+                }
             } else if (dragComponent instanceof LWNode) {
                 // regular drag -- check for node drop onto another
-                LWNode over = getLWNodeUnder((LWNode) dragComponent);
-                if (indication != over)
+                LWNode over = getLWNodeUnder(mapX, mapY, dragComponent);
+                if (indication != null && indication != over) {
+                    repaintRegion.add(indication.getBounds());
                     clearIndicated();
-                if (over != null)
+                }
+                if (over != null && isValidParentTarget(over)) {
                     setIndicated(over);
+                    repaintRegion.add(over.getBounds());
+                }
             }
-            if (linkSource != null || dragComponent != null)
-                repaint();
-            // todo perf: try repaint(sx,sy, ex,ey);
+
+            
+            if (dragComponent != null) {
+
+                if (!dragComponent.hasChildren()) {
+                    //-------------------------------------------------------
+                    // Do some repaint optimzation:
+                    // This makes a big difference when cavas is big.
+                    // At moment we skip this if LWC has any children as
+                    // we don't have a traversal that produces all child links.
+                    //-------------------------------------------------------
+                    java.util.Iterator i;
+                    if (dragComponent instanceof LWLink) {
+                        LWLink lwl = (LWLink) dragComponent;
+                        i = new VueUtil.GroupIterator(lwl.getLinkEndpointsIterator(),
+                                                      lwl.getComponent1().getLinkEndpointsIterator(),
+                                                      lwl.getComponent2().getLinkEndpointsIterator());
+                                                      
+                    } else
+                        i = dragComponent.getLinkEndpointsIterator();
+                    while (i.hasNext()) {
+                        LWComponent c = (LWComponent) i.next();
+                        repaintRegion.add(c.getBounds());
+                    }
+                    if (linkSource != null)
+                        repaintRegion.add(linkSource.getBounds());
+                    Rectangle rr = mapToScreenRect(repaintRegion);
+                    // We fudge the bounds here to include any selection
+                    // handles that may be rendering as we drag the component
+                    rr.grow(SelectionHandleSize-1,SelectionHandleSize-1);
+                    // todo: ALSO: need to grow by stroke width of a dragged link
+                    // as it's corners are beyond point with a wide stroke
+                    //repaint(rr);
+                    repaint();
+                } else
+                    repaint();
+            }
         }
 
         public void mouseReleased(MouseEvent e)
@@ -1347,7 +1447,7 @@ public class MapViewer extends javax.swing.JPanel
             if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + "]");
             
             if (linkSource != null) {
-                dynamicLink.setDisplayed(false);
+                creationLink.setDisplayed(false);
                 LWComponent linkDest = indication;
                 if (linkDest != null && linkDest != linkSource)
                 {
@@ -1360,14 +1460,26 @@ public class MapViewer extends javax.swing.JPanel
                     }
                 }
                 linkSource = null;
-            } else if (dragComponent instanceof LWNode
-                       && indication instanceof LWNode) {
+            } else if (mouseWasDragged && dragComponent instanceof LWNode) {
                 // drop one node on another -- add as child
                 LWNode droppedChild = (LWNode) dragComponent;
                 LWNode targetParent = (LWNode) indication;
-                System.out.println("adding " + droppedChild + " as child of " + targetParent);
+                /*
+                if (targetParent == null)
+                    System.out.println("DE-PARENTING " + droppedChild);
+                else
+                    System.out.println("adding " + droppedChild + " as child of " + targetParent);
+                */
                 //getMap().removeNode(droppedChild.getNode());
-                targetParent.getNode().addChild(droppedChild.getNode());
+                //targetParent.getNode().addChild(droppedChild.getNode());
+                // todo: any other LWComponent views listenting to this concept map
+                // won't get updated properly -- this isn't a current requirement,
+                // but we should support it.
+                //removeLWC(droppedChild);
+                if (droppedChild.getParent() != null)
+                    droppedChild.getParent().removeChild(droppedChild);
+                if (targetParent != null)
+                    targetParent.addChild(droppedChild);
             }
             
             dragComponent = null;
@@ -1377,7 +1489,11 @@ public class MapViewer extends javax.swing.JPanel
                 clearIndicated();
             
             if (draggedSelectionBox != null) {
-                java.util.List list = getLWComponentsHitBy(screenToMapRect(draggedSelectionBox));
+                //System.out.println("dragged " + draggedSelectionBox);
+                Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectionBox);
+                //System.out.println("map " + hitRect);
+                java.util.List list = getLWComponentsHitBy(hitRect);
+                //java.util.List list = getLWComponentsHitBy(screenToMapRect(draggedSelectionBox));
                 java.util.Iterator i = list.iterator();
                 LWComponent lwc = null;
                 while (i.hasNext()) {
@@ -1386,15 +1502,12 @@ public class MapViewer extends javax.swing.JPanel
                 }
                 draggedSelectionBox = null;
             }
-            if (selectionList.size() == 1) {
-                new MapSelectionEvent(MapViewer.this,
-                                      ((LWComponent)selectionList.get(0)).getMapItem())
-                    .raise();
-            }
-            if (selectionList.size() > 0)
+            if (selectionList.size() > 0) {
                 selectionBounds = getComponentBounds(selectionList.iterator());
-
+                new MapSelectionEvent(MapViewer.this, selectionList).raise();
+            }
             repaint();
+            mouseWasDragged = false;
         }
 
         private final boolean isDoubleClickEvent(MouseEvent e)
@@ -1455,11 +1568,28 @@ public class MapViewer extends javax.swing.JPanel
         }
     
         /**
+         * Make sure we don't create any loops
+         */
+        public boolean isValidParentTarget(LWComponent parentTarget)
+        {
+            if (parentTarget == dragComponent)
+                return false;
+            if (parentTarget.getParent() == dragComponent)
+                return false;
+            //if (dragComponent.getParent() == parentTarget)
+            //return false;
+            return true;
+        }
+        
+        /**
          * Make sure we don't create any links back on themselves.
          */
         public boolean isValidLinkTarget(LWComponent linkTarget)
         {
             if (linkTarget == linkSource)
+                return false;
+            if (linkTarget.getParent() == linkSource
+                || linkSource.getParent() == linkTarget)
                 return false;
             
             boolean ok = true;
@@ -1503,8 +1633,8 @@ public class MapViewer extends javax.swing.JPanel
             requestFocus();
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
             if (selectionList.size() > 0)
-                new MapSelectionEvent(this, ((LWComponent)selectionList.get(0)).getMapItem())
-                    .raise();
+                new MapSelectionEvent(MapViewer.this, selectionList).raise();
+            //new MapSelectionEvent(this, ((LWComponent)selectionList.get(0)).getMapItem()).raise();
             
             repaint();
             
@@ -1580,19 +1710,6 @@ public class MapViewer extends javax.swing.JPanel
         JFrame frame = new EventFrame("VUE Concept Map Viewer");
         frame.setContentPane(mapView);
         
-        //Frame frame = new Frame("VUE Map Viewer: " + map.getLabel());
-        //frame.add(mapView);
-        
-        /*
-        frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(mapView, BorderLayout.CENTER);
-        frame.getContentPane().add(mii = new MapItemInspector(), BorderLayout.WEST);
-        */
-        /*
-        JFrame iframe = new JFrame("Inspector");
-        iframe.setContentPane(new MapItemInspector());
-        iframe.show();
-        */
         
         frame.setBackground(Color.gray);
         frame.setSize(500,400);
@@ -1618,6 +1735,7 @@ public class MapViewer extends javax.swing.JPanel
         Node n4 = new Node("Tester Node Four");
         Node n5 = new Node("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
         Node n6 = new Node("abcdefghijklmnopqrstuvwxyz");
+        
         n1.setPosition(100, 50);
         n2.setPosition(100, 100);
         n3.setPosition(50, 150);
@@ -1633,5 +1751,11 @@ public class MapViewer extends javax.swing.JPanel
         map.addLink(new Link(n1, n2));
         map.addLink(new Link(n2, n3));
         map.addLink(new Link(n2, n4));
+
+        map.addNode(new Node("One"));
+        map.addNode(new Node("Two"));
+        map.addNode(new Node("Three"));
+        map.addNode(new Node("Four"));
+
     }
 }

@@ -10,6 +10,16 @@ public class VueUtil
     private static float javaVersion = 1.0f;
     private static String currentDirectoryPath = "";
     
+    // Mac OSX Java 1.4.1 has a bug where stroke's are exactly 0.5
+    // units off center (down/right from proper center).  You need to
+    // draw a minumim stroke on top of a stroke of more than 1 to see
+    // this, because at stroke width 1, this looks appears as a policy
+    // of drawing strokes down/right to the line. Note that there are
+    // other problems with Mac strokes -- a stroke width of 1.0
+    // doesn't appear to scale with the graphics context, but any
+    // value just over 1.0 will.
+    public static boolean StrokeBug05 = false;
+   
     static {
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
@@ -33,6 +43,10 @@ public class VueUtil
         } else {
             UnixPlatform = true;
         }
+        if (isMacPlatform())
+            StrokeBug05 = true;
+        if (StrokeBug05)
+            System.out.println("Stroke compensation active (0.5 unit offset bug)");
     }
 
     public static void main(String args[])
@@ -154,31 +168,40 @@ public class VueUtil
 
     public static class GroupIterator implements Iterator
     {
-        private List[] lists = new List[4];
-        int nlist = 0;
-        int listIndex = 0;
+        private Object[] iterables = new Object[4];
+        int nIter = 0;
+        int iterIndex = 0;
         Iterator curIter;
         
-        public GroupIterator(List l1, List l2)
+        public GroupIterator(Object l1, Object l2)
         {
             this(l1, l2, null);
         }
-        public GroupIterator(List l1, List l2, List l3)
+        public GroupIterator(Object l1, Object l2, Object l3)
         {
             if (l1 == null || l2 == null)
-                throw new IllegalArgumentException("null list");
-            lists[nlist++] = l1;
-            lists[nlist++] = l2;
+                throw new IllegalArgumentException("null Collection or Iterator");
+            iterables[nIter++] = l1;
+            iterables[nIter++] = l2;
             if (l3 != null)
-                lists[nlist++] = l3;
+                iterables[nIter++] = l3;
+            for (int i = 0; i < nIter; i++) {
+                if (!(iterables[i] instanceof Collection) &&
+                    !(iterables[i] instanceof Iterator))
+                    throw new IllegalArgumentException("arg i not Collection or Iterator");
+            }
         }
 
         public boolean hasNext()
         {
             if (curIter == null) {
-                if (listIndex >= nlist)
+                if (iterIndex >= nIter)
                     return false;
-                curIter = lists[listIndex++].iterator();
+                if (iterables[iterIndex] instanceof Collection)
+                    curIter = ((Collection)iterables[iterIndex]).iterator();
+                else
+                    curIter = (Iterator) iterables[iterIndex];
+                iterIndex++;
                 if (curIter == null)
                     return false;
             }
@@ -221,15 +244,4 @@ public class VueUtil
     }
 
 
-    // Mac OSX Java 1.4.1 has a bug where stroke's are exactly 0.5
-    // units off center (down/right from proper center).  You need to
-    // draw a minumim stroke on top of a stroke of more than 1 to see
-    // this, because at stroke width 1, this looks appears as a policy
-    // of drawing strokes down/right to the line. Note that there are
-    // other problems with Mac strokes -- a stroke width of 1.0
-    // doesn't appear to scale with the graphics context, but any
-    // value just over 1.0 will.
-    
-    public static final boolean StrokeBug05 = isMacPlatform();
-   
 }

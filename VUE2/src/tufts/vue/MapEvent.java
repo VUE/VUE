@@ -31,5 +31,22 @@ public class MapEvent
     {
         return item;
     }
+
+    public String toString()
+    {
+        String idName = null;
+        if (id == ADD)
+            idName = "ADD";
+        else if (id == REMOVE)
+            idName = "REMOVE";
+        else if (id == CHANGE)
+            idName = "CHANGE";
+        else
+            idName = id + ":UNKNOWN";
+        return "MapEvent[" + idName
+            + " item="+item
+            + " src="+source
+            + "]";
+    }
 }
 

@@ -4,12 +4,12 @@ package tufts.vue;
 public class MapSelectionEvent
     extends EventRaiser
 {
-    private MapItem mapItem;
+    java.util.List items;
     
-    public MapSelectionEvent(java.awt.Component c, MapItem mapItem)
+    public MapSelectionEvent(java.awt.Component source, java.util.List list)
     {
-        super(c);
-        this.mapItem = mapItem;
+        super(source);
+        this.items = list;
     }
 
     public Class getListenerClass()
@@ -17,9 +17,19 @@ public class MapSelectionEvent
         return MapSelectionListener.class;
     }
     
-    public MapItem getMapItem()
+    public int count()
     {
-        return mapItem;
+        return items.size();
+    }
+    
+    public java.util.Iterator getIterator()
+    {
+        return items.iterator();
+    }
+    
+    public java.util.List getList()
+    {
+        return items;
     }
 
     public void dispatch(Object listener)

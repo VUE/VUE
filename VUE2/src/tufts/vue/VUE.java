@@ -135,16 +135,17 @@ public class VUE
          * create the map viewer
          */
         MapViewer mapViewer1 = new tufts.vue.MapViewer(map1);
-        Container mapViewer2 = new tufts.vue.MapViewer(map1);
+        //Container mapViewer2 = new tufts.vue.MapViewer(map1);
         Container mapViewer3 = new tufts.vue.MapViewer(map2);
         Container mapViewer4 = new tufts.vue.MapViewer(map3);
 
         installExampleMap(map1);
         installExampleMap(map2);
+        //installExampleNodes(map1, mapViewer1);
 
         tabbedPane = new JTabbedPane();        
         tabbedPane.addTab(map1.getLabel(), mapViewer1);
-        tabbedPane.addTab(map1.getLabel() + "[View 2]", mapViewer2);
+        //tabbedPane.addTab(map1.getLabel() + "[View 2]", mapViewer2);
         tabbedPane.addTab(map2.getLabel(), mapViewer3);
         tabbedPane.addTab(map3.getLabel(), mapViewer4);
         
@@ -160,7 +161,8 @@ public class VUE
         toolPanel.setLayout(new BorderLayout());
         toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         //toolPanel.add(new MapPanner(mapViewer1), BorderLayout.CENTER);
-        toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
+        toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
+        //toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
 
         JSplitPane splitPane = new JSplitPane();
@@ -186,7 +188,8 @@ public class VUE
         pannerTool.addTool(new MapPanner(mapViewer1));
 
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
-        inspectorTool.addTool(new MapItemInspector());
+        inspectorTool.addTool(new LWCInspector());
+        //inspectorTool.addTool(new MapItemInspector());
 
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction() };
@@ -211,6 +214,15 @@ public class VUE
     }
 
 
+    static void installExampleNodes(ConceptMap map, MapViewer view)
+    {
+        view.addLWC(new LWNode(map.addNode(new Node("Oval")), 0)).setFillColor(Color.red);
+        view.addLWC(new LWNode(map.addNode(new Node("Circle")), 1)).setFillColor(Color.green);
+        view.addLWC(new LWNode(map.addNode(new Node("Square")), 2)).setFillColor(Color.orange);
+        view.addLWC(new LWNode(map.addNode(new Node("Rectangle")), 3)).setFillColor(Color.blue);
+        view.addLWC(new LWNode(map.addNode(new Node("Rounded Rectangle")), 4)).setFillColor(Color.yellow);
+    }
+    
     static void installExampleMap(ConceptMap map)
     {
         /*
@@ -231,6 +243,12 @@ public class VUE
         map.addLink(new Link(n1, n2));
         map.addLink(new Link(n2, n3));
         map.addLink(new Link(n2, n4));
+
+        map.addNode(new Node("One"));
+        map.addNode(new Node("Two"));
+        map.addNode(new Node("Three"));
+        map.addNode(new Node("Four"));
+
     }
 
     public static ConceptMap getActiveMap()

@@ -6,33 +6,32 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 
-/*
- * rename ItemInspector
- */
 
-class MapItemInspector extends javax.swing.JPanel
+class LWCInspector extends javax.swing.JPanel
     implements VueConstants,
                MapSelectionListener,
+               LWCListener,
                MapItemListener,
                ActionListener
 {
-    MapItem mapItem;
+    java.util.List selectionList;
 
     JLabel idField = new JLabel();
+    JLabel fontField = new JLabel();
+    JLabel locationField = new JLabel();
+    JLabel sizeField = new JLabel();
     JTextField labelField = new JTextField(15);
     JTextField categoryField = new JTextField();
     JTextField resourceField = new JTextField();
     JTextField notesField = new JTextField();
-    JLabel locationField = new JLabel();
-    JLabel sizeField = new JLabel();
     
     //JTextArea notesField = new JTextArea(1, 20);
 
     JPanel fieldPane = new JPanel();
 
-    public MapItemInspector()
+    public LWCInspector()
     {
-        setBorder(new TitledBorder("Item Inspector"));
+        setBorder(new TitledBorder("Inspector"));
         
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -50,7 +49,8 @@ class MapItemInspector extends javax.swing.JPanel
         Object[] labelTextPairs = {
             "-ID",      idField,
             "-Location",locationField,
-            //"-Size",    sizeField,
+            "-Size",    sizeField,
+            "-Font",    fontField,
             "Label",    labelField,
             "Category", categoryField,
             "Resource", resourceField,
@@ -71,7 +71,8 @@ class MapItemInspector extends javax.swing.JPanel
         setLayout(new BorderLayout());
         add(fieldPane, BorderLayout.CENTER);
     }
-    
+
+    /*
     private void removeListeners(Component c, Class listenerType)
     {
         java.util.EventListener[] listeners = c.getListeners(listenerType);
@@ -87,9 +88,166 @@ class MapItemInspector extends javax.swing.JPanel
         }
 
     }
+    */
 
-    public void actionPerformed(ActionEvent e)
+    private void addLabelTextRows(Object[] labelTextPairs,
+                                  GridBagLayout gridbag,
+                                  Container container)
     {
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.EAST;
+        int num = labelTextPairs.length;
+
+        for (int i = 0; i < num; i += 2) {
+            c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
+            c.fill = GridBagConstraints.NONE;      //reset to default
+            c.weightx = 0.0;                       //reset to default
+
+            String txt = (String) labelTextPairs[i];
+            boolean readOnly = false;
+            if (txt.startsWith("-")) {
+                txt = txt.substring(1);
+                readOnly = true;
+            } 
+            txt += ": ";
+
+            JLabel label = new JLabel(txt);
+            //JLabel label = new JLabel(labels[i]);
+            label.setFont(VueConstants.SmallFont);
+            gridbag.setConstraints(label, c);
+            container.add(label);
+
+            c.gridwidth = GridBagConstraints.REMAINDER;     //end row
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+
+            JComponent field = (JComponent) labelTextPairs[i+1];
+            field.setFont(VueConstants.SmallFont);
+            if (field instanceof JTextField)
+                ((JTextField)field).addActionListener(this);
+            gridbag.setConstraints(field, c);
+            container.add(field);
+
+            if (readOnly) {
+                field.setBorder(new EmptyBorder(1,1,1,1));
+                if (field instanceof JTextField) {
+                    JTextField tf = (JTextField) field;
+                    tf.setEditable(false);
+                    tf.setFocusable(false);
+                }
+                if (VueUtil.isMacPlatform())
+                    field.setBackground(SystemColor.control);
+            }
+        }
+    }
+    
+
+    // todo: will need to change this to display
+    // a LWComponent...
+    
+    public void mapItemChanged(MapItemEvent e)
+    {
+        MapItem mi = e.getSource();
+        if (this.mapItem != mi)
+            throw new IllegalStateException("unexpected event " + e);
+        loadItem(mi, this.lwc);
+    }
+    public void LWCChanged(LWCEvent e)
+    {
+        if (e.getSource() == this)
+            return;
+        if (this.lwc != e.getComponent())
+            throw new IllegalStateException("unexpected update event");
+        loadItem(this.mapItem, this.lwc);
+    }
+    
+    public void eventRaised(MapSelectionEvent e)
+    {
+        setSelection(e.getList());
+    }
+
+    private void loadText(JTextComponent c, String text)
+    {
+        String hasText = c.getText();
+        // This prevents flashing where fields of
+        // length greater the the visible area do
+        // a flash-scroll when setting the text, even
+        // if it's the same as what's there.
+        if (hasText != text && !hasText.equals(text))
+            c.setText(text);
+    }
+
+    private MapItem mapItem; // temporary
+    private LWComponent lwc; // temporary
+    public void setSelection(java.util.List sl)
+    {
+        this.selectionList = sl;
+        //System.err.println("Inspector setSelection: " + sl);
+
+        if (selectionList.size() > 1)
+            return;
+
+        LWComponent lwc = (LWComponent) sl.get(0);
+        MapItem mapItem = lwc.getMapItem();
+        loadItem(mapItem, lwc);
+    }
+
+    private void loadItem(MapItem mapItem, LWComponent lwc)
+    {
+        // handling both a MapItem and a LWC here
+        // is a temporary hack until we change
+        // elimate seperate concept map objects and
+        // implement as an interface.
+        if (this.mapItem != mapItem) {
+            if (this.mapItem != null)
+                this.mapItem.removeChangeListener(this);
+            this.mapItem = mapItem;
+            this.mapItem.addChangeListener(this);
+        }
+        if (this.lwc != lwc) {
+            if (this.lwc != null)
+                this.lwc.removeLWCListener(this);
+            this.lwc = lwc;
+            this.lwc.addLWCListener(this);
+        }
+
+        if (mapItem != null) {
+            if (mapItem instanceof Node) {
+                Node node = (Node) mapItem;
+                if (node.getResource() != null)
+                    loadText(resourceField, node.getResource().toString());
+                else
+                    loadText(resourceField, "");
+                resourceField.setEditable(true);
+                //resourceLabel.setVisible(true);
+                //resourceField.setVisible(true);
+            } else {
+                loadText(resourceField, "");
+                resourceField.setEditable(false);
+                //resourceLabel.setVisible(false);
+                //resourceField.setVisible(false);
+            }
+
+            //loadText(idField, mapItem.getID());
+            idField.setText(mapItem.getID());
+            loadText(labelField, mapItem.getLabel());
+            loadText(categoryField, mapItem.getCategory());
+            loadText(notesField, mapItem.getNotes());
+            //loadText(widthField, new Float(lwc.getWidth()));
+            //loadText(heightField, new Float(lwc.getHeight()).toString());
+
+            locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
+            sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
+            Font f = lwc.getFont();
+            fontField.setText(f.getName() + "-" + f.getSize());
+            //sizeField.setText(mapItem.getWidth() + "x" + mapItem.getHeight());
+        }
+        
+    }
+
+        public void actionPerformed(ActionEvent e)
+    {
+        //if (this.component == null)
         if (this.mapItem == null)
             return;
         String text = e.getActionCommand();
@@ -119,125 +277,5 @@ class MapItemInspector extends javax.swing.JPanel
 
     }
 
-    private void addLabelTextRows(Object[] labelTextPairs,
-                                  GridBagLayout gridbag,
-                                  Container container)
-    {
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.EAST;
-        int num = labelTextPairs.length;
 
-        for (int i = 0; i < num; i += 2) {
-            c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
-            c.fill = GridBagConstraints.NONE;      //reset to default
-            c.weightx = 0.0;                       //reset to default
-
-            String txt = (String) labelTextPairs[i];
-            boolean readOnly = false;
-            if (txt.startsWith("-")) {
-                txt = txt.substring(1);
-                readOnly = true;
-            } 
-            txt += ": ";
-
-            JLabel label = new JLabel(txt);
-            //JLabel label = new JLabel(labels[i]);
-            label.setFont(SmallFont);
-            gridbag.setConstraints(label, c);
-            container.add(label);
-
-            c.gridwidth = GridBagConstraints.REMAINDER;     //end row
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.weightx = 1.0;
-
-            JComponent field = (JComponent) labelTextPairs[i+1];
-            field.setFont(SmallFont);
-            if (field instanceof JTextField)
-                ((JTextField)field).addActionListener(this);
-            gridbag.setConstraints(field, c);
-            container.add(field);
-
-            if (readOnly) {
-                field.setBorder(new EmptyBorder(1,1,1,1));
-                if (field instanceof JTextField) {
-                    JTextField tf = (JTextField) field;
-                    tf.setEditable(false);
-                    tf.setFocusable(false);
-                }
-                if (VueUtil.isMacPlatform())
-                    field.setBackground(SystemColor.control);
-            }
-        }
-    }
-    
-
-    // todo: will need to change this to display
-    // a LWComponent...
-    public void mapItemSelected(MapItem mapItem)
-    {
-        setItem(mapItem);
-    }
-
-    public void mapItemChanged(MapItemEvent e)
-    {
-        MapItem mi = e.getSource();
-        if (this.mapItem != mi)
-            throw new IllegalStateException("unexpected event " + e);
-        setItem(mi);
-    }
-    
-    public void eventRaised(MapSelectionEvent e)
-    {
-        setItem(e.getMapItem());
-    }
-
-    private void loadText(JTextComponent c, String text)
-    {
-        String hasText = c.getText();
-        // This prevents flashing where fields of
-        // length greater the the visible area do
-        // a flash-scroll when setting the text, even
-        // if it's the same as what's there.
-        if (hasText != text && !hasText.equals(text))
-            c.setText(text);
-    }
-
-    public void setItem(MapItem mapItem)
-    {
-        //System.err.println("inspector: " + mapItem);
-        if (this.mapItem != mapItem) {
-            if (this.mapItem != null)
-                this.mapItem.removeChangeListener(this);
-            this.mapItem = mapItem;
-            this.mapItem.addChangeListener(this);
-        }
-
-        if (mapItem != null) {
-            if (mapItem instanceof Node) {
-                Node node = (Node) mapItem;
-                if (node.getResource() != null)
-                    loadText(resourceField, node.getResource().toString());
-                else
-                    loadText(resourceField, "");
-                resourceField.setEditable(true);
-                //resourceLabel.setVisible(true);
-                //resourceField.setVisible(true);
-            } else {
-                loadText(resourceField, "");
-                resourceField.setEditable(false);
-                //resourceLabel.setVisible(false);
-                //resourceField.setVisible(false);
-            }
-
-            //loadText(idField, mapItem.getID());
-            idField.setText(mapItem.getID());
-            loadText(labelField, mapItem.getLabel());
-            loadText(categoryField, mapItem.getCategory());
-            loadText(notesField, mapItem.getNotes());
-
-            locationField.setText("x=" + mapItem.getX() + " y=" + mapItem.getY());
-            //sizeField.setText(mapItem.getWidth() + "x" + mapItem.getHeight());
-        }
-        
-    }
 }

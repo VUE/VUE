@@ -19,44 +19,21 @@ import javax.swing.border.LineBorder;
  */
 class LWNode extends LWComponent
 {
-    static class NodeShape {
-        private final String name;
-        private final RectangularShape shape;
-        private final boolean equalAspect;
-        private NodeShape(String name, RectangularShape shape, boolean equalAspect)
-        {
-            this.name = name;
-            this.shape = shape;
-            this.equalAspect = equalAspect;
-        }
-        private NodeShape(String name, RectangularShape shape)
-        {
-            this(name, shape, false);
-        }
-        RectangularShape getShape()
-        {
-            return (RectangularShape) shape.clone();
-        }
-    }
+    private final int VerticalChildGap = 2;
     
-    static final NodeShape StandardShapes[] = {
-        //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
-        new NodeShape("Oval", new Ellipse2D.Float()),
-        new NodeShape("Circle", new Ellipse2D.Float(), true),
-        new NodeShape("Square", new Rectangle2D.Float(), true),
-        new NodeShape("Rectangle", new Rectangle2D.Float()),
-        new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 0,0, 20,20)),
-        //new NodeShape("Diamond", null),
-        //new NodeShape("Parallelogram", null),
-    };
+    protected RectangularShape drawnShape; // 0 based, not scaled
+    protected RectangularShape boundsShape; // map based, scaled
     
     private float borderWidth = 2;
-    
     private ImageIcon imageIcon = null;
-    private boolean equalAspect = false;
+    private boolean fixedAspect = false;
 
-    protected RectangularShape boundsShape;
-    protected RectangularShape drawnShape;
+    // Internal spacial layout
+    private final int padX = 12;
+    private final int padY = 6;
+    private float fontHeight;
+    private float fontStringWidth;
+
     
     public LWNode(Node node)
     {
@@ -65,11 +42,23 @@ class LWNode extends LWComponent
 
         // set default shape -- todo: get this from NodeTool
         setShape(StandardShapes[4]);
+        setFillColor(COLOR_NODE_DEFAULT);
+    }
+    
+    LWNode(Node node, int shapeType)
+    {
+        this(node);
+        setShape(StandardShapes[shapeType]);
+    }
+
+    public Shape getShape()
+    {
+        return this.boundsShape;
     }
 
     public void setShape(NodeShape nodeShape)
     {
-        this.equalAspect = nodeShape.equalAspect;
+        this.fixedAspect = nodeShape.equalAspect;
         setShape(nodeShape.getShape());
     }
     
@@ -82,9 +71,9 @@ class LWNode extends LWComponent
         // this will cause size to be computed at the next rendering
     }
     
-    // experimental
     void setImage(Image image)
     {
+        // experimental
         imageIcon = new ImageIcon(image, "Image Description");
         setShape(new Rectangle2D.Float());
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
@@ -95,22 +84,61 @@ class LWNode extends LWComponent
         return (Node) getMapItem();
     }
 
+    public void addChild(LWComponent c)
+    {
+        //System.out.println(getMapItem().getLabel() + " ADDS " + c);
+        super.addChild(c);
+        //c.setScale(getScale() * ChildScale);
+        //setScale(getScale());// to prop color toggle hack
+        setScale(getLayer());// to prop color toggle hack
+        getNode().addChild((Node)c.getMapItem());
+        layout();
+    }
+    public void removeChild(LWComponent c)
+    {
+        System.out.println(getMapItem().getLabel() + " REMOVES " + c);
+        super.removeChild(c);
+        getNode().removeChild((Node)c.getMapItem());
+        c.setScale(1f);
+        if (c.isManagedColor())
+            c.setFillColor(COLOR_NODE_DEFAULT);
+        c.layout();
+        layout();
+    }
+
     public void setSize(float w, float h)
     {
+        setSizeNoLayout(w, h);
+        layout();
+    }
+    
+    private void setSizeNoLayout(float w, float h)
+    {
         //System.out.println("setSize " + w + "x" + h);
-        if (this.equalAspect) {
+        if (this.fixedAspect) {
+            // todo: remember aspect so can keep it if other than 1/1
             if (w > h)
                 h = w;
             else
                 w = h;
         }
         super.setSize(w, h);
-        this.boundsShape.setFrame(getX(), getY(), w, h);
-        //System.out.println("boundsShape.setFrame " + x + "," + y + " " + w + "x" + h);
+        this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
         adjustDrawnShape();
     }
 
+    public void setScale(float scale)
+    {
+        super.setScale(scale);
+        this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
+    }
+    
     private void adjustDrawnShape()
+    {
+        this.drawnShape.setFrame(0, 0, this.width, this.height);
+    }
+    
+    private void X_adjustDrawnShape()
     {
         // shrink the drawn shape size by border width
         // so it fits entirely inside the bounds shape.
@@ -144,31 +172,7 @@ class LWNode extends LWComponent
         return boundsShape.intersects(rect);
     }
 
-    public void setLocation(float x, float y)
-    {
-        super.setLocation(x, y);
-
-        java.util.Iterator i = getNode().getChildIterator();
-        float cy = y + 24;
-        while (i.hasNext()) {
-            //Node node = (Node) i.next();
-            //need to set LWNodes
-            cy += 20;
-        }
-
-        //getNode().setPosition(x, y);
-        // todo arch: if this was initiated by user, we're going to be called twice here
-        // because the MapItem always does at least one callback.
-        this.boundsShape.setFrame(x, y, this.width, this.height);
-        adjustDrawnShape();
-
-        
-    }
-
-    private final int pad = 12;
-    private float fontHeight;
-    private float fontStringWidth;
-
+    
     class PLabel extends JLabel
     //class PLabel extends JTextArea
     {
@@ -200,42 +204,97 @@ class LWNode extends LWComponent
         System.out.println("mapItemChanged in LWNode " + e);
         MapItem mi = e.getSource();
         if (mi.getLabel() != lastLabel && this.fontMetrics != null) {
-            setSizeFromLabel(mi.getLabel());
+            // add or remove child -- recompute size based on label
+            layout();
             lastLabel = mi.getLabel();
         }
+        /*
         if  (e.getWhat().endsWith("Child")) {
             // add or remove child -- recompute size
-            setSizeFromLabel(mi.getLabel());
+            layout();
         }
+        */
     }
     
-    private void setSizeFromLabel(String label)
+    private Rectangle2D getAllChildrenBounds()
     {
+        // compute bounds based on a vertical stacking layout
+        java.util.Iterator i = getChildIterator();
+        float height = 0;
+        float maxWidth = 0;
+        float width;
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            //height += c.getHeight() + VerticalChildGap;
+            //width = c.getWidth();
+            height += c.height + VerticalChildGap;
+            width = c.width;
+            if (width > maxWidth)
+                maxWidth = width;
+            
+        }
+        height *= ChildScale;
+        maxWidth *= ChildScale;
+        return new Rectangle2D.Float(0f, 0f, maxWidth, height);
+    }
+        
+    public void setLocation(float x, float y)
+    {
+        //System.out.println("setLocation " + this);
+        super.setLocation(x, y);
+        //getNode().setPosition(x, y);
+        this.boundsShape.setFrame(x, y, getWidth(), getHeight());
+        //this.boundsShape.setFrame(x, y, this.width, this.height);
+        adjustDrawnShape();
+        layoutChildren();
+    }
+    
+    protected void layout()
+    {
+        //System.out.println("layout " + this);
+        setPreferredSize();
+        layoutChildren();
+        
+        // could set size from label first, then layout children and
+        // have it return child bounds, and set size again based on
+        // that if bigger so don't have to reproduce layout logic in
+        // both getAllChildren bounds and layoutChildren
+
+        if (getParent() != null)
+            getParent().layout();
+    }
+      
+    private void setPreferredSize()
+    {
+        String label = getMapItem().getLabel();
+        //System.out.println("setPreferredSize " + label);
         if (this.fontMetrics == null) {
-            new Throwable("null FontMetrics").printStackTrace();
+            //new Throwable("null FontMetrics in " + this).printStackTrace();
+            // Can happen in another view that hasn't been painted yet
             return;
         }
         FontMetrics fm = this.fontMetrics;
         float oldWidth = getWidth();
         this.fontHeight = fm.getAscent() - fm.getDescent() / 1;
         this.fontStringWidth = fm.stringWidth(label);
-        float width = this.fontStringWidth + (pad*2) + borderWidth;
-        float height = this.fontHeight + (pad*1) + borderWidth;
-        height += getNode().getChildList().size() * 15;
-        if (width != oldWidth && lastLabel != null) {
-            // keep the node's center the same.
-            // Besides nice, this is actually important so
-            // that any links to us are still rendered to our
-            // center (links don't set position until they paint)
-            setLocation(getX() + (oldWidth - width) / 2, getY());
+        float width = this.fontStringWidth + (this.padX*2) + borderWidth;
+        float height = this.fontHeight + (this.padY*2) + borderWidth;
+        
+        if (hasChildren()) {
+            // resize to inclued size of children
+            height += this.padY;
+            Rectangle2D childBounds = getAllChildrenBounds();
+            height += childBounds.getHeight();
+            if (width < childBounds.getWidth() + this.padX*2)
+                width = (float) childBounds.getWidth() + this.padX*2;
         }
-        // todo fixme: what's happening in other views when we do this???
-        // problem: node in other view is also recomputing size and
-        // then setting that size back to node!  LWComponent
-        // needs to also be handling the text change & setSize
-        // in the callback, and we also need once again to know
-        // that THIS LWComponent should ignore the callback...
-        setSize(width, height);
+        
+        setSizeNoLayout(width, height);
+        
+        if (this.width != oldWidth && lastLabel != null && !isChild()) {
+            // on resize, keep the node's center the same
+            setLocation(getX() + (oldWidth - this.width) / 2, getY());
+        }
 
         /*
         pLabel = new PLabel(label);
@@ -248,25 +307,60 @@ class LWNode extends LWComponent
         */
     }
 
-    
-    public Point2D getLabelOffset()
+    protected void layoutChildren()
     {
-        return new Point2D.Float(getLabelX(), getLabelY());
-    }
-    float getLabelX() {
-        return this.pad;
-    }
-    float getLabelY() {
-        return (this.height+this.fontHeight) / 2f;
+        if (!hasChildren())
+            return;
+        //System.out.println("layoutChildren " + this);
+        java.util.Iterator i = getChildIterator();
+        float y = (labelY() + this.padY) * getScale();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            //float childX = this.padX * getScale();
+            float childX = (this.getWidth() - c.getWidth()) / 2;
+            c.setLocation(getX() + childX, getY() + y);
+            y += c.getHeight();
+            y += VerticalChildGap * getScale();
+        }
     }
 
-    //public boolean translatedPainting() { return false; }
+    public float getLabelX()
+    {
+        return getX() + labelX();
+    }
+    public float getLabelY()
+    {
+        return (getY() + labelY()) - this.fontHeight;
+    }
+
+    private float labelX()
+    {
+        return (this.width - this.fontStringWidth) / 2;
+        //return this.padX;
+    }
+    private float labelY()
+    {
+        if (hasChildren())
+            return this.fontHeight + this.padY * getScale();
+        else
+            return (this.height+this.fontHeight) / 2f;
+    }
+
+    public boolean absoluteDrawing()
+    {
+        return true;
+    }
     
     public void draw(Graphics2D g)
     {
+        g.translate(getX(), getY());
         super.draw(g);
-
+        float scale = getScale();
+        if (scale != 1f)
+            g.scale(scale, scale);
+        g.setFont(getFont());
         this.fontMetrics = g.getFontMetrics();
+
         String label = getNode().getLabel();
 
         // System.out.println("draw " + label);
@@ -280,10 +374,10 @@ class LWNode extends LWComponent
         } else {
             if (label != lastLabel) {
                 //System.out.println("label " + lastLabel + " -> " + label);
-                setSizeFromLabel(label);
+                layout();
                 lastLabel = label;
             }
-            g.setColor(DEFAULT_NODE_COLOR);
+            g.setColor(getFillColor());
             g.fill(drawnShape);
         }
 
@@ -294,9 +388,11 @@ class LWNode extends LWComponent
         //else if (isSelected())
             //g.setColor(COLOR_SELECTION);
         else
-            g.setColor(COLOR_DEFAULT);
-        g.setStroke(new java.awt.BasicStroke(borderWidth));
-        g.draw(drawnShape);
+            g.setColor(getStrokeColor());
+        if (imageIcon == null) {
+            g.setStroke(new java.awt.BasicStroke(borderWidth));
+            g.draw(drawnShape);
+        }
 
         if (false) {
             g.setStroke(new java.awt.BasicStroke(0.001f));
@@ -308,36 +404,80 @@ class LWNode extends LWComponent
             return;
         
         // Draw the text
-        float textBaseline = getLabelY();
+        float textBaseline = labelY();
         if (false) {
             // box the text for seeing layout metrics
             g.setStroke(new BasicStroke(0.0001f));
             g.setColor(Color.black);
-            //g.draw(new Rectangle2D.Float(getX() + this.pad,
-            g.draw(new Rectangle2D.Float(this.pad,
+            g.draw(new Rectangle2D.Float(this.padX,
                                          textBaseline-fontHeight,
                                          fontStringWidth,
                                          fontHeight));
         }
-        g.setColor(COLOR_DEFAULT);
+        g.setColor(getTextColor());
         if (true)
-            //g.drawString(label, getX() + getLabelX(), getY() + textBaseline);
-            g.drawString(label, getLabelX(), textBaseline);
+            //g.drawString(label, getX() + labelX(), getY() + textBaseline);
+            g.drawString(label, labelX(), textBaseline);
         else
             pLabel.draw(g);
+
+        /*
+          // temp: show the resource--  todo: display an icon
         if (getNode().getResource() != null) {
             g.setFont(VueConstants.SmallFont);
             g.setColor(Color.black);
             g.drawString(getNode().getResource().toString(), 0, getHeight()+12);
             //g.drawString(getNode().getResource().toString(), getX(), getY() + getHeight()+17);
-        }
+            }
+        */
 
-        java.util.Iterator i = getNode().getChildIterator();
-        float y = getHeight()+24;
-        while (i.hasNext()) {
-            Node node = (Node) i.next();
-            g.drawString(node.getLabel(), 0, y);
-            y += 10;
+        /*
+         * draw children
+         */
+
+        if (hasChildren()) {
+            if (scale != 1f)
+                g.scale(1/scale, 1/scale);
+            g.translate(-getX(), -getY());
+            java.util.Iterator i = getChildIterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                c.draw((Graphics2D) g.create());
+            }
         }
     }
+
+    static class NodeShape {
+        private final String name;
+        private final RectangularShape shape;
+        private final boolean equalAspect;
+        private NodeShape(String name, RectangularShape shape, boolean equalAspect)
+        {
+            this.name = name;
+            this.shape = shape;
+            this.equalAspect = equalAspect;
+        }
+        private NodeShape(String name, RectangularShape shape)
+        {
+            this(name, shape, false);
+        }
+        RectangularShape getShape()
+        {
+            return (RectangularShape) shape.clone();
+        }
+    }
+    
+    static final NodeShape StandardShapes[] = {
+        //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
+        new NodeShape("Oval", new Ellipse2D.Float()),
+        new NodeShape("Circle", new Ellipse2D.Float(), true),
+        new NodeShape("Square", new Rectangle2D.Float(), true),
+        new NodeShape("Rectangle", new Rectangle2D.Float()),
+        new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 0,0, 20,20)),
+        //new NodeShape("Diamond", null),
+        //new NodeShape("Parallelogram", null),
+    };
+    
+
+    
 }

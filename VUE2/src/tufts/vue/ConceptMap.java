@@ -160,10 +160,11 @@ public class ConceptMap extends MapItem
     }
 
 
-    public void addNode(Node node)
+    public Node addNode(Node node)
     {
         nodeList.add(node);
         notifyMapListeners(new MapEvent(this, node, MapEvent.ADD));
+        return node;
     }
 
     public void removeNode(Node node)
