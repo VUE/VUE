@@ -312,6 +312,10 @@ public abstract class LWContainer extends LWComponent
             System.err.println("  ep2 parent " + l.getComponent2().getParent());
             */
             LWContainer commonParent = l.getParent();
+            if (commonParent == null) {
+                System.err.println("ELPOTOAP: has no parent: " + l);
+                continue;
+            }
             if (commonParent != component.getParent()) {
                 // If we don't have the same parent, we may need to shuffle the deck
                 // so that any links to us will be sure to paint on top of the parent
