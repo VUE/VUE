@@ -307,22 +307,21 @@ implements LWSelection.Listener {
          **/
         public void updatePanel( LWComponent pComponent) {
             // update display based on the LWNode
-           /** 
+   /**
              if(pComponent instanceof LWContainer)   {
      
-                    add(mTreeScrollPane);
+                  
                     tree.switchContainer((LWContainer)pComponent);
-                    validate();
+                    
              }else if(pComponent instanceof LWLink) {
-                 //System.out.println("P Component  ="+pComponent);
-                 remove(mTreeScrollPane);
-                 validate();
-                 repaint();
+                 tree.removeAll();
+                  
              }
-             **/
+      */      
              
             //if the tree is not intiliazed, hidden, or doesn't contain the given node,
             //then it switches the model of the tree using the given node
+     
              if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pComponent)) {
                 //panelLabel.setText("Node: " + pNode.getLabel());
                if(pComponent instanceof LWContainer)  
@@ -331,9 +330,11 @@ implements LWSelection.Listener {
             
             //if the node is in the model and the panel is visible and intialized,
             //then it sets the selected path to the one which ends with the given node
-             else
+             else 
                 tree.setSelectionPath(pComponent);
+          
             }
+              
     }
     
     public class NodeFilterPanel extends JPanel implements ActionListener{
