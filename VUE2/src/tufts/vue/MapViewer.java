@@ -830,9 +830,14 @@ public class MapViewer extends javax.swing.JPanel
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         // Do we need fractional metrics?  Gives us slightly more accurate
         // string widths on noticable on long strings
-        if (!DEBUG_ANTIALIAS_OFF)
+        if (!DEBUG_ANTIALIAS_OFF) {
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        } else {
+            // was hoping prioritizing render quality would improve computation of font string widths,
+            // but no such luck...
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-
+        }
 
         //-------------------------------------------------------
         // Draw the map: Ask the model to render itself to our GC
@@ -1421,7 +1426,7 @@ public class MapViewer extends javax.swing.JPanel
     // They require a further mouse action to actually
     // do anythiing.
     static final int KEY_TOOL_PAN   = KeyEvent.VK_SPACE;
-    static final int KEY_TOOL_ZOOM  = KeyEvent.VK_COMMA;
+    static final int KEY_TOOL_ZOOM  = KeyEvent.VK_BACK_QUOTE;
     static final int KEY_TOOL_LINK = VueUtil.isMacPlatform() ? KeyEvent.VK_ALT : KeyEvent.VK_CONTROL;
     // Mac overrides CONTROL-MOUSE to look like right-click (context menu popup) so we can't
     // use CTRL wih mouse drag -- todo: change to ALT for PC too -- might as well be consistent.
@@ -2529,6 +2534,9 @@ public class MapViewer extends javax.swing.JPanel
                     // move this paint code to the handler with a MapMouseEvent
                     //setIndicated(hitComponent);
                     //paintImmediately(mapToScreenRect(hitComponent.getBounds()));
+                    // translate coord into scale of child
+                    p.x /= hitComponent.getScale();
+                    p.y /= hitComponent.getScale();
                     handled = ((ClickHandler)hitComponent).handleDoubleClick(p);
                     //clearIndicated();
                     //repaint();
