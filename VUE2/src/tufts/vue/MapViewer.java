@@ -24,7 +24,8 @@ import osid.dr.*;
  * @version 3/16/03
  */
 
-public class MapViewer extends javax.swing.JPanel
+//public class MapViewer extends javax.swing.JPanel
+public class MapViewer extends javax.swing.JComponent
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
     implements VueConstants
@@ -817,24 +818,28 @@ public class MapViewer extends javax.swing.JPanel
     
     private Timer rolloverTimer = new Timer();
     private TimerTask rolloverTask = null;
+    private void runRolloverTask()
+    {
+        //System.out.println("task run " + this);
+        float mapX = screenToMapX(lastMouseX);
+        float mapY = screenToMapY(lastMouseY);
+        // use deepest to penetrate into groups
+        LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
+        //LWComponent hit = getMap().findChildAt(mapX, mapY);
+        if (DEBUG_ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
+        //if (hit != null && VueSelection.size() <= 1)
+        if (hit != null)
+            setRollover(hit);
+        else
+            clearRollover();
+        
+        rolloverTask = null;
+    }
+
     class RolloverTask extends TimerTask
     {
-        public void run()
-        {
-            //System.out.println("task run " + this);
-            float mapX = screenToMapX(lastMouseX);
-            float mapY = screenToMapY(lastMouseY);
-            // use deepest to penetrate into groups
-            LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
-            //LWComponent hit = getMap().findChildAt(mapX, mapY);
-            if (DEBUG_ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
-            //if (hit != null && VueSelection.size() <= 1)
-            if (hit != null)
-                setRollover(hit);
-            else
-                clearRollover();
-
-            rolloverTask = null;
+        public void run() {
+            runRolloverTask();
         }
     }
         
@@ -2661,16 +2666,22 @@ public class MapViewer extends javax.swing.JPanel
             //    mouseDragged(e);
             //}
 
-            // todo: don't use the Timer class here -- too unreliable
             if (RolloverAutoZoomDelay >= 0) {
                 if (DEBUG_TIMER_ROLLOVER && !inDrag && !(activeTextEdit != null)) {
                     if (RolloverAutoZoomDelay > 10) {
                         if (rolloverTask != null)
                             rolloverTask.cancel();
                         rolloverTask = new RolloverTask();
-                        rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                        try {
+                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                        } catch (IllegalStateException ex) {
+                            // don't know why this happens somtimes...
+                            System.out.println(ex + " (fallback: creating new timer)");
+                            rolloverTimer = new Timer();
+                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                        }
                     } else {
-                        new RolloverTask().run();
+                        runRolloverTask();
                     }
                 }
             }
@@ -2896,7 +2907,7 @@ public class MapViewer extends javax.swing.JPanel
                 // as it's corners are beyond bounds point with very wide strokes.
 
                 LWComponent movingComponent = dragComponent;
-                if (dragControl != null)
+                if (dragControl != null && dragControl instanceof LWComponent)
                     movingComponent = (LWComponent) dragControl;
 
                 java.util.Iterator i = null;
