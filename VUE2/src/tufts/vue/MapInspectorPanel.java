@@ -208,6 +208,7 @@ implements  VUE.ActiveMapListener {
             
             mAuthorEditor = new JTextField();
             mDescriptionEditor = new JTextArea();
+            mDescriptionEditor.setWrapStyleWord(true);
             mDescriptionEditor.setRows(5);
             mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
             mDate = new JLabel();
