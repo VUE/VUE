@@ -632,7 +632,7 @@ public class LWComponent
     
     public void draw(java.awt.Graphics2D g)
     {
-        throw new RuntimeException("UNIMPLEMNTED draw in " + this);
+        throw new UnsupportedOperationException("unimplemnted draw in " + this);
     }
 
     public void addLWCListener(LWComponent.Listener listener)
@@ -692,6 +692,22 @@ public class LWComponent
     protected void removeFromModel()
     {
         removeAllLWCListeners();
+        removeConnectedLinks();
+    }
+
+    private void removeConnectedLinks()
+    {
+        // todo: more sophisticated?
+        // for now, delete all links to a node we're deleting
+        Object[] links = this.links.toArray(); // may be modified concurrently
+        for (int i = 0; i < links.length; i++) {
+            LWLink l = (LWLink) links[i];
+            if (l.getParent() != null) // it's already been deleted
+                l.getParent().deleteChild(l);
+        }
+        // help gc
+        this.links.clear();
+        this.links = null;
     }
     
     public void setSelected(boolean selected)
