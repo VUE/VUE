@@ -3,7 +3,8 @@ package tufts.vue;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * LWGroup.java
@@ -91,7 +92,10 @@ public class LWGroup extends LWComponent
     public void removeChild(LWComponent c)
     {
         System.out.println(getLabel() + " REMOVES " + c);
-        this.children.remove(c);
+        if (!this.children.remove(c))
+            throw new RuntimeException(this + " DIDN'T CONTAIN CHILD FOR REMOVAL: " + c);
+        c.notify("removed");
+        c.removeAllLWCListeners();
         c.setParent(null);
     }
 
@@ -136,38 +140,148 @@ public class LWGroup extends LWComponent
             return null;
     }
 
+    public boolean isOnTop(LWComponent c)
+    {
+        // todo opt: has to on avg scan half of list every time
+        // (will slow down selection in checks to enable front/back actions)
+        return children.indexOf(c) == children.size()-1;
+    }
+    public boolean isOnBottom(LWComponent c)
+    {
+        // todo opt: has to on avg scan half of list every time
+        // (will slow down selection in checks to enable front/back actions)
+        return children.indexOf(c) == 0;
+    }
 
-    /** 
-     * Make component paint last & hit first (on top)
+    private int getIndex(Object c)
+    {
+        return children.indexOf(c);
+    }
+        
+    /* To preseve the relative display order of a group of elements
+     * we're moving forward or sending back, we need to move them in a
+     * particular order depending on the operation and how the
+     * operation functions.  Note that when moving a group
+     * forward/back one move at a time, once the group moves all the
+     * way to the front or the back of the list, it will start cycling
+     * the order of the components if they're all right next to each
+     * other.
      */
-    public void bringToFront(LWComponent c)
+
+    private static Comparator ForwardOrder = new Comparator() {
+            public int compare(Object o1, Object o2) {
+                LWComponent c1 = (LWComponent) o1;
+                LWComponent c2 = (LWComponent) o2;
+                //if (c1.getParent() != c2.getParent()) return 0;
+                return c2.getParent().getIndex(c2) - c1.getParent().getIndex(c1);
+            }};
+    private static Comparator ReverseOrder = new Comparator() {
+            public int compare(Object o1, Object o2) {
+                LWComponent c1 = (LWComponent) o1;
+                LWComponent c2 = (LWComponent) o2;
+                //if (c1.getParent() != c2.getParent()) return 0;
+                return c1.getParent().getIndex(c1) - c2.getParent().getIndex(c2);
+            }};
+
+    private static LWComponent[] sort(List selection, Comparator comparator)
+    {
+        LWComponent[] array = new LWComponent[selection.size()];
+        selection.toArray(array);
+        java.util.Arrays.sort(array, comparator);
+        // Note that it's okay that components with different
+        // parents are in this list, as they only need to move
+        // relative to layers of any other siblings in the list,
+        // and it doesn't matter if re-layering is done to
+        // a parent (LWGroup) at a time -- only that the movement
+        // order of siblings within a parent is enforced.
+        /*
+        for (int i = 0; i < array.length; i++) {
+            LWComponent c = (LWComponent) array[i];
+            System.out.println(i + " " + c.getParent().getIndex(c) + " " + c);
+            }*/
+        return array;
+    }
+    
+    /** 
+     * Make component(s) paint first & hit last (on bottom)
+     */
+    public static void bringToFront(List selectionList)
+    {
+        LWComponent[] comps = sort(selectionList, ReverseOrder);
+        for (int i = 0; i < comps.length; i++)
+            comps[i].getParent().bringToFront(comps[i]);
+    }
+    public static void bringForward(List selectionList)
+    {
+        LWComponent[] comps = sort(selectionList, ForwardOrder);
+        for (int i = 0; i < comps.length; i++)
+            comps[i].getParent().bringForward(comps[i]);
+    }
+    /** 
+     * Make component(s) paint last & hit first (on top)
+     */
+    public static void sendToBack(List selectionList)
+    {
+        LWComponent[] comps = sort(selectionList, ForwardOrder);
+        for (int i = 0; i < comps.length; i++)
+            comps[i].getParent().sendToBack(comps[i]);
+    }
+    public static void sendBackward(List selectionList)
+    {
+        LWComponent[] comps = sort(selectionList, ReverseOrder);
+        for (int i = 0; i < comps.length; i++)
+            comps[i].getParent().sendBackward(comps[i]);
+    }
+
+    boolean bringToFront(LWComponent c)
     {
         // Move to END of list, so it will paint last (visually on top)
         int idx = children.indexOf(c);
+        int idxLast = children.size() - 1;
+        if (idx == idxLast)
+            return false;
+        //System.out.println("bringToFront " + c);
         children.remove(idx);
         children.add(c);
+        return true;
     }
-    /** 
-     * Make component paint first & hit last (on bottom)
-     */
-    public void sendToBack(LWComponent c)
+    boolean sendToBack(LWComponent c)
     {
         // Move to FRONT of list, so it will paint first (visually on bottom)
         int idx = children.indexOf(c);
+        if (idx == 0)
+            return false;
+        //System.out.println("sendToBack " + c);
         children.remove(idx);
         children.add(0, c);
+        return true;
     }
-    public void bringForward(LWComponent c)
+    boolean bringForward(LWComponent c)
     {
+        // Move toward the END of list, so it will paint later (visually on top)
         int idx = children.indexOf(c);
-        children.remove(idx);
-        children.add(idx + 1, c);
+        int idxLast = children.size() - 1;
+        if (idx == idxLast)
+            return false;
+        //System.out.println("bringForward " + c);
+        swap(idx, idx + 1);
+        return true;
     }
-    public void sendBackward(LWComponent c)
+    boolean sendBackward(LWComponent c)
     {
+        // Move toward the FRONT of list, so it will paint sooner (visually on bottom)
         int idx = children.indexOf(c);
-        children.remove(idx);
-        children.add(idx - 1, c);
+        if (idx == 0) 
+            return false;
+        //System.out.println("sendBackward " + c);
+        swap(idx, idx - 1);
+        return true;
+    }
+
+    private void swap(int i, int j)
+    {
+        //System.out.println("swapping positions " + i + " and " + j);
+        children.set(i, children.set(j, children.get(i)));
     }
 
     public void setScale(float scale)
