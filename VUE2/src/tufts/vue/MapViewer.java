@@ -200,6 +200,8 @@ public class MapViewer extends javax.swing.JPanel
                                                         | AWTEvent.MOUSE_EVENT_MASK);
         */
     	
+        // TODO: need to remove us as listener for this & VUE selection
+        // if this map is closed.
     	// listen to tool selection events
     	VueToolbarController.getController().addToolSelectionListener( this);
     }
@@ -244,8 +246,17 @@ public class MapViewer extends javax.swing.JPanel
     
     public void toolSelected(VueTool pTool)
     {
+        if (pTool == null) {
+            System.err.println("*** MapViewer.toolSelected: NULL TOOL");
+            return;
+        }
+        if (pTool.getID() == null) {
+            System.err.println("*** MapViewer.toolSelected: NULL ID IN TOOL!");
+            return;
+        }
         mActiveTool = pTool;
     	System.out.println("MapViewer.toolSelected: " + pTool.getID());
+            
 
         if (pTool.getID().equals(ID_ArrowTool)) {
             ArrowTool = pTool;
@@ -891,6 +902,7 @@ public class MapViewer extends javax.swing.JPanel
             System.err.println("*paint* Exception painting in: " + this);
             System.err.println("*paint* VueSelection: " + VueSelection);
             System.err.println("*paint* Graphics: " + g);
+            System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
         if (paints == 0 && getParent() instanceof JViewport) {
             setPreferredSize(mapToScreenDim(getMap().getBounds()));
