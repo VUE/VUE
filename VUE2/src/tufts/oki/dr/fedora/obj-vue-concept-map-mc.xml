@@ -7,7 +7,7 @@
   <!---*******************************************************************************************************************************************-->
   <!--  FEDORA SYSTEM METADATA: -->
   <!---*******************************************************************************************************************************************-->
-  <METS:metsHdr ID="H1" CREATEDATE="2003-06-10T17:17:19" LASTMODDATE="2003-06-10T17:17:19" RECORDSTATUS="A">
+  <METS:metsHdr ID="H1" CREATEDATE="%file.created%" LASTMODDATE="%file.created%" RECORDSTATUS="A">
     <METS:agent ID="A1" ROLE="CREATOR" TYPE="INDIVIDUAL">
       <METS:name>%creator.name%</METS:name>
       <METS:note/>
@@ -25,7 +25,7 @@
   <!---User-Defined XML METADATA DATASTREAMS-->
   <!---*******************************************************************************************************************************************-->
   <METS:dmdSecFedora ID="DC" STATUS="A">
-    <METS:descMD ID="DC1.0" CREATED="2003-06-10T17:17:19">
+    <METS:descMD ID="DC1.0" CREATED="%file.created%">
       <METS:mdWrap MIMETYPE="text/xml" MDTYPE="OTHER" LABEL="Dublin Core for the Document object">
         <METS:xmlData>
           <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/elements/1.1/">
@@ -42,7 +42,7 @@
     <METS:fileGrp ID="DATASTREAMS">
       <METS:fileGrp ID="DS1" STATUS="">
         <!--exhibit xml file -->
-        <METS:file ID="DS1.0" CREATED="2003-06-10T17:17:19" MIMETYPE="application/zip" OWNERID="E" STATUS="">
+        <METS:file ID="DS1.0" CREATED="%file.created%" MIMETYPE="application/zip" OWNERID="M" STATUS="">
           <METS:FLocat LOCTYPE="URL" xlink:href="%file.location%" xlink:title="%file.title%"/>
         </METS:file>
       </METS:fileGrp>
