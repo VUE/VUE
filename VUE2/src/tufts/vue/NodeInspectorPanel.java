@@ -241,22 +241,15 @@ public class NodeInspectorPanel  extends JPanel
 		 public void updatePanel( LWNode pNode) {
 		 // update display based on the LWNode
                     
-                    //must do check!!!
+                    //if the tree is not intiliazed, hidden, or doesn't contain the given node, 
+                    //then it switches the model of the tree using the given node
                     if (!tree.isInitialized() || !isVisible() || !tree.contains(pNode)) 
-                    {
-                      System.out.println("changing mode when not visible or the node not contained");
-                      
-                      //tree.setModel(new OutlineViewTreeModel(pNode));
                       tree.switchContainer(pNode);
-                    }
                     
+                    //if the node is in the model and the panel is visible and intialized, 
+                    //then it sets the selected path to the one which ends with the given node
                     else
-                    {
-                      System.out.println("changing mode when visible");
-                      //if the node is in the model and the panel is visible
                       tree.setSelectionPath(pNode);
-                    }
-                    
 		 }
 	}
 	
