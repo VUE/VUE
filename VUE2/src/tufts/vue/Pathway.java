@@ -10,8 +10,6 @@ public interface Pathway extends MapItem
     public int getWeight();
     public void setOrdered(boolean ordered);
     public boolean getOrdered();
-    public java.util.ArrayList getElementArrayList();
-    public void setElementArrayList(java.util.ArrayList list);
     public java.util.List getElementList();
     public void setElementList(java.util.List elementList);
 }
