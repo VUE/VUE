@@ -195,12 +195,17 @@ public abstract class LWContainer extends LWComponent
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
-        c.ensureLinksPaintOnTopOfAllParents();
-        
-        // todo: raise all in getLinkRefs to the top of the stack if we're
-        // being added as a child of anything other than the top level map
     }
 
+    public void addChild(LWComponent c)
+    {
+        addChildInternal(c);
+        c.ensureLinksPaintOnTopOfAllParents();
+        c.notify("added", this);
+        notify("childAdded", c);
+    }
+    
+    // todo: okay, this is messy -- do we really want this?
     protected void ensureLinksPaintOnTopOfAllParents()
     {
         super.ensureLinksPaintOnTopOfAllParents();
@@ -212,23 +217,15 @@ public abstract class LWContainer extends LWComponent
                 ((LWContainer)c).ensureLinksPaintOnTopOfAllParents();
         }
     }
-
-    public void addChild(LWComponent c)
-    {
-        addChildInternal(c);
-        c.notify("added", this);
-        notify("childAdded", c);
-    }
-    
     protected void removeChild(LWComponent c)
     {
-        removeChild0(c);
+        removeChildInternal(c);
         //c.notify("removed", this); // don't need to let anyone know this
         notify("childRemoved", c);
         layout();
     }
 
-    private void removeChild0(LWComponent c)
+    protected void removeChildInternal(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (!this.children.remove(c))
@@ -256,7 +253,7 @@ public abstract class LWContainer extends LWComponent
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.getParent() == this) {
-                removeChild0(c);
+                removeChildInternal(c);
                 count++;
             }
         }
@@ -276,6 +273,16 @@ public abstract class LWContainer extends LWComponent
         // c.parent has been nulled by now -- but listeners will get it.
         //c.notify("deleted");
         c.removeFromModel();
+    }
+
+    protected void removeFromModel()
+    {
+        super.removeFromModel();
+        if (this.children == VUE.ModelSelection) // todo: tmp debug
+            throw new IllegalStateException("attempted to delete selection");
+        // help the gc
+        this.children.clear();
+        this.children = null;
     }
     
     public java.util.List getAllConnectedNodes()
@@ -400,20 +407,20 @@ public abstract class LWContainer extends LWComponent
      * other.
      */
 
-    private static Comparator ForwardOrder = new Comparator() {
+    protected static final Comparator ForwardOrder = new Comparator() {
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
                 return c2.getParent().getIndex(c2) - c1.getParent().getIndex(c1);
             }};
-    private static Comparator ReverseOrder = new Comparator() {
+    protected static final Comparator ReverseOrder = new Comparator() {
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
                 return c1.getParent().getIndex(c1) - c2.getParent().getIndex(c2);
             }};
 
-    private static LWComponent[] sort(List selection, Comparator comparator)
+    protected static LWComponent[] sort(List selection, Comparator comparator)
     {
         LWComponent[] array = new LWComponent[selection.size()];
         selection.toArray(array);

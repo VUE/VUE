@@ -410,12 +410,28 @@ public class LWComponent
         return getLinkTo(c) != null;
     }
 
+    // todo: okay, this is messy -- do we really want this?
     protected void ensureLinksPaintOnTopOfAllParents()
     {
         java.util.Iterator i = this.links.iterator();
         while (i.hasNext()) {
-            LWLink link = (LWLink) i.next();
-            LWContainer commonParent = link.getParent();
+            LWLink l = (LWLink) i.next();
+            // don't need to do anything if link doesn't cross a (logical) parent boundry
+            if (l.getComponent1().getParent() == l.getComponent2().getParent())
+                continue;
+            // also don't need to do anything if link is BETWEEN a parent and a child
+            // (in which case, btw, we don't even SEE the link)
+            if (l.getComponent1().getParent() == l.getComponent2())
+                continue;
+            if (l.getComponent2().getParent() == l.getComponent1())
+                continue;
+            /*
+            System.err.println("*** ENSURING " + l);
+            System.err.println("    (parent) " + l.getParent());
+            System.err.println("  ep1 parent " + l.getComponent1().getParent());
+            System.err.println("  ep2 parent " + l.getComponent2().getParent());
+            */
+            LWContainer commonParent = l.getParent();
             if (commonParent != getParent()) {
                 // If we don't have the same parent, we may need to shuffle the deck
                 // so that any links to us will be sure to paint on top of the parent
@@ -424,7 +440,10 @@ public class LWComponent
                 // sending link to back and creating a very confusing visual situation,
                 // unless all of our parents happen to be transparent.
                 LWComponent topMostParentThatIsSiblingOfLink = getParentWithParent(commonParent);
-                commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, link);
+                if (topMostParentThatIsSiblingOfLink == null)
+                    System.err.println("### COULDN'T FIND COMMON PARENT FOR " + this);
+                else
+                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
             }
         }
     }
@@ -433,6 +452,8 @@ public class LWComponent
     {
         if (getParent() == parent)
             return this;
+        if (getParent() == null)
+            return null;
         return getParent().getParentWithParent(parent);
     }
 
@@ -719,13 +740,15 @@ public class LWComponent
 
     public String toString()
     {
-        String s = getClass().getName() + "[id=" + getID();
+        String cname = getClass().getName();
+        String s = cname.substring(cname.lastIndexOf('.')+1);
+        s += "[" + getID();
         if (getLabel() != null)
             s += " \"" + getLabel() + "\"";
-        s += " " + x+","+y;
-        s += " " + width + "x" + height;
         if (getScale() != 1f)
             s += " z" + getScale();
+        s += " " + x+","+y;
+        s += " " + width + "x" + height;
         s += "]";
         return s;
     }

@@ -50,33 +50,41 @@ public final class LWGroup extends LWContainer
         // todo: turn off all events while this reorg is happening?
         // Now grab all the children
 
-        // todo: this does NOT preserve the existing relative
-        // layout order of what we're adding to the group --
-        // that's a bug.
-        HashSet linkSet = new HashSet();
+        HashSet linksInSelection = new HashSet();
         Iterator i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            //System.out.println("ADDING TO GROUP " + c);
-            group.addChildInternal(c);
+            if (c instanceof LWLink)
+                linksInSelection.add(c);
+        }
 
+        HashSet linkSet = new HashSet();
+        List moveList = new java.util.ArrayList();
+        i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            moveList.add(c);
             //-------------------------------------------------------
             // If both ends of any link are in the selection,
             // also add those links as children of the group.
             //-------------------------------------------------------
             Iterator li = c.getLinkRefs().iterator();
+            //todo: need to recursively check children for link refs also
             while (li.hasNext()) {
                 LWLink l = (LWLink) li.next();
+                if (linksInSelection.contains(l))
+                    continue;
                 if (!linkSet.add(l)) {
                     if (DEBUG_PARENTING) System.out.println("["+group.getLabel() + "] GRABBING " + c + " (both ends in group)");
-                    group.addChildInternal(l);
+                    moveList.add(l);
                 }
             }
-            // If a link was actually in the selection and already
-            // added, this is not problem, as multiple adds are okay.
-            // todo: if this is ever a performance issue, could obviously
-            // optimize this re-parenting away
-            
+        }
+        // Be sure to preserve the current relative ordering of all
+        // these components the new group
+        LWComponent[] comps = sort(moveList, ReverseOrder);
+        for (int x = 0; x < comps.length; x++) {
+            group.addChildInternal(comps[x]);
         }
         group.setSizeFromChildren();
         // todo: catch any child size change events (e.g., due to font)
@@ -132,7 +140,11 @@ public final class LWGroup extends LWContainer
         // todo: turn off all events while this reorg is happening?
         // todo: better to insert all the children back into the
         //      parent at the layer of group object...
-        Iterator i = getChildIterator();
+
+        if (DEBUG_PARENTING) System.out.println("dispersing group " + this);
+
+        List children = getChildList();
+        Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             // set parent to null first so that addChild
@@ -140,8 +152,14 @@ public final class LWGroup extends LWContainer
             // doing needless work and concurrently modifying
             // our iteration!
             c.setParent(null);
-            getParent().addChild(c);
+            getParent().addChildInternal(c);
         }
+        i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.notify("added", getParent());
+        }
+        getParent().notify("childrenAdded", this);
         getParent().deleteChild(this);
     }
 
@@ -244,6 +262,10 @@ public final class LWGroup extends LWContainer
     
     public void draw(java.awt.Graphics2D g)
     {
+        if (getStrokeWidth() == -1) { // todo: temporary debug
+            System.err.println("hiding " + this);
+            return;
+        }
         super.draw(g);
         if (isIndicated()) {
             // this shouldn't happen, but just in case...
