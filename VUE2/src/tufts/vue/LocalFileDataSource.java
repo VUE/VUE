@@ -30,6 +30,7 @@ import java.util.*;
 import java.awt.*;
 
 import javax.swing.border.*;
+import javax.swing.filechooser.FileSystemView;
 
 import java.io.*;
 
@@ -66,34 +67,96 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         super.setAddress(address);
         this.setResourceViewer();
     }
+
+    //List getLikelyUserVolumes() {}
     
     public void  setResourceViewer(){
         
         Vector cabVector = new Vector();
+        osid.shared.Agent agent = null; //  This may cause problems later.
+
+        FileSystemView fsview = FileSystemView.getFileSystemView();
+        
+        File home = new File(System.getProperty("user.home"));
+        if (home.exists() && home.canRead()) {
+            // This might be better handled via addRoot on the LocalFilingManager, but
+            // we can't set the label (title) for it that way. -- SMF
+            String[] dirs = { "Desktop", "My Documents", "Documents", "Pictures", "My Pictures", "Photos", "My Photos"};
+            int added = 0;
+            for (int i = 0; i < dirs.length; i++) {
+                File dir = new File(home, dirs[i]);
+                if (dir.exists() && dir.canRead()) {
+                    CabinetResource r = new CabinetResource(new LocalCabinet(dir.getPath(), agent, null));
+                    r.setTitle(dirs[i]);
+                    cabVector.add(r);
+                    added++;
+                }
+            }
+            if (added == 0 || tufts.Util.isWindowsPlatform() == false) {
+                CabinetResource r = new CabinetResource(new LocalCabinet(home.getPath(), agent, null));
+                String title = "Home";
+                String user = System.getProperty("user.name");
+                if (user != null)
+                    title += " (" + user + ")";
+                r.setTitle(title);
+                cabVector.add(r);
+            }
+        }
+        boolean gotSlash = false;
+        if (tufts.Util.isMacPlatform()) {
+            File volumes = new File("/Volumes");
+            if (volumes.exists() && volumes.canRead()) {
+                File[] vols = volumes.listFiles();
+                for (int i = 0; i < vols.length; i++) {
+                    File v = vols[i];
+                    if (!v.canRead() || v.getName().startsWith("."))
+                        continue;
+                    CabinetResource r =
+                        new CabinetResource(new LocalCabinet(v.getPath(), agent, null));
+                    r.setTitle(v.getName());
+                    try {
+                        //r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
+                        if (v.getCanonicalPath().equals("/"))
+                            gotSlash = true;
+                    } catch (Exception e) {
+                        System.err.println(e);
+                    }
+                    cabVector.add(r);
+                }
+            }
+        }
+        
         try{
             LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
             
             if (this.getAddress().compareTo("") == 0){
                 LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots();
-                osid.shared.Agent agent = null; //  This may cause problems later.
                 while(rootCabs.hasNext()){
                     LocalCabinetEntry rootNode = (LocalCabinetEntry)rootCabs.next();
                     CabinetResource res = new CabinetResource(rootNode);
+                    if (rootNode instanceof LocalCabinet) {
+                        File f = ((LocalCabinet)rootNode).getFile();
+                        try {
+                            if (f.getCanonicalPath().equals("/") && gotSlash)
+                                continue;
+                        } catch (Exception e) {
+                            System.err.println(e);
+                        }
+                        String sysName = fsview.getSystemDisplayName(f);
+                        if (sysName != null)
+                            res.setTitle(sysName);
+                    }
                     cabVector.add(res);
                 }
-                
             }
-            
             // setPublishMode(Publisher.PUBLISH_CMAP);
-            
-            
             else {
-                osid.shared.Agent agent = null;
                 LocalCabinet rootNode = new LocalCabinet(this.getAddress(),agent,null);
                 CabinetResource res = new CabinetResource(rootNode);
                 cabVector.add(res);
             }
         }catch (Exception ex) {VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}
+        
         VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
         fileTree.setRootVisible(true);
         fileTree.setShowsRootHandles(true);
