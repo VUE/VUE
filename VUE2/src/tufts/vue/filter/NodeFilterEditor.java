@@ -90,22 +90,22 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         elements = new JComboBox(elementsModel);
         /// this is not user friendly may want to fix later.
         /**
-        elements.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                if(e.getStateChange() == ItemEvent.SELECTED) {
-                    if(e.getItem().toString() == ADD_ELEMENT) {
-                    } else if(e.getItem() instanceof Key) {
-                        Statement stmt = new Statement();
-                        stmt.setKey((Key)e.getItem());
-                        nodeFilter.addStatement(stmt);
-                        nodeFilter.fireTableDataChanged();
-                    } else {
-                        System.out.println("Not Supported");
-                    }
-                }
-            }
-        });
-        **/
+         * elements.addItemListener(new ItemListener() {
+         * public void itemStateChanged(ItemEvent e) {
+         * if(e.getStateChange() == ItemEvent.SELECTED) {
+         * if(e.getItem().toString() == ADD_ELEMENT) {
+         * } else if(e.getItem() instanceof Key) {
+         * Statement stmt = new Statement();
+         * stmt.setKey((Key)e.getItem());
+         * nodeFilter.addStatement(stmt);
+         * nodeFilter.fireTableDataChanged();
+         * } else {
+         * System.out.println("Not Supported");
+         * }
+         * }
+         * }
+         * });
+         **/
         
         nodeFilterTable = new JTable(nodeFilter);
         nodeFilterTable.addFocusListener(new FocusListener() {
@@ -522,6 +522,10 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         private void updateModelAndNotify(){
             Key key = new Key(keyEditor.getText(),(Type)typeEditor.getSelectedItem());
             model.addKey(key);
+            Statement stmt = new Statement();
+            stmt.setKey(key);
+            nodeFilter.addStatement(stmt);
+            nodeFilter.fireTableDataChanged();
             System.out.println("ADDED KEY of Type = "+((Type)typeEditor.getSelectedItem()).getDisplayName());
             model.fireTableDataChanged();
         }
