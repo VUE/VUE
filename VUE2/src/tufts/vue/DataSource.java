@@ -76,7 +76,7 @@ public class DataSource {
     /**
      *  Intializes resource viewer and colors based on data source type.
      */
-    private void setViewer () throws java.net.MalformedURLException,osid.filing.FilingException {
+    public  void setViewer () throws java.net.MalformedURLException,osid.filing.FilingException {
         if(type == FAVORITES) {
             
             VUE.favoritesWindow = new FavoritesWindow(displayName);
