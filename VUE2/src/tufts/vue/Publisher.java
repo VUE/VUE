@@ -350,7 +350,6 @@ public class Publisher extends JDialog implements ActionListener {
                     String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
                     resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                     VUE.getActiveMap().replaceResource(r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
-                    System.out.println("Resource = " + r+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
                     
                 }
                 
