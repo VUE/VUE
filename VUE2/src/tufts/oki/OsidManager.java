@@ -33,7 +33,7 @@ public class OsidManager implements osid.OsidManager{
      *  @author Mark Norton
      */
     public OsidManager(osid.OsidOwner owner) {
-        //assert (owner != null) :  "Owner is null";
+     //   assert (owner != null) :  "Owner is null";
         mgr_owner = owner;
     }
     
@@ -71,7 +71,7 @@ public class OsidManager implements osid.OsidManager{
      *  @author Mark Norton
      */
     public void updateOwner(osid.OsidOwner owner) throws osid.OsidException {
-        //assert (owner != null) :  "Owner is null";
+       // assert (owner != null) :  "Owner is null";
         mgr_owner = owner;
     }
     
