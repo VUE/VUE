@@ -349,7 +349,7 @@ class MapDropTarget
                     else
                         hitComponent.setResource(url.toString());
                 } else {
-                    createNewNode(url.toString(), null, dropLocation);
+                    createNewNode(url.toString(), resourceTitle, dropLocation);
                 }
             } else {
                 createNewTextNode(droppedText, dropLocation);
