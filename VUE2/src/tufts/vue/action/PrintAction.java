@@ -10,6 +10,7 @@ import javax.swing.Action;
 import javax.swing.AbstractAction;
 import java.awt.print.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import tufts.vue.*;
 /**
@@ -34,7 +35,9 @@ public class PrintAction extends AbstractAction implements Printable {
     public int print(java.awt.Graphics graphics, java.awt.print.PageFormat pageFormat, int param) throws java.awt.print.PrinterException {
         
         MapViewer currentMap = VUE.getActiveViewer();
-        Dimension size = currentMap.getSize();
+        Rectangle2D bounds = currentMap.getAllComponentBounds();
+        int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
+        Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
         int totalPages;
         
         //calcuates the total page number using the component size and the paper size

@@ -10,8 +10,10 @@ import javax.imageio.*;
 import java.awt.image.*;
 import java.io.*;
 import java.awt.*;
+import java.awt.geom.*;
 import javax.swing.*;
 import tufts.vue.*;
+
 /**
  *
  * @author  Daisuke Fujiwara
@@ -77,19 +79,23 @@ public class ImageConversion extends AbstractAction {
              {
                 //retrives the current map and gets its size
                 MapViewer currentMap = VUE.getActiveViewer();
-                Dimension size = currentMap.getSize();
+                
+                Rectangle2D bounds = currentMap.getAllComponentBounds();
+                int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
+                Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
         
                 //creates an image object and sets up the graphics object of the image
                 BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
                 Graphics g = mapImage.getGraphics();
+                
                 g.setClip(0, 0, size.width, size.height);
         
                 //let the map draws to the image object's graphic object
                 currentMap.paintComponent(g);
                 
                 //outlining the returned image
-                g.setColor(Color.black);
-                g.drawRect(0, 0, size.width - 1, size.height - 1);
+                //g.setColor(Color.black);
+                //g.drawRect(0, 0, size.width - 1, size.height - 1);
         
                 //begins the conversion to the file
                 convert(mapImage, selectedFile, "jpeg");

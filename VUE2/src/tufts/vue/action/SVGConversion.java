@@ -7,6 +7,7 @@ package tufts.vue.action;
  */
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import java.io.*;
 import org.apache.xerces.dom.*;
@@ -38,20 +39,26 @@ public class SVGConversion extends AbstractAction {
     
     /**A method which converts the given Java graphics into the SVG form and writes the output
        to a given file*/
-    public void createSVG(MapViewer map, File location)
+    public void createSVG(File location)
     {
+        //gets the currently selected map
+        MapViewer map = VUE.getActiveViewer();
+        
         //sets up the document object model
         Document document = new DocumentImpl();
         SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
        
-        Dimension size = map.getSize();
+        Rectangle2D bounds = map.getAllComponentBounds();
+        int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
+        Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
+        
         svgGenerator.setClip(0, 0, size.width, size.height);
         
         //renders the map image into the SVGGraphics object
         map.paintComponent(svgGenerator);
         
-        svgGenerator.setColor(Color.black);
-        svgGenerator.drawRect(0, 0, size.width - 1, size.height - 1);
+        //svgGenerator.setColor(Color.black);
+        //svgGenerator.drawRect(0, 0, size.width - 1, size.height - 1);
         
         try
         {
@@ -116,11 +123,7 @@ public class SVGConversion extends AbstractAction {
           File selectedFile = ActionUtil.selectFile("Saving SVG", "svg");
           
           if (selectedFile != null)
-            {
-                //gets the currently selected map
-                MapViewer currentMap = VUE.getActiveViewer();
-                createSVG(currentMap, selectedFile);
-            }
+            createSVG(selectedFile);    
        }
         
        catch(Exception ex) 
