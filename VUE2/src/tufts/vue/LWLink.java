@@ -1348,40 +1348,59 @@ public class LWLink extends LWComponent
         float cx = getCenterX();
         float cy = getCenterY();
         float totalHeight = 0;
-        //float totalWidth = 0;
+        float totalWidth = 0;
+
+        // Call first to have it compute size/determine if showing
+        mIconBlock.layout();
+
         boolean iconBlockShowing = mIconBlock.isShowing();
 
-        mIconBlock.layout();
-        //totalWidth += mIconBlock.getWidth();
+        totalWidth += mIconBlock.getWidth();
         totalHeight += mIconBlock.getHeight();
 
+        boolean putBelow = false;
+
+        float lx = 0;
+        float ly = 0;
         if (hasLabel()) {
             // since links don't have a sensible "location" in terms of an
             // upper left hand corner, the textbox needs to have an absolute
             // map location we can check later for hits 
-            //totalWidth += labelBox.getMapWidth();
+            totalWidth += labelBox.getMapWidth();
             totalHeight += labelBox.getMapHeight();
-            float lx = cx - labelBox.getMapWidth() / 2;
-            float ly = 0;
-            //if (iconBlockShowing)
+            if (putBelow) {
+                // for putting icons below
+                lx = cx - labelBox.getMapWidth() / 2;
+                ly = cy - totalHeight / 2;
+                //if (iconBlockShowing)
                 // put label just over center so link splits block & label if horizontal                
                 //ly = cy - (labelBox.getMapHeight() + getStrokeWidth() / 2);
-            //else
-            ly = cy - totalHeight / 2;
+            } else {
+                // for putting icons at right
+                lx = cx - totalWidth / 2;
+                ly = cy - labelBox.getMapHeight() / 2;
+            }
             labelBox.setMapLocation(lx, ly);
         }
         if (iconBlockShowing) {
-            float ibx = (float) (cx - mIconBlock.getWidth() / 2);
-            float iby = 0;
-
-            if (hasLabel()) {
-                iby = labelBox.getMapY() + labelBox.getMapHeight();
+            float ibx, iby;
+            if (putBelow) {
+                // for below
+                ibx = (float) (cx - mIconBlock.getWidth() / 2);
+                if (hasLabel())
+                    iby = labelBox.getMapY() + labelBox.getMapHeight();
+                else
+                    iby = (float) (cy - mIconBlock.getHeight() / 2f);
+                // we're seeing a sub-pixel gap -- this should fix
+                iby -= 0.5;
             } else {
-                iby = (float) (cy - mIconBlock.getHeight() / 2f);
+                // for at right
+                if (hasLabel())
+                    ibx = (float) lx + labelBox.getMapWidth();
+                else
+                    ibx = (float) (cx - mIconBlock.getWidth() / 2);
+                iby = (float) (cy - mIconBlock.getHeight() / 2);
             }
-            // we're seeing a sub-pixel gap -- this should fix
-            iby -= 0.5;
-            
             mIconBlock.setLocation(ibx, iby);
         }
         
@@ -1435,6 +1454,7 @@ public class LWLink extends LWComponent
         link.centerX = centerX;
         link.centerY = centerY;
         link.ordered = ordered;
+        link.mArrowState = mArrowState;
         if (curveControls > 0) {
             link.setCtrlPoint0(getCtrlPoint0());
             if (curveControls > 1)
