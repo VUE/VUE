@@ -70,7 +70,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         deletePropertyButton.setToolTipText("Delete Metadata");
         questionLabel.setToolTipText("Add or delete resource metadata");
         propertiesTable=new JTable(tableModel);
-        propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
+        propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,150));
         propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         propertiesTable.addFocusListener(new FocusListener() {
             public void focusLost(FocusEvent e) {
