@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -12,6 +13,13 @@ public class PathwayTool extends VueSimpleTool
         super();
     }
     
+    public void actionPerformed(ActionEvent e) {
+        super.actionPerformed(e);
+        if (DEBUG.TOOL) System.out.println("PATHWAYTOOL " + e);
+        VUE.sMapInspector.showTab("Pathway");
+    }
+
+
     public boolean supportsSelection() { return true; }
 
     // todo: need selection, but no drag, and click-to-deselect still working
@@ -35,13 +43,6 @@ public class PathwayTool extends VueSimpleTool
             add(controls);
             //add(Box.createHorizontalGlue());
             add(Box.createHorizontalStrut(22));
-        }
-        public void addNotify() {
-            super.addNotify();
-
-            // this is a bit of a side-effect, but it works given the
-            // way the VueToolPanel manages it's content:
-            VUE.sMapInspector.showTab("Pathway");
         }
     };
     
