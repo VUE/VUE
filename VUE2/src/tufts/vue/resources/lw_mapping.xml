@@ -205,7 +205,8 @@
 			<bind-xml name="Element" />
 		</field>
 	</class>
-		<class name="tufts.vue.Resource">
+		<class name="tufts.vue.MapResource">
+		
 		<field name="referenceCreated" type="long">
 			<bind-xml name="referenceCreated" node="attribute"/>
 		</field>
@@ -221,17 +222,27 @@
 		<field name="spec" type="string">
 			<bind-xml name="spec" node="element" />
 		</field>
+		<!--
+		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
+			<bind-xml name="castorFedoraObject" node="element"/>
+		</field>
+		-->
+	
+	</class>
+	
+	<class name="tufts.vue.AssetResource" extends="tufts.vue.MapResource">
 		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
 			<bind-xml name="castorFedoraObject" node="element"/>
 		</field>
 	</class>
+		
 		<!-- FEDORA OBJECTS -->
 	<class name="tufts.vue.CastorFedoraObject">
-		<field name="id" type="string">
-			<bind-xml name="id" node="attribute"/>
+		<field name="pid" type="string">
+			<bind-xml name="pid" node="attribute"/>
 		</field>
-		<field name="type" type="string">
-			<bind-xml name="type" node="element" />
+		<field name="fedoraType" type="string">
+			<bind-xml name="fedoraType" node="element" />
 		</field>
 		<field name="displayName" type="string">
 			<bind-xml name="displayName" node="element" />
@@ -250,16 +261,19 @@
 		<field name="description" type="string">
 			<bind-xml name="description" node="element" />
 		</field>  
-               <field name = "address" type = "string">
-                    <bind-xml name ="address" node = "element" />
-               </field>
-               <field name = "userName" type = "string">
-                    <bind-xml name ="userName" node = "element" />
-               </field>
-               <field name = "password" type = "string">
-                    <bind-xml name ="password" node = "element" />
-               </field>
- 
+	   <field name = "address" type = "string">
+			<bind-xml name ="address" node = "element" />
+	   </field>
+	   <field name = "userName" type = "string">
+			<bind-xml name ="userName" node = "element" />
+	   </field>
+	   <field name = "password" type = "string">
+			<bind-xml name ="password" node = "element" />
+	   </field>
+	   <field name="conf" type="string">
+	   		<bind-xml name="conf" node="element" />
+		</field>
+
 	</class>
 	
 
