@@ -103,26 +103,29 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             }
         }
         boolean gotSlash = false;
+        File volumes = null;
         if (tufts.Util.isMacPlatform()) {
-            File volumes = new File("/Volumes");
-            if (volumes.exists() && volumes.canRead()) {
-                File[] vols = volumes.listFiles();
-                for (int i = 0; i < vols.length; i++) {
-                    File v = vols[i];
-                    if (!v.canRead() || v.getName().startsWith("."))
-                        continue;
-                    CabinetResource r =
-                        new CabinetResource(new LocalCabinet(v.getPath(), agent, null));
-                    r.setTitle(v.getName());
-                    try {
-                        //r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
-                        if (v.getCanonicalPath().equals("/"))
-                            gotSlash = true;
-                    } catch (Exception e) {
-                        System.err.println(e);
-                    }
-                    cabVector.add(r);
+            volumes = new File("/Volumes");
+        } else if (tufts.Util.isUnixPlatform()) {
+            volumes = new File("/mnt");
+        }
+        if (volumes != null && volumes.exists() && volumes.canRead()) {
+            File[] vols = volumes.listFiles();
+            for (int i = 0; i < vols.length; i++) {
+                File v = vols[i];
+                if (!v.canRead() || v.getName().startsWith("."))
+                    continue;
+                CabinetResource r =
+                    new CabinetResource(new LocalCabinet(v.getPath(), agent, null));
+                r.setTitle(v.getName());
+                try {
+                    //r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
+                    if (v.getCanonicalPath().equals("/"))
+                        gotSlash = true;
+                } catch (Exception e) {
+                    System.err.println(e);
                 }
+                cabVector.add(r);
             }
         }
         
