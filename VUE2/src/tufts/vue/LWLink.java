@@ -84,6 +84,7 @@ public class LWLink extends LWComponent
         if (true || w <= SmallestScaleableStrokeWidth) {
             return rect.intersectsLine(this.line);
         } else {
+            // todo: finish this!
             Shape s = this.stroke.createStrokedShape(this.line); // todo: cache this!
             return s.intersects(rect);
             // todo: ought to compensate for stroke shrinkage
@@ -368,6 +369,10 @@ public class LWLink extends LWComponent
         //|| (ep2.getShape() != null && !ep2.isChild())) {
         //if (ep1.getShape() != null || ep2.getShape() != null) {
 
+        // todo!!: FYI -- doing this clip stuff is what's responsible
+        // for the "edge-of-clip-region" erasing bug!  So that's
+        // another thing to look forward to when we don't need
+        // this code anymore.
         if (!viewerCreationLink) {
         if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
             && !(ep1.getShape() == null && ep2.getShape() == null)) {
