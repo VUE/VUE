@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.13 $ / $Date: 2004-10-15 22:14:45 $ -->
+<!-- $Revision: 1.14 $ / $Date: 2004-10-25 02:08:48 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -143,6 +143,7 @@
                    log4j-1.2.4.jar
                    log4j-1.2.8.jar
                    mail.jar
+                   MRJAdapter.jar
                    mysql.jar
                    okiReversi.jar
                    okiSID_rc6_1.jar
@@ -188,6 +189,7 @@
                    fedorautilities.jar
                    fop.jar
                    jaxrpc.jar
+                   MRJAdapter.jar
                    okiSID_rc6_1.jar
                    okiOSID_v2.jar
                    saaj.jar
@@ -214,6 +216,7 @@
     <pathelement path="${lib.home}/jaxrpc.jar"/>
     <pathelement path="${lib.home}/log4j-1.2.4.jar"/>
     <pathelement path="${lib.home}/saaj.jar"/>
+    <pathelement path="${lib.home}/MRJAdapter.jar"/>
   </path>
     
   <path id="compile.classpath.google">
@@ -256,7 +259,7 @@
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
-    
+    <!-- pathelement path="${lib.home}/MRJAdapter.jar"/ not working, unknown why -->
   </path>
 
 
@@ -370,9 +373,6 @@
   <path id="thirdparty.jarfiles.classpath">
     <filelist dir="${lib.home}" files="${thirdparty.jarfiles.names}"/>
   </path>
-  <!-- Create some variables just for diagnostic output: -->
-  <pathconvert pathsep="," property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
-  <pathconvert pathsep="," property="info.classpath" refid="runtime.classpath"/>
 
 <!-- ==================== Vue JAR files ================================ -->
   <target name="jar-core"
@@ -410,7 +410,7 @@
     <echo message="Building ${vue.jar}..."/>
     <jar destfile="${vue.jar}" compress="true" index="true" update="false">
       <manifest>
-        <attribute name="Description" value="Tufts VUE 0.9 (Visual Understanding Environment)"/>
+        <attribute name="Description" value="Tufts/MIT VUE 0.9+ (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
@@ -421,6 +421,7 @@
   </target>
 
 
+  <pathconvert pathsep="," property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
   <target name="jar-lib"
           description="Create VUE-lib.jar - a separate jar file containing the kitchen-sink set of third party libraries to run VUE (dev convenience target).">
     <echo message="Jaring: ${info.jarfiles}"/>
@@ -504,8 +505,11 @@
 
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
+      <pathconvert pathsep="," property="info.classpath" refid="runtime.classpath"/>
+      <pathconvert pathsep="," property="info.compilepath.vue" refid="compile.classpath.vue"/>
       <echo message="Distribution jar files: ${info.jarfiles}"/>
       <echo message="Runtime classpath: ${info.classpath}"/>
+      <echo message="tufts/vue compile classpath: ${info.compilepath.vue}"/>
     </target>
 
     <target name="info-jarlib">
