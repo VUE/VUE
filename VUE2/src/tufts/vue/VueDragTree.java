@@ -33,7 +33,8 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     public VueDragTree(Object obj, String treeName) { 
         if (obj instanceof FavoritesNode){
             setModel(new DefaultTreeModel((FavoritesNode)obj));
-            this.setShowsRootHandles(true);
+            //this.setShowsRootHandles(true);
+            this.setRootVisible(false);
             this.expandRow(0);
         }
         else{
@@ -68,8 +69,10 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                 }
         });
          
-        VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer(tree);
-        tree.setCellRenderer(renderer);
+          VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer();
+         tree.setCellRenderer(renderer);
+
+     
         ToolTipManager.sharedInstance().registerComponent(tree);
     }
     
@@ -101,6 +104,12 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                     root.add(rootNode);
                     rootNode.explore();
                 }
+                 else if (resource instanceof Result)
+                {
+                    UrlNode urlNode = new UrlNode((Result)resource);
+                    root.add(urlNode);
+                }
+
                 else {
                     root.add(new DefaultMutableTreeNode(resource));
                  }
@@ -183,8 +192,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
          Resource resource = new Resource(asset.getDisplayName());
          resource.setAsset(asset);
          return resource;
-     } else if(object instanceof DefaultMutableTreeNode) {
-         return new Resource(((DefaultMutableTreeNode)object).toString());
+   
          
      }else {
          throw new RuntimeException(object.getClass()+" : Not Supported");
@@ -193,6 +201,81 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
  
  
  //Cell Renderer
+ 
+ //Cell Renderer
+ 
+  public class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
+   String meta = "";
+           
+   public VueDragTreeCellRenderer() {
+       
+   }
+     /* -----------------------------------  */
+          
+  
+                  public Component getTreeCellRendererComponent(
+                            JTree tree,
+                            Object value,
+                            boolean sel,
+                            boolean expanded,
+                            boolean leaf,
+                            int row,
+                            boolean hasFocus) {
+                          
+                               
+                     Icon leafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+                     Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+                     Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+                     
+
+            super.getTreeCellRendererComponent(
+                            tree, value, sel,
+                            expanded, leaf, row,
+                            hasFocus);       
+                     
+                            if (value instanceof FavoritesNode)
+                      {
+                          
+                        if ( ((FavoritesNode)value).getChildCount() >0 )
+                        {
+                          setIcon(activeIcon);
+                        }
+                        else
+                        {
+                           setIcon(inactiveIcon);
+                        }
+                       
+                          
+                        }
+                       else if (leaf){ setIcon(leafIcon);}
+                       else { setIcon(activeIcon); }
+                     
+                   
+
+                   
+                        if (value.toString().length() > 30){
+                            setText(value.toString().substring(0,30)+"...");
+                        }
+                     
+                        if (value instanceof UrlNode){meta = ((UrlNode)value).getResult().getDescription();}
+                        
+            return this;
+                  }
+                  
+          public String getToolTipText(){
+        
+             return meta;
+        
+                      }  
+   }
+        
+
+ }
+ 
+ 
+
+ 
+ /*
 class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
     protected VueDragTree tree;
    // protected ResultNode lastNode;
@@ -214,9 +297,29 @@ class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
     }
  } 
 
- 
+ */
 
-}
+
+
+class UrlNode extends DefaultMutableTreeNode {
+	private boolean explored = false;
+        private Result result;
+	public UrlNode(Result result) 	{ 
+            this.result = result;
+            setUserObject(result); 
+	}
+        public  Result getResult() {
+            return this.result;
+        }
+	public String toString(){
+            String returnString = "URL Object";
+            try {
+                returnString = result.getTitle();
+            } catch (Exception e) { System.out.println("URLNode.toString() "+e);}
+            return returnString;
+	}
+ }
+
 
 class AssetNode extends DefaultMutableTreeNode {
 	private boolean explored = false;
@@ -362,8 +465,12 @@ class FileNode extends DefaultMutableTreeNode {
         public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
             
     	if (flavor.equals(flavors[STRING])) {
-            System.out.println("I am here"+this.elementAt(0));
-    	    return this.elementAt(0).toString();
+            
+             if (this.elementAt(0) instanceof Result){
+                displayName = ((Result)this.elementAt(0)).getUrl();}
+                return displayName.toString();
+
+          
     	} else if (flavor.equals(flavors[PLAIN])) {
              System.out.println("I am plain"+this.elementAt(0));
     	    return new StringReader(displayName);
