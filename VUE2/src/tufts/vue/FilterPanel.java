@@ -229,6 +229,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mFilterScrollPane = new JScrollPane();
             
             filterEditor = new FilterEditor();
+            filterEditor.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
             //filterEditor.setBackground(VueResources.getColor("filterPanelColor"));
             //mUpperPanel.setBackground(VueResources.getColor("filterPanelColor"));
             //mLowerPanel.setBackground(VueResources.getColor("filterPanelColor"));
