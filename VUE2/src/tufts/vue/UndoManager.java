@@ -308,7 +308,7 @@ public class UndoManager
         
         private static void repaint() {
             //VUE.getActiveMap().notify("repaint");
-            VUE.getActiveViewer().paintImmediately(0,0,4096,3072);
+            VUE.getActiveViewer().paintImmediately();
             //try { Thread.sleep(100); } catch (Exception e) {}
         }
 
