@@ -36,11 +36,9 @@ import tufts.vue.*;
  */
 public class SaveAction extends AbstractAction
 {
-    //    private static File file = null;
     private boolean saveAs = true;
    
-    public SaveAction() {
-    }
+    public SaveAction() {}
     
     public SaveAction(String label) {
         super(label);
@@ -154,6 +152,15 @@ public class SaveAction extends AbstractAction
         return saveMap(map, false);
     }
     
+    public static void main(String args[])
+    {
+        LWMap map = new LWMap("test");
+        map.setFile(new File("test.xml"));
+        map.addNode(new LWNode("Test Node"));
+        System.err.println("Attempting to save test map " + map);
+        DEBUG.Enabled = DEBUG.INIT = true;
+        new SaveAction().saveMap(map, false);
+    }
 
     
     /*

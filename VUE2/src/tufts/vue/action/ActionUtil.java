@@ -26,20 +26,29 @@ package tufts.vue.action;
 
 import javax.swing.*;
 import java.io.*;
+import java.net.URL;
+import java.net.URI;
+import java.util.HashMap;
+
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
 import tufts.vue.LWMap;
 import tufts.vue.VueFileFilter;
 
 import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.MarshalListener;
 import org.exolab.castor.xml.Unmarshaller;
+import org.exolab.castor.xml.UnmarshalListener;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+import org.exolab.castor.util.Logger;
 
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 /**
  *
  * @author  Daisuke Fujiwara
@@ -49,7 +58,7 @@ import org.xml.sax.InputSource;
  */
 public class ActionUtil {
     final static java.net.URL XML_MAPPING = tufts.vue.VueResources.getURL("mapping.lw");
-    //private static final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
+    final static java.net.URL XML_MAPPING_OLD = tufts.vue.VueResources.getURL("mapping.lw_old");
     
     /** Creates a new instance of Class */
     public ActionUtil() {
@@ -156,11 +165,48 @@ public class ActionUtil {
         return file;
     }
     
+    //private static Mapping CachedMapping;
+    private static Mapping getDefaultMapping()
+    {
+        //if (CachedMapping == null) {
+        //Mapping mapping = null;
+            try {
+                return loadMapping(XML_MAPPING);
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                JOptionPane.showMessageDialog(null, "Mapping file error: will be unable to load or save maps!"
+                                              + "\nMapping url: " + XML_MAPPING
+                                              + "\n" + e,
+                                              "XML Mapping File Exception", JOptionPane.ERROR_MESSAGE);
+            }
+            return null;
+            //CachedMapping = mapping;
+            //  }
+    //return CachedMapping;
+    }
+
+    private static HashMap LoadedMappings = new HashMap();
+    private static Mapping loadMapping(URL mappingSource)
+        throws java.io.IOException, org.exolab.castor.mapping.MappingException
+    {
+        if (LoadedMappings.containsKey(mappingSource))
+            return (Mapping) LoadedMappings.get(mappingSource);
+        Mapping mapping = new Mapping();
+        System.out.println("Loading mapping " + mappingSource + "...");
+        mapping.loadMapping(mappingSource);
+        System.out.println("Mapping loaded.");
+        LoadedMappings.put(mappingSource, mapping);
+        return mapping;
+    }
+    
     /**A static method which creates an appropriate marshaller and marshal the active map*/
     public static void marshallMap(File file)
     {
         marshallMap(file, tufts.vue.VUE.getActiveMap());
     }
+
+    
+    //private static final String VersionString = "<!-- VUE Mapping File @version 1.0 -->\n";
     
     /**A static method which creates an appropriate marshaller and marshal the given map*/
     public static void marshallMap(File file, LWMap map)
@@ -174,18 +220,45 @@ public class ActionUtil {
     */
     {
         Marshaller marshaller = null;
-        Mapping mapping = new Mapping();
             
         try {  
             FileWriter writer = new FileWriter(file);
-            
+            writer.write("<!-- VUE mapping @version 1.0 " + XML_MAPPING + " -->\n");
+            writer.write("<!-- Saved "
+                         + new java.util.Date()
+                         + " by " + System.getProperty("user.name")
+                         + " on platform " + System.getProperty("os.name")
+                         + " " + System.getProperty("os.version")
+                         + " -->\n");
+            //System.out.println("Wrote " + VersionString);
             marshaller = new Marshaller(writer);
-            mapping.loadMapping(XML_MAPPING);
-            marshaller.setMapping(mapping);
+            marshaller.setDebug(true);
+
+            // on by default -- adds at top: <?xml version="1.0" encoding="UTF-8"?>
+            //marshaller.setMarshalAsDocument(false);
+
+            marshaller.setNoNamespaceSchemaLocation("none");
+            // setting to "none" gets rid of all the spurious tags like these:
+            // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+            //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
+            marshaller.setMarshalListener(new MarshalListener() {
+                    public boolean preMarshal(Object o) {
+                        System.out.println(" preMarshal " + o.getClass().getName() + " " + o);
+                        return true;
+                    }
+                    public void postMarshal(Object o) {
+                        System.out.println("postMarshal " + o.getClass().getName() + " " + o);
+                    }
+                });
+
+            //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
-            System.out.println("start of marshall");
+            marshaller.setMapping(getDefaultMapping());
+            
+            System.out.println("Marshalling " + map + " ...");
             marshaller.marshal(map);
-            System.out.println("end of marshall");
+            System.out.println("Completed marshalling " + map);
             
             writer.flush();
             writer.close();
@@ -203,65 +276,125 @@ public class ActionUtil {
         }
 
     }
-    
-    /**A static method which creates an appropriate unmarshaller and unmarshal the given concept map*/
+
+    private static class VueUnmarshalListener implements UnmarshalListener {
+        public void attributesProcessed(Object o) {
+            System.out.println("\tattributes processed " + o.getClass().getName() + " " + o);
+        }
+        public void fieldAdded(String name, Object parent, Object child) {
+            System.out.println("fieldAdded: parent=" + parent
+                               + " child=" + child.getClass().getName() + " " + child
+                               );
+        }
+        public void initialized(Object o) {
+            System.out.println("initialized " + o.getClass().getName() + " " + o);
+        }
+        public void unmarshalled(Object o) {
+            System.out.println("unmarshalled " + o.getClass().getName() + " " + o);
+        }
+    }
+
+    /** Unmarshall a LWMap from the given file (XML map data) */
     public static LWMap unmarshallMap(File file)
+        throws java.io.IOException
     {
-        Unmarshaller unmarshaller = null;
+        return unmarshallMap(file.toURI().toURL());
+    }
+
+    /** Unmarshall a LWMap from the given URL (XML map data) */
+    public static LWMap unmarshallMap(java.net.URL url)
+        throws java.io.IOException
+    {
+        return unmarshallMap(url, getDefaultMapping());
+    }
+
+    /** Unmarshall a LWMap from the given URL using the given mapping */
+    private static LWMap unmarshallMap(java.net.URL url, Mapping mapping)
+        throws java.io.IOException
+    {
         LWMap map = null;
-        
-        //if (this.unmarshaller == null) {   
-        Mapping mapping = new Mapping();
+
+        // Ignore lines at top of file that are comments.  If there
+        // are NO comment lines, file is of one of our original save
+        // formats that is not versioned, and that may need special
+        // processing for the Resource class to Resource interface
+        // change over.
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+        String line;
+        int commentCount = 0;
+        boolean oldFormat = false;
+        do {
+            reader.mark(2048);
+            line = reader.readLine();
+            System.out.println("Top of file[" + line + "]");
+            commentCount++;
+        } while (line.startsWith("<!--"));
+        reader.reset();
+        commentCount--;
+        if (commentCount < 1) {
+            oldFormat = true;
+            System.out.println("Save file is of old pre-versioned type.");
+        }
             
-        try 
-        {
-            unmarshaller = new Unmarshaller();
-            mapping.loadMapping(XML_MAPPING);    
-            unmarshaller.setMapping(mapping);  
+        try {
+            Unmarshaller unmarshaller = new Unmarshaller(); // todo: can cache this with it's mapping set
+            unmarshaller.setDebug(true);
+            unmarshaller.setLogWriter(new Logger(System.out));
+            unmarshaller.setIgnoreExtraElements(true);
+            //unmarshaller.setWhitespacePreserve(true); // not in our version yet
+            if (false) unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
+            unmarshaller.setMapping(mapping);
+
+            // unmarshall the map:
             
-            FileReader reader = new FileReader(file);
+            try {
+                map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
+            } catch (org.exolab.castor.xml.MarshalException me) {
+                if (oldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
+                    System.err.println("ActionUtil.unmarshallMap: " + me);
+                    System.err.println("Attempting specialized MapResource mapping for old format.");
+                    return unmarshallMap(url, loadMapping(XML_MAPPING_OLD));
+                    /*
+                    unmarshaller.setMapping(loadMapping(XML_MAPPING_OLD));
+                    reader.reset(); // todo: need to make sure buffer is big enough for rollback!
+                    // okay, stream has been closed: would it make any difference if didn't use the url.openStream? (File instead)
+                    map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
+                    */
+                } else
+                    throw me;
+            }
             
-            map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
-            map.setFile(file); // appears as a modification, so be sure to do completeXMLRestore last.
+            //map.setFile(file); // appears as a modification, so be sure to do completeXMLRestore last.
+            map.setFile(new File(url.getFile()));
             map.completeXMLRestore();
             
             reader.close();
-        } 
-        
-        catch (MappingException me)
-        {
-            me.printStackTrace(System.err);
-            JOptionPane.showMessageDialog(null, "Error in mapping file, closing the application", 
-              "LW_Mapping Exception", JOptionPane.PLAIN_MESSAGE);
-                
-            // besides being very unfriendly, this could really hamper
-            // debbugging!
-            //System.exit(0);
         }
-        
         catch (Exception e) 
         {
-            System.err.println("XML_MAPPING ="+XML_MAPPING.getFile());
-            System.err.println("ActionUtil.unmarshallMap: " + e);
+            System.err.println("ActionUtil.unmarshallMap:");
+            System.err.println("\texception: " + e.getClass());
+            System.err.println("\tcause: " + e.getCause());
+            System.err.println("\t" + e);
+            //System.err.println("\tmessage=" + e.getLocalizedMessage());
+            //System.err.println("\tXML_MAPPING WAS " + XML_MAPPING);
             e.printStackTrace();
             map = null;
         }
-        //}
         
         return map;
     }
-    
+
+    /*
     public static LWMap unmarshallMap(java.net.URL url)
     {
         Unmarshaller unmarshaller = null;
         LWMap map = null; 
-        Mapping mapping = new Mapping();
             
-        try 
-        {
+        try {
             unmarshaller = new Unmarshaller();
-            mapping.loadMapping(XML_MAPPING);    
-            unmarshaller.setMapping(mapping);  
+            unmarshaller.setMapping(getDefaultMapping());  
             
             InputStream istream = url.openStream();
             map = (LWMap) unmarshaller.unmarshal(new InputSource(istream));
@@ -288,7 +421,7 @@ public class ActionUtil {
             e.printStackTrace();
             map = null;
         }
-        
         return map;
     }
+    */
 }

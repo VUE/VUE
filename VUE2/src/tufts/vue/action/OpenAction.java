@@ -85,11 +85,12 @@ public class OpenAction extends AbstractAction
         }
     }
     
+    // todo: have only one root loadMap that hanldes files & urls
     public static LWMap loadMap(String filename)
     {
         try 
         {
-            if (debug) System.err.println("Unmarshalling from " + filename);
+            if (debug) System.err.println("\nUnmarshalling from " + filename);
             File file = new File(filename);
             LWMap map = ActionUtil.unmarshallMap(file);
             return map;
@@ -104,11 +105,8 @@ public class OpenAction extends AbstractAction
     
     public static LWMap loadMap(java.net.URL url)
     {
-        try 
-        {       
-            //Unmarshaller unmarshaller = ActionUtil.getUnmarshaller();
-            if (debug) System.err.println("Unmarshalling from " + url);
-            
+        try {       
+            if (debug) System.err.println("\nUnmarshalling from " + url);
             LWMap map = ActionUtil.unmarshallMap(url);
             return map;
         } 
@@ -119,6 +117,24 @@ public class OpenAction extends AbstractAction
             return null;
         }
     }
+    
+    public static void main(String args[])
+        throws Exception
+    {
+        String file = args.length == 0 ? "test.xml" : args[0];
+        System.err.println("Attempting to read map from " + file);
+        debug = true;
+        DEBUG.Enabled = true;
+        //DEBUG.INIT = true;
+        LWMap map;
+        if (file.indexOf(':') >= 0)
+            map = new OpenAction().loadMap(new java.net.URL(file));
+        else
+            map = new OpenAction().loadMap(file);
+        System.out.println("Loaded map: " + map);
+    }
+
+    private static boolean debug = true;
     
     /*
     private static Unmarshaller unmarshaller = null;
@@ -139,15 +155,6 @@ public class OpenAction extends AbstractAction
         }
         return unmarshaller;
     }
+    */
 
-    public static void main(String args[])
-    {
-        System.err.println("Attempting to read map from " + args[0]);
-        debug = true;
-        new OpenAction().loadMap(args[0]);
-    }
-
-     */
-    private static boolean debug = true;
-    
 }

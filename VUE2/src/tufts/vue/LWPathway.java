@@ -748,7 +748,7 @@ public class LWPathway extends LWContainer
                             , dash_phase);
         */
 
-        BasicStroke connectorStroke = new BasicStroke(4);
+        BasicStroke connectorStroke = new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 
         dc.g.setColor(getStrokeColor());
         dc.g.setStroke(connectorStroke);

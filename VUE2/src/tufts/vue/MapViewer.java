@@ -196,7 +196,7 @@ public class MapViewer extends javax.swing.JComponent
     {
         super.addNotify();
         if (mAddNotifyUnderway) {
-            out("(bootstrapped add-notify for viewport)");
+            if (DEBUG.INIT) out("(bootstrapped add-notify for viewport)");
             return;
         }
         mAddNotifyUnderway = true;
@@ -205,11 +205,11 @@ public class MapViewer extends javax.swing.JComponent
             JScrollPane sp = (JScrollPane) getParent().getParent();
 
             if (true) {
-                out("creating viewport");
+                if (DEBUG.INIT) out("creating viewport");
                 mViewport = new MapViewport(this);
-                out("installing our own viewport on JScrollPane");
+                if (DEBUG.INIT) out("installing our own viewport on JScrollPane");
                 sp.setViewport(mViewport);
-                out("back from installing our own viewport on JScrollPane");
+                if (DEBUG.INIT) out("back from installing our own viewport on JScrollPane");
             } else {
                 //mViewport = (JViewport) getParent();
                 // todo perf: auto-scroll is slowing down operations that
