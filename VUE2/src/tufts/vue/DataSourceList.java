@@ -67,8 +67,6 @@ public class DataSourceList extends JList implements DropTargetListener{
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                 
-         
                 if (((DataSource)value).getType() == DataSource.FAVORITES){
                     setIcon(myFavoritesIcon);
                     this.setPreferredSize(new Dimension(200,20));
@@ -79,17 +77,12 @@ public class DataSourceList extends JList implements DropTargetListener{
                 }
                 else  if (((DataSource)value).getType() == DataSource.BREAK){
                     setIcon(breakIcon);
-                    
-                    this.setPreferredSize(new Dimension(200,3));
-                    
+                    this.setPreferredSize(new Dimension(200,3));   
                 }
                 else{
                     setIcon(remoteIcon);
                     this.setPreferredSize(new Dimension(200,20));
-                    
                 }
-    
-               
                 return this;
                 
             }
@@ -101,11 +94,6 @@ public class DataSourceList extends JList implements DropTargetListener{
          
         this.setCellRenderer(renderer);
     }
-    
-   
-
-
-
     
     public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
@@ -163,10 +151,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                                                 cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.REMOTE);
                                          else
                                                  cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.LOCAL);
-                                   
                                         cabNode.explore();
-                             
-                                      
                                         model.insertNodeInto(cabNode, rootNode, 0);
                                       favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                                     
