@@ -59,6 +59,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     private boolean selectionFromVUE = false;
     private boolean valueChangedState = false;
     
+    //a variable that controls the label change of nodes
+    private boolean labelChangeState = false;
+    
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
@@ -239,8 +242,10 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
        
         //might want to come up with an exception
         //if(treeNode != (DefaultMutableTreeNode)getModel().getRoot() && selectedNode != null)
-        if (selectedNode != null)
+        if (selectedNode != null && !labelChangeState)
         {
+            labelChangeState = true;
+            
             //changes the node's label and sets it as a new object of the tree node
             try
             {
@@ -254,6 +259,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                 //resets the change to the previous one
                 treeNode.setUserObject(selectedNode);
             }
+            
+            labelChangeState = false;
         }
     }
     
@@ -270,8 +277,13 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         //when a label on a node was changed
         //Already label filtered. 
        
-        hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
-        repaint();       
+        if(!labelChangeState)
+        { 
+            labelChangeState = true;
+            hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
+            repaint();
+            labelChangeState = false;
+        }
     }
     
     /** A method for handling LWSelection event **/
@@ -549,9 +561,11 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             label = new JTextArea();
             label.setEditable(true);
             label.setLineWrap(true);
+            label.setColumns(30);
             
             this.editor = editor;
             addKeyListener(editor);
+            //addFocusListener(editor);
             label.addFocusListener(this.editor);
             
             iconPanel = new IconPanel();
