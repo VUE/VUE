@@ -15,7 +15,10 @@ import javax.swing.JList;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JTextField;
+<<<<<<< PathwayControl.java
+=======
 
+>>>>>>> 1.7
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.border.LineBorder;
 import java.awt.FlowLayout;
@@ -29,15 +32,18 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.util.Iterator;
+
 /**
  *
  * @author  Daisuke Fujiwara
  */
+
 /**A class that displays the control of pathways*/
 public class PathwayControl extends JPanel implements ActionListener, ItemListener
 {
     /**Necessary widgets to control pathways*/
     private JButton firstButton, lastButton, forwardButton, backButton;
+    private JButton removeButton; //temporarily existing
     private JLabel nodeLabel;
     private JComboBox pathwayList;
     
@@ -66,7 +72,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         backButton = new JButton("<");
         nodeLabel = new JLabel(emptyLabel);
         
-        /*
+        /**
         firstButton.setEnabled(false);
         lastButton.setEnabled(false);
         forwardButton.setEnabled(false);
@@ -78,12 +84,16 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         forwardButton.addActionListener(this);
         backButton.addActionListener(this);
         
+         //temporarily here
+        removeButton = new JButton("remove");
+        removeButton.addActionListener(this);
+        
         pathwayList.setRenderer(new pathwayRenderer());
         //pathwayList.setMaximumRowCount();
         pathwayList.addItemListener(this);
         pathwayList.addItem(noPathway);
         pathwayList.addItem(addPathway);
-             
+        
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.setBackground(Color.white);
@@ -91,7 +101,8 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         buttonPanel.add(backButton);
         buttonPanel.add(forwardButton);
         buttonPanel.add(lastButton);
-        
+        buttonPanel.add(removeButton);
+         
         JPanel descriptionPanel = new JPanel();
         descriptionPanel.setLayout(new FlowLayout());
         descriptionPanel.setBackground(Color.white);
@@ -106,7 +117,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         add(descriptionPanel, BorderLayout.CENTER);
     }
     
-    /*
+    /* not used at this point
     public PathwayControl(LWPathway pathway)
     {
         this();
@@ -115,33 +126,37 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     }
     */
     
+    /**A constructor with a pathway manager as an argument*/
     public PathwayControl(LWPathwayManager pathwayManager)
     {
         this();
         setPathwayManager(pathwayManager);
     }
     
+    /**Sets the pathway manager to the given pathway manager*/
     public void setPathwayManager(LWPathwayManager pathwayManager)
     {
         this.pathwayManager = pathwayManager;
         
-        //iterting through
+        //iterting through to add existing pathways to the combo box list
         for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
         {
             pathwayList.addItem((LWPathway)i.next());           
         }
         
-        if (this.pathwayManager.length() == 0)
+        //sets the current pathway to the first pathway 
+        if (this.pathwayManager.length() != 0)
           setCurrentPathway(this.pathwayManager.getPathway(0));
         
     }
     
+    /**Returns the currently associated pathway manager*/
     public LWPathwayManager getPathwayManger()
     {
         return pathwayManager;
     }
     
-    /**Sstes the current pathway to the given pathway and updates the control panel accordingly*/
+    /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
     public void setCurrentPathway(LWPathway pathway)
     {
         currentPathway = pathway;
@@ -162,8 +177,14 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     /**
      * @param args the command line arguments
      */
+<<<<<<< PathwayControl.java
+    public static void main(String[] args) {
+        PathwayControl control = new PathwayControl(LWPathwayManager.getInstance());
+        //PathwayControl control = new PathwayControl();
+=======
     //public static void main(String[] args) {
      //   PathwayControl control = new PathwayControl(new LWPathwayManager(1));
+>>>>>>> 1.7
         
         /*
         //setting up pathway control in a tool window
@@ -219,7 +240,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 }
             }
             
-            //needs to be tested
+            //if there is no node in the pathway, disables every button
             else
             {
                 firstButton.setEnabled(false);
@@ -230,7 +251,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             }
         }
         
-        //if no pathway is selected currently, disables all buttons and resets the label
+        //if currently no pathway is selected, disables all buttons and resets the label
         else
         {
             firstButton.setEnabled(false);
@@ -238,7 +259,24 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             forwardButton.setEnabled(false);
             backButton.setEnabled(false);
             nodeLabel.setText(emptyLabel);
+            
+            //temporarily here
+            removeButton.setEnabled(false);
         }
+    }
+    
+    /**Adds the given pathway to the combo box list and the pathway manager*/
+    public void addPathway(LWPathway newPathway)
+    {
+        pathwayList.addItem(newPathway);
+        pathwayManager.addPathway(newPathway);
+    }
+    
+    /**Removes the given pathway from the combo box list and the pathway manager*/
+    public void removePathway(LWPathway oldPathway)
+    {
+        pathwayList.removeItem(oldPathway);
+        pathwayManager.removePathway(oldPathway);
     }
     
     /**Reacts to actions dispatched by the buttons*/
@@ -246,35 +284,26 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     {       
         //moves to the first node of the pathway
         if (e.getSource() == firstButton)
-          {
-            currentPathway.setCurrent(currentPathway.getFirst());
-            updateControlPanel();
-          }
+          currentPathway.setCurrent(currentPathway.getFirst());
             
         //moves to the last node of the pathway
         else if (e.getSource() == lastButton)
-          {
-            currentPathway.setCurrent(currentPathway.getLast());
-            updateControlPanel();
-          }
+          currentPathway.setCurrent(currentPathway.getLast());
             
         //moves to the next node of the pathway
         else if (e.getSource() == forwardButton)
-          {
-            currentPathway.setCurrent(currentPathway.getNext(currentPathway.getCurrent()));
-            updateControlPanel();
-          }
+          currentPathway.setCurrent(currentPathway.getNext(currentPathway.getCurrent()));
             
         //moves to the previous node of the pathway
         else if (e.getSource() == backButton)
-          {
-            currentPathway.setCurrent(currentPathway.getPrevious(currentPathway.getCurrent()));
-            updateControlPanel();
-          }
+          currentPathway.setCurrent(currentPathway.getPrevious(currentPathway.getCurrent()));
             
-        //default case
-        else
-          System.out.println("an action from no buttons");
+        //temporarily here
+        else if (e.getSource() == removeButton)
+          removePathway(currentPathway);
+          
+        //notifies the change to the panel
+        updateControlPanel();
     }
     
     /**Reacts to item events dispatched by the combo box*/
@@ -285,16 +314,17 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             //if the pathway was selected, then sets the current pathway to the selected pathway and updates accordingly
             if (pathwayList.getSelectedItem() instanceof LWPathway)
             {
-              currentPathway = (LWPathway)pathwayList.getSelectedItem();
-              updateControlPanel();
+                System.out.println("pathway selected");
+                currentPathway = (LWPathway)pathwayList.getSelectedItem();
+                updateControlPanel();
             }
             
             //if "no" pathway was selected, then set the current pathway to nothing and updates accordingly
             else if (pathwayList.getSelectedItem().equals(noPathway))
             {
-              System.out.println("selecting empty string");
-              currentPathway = null;
-              updateControlPanel();
+                System.out.println("selecting empty string");
+                currentPathway = null;
+                updateControlPanel();
             }
             
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly
@@ -302,16 +332,11 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             {
                 System.out.println("adding a new pathway");
                 
-                newPathwayDialog dialog = new newPathwayDialog(null);
+                PathwayDialog dialog = new PathwayDialog(null);
                 dialog.show();
                 
                 pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
-                
-                //if adding a new pathway, then must change the manager data as well
             }
-            
-            else
-                System.out.println("item event from no where");
         } 
     }
     
@@ -336,9 +361,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             
             //if it is a string, then displays the string itself
             else
-            {
                 setText((String)value);
-            }
             
             //setting the color to the default setting
             if (isSelected)
@@ -357,25 +380,18 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         }   
     }    
     
-    private class newPathwayDialog extends JDialog implements ActionListener
+    private class PathwayDialog extends JDialog implements ActionListener
     {
         JButton okButton, cancelButton;
         JTextField textField;
         
-        public newPathwayDialog(JFrame frame)
+        public PathwayDialog(JFrame frame)
         {
             super(frame, "New Pathway Name", true);
             setSize(200, 200);
             setUpUI();
         }
         
-        /*
-        public newPathwayDialog()
-        {
-            super(null, "New Pathway Name", true);
-            setUpUI();
-        }
-        */
         public void setUpUI()
         {
             okButton = new JButton("Ok");
@@ -384,7 +400,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             okButton.addActionListener(this);
             cancelButton.addActionListener(this);
             
-            textField = new JTextField("default", 20);
+            textField = new JTextField("default", 18);
             textField.addActionListener(this);
             textField.setPreferredSize(new Dimension(50, 20));
             
@@ -409,9 +425,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             if (e.getSource() == okButton)
             {
                 System.out.println("ok button");
-                
-                //might not be the best way to go 
-                pathwayList.addItem(new LWPathway(textField.getText()));
+                addPathway(new LWPathway(textField.getText()));
                 dispose();
             }
             
@@ -422,10 +436,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             }
             
             else if (e.getSource() == textField)
-            {
-                System.out.println("text field");
-            }
+              System.out.println("text field");
         }
-        
     }
 }
