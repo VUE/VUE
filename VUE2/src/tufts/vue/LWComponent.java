@@ -1198,7 +1198,7 @@ public class LWComponent
 
     protected boolean mEventsDisabled = false;
     private void setEventsEnabled(boolean t) {
-        if (DEBUG.EVENTS) System.out.println(this + " *** EVENTS ENABLED: " + t);
+        if (DEBUG.EVENTS) System.out.println(this + " *** EVENTS ENABLED: from " + !mEventsDisabled + " to " + t);
         mEventsDisabled = !t;
     }
     private int mEventSuspensions = 0;

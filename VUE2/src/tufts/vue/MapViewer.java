@@ -2555,8 +2555,8 @@ public class MapViewer extends javax.swing.JComponent
         m.add(Actions.SendToBack);
         m.add(Actions.SendBackward);
         m.addSeparator();
-        for (int i = 0; i < Actions.ALIGN_MENU_ACTIONS.length; i++) {
-            Action a = Actions.ALIGN_MENU_ACTIONS[i];
+        for (int i = 0; i < Actions.ARRANGE_MENU_ACTIONS.length; i++) {
+            Action a = Actions.ARRANGE_MENU_ACTIONS[i];
             if (a == null)
                 m.addSeparator();
             else

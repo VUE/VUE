@@ -561,7 +561,7 @@ class Actions
     //-------------------------------------------------------
     // Align actions
     //-------------------------------------------------------
-    abstract static class AlignAction extends MapAction
+    abstract static class ArrangeAction extends MapAction
     {
         static float minX, minY;
         static float maxX, maxY;
@@ -569,15 +569,15 @@ class Actions
         static float totalWidth, totalHeight; // added width/height of all in selection
         // obviously not thread-safe here
   
-        private AlignAction(String name, KeyStroke keyStroke)
+        private ArrangeAction(String name, KeyStroke keyStroke)
         {
             super(name, keyStroke);
         }
-        private AlignAction(String name, int keyCode)
+        private ArrangeAction(String name, int keyCode)
         {
             super(name, keyStroke(keyCode, COMMAND+SHIFT));
         }
-        private AlignAction(String name)
+        private ArrangeAction(String name)
         {
             super(name);
         }
@@ -612,14 +612,14 @@ class Actions
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
-            align(selection);
+            arrange(selection);
         }
-        void align(LWSelection selection) {
+        void arrange(LWSelection selection) {
             Iterator i = selection.iterator();
             while (i.hasNext())
-                align((LWComponent) i.next());
+                arrange((LWComponent) i.next());
         }
-        void align(LWComponent c) { throw new RuntimeException("unimplemented align action"); }
+        void arrange(LWComponent c) { throw new RuntimeException("unimplemented arrange action"); }
 
         LWComponent[] sortByX(LWComponent[] array)
         {
@@ -639,61 +639,57 @@ class Actions
         }
     };
 
-    static final Action FillWidth = new AlignAction("Fill Width") {
-            void align(LWComponent c) {
-                ((LWNode)c).setAutoSized(false);
+    static final Action FillWidth = new ArrangeAction("Fill Width") {
+            void arrange(LWComponent c) {
+                ((LWNode)c).setAutoSized(false); // todo: should not have to do this
                 c.setFrame(minX, c.getY(), maxX - minX, c.getHeight());
-                //c.setLocation(minX, c.getY());
-                //c.setSize(maxX - minX, c.getHeight());
             }
         };
-    static final Action FillHeight = new AlignAction("Fill Height") {
-            void align(LWComponent c) {
-                ((LWNode)c).setAutoSized(false);
+    static final Action FillHeight = new ArrangeAction("Fill Height") {
+            void arrange(LWComponent c) {
+                ((LWNode)c).setAutoSized(false); // todo: should not have to do this
                 c.setFrame(c.getX(), minY, c.getWidth(), maxY - minY);
-                //c.setLocation(c.getX(), minY);
-                //c.setSize(c.getWidth(), maxY - minY);
             }
         };
 
-    static final Action AlignLeftEdges = new AlignAction("Align Left Edges", KeyEvent.VK_LEFT) {
-            void align(LWComponent c) { c.setLocation(minX, c.getY()); }
+    static final Action AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
+            void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
         };
-    static final Action AlignRightEdges = new AlignAction("Align Right Edges", KeyEvent.VK_RIGHT) {
-            void align(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
+    static final Action AlignRightEdges = new ArrangeAction("Align Right Edges", KeyEvent.VK_RIGHT) {
+            void arrange(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
         };
-    static final Action AlignTopEdges = new AlignAction("Align Top Edges", KeyEvent.VK_UP) {
-            void align(LWComponent c) { c.setLocation(c.getX(), minY); }
+    static final Action AlignTopEdges = new ArrangeAction("Align Top Edges", KeyEvent.VK_UP) {
+            void arrange(LWComponent c) { c.setLocation(c.getX(), minY); }
         };
-    static final Action AlignBottomEdges = new AlignAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
-            void align(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
+    static final Action AlignBottomEdges = new ArrangeAction("Align Bottom Edges", KeyEvent.VK_DOWN) {
+            void arrange(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
         };
-    static final AlignAction AlignCentersRow = new AlignAction("Align Centers in Row", KeyEvent.VK_R) {
-            void align(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
+    static final ArrangeAction AlignCentersRow = new ArrangeAction("Align Centers in Row", KeyEvent.VK_R) {
+            void arrange(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
         };
-    static final AlignAction AlignCentersColumn = new AlignAction("Align Centers in Column", KeyEvent.VK_C) {
-            void align(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
+    static final ArrangeAction AlignCentersColumn = new ArrangeAction("Align Centers in Column", KeyEvent.VK_C) {
+            void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
         };
-    static final AlignAction MakeRow = new AlignAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
+    static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
             // todo bug: an already made row is shifting everything to the left
             // (probably always, actually)
-            void align(LWSelection selection) {
-                AlignCentersRow.align(selection);
+            void arrange(LWSelection selection) {
+                AlignCentersRow.arrange(selection);
                 maxX = minX + totalWidth;
-                DistributeHorizontally.align(selection);
+                DistributeHorizontally.arrange(selection);
             }
         };
-    static final AlignAction MakeColumn = new AlignAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
-            void align(LWSelection selection) {
-                AlignCentersColumn.align(selection);
+    static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
+            void arrange(LWSelection selection) {
+                AlignCentersColumn.arrange(selection);
                 maxY = minY + totalHeight;
-                DistributeVertically.align(selection);
+                DistributeVertically.arrange(selection);
             }
         };
-    static final AlignAction DistributeVertically = new AlignAction("Distribute Vertically", KeyEvent.VK_V) {
+    static final ArrangeAction DistributeVertically = new ArrangeAction("Distribute Vertically", KeyEvent.VK_V) {
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
             // use only *2* in selection if use our minimum layout region setting
-            void align(LWSelection selection)
+            void arrange(LWSelection selection)
             {
                 LWComponent[] comps = sortByY(sortByX(selection.getArray()));
                 float layoutRegion = maxY - minY;
@@ -709,9 +705,9 @@ class Actions
             }
         };
 
-    static final AlignAction DistributeHorizontally = new AlignAction("Distribute Horizontally", KeyEvent.VK_H) {
+    static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
-            void align(LWSelection selection)
+            void arrange(LWSelection selection)
             {
                 LWComponent[] comps = sortByX(sortByY(selection.getArray()));
                 float layoutRegion = maxX - minX;
@@ -730,7 +726,7 @@ class Actions
 
     /** Helper for menu creation.  Null's indicate good places
         for menu separators. */
-    public static final Action[] ALIGN_MENU_ACTIONS = {
+    public static final Action[] ARRANGE_MENU_ACTIONS = {
         AlignLeftEdges,
         AlignRightEdges,
         AlignTopEdges,
