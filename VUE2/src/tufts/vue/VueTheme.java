@@ -96,6 +96,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
             return ToolbarColor;
     }
 
+    /** In the case of the Mac Aqua L&F, this does nothing, picking up the default.
+        Otherwise, it sets the background to getToolBarColor() */
     public static void applyToolbarColor(Component c) {
         if (VueUtil.isMacAquaLookAndFeel()) {
             //if (DEBUG.Enabled) System.out.println("MAC AQUA: skipping toolbar application to " + c);

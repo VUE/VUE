@@ -64,7 +64,7 @@ public class PaletteButtonItem extends JMenuItem
         setRolloverEnabled( true);
         this.addMouseListener( new PaletteButtonItem.PBMouseListener() );
         this.addActionListener( new PaletteButtonItem.PaletteItemActionListener() );
-        setBackground(VueTheme.getToolbarColor());
+        VueTheme.applyToolbarColor(this);
     }
 	
 	
