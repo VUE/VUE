@@ -268,7 +268,7 @@ public class VUE
     static JPanel toolPanel;//todo: tmp hack
     public static void main(String[] args) {
         System.out.println("VUE:main");
-
+        
         // Must install theme before any other GUI code or our VueTheme gets ignored
         MetalLookAndFeel.setCurrentTheme(new VueTheme());
 
