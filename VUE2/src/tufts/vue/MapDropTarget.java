@@ -7,6 +7,7 @@ import java.awt.dnd.DnDConstants;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
+import java.awt.geom.Point2D;
 
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -15,6 +16,8 @@ class MapDropTarget
     // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
     // this existed in 1.3, but apparently went away in 1.4.
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+
+    private final int ACCEPTABLE_DROP_TYPES = DnDConstants.ACTION_COPY_OR_MOVE | DnDConstants.ACTION_LINK;
 
     ConceptMap conceptMap;
     java.awt.Container mapContainer;
@@ -30,13 +33,13 @@ class MapDropTarget
 
     public void dragEnter(DropTargetDragEvent e)
     {
-        e.acceptDrag(DnDConstants.ACTION_COPY);
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
         if (debug) System.err.println("MapDropTarget: dragEnter " + e);
     }
 
     public void dragOver(DropTargetDragEvent e)
     {
-        e.acceptDrag(DnDConstants.ACTION_COPY);
+        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
         lastPoint = e.getLocation();
         //System.err.println("MapDropTarget:  dragOver");
     }
@@ -93,8 +96,8 @@ class MapDropTarget
                 } else if (flavor.isFlavorJavaFileListType()) {
                     fileList = (java.util.List) transfer.getTransferData(flavor);
                     break;
-                } else if (flavor.isFlavorTextType()
-                           && flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
+                } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
+                    // && flavor.isFlavorTextType() -- java 1.4 only
                 {
                     // checking isFlavorTextType() above should be
                     // enough, but some Windows apps (e.g.,
@@ -116,8 +119,11 @@ class MapDropTarget
             }
         }
 
+        //MapDropEvent mapDropEvent = null;
+
         if (droppedImage != null) {
             createNewNode(droppedImage, lastPoint);
+            //mapDropEvent = new MapDropEvent(droppedImage, lastPoint);
             success = true;
         } else if (fileList != null) {
             if (debug) System.err.println("\tLIST, size= " + fileList.size());
@@ -128,16 +134,27 @@ class MapDropTarget
                 java.io.File file = (java.io.File) iter.next();
                 if (debug) System.err.println("\t" + file.getClass().getName() + " " + file);
                 createNewNode(file.toString(), file.getName(), new java.awt.Point(x, y));
+                //mapDropEvent = new MapDropEvent(file.toString(), file.getName(), new java.awt.Point(x, y));
+                // todo: need to raise here too... or rather, should
+                // raise a MapDropCollectionEvent, or rather the MapDropEvent contains a collection
                 x += 15;
                 y += 15;
                 success = true;
             }
         } else if (resourceName != null) {
             createNewNode(resourceName, null, lastPoint);
+            //mapDropEvent = new MapDropEvent(resourceName, null, lastPoint);
             success = true;
         }
 
         e.dropComplete(success);
+        
+        /*if (mapDropEvent != null) {
+            e.dropComplete(true);            
+        } else {
+            e.dropComplete(false);
+            }*/
+
             
     }
 
@@ -161,10 +178,12 @@ class MapDropTarget
     }
 
     // fixme todo: change this to a resource-dropped event (w/location)
-    // then we don't even have to know about the map
+    // then we don't even have to know about the map, or the MapViewer
+    // which for instance can do the zoom conversion of the drop location
+    // for us.
     void createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
     {
-        java.awt.Point location = translateLocation(p);
+        Point2D location = dropToMapLocation(p);
 
         if (resourceTitle == null)
             resourceTitle = createResourceTitle(resourceName);
@@ -176,7 +195,7 @@ class MapDropTarget
 
     void createNewNode(java.awt.Image image, java.awt.Point p)
     {
-        java.awt.Point location = translateLocation(p);
+        Point2D location = dropToMapLocation(p);
         Node n = new Node("Image Label", location);
         conceptMap.addNode(n);
         LWNode lwNode = ((MapViewer)mapContainer).findLWNode(n);
@@ -184,28 +203,26 @@ class MapDropTarget
         ((MapViewer)mapContainer).setSelection(lwNode);
     }
 
-    // todo fixme: adjust for zoom or architect away
-    // having to worry about that here
-    private java.awt.Point translateLocation(java.awt.Point p)
+    private Point2D dropToMapLocation(java.awt.Point p)
     {
-        java.awt.Point location = new java.awt.Point(p);
-        
+        return dropToMapLocation(p.x, p.y);
+    }
+
+    private Point2D dropToMapLocation(int x, int y)
+    {
+        /*
         java.awt.Insets mapInsets = mapContainer.getInsets();
         java.awt.Point mapLocation = mapContainer.getLocation();
-        
-        /*
         System.err.println("mapContainer insets=" + mapInsets);
         System.err.println("mapContainer location=" + mapLocation);
-        location.x -= mapLocation.x;
-        location.y -= mapLocation.y;
-        location.x -= mapInsets.left;
-        location.y -= mapInsets.top;
+        x -= mapLocation.x;
+        y -= mapLocation.y;
+        x -= mapInsets.left;
+        y -= mapInsets.top;
         */
 
-        location.x -= conceptMap.dGetOriginX();
-        location.y -= conceptMap.dGetOriginY();
-        
-        return location;
+        // todo: hack till we raise an application drop event
+        return ((MapViewer)mapContainer).screenToMapPoint(x, y);
     }
 
 

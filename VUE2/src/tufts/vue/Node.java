@@ -1,12 +1,13 @@
 package tufts.vue;
 
 import java.awt.Point;
+import java.awt.geom.Point2D;
 
 public class Node extends MapItem
 {
     private Resource resource = null;
     // using awt Point for now
-    private Point position = new Point(0,0);
+    private Point2D position = new Point2D.Float(0,0);
     private javax.swing.ImageIcon icon = null;
 
     public Node(String label)
@@ -14,7 +15,7 @@ public class Node extends MapItem
         super(label);
     }
 
-    public Node(String label, Point p)
+    public Node(String label, Point2D p)
     {
         super(label);
         setPosition(p);
@@ -26,7 +27,7 @@ public class Node extends MapItem
         setResource(resource);
     }
 
-    public Node(String label, Resource resource, Point p)
+    public Node(String label, Resource resource, Point2D p)
     {
         super(label);
         setResource(resource);
@@ -43,14 +44,28 @@ public class Node extends MapItem
         this.resource = resource;
     }
 
-    public void setPosition(java.awt.Point position)
+    public void setPosition(Point2D position)
     {
         this.position = position;
     }
 
-    public void setPosition(int x, int y)
+    public void setPosition(float x, float y)
     {
-        this.position = new Point(x, y);
+        this.position = new Point2D.Float(x, y);
+    }
+
+    public Point2D getPosition()
+    {
+        return this.position;
+    }
+
+    public float getX()
+    {
+        return (float) this.position.getX();
+    }
+    public float getY()
+    {
+        return (float) this.position.getY();
     }
 
     public void setIcon(javax.swing.ImageIcon icon)
@@ -61,11 +76,6 @@ public class Node extends MapItem
     public Resource getResource()
     {
         return this.resource;
-    }
-
-    public java.awt.Point getPosition()
-    {
-        return this.position;
     }
 
     public javax.swing.ImageIcon getIcon()

@@ -7,14 +7,14 @@ public class VueUtil
     private static boolean WindowsPlatform = false;
     private static boolean MacPlatform = false;
     private static boolean UnixPlatform = false;
-    private static float javaVersion = 1.0f;
+    private static double javaVersion = 1.0f;
 
     static {
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
 
         try {
-            javaVersion = Float.parseFloat(javaSpec);
+            javaVersion = Double.parseDouble(javaSpec);
             System.out.println("Java Version: " + javaVersion);
         } catch (Exception e) {
             System.err.println("Couldn't parse java.specifcaion.version: [" + javaSpec + "]");
@@ -41,7 +41,7 @@ public class VueUtil
 
     public static void test_OpenURL()
     {
-        // System.getProperties().list(System.out);
+         System.getProperties().list(System.out);
         try {
             openURL("file:///tmp/two words.txt");       // does not work on OSX 10.2
             openURL("\"file:///tmp/two words.txt\"");   // does not work on OSX 10.2
@@ -57,7 +57,7 @@ public class VueUtil
     }
 
 
-    public static float getJavaVersion()
+    public static double getJavaVersion()
     {
         return javaVersion;
     }
@@ -66,6 +66,8 @@ public class VueUtil
     public static void openURL(String url)
         throws java.io.IOException
     {
+        // todo: spawn this in another thread just in case it hangs
+        
         // there appears to be no point in quoting the URL...
         String quotedURL;
         if (true || url.charAt(0) == '\'')
@@ -103,6 +105,13 @@ public class VueUtil
         throws java.io.IOException
     {
         System.err.println("Opening Mac URL: [" + url + "]");
+        if (url.indexOf(':') < 0 && !url.startsWith("/")) {
+            // OSX won't default to use current directory
+            // for a relative reference, so we prepend
+            // the current directory manually.
+            url = "file://" + System.getProperty("user.dir") + "/" + url;
+            System.err.println("Opening Mac URL: [" + url + "]");
+        }
         if (getJavaVersion() >= 1.4f) {
             // FYI -- this will not compile using mac java 1.3
             com.apple.eio.FileManager.openURL(url);
@@ -118,6 +127,7 @@ public class VueUtil
             // compiler
             com.apple.mrj.MRJFileUtils.openURL(url);
         }
+        System.err.println("returned from openURL_Mac " + url);
     }
 
     private static void openURL_Unix(String url)

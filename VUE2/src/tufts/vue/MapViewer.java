@@ -2,6 +2,9 @@ package tufts.vue;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 
 /**
@@ -19,13 +22,22 @@ public class MapViewer extends javax.swing.JPanel
     implements MapChangeListener
 {
     static Font defaultFont = new Font("SansSerif", Font.PLAIN, 18);// todo: prefs
-    static Font smallFont = new Font("SansSerif", Font.PLAIN, 11);// todo: prefs
+    static Font smallFont = new Font("SansSerif", Font.PLAIN, 10);// todo: prefs
     
+    // todo: create our own cursors for most of these
+    // named cursor types
     static final Cursor CURSOR_HAND     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     static final Cursor CURSOR_MOVE     = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
     static final Cursor CURSOR_WAIT     = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-    static final Cursor CURSOR_DEFAULT  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     static final Cursor CURSOR_CROSSHAIR= Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
+    static final Cursor CURSOR_DEFAULT  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    
+    // tool cursor types
+    static final Cursor CURSOR_ZOOM_IN  = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+    static final Cursor CURSOR_ZOOM_OUT = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+    static final Cursor CURSOR_PAN      = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    static final Cursor CURSOR_ARROW    = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    static final Cursor CURSOR_SUBSELECT= Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR); // white arrow
 
     java.util.List components = new java.util.ArrayList();
     java.util.List nodeViews = new java.util.ArrayList();
@@ -39,12 +51,11 @@ public class MapViewer extends javax.swing.JPanel
     private final LWLink dynamicLink = new LWLink(dynamicLinkEndpoint);
 
     private double zoomFactor = 1.0;
-    private double zoomMapper = 1.0 / zoomFactor;
 
     //-------------------------------------------------------
     // temporary debugging attributes
-    private final boolean DRAW_ORIGIN = false;
-    private final boolean SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
+    private final boolean DEBUG_DRAW_ORIGIN = false;
+    private final boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private int mouseX;
     private int mouseY;
     //-------------------------------------------------------
@@ -62,37 +73,113 @@ public class MapViewer extends javax.swing.JPanel
         MapDropTarget mapDropTarget = new MapDropTarget(this, map);
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
+        /*
+
+        addTool(new ZoomTool(this, new int[]
+            { KEY_ZOOM_IN_0,
+              KEY_ZOOM_IN_1,
+              KEY_ZOOM_OUT_0,
+              KEY_ZOOM_OUT_1,
+              KEY_ZOOM_FIT,
+              KEY_ZOOM_ACTUAL },
+              CURSOR_ZOOM_IN,
+              CURSOR_ZOOM_OUT));
+
+        addTool(new PanTool(this, KEY_TOOL_PAN, CURSOR_PAN));
+        addTool(new SelectTool(this, KEY_TOOL_SELECT, CURSOR_SELECT));
+        addTool(new NodeTool(this, KEY_TOOL_NODE));
+        addTool(new LinkTool(this, KEY_TOOL_LINK));
+        addTool(new TextTool(this, KEY_TOOL_TEXT));
+        addTool(new PathwayTool(this, KEY_TOOL_PATHWAY));
+
+        Tool's will also handle creating their own undo/redo
+        objects with descriptions.
+
+        */
+
         //setSize(300,200);
         setPreferredSize(new Dimension(400,300));
         setBackground(Color.white);
         setFont(defaultFont);
 
         loadMap(map);
-        requestFocus();
     }
 
     /**
      * Set's the viewport such that the upper left corner
-     * displays mapX, mapY.
+     * displays at screenX, screenY.  Is precision
+     * due to possibility of zooming.
      */
-    public void setViewportOrigin(int mapX, int mapY)
-    {
-        map.dSetOrigin(-mapX, -mapY);
-    }
-    public void setViewportOrigin(float mapX, float mapY)
-    {
-        map.dSetOrigin((int) -mapX, (int) -mapY);
-    }
     
-    private final int ZOOM_ACTUAL = 10;
+    private float mapOriginX = 0;
+    private float mapOriginY = 0;
+    public void setMapOriginOffset(float screenX, float screenY)
+    {
+        this.mapOriginX = screenX;
+        this.mapOriginY = screenY;
+        this.map.setOrigin(mapOriginX, mapOriginY);
+        //System.out.println("setOrigin " + screenX + "," + screenY);
+    }
+    public void setMapOriginOffset(double screenX, double screenY)
+    {
+        setMapOriginOffset((float) screenX, (float) screenY);
+    }
+    public Point2D getOriginLocation()
+    {
+        return new Point2D.Float(mapOriginX, mapOriginY);
+    }
+    public float getOriginX()
+    {
+        return mapOriginX;
+    }
+    public float getOriginY()
+    {
+        return mapOriginY;
+    }
+    final float screenToMapX(float x)
+    {
+        return (float) ((x + getOriginX()) / zoomFactor);
+    }
+    final float screenToMapY(float y)
+    {
+        return (float) ((y + getOriginY()) / zoomFactor);
+    }
+    final float screenToMapX(int x)
+    {
+        return (float) ((x + getOriginX()) / zoomFactor);
+    }
+    final float screenToMapY(int y)
+    {
+        return (float) ((y + getOriginY()) / zoomFactor);
+    }
+    final Point2D screenToMapPoint(Point p)
+    {
+        return screenToMapPoint(p.x, p.y);
+    }
+    final Point2D screenToMapPoint(int x, int y)
+    {
+        return new Point2D.Float(screenToMapX(x), screenToMapY(y));
+    }
+
+    /*
+     * Zooming code
+     */
+    
+    private final int ZOOM_ACTUAL = 11; // index of the value 1.0 in ZoomDefaults
     private final int ZOOM_MANUAL = -1;
     private final double[] ZoomDefaults = {
         1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
-        1,
-        1.25, 1.5, 2, 3, 4, 6, 8,
-        12, 16, 24, 32, 48, 64 // illustrator uses these, may be overkill for us
+        1.0,
+        1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
     };
     private int curZoom = ZOOM_ACTUAL;
+
+    private Point2D zoomPoint = null;
+    // set the center-on point in the map for the next zoom
+    private void setZoomPoint(Point2D mapLocation)
+    {
+        this.zoomPoint = mapLocation;
+    }
 
     public boolean setZoomBigger()
     {
@@ -130,60 +217,107 @@ public class MapViewer extends javax.swing.JPanel
     
     public void setZoom(double zoomFactor)
     {
-        setZoom(zoomFactor, false);
+        setZoom(zoomFactor, true);
     }
     
-    private void setZoom(double zoomFactor, boolean centerZoom)
+    private void setZoom(double newZoomFactor, boolean adjustViewport)
     {
         curZoom = ZOOM_MANUAL;
         for (int i = 0; i < ZoomDefaults.length; i++) {
-            if (zoomFactor == ZoomDefaults[i]) {
+            if (newZoomFactor == ZoomDefaults[i]) {
                 curZoom = i;
                 break;
             }
         }
-        
-        // center the viewport on the new zoomed area
-        
-        if (centerZoom) {
-            double viewportWidth = getWidth();
-            double viewportHeight = getHeight();
-            double oldViewportSpanWidth = viewportWidth / this.zoomFactor;
-            double oldViewportSpanHeight = viewportHeight / this.zoomFactor;
-            double newViewportSpanWidth = viewportWidth / zoomFactor;
-            double newViewportSpanHeight = viewportHeight / zoomFactor;
 
-            // todo fixme: this is fucked up and
-            // is depending wrongly on zoom
+        if (adjustViewport) {
+            Container c = this;
+            Point2D zoomMapCenter = null;
+            if (this.zoomPoint == null) {
+                // center on the viewport
+                zoomMapCenter = new Point2D.Float(screenToMapX(c.getWidth() / 2),
+                                                   screenToMapY(c.getHeight() / 2));
+            } else {
+                // center on given point (e.g., where user clicked)
+                zoomMapCenter = this.zoomPoint;
+                this.zoomPoint = null;
+            }
 
-            double viewportX = -map.dGetOriginX();
-            double viewportY = -map.dGetOriginY();
-            viewportX += (oldViewportSpanWidth - newViewportSpanWidth) / 2;
-            viewportY += (oldViewportSpanHeight - newViewportSpanHeight) / 2;
-            setViewportOrigin((float)viewportX, (float)viewportY);
+            float offsetX = (float) (zoomMapCenter.getX() * newZoomFactor) - c.getWidth() / 2;
+            float offsetY = (float) (zoomMapCenter.getY() * newZoomFactor) - c.getHeight() / 2;
+
+            setMapOriginOffset(offsetX, offsetY);
+            // make Zoomable method for ZoomTool
         }
         
-
-        this.zoomFactor = zoomFactor;
-        this.zoomMapper = 1.0 / zoomFactor;
-
-        // Rond the display value down to 2 digits
+        this.zoomFactor = newZoomFactor;
+        // make Zoomable method for ZoomTool
+        
+        // Set the title of any parent frame to show the %zoom
         int displayZoom = (int) (zoomFactor * 10000.0);
-        setTitleMessage( (((float) displayZoom) / 100f) + "%");
+        // round the display value down to 2 digits
+        if ((displayZoom / 100) * 100 == displayZoom)
+            setTitleMessage((displayZoom / 100) + "%");
+        else
+            setTitleMessage( (((float) displayZoom) / 100f) + "%");
 
         repaint();
     }
 
-    public double getZoom()
+    private static final int ZOOM_FIT_PAD = 16;
+    public void setZoomFitContent(Component viewport)
+    {
+        Rectangle2D bounds = getAllComponentBounds();
+        //System.err.println("viewport="+viewport);
+        int viewWidth = viewport.getWidth() - ZOOM_FIT_PAD*2;
+        int viewHeight = viewport.getHeight() - ZOOM_FIT_PAD*2;
+        double vertZoom = (double) viewHeight / bounds.getHeight();
+        double horzZoom = (double) viewWidth / bounds.getWidth();
+        boolean centerVertical;
+        double newZoom;
+        if (horzZoom < vertZoom) {
+            newZoom = horzZoom;
+            centerVertical = true;
+        } else {
+            newZoom = vertZoom;
+            centerVertical = false;
+        }
+
+        // set zoom ratio, but don't reposition the viewport,
+        // as we're going to do this below manually.
+        setZoom(newZoom, false);
+                    
+        // Now center the components within the dimension
+        // that had extra room to scale in.
+                    
+        double offsetX = bounds.getX()*newZoom - ZOOM_FIT_PAD;
+        double offsetY = bounds.getY()*newZoom - ZOOM_FIT_PAD;
+
+        if (centerVertical)
+            offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
+        else // center horizontal
+            offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+                        
+        setMapOriginOffset(offsetX, offsetY);
+    }
+
+                    
+    public double getZoomFactor()
     {
         return this.zoomFactor;
     }
 
+    /*
+     * end zoom code
+     */
+
     public void reshape(int x, int y, int w, int h)
     {
-        //System.out.println("reshape");
+        //System.out.println("reshape0 " + this);
         super.reshape(x,y, w,h);
-        repaint(100);
+        //System.out.println("reshape1 " + this);
+        // todo: do viewport zoom
+        repaint(250);
     }
 
     public ConceptMap getMap()
@@ -292,11 +426,7 @@ public class MapViewer extends javax.swing.JPanel
         return success;
     }
 
-    // This overrides java.awt.Container.locate(x,y)
-    // todo perf: potential optimization
-    // public Component locate(int x, int y) { return this; }
-    
-    public LWComponent getLWComponentAt(int x, int y)
+    public LWComponent getLWComponentAt(float x, float y)
     {
         java.util.List hits = new java.util.ArrayList();
         
@@ -309,25 +439,25 @@ public class MapViewer extends javax.swing.JPanel
         return findClosestCenter(hits, x, y);
     }
 
-    public LWComponent findClosestEdge(java.util.List hits, int x, int y)
+    public LWComponent findClosestEdge(java.util.List hits, float x, float y)
     {
         return findClosest(hits, x, y, true);
     }
     
-    public LWComponent findClosestCenter(java.util.List hits, int x, int y)
+    public LWComponent findClosestCenter(java.util.List hits, float x, float y)
     {
         return findClosest(hits, x, y, false);
     }
     
-    protected LWComponent findClosest(java.util.List hits, int x, int y, boolean toEdge)
+    protected LWComponent findClosest(java.util.List hits, float x, float y, boolean toEdge)
     {
         if (hits.size() == 1)
             return (LWComponent) hits.get(0);
         else if (hits.size() == 0)
             return null;
         
-        double shortest = Double.MAX_VALUE;
-        double distance;
+        float shortest = Float.MAX_VALUE;
+        float distance;
         LWComponent closest = null;
         java.util.Iterator i = hits.iterator();
         while (i.hasNext()) {
@@ -344,6 +474,7 @@ public class MapViewer extends javax.swing.JPanel
         return closest;
     }
 
+    
     /** 
      * Iterate over all components and return a bounding box
      * for the whole set.  This can't be a ConceptMap method
@@ -351,20 +482,20 @@ public class MapViewer extends javax.swing.JPanel
      * until they're rendered (e.g., font metrics taken into
      * accont, etc).
      */
-    public Rectangle getBounds()
+    public Rectangle2D getAllComponentBounds()
     {
-        int xMin = Integer.MAX_VALUE;
-        int yMin = Integer.MAX_VALUE;
-        int xMax = Integer.MIN_VALUE;
-        int yMax = Integer.MIN_VALUE;
+        float xMin = Float.MAX_VALUE;
+        float yMin = Float.MAX_VALUE;
+        float xMax = Float.MIN_VALUE;
+        float yMax = Float.MIN_VALUE;
         
         java.util.Iterator i = new VueUtil.GroupIterator(components, nodeViews, linkViews);
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            int x = c.getX();
-            int y = c.getY();
-            int mx = x + c.getWidth();
-            int my = y + c.getHeight();
+            float x = c.getX();
+            float y = c.getY();
+            float mx = x + c.getWidth();
+            float my = y + c.getHeight();
             if (x < xMin) xMin = x;
             if (y < yMin) yMin = y;
             if (mx > xMax) xMax = mx;
@@ -372,12 +503,12 @@ public class MapViewer extends javax.swing.JPanel
         }
 
         // In case there's nothing in there
-        if (xMin == Integer.MAX_VALUE) xMin = 0;
-        if (yMin == Integer.MAX_VALUE) yMin = 0;
-        if (xMax == Integer.MIN_VALUE) xMax = 0;
-        if (yMax == Integer.MIN_VALUE) yMax = 0;
+        if (xMin == Float.MAX_VALUE) xMin = 0;
+        if (yMin == Float.MAX_VALUE) yMin = 0;
+        if (xMax == Float.MIN_VALUE) xMax = 0;
+        if (yMax == Float.MIN_VALUE) yMax = 0;
 
-        return new Rectangle(xMin, yMin, xMax - xMin, yMax - yMin);
+        return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
     }
 
     private void drawComponent(LWComponent c, Graphics2D g2)
@@ -404,24 +535,31 @@ public class MapViewer extends javax.swing.JPanel
     /**
      * Render all the LWComponents on the panel
      */
+    // java bug: Do NOT create try and create an axis using Integer.{MIN,MAX}_VALUE
+    // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K)
+    private static final Line2D Xaxis = new Line2D.Float(-3000, 0, 3000, 0);
+    private static final Line2D Yaxis = new Line2D.Float(0, -3000, 0, 3000);
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g); // paint the background
         
         Graphics2D g2 = (Graphics2D) g;
         
-        if (DRAW_ORIGIN) {
-            g.setColor(Color.lightGray);
-            g.drawLine(Integer.MIN_VALUE, map.dGetOriginY(),
-                       Integer.MAX_VALUE, map.dGetOriginY());
-            g.drawLine(map.dGetOriginX(), Integer.MIN_VALUE,
-                       map.dGetOriginX(), Integer.MAX_VALUE);
-        }
-        
-        g2.translate(map.dGetOriginX(), map.dGetOriginY());
+        g2.translate(-getOriginX(), -getOriginY());
         if (zoomFactor != 1)
             g2.scale(zoomFactor, zoomFactor);
 
+        if (DEBUG_DRAW_ORIGIN) {
+            // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (VueUtil.isMacPlatform())
+                g2.setStroke(new java.awt.BasicStroke(1.0001f)); // java bug: Mac 1.0 stroke width hardly scales...
+            else
+                g2.setStroke(new java.awt.BasicStroke(1f));
+            g2.setColor(Color.lightGray);
+            g2.draw(Xaxis);
+            g2.draw(Yaxis);
+        }
+        
         /*
          * Draw the components.
          * Draw links first so their ends aren't visible.
@@ -469,25 +607,42 @@ public class MapViewer extends javax.swing.JPanel
         if (indication != null)
             drawComponent(indication, g2);
 
-        if (SHOW_MOUSE_LOCATION) {
-            if (zoomFactor != 1)
-                g2.scale(zoomMapper, zoomMapper);
-            g2.translate(-map.dGetOriginX(), -map.dGetOriginY());
+        boolean scaled = true;
+        if (DEBUG_DRAW_ORIGIN && zoomFactor >= 6.0) {
+            g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
+            scaled = false;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            g2.setStroke(new java.awt.BasicStroke(1f));
+            g2.setColor(Color.black);
+            g2.draw(Xaxis);
+            g2.draw(Yaxis);
+        }
+        if (DEBUG_SHOW_MOUSE_LOCATION) {
+            if (zoomFactor != 1 && scaled)
+                g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
+            g2.translate(getOriginX(), getOriginY());
+
+            
             // okay, now we're moved back into screen space
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
             g2.setColor(Color.red);
             g2.setStroke(new java.awt.BasicStroke(0.01f));
             g2.drawLine(mouseX,mouseY, mouseX,mouseY);
-            int mapX = mouseX - map.dGetOriginX();
-            int mapY = mouseY - map.dGetOriginY();
-            mapX *= zoomMapper;
-            mapY *= zoomMapper;
+
+            int iX = (int) (screenToMapX(mouseX) * 100);
+            int iY = (int) (screenToMapY(mouseY) * 100);
+            float mapX = iX / 100f;
+            float mapY = iY / 100f;
+
             g2.setFont(defaultFont);
             g2.drawString("(" + mouseX + "," +  mouseY + ")screen", 10, 20);
-            g2.drawString("(" + mapX + "," +  mapY + ")map", 10, 40);
+            //g2.drawString("(" + mapX + "," +  mapY + ")map", 10, 40);
+            g2.drawString("mapX " + mapX, 10, 40);
+            g2.drawString("mapY " + mapY, 10, 60);
         }
     }
 
+    
     void setSelection(LWComponent newSelection)
     {
         boolean doPaint = false;
@@ -517,28 +672,47 @@ public class MapViewer extends javax.swing.JPanel
     class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener
     {
-        static final int KEY_DRAG_MAP = KeyEvent.VK_SPACE;
+        // temporary tool activators (while the key is held down)
+        // They require a further mouse action to actually
+        // do anythiing.
+        static final int KEY_TOOL_PAN   = KeyEvent.VK_SPACE;
+        static final int KEY_TOOL_ZOOM  = KeyEvent.VK_Z;
+        static final int KEY_TOOL_ARROW = KeyEvent.VK_A;
         
-        static final int KEY_ZOOM_IN_0 = KeyEvent.VK_EQUALS;
-        static final int KEY_ZOOM_IN_1 = KeyEvent.VK_ADD;
+        // shortcuts -- these immediately do something
+        static final int KEY_ZOOM_IN_0  = KeyEvent.VK_EQUALS;
+        static final int KEY_ZOOM_IN_1  = KeyEvent.VK_ADD;
         static final int KEY_ZOOM_OUT_0 = KeyEvent.VK_MINUS;
         static final int KEY_ZOOM_OUT_1 = KeyEvent.VK_SUBTRACT;
-        static final int KEY_ZOOM_FIT = KeyEvent.VK_0;
-        static final int KEY_ZOOM_ACTUAL = KeyEvent.VK_1;
-
-        /*
-        static final char CHAR_DRAG_MAP = ' ';
-        static final char CHAR_ZOOM_IN = '+';
-        static final char CHAR_ZOOM_OUT = '-';
-        */
+        static final int KEY_ZOOM_FIT   = KeyEvent.VK_0;
+        static final int KEY_ZOOM_ACTUAL= KeyEvent.VK_1;
 
         LWComponent dragComponent;
         LWComponent linkSource;
-        int dragXoffset;
-        int dragYoffset;
-        boolean dragMapKeyDown = false;
+
+        /**
+         * dragStart: screen location (within this java.awt.Container)
+         * of mouse-down that started this drag. */
+        Point dragStart = new Point();
+
+        /**
+         * dragOffset: absolute map distance mouse was from the
+         * origin of the current dragComponent when the mouse was
+         * pressed down. */
+        Point2D dragOffset = new Point2D.Float();
+        
+        // toolKeyDown: a key being held down to temporarily activate
+        // a particular tool;
+        int toolKeyDown = 0;
+        KeyEvent toolKeyEvent = null; // to get at kbd modifiers active at time of keypress
 
         static final boolean MOUSE_DEBUG = false;
+
+        private void setCursor(Cursor cursor)
+        {
+            SwingUtilities.getRootPane(MapViewer.this).setCursor(cursor);
+            // could compute cursor-set pane in addNotify
+        }
         
         public void keyPressed(KeyEvent e)
         {
@@ -548,7 +722,42 @@ public class MapViewer extends javax.swing.JPanel
             // non-modal keys that are being held down (e.g. not for
             // shift, buf for spacebar)
 
+            // Check for temporary tool activation via holding
+            // a key down.  Only one can be active at a time,
+            // so this is ignored if anything is already set.
+            
+            // todo: we'll probably want to change this to
+            // a general tool-activation scheme, and the active
+            // tool class will handle setting the cursor.
+            // e.g., dispatchToolKeyPress(e);
+            
             int key = e.getKeyCode();
+            
+            if (toolKeyDown == 0) {
+                switch (key) {
+                case KEY_TOOL_PAN:
+                    if (dragComponent == null) {
+                        // don't start dragging map if we're already
+                        // dragging something on it.
+                        toolKeyDown = key;
+                        setCursor(CURSOR_PAN);
+                    }
+                    break;
+                case KEY_TOOL_ZOOM:
+                    toolKeyDown = key;
+                    setCursor(e.isShiftDown() ? CURSOR_ZOOM_OUT : CURSOR_ZOOM_IN);
+                    break;
+                case KEY_TOOL_ARROW:
+                    toolKeyDown = key;
+                    setCursor(CURSOR_ARROW);
+                    break;
+                }
+                if (toolKeyDown != 0)
+                    toolKeyEvent = e;
+            }
+
+            // Now check for immediate action commands
+
             char c = e.getKeyChar();
             if (e.isControlDown()) {
                 // todo: if on a mac, make these
@@ -562,31 +771,12 @@ public class MapViewer extends javax.swing.JPanel
                 case KEY_ZOOM_OUT_1:
                     setZoomSmaller();
                     break;
-                case KEY_ZOOM_FIT:
-                    Rectangle bounds = getBounds();
-                    Component viewport = e.getComponent();
-                    System.err.println("viewport="+viewport);
-                    int vw = viewport.getWidth() - 20;
-                    int vh = viewport.getHeight() - 20;
-                    double vertZoom = (double) vh / bounds.height;
-                    double horzZoom = (double) vw / bounds.width;
-                    System.err.println("bounds="+bounds + " vertZoom="+vertZoom + " horzZoom="+horzZoom);
-                    // this is working, except the setting of the origin
-                    // is being affected by the the scaling
-                    setViewportOrigin(bounds.x, bounds.y);
-                    setZoom(horzZoom < vertZoom ? horzZoom : vertZoom, false);
-                    repaint();
-                    break;
                 case KEY_ZOOM_ACTUAL:
-                    setZoom(1.0, true);
+                    setZoom(1.0);
                     break;
-                }
-            } else {
-                switch (key) {
-                case KEY_DRAG_MAP:
-                    if (!dragMapKeyDown)
-                        SwingUtilities.getRootPane(e.getComponent()).setCursor(CURSOR_HAND);
-                    dragMapKeyDown = true;
+                case KEY_ZOOM_FIT:
+                    setZoomFitContent(e.getComponent());
+                    repaint();
                     break;
                 }
             }
@@ -594,39 +784,44 @@ public class MapViewer extends javax.swing.JPanel
         
         public void keyReleased(KeyEvent e)
         {
-            if (e.getKeyCode() == KEY_DRAG_MAP) {
-                if (dragMapKeyDown)
-                    SwingUtilities.getRootPane(e.getComponent()).setCursor(CURSOR_DEFAULT);
-                dragMapKeyDown = false;
+            if (toolKeyDown == e.getKeyCode()) {
+                toolKeyDown = 0;
+                toolKeyEvent = null;
+                setCursor(CURSOR_DEFAULT);
             }
         }
 
-        public void keyTyped(KeyEvent e) // useless -- has keyChar but no key-code
+        public void keyTyped(KeyEvent e) // not very useful -- has keyChar but no key-code
         {
             // System.err.println("[" + e.paramString() + "]");
         }
 
         private LWComponent hitComponent = null;
+        private Point2D originBeforeDrag;
         public void mousePressed(MouseEvent e)
         {
             if (MOUSE_DEBUG) System.err.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
             
             requestFocus();
+            dragStart.setLocation(e.getX(), e.getY());
             
-            int x = e.getX() - map.dGetOriginX();
-            int y = e.getY() - map.dGetOriginY();
-            if (zoomMapper != 1) { 
-                x *= zoomMapper;
-                y *= zoomMapper;
-            }
-
-            if (dragMapKeyDown) {
-                dragXoffset = x;
-                dragYoffset = y;
+            if (toolKeyDown == KEY_TOOL_PAN) {
+                originBeforeDrag = getOriginLocation();
+                return;
+            } else if (toolKeyDown == KEY_TOOL_ZOOM) {
+                setZoomPoint(screenToMapPoint(e.getPoint()));
+                if (toolKeyEvent.isShiftDown())
+                    setZoomSmaller();
+                else
+                    setZoomBigger();
                 return;
             }
             
-            this.hitComponent = getLWComponentAt(x, y);
+            // scale from screen coords to map coords
+            float mapX = screenToMapX(e.getX());
+            float mapY = screenToMapY(e.getY());
+            
+            this.hitComponent = getLWComponentAt(mapX, mapY);
             if (MOUSE_DEBUG)
                 System.err.println("\ton " + hitComponent);
 
@@ -659,29 +854,27 @@ public class MapViewer extends javax.swing.JPanel
             }
             else if (hitComponent != null)
             {
+                // Left (normal) mouse-press on some LWComponent
+                
                 if (e.isControlDown() || e.isAltDown()) {
-                    // If we drag after this, it's to create a link.
+                    // Mod-Drag off a component to offer new link creation
                     linkSource = hitComponent;
-                    dragXoffset = 0;
-                    dragYoffset = 0;
+                    dragOffset.setLocation(0,0);
                     dynamicLink.setSource(linkSource);
                     dynamicLink.setDisplayed(true);
                     dragComponent = dynamicLinkEndpoint;
                 } else {
                     setSelection(hitComponent);
                     dragComponent = hitComponent;
-                    dragXoffset = hitComponent.getX() - x;
-                    dragYoffset = hitComponent.getY() - y;
+                    dragOffset.setLocation(hitComponent.getX() - mapX,
+                                           hitComponent.getY() - mapY);
                 }
-            } else {
-                dragXoffset = x;
-                dragYoffset = y;
             }
         }
         
         public void mouseMoved(MouseEvent e)
         {
-            if (SHOW_MOUSE_LOCATION) {
+            if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouseX = e.getX();
                 mouseY = e.getY();
                 repaint();
@@ -694,46 +887,41 @@ public class MapViewer extends javax.swing.JPanel
 
         public void mouseDragged(MouseEvent e)
         {
-            if (SHOW_MOUSE_LOCATION) {
+            if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouseX = e.getX();
                 mouseY = e.getY();
             }
             
             if (MOUSE_DEBUG) System.err.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
 
-            int x = e.getX();
-            int y = e.getY();
+            int screenX = e.getX();
+            int screenY = e.getY();
             
             // Stop all dragging if the mouse leaves our component
-            if (!e.getComponent().contains(x, y))
+            if (!e.getComponent().contains(screenX, screenY))
                 return;
 
-            
-            if (dragMapKeyDown) {
-                // todo: fixme
-                x *= zoomMapper;
-                y *= zoomMapper;
-                map.dSetOrigin(x - (int)(dragXoffset*zoomFactor), y - (int)(dragYoffset*zoomFactor));
+            if (toolKeyDown == KEY_TOOL_PAN) {
+                // drag the entire map
+                int dx = dragStart.x - screenX;
+                int dy = dragStart.y - screenY;
+                setMapOriginOffset(originBeforeDrag.getX() + dx,
+                                   originBeforeDrag.getY() + dy);
                 repaint();
                 return;
             }
 
-            // translate to map origin
-            x -= map.dGetOriginX();
-            y -= map.dGetOriginY();
-            if (zoomMapper != 1) {
-                x *= zoomMapper;
-                y *= zoomMapper;
-            }
+            float mapX = screenToMapX(screenX);
+            float mapY = screenToMapY(screenY);
             
-            if (dragComponent != null) {
-                dragComponent.setLocation(x + dragXoffset, y + dragYoffset);
-            }
+            if (dragComponent != null)
+                dragComponent.setLocation((float) (mapX + dragOffset.getX()),
+                                          (float) (mapY + dragOffset.getY()));
             
             if (linkSource != null) {
                 // we're dragging a new link looking for an
                 // allowable endpoint
-                LWComponent over = findLWLinkTargetAt(x, y);
+                LWComponent over = findLWLinkTargetAt((int)mapX, (int)mapY);
                 if (indication != null && indication != over) {
                     // we've moved off old indicated -- clear it
                     clearIndicated();
@@ -781,7 +969,7 @@ public class MapViewer extends javax.swing.JPanel
         {
             if (MOUSE_DEBUG) System.err.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
-            if (isDoubleClickEvent(e)) {
+            if (isDoubleClickEvent(e) && toolKeyDown == 0) {
                 if (hitComponent instanceof LWNode) {
                     Resource resource = ((LWNode)hitComponent).getNode().getResource();
                     if (resource != null) {
@@ -844,6 +1032,7 @@ public class MapViewer extends javax.swing.JPanel
         while (c != null && !(c instanceof Frame))
             c = c.getParent();
         this.parentFrame = (Frame) c;
+        requestFocus();
     }
 
     public static void main(String[] args) {
@@ -885,6 +1074,12 @@ public class MapViewer extends javax.swing.JPanel
         frame.setBackground(Color.gray);
         frame.setSize(500,400);
         frame.pack();
+        if (VueUtil.getJavaVersion() >= 1.4) {
+            Point p = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+            p.x -= frame.getWidth() / 2;
+            p.y -= frame.getHeight() / 2;
+            frame.setLocation(p);
+        }
         frame.show();
         frame.repaint(); // currently needed to compute text sizes
     }

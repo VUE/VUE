@@ -45,8 +45,13 @@ public class VUE
         JFrame frame = new JFrame("VUE: Tufts Concept Map Tool");
         frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
-        
         frame.pack();
+        
+        Dimension d = frame.getToolkit().getScreenSize();
+        int x = d.width/2 - frame.getWidth()/2;
+        int y = d.height/2 - frame.getHeight()/2;
+        frame.setLocation(x, y);
+        
         frame.show();
         frame.repaint();
     }

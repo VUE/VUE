@@ -21,7 +21,7 @@ class LWLink extends LWComponent
     private LWComponent c1;
     private LWComponent c2;
 
-    //private Line2D.Float line = new Line2D.Float(0,0,0,0);
+    private Line2D line = new Line2D.Float();
     
     public LWLink(Link link, LWComponent c1, LWComponent c2)
     {
@@ -54,10 +54,10 @@ class LWLink extends LWComponent
         return c2;
     }
 
-    public void setLocation(int x, int y)
+    public void setLocation(float x, float y)
     {
-        int dx = getX() - x;
-        int dy = getY() - y;
+        float dx = getX() - x;
+        float dy = getY() - y;
         //System.out.println(this + " ("+x+","+y+") dx="+dx+" dy="+dy);
         // fixme: moving a link tween links sends
         // multiple move events to nodes at their
@@ -75,12 +75,12 @@ class LWLink extends LWComponent
     {
         super.draw(g);
         // Draw the connecting line
-        int sx = c1.getX() + c1.getWidth() / 2;
-        int sy = c1.getY() + c1.getHeight() / 2;
-        int ex = c2.getX() + c2.getWidth() / 2;
-        int ey = c2.getY() + c2.getHeight() / 2;
-        int lx = sx - (sx - ex) / 2;
-        int ly = sy - (sy - ey) / 2;
+        float sx = c1.getX() + c1.getWidth() / 2;
+        float sy = c1.getY() + c1.getHeight() / 2;
+        float ex = c2.getX() + c2.getWidth() / 2;
+        float ey = c2.getY() + c2.getHeight() / 2;
+        float lx = sx - (sx - ex) / 2;
+        float ly = sy - (sy - ey) / 2;
         
         /*
          * Set our location to the midpoint between
@@ -90,9 +90,11 @@ class LWLink extends LWComponent
         
 
         // temporary: draw hit box
+        // todo: make a handle?
         g.setColor(Color.lightGray);
         g.setStroke(STROKE_ONE);
-        g.drawRect(this.x, this.y, getWidth(), getHeight());
+        //g.drawRect(this.x, this.y, getWidth(), getHeight());
+        g.drawRect((int)this.x, (int)this.y, (int)getWidth(), (int)getHeight());
 
         /*
          * Draw the link
@@ -114,7 +116,11 @@ class LWLink extends LWComponent
                 width = MAX_RENDER_WIDTH;
             g.setStroke(new BasicStroke(width));
         }
-        g.drawLine(sx, sy, ex, ey);
+        this.line.setLine(sx, sy, ex, ey);
+        g.draw(this.line);
+        
+        //g.drawLine((int)sx, (int)sy, (int)ex, (int)ey);
+        //g.drawLine(sx, sy, ex, ey);
 
         /*
          * Draw the handle

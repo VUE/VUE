@@ -21,6 +21,7 @@ class LWNode extends LWComponent
     private ImageIcon imageIcon = null;
 
     protected RectangularShape shape = new RoundRectangle2D.Float(0,0, 0,0, 30,30);
+    //protected RectangularShape shape = new RoundRectangle2D.Float(0,0, 0,0, 30,30);
     //protected RectangularShape shape = new Ellipse2D.Float(0,0, 0,0);
     
     public LWNode(Node node)
@@ -28,7 +29,7 @@ class LWNode extends LWComponent
         if (node == null)
             throw new java.lang.IllegalArgumentException("LWNode: node is null");
         this.node = node;
-        super.setLocation(node.getPosition());
+        super.setLocation(node.getX(), node.getY());
     }
 
     // experimental
@@ -54,7 +55,7 @@ class LWNode extends LWComponent
         shape.setFrame(x,y, w,h);
     }
 
-    public boolean contains(int x, int y)
+    public boolean contains(float x, float y)
     {
         if (imageIcon != null)
             return super.contains(x, y);
@@ -62,10 +63,10 @@ class LWNode extends LWComponent
             return shape.contains(x, y);
     }
     
-    public void setLocation(int x, int y)
+    public void setLocation(float x, float y)
     {
         super.setLocation(x, y);
-        node.setPosition(new java.awt.Point(x, y));
+        node.setPosition(x, y);
         shape.setFrame(x, y, this.width, this.height);
     }
 
@@ -103,7 +104,7 @@ class LWNode extends LWComponent
 
         if (imageIcon != null) {
             // experimental
-            imageIcon.paintIcon(null, g, getX(), getY());
+            imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
         } else {
             if (label != lastLabel) {
                 setSizeFromText(g, label);
@@ -128,13 +129,16 @@ class LWNode extends LWComponent
 
         if (imageIcon == null) {
             g.setColor(Color.black);
-            int textBaseline = this.y + (height+fontHeight)/2;
+            float x = (float) this.x;
+            float y = (float) this.y;
+            float textBaseline = y + ((float)(height+fontHeight))/2f;
             // box the text for seeing layout metrics
             // g.setStroke(STROKE_ONE);g.drawRect(this.x + pad, textBaseline-fontHeight, width, fontHeight);
-            g.drawString(label, this.x + pad, textBaseline);
+            g.drawString(label, x + pad, textBaseline);
             if (node.getResource() != null) {
                 g.setFont(MapViewer.smallFont);
-                g.drawString(node.getResource().toString(), this.x, textBaseline+20);
+                g.setColor(Color.black);
+                g.drawString(node.getResource().toString(), x, textBaseline+17);
             }
         }
     }

@@ -1,5 +1,7 @@
 package tufts.vue;
 
+import java.awt.geom.Point2D;
+
 /**
  * LWComponent.java
  * 
@@ -22,10 +24,10 @@ class LWComponent
     public static final java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
     public static final java.awt.Color COLOR_FAINT = java.awt.Color.lightGray;
     
-    protected int x;
-    protected int y;
-    protected int width;
-    protected int height;
+    protected float x;
+    protected float y;
+    protected float width;
+    protected float height;
     protected boolean displayed = true;
     protected boolean selected = false;
     protected boolean indicated = false;
@@ -64,34 +66,41 @@ class LWComponent
     {
         return null;
     }
-    
-    public void setLocation(int x, int y)
+
+    public void setLocation(float x, float y)
     {
         //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
     }
-    public void setLocation(java.awt.Point p)
+
+    /*
+    public void setLocation(Point2D p)
     {
-        this.x = p.x;
-        this.y = p.y;
+        this.x = (float) p.getX();
+        this.y = (float) p.getY();
+        }*/
+    
+    public Point2D getLocation()
+    {
+        return new Point2D.Float(this.x, this.y);
     }
     
-    public void setSize(int w, int h)
+    public void setSize(float w, float h)
     {
         this.width = w;
         this.height = h;
     }
 
-    public int getX() { return this.x; }
-    public int getY() { return this.y; }
-    public int getWidth() { return this.width; }
-    public int getHeight() { return this.height; }
+    public float getX() { return this.x; }
+    public float getY() { return this.y; }
+    public float getWidth() { return this.width; }
+    public float getHeight() { return this.height; }
     
     /**
      * Default implementation: checks bounding box
      */
-    public boolean contains(int x, int y)
+    public boolean contains(float x, float y)
     {
         return x >= this.x && x <= (this.x+width)
             && y >= this.y && y <= (this.y+height);
@@ -104,10 +113,10 @@ class LWComponent
     public boolean targetContains(int x, int y)
     {
         final int swath = 30; // todo: preference
-        int sx = this.x - swath;
-        int sy = this.y - swath;
-        int ex = this.x + width + swath;
-        int ey = this.y + height + swath;
+        float sx = this.x - swath;
+        float sy = this.y - swath;
+        float ex = this.x + width + swath;
+        float ey = this.y + height + swath;
         
         return x >= sx && x <= ex && y >= sy && y <= ey;
     }
@@ -119,10 +128,10 @@ class LWComponent
      * corners, do a distance calculation to the nearest corner.
      * Behaviour undefined if x,y are within component bounds.
      */
-    public double distanceToEdge(int x, int y)
+    public float distanceToEdge(float x, float y)
     {
-        int ex = this.x + width;
-        int ey = this.y + height;
+        float ex = this.x + width;
+        float ey = this.y + height;
 
         if (x >= this.x && x <= ex) {
             // we're directly above or below this component
@@ -134,11 +143,11 @@ class LWComponent
             // This computation only makes sense following the above
             // code -- we already know we must be closest to a corner
             // if we're down here.
-            int nearCornerX = x > ex ? ex : this.x;
-            int nearCornerY = y > ey ? ey : this.y;
-            int dx = nearCornerX - x;
-            int dy = nearCornerY - y;
-            return java.lang.StrictMath.sqrt(dx*dx + dy*dy);
+            float nearCornerX = x > ex ? ex : this.x;
+            float nearCornerY = y > ey ? ey : this.y;
+            float dx = nearCornerX - x;
+            float dy = nearCornerY - y;
+            return (float) java.lang.Math.sqrt(dx*dx + dy*dy);
         }
     }
     
@@ -146,13 +155,13 @@ class LWComponent
      * Return the distance from x,y to the center of
      * this components bounding box.
      */
-    public double distanceToCenter(int x, int y)
+    public float distanceToCenter(float x, float y)
     {
-        int cx = this.x + width / 2;
-        int cy = this.y + height / 2;
-        int dx = cx - x;
-        int dy = cy - y;
-        return java.lang.StrictMath.sqrt(dx*dx + dy*dy);
+        float cx = this.x + width / 2;
+        float cy = this.y + height / 2;
+        float dx = cx - x;
+        float dy = cy - y;
+        return (float) java.lang.Math.sqrt(dx*dx + dy*dy);
     }
     
     public void draw(java.awt.Graphics2D g)
