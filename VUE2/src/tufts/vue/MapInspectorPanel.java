@@ -179,18 +179,17 @@ implements  VUE.ActiveMapListener {
      * This is the tab panel for displaying Map Info
      *
      **/
-    public class InfoPanel extends JPanel implements ActionListener, PropertyChangeListener {
+    public class InfoPanel extends JPanel implements  PropertyChangeListener,FocusListener {
         
         JScrollPane mInfoScrollPane = null;
         
-        Box mInfoBox = null;
         
         JTextField mTitleEditor = null;
         JTextField mAuthorEditor = null;
         JLabel mDate = null;
         JLabel mLocation = null;
         JTextArea mDescriptionEditor = null;
-        JButton saveButton = null;
+        //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
         
         public InfoPanel() {
@@ -198,35 +197,33 @@ implements  VUE.ActiveMapListener {
             setLayout( new BorderLayout() );
             setBorder( new EmptyBorder(4,4,4,4) );
             
-            mInfoBox = Box.createVerticalBox();
-            
             mInfoScrollPane = new JScrollPane();
             mInfoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             mInfoScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             mInfoScrollPane.setLocation(new Point(8, 9));
             mInfoScrollPane.setVisible(true);
-            mInfoScrollPane.getViewport().add( mInfoBox);
-            
-            add( BorderLayout.NORTH, mInfoScrollPane );
-            
+            //add( BorderLayout.NORTH, mInfoScrollPane );
             mTitleEditor = new JTextField();
             
             mAuthorEditor = new JTextField();
             mDescriptionEditor = new JTextArea();
             mDescriptionEditor.setRows(5);
-            mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+            //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
             mDate = new JLabel();
             mLocation = new JLabel();
-            saveButton = new JButton("Save");
+            //saveButton = new JButton("Save");
+            //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
-            saveButton.addActionListener(this);
-            mPropPanel.addProperty( "Title:", mTitleEditor);
-            mPropPanel.addProperty("Author:", mAuthorEditor);
+            mPropPanel.addProperty( "Label:", mTitleEditor);
+            //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
             mPropPanel.addProperty("Date:", mDate);
             mPropPanel.addProperty("Location:",mLocation);
             mPropPanel.addProperty("Description:",mDescriptionEditor);
-            mInfoBox.add( mPropPanel);
-            mInfoBox.add(saveButton,BorderLayout.EAST);
+            //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
+            addFocusListener(this);
+            mInfoScrollPane.getViewport().add( mPropPanel);    
+            add(mInfoScrollPane,BorderLayout.NORTH);
+            
         }
         
         public String getName() {
@@ -261,7 +258,7 @@ implements  VUE.ActiveMapListener {
                 mMap.setDescription(mDescriptionEditor.getText());
             }
         }
-        
+        /**
         public void actionPerformed( ActionEvent pEvent) {
             Object source = pEvent.getSource();
             System.out.println("Action Performed :"+source);
@@ -269,9 +266,16 @@ implements  VUE.ActiveMapListener {
                 saveInfo();
             }
         }
-        
+        **/
         public void propertyChange( PropertyChangeEvent pEvent) {
             
+        }
+        
+        public void focusGained(FocusEvent e) {
+        }
+        
+        public void focusLost(FocusEvent e) {
+            saveInfo();
         }
         
     }
