@@ -75,6 +75,10 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             SaveVueJTree restorefavtree = unMarshallMap(f);
           //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
             VueDandDTree favoritesTree =restorefavtree.restoreTree();
+             favoritesTree.setRootVisible(true);
+             favoritesTree.expandRow(0);
+             favoritesTree.setRootVisible(false);
+           
               this.setFavoritesTree(favoritesTree); 
           
            }
@@ -83,7 +87,13 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                
                FavoritesNode favRoot = new FavoritesNode("My Favorites");
                VueDandDTree favoritesTree = new VueDandDTree(favRoot);
-                this.setFavoritesTree(favoritesTree); 
+                favoritesTree.setRootVisible(true);
+             favoritesTree.expandRow(0);
+             favoritesTree.setRootVisible(false);
+           
+             
+              this.setFavoritesTree(favoritesTree); 
+               
            }
             
            
@@ -99,7 +109,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
        
        
        
-          browsePane = new JScrollPane(favoritesTree);
+        browsePane = new JScrollPane(favoritesTree);
          favoritesPane.add("Browse", browsePane); 
          
         
@@ -193,57 +203,80 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     
           
            public void actionPerformed(ActionEvent e) {
+         
+               DefaultMutableTreeNode dn;
+             
         JMenuItem source = (JMenuItem)(e.getSource());
          
         TreePath tp = favoritesTree.getSelectionPath();
-        
-     
-            
-        DefaultMutableTreeNode dn = (DefaultMutableTreeNode)tp.getLastPathComponent();
           
+        DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
+        
+              if (tp == null){
+                  
+                  
+                  
+                   dn = (DefaultMutableTreeNode)model.getRoot();
+              
+              }
+              else{
+                dn = (DefaultMutableTreeNode)tp.getLastPathComponent();
+          
+              }
         
             if (e.getActionCommand().toString().equals("Add Bookmark Folder")){
-               
-                
-              if 
-              
-              (dn.isLeaf()){
-                  
-                  
-                 DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
+              ;   
+            
                  
-               
-                     
-                 FavoritesNode newNode= new FavoritesNode("New Favorites Folder" + newFavorites);
+                      
+                
+              if (dn.isLeaf()){        
+                 
+                 FavoritesNode newNode= new FavoritesNode("New Favorites Folder");
+                 
+                 
                  newFavorites = newFavorites +1 ;
-                   if (model.getRoot() != dn){
+                  if (model.getRoot() != dn){
                  FavoritesNode node = (FavoritesNode)dn.getParent();
-                    model.insertNodeInto(newNode, node, 0);  
+                    model.insertNodeInto(newNode, node, 0); 
+                   
+                    
+                     favoritesTree.setRootVisible(true);
                      favoritesTree.expandRow(dn.getLevel());
+                     
+                      favoritesTree.setRootVisible(false);
+                    
                  }
                  else {
+                     
                       model.insertNodeInto(newNode, dn, 0); 
+                      favoritesTree.setRootVisible(true);
                        favoritesTree.expandRow(dn.getLevel());
+                        favoritesTree.setRootVisible(false);
                  }
               
-                                 this.setFavoritesTree(favoritesTree);
+                        
+                        this.setFavoritesTree(favoritesTree);
+                    
            
                                                  }
                 else
                      {
-                   DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
+                  
                                  
-                    FavoritesNode newNode= new FavoritesNode("New Favorites Folder" + newFavorites);
-                    newFavorites = newFavorites +1 ; 
+                    FavoritesNode newNode= new FavoritesNode("New Favorites Folder") ;
+                   
                     model.insertNodeInto(newNode, dn, 0);  
+                    
+                    favoritesTree.setRootVisible(true);
                      favoritesTree.expandRow(dn.getLevel());
+                     favoritesTree.setRootVisible(false);
                       this.setFavoritesTree(favoritesTree);
             
              
                          }
             
-        
-       
+                       
                 }
         
              else if (e.getActionCommand().toString().equals("Remove Resource"))
@@ -257,7 +290,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                          else
                          {
            
-                             DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
+                           
                             model.removeNodeFromParent(dn);
                           
                                             }
@@ -495,7 +528,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         
                if (!searchString.equals("")){
                             
-                         boolean foundit = false;
+                        boolean foundit = false;
                         VueDragTree serResultTree = new VueDragTree("Search", "Search Results");
                         DefaultTreeModel serTreeModel = (DefaultTreeModel)serResultTree.getModel();
                         DefaultMutableTreeNode serRoot = (DefaultMutableTreeNode)serTreeModel.getRoot();
@@ -518,21 +551,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)favRoot.getChildAt(outi);
                        
                               foundit = compareNode(searchString,childNode,serRoot,false);
+                               System.out.println("And here "+ childNode.toString()+foundit);
            
                                }
                 
                         } 
                         
-                        
-                     if(!foundit){
-                
-                       DefaultMutableTreeNode notfound = new DefaultMutableTreeNode("Nothing found");
-                       serTreeModel.insertNodeInto(notfound, serRoot,0);
-                                         }
-                        
+                      
                         
                               
-                      
+                       
                         serResultTree.expandRow(0);
                         JScrollPane fPane = new JScrollPane(serResultTree);
                         FavSearchPanel.this.sp.setLayout(new BorderLayout());
@@ -553,7 +581,6 @@ public boolean compareNode(String searchString, DefaultMutableTreeNode Node, Def
  
   
     
-  
                              
         if (searchString.compareToIgnoreCase(Node.toString()) == 0){
           
