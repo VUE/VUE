@@ -73,7 +73,7 @@ import fedora.client.ingest.AutoIngestor;
 public class DR implements osid.dr.DigitalRepository {
     public final boolean DEBUG = false;
     public static final String DC_NAMESPACE = "dc:";
-    public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
+    public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage","description"};
     
     private Preferences prefs = null;
     private String displayName = "";
