@@ -607,4 +607,94 @@ public class EditDataSourcePanel extends JPanel{
         }
     }
     
+    
+    class OsidDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField addressField;
+        GoogleDataSource dataSource;
+        String cDsNameField; //cached field to be used for reset.
+        String cAddressField; // cached path to be used on reset.
+        public OsidDataSourcePanel(GoogleDataSource dataSource) {
+            this.dataSource = dataSource;
+            cDsNameField = dataSource.getDisplayName();
+            cAddressField = dataSource.getAddress();
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel addressLabel = new JLabel("Address:");
+            dsNameField = new JTextField();
+            addressField = new JTextField();
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        OsidDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
+                        OsidDataSourcePanel.this.dataSource.setUrl(addressField.getText());
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(addressLabel,c);
+            this.add(addressLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(addressField,c);
+            this.add(addressField);
+
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            resetPanel();
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText(cDsNameField);
+            addressField.setText(cAddressField);
+            
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && addressField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(EditDataSourcePanel.this, "Name should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
 }

@@ -64,6 +64,8 @@ public class AddDataSourcePanel extends JPanel {
                         addPanel.add(new FedoraDataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[4])) {
                         addPanel.add(new GoogleDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[5])) {
+                        addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
                     }
                     validate();
                 }
@@ -572,6 +574,91 @@ public class AddDataSourcePanel extends JPanel {
             gridbag.setConstraints(clientField,c);
             this.add(clientField);
             
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+            addressField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && addressField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
+     class OsidDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField addressField;
+        public OsidDataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel addressLabel = new JLabel("Address:");
+             dsNameField = new JTextField();
+            addressField = new JTextField();
+             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        DataSource ds = new OsidDataSource(dsNameField.getText(), addressField.getText());
+                        DataSourceViewer.addDataSource(ds);
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(addressLabel,c);
+            this.add(addressLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(addressField,c);
+            this.add(addressField);
+            
+ 
             c.anchor = GridBagConstraints.EAST;
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.weightx = 1.0;
