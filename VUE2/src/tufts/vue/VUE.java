@@ -860,6 +860,7 @@ implements VueConstants {
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
+        fileMenu.add(imageMap);
         fileMenu.add(publishAction);
         //fileMenu.add(exportMenu);
         fileMenu.addSeparator();

@@ -29,26 +29,27 @@ public class ImageMap extends AbstractAction {
         putValue(Action.SHORT_DESCRIPTION,label);        
     }
     
-    public void convert(BufferedImage image, String location, String format)
-    {   
+    public void convert(String location, String format)
+    {     
+        MapViewer currentMap = VUE.getActiveViewer();
+        Dimension size = currentMap.getSize();
+        BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
+        Graphics g = mapImage.getGraphics();
+        g.setClip(0, 0, size.width, size.height);
+        currentMap.paintComponent(g);
+        
+        g.setColor(Color.black);
+        g.drawRect(0, 0, size.width - 1, size.height - 1);
+            
         try
         {
             System.out.println(location);
-            ImageIO.write(image, format, new File(location));
+            ImageIO.write(mapImage, format, new File(location));
         }
         catch (Exception e)
         {
             System.out.println("Couldn't write to the file:" + e);
         }
-    }
-    
-    private void drawImage(Graphics2D g2, Dimension size)
-    {
-        g2.setColor(Color.white);
-        g2.fill(new Rectangle(0, 0, size.width - 1, size.height - 1));
-        g2.setColor(Color.red);
-        g2.draw(new Rectangle(0, 0, size.width - 1, size.height - 1));
-        
     }
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
@@ -57,15 +58,7 @@ public class ImageMap extends AbstractAction {
     }
 
     private void createJpeg(){
-        MapViewer currentMap = VUE.getActiveViewer();
-            Dimension size = currentMap.getSize();
-            BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-            Graphics g = mapImage.getGraphics();
-            g.setClip(0, 0, size.width, size.height);
-            currentMap.paintComponent(g);
-        
-            g.setColor(Color.black);
-            g.drawRect(0, 0, size.width - 1, size.height - 1);
+      
                      
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save Image Map File");
@@ -86,8 +79,8 @@ public class ImageMap extends AbstractAction {
                     imageLocation += ".jpeg";
                     fileName += ".html";
                 }
-                convert(mapImage, imageLocation, "jpeg");
-                createHtml(imageName, fileName, currentMap, size);
+                convert(imageLocation, "jpeg");
+                createHtml(imageName, fileName, VUE.getActiveViewer(), VUE.getActiveViewer().getSize());
             }        
     }
     
