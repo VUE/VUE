@@ -1,6 +1,5 @@
 package tufts.vue;
 
-
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Font;
@@ -310,7 +309,7 @@ public class LWComponent
         if (this.strokeWidth != w) {
             this.strokeWidth = w;
             if (w > 0)
-                this.stroke = new BasicStroke(w);
+                this.stroke = new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
             else
                 this.stroke = STROKE_ZERO;
             notify("strokeWidth");
