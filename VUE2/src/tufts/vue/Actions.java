@@ -57,6 +57,7 @@ class Actions
     
     static final Action SelectAll =
         new MapAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
+            boolean undoable() { return false; }
             boolean enabledFor(LWSelection s) { return true; }
             public void act() {
                 VUE.ModelSelection.setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
@@ -64,6 +65,7 @@ class Actions
         };
     static final Action DeselectAll =
         new MapAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
+            boolean undoable() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             public void act()
             {
@@ -102,6 +104,7 @@ class Actions
     static final Action HierarchyView = 
         new MapAction("Hierarchy View")
         {
+            boolean undoable() { return false; }
             public void act()
             {
                 LWNode rootNode = (LWNode)(VUE.ModelSelection.get(0));
@@ -745,6 +748,7 @@ class Actions
         {
             // todo: listen to map viewer display event to tag
             // with currently displayed map name\
+            boolean undoable() { return false; }
             boolean enabled() { return VUE.openMapCount() > 0; }
             public void act() {
                 VUE.closeMap(VUE.getActiveMap());
@@ -763,6 +767,7 @@ class Actions
     static final Action Redo =
         new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT))
         {
+            boolean undoable() { return false; }
             public boolean isEnabled() { return false; }
         };
 
@@ -823,18 +828,21 @@ class Actions
             public void act() {
                 ZoomTool.setZoomBigger(null);
             }
+            boolean undoable() { return false; }
         };
     static final Action ZoomOut =
         new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
             public void act() {
                 ZoomTool.setZoomSmaller(null);
             }
+            boolean undoable() { return false; }
         };
     static final Action ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
             public void act() {
                 ZoomTool.setZoomFit();
             }
+            boolean undoable() { return false; }
         };
     static final Action ZoomActual =
         new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
@@ -843,6 +851,7 @@ class Actions
             public void act() {
                 ZoomTool.setZoom(1.0);
             }
+            boolean undoable() { return false; }
         };
 
 
