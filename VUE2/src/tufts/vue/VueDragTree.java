@@ -27,7 +27,9 @@ import java.util.Iterator;
  */
 public class VueDragTree extends JTree implements DragGestureListener,
 		DragSourceListener {
-   
+    
+      private DefaultMutableTreeNode oldnode;          
+                 
     public VueDragTree(Object obj, String treeName) {
        
         //create the treemodel
@@ -142,6 +144,10 @@ public class VueDragTree extends JTree implements DragGestureListener,
    public void dragGestureRecognized(DragGestureEvent e)
     {
         // drag anything ...
+         TreePath path = getLeadSelectionPath();
+      
+     oldnode = (DefaultMutableTreeNode)path.getLastPathComponent();
+       
         
         Object resource = getObject();
         
@@ -151,8 +157,21 @@ public class VueDragTree extends JTree implements DragGestureListener,
 			this);  // drag source listener
         }
     }
-    public void dragDropEnd(DragSourceDropEvent e) {}
-    public void dragEnter(DragSourceDragEvent e) {}
+    public void dragDropEnd(DragSourceDropEvent e) {
+       
+       
+        if (e.getDropAction() == DnDConstants.ACTION_MOVE){
+            
+         
+           DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+           model.removeNodeFromParent(oldnode);             
+                   
+           
+        }
+    
+    
+    }
+    public void dragEnter(DragSourceDragEvent e) { }
     public void dragExit(DragSourceEvent e) {}
     public void dragOver(DragSourceDragEvent e) {}
     public void dropActionChanged(DragSourceDragEvent e) {}  
