@@ -145,8 +145,14 @@ public class MapTabbedPane extends JTabbedPane
             MapViewer viewer = getViewerAt(i);
             setTitleAt(i, viewerToTabTitle(viewer));
             LWMap map = viewer.getMap();
+            String tooltip = null;
             if (map.getFile() != null)
-                setToolTipTextAt(i, map.getFile().toString());
+                tooltip = map.getFile().toString();
+            else
+                tooltip = "[Unsaved]";
+            if (map.isCurrentlyFiltered())
+                tooltip += " (filtered)";
+            setToolTipTextAt(i, tooltip);
         }
     }
     
