@@ -44,11 +44,8 @@ public class PathwayTable extends JTable
     private static final LineBorder normalBorder = null;//new LineBorder(regular, 2);
     private static final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
     
-
-    private JCheckBox box = null;
-    private JTextField field = null;
     private int lastSelectedRow = -1;
-    private boolean showHeaders = true;    //sets whether or not table column headers are shown
+    private static final boolean showHeaders = true;    //sets whether or not table column headers are shown(?)
     
     public PathwayTable(PathwayTableModel model) {
         super(model);
@@ -72,14 +69,10 @@ public class PathwayTable extends JTable
             this.getTableHeader().setIgnoreRepaint(true);
          }
         
-        box = new JCheckBox();
-        field = new JTextField();
-        
         this.setDefaultRenderer(Color.class, new ColorRenderer());
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer());
         this.setDefaultRenderer(Object.class, new LabelRenderer());
         this.setDefaultEditor(Color.class, new ColorEditor());
-        
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         this.getSelectionModel().addListSelectionListener
