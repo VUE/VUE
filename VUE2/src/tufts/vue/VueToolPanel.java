@@ -149,7 +149,10 @@ public class VueToolPanel extends JPanel
 	 **/
 	public void setContextualToolPanel( JPanel pPanel) {
 		mContextualToolPanel.removeAll();
-		mContextualToolPanel.add( pPanel);
+                if (pPanel == null)
+                    System.err.println("null pPanel in setContextualToolPanel");
+                else
+                    mContextualToolPanel.add( pPanel);
 	}
 	
 	
