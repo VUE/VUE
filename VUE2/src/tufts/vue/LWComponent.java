@@ -604,21 +604,23 @@ public class LWComponent
             return;
         lwcListeners.remove(listener);
     }
+    public void removeAllLWCListeners()
+    {
+        lwcListeners = null;
+    }
     public void notifyLWCListeners(LWCEvent e)
     {
-        if (lwcListeners == null)
-            return;
-        java.util.Iterator i = lwcListeners.iterator();
-        while (i.hasNext())
-            ((LWCListener)i.next()).LWCChanged(e);
+        if (lwcListeners != null) {
+            java.util.Iterator i = lwcListeners.iterator();
+            while (i.hasNext())
+                ((LWCListener)i.next()).LWCChanged(e);
+        }
         if (parent != null)
             parent.notifyLWCListeners(e);
     }
     
     protected void notify(String what)
     {
-        if (lwcListeners == null)
-            return;
         notifyLWCListeners(new LWCEvent(this, this, what));
     }
     
