@@ -116,10 +116,21 @@ public class FedoraSoapFactory {
         }  
     }
    **/
-    public static  FedoraObjectIterator search(DR dr,String term,String maxResults)  throws osid.dr.DigitalRepositoryException {
+    public static  FedoraObjectIterator search(DR dr,SearchCriteria lSearchCriteria)  throws osid.dr.DigitalRepositoryException {
+        String term = lSearchCriteria.getKeywords();
+        String maxResults = lSearchCriteria.getMaxReturns();
+        String searchOperation = lSearchCriteria.getSearchOperation();
+        String token = lSearchCriteria.getToken();
+        
         Call call;
+        String fedoraApiUrl = dr.getFedoraProperties().getProperty("url.fedora.api");            
+        
+        
         FieldSearchResult searchResults=new FieldSearchResult();   
         NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
+        
+        FieldSearchResult methodDefs = null;
+        
         String[] resField=new String[4];
         resField[0]="pid";
         resField[1]="title";
@@ -127,10 +138,22 @@ public class FedoraSoapFactory {
         resField[3]="cModel";
         try { 
             call = getCallSearch(dr);
+            call.setOperationName(new QName(fedoraApiUrl,searchOperation));
             FieldSearchQuery query=new FieldSearchQuery();
             query.setTerms(term);
             java.util.Vector resultObjects = new java.util.Vector();
-            FieldSearchResult methodDefs =    (FieldSearchResult) call.invoke(new Object[] {resField,maxRes,query} );
+            if(searchOperation == SearchCriteria.FIND_OBJECTS) {
+                methodDefs =    (FieldSearchResult) call.invoke(new Object[] {resField,maxRes,query} );
+                ListSession listSession = methodDefs.getListSession();
+                lSearchCriteria.setToken(listSession.getToken());
+            }else {
+                if(lSearchCriteria.getToken() != null) {
+                   methodDefs =    (FieldSearchResult) call.invoke(new Object[] {lSearchCriteria.getToken()} ); 
+                   ListSession listSession = methodDefs.getListSession();
+                   lSearchCriteria.setToken(listSession.getToken());
+                }
+            }
+                   
             if (methodDefs != null){
                     ObjectFields[] fields= methodDefs.getResultList(); 
                     for(int i=0;i<fields.length;i++) {
@@ -277,7 +300,6 @@ public class FedoraSoapFactory {
             Service service = new Service();
             call=(Call) service.createCall();
             call.setTargetEndpointAddress(new URL(dr.getFedoraProperties().getProperty("url.fedora.soap.access")));
-            call.setOperationName(new QName(fedoraApiUrl,"findObjects"));
             QName qn1 = new QName(fedoraTypeUrl, "ObjectFields");
             QName qn2 = new QName(fedoraTypeUrl, "FieldSearchQuery");
             QName qn3 = new QName(fedoraTypeUrl, "FieldSearchResult");

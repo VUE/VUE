@@ -72,6 +72,7 @@ public class DR implements osid.dr.DigitalRepository {
     private java.util.Vector assets = new java.util.Vector();
     private osid.shared.Id id;
     private URL configuration;
+
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of DR */
@@ -106,7 +107,7 @@ public class DR implements osid.dr.DigitalRepository {
         fedoraProperties = new Properties();
         java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
         try {
-            System.out.println("Fedora Properties"+conf.getPath());
+            System.out.println("Fedora Properties"+conf.getFile().replaceAll("%20"," "));
             FileInputStream fis = new FileInputStream(conf.getFile().replaceAll("%20"," "));
             prefs.importPreferences(fis);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
@@ -385,7 +386,7 @@ public class DR implements osid.dr.DigitalRepository {
     public AssetIterator getAssets(java.io.Serializable searchCriteria, osid.shared.Type searchType) throws osid.dr.DigitalRepositoryException {
         SearchCriteria lSearchCriteria = (SearchCriteria)searchCriteria;
         if(searchType.getKeyword().equals("Search")) {
-              return FedoraSoapFactory.search(this,lSearchCriteria.getKeywords(),lSearchCriteria.getMaxReturns());
+              return FedoraSoapFactory.search(this,lSearchCriteria);
         } else if(searchType.getKeyword().equals("Advanced Search")) {
             return FedoraSoapFactory.advancedSearch(this,lSearchCriteria.getConditions(),lSearchCriteria.getMaxReturns());
         }else {
