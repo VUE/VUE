@@ -169,17 +169,19 @@ public class LWLink extends LWComponent
     }
     void setEndPoint1(LWComponent c)
     {
-        if (c == null)
-            throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
+        if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
         this.c1 = c;
+        //if (c == null) System.err.println(this + " endPoint1 set to null");
+        //else
         c.addLinkRef(this);
         //System.out.println(this + " ep1 = " + c);
     }
     void setEndPoint2(LWComponent c)
     {
-        if (c == null)
-            throw new IllegalArgumentException(this + " attempt to set endPoint2 to null");
+        if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint2 to null");
         this.c2 = c;
+        //if (c == null) System.err.println(this + " endPointd2 set to null");
+        //else
         c.addLinkRef(this);
         //System.out.println(this + " ep2 = " + c);
     }
@@ -284,58 +286,18 @@ public class LWLink extends LWComponent
         setX(locX - getWidth()/2);
         setY(locY - getHeight()/2);
         
-
-        /*
-        // temporary: draw hit box
-        // todo: make a handle?
-        g.setColor(Color.lightGray);
-        g.setStroke(STROKE_ONE);
-        //g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
-        if (VueUtil.StrokeBug05)
-            box.setRect(getX()-0.5, getY()-0.5, getWidth(), getHeight());
-        else
-            box.setRect(getX(), getY(), getWidth(), getHeight());
-        g.draw(box);
-        */
-
-        /*
-         * Draw the link
-         */
-        
-        if (isIndicated())
-            g.setColor(COLOR_INDICATION);
-        else if (isSelected())
-            g.setColor(COLOR_SELECTION);
-        else
-            g.setColor(getStrokeColor());
-        
-
-        //
-        //strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
-        //if (strokeWidth > MAX_RENDER_WIDTH)
-        //    strokeWidth = MAX_RENDER_WIDTH;
-        
-        // If either end of this link is scaled, scale stroke
-        // to smallest of the scales (even better: render the stroke
-        // in a variable width narrowing as it went...)
-        if (c1.getScale() != 1f || c2.getScale() != 1f) {
-            float strokeWidth = getStrokeWidth();
-            if (c1.getScale() < c2.getScale())
-                strokeWidth *= c1.getScale();
-            else
-                strokeWidth *= c2.getScale();
-            g.setStroke(new BasicStroke(strokeWidth));
-        } else {
-            g.setStroke(this.stroke);
-        }
-    
         if (VueUtil.StrokeBug05) {
             startX -= 0.5;
             startY -= 0.5;
             endX -= 0.5;
             endY -= 0.5;
         }
+
+        //-------------------------------------------------------
+        // Set the stroke line
+        //-------------------------------------------------------
         this.line.setLine(startX, startY, endX, endY);
+
 
         // Clip the node shape so the link doesn't draw into it.
         // We need to do this instead of just drawing links first
@@ -357,6 +319,74 @@ public class LWLink extends LWComponent
                 clipArea.subtract(new Area(c2.getShape()));
             g.clip(clipArea);
         }
+
+        
+        /*
+        // temporary: draw hit box
+        // todo: make a handle?
+        g.setColor(Color.lightGray);
+        g.setStroke(STROKE_ONE);
+        //g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
+        if (VueUtil.StrokeBug05)
+            box.setRect(getX()-0.5, getY()-0.5, getWidth(), getHeight());
+        else
+            box.setRect(getX(), getY(), getWidth(), getHeight());
+        g.draw(box);
+        */
+
+        //
+        //strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
+        //if (strokeWidth > MAX_RENDER_WIDTH)
+        //    strokeWidth = MAX_RENDER_WIDTH;
+        
+
+        BasicStroke stroke;
+
+        // If either end of this link is scaled, scale stroke
+        // to smallest of the scales (even better: render the stroke
+        // in a variable width narrowing as it went...)
+        // todo: cache this scaled stroke
+        if (c1.getScale() != 1f || c2.getScale() != 1f) {
+            float strokeWidth = getStrokeWidth();
+            if (c1.getScale() < c2.getScale())
+                strokeWidth *= c1.getScale();
+            else
+                strokeWidth *= c2.getScale();
+            //g.setStroke(new BasicStroke(strokeWidth));
+            stroke = new BasicStroke(strokeWidth);
+        } else {
+            //g.setStroke(this.stroke);
+            stroke = this.stroke;;
+        }
+    
+        //-------------------------------------------------------
+        // If selected or indicated, draw a standout stroke
+        // bigger than the actual stroke first.
+        //-------------------------------------------------------
+        /*
+        if (isIndicated() || isSelected()) {
+            if (isSelected())
+                g.setColor(COLOR_SELECTION);
+            else
+                g.setColor(COLOR_INDICATION);
+            g.setStroke(new BasicStroke(stroke.getLineWidth() + 2));
+            g.draw(this.line);
+        }
+        */
+        
+        //-------------------------------------------------------
+        // Draw the stroke
+        //-------------------------------------------------------
+
+        if (isSelected())
+            g.setColor(COLOR_SELECTION);
+        else if (isIndicated())
+            g.setColor(COLOR_INDICATION);
+        else
+            g.setColor(getStrokeColor());
+        
+        //g.setColor(getStrokeColor());
+        g.setStroke(stroke);
         g.draw(this.line);
 
         String label = getLabel();
