@@ -107,7 +107,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                     add(Box.createHorizontalGlue());
                         
                     JLabel label = new JLabel("Create Pathways");
-                    label.setFont(boldFont);
+                    label.setFont(smallBoldFont);
                     label.setForeground(Color.white);
                     label.setBorder(new EmptyBorder(0,0,2,3));
                     add(label);
@@ -145,7 +145,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                     //setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
 
                     JLabel label = new JLabel("Add object to pathway");
-                    label.setFont(boldFont);
+                    label.setFont(smallBoldFont);
                     label.setForeground(Color.white);
                     label.setBackground(getBackground());
                     label.setBorder(new EmptyBorder(0,0,2,2)); //tlbr

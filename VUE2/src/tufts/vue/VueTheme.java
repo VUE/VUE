@@ -67,14 +67,14 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         table.put("TitledBorder.font", FONT_MEDIUM.deriveFont(Font.BOLD));
 
         // From BasicLookAndFeel:
-        table.put("TabbedPane.selected", Color.white); // fill & content border
+        //table.put("TabbedPane.selected", Color.white); // selected tab fill & content border
         //table.put("TabbedPane.foreground", Color.green); // text color
         //table.put("TabbedPane.background", Color.red); // ???
         //table.put("TabbedPane.highlight", Color.red);
         //table.put("TabbedPane.light", Color.green); // edge border
         //table.put("TabbedPane.shadow", Color.red); / /???
         //table.put("TabbedPane.darkShadow", Color.green); // edge border
-        table.put("TabbedPane.focus", Color.white); // annoying focus border: same as selected hides
+        table.put("TabbedPane.focus", VueColor); // annoying focus border: same as selected hides
         // from MetalLookAndFeel:
         //table.put("TabbedPane.tabAreaBackground", Color.red); // ???
         //table.put("TabbedPane.selectHighlight", Color.red); // edge border
