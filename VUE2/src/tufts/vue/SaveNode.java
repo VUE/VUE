@@ -33,10 +33,21 @@ public class SaveNode{
             this.setResourceName(((FavoritesNode)obj).toString());
         }else if (obj instanceof FileNode){
             this.setNodeType("FileNode");
+          
             File file = (File)((FileNode)obj).getUserObject();
             this.setResourceName(file.toString());
+                if (!((FileNode)obj).isExplored()){
+                           ((FileNode)obj).explore();
+                            Enumeration fe = ((DefaultMutableTreeNode)obj).children();
+                            Vector fv = new Vector();
+                               while (fe.hasMoreElements())
+                                     {
+                                 SaveNode fchild = new SaveNode(fe.nextElement());
+                                     fv.add(fchild);
+                                        }
+                                      }
             
-       }else if (obj instanceof AssetNode){
+            }else if (obj instanceof AssetNode){
             this.setNodeType("AssetNode");
             this.setResourceName(((AssetNode)obj).toString());
             
