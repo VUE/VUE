@@ -157,6 +157,7 @@ public class LWNode extends LWContainer
         newNode.setSize(super.getWidth(), super.getHeight()); // make sure shape get's set with old size
         //else if (getNodeShape() != null) // todo: for backward compat only 
         //newNode.setNodeShape(getNodeShape());
+
         return newNode;
     }
     
@@ -203,15 +204,9 @@ public class LWNode extends LWContainer
             cy <= ly + height;
     }
 
-    public void setResource(Resource resource)
-    {
-        super.setResource(resource);
-        //ttResource = null;
-    }
     public void setNotes(String notes)
     {
         super.setNotes(notes);
-        //ttNotes = null;
     }
 
     public void mouseOver(MapMouseEvent e)
