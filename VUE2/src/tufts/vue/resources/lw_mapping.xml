@@ -253,6 +253,18 @@
 		<field name="description" type="string">
 			<bind-xml name="description" node="element" />
 		</field>
+                <field name="address" type="string">
+                    <bind-xml name="address" node="element" />
+                 </field>
+                 <field name="userName" type="string">
+                    <bind-xml name="userName" node="element" />
+                 </field>
+                  <field name="password" type="string">
+                    <bind-xml name="password" node="element" />
+                 </field>
+                  <field name="conf" type="string">
+                    <bind-xml name="conf" node="element" />
+                 </field>
 	</class>
 	
 
@@ -282,7 +294,9 @@
 		<map-to xml ="SaveDataSourceViewer"/>
 		
 		<field name = "SaveDataSources" type = "tufts.vue.DataSource" collection = "vector">
-			<bind-xml name ="dataSource" />
+			<bind-xml na  <field name="address" type="string">
+                    <bind-xml name="address" node="element" />
+                 </field>me ="dataSource" />
 		</field>
 </class>
 
