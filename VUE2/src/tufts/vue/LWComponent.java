@@ -117,10 +117,11 @@ public class LWComponent
         // a new component creation, and to undo it is actually a delete.
         // UndoManager handles the hierarchy end of this, but we need this here
         // to differentiate hierarchy events that are just reparentings from
-        // creations (the opposite end of this solution is in removeFromModel, when
-        // we know something has been explicitly deleted).
-        notify("new-component-add", new Undoable() { void undo() { removeFromModel(); }} );
+        // creations.
+
+        notify("new.component", new Undoable() { void undo() { removeFromModel(); }} );
     }
+    
     public void setLabel(String label)
     {
         setLabel0(label, true);
@@ -1437,12 +1438,12 @@ public class LWComponent
     protected void restoreToModel()
     {
         if (!isDeleted()) {
-            //throw new IllegalStateException("Attempt to restore already restored: " + this);
-            out("FYI: already restored: " + this);
-            return;
+            throw new IllegalStateException("Attempt to restore already restored: " + this);
+            //out("FYI: already restored: " + this);
+            //return;
         }
-        // there is no reconnectToLinks: link endpoint connect events handle reconnect us back to our links
-        // We couldn't do it anyway as we wouldn't know which of the two endpoint to connect us to.
+        // There is no reconnectToLinks: link endpoint connect events handle this.
+        // We couldn't do it here anyway as we wouldn't know which of the two endpoint to connect us to.
         setDeleted(false);
     }
 
