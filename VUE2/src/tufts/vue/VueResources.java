@@ -215,21 +215,40 @@ public class VueResources
 	 * @param pLookupKey the string lookupkey in the properties file
 	 * @return Color the color, or null if missing
 	 **/
-	static public Color getColor( String pLookupKey) {
-		
-		Color retValue = null;
-		
-		try {
-			String str = sResourceBundle.getString( pLookupKey);
-			if( str != null) {
-				Integer intVal = new Integer( str);
-				retValue = new Color( intVal.intValue() );
-				}
-		} catch (Exception e) {
-			alert("Missing Color resource: "+pLookupKey);
-		}
-		return retValue;
-	}
+    static public Color getColor( String pLookupKey)
+    {
+        Color retValue = null;
+        try {
+            String str = sResourceBundle.getString( pLookupKey);
+            if (str != null) {
+                Integer intVal = Integer.decode(str);
+                retValue = new Color(intVal.intValue());
+            }
+        } catch (Exception e) {
+            alert("Missing Color resource: "+pLookupKey);
+        }
+        return retValue;
+    }
+
+    /**
+     * getBool
+     * Usage: flag=true
+     *
+     * @param pLookupKey the string lookupkey in the properties file
+     * @return true if found and is set to "true"
+     **/
+    static public boolean getBool(String pLookupKey)
+    {
+        boolean retValue = false;
+        try {
+            String str = sResourceBundle.getString( pLookupKey);
+            if (str != null)
+                retValue = str.equalsIgnoreCase("true");
+        } catch (Exception e) {
+            alert("Unknown bool resource: "+pLookupKey);
+        }
+        return retValue;
+    }
 
 
 	/***
