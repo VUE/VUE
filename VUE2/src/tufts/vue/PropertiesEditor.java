@@ -56,8 +56,6 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         
         // setting the properties editor for fields
-        JComboBox comboBox = new JComboBox(DC_FIELDS);
-        propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
         
         
         JPanel labelPanel=new JPanel(new FlowLayout(FlowLayout.LEFT,2,0));
@@ -79,6 +77,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             deletePropertyButton.addActionListener(deletePropertiesButtonListener);
             topPanel.add(addPropertyButton);
             topPanel.add(deletePropertyButton);
+            JComboBox comboBox = new JComboBox(DC_FIELDS);
+            propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
+            
         }
         
         // setting the panel for top buttons
@@ -113,7 +114,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             deletePropertyButton.removeActionListener(deletePropertiesButtonListener);
             deletePropertiesButtonListener = new DeletePropertiesButtonListener(propertiesTable,sListener);
             deletePropertyButton.addActionListener(deletePropertiesButtonListener);
-            
+            JComboBox comboBox = new JComboBox(DC_FIELDS);
+            propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
         }
         
     }
