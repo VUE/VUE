@@ -83,6 +83,16 @@ public class VueResources
             return url;
         }
 	
+        public static File getFile(String pLookupKey) {
+           File file = null;
+            try {
+                file =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")) ;
+                System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+file);
+            } catch (Exception e) {
+		alert("  !!! failed to lead due to "+ e.toString() );
+            }
+            return file;
+        }
 	/**
 	 * getString
 	 * This method returns the String from a properties file
