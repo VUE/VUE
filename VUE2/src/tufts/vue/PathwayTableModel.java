@@ -1,17 +1,24 @@
-/*
- * PathwayTableModel.java
- *
- * Created on December 3, 2003, 1:15 PM
- */
-
 package tufts.vue;
 
+import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.awt.Color;
+import javax.swing.ImageIcon;
 import javax.swing.table.*;
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
 
 /**
+ * PathwayTableModel.java
+ *
+ * Provides a view of the currently active LWPathwayList (from the currently active map).
+ * This view is a list of all the pathways and their contents in a single list, with
+ * the option of a pathway being "closed", in which case it's contents doesn't appear
+ * in the list.
+ *
+ * @see PathwayTable
+ * @see LWPathwayList
+ * @see LWPathway
+ *
  * @author  Scott Fraize
  * @author  Jay Briedis
  * @version February 2004
@@ -139,8 +146,8 @@ public class PathwayTableModel extends DefaultTableModel
     }
 
     // get the model list
-    private java.util.List getList() {
-        java.util.List list = new ArrayList();
+    private List getList() {
+        List list = new ArrayList();
         Iterator i = getPathwayIterator();
         while (i.hasNext()) {
             LWPathway p = (LWPathway) i.next();

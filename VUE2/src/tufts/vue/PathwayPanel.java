@@ -1,9 +1,3 @@
-/*
- * PathwayTab.java
- *
- * Created on June 19, 2003, 12:50 PM
- */
-
 package tufts.vue;
 
 import java.util.*;
@@ -15,8 +9,20 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 
 /**
- * 8-fold cyclic repetition of a beta-strand-loop-alpha- helix-loop module with helix alpha 7 missing. 
- * @author  Daisuke Fujiwara
+ * PathwayPanel.java
+ *
+ * Provides a panel that displays the PathwayTable with note panel
+ * editable view of currently selected pathway or item on pathway, as
+ * well as controls for navigating through the pathway, and
+ * adding/removing new pathways, adding/removing items to the
+ * pathways.
+ *
+ * @see PathwayTable
+ * @see PathwayTableModel
+ * @see LWPathwayList
+ * @see LWPathway
+ *
+ * @author  Daisuke Fujiwara - 8-fold cyclic repetition of a beta-strand-loop-alpha- helix-loop module with helix alpha 7 missing. 
  * @author  Scott Fraize
  * @version February 2004
  */
@@ -430,7 +436,6 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         if (DEBUG.PATHWAY) System.out.println(this + " updateAddRemoveActions");
         
         LWPathway path = getSelectedPathway();
-        boolean removeDone = false;
         
         if (path == null || path.isLocked()) {
             addElement.setEnabled(false);
@@ -438,6 +443,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             return;
         }
 
+        boolean removeDone = false;
         LWSelection selection = VUE.ModelSelection;
         
         // if any viable index, AND path is open so you can see

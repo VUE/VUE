@@ -1,19 +1,19 @@
-/*
- * LWPathwayManager.java
- *
- * Created on June 23, 2003, 3:03 PM
- *
- * Keeps arraylist of all pathways for a given concept map
- * Also tracks the current pathway selected for the given map
- */
-
 package tufts.vue;
 
 import java.util.*;
 
 /**
+ * LWPathwayList.java
+ *
+ * Keeps a list of all pathways for a given LWMap.  Also tracks the
+ * current pathway selected for the given map.  Provides for
+ * aggregating all the events that happen with in the pathways and
+ * their contents, and rebroadcasting them to interested parties, such
+ * as the PathwayTableModel.
+ *
  * @author Scott Fraize
- * @version February 2004
+ * @version February 20
+ *
  */
 
 public class LWPathwayList implements LWComponent.Listener

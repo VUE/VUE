@@ -1,28 +1,31 @@
-/*
- * PathwayTable.java
- *
- * Created on December 3, 2003, 1:11 PM
- */
-
 package tufts.vue;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
-import java.awt.Component;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.event.MouseEvent;
-import javax.swing.event.*;
 import java.util.ArrayList;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.table.*;
+import javax.swing.border.*;
+import javax.swing.event.*;
 
 /**
+ * PathwayTable.java
+ *
+ * A JTable that displays all of the pathways that exists in a given map,
+ * and provides user interaction with the list of pathways.  Relies
+ * on PathwayTableModel to produce a view of all the pathways that allows
+ * for "opening" and "closing" the pathway -- displaying or hiding the
+ * pathway elements in the JTable.
+ *
+ * @see PathwayTableModel
+ * @see LWPathwayList
+ * @see LWPathway
+ *
  * @author  Jay Briedis
  * @author  Scott Fraize
  * @version February 2004
  */
+
 public class PathwayTable extends JTable
 {
     private final ImageIcon close = VueResources.getImageIcon("pathwayClose");
@@ -50,14 +53,6 @@ public class PathwayTable extends JTable
     public PathwayTable(PathwayTableModel model) {
         super(model);
 
-        /*
-        model.addTableModelListener(new TableModelListener() {
-                public void tableChanged(TableModelEvent e) {
-                    if (DEBUG.PATHWAY) System.out.println(this + " " + e + " (FYI)");
-                }
-            });
-        */
-
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
@@ -66,7 +61,7 @@ public class PathwayTable extends JTable
         this.setGridColor(Color.lightGray);
         this.setBackground(bgColor);
         //this.setSelectionBackground(selectedbgColor);
-        this.setDragEnabled(true);
+        this.setDragEnabled(false);
         
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);
@@ -118,18 +113,20 @@ public class PathwayTable extends JTable
                 }
                 });
 
-        // end of constructor
+        /*
+        model.addTableModelListener(new TableModelListener() {
+                public void tableChanged(TableModelEvent e) {
+                    if (DEBUG.PATHWAY) System.out.println(this + " " + e + " (FYI)");
+                }
+            });
+        */
+        
+        // end of PathwayTable constructor
     }
     
 
-    private PathwayTableModel getTableModel()
-    {
+    private PathwayTableModel getTableModel() {
         return (PathwayTableModel) getModel();
-    }
-    
-    public void setCurrentElement(int row){
-        new Throwable("setCurrentElement").printStackTrace();
-        //pathPanel.setCurrentElement(row);
     }
     
     private class ColorEditor extends AbstractCellEditor

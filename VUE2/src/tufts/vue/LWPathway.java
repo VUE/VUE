@@ -1,17 +1,8 @@
-/*
- * LWPathway.java
- *
- * Created on June 18, 2003, 1:37 PM
- *
- * @author  Jay Briedis
- */
-
 package tufts.vue;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -19,7 +10,23 @@ import java.awt.BasicStroke;
 import java.awt.AlphaComposite;
 import java.awt.geom.Line2D;
 import java.awt.geom.Area;
-import java.util.ArrayList;
+
+/**
+ * LWPathway.java
+ *
+ * Provides for the managing of a list of LWComponents as elements in a "path" through
+ * the map as well as ability to render that path on the map.  Includes a current
+ * "index", which isn't just the current component, because components can appear
+ * in the path at multiple locations (no restrictions, tho we should probably
+ * restrict components appearing right next to each other in the path as I don't
+ * see how that would be useful).  Also provides for associating path-specific notes
+ * for each component in that path (notes are NOT currently index specific, only
+ * component specific per path). --SF
+ *
+ * @author  Jay Briedis
+ * @author  Scott Fraize
+ * @version  February 2004
+ */
 
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
