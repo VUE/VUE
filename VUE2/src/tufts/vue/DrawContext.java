@@ -23,6 +23,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Rectangle;
+import java.awt.AlphaComposite;
 import java.awt.geom.AffineTransform;
 
 public class DrawContext
@@ -78,7 +79,14 @@ public class DrawContext
     public VueTool getActiveTool() {
         return activeTool;
     }
-    
+
+    public void setAlpha(double alpha) {
+        if (alpha == 1)
+            g.setComposite(AlphaComposite.Src);
+        else
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float)alpha));
+    }
+
     /**
      * Mark us rendering for printing.  Note that
      * rendering any transparency whatsoever during
