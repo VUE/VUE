@@ -121,7 +121,7 @@ public class MapViewer extends javax.swing.JComponent
     /** are we currently dragging a selection box? */
     protected boolean isDraggingSelectorBox;
     /** are we currently in a drag of any kind? (mouseDragged being called) */
-    protected boolean inDrag;
+    protected static boolean sDragUnderway;
     //protected Point2D.Float dragPosition = new Point2D.Float();
 
     protected LWComponent indication;   // current indication (drag rollover hilite)
@@ -1273,6 +1273,9 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
 
+
+    private static final String MapInteractiveDragEvent = "map.drag.interactive";
+    private static final String MapEndDragEvent = "map.drag.end";
     
     /**
      * Handle events coming off the LWMap we're displaying.
@@ -1281,7 +1284,19 @@ public class MapViewer extends javax.swing.JComponent
      */
     public void LWCChanged(LWCEvent e)
     {
+        if (DEBUG.EVENTS && DEBUG.META) System.out.println(this + " got " + e);
+        
+        // comment this out if want other viewers to interactively see drag events (is slower)
+        if (sDragUnderway && VUE.getActiveViewer() != this)
+            return;
+
         final String key = e.getWhat();
+
+        // ignore size & location events during drag as performance enhancement
+        //if (sDragUnderway && (key == LWKey.Size || key == LWKey.Location))
+        //if (key == MapInteractiveDragEvent)
+        //            return;
+
         //if (key == LWKey.HierarchyChanging) // ignore these as always paired with something else (EXCEPT during undo!)
         //    return;
 
@@ -2213,7 +2228,7 @@ public class MapViewer extends javax.swing.JComponent
         g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() * mZoomInverse)));
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
-            if (inDrag || c.getStrokeWidth() == 0) {
+            if (sDragUnderway || c.getStrokeWidth() == 0) {
                 //g2.setColor(c.getStrokeColor());
                 Shape shape = c.getShape();
                 g2.draw(shape);
@@ -2251,7 +2266,7 @@ public class MapViewer extends javax.swing.JComponent
         //g2.setComposite(AlphaComposite.Src);
         g2.setColor(COLOR_SELECTION);
             
-        //if (!VueSelection.isEmpty() && (!inDrag || isDraggingSelectorBox)) {
+        //if (!VueSelection.isEmpty() && (!sDragUnderway || isDraggingSelectorBox)) {
 
         // todo opt?: don't recompute bounds here every paint ---
         // can cache in draggedSelectionGroup (but what if underlying objects resize?)
@@ -2295,7 +2310,7 @@ public class MapViewer extends javax.swing.JComponent
                     mapSelectionBounds.height += grow*2;
                 }
             }
-            //if (!inDrag)
+            //if (!sDragUnderway)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
 
             //if (activeTool != PathwayTool) {
@@ -2308,7 +2323,7 @@ public class MapViewer extends javax.swing.JComponent
                 //}
         }
 
-        //if (inDrag) return;
+        //if (sDragUnderway) return;
         
         //-------------------------------------------------------
         // draw LWComponent requested control points
@@ -2883,7 +2898,7 @@ public class MapViewer extends javax.swing.JComponent
 
             // If any modifier keys down, may be an action command.
             // Is actually okay if a mouse is down while we do this tho.
-            if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!inDrag || isDraggingSelectorBox)) {
+            if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
                 VueTool[] tools =  VueToolbarController.getController().getTools();
                 for (int i = 0; i < tools.length; i++) {
                     VueTool tool = tools[i];
@@ -2894,7 +2909,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
 
-            if (toolKeyDown == 0 && !isDraggingSelectorBox && !inDrag) {
+            if (toolKeyDown == 0 && !isDraggingSelectorBox && !sDragUnderway) {
                 // todo: handle via resources
                 VueTool tempTool = null;
                 if      (key == KEY_TOOL_PAN) tempTool = HandTool;
@@ -2977,7 +2992,7 @@ public class MapViewer extends javax.swing.JComponent
 
             if (toolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
-                if (inDrag)
+                if (sDragUnderway)
                     toolKeyReleased = true;
                 else
                     revertTemporaryTool();
@@ -3412,7 +3427,7 @@ public class MapViewer extends javax.swing.JComponent
             //}
 
             if (RolloverAutoZoomDelay >= 0) {
-                if (DEBUG_TIMER_ROLLOVER && !inDrag && !(activeTextEdit != null)) {
+                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
                     if (RolloverAutoZoomDelay > 10) {
                         if (rolloverTask != null)
                             rolloverTask.cancel();
@@ -3497,7 +3512,7 @@ public class MapViewer extends javax.swing.JComponent
         //private int drags=0;
         public void mouseDragged(MouseEvent e)
         {
-            inDrag = true;
+            sDragUnderway = true;
             clearRollover();
             //System.out.println("drag " + drags++);
             if (mouseWasDragged == false) {
@@ -3610,7 +3625,8 @@ public class MapViewer extends javax.swing.JComponent
                                           mapY + dragOffset.y);
                 //dragPosition.setLocation(mapX + dragOffset.x,mapY + dragOffset.y);
 
-                scrollToVisible(dragComponent);
+                if (inScrollPane)
+                    scrollToVisible(dragComponent);
 
                 //-------------------------------------------------------
                 // Compute more repaint region
@@ -3658,9 +3674,11 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
 
-            if (dragComponent == null && dragControl == null) {
+            if (dragComponent == null && dragControl == null)
                 return;
-            }
+
+            // enable if we decide to turn off Size & Location events as performance enhancement
+            //getMap().notify(MapViewer.this, MapInteractiveDragEvent);
 
             if (!OPTIMIZED_REPAINT) {
 
@@ -3775,7 +3793,7 @@ public class MapViewer extends javax.swing.JComponent
 
         public void mouseReleased(MouseEvent e)
         {
-            inDrag = false;
+            sDragUnderway = false;
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + "]");
 
             setLastMousePoint(e.getX(), e.getY());
@@ -3799,8 +3817,8 @@ public class MapViewer extends javax.swing.JComponent
             // for performance)
             if (mouseWasDragged) {
                 VUE.getUndoManager().mark("Drag");
-                //getMap().notify(MapViewer.this, "repaint-drag"); // don't need while size & location events back on
-                // this is a hack for now to ensure any map modifications are noticed as we optimized
+                getMap().notify(MapViewer.this, MapEndDragEvent); // don't need if size & location events back on
+                // this is an to ensure any map modifications are noticed as we optimized
                 // out location & size set events
             }
 

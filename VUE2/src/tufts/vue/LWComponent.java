@@ -992,6 +992,7 @@ public class LWComponent
         Object old = new Point2D.Float(this.width, this.height);
         setSize0(w, h);
         updateConnectedLinks();
+        // todo: put autoSized on LWComponent, and only deliver event if autoSized == false
         notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
@@ -1402,7 +1403,6 @@ public class LWComponent
         // an event has already had it's notification and we don't
         // need to make sure it doesn't get one further down the list.
         
-        //LWCListener[] listener_array = new LWCListener[listeners.size()];
         Listener[] listener_array = new Listener[listeners.size()];
         listeners.toArray(listener_array);
         //java.util.Iterator i = listeners.iterator();
@@ -1440,12 +1440,8 @@ public class LWComponent
                 //    System.out.println(l + " (" + source + ")");
                 else
                     System.out.println(l);
-            } else { // temporary double-checking this source-skipping code
-                if (e.getSource() == l)
-                    System.out.println(e + " " + l + " (SKIPPED: source)");
             }
-            //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
-            if (e.getSource() == l)
+            if (e.getSource() == l) // this prevents events from going back to their source
                 continue;
             sEventDepth++;
             try {

@@ -288,7 +288,7 @@ class LWCInspector extends javax.swing.JPanel
                 this.lwc.removeLWCListener(this);
             this.lwc = lwc;
             if (this.lwc != null) {
-                this.lwc.addLWCListener(this);
+                this.lwc.addLWCListener(this, new Object[] { LWKey.Label, LWKey.Resource });
                 setAllEnabled(true);
             } else
                 setAllEnabled(false);
