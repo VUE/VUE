@@ -445,18 +445,14 @@ public class VueToolbarController
 	 	
         if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
             LWComponent c = (LWComponent) selection.get(0);
-            if( c instanceof LWNode) {
-                if( ((LWNode) c).isTextNode() ) {
+            if (c instanceof LWNode) {
+                if (((LWNode)c).isTextNode())
                     tool = controller.getTool( "textTool");
-                }
-                else {
+                else
                     tool = controller.getTool( "nodeTool" );
-                }
-            }
-            else
-                if( c instanceof LWLink) {
+            } else
+                if (c instanceof LWLink)
                     tool = controller.getTool( "linkTool");
-                }
         }
         if (tool != null)
             panel = tool.getContextualPanel();
@@ -468,6 +464,8 @@ public class VueToolbarController
     private JPanel getContextualPanelForSelection() {
         JPanel panel = null;
         LWSelection selection = VUE.getSelection();
+        // TODO BUG: LWSelection.allOfSameType doesn't distinguish between text nodes & regular nodes!
+        // if we end up keeping text nodes around, go make them a real subclass
         if (selection.size() > 0 && selection.allOfSameType()) {
             LWComponent c = selection.first();
             if (c instanceof LWNode) {
@@ -475,9 +473,10 @@ public class VueToolbarController
                     panel = TextTool.getTextToolPanel();
                 else
                     panel = NodeTool.getNodeToolPanel();
-            } else if (c instanceof LWLink)
-                panel = LinkTool.getLinkToolPanel();
-
+            } else
+                if (c instanceof LWLink)
+                    panel = LinkTool.getLinkToolPanel();
+            
         } else {
             panel = getLWCToolPanel();
         }

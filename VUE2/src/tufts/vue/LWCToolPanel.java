@@ -18,15 +18,15 @@ import tufts.vue.beans.*;
 public class LWCToolPanel extends JPanel implements ActionListener, PropertyChangeListener
 {
     /** fill button **/
-    private ColorMenuButton mFillColorButton;
+    protected ColorMenuButton mFillColorButton;
     /** stroke color editor button **/
-    private ColorMenuButton mStrokeColorButton;
+    protected ColorMenuButton mStrokeColorButton;
     /** Text color menu editor **/
-    private ColorMenuButton mTextColorButton;
+    protected ColorMenuButton mTextColorButton;
     /** stroke size selector menu **/
-    private StrokeMenuButton mStrokeButton;
+    protected StrokeMenuButton mStrokeButton;
     /** the Font selection combo box **/
-    private FontEditorPanel mFontPanel;
+    protected FontEditorPanel mFontPanel;
  	
     protected VueBeanState mDefaultState = null;
     protected VueBeanState mState = null;
@@ -169,18 +169,21 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              }
          }
          //-------------------------------------------------------
-         
-         
-         if (!(this instanceof LinkToolPanel))
-             box.add( mFillColorButton);
-         box.add( mStrokeColorButton);
-         box.add( mStrokeButton);
-         box.add( mFontPanel);
-         box.add( mTextColorButton);
- 		
-         this.add(box);
+
+         buildBox();
+
+         add(box);
  		
          initDefaultState();
+    }
+
+
+    protected void buildBox() {
+        box.add( mFillColorButton);
+        box.add( mStrokeColorButton);
+        box.add( mStrokeButton);
+        box.add( mFontPanel);
+        box.add( mTextColorButton);
     }
 
     protected JComponent getBox() {
@@ -215,7 +218,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  		
         mState = state;
         
-        System.out.println(this + " loadValues (LWCToolPanel) " + pValue + " state=" + state);
+        if (DEBUG.SELECTION)
+            System.out.println(this + " loadValues (LWCToolPanel) " + pValue + " state=" + state);
         
         setIgnorePropertyChangeEvents(true);
         

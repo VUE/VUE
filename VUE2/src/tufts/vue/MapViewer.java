@@ -2622,7 +2622,7 @@ public class MapViewer extends javax.swing.JComponent
             sSinglePopup = buildSingleSelectionPopup();
         
         if (c instanceof LWNode) {
-            sNodeMenuItem.setVisible(true);
+            sNodeMenuItem.setVisible(!((LWNode)c).isTextNode());
             sLinkMenuItem.setVisible(false);
             Actions.HierarchyView.setEnabled(true);
 

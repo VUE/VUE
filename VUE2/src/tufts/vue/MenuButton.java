@@ -34,11 +34,13 @@ public abstract class MenuButton extends JButton
         //setBorder(new CompoundBorder(BorderFactory.createRaisedBevelBorder(), new EmptyBorder(3,3,3,3)));
         //setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(), new LineBorder(Color.blue, 6)));
         //setBorder(BorderFactory.createRaisedBevelBorder());
+        
         setBorder(BorderFactory.createEtchedBorder());
+        //setBorder(new EmptyBorder(2,2,2,2));
         setFont(VueConstants.FONT_ICONIC);
+        setText("v ");
         setFocusable(false);
         setContentAreaFilled(false);
-        setText("v ");
         addMouseListener(new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
                     Component c = e.getComponent(); 	
@@ -76,21 +78,40 @@ public abstract class MenuButton extends JButton
         return null;
     }
     
+    /** @param values can be property values or actions (or even a mixture) */
+    protected void buildMenu(Object[] values)
+    {
+        buildMenu(values, null, false); 
+    }
+
+    private final String mValueKey = "prop.value";
+    
+    /**
+     * @param values can be property values or actions
+     * @param names is optional
+     * @param createCustom - add a "Custom" menu item that calls runCustomChooser
+     */
     protected void buildMenu(Object[] values, String[] names, boolean createCustom)
     {
         mPopup = new JPopupMenu();
 			
-        final String valueKey = getPropertyName() + ".value";
+        //final String valueKey = getPropertyName() + ".value"; // todo: getPropertyName usually not set at this point!
             
         ActionListener a = new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    handleMenuSelection(((JComponent)e.getSource()).getClientProperty(valueKey));
+                    handleMenuSelection(e);
                 }};
             
         for (int i = 0; i < values.length; i++) {
-            JMenuItem item = new JMenuItem();
-            item.setIcon(makeIcon(values[i]));
-            item.putClientProperty(valueKey, values[i]);
+            JMenuItem item;
+            if (values[i] instanceof Action)
+                item = new JMenuItem((Action)values[i]);
+            else
+                item = new JMenuItem();
+            Icon icon = makeIcon(values[i]);
+            if (icon != null)
+                item.setIcon(makeIcon(values[i]));
+            item.putClientProperty(mValueKey, values[i]);
             if (names != null)
                 item.setText(names[i]);
             item.addActionListener(a);
@@ -109,6 +130,10 @@ public abstract class MenuButton extends JButton
         mPopup.add(mEmptySelection);
     }
 		
+    protected void handleMenuSelection(ActionEvent e) {
+        handleMenuSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
+    }
+    
     protected void handleMenuSelection(Object newPropertyValue) {
         if (newPropertyValue == null) // could be result of custom chooser
             return;
