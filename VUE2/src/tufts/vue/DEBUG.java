@@ -14,6 +14,7 @@ class DEBUG
     static boolean SELECTION = false;
     static boolean FOCUS = false;
     static boolean UNDO = false;
+    static boolean PATHWAY = false;
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
 

@@ -414,30 +414,6 @@ class Actions
                 VUE.ModelSelection.clear();
             }
             void act(LWComponent c) {
-                //have to update pathways - jay briedis (remove this code and add listeners in pathway instead --SMF)
-                Iterator iter = VUE.getActiveViewer()
-                    .getMap()
-                    .getPathwayManager()
-                    .getPathwayIterator();
-                while(iter.hasNext()){
-                    LWPathway pathway = (LWPathway)iter.next();
-                    if(pathway.contains(c)){
-                        if(c instanceof LWNode){
-                            LWNode node = (LWNode)c;
-                            ArrayList links = (ArrayList)c.getLinks(); // may be modified concurrently
-                            if(links != null){
-                                for (int i = 0; i < links.size(); i++) {
-                                    LWLink l = (LWLink) links.get(i);
-                                    if(pathway.contains(l)){
-                                        pathway.removeElement(l);
-                                    }
-                                }
-                            }
-                        }
-                        pathway.removeElement(c);                        
-                    }
-                }
-
                 LWContainer parent = c.getParent();
                 if (parent == null) {
                     // right now this can happen because links are auto-deleted if

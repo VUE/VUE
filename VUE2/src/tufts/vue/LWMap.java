@@ -254,6 +254,8 @@ public class LWMap extends LWContainer
     public void draw(DrawContext dc){
         //LWPathway path = this.getPathwayManager().getCurrentPathway();        
         Iterator i = getPathwayManager().getPathwayIterator();
+        if (DEBUG.PATHWAY)
+            super.draw(dc);
         while (i.hasNext()) {
             Object o = i.next();
             if (o instanceof LWPathway) {
@@ -266,7 +268,8 @@ public class LWMap extends LWContainer
                 //System.out.println("Not a pathway? " + o);
             }
         }
-        super.draw(dc);
+        if (!DEBUG.PATHWAY)
+            super.draw(dc);
 
         if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.red);

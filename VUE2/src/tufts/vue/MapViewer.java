@@ -518,7 +518,8 @@ public class MapViewer extends javax.swing.JComponent
 
             // If we're resetting, compress the extent by moving the
             // origin to the upper left hand corner of all the
-            // component bounds.
+            // component bounds.  We "trim" the extent of usused map
+            // "whitespace" when we reset.
 
             if (DEBUG.SCROLL) System.out.println(this + "   old origin: " + out(mOffset));
             placeMapLocationAtExtentOrigin(mapExtent.x, mapExtent.y);
@@ -528,13 +529,12 @@ public class MapViewer extends javax.swing.JComponent
             // add the current origin, otherwise everything would
             // always be jamming itself up against the upper left hand
             // corner.  This has no effect unless they've moved the
-            // component with the smalles x/y (farthest into the upper
+            // component with the smallest x/y (the farthest to the upper
             // left).
 
             if (DEBUG.SCROLL) System.out.println(this + "   add offset: " + out(mOffset));
             if (DEBUG.SCROLL) System.out.println(this + "   is map loc: " + out(mapLocationAtExtentOrigin));
             mapExtent.add(mapLocationAtExtentOrigin);
-            //mapExtent.add(mOffset);
             if (DEBUG.SCROLL) System.out.println(this + "  +plusOrigin: " + out(mapExtent));
         }
         //Point vPos = mViewport.getViewPosition();
@@ -625,7 +625,7 @@ public class MapViewer extends javax.swing.JComponent
         location.translate(dx, dy);
         if (DEBUG.SCROLL) System.out.println("PAN: viewport   end: " + location);
                 
-        final boolean allowGrowth = false;
+        final boolean allowGrowth = false; // not-working
         float ox = mOffset.x;
         float oy = mOffset.y;
         boolean originMoved = false;
@@ -633,9 +633,10 @@ public class MapViewer extends javax.swing.JComponent
             if (allowGrowth) {
                 if (DEBUG.SCROLL) System.out.println("PAN: ADJUST X " + location.x);
                 ox += location.x;
-                location.x = 0;
                 originMoved = true;
+                location.x = 0;
             } else {
+                // if drag would take us to left of existing extent, clip
                 location.x = 0;
             }
         }
@@ -643,20 +644,29 @@ public class MapViewer extends javax.swing.JComponent
             if (allowGrowth) {
                 if (DEBUG.SCROLL) System.out.println("PAN: ADJUST Y " + location.y);
                 oy += location.y;
-                location.y = 0;
                 originMoved = true;
+                location.y = 0;
             } else {
+                // if drag would take us above existing extent, clip
                 location.y = 0;
             }
         }
         if (!allowGrowth) {
+            // If drag would take us beyond width or height of existing extent,
+            // clip to existing extent.
             if (location.x + mViewport.getWidth() > getExtentWidth())
                 location.x = getExtentWidth() - mViewport.getWidth();
             if (location.y + mViewport.getHeight() > getExtentHeight())
                 location.y = getExtentHeight() - mViewport.getHeight();
         }
         if (originMoved) {
-            setMapOriginOffset(ox, oy);
+            // not working -- adjustScrollRegion should
+            // handle setPreferredSize?
+            //setMapOriginOffset(ox, oy);
+            Dimension s = getPreferredSize();
+            s.width += dx;
+            s.height += dy;
+            setPreferredSize(s);
         }
 
         mViewport.setViewPosition(location);
@@ -861,14 +871,6 @@ public class MapViewer extends javax.swing.JComponent
             return new Point(x, y);
     }
 
-    /** return the coordinate of this JComponent (the panel/extent coordinate) currently
-     * visible in the center the viewport.
-     */
-    Point getVisiblePanelCenter()
-    {
-        return viewportToPanelPoint(getVisibleWidth() / 2, getVisibleHeight() / 2);
-    }
-
     Point mapToScreenPoint(Point2D p) {
         return new Point(mapToScreenX(p.getX()), mapToScreenY(p.getY()));
     }
@@ -950,6 +952,15 @@ public class MapViewer extends javax.swing.JComponent
     {
         return new Dimension(getVisibleWidth(), getVisibleHeight());
     }
+    
+    /** return the coordinate of this JComponent (the panel/extent coordinate) currently
+     * visible in the center the viewport.
+     */
+    Point getVisiblePanelCenter()
+    {
+        return viewportToPanelPoint(getVisibleWidth() / 2, getVisibleHeight() / 2);
+    }
+
 
     /**
      * When in a JScrollPane, the currently visible portion of the
@@ -2842,6 +2853,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'C') { DEBUG.SCROLL = !DEBUG.SCROLL; }
                 else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
+                else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
                 else
                     did = false;
                 if (did) {
