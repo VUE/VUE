@@ -87,7 +87,6 @@ import tufts.vue.beans.*;
  		mFillColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
  		mFillColorButton.setBorder(null);
  		mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
- 		mFillColorButton.addPropertyChangeListener( this);
 
  		Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
  		String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
@@ -98,8 +97,7 @@ import tufts.vue.beans.*;
 		strokeBlob.setOverlay( strokeIcon );
 		mStrokeColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
 		mStrokeColorButton.setIcon( strokeBlob);
- 		mStrokeColorButton.addPropertyChangeListener( this);
- 		
+
  		Color [] textColors = VueResources.getColorArray( "textColorValues");
  		String [] textColorNames = VueResources.getStringArray( "textColorNames");
  		mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
@@ -109,13 +107,10 @@ import tufts.vue.beans.*;
 		textBlob.setOverlay( textIcon );
 		mTextColorButton.setIcon(textBlob);
  		mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
- 		mTextColorButton.addPropertyChangeListener( this);
- 		
+
  		mFontPanel = new FontEditorPanel();
 		mFontPanel.setBackground( bakColor);
  		mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
- 		mFontPanel.addPropertyChangeListener( this);
-
  		
  		
 		
@@ -125,8 +120,6 @@ import tufts.vue.beans.*;
 		mStrokeButton.setIcon( lineIcon);
 		mStrokeButton.setStroke( (float) 1);
  		mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
- 		mStrokeButton.addPropertyChangeListener( this );
- 		
  		
  		box.add( mFillColorButton);
  		box.add( mStrokeColorButton);
@@ -159,6 +152,8 @@ import tufts.vue.beans.*;
  	 **/
  	public void setValue( Object pValue) {
  		VueBeanState state = null;
+ 		
+ 		enablePropertyChangeListeners( false);
  		if( pValue instanceof LWComponent) {
  			state = VueBeans.getState( pValue);
  			}
@@ -175,7 +170,6 @@ import tufts.vue.beans.*;
  		
  		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
  		mFontPanel.setValue( font);
- 		
  		
  		Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
  		float weightVal = 1;
@@ -194,7 +188,7 @@ import tufts.vue.beans.*;
  		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
  		mTextColorButton.setColor( text);
  		
- 	
+ 		enablePropertyChangeListeners( true);
  	}
  	
  	/**
@@ -205,7 +199,26 @@ import tufts.vue.beans.*;
  		return mState;
  	}
  	
- 	
+ 	/**
+ 	 *
+ 	 **/
+ 	public void enablePropertyChangeListeners( boolean pState) {
+ 	 	if( pState ) {
+	 		mStrokeButton.addPropertyChangeListener( this );
+	 		mFontPanel.addPropertyChangeListener( this);
+	 		mTextColorButton.addPropertyChangeListener( this);
+	 		mStrokeColorButton.addPropertyChangeListener( this);
+	 		mFillColorButton.addPropertyChangeListener( this);
+ 	 		}
+ 	 	else {
+	 		mStrokeButton.removePropertyChangeListener( this );
+	 		mFontPanel.removePropertyChangeListener( this);
+	 		mTextColorButton.removePropertyChangeListener( this);
+	 		mStrokeColorButton.removePropertyChangeListener( this);
+	 		mFillColorButton.removePropertyChangeListener( this);
+ 	 		}
+ 	 }
+ 	 
  	public void propertyChange( PropertyChangeEvent pEvent) {
  		//System.out.println("Node property chaged: "+pEvent.getPropertyName());
   		String name = pEvent.getPropertyName();

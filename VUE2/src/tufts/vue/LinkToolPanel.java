@@ -165,6 +165,9 @@ import tufts.vue.beans.*;
  			
  		mState = state;
  		
+ 		// stop listening while we change the values
+ 		enablePropertyListeners( false);
+ 		
  		if( mState.hasProperty( VueLWCPropertyMapper.kFont) ) {
 	 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
  			mFontPanel.setValue( font);
@@ -206,8 +209,8 @@ import tufts.vue.beans.*;
  		else {
  			debug("missing text color property in state.");
  			}
- 	
- 	 	
+ 		// all done setting... start listening  again.
+ 		enablePropertyListeners( true);
  	}
  	
  	/**
@@ -234,6 +237,28 @@ import tufts.vue.beans.*;
   				}
   			}
   	}
+  	
+  	
+	private void enablePropertyListeners( boolean pEnable) {
+	
+	 	if( pEnable) {	
+	 		mLinkColorButton.addPropertyChangeListener( this);
+	 		mTextColorButton.addPropertyChangeListener( this);
+	 		mFontPanel.addPropertyChangeListener( this);
+			mArrowStartButton.addActionListener( this);
+			mArrowEndButton.addActionListener( this);
+	 		mStrokeButton.addPropertyChangeListener( this );
+			}
+		else {
+	 		mLinkColorButton.removePropertyChangeListener( this);
+	 		mTextColorButton.removePropertyChangeListener( this);
+	 		mFontPanel.removePropertyChangeListener( this);
+			mArrowStartButton.removeActionListener( this);
+			mArrowEndButton.removeActionListener( this);
+	 		mStrokeButton.removePropertyChangeListener( this );
+	 		}
+	 }
+  	
  	
  	public void actionPerformed( ActionEvent pEvent) {
  		Object source = pEvent.getSource();

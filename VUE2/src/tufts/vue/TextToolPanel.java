@@ -117,6 +117,9 @@ import tufts.vue.beans.*;
  		
  		mState = state;
  		
+ 		// strop listening since we are chinging the proeprty values.
+ 		enablePropertyListeners( false);
+ 		
  		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
  		mFontPanel.setValue( font);
  		
@@ -124,6 +127,9 @@ import tufts.vue.beans.*;
  		
  		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
  		mTextColorButton.setColor( text);
+ 		
+ 		// start listening again
+ 		enablePropertyListeners( true);
  	}
  	
  	/**
@@ -134,7 +140,17 @@ import tufts.vue.beans.*;
  		return mState;
  	}
  	
- 	
+	private void enablePropertyListeners( boolean pEnable) {
+
+	if( pEnable) {
+			mTextColorButton.addPropertyChangeListener( this);
+			mFontPanel.addPropertyChangeListener( this);
+			}
+		else {
+			mTextColorButton.removePropertyChangeListener( this);
+			mFontPanel.removePropertyChangeListener( this);
+			}
+	} 	
  	public void propertyChange( PropertyChangeEvent pEvent) {
  		//System.out.println("Text property chaged: "+pEvent.getPropertyName());
   		String name = pEvent.getPropertyName();
