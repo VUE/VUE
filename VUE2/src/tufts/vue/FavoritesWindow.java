@@ -366,7 +366,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         }
     }   
  
-  public  void marshallMap(File file,SaveVueJTree favoritesTree)
+  public static void marshallMap(File file,SaveVueJTree favoritesTree)
     {
         Marshaller marshaller = null;
         
