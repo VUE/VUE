@@ -116,9 +116,9 @@ public class ActionUtil {
         {
             String fileName = chooser.getSelectedFile().getAbsolutePath();
             
-            //if it isn't a file name with the right extention 
-            if (!fileName.endsWith("." + extension))
-              fileName += "." + extension;
+            // if they type a file name w/out an extension
+            if (fileName.indexOf('.') < 0)
+                fileName += "." + extension;
             
             //if the file with the given name exists
             if ((file = new File(fileName)).exists())
@@ -128,8 +128,7 @@ public class ActionUtil {
             
             else
             {
-                //what to do here?
-                System.err.println("the file doesn't exist");
+                System.err.println("File name '"+fileName+"' " + file + " can't  be found.");
                 file = null;
             }
         }

@@ -61,13 +61,13 @@ public class SaveAction extends AbstractAction
         File file = map.getFile();
         
         if (isSaveAs() || file == null)
-            file = ActionUtil.selectFile("Save Map", "xml");
+            file = ActionUtil.selectFile("Save Map", "vue");
         
         if (file != null)
         {
             String name = file.getName().toLowerCase();
 
-            if (name.endsWith(".xml"))
+            if (name.endsWith(".xml") || name.endsWith(".vue"))
                 ActionUtil.marshallMap(file, map);
             
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))

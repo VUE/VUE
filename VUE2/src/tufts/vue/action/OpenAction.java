@@ -46,7 +46,7 @@ public class OpenAction extends AbstractAction
                 fileName += "." + extension;arent());
          */
            
-        File file = ActionUtil.openFile("Open Map", "xml");
+        File file = ActionUtil.openFile("Open Map", "vue");
         displayMap(file);
         
         
@@ -56,9 +56,9 @@ public class OpenAction extends AbstractAction
 
     
     public static void displayMap(File file) {
-        if (file != null && file.getName().endsWith(".xml"))
+        //if (file != null && file.getName().endsWith(".xml"))
+        if (file != null)
         {
-         
             VUE.activateWaitCursor();
             try 
             {
