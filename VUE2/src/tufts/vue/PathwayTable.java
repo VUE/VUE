@@ -42,7 +42,6 @@ public class PathwayTable extends JTable
     private final Color currentNodeColor = Color.red;
     
     private final LineBorder normalBorder = null;//new LineBorder(regular, 2);
-    //private final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
     
     private int lastSelectedRow = -1;
     private static final boolean showHeaders = true;    //sets whether or not table column headers are shown(?)
@@ -287,6 +286,7 @@ public class PathwayTable extends JTable
         }  
     }
  
+    private Border iconBorder = new EmptyBorder(0,3,0,0);
     private class ImageRenderer extends DefaultTableCellRenderer {
         
         public java.awt.Component getTableCellRendererComponent(
@@ -310,7 +310,7 @@ public class PathwayTable extends JTable
                 
                 if (col == 0) {
                     setIcon(bool ? eyeOpen : eyeClosed);
-                    setBorder(new EmptyBorder(0,3,0,0));
+                    setBorder(iconBorder);
                 }
                 else if (col == 2) {
                     setIcon(bool ? open : close);
