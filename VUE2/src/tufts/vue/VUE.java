@@ -652,6 +652,8 @@ public class VUE
 
     static void installExampleNodes(LWMap map)
     {
+        map.setFillColor(new Color(255,255,220));
+        
         map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
         map.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
         map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
@@ -707,6 +709,7 @@ public class VUE
         LWLink k2 = new LWLink(n2, n3);
         LWLink k3 = new LWLink(n2, n4);
         k3.setCurved(true);
+        k2.setControlCount(2);
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
