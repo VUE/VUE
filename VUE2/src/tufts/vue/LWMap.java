@@ -137,17 +137,25 @@ public class LWMap extends LWContainer
         return this.userZoom;
     }
       
+    /*
     public LWComponent findLWComponentAt(float mapX, float mapY)
     {
         LWComponent c = super.findLWComponentAt(mapX, mapY);
         return c == this ? null : c;
     }
 
-    public LWComponent findLWSubTargetAt(float mapX, float mapY)
+    public LWComponent findDeepestComponentAt(float mapX, float mapY, LWComponent excluded)
     {
-        LWComponent c = super.findLWSubTargetAt(mapX, mapY);
+        LWComponent c = super.findDeepestComponentAt(mapX, mapY, excluded);
         return c == this ? null : c;
     }
+    */
+
+    protected LWComponent defaultHitComponent()
+    {
+        return null;
+    }
+    
 
     LWNode addNode(LWNode c)
     {
