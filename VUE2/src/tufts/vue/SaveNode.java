@@ -18,75 +18,42 @@ import java.io.*;
 import java.util.Enumeration;
 
 public class SaveNode{
-    private String nodeType;
-    private String resourceName;
+   
+    private Resource resource;
     private Vector children;
     
     public SaveNode(){
         
     }
     
-    public SaveNode(Object obj){
-             
-          if (obj instanceof FavoritesNode){
-            this.setNodeType("FavoritesNode");
-            this.setResourceName(((FavoritesNode)obj).toString());
-        }else if (obj instanceof FileNode){
-            this.setNodeType("FileNode");
-          
-            File file = (File)((FileNode)obj).getUserObject();
-            this.setResourceName(file.toString());
-                if (!((FileNode)obj).isExplored()){
-                           ((FileNode)obj).explore();
-                            Enumeration fe = ((DefaultMutableTreeNode)obj).children();
-                            Vector fv = new Vector();
-                               while (fe.hasMoreElements())
-                                     {
-                                 SaveNode fchild = new SaveNode(fe.nextElement());
-                                     fv.add(fchild);
-                                        }
-                                      }
+    public SaveNode(ResourceNode resourceNode){
+      
             
-            }else if (obj instanceof AssetNode){
-            this.setNodeType("AssetNode");
-            this.setResourceName(((AssetNode)obj).toString());
-            
-        }else{
-             this.setNodeType("DefaultMutableTreeNode");
-             this.setResourceName(((DefaultMutableTreeNode)obj).toString());
-            
-        }  
-        Enumeration e = ((DefaultMutableTreeNode)obj).children();
+    
+        Enumeration e = resourceNode.children();
+        this.setResource(resourceNode.getResource());
         Vector v = new Vector();
        
         while (e.hasMoreElements())
         {
-            SaveNode child = new SaveNode(e.nextElement());
+            SaveNode child = new SaveNode((ResourceNode)e.nextElement());
+           
             v.add(child);
         }
-        
+          
         this.setChildren(v);
+     //  System.out.println("I am resource" + this.getResource()+this.getResource().getType()); 
        
     }
     
-    public void setNodeType(String nodetype){
-        this.nodeType = nodetype;
+    
+    public void setResource(Resource resource){
         
+        this.resource = resource;
     }
     
-    public String getNodeType(){
-        return(this.nodeType);
-        
-    }
-    
-    
-    public void setResourceName(String resource){
-        
-        this.resourceName = resource;
-    }
-    
-    public String getResourceName(){
-        return (this.resourceName);
+    public Resource getResource(){
+        return (this.resource);
         
     }
     
