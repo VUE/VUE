@@ -35,8 +35,12 @@ class DRBrowser extends javax.swing.JTabbedPane
         try {
             fedoraTree = new VueDragTree(dr.getAssets(),"Fedora Tree");
         } catch(OsidException e) {
-            JOptionPane.showMessageDialog(this,"Cannot connect to FEDORA Server.","FEDORA Alert", JOptionPane.ERROR_MESSAGE);
-          //  System.out.println(e);
+            System.err.println(e);
+            JOptionPane.showMessageDialog(this,
+                                          "Cannot connect to FEDORA Server:\n"
+                                          + e.getClass().getName() + ":\n" + e.getMessage(),
+                                          "FEDORA Alert",
+                                          JOptionPane.ERROR_MESSAGE);
         }
         if(fedoraTree != null) {
             JScrollPane jspFedora  = new JScrollPane(fedoraTree);
