@@ -53,10 +53,11 @@ public class LWNode extends LWContainer
     private static final int IconPadBottom = (int) IconAscent;
     private static final int IconMinY = IconPadLeft;
 
-    //private static final int ChildOffsetX = IconMargin;
+    private static final int ChildOffsetX = IconMargin; // X offset of children when icon showing
     private static final int ChildPadX = 5; // min space at left/right of children
     private static final int ChildVerticalGap = 3; // vertical space between children
     private static final int ChildHorizontalGap = 3; // horizontal space between children
+    private static final int ChildOffsetY = 1; // how far children down from bottom of icon
     private static final int ChildrenPadBottom = ChildPadX - ChildVerticalGap; // make same as space at right
     //    private static final int ChildrenPadBottom = 3; // space at bottom after all children
     
@@ -468,7 +469,7 @@ public class LWNode extends LWContainer
             if (width < childOffsetX() + childrenWidth + ChildPadX)
                 width = childOffsetX() + childrenWidth + ChildPadX;
             height += childrenHeight;
-            height += ChildrenPadBottom; // additional space below last child before bottom of node
+            height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
         } else if (iconShowing()) {
             height += IconPadBottom;
         }
@@ -515,7 +516,7 @@ public class LWNode extends LWContainer
         float baseX = childOffsetX() * getScale();
         float baseY = 0;
         if (iconShowing()) {
-            baseY = (float) (genIcon.getY() + IconHeight);
+            baseY = (float) (genIcon.getY() + IconHeight + ChildOffsetY);
         } else {
             baseY = relativeLabelY() + getLabelBox().getHeight();
         }
@@ -643,7 +644,7 @@ public class LWNode extends LWContainer
 
     private int childOffsetX()
     {
-        return iconShowing() ? IconMargin : ChildPadX;
+        return iconShowing() ? ChildOffsetX : ChildPadX;
     }
 
     private float relativeLabelX()
@@ -888,7 +889,9 @@ public class LWNode extends LWContainer
             Font f = FONT_ICON.deriveFont((float) (FONT_ICON.getSize() - 3));
             g.setFont(f);
             g.setColor(Color.gray);
-            g.drawString("notes", IconWidth/4, IconHeight-1);
+            g.drawString("notes", IconWidth+IconPadRight, IconHeight-1);
+            //g.drawString("notes", childOffseX(), IconHeight-1);
+            //g.drawString("notes", IconWidth/4, IconHeight-1);
         }
         
         g.translate(-iconX, -iconY);
