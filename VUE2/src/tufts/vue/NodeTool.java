@@ -176,7 +176,7 @@ public class NodeTool extends VueTool
         
         public Action getShapeSetterAction() {
             if (shapeSetterAction == null) {
-                shapeSetterAction = new Actions.MapAction(getToolName(), new ShapeIcon()) {
+                shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon()) {
                         void act(LWNode n) {
                             n.setShape(getShapeInstance());
                         }

@@ -1,5 +1,6 @@
 package tufts.vue;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -8,10 +9,8 @@ import java.awt.geom.Point2D;
 
 public class LWSelection extends java.util.ArrayList
 {
-    //public static final boolean DEBUG.SELECTION = VueResources.getBool("selection.debug");
-
-    private java.util.List listeners = new java.util.ArrayList();
-    private java.util.List controlListeners = new java.util.LinkedList();
+    private List listeners = new java.util.ArrayList();
+    private List controlListeners = new java.util.LinkedList();
     private Rectangle2D bounds = null;
 
     private boolean isClone = false;
@@ -58,7 +57,6 @@ public class LWSelection extends java.util.ArrayList
         void controlPointPressed(int index, MapMouseEvent e);
         void controlPointMoved(int index, MapMouseEvent e);
         void controlPointDropped(int index, MapMouseEvent e);
-        //Point2D.Float[] getControlPoints();
         ControlPoint[] getControlPoints();
     }
     
@@ -174,14 +172,13 @@ public class LWSelection extends java.util.ArrayList
     synchronized void toggle(Iterator i)
     {
         LWComponent c;
-        boolean changed = false;
+        boolean changed = i.hasNext();
         while (i.hasNext()) {
             c = (LWComponent) i.next();
             if (c.isSelected())
                 remove0(c);
             else
                 add0(c);
-            changed = true;
         }
         if (changed)
             notifyListeners();

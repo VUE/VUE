@@ -1,6 +1,8 @@
 package tufts.vue;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.awt.*;
@@ -2010,14 +2012,17 @@ public class MapViewer extends javax.swing.JComponent
      * removed from the panel */
     public void remove(Component c)
     {
-        super.remove(c);
-        if (c == activeTextEdit) {
-            activeTextEdit = null;
-            try {
-                repaint();
-                requestFocus();
-            } finally {
-                Actions.setAllIgnored(false);
+        try {
+            super.remove(c);
+        } finally {
+            if (c == activeTextEdit) {
+                activeTextEdit = null;
+                try {
+                    repaint();
+                    requestFocus();
+                } finally {
+                    Actions.setAllIgnored(false);
+                }
             }
         }
     }
@@ -2504,17 +2509,12 @@ public class MapViewer extends javax.swing.JComponent
         VueSelection.toggle(i);
     }
     
-    private JPopupMenu mapPopup = null;
-    private JPopupMenu groupPopup = null;
-    private JPopupMenu componentPopup = null;
-    private JMenu assetMenu = null;
-    private JMenu linkMenu = null;
-    private JMenu nodeMenu = null;
-
-    private JMenu getLinkMenu()
+    private static Map sLinkMenus = new HashMap();
+    private JMenu getLinkMenu(String name)
     {
-        if (linkMenu == null) {
-            linkMenu = new JMenu("Link");
+        Object menu = sLinkMenus.get(name);
+        if (menu == null) {
+            JMenu linkMenu = new JMenu(name);
             for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
                 Action a = Actions.LINK_MENU_ACTIONS[i];
                 if (a == null)
@@ -2522,15 +2522,19 @@ public class MapViewer extends javax.swing.JComponent
                 else
                     linkMenu.add(a);
             }
+            sLinkMenus.put(name, linkMenu);
+            return linkMenu;
+        } else {
+            return (JMenu) menu;
         }
-        return linkMenu;
-            
     }
 
-    private JMenu getNodeMenu()
+    private static Map sNodeMenus = new HashMap();
+    private JMenu getNodeMenu(String name)
     {
-        if (nodeMenu == null) {
-            nodeMenu = new JMenu("Node");
+        Object menu = sNodeMenus.get(name);
+        if (menu == null) {
+            JMenu nodeMenu = new JMenu(name);
             for (int i = 0; i < Actions.NODE_MENU_ACTIONS.length; i++) {
                 Action a = Actions.NODE_MENU_ACTIONS[i];
                 if (a == null)
@@ -2543,34 +2547,38 @@ public class MapViewer extends javax.swing.JComponent
             for (int i = 0; i < shapeActions.length; i++) {
                 nodeMenu.add(shapeActions[i]);
             }
+            sNodeMenus.put(name, nodeMenu);
+            return nodeMenu;
+        } else {
+            return (JMenu) menu;
         }
-        return nodeMenu;
-            
     }
     
-    private JPopupMenu getMapPopup()
-    {
-        if (mapPopup == null) {
-            mapPopup = new JPopupMenu("Map Menu");
-            mapPopup.addSeparator();
-            mapPopup.add(Actions.NewNode);
-            mapPopup.add(Actions.NewText);
-            mapPopup.addSeparator();
-            mapPopup.add(Actions.ZoomFit);
-            mapPopup.add(Actions.ZoomActual);
-            mapPopup.addSeparator();
-            mapPopup.add(Actions.SelectAll);
-            //mapPopup.add("Visible");
-            //mapPopup.setBackground(Color.gray);
+    private static JMenu sArrangeMenu;
+    private JMenu getArrangeMenu() {
+        if (sArrangeMenu == null) {
+            sArrangeMenu = new JMenu("Arrange");
+            for (int i = 0; i < Actions.ARRANGE_MENU_ACTIONS.length; i++) {
+                Action a = Actions.ARRANGE_MENU_ACTIONS[i];
+                if (a == null)
+                    sArrangeMenu.addSeparator();
+                else
+                    sArrangeMenu.add(a);
+            }
         }
-        return mapPopup;
+        return sArrangeMenu;
     }
 
-    private JPopupMenu buildGroupPopup()
+    private JPopupMenu buildMultiSelectionPopup()
     {
-        JPopupMenu m = new JPopupMenu("Group Menu");
+        JPopupMenu m = new JPopupMenu("Multi-Component Menu");
 
+        m.add(getNodeMenu("Nodes"));
+        m.add(getLinkMenu("Links"));
+        m.addSeparator();
         m.add(Actions.Duplicate);
+        m.addSeparator();
+        m.add(getArrangeMenu());
         m.addSeparator();
         m.add(Actions.Group);
         m.add(Actions.Ungroup);
@@ -2580,22 +2588,24 @@ public class MapViewer extends javax.swing.JComponent
         m.add(Actions.SendToBack);
         m.add(Actions.SendBackward);
         m.addSeparator();
-        for (int i = 0; i < Actions.ARRANGE_MENU_ACTIONS.length; i++) {
-            Action a = Actions.ARRANGE_MENU_ACTIONS[i];
-            if (a == null)
-                m.addSeparator();
-            else
-                m.add(a);
-        }
-        m.addSeparator();
         m.add(Actions.Delete);
         return m;
     }
     
-    private JPopupMenu buildComponentPopup()
+    private static JMenuItem sNodeMenuItem;
+    private static JMenuItem sLinkMenuItem;
+    private static JMenuItem sUngroupItem;
+    private JPopupMenu buildSingleSelectionPopup()
     {
-        JPopupMenu m = new JPopupMenu("Item Menu");
+        JPopupMenu m = new JPopupMenu("Component Menu");
 
+        sNodeMenuItem = getNodeMenu("Node");
+        sLinkMenuItem = getLinkMenu("Link");
+        sUngroupItem = new JMenuItem(Actions.Ungroup);
+        
+        m.add(sNodeMenuItem);
+        m.add(sLinkMenuItem);
+        m.add(sUngroupItem);
         m.add(Actions.Rename);
         m.add(Actions.Duplicate);
         m.addSeparator();
@@ -2608,12 +2618,10 @@ public class MapViewer extends javax.swing.JComponent
         m.addSeparator();
         m.add(Actions.Delete);
         m.addSeparator();
-        m.add(Actions.AddPathwayNode);
-        m.add(Actions.DeletePathwayNode);
-        m.addSeparator();
+        m.add(Actions.AddPathwayNode); //15
+        m.add(Actions.DeletePathwayNode); //16
+        m.addSeparator(); //17
         m.add(Actions.HierarchyView);
-        
-        //end of addition
         
         // todo: special add-to selection action that adds
         // hitComponent to selection so have way other
@@ -2623,76 +2631,124 @@ public class MapViewer extends javax.swing.JComponent
         return m;
     }
     
-    private JPopupMenu getComponentPopup(LWComponent c)
+    private static JMenu sAssetMenu;
+    private static JPopupMenu sSinglePopup;
+    private JPopupMenu getSingleSelectionPopup(LWComponent c)
     {
         if (c == null)
             c = VueSelection.first(); // should be only thing in selection
 
-        if (componentPopup == null)
-            componentPopup = buildComponentPopup();
+        if (sSinglePopup == null)
+            sSinglePopup = buildSingleSelectionPopup();
         
         if (c instanceof LWNode) {
-            //componentPopup.add(getNodeMenu());
-            //componentPopup.add(Actions.NodeMakeAutoSized);
+            sNodeMenuItem.setVisible(true);
+            sLinkMenuItem.setVisible(false);
+            Actions.HierarchyView.setEnabled(true);
+
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
             if (r != null && r.getType() == Resource.ASSET_FEDORA) {
                 Asset a = r == null ? null :((AssetResource)r).getAsset();  
-                if(a != null && assetMenu == null) {
-                   assetMenu = getAssetMenu(a);
-                   componentPopup.add(assetMenu);
-                }else if(a != null) {
-                    componentPopup.remove(assetMenu);
-                    assetMenu = getAssetMenu(a);
-                    componentPopup.add(assetMenu);
-                }else if(a == null && assetMenu != null) {
-                    componentPopup.remove(assetMenu);
+                if (a != null && sAssetMenu == null) {
+                    sAssetMenu = buildAssetMenu(a);
+                    sSinglePopup.add(sAssetMenu);
+                } else if (a != null) {
+                    sSinglePopup.remove(sAssetMenu);
+                    sAssetMenu = buildAssetMenu(a);
+                    sSinglePopup.add(sAssetMenu);
+                } else if (a == null && sAssetMenu != null) {
+                    sSinglePopup.remove(sAssetMenu);
                 }
             }
-        }
-        /*
-          // TODO: if JUST a group is selected, need to add Ungroup
-          // to the menu
-        else if (c instanceof LWGroup) {
-            componentPopup.add(Actions.Ungroup);
         } else {
-            componentPopup.remove(Actions.Ungroup);
+            sLinkMenuItem.setVisible(c instanceof LWLink);
+            sNodeMenuItem.setVisible(false);
+            Actions.HierarchyView.setEnabled(false);
         }
-        */
+            
+        if (getMap().getPathwayList().getActivePathway() == null) {
+            sSinglePopup.getComponent(15).setVisible(false); // hide path add
+            sSinglePopup.getComponent(16).setVisible(false); // hide path remove
+            sSinglePopup.getComponent(17).setVisible(false); // hide separator
+        } else {
+            sSinglePopup.getComponent(15).setVisible(true); // show path add
+            sSinglePopup.getComponent(16).setVisible(true); // show path remove
+            sSinglePopup.getComponent(17).setVisible(true); // show separator
+        }
+        
+        if (c instanceof LWGroup) {
+            sUngroupItem.setVisible(true);
+            sSinglePopup.getComponent(3).setVisible(false); // hide rename
+        } else {
+            sUngroupItem.setVisible(false);
+            sSinglePopup.getComponent(3).setVisible(true); // show rename
+        }
 
-
-        if (c instanceof LWLink)
-            componentPopup.add(getLinkMenu());
-        else
-            componentPopup.remove(getLinkMenu());
-
-        if (c instanceof LWNode)
-            componentPopup.add(getNodeMenu());
-        else
-            componentPopup.remove(getNodeMenu());
-
-        return componentPopup;
+        return sSinglePopup;
     }
     
-    private JPopupMenu getSelectionPopup(LWComponent c)
+    private JMenu buildAssetMenu(Asset asset) {
+        JMenu returnMenu = new JMenu("Behaviors");
+        
+        InfoRecordIterator i;
+        try {
+            i = asset.getInfoRecords();
+            while(i.hasNext()) {
+                  InfoRecord infoRecord = i.next();
+                  JMenu infoRecordMenu = new  JMenu(infoRecord.getId().getIdString());
+                  InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
+                  while(inf.hasNext()) {
+                      InfoField infoField = (InfoField)inf.next();
+                      //String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getId().getIdString();
+                      infoRecordMenu.add(FedoraUtils.getFedoraAction(infoField));
+                      //infoRecordMenu.add(new FedoraAction(infoField.getId().getIdString(),method));
+                  }
+                  
+                  returnMenu.add(infoRecordMenu);
+            }
+        } catch (Exception e) {
+            System.out.println("MapViewer.getAssetMenu"+e);
+        }
+        return returnMenu;
+    }
+
+    private static JPopupMenu sMultiPopup;
+    private JPopupMenu getMultiSelectionPopup()
     {
-        if (groupPopup == null)
-            groupPopup = buildGroupPopup();
-
-        if (VueSelection.allOfType(LWLink.class))
-            groupPopup.add(getLinkMenu());
-        else
-            groupPopup.remove(getLinkMenu());
-
-        return groupPopup;
+        if (sMultiPopup == null)
+            sMultiPopup = buildMultiSelectionPopup();
 
         /*
-        if (VueSelection.size() == 1 && !(VueSelection.first() instanceof LWGroup))
-            return componentPopup;
+        if (VueSelection.allOfType(LWLink.class))
+            multiPopup.add(getLinkMenu());
         else
-            return groupPopup;
+            multiPopup.remove(getLinkMenu());
         */
+
+        return sMultiPopup;
     }
+
+    private static JPopupMenu sMapPopup;
+    private JPopupMenu getMapPopup()
+    {
+        if (sMapPopup == null) {
+            sMapPopup = new JPopupMenu("Map Menu");
+            sMapPopup.addSeparator();
+            sMapPopup.add(Actions.NewNode);
+            sMapPopup.add(Actions.NewText);
+            sMapPopup.addSeparator();
+            sMapPopup.add(Actions.ZoomFit);
+            sMapPopup.add(Actions.ZoomActual);
+            sMapPopup.addSeparator();
+            sMapPopup.add(Actions.SelectAll);
+            //sMapPopup.add("Visible");
+            //sMapPopup.setBackground(Color.gray);
+        }
+        return sMapPopup;
+    }
+
+    
     
     static final int RIGHT_BUTTON_MASK =
         java.awt.event.InputEvent.BUTTON2_MASK
@@ -3189,34 +3245,9 @@ public class MapViewer extends javax.swing.JComponent
             if (VueSelection.isEmpty()) {
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
             } else if (VueSelection.size() == 1) {
-
-                //enables and disables the add/delete pathway nodes menu 
-                //depending on whether there is a selected pathway and the selected component 
-                //belongs to the pathway
-                if (getMap().getPathwayList().getActivePathway() != null) {
-                    if (getMap().getPathwayList().getActivePathway().contains(hitComponent)) {
-                        Actions.AddPathwayNode.setEnabled(false);
-                        Actions.DeletePathwayNode.setEnabled(true);
-                    } else {
-                        Actions.AddPathwayNode.setEnabled(true);
-                        Actions.DeletePathwayNode.setEnabled(false);
-                    }   
-                }else{
-                    Actions.AddPathwayNode.setEnabled(false);
-                    Actions.DeletePathwayNode.setEnabled(false);
-                }
-                
-                if (VueSelection.size() == 1 && VueSelection.get(0) instanceof LWNode)
-                    Actions.HierarchyView.setEnabled(true);
-                else
-                    Actions.HierarchyView.setEnabled(false);
-
-                getComponentPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
-
+                getSingleSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
             } else {
-
-                getSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
-                
+                getMultiSelectionPopup().show(e.getComponent(), e.getX(), e.getY());
             }
         }
                 
@@ -4607,28 +4638,7 @@ public class MapViewer extends javax.swing.JComponent
         */
 
     }
-    private JMenu getAssetMenu(Asset asset) {
-        JMenu returnMenu = new JMenu("Behaviors");
-        
-        InfoRecordIterator i;
-        try {
-            i = asset.getInfoRecords();
-            while(i.hasNext()) {
-                  InfoRecord infoRecord = i.next();
-                  JMenu infoRecordMenu = new  JMenu(infoRecord.getId().getIdString());
-                  InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
-                  while(inf.hasNext()) {
-                      InfoField infoField = (InfoField)inf.next();
-                      //String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getId().getIdString();
-                      infoRecordMenu.add(FedoraUtils.getFedoraAction(infoField));
-                      //infoRecordMenu.add(new FedoraAction(infoField.getId().getIdString(),method));
-                  }
-                  
-                  returnMenu.add(infoRecordMenu);
-            }
-        } catch(Exception e) { System.out.println("MapViewer.getAssetMenu"+e);}
-        return returnMenu;
-    }   
+
 // this class will move out of here
 
     class Box2D {

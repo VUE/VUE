@@ -57,42 +57,40 @@ class Actions
     //-------------------------------------------------------
     
     static final Action SelectAll =
-        new MapAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
+        new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
             boolean undoable() { return false; }
-            boolean enabledFor(LWSelection s) { return true; }
             public void act() {
                 VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
             }
         };
     static final Action DeselectAll =
-        new MapAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
+        new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
             boolean undoable() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
-            public void act()
-            {
+            public void act() {
                 VUE.getSelection().clear();
             }
         };
 
     static final Action AddPathwayNode = 
-        new MapAction("Add to Pathway")
+        new LWCAction("Add to Pathway")
         {
-            public void act(LWComponent c) {
-                VUE.getActivePathway().add(c);
+            public void act(Iterator i) {
+                VUE.getActivePathway().add(i);
             }
-            public boolean enabled() {
-                return VUE.getActivePathway() != null;
+            public boolean enabledFor(LWSelection s) {
+                return VUE.getActivePathway() != null && s.size() > 0;
             }
         };
         
     static final Action DeletePathwayNode = 
-        new MapAction("Remove from Pathway")
+        new LWCAction("Remove from Pathway")
         {
-            public void act(LWComponent c) {
-                VUE.getActivePathway().remove(c);
+            public void act(Iterator i) {
+                VUE.getActivePathway().remove(i);
             }
-            public boolean enabled() {
-                return VUE.getActivePathway() != null;
+            public boolean enabledFor(LWSelection s) {
+                return VUE.getActivePathway() != null && s.size() > 0;
             }
         }; 
     
@@ -103,7 +101,7 @@ class Actions
     /**Addition by Daisuke Fujiwara*/
     
     static final Action HierarchyView = 
-        new MapAction("Hierarchy View")
+        new LWCAction("Hierarchy View")
         {
             boolean undoable() { return false; }
             public void act()
@@ -139,13 +137,8 @@ class Actions
                 VUE.displayMap((LWMap)hierarchyMap);
             }
             
-            public boolean enabled()
-            { 
-              if (VUE.getSelection().size() != 1 && VUE.getSelection().get(0) instanceof LWLink)
-                  return false;
-              
-              else
-                  return true;
+            public boolean enabledFor(LWSelection s) {
+                return s.size() == 1 && s.first() instanceof LWNode;
             }
         };
         
@@ -155,8 +148,8 @@ class Actions
     // Link actions
     //-----------------------------------------------------------------------------
         
-    static final MapAction LinkMakeStraight =
-        new MapAction("Make Straight") {
+    static final LWCAction LinkMakeStraight =
+        new LWCAction("Make Straight") {
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWLink.class))
                     return false;
@@ -164,8 +157,8 @@ class Actions
             }
             public void act(LWLink c) { c.setControlCount(0); }
         };
-    static final MapAction LinkMakeQuadCurved =
-        new MapAction("Make Curved (1 point)") {
+    static final LWCAction LinkMakeQuadCurved =
+        new LWCAction("Make Curved (1 point)") {
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWLink.class))
                     return false;
@@ -173,8 +166,8 @@ class Actions
             }
             public void act(LWLink c) { c.setControlCount(1); }
         };
-    static final MapAction LinkMakeCubicCurved =
-        new MapAction("Make Curved (2 points)") {
+    static final LWCAction LinkMakeCubicCurved =
+        new LWCAction("Make Curved (2 points)") {
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWLink.class))
                     return false;
@@ -183,7 +176,7 @@ class Actions
             public void act(LWLink c) { c.setControlCount(2); }
         };
     static final Action LinkArrows =
-        new MapAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)) {
+        new LWCAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)) {
             boolean enabledFor(LWSelection s) { return s.containsType(LWLink.class); }
             public void act(LWLink c) { c.rotateArrowState(); }
         };
@@ -203,8 +196,8 @@ class Actions
     // Node actions
     //-----------------------------------------------------------------------------
 
-    static final MapAction NodeMakeAutoSized =
-        new MapAction("Set Auto-Sized") {
+    static final LWCAction NodeMakeAutoSized =
+        new LWCAction("Set Auto-Sized") {
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWNode.class))
                     return false;
@@ -267,12 +260,12 @@ class Actions
     }
             
             
-    static final MapAction Duplicate =
-        new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
+    static final LWCAction Duplicate =
+        new LWCAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             // hierarchicalAction set to true: if parent being duplicated, don't duplicate
-            // any selected children, creating extra siblisngs.
+            // any selected children, creating extra siblings.
             boolean hierarchicalAction() { return true; } 
 
             // TODO: preserve layering order of components -- don't
@@ -298,7 +291,7 @@ class Actions
         };
 
     static final Action Cut =
-        new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
+        new LWCAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             void act(LWSelection selection) {
@@ -308,8 +301,8 @@ class Actions
             }
         };
 
-    static final MapAction Copy =
-        new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
+    static final LWCAction Copy =
+        new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             void act(Iterator iSelection) {
                 ScratchBuffer.clear();
@@ -328,11 +321,8 @@ class Actions
             }
         };
     static final Action Paste =
-        new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
-            boolean enabledFor(LWSelection s) { return true; }
-            //boolean enabledFor(LWSelection s)// doesn't get updates from ScratchBuffer!
-            //{ return ScratchBuffer.size() > 0; }
-            //public boolean isEnabled() { return true; }//listen for scratch buffer fill
+        new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
+            //public boolean isEnabled() //would need to listen for scratch buffer fills
 
             void act() {
                 LWContainer parent = VUE.getActiveViewer().getMap();
@@ -340,14 +330,13 @@ class Actions
                     // unless this was from a cut or it came from a
                     // different map, or we already pasted this,
                     // offset the location.  This is conveniently
-                    // cumulative since we're offsetting the actual
-                    // components in the cut buffer, which are
+                    // cumulative since we're translating the actual
+                    // components in the cut buffer, which are then
                     // duplicated each time we paste.
                     Iterator i = ScratchBuffer.iterator();
                     while (i.hasNext()) {
                         LWComponent c = (LWComponent) i.next();
-                        c.setLocation(c.getX()+sCopyOffset,
-                                      c.getY()+sCopyOffset);
+                        c.translate(sCopyOffset, sCopyOffset);
                     }
                 } else
                     ScratchMap = parent; // pastes again to this map will be offset
@@ -356,15 +345,16 @@ class Actions
                 parent.addChildren(pasted.iterator());
                 VUE.getSelection().setTo(pasted.iterator());
             }
+
             void act_system() {
-                
                 Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
                 VUE.getActiveViewer().getMapDropTarget().processTransferable(clipboard.getContents(this), null);
             }
+            
         };
 
-    static final MapAction Delete =
-        new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
+    static final LWCAction Delete =
+        new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE))
         {
             // hierarchicalAction is true: if parent being deleted,
             // let it handle deleting the children (ignore any
@@ -409,7 +399,7 @@ class Actions
     //-------------------------------------------------------
     
     static final Action Group =
-        new MapAction("Group", keyStroke(KeyEvent.VK_G, COMMAND))
+        new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND))
         {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s)
@@ -431,7 +421,7 @@ class Actions
             }
         };
     static final Action Ungroup =
-        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT))
+        new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT))
         {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) {
@@ -452,9 +442,9 @@ class Actions
             }
         };
     static final Action Rename =
-        new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
+        new LWCAction("Rename", keyStroke(KeyEvent.VK_F2))
         {
-            boolean undoable() { return false; } // label edtior handles the undo
+            boolean undoable() { return false; } // label editor handles the undo
             boolean enabledFor(LWSelection s) {
                 return s.size() == 1 && s.first().supportsUserLabel();
             }
@@ -468,8 +458,8 @@ class Actions
     // Arrange actions
     //-------------------------------------------------------
 
-    static final MapAction BringToFront =
-        new MapAction("Bring to Front",
+    static final LWCAction BringToFront =
+        new LWCAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
                       keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT))
         {
@@ -483,8 +473,8 @@ class Actions
                 LWContainer.bringToFront(selection);
             }
         };
-    static final MapAction SendToBack =
-        new MapAction("Send to Back",
+    static final LWCAction SendToBack =
+        new LWCAction("Send to Back",
                       "Make sure this object doesn't obscure any other object",
                       keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT))
         {
@@ -498,16 +488,16 @@ class Actions
                 LWContainer.sendToBack(selection);
             }
         };
-    static final MapAction BringForward =
-        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND))
+    static final LWCAction BringForward =
+        new LWCAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND))
         {
             boolean enabledFor(LWSelection s) { return BringToFront.enabledFor(s); }
             void act(LWSelection selection) {
                 LWContainer.bringForward(selection);
             }
         };
-    static final MapAction SendBackward =
-        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND))
+    static final LWCAction SendBackward =
+        new LWCAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND))
         {
             boolean enabledFor(LWSelection s) { return SendToBack.enabledFor(s); }
             void act(LWSelection selection) {
@@ -520,7 +510,7 @@ class Actions
     //-------------------------------------------------------
         
     static final Action FontSmaller =
-        new MapAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND))
+        new LWCAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -535,7 +525,7 @@ class Actions
             }
         };
     static final Action FontBigger =
-        new MapAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND))
+        new LWCAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -548,7 +538,7 @@ class Actions
             }
         };
     static final Action FontBold =
-        new MapAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND))
+        new LWCAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND))
         {
             void act(LWComponent c) {
                 //System.out.println("BOLDING " + c);
@@ -558,7 +548,7 @@ class Actions
             }
         };
     static final Action FontItalic =
-        new MapAction("Font Italic", keyStroke(KeyEvent.VK_I, COMMAND))
+        new LWCAction("Font Italic", keyStroke(KeyEvent.VK_I, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
@@ -576,7 +566,7 @@ class Actions
     // (error occurs even in first adjustment, but easier to notice
     // in follow-ons)
     //-------------------------------------------------------
-    abstract static class ArrangeAction extends MapAction
+    abstract static class ArrangeAction extends LWCAction
     {
         static float minX, minY;
         static float maxX, maxY;
@@ -1019,34 +1009,36 @@ class Actions
         }
         
     }
-    //-----------------------------------------------------------------------------
-    // MapAction: actions that depend on the selection in the map viewer
-    // todo: should really call this SelectionAction or something similar.
-    //-----------------------------------------------------------------------------
-    static class MapAction extends VueAction
+    
+    /**
+     * LWCAction: actions that operate on one or more LWComponents
+     * Provides a number of convenience methods to allow code in
+     * each action to be tight & focused.
+     */
+    static class LWCAction extends VueAction
         implements LWSelection.Listener
     {
-        MapAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
+        LWCAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
         {
             super(name, shortDescription, keyStroke, icon);
             VUE.getSelection().addListener(this);
         }
-        MapAction(String name, String shortDescription, KeyStroke keyStroke) {
+        LWCAction(String name, String shortDescription, KeyStroke keyStroke) {
             this(name, shortDescription, keyStroke, null);
         }
-        MapAction(String name) {
+        LWCAction(String name) {
             this(name, null, null, null);
         }
-        MapAction(String name, Icon icon) {
+        LWCAction(String name, Icon icon) {
             this(name, null, null, icon);
         }
-        MapAction(String name, KeyStroke keyStroke) {
+        LWCAction(String name, KeyStroke keyStroke) {
             this(name, null, keyStroke, null);
         }
         void act()
         {
             LWSelection selection = VUE.getSelection();
-            //System.out.println("MapAction: " + getActionName() + " n=" + selection.size());
+            //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
                 if (mayModifySelection())
                     selection = (LWSelection) selection.clone();
@@ -1121,9 +1113,9 @@ class Actions
          *
          * Note that the default is to descend into instances of LWGroup
          * and apply the action seperately to each child, and NOT
-         * do apply the action to any nodes that are children of
+         * to apply the action to any nodes that are children of
          * other nodes. If the child is already in selection (e.g.
-         * a select all was done) be sure NOT do act on it, otherwise
+         * a select all was done) be sure NOT to act on it, otherwise
          * the action will be done twice).
          */
         void act(Iterator i)
@@ -1152,20 +1144,17 @@ class Actions
             else if (c instanceof LWNode)
                 act((LWNode)c);
             else
-                System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
+                if (DEBUG.SELECTION) System.out.println("LWCAction: ignoring " + getActionName() + " on " + c);
             
         }
-        void act(LWLink c)
-        {
-            System.out.println("Unhandled MapAction: " + getActionName() + " on " + c);
+        void act(LWLink c) {
+            System.out.println("Unhandled LWCAction: " + getActionName() + " on " + c);
         }
-        void act(LWNode c)
-        {
-            System.out.println("Unhandled MapAction: " + getActionName() + " on " + c);
+        void act(LWNode c) {
+            System.out.println("Unhandled LWCAction: " + getActionName() + " on " + c);
         }
         
-        void Xact(LWComponent c) {}// for commenting convenience
-        public String toString() { return "MapAction[" + getActionName() + "]"; }
+        public String toString() { return "LWCAction[" + getActionName() + "]"; }
     }
     
 }
