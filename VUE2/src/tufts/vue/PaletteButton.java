@@ -35,9 +35,6 @@ import javax.swing.border.*;
  **/
 public class PaletteButton extends JRadioButton implements ActionListener
 {
-    private static final Color ButtonBackgroundColor = VueResources.getColor("toolbar.background");
-    //private static final Color ButtonBackgroundColor = VueResources.getColor("menubarColor");
-    
     /* this is thr eolumn threshold array to tell when to add another columng in the palette */
     static int mColThreshold[] = VueResources.getIntArray("menuFlowThreshold") ;
 	
@@ -77,23 +74,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	
 	
     /**
-     * Constructor
-     *
-     * Creates a new PaletteButton with no menus
-     *
-     **/
-    public PaletteButton() {
-        super();
-        setBorder( null);
-        setFocusable(false);
-        setBackground(ButtonBackgroundColor);
-    }
-	
-	
-    /**
-     * Constructor
-     *
-     *  Creates a new PaletteButton with the passed array of items
+     * Creates a new PaletteButton with the passed array of items
      * as it's palette menu.
      * 
      *  It will preselect the first item in the array as
@@ -101,20 +82,23 @@ public class PaletteButton extends JRadioButton implements ActionListener
      *
      * @param pItems  an array of PaletteButtonItems for the menu.
      **/
-    public PaletteButton(  PaletteButtonItem [] pItems) {
-        super();
-        setPaletteButtonItems( pItems );
-        setRolloverEnabled( true);
+    public PaletteButton(PaletteButtonItem[] pItems)
+    {
+        if (pItems != null) {
+            setPaletteButtonItems(pItems);
+            setRolloverEnabled(true);
+        }
         setBorder( null);
         setFocusable(false);
-        setBackground(ButtonBackgroundColor);
+        setBackground(VueTheme.getToolbarColor());
     }
 	
-	
-	
-    //////////////////
-    // Methods
-    //////////////////
+    /**
+     * Creates a new PaletteButton with no menus
+     **/
+    public PaletteButton() {
+        this(null);
+    }
 	
 	
     /**
@@ -469,10 +453,10 @@ public class PaletteButton extends JRadioButton implements ActionListener
 
         public PBPopupMenu() {
             setFocusable(false);
-            setBackground(ButtonBackgroundColor);
+            Color bg = VueTheme.getToolbarColor();
+            setBackground(bg);
+            setBorder(new LineBorder(bg.darker().darker(), 1));
             //setBorderPainted(false);
-            setBorder(new LineBorder(ButtonBackgroundColor.darker().darker(), 1));
-            //setBorder(new LineBorder(Color.black));
         }
             
         public void setVisibleLocked(boolean t) {
