@@ -343,7 +343,7 @@ public class LWMap extends LWContainer
     {
         mCachedBoundsOld = true; // consider flushing bounds if layout() called also (any child layout bubbles up to us)
         String what = e.getWhat();
-        if (/*what != LWCEvent.Repaint &&*/ what != LWCEvent.Scale) {
+        if (what != LWCEvent.Repaint && what != LWCEvent.Scale) {
             // repaint is for non-permanent changes.
             // scale sets not considered modifications as they can
             // happen do to rollover -- any time a scale happens
