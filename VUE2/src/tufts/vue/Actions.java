@@ -207,7 +207,6 @@ class Actions
             }
             public void act(LWNode c) {
                 c.setAutoSized(true);
-                //c.layout();
             }
         };
 
@@ -648,13 +647,11 @@ class Actions
 
     static final Action FillWidth = new ArrangeAction("Fill Width") {
             void arrange(LWComponent c) {
-                ((LWNode)c).setAutoSized(false); // todo: should not have to do this
                 c.setFrame(minX, c.getY(), maxX - minX, c.getHeight());
             }
         };
     static final Action FillHeight = new ArrangeAction("Fill Height") {
             void arrange(LWComponent c) {
-                ((LWNode)c).setAutoSized(false); // todo: should not have to do this
                 c.setFrame(c.getX(), minY, c.getWidth(), maxY - minY);
             }
         };

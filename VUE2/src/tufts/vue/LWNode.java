@@ -319,23 +319,65 @@ public class LWNode extends LWContainer
     	return mIsTextNode;
     }
     
-    
     /** If true, compute node size from label & children */
-    /*
     public boolean isAutoSized() {
         return this.autoSized;
     }
-    public void setAutoSized(boolean tv)
+
+    /**
+     * For explicitly restoring the autoSized bit to true.
+     *
+     * The autoSize bit is only *cleared* via automatic means: when the
+     * node's size is explicitly set to something bigger than that
+     * size it would have if it took on it's automatic size.
+     *
+     * Clearing the autoSize bit on a node manually would have no
+     * effect, because as soon as it was next laid out, it would
+     * notice it has it's minimum size, and would automatically
+     * set the bit.
+     */
+    
+    public void setAutoSized(boolean makeAutoSized)
     {
-        if (autoSized != tv) {
-            //Object old = autoSized ? Boolean.TRUE : Boolean.FALSE;
-            this.autoSized = tv;
-            //notify("node.autosized", new Undoable(old) { void undo(boolean b) { setAutoSized(b); }} );
-            // this is handled as a side-effect of setSize -- will only need
-            // this if we optimize setSize to by default be an internal non-event raising setter
-        }
+        if (autoSized == makeAutoSized)
+            return;
+        if (DEBUG.LAYOUT) out("*** " + this + " setAutoSized " + makeAutoSized);
+
+        // We only need an undo event if going from not-autosized to
+        // autosized: i.e.: it wasn't an automatic shift triggered via
+        // set size. Because size events aren't delieverd if autosized
+        // is on (which would normally notice the size change), we need
+        // to remember the old size manually here if turning autosized
+        // back on)
+
+        Object old = null;
+        if (makeAutoSized)
+            old = new Point2D.Float(this.width, this.height);
+        this.autoSized = makeAutoSized;
+        if (autoSized && !inLayout)
+            layout();
+        if (makeAutoSized)
+            notify("node.autosized", new Undoable(old) {
+                    void undo() {
+                        Point2D.Float p = (Point2D.Float) old;
+                        setSize(p.x, p.y);
+                    }});
     }
-    */
+    
+    /**
+     * For triggering automatic shifts in the auto-size bit based on a call
+     * to setSize or as a result of a layout
+     */
+    private void setAutomaticAutoSized(boolean tv)
+    {
+        if (isOrphan()) // if this is during a restore, don't do any automatic auto-size computations
+            return;
+        if (autoSized == tv)
+            return;
+        if (DEBUG.LAYOUT) out("*** " + this + " setAutoSizeNoLayout " + tv);
+        this.autoSized = tv;
+    }
+    
 
     private boolean isSameShape(Shape s1, Shape s2) {
         if (s1 == null || s2 == null)
@@ -472,14 +514,16 @@ public class LWNode extends LWContainer
 
     public void setSize(float w, float h)
     {
-        if (DEBUG.LAYOUT) System.out.println("*** " + this + " setSize " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** " + this + " setSize         " + w + "x" + h);
+        if (isAutoSized() && (w > this.width || h > this.height))
+            setAutomaticAutoSized(false);
         setSizeNoLayout(w, h);
         layout();
     }
 
     private void setSizeNoLayout(float w, float h)
     {
-        if (DEBUG.LAYOUT) System.out.println("*** " + this + " setSizeNoLayout " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** " + this + " setSizeNoLayout " + w + "x" + h);
         if (equalAspect) {
             if (w > h)
                 h = w;
@@ -508,7 +552,7 @@ public class LWNode extends LWContainer
         // This was to shrink the drawn shape size by border width
         // so it fits entirely inside the bounds shape, tho
         // we're not making use of that right now.
-        if (DEBUG.LAYOUT) System.out.println(this + " adjustDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
+        if (DEBUG.LAYOUT) out("*** " + this + " adjstDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
         //System.out.println("boundsShape.bounds: " + boundsShape.getBounds());
         //System.out.println("drawnShape.setFrame " + x + "," + y + " " + w + "x" + h);
         this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
@@ -537,7 +581,7 @@ public class LWNode extends LWContainer
             return;
         }
         inLayout = true;
-        if (DEBUG.LAYOUT) System.out.println("*** LAYOUT " + this);
+        if (DEBUG.LAYOUT) out("*** " + this + " LAYOUT");
 
         float givenWidth = getWidth();
         float givenHeight = getHeight();
@@ -660,7 +704,7 @@ public class LWNode extends LWContainer
         // If the size gets set to less than or equal to
         // minimize size, lock back into auto-sizing.
         if (givenHeight <= height && givenWidth <= width)
-            setAutoSized(true);
+            setAutomaticAutoSized(true);
         
         if (!isAutoSized()) {
             // we always compute the minimum size, and
@@ -1196,13 +1240,12 @@ public class LWNode extends LWContainer
         }
     }
 
-
-
-
+    /*
     public String paramString()
     {
         return isAutoSized() ? "" : " userSize";
     }
+    */
     
     
 

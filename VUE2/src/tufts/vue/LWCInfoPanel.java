@@ -187,13 +187,14 @@ class LWCInfoPanel extends javax.swing.JPanel
         if (this.lwc == null)
             return;
         String text = e.getActionCommand();
-        Object src = (JTextComponent) e.getSource();
+        Object src = e.getSource();
         LWComponent c = this.lwc;
-        //System.out.println("Inspector " + e);
         try {
             boolean set = true;
-            if (src == labelField)          c.setLabel(text);
-            else if (src == resourceField)  c.setResource(text);
+            if (src == labelField)
+                c.setLabel(text);
+            else if (src == resourceField)
+                c.setResource(text);
             else
                 set = false;
             if (set)

@@ -431,7 +431,6 @@ public class LWComponent
     protected float strokeWidth = 0f;            //style
     protected Font font = FONT_DEFAULT;
     //protected Font font = null;                 //style -- if we leave null won't bother to persist this value
-    protected boolean autoSized = true; // compute size from label & children
     
     /*
      * Runtime only information
@@ -480,10 +479,10 @@ public class LWComponent
         c.y = this.y;
         c.width = this.width;
         c.height = this.height;
-        c.autoSized = this.autoSized;
         c.font = this.font;
         c.scale = this.scale;
-        
+
+        c.setAutoSized(isAutoSized());
         c.setFillColor(getFillColor());
         c.setTextColor(getTextColor());
         c.setStrokeColor(getStrokeColor());
@@ -499,22 +498,10 @@ public class LWComponent
     }
 
     
-    /** If true, compute node size from label & children */
-    public boolean isAutoSized() {
-        return this.autoSized;
-    }
-    public void setAutoSized(boolean tv)
-    {
-        if (autoSized == tv)
-            return;
-        Object old = tv ? Boolean.FALSE : Boolean.TRUE;
-        this.autoSized = tv;
-        if (autoSized)
-            layout();
-        notify("node.autosized", new Undoable(old) { void undo(boolean b) { setAutoSized(b); }} );
-        // this is really as a side-effect of setSize -- may only need this event
-        // if we optimize setSize to by default be an internal non-event raising setter
-    }
+    /** @return true: default is always autoSized */
+    public boolean isAutoSized() { return true; }
+    /** do nothing: default is always autoSized */
+    public void setAutoSized(boolean t) {}
     
     private boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
@@ -1000,7 +987,7 @@ public class LWComponent
     {
         if (this.width == w && this.width == h)
             return;
-        if (DEBUG.LAYOUT) System.out.println("*** LWComponent setSize0 " + w + "x" + h + " " + this);
+        if (DEBUG.LAYOUT) out("*** " + this + " setSize0 (LWC)  " + w + "x" + h);
         this.width = w;
         this.height = h;
     }
@@ -1010,6 +997,7 @@ public class LWComponent
     {
         if (this.width == w && this.width == h)
             return;
+        if (DEBUG.LAYOUT) out("*** " + this + " setSize  (LWC)  " + w + "x" + h);
         Object old = null;
         if (!isAutoSized())
             old = new Point2D.Float(this.width, this.height);
@@ -1024,10 +1012,8 @@ public class LWComponent
      */
     public void setAbsoluteSize(float w, float h)
     {
-        if (DEBUG.LAYOUT) System.out.println("*** LWComponent setAbsoluteSize " + w + "x" + h + " " + this);
-        //Object old = new Point2D.Float(this.width, this.height);
+        if (DEBUG.LAYOUT) out("*** " + this + " setAbsoluteSize " + w + "x" + h);
         setSize(w / getScale(), h / getScale());
-        //notify(LWKey.Size, old);
     }
 
     public float getX() { return this.x; }
@@ -1043,10 +1029,14 @@ public class LWComponent
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }
 
-    // these 4 for persistance
+    // these 4 for persistance ONLY -- they don't deliver detectable events!
+    /** for persistance ONLY */
     public float getAbsoluteWidth() { return this.width; }
+    /** for persistance ONLY */
     public float getAbsoluteHeight() { return this.height; }
+    /** for persistance ONLY */
     public void setAbsoluteWidth(float w) { this.width = w; }
+    /** for persistance ONLY */
     public void setAbsoluteHeight(float h) { this.height = h; }
     
     /** return border shape of this object */
@@ -1717,8 +1707,12 @@ public class LWComponent
         String cname = getClass().getName();
         String s = cname.substring(cname.lastIndexOf('.')+1);
         s += "[" + getID();
-        if (getLabel() != null)
-            s += " \"" + escapeWhitespace(getLabel()) + "\"";
+        if (getLabel() != null) {
+            if (isAutoSized())
+                s += " \"" + escapeWhitespace(getLabel()) + "\"";
+            else
+                s += " (" + escapeWhitespace(getLabel()) + ")";
+        }
         if (getScale() != 1f)
             s += " z" + getScale();
         s += paramString();

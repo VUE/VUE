@@ -18,6 +18,8 @@ class LWCInspector extends javax.swing.JPanel
     private JLabel locationField = new JLabel();
     private JLabel sizeField = new JLabel();
     private JTextField labelField = new JTextField(15);
+    private JTextField widthField = new JTextField();
+    private JTextField heightField = new JTextField();
     private JTextField fontField = new JTextField();
     private JTextField strokeField = new JTextField();
     private JTextField fillColorField = new JTextField();
@@ -40,6 +42,8 @@ class LWCInspector extends javax.swing.JPanel
         "-Location",locationField,
         "-Size",    sizeField,
         "Label",    labelField,
+        "Width",    widthField,
+        "Height",    heightField,
         "Font",     fontField,
         "Stroke",   strokeField,
         "Fill Color",fillColorField,
@@ -53,11 +57,6 @@ class LWCInspector extends javax.swing.JPanel
     
     public LWCInspector()
     {
-        //setBorder(LineBorder.createBlackLineBorder());
-        //setBorder(new TitledBorder("Inspector"));
-        // todo lookinto: may be something special about TitleBorders that are allowing
-        // mouse events to be detected by the ToolPanel for the resize corner
-        //setBorder(new LineBorder(Color.white, 6));
         //extraPanel.setLayout(new BorderLayout());
         //extraPanel.setSize(200,100);
         //extraPanel.add(new JLabel("foo"));
@@ -79,18 +78,11 @@ class LWCInspector extends javax.swing.JPanel
         
         addLabelTextRows(labelTextPairs, gridBag, fieldPane);
         // settting metadata
-        setUpMetadataPane();
-  
-        //removeListeners(idField, MouseListener.class);
-        //removeListeners(idField, MouseMotionListener.class);
-        // failed experiment to see if removing mouse focus
-        // from a text field would let the events pass thu
-        // to parent window, as they do with JLabels
+        //setUpMetadataPane();
 
         setLayout(new BorderLayout());
         add(fieldPane, BorderLayout.CENTER);
-        add(metadataPane,BorderLayout.SOUTH);
-        
+        //add(metadataPane,BorderLayout.SOUTH);
 
         VUE.ModelSelection.addListener(this);
     }
@@ -101,24 +93,6 @@ class LWCInspector extends javax.swing.JPanel
         metadataPane.add(resourceMetadataPanel);
     }
     
-    /*
-    private void removeListeners(Component c, Class listenerType)
-    {
-        java.util.EventListener[] listeners = c.getListeners(listenerType);
-        for (int i = 0; i < listeners.length; i++) {
-            java.util.EventListener l = listeners[i];
-            System.out.println("Removing "
-                               + listenerType.getName()
-                               + " " + l);
-            if (l instanceof MouseListener)
-                c.removeMouseListener((MouseListener)l);
-            else if (l instanceof MouseMotionListener)
-                c.removeMouseMotionListener((MouseMotionListener)l);
-        }
-
-    }
-    */
-
     private void addLabelTextRows(Object[] labelTextPairs,
                                   GridBagLayout gridbag,
                                   Container container)
@@ -141,8 +115,7 @@ class LWCInspector extends javax.swing.JPanel
             txt += ": ";
 
             JLabel label = new JLabel(txt);
-            //JLabel label = new JLabel(labels[i]);
-            //label.setFont(VueConstants.SmallFont);
+            label.setFont(VueConstants.SmallFont);
             gridbag.setConstraints(label, c);
             container.add(label);
 
@@ -174,6 +147,9 @@ class LWCInspector extends javax.swing.JPanel
 
     public void LWCChanged(LWCEvent e)
     {
+        if (!isShowing())
+            return;
+
         //System.out.println(this + " " + e);
         if (this.lwc != e.getSource())
             return;
@@ -184,13 +160,6 @@ class LWCInspector extends javax.swing.JPanel
         }
         else if (e.getSource() != this)
             loadItem(this.lwc);
-
-            /* this possible now because children of our displayed LWC
-               will pass their events up to us also.
-            throw new IllegalStateException("unexpected update event: " + e
-                                            + "\n\tshowing: " + lwc
-                                            + "\n\t    got: " + e.getComponent());
-            */
     }
     
     public void selectionChanged(LWSelection selection)
@@ -324,7 +293,11 @@ class LWCInspector extends javax.swing.JPanel
         String sizeText = c.getWidth() + " x " + c.getHeight();
         if (c.getScale() != 1f)
             sizeText += "  z" + c.getScale();
+        if (!c.isAutoSized())
+            sizeText += " userSize";
         sizeField.setText(sizeText);
+        widthField.setText(""+c.getAbsoluteWidth());
+        heightField.setText(""+c.getAbsoluteHeight());
         //Font f = c.getFont();
         //if (c.getScale() != 1)
         //  fontString += " (" + (f.getSize()*c.getScale()) + ")";
@@ -395,6 +368,26 @@ class LWCInspector extends javax.swing.JPanel
             c.setStrokeWidth(w);
         }
     }
+    private void setWidths(String text)
+        throws NumberFormatException
+    {
+        Iterator i = VUE.getSelection().iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            float w = Float.parseFloat(text);
+            c.setAbsoluteSize(w, c.getAbsoluteHeight());
+        }
+    }
+    private void setHeights(String text)
+        throws NumberFormatException
+    {
+        Iterator i = VUE.getSelection().iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            float h = Float.parseFloat(text);
+            c.setAbsoluteSize(c.getAbsoluteWidth(), h);
+        }
+    }
     private void setFonts(String text)
         throws NumberFormatException
     {
@@ -420,6 +413,8 @@ class LWCInspector extends javax.swing.JPanel
             if (src == labelField)          c.setLabel(text);
             //else if (src == categoryField)  c.setCategory(text);
             //else if (src == notesField)     c.setNotes(text);
+            else if (src == widthField)  setWidths(text);
+            else if (src == heightField) setHeights(text);
             else if (src == resourceField)  c.setResource(text);
             else if (src == fontField)      setFonts(text);
             else if (src == fillColorField) setFillColors(text);

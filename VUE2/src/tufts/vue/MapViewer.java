@@ -43,50 +43,6 @@ public class MapViewer extends javax.swing.JComponent
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
 
-    /**By Daisuke */
-    private boolean outlineMode = false;
-    private OutlineViewTree tree;
-    private JScrollPane scrollPane;
-    
-    public void setMode(boolean flag)
-    {   
-        //deals with switching the display mode 
-        //if it tries to switch to do the same mode, it does nothing
-        
-        if (outlineMode == false && flag == true)
-        {
-           outlineMode = flag;
-           
-           setBackground(Color.white);
-           scrollPane.setVisible(true);
-           
-           //setLayout(new BorderLayout());
-           //add(scrollPane, BorderLayout.CENTER);  
-           //invalidate();
-           //validate();
-           revalidate();
-        }
-        
-        else if (outlineMode == true && flag == false)
-        {
-           outlineMode = flag;
-           
-           setBackground(null);
-           scrollPane.setVisible(false);
-           
-           //remove(scrollPane);
-           //setLayout(null);
-           //invalidate();
-           //validate();
-           revalidate();
-        }
-        
-        System.out.println("about to issue a repaint()");
-        repaint();
-    }
-    
-    /**End*/
-    
     public interface Listener extends java.util.EventListener
     {
         public void mapViewerEventRaised(MapViewerEvent e);
@@ -95,9 +51,7 @@ public class MapViewer extends javax.swing.JComponent
     protected LWMap map;                   // the map we're displaying & interacting with
     private TextBox activeTextEdit;          // Current on-map text edit
 
-
-    // resize stuff: todo: move to seperate tool
-    // better: make a "ResizeControl" -- a control abstraction that's
+    // todo make a "ResizeControl" -- a control abstraction that's
     // less than a whole VueTool -- it depends on the current selection,
     // but can still do some drawing on the map while active --
     // (generically, something like a SelectionController -- provides ControlPoints)
@@ -1274,8 +1228,8 @@ public class MapViewer extends javax.swing.JComponent
     }
 
 
-    private static final String MapInteractiveDragEvent = "map.drag.interactive";
-    private static final String MapEndDragEvent = "map.drag.end";
+    private static final String ViewerInteractiveDragEvent = "viewer.drag.interactive";
+    private static final String ViewerEndDragEvent = "viewer.drag.completed";
     
     /**
      * Handle events coming off the LWMap we're displaying.
@@ -1294,11 +1248,8 @@ public class MapViewer extends javax.swing.JComponent
 
         // ignore size & location events during drag as performance enhancement
         //if (sDragUnderway && (key == LWKey.Size || key == LWKey.Location))
-        //if (key == MapInteractiveDragEvent)
+        //if (key == ViewerInteractiveDragEvent)
         //            return;
-
-        //if (key == LWKey.HierarchyChanging) // ignore these as always paired with something else (EXCEPT during undo!)
-        //    return;
 
         adjustScrollRegion();
         // TODO: OPTIMIZE -- we get tons of location events
@@ -1309,12 +1260,15 @@ public class MapViewer extends javax.swing.JComponent
         //if (key == LWKey.Location || key == LWKey.Size) 
         //return;
 
+        /*
         if (key.startsWith("hier.")) { // todo perf: figure out cases we can ignore
             // childAdded would clip if added outside edge
             // of any existing components! (huh?)
             repaint();
             return;
         }
+        */
+        
         if (key == LWKey.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
@@ -1324,7 +1278,7 @@ public class MapViewer extends javax.swing.JComponent
         //if (e.getSource() == this || e.getSource() == this.inputHandler) -- this already filtered by LWCEvent dispatch
         if (e.getSource() == this.inputHandler)
             return;
-        if (paintedSelectionBounds != null) {
+        if (OPTIMIZED_REPAINT && paintedSelectionBounds != null) {
             // this will handle any size shrinkages -- old selection bounds
             // will still include the old size (this depends on fact that
             // we can only change the properties of a selected component)
@@ -3060,7 +3014,7 @@ public class MapViewer extends javax.swing.JComponent
                         clearRollover(); // must do now to make sure bounds are set back to small
                         // TODO URGENT: need to translate map mouse event to location of
                         // control point on shrunken back (regular scale) node -- WHAT A HACK! UGH!
-                        System.out.println("hit on control point " + i + " of controlListener " + cl);
+                        if (DEBUG_MOUSE||DEBUG.LAYOUT) System.out.println("hit on control point " + i + " of controlListener " + cl);
                         dragControl = cl;
                         dragControlIndex = i;
                         dragControl.controlPointPressed(i, e);
@@ -3678,7 +3632,7 @@ public class MapViewer extends javax.swing.JComponent
                 return;
 
             // enable if we decide to turn off Size & Location events as performance enhancement
-            //getMap().notify(MapViewer.this, MapInteractiveDragEvent);
+            //getMap().notify(MapViewer.this, ViewerInteractiveDragEvent);
 
             if (!OPTIMIZED_REPAINT) {
 
@@ -3817,7 +3771,7 @@ public class MapViewer extends javax.swing.JComponent
             // for performance)
             if (mouseWasDragged) {
                 VUE.getUndoManager().mark("Drag");
-                getMap().notify(MapViewer.this, MapEndDragEvent); // don't need if size & location events back on
+                getMap().notify(MapViewer.this, ViewerEndDragEvent); // don't need if size & location events back on
                 // this is an to ensure any map modifications are noticed as we optimized
                 // out location & size set events
             }
@@ -4141,7 +4095,7 @@ public class MapViewer extends javax.swing.JComponent
     {
 
         // todo: consider implementing as or optionally as (perhaps
-        // depending on shape) a point-transofmr resize that instead
+        // depending on shape) a point-transforming resize that instead
         // of setting the bounding box & letting shape handle it,
         // transforms all the points in the shape manuall.  Wouldn't
         // want to do this for, say RoundRect, as would throw off
@@ -4181,8 +4135,9 @@ public class MapViewer extends javax.swing.JComponent
         /** interface ControlListener handler -- for handling resize on selection */
         public void controlPointPressed(int index, MapMouseEvent e)
         {
-            System.out.println(this + " resize control point " + index + " pressed");
+            if (DEBUG.LAYOUT||DEBUG_MOUSE) System.out.println(this + " resize control point " + index + " pressed");
             mOriginalGroup_bounds = (Rectangle2D.Float) VueSelection.getShapeBounds();
+            if (DEBUG.LAYOUT) System.out.println(this + " originalGroup_bounds " + mOriginalGroup_bounds);
             mOriginalGroupULC_bounds = LWMap.getULCBounds(VueSelection.iterator());
             mOriginalGroupLRC_bounds = LWMap.getLRCBounds(VueSelection.iterator());
             resize_box = new Box2D(mOriginalGroup_bounds);
@@ -4198,8 +4153,10 @@ public class MapViewer extends javax.swing.JComponent
             int idx = 0;
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (!(c instanceof LWLink)) 
-                    original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getShapeBounds();
+                if (c instanceof LWLink)
+                    continue;
+                original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getShapeBounds();
+                if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
                 //original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
             }
             mapMouseDown = e.getMapPoint();
@@ -4243,9 +4200,12 @@ public class MapViewer extends javax.swing.JComponent
                 resize_box.setLRX(e.getMapX());
             }
 
+            if (DEBUG.LAYOUT) System.out.println(this + " resize_box " + resize_box);
             mNewDraggedBounds = resize_box.getRect();
-            float scaleX;
-            float scaleY;
+            if (DEBUG.LAYOUT) System.out.println(this + " draggedBounds " + mNewDraggedBounds);
+
+            double scaleX;
+            double scaleY;
 
             /*
             if (isLeftCtrl(i)) {
@@ -4269,7 +4229,7 @@ public class MapViewer extends javax.swing.JComponent
 
         /** @param cpi - control point index (which ctrl point is being moved) */
         // todo: consider moving this code to LWGroup so that they can resize
-        private void dragResizeReshape(int cpi, Iterator i, float scaleX, float scaleY, boolean reshapeObjects)
+        private void dragResizeReshape(int cpi, Iterator i, double dScaleX, double dScaleY, boolean reshapeObjects)
         {
             int idx = 0;
             //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
@@ -4286,12 +4246,16 @@ public class MapViewer extends javax.swing.JComponent
                     //-------------------------------------------------------
                     // Resize
                     //-------------------------------------------------------
-                    float c_new_width = c_original_bounds.width * scaleX;
-                    float c_new_height = c_original_bounds.height * scaleY;
-                    if (c instanceof LWNode)
-                        ((LWNode)c).setAutoSized(false);
+                    if (DEBUG.LAYOUT) System.out.println("ScaleX=" + dScaleX);
+                    if (DEBUG.LAYOUT) System.out.println("ScaleY=" + dScaleY);
+                    float c_new_width = (float) (c_original_bounds.width * dScaleX);
+                    float c_new_height = (float) (c_original_bounds.height * dScaleY);
+
                     c.setAbsoluteSize(c_new_width, c_new_height);
                 }
+
+                float scaleX = (float) dScaleX;
+                float scaleY = (float) dScaleX;
                 
                 //-------------------------------------------------------
                 // Don't try to reposition child nodes -- they're parents
@@ -4371,11 +4335,11 @@ public class MapViewer extends javax.swing.JComponent
                     if (reshapeObjects){
                     if (isLeftCtrl(cpi)) {
                         if (c_new_x + c.getWidth() > resize_box.lr.x)
-                            c_new_x = resize_box.lr.x - c.getWidth();
+                            c_new_x = (float) resize_box.lr.x - c.getWidth();
                     }
                     if (isTopCtrl(cpi)) {
                         if (c_new_y + c.getHeight() > resize_box.lr.y)
-                            c_new_y = resize_box.lr.y - c.getHeight();
+                            c_new_y = (float) resize_box.lr.y - c.getHeight();
                     }
                     }
                     c.setLocation(c_new_x, c_new_y);
@@ -4657,21 +4621,24 @@ public class MapViewer extends javax.swing.JComponent
 
     }
 
-// this class will move out of here
-
     class Box2D {
-        Point2D.Float ul = new Point2D.Float(); // upper left corner
-        Point2D.Float lr = new Point2D.Float(); // lower right corner
+        // We need double precision to make sure our computed
+        // width in getRect agrees with that of the given rectangle.
+        
+        Point2D.Double ul = new Point2D.Double(); // upper left corner
+        Point2D.Double lr = new Point2D.Double(); // lower right corner
 
         public Box2D(Rectangle2D r) {
-            ul.x = (float) r.getX();
-            ul.y = (float) r.getY();
-            lr.x = ul.x + (float) r.getWidth();
-            lr.y = ul.y + (float) r.getHeight();
+            ul.x = r.getX();
+            ul.y = r.getY();
+            lr.x = ul.x + r.getWidth();
+            lr.y = ul.y + r.getHeight();
         }
         
         Rectangle2D.Float getRect() {
-            return new Rectangle2D.Float(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+            Rectangle2D.Float r = new Rectangle2D.Float();
+            r.setRect(ul.x, ul.y, lr.x - ul.x, lr.y - ul.y);
+            return r;
         }
         
         // These set methods never let the box take negative width or height
@@ -4679,6 +4646,10 @@ public class MapViewer extends javax.swing.JComponent
         void setULY(float y) { ul.y = (y > lr.y) ? lr.y : y; }
         void setLRX(float x) { lr.x = (x < ul.x) ? ul.x : x; }
         void setLRY(float y) { lr.y = (y < ul.y) ? ul.y : y; }
+
+        public String toString() {
+            return "Box2D[" + ul + " -> " + lr + "]";
+        }
     }
     
     class Box {
@@ -4745,6 +4716,51 @@ public class MapViewer extends javax.swing.JComponent
         //+ Integer.toHexString(hashCode());
     }
   
+    /**By Daisuke */
+    /*
+    private boolean outlineMode = false;
+    private OutlineViewTree tree;
+    private JScrollPane scrollPane;
+    
+    public void setMode(boolean flag)
+    {   
+        //deals with switching the display mode 
+        //if it tries to switch to do the same mode, it does nothing
+        
+        if (outlineMode == false && flag == true)
+        {
+           outlineMode = flag;
+           
+           setBackground(Color.white);
+           scrollPane.setVisible(true);
+           
+           //setLayout(new BorderLayout());
+           //add(scrollPane, BorderLayout.CENTER);  
+           //invalidate();
+           //validate();
+           revalidate();
+        }
+        
+        else if (outlineMode == true && flag == false)
+        {
+           outlineMode = flag;
+           
+           setBackground(null);
+           scrollPane.setVisible(false);
+           
+           //remove(scrollPane);
+           //setLayout(null);
+           //invalidate();
+           //validate();
+           revalidate();
+        }
+        
+        System.out.println("about to issue a repaint()");
+        repaint();
+    }
+    */
+    /**End Daisuke*/
+    
     
     //-------------------------------------------------------
     // debugging stuff
@@ -4771,6 +4787,8 @@ public class MapViewer extends javax.swing.JComponent
     Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
 
     private final boolean DEBUG_MARGINS = false;
+
+    
 
 
 
