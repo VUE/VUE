@@ -45,9 +45,9 @@ class LWCInspector extends javax.swing.JPanel
             "Fill Color",fillColorField,
             "Text Color",textColorField,
             "Stroke Color",strokeColorField,
-            "Category", categoryField,
+            //"Category", categoryField,
             "Resource", resourceField,
-            "Notes",    notesField,
+            "-Notes",    notesField,
             //"Extra",    extraPanel,
         };
 
@@ -307,11 +307,11 @@ class LWCInspector extends javax.swing.JPanel
         if (c.getParent() == null)
             id += " [PARENT IS NULL]";
         else {
-            id += " p=<" + c.getParent().getLabel() + ">";
-            id += " i" + c.getParent().getLayer(c);
-            id += " L" + c.getLinkRefs().size();
-            if (c instanceof LWContainer)
-                id += " c" + ((LWContainer)c).getChildList().size();
+            id += ", #" + c.getParent().getLayer(c);
+            id += " in <" + c.getParent().getLabel() + ">";
+            id += " links:" + c.getLinkRefs().size();
+            if (c instanceof LWContainer && c.hasChildren())
+                id += " children:" + ((LWContainer)c).getChildList().size();
         }
         
         idField.setText(id);
@@ -399,7 +399,7 @@ class LWCInspector extends javax.swing.JPanel
         try {
             if (src == labelField)          c.setLabel(text);
             else if (src == categoryField)  c.setCategory(text);
-            else if (src == notesField)     c.setNotes(text);
+            //else if (src == notesField)     c.setNotes(text);
             else if (src == resourceField)  c.setResource(text);
             else if (src == fontField)      setFonts(text);
             else if (src == fillColorField) setFillColors(text);
