@@ -52,7 +52,7 @@ public class ActionUtil {
         
         else
         {
-            VueFileFilter defaultFilter = new VueFileFilter("xml");
+            VueFileFilter defaultFilter = new VueFileFilter("vue");
             
             chooser.addChoosableFileFilter(defaultFilter);  
             chooser.addChoosableFileFilter(new VueFileFilter("jpeg"));  
