@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -20,10 +20,11 @@ package tufts.vue;
 
 import java.util.*;
 
-
 import java.net.*;
 import java.io.*;
 import java.util.regex.*;
+import javax.swing.JComponent;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -31,8 +32,9 @@ import java.awt.geom.*;
 import java.awt.image.*;
 
 import com.sun.image.codec.jpeg.*;
+
+
 /**
- *
  * The MapResource class is handles a reference
  * to either a local file or a URL.
  */
@@ -53,7 +55,7 @@ public class MapResource implements Resource {
     protected transient boolean selected = false;
     private String spec;
     private int type;
-    private JComponent viewer; // what the holy fucking HELL is a goddamn JComponent doing in here?
+    private JComponent viewer;
     private JComponent preview = null;
     
     /** the metadata property map **/
@@ -101,15 +103,16 @@ public class MapResource implements Resource {
                 txt = "file:///" + spec;
         } else
             txt = this.url.toString();
-        
+
         //if (!spec.startsWith("file") && !spec.startsWith("http"))
         //    txt = "file:///" + spec;
-        
+
         return txt;
     }
     
     public java.net.URL toURL()
-    throws java.net.MalformedURLException {
+        throws java.net.MalformedURLException
+    {
         if (url == null)
             return new java.net.URL(toURLString());
         else
@@ -196,7 +199,7 @@ public class MapResource implements Resource {
         } catch (Exception e) {
             System.err.println(e);
         }
-        
+
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
     }
     
@@ -212,14 +215,17 @@ public class MapResource implements Resource {
         } catch (Exception e) {}
         if (url != null) {
             try {
-                System.err.println("Opening connection to " + url);
+                System.out.println("Opening connection to " + url);
                 URLConnection conn = url.openConnection();
                 //System.err.println("Connecting...");
                 //conn.connect();
-                //System.err.println("Getting headers...");
-                //System.err.println("Headers: " + conn.getHeaderFields());
-                //Object content = conn.getContent();
-                //System.err.println("GOT CONTENT[" + content + "]"); // is stream
+                if (DEBUG.DND) {
+                    System.err.println("Getting headers from " + conn);
+                    System.err.println("Headers: " + conn.getHeaderFields());
+                    //Object content = conn.getContent();
+                    //System.err.println("GOT CONTENT[" + content + "]"); // is stream
+                }
+                //System.out.println("Content-type[" + conn.getContentType() + "]");
                 String title = searchURLforTitle(conn);
                 // TODO: do NOT do this if it came from a .url shortcut -- we
                 // already have the file-name
@@ -237,6 +243,10 @@ public class MapResource implements Resource {
         String title = null;
         try {
             title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
+            if (title == null) {
+                if (DEBUG.DND) System.out.println("*** no title found");
+                return null;
+            }
             title = title.replace('\n', ' ').trim();
             //System.out.println("*** got title ["+title+"]");
         } catch (Exception e) {
@@ -256,21 +266,34 @@ public class MapResource implements Resource {
                 // which would only hand back, say, 23 bytes the first
                 // time, as Yahoo's http server did.
                 in = new BufferedInputStream(in, bytes);
+                if (DEBUG.DND) System.out.println("*** created buffered input stream " + in);
             }
             byte[] buf = new byte[bytes];
-            int len = in.read(buf);
+            //int len = in.read(buf);
+            int len = 0;
+            // BufferedInputStream still won't read thru a block, so we need to allow
+            // a few reads here to get thru a couple of blocks, so we can get up to
+            // our maxbytes (e.g., a common return chunk count is 1448 bytes, presumably related to the MTU)
+            do {
+                len = in.read(buf);            
+                System.out.println("read " + len);
+            } while (len > 0);
             in.close();
             String str = new String(buf, 0, len);
             System.out.println("*** Got string of length " + len);
             //System.out.println("*** String[" + str + "]");
             Matcher m = regex.matcher(str);
+            if (DEBUG.DND) System.err.println("*** got Matcher " + m);
             if (m.lookingAt()) {
+                if (DEBUG.DND) System.err.println("*** found match");
                 result = m.group(1);
-                System.out.println("*** regex found ["+result+"]");
+                System.err.println("*** regex found ["+result+"]");
             }
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (Throwable e) {
+            System.err.println("searchStreamForRegex: " + e);
+            if (DEBUG.DND) e.printStackTrace();
         }
+        if (DEBUG.DND) System.err.println("*** searchStreamForRegex returning [" + result + "]");
         return result;
     }
     
@@ -442,14 +465,15 @@ public class MapResource implements Resource {
     
     public JComponent getAssetViewer(){
         
-        return null;
+     return null;   
         
     }
     public void setAssetViewer(JComponent viewer){
         
-        this.viewer = viewer;
+     this.viewer = viewer;   
         
     }
+
     
     public JComponent getPreview() {
         
@@ -486,4 +510,6 @@ public class MapResource implements Resource {
         return preview;
         
     }
+    
+    
 }
