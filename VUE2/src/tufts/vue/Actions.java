@@ -363,12 +363,10 @@ class Actions
             void act(LWComponent c) {
                 LWContainer parent = c.getParent();
                 if (parent == null) {
-                    // right now this can happen because links are auto-deleted if
-                    // both their endpoints are deleted
                     System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
                 } else if (c.isDeleted()) {
                     System.out.println("DELETE: " + c + " skipping (already deleted)");
-                } else if (parent.isDeleted()) {
+                } else if (parent.isDeleted()) { // after prior check, this case should be impossible now 
                     System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
                 } else if (parent.isSelected()) { // if parent selected, it will delete it's children
                     System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");

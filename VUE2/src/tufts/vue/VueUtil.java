@@ -1,18 +1,17 @@
 package tufts.vue;
 
-import java.util.*;
 import java.io.File;
-import java.awt.Color;
-import java.awt.Shape;
-import java.awt.Dialog;
+import java.util.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.FlatteningPathIterator;
-import javax.swing.JLabel;
-import javax.swing.JColorChooser;
-    
+import javax.swing.*;
+import javax.swing.border.*;
 
 public class VueUtil
 {
@@ -494,7 +493,31 @@ public class VueUtil
         if (colorChooserDialog == null) {
             colorChooser = new JColorChooser();
             //colorChooser.setDragEnabled(true);
-            //colorChooser.setPreviewPanel(new JLabel("FOO")); // make it dissapear entirely, W2K/1.4.2/Metal
+            //colorChooser.setPreviewPanel(new JLabel("FOO")); // makes it dissapear entirely, W2K/1.4.2/Metal
+            if (false) {
+                final JPanel np = new JPanel();
+                np.add(new JLabel("Text"));
+                np.setSize(new Dimension(300,100)); // will be invisible otherwise
+                np.setBackground(Color.red);
+                //np.setBorder(new EmptyBorder(10,10,10,10));
+                //np.setBorder(new EtchedBorder());
+                np.setBorder(new LineBorder(Color.black));
+                np.setOpaque(true);
+                np.addPropertyChangeListener(new PropertyChangeListener() {
+                        public void propertyChange(PropertyChangeEvent e) {
+                            System.out.println("CC " + e.getPropertyName() + "=" + e.getNewValue());
+                            if (e.getPropertyName().equals("foreground"))
+                                np.setBackground((Color)e.getNewValue());
+                        }});
+                colorChooser.setPreviewPanel(np); // also makes dissapear entirely
+            }
+            /*
+            JComponent pp = colorChooser.getPreviewPanel();
+            System.out.println("CC Preview Panel: " + pp);
+            for (int i = 0; i < pp.getComponentCount(); i++)
+                System.out.println("#" + i + " " + pp.getComponent(i));
+            colorChooser.getPreviewPanel().add(new JLabel("FOO"));
+            */
             colorChooserDialog =
                 JColorChooser.createDialog(VUE.frame,
                                            "Color Chooser",
@@ -508,9 +531,16 @@ public class VueUtil
             colorChooser.setColor(c);
         if (title != null)
             colorChooserDialog.setTitle(title);
-        // blocks until a color chosen or cancled, then automatically hides:
+
         colorChosen = false;
-        colorChooserDialog.show(); 
+        // show() blocks until a color chosen or cancled, then automatically hides the dialog:
+        colorChooserDialog.show();
+
+        JComponent pp = colorChooser.getPreviewPanel();
+        System.out.println("CC Preview Panel: " + pp + " children=" + Arrays.asList(pp.getComponents()));
+        for (int i = 0; i < pp.getComponentCount(); i++)
+            System.out.println("#" + i + " " + pp.getComponent(i));
+        
         return colorChosen ? colorChooser.getColor() : null;
     }
     
