@@ -98,9 +98,11 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChild " + added.size() + " " + c);
+            if (!contains(c)) {
+                c.addPathwayRef(this);
+                c.addLWCListener(this);
+            }
             super.children.add(c);
-            c.addPathwayRef(this);
-            c.addLWCListener(this);       
 
             // For now you can only have one set of properties per element in the list,
             // even if the element is in the path more than once.  We probably
