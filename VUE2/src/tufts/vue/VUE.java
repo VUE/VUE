@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.event.*;
 import javax.swing.*;
 import tufts.vue.action.*;
 import java.util.LinkedList;
@@ -149,7 +150,7 @@ public class VUE
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
         tabbedPane.setPreferredSize(new Dimension(500,400));
-        
+         
         if (args.length < 1) {
             //-------------------------------------------------------
             // Temporary: create example map(s)
@@ -206,16 +207,27 @@ public class VUE
         inspectorTool.addTool(new LWCInspector());
         //inspectorTool.addTool(new MapItemInspector());
         
-        LWPathwayManager manager = getActiveMap().getPathwayManager();
-        //LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
-
         pathwayInspector = new LWPathwayInspector(frame);
-
+        
         //inspector = new LWPathwayInspector(frame, manager.getCurrentPathway());
         
         //added by Daisuke Fujiwara
+        LWPathwayManager manager = getActiveMap().getPathwayManager();
         control = new PathwayControl(frame, manager);
+         
+        //accomodates pathway manager swapping when the displayed map is changed
+        tabbedPane.addChangeListener(
+            new ChangeListener()
+            {
+                public void stateChanged(ChangeEvent ce)
+                {
+                    System.out.println("map is being changed");
+                    control.setPathwayManager(getActiveMap().getPathwayManager());
+                }
+            }
+        );
         
+        //End of addition by Daisuke Fujiwara
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),

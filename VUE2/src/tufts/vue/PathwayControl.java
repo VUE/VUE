@@ -62,6 +62,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     public PathwayControl(JFrame parent) 
     {   
         super(parent, "Pathway Control");
+        setSize(450, 300);
+        
         currentPathway = null;
         pathwayManager = null;
         pathwayList = new JComboBox();
@@ -151,6 +153,12 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {
         this.pathwayManager = pathwayManager;
         
+        //clears the combo box list 
+        //come up with a better way
+        pathwayList.removeAllItems();
+        pathwayList.addItem(noPathway);
+        pathwayList.addItem(addPathway);
+        
         //iterting through to add existing pathways to the combo box list
         for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
         {
@@ -175,8 +183,9 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {
         currentPathway = pathway;
         
-        //setting the current node of the pathway to the first node
-        currentPathway.setCurrent(currentPathway.getFirst());
+        if ((currentPathway.getCurrent() == null) && (currentPathway.getFirst() != null) )
+            currentPathway.setCurrent(currentPathway.getFirst());
+        
         pathwayList.setSelectedItem(pathway);
         
         updateControlPanel();
@@ -327,6 +336,13 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             {
                 System.out.println("pathway selected");
                 currentPathway = (LWPathway)pathwayList.getSelectedItem();
+                
+                if (pathwayManager != null)
+                {
+                    System.out.println("setting the current pathway in the manager");
+                    pathwayManager.setCurrentPathway(currentPathway);
+                }
+                
                 updateControlPanel();
             }
             
@@ -335,6 +351,11 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             {
                 System.out.println("selecting empty string");
                 currentPathway = null;
+                
+                //if there is a pathwayManager currently set 
+                if (pathwayManager != null)
+                    pathwayManager.setCurrentPathway(null);
+                
                 updateControlPanel();
             }
             
@@ -407,7 +428,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         public PathwayDialog(JDialog dialog)
         {
             super(dialog, "New Pathway Name", true);
-            setSize(200, 200);
+            setSize(250, 100);
             setUpUI();
         }
         

@@ -9,6 +9,7 @@ package tufts.vue;
 
 import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -102,7 +103,19 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public LWComponent getFirst() {
         
-        return (LWComponent)elementList.getFirst();
+        LWComponent firstElement = null;
+        
+        try
+        {
+            firstElement = (LWComponent)elementList.getFirst();
+        }
+        
+        catch(NoSuchElementException ne)
+        {
+            firstElement = null;
+        }
+        
+        return firstElement;
     }
     
     public boolean isFirst(LWComponent element)
@@ -111,7 +124,20 @@ public class LWPathway extends tufts.vue.LWComponent
     }
     
     public LWComponent getLast() {
-        return (LWComponent)elementList.getLast();
+        
+        LWComponent lastElement = null;
+        
+        try
+        {
+            lastElement = (LWComponent)elementList.getLast();
+        }
+        
+        catch(NoSuchElementException ne)
+        {
+            lastElement = null;
+        }
+        
+        return lastElement;
     }
     
     public boolean isLast(LWComponent element)
