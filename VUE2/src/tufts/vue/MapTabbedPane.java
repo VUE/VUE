@@ -94,16 +94,25 @@ public class MapTabbedPane extends JTabbedPane
                 title += (displayZoom / 10);
             else
                 title += (((float) displayZoom) / 10f);
+            title += "%";
         } else {
-            title += Math.round(viewer.getZoomFactor() * 100);
+            title += (int) Math.round(viewer.getZoomFactor() * 100) + "%";
+            /*
+            title += "x";
+            int displayZoom = (int) Math.round(viewer.getZoomFactor() * 10);
+            if ((displayZoom / 10) * 10 == displayZoom)
+                title += (displayZoom / 10);
+            else
+                title += (((float) displayZoom) / 10f);
+            */
         }
-        title += "%)";
+        title += ")";
         return title;
     }
 
     private void updateTitleAt(int i) {
-        MapViewer viewer = getViewerAt(i);
         if (i >= 0) {
+            MapViewer viewer = getViewerAt(i);
             setTitleAt(i, viewerToTabTitle(viewer));
             LWMap map = viewer.getMap();
             if (map.getFile() != null)
