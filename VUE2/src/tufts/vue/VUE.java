@@ -271,13 +271,21 @@ public class VUE
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
-        if (!useMacLAF && VueUtil.isMacPlatform()) {
-           lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
-        } else 
-           themeSet = true; // not using metal, so theme will have no effect
+        
+        if (useMacLAF) {
+            // not using metal, so theme will have no effect
+            // if on mac, java look & feel will have been defaulted to mac look
+            // if on PC and you specify mac theme, our Metal theme won't be installed
+           themeSet = true; 
+        } else {
+            if (VueUtil.isMacPlatform())
+                lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        }
 
-        if (!themeSet)
+        if (!themeSet) {
+            out("Installing VUE MetalLookAndFeel theme.");
             MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
+        }
         
         try {
             if (lafn != null)

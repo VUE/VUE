@@ -35,6 +35,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 
     VueTheme()
     {
+        System.out.println("VueTheme: constructed.");
         if (DEBUG.INIT) new Throwable("VueTheme created").printStackTrace();
         //System.out.println("VueTheme: LookAndFeel: " + javax.swing.UIManager.getLookAndFeel().getName());
         if (isMacMetalLAF()) {
