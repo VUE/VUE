@@ -2,8 +2,8 @@ package tufts.vue;
 
 public class Link extends MapItem
 {
-    private MapItem node1;
-    private MapItem node2;
+    private MapItem item1;
+    private MapItem item2;
     private int weight = 1;
     private boolean ordered = true;
     private boolean fixed = false;
@@ -20,20 +20,20 @@ public class Link extends MapItem
     
     public void setItem1(MapItem node)
     {
-        this.node1 = node;
+        this.item1 = node;
     }
     public MapItem getItem1()
     {
-        return this.node1;
+        return this.item1;
     }
 
     public void setItem2(MapItem node)
     {
-        this.node2 = node;
+        this.item2 = node;
     }
     public MapItem getItem2()
     {
-        return this.node2;
+        return this.item2;
     }
     
 
