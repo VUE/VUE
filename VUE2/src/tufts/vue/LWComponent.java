@@ -11,6 +11,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
 
+import tufts.vue.beans.UserMapType;
+
 /**
  * LWComponent.java
  * 
@@ -32,18 +34,18 @@ public class LWComponent
     
     /**
      * getUserMapType
-     * @return String the user map type id
+     * @return UserMapType the user map type id
      **/
-    public String getUserMapType() {
+    public UserMapType getUserMapType() {
     	return mUserMapType;
     }
     
     /**
      * setUserMapType
-     * @param String the user map type id for this LWC
+     * @param UserMapTYpe the user map type id for this LWC
      **/
-    public void setUserMapType( String pID) {
-    	mUserMapType = pID;
+    public void setUserMapType( UserMapType pMapType) {
+    	mUserMapType = pMapType;
     }
     
     public void setUSerPropertyValue( String pKey, Object pValue ) {
@@ -55,6 +57,46 @@ public class LWComponent
     	return retValue;
     }
     
+    /**
+     * hasMeteData
+     * This returns true if there is user metadata for this component
+     * @return true if meta data values exist; false if not
+     **/
+   public boolean haMetaData() {
+   	boolean hasData = false;
+   	if( mUserPropertyValues != null) {
+   		hasData = (getUserMapType() != null) && ( !mUserPropertyValues.isEmpty() ); 
+   		}
+   	return hasData;
+   } 
+   
+   /**
+    * getMetaDataAsHTML()
+    **/
+   public String getMetaDataAsHTML() {
+   	String str = "";
+   	if( hasMetaData() ) {
+   		str = getUserMapType().getAsHTML( mUserPropertyValues);
+   		}
+   	return str;
+   }
+    
+    /**
+     * setIsFiltered
+     * This sets teh flag for the component so that it is either
+     * hidden or visible based on a match to the active LWCFilter
+     **/
+    public void setIsFiltered( boolean pState) {
+    	mIsFiltered = pState;
+    }
+    
+    /**
+     * isFiltered
+     * @return true - if should be hidden; false if not
+     **/
+    public boolean isFiltered() {
+    	return mIsFiltered;
+    }
     
     public void setID(String ID)
     {
@@ -324,8 +366,9 @@ public class LWComponent
     private Resource resource = null;
     private float x;
     private float y;
-    private String mUserMapType = null;
+    private UserMapType mUserMapType = null;
     private java.util.Map mUserPropertyValues = new java.util.HashMap();
+   private boolean mIsFiltered = false;
     
     // persistent impl
     protected float width = 10;
