@@ -107,7 +107,7 @@ public class LWNode extends LWContainer
         this(label, 0, 0);
         setResource(resource);
     }
-    // internal convenience
+    // internal convenience todo: remove -- uses old shape impl
     LWNode(String label, int shapeType)
     {
         this(label);
@@ -117,20 +117,20 @@ public class LWNode extends LWContainer
     // create a duplicate style
     public LWComponent duplicate()
     {
-        LWNode node = (LWNode) super.duplicate();
-        node.autoSized = this.autoSized;
+        LWNode newNode = (LWNode) super.duplicate();
+        newNode.autoSized = this.autoSized;
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
-        if (getNodeShape() != null)
-            node.setNodeShape(getNodeShape());
-        //        else
-        //    node.setShape(shapename
-        return node;
+        if (getShape() != null)
+            newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
+        else if (getNodeShape() != null) // todo: for backward compat only 
+            newNode.setNodeShape(getNodeShape());
+        return newNode;
     }
     
     /** for save/restore only */
     public LWNode()
     {
-        setNodeShape(StandardShapes[4]);
+        setNodeShape(StandardShapes[3]);
         setAutoSized(false);
         //todo: remove this setShape eventually (or change to plain rectangle)
         // this is only here for temporary backward compat
