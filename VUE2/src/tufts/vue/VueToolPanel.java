@@ -40,6 +40,9 @@ public class VueToolPanel extends JPanel
 	/** the current tool selection (TO DO:  remove this)  **/
 	private VueTool mCurrentTool = null;
 	
+	/** a map of PaletteButtons keyed off of the tool ID **/
+	private Map mToolButtons = new HashMap();
+	
 	/** background color **/
 	static private Color mBakColor = VueResources.getColor("toolbar.background");
 	
@@ -126,6 +129,10 @@ public class VueToolPanel extends JPanel
 			}
 		mTools.add( pTool);
 		PaletteButton button = createPaletteButton( pTool);
+		
+		// save teh component in the button map
+		mToolButtons.put( pTool.getID(), button);
+                
                 // todo: setting this mnemonic doesn't appear to work
                 //if (pTool.getShortcutKey() != 0)
                 //button.setMnemonic(pTool.getShortcutKey());
@@ -149,6 +156,26 @@ public class VueToolPanel extends JPanel
 			}
 		return null;	 	
 	 }
+	
+	
+	/**
+	 * setSelectedTool
+	 *This method attempts to set the currenlty selected tool
+	 * in the main tool bar by looking for the TVueTool's PaletteButton
+	 * that's in the radio group.  If found, it selectes the button
+	 * in the radio group and causes an repaint.  
+	 *
+	 * @param VueTool - the new tool to select
+	 **/
+	public void setSelectedTool( VueTool pTool) {
+		if( pTool != null) {
+			PaletteButton button = (PaletteButton) mToolButtons.get( pTool.getID() );
+			if( button != null) {
+				mButtonGroup.setSelected( button.getModel(), true);
+				}
+			}
+	}
+	
 	
 	public void addContextual( Component pObj) {
 		if( pObj != null) {
@@ -180,6 +207,10 @@ public class VueToolPanel extends JPanel
 	 * @param VueTool the tool to remove
 	 **/
 	public void removeTool( VueTool pTool) {
+		
+		PaletteButton button = (PaletteButton) mToolButtons.get( pTool.getID() );
+		mToolButtons.remove( pTool.getID() );
+		
 		mTools.remove( pTool);
 		// FFIX:  tbd we might not need to ever remove, only disable.
 		// removeToolButton( pTool.getName() );

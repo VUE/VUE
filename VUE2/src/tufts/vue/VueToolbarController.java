@@ -250,10 +250,17 @@ public class VueToolbarController
 	 /**
 	  * setSelectedTool()
 	  * This method sets teh slected VueTool
+	  * It will attempt to update teh button group in the Toolbar
+	  * and notify listners by calling selectionChanged.
+	  *
 	  * @param VeuTool - selected tool
 	  **/
 	  public void setSelectedTool( VueTool pTool) {
-	  	mSelectedTool = pTool;
+
+	  	if( mToolPanel != null) {
+	  		mToolPanel.setSelectedTool( pTool);
+	  		}
+	  	handleToolSelection( pTool);
 	  }
 	
 	
@@ -336,7 +343,7 @@ public class VueToolbarController
 	  * It will notify all toolbar
 	  *
 	  **/
-	  public void handleToolSelection( VueTool pTool) {
+	  protected void handleToolSelection( VueTool pTool) {
 		
 		VueTool rootTool = pTool;
 		

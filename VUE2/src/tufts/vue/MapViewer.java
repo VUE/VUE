@@ -1605,10 +1605,8 @@ public class MapViewer extends javax.swing.JPanel
             for (int i = 0; i < tools.length; i++) {
                 VueTool tool = tools[i];
                 if (tool.getShortcutKey() == keyChar) {
-                    System.out.println("key-activation of " + tool); 
-                    //VueToolbarController.getController().setSelectedTool(tool);
-                    // todo: need to actually activate the radio button
-                    VueToolbarController.getController().handleToolSelection(tool);
+                    
+                    VueToolbarController.getController().setSelectedTool( tool);
                     return;
                 }
             }
