@@ -30,6 +30,9 @@ public class ObjectInspectorPanel  extends JPanel
 	// Statics
 	//////////////
 	
+	public static final int INFO_TAB = 0;
+	public static final int NOTES_TAB = 1;
+	
 	private static final String kNullType = "null";
 	private static final String kNodeType = "node";
 	private static final String kLinkType = "link";
@@ -58,6 +61,8 @@ public class ObjectInspectorPanel  extends JPanel
 	/** no selection card **/
 	JPanel mNullCard = null;
 	
+	/** currentn displayed object panel **/
+	JPanel mCurCard = null;
 	
 	/** the selected Object to inspect **/
 	LWComponent mObject = null;
@@ -110,7 +115,6 @@ public class ObjectInspectorPanel  extends JPanel
 	///////////////////
 	
 	
-	JPanel mCurCard = null;
 	
 	private void setCard( JPanel pCard) {
 		if( mCurCard != null) {
@@ -174,6 +178,22 @@ public class ObjectInspectorPanel  extends JPanel
 		
 	}
 	
+	public void activateNotesTab() {
+		if( mCurCard != null) {
+			if( mCurCard instanceof InspectorCard ) {
+				( (InspectorCard) mCurCard).setTab( NOTES_TAB);
+				}
+			}
+	}
+	
+	public void activateInfoTab() {
+		if( mCurCard != null) {
+			if( mCurCard instanceof InspectorCard ) {
+				( (InspectorCard) mCurCard).setTab( INFO_TAB);
+				}
+			}
+	}
+	
 	//////////////////////
 	// OVerrides
 	//////////////////////
@@ -229,5 +249,9 @@ public class ObjectInspectorPanel  extends JPanel
 		if( sDebug) {
 			System.out.println( str);
 			}
+	}
+
+	public interface InspectorCard {
+		public void setTab( int pTabKey);
 	}
 }

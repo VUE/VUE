@@ -21,7 +21,7 @@ import javax.swing.border.*;
 * The Node  Inspector Panel!
 *
 \**/
-public class NodeInspectorPanel  extends JPanel 
+public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.InspectorCard 
 {
 
 
@@ -253,6 +253,22 @@ public class NodeInspectorPanel  extends JPanel
 		 }
 	}
 	
+
+	/**
+	 * setTab
+	 * Sets the selected Tab for teh panel to the specifided ObjectInspector panel key
+	 **/
+	public void setTab( int pTabKey) {
+		if( pTabKey == ObjectInspectorPanel.NOTES_TAB ) {
+			mTabbedPane.setSelectedComponent( mNotePanel);
+			}
+		else
+		if( pTabKey == ObjectInspectorPanel.INFO_TAB ) {
+			mTabbedPane.setSelectedComponent( mInfoPanel );
+			}
+	}
+
+
 }
 
 
