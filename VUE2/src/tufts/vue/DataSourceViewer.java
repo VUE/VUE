@@ -38,7 +38,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
     
-    public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google"};
+    public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google","Other"};
     private static int  filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0;
     private static boolean  problemloadingfromfile = false;
     private static String begIndex = "NONE";
@@ -335,10 +335,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         }
         
         dataSourceChanged = true;
-        if (type == DataSource.GOOGLE){
-            //System.out.println("I am Search URL " + type +searchURL);
-        }
-        
+        if (type == DataSource.OTHER){type = DataSource.GOOGLE;
+                                     
+                                         }
+       
         if (dataSourceList.getModel().getSize() == 0){//only element in the list
             
             if (type == DataSource.FILING_LOCAL)begIndex = "FILING_LOCAL";
@@ -626,6 +626,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     }
                     
                     type = dataSource.getType();
+                    if (type == DataSource.OTHER) {type = DataSource.GOOGLE;
+                    
+                   
+                    }
                     
                     if (type == DataSource.FILING_LOCAL){
                         
@@ -873,6 +877,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.DR_FEDORA)begIndex = "FEDORA";
                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.GOOGLE)begIndex = "GOOGLE";
+                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.OTHER)begIndex = "GOOGLE";
                 
             }
             else begIndex = "NONE";
@@ -1021,7 +1026,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 //System.out.println("Did I get here in ok" + panel.getComponent(0));
                 JComboBox typeField = (JComboBox) panel.getComponent(1);
                 int type = typeField.getSelectedIndex();
-                 // System.out.println("Did I get here in ok");
+                 
                 JTextField dsNameField = (JTextField) panel.getComponent(3);
                 String dsNameStr = dsNameField.getText();
                 String nameStr = dsNameStr;
@@ -1075,7 +1080,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     
                 }
                 
-                if((type == 2) && (!checkValidUser( userStr,pwStr,type))) {
+                if((type == DataSource.FILING_REMOTE) && (!checkValidUser( userStr,pwStr,type))) {
                     VueUtil.alert(null, "Not valid Tufts User. You are not allowed to create this dataSource", "Invalid User");
                     return;
                 }
