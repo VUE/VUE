@@ -258,7 +258,7 @@ public class LWComponent
         if (text == null)
             return null;
         else {
-            return text.replaceAll("\n", "%nl;");
+            return text.replaceAll("[\n\r]", "%nl;");
         }
     }
     private String unEscapeNewlines(String text)
