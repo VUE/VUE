@@ -26,6 +26,7 @@ public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
     implements VueConstants
+               , FocusListener
                , LWComponent.Listener
                , LWSelection.Listener
 {
@@ -68,6 +69,12 @@ public class MapViewer extends javax.swing.JPanel
     private VueTool activeTool;
     ZoomTool zoomTool;
     
+    private boolean isRightSide = false;
+    MapViewer(LWMap map, boolean rightSide)
+    {
+        this(map);
+        this.isRightSide = true;
+    }
     public MapViewer(LWMap map)
     {
         super(false); // turn off double buffering -- frame seems handle it?
@@ -79,7 +86,8 @@ public class MapViewer extends javax.swing.JPanel
         addMouseListener(ih);
         addMouseMotionListener(ih);
         addKeyListener(ih);
-
+        addFocusListener(this);
+        
         MapDropTarget mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
@@ -133,7 +141,7 @@ public class MapViewer extends javax.swing.JPanel
         setMapOriginOffset(p.getX(), p.getY());
             
         // we repaint any time the global selection changes
-        VueSelection.addListener(this);
+        VUE.ModelSelection.addListener(this);
 
         // draggedSelectionGroup is always a selected component as
         // it's only used when it IS the selection
@@ -326,6 +334,14 @@ public class MapViewer extends javax.swing.JPanel
         this.map.addLWCListener(this);
         repaint();
     }
+
+    private void RR(Rectangle r)
+    {
+        if (OPTIMIZED_REPAINT)
+            super.repaint(0,r.x,r.y,r.width,r.height);
+        else
+            super.repaint();
+    }
     
     private Rectangle mapRectToPaintRegion(Rectangle2D mapRect)
     {
@@ -337,19 +353,29 @@ public class MapViewer extends javax.swing.JPanel
 
     private void repaintMapRegion(Rectangle2D mapRect)
     {
-        repaint(mapRectToPaintRegion(mapRect));
+        if (OPTIMIZED_REPAINT)
+            repaint(mapRectToPaintRegion(mapRect));
+        else
+            repaint();
     }
+    
     private void repaintMapRegionGrown(Rectangle2D mapRect, float growth)
     {
-        mapRect.setRect(mapRect.getX() - growth/2,
-                        mapRect.getY() - growth/2,
-                        mapRect.getWidth() + growth,
-                        mapRect.getHeight() + growth);
-        repaint(mapRectToPaintRegion(mapRect));
+        if (OPTIMIZED_REPAINT) {
+            mapRect.setRect(mapRect.getX() - growth/2,
+                            mapRect.getY() - growth/2,
+                            mapRect.getWidth() + growth,
+                            mapRect.getHeight() + growth);
+            repaint(mapRectToPaintRegion(mapRect));
+        } else
+            repaint();
     }
     private void repaintMapRegionAdjusted(Rectangle2D mapRect)
     {
-        repaint(growForSelection(mapToScreenRect(mapRect)));
+        if (OPTIMIZED_REPAINT)
+            repaint(growForSelection(mapToScreenRect(mapRect)));
+        else
+            repaint();
     }
 
     // We grow the bounds here to include any selection
@@ -370,6 +396,10 @@ public class MapViewer extends javax.swing.JPanel
     public void selectionChanged(LWSelection s)
     {
         //System.out.println("MapViewer: selectionChanged");
+        if (VUE.getActiveMap() != this.map)
+            VueSelection = null;
+        else
+            VueSelection = VUE.ModelSelection;
         repaintSelection();
     }
     
@@ -377,10 +407,12 @@ public class MapViewer extends javax.swing.JPanel
     public void repaintSelection()
     {
         if (paintedSelectionBounds != null)
-            repaint(paintedSelectionBounds);
-        Rectangle2D newBounds = VueSelection.getBounds();
-        if (newBounds != null)
-            repaintMapRegionAdjusted(newBounds);
+            RR(paintedSelectionBounds);
+        if (VueSelection != null) {
+            Rectangle2D newBounds = VueSelection.getBounds();
+            if (newBounds != null)
+                repaintMapRegionAdjusted(newBounds);
+        }
     }
     
     
@@ -426,7 +458,7 @@ public class MapViewer extends javax.swing.JPanel
             // this will handle any size shrinkages -- old selection bounds
             // will still include the old size (this depends on fact that
             // we can only change the properties of a selected component)
-            repaint(paintedSelectionBounds);
+            RR(paintedSelectionBounds);
         }
         repaintMapRegionAdjusted(e.getComponent().getBounds());
     }
@@ -472,7 +504,7 @@ public class MapViewer extends javax.swing.JPanel
         return hits;
     }
     
-
+        
     public LWComponent findClosestEdge(java.util.List hits, float x, float y)
     {
         return findClosest(hits, x, y, true);
@@ -583,7 +615,7 @@ public class MapViewer extends javax.swing.JPanel
     private static final Line2D Xaxis = new Line2D.Float(-3000, 0, 3000, 0);
     private static final Line2D Yaxis = new Line2D.Float(0, -3000, 0, 3000);
 
-    private static int paints=0;
+    private int paints=0;
     public void paint(Graphics g)
     {
         long start = 0;
@@ -591,13 +623,19 @@ public class MapViewer extends javax.swing.JPanel
             System.out.print("paint " + paints + "..."); System.out.flush();
             start = System.currentTimeMillis();
         }
-        
-        super.paint(g);
+
+        try {
+            super.paint(g);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("*** Exception painting in: " + this);
+            System.err.println("***          VueSelection: " + VueSelection);
+        }
 
         if (DEBUG_PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
-            System.out.println("paint " + paints + ": "
+            System.out.println("paint " + paints + " " + this + ": "
                                + delta
                                + "ms (" + fps + " fps)");
             paints++;
@@ -614,14 +652,26 @@ public class MapViewer extends javax.swing.JPanel
     {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
-        
+
         Rectangle cb = g.getClipBounds();
         // paint the background
         g.setColor(getBackground());
         g.fillRect(cb.x, cb.y, cb.width, cb.height);
         //g.fillRect(getBounds());
         
-        if (!DEBUG_REPAINT_OPTIMIZE_OFF) {
+        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this) {
+            g.setColor(COLOR_ACTIVE_VIEWER);
+            g.drawRect(0, 0, getWidth()-1, getHeight()-1);
+            g.drawRect(1, 1, getWidth()-3, getHeight()-3);
+        }
+        /*
+        if (VUE.getActiveMap() == this.map) {
+            g.setColor(COLOR_ACTIVE_MODEL);
+            g.drawRect(1, 1, getWidth()-3, getHeight()-3);
+        }
+        */
+        
+        if (OPTIMIZED_REPAINT) {
             if (DEBUG_PAINT && RepaintRegion != null) {
                 g2.setColor(rrColor);
                 g2.fillRect(0, 0, getWidth(), getHeight());
@@ -701,9 +751,11 @@ public class MapViewer extends javax.swing.JPanel
         if (zoomFactor != 1)
             g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
         g2.translate(getOriginX(), getOriginY());
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
 
-        drawSelection(g2);
+        if (!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+        if (VueSelection != null)
+            drawSelection(g2);
 
         if (DEBUG_SHOW_MOUSE_LOCATION) {
             g2.setColor(Color.red);
@@ -715,15 +767,15 @@ public class MapViewer extends javax.swing.JPanel
             float mapX = iX / 100f;
             float mapY = iY / 100f;
 
-            g2.setFont(VueConstants.DefaultFont);
+            g2.setFont(VueConstants.MediumFont);
             int y = 0;
-            g2.drawString("screen(" + mouseX + "," +  mouseY + ")", 10, y+=20);
-            g2.drawString("mapX " + mapX, 10, y+=20);
-            g2.drawString("mapY " + mapY, 10, y+=20);;
-            g2.drawString("zoom " + getZoomFactor(), 10, y+=20);
-            g2.drawString("anitAlias " + !DEBUG_ANTIALIAS_OFF, 10, y+=20);
-            g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, 10, y+=20);
-            g2.drawString("repaintOptimize " + !DEBUG_REPAINT_OPTIMIZE_OFF, 10, y+=20);
+            g2.drawString("screen(" + mouseX + "," +  mouseY + ")", 10, y+=15);
+            g2.drawString("mapX " + mapX, 10, y+=15);
+            g2.drawString("mapY " + mapY, 10, y+=15);;
+            g2.drawString("zoom " + getZoomFactor(), 10, y+=15);
+            g2.drawString("anitAlias " + !DEBUG_ANTIALIAS_OFF, 10, y+=15);
+            g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, 10, y+=15);
+            g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, 10, y+=15);
         }
 
         if (DEBUG_SHOW_ORIGIN && zoomFactor >= 6.0) {
@@ -1018,10 +1070,21 @@ public class MapViewer extends javax.swing.JPanel
     
     static final Rectangle2D ComponentHandle = new Rectangle2D.Float(0,0,0,0);
     static final int chs = 5; // component handle size -- todo: config
+    // todo: if move this to LWComponent as a default, LWLink could
+    // override with it's own, and ultimately users of our API could
+    // implement their own selection rendering -- tho that would also
+    // mean having an api for what happens when they drag the selection,
+    // or even how they hit the selection handles in he first place.
     void drawComponentSelectionBox(Graphics2D g, LWComponent c)
     {
-        Rectangle2D.Float r = mapToScreenRect2D(c.getShapeBounds());
         g.setColor(COLOR_SELECTION);
+//         if (c instanceof LWLink) {
+//             LWLink l = (LWLink) c;
+// need to center on stroke & convert to screen coords
+//             ComponentHandle.setFrame(c.getCenterX(), c.getCenterY() , chs, chs);
+//             g.fill(ComponentHandle);
+//         } else {
+        Rectangle2D.Float r = mapToScreenRect2D(c.getShapeBounds());
         g.draw(r);
         r.x -= (chs-1)/2;
         r.y -= (chs-1)/2;
@@ -1038,6 +1101,7 @@ public class MapViewer extends javax.swing.JPanel
         g.fill(ComponentHandle);
         ComponentHandle.setFrame(r.x + r.width, r.y + r.height, chs, chs);
         g.fill(ComponentHandle);
+//        }
         
     }
 
@@ -1281,7 +1345,7 @@ public class MapViewer extends javax.swing.JPanel
                 } else if (c == 'O') {
                     DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN;
                 } else if (c == 'R') {
-                    DEBUG_REPAINT_OPTIMIZE_OFF = !DEBUG_REPAINT_OPTIMIZE_OFF;
+                    OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT;
                 } else if (c == 'F') {
                     DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF;
                 } else if (c == 'P') {
@@ -1314,9 +1378,13 @@ public class MapViewer extends javax.swing.JPanel
         private Point2D originBeforeDrag;
         public void mousePressed(MouseEvent e)
         {
-            if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+            if (DEBUG_MOUSE)
+                System.err.println(MapViewer.this + "[" + e.paramString()
+                                   + (e.isPopupTrigger() ? " POP":"") + "]");
             
+            grabVueApplicationFocus();
             requestFocus();
+            
             dragStart.setLocation(e.getX(), e.getY());
             
             if (toolKeyDown == KEY_TOOL_PAN) {
@@ -1338,8 +1406,7 @@ public class MapViewer extends javax.swing.JPanel
             float mapY = screenToMapY(e.getY());
 
             hitComponent = getMap().findLWComponentAt(mapX, mapY);
-            if (DEBUG_MOUSE)
-                //if (hitComponent != null)
+            if (DEBUG_MOUSE && hitComponent != null)
                 System.out.println("\t    on " + hitComponent + "\n" + 
                                    "\tparent " + hitComponent.getParent());
             
@@ -1526,7 +1593,7 @@ public class MapViewer extends javax.swing.JPanel
                                              Math.abs(dragStart.x - screenX),
                                              Math.abs(dragStart.y - screenY));
 
-                if (!DEBUG_REPAINT_OPTIMIZE_OFF) {
+                if (OPTIMIZED_REPAINT) {
                     // Now add to repaint-rect the new selection
                     repaintRect.add(draggedSelectionBox);
                     //repaintRect.grow(4,4);
@@ -1631,12 +1698,15 @@ public class MapViewer extends javax.swing.JPanel
                 }
             }
 
-            if (dragComponent != null && DEBUG_REPAINT_OPTIMIZE_OFF) {
-                
+            if (dragComponent == null) {
+                return;
+            }
+
+            if (!OPTIMIZED_REPAINT) {
+
                 repaint();
 
-            } else if (dragComponent != null) {
-
+            } else {
                 //-------------------------------------------------------
                 //
                 // Do Repaint optimzation: This makes a HUGE
@@ -1729,7 +1799,12 @@ public class MapViewer extends javax.swing.JPanel
                         // There's already a link tween these two -- increment the weight
                         l.incrementWeight();
                     } else {
-                        getMap().addLink(new LWLink(linkSource, linkDest));
+                        LWContainer addParent = getMap();
+                        if (linkSource.getParent() == linkDest.getParent() &&
+                            linkSource.getParent() != addParent)
+                            addParent = linkSource.getParent(); // common parent
+                        // todo: if parents different, add to the upper most parent
+                        addParent.addChild(new LWLink(linkSource, linkDest));
                     }
                 }
                 linkSource = null;
@@ -1838,7 +1913,7 @@ public class MapViewer extends javax.swing.JPanel
 
                 draggedSelectionBox.width++;
                 draggedSelectionBox.height++;
-                repaint(draggedSelectionBox);
+                RR(draggedSelectionBox);
                 draggedSelectionBox = null;
                 
                 // bounds cache hack
@@ -1979,16 +2054,51 @@ public class MapViewer extends javax.swing.JPanel
         return mapRect.intersects(viewerRect);
     }
 
+    public void focusLost(FocusEvent e)
+    {
+        if (DEBUG_FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
+        repaint();
+    }
+
+    private void grabVueApplicationFocus()
+    {
+        if (VUE.getActiveViewer() != this) {
+            MapViewer activeViewer = VUE.getActiveViewer();
+            if (activeViewer != this) {
+                LWMap oldActiveMap = null;
+                if (activeViewer != null)
+                    oldActiveMap = activeViewer.getMap();
+                VUE.setActiveViewer(this);
+                if (oldActiveMap != this.map)
+                    VUE.ModelSelection.clear();
+            }
+        } 
+        VueSelection = VUE.ModelSelection;
+    }
+    public void focusGained(FocusEvent e)
+    {
+        grabVueApplicationFocus();
+        repaint();
+        if (DEBUG_FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
+    }
+
+    /**
+     * Make sure everybody 
+     */
     public void setVisible(boolean doShow)
     {
+        if (DEBUG_FOCUS) System.out.println(this + " setVisible " + doShow);
         super.setVisible(doShow);
         if (doShow) {
             // todo: only do this if we've just been opened
             //if (!isAnythingCurrentlyVisible())
             //zoomTool.setZoomFitContent(this);//todo: go thru the action
+            grabVueApplicationFocus();
             requestFocus();
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
-            VUE.ModelSelection.clear(); // same as VueSelection / selectionClear()
+            //new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise(); // handled in focusGained
+            // only need to do this if this viewer displaying a different MAP
             repaint();
         } else {
             new MapViewerEvent(this, MapViewerEvent.HIDDEN).raise();
@@ -2134,7 +2244,9 @@ public class MapViewer extends javax.swing.JPanel
 
     public String toString()
     {
-        return "MapViewer@" + Integer.toHexString(hashCode());
+        return "MapViewer[" + (isRightSide ? "right" : "left") + "] "
+            + "(" + getMap().getLabel() + ")"
+            + Integer.toHexString(hashCode());
     }
   
     
@@ -2147,8 +2259,9 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_KEYS = false;
     private boolean DEBUG_MOUSE = false;
-    private boolean DEBUG_REPAINT_OPTIMIZE_OFF = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
+    private boolean DEBUG_FOCUS = false;
+    private boolean OPTIMIZED_REPAINT = false;
     static boolean DEBUG_PAINT = false;
     private int mouseX;
     private int mouseY;

@@ -19,6 +19,12 @@ public class VUE
 {
     public static final String CASTOR_XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
 
+    /** The currently active viewer (e.g., is visible
+        and has focus).  Actions (@see Actions.java) are performed on
+        the active model (sometiems querying the active viewer). */
+    public static MapViewer ActiveViewer = null;
+    /** The currently active selection.
+        elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
 
     public static Cursor CURSOR_ZOOM_IN;
@@ -26,7 +32,11 @@ public class VUE
     
     public static JFrame frame;
     //set to public so that action package can access it (Jay Briedis 6/4/03)
+    //(lets add method calls/whatever API is needed by action on VUE so this doesn't
+    // need to be public) -- SF 2003-06-30 10:39.21 Monday
     public static JTabbedPane tabbedPane;
+    private static JTabbedPane tabbedPane2;//todo: rename left/right
+    private static JSplitPane viewerSplit;
     
     public static LWPathwayInspector pathwayInspector;
     
@@ -149,24 +159,27 @@ public class VUE
 
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
-        tabbedPane.setPreferredSize(new Dimension(500,400));
-         
+        tabbedPane.setPreferredSize(new Dimension(300,400));
+        
+        tabbedPane2 = new JTabbedPane();
+        tabbedPane2.setTabPlacement(SwingConstants.BOTTOM);
+        tabbedPane2.setPreferredSize(new Dimension(300,400));
+
         if (args.length < 1) {
             //-------------------------------------------------------
             // Temporary: create example map(s)
             //-------------------------------------------------------
-            LWMap map1 = new LWMap("One");
-            LWMap map2 = new LWMap("Two");
+            LWMap map1 = new LWMap("Test Nodes");
+            LWMap map2 = new LWMap("Example Map");
 
-            installExampleMap(map1);
+            //installExampleMap(map1);
+            installExampleNodes(map1);//todo:selectall, makecolumn
             installExampleMap(map2);
-            installExampleNodes(map1);
+
+            map1.setFillColor(new Color(255, 255, 192));
             
             displayMap(map1);
             displayMap(map2);
-
-            // Create an empty map
-            //displayMap(new LWMap("New Map"));
         }
 
         
@@ -178,19 +191,25 @@ public class VUE
         toolPanel.setLayout(new BorderLayout());
         toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
-        //toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
 
         JSplitPane splitPane = new JSplitPane();
         //JScrollPane leftScroller = new JScrollPane(toolPanel);
 
         splitPane.setResizeWeight(0.25); // 25% space to the left component
-        splitPane.setContinuousLayout(true);
+        splitPane.setContinuousLayout(false);
         splitPane.setOneTouchExpandable(true);
         splitPane.setLeftComponent(toolPanel);
         //splitPane.setLeftComponent(leftScroller);
-        splitPane.setRightComponent(tabbedPane);
 
+        viewerSplit = new JSplitPane();
+        viewerSplit.setOneTouchExpandable(true);
+        viewerSplit.setLeftComponent(tabbedPane);
+        viewerSplit.setRightComponent(tabbedPane2);
+        viewerSplit.setDividerLocation(9999);
+
+        //splitPane.setRightComponent(tabbedPane);
+        splitPane.setRightComponent(viewerSplit);
 
         frame = new VueFrame();
         JPanel vuePanel = new VuePanel();
@@ -205,17 +224,18 @@ public class VUE
 
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         inspectorTool.addTool(new LWCInspector());
-        //inspectorTool.addTool(new MapItemInspector());
         
         pathwayInspector = new LWPathwayInspector(frame);
-        
+
         //inspector = new LWPathwayInspector(frame, manager.getCurrentPathway());
-        
+
         //added by Daisuke Fujiwara
         LWPathwayManager manager = getActiveMap().getPathwayManager();
         control = new PathwayControl(frame, manager);
          
         //accomodates pathway manager swapping when the displayed map is changed
+        // We'll eventually need to figure out another way to listen for this now that
+        // we have multiple tabbed-panes with the split-view -- SF
         tabbedPane.addChangeListener(
             new ChangeListener()
             {
@@ -267,6 +287,19 @@ public class VUE
         return tabbedPane.getTabCount();
     }
     
+    public static void setActiveViewer(MapViewer viewer)
+    {
+        ActiveViewer = viewer;
+    }
+
+    public static boolean multipleMapsVisible()
+    {
+        int dl = viewerSplit.getDividerLocation();
+        return dl >= viewerSplit.getMinimumDividerLocation()
+            && dl <= viewerSplit.getMaximumDividerLocation();
+            
+    }
+    
     public static MapViewer getActiveViewer()
     {
         Object c = tabbedPane.getSelectedComponent();
@@ -279,28 +312,35 @@ public class VUE
                     return (MapViewer) tabbedPane.getComponentAt(i);
                 }
             }
-            
         }
-        MapViewer view = (MapViewer) c;
-        LWMap map = view.getMap();
-        //call LWPathwayControl.setPathwayManager(map.getPathwayManager());
-        return view;
-        
+        //MapViewer view = (MapViewer) c;
+        //LWMap map = view.getMap();
+        ////call LWPathwayControl.setPathwayManager(map.getPathwayManager());
+        //return view;
+
+        // don't know how this will impact the pathway stuff, but we're
+        // ActiveViewer now has to be maintained seperately, so we
+        // can't query the tabbed panes.
+        return ActiveViewer;
     }
     
     public static LWMap getActiveMap()
     {
         return getActiveViewer().getMap();
     }
-    
+
+    /*
     public static void addViewer(MapViewer viewer)
     {
         tabbedPane.addTab(viewer.getMap().getLabel(), viewer);
     }
+    */
     
     public static void closeViewer(Component c)
     {
+        // todo: as closeMap
         tabbedPane.remove(c);
+        tabbedPane2.remove(c);
     }
 
     public static void displayMap(LWMap map)
@@ -318,9 +358,22 @@ public class VUE
         }
         if (mapViewer == null) {
             mapViewer = new tufts.vue.MapViewer(map);
+            if (VUE.ActiveViewer == null)
+                VUE.ActiveViewer = mapViewer;
             tabbedPane.addTab(map.getLabel(), mapViewer);
+            MapViewer mv2 = new tufts.vue.MapViewer(map, true);
+            tabbedPane2.addTab(map.getLabel(), mv2);
         }
+        int idx = tabbedPane.indexOfComponent(mapViewer);
+        /*
+        //tabbedPane.setBackgroundAt(idx, Color.blue);
+        tabbedPane.setForegroundAt(tabbedPane.getSelectedIndex(), Color.black);
+        tabbedPane.setForegroundAt(idx, Color.blue);
+        // need to add a listener to change colors -- PC gui feedback of which
+        // tab is selected is completely horrible.
+        */
         tabbedPane.setSelectedComponent(mapViewer);
+
     }
     
     static JMenu alignMenu = new JMenu("Align");    
@@ -498,6 +551,15 @@ public class VUE
         map.addNode(new LWNode("Four"));
         
         map.addNode(LWNode.createTextNode("jumping"));
+
+        // Experiment in internal actions -- only works
+        // partially here because they're all auto sized
+        // based on text, and since haven't been painted yet,
+        // and so don't really know their size.
+        LWSelection s = new LWSelection();
+        s.setTo(map.getChildIterator());
+        Actions.MakeColumn.act(s);
+        s.clear(); // clear isSelected bits
     }
     
     static void installExampleMap(LWMap map)

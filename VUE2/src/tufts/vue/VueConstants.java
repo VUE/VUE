@@ -27,6 +27,8 @@ public interface VueConstants
     static java.awt.Color COLOR_SELECTION_HANDLE = Color.white;
     static java.awt.Color COLOR_SELECTION_DRAG = java.awt.Color.gray;
     static java.awt.Color COLOR_INDICATION = java.awt.Color.red;
+    static java.awt.Color COLOR_ACTIVE_VIEWER = new java.awt.Color(74, 255, 133);
+    static java.awt.Color COLOR_ACTIVE_MODEL = COLOR_ACTIVE_VIEWER;
     static java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
     static java.awt.Color COLOR_BORDER = java.awt.Color.black;
     static java.awt.Color COLOR_FAINT = java.awt.Color.lightGray;
