@@ -110,7 +110,7 @@ public class SaveVueJTree {
                    SaveNode nextSNode = (SaveNode)v.elementAt(i);
                    
                    
-                     if (nextSNode.getNodeType() == "FavortiesNode"){ 
+                     if (nextSNode.getNodeType().equalsIgnoreCase("FavortiesNode")){ 
                            
                      FavoritesNode nextNode = new FavoritesNode(nextSNode.getResourceName());
                       if (obj instanceof FavoritesNode){
@@ -133,7 +133,7 @@ public class SaveVueJTree {
                      
                    
                      }
-                     else if (nextSNode.getNodeType() == "FileNode"){
+                     else if (nextSNode.getNodeType().equalsIgnoreCase("FileNode")){
                       
                       FileNode nextNode = new FileNode(new File(nextSNode.getResourceName()));
                       
@@ -156,7 +156,7 @@ public class SaveVueJTree {
                             restoreModel(model, nextNode, nextSNode);
                      }
                    
-                     else if (nextSNode.getNodeType() == "AssetNode"){
+                     else if (nextSNode.getNodeType().equalsIgnoreCase("AssetNode")){
                        DefaultMutableTreeNode  nextNode = new DefaultMutableTreeNode(nextSNode.getResourceName());
                         if (obj instanceof FavoritesNode){
                          model.insertNodeInto(nextNode, (FavoritesNode)obj, 0);
