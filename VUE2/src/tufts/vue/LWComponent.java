@@ -1134,6 +1134,7 @@ public class LWComponent
             listeners.clear();
         }
     }
+    private static int sDepth = 0;
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
         if (isDeleted())
@@ -1144,10 +1145,14 @@ public class LWComponent
         if (listeners != null && listeners.size() > 0) {
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext()) {
-                if (DEBUG.EVENTS) System.out.print(e + " -> ");
+                if (DEBUG.EVENTS) {
+                    for (int x = 0; x < sDepth; x++) System.out.print("    ");
+                    System.out.print(e + " -> ");
+                }
                 Listener l = (Listener) i.next();
                 if (DEBUG.EVENTS) System.out.println(l);
                 //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
+                sDepth++;
                 try {
                     l.LWCChanged(e);
                 } catch (Exception ex) {
@@ -1157,6 +1162,8 @@ public class LWComponent
                                        + "\n\tfailing listener: " + l);
                     ex.printStackTrace();
                     java.awt.Toolkit.getDefaultToolkit().beep();
+                } finally {
+                    sDepth--;
                 }
             }
         } else {
@@ -1172,7 +1179,10 @@ public class LWComponent
         // parent changed)
         
         if (parent != null) {
-            if (DEBUG.EVENTS) System.out.println(this + " notifying parent " + parent);
+            if (DEBUG.EVENTS) {
+                for (int x = 0; x < sDepth; x++) System.out.print("    ");
+                System.out.println(e + " NOTIFYING UP THRU PARENT " + parent);
+            }
             parent.notifyLWCListeners(e);
         }
     }

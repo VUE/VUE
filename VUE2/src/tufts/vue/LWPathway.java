@@ -103,8 +103,8 @@ public class LWPathway extends LWContainer
     public void removeChild(LWComponent c)
     {
         children.remove(c);
-        c.removePathwayRef(this);
-        c.removeLWCListener(this);       
+        //c.removePathwayRef(this);
+        //c.removeLWCListener(this);// getting a concurrent mod here
         notify(LWCEvent.ChildRemoved, c);
     }
     
