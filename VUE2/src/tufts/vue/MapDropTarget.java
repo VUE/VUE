@@ -289,12 +289,13 @@ class MapDropTarget
                 int y = dropLocation.y;
                 while (iter.hasNext()) {
                     Resource resource = (Resource) iter.next();
-                    if (createAsChildren) 
+                    if (createAsChildren) {
                         ((LWNode)hitComponent).addChild(createNewNode(resource, null));
-                    else
+                    } else {
                         createNewNode(resource, new java.awt.Point(x,y));
-                    x += 15;
-                    y += 15;
+                        x += 15;
+                        y += 15;
+                    }
                     success = true;
                 }
             }
