@@ -32,8 +32,8 @@ import java.awt.event.*;
 import java.awt.*;
 
 public class AddEditDataSourceDialog extends JDialog {
-    public static int ADD_MODE = 0;
-    public static int EDIT_MODE = 1;
+    public static final int ADD_MODE = 0;
+    public static final int EDIT_MODE = 1;
     
     JTabbedPane tabbedPane;
     JPanel addPanel;
@@ -42,27 +42,41 @@ public class AddEditDataSourceDialog extends JDialog {
     /** Creates a new instance of AddEditDataSourceDialog */
     public AddEditDataSourceDialog() {
         super(tufts.vue.VUE.getInstance(),"Add/Edit Data Source",true);
+        if (DEBUG.DR) System.out.println(this + " new JTabbedPane");
         tabbedPane = new JTabbedPane();
+        if (DEBUG.DR) System.out.println(this + " setPreferredSize");
         tabbedPane.setPreferredSize(new Dimension(300,400));
+        if (DEBUG.DR) System.out.println(this + " new AddDataSourcePanel");
         addPanel = new AddDataSourcePanel(this);
+        if (DEBUG.DR) System.out.println(this + " new EditDataSourcePanel");
         editPanel = new EditDataSourcePanel(this);
+        if (DEBUG.DR) System.out.println(this + " setup");
         editPanel.setName("Edit Panel");
         tabbedPane.add("Add", addPanel);
         tabbedPane.add("Edit",editPanel);
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(tabbedPane,BorderLayout.CENTER);
+        if (DEBUG.DR) System.out.println(this + " pack");
         pack();
         setLocation(300,300);
+        if (DEBUG.DR) System.out.println(this + " setSize");
         setSize(new Dimension(325, 245));
+        if (DEBUG.DR) System.out.println(this + " INITIALIZED");
     }
     
     public void show(int mode) {
+        if (DEBUG.DR) System.out.println(this + " show, mode=" + mode);
         if(mode == EDIT_MODE) {
             tabbedPane.setSelectedComponent(editPanel);
         }else {
             tabbedPane.setSelectedComponent(addPanel);
         }
+        if (DEBUG.DR) System.out.println(this + " calling super.show");
         show();
+    }
+
+    public String toString() {
+        return "AddEditDataSourceDialog";
     }
 }
 

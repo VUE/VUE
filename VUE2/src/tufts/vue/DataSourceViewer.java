@@ -414,8 +414,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public void showAddEditWindow(int mode) {
         if ((addEditDialog == null)  || true) { // always true, need to work for cases where case where the dialog already exists
+            if (DEBUG.DR) System.out.println("Creating new addEditDialog...");
             addEditDialog = new AddEditDataSourceDialog();
+            if (DEBUG.DR) System.out.println("Created new addEditDialog: " + addEditDialog + "; showing...");
             addEditDialog.show(mode);
+            if (DEBUG.DR) System.out.println("Showed new addEditDialog: " + addEditDialog);
         }
     }
     
@@ -457,15 +460,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 System.out.println(ds.getDisplayName()+ds.getClass());
                 try {
                  
-                   addDataSource(ds);
+                    addDataSource(ds);
                     setActiveDataSource(ds);
                     
                    
                 } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
                  
             }
-             saveDataSourceViewer();
-             refreshDataSourceList();
+            saveDataSourceViewer();
+            refreshDataSourceList();
             
         }catch (Exception ex) {
             
@@ -528,52 +531,47 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
     }
     
-    public static void saveDataSourceViewer(){
-        
-      
+    public static void saveDataSourceViewer()
+    {
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         Vector sDataSources = new Vector();
         int size = dataSourceList.getModel().getSize();
-        int i;
-        
-        for (i = 0; i< size; i++){
-            
-            if (!(dataSourceList.getModel().getElementAt(i) instanceof String)) sDataSources.add((DataSource)dataSourceList.getModel().getElementAt(i));
+        for (int i = 0; i< size; i++) {
+            Object item = dataSourceList.getModel().getElementAt(i);
+            if (DEBUG.DR) System.out.println("saveDataSourceViewer: item " + i + " is " + item.getClass().getName() + "[" + item + "]");
+            if (item instanceof DataSource) {
+                sDataSources.add((DataSource)item);
+            } else {
+                if (DEBUG.DR) System.out.println("\tskipped item of " + item.getClass());
+            }
             
         }
-        
+        if (DEBUG.DR) System.out.println("saveDataSourceViewer: creating new SaveDataSourceViewer");
         SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
-        
+        if (DEBUG.DR) System.out.println("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + f);
         marshallMap(f,sViewer);
-        
-        
-       
     }
     
     
-    public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
+    public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer)
+    {
         Marshaller marshaller = null;
-        
-        
         Mapping mapping = new Mapping();
-        
         
         try {
             FileWriter writer = new FileWriter(file);
-            
             marshaller = new Marshaller(writer);
+            if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: loading mapping " + XML_MAPPING_DEFAULT);
             mapping.loadMapping(XML_MAPPING_DEFAULT);
             marshaller.setMapping(mapping);
-            
-            
+            if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: marshalling " + dataSourceViewer + " to " + file + "...");
             marshaller.marshal(dataSourceViewer);
-            
+            if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: done marshalling.");
             writer.flush();
             writer.close();
-            
+        } catch (Exception e) {
+            System.err.println("DRBrowser.marshallMap " + e);
         }
-        catch (Exception e) {System.err.println("DRBrowser.marshallMap " + e);}
-        
     }
     
     

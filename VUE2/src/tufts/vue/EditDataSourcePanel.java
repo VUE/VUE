@@ -37,11 +37,17 @@ public class EditDataSourcePanel extends JPanel{
     AddEditDataSourceDialog dialog;
     JPanel editDataSourcePanel;
     public EditDataSourcePanel(AddEditDataSourceDialog dialog) {
+        if (DEBUG.DR) System.out.println("EditDataSourcePanel: constructing");
         this.dialog = dialog;
+        if (DEBUG.DR) System.out.println("EditDataSourcePanel: new JPanel");
         editDataSourcePanel = new JPanel();
+        if (DEBUG.DR) System.out.println("EditDataSourcePanel: layout");
         setLayout(new BorderLayout());
+        if (DEBUG.DR) System.out.println("EditDataSourcePanel: setBorder");
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        if (DEBUG.DR) System.out.println("EditDataSourcePanel: setDataSource");
         setDataSource(DataSourceViewer.getActiveDataSource());
+        if (DEBUG.DR) System.out.println("EditDataSourcePanel: save data sources?????");
         DataSourceViewer.saveDataSourceViewer();
     }
     

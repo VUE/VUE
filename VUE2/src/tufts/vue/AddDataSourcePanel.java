@@ -616,11 +616,18 @@ public class AddDataSourcePanel extends JPanel {
             JButton submitButton = new JButton("Submit");
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
+                    if (DEBUG.DR) System.out.println(this + " " + e);
                     if(validateFields()) {
+                        if (DEBUG.DR) System.out.println(this + " creating DataSource");
                         DataSource ds = new OsidDataSource(dsNameField.getText(), addressField.getText());
+                        if (DEBUG.DR) System.out.println(this + " adding DataSource");
                         DataSourceViewer.addDataSource(ds);
+                        if (DEBUG.DR) System.out.println(this + " dialog.hide");
                         dialog.hide();
+                        if (DEBUG.DR) System.out.println(this + " dialog.dispose");
                         dialog.dispose();
+                    } else {
+                        if (DEBUG.DR) System.out.println(this + " fields not valid.");
                     }
                 }
             });

@@ -45,7 +45,7 @@ public class DEBUG
     public static boolean KEYS = false; // keyboard input
     public static boolean TOOL = false; // toolbars & tool events
 
-    public static boolean DR = false; // digital repository & data sources
+    public static boolean DR = true; // digital repository & data sources
     
     public static boolean META = false; // generic toggle to use in combination with other flags
 

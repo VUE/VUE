@@ -152,10 +152,11 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
                 {
 */
                     t.printStackTrace();
-                    JOptionPane.showMessageDialog(this,
-                    "Cannot Create Instantiate or Repository\n" + t.getClass().getName() + ":\n" + t.getMessage(),
-                    "OSID DR Alert",
-                    JOptionPane.ERROR_MESSAGE);
+                    String message = "Cannot Create Instantiate or Repository\n"
+                        + "implementation=[" + implementation + "]\n"
+                        + t.getClass().getName() + ":\n" + t.getMessage();
+                    System.err.println(message);
+                    JOptionPane.showMessageDialog(this, message, "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
 //                }
             }
             if (isOSID20)
