@@ -36,6 +36,9 @@ public class VUE
         elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
 
+	/** teh global resource selection static model **/
+	public static ResourceSelection sResourceSelection = new ResourceSelection();
+	
     public static JFrame frame;
     
     private static MapTabbedPane mMapTabsLeft;
@@ -346,6 +349,7 @@ public class VUE
 		objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
 		objectInspectorPanel = new ObjectInspectorPanel();
 		if (!scottHack) ModelSelection.addListener(objectInspectorPanel);
+		sResourceSelection.addListener( objectInspectorPanel);
 		objectInspector.addTool(objectInspectorPanel);
 		
 		

@@ -22,7 +22,7 @@ import javax.swing.border.*;
 *
 \**/
 public class ObjectInspectorPanel  extends JPanel 
-			implements LWSelection.Listener
+			implements LWSelection.Listener, ResourceSelection.Listener
 {
 
 
@@ -229,6 +229,24 @@ public class ObjectInspectorPanel  extends JPanel
 				debug("ObjectInspector item selection size is: "+ pSelection.size() );
 				}
 			setLWComponent( lwc);
+			
+		}
+	
+	
+	/////////////
+		// ResourceSelection.Listener Interface Implementation
+		/////////
+		public void selectionChanged( ResourceSelection pSelection) {
+			
+			Resource resource = null;
+			if( pSelection.size() == 1 )  {
+				debug( "Object Inspector single RESOURCE selection");
+				resource = pSelection.first();
+				}
+			else {
+				debug("ObjectInspector RESOURCE selection size is: "+ pSelection.size() );
+				}
+			//setResource( resource);
 			
 		}
 	
