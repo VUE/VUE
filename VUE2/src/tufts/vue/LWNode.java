@@ -220,7 +220,8 @@ public class LWNode extends LWContainer
     
     private boolean iconShowing()
     {
-        return AlwaysShowIcon || hasResource() || hasNotes() || hasMetaData() || inPathway();
+        //return AlwaysShowIcon || hasResource() || hasNotes() || hasMetaData() || inPathway();
+        return AlwaysShowIcon || mIconBlock.isShowing(); // remember not current till after a layout
     }
 
     // was text box hit?  coordinates are component local
@@ -524,6 +525,8 @@ public class LWNode extends LWContainer
         float givenWidth = getWidth();
         float givenHeight = getHeight();
 
+        mIconBlock.layout(); // in order to compute the size & determine if anything showing
+
         //if (isAutoSized() || hasChildren())
         //setPreferredSize(!isAutoSized());
 
@@ -610,8 +613,6 @@ public class LWNode extends LWContainer
             float iconPillarY = IconPillarPadY;
             //iconPillarY = EdgePadY;
 
-            mIconBlock.layout(); // in order to compute the size
-
             //float totalIconHeight = icons * IconHeight;
             float totalIconHeight = (float) mIconBlock.getHeight();
             float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
@@ -679,7 +680,7 @@ public class LWNode extends LWContainer
         inLayout = false;
     }
 
-    public void layoutChildren()
+    void layoutChildren()
     {
         layoutChildren(null);
     }
@@ -725,7 +726,8 @@ public class LWNode extends LWContainer
         if (true)
             layoutChildrenSingleColumn(baseX, baseY, size);
         else
-            layoutChildrenGrid(baseX, baseY, size, 2);
+            layoutChildrenGrid(baseX, baseY, size, 1);
+        //layoutChildrenGrid(baseX, baseY, size, 2);
 
         if (size != null) {
             size[0] /= getScale();
@@ -766,23 +768,33 @@ public class LWNode extends LWContainer
         float width;
         float height;
 
-        public void layout(float baseX, float baseY)
+        void layout(float baseX, float baseY, boolean center)
         {
             float y = baseY;
             Iterator i = iterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                c.setLocation(baseX, y);
+                if (center)
+                    c.setLocation(baseX + (width - c.getBoundsWidth())/2, y);
+                else
+                    c.setLocation(baseX, y);
                 y += c.getHeight();
                 y += ChildVerticalGap * getScale();
                 // track size
-                float w = c.getBoundsWidth();
-                if (w > width)
-                    width = w;
+                //float w = c.getBoundsWidth();
+                //if (w > width)
+                //  width = w;
             }
             height = y - baseY;
         }
-        
+
+        void add(LWComponent c)
+        {
+            super.add(c);
+            float w = c.getBoundsWidth();
+            if (w > width)
+                width = w;
+        }
     }
 
     protected void layoutChildrenGrid(float baseX, float baseY, float[] size, int nColumn)
@@ -809,12 +821,13 @@ public class LWNode extends LWContainer
             Column col = cols[x];
             if (col == null)
                 break;
-            col.layout(colX, colY);
+            col.layout(colX, colY, nColumn == 1);
             colX += col.width + ChildHorizontalGap;
             totalWidth += col.width + ChildHorizontalGap;
             if (col.height > maxHeight)
                 maxHeight = col.height;
         }
+        // peel back the last gap as no more columns to right
         totalWidth -= ChildHorizontalGap;
 
         if (size != null) {
