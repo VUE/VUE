@@ -267,7 +267,6 @@ public class PathwayTableModel extends DefaultTableModel
     public void setValueAt(Object aValue, int row, int col){
         if (DEBUG.PATHWAY) System.out.println(this + " setValutAt " + row + "," + col + " " + aValue);
         LWComponent c = getElement(row);
-        boolean changed = true;
         if (c instanceof LWPathway){
             LWPathway p = (LWPathway) c;
 
@@ -282,16 +281,11 @@ public class PathwayTableModel extends DefaultTableModel
             } else if (col == 5) {
                 //p.setLocked(((Boolean)aValue).getBooleanValue()); // proper
                 p.setLocked(!p.isLocked()); // not proper
-            } else
-                changed = false;
+            }
         } else if (c != null) {
             if (col == 3)
                 c.setLabel((String)aValue);
-            else
-                changed = false;
         }
-        if (changed)
-            fireTableDataChanged();
     }
 
 
