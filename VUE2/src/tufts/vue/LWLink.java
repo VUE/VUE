@@ -103,7 +103,7 @@ public class LWLink extends LWComponent
     /** interface ControlListener handler
      * One of our control points (an endpoint or curve control point).
      */
-    public void controlPointMoved(int index, Point2D p)
+    public void controlPointMoved(int index, MapMouseEvent e)
     {
         //System.out.println("LWLink: control point " + index + " moved");
         
@@ -114,44 +114,41 @@ public class LWLink extends LWComponent
                 ep1 = null;
                 endPoint1_ID = null;
             }
-            startX = (float) p.getX();
-            startY = (float) p.getY();
+            startX = e.getMapX();
+            startY = e.getMapY();
             endpointMoved = true;
+            LinkTool.setMapIndicationIfOverValidTarget(ep2, e);
         } else if (index == 1) {
             if (ep2 != null) {
-                // TODO: as above;
+                // TODO: removeEndpoint & notify
                 ep2.removeLinkRef(this);
                 ep2 = null;
                 endPoint2_ID = null;
             }
-            endX = (float) p.getX();
-            endY = (float) p.getY();
+            endX = e.getMapX();
+            endY = e.getMapY();
             endpointMoved = true;
+            LinkTool.setMapIndicationIfOverValidTarget(ep1, e);
         } else if (index == 2) {
-            setCtrlPoint0(p);
+            setCtrlPoint0(e.getMapPoint());
         } else if (index == 3) {
-            setCtrlPoint1(p);
+            setCtrlPoint1(e.getMapPoint());
         } else
             throw new IllegalArgumentException("LWLink ctrl point > 2");
 
     }
 
     /** interface ControlListener handler */
-    public void controlPointDropped(int index, Point2D p)
+    public void controlPointDropped(int index, MapMouseEvent e)
     {
-        // TODO: add getParentMap to LWComponent to ensure getting whole map...
-        LWComponent c = getParent().findLWNodeAt((float)p.getX(), (float)p.getY());
+        LWComponent dropTarget = e.getViewer().getIndication();
         // TODO BUG: above doesn't work if everything is selected
-        System.out.println("LWLink: control point " + index + " dropped on " + c);
-        // TODO: CAN WE CONSOLODATE NEW LINK CREATION CODE HERE FROM MAPVIEWER???
-        // (e.g., handle re-linking from one node to another doing an increment,
-        // or perhaps when doing an endpoing drag, don't allow to connect two
-        // nodes that are already connected).
-        if (c != null && c instanceof LWNode) {
-            if (index == 0 && ep1 == null && (ep2 != c || false/*isCubic*/))
-                setEndPoint1(c);
-            else if (index == 1 && ep2 == null && (ep1 != c || false/*isCubic*/))
-                setEndPoint2(c);
+        System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
+        if (dropTarget != null) {
+            if (index == 0 && ep1 == null && (ep2 != dropTarget || false/*isCubic*/))
+                setEndPoint1(dropTarget);
+            else if (index == 1 && ep2 == null && (ep1 != dropTarget || false/*isCubic*/))
+                setEndPoint2(dropTarget);
         }
     }
 
@@ -165,24 +162,24 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
         // todo opt: don't create these new Point2D's all the time --
-        // we iterate through this ALOT
+        // we iterate through this on every paint for each link in selection
         // todo: need to indicate a color for these so we
         // can show a connection as green and a hanging endpoint as red
         //controlPoints[0] = new Point2D.Float(startX, startY);
         //controlPoints[1] = new Point2D.Float(endX, endY);
-        controlPoints[0] = new LWSelection.ControlPoint(startX, startY);
-        controlPoints[1] = new LWSelection.ControlPoint(endX, endY);
-        //if (this.ep1 == null) controlPoints[0].setColor(Color.red);
-        //if (this.ep2 == null) controlPoints[1].setColor(Color.red);
+        controlPoints[0] = new LWSelection.ControlPoint(startX, startY, COLOR_SELECTION);
+        controlPoints[1] = new LWSelection.ControlPoint(endX, endY, COLOR_SELECTION);
+        if (this.ep1 == null) controlPoints[0].setColor(COLOR_SELECTION_HANDLE);
+        if (this.ep2 == null) controlPoints[1].setColor(COLOR_SELECTION_HANDLE);
         if (isCurved) {
             if (isCubicCurve) {
                 //controlPoints[2] = (Point2D.Float) cubicCurve.getCtrlP1();
                 //controlPoints[3] = (Point2D.Float) cubicCurve.getCtrlP2();
-                controlPoints[2] = new LWSelection.ControlPoint(cubicCurve.getCtrlP1());
-                controlPoints[3] = new LWSelection.ControlPoint(cubicCurve.getCtrlP2());
+                controlPoints[2] = new LWSelection.ControlPoint(cubicCurve.getCtrlP1(), COLOR_SELECTION_CONTROL);
+                controlPoints[3] = new LWSelection.ControlPoint(cubicCurve.getCtrlP2(), COLOR_SELECTION_CONTROL);
             } else {
                 //controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
-                controlPoints[2] = new LWSelection.ControlPoint(quadCurve.getCtrlPt());
+                controlPoints[2] = new LWSelection.ControlPoint(quadCurve.getCtrlPt(), COLOR_SELECTION_CONTROL);
             }
         }
 
@@ -553,8 +550,8 @@ public class LWLink extends LWComponent
     public java.util.Iterator getLinkEndpointsIterator()
     {
         java.util.List endpoints = new java.util.ArrayList(2);
-        endpoints.add(getComponent1());
-        endpoints.add(getComponent2());
+        if (this.ep1 != null) endpoints.add(this.ep1);
+        if (this.ep2 != null) endpoints.add(this.ep2);
         return new VueUtil.GroupIterator(endpoints,
                                          super.getLinkEndpointsIterator());
         
@@ -1154,7 +1151,15 @@ public class LWLink extends LWComponent
             g.draw(this.curve);
 
             if (isSelected()) {
+                //-------------------------------------------------------
                 // draw faint lines to control points if selected
+                // TODO: need to do this at time we paint the selection,
+                // so these are always on top -- perhaps have a
+                // LWComponent drawSkeleton, who's default is to
+                // just draw an outline shape, which can replace
+                // the manual code in MapViewer, and in the case of
+                // LWLink, can also draw the control lines.
+                //-------------------------------------------------------
                 g.setColor(COLOR_SELECTION);
                 //g.setColor(Color.red);
                 //g.setStroke(new BasicStroke(0.5f));
@@ -1263,17 +1268,21 @@ public class LWLink extends LWComponent
 
     // these two to support a special dynamic link
     // which we use while creating a new link
-    boolean viewerCreationLink = false;
+    //boolean viewerCreationLink = false;
     // todo: this boolean a hack until we no longer need to use
     // clip-regions to draw the links
     LWLink(LWComponent ep2)
     {
-        viewerCreationLink = true;
+        //viewerCreationLink = true;
         this.ep2 = ep2;
         setStrokeWidth(2f); //todo config: default link width
     }
     
-    void setSource(LWComponent ep1)
+    // sets ep1 WIHOUT adding a link ref -- used for
+    // temporary drawing of link hack during drag outs --
+    // you know, we should just skip using a LWLink object
+    // for that crap alltogether. TODO
+    void setTemporaryEndPoint1(LWComponent ep1)
     {
         this.ep1 = ep1;
     }
