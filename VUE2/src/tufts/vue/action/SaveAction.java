@@ -22,17 +22,15 @@ import tufts.vue.*;
  *
  * @author  akumar03
  *
- * modified by John Briedis 5/29/03
- *
  */
 public class SaveAction extends AbstractAction
 {
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
-    private static  String fileName = "test.xml";
+    private static  String fileName = "";
     private Marshaller marshaller = null;
     private boolean saveAs = true;
+   
     
-    /** Creates a new instance of SaveAction */
     
     public SaveAction() {
     }
@@ -45,7 +43,6 @@ public class SaveAction extends AbstractAction
     public SaveAction(String label, boolean saveType){
         super(label);
         setSaveAs(saveType);
-        //this.saveType = saveType;   
         putValue(Action.SHORT_DESCRIPTION,label);
     }
     
@@ -70,16 +67,20 @@ public class SaveAction extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
-        try {  
+        try {
+            fileName ="";
             if (isSaveAs()){
                 selectFile();
-            }    
+            }
+            //FileWriter writer = new FileWriter(getFileName(), false);
             marshaller = getMarshaller();
             marshaller.marshal(tufts.vue.VUE.getActiveMap());
+            //writer.close();
             System.out.println("Saved " + getFileName());
         }catch(Exception ex) {
-            System.out.println(ex);
+            System.out.println("problem with marshalling process: "+ex);
         }
+        
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
     
@@ -95,8 +96,10 @@ public class SaveAction extends AbstractAction
         if(VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-        if (option == JFileChooser.APPROVE_OPTION) {
+        if (option == JFileChooser.APPROVE_OPTION
+                && chooser.getSelectedFile()!=null) {
             fileName = chooser.getSelectedFile().getAbsolutePath();
+            if(!fileName.endsWith(".xml")) fileName += ".xml";
             // if they choose nothing, fileName will be null -- detect & abort
             VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
         }
@@ -105,12 +108,12 @@ public class SaveAction extends AbstractAction
  
     private Marshaller getMarshaller()
     {
-        //this.marshaller = null; // SF temporary debug -- always reload
-        
-        if (this.marshaller == null) {
+        //this.marshaller = null; // SF temporary debug -- always reload     
+        //fileWriter needs to be reloaded to save to a given file a second time
+        //if (this.marshaller == null) {
             Mapping mapping = new Mapping();
-            try {
-                this.marshaller = new Marshaller(new FileWriter(getFileName()));
+            try {                
+                this.marshaller = new Marshaller(new FileWriter(fileName));
                 System.out.println("Marshaller loading mapping: " + XML_MAPPING);
                 mapping.loadMapping(XML_MAPPING);
                 marshaller.setMapping(mapping);
@@ -118,7 +121,7 @@ public class SaveAction extends AbstractAction
             } catch (Exception e) {
                 System.err.println("SaveAction.getMarshaller: " + e);
             }
-        }
+        //}
         return this.marshaller;
     }
 }

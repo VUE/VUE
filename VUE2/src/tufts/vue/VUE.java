@@ -223,8 +223,9 @@ public class VUE
 
     public static MapViewer getActiveViewer()
     {
-        return (MapViewer) tabbedPane.getSelectedComponent();
+         return (MapViewer) tabbedPane.getSelectedComponent();
     }
+    
     public static Vue2DMap getActiveMap()
     {
         return getActiveViewer().getMap();
@@ -502,27 +503,26 @@ public class VUE
         
 
         //extra additions by the power team members
-        //PDFConversion pdfAction = new PDFConversion("PDF");
         PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("HTML");
         XMLView xmlAction = new XMLView("XML");
-        ImageConversion imageAction = new ImageConversion("Jpeg");
+        ImageConversion imageAction = new ImageConversion("JPEG");
         ImageMap imageMap = new ImageMap("IMAP");
-        //SVGConversion svgAction = new SVGConversion("SVG");
+        SVGConversion svgAction = new SVGConversion("SVG");
         PrintAction printAction = new PrintAction("Print");
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);
+        toolBar.add(printAction);
         toolBar.add(imageAction);
         toolBar.add(htmlAction);
         toolBar.add(xmlAction);
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
-        //toolBar.add(svgAction);
-        toolBar.add(printAction);
-        //toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+        toolBar.add(svgAction);
+        toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
         frame.addWindowListener(new WindowAdapter() {
