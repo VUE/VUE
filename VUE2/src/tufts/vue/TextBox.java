@@ -381,11 +381,9 @@ class TextBox extends JTextPane
     void copyStyle(LWComponent c)
     {
         SimpleAttributeSet a = new SimpleAttributeSet();
-        //todo: set align from node or LWC
-        //if (c.hasChildren()) { // test
-        //    StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
-        //    System.out.println(this + " ALIGN-LEFT");
-        //} else
+        if (c instanceof LWNode && ((LWNode)c).isTextNode())
+            StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
+        else
             StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
         StyleConstants.setForeground(a, c.getTextColor());
         setFontAttributes(a, c.getFont());

@@ -325,7 +325,9 @@ public class LWNode extends LWContainer
     }
     
     public boolean isTextNode() {
-    	return mIsTextNode || (getFillColor() == null && mIsRectShape);
+        // Just what a text node is is a bit confusing right now, but it's useful
+        // guess for now.
+    	return (mIsTextNode || (getFillColor() == null && mIsRectShape)) && !hasChildren();
     }
     
     /** If true, compute node size from label & children */
@@ -595,9 +597,17 @@ public class LWNode extends LWContainer
             System.err.println("\treal=" + getLabelBox().getHeight());
         }
 
-        Size request = new Size(getWidth(), getHeight());
+        // The current width & height is at this moment still a
+        // "request" size -- e.g., the user may have attempted to drag
+        // us to a size smaller than our minimum size.  During that
+        // operation, the size of the node is momentarily set to
+        // whatever the user requests, but then is immediately laid
+        // out here, during which we will revert the node size to the
+        // it's minimum size if bigger than the requested size.
         
+        Size request = new Size(getWidth(), getHeight());
         Size min;
+        
         if (true||mIsRectShape) {
             isCenterLayout = false;
             min = layout_boxed();
@@ -626,7 +636,9 @@ public class LWNode extends LWContainer
         setSizeNoLayout(min.width, min.height);
 
         dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
-
+        if (!mIsRectShape)
+            VueUtil.clipToYCrossings(dividerMarginLine, drawnShape, MarginLinePadY);
+    
         if (getParent() != null && !(getParent() instanceof LWMap)) {
             //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
             getParent().layout();
@@ -722,7 +734,7 @@ public class LWNode extends LWContainer
         // *** set icon Y position in all cases to a centered vertical
         // position, but never such that baseline is below bottom of
         // first icon -- this is tricky tho, as first icon can move
-         // down a bit to be centered with the label!
+        // down a bit to be centered with the label!
 
         if (!iconShowing()) {
             min.width += LabelPadLeft * 2;
@@ -796,7 +808,11 @@ public class LWNode extends LWContainer
             }
             
             if (!mIsRectShape) {
-                float height = Math.max(min.height, givenHeight);
+                float height;
+                if (isAutoSized())
+                    height = min.height;
+                else
+                    height = Math.max(min.height, givenHeight);
                 iconPillarY = height / 2 - totalIconHeight / 2;
             }
             
@@ -1006,6 +1022,9 @@ public class LWNode extends LWContainer
     {
         if (isCenterLayout) {
             return labelP.x;
+        } else if (isTextNode() && strokeWidth == 0) {
+            return 1;
+            //return 1 + (strokeWidth == 0 ? 0 : strokeWidth / 2);
         } else if (iconShowing()) {
             //offset = (float) (PadX*1.5 + genIcon.getWidth());
             //offset = (float) genIcon.getWidth() + 7;
@@ -1102,9 +1121,9 @@ public class LWNode extends LWContainer
             if (scale != 1f) dc.g.scale(1/scale, 1/scale);
             dc.g.translate(-getX(), -getY());
 
-            if (DEBUG.BOXES) {
-                dc.g.setColor(Color.red);
-                dc.g.setStroke(STROKE_HALF);
+            if (DEBUG.BOXES && hasChildren()) {
+                dc.g.setColor(Color.blue);
+                dc.setAbsoluteStroke(0.5);
                 dc.g.draw(child_box);
             }
         }
@@ -1322,21 +1341,12 @@ public class LWNode extends LWContainer
                 else
                     marginColor = renderFill.darker();
             } else {
-                // transparent
+                // transparent fill: base on stroke color
                 marginColor = getStrokeColor().brighter();
             }
             g.setColor(marginColor);
-            //g.setColor(Color.gray);
             g.setStroke(STROKE_ONE);
-
-            //if (DEBUG.BOXES) dc.setAbsoluteStroke(1);
-            
-            if (mIsRectShape)
-                g.draw(dividerMarginLine);
-            else
-                g.draw(VueUtil.clipToYCrossings(dividerMarginLine, drawnShape, MarginLinePadY));
-                // todo: don't need to do this every draw: only on layout
-            
+            g.draw(dividerMarginLine);
             mIconBlock.draw(dc);
         }
     }

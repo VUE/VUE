@@ -1918,7 +1918,9 @@ public class MapViewer extends javax.swing.JComponent
         g2.translate(-getOriginX(), -getOriginY());
         if (mZoomFactor != 1) g2.scale(mZoomFactor, mZoomFactor);
         it = VueSelection.iterator();
-        g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() * mZoomInverse)));
+        //g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() * mZoomInverse)));
+        //g2.setStroke(STROKE_ONE);
+        dc.setAbsoluteStroke(0.5);
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
             if (sDragUnderway || c.getStrokeWidth() == 0) {
@@ -1977,7 +1979,8 @@ public class MapViewer extends javax.swing.JComponent
         growForSelection(paintedSelectionBounds);
         //System.out.println("screenSelectionBounds="+mapSelectionBounds);
         
-        if (VueSelection.countTypes(LWNode.class) <= 0) {
+        if (VueSelection.countTypes(LWNode.class) <= 0 ||
+            (VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())) {
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)

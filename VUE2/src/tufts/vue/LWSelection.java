@@ -354,7 +354,7 @@ public class LWSelection extends java.util.ArrayList
 
     public LWComponent first()
     {
-        return (LWComponent) get(0);
+        return size() == 0 ? null : (LWComponent) get(0);
     }
     
     public int countTypes(Class clazz)
