@@ -233,20 +233,20 @@ public class CabinetResource extends MapResource{
     public String getSpec() {
         //  Check for a restored resource.
         if (this.entry == null)
-            return this.spec;
+            return super.getSpec();
         else {
             //  Check for each of the four possible cases.
             if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
-                this.spec = ((RemoteByteStore)this.entry).getUrl();
+                setSpec(((RemoteByteStore)this.entry).getUrl());
             if (this.entry instanceof tufts.oki.remoteFiling.RemoteCabinet)
-                this.spec = ((RemoteCabinet)this.entry).getUrl();
+                setSpec(((RemoteCabinet)this.entry).getUrl());
             if (this.entry instanceof tufts.oki.localFiling.LocalByteStore)
-                this.spec = ((LocalByteStore)this.entry).getUrl();
+                setSpec(((LocalByteStore)this.entry).getUrl());
             if (this.entry instanceof tufts.oki.localFiling.LocalCabinet)
-                this.spec = ((LocalCabinet)this.entry).getUrl();
+                setSpec(((LocalCabinet)this.entry).getUrl());
 
             //  Shouldn't ever get here, but handle it anyways.
-            return this.spec;
+            return super.getSpec();
         }
     }
     

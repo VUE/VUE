@@ -113,7 +113,7 @@ public class OsidAssetResource extends MapResource
             catch (Exception ex) 
             {
                 setSpec((String)asset.getContent());            
-                System.out.println("No VUE integration record.  Fetching Asset's content " + this.spec);
+                System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
             Object o = mProperties.get("spec");
             if (getSpec() == null)
@@ -162,7 +162,7 @@ public class OsidAssetResource extends MapResource
             catch (Exception ex) 
             {
                 setSpec( (String)asset10.getContent() );            
-                System.out.println("No VUE integration record.  Fetching Asset's content " + this.spec);
+                System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
             Object o = mProperties.get("spec");
             if (getSpec() == null)

@@ -54,8 +54,8 @@ public class TextRow
 
     private Rectangle2D.Float bounds;
 
-    private float width;
-    private float height;
+    public final float width;
+    public final float height;
     
     public TextRow(String text, Font font, FontRenderContext frc)
     {

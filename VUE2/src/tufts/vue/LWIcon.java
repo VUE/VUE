@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.TextRow;
+
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.JComponent;

@@ -40,14 +40,14 @@ public class MapResource implements Resource {
             resourceFlavor = new java.awt.datatransfer.DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
         } catch(Exception ex) {ex.printStackTrace();}
     }
-    long referenceCreated;
-    long accessAttempted;
-    long accessSuccessful;
-    long size = SIZE_UNKNOWN;
+    private long referenceCreated;
+    private long accessAttempted;
+    private long accessSuccessful;
+    private long size = SIZE_UNKNOWN;
     protected transient boolean selected = false;
-    String spec;
-    int type;
-    JComponent viewer;
+    private String spec;
+    private int type;
+    private JComponent viewer; // what the holy fucking HELL is a goddamn JComponent doing in here?
     
     /** the metadata property map **/
     protected   Map mProperties = new Properties();
@@ -69,7 +69,7 @@ public class MapResource implements Resource {
     
     public MapResource(String spec) {
         setSpec(spec);
-        this.mTitle = spec;
+        this.mTitle = spec; // why are we doing this??  title is an OPTIONAL field...
     }
     
     
@@ -87,9 +87,10 @@ public class MapResource implements Resource {
         
         if (this.url == null) {
             // this logic shouldn't be needed: if spec can be a a valid URL, this.url will already be set
-            //if (spec.startsWith("file:") || spec.startsWith("http:"))
-            //    txt = spec;
-            //else
+            if (spec.startsWith("file:") || spec.startsWith("http:")) {
+                System.err.println(getClass() + " BOGUS MapResource: is URL, but unrecognized! " + this);
+                txt = spec;
+            } else
                 txt = "file:///" + spec;
         } else
             txt = this.url.toString();
@@ -110,7 +111,7 @@ public class MapResource implements Resource {
     }
     
     public void displayContent() {
-        System.out.println("displayContent for " + this);
+        System.out.println(getClass() + " displayContent for " + this);
         try {
             this.accessAttempted = System.currentTimeMillis();
             //if (getAsset() != null) {

@@ -37,8 +37,9 @@ public class URLResource extends MapResource {
     public URLResource(String spec) {
         super(spec);
     }
+    /*
     public void displayContent() {
-        System.out.println("displayContent for " + this);
+        System.out.println(getClass() + " displayContent for " + this);
         try {
             this.accessAttempted = System.currentTimeMillis();
             if (VueUtil.isMacPlatform())
@@ -50,5 +51,6 @@ public class URLResource extends MapResource {
             System.err.println(e);
         }
     }
+    */
     
 }

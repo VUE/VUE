@@ -77,7 +77,7 @@ public class ToolWindow extends JWindow
 
         
         pack();
-        out("constructed.");
+        if (DEBUG.Enabled) out("constructed.");
         
         //setLocationRelativeTo(owner);
         //setFocusableWindowState(false); // nothing can get input at all...
@@ -133,7 +133,7 @@ public class ToolWindow extends JWindow
         // this is hack till glass pane can redispatch mouse events so
         // that mouse listening tools don't disable the resize corner
         MouseListener[] ml = c.getMouseListeners();
-        out("added " + c + " mouseListeners=" + ml.length);
+        if (DEBUG.Enabled) out("added " + c + " mouseListeners=" + ml.length);
         if (addBorder || ml.length > 0) {
             if (DEBUG.Enabled)
                 mContentPane.contentPanel.setBorder(new LineBorder(Color.lightGray, 5));
@@ -229,7 +229,7 @@ public class ToolWindow extends JWindow
         Rectangle limit = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
         limit.width += limit.x;
         limit.height += limit.y;
-        out("suggesting location " + x + "," + y + " in limits " + limit);
+        //out("suggesting location " + x + "," + y + " in limits " + limit);
         if (x + getWidth() > limit.width)
             x = limit.width - getWidth();
         if (x < limit.x)

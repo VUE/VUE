@@ -72,7 +72,8 @@ public class AssetResource extends MapResource{
     public void setAsset(Asset asset) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.asset = asset;
         setPropertiesByAsset();
-        this.spec = asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString();
+        setSpec(asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString());
+        setType(Resource.ASSET_FEDORA);
         setTitle(asset.getDisplayName());
         this.castorFedoraObject = new CastorFedoraObject((FedoraObject)asset);
     }
@@ -124,7 +125,8 @@ public class AssetResource extends MapResource{
     public void setCastorFedoraObject(CastorFedoraObject castorFedoraObject) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.castorFedoraObject = castorFedoraObject;
         this.asset = this.castorFedoraObject.getFedoraObject();
-        this.spec =   asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString();
+        setSpec(asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString());
+        setType(Resource.ASSET_FEDORA);
     }
     
     public CastorFedoraObject getCastorFedoraObject() {
