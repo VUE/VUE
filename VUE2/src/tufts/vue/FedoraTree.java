@@ -9,11 +9,13 @@ import javax.swing.tree.*;
 import java.io.*;
 import java.util.Vector;
 import javax.swing.filechooser.FileSystemView;
+import tufts.dr.fedora.*;
+import java.net.*;
 
 import osid.dr.*;
 import osid.OsidException;
 class FedoraTree extends JTree implements DragGestureListener,DragSourceListener{
-	public FedoraTree(DigitalRepository dr) {
+	public FedoraTree(DigitalRepository dr) throws DigitalRepositoryException {
 		DragSource dragSource = DragSource.getDefaultDragSource();
 		dragSource.createDefaultDragGestureRecognizer(
 					this, // component where drag originates
@@ -47,7 +49,7 @@ class FedoraTree extends JTree implements DragGestureListener,DragSourceListener
         return ((Asset)node.getUserObject());
     }
    
-    private DefaultTreeModel createTreeModel(DigitalRepository dr) {
+    private DefaultTreeModel createTreeModel(DigitalRepository dr)  throws DigitalRepositoryException{
 	DefaultMutableTreeNode baseroot = new DefaultMutableTreeNode("Fedora@Tufts");
         AssetIterator ai;
         try {
@@ -55,12 +57,40 @@ class FedoraTree extends JTree implements DragGestureListener,DragSourceListener
             while(ai.hasNext()) {
                 baseroot.add(new FedoraNode((Asset)ai.next()));
             }
-        } catch(Exception e) { System.out.println("FedoraTree.createTreeModel() "+e);}
+        } catch(DigitalRepositoryException e) { 
+            
+            //System.out.println("FedoraTree.createTreeModel() "+e);
+            throw e;
+        }
         //File[] roots = File.listRoots();        
 	return new DefaultTreeModel(baseroot);
                        
              
         }
+    
+    public static void main(String args[]) {
+        JFrame frame = new JFrame();
+        DigitalRepository dr = new DR();
+        
+        FedoraTree  fedoraTree = null;
+        try {
+            fedoraTree = new FedoraTree(dr);
+        } catch(OsidException e) {
+            JOptionPane.showMessageDialog(frame,"Cannot connect to FEDORA Server.","FEDORA Alert", JOptionPane.ERROR_MESSAGE);
+          //  System.out.println(e);
+        }
+        if(fedoraTree != null) {
+            JScrollPane jspFedora  = new JScrollPane(fedoraTree);
+            frame.setContentPane(jspFedora);
+        }
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });  
+        frame.pack();
+        frame.setVisible(true);
+    }
 }
 class FedoraSelection extends Vector implements Transferable{
       //  final static int FILE = 0;
@@ -166,6 +196,33 @@ class FedoraTreeCellRenderer extends DefaultTreeCellRenderer {
                 }
             }  
         });
+        
+        tree.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent me) {
+           
+                TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
+                Object obj;
+                if (treePath!=null) {
+                    obj = treePath.getLastPathComponent();
+                     metaData = treePath.toString(); 
+                    tree.repaint();
+                // System.out.println("Tree Path Not Null");
+                } else {
+                    obj = null;
+       
+                }
+                if (obj!=lastNode) {
+                    lastNode = obj;
+                   // System.out.println("Last Node");
+                }
+                JFrame frame = new AssetViewer(((FedoraNode)obj).getAsset());
+                frame.setLocation(me.getX(),me.getY());
+                frame.pack();
+                frame.setVisible(true);
+            }
+        });
+                
+        
     }
 
   
@@ -173,4 +230,69 @@ class FedoraTreeCellRenderer extends DefaultTreeCellRenderer {
          return metaData;
         
     }
+}
+
+class AssetViewer extends JFrame {
+    static final String FEDORA_URL= "http://hosea.lib.tufts.edu:8080/fedora/get/";
+    public AssetViewer(Asset asset) { 
+        super("Asset Viewer");
+        JTabbedPane assetPane= new JTabbedPane();
+        getContentPane().setLayout(new BorderLayout());
+        InfoRecordIterator i;
+        try {
+            i = asset.getInfoRecords();
+            while(i.hasNext()) {
+                  InfoRecord infoRecord = i.next();
+                  InfoFieldIterator inf = infoRecord.getInfoFields();
+                   JTabbedPane infoRecordPane = new JTabbedPane();
+                  //infoRecordPane.setTabPlacement(JTabbedPane.LEFT);
+                  while(inf.hasNext()) {
+                      InfoField infoField = inf.next();
+                      String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getValue().toString();
+                      DisplayPane dPane  = new DisplayPane(FEDORA_URL+method);
+                      infoRecordPane.addTab(infoField.getValue().toString(),dPane);
+                  }
+
+                  assetPane.addTab(infoRecord.getId().getIdString(),infoRecordPane);
+            }
+        } catch(Exception e) { System.out.println("MapViewer.getAssetMenu"+e);}
+        getContentPane().setSize(600,600);
+        getContentPane().add(assetPane,BorderLayout.CENTER);
+    }
+}
+class DisplayPane extends JPanel{
+    
+    /** Creates a new instance of EditorPaneDemo */
+    static JEditorPane editorPane;  
+    static URL url;
+    static  ImageIcon image;
+    public DisplayPane(String location) {
+      
+        image = new ImageIcon();
+        setLayout(new BorderLayout());
+        try {
+            url = new URL(location);
+            URLConnection uConn = url.openConnection();
+            System.out.println("Content-type: "+uConn.getContentType());
+            if((uConn.getContentType().equals("text/html")) || (uConn.getContentType().equals("text/xml")) || uConn.getContentType().equals("text/html; charset=UTF-8")) {
+                editorPane = new JEditorPane();
+                editorPane.setEditable(false);
+                editorPane.setPage(url);
+                JScrollPane jSP = new JScrollPane(editorPane);
+                add(jSP,BorderLayout.CENTER);
+            } else if (uConn.getContentType().equals("image/jpeg") || uConn.getContentType().equals("image/gif")){   
+                image = new ImageIcon(url);
+                JButton imageButton = new JButton(image);
+                imageButton.setBorderPainted(false);
+                add(imageButton,BorderLayout.CENTER);
+            } else {
+                add(new JLabel("Not Implemented"),BorderLayout.CENTER);
+            }
+        } catch (Exception e) {
+            System.err.println("Attempted to read a bad URL: " + url);
+        }
+       
+    }
+
+    
 }
