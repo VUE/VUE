@@ -740,7 +740,7 @@ public abstract class LWContainer extends LWComponent
 
     protected LWComponent defaultHitComponent()
     {
-        return isDrawn() ? null : this;
+        return isDrawn() ? this : null;
     }
 
     public LWComponent findDeepestChildAt(float mapX, float mapY)

@@ -168,7 +168,6 @@ ActionListener {
         else
             loadText(resourceField, "");
         
-        labelField.setBackground(c.getFillColor());
         loadText(labelField, c.getLabel());
         
         //loading the metadata if it exists

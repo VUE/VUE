@@ -421,14 +421,24 @@ public class LWLink extends LWComponent
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()
     {
-        // todo fix: if parent is null this may provide incorrect results        
-        return (ep1 != null && ep1.getParent() == ep2) || (ep2 != null && ep2.getParent() == ep1);
+        if (ep1 == null || ep2 == null)
+            return false;
+        return ep1.getParent() == ep2 || ep2.getParent() == ep1;
     }
-    /** Are both ends of this link in the same LWNode parent? */
+
+    /**
+     * This is a nested link if it's not a curved link, and: both ends
+     * of this link in the same LWNode parent, or it's a parent-child
+     * link, or it's parent is a LWNode.
+     */
     public boolean isNestedLink()
     {
+        if (isCurved())
+            return false;
         if (ep1 == null || ep2 == null)
             return getParent() instanceof LWNode;
+        if (ep1.getParent() == ep2 || ep2.getParent() == ep1)
+            return true;
         return ep1.getParent() == ep2.getParent() && ep1.getParent() instanceof LWNode;
     }
     
@@ -501,7 +511,7 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
         if (curve != null) {
-            // QuadCurve2D actually checks the entire concave region for containment
+            // Java curve shapes check the entire concave region for containment.
             // todo perf: would be more accurate to coursely flatten the curve
             // and check the segments using stroke width and distance
             // from each segment as we do below when link is line,
@@ -522,12 +532,13 @@ public class LWLink extends LWComponent
             if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
                 return true;
         }
-        if (mIconBlock.contains(x, y))
-            return true;
-        else if (hasLabel())
-            return labelBox.containsMapLocation(x, y); // bit of a hack to do this way
-        else
-            return false;
+        if (!isNestedLink()) {
+            if (mIconBlock.contains(x, y))
+                return true;
+            else if (hasLabel())
+                return labelBox.containsMapLocation(x, y); // bit of a hack to do this way
+        }
+        return false;
     }
     
     /**
