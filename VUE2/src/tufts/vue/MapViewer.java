@@ -475,7 +475,12 @@ public class MapViewer extends javax.swing.JPanel
     public void reshape(int x, int y, int w, int h)
     {
         if (DEBUG_PAINT) System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h);
+        //Point p=null;
+        //if (isShowing()) p = getLocationOnScreen();
+        //System.out.println(" ul start: "+p);
         super.reshape(x,y, w,h);
+        //if (p!=null) p = getLocationOnScreen();
+        //System.out.println("ul finish: "+p);
         repaint(250);
         //requestFocus();
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
