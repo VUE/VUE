@@ -8,8 +8,11 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
 import java.awt.geom.Point2D;
+import java.awt.Point;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+
+import java.io.File;
 
 import osid.dr.*;
 
@@ -51,7 +54,10 @@ class MapDropTarget
     public void dragOver(DropTargetDragEvent e)
     {
         LWComponent over = viewer.getMap().findChildAt(dropToMapLocation(e.getLocation()));
-        if (over instanceof LWNode)
+        if (over instanceof LWNode || over instanceof LWLink)
+            // todo: if over resource icon and we can set THAT indicated, do
+            // so and also use that to indicate we'd like to set the resource
+            // instead of adding a new child
             viewer.setIndicated(over);
         else
             viewer.clearIndicated();
@@ -66,6 +72,7 @@ class MapDropTarget
     public void dropActionChanged(DropTargetDragEvent e)
     {
         if (debug) System.out.println("MapDropTarget: dropActionChanged " + e);
+
     }
     
     public void drop(DropTargetDropEvent e)
@@ -88,14 +95,30 @@ class MapDropTarget
 
         // Scan thru the data-flavors, looking for a useful mime-type
 
-        boolean success = processTransferable(e.getTransferable(), e.getLocation());
+        //boolean success = processTransferable(e.getTransferable(), e.getLocation());
+        boolean success = processTransferable(e.getTransferable(), e);
 
         e.dropComplete(success);
         viewer.clearIndicated();        
     }
 
-    public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
+    //    public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
+    /**
+     * Process any transferrable: @param e can be null if don't have a drop event
+     * (e.g., could use to process clipboard contents as well as drop events)
+     */
+    public boolean processTransferable(Transferable transfer, DropTargetDropEvent e)
     {
+        Point dropLocation = null;
+        int dropAction = DnDConstants.ACTION_MOVE; // default action
+
+        if (e != null) {
+            dropLocation = e.getLocation();
+            dropAction = e.getDropAction();
+        }
+
+        boolean modifierKeyWasDown = (dropAction == DnDConstants.ACTION_COPY);
+
         LWComponent hitComponent = null;
 
         if (dropLocation != null) {
@@ -183,12 +206,17 @@ class MapDropTarget
             int y = dropLocation.y;
 
             while (iter.hasNext()) {
-                java.io.File file = (java.io.File) iter.next();
+                File file = (File) iter.next();
                 if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
                 if (hitComponent != null && fileList.size() == 1) {
-                    hitComponent.setResource(file.toString());
+                    if (!modifierKeyWasDown && hitComponent instanceof LWNode) {
+                        ((LWNode)hitComponent).addChild(createNewNode(file, null));
+                    } else {
+                        hitComponent.setResource(file.toString());
+                    }
                 } else {
-                    createNewNode("file:///"+file.toString(), file.getName(), new java.awt.Point(x, y));
+                    //createNewNode("file:///"+file.toString(), file.getName(), new java.awt.Point(x, y));
+                    createNewNode(file, new java.awt.Point(x, y));
                     x += 15;
                     y += 15;
                 }
@@ -206,7 +234,7 @@ class MapDropTarget
                 y+= 15;
                 success = true;
             }
-        } else if (resourceName != null) {
+        } else if (resourceName != null) { // Christ! - what happened to this code?? resourceName is never set anywhere!
             if (hitComponent != null)
                 hitComponent.setResource(resourceName);
             else
@@ -243,17 +271,27 @@ class MapDropTarget
     // then we don't even have to know about the map, or the MapViewer
     // which for instance can do the zoom conversion of the drop location
     // for us.
-    private void createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
+    private LWNode createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
     {
         if (resourceTitle == null)
             resourceTitle = createResourceTitle(resourceName);
 
         LWNode node = NodeTool.createNode(resourceTitle);
-        node.setCenterAt(dropToMapLocation(p));
         node.setResource(new Resource(resourceName));
-        viewer.getMap().addNode(node);
-        //set selection to node?
+        if (p != null) {
+            node.setCenterAt(dropToMapLocation(p));
+            viewer.getMap().addNode(node);            //set selection to node?
+        } // else: special case: no node location, sp we're creating a child node -- don't add to map
+        return node;
     }
+
+    private LWNode createNewNode(File file, Point p)
+    {
+        // TODO BUG: adding the file:/// here produces inconsistent results --
+        // that needs to be done in the Resource object!
+        return createNewNode("file:///"+file.toString(), file.getName(), p);
+    }
+        
 
     private void createNewTextNode(String text, java.awt.Point p)
     {
