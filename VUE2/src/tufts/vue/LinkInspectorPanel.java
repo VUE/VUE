@@ -79,7 +79,7 @@ public class LinkInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         
         add( BorderLayout.CENTER, mTabbedPane );
         validate();
-        show();
+        setVisible(true);
     }
     
     

@@ -79,7 +79,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         add( mTabbedPane,BorderLayout.CENTER );
         setMap(VUE.getActiveMap());
         validate();
-        show();
+        setVisible(true);
         
     }
     
@@ -209,7 +209,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mMoreButton = new VueButton("add");
             mFewerButton = new VueButton("delete");
             
-            mFewerButton.hide();
+            mFewerButton.setVisible(false);
             
             mFilterButton.addActionListener( this);
             mClearFilterButton.addActionListener( this);
@@ -283,10 +283,10 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             
             boolean hasMap = pMap != null;
             
-            mFilterButton.enable(hasMap);
-            mClearFilterButton.enable( hasMap);
-            mMoreButton.enable( hasMap);
-            mFewerButton.enable( hasMap);
+            mFilterButton.setEnabled(hasMap);
+            mClearFilterButton.setEnabled( hasMap);
+            mMoreButton.setEnabled( hasMap);
+            mFewerButton.setEnabled( hasMap);
             /**
              * if (hasMap)
              * mFilter = pMap.getLWCFilter();
@@ -411,7 +411,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         
         public void addStatement() {
             System.out.println("Adding staement!");
-            mFewerButton.show();
+            mFewerButton.setVisible(true);
             LWCFilter.LogicalStatement ls = mFilter.createLogicalStatement() ;
             FilterStatementEditor fse = new FilterStatementEditor( mFilter, ls);
             mStatementEditors.add( fse);
@@ -427,7 +427,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mFilterBox.remove( fse);
             mStatementEditors.remove( fse);
             if( mStatementEditors.size() <= 1 ) {
-                mFewerButton.hide();
+                mFewerButton.setVisible(false);
             }
             validate();
         }

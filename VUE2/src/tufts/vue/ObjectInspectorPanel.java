@@ -145,7 +145,7 @@ public class ObjectInspectorPanel  extends JPanel
 		if( pCard != null) {
 			debug( "  setting card to: "+pCard.getClass().getName() );
 			mCardPanel.add( BorderLayout.CENTER, pCard);
-			pCard.show();
+			pCard.setVisible(true);
 			validate();
 			repaint();
 			}

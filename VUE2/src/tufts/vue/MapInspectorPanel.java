@@ -100,7 +100,7 @@ implements  VUE.ActiveMapListener {
         add( BorderLayout.CENTER, mTabbedPane );
         setMap(VUE.getActiveMap());
         validate();
-        show();
+        setVisible(true);
     }
     
     
