@@ -21,7 +21,8 @@ public class VUE
     public static Cursor CURSOR_ZOOM_OUT;
     
     public static JFrame frame;
-    static JTabbedPane tabbedPane;
+    //set to public so that action package can access it (Jay Briedis 6/4/03)
+    public static JTabbedPane tabbedPane;
     
     static {
         /*
@@ -298,16 +299,15 @@ public class VUE
         menuBar.add(optionsMenu);
         menuBar.add(helpMenu);
         //adding actions
-        SaveAction saveAction = new SaveAction("Save");
-        SaveAction saveAsAction = new SaveAction("Save As...", "saveAs");
+        SaveAction saveAction = new SaveAction("Save", false);
+        SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open");
-        SaveAction htmlAction = new SaveAction("Save As HTML...", "html");
         ExitAction exitAction = new ExitAction("Quit");
         fileMenu.add(new JMenuItem("New"));
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
         fileMenu.add(saveAsAction);
-        fileMenu.add(htmlAction);
+        //fileMenu.add(htmlAction);
         fileMenu.add(new JMenuItem("Export ..."));
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
@@ -352,21 +352,35 @@ public class VUE
         
         helpMenu.add(new JMenuItem("Help"));
         
+
+        PDFConversion pdfAction = new PDFConversion("PDF");
+
         //extra additions by the power team members
         ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("iMap");
         SVGConversion svgAction = new SVGConversion("SVG");
         
+
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);
         toolBar.add(imageAction);
+        toolBar.add(pdfAction);
         toolBar.add(imageMap);
         toolBar.add(svgAction);
         toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
+        frame.addWindowListener(new WindowListener(){
+          public void windowClosing(WindowEvent e){System.exit(0);}
+          public void windowOpened(WindowEvent e){}
+          public void windowClosed(WindowEvent e){}
+          public void windowIconified(WindowEvent e){}
+          public void windowDeiconified(WindowEvent e){}
+          public void windowActivated(WindowEvent e){}
+          public void windowDeactivated(WindowEvent e){}
+        });
     }
 }
