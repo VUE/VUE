@@ -357,7 +357,7 @@ public class UndoManager
                 sUndoUnderway = false;
             }
         }
-        RedoList.add(collectChangesAsUndoAction("<redo>" + undoAction.name));
+        RedoList.add(collectChangesAsUndoAction(undoAction.name));
         updateActionLabels();
         // We've undo everything: we can mark the map as having no modifications
         if (UndoList.peek() == null)
