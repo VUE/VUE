@@ -180,7 +180,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         }
         
         this.activeDataSource = ds;
+        
         ds.setActiveDataSource(true);
+        if (ds.getType() == DataSource.FAVORITES)((FavoritesWindow)ds.getResourceViewer()).favoritesPane.setSelectedIndex(2);
         drBrowser.remove(resourcesPanel);
         resourcesPanel  = new JPanel();
         resourcesPanel.setLayout(new BorderLayout());
@@ -554,7 +556,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
             dataSourceChanged = true;
             currIndex = dataSourceList.getSelectedIndex();
-            System.out.println("datasource here crr" + dataSource +"Currindex" + currIndex);
+           // System.out.println("datasource here crr" + dataSource +"Currindex" + currIndex);
             if (currIndex == 0){//first Elsement
                 
                 if (dataSourceList.getModel().getSize() == 1){//only one element in the list
@@ -573,13 +575,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     
                     
                     
-                    System.out.println("datasource here next" + nextDs);
+                   // System.out.println("datasource here next" + nextDs);
                     if (nextDs.getType() == DataSource.BREAK){
                         breakDs = nextDs;
                         breakExists = 1;
                         
                         nextDs = (DataSource)dataSourceList.getModel().getElementAt(currIndex + 2);
-                        System.out.println("datasource here and" + nextDs);
+                     //   System.out.println("datasource here and" + nextDs);
                     }
                     
                     type = dataSource.getType();
@@ -836,7 +838,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
         }
         
-        System.out.println("Stuff at end delete" + "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
+      //  System.out.println("Stuff at end delete" + "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
         
     }
     

@@ -75,7 +75,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             this.setFavoritesTree(favoritesTree);
             }catch (Exception ex){
-                System.out.println("I tried to open" + f);
+               // System.out.println("I tried to open" + f);
                 fileOpen = false;
                
             }
@@ -152,7 +152,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(10, 2,2, 2);
         keywords = new JTextField();
-        keywords.setPreferredSize(new Dimension(200,20));
+        keywords.setPreferredSize(new Dimension(225,20));
         keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
          queryPanel.add(keywords);
