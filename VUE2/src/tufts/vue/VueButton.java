@@ -124,6 +124,7 @@ public class VueButton extends JButton
     {
         Icon i;
         if ((i = VueResources.getImageIcon(key + kRAW)) != null) {
+            
             VueButtonIcon.installGenerated(b, i, VueResources.getSize(key + kSIZE));
         } else {
             if ((i = VueResources.getImageIcon(key + kUP)) != null)       b.setIcon(i);

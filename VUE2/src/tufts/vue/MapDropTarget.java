@@ -265,7 +265,8 @@ class MapDropTarget
             while (iter.hasNext()) {
                 File file = (File) iter.next();
 
-                String resourceSpec = file.getPath();
+                //String resourceSpec = file.getPath();
+                String resourceSpec = "file://" + file.getPath();
                 String resourceName = file.getName();
                 
                 if (file.getPath().toLowerCase().endsWith(".url")) {
@@ -273,7 +274,8 @@ class MapDropTarget
                     // for the actual web reference.
                     String url = convertWindowsURLShortCutToURL(file);
                     if (url != null) {
-                        resourceSpec = url;
+                       //resourceSpec = url;
+                          resourceSpec = "file://" + url;
                         if (file.getName().length() > 4)
                             resourceName = file.getName().substring(0, file.getName().length() - 4);
                         else

@@ -109,6 +109,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
            // GRID: addConditionButton
         JButton refreshButton=new VueButton("refresh");
+        
         refreshButton.setBackground(this.getBackground());
         
         refreshButton.addActionListener(new ActionListener() {
@@ -143,12 +144,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
        // System.out.println("size =--" + topPanel.getMaximumSize() + "data" + dataSourcePanel.getMaximumSize() + "res" + resourcesPanel.getMaximumSize());        
 
+        
         JScrollPane jSP = new JScrollPane(dataSourceList);
-
+        
+      
+        
         dataSourceList.addKeyListener(this);
 
         dataSourcePanel.add(jSP,BorderLayout.CENTER);
+     
         add(dataSourcePanel,BorderLayout.CENTER);
+       
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
         
         
