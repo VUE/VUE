@@ -28,6 +28,8 @@ import java.util.ArrayList;
 public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener
 { 
     private boolean selectionFromVUE = false;
+    private boolean valueChangedState = false;
+    
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
@@ -81,6 +83,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     {
                         //System.out.println("setting vue selection: " + selectedComponents.size());
                         
+                        valueChangedState = true;
+                        
                         if(selectedComponents.size() != 0)
                           VUE.getSelection().setTo(selectedComponents.iterator());
                     
@@ -92,6 +96,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     if(!selectedHierarchyNodes.isEmpty())
                       selectedNode = (tufts.oki.hierarchy.HierarchyNode)selectedHierarchyNodes.get(0);
      
+                    valueChangedState = false;
                     selectionFromVUE = false;
                     
                         /*
@@ -252,16 +257,17 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     /** A method for handling LWSelection event **/
     public void selectionChanged(LWSelection selection)
     {  
-        selectionFromVUE = true;
+        if (!valueChangedState)
+        {
+            selectionFromVUE = true;
         
-        if (!selection.isEmpty())
-          setSelectionPaths(selection);
+            if (!selection.isEmpty())
+              setSelectionPaths(selection);
         
-        //else deselect
-        else 
-          super.setSelectionPath(null);
-        
-       
+            //else deselect
+            else 
+              super.setSelectionPath(null);
+        }
     }
     
     /**A class that specifies the rendering method of the outline view tree*/
