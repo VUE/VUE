@@ -124,9 +124,9 @@
 		<field name="elementList" type="tufts.vue.LWComponent" collection="arraylist">
 			<bind-xml name="elementList" />
 		</field>
-		<field name="borderColor" type="java.awt.Color">
+		<!--<field name="borderColor" type="java.awt.Color">
 			<bind-xml name="borderColor" node="element" />
-		</field>
+		</field>-->
 		<field name="current" type="tufts.vue.LWComponent">
 			<bind-xml name="current" node="element" />
 		</field>
