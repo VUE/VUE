@@ -52,10 +52,9 @@ public class ImageConversion extends AbstractAction {
     public void createJpeg(File location)
     {
          //retrives the current map and gets its size
-         MapViewer currentViewer = VUE.getActiveViewer();
          LWMap currentMap = VUE.getActiveMap();
          
-         Rectangle2D bounds = currentViewer.getAllComponentBounds();
+         Rectangle2D bounds = currentMap.getBounds();
          Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
          
          //creates an image object and sets up the graphics object of the image
@@ -72,7 +71,8 @@ public class ImageConversion extends AbstractAction {
          g.translate(-(int)bounds.getX(), -(int)bounds.getY());
          g.setClip(0, 0, size.width, size.height);
             
-         DrawContext dc = new DrawContext(g, 1.0);
+         DrawContext dc = new DrawContext(g);
+         dc.setPrinting(true);
          // render the map
          currentMap.draw(dc);
         

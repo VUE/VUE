@@ -42,7 +42,6 @@ public class SVGConversion extends AbstractAction {
     public void createSVG(File location)
     {
         //gets the currently selected map
-        MapViewer currentViewer = VUE.getActiveViewer();
         LWMap currentMap = VUE.getActiveMap();
         
         //sets up the document object model
@@ -53,7 +52,7 @@ public class SVGConversion extends AbstractAction {
         //int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
         //Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
         
-        Rectangle2D bounds = currentViewer.getAllComponentBounds();
+        Rectangle2D bounds = currentMap.getBounds();
         Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
         
         //draws the background and the border of the image
@@ -69,7 +68,8 @@ public class SVGConversion extends AbstractAction {
         //renders the map image into the SVGGraphics object
         //map.paintComponent(svgGenerator);
           
-        DrawContext dc = new DrawContext(svgGenerator, 1.0);
+        DrawContext dc = new DrawContext(svgGenerator);
+        dc.setPrinting(true);
         // render the map
         currentMap.draw(dc);
         

@@ -130,6 +130,10 @@ public class MapViewer extends javax.swing.JComponent
                     final Color bg = new Color(100,255,111);
                     final Color line = bg.darker();
                     public void paintComponent(Graphics g) {
+                        if (DEBUG.Enabled || VUE.multipleMapsVisible())
+                            paintIcon(g);
+                    }
+                    void paintIcon(Graphics g) {
                         int w = getWidth();
                         int h = getHeight();
                         if (VUE.getActiveViewer() == MapViewer.this) {
@@ -170,7 +174,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         if (false&&inScrollPane) {
-            Rectangle2D mb = getAllComponentBounds();
+            Rectangle2D mb = getContentBounds();
             setMapOriginOffset(mb.getX(), mb.getY());
         } else {
             Point2D p = getMap().getUserOrigin();
@@ -498,7 +502,7 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds) + " reset="+reset + " panning="+panning);
         if (DEBUG.SCROLL) out("view position: " + out(mViewport.getViewPosition()));
 
-        Rectangle2D.Float mapExtent = getAllComponentBounds();
+        Rectangle2D.Float mapExtent = getContentBounds();
         if (DEBUG.SCROLL) out("   map extent: " + out(mapExtent));
         
         Point2D.Float mapLocationAtExtentOrigin = getMapLocationAtExtentOrigin();
@@ -698,7 +702,7 @@ public class MapViewer extends javax.swing.JComponent
         adjustScrollRegion(true, false);
         
         if(false){
-            Rectangle2D.Float extent = getAllComponentBounds();
+            Rectangle2D.Float extent = getContentBounds();
             
             //Point vPos = mViewport.getViewPosition();
             Point vPos = location;
@@ -1025,14 +1029,14 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     /**
-     * Return a bounding box for all the LWComponents in the
+     * Return, in Map coords, a bounding box for all the LWComponents in the
      * displayed map, including room for possible selection handles or
      * rendered selection highlights.  Will in effect be just a bit
      * bigger than getMap().getBounds(). todo: account for zoom?
      */
     
     private final float SelectionStrokeMargin = SelectionStrokeWidth/2;
-    public Rectangle2D.Float getAllComponentBounds() {
+    public Rectangle2D.Float getContentBounds() {
         Rectangle2D.Float r = (Rectangle2D.Float) getMap().getBounds().clone();
         // because the selection stroke is rendered at scale (gets bigger
         // as we zoom in) we account for it here in the total bounds
@@ -1044,7 +1048,7 @@ public class MapViewer extends javax.swing.JComponent
             r.height += SelectionStrokeWidth;
         }
         Rectangle2D.Float rr = growForSelection(r); // now grow it for the selection handles
-        if (DEBUG.SCROLL) out("getAllComponentBounds " + rr);
+        if (DEBUG.SCROLL) out("getContentBounds " + rr);
         return rr;
     }
     

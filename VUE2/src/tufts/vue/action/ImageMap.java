@@ -33,10 +33,10 @@ public class ImageMap extends AbstractAction {
         putValue(Action.SHORT_DESCRIPTION,label);        
     }
     
-    private void createJpeg(String location, String format, MapViewer currentMap, Dimension size)
+    private void createJpeg(String location, String format, LWMap currentMap, Dimension size)
     {     
         BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-        this.map = currentMap.getMap();
+        this.map = currentMap;
         Graphics2D g = (Graphics2D) mapImage.getGraphics();
         
         g.setColor(Color.WHITE);
@@ -48,6 +48,7 @@ public class ImageMap extends AbstractAction {
         g.setClip(0, 0, size.width, size.height);
             
         DrawContext dc = new DrawContext(g, scale);
+        dc.setPrinting(true);
         // render the map
         map.draw(dc);
            
@@ -82,10 +83,9 @@ public class ImageMap extends AbstractAction {
 
     public void createImageMap(File file)
     {
+        LWMap currentMap = VUE.getActiveMap();
         
-        MapViewer currentMap = VUE.getActiveViewer();
-        
-        Rectangle2D bounds = currentMap.getAllComponentBounds();
+        Rectangle2D bounds = currentMap.getBounds();
         xOffset = (int)bounds.getX(); 
         yOffset = (int)bounds.getY();
         Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
@@ -173,15 +173,15 @@ public class ImageMap extends AbstractAction {
         return out;
     }
     
-    private void createHtml(String imageName, String fileName, MapViewer currentMap, Dimension size){
+    private void createHtml(String imageName, String fileName, LWMap currentMap, Dimension size){
         
-        String out = "<HTML><HEAD><TITLE>" + currentMap.getMap().getLabel();
+        String out = "<HTML><HEAD><TITLE>" + currentMap.getLabel();
         out += "</TITLE></HEAD><BODY>";
         out += "<img src=\""+imageName
             +"\" border=0 usemap=\"#map\" HEIGHT="+size.height+" WIDTH="+size.width+">";
         out += "<map name=\"map\">\n";
 
-        out += computeImageMapArea(currentMap.getMap());
+        out += computeImageMapArea(currentMap);
         
         out += "\n</map></BODY></HTML>"; 
         

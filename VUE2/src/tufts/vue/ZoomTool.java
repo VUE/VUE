@@ -242,7 +242,7 @@ public class ZoomTool extends VueTool
     public static void setZoomFit()
     {
         setZoomFitRegion(VUE.getActiveMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD);
-        // while it would be nice to call getActiveViewer().getAllComponentBounds
+        // while it would be nice to call getActiveViewer().getContentBounds()
         // as a way to get bounds with max selection edges, etc, it computes some
         // of it's size based on current zoom, which we're about to change, so
         // we can't use it as our zoom fit becomes a circular, cycling computation.
