@@ -98,10 +98,7 @@ public class MapPanner extends javax.swing.JPanel
     }
 
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.Enabled) {
-            repaint(); // slower: we repaint on every event in the map
-        } else {
-            // we only see UserActionCompleted events
+        if (e.getWhat() == LWKey.UserActionCompleted || DEBUG.DYNAMIC_UPDATE) {
             repaint();
         }
     }

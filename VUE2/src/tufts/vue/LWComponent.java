@@ -944,7 +944,7 @@ public class LWComponent
     }
 
     private boolean linkNotificationDisabled = false;
-    private void setLocation0(float x, float y) {
+    protected void setLocation0(float x, float y) {
         this.x = x;
         this.y = y;
     }
@@ -1004,7 +1004,7 @@ public class LWComponent
     // on LWComponent...
     
     /** set component to this many pixels in size */
-    public void setSize0(float w, float h)
+    protected void setSize0(float w, float h)
     {
         if (this.width == w && this.width == h)
             return;

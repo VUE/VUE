@@ -42,7 +42,7 @@ public class MapViewerEvent
     public void raise() {
         if (DEBUG.EVENTS)  {
             System.out.println(this + " RAISING");
-            if (DEBUG.META) new Throwable("MapViewerEvent.RAISE").printStackTrace();
+            //if (DEBUG.META) new Throwable("MapViewerEvent.RAISE").printStackTrace();
         }
         super.raise();
     }

@@ -110,7 +110,9 @@ class MapViewport extends JViewport
 
     public void placeMapLocationAtViewCenter(Point2D.Float mapAnchor)
     {
-        adjustSize(true, false, false, false);
+        // this normally only happens after a zoom
+        //adjustCanvasSize(true, false, false, false);
+        adjustCanvasSize(false, true, true, false);
         Point canvasAnchor = viewer.mapToScreenPoint(mapAnchor);
         if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS ANCHOR: " + out(canvasAnchor));
         Point canvasOffset = new Point(canvasAnchor);
@@ -158,13 +160,13 @@ class MapViewport extends JViewport
      */
     
     void adjustSize() {
-        adjustSize(false, true, true, true);
+        adjustCanvasSize(false, true, true, true);
     }
     void adjustSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast) {
-        adjustSize(false, true, true, true);
+        adjustCanvasSize(expand, trimNorthWest, trimSouthEast, true);
     }
 
-    private void adjustSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast, boolean validate)
+    private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast, boolean validate)
     {
         if (DEBUG.SCROLL && DEBUG.META) new Throwable("adjustSize").printStackTrace();
         
@@ -184,11 +186,11 @@ class MapViewport extends JViewport
                               + " trimSouthEast="+trimSouthEast
                               + " validate="+validate
                               );
-        if (DEBUG.SCROLL) out("view position: " + out(getViewPosition()));
+        if (DEBUG.SCROLL) out("  view position: " + out(getViewPosition()));
 
         // compute the size of the minumum canvas that can contain everything in the map
         Rectangle2D.Float mapCanvas = viewer.getContentBounds();
-        if (DEBUG.SCROLL) out("   map canvas: " + out(mapCanvas));
+        if (DEBUG.SCROLL) out("     map canvas: " + out(mapCanvas));
         
         Point2D.Float mapLocationAtCanvasOrigin = getMapLocationAtCanvasOrigin();
         
@@ -199,9 +201,9 @@ class MapViewport extends JViewport
             // component bounds.  We "trim" the canvas of usused map
             // "whitespace" when we trimNorthWest.
             
-            if (DEBUG.SCROLL) out("   old origin: " + out(viewer.mOffset));
+            if (DEBUG.SCROLL) out("     old origin: " + out(viewer.mOffset));
             placeMapLocationAtCanvasOrigin(mapCanvas.x, mapCanvas.y);
-            if (DEBUG.SCROLL) out(" reset origin: " + out(viewer.mOffset));
+            if (DEBUG.SCROLL) out("   reset origin: " + out(viewer.mOffset));
         } else {
             
             // add the current origin, otherwise everything would
@@ -210,10 +212,10 @@ class MapViewport extends JViewport
             // component with the smallest x/y (the farthest to the upper
             // left).
             
-            if (DEBUG.SCROLL) out("   add offset: " + out(viewer.mOffset));
-            if (DEBUG.SCROLL) out("   is map loc: " + out(mapLocationAtCanvasOrigin));
+            if (DEBUG.SCROLL) out("     add offset: " + out(viewer.mOffset));
+            if (DEBUG.SCROLL) out("     is map loc: " + out(mapLocationAtCanvasOrigin));
             mapCanvas.add(mapLocationAtCanvasOrigin);
-            if (DEBUG.SCROLL) out("  +plusOrigin: " + out(mapCanvas));
+            if (DEBUG.SCROLL) out("    +plusOrigin: " + out(mapCanvas));
         }
 
         // If canvas
@@ -235,14 +237,14 @@ class MapViewport extends JViewport
         
         // okay to call this mapToScreen while adjusting origin as we're
         // only interested in the zoom conversion for the size.
+        Dimension curCanvas = getCanvasSize();
         Dimension canvas = viewer.mapToScreenDim(mapCanvas);
-        if (DEBUG.SCROLL) out(" pixel canvas: " + out(canvas));
         //Rectangle vb = mapToScreenRect(mapCanvas);
 
-        //Dimension curSize = viewer.getPreferredSize(); // get CURRENT size of the canvas
-        Dimension curSize = getSize(); // current view size
-        //int newWidth = curSize.width;
-        //int newHeight = curSize.height;
+        //Dimension curView = viewer.getPreferredSize(); // get CURRENT size of the canvas
+        Dimension curView = getSize(); // current view size
+        //int newWidth = curView.width;
+        //int newHeight = curView.height;
         int newWidth = canvas.width;
         int newHeight = canvas.height;
         
@@ -286,23 +288,33 @@ class MapViewport extends JViewport
                 placeMapLocationAtCanvasOrigin(ox, oy);
         }
         
-        //if (curSize.equals(newSize))
+        //if (curView.equals(newSize))
         //return;
 
+            // never let new size be less than current view
+            if (newSize.width < curView.width)
+                newSize.width = curView.width;
+            if (newSize.height < curView.height)
+                newSize.height = curView.height;
+            
         if (!trimSouthEast) {
-            // don't let new size be less than current size
-            if (newSize.width < curSize.width)
-                newSize.width = curSize.width;
-            if (newSize.height < curSize.height)
-                newSize.height = curSize.height;
+            // don't let new size be less than current canvas
+            if (newSize.width < curCanvas.width)
+                newSize.width = curCanvas.width;
+            if (newSize.height < curCanvas.height)
+                newSize.height = curCanvas.height;
         }
         
         if (DEBUG.SCROLL) {
-            out(" cur ext size: " + out(curSize));
-            out(" new ext size: " + out(newSize));
-            out("  canvas size: " + out(getCanvasSize()));
-            out("  actual size: " + out(viewer.getSize()));
-            out("   vport size: " + out(getSize()));
+            Dimension vp = getSize();
+            out("currnt viewport: " + out(vp));
+            if (!vp.equals(curView))
+            out("!!cur view size: " + out(curView)); // same as above
+            out(" current canvas: " + out(curCanvas));
+            if (!curCanvas.equals(viewer.getSize()))
+            out("!!!!actual size: " + out(viewer.getSize())); // same as above
+            out("computed canvas: " + out(canvas));
+            out("     new canvas: " + out(newSize));
         }
         
         setCanvasSize(newSize);

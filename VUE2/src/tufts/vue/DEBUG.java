@@ -23,6 +23,7 @@ public class DEBUG
     public static boolean EVENTS = false; // VUE LWCEvents & Action Events
     public static boolean INIT = false; // startup / initializations
     public static boolean MARGINS = true; // turn off bounds margin adjustments for testing
+    public static boolean DYNAMIC_UPDATE = false; // components process all LWCEvent's immediately
 
     public static boolean DR = false; // digital repository & data sources
     

@@ -366,7 +366,7 @@ public class MapViewer extends javax.swing.JComponent
     /**
      * @param pZoomFactor -- the new zoom factor
      * @param pReset -- completely reset the scrolling region to the map bounds
-     * @param pFocus -- the on screen focus point, in panel *extent*
+     * @param pFocus -- the on screen focus point, in panel canvas
      * coordinates when in scroll pane, so upper left may be > 0,0.
      * Mouse events are given to us in these panel coordinates, but
      * if, say, you wanted to zoom in on the center of the *visible*
@@ -479,7 +479,7 @@ public class MapViewer extends javax.swing.JComponent
     
     /**
      * The given PIXEL offset is the pixel location that the
-     * 0,0 map coordinate will appear on screen/or in the extent.
+     * 0,0 map coordinate will appear on screen/or in the canvas.
      * Values < 0 or greater the the view size mean the
      * 0,0 map location will not be visible.
      *
@@ -641,29 +641,12 @@ public class MapViewer extends javax.swing.JComponent
         return d;
     }
     
-    /** return the coordinate of this JComponent (the panel/extent coordinate) currently
-     * visible in the center the viewport.  This is the same x/y value you'd get
-     * from a mouse event clicked exactly in the middle of the displayed viewport,
-     * which if scroll all the way up-left, will be same as extent coords, but if not,
-     * will be offset by scrolled amount.
-     */
-    public Point getVisibleCenter() {
-        return viewportToExtentPoint(getVisibleWidth() / 2, getVisibleHeight() / 2);
-    }
-    
-    private Point viewportToExtentPoint(int x, int y) {
-        if (inScrollPane)
-            return new Point(x - getX(), y - getY());
-        else
-            return new Point(x, y);
-    }
-    
     /**
      * When in a JScrollPane, the currently visible portion of the
-     * MapViewer component.  When not in a scroll pane, it's just
+     * MapViewer canvas.  When not in a scroll pane, it's just
      * the size of the component (and x=y=0);
      */
-    public Rectangle getVisibleExtentBounds() {
+    private Rectangle getVisibleBounds() {
         if (inScrollPane) {
             // In scroll pane, location of this panel goes negative
             // as it's scrolled off to the left.
@@ -671,6 +654,23 @@ public class MapViewer extends javax.swing.JComponent
         } else {
             return new Rectangle(0, 0, getWidth(), getHeight());
         }
+    }
+    
+    /** return the coordinate of this JComponent (the canvas coordinate) currently
+     * visible in the center the viewport.  This is the same x/y value you'd get
+     * from a mouse event clicked exactly in the middle of the displayed viewport,
+     * which if scroll all the way up-left, will be same as canvas coords, but if not,
+     * will be offset by scrolled amount.
+     */
+    public Point getVisibleCenter() {
+        return viewportToCanvasPoint(getVisibleWidth() / 2, getVisibleHeight() / 2);
+    }
+    
+    private Point viewportToCanvasPoint(int x, int y) {
+        if (inScrollPane)
+            return new Point(x - getX(), y - getY());
+        else
+            return new Point(x, y);
     }
     
     /**
@@ -681,15 +681,7 @@ public class MapViewer extends javax.swing.JComponent
      * happen to be panned to and displaying at the moment.
      */
     public Rectangle2D getVisibleMapBounds() {
-        return screenToMapRect(getVisibleExtentBounds());
-        /*
-        if (inScrollPane) {
-            Point p = mViewport.getViewPosition();
-            return screenToMapRect(new Rectangle(p.x,p.y, mViewport.getWidth(), mViewport.getHeight()));
-        } else {
-            return screenToMapRect(new Rectangle(0,0, getWidth(), getHeight()));
-        }
-        */
+        return screenToMapRect(getVisibleBounds());
     }
     
     public Rectangle2D getExtentMapBounds() {
@@ -962,7 +954,7 @@ public class MapViewer extends javax.swing.JComponent
 
         final String key = e.getWhat();
 
-        if (DEBUG.META != true) {
+        if (DEBUG.DYNAMIC_UPDATE != true) {
             // this prevents other viewers of same map from updating until an
             // action is completed in the active viewer.
             if (VUE.getActiveViewer() != this) {
@@ -1341,7 +1333,7 @@ public class MapViewer extends javax.swing.JComponent
             // as we never to "avoid" anything that's off-screen (not visible in the viewer).
             
             //Rectangle viewer = new Rectangle(0,0, getVisibleWidth(), getVisibleHeight()); // FIXME: SCROLLBARS (what's 0,0??)
-            Rectangle viewer = getVisibleExtentBounds();
+            Rectangle viewer = getVisibleBounds();
             Box avoid = new Box(viewer.intersection(mapToScreenRect(pAvoidRegion)));
             Box rollover = new Box(mapToScreenRect(pTipRegion));
             
@@ -1456,7 +1448,7 @@ public class MapViewer extends javax.swing.JComponent
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
-        //if (paints == 0 && inScrollPane) adjustCanvasSize();
+        //if (paints == 0 && inScrollPane) adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
         if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
@@ -1647,25 +1639,24 @@ public class MapViewer extends javax.swing.JComponent
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
                 g2.drawString("     origin at: " + out(getOriginLocation()), x, y+=15);
-                g2.drawString("      mouse at: " + out(mouse), x, y+=15);
-                g2.drawString("  map mouse at: " + out(mapCoords), x, y+=15);
+                g2.drawString("  canvas mouse: " + out(mouse), x, y+=15);
+                g2.drawString("     map mouse: " + out(mapCoords), x, y+=15);
                 /*if (inScrollPane){
-                Point extent = viewportToExtentPoint(mouse);
+                Point extent = viewportToCanvasPoint(mouse);
                 Point2D map = extentToMapPoint(extent);
                 g2.drawString("  extent point: " + out(extent), x, y+=15);
                 g2.drawString("     map point: " + out(map), x, y+=15);
                 }*/
-                g2.drawString("extent-location " + out(getLocation()), x, y+= 15);
+                g2.drawString("canvas-location " + out(getLocation()), x, y+= 15);
                 if (inScrollPane){
                 g2.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
                 }
-                g2.drawString("map-extent-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
-                g2.drawString("map-extent-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
-                g2.drawString("    extent-size " + out(getSize()), x, y+=15);
+                g2.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
+                g2.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
+                g2.drawString("    canvas-size " + out(getSize()), x, y+=15);
             }
             if (inScrollPane) {
-                g2.drawString("viewport---size " + out(mViewport.getSize()), x, y+=15);
-                g2.drawString("viewport-extent " + out(mViewport.getExtentSize()), x, y+=15);
+                g2.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
             }
             g2.drawString("zoom " + getZoomFactor(), x, y+=15);
             g2.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
@@ -2666,6 +2657,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
                 else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
                 else if (c == 'C') { DEBUG.CONTAINMENT = !DEBUG.CONTAINMENT; }
+                else if (c == 'D') { DEBUG.DYNAMIC_UPDATE = !DEBUG.DYNAMIC_UPDATE; }
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'F') { DEBUG.FOCUS = !DEBUG.FOCUS; }
                 //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
@@ -3217,7 +3209,7 @@ public class MapViewer extends javax.swing.JComponent
             // TODO: if component was off screen or is bigger than
             // screen, need to know what direction we're dragging
             // it in before we scroll to visible.
-            //r = r.intersection(getVisibleExtentBounds());
+            //r = r.intersection(getVisibleBounds());
             // if we add a pixel in the drag direction to above
             // intersected rect, it will now be off screen in the
             // direction we're moving, so we'll scroll there...

@@ -69,7 +69,7 @@ public class LWMap extends LWContainer
     private UserMapType[] mUserTypes;
     
     private long mChanges = 0;    // guaranteed >= actual change count
-    private Rectangle2D mCachedBounds = null;
+    private Rectangle2D.Float mCachedBounds = null;
     
     
     // these for persistance use only
@@ -479,12 +479,16 @@ public class LWMap extends LWContainer
     public java.awt.geom.Rectangle2D getBounds() {
         if (true||mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator());
+            setSize0(mCachedBounds.width, mCachedBounds.height);
+            setLocation0(mCachedBounds.x, mCachedBounds.y);
+            /*
             try {
                 setEventsSuspended();
                 setFrame(mCachedBounds);
             } finally {
                 setEventsResumed();
             }
+            */
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
             //if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
             //mCachedBoundsOld = false;
@@ -504,8 +508,8 @@ public class LWMap extends LWContainer
      * return the bounds for all LWComponents in the iterator
      * (includes shape stroke widhts)
      */
-    public static Rectangle2D getBounds(java.util.Iterator i) {
-        Rectangle2D rect = null;
+    public static Rectangle2D.Float getBounds(java.util.Iterator i) {
+        Rectangle2D.Float rect = null;
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
