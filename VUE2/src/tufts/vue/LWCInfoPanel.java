@@ -190,30 +190,7 @@ ActionListener {
             propertiesEditor.clear();
         }
         
-        /**
-         * if(propertiesEditor == null) {
-         * if(c.getResource() != null && c.getResource().getProperties() != null) {
-         * if(c.getResource().getType() == Resource.ASSET_FEDORA)
-         * propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), false);
-         * else
-         * propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
-         * resourceMetadataPanel = propertiesEditor;
-         * metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
-         * validate();
-         * }
-         * } else {
-         * if(c.getResource() != null && c.getResource().getProperties() != null) {
-         * if(c.getResource().getType() == Resource.ASSET_FEDORA)
-         * propertiesEditor.setProperties(c.getResource().getProperties(), false);
-         * else
-         * propertiesEditor.setProperties(c.getResource().getProperties(), true);
-         * } else {
-         * propertiesEditor.clear();
-         * // metadataPane.remove(propertiesEditor);
-         * // validate();
-         * }
-         * }
-         **/
+        
     }
     
     public void actionPerformed(ActionEvent e) {
