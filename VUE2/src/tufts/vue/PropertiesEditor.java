@@ -45,7 +45,6 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         setResourePropertiesPanel();
     }
     
-    
     private void setResourePropertiesPanel() {
         propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
@@ -62,7 +61,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         });
         propertiesTable.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
-                if(propertiesTable.getSelectedRow() == (propertiesTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
+                if(propertiesTable.getSelectedRow() == (propertiesTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER && tableModel.isEditable()){
                     tableModel.addDefaultProperty();
                 }
             }
@@ -89,6 +88,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         //disable buttons if not editable
         if(tableModel.isEditable()) {
+            addPropertyButton.setEnabled(true);
             sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
             propertiesTable.getSelectionModel().addListSelectionListener(sListener);
             addPropertiesButtonListener = new AddPropertiesButtonListener(tableModel);
@@ -100,6 +100,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             JComboBox comboBox = new JComboBox(DC_FIELDS);
             propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
             
+        } else {
+             addPropertyButton.setEnabled(false);
         }
         labelPanel.add(topPanel,BorderLayout.EAST);
         // setting the panel for top buttons
@@ -136,7 +138,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             deletePropertiesButtonListener = new DeletePropertiesButtonListener(propertiesTable,sListener);
             deletePropertyButton.addActionListener(deletePropertiesButtonListener);
             JComboBox comboBox = new JComboBox(DC_FIELDS);
-            propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
+            propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));   
+        } else {
+             addPropertyButton.setEnabled(false);
         }
         
     }
@@ -145,6 +149,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         setProperties(new Properties(), true);
     }
     
+    public PropertiesTableModel getPropertiesTableModel() {
+        return tableModel;
+    }
     // a model for Properties table
     public class PropertiesTableModel extends AbstractTableModel {
         java.util.List m_conditions;
