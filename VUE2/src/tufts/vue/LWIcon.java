@@ -713,7 +713,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         public JComponent getToolTipComponent()
         {
             String html = "<html>";
-            html += "meta-data";
+            html += mLWC.getMetaDataAsHTML();
             if (ttMetaDataHtml == null || !ttMetaDataHtml.equals(html)) {
                 ttMetaData = new AALabel(html);
                 ttMetaData.setFont(FONT_MEDIUM);
