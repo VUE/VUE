@@ -94,7 +94,7 @@ public class MapPanner extends javax.swing.JPanel
         Graphics2D g2 = (Graphics2D) g;
         Point2D offset = new Point2D.Double();
         
-        zoomFactor = VueUtil.computeZoomFit(pannerViewportSize,
+        zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
                                              0,
                                              pannerRect,
                                              offset);
