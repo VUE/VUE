@@ -27,6 +27,8 @@ public class VUE
     //set to public so that action package can access it (Jay Briedis 6/4/03)
     public static JTabbedPane tabbedPane;
     
+    public static LWPathwayInspector inspector;
+    
     static {
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
@@ -118,6 +120,10 @@ public class VUE
     {
         SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_DEFAULT);
     }
+    
+    public static LWPathwayInspector getPathwayInspector(){
+        return inspector;
+    }
 
     private VUE() {}
     
@@ -198,11 +204,12 @@ public class VUE
         //inspectorTool.addTool(new MapItemInspector());
         
         //LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
-
+        inspector = new LWPathwayInspector(frame);
+        
+        
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
-        };
-                                   //pathwayInspect.getDisplayAction()};
+                                   inspector.getDisplayAction()};
 
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);
