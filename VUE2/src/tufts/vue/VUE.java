@@ -41,7 +41,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.291 2005-03-25 21:37:45 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.292 2005-03-27 02:08:55 sfraize Exp $
     
 /**
  * Vue application class.
@@ -62,7 +62,7 @@ public class VUE
     static final LWSelection ModelSelection = new LWSelection();
     
     /** array of tool windows, used for repeatedly creating JMenuBar's for on all Mac JFrame's */
-    private static Window[] ToolWindows;
+    private static ToolWindow[] ToolWindows;
 
             /** teh global resource selection static model **/
     public final static ResourceSelection sResourceSelection = new ResourceSelection();
@@ -76,8 +76,6 @@ public class VUE
     static ToolWindow sMapInspector;
     static ToolWindow objectInspector;
     static ObjectInspectorPanel objectInspectorPanel;
-    static ToolWindow aboutusTool;
-    //private static MapInspectorPanel sMapInspectorPanel;
     
     //hierarchy view tree window component
     private static LWHierarchyTree hierarchyTree;
@@ -434,6 +432,8 @@ public class VUE
                 DEBUG.FOCUS = true;
             else if (args[i].equals("-debug_dr"))
                 DEBUG.DR = true;
+            else if (args[i].equals("-exit_after_init")) // for startup time trials
+                exitAfterInit = true;
         }
         out("parsed args " + allArgs);
     }
@@ -442,6 +442,7 @@ public class VUE
     private static JPanel toolPanel;
     private static boolean themeSet = false;
     private static boolean nodr = false;
+    private static boolean exitAfterInit = false;
 
 
     public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
@@ -670,7 +671,7 @@ public class VUE
         outlineView = new LWOutlineView(getRootFrame());
         //outlineView = new LWOutlineView(VUE.frame);
         
-        VUE.ToolWindows = new Window[] {
+        VUE.ToolWindows = new ToolWindow[] {
             objectInspector,
             sMapInspector,
             drBrowserTool,
@@ -683,20 +684,27 @@ public class VUE
 
         // adding the menus and toolbars
         if (DEBUG.INIT) out("setting JMenuBar...");
-        frame.setJMenuBar(new VueMenuBar(ToolWindows));
-        
-        // Attempts to get all the windows to keep the same menu at the top
-        // of a mac application are failing... what a bug!
+        frame.setJMenuBar(new VueMenuBar(VUE.ToolWindows));
+        out("VueMenuBar installed.");;
+
+        // On Mac, need to set any frame's to have a duplicate
+        // of the main menu bar, so it stay's active at top
+        // when they have focus.
         if (useMacLAF && VueUtil.isMacPlatform()) {
             for (int i = 0; i < ToolWindows.length; i++) {
-                Window w = ToolWindows[i];
-                if (w == null)
+                ToolWindow toolWindow = VUE.ToolWindows[i];
+                if (toolWindow == null)
                     continue;
-                if (w instanceof JFrame)
+                Window w = toolWindow.getWindow();
+
+                if (w instanceof JFrame) {
                     ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
+                    toolWindow.setProcessKeyBindingsToMenuBar(false);
+                }
             }
+            out("Mac ToolWindow VueMenuBar's installed.");
         }
-        out("menu toolbars set.");
+        
         frame.addComp(vuePanel,BorderLayout.CENTER);
         //frame.getContentPane().setBackground(Color.red);
         //frame.setContentPane(vuePanel);
@@ -713,7 +721,7 @@ public class VUE
         out("validating frame...");
         frame.validate();
         out("frame validated");
-        
+
         VueUtil.centerOnScreen(frame);
         
         // position inspectors pased on frame location
@@ -846,8 +854,9 @@ public class VUE
         VUE.clearWaitCursor();
         
         out("main completed.");
-        
-        
+
+        if (exitAfterInit)
+            System.exit(0);
     }
 
     private static void installMacOSXApplicationEventHandlers()
@@ -1167,6 +1176,8 @@ public class VUE
     private static Window rootWindow;
     /** return the root VUE window, mainly for those who'd like it to be their parent */
     public static Window getRootWindow() {
+        return VUE.frame;
+        /*
         if (true) {
             return VUE.frame;
         } else {
@@ -1176,7 +1187,21 @@ public class VUE
             }
             return rootWindow;
         }
+        */
     }
+    /*
+    private static Window makeRootWindow() {
+        if (true||DEBUG.INIT) out("making the ROOT WINDOW with parent " + VUE.frame);
+        Window w = new ToolWindow("Vue Root", VUE.frame);
+        //w.show();
+        return w;
+    }
+    */
+
+    public static VueMenuBar getJMenuBar() {
+        return (VueMenuBar) ((VueFrame)getRootWindow()).getJMenuBar();
+    }
+    
 
     /** Return the main VUE window.  Usually == getRoowWindow, unless we're
      * using a special root window for parenting the tool windows.
@@ -1185,13 +1210,6 @@ public class VUE
         return VUE.frame;
     }
 
-    private static Window makeRootWindow() {
-        if (true||DEBUG.INIT) out("making the ROOT WINDOW with parent " + VUE.frame);
-        Window w = new ToolWindow("Vue Root", VUE.frame);
-        //w.show();
-        return w;
-    }
-    
     private static boolean makingRootFrame = false;
     private static Frame makeRootFrame() {
         if (makingRootFrame) {
@@ -1251,10 +1269,16 @@ public class VUE
 
     /** @return a new ToolWindow, parented to getRootWindow() */
     public static ToolWindow createToolWindow(String title) {
+        return createToolWindow(title, null);
+    }
+    /** @return a new ToolWindow, containing the given component, parented to getRootWindow() */
+    public static ToolWindow createToolWindow(String title, JComponent component) {
         //Window parent = getRootFrame();
         Window parent = getRootWindow();
-        out("creating ToolWindow " + title + " with parent " + parent);
+        if (DEBUG.Enabled) out("creating ToolWindow " + title + " with parent " + parent);
         ToolWindow w = new ToolWindow(title, parent);
+        if (component != null)
+            w.addTool(component);
         /*
           // ToolWindows not set yet...
         if (VueUtil.isMacPlatform() && useMacLAF && w instanceof JFrame)
@@ -1336,7 +1360,7 @@ public class VUE
         }
         */
         
-        public VueMenuBar(Window[] toolWindows)
+        public VueMenuBar(ToolWindow[] toolWindows)
         {
             addFocusListener(this);
             final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
@@ -1463,12 +1487,12 @@ public class VUE
             if (toolWindows != null) {
                 for (int i = 0; i < toolWindows.length; i++) {
                     //System.out.println("adding " + toolWindows[i]);
-                    Window window = toolWindows[i];
-                    if (window == null)
+                    ToolWindow toolWindow = toolWindows[i];
+                    if (toolWindow == null)
                         continue;
-                    WindowDisplayAction windowAction = new WindowDisplayAction(window);
-                    windowAction.putValue(Action.ACCELERATOR_KEY,
-                                          KeyStroke.getKeyStroke(KeyEvent.VK_1 + index++, Actions.COMMAND));
+                    final WindowDisplayAction windowAction = new WindowDisplayAction(toolWindow);
+                    final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_1 + index++, Actions.COMMAND);
+                    windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
                     JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
                     windowAction.setLinkedButton(checkBox);
                     windowMenu.add(checkBox);
@@ -1481,6 +1505,10 @@ public class VUE
             helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
             helpMenu.add(new AboutAction());
             helpMenu.add(new ShortcutsAction());
+        }
+
+        public boolean doProcessKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+            return super.processKeyBinding(ks, e, condition, pressed);
         }
 
         public void setVisible(boolean b) {
@@ -1496,7 +1524,7 @@ public class VUE
     }
 
     private static class ShortcutsAction extends VueAction {
-        private static Window window;
+        private static ToolWindow window;
         ShortcutsAction() {
             super("Short Cuts");
         }
@@ -1504,12 +1532,10 @@ public class VUE
         void act() {
             if (window == null)
                 window = createWindow();
-            window.show();
+            window.setVisible(true);
         }
-        private Window createWindow() {
-            ToolWindow w = createToolWindow(VUE.NAME + " Short-Cut Keys");
-            w.addTool(createShortcutsList());
-            return w;
+        private ToolWindow createWindow() {
+            return createToolWindow(VUE.NAME + " Short-Cut Keys", createShortcutsList());
         }
 
         private JComponent createShortcutsList() {
@@ -1570,13 +1596,22 @@ public class VUE
     static class WindowDisplayAction extends AbstractAction {
         private AbstractButton mLinkedButton;
         private Window mWindow;
+        private String mTitle;
         private boolean firstDisplay = true;
-        private String title;
-        private boolean showActionLabel = false;
+        private static final boolean showActionLabel = false;
         
         public WindowDisplayAction(Window w) {
             super("window: " + w.getName());
-            title = getTitle(w);
+            init(extractTitle(w), w);
+        }
+        
+        public WindowDisplayAction(ToolWindow tw) {
+            super("window: " + tw.getWindow().getName());
+            init(tw.getTitle(), tw.getWindow());
+        }
+
+        private void init(String title, Window w) {
+            mTitle = title;
             updateActionTitle(true);
             mWindow = w;
             mWindow.addComponentListener(new ComponentAdapter() {
@@ -1585,45 +1620,53 @@ public class VUE
             });
         }
 
+        /*
         private String getTitle() {
-            return getTitle(mWindow);
+            return mTitle;
+            //return extractTitle(mWindow);
         }
-        private static String getTitle(Window w) {
+        */
+
+        private static String extractTitle(Window w) {
             if (w instanceof Frame)
                 return ((Frame)w).getTitle();
             else if (w instanceof Dialog)
                 return ((Dialog)w).getTitle();
-            else if (w instanceof ToolWindow)
-                return ((ToolWindow)w).getTitle();
             else
-                return w.getName();
+                return ((Window)w).getName();
         }
 
         private void handleShown() {
-            out("handleShown [" + getTitle() + "]");
+            //out("handleShown [" + getTitle() + "]");
             if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
-                // this a major hack for the mac code, and it's totally
-                // fuckin unstable -- our mac code is bus-erroring
-                // doing it this way (could be cause we're removing as
-                // a child something that isn't tho).
+                // Restore the frame title to the title w/out the "@"
+                // in front (see handleHidden).
                 Frame f = (Frame) mWindow;
-                f.setTitle(title);
+                f.setTitle(mTitle);
             }
             setButtonState(true);
             updateActionTitle(false);
         }
         
         private void handleHidden() {
-            out("handleHidden [" + getTitle() + "]");
+            //out("handleHidden [" + getTitle() + "]");
             if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
-                // this a major hack for the mac code
-                // Okay, not working: too late: window is already tagged
-                // by mac os x as a child window, and as such, when it's
-                // parent goes unhidden, it goes too, so need to DEPARENT
-                // the window here?
+                
+                // This a hack for the tufts.macosx.Screen code.  When
+                // a window goes hidden, we tag it as so with "@" in
+                // the title, so the low-level mac code can know it's
+                // hidden as far as java is concerned (you can't query
+                // an OSX window for that information).  We do this so
+                // that our Screen.java windowing code can know to
+                // deparent the window from the applilcation when it's
+                // hidden -- otherwise it will continue to "move" with
+                // the parent window while hidden, and could be moved
+                // off screen.
+                
                 Frame f = (Frame) mWindow;
-                if (!f.getTitle().startsWith("@"))
-                    f.setTitle("@" + f.getTitle());
+                if (!f.getTitle().startsWith("@")) {
+                    f.setTitle("@" + mTitle);
+                }
             }
             setButtonState(false);
             updateActionTitle(false);
@@ -1635,9 +1678,9 @@ public class VUE
                 String action = "Show ";
                 if (mLinkedButton != null && mLinkedButton.isSelected())
                     action = "Hide ";
-                putValue(Action.NAME, action + title);
+                putValue(Action.NAME, action + mTitle);
             } else {
-                putValue(Action.NAME, title);
+                putValue(Action.NAME, mTitle);
             }
         }
         void setLinkedButton(AbstractButton b) {
@@ -1657,7 +1700,7 @@ public class VUE
             if (mLinkedButton.isSelected()) {
                 mWindow.setVisible(true);
                 mWindow.toFront();
-                VUE.ensureToolWindowVisibility(title);
+                VUE.ensureToolWindowVisibility(mTitle);
             } else {
                 mWindow.setVisible(false);
                 VUE.ensureToolWindowVisibility(null);

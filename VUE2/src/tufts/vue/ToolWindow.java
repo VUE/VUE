@@ -41,10 +41,7 @@ import javax.swing.border.*;
  * so Command/Ctrl-W to close a ToolWindow only sometimes works.
  */
 
-//public class ToolWindow extends JDialog
-//public class ToolWindow extends JWindow // generic version for PC
-public class ToolWindow extends JFrame // no good: can't stay on top of VUE main frame
-//public class ToolWindow
+public class ToolWindow 
     implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
@@ -64,44 +61,215 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
     private final boolean managedTitleBar;
 
     private static int CollapsedHeight = 0;
-    //private JFrame parentFrame;
+
+    private final Window mWindow;
+    private final Delegate mDelegate;
+
+    /**
+     * Interface for our Window or Frame delegate.
+     */
+    private static interface Delegate {
+        public void setSuperSize(int w, int h);
+        public void setSuperVisible(boolean t);
+    }
+
+    /**
+     * FrameDelegate: For Mac OS X
+     *
+     * Reasons we use a Frame on Mac OS X:
+     *
+     * 1: It's the only way to keep the VUE menu bar from going away we get focus.
+     *    Frame's allow us to attach a JMenuBar, and Window's do not.
+     *    On the Mac, VUE attaches a duplicate of main menu bar to every
+     *    created Frame, so when Mac OS X forcably switches to the
+     *    JMenuBar attached to a Frame when it get's focus (which it does
+     *    even if NO menu bar has been defined), it looks like nothing happened.
+     *
+     * 2: If using the brushed metal look, Frame's pick it up, but Window's don't.
+     *
+     * There are drawbacks, however:
+     *
+     * -1: See WindowDisplayAction in VUE.java and tufts.macosx.Screen.java for a frightening
+     *     array of hacks to make the Frame windows behave.  (Actually, we'd
+     *     probably need these even if we weren't using Frame's).
+     *
+     * -2: The Frame's "roll-up" size isn't a small as we'd like: they're
+     *     forced by the Mac OS X to have a minimum size that's bigger
+     *     than we need.
+     *
+     * -3: We can't override setLocation on a Frame, to make the window's
+     * "sticky" to the edge's of the main window.
+     *
+     * FYI, if we use Frames on the PC, they can go behind the
+     * the main application, which we don't want.
+     */
+    private class FrameDelegate extends JFrame implements Delegate {
+        FrameDelegate(String title) {
+            // important to set the title if if Undecorated for
+            // our tufts.macosx.Screen hacks to work.
+            setTitle(title); 
+            setUndecorated(true);
+            setResizable(true);
+        }
+        public void setVisible(boolean show) { ToolWindow.this.setVisible(show); }
+        public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
+        public void setSuperVisible(boolean show) { super.setVisible(show); }
+        public void setSuperSize(int width, int height) { super.setSize(width, height); }
+
+        protected void processEvent(AWTEvent e) {
+            if (DEBUG.TOOL && (e instanceof MouseEvent == false || DEBUG.META))
+                out("processEvent " + e);
+            super.processEvent(e);
+        }
+    
+    }
+    /**
+     * WindowDelegate: The default delegate, a standard window, For PC, etc (all non-mac)
+     *
+     * One drawback: (todo: bug) The window doesn't inherit all the
+     * action command keys from the VUE JMenuBar, so, for example,
+     * "Command-1" can make the ObjectInspector appear, but it usually
+     * get's focus right away, and then "Command-1" no longer works to
+     * make it dissapear until you click back on the main VUE window.
+     *
+     */
+    private class WindowDelegate extends JWindow implements Delegate {
+        WindowDelegate(Window owner) {
+            super(owner);
+        }
+        public void setVisible(boolean show) { ToolWindow.this.setVisible(show); }
+        public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
+        public void setSuperVisible(boolean show) { super.setVisible(show); }
+        public void setSuperSize(int width, int height) { super.setSize(width, height); }
+        
+        protected void processEvent(AWTEvent e) {
+            if (DEBUG.TOOL && (e instanceof MouseEvent == false || DEBUG.META))
+                out("processEvent " + e);
+            super.processEvent(e);
+        }
+        
+        private static final int StickyDist = 10;
+        private static final int ReleaseDist = 100;
+
+        public void setLocation(int x, int y)
+        {
+            // todo: this is kind of a cheap method, but it works, & allows
+            // user override by moving the toolwindow fast ("slamming" it
+            // past the sticky edge), or dragging it away
+            //out("setLocation0 " + x + "," + y);
+            Component c = getParent();
+            if (c != null) {
+                Rectangle parent = getParent().getBounds();
+                //System.out.println("parent at " + parent);
+                if (getY() < parent.y + parent.height &&
+                    getY() + getHeight() > parent.y) {
+                    // We're vertically in the parent plane
+                    if (x > getX()) {
+                        int toolRightEdge = getX() + getWidth();
+                        int reDist = parent.x - toolRightEdge;
+                        // mouseDist: distance between would-be lockdown & requested
+                        int mouseDist = x - (parent.x - getWidth());
+                        if (reDist >= 0 && reDist <= StickyDist && mouseDist < ReleaseDist) {
+                            x = parent.x - getWidth();
+                            //out("gap " + reDist + ", mouse " + mouseDist);
+                        }
+                    } else if (x < getX()) {
+                        int reDist = getX() - (parent.x + parent.width);
+                        // mouseDist: distance between would-be lockdown & requested
+                        int mouseDist = (parent.x + parent.width) - x;
+                        if (reDist >= 0 && reDist <= StickyDist && mouseDist < ReleaseDist) {
+                            x = parent.x + parent.width;
+                            //out("gap " + reDist + ", mouse " + mouseDist + ": sticking");
+                        }
+                    }
+                }
+            }
+            //out("setLocation1 " + x + "," + y);
+            super.setLocation(x, y);
+        }
+    }
+
+    
+    public void setVisible(boolean show)
+    {
+        /*
+        java.awt.peer.ComponentPeer peer = getPeer();
+        out("PEER=" +peer.getClass() + " " + peer);
+        if (peer instanceof apple.awt.CWindow) {
+            apple.awt.CWindow cWindow = (apple.awt.CWindow)peer;
+            cWindow.setAlpha(0.5f);
+        }
+        */
+
+        //new Throwable(this + "SET VISIBLE " + show).printStackTrace();
+
+        if (DEBUG.FOCUS) out("setVisible " + show);
+        if (show && isRolledUp()) {
+            setRolledUp(false);
+        } else if (!show) {
+            if (focusReturn != null) {
+                if (DEBUG.FOCUS) out("ToolWindow returning focus to " + focusReturn);
+                focusReturn.requestFocus();
+            } else {
+                if (VueUtil.isMacPlatform() == false) {
+
+                    // We need to do this to ensure VUE still has the
+                    // focus after hiding a ToolWindow, which if done
+                    // via accellerater keys, often leaves the focus
+                    // somewhere in outer space...
+
+                    // We don't need to do it on the mac because we
+                    // don't need to manually re-route key events back up
+                    // to the JMenuBar for checking against accelerators,
+                    // as they already have JMenuBar's active on every ToolWindow.
+                    
+                    VUE.getActiveViewer().requestFocus();
+                }
+            }
+        }
+        mDelegate.setSuperVisible(show);
+    }
 
     public ToolWindow(String title, Window owner)
     {
-        //super(owner);
-        //this.parentFrame = owner;
+        if (VueUtil.isMacPlatform()) {
+            mWindow = new FrameDelegate(title);
+        } else {
+            mWindow = new WindowDelegate(owner);
+        }
+        mDelegate = (Delegate) mWindow;
+        
         managedTitleBar = true;
-        setUndecorated(managedTitleBar);
-        setResizable(true);
-        //if (((Object)this) instanceof JWindow)
-        //managedTitleBar = true;
-        //if (owner instanceof JFrame) setRootPane(((JFrame)owner).getRootPane()); // no help getting menu bars shared on mac
-
         //title = " " + title + " ";
         this.mTitle = title;
-        setName(title);
-        //setName("_" + title + "_");
+        mWindow.setName(title);
         if (managedTitleBar) {
-            addMouseListener(this);
-            addMouseMotionListener(this);
-            addKeyListener(this);
+            mWindow.addMouseListener(this);
+            mWindow.addMouseMotionListener(this);
+            mWindow.addKeyListener(this);
         }
 
-        if (debug) out("contentPane=" + getContentPane());
+        //if (debug) out("contentPane=" + mWindow.getContentPane());
         mContentPane = new ContentPane(mTitle);
         //mContentPane.setFocusable(false);
         //getContentPane().add(mContentPane);
-        setContentPane(mContentPane);
+
+        // createg lass pane for painting resize corner
+        Component glassPane = new GlassPane();
+
+        if (mWindow instanceof JFrame) {
+            ((JFrame)mWindow).setContentPane(mContentPane);
+            ((JFrame)mWindow).setGlassPane(glassPane);
+        } else {
+            ((JWindow)mWindow).setContentPane(mContentPane);
+            ((JWindow)mWindow).setGlassPane(glassPane);
+        }
+        glassPane.setVisible(true);
+        
         // todo checkout: setting content-pane v.s. adding to it may affect glass pane?
         // seems to be working fine now...
 
-        //---------------------------------
-        // set up glass pane for painting resize corner
-        Component gp = new GlassPane();
-        setGlassPane(gp);
-        gp.setVisible(true);
-
-        pack();
+        mWindow.pack();
         
         if (DEBUG.Enabled) out("constructed.");
         
@@ -134,18 +302,21 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         
     }
 
+    public Window getWindow() {
+        return mWindow;
+    }
 
-    protected void processEvent(AWTEvent e) {
-        if (DEBUG.TOOL && (e instanceof MouseEvent == false || DEBUG.META))
-            out("processEvent " + e);
-        super.processEvent(e);
+    public JComponent getContentPane() {
+        return mContentPane;
     }
-    
-    /*
-    public JMenuBar getJMenuBar() { 
-        return parentFrame.getJMenuBar(); 
+
+    public JRootPane getRootPane() {
+        if (mWindow instanceof JWindow)
+            return ((JWindow)mWindow).getRootPane();
+        else
+            return ((JFrame)mWindow).getRootPane();
     }
-    */
+
 
     // todo: problem: we can see this, but the global Command-W action is ALSO
     // getting activated!
@@ -154,7 +325,7 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         if (DEBUG.KEYS) out("[" + e.paramString() + "]");
 
         if (e.getKeyCode() == KeyEvent.VK_W && (e.getModifiers() & Actions.COMMAND) != 0)
-            hide();
+            setVisible(false);
     }
 
     public void keyReleased(KeyEvent e) {}
@@ -173,33 +344,12 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         focusReturn = e.getOppositeComponent();
         Actions.CloseMap.setEnabled(false); // hack
     }
-    public void setVisible(boolean show) {
-        /*
-        java.awt.peer.ComponentPeer peer = getPeer();
-        out("PEER=" +peer.getClass() + " " + peer);
-        if (peer instanceof apple.awt.CWindow) {
-            apple.awt.CWindow cWindow = (apple.awt.CWindow)peer;
-            cWindow.setAlpha(0.5f);
-        }
-        */
-
-        if (DEBUG.FOCUS) out("setVisible " + show);
-        if (show && isRolledUp())
-            setRolledUp(false);
-        else if (!show) {
-            if (focusReturn != null) {
-                if (DEBUG.FOCUS) out("returning focus to " + focusReturn);
-                focusReturn.requestFocus();
-            }
-        }
-        super.setVisible(show);
-    }
 
     /** look for a tabbed pane within us with the given title, and select it */
     public void showTab(final String name) {
         // event raiser wasn't designed for this, but turns out
         // to be very convienent for it.
-        EventRaiser e = new EventRaiser(this) {
+        EventRaiser e = new EventRaiser(mWindow) {
                 public Class getListenerClass() { return JTabbedPane.class; }
                 void dispatch(Object pTabbedPane) {
                     JTabbedPane tabbedPane = (JTabbedPane) pTabbedPane;
@@ -208,7 +358,7 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
                         tabbedPane.setSelectedIndex(i);
                 }
             };
-        e.deliverToChildren(this);
+        e.deliverToChildren(mWindow);
         setVisible(true);
     }
 
@@ -218,6 +368,7 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
     
     public void addTool(JComponent c, boolean addBorder)
     {
+        out("adding " + c.getClass());
         // todo: make it so can add more than one tool
         // -- probably use BoxLayout
         getContentPanel().add(c, BorderLayout.CENTER);
@@ -225,14 +376,14 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         // this is hack till glass pane can redispatch mouse events so
         // that mouse listening tools don't disable the resize corner
         MouseListener[] ml = c.getMouseListeners();
-        if (DEBUG.Enabled) out("added " + c + " mouseListeners=" + ml.length);
         if (addBorder || ml.length > 0) {
             if (DEBUG.TOOL)
                 getContentPanel().setBorder(new LineBorder(Color.lightGray, 5));
             else
                 getContentPanel().setBorder(new EmptyBorder(5,5,5,5));
         }
-        pack();
+        mWindow.pack();
+        if (DEBUG.Enabled) out("added " + c + " mouseListeners=" + ml.length);
     }
 
     //JPanel hackpanel = new JPanel();
@@ -294,48 +445,10 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         if (height < min.height)
             height = min.height;
         */
-        super.setSize(width, height);
-        validate();
+        mDelegate.setSuperSize(width, height);
+        mWindow.validate();
     }
 
-    private static final int StickyDist = 10;
-    private static final int ReleaseDist = 100;
-    public void setLocation(int x, int y)
-    {
-        // todo: this is kind of a cheap method, but it works, & allows
-        // user override by moving the toolwindow fast ("slamming" it
-        // past the sticky edge), or dragging it away
-        //out("setLocation0 " + x + "," + y);
-        Component c = getParent();
-        if (c != null) {
-            Rectangle parent = getParent().getBounds();
-            //System.out.println("parent at " + parent);
-            if (getY() < parent.y + parent.height &&
-                getY() + getHeight() > parent.y) {
-                // We're vertically in the parent plane
-                if (x > getX()) {
-                    int toolRightEdge = getX() + getWidth();
-                    int reDist = parent.x - toolRightEdge;
-                    // mouseDist: distance between would-be lockdown & requested
-                    int mouseDist = x - (parent.x - getWidth());
-                    if (reDist >= 0 && reDist <= StickyDist && mouseDist < ReleaseDist) {
-                        x = parent.x - getWidth();
-                        //out("gap " + reDist + ", mouse " + mouseDist);
-                    }
-                } else if (x < getX()) {
-                    int reDist = getX() - (parent.x + parent.width);
-                    // mouseDist: distance between would-be lockdown & requested
-                    int mouseDist = (parent.x + parent.width) - x;
-                    if (reDist >= 0 && reDist <= StickyDist && mouseDist < ReleaseDist) {
-                        x = parent.x + parent.width;
-                        //out("gap " + reDist + ", mouse " + mouseDist + ": sticking");
-                    }
-                }
-            }
-        }
-        //out("setLocation1 " + x + "," + y);
-        super.setLocation(x, y);
-    }
     
     public void suggestLocation(int x, int y) {
         Rectangle limit = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
@@ -350,7 +463,7 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
             y = limit.height - getHeight();
         if (y < limit.y)
             y = limit.y;
-        setLocation(x, y);
+        mWindow.setLocation(x, y);
     }
     
     private void setRolledUp(boolean t) {
@@ -358,13 +471,19 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
             return;
         isRolledUp = t;
         if (isRolledUp) {
-            savedSize = getSize();
+            savedSize = mWindow.getSize();
             setSize(getWidth(), 0);
         } else {
-            setSize(savedSize);
+            setSize(savedSize.width, savedSize.height);
             //setSize(getPreferredSize());
         }
     }
+
+    public int getWidth() { return mWindow.getWidth(); }
+    public int getHeight() { return mWindow.getHeight(); }
+    public int getX() { return mWindow.getX(); }
+    public int getY() { return mWindow.getY(); }
+    public Dimension getSize() { return mWindow.getSize(); }
 
     public boolean isRolledUp() {
         return isRolledUp;
@@ -387,14 +506,14 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
     public void mousePressed(MouseEvent e)
     {
         if (DEBUG.MOUSE) out(e);
-        requestFocus(); // must do this to get key input
+        mWindow.requestFocus(); // must do this to get key input
         //System.out.println(e);
         dragStart = e.getPoint();
         // todo: will need to check this on the glass pane
         // in case underlying panel is also grabbing
         // mouse events (and then redispatch)
         if (closeCornerHit(e))
-            hide();
+            setVisible(false);
         else if (!isRolledUp() && resizeCornerHit(e))
             dragSizeStart = getSize();
     }
@@ -427,7 +546,7 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
             // now we have the absolute screen location
             p.x -= dragStart.x;
             p.y -= dragStart.y;
-            setLocation(p);
+            mWindow.setLocation(p);
         }
         //System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
     }
@@ -451,6 +570,11 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
     }
 
 
+    private boolean processKeyBindingsToMenuBar = true;
+    void setProcessKeyBindingsToMenuBar(boolean t) {
+        processKeyBindingsToMenuBar = t;
+    }
+    
 
     protected class ContentPane extends JPanel
     {
@@ -459,6 +583,49 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         
         //JButton hideButton = null;
             
+        protected void processEvent(AWTEvent e) {
+            System.out.println("CP processEvent " + e);
+            super.processEvent(e);
+        }
+
+        protected void processKeyEvent(KeyEvent e) {
+            System.out.println("CP processKeyEvent " + e);
+            super.processKeyEvent(e);
+        }
+
+        protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed)
+        {
+            // We want to ignore vanilla typed text as a quick-reject culling mechanism.
+            // So only if any modifier bits are on (except SHIFT), do we attempt to
+            // send the KeyStroke to the JMenuBar to check against any accelerators there.
+            final int PROCESS_MASK = InputEvent.CTRL_MASK | InputEvent.META_MASK | InputEvent.ALT_MASK | InputEvent.ALT_GRAPH_MASK;
+
+            // On Mac, we've already installed JMenuBar's on our JFrame
+            // so they appear at the top of the screen, and they'll
+            // handle the key events.  On PC, we have to manually
+            // redirect the key events to the main VueMenuBar.
+            
+            //if (getRootPane().getJMenuBar() != null)
+            if (processKeyBindingsToMenuBar == false)
+                return super.processKeyBinding(ks, e, condition, pressed);
+
+            if ((e.getModifiers() & PROCESS_MASK) == 0 && !e.isActionKey())
+                return super.processKeyBinding(ks, e, condition, pressed);
+                
+
+            if (DEBUG.Enabled||DEBUG.FOCUS) System.out.println("TWCP PKB " + ks + " condition="+condition);
+            // processKeyBinding never appears to return true, and t his damn key event never
+            // gets marked as consumed (I guess we'd have to listen for that in our text fields
+            // and consume it), so we're always passing the damn character up the tree...
+            if (super.processKeyBinding(ks, e, condition, pressed) || e.isConsumed())
+                return true;
+            // Condition usually comes in as WHEN_ANCESTOR_OF_FOCUSED_COMPONENT (1), which doesn't do it for us.
+            // We need condition (2): WHEN_IN_FOCUSED_WINDOW
+            condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
+            if (DEBUG.Enabled||DEBUG.FOCUS) System.out.println("     PKB " + ks + " handing to VueMenuBar w/condition=" + condition);
+            return VUE.getJMenuBar().doProcessKeyBinding(ks, e, condition, pressed);
+        }
+        
         public ContentPane(String title)
         {
             super(true);
@@ -695,6 +862,7 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
     private static boolean debug = false;
     public static void main(String args[]) {
         debug=true;
+        DEBUG.TOOL=true;
         DEBUG.BOXES=true;
         DEBUG.KEYS=true;
         DEBUG.MOUSE=true;
@@ -709,13 +877,15 @@ public class ToolWindow extends JFrame // no good: can't stay on top of VUE main
         p.add(tf);
         tw.addTool(p);
         tw.setSize(200,200);
-        tw.show();
+        tw.setVisible(true);
 
         // why can't we get the tex field to respond to mouse??
         // must it have an action listener?
+        /*
         tw.setFocusable(true);
         p.setFocusable(true);
         tf.setFocusable(true);
+        */
     }
 
     

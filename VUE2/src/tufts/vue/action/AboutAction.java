@@ -64,7 +64,7 @@ public class AboutAction extends AbstractAction
                                 + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004,2005 MIT University<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Version 0.9+ <br>"
-                                + "&nbsp;&nbsp;&nbsp;Built " + Version.Date
+                                + "&nbsp;&nbsp;&nbsp;Built " + Version.Date + " at " + Version.Time
                                 + debugInfo
                                 + "<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;<u>http://vue.tccs.tufts.edu</u><br>"

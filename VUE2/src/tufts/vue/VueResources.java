@@ -78,13 +78,13 @@ public class VueResources
         //sResourceBundle = VueResourceBundle;
         */
         
-        System.out.println("DEFAULT LOCALE: " + Locale.getDefault());
-        System.out.println("RESOURCE BUNDLE: " + sResourceBundle + " locale: " + sResourceBundle.getLocale());
+        //System.out.println("DEFAULT LOCALE: " + Locale.getDefault());
+        //System.out.println("RESOURCE BUNDLE: " + sResourceBundle + " locale: " + sResourceBundle.getLocale());
 
         dumpResource("resources.vue");
         dumpResource("resources.narravision");
-        dumpResource("application.name");
-        dumpResource("application.title");
+        //dumpResource("application.name");
+        //dumpResource("application.title");
 
     }
 

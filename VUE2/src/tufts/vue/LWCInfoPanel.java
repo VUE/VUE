@@ -24,12 +24,14 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 
+// TODO FIX: the text input fields should save value on focus loss
 
 class LWCInfoPanel extends javax.swing.JPanel
-implements VueConstants,
-LWSelection.Listener,
-LWComponent.Listener,
-ActionListener {
+    implements VueConstants,
+               LWSelection.Listener,
+               LWComponent.Listener,
+               ActionListener
+{
     private JTextField labelField = new JTextField(15);
     private tufts.vue.gui.VueTextField resourceField = new tufts.vue.gui.VueTextField();
     

@@ -99,7 +99,7 @@ public class LWCToolPanel extends JPanel
 
     public LWCToolPanel()
     {
-        out("Constructing...");
+        if (DEBUG.Enabled) out("Constructing...");
         if (DEBUG.INIT&&DEBUG.META) new Throwable(toString()).printStackTrace();
         
          setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -277,7 +277,7 @@ public class LWCToolPanel extends JPanel
     protected void initDefaultState() {
         //System.out.println("NodeToolPanel.initDefaultState");
         mDefaultState = getDefaultState();
-        out("default state initialized to " + mDefaultState);
+        if (DEBUG.Enabled) out("default state initialized to " + mDefaultState);
         loadValues(mDefaultState);
     }
 

@@ -101,7 +101,9 @@ public class MapResource implements Resource {
             if (spec.startsWith("file:") || spec.startsWith("http:")) {
                 System.err.println(getClass() + " BOGUS MapResource: is URL, but unrecognized! " + this);
                 txt = spec;
-            } else
+            }
+            // todo: handle resource: case
+            else
                 txt = "file:///" + spec;
         } else
             txt = this.url.toString();
@@ -465,7 +467,7 @@ public class MapResource implements Resource {
             entry.setEntryValue(mProperties.get(object));
             propertyList.add(entry);
         }
-        System.out.println(this + " getPropertyList: " + propertyList);
+        if (DEBUG.Enabled) System.out.println(this + " getPropertyList: " + propertyList);
         return propertyList;
     }
     

@@ -85,8 +85,9 @@ public class LWImage extends LWComponent
             MapResource mr = (MapResource) r;
             try {
                 this.imageIcon = new ImageIcon(mr.toURL());
-                out("got content " + imageIcon);
-                out("\tconent size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
+                System.out.println("LWImage size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight() + " from " + mr.toURL());
+                //System.out.println("LWImage got " + imageIcon + " size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
+                //out("\tconent size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
             } catch (Exception e) {
                 e.printStackTrace();
             }
