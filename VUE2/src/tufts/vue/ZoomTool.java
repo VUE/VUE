@@ -158,18 +158,8 @@ public class ZoomTool extends VueTool
         setZoom(zoomFactor, true, focus);
     }
     
-    static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus)
+    private static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus)
     {
-        /*
-        curZoom = ZOOM_MANUAL;
-        for (int i = 0; i < ZoomDefaults.length; i++) {
-            if (newZoomFactor == ZoomDefaults[i]) {
-                curZoom = i;
-                break;
-            }
-        }
-        */
-
         MapViewer viewer = VUE.getActiveViewer();
         
         if (adjustViewport) {
@@ -212,6 +202,11 @@ public class ZoomTool extends VueTool
                                         offset);
         if (newZoom > MaxZoom) {
             setZoom(MaxZoom, true, null);
+            Point2D mapAnchor = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
+            Point focus = new Point(viewer.getWidth()/2, viewer.getHeight()/2);
+            double offsetX = (mapAnchor.getX() * MaxZoom) - focus.getX();
+            double offsetY = (mapAnchor.getY() * MaxZoom) - focus.getY();
+            viewer.setMapOriginOffset(offsetX, offsetY);
         } else {
             setZoom(newZoom, false, null);
             viewer.setMapOriginOffset(offset.getX(), offset.getY());
