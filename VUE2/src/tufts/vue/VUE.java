@@ -355,10 +355,12 @@ public class VUE
                                        + "=" + e.getNewValue().getClass().getName()
                                        + " " + e.getNewValue());
                     if (multipleMapsVisible() == false) {
-                        MapViewer viewer = mMapTabsLeft.getVisibleViewer();
+                        MapViewer viewer = mMapTabsLeft.getSelectedViewer();
                         if (viewer != null && viewer != getActiveViewer()) {
                             if (DEBUG.FOCUS) System.out.println("viewerSplit: default focus to " + viewer);
-                            viewer.grabVueApplicationFocus("split-pane-other-hidden");
+                            viewer.requestFocus();
+                            //viewer.grabVueApplicationFocus("split-pane-other-hidden");
+                            mMapTabsRight.getSelectedViewer().fireViewerEvent(MapViewerEvent.HIDDEN);
                         }
                     }
                     
@@ -566,6 +568,7 @@ public class VUE
         // todo: does this make sense?
         if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
             ActiveViewer = viewer;
+            out("ActiveViewer set to " + viewer);
             if (ActiveViewer != null) {
                 java.util.Iterator i = sActiveMapListeners.iterator();
                 while (i.hasNext())
@@ -698,15 +701,14 @@ public class VUE
         
         if (mapViewer == null) {
             mapViewer = new tufts.vue.MapViewer(pMap);
-            System.out.println("VUE.displayMap: currently active viewer: " + getActiveViewer());
-            if (getActiveViewer() == null)
-                setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
-            System.out.println("VUE.displayMap:      created new viewer: " + mapViewer);
-            //mMapTabsLeft.addTab(pMap, mapViewer);
+            out("displayMap: currently active viewer: " + getActiveViewer());
+            out("displayMap: created new left viewer: " + mapViewer);
+
             mMapTabsLeft.addViewer(mapViewer);
             mMapTabsRight.addViewer(new tufts.vue.MapViewer(pMap, true));
-            //mMapTabsRight.addTab(pMap, mv2);
-            //mMapTabsLeft.requestFocus();
+
+            //if (getActiveViewer() == null)
+                //setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
         }
         
         mMapTabsLeft.setSelectedComponent(mapViewer);
@@ -1035,6 +1037,10 @@ public class VUE
         map.markAsSaved();
          
         }*/
+    }
+
+    private static void out(String s) {
+        System.out.println("VUE: " + s);
     }
     
 }

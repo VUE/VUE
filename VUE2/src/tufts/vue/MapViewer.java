@@ -165,10 +165,13 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public void requestFocus() {
-        if (scrollerCoords)
+        super.requestFocus();
+        /*
+        if (inScrollPane)
             mViewport.requestFocus();
         else
             super.requestFocus();
+        */
     }
     
     // todo: temporary till break processTransferable out of MapDropTarget
@@ -181,7 +184,7 @@ public class MapViewer extends javax.swing.JComponent
     public MapViewer(LWMap map) {
         //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
-        setFocusable(false); // not till setVsible
+        //setFocusable(false); // not till setVsible [only for no scroll-panes]
         
         setLayout(null);
         //setLayout(new NoLayout());
@@ -386,7 +389,7 @@ public class MapViewer extends javax.swing.JComponent
         fireViewerEvent(MapViewerEvent.ZOOM);
     }
 
-    private void fireViewerEvent(int id) {
+    void fireViewerEvent(int id) {
         if (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
             new MapViewerEvent(this, id).raise();
     }
@@ -2728,7 +2731,8 @@ public class MapViewer extends javax.swing.JComponent
     
     
     class InputHandler extends tufts.vue.MouseAdapter
-    implements java.awt.event.KeyListener {
+        implements java.awt.event.KeyListener
+    {
         LWComponent dragComponent;//todo: RENAME dragGroup -- make a ControlListener??
         LWSelection.ControlListener dragControl;
         //boolean isDraggingControlHandle = false;
@@ -2919,11 +2923,11 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
-                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
+                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(MapViewer.this); }
                 else
                     did = false;
                 if (did) {
-                    System.err.println("*** diagnostic '" + c + "' toggled.");
+                    System.err.println("*** diagnostic '" + c + "' toggled (input=" + MapViewer.this + ")");
                     repaint();
                 }
             }
@@ -4163,14 +4167,11 @@ public class MapViewer extends javax.swing.JComponent
         fireViewerEvent(MapViewerEvent.FOCUSED);
     }
     
-    /**
-     * Make sure everybody
-     */
     public void setVisible(boolean doShow) {
-        if (DEBUG.FOCUS) System.out.println(this + " setVisible " + doShow);
+        if (DEBUG.FOCUS) out("setVisible " + doShow);
         //if (!getParent().isVisible()) {
         if (doShow && getParent() == null) {
-            if (DEBUG.FOCUS) System.out.println(this + " IGNORING (parent null)");
+            if (DEBUG.FOCUS) out("IGNORING (parent null)");
             return;
         }
         super.setVisible(doShow);
