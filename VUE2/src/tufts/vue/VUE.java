@@ -905,14 +905,15 @@ public class VUE
         JMenuItem aboutUs = new JMenuItem("About Us");
         helpMenu.add(userGuide);
         helpMenu.add(aboutUs);
-        aboutusTool = new ToolWindow("About Us",tufts.vue.VUE.getInstance());
+        aboutusTool = new ToolWindow("VUE: About Us", tufts.vue.VUE.getInstance());
         JPanel aboutusPanel = new JPanel();
         aboutusPanel.setMinimumSize(new Dimension(400,400));
         JTextArea jtf = new JTextArea("Version # 1.0 \n Created By:  Academic Technology \n Tufts University, Medford, MA \n Copyright@Tufts University 2004\nAll Rights Reserved ",5, 1);
+        jtf.setEditable(false);
+        jtf.setOpaque(false);
         aboutusPanel.setLayout(new BorderLayout());
-       
         aboutusPanel.add(jtf,BorderLayout.CENTER);
-        aboutusTool.addTool(aboutusPanel);
+        aboutusTool.addTool(aboutusPanel, true);
         
         userGuide.addActionListener(new ActionListener() {
                public void actionPerformed(ActionEvent e) {
@@ -923,7 +924,8 @@ public class VUE
         
         aboutUs.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    aboutusTool.setLocation(200,200);
+                    //aboutusTool.setLocation(200,200);
+                    VueUtil.centerOnScreen(aboutusTool);
                     aboutusTool.setVisible(true);
                 }});
         

@@ -96,23 +96,27 @@ public class ToolWindow extends JWindow
         setVisible(true);
     }
 
-    public void addTool(JComponent c)
+    public void addTool(JComponent c) {
+        addTool(c, false);
+    }
+    
+    public void addTool(JComponent c, boolean addBorder)
     {
         // todo: make it so can add more than one tool
         // -- probably use BoxLayout
         mContentPane.contentPanel.add(c, BorderLayout.CENTER);
-        pack();
         
         // this is hack till glass pane can redispatch mouse events so
         // that mouse listening tools don't disable the resize corner
         MouseListener[] ml = c.getMouseListeners();
         out("added " + c + " mouseListeners=" + ml.length);
-        if (ml.length > 0) {
+        if (addBorder || ml.length > 0) {
             if (DEBUG.Enabled)
                 mContentPane.contentPanel.setBorder(new LineBorder(Color.lightGray, 5));
             else
                 mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
         }
+        pack();
     }
 
     public void add(JComponent c) {
