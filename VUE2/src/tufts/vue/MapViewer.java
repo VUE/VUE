@@ -1085,6 +1085,10 @@ public class MapViewer extends javax.swing.JComponent
         */
     }
     
+    public Rectangle2D getExtentMapBounds() {
+        return screenToMapRect(new Rectangle(0,0, getWidth(), getHeight()));
+    }
+
     /**
      * Return, in Map coords, a bounding box for all the LWComponents in the
      * displayed map, including room for possible selection handles or
@@ -3402,10 +3406,10 @@ public class MapViewer extends javax.swing.JComponent
             int dx = lastDrag.x - mouse.x;
             int dy = lastDrag.y - mouse.y;
             if (inScrollPane) {
-                panScrollRegion(dx, dy, false);
+                panScrollRegion(dx, dy, true);
             } else {
                 setMapOriginOffset(originAtDragStart.getX() + dx,
-                originAtDragStart.getY() + dy);
+                                   originAtDragStart.getY() + dy);
             }
         }
         

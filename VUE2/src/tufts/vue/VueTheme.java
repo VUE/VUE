@@ -5,7 +5,6 @@ import javax.swing.*;
 import javax.swing.plaf.*;
 
 class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
-    implements VueConstants
 {
     private static VueTheme singleton;
     public static VueTheme getTheme() {
@@ -16,11 +15,11 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 
     private VueTheme() {}
     
-    private FontUIResource fontMedium = new FontUIResource(FONT_MEDIUM);
-    private FontUIResource fontSmall  = new FontUIResource(FONT_SMALL);
-    private FontUIResource fontControl  = new FontUIResource(FONT_MEDIUM);
-    private FontUIResource fontWindowTitle  = new FontUIResource(FixedFont);
-    private FontUIResource fontSubText  = new FontUIResource(FONT_TINY);
+    private FontUIResource fontMedium = new FontUIResource("SansSerif", Font.PLAIN, 12);
+    private FontUIResource fontSmall  = new FontUIResource("SansSerif", Font.PLAIN, 11);
+    private FontUIResource fontControl  = new FontUIResource("SansSerif", Font.PLAIN, 12);
+    //private FontUIResource fontWindowTitle  = new FontUIResource(FixedFont);
+    //private FontUIResource fontSubText  = new FontUIResource(FONT_TINY);
     
     private ColorUIResource VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));    
     private ColorUIResource FocusColor = new ColorUIResource(Color.red);
@@ -42,7 +41,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     public FontUIResource getUserTextFont() { return fontSmall; }
     // controls: labels, buttons, tabs, tables, etc.
     public FontUIResource getControlTextFont() { return fontControl; }
-    public FontUIResource getWindowTitleFont() { return fontWindowTitle; }
+    //public FontUIResource getWindowTitleFont() { return fontWindowTitle; } // internal frames?
     //public FontUIResource getSubTextFont() { return fontSubText; } // accelerator names
     
     protected ColorUIResource getSecondary1() { return VueSecondary1; }
@@ -61,10 +60,10 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     
     public void addCustomEntriesToTable(UIDefaults table)
     {
-        //table.put("ComboBox.background", Color.white);
-        table.put("Button.font", FONT_SMALL);
-        table.put("Label.font", FONT_SMALL);
-        table.put("TitledBorder.font", FONT_MEDIUM.deriveFont(Font.BOLD));
+        table.put("ComboBox.background", Color.white);
+        table.put("Button.font", fontSmall);
+        table.put("Label.font", fontSmall);
+        table.put("TitledBorder.font", fontMedium.deriveFont(Font.BOLD));
 
         // From BasicLookAndFeel:
         //table.put("TabbedPane.selected", Color.white); // selected tab fill & content border

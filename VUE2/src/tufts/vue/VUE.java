@@ -365,20 +365,27 @@ public class VUE
                     if (DEBUG.FOCUS) out("viewerSplit: " + e.getPropertyName()
                                        + "=" + e.getNewValue().getClass().getName()
                                        + " " + e.getNewValue());
-                    if (multipleMapsVisible() == false) {
-                        MapViewer leftViewer = mMapTabsLeft.getSelectedViewer();
+                    MapViewer leftViewer = null;
+                    MapViewer rightViewer = null;
+                    if (mMapTabsLeft != null)
+                        leftViewer = mMapTabsLeft.getSelectedViewer();
+                    if (mMapTabsRight != null)
+                        rightViewer = mMapTabsRight.getSelectedViewer();
+
+                    if (multipleMapsVisible()) {
+                        // pretend we panned to update MapPanner
+                        if (leftViewer != null)
+                            leftViewer.fireViewerEvent(MapViewerEvent.PAN);
+                        if (rightViewer != null)
+                            rightViewer.fireViewerEvent(MapViewerEvent.PAN);
+                    } else {
                         if (leftViewer != null && leftViewer != getActiveViewer()) {
                             if (DEBUG.FOCUS) out("viewerSplit: default focus to " + leftViewer);
                             leftViewer.requestFocus();
-                            //viewer.grabVueApplicationFocus("split-pane-other-hidden");
-                            if (mMapTabsRight != null) {
-                                MapViewer rightViewer = mMapTabsRight.getSelectedViewer();
-                                if (rightViewer != null)
-                                    rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
-                            }
+                            if (rightViewer != null)
+                                rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
                         }
                     }
-                    
                 }});
         
         

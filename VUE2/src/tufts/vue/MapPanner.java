@@ -33,7 +33,7 @@ public class MapPanner extends javax.swing.JPanel
     // Enable this to keep viewport always visible in panner: (it causes while-you-drag
     // zoom adjusting tho, which can be a bit disorienting)
     private static final boolean ViewerAlwaysVisible = true;
-    private static final int MapMargin = 5;
+    private static final int MapMargin = 0;
     //private static final int MapMargin = ViewerAlwaysVisible ? 5 : 50;
     
     /**
@@ -55,10 +55,9 @@ public class MapPanner extends javax.swing.JPanel
     
     /**
      * All instances of MapViewer raise MapViewer events
-     * as the act, and the MapPanner hears all of them
+     * as they act, and the MapPanner hears all of them
      * here.
      */
-
     public void mapViewerEventRaised(MapViewerEvent e)
     {
         if (e.isActivationEvent() && mapViewer == null) {
@@ -91,13 +90,20 @@ public class MapPanner extends javax.swing.JPanel
             if (this.map != null)
                 this.map.removeLWCListener(this);
             this.map = map;
-            this.map.addLWCListener(this, LWKey.UserActionCompleted);
+            if (DEBUG.Enabled)
+                this.map.addLWCListener(this);
+            else
+                this.map.addLWCListener(this, LWKey.UserActionCompleted);
         }
     }
 
     public void LWCChanged(LWCEvent e) {
-        // we only see UserActionCompleted events
-        repaint();
+        if (DEBUG.Enabled) {
+            repaint(); // slower: we repaint on every event in the map
+        } else {
+            // we only see UserActionCompleted events
+            repaint();
+        }
     }
 
     public void mousePressed(MouseEvent e)
@@ -176,6 +182,7 @@ public class MapPanner extends javax.swing.JPanel
 
     }
     
+    private boolean ShowFullExtent = true;
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
@@ -195,12 +202,20 @@ public class MapPanner extends javax.swing.JPanel
 
         //final Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
         final Rectangle2D allComponentBounds = mapViewer.getMap().getBounds();
-        final Rectangle2D mapViewerRect = mapViewer.getVisibleMapBounds();
+        final Rectangle2D extentRect = mapViewer.getExtentMapBounds();
+        final Rectangle2D viewerRect = mapViewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
 
-        if (ViewerAlwaysVisible)
-            pannerRect = mapViewerRect.createUnion(allComponentBounds);
-        else
+        if (ViewerAlwaysVisible) {
+            if (ShowFullExtent)
+                // the fudgey margins go away with show full extent -- which indicates
+                // the problem w/out the extent is obviously because we can *drag* to
+                // edge of full extent, but if not computing zoom with it, we'll
+                // get zoomed out when we go off edge of map bounds to edge of extent bounds.
+                pannerRect = extentRect.createUnion(allComponentBounds);
+            else
+                pannerRect = viewerRect.createUnion(allComponentBounds);
+        } else
             pannerRect = allComponentBounds;
 
         Dimension pannerViewportSize = getSize();
@@ -216,10 +231,11 @@ public class MapPanner extends javax.swing.JPanel
                                              offset);
                                             
 
+        g2.setColor(mapViewer.getBackground());
         g2.translate(-offset.getX(), -offset.getY());
         g2.scale(zoomFactor, zoomFactor);
-        g2.setColor(mapViewer.getBackground());
-        g2.fill(mapViewerRect);
+        g2.fill(mapViewer.getExtentMapBounds());
+        //g2.fill(viewerRect);
 
         /*
          * Construct a DrawContext to use in painting the entire
@@ -250,7 +266,7 @@ public class MapPanner extends javax.swing.JPanel
             g2.setStroke(STROKE_ONE);
         }
         g2.setColor(Color.red);
-        g2.draw(mapViewerRect);
+        g2.draw(viewerRect);
         //g2.scale(1/zoomFactor, 1/zoomFactor);
         //g2.translate(offset.getX(), offset.getY());
     }

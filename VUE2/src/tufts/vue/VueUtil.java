@@ -625,11 +625,6 @@ public class VueUtil
         return result;
     }
 
-    // java bug: Do NOT create try and create an axis using Integer.MIN_VALUE or Integer.MAX_VALUE
-    // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K) -- same for floats.
-    public static final int MinCoord = -10240;
-    public static final int MaxCoord = 10240;
-    
     public static final float[] NoIntersection = { Float.NaN, Float.NaN };
     private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" }; // for debug
     
@@ -706,10 +701,7 @@ public class VueUtil
 
     /** compute the first two y value crossings of the given x_axis and shape */
     public static float[] computeYCrossings(float x_axis, Shape shape, float[] result) {
-        // Produces erroneous computation using the Float constants:
-        //return computeIntersection(x_axis, Float.NEGATIVE_INFINITY, x_axis, Float.POSITIVE_INFINITY, shape, result, 2);
         return computeIntersection(x_axis, Integer.MIN_VALUE, x_axis, Integer.MAX_VALUE, shape, result, 2);
-        //return computeIntersection(x_axis, MinCoord, x_axis, MaxCoord, shape, result, 2);
     }
     
     /** compute 2 y values for crossings of at x_axis, and store result in the given Line2D */

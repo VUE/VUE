@@ -109,7 +109,7 @@ public class ToolWindow extends JWindow
         out("added " + c + " mouseListeners=" + ml.length);
         if (ml.length > 0) {
             if (DEBUG.Enabled)
-                mContentPane.contentPanel.setBorder(new LineBorder(Color.darkGray, 5));
+                mContentPane.contentPanel.setBorder(new LineBorder(Color.lightGray, 5));
             else
                 mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
         }

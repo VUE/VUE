@@ -1323,7 +1323,7 @@ public class LWNode extends LWContainer
             //g.setColor(Color.gray);
             g.setStroke(STROKE_ONE);
 
-            if (DEBUG.BOXES) dc.setAbsoluteStroke(1);
+            //if (DEBUG.BOXES) dc.setAbsoluteStroke(1);
             
             if (mIsRectShape)
                 g.draw(dividerMarginLine);

@@ -22,7 +22,7 @@ public class DEBUG
     public static boolean FOCUS = false; // AWT focus events, VUE MapViewer application focus
     public static boolean EVENTS = false;
     public static boolean INIT = false; // startup / initializations
-    public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
+    public static boolean MARGINS = true; // turn off bounds margin adjustments for testing
 
     public static boolean DR = false; // digital repository & data sources
     
