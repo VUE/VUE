@@ -155,6 +155,7 @@ public class ActionUtil {
             else
             {
                 System.err.println("File name '"+fileName+"' " + file + " can't  be found.");
+                tufts.vue.VueUtil.alert(chooser,file + " can't  be found.", "File Not Found");
                 file = null;
             }
         }
