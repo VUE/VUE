@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ public class RemoteClient {
     private static String rootBase = null;      //  Cached root base.
     private static FTPClient client = null;     //  Current FTP client and session.
     
-    /** 
+    /**
      *  Creates a new instance of RemoteClient.  Client is opened based on host, username,
      *  and password provided.  These are cached in order to re-establishe the connection
      *  should it be dropped.
@@ -56,16 +56,16 @@ public class RemoteClient {
             this.rootBase = client.printWorkingDirectory();
         }
         catch (java.io.IOException ex1) {
-            throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
+            throw new osid.filing.FilingException(osid.filing.FilingException.OPERATION_FAILED);
         }
         catch (osid.filing.FilingException ex2) {
-            throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
+            throw new osid.filing.FilingException(osid.filing.FilingException.OPERATION_FAILED);
         }
         server = host;             //  Cache the server name.
         this.username = username;       //  Cache the user name.
         this.password = password;       //  Cache the password.
     }
-
+    
     /**
      *  Close the client connection.
      */
@@ -76,18 +76,18 @@ public class RemoteClient {
                 client = null;
             }
             catch (java.io.IOException ex2) {
-                throw new osid.filing.FilingException (osid.filing.FilingException.IO_ERROR);
+                throw new osid.filing.FilingException(osid.filing.FilingException.IO_ERROR);
             }
         }
     }
     
     /**
-     *  Checks if the filing manager has an ftp client. 
+     *  Checks if the filing manager has an ftp client.
      */
     public static boolean hasClient() {
         return (client != null);
     }
-     
+    
     
     /**
      *  Gets an FTP client.
@@ -108,35 +108,37 @@ public class RemoteClient {
     public static String getRootBase() {
         return rootBase;
     }
-
+    
     
     /**
      *  Some FTP servers limit the amount of time that a client may stay connected to it.
      *  This function checks to see if the session is still active by pinging the remote
      *  server.  If connection has been dropped, it is re-established.  No change is
      *  made to the initialization of root, or the current working directory.
+     *
      */
     private static void checkClient() throws osid.filing.FilingException {
         if (client == null)
-            throw new osid.filing.FilingException (osid.filing.FilingException.ITEM_DOES_NOT_EXIST);
+            throw new osid.filing.FilingException(osid.filing.FilingException.ITEM_DOES_NOT_EXIST);
         
         //  Check the status to see if connection is still active.
-        try {
-            client.getStatus();
-        }
-        catch (java.io.IOException ex1) {
+      //  try {
+            FTPClientFactory factory = new FTPClientFactory(server,username,password);
+            client = factory.createClient();
+           // client.getStatus();
+       // }catch (java.io.IOException ex1) {
             //  If there is no status, then re-establish the connection based on cached names.
             try {
-                FTPClientFactory factory = new FTPClientFactory(server,username,password);
-                client = factory.createClient();
+                FTPClientFactory fac = new FTPClientFactory(server,username,password);
+                client = fac.createClient();
             }
             catch (osid.filing.FilingException ex2) {
-                throw new osid.filing.FilingException (osid.filing.FilingException.OPERATION_FAILED);
+                throw new osid.filing.FilingException(osid.filing.FilingException.OPERATION_FAILED);
             }
-        }
+        //}
     }
     
-    public static String getServerName () {
+    public static String getServerName() {
         return server;
     }
     
@@ -147,5 +149,5 @@ public class RemoteClient {
     public static String getPassword() {
         return password;
     }
-
+    
 }

@@ -318,12 +318,14 @@ public class RemoteByteStore extends RemoteCabinetEntry implements osid.filing.B
         long length = 0;
         try {
             FTPClient client = RemoteClient.getClient();
+            client.setFileTransferMode(FTP.STREAM_TRANSFER_MODE);
             //  The file to open consists of the root base plus, path to current directory plus name.
             //String fn = RemoteClient.getRootBase() + ((RemoteCabinet)getParent()).separator() + getDisplayName();
             //String fn = RemoteClient.getRootBase() + "/" + getDisplayName();
             String fn = getFullName();
             //System.out.println("length - file name to open: " + fn);
             FTPFile[] replies = client.listFiles(__fileListParser, fn);
+            System.out.println("File Name = "+fn+" replies ="+replies+"Client:"+client.getStatus());
             if(replies == null) {
                 System.out.println(client.getReplyCode());
                 throw new osid.filing.FilingException("RemoteByteStore.length: "+osid.filing.FilingException.IO_ERROR);
