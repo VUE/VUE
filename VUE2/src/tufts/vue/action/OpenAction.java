@@ -67,23 +67,18 @@ public class OpenAction extends AbstractAction
 
     
     public static void displayMap(File file) {
-        //if (file != null && file.getName().endsWith(".xml"))
-        if (file != null)
-        {
+        if (file != null) {
             VUE.activateWaitCursor();
-            try 
-            {
+            try {
                 LWMap loadedMap = loadMap(file.getAbsolutePath());
                 VUE.displayMap(loadedMap);
-            } 
-            finally 
-            {
+            } finally {
                 VUE.clearWaitCursor();
             }
         }
     }
     
-    // todo: have only one root loadMap that hanldes files & urls
+    // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
     public static LWMap loadMap(String filename)
     {
         try 

@@ -124,16 +124,48 @@ public class LWLink extends LWComponent
         computeLinkEndpoints();
     }
 
+    private final String Key_LinkStartPoint = "link.start.location";
+    private final String Key_LinkEndPoint = "link.end.location";
+
     /**
      * @param key property key (see LWKey)
      * @return object representing appropriate value
      */
     public Object getPropertyValue(Object key)
     {
+        // if we create key objects, get/set property value methods
+        // could all be reduced to a single one in LWComponent,
+        // that calls Key.getValue(component) -- well, almost
+        // would still need to cast down, so every new class
+        // would still have get/set prop value, but it just
+        // does a cast.  The key classes would share a superclass,
+        // but be declared locally, and made public if desired,
+        // and then when referenced globally, would appear as:
+        // LWLink.Key_Arrows.  Or, if maintated as a group,
+        // LWLink.Keys.Arrows.
+        // May still want some global keys: hierachy changing?
+        // Well, I suppose thouse could be LWContainer events...
+
+        // so a key is a way of linking a setter/getter to
+        // a name, with the new option of adding properties
+        // on the key.  Also, it can include value interpolators
+        // for animations.  We'll really need to have the prop
+        // key handling the interpolators because if we just
+        // do it by type, we'll try and interpolate, sa
+        // the Integer value for arrow state, which is
+        // really a discrete 3 state value.  Altho, 
+        // it would be handly for the Key superclass to
+        // have a bunch of built-in type interpolaters that
+        // anyone could use.
+        
         if (key == LWKey.LinkArrows)
             return new Integer(getArrowState());
         else if (key == LWKey.LinkCurves)
             return new Integer(getControlCount());
+        else if (key == Key_LinkStartPoint)
+            return getPoint1();
+        else if (key == Key_LinkEndPoint)
+            return getPoint2();
         else
             return super.getPropertyValue(key);
     }
@@ -144,6 +176,10 @@ public class LWLink extends LWComponent
             setArrowState(((Integer) val).intValue());
         else if (key == LWKey.LinkCurves)
             setControlCount(((Integer) val).intValue());
+        else if (key == Key_LinkStartPoint)
+            setPoint1((Point2D.Float)val);
+        else if (key == Key_LinkEndPoint)
+            setPoint2((Point2D.Float)val);
         else
             super.setProperty(key, val);
     }
@@ -176,12 +212,14 @@ public class LWLink extends LWComponent
     private void setStartPoint(Point2D p) {
         setStartPoint((float)p.getX(), (float)p.getY());
     }
+
     private void setStartPoint(float x, float y) {
         Object old = new Point2D.Float(startX, startY);
         startX = x;
         startY = y;
         endpointMoved = true;
-        notify("link.ep1.location", new Undoable(old) { void undo() { setStartPoint((Point2D) old); }} );
+        notify(Key_LinkStartPoint, old);
+        //notify("link.ep1.location", new Undoable(old) { void undo() { setStartPoint((Point2D) old); }} );
     }
     private void setEndPoint(Point2D p) {
         setEndPoint((float)p.getX(), (float)p.getY());
@@ -191,7 +229,8 @@ public class LWLink extends LWComponent
         endX = x;
         endY = y;
         endpointMoved = true;
-        notify("link.ep2.location", new Undoable(old) { void undo() { setEndPoint((Point2D) old); }} );
+        notify(Key_LinkEndPoint, old);
+        //notify("link.ep2.location", new Undoable(old) { void undo() { setEndPoint((Point2D) old); }} );
     }
 
     

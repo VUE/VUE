@@ -38,6 +38,10 @@ public class VueUtil extends tufts.Util
         System.err.println("Opening URL [" + platformURL + "]");
         
         if (platformURL.endsWith(VueResources.getString("vue.extension"))) {
+            if (platformURL.startsWith("resource:")) {
+                java.net.URL url = VueResources.getURL(platformURL.substring(9));
+                VUE.displayMap(tufts.vue.action.OpenAction.loadMap(url));
+            }
             try {
                 tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
             } catch(Exception ex) {

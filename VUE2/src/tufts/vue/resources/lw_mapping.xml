@@ -16,6 +16,11 @@
     <field name="x" direct="true"><bind-xml node="attribute"/></field>
     <field name="y" direct="true"><bind-xml node="attribute"/></field>
   </class>
+  <class name="java.awt.Point">
+    <map-to xml="pointi"/>
+    <field name="x" direct="true"><bind-xml node="attribute"/></field>
+    <field name="y" direct="true"><bind-xml node="attribute"/></field>
+  </class>
   <!--class name="java.awt.geom.RectangularShape">
     <map-to xml="shape"/>
    
@@ -140,6 +145,12 @@
 		</field -->
 		<field name="shape">
 			<bind-xml name="shape" node="element"/>
+		</field>
+	</class>
+	<class name="tufts.vue.LWImage" extends="tufts.vue.LWComponent">
+		<map-to xml="image"/>
+		<field name="offset">
+			<bind-xml name="offset" node="element"/>
 		</field>
 	</class>
 	

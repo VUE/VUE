@@ -71,7 +71,7 @@ public class VueToolPanel extends JPanel
         if (debug)
             setBackground(Color.blue);
         else
-            setBackground(VueTheme.getToolbarColor());
+            VueTheme.applyToolbarColor(this);
 		
         setLayout( new BorderLayout() );
         if (VueTheme.isMacMetalLAF())
@@ -87,8 +87,8 @@ public class VueToolPanel extends JPanel
 		
         if (debug)
             mMainToolPanel.setBackground(Color.green);
-        else
-            mMainToolPanel.setBackground( mBakColor);
+        //else
+        //    mMainToolPanel.setBackground( mBakColor);
 
         mContextualToolPanel = new JPanel();
         mContextualToolPanel.setAlignmentX(LEFT_ALIGNMENT);
@@ -96,8 +96,8 @@ public class VueToolPanel extends JPanel
 
         if (debug)
             mContextualToolPanel.setBackground(Color.orange);
-        else
-            mContextualToolPanel.setBackground(mBakColor);
+        //else
+        //  mContextualToolPanel.setBackground(mBakColor);
 		
         setAlignmentX( LEFT_ALIGNMENT);
         add(BorderLayout.WEST, mMainToolPanel);

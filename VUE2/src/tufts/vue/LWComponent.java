@@ -127,6 +127,7 @@ public class LWComponent
         if (key == LWKey.Notes)         return getNotes();
         if (key == LWKey.Resource)      return getResource();
         if (key == LWKey.Location)      return getLocation();
+        if (key == LWKey.Size)          return new Size(this.width, this.height);
         if (key == LWKey.Hidden)        return new Boolean(isHidden());
              
         if (DEBUG.Enabled) out("note: getPropertyValue; unsupported property [" + key + "] (returning null)");
@@ -1589,10 +1590,16 @@ public class LWComponent
     /** pre-digested double-click
      * @return true if you do anything with it, otherwise
      * the viewer can/will provide default action.
+     * Default action: if we have a resource, launch
+     * it in a browser, otherwise, do nothing.
      */
     public boolean handleDoubleClick(MapMouseEvent e)
     {
-        return false;
+        if (hasResource()) {
+            getResource().displayContent();
+            return true;
+        } else
+            return false;
     }
 
     /** pesistance default */

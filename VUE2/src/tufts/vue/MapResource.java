@@ -478,7 +478,7 @@ public class MapResource implements Resource {
 
     //todo: move to Resource spec & a new AbstractResource class
     public static boolean isImage(Resource r) {
-        String s = r.getSpec();
+        String s = r.getSpec().toLowerCase();
         // will need java advanced imageio for bmp & tiff
         return s.endsWith(".gif")
             || s.endsWith(".jpg")

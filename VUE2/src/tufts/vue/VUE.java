@@ -36,7 +36,7 @@ import javax.swing.border.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-//import com.apple.mrj.*;
+import net.roydesign.mac.MRJAdapter;
 
 /**
  * Vue application class.
@@ -64,8 +64,7 @@ public class VUE
             /** teh global resource selection static model **/
     public final static ResourceSelection sResourceSelection = new ResourceSelection();
     
-    public static final VueFrame frame = new VueFrame();
-    //public static final Window parent = new Window();
+    public static VueFrame frame;   // make this private!
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
@@ -312,13 +311,29 @@ public class VUE
             // if on PC and you specify mac theme, our Metal theme won't be installed
            themeSet = true; 
         } else {
+            // by default, force windows L&F on the mac.
             if (VueUtil.isMacPlatform())
                 lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         }
 
+        // Note that it is essential that the theme be set before a single
+        // GUI object of any kind is created.  If, for instance, a static
+        // member in any class initializes a swing gui object, this will end
+        // up having no effect here, and the entire theme will be silently
+        // ignored.  This includes the call below to UIManager.setLookAndFeel,
+        // which is why we need to tell the VueTheme about the laf instead
+        // of having it ask for the LAF itself, as it may not have been set
+        // yet.  Note that when using the Mac Aqua L&F, we don't need
+        // to set the theme for Metal (as it's not being used and would
+        // have no effect), but we still need to initialize the theme,
+        // as it's still queried througout the code.
+
+        boolean macAquaLAF = VueUtil.isMacPlatform() && useMacLAF;
+        VueTheme vueTheme = VueTheme.getTheme(macAquaLAF);
+        
         if (!themeSet) {
             out("Installing VUE MetalLookAndFeel theme.");
-            MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
+            MetalLookAndFeel.setCurrentTheme(vueTheme);
         }
         
         try {
@@ -329,17 +344,9 @@ public class VUE
             System.err.println(e);
         }
 
-        /*
-        LookAndFeel laf = UIManager.getLookAndFeel();
-        String lafName = laf.getName();
-        System.out.println("LookAndFeel: \"" + lafName + "\" " + laf);
-        if (lafName.equals("Metal") || lafName.equals("Windows")) {
-        // may want to break out default setter if for overrides of windows look & feel
-            UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
-            ...
-        */
-
         out("LookAndFeel: " + javax.swing.UIManager.getLookAndFeel().getName());
+        out("             " + javax.swing.UIManager.getLookAndFeel().getDescription());
+        out("             " + javax.swing.UIManager.getLookAndFeel().getClass());
     }
 
     static void parseArgs(String[] args) {
@@ -359,7 +366,7 @@ public class VUE
     }
 
     //static JFrame toolParent = new JFrame();
-    static ToolWindow createToolWindow(String title) {
+    public static ToolWindow createToolWindow(String title) {
         //return new ToolWindow(title, toolParent);
         return new ToolWindow(title, VUE.frame);
     }
@@ -406,6 +413,7 @@ public class VUE
         DRBrowser drBrowser = null;
         if (!nodr)  {
             drBrowser = new DRBrowser(true);
+            //if (VueUtil.isMacAquaLookAndFeel()) drBrowser.setBackground(SystemColor.control);
             toolPanel.add(drBrowser, BorderLayout.CENTER);
             
             /*
@@ -491,6 +499,8 @@ public class VUE
         JPanel vuePanel = new JPanel();
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
+
+        VUE.frame = new VueFrame();
         
         // Create the tool windows
         //ToolWindow pannerTool = createToolWindow("Panner", frame);
@@ -579,19 +589,22 @@ public class VUE
                     continue;
                 if (false&&w instanceof JFrame)
                     ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
-                //else if (w instanceof JDialog)
-                //((JDialog)w).setJMenuBar(new VueMenuBar(ToolWindows)); // doesn't work for dialogs: it goes in-window!!!
+                /*
+                else if (w instanceof JDialog) {
+                    ((JDialog)w).setJMenuBar(new VueMenuBar(ToolWindows)); // doesn't work for dialogs: it goes in-window!!!
+                    ((JDialog)w).getJMenuBar().hide();
+                }
+                */
                 //else if (w instanceof JDialog)
                     //((JDialog)w).setJMenuBar(null);
-                //((JFrame)w).setJMenuBar(buildMenuBar(toolWindows));
-                //((JWindow)w).getRootPane().setJMenuBar(buildMenuBar(toolWindows));
             }
         }
         out("menu toolbars set.");
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
+        //frame.getContentPane().setBackground(Color.red);
         //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
-        frame.setBackground(Color.white);
+        //frame.setBackground(Color.white);
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
         frame.pack();
         if (nodr)
@@ -692,32 +705,67 @@ public class VUE
         if (drBrowser != null && drBrowserTool != null)
             drBrowserTool.addTool(new DRBrowser());
 
-        /*
         if (VueUtil.isMacPlatform()) {
-            MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
-                    public void handleOpenFile(File file) {
-                        System.err.println("MRJOpenDocumentHandler: " + file);
-                        VUE.displayMap(file);
+            MRJAdapter.addQuitApplicationListener(new ExitAction());
+            MRJAdapter.addAboutListener(new AboutAction());
+            MRJAdapter.addOpenDocumentListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("VUE: open " + e);
                     }
                 });
+            
+            /*
+            MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
+            public void handleOpenFile(File file) {
+            System.err.println("MRJOpenDocumentHandler: " + file);
+            VUE.displayMap(file);
+            }
+            });
+            */
         }
-        */
         
+        // An attempt to get the mac metal look picked up by something other than a frame
+        // & other window experiments.
         /*
-        // An attempt to get the mac metal look picked up by something other than a frame:
+        
+        Frame emptyFrame = new Frame();
+        Window emptyWindow = new Window(VUE.frame);
+        
         //Window w = new java.awt.VFrame(frame);
         //Window w = new Frame(); // only full-bread Frame's/JFrame's are picking up mac brushed metal look...
-        Window w = new Dialog(VUE.frame);
         //Window w = new JWindow(VUE.frame);
+        //Window w = new Dialog(VUE.frame);
+        //Window w = new JDialog(VUE.frame);
+        Window w = new TestWindow(VUE.frame);
+        w.setLayout(new FlowLayout());
         w.add(new JLabel("Hello."));
+        JComponent tf = new JTextField("text", 10);
+        w.add(tf);
+        tf.addFocusListener(new FocusAdapter() {
+                public void focusGained(FocusEvent e) {
+                    new Throwable("tf got focus " + e).printStackTrace();
+                }
+            });
+        // tf.setFocusable(false); // disable's field
+        //w.setFocusable(false);
+        //w.setFocusableWindowState(false);
         w.setSize(200,100);
-        w.setBackground(UIManager.getColor("info")); // tried window,control,desktop,windowBorder,menu,activeCaption,info
+        tufts.Util.centerOnScreen(w);
+        tf.enableInputMethods(true);
+        tf.requestFocus();
+        //w.setBackground(UIManager.getColor("info")); // tried window,control,desktop,windowBorder,menu,activeCaption,info
         //w.setBackground(SystemColor.control);
         //w.setBackground(frame.getBackground());
         w.show();
+
         */
-        
         out("main completed.");
+    }
+
+    static class TestWindow extends Window {
+        TestWindow(Window parent) {
+            super(parent);
+        }
     }
     
     
@@ -897,7 +945,7 @@ public class VUE
     }
     
     /**
-a     * Create a new viewer and display the given map in it.
+     * Create a new viewer and display the given map in it.
      */
     public static void displayMap(LWMap pMap) {
         out("displayMap " + pMap);
@@ -955,6 +1003,14 @@ a     * Create a new viewer and display the given map in it.
         {
             this(VUE.ToolWindows);
         }
+
+        /*
+        public void paint(Graphics g) {
+            System.err.println("\nVueMenuBar: paint");
+
+        }
+        */
+        
         public VueMenuBar(Window[] toolWindows)
         {
             addFocusListener(this);
@@ -973,7 +1029,7 @@ a     * Create a new viewer and display the given map in it.
             //adding actions
             SaveAction saveAction = new SaveAction("Save", false);
             SaveAction saveAsAction = new SaveAction("Save As...");
-            OpenAction openAction = new OpenAction("Open");
+            OpenAction openAction = new OpenAction("Open Map...");
             ExitAction exitAction = new ExitAction("Quit");
             Publish publishAction = new Publish(frame,"Export");
         
@@ -1012,7 +1068,6 @@ a     * Create a new viewer and display the given map in it.
                 exportMenu.add(svgAction);
                 exportMenu.add(xmlAction);
                 exportMenu.add(imageMap);
-
             }
         
             fileMenu.add(Actions.NewMap);
@@ -1024,8 +1079,10 @@ a     * Create a new viewer and display the given map in it.
             fileMenu.add(printAction).setText("Print Visible...");
             fileMenu.add(publishAction);
             //fileMenu.add(exportMenu);
-            fileMenu.addSeparator();
-            fileMenu.add(exitAction);
+            if (MRJAdapter.isSwingUsingScreenMenuBar() == false) {
+                fileMenu.addSeparator();
+                fileMenu.add(exitAction);
+            }
         
             editMenu.add(Actions.Undo);
             editMenu.add(Actions.Redo);
@@ -1045,24 +1102,12 @@ a     * Create a new viewer and display the given map in it.
             editMenu.addSeparator();
             editMenu.add(Actions.editDataSource);
         
-        
             viewMenu.add(Actions.ZoomIn);
             viewMenu.add(Actions.ZoomOut);
             viewMenu.add(Actions.ZoomFit);
             viewMenu.add(Actions.ZoomActual);
-            /*
-              viewMenu.addSeparator();
-              viewMenu.add(new JMenuItem("Resources"));
-              viewMenu.add(new JMenuItem("Collection"));
-              viewMenu.add(new JMenuItem("Inspector"));
-              viewMenu.add(new JMenuItem("Pathway"));
-              viewMenu.add(new JMenuItem("Toolbar"));
-              viewMenu.add(new JMenuItem("Overview"));
-            */
-        
-            JMenu fontMenu = new JMenu("Font");
-        
-            //formatMenu.add(fontMenu);
+            viewMenu.add(Actions.ToggleFullScreen);
+
             formatMenu.add(Actions.FontSmaller);
             formatMenu.add(Actions.FontBigger);
             formatMenu.add(Actions.FontBold);
@@ -1104,94 +1149,11 @@ a     * Create a new viewer and display the given map in it.
                 }
             }
         
-            //windowMenu.add(new UserDataAction());
-            /*
-              optionsMenu.add(new UserDataAction());
-              optionsMenu.add(new JMenuItem("Map Preference..."));
-              optionsMenu.add(new JMenuItem("Preferences..."));
-            */
+            //optionsMenu.add(new UserDataAction());
         
-            JMenuItem vueOnline = new JMenuItem("VUE Online");
-            JMenuItem userGuide = new JMenuItem("User Guide");
-            JMenuItem aboutUs = new JMenuItem("About VUE");
-            helpMenu.add(vueOnline); 
-            helpMenu.add(userGuide);
-            helpMenu.add(aboutUs);
-            aboutusTool = createToolWindow("VUE: About VUE");
-            JPanel backPanel = new JPanel();
-            //backPanel.setBorder(new LineBorder(Color.WHITE,20));
-            backPanel.setBorder(new EmptyBorder(20,20,20,20));
-            backPanel.setMinimumSize(new Dimension(275,147));
-      
-        
-            JPanel aboutusPanel = new JPanel();
-            JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
-        
-            JLabel jtf = new JLabel("<html> <font color = \"#20316A\"> <br><br>&nbsp;&nbsp;&nbsp;Developed by  Academic Technology <br> &nbsp;&nbsp;&nbsp;Copyright &copy; 2004 Tufts University<br>&nbsp; &nbsp;&nbsp;All Rights Reserved <br><br> &nbsp;&nbsp;&nbsp;Version 0.9 <br><br>&nbsp;&nbsp;&nbsp;<u> http://vue.tccs.tufts.edu</u><br></font></html>");
-  
-            JPanel labelPanel = new JPanel();
-            labelPanel.setLayout(new BorderLayout());
-            labelPanel.add(jtf,BorderLayout.CENTER);
-          
-            aboutusPanel.setLayout(new BorderLayout());
-            //spLabel.setBorder(new LineBorder(Color.white, 5));
-            //spLabel.setBackground(Color.white);
-            aboutusPanel.add(spLabel,BorderLayout.CENTER);
-         
-            jtf.addMouseListener(new MouseAdapter(){
-                    public void mouseClicked(MouseEvent evt) {
-                        try{
-                            VueUtil.openURL("http://vue.tccs.tufts.edu");
-                        }catch (Exception ex){}
-                    }
-                });
-       
-            //labelPanel.setBackground(Color.WHITE);
-            aboutusPanel.add(labelPanel,BorderLayout.SOUTH);
-        
-            backPanel.setLayout(new BorderLayout());
-            backPanel.add(aboutusPanel,BorderLayout.CENTER);
-            aboutusTool.addTool(backPanel, false);
-        
-            userGuide.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
-                        } catch (Exception ex) { out(ex); }
-                    }});
-               
-            vueOnline.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            VueUtil.openURL("http://vue.tccs.tufts.edu/");
-                        } catch (Exception ex) { out(ex); }
-                    }});
-        
-            aboutUs.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        //aboutusTool.setLocation(200,200);
-                        VueUtil.centerOnScreen(aboutusTool);
-                        aboutusTool.setVisible(true);
-                    }});
-        
-            /*
-              JToolBar toolBar = new JToolBar();
-              toolBar.add(Actions.NewMap);
-              toolBar.add(openAction);
-              toolBar.add(Actions.CloseMap);
-              toolBar.add(saveAction);
-              toolBar.add(saveAsAction);
-              toolBar.add(printAction);
-              toolBar.add(imageAction);
-              toolBar.add(htmlAction);
-              toolBar.add(xmlAction);
-              toolBar.add(pdfAction);
-              toolBar.add(imageMap);
-              toolBar.add(svgAction);
-              // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
-              toolBar.add(new JButton(new PolygonIcon(Color.RED)));
-              frame.getContentPane().add(toolBar,BorderLayout.NORTH);
-            */
+            helpMenu.add(new ShowURLAction("VUE Online", "http://vue.tccs.tufts.edu/"));
+            helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
+            helpMenu.add(new AboutAction());
         }
 
         public void setVisible(boolean b) {

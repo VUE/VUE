@@ -92,7 +92,9 @@ public class Util
         return UnixPlatform;
     }
 
-    /** @return true if the current Look & Feel is Mac Aqua (not always true just because you're on a mac) */
+    /** @return true if the current Look & Feel is Mac Aqua (not always true just because you're on a mac)
+     * Note: do NOT call this from any static initializers the result may be changed by application startup
+     * code. */
     public static boolean isMacAquaLookAndFeel()
     {
         // we can't set this at static init time because the LAF can be set after that

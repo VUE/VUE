@@ -27,20 +27,28 @@ import javax.swing.plaf.metal.*;
 class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 {
     private static VueTheme singleton;
+    public static VueTheme getTheme(boolean macAquaLAF) {
+        if (singleton == null)
+            singleton = new VueTheme(macAquaLAF);
+        return singleton;
+    }
     public static VueTheme getTheme() {
         if (singleton == null)
-            singleton = new VueTheme();
+            throw new IllegalStateException("getTheme(macAquaLAF) must be called first time");
         return singleton;
     }
 
-    VueTheme()
+    VueTheme(boolean macAquaLAF)
     {
         System.out.println("VueTheme: constructed.");
         if (DEBUG.INIT) new Throwable("VueTheme created").printStackTrace();
-        //System.out.println("VueTheme: LookAndFeel: " + javax.swing.UIManager.getLookAndFeel().getName());
-        if (isMacMetalLAF()) {
-            System.out.println("VueTheme: Mac Aqua Brush Metal Look");
-            ToolbarColor = SystemColor.window;
+        if (macAquaLAF) {
+            System.out.println("VueTheme: Mac Aqua");
+            if (isMacMetalLAF()) {
+                System.out.println("VueTheme: Mac Aqua Brush Metal Look");
+                ToolbarColor = SystemColor.window;
+            } else
+                ToolbarColor = SystemColor.control;
         }
     }
 
@@ -78,9 +86,27 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     protected FontUIResource getSmallFont() { return fontSmall; }
     
     //public static Color getVueColor() { return VueUtil.isMacAquaLookAndFeel() ? SystemColor.control : VueColor;  }
-    //public static Color getToolbarColor() { return VueUtil.isMacAquaLookAndFeel() ? SystemColor.control : ToolbarColor; }
+    public static Color getToolbarColor() {
+        if (VueUtil.isMacAquaLookAndFeel()) {
+            if (isMacMetalLAF())
+                return SystemColor.window;
+            else
+                return SystemColor.control;
+        } else
+            return ToolbarColor;
+    }
+
+    public static void applyToolbarColor(Component c) {
+        if (VueUtil.isMacAquaLookAndFeel()) {
+            //if (DEBUG.Enabled) System.out.println("MAC AQUA: skipping toolbar application to " + c);
+        } else {
+            //if (DEBUG.Enabled) System.out.println("*** APPLYING TOOLBAR COLOR TO: " + c);
+            c.setBackground(getToolbarColor());
+        }
+    }
+    
     public static Color getVueColor() { return getTheme().VueColor;  }
-    public static Color getToolbarColor() { return getTheme().ToolbarColor;  }
+    //public static Color getVueColor() { return Color.red;  }
     
     public FontUIResource getMenuTextFont() { return fontMedium;  }
     public FontUIResource getUserTextFont() { return fontSmall; }
@@ -103,7 +129,9 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     //    return new ColorUIResource(Color.green);
     //}
 
-    /** Check java impl: how is this different? Border or color I think */
+    /** This tweaks the background color of unselected tabs in the tabbed pane,
+     * and completely turns off painting any kind of focus indicator.
+     */
     public static class VueTabbedPaneUI extends MetalTabbedPaneUI {
         public static ComponentUI createUI( JComponent x ) {
             if (DEBUG.Enabled) System.out.println("Creating VueTabbedPaneUI");

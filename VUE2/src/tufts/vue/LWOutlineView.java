@@ -25,7 +25,6 @@
 package tufts.vue;
 
 import javax.swing.JScrollPane;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.BorderLayout;
@@ -39,7 +38,7 @@ public class LWOutlineView extends ToolWindow implements VUE.ActiveMapListener
     private OutlineViewTree tree = null;
     
     /** Creates a new instance of LWOutlineView */
-    public LWOutlineView(JFrame parent) 
+    public LWOutlineView(java.awt.Frame parent) 
     {
         super("Outline", parent);
         

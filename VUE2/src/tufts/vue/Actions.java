@@ -466,7 +466,8 @@ implements VueConstants {
     keyStroke(KeyEvent.VK_CLOSE_BRACKET, COMMAND+SHIFT)) {
         boolean enabledFor(LWSelection s) {
             if (s.size() == 1)
-                return !s.first().getParent().isOnTop(s.first());
+                return true;
+              //return !s.first().getParent().isOnTop(s.first()); // todo: not always getting updated
             return s.size() >= 2;
         }
         void act(LWSelection selection) {
@@ -479,7 +480,8 @@ implements VueConstants {
     keyStroke(KeyEvent.VK_OPEN_BRACKET, COMMAND+SHIFT)) {
         boolean enabledFor(LWSelection s) {
             if (s.size() == 1)
-                return !s.first().getParent().isOnBottom(s.first());
+                return true;
+              //return !s.first().getParent().isOnBottom(s.first()); // todo: not always getting updated
             return s.size() >= 2;
         }
         void act(LWSelection selection) {
@@ -871,6 +873,16 @@ implements VueConstants {
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         void act() {
             ZoomTool.setZoom(1.0);
+        }
+    };
+    static final Action ToggleFullScreen =
+        new VueAction("Full Screen", VueUtil.isMacPlatform() ?
+                      keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
+                      keyStroke(KeyEvent.VK_F11)) {
+        // no way to listen for zoom change events to keep this current
+        //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
+        void act() {
+            VUE.getActiveViewer().toggleFullScreen();
         }
     };
     

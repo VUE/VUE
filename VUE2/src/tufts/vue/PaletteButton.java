@@ -90,7 +90,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
         }
         setBorder( null);
         setFocusable(false);
-        setBackground(VueTheme.getToolbarColor());
+        VueTheme.applyToolbarColor(this);
     }
 	
     /**

@@ -66,6 +66,8 @@ public abstract class MenuButton extends JButton
 
     private boolean actionAreaClicked = false;
 
+    private Insets insets(int x) { return new Insets(x,x,x,x); }
+
     public MenuButton()
     {
         if (false) {
@@ -79,6 +81,14 @@ public abstract class MenuButton extends JButton
             setBorder(null);
             //setBorder(new LineBorder(Color.blue, 2));
             //setBorder(new EmptyBorder(2,2,2,2));
+        }
+
+        if (tufts.vue.VueUtil.isMacAquaLookAndFeel()) {
+            // anything big makes them rounded & fit into their space.
+            // We could make them square making them smaller, but will
+            // need to force the toolbar row to small height, or compute
+            // the insets needed for each button based on it's minimum size.
+            setMargin(insets(22));
         }
 
         setFocusable(false);

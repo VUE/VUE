@@ -41,8 +41,9 @@ import javax.swing.border.*;
  * so Command/Ctrl-W to close a ToolWindow only sometimes works.
  */
 
-public class ToolWindow extends JWindow
-//public class ToolWindow extends JFrame // will need on mac version, so convert to factory
+//public class ToolWindow extends JDialog
+public class ToolWindow extends JWindow // generic version for PC
+//public class ToolWindow extends JFrame // no good: can't stay on top of VUE main frame
     implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
@@ -60,16 +61,19 @@ public class ToolWindow extends JWindow
     private Dimension savedSize;
 
     private final boolean managedTitleBar;
-    
+
+    //private JFrame parentFrame;
+
     public ToolWindow(String title, Frame owner)
     {
         super(owner);
+        //this.parentFrame = owner;
         managedTitleBar = true;
         //setUndecorated(managedTitleBar);
         //if (((Object)this) instanceof JWindow)
         //managedTitleBar = true;
         //if (owner instanceof JFrame) setRootPane(((JFrame)owner).getRootPane()); // no help getting menu bars shared on mac
-        
+
         this.mTitle = title;
         setName(title);
         if (managedTitleBar) {
@@ -77,8 +81,7 @@ public class ToolWindow extends JWindow
             addMouseMotionListener(this);
             addKeyListener(this);
         }
-        //setFocusable(false);
-        addFocusListener(this); // should never see...
+
         if (debug) out("contentPane=" + getContentPane());
         mContentPane = new ContentPane(mTitle);
         //mContentPane.setFocusable(false);
@@ -88,11 +91,10 @@ public class ToolWindow extends JWindow
         // seems to be working fine now...
 
         //---------------------------------
-        // set up glass pane
+        // set up glass pane for painting resize corner
         Component gp = new GlassPane();
         setGlassPane(gp);
         gp.setVisible(true);
-
 
         pack();
         if (DEBUG.Enabled) out("constructed.");
@@ -100,6 +102,10 @@ public class ToolWindow extends JWindow
         //setLocationRelativeTo(owner);
         //setFocusableWindowState(false); // nothing can get input at all...
         //setFocusable(false); doesn't appear to do anything; todo: play with later & sub-panels
+        //setFocusable(false);
+        //getContentPane().setFocusable(false);
+        //addFocusListener(this); // should never see...
+
 
         /*
           // Window open & close only come to us the first time the window happens
@@ -114,6 +120,11 @@ public class ToolWindow extends JWindow
             });
         */
     }
+    /*
+    public JMenuBar getJMenuBar() { 
+        return parentFrame.getJMenuBar(); 
+    }
+    */
 
     // todo: problem: we can see this, but the global Command-W action is ALSO
     // getting activated!
@@ -179,7 +190,7 @@ public class ToolWindow extends JWindow
     {
         // todo: make it so can add more than one tool
         // -- probably use BoxLayout
-        mContentPane.contentPanel.add(c, BorderLayout.CENTER);
+        getContentPanel().add(c, BorderLayout.CENTER);
         
         // this is hack till glass pane can redispatch mouse events so
         // that mouse listening tools don't disable the resize corner
@@ -187,12 +198,20 @@ public class ToolWindow extends JWindow
         if (DEBUG.Enabled) out("added " + c + " mouseListeners=" + ml.length);
         if (addBorder || ml.length > 0) {
             if (DEBUG.Enabled)
-                mContentPane.contentPanel.setBorder(new LineBorder(Color.lightGray, 5));
+                getContentPanel().setBorder(new LineBorder(Color.lightGray, 5));
             else
-                mContentPane.contentPanel.setBorder(new EmptyBorder(5,5,5,5));
+                getContentPanel().setBorder(new EmptyBorder(5,5,5,5));
         }
         pack();
     }
+
+    //JPanel hackpanel = new JPanel();
+    private JPanel getContentPanel() {
+        return mContentPane.contentPanel;
+        //return hackpanel;
+    }
+
+    
 
     public void add(JComponent c) {
         addTool(c);
@@ -391,7 +410,7 @@ public class ToolWindow extends JWindow
 
 
 
-    private class ContentPane extends JPanel
+    protected class ContentPane extends JPanel
     {
         JPanel titlePanel;
         JPanel contentPanel = new JPanel();

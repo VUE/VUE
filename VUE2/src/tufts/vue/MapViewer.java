@@ -155,7 +155,10 @@ public class MapViewer extends javax.swing.JComponent
     
         setOpaque(true);
         setLayout(null);
-        setBackground(map.getFillColor());
+        if (map.getFillColor() == null)
+            setBackground(SystemColor.window);
+        else
+            setBackground(map.getFillColor());
         loadMap(map);
         
         //-------------------------------------------------------
@@ -179,6 +182,8 @@ public class MapViewer extends javax.swing.JComponent
         VueToolbarController.getController().addToolSelectionListener(this);
 
         addKeyListener(inputHandler);
+        addMouseListener(inputHandler);
+        addMouseMotionListener(inputHandler);
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
     
@@ -262,7 +267,9 @@ public class MapViewer extends javax.swing.JComponent
          */
         
         
+        //addKeyListener(inputHandler);
         addFocusListener(this);
+        
         if (inScrollPane) {
             //mViewport.addFocusListener(this); // do we need this?
             mViewport.getParent().addFocusListener(this);
@@ -286,8 +293,8 @@ public class MapViewer extends javax.swing.JComponent
             //mViewport.getParent().addMouseListener(inputHandler);
             //mViewport.getParent().addMouseMotionListener(inputHandler);
         } else {
-            addMouseListener(inputHandler);
-            addMouseMotionListener(inputHandler);
+            //addMouseListener(inputHandler);
+            //addMouseMotionListener(inputHandler);
         }
         requestFocus();
         mAddNotifyUnderway = false;
@@ -339,10 +346,13 @@ public class MapViewer extends javax.swing.JComponent
             return;
         }
         
+        VueTool oldTool = activeTool;
         activeTool = pTool;
         setMapCursor(activeTool.getCursor());
         
         if (isDraggingSelectorBox) // in case we change tool via kbd shortcut in the middle of a drag
+            repaint();
+        else if (oldTool != null && oldTool.hasDecorations() || pTool.hasDecorations())
             repaint();
     }
     
@@ -1537,6 +1547,7 @@ public class MapViewer extends javax.swing.JComponent
         dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
         dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
         dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+        dc.setActiveTool(getCurrentTool());
         
         //-------------------------------------------------------
         // adjust GC for pan & zoom
@@ -1797,6 +1808,8 @@ public class MapViewer extends javax.swing.JComponent
     void activateLabelEdit(LWComponent lwc) {
         if (activeTextEdit != null && activeTextEdit.getLWC() == lwc)
             return;
+        if (!lwc.supportsUserLabel())
+            return;
         if (activeTextEdit != null)
             remove(activeTextEdit);
         // todo robust: make sure can never accidentally happen on a
@@ -2014,7 +2027,9 @@ public class MapViewer extends javax.swing.JComponent
         growForSelection(paintedSelectionBounds);
         //System.out.println("screenSelectionBounds="+mapSelectionBounds);
         
-        if (VueSelection.countTypes(LWNode.class) <= 0 ||
+        // todo: this check is a hack: need to check if any in selection return true for supportsUserResize
+        if (VueSelection.countTypes(LWNode.class) + VueSelection.countTypes(LWImage.class) <= 0
+            ||
             (VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())) {
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
@@ -2501,6 +2516,7 @@ public class MapViewer extends javax.swing.JComponent
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.ZoomFit);
             sMapPopup.add(Actions.ZoomActual);
+            sMapPopup.add(Actions.ToggleFullScreen);
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.SelectAll);
             sMapPopup.add(new VueAction("Show Map Inspector") {
@@ -2550,6 +2566,94 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
+        boolean fullScreenMode = false;
+        //JWindow fullScreenWindow = null;
+        JFrame fullScreenWindow = null;
+        Container fullScreenOldParent = null;
+        Point fullScreenOldVUELocation;
+        Dimension fullScreenOldVUESize;
+
+        void toggleFullScreen()
+        {
+            /*
+            public class JFullScreenWindow extends JWindow {
+                public JFullScreenWindow() {
+                    super();
+                }
+                public void setJMenuBar(JMenuBar menubar) {
+                    getRootPane().setMenuBar(menubar);
+                }
+            }
+            */
+                
+            // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
+            // z-order, with the last being on top -- this INCLUDES the full-screen window, so when it get's
+            // shown, all the tool windows will always go below it, (including the main VUE frame) so we have
+            // have to hide/show all the tool windows each time so they come back to the front.
+
+            // If the tool window was open when fs popped, you can get it back by hitting it's shortcuut
+            // twice, hiding it then bringing it back, tho it appeared on mac that this didn't always work.
+
+            // More Mac Problems: We need the FSW (full screen window) to be a frame so we can set a
+            // jmenu-bar for the top (MRJAdapter non-active jmenu bar won't help: it's for only for when
+            // there's NO window active).  But then as a sibling frame, to VUE.frame instead ofa child to it,
+            // VUE.frame can appear on top of you Option-~.  Trying to move VUE.frame off screen doesn't
+            // appear to be working -- maybe we could set it to zero size?  Furthermore, all the tool
+            // Windows, which are children to VUE.frame, won't stay on top of the FSW after it takes focus.
+            // We need to see what happens if they're frames, as they're going to need to be anyway.  (There
+            // is the nice ability to Option-~ them all front/back at once, as children of the VUE.frame, if
+            // they're windows tho...)
+
+            // What about using a JDialog instead of a JFrame?  JDialog's can have
+            // a parent frame AND a JMenuBar...
+                    
+            if (fullScreenMode) {
+                //VUE.frame.setLocation(fullScreenOldVUELocation); // mac window manger not allowing
+                //VUE.frame.setSize(fullScreenOldVUESize); // mac window manager won't go to 0
+                //VUE.frame.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
+                fullScreenWindow.setVisible(false);
+                fullScreenOldParent.add(this);
+                fullScreenMode = false;
+            } else {
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                out("Native full screen support available: " + ge.getDefaultScreenDevice().isFullScreenSupported());
+                //GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().
+                //  setFullScreenWindow(SwingUtilities.getWindowAncestor(this));
+                //VUE.frame.setVisible(false); // this also hids all children of the frame, including the new fs window.
+                if (fullScreenWindow == null) {
+                    //fullScreenWindow = new JWindow(VUE.frame); // if VUE.frame is parent, it will stay on top of it
+                    fullScreenWindow = VUE.createFrame(); // but we need a Frame in order to have the menu-bar on the mac!
+                    fullScreenWindow.setUndecorated(true);
+                }
+                fullScreenOldParent = getParent();
+                fullScreenWindow.getContentPane().add(this);
+                //fullScreenWindow.getContentPane().add(MapViewer.this.getParent().getParent()); // add with scroll bars
+                fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
+
+                if (false) {
+                    //addKeyListener(inputHandler);
+                    ge.getDefaultScreenDevice().setFullScreenWindow(fullScreenWindow);
+                    //w.enableInputMethods(true);
+                    //enableInputMethods(true);
+                            
+                    // We run into a serious problem using the special java full-screen mode on the mac: if
+                    // you right-click, it attemps to pop-up a menu over the full screen window, which is not
+                    // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
+                    // but just leaves you at a fully blank screen that you can sometimes never recover from
+                    // without powering off!  This true as of java version "1.4.2_05", Mac OS X 10.3.5.
+                            
+                } else {
+                    tufts.Util.setFullScreen(fullScreenWindow);
+                    fullScreenWindow.setVisible(true);
+                }
+                fullScreenOldVUELocation = VUE.frame.getLocation();
+                fullScreenOldVUESize = VUE.frame.getSize();
+                //VUE.frame.setSize(0,0);
+                //VUE.frame.setLocation(3072,2048);
+                //VUE.frame.setExtendedState(Frame.ICONIFIED);
+            }
+            requestFocus();
+        }
     
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
@@ -2583,7 +2687,7 @@ public class MapViewer extends javax.swing.JComponent
         private int kk = 0;
         private ToolWindow debugInspector;
         public void keyPressed(KeyEvent e) {
-            if (DEBUG.KEYS) out("[" + e.paramString() + "]");
+            if (DEBUG.KEYS) out("[" + e.paramString() + "] consumed=" + e.isConsumed());
             
             viewer.clearTip();
             
@@ -2633,6 +2737,9 @@ public class MapViewer extends javax.swing.JComponent
                     isDraggingSelectorBox = false;
                     repaint();
                 }
+                if (fullScreenMode == true) {
+                    toggleFullScreen();
+                }
             } else if (e.isShiftDown() && VueSelection.isEmpty()) {
                 // this is mainly for debug.
                      if (key == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
@@ -2641,11 +2748,18 @@ public class MapViewer extends javax.swing.JComponent
                 else if (key == KeyEvent.VK_RIGHT) viewer.panScrollRegion( 1, 0);
                 else
                     handled = false;
-            } else
+            }
+            else if (key == KeyEvent.VK_BACK_SLASH || key == KeyEvent.VK_F11) {
+                toggleFullScreen();
+            }
+            else {
                 handled = false;
+            }
 
-            if (handled)
+            if (handled) {
+                e.consume();
                 return;
+            }
             
             /*if (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN) {
                 // toggle cause mac auto-repeats space-bar screwing everything up
@@ -2763,6 +2877,16 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
+                else if (c == '~') { System.err.println("ABORT!"); System.exit(-1); }
+                else if (c == '\\') {
+                    toggleFullScreen();
+                    /*
+                    VUE.frame.hide();
+                    VUE.frame.setFullScreen(!fullScreenMode);
+                    VUE.frame.show();
+                    fullScreenMode = !fullScreenMode;
+                    */
+                }
                 else if (c == '!') {
                     if (debugInspector == null) {
                         debugInspector = new ToolWindow("Inspector", VUE.frame == null ? debugFrame : VUE.frame);
@@ -2777,6 +2901,8 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
         }
+
+        
         
         public void keyReleased(KeyEvent e) {
             if (DEBUG.KEYS) out("[" + e.paramString() + "]");
@@ -3372,8 +3498,10 @@ public class MapViewer extends javax.swing.JComponent
                     screenY = getHeight()-1;
             }
             
-            if (!activeTool.supportsDraggedSelector(e)) // todo: dragControls could be skipped!
+            if (!activeTool.supportsDraggedSelector(e) && !activeTool.supportsResizeControls()) 
                 return;
+            // todo: dragControls could be skipped! [WAS TRUE W/OUT RESIZE CONTROL CHECK ABOVE]
+            // todo serious: now text tool leaves a dragged box around!
             
             if (dragComponent == null && isDraggingSelectorBox) {
                 //-------------------------------------------------------
@@ -4228,7 +4356,7 @@ public class MapViewer extends javax.swing.JComponent
         System.out.println(this + " " + (o==null?"null":o.toString()));
     }
 
-    private String out(Point2D p) { return (float)p.getX() + ", " + (float)p.getY(); }
+    private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
     private String out(Rectangle2D r) { return ""
             + (float)r.getX() + ", " + (float)r.getY()
             + "  "
@@ -4279,6 +4407,7 @@ public class MapViewer extends javax.swing.JComponent
         
         if (args.length == 1) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
+            DEBUG.FOCUS = true;
             VueUtil.displayComponent(new MapViewer(map), 400,300);
 
         } else {

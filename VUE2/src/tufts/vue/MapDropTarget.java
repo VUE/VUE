@@ -300,7 +300,9 @@ class MapDropTarget
 
         System.out.println("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
                            + "\n\tflavor=" + foundFlavor
-                           + "\n\t  data=[" + foundData + "]");
+                           + "\n\t  data=[" + foundData + "]"
+                           //+ "\n\tdropptedText=[" + droppedText + "]"
+                           );
 
         boolean success = false;
 
@@ -535,6 +537,11 @@ class MapDropTarget
                 node.setLocation(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?
         } // else: special case: no node location, so we're creating a child node -- don't add to map
+
+// test code
+if (resource.isImage())
+    node.addChild(new LWImage(resource));
+        
         return node;
     }
 
@@ -554,6 +561,11 @@ class MapDropTarget
                 node.setLocation(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?
         } // else: special case: no node location, so we're creating a child node -- don't add to map
+
+// test code
+if (MapResource.isImage(resource))
+    node.addChild(new LWImage(resource));
+        
         return node;
         
     }

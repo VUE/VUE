@@ -70,6 +70,13 @@ public class MapPanner extends javax.swing.JPanel
         VUE.addActiveViewerListener(this);
     }
 
+    public void addNotify()
+    {
+        super.addNotify();
+        if (getParent() instanceof Window)
+            ((Window)getParent()).setFocusableWindowState(false);
+    }
+
     
     /**
      * All instances of MapViewer raise MapViewer events
