@@ -17,15 +17,13 @@ import tufts.vue.*;
 
 public class OpenAction extends AbstractAction
 {
-    //final static java.net.URL XML_MAPPING = VUE.CASTOR_XML_MAPPING_RESOURCE;
-    
     /** Creates a new instance of OpenAction */
     public OpenAction() {
     }
     
     public OpenAction(String label) {
         super(label);
-        System.out.println("in openAction constructor...");
+        //System.out.println("in openAction constructor...");
         putValue(Action.SHORT_DESCRIPTION,label);
     }
 

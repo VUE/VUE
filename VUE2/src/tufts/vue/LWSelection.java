@@ -154,9 +154,9 @@ public class LWSelection extends java.util.ArrayList
 
     synchronized void setTo(LWComponent c)
     {
-        if (notifyUnderway())
-            return;
         if (size() == 1 && first() == c)
+            return;
+        if (notifyUnderway())
             return;
         clear0();
         add(c);

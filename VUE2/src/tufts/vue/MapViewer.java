@@ -22,14 +22,15 @@ import osid.dr.*;
  * Implements a component for displaying & interacting with
  * an instance of LWMap.
  *
- * Rename this class LWViewer?
- *
  * Implement as a swing JComponent to be sure to get
  * double-buffering on the PC (is automatic on Mac),
  * and because of course the rest of VUE uses Swing.
  *
  * @author Scott Fraize
  * @version March 2004
+ *
+ * todo: rename this class LWCanvas & break parts of it out so file size is smaller
+ *
  */
 
 public class MapViewer extends javax.swing.JComponent
