@@ -641,11 +641,6 @@ public class VUE
 
     static void installExampleNodes(LWMap map)
     {
-        map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
-        map.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
-        map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
-        map.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
-        map.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
         
         LWNode triangle = new LWNode("Triangle", 5);
         triangle.setAutoSized(false);
@@ -653,7 +648,25 @@ public class VUE
         triangle.setFillColor(Color.orange);
         map.addLWC(triangle);
         //map.addLWC(new LWNode("Triangle", 5)).setFillColor(Color.orange);
-        map.addLWC(new LWNode("Diamond", 6)).setFillColor(Color.yellow);
+        //map.addLWC(new LWNode("Diamond", 6)).setFillColor(Color.yellow);
+        map.addLWC(new LWNode("Triangle", 5)).setFillColor(Color.yellow);
+        map.addLWC(new LWNode("Diamond", 6));
+        map.addLWC(new LWNode("Hexagon", 7));
+        map.addLWC(new LWNode("Pentagon", 8));
+        map.addLWC(new LWNode("Octagon", 9));
+
+        /*
+        LWNode pent = new LWNode("x", 8);
+        pent.setAutoSized(false);
+        pent.setSize(100,100);
+        map.addLWC(pent);
+        */
+        
+        map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
+        map.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
+        map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
+        map.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
+        map.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
         
         map.addNode(new LWNode("One"));
         map.addNode(new LWNode("Two"));
@@ -695,6 +708,7 @@ public class VUE
         LWLink k1 = new LWLink(n1, n2);
         LWLink k2 = new LWLink(n2, n3);
         LWLink k3 = new LWLink(n2, n4);
+        k3.setCurved(true);
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
