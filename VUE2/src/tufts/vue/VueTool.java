@@ -239,7 +239,7 @@ public abstract class VueTool extends AbstractAction
     //public abstract void handleSelection( );
     public void handleSelection() {}
 
-    public void handlePaint(Graphics2D g) {}
+    public void handlePaint(DrawContext dc) {}
     public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
         //g.fill(r);//if mac?
@@ -250,7 +250,7 @@ public abstract class VueTool extends AbstractAction
     
     public boolean handleMousePressed(MapMouseEvent e)
     {
-        System.out.println(this + " handleMousePressed " + e);
+        if (debug) System.out.println(this + " handleMousePressed " + e);
         return false;
     }
     
@@ -262,14 +262,14 @@ public abstract class VueTool extends AbstractAction
 
     public boolean handleMouseReleased(MapMouseEvent e)
     {
-        System.out.println(this + " handleMouseReleased " + e);
+        if (debug) System.out.println(this + " handleMouseReleased " + e);
         return false;
     }
     
     //public void handleMouseClicked(java.awt.event.MouseEvent e, LWComponent hitComponent)
     public void handleMouseClicked(MapMouseEvent e)
     {
-        System.out.println(this + " handleMouseClicked " + e);
+        if (debug) System.out.println(this + " handleMouseClicked " + e);
         //System.out.println(this + " handleMouseClicked on " + hitComponent);
     }
 
@@ -484,6 +484,8 @@ public abstract class VueTool extends AbstractAction
 		VueToolbarController.getController().handleToolSelection( this);
 	}
 	
-    public abstract JPanel getContextualPanel(); 
+    public abstract JPanel getContextualPanel();
+
+    private final boolean debug = false;
     
 }

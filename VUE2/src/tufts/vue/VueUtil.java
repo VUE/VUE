@@ -52,6 +52,7 @@ public class VueUtil
     public static void main(String args[])
         throws java.io.IOException
     {
+        System.getProperties().list(System.out);
         if (args.length > 0)
             openURL(args[0]);
         else
@@ -61,7 +62,6 @@ public class VueUtil
 
     public static void test_OpenURL()
     {
-        //System.getProperties().list(System.out);
         try {
             openURL("http://hosea.lib.tufts.edu:8080/fedora/get//tufts:7/demo:60/getThumbnail/");
             //openURL("file:///tmp/two words.txt");       // does not work on OSX 10.2 (does now with %20 space replacement)

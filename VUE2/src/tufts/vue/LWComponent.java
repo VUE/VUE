@@ -295,7 +295,10 @@ public class LWComponent
         c.width = this.width;
         c.height = this.height;
         
-        c.setResource(getResource());
+        if (hasResource())
+            c.setResource(getResource());
+        if (hasNotes())
+            c.setNotes(getNotes());
         
         return c;
     }
@@ -648,7 +651,9 @@ public class LWComponent
 
     public void setFrame(Rectangle2D r)
     {
-        setLocation((float)r.getX(), (float)r.getY());
+        if (DEBUG_LAYOUT) System.out.println("*** setFrame " + r + " " + this);
+        if (r.getX() != getX() || r.getY() != getY())
+            setLocation((float)r.getX(), (float)r.getY());
         setSize((float)r.getWidth(), (float)r.getHeight());
     }
 
@@ -712,13 +717,22 @@ public class LWComponent
         return new Point2D.Float(getCenterX(), getCenterY());
     }
     
+    /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
         if (DEBUG_LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
         this.width = w;
         this.height = h;
         updateConnectedLinks();
-        // todo: notify?
+    }
+
+    /** set on screen visible component size to this many pixels in size -- used for user set size from
+     * GUI interaction -- takes into account any current scale factor
+     */
+    public void setAbsoluteSize(float w, float h)
+    {
+        if (DEBUG_LAYOUT) System.out.println("*** LWComponent setAbsoluteSize " + w + "x" + h + " " + this);
+        setSize(w / getScale(), h / getScale());
     }
 
     public float getX() { return this.x; }
@@ -786,6 +800,7 @@ public class LWComponent
     public Rectangle2D getShapeBounds()
     {
         // todo opt: cache this object?
+        //return new Rectangle2D.Float(this.x, this.y, getAbsoluteWidth(), getAbsoluteHeight());
         return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
     }
     

@@ -59,7 +59,7 @@ public class LWLink extends LWComponent
     private int endPoint2Style = 0;
     
     // todo: create set of arrow types
-    private final float ArrowBase = 8;
+    private final float ArrowBase = 5;
     private RectangularShape ep1Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
     private RectangularShape ep2Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
 
@@ -109,6 +109,11 @@ public class LWLink extends LWComponent
         }
         }*/
 
+    
+    
+    /** interface ControlListener handler */
+    public void controlPointPressed(int index, MapMouseEvent e) { }
+    
     /** interface ControlListener handler
      * One of our control points (an endpoint or curve control point).
      */
@@ -434,7 +439,6 @@ public class LWLink extends LWComponent
     {
         if (endpointMoved)
             computeLinkEndpoints();
-        float maxDist = getStrokeWidth() / 2;
         if (curve != null) {
             // QuadCurve2D actually checks the entire concave region for containment
             // todo perf: would be more accurate to coursely flatten the curve
@@ -445,11 +449,20 @@ public class LWLink extends LWComponent
             if (curve.contains(x, y))
                 return true;
         } else {
+            float maxDist = getStrokeWidth() / 2;
+            final int slop = 2; // near miss on line still hits it
+            // todo: can make slop bigger if implement a two-pass
+            // hit detection process that does absolute on first pass,
+            // and slop hits on second pass (otherwise, if this too big,
+            // clicking in a node near a link to it that's on top of it
+            // will select the link, and not the node).
+            if (maxDist < slop)
+                maxDist = slop;
             if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
                 return true;
         }
         if (this.labelBox != null)
-            return labelBox.containsMapLocation(x, y);
+            return labelBox.containsMapLocation(x, y); // bit of a hack to do this way
         else
             return false;
     }
@@ -1048,6 +1061,7 @@ public class LWLink extends LWComponent
         if (arrowState < 0 || arrowState > ARROW_BOTH)
             throw new IllegalArgumentException("arrowState < 0 || > " + ARROW_BOTH + ": " + arrowState);
         this.arrowState = arrowState;
+        //notify("repaint");
     }
 
     public int getArrowState()
@@ -1061,7 +1075,7 @@ public class LWLink extends LWComponent
             arrowState = ARROW_NONE;
     }
 
-    private void drawArrows(Graphics2D gg)
+    private void drawArrows(DrawContext dc)
     {
         //-------------------------------------------------------
         // Draw arrows
@@ -1086,33 +1100,34 @@ public class LWLink extends LWComponent
         }
 
         
-        AffineTransform savedTransform = gg.getTransform();
+        AffineTransform savedTransform = dc.g.getTransform();
         
-        gg.setStroke(this.stroke);
+        dc.g.setStroke(this.stroke);
+        dc.g.setColor(getStrokeColor());
 
         // draw the first arrow
         // todo: adjust the arrow shape with the stroke width
         // do the adjustment in setStrokeWidth, actually.
-        //gg.translate(line.getX1(), line.getY1());
+        //dc.g.translate(line.getX1(), line.getY1());
 
         if ((arrowState & ARROW_EP1) != 0) {
-            gg.translate(startX, startY);
-            gg.rotate(rotation1);
-            gg.translate(-ep1Shape.getWidth() / 2, 0); // center shape on point (makes some assumption)
-            gg.fill(ep1Shape);
-            gg.draw(ep1Shape);
-            gg.setTransform(savedTransform);
+            dc.g.translate(startX, startY);
+            dc.g.rotate(rotation1);
+            dc.g.translate(-ep1Shape.getWidth() / 2, 0); // center shape on point (makes some assumption)
+            dc.g.fill(ep1Shape);
+            dc.g.draw(ep1Shape);
+            dc.g.setTransform(savedTransform);
         }
         
         if ((arrowState & ARROW_EP2) != 0) {
             // draw the second arrow
-            //gg.translate(line.getX2(), line.getY2());
-            gg.translate(endX, endY);
-            gg.rotate(rotation2);
-            gg.translate(-ep2Shape.getWidth()/2, 0); // center shape on point 
-            gg.fill(ep2Shape);
-            gg.draw(ep2Shape);
-            gg.setTransform(savedTransform);
+            //dc.g.translate(line.getX2(), line.getY2());
+            dc.g.translate(endX, endY);
+            dc.g.rotate(rotation2);
+            dc.g.translate(-ep2Shape.getWidth()/2, 0); // center shape on point 
+            dc.g.fill(ep2Shape);
+            dc.g.draw(ep2Shape);
+            dc.g.setTransform(savedTransform);
         }
     }
 
@@ -1148,31 +1163,22 @@ public class LWLink extends LWComponent
         }
         }
     
-        //-------------------------------------------------------
-        // Fancy border selection: If selected or indicated, draw a standout stroke
-        // bigger than the actual stroke first.
-        //-------------------------------------------------------
-        /*
-        if (isIndicated() || isSelected()) {
-            if (isSelected())
-                g.setColor(COLOR_SELECTION);
-            else
-                g.setColor(COLOR_INDICATION);
-            g.setStroke(new BasicStroke(stroke.getLineWidth() + 2));
+        Graphics2D g = dc.g;
+        
+        if (isSelected()) {
+            g.setColor(COLOR_HIGHLIGHT);
+            g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));//todo:config
             g.draw(getShape());
         }
-        */
         
         //-------------------------------------------------------
         // Draw the stroke
         //-------------------------------------------------------
 
-        Graphics2D g = dc.g;
-        
         if (isIndicated())
             g.setColor(COLOR_INDICATION);
-        else if (isSelected())
-            g.setColor(COLOR_SELECTION);
+        //else if (isSelected())
+        //  g.setColor(COLOR_SELECTION);
         else
             g.setColor(getStrokeColor());
 
@@ -1197,9 +1203,8 @@ public class LWLink extends LWComponent
                 //-------------------------------------------------------
                 g.setColor(COLOR_SELECTION);
                 //g.setColor(Color.red);
-                //g.setStroke(new BasicStroke(0.5f));
-                //g.setStroke(new BasicStroke(0.2f));
-                g.setStroke(new BasicStroke(0.5f / (float) g.getTransform().getScaleX()));
+                //g.setStroke(new BasicStroke(0.5f / (float) g.getTransform().getScaleX()));
+                g.setStroke(new BasicStroke(0.5f / (float) dc.zoom));
                 // todo opt: less object allocation (put constant screen strokes in the DrawContext)
                 if (curveControls == 2) {
                     Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
@@ -1224,7 +1229,7 @@ public class LWLink extends LWComponent
         }
 
         if (arrowState > 0)
-            drawArrows(g);
+            drawArrows(dc);
 
         //-------------------------------------------------------
         // Paint label if there is one
@@ -1251,11 +1256,15 @@ public class LWLink extends LWComponent
                 // some of the text.
                 // todo perf: only set opaque-bit/background once/when it changes.
                 // (probably put a textbox factory on LWComponent and override in LWLink)
-                Color c = getFillColor();
+                //if (!isSelected()) {
+                Color c = isSelected() ? COLOR_HIGHLIGHT : getFillColor();
                 if (c == null)
                     c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
                 textBox.setBackground(c);
                 textBox.setOpaque(true);
+                //} else
+                    //textBox.setOpaque(false);
+                
                 
                 // todo: only need to do above set location when computing line
                 // or text changes somehow (content, font) or alignment changes
@@ -1264,11 +1273,11 @@ public class LWLink extends LWComponent
                 // todo: need to re-center label when this component relative to scale,
                 // and patch contains to understand a scaled label box...
                 textBox.draw(dc);
-                if (isSelected()) {
+                if (false&&isSelected()) {
                     Dimension s = textBox.getSize();
                     g.setColor(COLOR_SELECTION);
                     //g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
-                    g.setStroke(new BasicStroke(1f / (float) g.getTransform().getScaleX()));
+                    g.setStroke(new BasicStroke(1f / (float) dc.zoom));
                     // -- i guess we could compute based on zoom level -- maybe MapViewer could
                     // keep such a stroke handy for us... (DrawContext would be handy again...)
                     g.drawRect(0,0, s.width, s.height);

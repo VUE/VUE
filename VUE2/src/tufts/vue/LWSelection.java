@@ -22,6 +22,7 @@ public class LWSelection extends java.util.ArrayList
     public static class ControlPoint extends Point2D.Float
     {
         java.awt.Color color;
+
         public ControlPoint(float x, float y)
         {
             this(x, y, VueConstants.COLOR_SELECTION_CONTROL);
@@ -40,6 +41,10 @@ public class LWSelection extends java.util.ArrayList
             super(x,y);
             setColor(c);
         }
+        public ControlPoint(java.awt.Color c)
+        {
+            setColor(c);
+        }
         public void setColor(java.awt.Color c)
         {
             this.color = c;
@@ -50,6 +55,7 @@ public class LWSelection extends java.util.ArrayList
         }
     }
     public interface ControlListener extends java.util.EventListener {
+        void controlPointPressed(int index, MapMouseEvent e);
         void controlPointMoved(int index, MapMouseEvent e);
         void controlPointDropped(int index, MapMouseEvent e);
         //Point2D.Float[] getControlPoints();
@@ -233,6 +239,15 @@ public class LWSelection extends java.util.ArrayList
             //System.out.println("COMPUTED SELECTION BOUNDS=" + bounds);
             //}
         return bounds;
+    }
+
+    /** return shape bounds of map selection in map (not screen) coordinates
+     * Does NOT inclde any stroke widths. */
+    public Rectangle2D getShapeBounds()
+    {
+        if (size() == 0)
+            return null;
+        return LWMap.getShapeBounds(iterator());
     }
 
     void flushBounds()

@@ -163,10 +163,9 @@ class Actions {
         
     /**End of Addition by Daisuke Fujiwara*/
 
-    //-------------------------------------------------------
+    //-----------------------------------------------------------------------------
     // Link actions
-    //-------------------------------------------------------
-
+    //-----------------------------------------------------------------------------
         
     static final MapAction LinkMakeStraight =
         new MapAction("Make Straight") {
@@ -218,6 +217,31 @@ class Actions {
         LinkMakeCubicCurved,
         LinkArrows
     };
+
+
+    //-----------------------------------------------------------------------------
+    // Node actions
+    //-----------------------------------------------------------------------------
+
+    static final Action NodeMakeAutoSized =
+        new MapAction("Set Auto-Sized") {
+            boolean enabledFor(LWSelection s) {
+                if (!s.containsType(LWNode.class))
+                    return false;
+                return s.size() == 1 ? ((LWNode)s.first()).isAutoSized() == false : true;
+            }
+            public void act(LWNode c) {
+                c.setAutoSized(true);
+                c.layout();
+            }
+        };
+
+    /** Helper for menu creation.  Null's indicate good places
+        for menu separators. */
+    public static final Action[] NODE_MENU_ACTIONS = {
+        NodeMakeAutoSized
+    };
+    
     //-------------------------------------------------------
     // Edit actions: Duplicate, Cut, Copy & Paste
     // These actions all make use of the statics
@@ -777,17 +801,6 @@ class Actions {
         {
             LWComponent createNewItem(Point2D newLocation)
             {
-                
-                // todo: this is where we'll get the active NodeTool
-                // and have it create the new node based on it's current
-                // settings -- move this logic to NodeTool
-                /*
-                LWNode node = new LWNode("new node");
-                node.setLocation(newLocation);
-                VUE.getActiveMap().addNode(node);
-                VUE.ModelSelection.setTo(node);
-                */
-
                 LWNode node = NodeTool.createNode("new node");
                 node.setLocation(newLocation);
                 //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning

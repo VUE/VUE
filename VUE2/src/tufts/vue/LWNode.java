@@ -3,18 +3,9 @@ package tufts.vue;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.TextLayout;
-//import java.awt.font.LineBreakMeasurer;
-//import java.awt.font.TextAttribute;
-//import java.text.AttributedString;
 
-//import javax.swing.JLabel;
-//import javax.swing.JTextArea;
-//import javax.swing.JTextPane;
-//import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.border.LineBorder;
-
-//import javax.swing.text.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,7 +27,7 @@ public class LWNode extends LWContainer
     //------------------------------------------------------------------
     static final float ChildScale = 0.75f;   // % scale-down of children
     static final float NODE_DEFAULT_STROKE_WIDTH = 1f;
-    static final Color NODE_DEFAULT_STROKE_COLOR = Color.gray;
+    static final Color NODE_DEFAULT_STROKE_COLOR = Color.darkGray;
     
     private static final boolean AlwaysShowIcon = false;
         
@@ -177,10 +168,11 @@ public class LWNode extends LWContainer
     public LWComponent duplicate()
     {
         LWNode newNode = (LWNode) super.duplicate();
-        newNode.autoSized = this.autoSized;
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
         if (getShape() != null)
             newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
+        newNode.autoSized = this.autoSized;
+        newNode.setSize(super.getWidth(), super.getHeight()); // make sure shape get's set with old size
         //else if (getNodeShape() != null) // todo: for backward compat only 
         //newNode.setNodeShape(getNodeShape());
         return newNode;
@@ -309,6 +301,7 @@ public class LWNode extends LWContainer
     }
     public boolean setAutoSized(boolean tv)
     {
+        //System.out.println("AUTOSIZING=" + tv + " on " + this);
         return this.autoSized = tv;
     }
 
@@ -493,8 +486,8 @@ public class LWNode extends LWContainer
         inLayout = true;
         if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
 
-        float oldWidth = getWidth();
-        float oldHeight = getHeight();
+        float givenWidth = getWidth();
+        float givenHeight = getHeight();
 
         //if (isAutoSized() || hasChildren())
         //setPreferredSize(!isAutoSized());
@@ -508,7 +501,7 @@ public class LWNode extends LWContainer
         //float height = getLabelBox().getHeight() + IconDescent;
         float height = EdgePadY + text.height + EdgePadY;
         
-        if (getLabelBox().getHeight() != text.height) {
+        if (DEBUG_LAYOUT && getLabelBox().getHeight() != text.height) {
             // NOTE: prefHeight often a couple of pixels less than getHeight
             System.err.println("prefHeight != height in " + this);
             System.err.println("\tpref=" + text.height);
@@ -616,7 +609,22 @@ public class LWNode extends LWContainer
 
 
         }
+
+        // If the size gets set to less than or equal to
+        // minimize size, lock back into auto-sizing.
+        if (givenHeight <= height && givenWidth <= width)
+            setAutoSized(true);
         
+        if (!isAutoSized()) {
+            // we always compute the minimum size, and
+            // never let us get smaller than that -- so
+            // only use given size if bigger than min size.
+            if (height < givenHeight)
+                height = givenHeight;
+            if (width < givenWidth)
+                width = givenWidth;
+        }
+
         setSizeNoLayout(width, height);
         dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, height-MarginLinePadY);
 
@@ -634,7 +642,8 @@ public class LWNode extends LWContainer
         
 
         // todo: handle thru event?
-        if (getParent() != null && (oldWidth != getWidth() || oldHeight != getHeight())) {
+        //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
+        if (getParent() != null && getParent() instanceof LWNode) {
             //new Throwable("LAYING OUT PARENT " + this).printStackTrace();
             getParent().layout();
         }
@@ -876,6 +885,12 @@ public class LWNode extends LWContainer
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
         
+        if (isSelected()) {
+            g.setColor(COLOR_HIGHLIGHT);
+            g.setStroke(new BasicStroke(stroke.getLineWidth() + 8));//todo:config
+            g.draw(drawnShape);
+        }
+        
         if (imageIcon != null) {
             // experimental
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
@@ -896,13 +911,22 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         // Draw the indicated border if any
         //-------------------------------------------------------
-        if (false&&isRollover()) {
+
+        /*
+        if (!isAutoSized()) { // debug
+            g.setColor(Color.green);
+            g.setStroke(STROKE_ONE);
+            g.draw(drawnShape);
+        }
+        else if (false&&isRollover()) { // debug
             // temporary debug
             //g.setColor(new Color(0,0,128));
             g.setColor(Color.blue);
             g.draw(drawnShape);
         }
-        else if (isIndicated()) {
+        else*/
+        
+        if (isIndicated()) {
             // todo: okay, it is GROSS to handle the indication here --
             // do it all in the viewer!
             g.setColor(COLOR_INDICATION);
@@ -914,9 +938,9 @@ public class LWNode extends LWContainer
         }
         else if (getStrokeWidth() > 0) {
             //if (LWSelection.DEBUG_SELECTION && isSelected())
-            if (isSelected())
-                g.setColor(COLOR_SELECTION);
-            else
+            //if (isSelected())
+            //g.setColor(COLOR_SELECTION);
+            //else
                 g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
             g.draw(drawnShape);
@@ -1217,6 +1241,10 @@ public class LWNode extends LWContainer
     }
 
 
+    public String paramString()
+    {
+        return isAutoSized() ? " autoSized" : "";
+    }
     
     
 

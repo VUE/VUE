@@ -61,6 +61,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
 
+//import java.awt.font.LineBreakMeasurer;
+//import java.awt.font.TextAttribute;
+
 class TextBox extends JTextPane
     implements VueConstants
                , FocusListener

@@ -194,6 +194,7 @@ public class LWMap extends LWContainer
     
     /**
      * return the bounds for all LWComponents in the iterator
+     * (includes shape stroke widhts)
      */
     public static Rectangle2D getBounds(java.util.Iterator i)
     {
@@ -203,6 +204,22 @@ public class LWMap extends LWContainer
             rect.setRect(((LWComponent)i.next()).getBounds());
             while (i.hasNext())
                 rect.add(((LWComponent)i.next()).getBounds());
+        }
+        return rect;
+    }
+    
+    /**
+     * return the shape bounds for all LWComponents in the iterator
+     * (does NOT include stroke widths)
+     */
+    public static Rectangle2D getShapeBounds(java.util.Iterator i)
+    {
+        Rectangle2D rect = new Rectangle2D.Float();
+
+        if (i.hasNext()) {
+            rect.setRect(((LWComponent)i.next()).getShapeBounds());
+            while (i.hasNext())
+                rect.add(((LWComponent)i.next()).getShapeBounds());
         }
         return rect;
     }

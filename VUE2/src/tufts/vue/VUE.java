@@ -317,7 +317,14 @@ public class VUE
         tbc.setToolWindow( toolbarWindow);
         toolbarWindow.getContentPane().add( tbc.getToolbar() );
         toolbarWindow.pack();
-        ModelSelection.addListener(tbc);
+
+        boolean scottHack =
+            System.getProperty("user.name").equals("sfraize") &&
+            System.getProperty("scottHackDisabled") == null;
+        // Need to factor some stuff out for the moment as has some bugs -- SMF 2003-12-29 21:32.39 Monday
+
+        if (!scottHack) ModelSelection.addListener(tbc);
+        
         frame.getContentPane().add( tbc.getToolbar(), BorderLayout.NORTH);
 		
 		// Map Inspector
@@ -325,14 +332,14 @@ public class VUE
 		// get the proper scree/main frame size
 		ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
 		MapInspectorPanel mip = new MapInspectorPanel();
-		ModelSelection.addListener( mip);
+		if (!scottHack) ModelSelection.addListener( mip);
 		mapInspector.addTool( mip );
 		
 		
 			
 		ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
 		ObjectInspectorPanel oip = new ObjectInspectorPanel();
-		ModelSelection.addListener( oip);
+		if (!scottHack) ModelSelection.addListener( oip);
 		objectInspector.addTool( oip);
 		
 		
@@ -547,16 +554,19 @@ public class VUE
         //System.out.println("VUE.displayMap " + map);
         MapViewer mapViewer = null;
         // todo: figure out if we're already displaying this map
-        /*
+
+        System.out.println("VUE.displayMap Looking for " + map.getFile());
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
-            if (mv.getMap() == map) {
+            File existingFile = mv.getMap().getFile();
+            System.out.println("VUE.displayMap matching " + existingFile);
+            if (existingFile != null && existingFile.equals(map.getFile())) {
                 mapViewer = mv;
-                System.out.println("VUE.displayMap found existing " + map + " in " + mv);
-                break;
+                System.err.println("VUE.displayMap found existing open map " + map + " in " + mv);
+                // TODO: pop dialog asking to revert existing if there any changes.
+                //break;
             }
         }
-        */
         
         // TODO: need to subclass JTabbedPane with something that
         // will listen for name change events on the LWMap's so
@@ -730,6 +740,16 @@ public class VUE
         //formatMenu.add(new JMenuItem("Size"));
         //formatMenu.add(new JMenuItem("Style"));
         //formatMenu.add("Text Justify").setEnabled(false);
+        // TODO: ultimately better to break these out in to Node & Link submenus
+        formatMenu.addSeparator();
+        for (int i = 0; i < Actions.NODE_MENU_ACTIONS.length; i++) {
+            Action a = Actions.NODE_MENU_ACTIONS[i];
+            if (a == null)
+                formatMenu.addSeparator();
+            else
+                formatMenu.add(a);
+        }
+        formatMenu.addSeparator();
         for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
             Action a = Actions.LINK_MENU_ACTIONS[i];
             if (a == null)

@@ -11,7 +11,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import javax.swing.*;
 import tufts.oki.dr.fedora.*;
-//import javax.swing.text.JTextComponent;
 
 import osid.dr.*;
 
@@ -25,7 +24,6 @@ import osid.dr.*;
  * @version 3/16/03
  */
 
-//todo: rename LWViewer or LWCanvas?
 public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
@@ -35,6 +33,11 @@ public class MapViewer extends javax.swing.JPanel
                , LWSelection.Listener
                , VueToolSelectionListener
 {
+    // rename this class LWViewer or LWCanvas?
+    static final int  RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
+    static final int  RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
+    static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
+    
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
 
@@ -45,7 +48,16 @@ public class MapViewer extends javax.swing.JPanel
 
     protected LWMap map;                   // the map we're displaying & interacting with
     private TextBox activeTextEdit;          // Current on-map text edit
-    //private MapTextEdit activeTextEdit;          // Current on-map text edit
+
+
+    // resize stuff: todo: move to seperate tool
+    // better: make a "ResizeControl" -- a control abstraction that's
+    // less than a whole VueTool -- it depends on the current selection,
+    // but can still do some drawing on the map while active --
+    // (generically, something like a SelectionController -- provides ControlPoints)
+    //private LWSelection.ControlPoint[] resizeHandles = new LWSelection.ControlPoint[8];
+    //private boolean resizeHandlesActive = false;
+    ResizeControl resizeControl = new ResizeControl();
 
     //-------------------------------------------------------
     // Selection support
@@ -131,6 +143,10 @@ public class MapViewer extends javax.swing.JPanel
         //setSize(new Dimension(cw,ch));
         
         setPreferredSize(mapToScreenDim(map.getBounds()));
+
+        //for (int i = 0; i < resizeHandles.length; i++) {
+        //resizeHandles[i] = new LWSelection.ControlPoint(COLOR_SELECTION_HANDLE);
+        //}
         
         //-------------------------------------------------------
         // set the background color here on the panel instead
@@ -295,8 +311,8 @@ public class MapViewer extends javax.swing.JPanel
     }
     Rectangle mapToScreenRect(Rectangle2D mapRect)
     {
-        if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
-            throw new IllegalArgumentException("mapDim<0");
+        //if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
+        //    throw new IllegalArgumentException("mapDim<0");
         Rectangle screenRect = new Rectangle();
         // Make sure we round out to the largest possible pixel rectangle
         // that contains all map coordinates
@@ -544,6 +560,9 @@ public class MapViewer extends javax.swing.JPanel
                 if (c instanceof LWGroup)
                     selectionAdd(((LWGroup)c).getChildIterator());
             }
+
+            if (rollover == c)
+                clearRollover();
         }
         if (e.getSource() == this)//todo: still relevant?
             return;
@@ -758,7 +777,8 @@ public class MapViewer extends javax.swing.JPanel
             //if (newScale < 1.0) newScale = 1.0;
             
             //if (true||oldScale != 1f) {
-            if (newScale > oldScale) {
+            if (newScale > oldScale &&
+                newScale - oldScale > RolloverMinZoomDeltaTrigger) {
                 //c.setScale(1f);
                 rollover = c;
                 System.out.println("setRollover: " + c);
@@ -779,7 +799,7 @@ public class MapViewer extends javax.swing.JPanel
     void clearRollover()
     {
         if (rollover != null) {
-            System.out.println("clearRollover: " + rollover);
+            System.out.println("clrRollover: " + rollover);
             if (rolloverTask != null) {
                 rolloverTask.cancel();
                 rolloverTask = null;
@@ -794,10 +814,10 @@ public class MapViewer extends javax.swing.JPanel
                     //rollover.getParent().layoutChildren();
                 //else
 
-                // todo: also need to do this setLocation quietly: if they
+                // todo? also need to do this setLocation quietly: if they
                 // move mouse back and forth tween two link endpoints
                 // when no delay is on (easier to see in big curved link)
-                // we're seeing the connection point change
+                // we're seeing the connection point change (still seeing this?)
                 if (rollover instanceof LWNode)
                     rollover.setLocation(oldLoc);
 
@@ -967,7 +987,7 @@ public class MapViewer extends javax.swing.JPanel
         // If current tool has anything it wants to draw, it
         // can do that here.
         //-------------------------------------------------------
-        activeTool.handlePaint(g2);
+        activeTool.handlePaint(dc);
 
         /*
         if (dragComponent != null) {
@@ -989,7 +1009,7 @@ public class MapViewer extends javax.swing.JPanel
             g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
         g2.translate(getOriginX(), getOriginY());
 
-        if (!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
+        if (true||!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
             //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
             dc.setAntiAlias(true);
 
@@ -999,6 +1019,8 @@ public class MapViewer extends javax.swing.JPanel
         
         if (VueSelection != null && !VueSelection.isEmpty())
             drawSelection(dc);
+        else
+            resizeControl.active = false;
 
         //-------------------------------------------------------
         // draw the dragged selector box
@@ -1232,12 +1254,12 @@ public class MapViewer extends javax.swing.JPanel
     
     */
             
-    
     // todo: move all this code to LWSelection?
     private void drawSelection(DrawContext dc)
     {
         Graphics2D g2 = dc.g;
         g2.setColor(COLOR_SELECTION);
+        //g2.setXORMode(Color.black);
         g2.setStroke(STROKE_SELECTION);
         java.util.Iterator it;
         
@@ -1260,7 +1282,8 @@ public class MapViewer extends javax.swing.JPanel
         g2.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() / zoomFactor)));
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
-            g2.draw(c.getShape());
+            if (inDrag || c.getStrokeWidth() == 0)
+                g2.draw(c.getShape());
         }
         if (indication != null) {
             DrawContext dc2 = dc;//dc.create();
@@ -1276,11 +1299,13 @@ public class MapViewer extends javax.swing.JPanel
         if (zoomFactor != 1) g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
         g2.translate(getOriginX(), getOriginY());
         g2.setStroke(STROKE_SELECTION);
+        //g2.setComposite(AlphaComposite.Src);
+        g2.setColor(COLOR_SELECTION);
             
         //if (!VueSelection.isEmpty() && (!inDrag || isDraggingSelectorBox)) {
 
-        // todo opt: don't recompute bounds here every paint ---
-        // can cache in draggedSelectionGroup
+        // todo opt?: don't recompute bounds here every paint ---
+        // can cache in draggedSelectionGroup (but what if underlying objects resize?)
         Rectangle2D selectionBounds = VueSelection.getBounds();
         /*
           bounds cache hack
@@ -1290,26 +1315,59 @@ public class MapViewer extends javax.swing.JPanel
           selectionBounds = draggedSelectionGroup.getBounds();
         */
         //System.out.println("mapSelectionBounds="+selectionBounds);
-        Rectangle2D.Float sb = mapToScreenRect2D(selectionBounds);
+        Rectangle2D.Float mapSelectionBounds = mapToScreenRect2D(selectionBounds);
         paintedSelectionBounds = mapToScreenRect(selectionBounds);
         growForSelection(paintedSelectionBounds);
-        //System.out.println("screenSelectionBounds="+sb);
+        //System.out.println("screenSelectionBounds="+mapSelectionBounds);
 
-        if (VueSelection.allOfType(LWLink.class))
-            g2.draw(sb);
-        else {
-            g2.draw(sb);
+        if (VueSelection.countTypes(LWNode.class) <= 0) {
+            // todo: also alow groups to resize (make selected group resize
+            // re-usable for a group -- perhaps move to LWGroup itself &
+            // also use draggedSelectionGroup for this?)
+            if (!VueSelection.allOfType(LWLink.class))
+                g2.draw(mapSelectionBounds);
+            // no resize handles if only links or groups
+            resizeControl.active = false;
+        } else {
+            if (VueSelection.size() > 1)
+                g2.draw(mapSelectionBounds);
             //if (!inDrag)
-                drawSelectionBoxHandles(g2, sb);
+            //drawSelectionBoxHandles(g2, mapSelectionBounds);
+            setSelectionBoxResizeHandles(mapSelectionBounds);
+            resizeControl.active = true;
+            for (int i = 0; i < resizeControl.handles.length; i++) {
+                LWSelection.ControlPoint cp = resizeControl.handles[i];
+                drawSelectionHandleCentered(g2, cp.x, cp.y, cp.getColor());
+            }
         }
 
-        //if (inDrag)
-        //  return;
+        //if (inDrag) return;
         
         //-------------------------------------------------------
         // draw LWComponent requested control points
         //-------------------------------------------------------
         
+        it = VueSelection.getControlListeners().iterator();
+        while (it.hasNext()) {
+            LWSelection.ControlListener cl = (LWSelection.ControlListener) it.next();
+            LWSelection.ControlPoint[] ctrlPoints = cl.getControlPoints();
+            for (int i = 0; i < ctrlPoints.length; i++) {
+                LWSelection.ControlPoint cp = ctrlPoints[i];
+                if (cp == null)
+                    continue;
+                drawSelectionHandleCentered(g2,
+                                            mapToScreenX(cp.x),
+                                            mapToScreenY(cp.y),
+                                            cp.getColor());
+            }
+        }
+
+        if (DEBUG_SHOW_MOUSE_LOCATION && resizeControl.draggedBounds != null) {
+            dc.g.setColor(Color.red);
+            dc.g.draw(mapToScreenRect(resizeControl.draggedBounds));
+        }
+
+        /*
         it = VueSelection.iterator();
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
@@ -1324,16 +1382,18 @@ public class MapViewer extends javax.swing.JPanel
                 for (int i = 0; i < ctrlPoints.length; i++) {
                     //Point2D.Float cp = ctrlPoints[i];
                     LWSelection.ControlPoint cp = ctrlPoints[i];
-                    // todo: if a connected link pt, make green
-                    // if not connected
-                    if (cp != null)
-                        drawSelectionHandleCentered(g2,
-                                                    mapToScreenX(cp.x),
-                                                    mapToScreenY(cp.y),
-                                                    cp.getColor());
+                    if (cp == null)
+                        continue;
+                    drawSelectionHandleCentered(g2,
+                                                mapToScreenX(cp.x),
+                                                mapToScreenY(cp.y),
+                                                cp.getColor());
                 }
             }
         }
+        */
+        
+
     }
 
     // exterior drawn box will be 1 pixel bigger
@@ -1368,8 +1428,26 @@ public class MapViewer extends javax.swing.JPanel
         g.setColor(COLOR_SELECTION);
         g.draw(SelectionHandle);
     }
-    private void drawSelectionBoxHandles(Graphics2D g, Rectangle2D.Float r)
+
+    private void setSelectionBoxResizeHandles(Rectangle2D.Float r)
     {
+        // set the 4 corners
+        resizeControl.handles[0].setLocation(r.x, r.y);
+        resizeControl.handles[2].setLocation(r.x + r.width, r.y);
+        resizeControl.handles[4].setLocation(r.x + r.width, r.y + r.height);
+        resizeControl.handles[6].setLocation(r.x, r.y + r.height);
+        // set the midpoints
+        resizeControl.handles[1].setLocation(r.x + r.width/2, r.y);
+        resizeControl.handles[3].setLocation(r.x + r.width, r.y + r.height/2);
+        resizeControl.handles[5].setLocation(r.x + r.width/2, r.y + r.height);
+        resizeControl.handles[7].setLocation(r.x, r.y + r.height/2);
+    }
+    
+    
+    /* draw the 8 resize handles for the selection */
+    private void old_drawSelectionBoxHandles(Graphics2D g, Rectangle2D.Float r)
+    {
+        // offset so are centered on line
         r.x -= SelectionHandleSize/2;
         r.y -= SelectionHandleSize/2;
 
@@ -1457,6 +1535,7 @@ public class MapViewer extends javax.swing.JPanel
     private JPopupMenu componentPopup = null;
     private JMenu assetMenu = null;
     private JMenu linkMenu = null;
+    private JMenu nodeMenu = null;
 
     private JMenu getLinkMenu()
     {
@@ -1471,6 +1550,22 @@ public class MapViewer extends javax.swing.JPanel
             }
         }
         return linkMenu;
+            
+    }
+
+    private JMenu getNodeMenu()
+    {
+        if (nodeMenu == null) {
+            nodeMenu = new JMenu("Node");
+            for (int i = 0; i < Actions.NODE_MENU_ACTIONS.length; i++) {
+                Action a = Actions.NODE_MENU_ACTIONS[i];
+                if (a == null)
+                    nodeMenu.addSeparator();
+                else
+                    nodeMenu.add(a);
+            }
+        }
+        return nodeMenu;
             
     }
     
@@ -1556,6 +1651,8 @@ public class MapViewer extends javax.swing.JPanel
             componentPopup = buildComponentPopup();
         
         if (c instanceof LWNode) {
+            //componentPopup.add(getNodeMenu());
+            //componentPopup.add(Actions.NodeMakeAutoSized);
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
             Asset a = r == null ? null : r.getAsset();  
@@ -1569,13 +1666,21 @@ public class MapViewer extends javax.swing.JPanel
             }else if(a == null && assetMenu != null) {
                 componentPopup.remove(assetMenu);
             }
-        }
-        else if (c instanceof LWLink) {
-            componentPopup.add(getLinkMenu());
+            
+        } else {
+            //componentPopup.remove(Actions.NodeMakeAutoSized);
         }
 
-        if (!(c instanceof LWLink))
+
+        if (c instanceof LWLink)
+            componentPopup.add(getLinkMenu());
+        else
             componentPopup.remove(getLinkMenu());
+
+        if (c instanceof LWNode)
+            componentPopup.add(getNodeMenu());
+        else
+            componentPopup.remove(getNodeMenu());
 
         return componentPopup;
     }
@@ -1831,40 +1936,69 @@ public class MapViewer extends javax.swing.JPanel
         }
 
 
+        
         /** check for hits on control point -- pick one up and return
          *  true if we hit one -- false otherwise
          */
         private boolean checkAndHandleControlPointPress(MapMouseEvent e)
         {
             Iterator icl = VueSelection.getControlListeners().iterator();
-            LWSelection.ControlListener cl;
             while (icl.hasNext()) {
-                int mx = e.getX();
-                int my = e.getY();
-                cl = (LWSelection.ControlListener) icl.next();
-                Point2D.Float[] ctrlPoints = cl.getControlPoints();
-                for (int i = 0; i < ctrlPoints.length; i++) {
-                    Point2D.Float cp = ctrlPoints[i];
-                    if (cp == null)
-                        continue;
-                    float x = mapToScreenX(cp.x) - SelectionHandleSize/2;
-                    float y = mapToScreenY(cp.y) - SelectionHandleSize/2;
-                    final int slop = 1; // a near-miss still grabs a control point as they can be very small
-                    if (mx >= x-slop &&
-                        my >= y-slop &&
-                        mx <= x + SelectionHandleSize+slop &&
-                        my <= y + SelectionHandleSize+slop) {
-                        System.out.println("hit on control point " + i + " of component " + cl);
-                        dragControl = cl;
-                        dragControlIndex = i;
-                        dragOffset.setLocation(cp.x - e.getMapX(),
-                                               cp.y - e.getMapY());
-                        return true;
-                    }
-                }
+                if (checkAndHandleControlListenerHits((LWSelection.ControlListener)icl.next(), e, true))
+                    return true;
+            }
+            if (resizeControl.active) {
+                if (checkAndHandleControlListenerHits(resizeControl, e, false))
+                    return true;
             }
             return false;
         }
+
+        private boolean checkAndHandleControlListenerHits(LWSelection.ControlListener cl, MapMouseEvent e, boolean mapCoords)
+        {
+            final int screenX = e.getX();
+            final int screenY = e.getY();
+            final int slop = 1; // a near-miss still grabs a control point
+
+            float x = 0;
+            float y = 0;
+            
+            Point2D.Float[] ctrlPoints = cl.getControlPoints();
+            for (int i = 0; i < ctrlPoints.length; i++) {
+                Point2D.Float cp = ctrlPoints[i];
+                if (cp == null)
+                    continue;
+                if (mapCoords) {
+                    x = mapToScreenX(cp.x) - SelectionHandleSize/2;
+                    y = mapToScreenY(cp.y) - SelectionHandleSize/2;
+                } else {
+                    x = cp.x - SelectionHandleSize/2;
+                    y = cp.y - SelectionHandleSize/2;
+                }
+                if (screenX >= x-slop &&
+                    screenY >= y-slop &&
+                    screenX <= x + SelectionHandleSize+slop &&
+                    screenY <= y + SelectionHandleSize+slop)
+                    {
+                        clearRollover(); // must do now to make sure bounds are set back to small
+                        // TODO URGENT: need to translate map mouse event to location of
+                        // control point on shrunken back (regular scale) node -- WHAT A HACK! UGH!
+                        System.out.println("hit on control point " + i + " of controlListener " + cl);
+                        dragControl = cl;
+                        dragControlIndex = i;
+                        dragControl.controlPointPressed(i, e);
+                        /*
+                        // dragOffset only used when dragComponent != null
+                        dragOffset.setLocation(cp.x - e.getMapX(),
+                        cp.y - e.getMapY());
+                        */
+                        return true;
+                    }
+            }
+            return false;
+        }
+            
+
 
         private LWComponent hitComponent = null;
         private Point2D originAtDragStart;
@@ -1877,7 +2011,7 @@ public class MapViewer extends javax.swing.JPanel
             // only use the mouse click to gain focus.
             grabVueApplicationFocus();
             requestFocus();
-            
+
             dragStart.setLocation(e.getX(), e.getY());
             if (DEBUG_MOUSE) System.out.println("dragStart set to " + dragStart);
             
@@ -1905,8 +2039,9 @@ public class MapViewer extends javax.swing.JPanel
 
             if (e.getButton() == MouseEvent.BUTTON1 && activeTool.supportsSelection()) {
                 hitOnSelectionHandle = checkAndHandleControlPointPress(mme);
-                if (hitOnSelectionHandle)
+                if (hitOnSelectionHandle) {
                     return;
+                }
             }
             
             //-------------------------------------------------------
@@ -2204,6 +2339,7 @@ public class MapViewer extends javax.swing.JPanel
         }
         */
 
+
         //private LWComponent mouseOver;
         public void mouseMoved(MouseEvent e)
         {
@@ -2223,14 +2359,16 @@ public class MapViewer extends javax.swing.JPanel
             //    mouseDragged(e);
             //}
 
-            if (DEBUG_TIMER_ROLLOVER && !inDrag && !(activeTextEdit != null)) {
-                if (true) {
-                    if (rolloverTask != null)
-                        rolloverTask.cancel();
-                    rolloverTask = new RolloverTask();
-                    rolloverTimer.schedule(rolloverTask, 200);
-                } else {
-                    new RolloverTask().run();
+            if (RolloverAutoZoomDelay >= 0) {
+                if (DEBUG_TIMER_ROLLOVER && !inDrag && !(activeTextEdit != null)) {
+                    if (RolloverAutoZoomDelay > 10) {
+                        if (rolloverTask != null)
+                            rolloverTask.cancel();
+                        rolloverTask = new RolloverTask();
+                        rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                    } else {
+                        new RolloverTask().run();
+                    }
                 }
             }
         }
@@ -2820,6 +2958,151 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
+    class ResizeControl implements LWSelection.ControlListener
+    {
+        private boolean active = false;
+        private LWSelection.ControlPoint[] handles = new LWSelection.ControlPoint[8];
+
+        private Rectangle2D.Float originalSelectionBounds;
+        private Rectangle2D.Float draggedBounds;
+        private Rectangle2D.Float[] original_lwc_bounds;
+        private Box resize_box = null;
+
+        ResizeControl()
+        {
+            for (int i = 0; i < handles.length; i++)
+                handles[i] = new LWSelection.ControlPoint(COLOR_SELECTION_HANDLE);
+        }
+        
+        class Box {
+            float ulx, uly; // upper left corner
+            float lrx, lry; // lower right corner
+
+            public Box(Rectangle2D r) {
+                ulx = (float) r.getX();
+                uly = (float) r.getY();
+                lrx = ulx + (float) r.getWidth();
+                lry = uly + (float) r.getHeight();
+            }
+
+            Rectangle2D.Float getRect() {
+                return new Rectangle2D.Float(ulx, uly, lrx - ulx, lry - uly);
+            }
+
+            // These set methods never let the box take negative width or height
+            void setULX(float x) { ulx = (x > lrx) ? lrx : x; }
+            void setULY(float y) { uly = (y > lry) ? lry : y; }
+            void setLRX(float x) { lrx = (x < ulx) ? ulx : x; }
+            void setLRY(float y) { lry = (y < uly) ? uly : y; }
+
+        }
+
+        /** interface ControlListener */
+        public LWSelection.ControlPoint[] getControlPoints()
+        {
+            return handles;
+        }
+
+        private boolean isTopCtrl(int i) { return i == 0 || i == 1 || i == 2; }
+        private boolean isLeftCtrl(int i) { return i == 0 || i == 6 || i == 7; }
+        private boolean isRightCtrl(int i) { return i == 2 || i == 3 || i == 4; }
+        private boolean isBottomCtrl(int i) { return i == 4 || i == 5 || i == 6; }
+        
+        /** interface ControlListener handler -- for handling resize on selection */
+        public void controlPointPressed(int index, MapMouseEvent e)
+        {
+            System.out.println(this + " resize control point " + index + " pressed");
+            originalSelectionBounds = (Rectangle2D.Float) VueSelection.getShapeBounds();
+            //originalSelectionBounds = (Rectangle2D.Float) VueSelection.getBounds();
+            resize_box = new Box(originalSelectionBounds);
+            draggedBounds = resize_box.getRect();
+            //draggedBounds = (Rectangle2D.Float) originalSelectionBounds.getBounds2D();
+
+            original_lwc_bounds = new Rectangle2D.Float[VueSelection.size()];
+            Iterator i = VueSelection.iterator();
+            int idx = 0;
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (c instanceof LWNode) 
+                    original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getShapeBounds();
+                //original_lwc_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
+            }
+        }
+
+        /** interface ControlListener handler -- for handling resize on selection */
+        public void controlPointMoved(int i, MapMouseEvent e)
+        {
+            //System.out.println(this + " resize control point " + i + " moved");
+            
+            // control points are indexed starting at 0 in the upper left,
+            // and increasing clockwise ending at 7 at the middle left point.
+            
+                 if (isTopCtrl(i))    resize_box.setULY(e.getMapY());
+            else if (isBottomCtrl(i)) resize_box.setLRY(e.getMapY());
+                 if (isLeftCtrl(i))   resize_box.setULX(e.getMapX());
+            else if (isRightCtrl(i))  resize_box.setLRX(e.getMapX());
+            
+            draggedBounds = resize_box.getRect();
+
+            dragResizeReshapeSelection(i, VueSelection.iterator(), VueSelection.size() > 1 && e.isControlDown());
+        }
+
+        /** @param cpi - control point index (which ctrl point is being moved) */
+        // todo: consider moving this code to LWGroup so that they can resize
+        private void dragResizeReshapeSelection(int cpi, Iterator i, boolean repositionOnly)
+        {
+            int idx = 0;
+            float scaleX = draggedBounds.width / originalSelectionBounds.width;
+            float scaleY = draggedBounds.height / originalSelectionBounds.height;
+            //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (!(c instanceof LWNode))
+                    continue;
+                if (c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible
+                    continue;
+                Rectangle2D.Float c_original_bounds = original_lwc_bounds[idx++];
+                Rectangle2D.Float c_new_bounds = new Rectangle2D.Float();
+
+                if (repositionOnly == false) {
+                    // todo: repositionOnly needs work
+                    c_new_bounds.width = c_original_bounds.width * scaleX;
+                    c_new_bounds.height = c_original_bounds.height * scaleY;
+                    if (c instanceof LWNode)
+                        ((LWNode)c).setAutoSized(false);
+                    c.setAbsoluteSize(c_new_bounds.width, c_new_bounds.height);
+                }
+                
+                if ((c.getParent() instanceof LWNode) == false) {
+                    // if our parent is a node, parent handles positioning -- don't move it here
+                    c_new_bounds.x = draggedBounds.x + (c_original_bounds.x - originalSelectionBounds.x) * scaleX;
+                    c_new_bounds.y = draggedBounds.y + (c_original_bounds.y - originalSelectionBounds.y) * scaleY;
+
+                    if (isLeftCtrl(cpi)) {
+                        if (c_new_bounds.x + c.getWidth() > resize_box.lrx)
+                            c_new_bounds.x = resize_box.lrx - c.getWidth();
+                    }
+                    if (isTopCtrl(cpi)) {
+                        if (c_new_bounds.y + c.getHeight() > resize_box.lry)
+                            c_new_bounds.y = resize_box.lry - c.getHeight();
+                    }
+                    c.setLocation(c_new_bounds.x, c_new_bounds.y);
+                }
+            }
+        }
+        
+        /** interface ControlListener handler -- for handling resize on selection */
+        public void controlPointDropped(int index, MapMouseEvent e)
+        {
+            //System.out.println("MapViewer: resize control point " + index + " dropped");
+            draggedBounds = null;
+        }
+
+    }
+    //-------------------------------------------------------
+    // end of class ResizeControl
+    //-------------------------------------------------------
+
     private boolean isAnythingCurrentlyVisible()
     {
         Rectangle mapRect = mapToScreenRect(getMap().getBounds());
@@ -2867,7 +3150,7 @@ public class MapViewer extends javax.swing.JPanel
                 {
                     if (VUE.getPathwayInspector() != null) {
                         VUE.getPathwayInspector().setPathwayManager(this.map.getPathwayManager());
-                        VUE.getOutlineViewTree().switchMap(this.map);
+                        //VUE.getOutlineViewTree().switchMap(this.map);// TODO: BUG: this method is on the TreeVIEW, not the Tree -- SMF
                     }
                 }
                 //end of addition
@@ -2877,7 +3160,7 @@ public class MapViewer extends javax.swing.JPanel
                     VUE.ModelSelection.clearAndNotify();
             }
         } 
-        VueSelection = VUE.ModelSelection;
+        this.VueSelection = VUE.ModelSelection;
     }
     public void focusGained(FocusEvent e)
     {

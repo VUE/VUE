@@ -113,10 +113,10 @@ public class LinkTool extends VueTool
         this.linkSource = null;
     }
 
-    public void handlePaint(java.awt.Graphics2D g)
+    public void handlePaint(DrawContext dc)
     {
         if (linkSource != null)
-            creationLink.draw(g);
+            creationLink.draw(dc);
     }
     
     private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
