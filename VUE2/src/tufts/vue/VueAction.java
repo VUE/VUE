@@ -148,7 +148,7 @@ public class VueAction extends javax.swing.AbstractAction
      * that, the action will need it's own listener for whatever event
      * it's interested in.
      */
-    boolean enabled() { return VUE.openMapCount() > 0; }
+    boolean enabled() { return VUE.getActiveViewer() != null; }
 
     void act() {
         System.err.println("Unhandled VueAction: " + getActionName());

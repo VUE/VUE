@@ -291,6 +291,7 @@ public class PathwayTableModel extends DefaultTableModel
         } else if (c != null) {
             if (col == 3) c.setLabel((String)aValue);
         }
+        VUE.getUndoManager().mark();
         // all the above sets will trigger LWCEvents, listeneted to by the
         // LWPathways they're in, which are listeneted to by their map's
         // LWPathwayList, which is listented to by us, the PathwayTableModel.

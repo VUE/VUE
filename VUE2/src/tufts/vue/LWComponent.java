@@ -1478,6 +1478,9 @@ public class LWComponent
         //Listener[] listener_array = (Listener[]) listeners.toArray(listener_buf);
         //if (listener_array != listener_buf)
         //    out("FYI: listener count " + nlistener + " exceeded performance buffer.");
+        // Of course, using a static buf of course doesn't work the second we have any event depth!
+        // and we can't make it a member as this is a static method...
+        // We could actually just only allocate a new array if there IS any event depth...
 
         Listener[] listener_array = new Listener[listeners.size()];
         listeners.toArray(listener_array);

@@ -164,6 +164,22 @@ public class ZoomTool extends VueTool
     
     private static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus, boolean reset)
     {
+        // this is much simpler as the viewer now handles adjusting for the focal point
+        MapViewer viewer = VUE.getActiveViewer();
+        if (focus == DONT_FOCUS) {
+            focus = null;
+        } else if (adjustViewport && (focus == null || focus == CENTER_FOCUS)) {
+            // If no user selected zoom focus point, zoom in to
+            // towards the map location at the center of the
+            // viewport.
+            focus = viewer.getVisibleCenter();
+        }
+        viewer.setZoomFactor(newZoomFactor, reset, focus);
+    }
+    
+    /*
+    private static void OLD_setZoom(double newZoomFactor, boolean adjustViewport, Point focus, boolean reset)
+    {
         MapViewer viewer = VUE.getActiveViewer();
         
         //        if (!DEBUG_SCROLL && adjustViewport) {
@@ -173,43 +189,26 @@ public class ZoomTool extends VueTool
                 // towards the map location at the center of the
                 // viewport.
 
-                focus = viewer.getVisiblePanelCenter();
+                focus = viewer.getVisibleCenter();
                 
                 //focus = new Point(viewer.getVisibleWidth() / 2,
                 //viewer.getVisibleHeight() / 2);
                 // this probably doesn't compute right if we're scrolled...
             }
-
             //viewer.scrollMapLocationToScreenLocation(mapAnchor, focus);
-            
-            /*
-            Point2D mapAnchor = viewer.screenToMapPoint(focus);
-            double offsetX = (mapAnchor.getX() * newZoomFactor) - focus.getX();
-            double offsetY = (mapAnchor.getY() * newZoomFactor) - focus.getY();
-            viewer.setMapOriginOffset(offsetX, offsetY);
-            */
 
+            //Point2D mapAnchor = viewer.screenToMapPoint(focus);
+            //double offsetX = (mapAnchor.getX() * newZoomFactor) - focus.getX();
+            //double offsetY = (mapAnchor.getY() * newZoomFactor) - focus.getY();
+            //viewer.setMapOriginOffset(offsetX, offsetY);
         }
 
         if (focus == DONT_FOCUS)
             focus = null;
         
         viewer.setZoomFactor(newZoomFactor, reset, focus);
-        
     }
-    
-    /** fit everything in the current map into the current viewport */
-    public static void setZoomFit()
-    {
-        setZoomFitRegion(VUE.getActiveViewer().getAllComponentBounds(),
-                         DEBUG.SCROLL ? 0 : ZOOM_FIT_PAD);
-    }
-    
-    public static void setZoomFitRegion(Rectangle2D mapRegion)
-    {
-        setZoomFitRegion(mapRegion, 0);
-    }
-    
+    */    
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
         Point2D.Double offset = new Point2D.Double();
@@ -237,6 +236,18 @@ public class ZoomTool extends VueTool
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
             
         }
+    }
+    
+    /** fit everything in the current map into the current viewport */
+    public static void setZoomFit()
+    {
+        setZoomFitRegion(VUE.getActiveViewer().getAllComponentBounds(),
+                         DEBUG.SCROLL ? 0 : ZOOM_FIT_PAD);
+    }
+    
+    public static void setZoomFitRegion(Rectangle2D mapRegion)
+    {
+        setZoomFitRegion(mapRegion, 0);
     }
     
     public static double computeZoomFit(Dimension viewport, int borderGap, Rectangle2D bounds, Point2D offset) {

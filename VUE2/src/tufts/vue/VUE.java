@@ -1,7 +1,6 @@
 package tufts.vue;
 
 import tufts.vue.action.*;
-import tufts.vue.action.ImageMap;
 
 import java.util.*;
 import java.util.prefs.*;
@@ -558,7 +557,7 @@ public class VUE
     
     
     public static int openMapCount() {
-        return mMapTabsLeft.getTabCount();
+        return mMapTabsLeft == null ? 0 : mMapTabsLeft.getTabCount();
     }
     
     public static void addActiveMapListener(ActiveMapListener l) {
@@ -575,6 +574,10 @@ public class VUE
     }
     
     
+    /**
+     * Viewer can be null, which happens when we close the active viewer
+     * and until another grabs the application focus (unles it was the last viewer).
+     */
     public static void setActiveViewer(MapViewer viewer) {
         // todo: does this make sense?
         //if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {

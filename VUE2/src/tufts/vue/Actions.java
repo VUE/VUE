@@ -967,10 +967,10 @@ class Actions
         }
         */
 
-        boolean enabled() { return VUE.openMapCount() > 0 && enabledFor(VUE.getSelection()); }
+        boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
 
         public void selectionChanged(LWSelection selection) {
-            if (VUE.openMapCount() < 1)
+            if (VUE.getActiveViewer() == null)
                 setEnabled(false);
             else
                 setEnabled(enabledFor(selection));
