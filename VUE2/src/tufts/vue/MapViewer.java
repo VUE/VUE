@@ -3912,6 +3912,10 @@ public class MapViewer extends javax.swing.JComponent
                 LWComponent c = (LWComponent) i.next();
                 parentTarget.addChild(c);
             }
+
+            // If we handled the above problem in LWContainer somehow,
+            // we could just make this call:
+            //parentTarget.addChildren(moveList.iterator());
                 
                 
             /*

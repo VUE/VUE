@@ -366,9 +366,18 @@ public abstract class LWContainer extends LWComponent
             new Throwable(this + " FYI: ZOMBIE PARENT DELETING CHILD " + c).printStackTrace();
             return;
         }
-        if (!this.children.remove(c))
-            throw new IllegalStateException(this + " didn't contain child for removal: " + c);
-        //c.setParent(null); // leave parent ref place for undo -- but -- ack need this!
+        if (!this.children.remove(c)) {
+            if (DEBUG.PARENTING) {
+                System.out.println(this + " FYI: didn't contain child for removal: " + c);
+                if (DEBUG.META) new Throwable().printStackTrace();
+                //throw new IllegalStateException(this + " didn't contain child for removal: " + c);
+            }
+        }
+        // we don't set parent to null on removal so it doesn't bother needing to be restored
+        // on undo -- however that means sometimes we try and remove children that have
+        // already been removed, which is why we only have the diagnostic above now instead
+        // of the exception.
+        //c.setParent(null);
 
         // If this child was scaled inside us (as all children are except groups)
         // besure to restore it's scale back to 1 when de-parenting it.
@@ -398,7 +407,6 @@ public abstract class LWContainer extends LWComponent
         }
         if (deletedChildren.size() > 0) {
             notify(LWKey.ChildrenRemoved, deletedChildren);
-            //todo: change all these child events to a structureChanged event
             layout();
         }
     }
@@ -985,7 +993,9 @@ public abstract class LWContainer extends LWComponent
                 // difference.
                 // -------------------------------------------------------
                 
-                if (c.isVisible() && c.intersects(clipBounds)) {
+                // if filtered, don't draw, unless has children, in which case
+                // we need to draw just in case any of the children are NOT filtered.
+                if (c.isVisible() && (!c.isFiltered() || c.hasChildren()) && c.intersects(clipBounds)) {
                     _drawChild(dc, c);
                     if (MapViewer.DEBUG_PAINT) { // todo: remove MapViewer reference
                         if (c instanceof LWLink) links++;

@@ -929,12 +929,54 @@ public class LWNode extends LWContainer
     
     public void draw(DrawContext dc)
     {
+        if (isFiltered() == false) {
+            dc.g.translate(getX(), getY());
+            float scale = getScale();
+            if (scale != 1f) dc.g.scale(scale, scale);
+
+            drawNode(dc);
+
+            //-------------------------------------------------------
+            // Restore graphics context
+            //-------------------------------------------------------
+            // todo arch: consider not restoring the scale before we draw
+            // the children, and maybe even handling this in LWContainer,
+            // as a way to see if we could get rid of all the confusing "x
+            // * getScale()" code & awkward recursive setScale code.
+            // Actually, we couldn't attempt this unless we also fully
+            // changed the children be drawn in a translated GC, and the
+            // hit-detection was compensated for more at search time
+            // instead of by resizing the object by having getHeight, etc,
+            // auto multiply by the scale factor, and actually resizing
+            // the bounds-shape when we scale an object.
+            
+            if (scale != 1f) dc.g.scale(1/scale, 1/scale);
+            dc.g.translate(-getX(), -getY());
+        }
+
+        //-------------------------------------------------------
+        // Draw any children
+        //-------------------------------------------------------
+
+        // This produces the cleanest code in all above -- don't
+        // need to manage scaling if we translate to a region
+        // where all the nodes will lie within, and then their
+        // positioning auto-collapses as their scaled down...
+        if (hasChildren()) {
+            //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
+            //g.scale(ChildScale, ChildScale);
+            //super.draw(dc.createScaled(ChildScale)); // not using this
+            //g.setComposite(childComposite);
+            if (isZoomedFocus())
+                dc.g.setComposite(ZoomTransparency);
+            super.draw(dc);
+        }
+    }
+        
+    private void drawNode(DrawContext dc)
+    {
         Graphics2D g = dc.g;
         
-        g.translate(getX(), getY());
-        float scale = getScale();
-        if (scale != 1f) g.scale(scale, scale);
-
         //-------------------------------------------------------
         // Fill the shape (if it's not transparent)
         //-------------------------------------------------------
@@ -1043,41 +1085,6 @@ public class LWNode extends LWContainer
             //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
         }
         
-        //-------------------------------------------------------
-        // Restore graphics context
-        //-------------------------------------------------------
-
-        // todo arch: consider not restoring the scale before we draw
-        // the children, and maybe even handling this in LWContainer,
-        // as a way to see if we could get rid of all the confusing "x
-        // * getScale()" code & awkward recursive setScale code.
-        // Actually, we couldn't attempt this unless we also fully
-        // changed the children be drawn in a translated GC, and the
-        // hit-detection was compensated for more at search time
-        // instead of by resizing the object by having getHeight, etc,
-        // auto multiply by the scale factor, and actually resizing
-        // the bounds-shape when we scale an object.
-        
-        if (scale != 1f) g.scale(1/scale, 1/scale);
-        g.translate(-getX(), -getY());
-
-        //-------------------------------------------------------
-        // Draw any children
-        //-------------------------------------------------------
-
-        // This produces the cleanest code in all above -- don't
-        // need to manage scaling if we translate to a region
-        // where all the nodes will lie within, and then their
-        // positioning auto-collapses as their scaled down...
-        if (hasChildren()) {
-            //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
-            //g.scale(ChildScale, ChildScale);
-            //super.draw(dc.createScaled(ChildScale)); // not using this
-            //g.setComposite(childComposite);
-            if (isZoomedFocus())
-                g.setComposite(ZoomTransparency);
-            super.draw(dc);
-        }
     }
 
     public boolean doesRelativeDrawing() { return false; }

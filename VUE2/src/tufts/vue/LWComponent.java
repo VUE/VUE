@@ -28,11 +28,10 @@ public class LWComponent
     implements MapItem
                ,VueConstants
 {
-    public interface Listener extends java.util.EventListener
-    {
+    public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);
     }
-    
+
     /**
      * getUserMapType
      * @return UserMapType the user map type id
@@ -1418,7 +1417,8 @@ public class LWComponent
     
     public boolean isHidden()
     {
-        return this.hidden || isFiltered();
+        //return this.hidden || isFiltered(); //so that can filter parent WITHOUT filtering children
+        return this.hidden;
     }
     public void setVisible(boolean visible)
     {

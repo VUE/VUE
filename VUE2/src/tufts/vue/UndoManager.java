@@ -252,7 +252,7 @@ if (true)return;
 
     private void processEvent(LWCEvent e)
     {
-        if (e.getWhat() == LWKey.HierarchyChange) {
+        if (e.getWhat() == LWKey.HierarchyChange || e.getWhat().startsWith("hier.")) {
             recordHierarchyChangeEvent(e);
         } else if (e.hasOldValue()) {
             recordUndoablePropertyChangeEvent(e);
