@@ -261,7 +261,6 @@ public class LWComponent
         return c;
     }
     
-    
     public float getStrokeWidth()
     {
         return this.strokeWidth;
@@ -300,6 +299,7 @@ public class LWComponent
 	    strStyle = font.isItalic() ? "italic" : "plain";
 	}
         return font.getName() + "-" + strStyle + "-" + font.getSize();
+      
     }
     /** to support XML persistance */
     public void setXMLfont(String xml)
