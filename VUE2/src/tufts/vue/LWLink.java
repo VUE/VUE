@@ -140,7 +140,21 @@ public class LWLink extends LWComponent
         return mIconBlock.handleDoubleClick(e);
     }
 
-    
+    private void setStartPoint(Point2D p) {
+        Object old = new Point2D.Float(startX, startY);
+        startX = (float) p.getX();
+        startY = (float) p.getY();
+        endpointMoved = true;
+        notify("link.ep1.location", new Undoable(old) { void undo() { setStartPoint((Point2D) old); }} );
+    }
+    private void setEndPoint(Point2D p) {
+        Object old = new Point2D.Float(endX, endY);
+        endX = (float) p.getX();
+        endY = (float) p.getY();
+        endpointMoved = true;
+        notify("link.ep2.location", new Undoable(old) { void undo() { setEndPoint((Point2D) old); }} );
+    }
+
     
     /** interface ControlListener handler */
     public void controlPointPressed(int index, MapMouseEvent e) { }
@@ -152,21 +166,21 @@ public class LWLink extends LWComponent
     {
         //System.out.println("LWLink: control point " + index + " moved");
         
-        if (index == 0) {       // endpoint 0 (start)
-            setComponent1(null);
-            startX = e.getMapX();
-            startY = e.getMapY();
-            endpointMoved = true;
+        if (index == 0) {
+            // endpoint 1 (start)
+            setComponent1(null); // disconnect from node
+            setStartPoint(e.getMapPoint());
             LinkTool.setMapIndicationIfOverValidTarget(ep2, this, e);
-        } else if (index == 1) { // endpoint 1 (end)
-            setComponent2(null);
-            endX = e.getMapX();
-            endY = e.getMapY();
-            endpointMoved = true;
+        } else if (index == 1) {
+            // endpoint 2 (end)
+            setComponent2(null);  // disconnect from node
+            setEndPoint(e.getMapPoint());
             LinkTool.setMapIndicationIfOverValidTarget(ep1, this, e);
-        } else if (index == 2) { // optional control for curve
+        } else if (index == 2) {
+            // optional control 0 for curve
             setCtrlPoint0(e.getMapPoint());
-        } else if (index == 3) { // optional control for curve
+        } else if (index == 3) {
+            // optional control 1 for curve
             setCtrlPoint1(e.getMapPoint());
         } else
             throw new IllegalArgumentException("LWLink ctrl point > 2");
@@ -186,7 +200,7 @@ public class LWLink extends LWComponent
                 setComponent2(dropTarget);
             // todo: ensure paint sequence same as LinkTool.makeLink
         }
-        notify("link.control");
+        notify("link.control.drop");
     }
 
 
@@ -547,37 +561,35 @@ public class LWLink extends LWComponent
             
     void setComponent1(LWComponent c)
     {
-        //if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
-        if (c == null && ep1 == null)
+        if (c == ep1 || (c == null && ep1 == null))
             return;
         if (ep1 == c)
             System.err.println("*** Warning: ep1 already set to that in " + this + " " + c);
         if (ep1 != null)
             ep1.removeLinkRef(this);            
+        Object old = this.ep1;
         this.ep1 = c;
         if (c != null)
             c.addLinkRef(this);
         endPoint1_ID = null;
         endpointMoved = true;
-        notify("link.endpointChanged.1");
-        //System.out.println(this + " ep1 = " + c);
+        notify("link.ep1.connect", new Undoable(old) { void undo() { setComponent1((LWComponent)old); }} );
     }
     void setComponent2(LWComponent c)
     {
-        if (c == null && ep2 == null)
+        if (c == ep2 || (c == null && ep2 == null))
             return;
-        //if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
         if (c != null && ep2 == c)
             System.err.println("*** Warning: ep2 already set to that in " + this + " " + c);
         if (ep2 != null)
             ep2.removeLinkRef(this);            
+        Object old = this.ep2;
         this.ep2 = c;
         if (c != null)
             c.addLinkRef(this);
         endPoint2_ID = null;
         endpointMoved = true;
-        notify("link.endpointChanged.2");
-        //System.out.println(this + " ep1 = " + c);
+        notify("link.ep2.connect", new Undoable(old) { void undo() { setComponent2((LWComponent)old); }} );
     }
 
     

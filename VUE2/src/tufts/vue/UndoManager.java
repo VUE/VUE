@@ -37,15 +37,6 @@ public class UndoManager
                 Map.Entry e = (Map.Entry) i.next();
                 if (DEBUG.UNDO) System.out.println("\tprocessing " + e.getKey());
                 undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
-                /*
-                LWComponent c = (LWComponent) e.getKey();
-                Map cPropChanges = (Map) e.getValue();
-                Iterator pi = cPropChanges.entrySet().iterator();
-                while (pi.hasNext()) {
-                    Map.Entry
-                    String propName =
-                }
-                */
             }
         }
 
