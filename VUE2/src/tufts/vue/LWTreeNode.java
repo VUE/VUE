@@ -58,8 +58,14 @@ public class LWTreeNode extends DefaultMutableTreeNode
                 treeNodeString = component.getLabel();
        
             else if (component instanceof LWLink)
-                treeNodeString = new String("Link:" + component.getID());
+            {
+                if (component.getLabel() == null)
+                  treeNodeString = new String("Link:" + component.getID());
        
+                else
+                  treeNodeString = component.getLabel();
+            }
+            
             else
                 System.err.println("error in changing to string in LWTreeNode");
        }

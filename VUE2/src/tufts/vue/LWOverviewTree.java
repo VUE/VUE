@@ -34,7 +34,7 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
     private DisplayAction displayAction = null;
     private JTree tree;
     private LWMap currentMap;
-    private LWNode selectedNode;
+    private LWComponent selectedComponent;
     
     /** Creates a new instance of LWOverviewTree */
     public LWOverviewTree(JFrame parent) 
@@ -43,7 +43,7 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
         setSize(500, 300);
      
         currentMap = null;
-        selectedNode = null;
+        selectedComponent = null;
         
         tree = new JTree();
         tree.setModel(null);
@@ -59,10 +59,10 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
                     LWTreeNode treeNode = (LWTreeNode)tree.getLastSelectedPathComponent();
         
                     if (treeNode == null) 
-                      selectedNode = null;
+                      selectedComponent = null;
 
                     else
-                      selectedNode = (LWNode)treeNode.getUserObject();
+                      selectedComponent = (LWComponent)treeNode.getUserObject();
                 }
             }
         );
@@ -274,8 +274,8 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
         catch (NullPointerException exc) {}
        
         //changes the node's label and sets it as a new object for the tree node
-        selectedNode.setLabel(treeNode.toString());
-        treeNode.setUserObject(selectedNode);
+        selectedComponent.setLabel(treeNode.toString());
+        treeNode.setUserObject(selectedComponent);
         
         //VUE.getActiveViewer().repaint();
     }
