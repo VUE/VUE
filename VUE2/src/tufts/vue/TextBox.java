@@ -50,6 +50,7 @@ import java.awt.Font;
 import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.geom.Rectangle2D;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.FocusEvent;
@@ -205,7 +206,7 @@ class TextBox extends JTextPane
             doc.insertString(0, text, null);
         } catch (Exception e) {
             System.err.println(e);
-            }*/
+            }*/ 
         if (debug) System.out.println("TextBox.setText[" + text + "]");
         super.setText(text);
         copyStyle(this.lwc);
@@ -258,12 +259,21 @@ class TextBox extends JTextPane
 
     public void keyPressed(KeyEvent e)
     {
+        //System.out.println(e);
         keyWasPressed = true;
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             setText(savedText);
             getParent().remove(this);
+        } else if (e.getKeyCode() == KeyEvent.VK_ENTER &&
+                   (e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
+                    || (e.getModifiersEx() != 0 && (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK))) {
+            // if we hit enter key either on numpad, or with any modifier down except a shift alone (in case of caps lock)
+            // complete the edit.
+            e.consume();
+            getParent().remove(this); // will trigger a save
         }
     }
+
     public void keyReleased(KeyEvent e) {}
     public void keyTyped(KeyEvent e)
     {
