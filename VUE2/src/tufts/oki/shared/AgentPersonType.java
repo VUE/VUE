@@ -6,6 +6,7 @@
 
 package tufts.oki.shared;
 
+import tufts.oki.*;
 /**
  *  This is a person agent type.
  *
@@ -17,7 +18,7 @@ public class AgentPersonType extends osid.shared.Type {
     
     /** Creates a new instance of AgentPersonType */
     public AgentPersonType() {
-        super ("osid.shared", osid.OsidManager.AUTHORITY, AGENT_PERSON_TYPE_KEY, "This is a person agent as implemented by osid.shared.Agent.");
+        super ("osid.shared", OsidManager.AUTHORITY, AGENT_PERSON_TYPE_KEY, "This is a person agent as implemented by osid.shared.Agent.");
     }
     
 }
