@@ -6,6 +6,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.QuadCurve2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
@@ -32,6 +33,8 @@ public class LWLink extends LWComponent
     private LWComponent ep1;
     private LWComponent ep2;
     private Line2D.Float line = new Line2D.Float();
+    private QuadCurve2D.Float curve = null;
+    private boolean isCurved = false;
     
     private float centerX;
     private float centerY;
@@ -47,6 +50,8 @@ public class LWLink extends LWComponent
     private final float ArrowBase = 8;
     private RectangularShape ep1Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
     private RectangularShape ep2Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
+
+    private boolean endpointMoved = true; // has an endpoint moved since we last compute shape?
     
     /**
      * Used only for restore -- must be public
@@ -68,9 +73,28 @@ public class LWLink extends LWComponent
         setEndPoint1(ep1);
         setEndPoint2(ep2);
         setStrokeWidth(2f); //todo config: default link width
-        computeLineShape();
+        //computeLinkEndpoints();
 
         setTextColor(Color.red); // todo: TEMPORARY ANGLE DEBUG
+    }
+
+    void setEndpointMoved(boolean tv)
+    {
+        this.endpointMoved = tv;
+    }
+
+    public boolean isCurved()
+    {
+        return isCurved;
+    }
+
+    public void setCurved(boolean curved)
+    {
+        this.isCurved = curved;
+        if (isCurved && curve == null) {
+            this.curve = new QuadCurve2D.Float();
+            computeLinkEndpoints();
+        }
     }
 
     protected void removeFromModel()
@@ -86,7 +110,21 @@ public class LWLink extends LWComponent
         return ep1.getParent() == ep2 || ep2.getParent() == ep1;
     }
     
-    public Line2D getLine(){
+    public Shape getShape()
+    {
+        if (endpointMoved)
+            computeLinkEndpoints();
+        if (isCurved)
+            return this.curve;
+        else
+            return this.line;
+        // return stroked shape?
+    }
+
+    public Line2D getLine()
+    {
+        if (endpointMoved)
+            computeLinkEndpoints();
         return this.line;
     }
     
@@ -94,11 +132,20 @@ public class LWLink extends LWComponent
     private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
     public boolean intersects(Rectangle2D rect)
     {
-        // todo: handle StrokeBug05
+        if (endpointMoved)
+            computeLinkEndpoints();
         float w = getStrokeWidth();
         if (true || w <= SmallestScaleableStrokeWidth) {
-            if (rect.intersectsLine(this.line))
-                return true;
+            //if (isCurved) { System.err.println("curve intersects=" + rect.intersects(curve.getBounds2D())); }
+            if (isCurved) {
+                if (curve.intersects(rect)) // why isn't this working?
+                //if (curve.getBounds2D().intersects(rect)) // todo perf: cache bounds -- why THIS not working???
+                //if (rect.intersects(curve.getBounds2D()))
+                    return true;
+            } else {
+                if (rect.intersectsLine(this.line))
+                    return true;
+            }
             if (this.labelBox != null)
                 return labelBox.intersectsMapRect(rect);
             //return rect.intersects(getLabelX(), getLabelY(),
@@ -130,13 +177,26 @@ public class LWLink extends LWComponent
 
     public boolean contains(float x, float y)
     {
+        if (endpointMoved)
+            computeLinkEndpoints();
         if (VueUtil.StrokeBug05) {
             x -= 0.5f;
             y -= 0.5f;
         }
         float maxDist = getStrokeWidth() / 2;
-        if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
-            return true;
+        if (isCurved) {
+            // QuadCurve2D actually checks the entire concave region for containment
+            // todo perf: would be more accurate to coursely flatten the curve
+            // and check the segments using stroke width and distance
+            // from each segment as we do below when link is line,
+            // tho this would be much slower.  Could cache flattening
+            // iterator or it's resultant segments to make faster.
+            if (curve.contains(x, y))
+                return true;
+        } else {
+            if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
+                return true;
+        }
         if (this.labelBox != null)
             return labelBox.containsMapLocation(x, y);
         else
@@ -149,6 +209,8 @@ public class LWLink extends LWComponent
      */
     public boolean targetContains(float x, float y)
     {
+        if (endpointMoved)
+            computeLinkEndpoints();
         if (VueUtil.StrokeBug05) {
             x -= 0.5f;
             y -= 0.5f;
@@ -175,7 +237,7 @@ public class LWLink extends LWComponent
         //else
         c.addLinkRef(this);
         if (this.ep2 != null)
-            computeLineShape();
+            computeLinkEndpoints();
         //System.out.println(this + " ep1 = " + c);
     }
     void setEndPoint2(LWComponent c)
@@ -186,7 +248,7 @@ public class LWLink extends LWComponent
         //else
         c.addLinkRef(this);
         if (this.ep1 != null)
-            computeLineShape();
+            computeLinkEndpoints();
         //System.out.println(this + " ep2 = " + c);
     }
     // interface
@@ -270,7 +332,11 @@ public class LWLink extends LWComponent
     }
     
     /** a links location is always a computed value -- ignore setLocation calls */
-    public void setLocation(float x, float y) {}
+    public void setLocation(float x, float y)
+    {
+        //throw new RuntimeException("cannot set link location");
+        // This okay -- just ignore it.
+    }
 
     
     /*
@@ -295,13 +361,7 @@ public class LWLink extends LWComponent
     }
     */
 
-    public Shape getShape()
-    {
-        return this.line;
-        // return stroked shape?
-    }
-
-    /*
+    /**
      * Compute the intersection point of two lines, as defined
      * by two given points for each line.
      * This already assumes that we know they intersect somewhere (are not parallel), 
@@ -362,16 +422,26 @@ public class LWLink extends LWComponent
         return new float[] { x, y };
     }
 
+    // this for debug
     private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" };
     
+    /*
+     * Compute the intersection of an arbitrary shape and a line.
+     * If no intersection, returns Float.NaN values for x/y.
+     */
+    private static final float[] NoIntersection = { Float.NaN, Float.NaN };
+
     private static float[] computeShapeIntersection(Shape shape,
                                                     float rayX1, float rayY1,
                                                     float rayX2, float rayY2)
     {
         PathIterator i = shape.getPathIterator(null);
-        // todo: only need to flatten if contains curves...
-        // todo: if keep flattener, can ignore CUBICTO code below
+        // todo performance: if this shape has no curves (CUBICTO or QUADTO)
+        // this flattener is redundant.  Also, it would be faster to
+        // actually do the math for arcs and compute the intersection
+        // of the arc and the line, tho we can save that for another day.
         i = new java.awt.geom.FlatteningPathIterator(i, 0.5);
+        
         float[] seg = new float[6];
         float firstX = 0f;
         float firstY = 0f;
@@ -388,37 +458,27 @@ public class LWLink extends LWComponent
                 seg[1] = firstY; 
             }
             float endX, endY;
-            if (segType == PathIterator.SEG_CUBICTO) {
-                endX = seg[4];
-                endY = seg[5];
-            } else {
+            //if (segType == PathIterator.SEG_CUBICTO) {
+            //    endX = seg[4];
+            //    endY = seg[5];
+            //} else {
                 endX = seg[0];
                 endY = seg[1];
-            }
-            if (cnt > 0) {
-                if (Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
-                    //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
-                    return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1]);
-                    //return new float[] { (lastX + endX) / 2, (lastY + endY) / 2 };
-                }
+            //}
+            if (cnt > 0 && Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
+                //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
+                return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1]);
             }
             cnt++;
             lastX = endX;
             lastY = endY;
             i.next();
         }
-        return new float[] { Float.NaN, Float.NaN };
+        return NoIntersection;
     }
 
-    void computeLineShape()
-    {
-        float startX = ep1.getCenterX();
-        float startY = ep1.getCenterY();
-        float endX = ep2.getCenterX();
-        float endY = ep2.getCenterY();
-
         /*
-          // a different way of computing connection
+          // a different way of computing link connection
           // points that minimizes over-stroke of
           // our parent (if we have one)
           
@@ -451,26 +511,72 @@ public class LWLink extends LWComponent
                 endY += ep2.getHeight() / 2;
         }
         */
+    
 
+    /**
+     * Compute the endpoints of the link based on the edges
+     * of the shapes they connect.
+     */
+    private void computeLinkEndpoints()
+    {
+        // we clear this at the top in case another thread
+        // (e.g., AWT paint) clears it again while we're
+        // in here
+        endpointMoved = false;
+
+        float startX = ep1.getCenterX();
+        float startY = ep1.getCenterY();
+        float endX = ep2.getCenterX();
+        float endY = ep2.getCenterY();
+
+        float ctrlX = 0;
+        float ctrlY = 0;
+        if (isCurved) {
+            ctrlX = startX - (startX - endX) / 2;
+            ctrlY = startY - (startY - endY) / 2;
+            ctrlX += 120;
+            ctrlY += 20;
+        }
+
+        float srcX, srcY;
         Shape ep1Shape = ep1.getShape();
+        // if either endpoint shape is a straight line, we don't need to
+        // bother computing the shape intersection -- it will just
+        // be the default connection point -- the center point.
+        
+        // todo bug: if it's a CURVED LINK we're connect to, a floating
+        // connection point works out if the link approaches from
+        // the convex side, but from the concave side, it winds
+        // up at the center point for a regular straight link.
+        
         if (ep1Shape != null && !(ep1Shape instanceof Line2D)) {
-            float[]intersection = computeShapeIntersection(ep1Shape, startX, startY, endX, endY);
+            if (isCurved) {
+                srcX = ctrlX;
+                srcY = ctrlY;
+            } else {
+                srcX = endX;
+                srcY = endY;
+            }
+            float[]intersection = computeShapeIntersection(ep1Shape, startX, startY, srcX, srcY);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
-            if (!Float.isNaN(intersection[0]))
-                startX = intersection[0];
-            if (!Float.isNaN(intersection[1]))
-                startY = intersection[1];
+            if (!Float.isNaN(intersection[0])) startX = intersection[0];
+            if (!Float.isNaN(intersection[1])) startY = intersection[1];
         }
         Shape ep2Shape = ep2.getShape();
         if (ep2Shape != null && !(ep2Shape instanceof Line2D)) {
-            float[]intersection = computeShapeIntersection(ep2Shape, startX, startY, endX, endY);
+            if (isCurved) {
+                srcX = ctrlX;
+                srcY = ctrlY;
+            } else {
+                srcX = startX;
+                srcY = startY;
+            }
+            float[]intersection = computeShapeIntersection(ep2Shape, srcX, srcY, endX, endY);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
-            if (!Float.isNaN(intersection[0]))
-                endX = intersection[0];
-            if (!Float.isNaN(intersection[1]))
-                endY = intersection[1];
+            if (!Float.isNaN(intersection[0])) endX = intersection[0];
+            if (!Float.isNaN(intersection[1])) endY = intersection[1];
         }
         
         this.centerX = startX - (startX - endX) / 2;
@@ -491,7 +597,7 @@ public class LWLink extends LWComponent
                 Math.abs(startY - endY));
         setX(this.centerX - getWidth()/2);
         setY(this.centerY - getHeight()/2);
-        
+
         if (VueUtil.StrokeBug05) {
             startX -= 0.5;
             startY -= 0.5;
@@ -503,6 +609,54 @@ public class LWLink extends LWComponent
         // Set the stroke line
         //-------------------------------------------------------
         this.line.setLine(startX, startY, endX, endY);
+        if (this.isCurved)
+            curve.setCurve(startX, startY, ctrlX, ctrlY, endX, endY);
+
+        // if there are any links connected to this link, make sure they
+        // know that this endpoint has moved.
+        updateConnectedLinks();
+        
+    }
+
+    /**
+     * Compute the angle of rotation of the line defined by the two given points
+     */
+    private double computeAngle(double x1, double y1, double x2, double y2)
+    {
+        double xdiff = x1 - x2;
+        double ydiff = y1 - y2;
+        double slope = xdiff / ydiff;
+        double slopeInv = 1 / slope;
+        double r0 = -Math.atan(slope);
+        double deg = Math.toDegrees(r0);
+        if (xdiff >= 0 && ydiff >= 0)
+            deg += 180;
+        else if (xdiff <= 0 && ydiff >= 0)
+            deg = -90 - (90-deg);
+
+        if (VueUtil.isMacPlatform()) {
+            // Mac MRJ 69.1 / Java 1.4.1 java bug: approaching 45/-45 & 225/-135 degrees,
+            // rotations seriously fuck up (most shapes are translated to infinity and
+            // back, except at EXACTLY 45 degrees, where it works fine).
+            final int ew = 10; // error-window: # of degrees around 45 that do broken rotations
+            if (deg > 45-ew && deg < 45+ew)
+                deg = 45;
+            if (deg > -135-ew && deg < -135+ew)
+                deg = -135;
+        }
+        return  Math.toRadians(deg);
+
+
+        // diagnostics
+        /*
+        this.label =
+            ((float)xdiff) + "/" + ((float)ydiff) + "=" + (float) slope
+            + " atan=" + (float) r
+            + " deg=[ " + (float) Math.toDegrees(r)
+            + " ]";
+        getLabelBox().setText(this.label);
+        */
+        
     }
 
     private void drawArrows(Graphics2D gg)
@@ -515,71 +669,48 @@ public class LWLink extends LWComponent
         ////ep1Shape.setFrame(this.line.getX1() - arrowSize/2, this.line.getY1(), arrowSize, arrowSize*2);
         //ep1Shape.setFrame(0,0, arrowSize, arrowSize*2);
 
-        double xdiff = line.getX1() - line.getX2();
-        double ydiff = line.getY1() - line.getY2();
-        double slope = xdiff / ydiff;
-        double slopeInv = 1 / slope;
-        double r0 = -Math.atan(slope);
-        double deg = Math.toDegrees(r0);
-        if (xdiff >= 0 && ydiff >= 0)
-            deg += 180;
-        else if (xdiff <= 0 && ydiff >= 0)
-            deg = -90 - (90-deg);
-
-        if (VueUtil.isMacPlatform()) {
-            final int ew = 8; // error-window: # of degrees around 45 that are fucked up
-            // Mac MRJ 69.1 / Java 1.4.1 java bug: approaching 45 & 225 degrees,
-            // rotations seriously fuck up.
-            if (deg > 45-ew && deg < 45+ew)
-                deg = 45;
-            if (deg > -135-ew && deg < -135+ew)
-                deg = -135;
+        double rotation1 = 0;
+        double rotation2 = 0;
+        if (isCurved) {
+            rotation1 = computeAngle(line.getX1(), line.getY1(), curve.getCtrlX(), curve.getCtrlY());
+            rotation2 = computeAngle(line.getX2(), line.getY2(), curve.getCtrlX(), curve.getCtrlY());
+        } else {
+            rotation1 = computeAngle(line.getX1(), line.getY1(), line.getX2(), line.getY2());
+            rotation2 = rotation1 + Math.PI;  // add 180 degrees
         }
-        double r = Math.toRadians(deg);
-
+        
         AffineTransform savedTransform = gg.getTransform();
         
-        gg.setColor(this.strokeColor);
         gg.setStroke(this.stroke);
         
         // draw the first arrow
+        // todo: adjust the arrow shape with the stroke width
+        // do the adjustment in setStrokeWidth, actually.
         gg.translate(line.getX1(), line.getY1());
-        gg.rotate(r);
-        gg.translate(-ArrowBase/2, 0);
-        //gg.setColor(Color.red);
+        gg.rotate(rotation1);
+        gg.translate(-ep1Shape.getWidth() / 2, 0); // todo: based on assumption is our Triangle2D
         gg.fill(ep1Shape);
-        gg.setColor(this.strokeColor);
+//if (rotation1 == Math.PI / 4) gg.setColor(Color.red);
         gg.draw(ep1Shape);
 
         gg.setTransform(savedTransform);
 
         // draw the second arrow
         gg.translate(line.getX2(), line.getY2());
-        gg.rotate(r + Math.PI); // rotate 180 degrees for other arrow
-        gg.translate(-ArrowBase/2, 0);
-        //gg.setColor(Color.red);
+        gg.rotate(rotation2);
+        gg.translate(-ep2Shape.getWidth()/2, 0); // todo: based on assumption is our Triangle2D
         gg.fill(ep2Shape);
-        gg.setColor(this.strokeColor);
         gg.draw(ep2Shape);
 
         gg.setTransform(savedTransform);
-
-
-        // diagnostics
-        /*
-        this.label =
-            ((float)xdiff) + "/" + ((float)ydiff) + "=" + (float) slope
-            + " atan=" + (float) r
-            + " deg=[ " + (float) Math.toDegrees(r)
-            + " ]";
-        getLabelBox().setText(this.label);
-        */
+//gg.setColor(strokeColor);
     }
 
     
     public void draw(Graphics2D g)
     {
-        computeLineShape(); // compute this.line
+        if (endpointMoved)
+            computeLinkEndpoints();
 
         // Clip the node shape so the link doesn't draw into it.
         // We need to do this instead of just drawing links first
@@ -679,12 +810,51 @@ public class LWLink extends LWComponent
             g.setColor(getStrokeColor());
 
         g.setStroke(stroke);
-        g.draw(this.line);
+        
+        
+        if (isCurved && isSelected()) {
+            // draw control point
+            final int boxSize = 7;
+            int x = (int)curve.getCtrlX();
+            int y = (int)curve.getCtrlY();
+            x -= boxSize/2;
+            y -= boxSize/2;
+            // DRAW AS WHITE-BORDED SELECTION BOX so looks
+            // just like a regular selection box -- something
+            // we know wants us to drag it...
+            g.fillRect(x, y, boxSize, boxSize);
+            // turn off anit-aliasing for this -- 
+            // handle this in a seperate paintSelection pass
+            // off the main paint loop??
+            /*
+            g.setColor(Color.green);
+            g.drawRect(x, y, boxSize, boxSize);
+            g.setColor(COLOR_SELECTION);
+            */
+            // move to after drawArrows after debug so
+            // control point always visible on top in case has been
+            // moved to same place as an arrow
+        }
+        
+        if (this.isCurved) {
+            g.draw(this.curve);
+
+            g.setStroke(new BasicStroke(0.1f));
+            g.setColor(Color.black);
+            Line2D ctrlLine = new Line2D.Float(line.getP1(), curve.getCtrlPt());
+            g.draw(ctrlLine);
+            ctrlLine.setLine(line.getP2(), curve.getCtrlPt());
+            g.draw(ctrlLine);
+            //g.drawLine((int)line.getX1(), (int)line.getY1(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
+            //g.drawLine((int)line.getX2(), (int)line.getY2(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
+            if (isSelected()) g.setColor(COLOR_SELECTION);
+            g.setStroke(stroke);
+        } else
+            g.draw(this.line);
 
         // todo: conditional
         drawArrows(g);
 
-        
         //-------------------------------------------------------
         // Paint label if there is one
         //-------------------------------------------------------
@@ -713,6 +883,7 @@ public class LWLink extends LWComponent
             g.drawString(label, centerX - w/2, centerY - (strokeWidth/2));
             */
         }
+
     }
 
 
