@@ -106,9 +106,7 @@ implements ConceptMap//, Printable
     // only to be used during a restore from persisted
     public LWMap() {
         setLabel("<map-during-XML-restoration>");
-        this.mLWCFilter = new LWCFilter(this);
-        //setEventsSuspended();
-        //markDate();
+        mLWCFilter = new LWCFilter(this);
     }
     
     public LWMap(String label) {
@@ -119,9 +117,11 @@ implements ConceptMap//, Printable
         setFont(FONT_DEFAULT);
         setLabel(label);
         mPathways = new LWPathwayList(this);
+        mLWCFilter = new LWCFilter(this);
+        // Always do markDate, then markAsSaved as the last items in the constructor:
+        // (otherwise this map will look like it's user-modified when it first displays)
         markDate();
         markAsSaved();
-        this.mLWCFilter = new LWCFilter(this);
     }
     
     private void markDate() {
