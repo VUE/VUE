@@ -4,7 +4,7 @@
  * Created on April 18, 2003, 3:37 PM
  */
 
-package google;
+package tufts.google;
 
 /**
  *
