@@ -177,13 +177,16 @@ public class LWComponent
         layout();
         notify(LWCEvent.Resource);
     }
+   
+
     public void setResource(String urn)
     {
         if (urn == null || urn.length() == 0)
             setResource((Resource)null);
         else
-            setResource(new Resource(urn));
+            setResource(new MapResource(urn));
     }
+ 
     public Resource getResource()
     {
         return this.resource;

@@ -178,7 +178,7 @@ class MapDropTarget
             dropLocation = viewer.getLastMousePressPoint();
         //dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
         
-        List assetList = null;
+        List resourceList = null;
         List fileList = null;        
         String droppedText = null;
         DataFlavor foundFlavor = null;
@@ -189,11 +189,11 @@ class MapDropTarget
         //dumpFlavors(transfer);
 
         try {
-            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.assetFlavor)) {
+            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
                 
-                foundFlavor = VueDragTreeNodeSelection.assetFlavor;
+                foundFlavor = VueDragTreeNodeSelection.resourceFlavor;
                 foundData = transfer.getTransferData(foundFlavor);
-                assetList = (java.util.List) foundData;
+                resourceList = (java.util.List) foundData;
             
             } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 
@@ -277,18 +277,19 @@ class MapDropTarget
             }
             if (addedNodes.size() > 0)
                 VUE.ModelSelection.setTo(addedNodes.iterator());
-            
-        } else if (assetList != null) {
-            java.util.Iterator iter = assetList.iterator();
+         
+        } else if (resourceList != null) {
+            java.util.Iterator iter = resourceList.iterator();
             int x = dropLocation.x;
             int y = dropLocation.y;
             while (iter.hasNext()) {
-                Asset asset = (Asset) iter.next();
-                createNewNode(asset, new java.awt.Point(x,y));
+                Resource resource = (Resource) iter.next();
+                createNewNode(resource, new java.awt.Point(x,y));
                 x += 15;
                 y += 15;
                 success = true;
             }
+     
         } else if (droppedText != null) {
             // Attempt to make a URL of any string dropped -- if fails,
             // just treat as regular pasted text.  todo: if newlines
@@ -398,10 +399,10 @@ class MapDropTarget
     // for us.
     private LWNode createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
     {
-        Resource resource = new Resource(resourceName);
+        Resource resource = new MapResource(resourceName);
 
         if (resourceTitle == null) {
-            resource.setTitleFromContent();
+            ((MapResource)resource).setTitleFromContent();
             if (resource.getTitle() != null)
                 resourceTitle = resource.getTitle();
             else
@@ -417,6 +418,16 @@ class MapDropTarget
         return node;
     }
 
+    private LWNode createNewNode(Resource resource, java.awt.Point p) {
+         LWNode node = NodeTool.createNode(resource.getTitle());
+         node.setResource(resource);
+         if (p != null) {
+            node.setCenterAt(dropToMapLocation(p));
+            viewer.getMap().addNode(node);            //set selection to node?
+        } // else: special case: no node location, sp we're creating a child node -- don't add to map
+        return node;
+        
+    }
     /*
     private LWNode createNewNode(File file, Point p)
     {
@@ -457,7 +468,7 @@ class MapDropTarget
             // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
             }*/
     }
-    
+  /**  
     private void createNewNode(Asset asset, java.awt.Point p) {
         String resourceTitle = "Fedora Node";
         Resource resource =new Resource(resourceTitle);
@@ -472,6 +483,7 @@ class MapDropTarget
         node.setResource(resource);
         viewer.getMap().addNode(node);
     }
+   */
     private Point2D dropToMapLocation(java.awt.Point p)
     {
         return dropToMapLocation(p.x, p.y);

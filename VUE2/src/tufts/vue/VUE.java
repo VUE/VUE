@@ -1218,10 +1218,10 @@ public class VUE
         /*
          * create some test nodes & links
          */
-        LWNode n1 = new LWNode("Google", new Resource("http://www.google.com/"));
-        LWNode n2 = new LWNode("Program Files", new Resource("C:\\Program Files"));
-        LWNode n3 = new LWNode("readme.txt", new Resource("readme.txt"));
-        LWNode n4 = new LWNode("Slash", new Resource("file:///"));
+        LWNode n1 = new LWNode("Google", new MapResource("http://www.google.com/"));
+        LWNode n2 = new LWNode("Program Files", new MapResource("C:\\Program Files"));
+        LWNode n3 = new LWNode("readme.txt", new MapResource("readme.txt"));
+        LWNode n4 = new LWNode("Slash", new MapResource("file:///"));
         n1.setLocation(100, 30);
         n2.setLocation(100, 100);
         n3.setLocation(50, 180);

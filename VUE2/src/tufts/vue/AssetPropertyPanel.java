@@ -48,6 +48,7 @@ import javax.swing.border.*;
 
 		public void updateDisplay( ) {
 			if( mResource != null) {
+                            /**
 				String [] names = mResource.getPropertyNames();
 				if( names != null) {
 					for( int i=0; i< names.length; i++) {
@@ -57,6 +58,7 @@ import javax.swing.border.*;
 							}
 						}
 					}
+                             */
 				}
 			else {
 				mPropPanel.removeAll();

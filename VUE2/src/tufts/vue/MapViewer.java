@@ -2560,18 +2560,19 @@ public class MapViewer extends javax.swing.JComponent
             //componentPopup.add(Actions.NodeMakeAutoSized);
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
-            Asset a = r == null ? null : r.getAsset();  
-            if(a != null && assetMenu == null) {
-               assetMenu = getAssetMenu(a);
-               componentPopup.add(assetMenu);
-            }else if(a != null) {
-                componentPopup.remove(assetMenu);
-                assetMenu = getAssetMenu(a);
-                componentPopup.add(assetMenu);
-            }else if(a == null && assetMenu != null) {
-                componentPopup.remove(assetMenu);
+            if(r.getType() == Resource.ASSET_FEDORA) {
+                Asset a = r == null ? null :((AssetResource)r).getAsset();  
+                if(a != null && assetMenu == null) {
+                   assetMenu = getAssetMenu(a);
+                   componentPopup.add(assetMenu);
+                }else if(a != null) {
+                    componentPopup.remove(assetMenu);
+                    assetMenu = getAssetMenu(a);
+                    componentPopup.add(assetMenu);
+                }else if(a == null && assetMenu != null) {
+                    componentPopup.remove(assetMenu);
+                }
             }
-            
         }
         /*
           // TODO: if JUST a group is selected, need to add Ungroup

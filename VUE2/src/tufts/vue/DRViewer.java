@@ -18,8 +18,11 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import tufts.oki.dr.fedora.*;
+import osid.dr.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Vector;
 import fedora.server.types.gen.*;
 import fedora.server.utilities.DateUtility;
 
@@ -252,14 +255,14 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             searchCriteria.setKeywords(keywords.getText());
             searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
-            VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
+            VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
             JScrollPane jsp = new JScrollPane(tree);
             DRSearchResults.setLayout(new BorderLayout());
             DRSearchResults.add(jsp,BorderLayout.CENTER,0);
             tabbedPane.setSelectedComponent(DRSearchResults);
         } catch (Exception ex) {
-                        System.out.println(ex);
+                        System.out.println("DRViewer.performSearch :"+ex);
         }
     }
     
@@ -305,7 +308,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
             //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
-            VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
+            VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
             JScrollPane jsp = new JScrollPane(tree);
             DRSearchResults.setLayout(new BorderLayout());
@@ -314,6 +317,14 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         } catch (Exception ex) {
                         System.out.println(ex);
         }
+    }
+    
+    public Iterator getAssetResourceIterator(AssetIterator i)  throws osid.dr.DigitalRepositoryException, osid.OsidException{
+        Vector assetResources = new Vector();
+        while(i.hasNext()) {
+                assetResources.add(new AssetResource(i.next()));
+        }
+        return assetResources.iterator();
     }
     
         

@@ -765,7 +765,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         Behavior(LWComponent lwc, Color c) { super(lwc, c); }
         Behavior(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() { return mLWC.hasResource() && mLWC.getResource().getAsset() != null; }
+        boolean isShowing() { return mLWC.hasResource() && mLWC.getResource() instanceof AssetResource;  }
 
         void doDoubleClickAction() {
             System.out.println("Behavior action?");
@@ -775,7 +775,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private String ttBehaviorHtml;
         public JComponent getToolTipComponent()
         {
-            String html = "<html>Behavior from: " + mLWC.getResource().getAsset();
+            String html = "<html>Behavior from: " + mLWC.getResource().getToolTipInformation();
             if (ttBehaviorHtml == null || !ttBehaviorHtml.equals(html)) {
                 ttBehavior = new AALabel(html);
                 ttBehavior.setFont(FONT_SMALL);

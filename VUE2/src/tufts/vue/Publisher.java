@@ -241,8 +241,8 @@ public class Publisher extends JDialog implements ActionListener {
            LWComponent component = (LWComponent) i.next();
            if(component.hasResource()){
                Resource resource = component.getResource();
-               if(resource.isLocalFile()) {
-                    File file = new File(resource.getFileName());
+               if(resource.getType() == Resource.FILE) {
+                    File file = new File(resource.getSpec());
                     if(file.isFile()) {
                         Vector row = new Vector();
                         row.add(new Boolean(true));
@@ -296,12 +296,12 @@ public class Publisher extends JDialog implements ActionListener {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
-            File file = new File(r.getFileName());
+            File file = new File(r.getSpec());
             if(file.isFile() && b.booleanValue()) {
                  resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                  String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
                  resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
+                 System.out.println("Resource = " + r+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
               
             }    
            publishMap();
@@ -340,11 +340,11 @@ public class Publisher extends JDialog implements ActionListener {
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
 
-            File file = new File(r.getFileName());
+            File file = new File(r.getSpec());
 
 
             if(file.isFile() && b.booleanValue()) {
-                 System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
+                 System.out.println("Resource = " + r+" FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
                  resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                  imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
                  resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);

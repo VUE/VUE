@@ -15,8 +15,8 @@ import osid.dr.*;
 import tufts.oki.dr.fedora.*;
 
 public class CastorFedoraObject {
-    String id;
-    String type;
+    String pid;
+    String fedoraType;
     CastorDR castorDR;
     DR dr;
     FedoraObject object;
@@ -24,14 +24,19 @@ public class CastorFedoraObject {
     String displayName;
     
     public CastorFedoraObject() {
+         try {
+            this.castorDR = new CastorDR();
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
     
     public CastorFedoraObject(FedoraObject object) {
         try {
-            this.id = object.getId().getIdString();
+            this.pid = object.getId().getIdString();
             this.displayName = object.getDisplayName();
             this.castorDR = new CastorDR(object.getDR());
-            this.type = ((FedoraObjectAssetType)object.getAssetType()).getType();
+            this.fedoraType = ((FedoraObjectAssetType)object.getAssetType()).getType();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -40,26 +45,27 @@ public class CastorFedoraObject {
     public FedoraObject getFedoraObject() {
         try  {
             dr = castorDR.getDR();
-            fedoraObjectAssetType =  dr.createFedoraObjectAssetType(type);
-            object = new FedoraObject(dr,id,displayName,fedoraObjectAssetType);
+            fedoraObjectAssetType =  dr.createFedoraObjectAssetType(fedoraType);
+            object = new FedoraObject(dr,pid,displayName,fedoraObjectAssetType);
             return object;
             } catch(Exception ex) {
-            throw new RuntimeException(ex);
+                ex.printStackTrace();
+                throw new RuntimeException(ex);
         }
     }
     
-    public void setId(String id) {
-        this.id  = id;
+    public void setPid(String pid) {
+        this.pid  = pid;
     }
-    public String getId() {
-        return this.id;
+    public String getPid() {
+        return this.pid;
     }
     
-    public void setType(String type) {
-        this.type = type;
+    public void setFedoraType(String fedoraType) {
+        this.fedoraType = fedoraType;
     }
-    public String getType() {
-        return this.type;
+    public String getFedoraType() {
+        return this.fedoraType;
     }
     public void setCastorDR(CastorDR castorDR)  {
         this.castorDR = castorDR;

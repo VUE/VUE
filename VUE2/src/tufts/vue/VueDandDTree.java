@@ -38,162 +38,127 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         DnDConstants.ACTION_COPY |
         DnDConstants.ACTION_LINK |
         DnDConstants.ACTION_MOVE;
-       private final boolean debug = true;
-       private final boolean sametree = true;
-       private final int newfavoritesnode = 0;
-    
-       public VueDandDTree(FavoritesNode root){ 
-          
-               
-                 super(root,"Favorites");
-               
-                 this.setEditable(true);
-                 this.setShowsRootHandles(true);
-                 this.setExpandsSelectedPaths(true);
+        private final boolean debug = true;
+        private final boolean sametree = true;
+        private final int newfavoritesnode = 0;
+        public VueDandDTree(FavoritesNode root){ 
+            super(root,"Favorites");
+            this.setEditable(true);
+            this.setShowsRootHandles(true);
+            this.setExpandsSelectedPaths(true);
+            VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
+            this.setCellRenderer(renderer);
+            new DropTarget(this, // component
+            ACCEPTABLE_DROP_TYPES, // actions
+            this);
 
-                
-                 VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
-                  this.setCellRenderer(renderer);
-         
+   }
         
-                    new DropTarget(this, // component
-                    ACCEPTABLE_DROP_TYPES, // actions
-                    this);
-   
-                                    }
-        
- public void drop(DropTargetDropEvent e ) {
-             
-      
-                             
-                            
-                            
-                java.awt.Point dropLocation = e.getLocation();
-    
-                TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
-        
-                  if (isvalidDropNode(treePath)){
-                      
-                       if (e.isLocalTransfer()) {
-                                         
-                                           e.acceptDrop(DnDConstants.ACTION_MOVE);
-                                      }
-                                      else {
-                                    e.acceptDrop(DnDConstants.ACTION_COPY);
-                                      }
-           
-                      boolean success = false;
-                     Transferable transfer = e.getTransferable();
-                     DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-
-                        String resourceName = null;
-                        java.util.List fileList = null;
-                        java.util.List assetList = null;
-        
-                    if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
-                     for (int i = 0; i < dataFlavors.length; i++) {
-                                     DataFlavor flavor = dataFlavors[i];
-                                        Object data = null;
-                                    System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
-            
-                        if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
-                        try {
-                                data = transfer.getTransferData(flavor);
-                                } catch (Exception ex) {
-                              System.out.println("getTransferData: " + ex);
-                                }
-                        if (debug) System.out.println(" transferData=" + data);
-
-                        try {
-                             if (flavor.isFlavorJavaFileListType()) {
-                    
-                                     if (debug) System.out.println("FILE LIST FOUND");
-                                         fileList = (java.util.List) transfer.getTransferData(flavor);
-                   
-                                        java.util.Iterator iter = fileList.iterator();
-            
-                                             while (iter.hasNext()) {
-                                               java.io.File file = (java.io.File) iter.next();
-                                                 if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                 
-                                                        
-                                                         
-                  
-                       DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-
-                       FileNode newNode = new FileNode(file);
-                       
-                       DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-                       model.insertNodeInto(newNode, node, 0);    
-                       this.setRootVisible(true);
-                       this.expandRow(node.getLevel());
-                       this.setRootVisible(false);
-                        System.out.println("node level " + node.getLevel());
-                                                        
-                                                }
-                            success = true;
-                      
-                                break;
-                } else if (flavor.getHumanPresentableName().equals("asset")) {
-                     if (debug) System.out.println("ASSET FOUND");
-                    assetList = (java.util.List) transfer.getTransferData(flavor);
-                     DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-
-                      
-                       
-                         java.util.Iterator iter = assetList.iterator();
-                              DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-          
-              while(iter.hasNext()) {
-                       Asset asset = (Asset) iter.next();
-                       AssetNode newNode =new  AssetNode(asset);             
-                      
-                       model.insertNodeInto(newNode, node, 0);  
-                         this.expandRow(node.getLevel());
-              }
-                    break;
-                } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
-                    // && flavor.isFlavorTextType() -- java 1.4 only
-                {
-                    // checking isFlavorTextType() above should be
-                    // enough, but some Windows apps (e.g.,
-                    // Netscape-6) are leading the flavor list with
-                    // 20-30 mime-types of "text/uri-list", but the
-                    // reader only ever spits out the first character.
-
-                    resourceName = readTextFlavor(flavor, transfer);
-                    if (resourceName != null){
-                        DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-                        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-                        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(resourceName);
-                        model.insertNodeInto(newNode, node, 0);  
-                          this.expandRow(node.getLevel());
+    public void drop(DropTargetDropEvent e ) {       
+        java.awt.Point dropLocation = e.getLocation();
+        TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
+        if (isvalidDropNode(treePath)){
+            if (e.isLocalTransfer()) 
+                e.acceptDrop(DnDConstants.ACTION_MOVE);
+            else 
+                e.acceptDrop(DnDConstants.ACTION_COPY);
+            boolean success = false;
+            Transferable transfer = e.getTransferable();
+            DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+            String resourceName = null;
+            java.util.List fileList = null;
+            java.util.List resourceList = null;
+            if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
+            try {
+                if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
+                    if (debug) System.out.println("RESOURCE FOUND");
+                    resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
+                    java.util.Iterator iter = resourceList.iterator();
+                    DefaultTreeModel model = (DefaultTreeModel)this.getModel(); 
+                    while(iter.hasNext()) {
+                        Resource resource = (Resource) iter.next();
+                        ResourceNode newNode =new  ResourceNode(resource);
+                        model.insertNodeInto(newNode, node, 0);
+                        this.expandRow(node.getLevel());
                     }
-                        break;
-                    
-                } else {
-                    //System.out.println("Unhandled flavor: " + flavor);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 //System.out.println(ex);
-                continue;
+                //continue;
             }
             
-        }
+            /**
+            for (int i = 0; i < dataFlavors.length; i++) {
+                DataFlavor flavor = dataFlavors[i];
+                Object data = null;
+                if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
+                try {
+                    data = transfer.getTransferData(flavor);
+                } catch (Exception ex) {
+                      System.out.println("getTransferData: " + ex);
+                }
+                try {
+                    if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
+                         if (debug) System.out.println("RESOURCE FOUND");
+                         resourceList = (java.util.List) transfer.getTransferData(flavor);
+                         DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
+                         java.util.Iterator iter = resourceList.iterator();
+                         DefaultTreeModel model = (DefaultTreeModel)this.getModel();
 
-      
-   
+                         while(iter.hasNext()) {
+                            Resource resource = (Resource) iter.next();
+                            ResourceNode newNode =new  ResourceNode(resource);             
+                            model.insertNodeInto(newNode, node, 0);  
+                            this.expandRow(node.getLevel());
+                        }
 
-        e.dropComplete(success);
-       }
-       
-       
-       else{
-           
-          if (debug) System.out.println("Invalid Drop Node");
-       }
-       
+                    }else if (flavor.isFlavorJavaFileListType()) {
+                        if (debug) System.out.println("FILE LIST FOUND");
+                        fileList = (java.util.List) transfer.getTransferData(flavor);
+                        java.util.Iterator iter = fileList.iterator();
+                        while (iter.hasNext()) {
+                            java.io.File file = (java.io.File) iter.next();
+                            DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
+                            FileNode newNode = new FileNode(file);
+                            DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+                            model.insertNodeInto(newNode, node, 0);    
+                            this.setRootVisible(true);
+                            this.expandRow(node.getLevel());
+                            this.setRootVisible(false);
+                            System.out.println("node level " + node.getLevel());
+                        }
+                        success = true;
+                    } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN)) {
+                        // checking isFlavorTextType() above should be
+                        // enough, but some Windows apps (e.g.,
+                        // Netscape-6) are leading the flavor list with
+                        // 20-30 mime-types of "text/uri-list", but the
+                        // reader only ever spits out the first character.
+
+                            resourceName = readTextFlavor(flavor, transfer);
+                            if (resourceName != null){
+                                DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
+                                DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+                                DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(resourceName);
+                                model.insertNodeInto(newNode, node, 0);  
+                                  this.expandRow(node.getLevel());
+                            }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    //System.out.println(ex);
+                    //continue;
+                }
+
+            }
+             */
+            e.dropComplete(success);
+            }else{
+                if (debug) System.out.println("Invalid Drop Node");
+            }
+
     }
    
    //A special node for book mark files

@@ -2,7 +2,7 @@ package tufts.vue;
 
 /*
  *
- *A List that is droppable for the datasources. Only My favorites will 
+ *A List that is droppable for the datasources. Only My favorites will
  *take a drop.
  *
  *Author Ranjani Saigal
@@ -30,33 +30,33 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 
 public class DataSourceList extends JList implements DropTargetListener{
-
-     DropTarget dropTarget = null;
-     static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
-        // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
-        // this existed in 1.3, but apparently went away in 1.4.
-     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
-
-     private final int ACCEPTABLE_DROP_TYPES =
-        DnDConstants.ACTION_COPY |
-        DnDConstants.ACTION_LINK |
-        DnDConstants.ACTION_MOVE;
-     private final boolean debug = true;
-     private final Icon myComputerIcon = new ImageIcon("tufts/vue/images/datasourceMyComputer.gif");
-     private final Icon myFavoritesIcon = new ImageIcon("tufts/vue/images/datasourceMyFavorites.gif");
-     private final Icon remoteIcon = new ImageIcon("tufts/vue/images/datasourceRemote.gif");
- 
-
-     public DataSourceList() {
+    
+    DropTarget dropTarget = null;
+    static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
+    // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
+    // this existed in 1.3, but apparently went away in 1.4.
+    static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+    
+    private final int ACCEPTABLE_DROP_TYPES =
+    DnDConstants.ACTION_COPY |
+    DnDConstants.ACTION_LINK |
+    DnDConstants.ACTION_MOVE;
+    private final boolean debug = true;
+    private final Icon myComputerIcon = new ImageIcon("tufts/vue/images/datasourceMyComputer.gif");
+    private final Icon myFavoritesIcon = new ImageIcon("tufts/vue/images/datasourceMyFavorites.gif");
+    private final Icon remoteIcon = new ImageIcon("tufts/vue/images/datasourceRemote.gif");
+    
+    
+    public DataSourceList() {
         super(new DefaultListModel());
         
-
+        
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-
-        dropTarget = new DropTarget (this,  ACCEPTABLE_DROP_TYPES, this);
-
-    
-         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
+        
+        dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
+        
+        
+        DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
                 if (((DataSource)value).getType() == 0){
@@ -72,105 +72,119 @@ public class DataSourceList extends JList implements DropTargetListener{
                     setIcon(remoteIcon);
                     
                 }
-                    
+                
                 return this;
             }
         };
-        this.setCellRenderer(renderer);      
-      }
-     
-     public DefaultListModel getContents() {
+        this.setCellRenderer(renderer);
+    }
+    
+    public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
-     }
-
-  public void dragEnter (DropTargetDragEvent e) { }
-
-   public void dragExit (DropTargetEvent e) {}
-   public void dragOver (DropTargetDragEvent e) {}
-   
-   public void drop (DropTargetDropEvent e) {
-      
-     e.acceptDrop(DnDConstants.ACTION_COPY);
-     
-   int dropLocation = locationToIndex(e.getLocation());
-   this.setSelectedIndex(dropLocation);
-   
-   DataSource ds = (DataSource)getSelectedValue();
-   FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
-   VueDandDTree favoritesTree = fw.getFavoritesTree();
-   DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
-   FavoritesNode rootNode = (FavoritesNode)model.getRoot();
-   
-   
-   //---------------------transferable Business
-   
-             
-           
-                      boolean success = false;
-                     Transferable transfer = e.getTransferable();
-                     DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-
-                        String resourceName = null;
-                        java.util.List fileList = null;
-                        java.util.List assetList = null;
+    }
+    
+    public void dragEnter(DropTargetDragEvent e) { }
+    
+    public void dragExit(DropTargetEvent e) {}
+    public void dragOver(DropTargetDragEvent e) {}
+    
+    public void drop(DropTargetDropEvent e) { 
+        e.acceptDrop(DnDConstants.ACTION_COPY);    
+        int dropLocation = locationToIndex(e.getLocation());
+        this.setSelectedIndex(dropLocation);
         
-                    if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
-                     for (int i = 0; i < dataFlavors.length; i++) {
-                                     DataFlavor flavor = dataFlavors[i];
-                                        Object data = null;
-                       System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
+        DataSource ds = (DataSource)getSelectedValue();
+        FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
+        VueDandDTree favoritesTree = fw.getFavoritesTree();
+        DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
+        FavoritesNode rootNode = (FavoritesNode)model.getRoot();
+        
+        
+        //---------------------transferable Business
+        
+        
+        
+        boolean success = false;
+        Transferable transfer = e.getTransferable();
+        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+        
+        String resourceName = null;
+        java.util.List fileList = null;
+        java.util.List resourceList = null;
+        try {
+                if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
+                    if (debug) System.out.println("RESOURCE FOUND");
+                    resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
+                    java.util.Iterator iter = resourceList.iterator();
+                    while(iter.hasNext()) {
+                        Resource resource = (Resource) iter.next();
+                        ResourceNode newNode =new  ResourceNode(resource);
+                        model.insertNodeInto(newNode, rootNode, 0);
+                    }
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                //System.out.println(ex);
+                //continue;
+            }
+        
+        /**
+        if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
+        for (int i = 0; i < dataFlavors.length; i++) {
+            DataFlavor flavor = dataFlavors[i];
+            Object data = null;
+            System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName()); 
+            if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
+            try {
+                data = transfer.getTransferData(flavor);
+            } catch (Exception ex) {
+                System.out.println("getTransferData: " + ex);
+            }
+            if (debug) System.out.println(" transferData=" + data);
             
-                        if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
-                        try {
-                                data = transfer.getTransferData(flavor);
-                                } catch (Exception ex) {
-                              System.out.println("getTransferData: " + ex);
-                                }
-                        if (debug) System.out.println(" transferData=" + data);
-
-                        try {
-                             if (flavor.isFlavorJavaFileListType()) {
+            try {
+                if (flavor.isFlavorJavaFileListType()) {
                     
-                                     if (debug) System.out.println("FILE LIST FOUND");
-                                         fileList = (java.util.List) transfer.getTransferData(flavor);
-                   
-                                        java.util.Iterator iter = fileList.iterator();
-            
-                                             while (iter.hasNext()) {
-                                               java.io.File file = (java.io.File) iter.next();
-                                                 if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                 
-                                                        
-                                                         
-                  
-
-                       FileNode newNode = new FileNode(file);
-                   
-                       model.insertNodeInto(newNode, rootNode, 0);    
-                      
-                   
-                                                        
-                                                }
-                            success = true;
-                      
-                                break;
+                    if (debug) System.out.println("FILE LIST FOUND");
+                    fileList = (java.util.List) transfer.getTransferData(flavor);
+                    
+                    java.util.Iterator iter = fileList.iterator();
+                    
+                    while (iter.hasNext()) {
+                        java.io.File file = (java.io.File) iter.next();
+                        if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
+                        
+                        
+                        
+                        
+                        
+                        FileNode newNode = new FileNode(file);
+                        
+                        model.insertNodeInto(newNode, rootNode, 0);
+                        
+                        
+                        
+                    }
+                    success = true;
+                    
+                    break;
                 } else if (flavor.getHumanPresentableName().equals("asset")) {
-                     if (debug) System.out.println("ASSET FOUND");
+                    if (debug) System.out.println("ASSET FOUND");
                     assetList = (java.util.List) transfer.getTransferData(flavor);
-                   
-
-                      
-                       
-                         java.util.Iterator iter = assetList.iterator();
-                              
-          
-              while(iter.hasNext()) {
-                       Asset asset = (Asset) iter.next();
-                       AssetNode newNode =new  AssetNode(asset);             
-                      
-                       model.insertNodeInto(newNode, rootNode, 0);  
-                       
-              }
+                    
+                    
+                    
+                    
+                    java.util.Iterator iter = assetList.iterator();
+                    
+                    
+                    while(iter.hasNext()) {
+                        Asset asset = (Asset) iter.next();
+                        AssetNode newNode =new  AssetNode(asset);
+                        
+                        model.insertNodeInto(newNode, rootNode, 0);
+                        
+                    }
                     break;
                 } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
                     // && flavor.isFlavorTextType() -- java 1.4 only
@@ -180,19 +194,20 @@ public class DataSourceList extends JList implements DropTargetListener{
                     // Netscape-6) are leading the flavor list with
                     // 20-30 mime-types of "text/uri-list", but the
                     // reader only ever spits out the first character.
-
+                    
                     resourceName = readTextFlavor(flavor, transfer);
                     if (resourceName != null){
-                       
+                        
                         DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(resourceName);
-                        model.insertNodeInto(newNode, rootNode, 0);  
-                         
+                        model.insertNodeInto(newNode, rootNode, 0);
+                        
                     }
-                        break;
+                    break;
                     
                 } else {
                     //System.out.println("Unhandled flavor: " + flavor);
                 }
+
             } catch (Exception ex) {
                 ex.printStackTrace();
                 //System.out.println(ex);
@@ -200,33 +215,32 @@ public class DataSourceList extends JList implements DropTargetListener{
             }
             
         }
-
-      
-   
-
-        e.dropComplete(success);
-       favoritesTree.expandRow(0);
+        **/
         
-       }
-       
-       
-      
-   
-   
-   //---------------------Accept Drop end
-   
-   
-   
-      
-  
-
- 
-
-  public void dropActionChanged ( DropTargetDragEvent e ) {
-      System.out.println( "list Drop action changed");
-  }
- private String readTextFlavor(DataFlavor flavor, Transferable transfer)
-    {
+        
+        
+        e.dropComplete(success);
+        favoritesTree.expandRow(0);
+        
+    }
+    
+    
+    
+    
+    
+    //---------------------Accept Drop end
+    
+    
+    
+    
+    
+    
+    
+    
+    public void dropActionChanged( DropTargetDragEvent e ) {
+        System.out.println( "list Drop action changed");
+    }
+    private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
         java.io.Reader reader = null;
         String value = null;
         try {
@@ -243,13 +257,13 @@ public class DataSourceList extends JList implements DropTargetListener{
         }
         return value;
     }
- 
-   
-  
-
-
-  
- 
+    
+    
+    
+    
+    
+    
+    
 }
 
 

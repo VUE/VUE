@@ -54,9 +54,6 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         setLayout(new BorderLayout());
        
        JTabbedPane favoritesPane = new JTabbedPane();
-       
-    
-   
          
            File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
              
@@ -324,8 +321,10 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                             }
                             else
                             {
+                                /**
                             Resource resource =new Resource(dn.getUserObject().toString());
                             resource.displayContent();
+                                 ***/
                             }
                      }     
                

@@ -97,20 +97,16 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             Iterator i = (Iterator)obj;
              while (i.hasNext()){
                 Object resource = i.next(); 
-                if (resource instanceof File)
-                {
+                System.out.println("Object = "+resource+" type ="+resource.getClass().getName());
+                if(resource instanceof Resource) {
+                  ResourceNode node = new ResourceNode((Resource)resource);
+                  root.add(node);
+                }else if(resource instanceof File) {
                              
                     FileNode rootNode = new FileNode((File)resource);
                     root.add(rootNode);
                     rootNode.explore();
-                }
-                 else if (resource instanceof Result)
-                {
-                    UrlNode urlNode = new UrlNode((Result)resource);
-                    root.add(urlNode);
-                }
-
-                else {
+                }else {
                     root.add(new DefaultMutableTreeNode(resource));
                  }
              }
@@ -160,7 +156,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
      try {
          if(e.getPath().getLastPathComponent() != null ) {
              resourceSelection.clear();
-             resourceSelection.add(createResource(e.getPath().getLastPathComponent()));
+             resourceSelection.add((Resource)e.getPath().getLastPathComponent());
              //resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
          }
          /**
@@ -172,10 +168,11 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
      } catch(Exception ex) {
         // VueUtil.alert(null,ex.toString(),"Error in VueDragTree Selection");
          System.out.println("VueDragTree.valueChanged "+ex.getMessage());
+         ex.printStackTrace();
      }
      // System.out.println("elements in path = "+e.getPath().getPathCount());
  } 
-
+/**
  private Resource createResource(Object object) throws osid.dr.DigitalRepositoryException,osid.OsidException {
      if(object instanceof String) {
          return new Resource((String)object);
@@ -198,7 +195,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
          throw new RuntimeException(object.getClass()+" : Not Supported");
      }
  }
- 
+ **/
  
  //Cell Renderer
  
@@ -222,7 +219,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                             int row,
                             boolean hasFocus) {
                           
-                               
+                         //    meta =    ((Resource)value).getToolTipInformation();
                      Icon leafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
                      Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
                      Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
@@ -253,11 +250,8 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                    
 
                    
-                        if (value.toString().length() > 30){
-                            setText(value.toString().substring(0,30)+"...");
-                        }
-                     
-                        if (value instanceof UrlNode){meta = ((UrlNode)value).getResult().getDescription();}
+                   
+                        
                         
             return this;
                   }
@@ -290,7 +284,7 @@ class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
     }
 
   
-    public String getToolTipText(){
+    public String getToResource.javaolTipText(){
         
          return metaData;
         
@@ -299,48 +293,27 @@ class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
 
  */
 
+class ResourceNode extends DefaultMutableTreeNode {
+    private boolean explored = false;
+    private Resource resource;
+    public ResourceNode() {
+    }
+    public ResourceNode(Resource resource) {
+        this.resource = resource;
+        setUserObject(resource);
+    }
+    public Resource getResource() {
+        return resource;
+    }
+    public String toString() {
+        return resource.getTitle();
+    }
+}
 
 
-class UrlNode extends DefaultMutableTreeNode {
-	private boolean explored = false;
-        private Result result;
-	public UrlNode(Result result) 	{ 
-            this.result = result;
-            setUserObject(result); 
-	}
-        public  Result getResult() {
-            return this.result;
-        }
-	public String toString(){
-            String returnString = "URL Object";
-            try {
-                returnString = result.getTitle();
-            } catch (Exception e) { System.out.println("URLNode.toString() "+e);}
-            return returnString;
-	}
- }
 
 
-class AssetNode extends DefaultMutableTreeNode {
-	private boolean explored = false;
-        private Asset asset;
-	public AssetNode(Asset asset) 	{ 
-            this.asset = asset;
-            setUserObject(asset); 
-	}
-        public  Asset getAsset() {
-            return this.asset;
-        }
-	public String toString(){
-            String returnString = "Fedora Object";
-            try {
-                returnString = asset.getDisplayName();
-            } catch (Exception e) { System.out.println("FedoraNode.toString() "+e);}
-            return returnString;
-	}
- }
- 
-class FileNode extends DefaultMutableTreeNode {
+class FileNode extends ResourceNode {
 	private boolean explored = false;
 
 	public FileNode(File file) 	{ 
@@ -391,15 +364,14 @@ class FileNode extends DefaultMutableTreeNode {
 		}
 	}
  }
- class FavoritesNode extends DefaultMutableTreeNode {
+ class FavoritesNode extends ResourceNode {
         public FavoritesNode(String displayName){
-            super(displayName);
+            super(new MapResource(displayName));
             
         }
         public void explore() {
                 this.explore();
-		
-		}
+        }
  } 
 
  
@@ -407,13 +379,13 @@ class FileNode extends DefaultMutableTreeNode {
        final static int FILE = 0;
         final static int STRING = 1;
         final static int PLAIN = 2;
-        final static int ASSET = 0;
-        public static DataFlavor assetFlavor;
+        final static int RESOURCE = 0;
+        public static DataFlavor resourceFlavor;
         String displayName = "";
 
       static {
           try {
-              assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
+              resourceFlavor = new DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
               //    assetFlavor = new DataFlavor("asset","asset");
           } catch (Exception e) { e.printStackTrace(); }
       }
@@ -430,11 +402,11 @@ class FileNode extends DefaultMutableTreeNode {
       public VueDragTreeNodeSelection(Object resource)
         {
             addElement(resource);
-            if (resource instanceof Asset){
-                if (assetFlavor != null) {
-                    flavors[ASSET] = assetFlavor;
+            if (resource instanceof Resource){
+                if (resourceFlavor != null) {
+                    flavors[RESOURCE] = resourceFlavor;
                     try {
-                        displayName = ((Asset)elementAt(0)).getDisplayName();
+                        displayName = ((Resource)elementAt(0)).getTitle();
                     } catch (Exception e) { System.out.println("FedoraSelection "+e);}
                 }
             } else if(resource instanceof File){
@@ -453,7 +425,7 @@ class FileNode extends DefaultMutableTreeNode {
             if (flavor == null)
                 return false;
             boolean b  = false;
-            b |=flavor.equals(flavors[ASSET]);
+            b |=flavor.equals(flavors[RESOURCE]);
             b |= flavor.equals(flavors[STRING]);
            // b |= flavor.equals(flavors[PLAIN]);
         	return (b);
@@ -465,16 +437,12 @@ class FileNode extends DefaultMutableTreeNode {
         public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
             
     	if (flavor.equals(flavors[STRING])) {
-            
-             if (this.elementAt(0) instanceof Result){
-                displayName = ((Result)this.elementAt(0)).getUrl();}
-                return displayName.toString();
-
-          
+       
+            throw new UnsupportedFlavorException(flavors[STRING]);
     	} else if (flavor.equals(flavors[PLAIN])) {
              System.out.println("I am plain"+this.elementAt(0));
     	    return new StringReader(displayName);
-    	} else if (flavor.equals(flavors[ASSET])) {
+    	} else if (flavor.equals(flavors[RESOURCE])) {
     	    return this;
         } else if (flavor.equals(flavors[FILE])){
             return this;
