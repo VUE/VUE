@@ -2560,7 +2560,7 @@ public class MapViewer extends javax.swing.JComponent
             //componentPopup.add(Actions.NodeMakeAutoSized);
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
-            if(r.getType() == Resource.ASSET_FEDORA) {
+            if (r != null && r.getType() == Resource.ASSET_FEDORA) {
                 Asset a = r == null ? null :((AssetResource)r).getAsset();  
                 if(a != null && assetMenu == null) {
                    assetMenu = getAssetMenu(a);
