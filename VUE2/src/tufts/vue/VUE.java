@@ -41,7 +41,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.292 2005-03-27 02:08:55 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.293 2005-03-28 03:18:35 sfraize Exp $
     
 /**
  * Vue application class.
@@ -1292,19 +1292,6 @@ public class VUE
         java.awt.Toolkit.getDefaultToolkit().getSystemEventQueue().invokeLater(runnable);
     }
 
-    static void ensureToolWindowVisibility() {
-        ensureToolWindowVisibility(null);
-    }
-    static void ensureToolWindowVisibility(final String title) {
-        if (VueUtil.isMacPlatform() && !inNativeFullScreen()) {
-            VUE.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        tufts.Util.keepToolWindowsOnTop(VUE.NAME + ":", title, inFullScreen());
-                    }
-                });
-        }
-    }
-    
     static class VueToolBar extends JToolBar
     {
         public VueToolBar()
@@ -1638,18 +1625,22 @@ public class VUE
 
         private void handleShown() {
             //out("handleShown [" + getTitle() + "]");
+            /*
             if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
                 // Restore the frame title to the title w/out the "@"
                 // in front (see handleHidden).
                 Frame f = (Frame) mWindow;
                 f.setTitle(mTitle);
             }
+            */
             setButtonState(true);
             updateActionTitle(false);
         }
         
         private void handleHidden() {
             //out("handleHidden [" + getTitle() + "]");
+
+            /*
             if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
                 
                 // This a hack for the tufts.macosx.Screen code.  When
@@ -1668,6 +1659,7 @@ public class VUE
                     f.setTitle("@" + mTitle);
                 }
             }
+            */
             setButtonState(false);
             updateActionTitle(false);
         }
@@ -1700,10 +1692,10 @@ public class VUE
             if (mLinkedButton.isSelected()) {
                 mWindow.setVisible(true);
                 mWindow.toFront();
-                VUE.ensureToolWindowVisibility(mTitle);
+                //VUE.ensureToolWindowVisibility(mTitle);
             } else {
                 mWindow.setVisible(false);
-                VUE.ensureToolWindowVisibility(null);
+                //VUE.ensureToolWindowVisibility(null);
             }
             
         }

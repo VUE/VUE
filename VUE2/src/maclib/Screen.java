@@ -6,7 +6,13 @@ import com.apple.cocoa.application.*;
 
 import java.awt.*;
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/maclib/Screen.java,v 1.3 2005-03-27 02:08:55 sfraize Exp $
+// NOTE: This will ONLY compile on Mac OS X (or, technically, anywhere
+// you have the com.apple.cocoa.* class files available).  It is for
+// generating a library to be put in the lib dir so VUE can build on
+// any platform.
+// Scott Fraize 2005-03-27
+
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/maclib/Screen.java,v 1.4 2005-03-28 03:18:35 sfraize Exp $
 
 /**
  * This class provides access to native Mac OS X functionality
@@ -156,7 +162,7 @@ public class Screen
      * on top of it.  As a side effect, this functionality on the
      * mac also moves the windows along with the main window
      * @param ensureWindow is for a window that may be in the
-     * process of showing, and thus claim's not to be visible
+     * process of showing, and thus claims not to be visible
      * yet, even tho it is.  We make sure to process any window
      * with this title even it claims not to be visible.
      *
@@ -166,8 +172,11 @@ public class Screen
      *
      * This code is very specific to the frame titles used in VUE.
      */
-    public static void keepWindowsOnTop(final String mainWindowTitleStart, String ensuredWindow, boolean fullScreen) {
-
+    public static void adjustMacWindows(final String mainWindowTitleStart,
+                                        final String ensureShown,
+                                        final String ensureHidden,
+                                        final boolean fullScreen)
+    {
         if (DEBUG) dumpWindows();
         
         NSApplication a = NSApplication.sharedApplication();
@@ -202,21 +211,23 @@ public class Screen
             // child of the vue frame, and it went invisible with it...)  We can do this,
             // but VUE will have to help us specifically.
             
-            if (w.title().startsWith("@")) {
+            //if (w.title().startsWith("@")) {
+            if (ensureHidden != null && w.title().equals(ensureHidden)) {
                 //EXPERIMENTAL
-                if (DEBUG) System.out.println("REMOVE AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
+                if (DEBUG) System.out.println("--- REMOVE AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
+                // todo: clear the @ from the title now?  What if we already removed it once?
                 MainWindow.removeChildWindow(w);
                 continue;
             }
 
-            if ((ensuredWindow != null && ensuredWindow.equals(w.title())) ||
+            if ((ensureShown != null && ensureShown.equals(w.title())) ||
                 (w.isVisible() && w.title().length() > 0))
             {
                 if (fullScreen && FullWindow != null) {
-                    if (DEBUG) System.out.println("ADDING AS CHILD OF FULL-SCREEN: #" + i + " [" + w.title() + "]");
+                    if (DEBUG) System.out.println("+++ ADDING AS CHILD OF FULL-SCREEN: #" + i + " [" + w.title() + "]");
                     FullWindow.addChildWindow(w, NSWindow.Above);
                 } else {
-                    if (DEBUG) System.out.println("ADDING AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
+                    if (DEBUG) System.out.println("+++ ADDING AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
                     MainWindow.addChildWindow(w, NSWindow.Above);
                 }
                 //w.orderFront(w); // causes some flashing

@@ -17,7 +17,7 @@
 	<key>CFBundleSignature</key>
 	<string>TVUE</string>
 	<key>CFBundleGetInfoString</key>
-	<string>NarraVision: MIT/Tufts-VUE</string>
+	<string>NarraVision Alpha (MIT/Tufts VUE)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>

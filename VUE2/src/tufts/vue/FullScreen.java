@@ -67,7 +67,7 @@ public class FullScreen {
         }
 
         VUE.getActiveViewer().requestFocus();
-        VUE.ensureToolWindowVisibility();
+        ToolWindow.adjustMacWindows();
 
         if (doBlack)
             VUE.invokeAfterAWT(new Runnable() {

@@ -19,6 +19,7 @@
 package tufts;
 
 import java.util.*;
+import java.util.jar.*;
 import java.util.prefs.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -532,11 +533,14 @@ public class Util
      * undergoing a show, to make sure we fix up, even if it doesn't claim
      * to be visible yet.
      */
-    public static void keepToolWindowsOnTop(String mainWindowTitleStart, String inActionTitle, boolean inFullScreenMode)
+    public static void adjustMacWindows(String mainWindowTitleStart,
+                                        String ensureShown,
+                                        String ensureHidden,
+                                        boolean inFullScreenMode)
     {
         if (isMacPlatform()) {
             try {
-                tufts.macosx.Screen.keepWindowsOnTop(mainWindowTitleStart, inActionTitle, inFullScreenMode);
+                tufts.macosx.Screen.adjustMacWindows(mainWindowTitleStart, ensureShown, ensureHidden, inFullScreenMode);
             } catch (LinkageError e) {
                 eout(e);
             }
@@ -641,6 +645,28 @@ public class Util
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if (args.length == 3) {
+            JarFile jar = new JarFile(args[0]);
+            System.out.println("Got jar " + jar);
+            Enumeration e = jar.entries();
+            while (e.hasMoreElements()) {
+                JarEntry entry = (JarEntry) e.nextElement();
+                long size = entry.getSize();
+                System.out.println("Got entry " + entry + "  size=" + size);
+                if (entry.getComment() != null)
+                    System.out.println("\tcomment[" + entry.getComment() + "]");
+                    byte[] extra = entry.getExtra();
+                    if (extra != null) {
+                        System.out.println("\textra len=" + extra.length + " [" + extra + "]");
+                    }
+                if (entry.getName().endsWith("MANIFEST.MF")) {
+                    java.io.InputStream in = jar.getInputStream(entry);
+                    byte[] data = new byte[(int)size];
+                    in.read(data);
+                    System.out.println("Contents[" + new String(data) + "]");
+                }
+            }
+                
         } else {
             Hashtable props = System.getProperties();
             Enumeration e = props.keys();

@@ -110,11 +110,28 @@ public class ToolWindow
             setTitle(title); 
             setUndecorated(true);
             setResizable(true);
+
+            if (VueUtil.isMacPlatform()) {
+                addComponentListener(new ComponentAdapter() {
+                        public void componentShown(ComponentEvent e) { handleShown(); }
+                        public void componentHidden(ComponentEvent e) { handleHidden(); }
+                    });
+            }
+            
         }
         public void setVisible(boolean show) { ToolWindow.this.setVisible(show); }
         public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
-        public void setSuperVisible(boolean show) { super.setVisible(show); }
         public void setSuperSize(int width, int height) { super.setSize(width, height); }
+        public void setSuperVisible(boolean show) { super.setVisible(show); }
+
+        private void handleShown() {
+            if (DEBUG.Enabled) out("handleShown [" + getTitle() + "]");
+            adjustMacWindows(getTitle(), null);
+        }
+        private void handleHidden() {
+            if (DEBUG.Enabled) out("handleHidden [" + getTitle() + "]");
+            adjustMacWindows(null, getTitle());
+        }
 
         protected void processEvent(AWTEvent e) {
             if (DEBUG.TOOL && (e instanceof MouseEvent == false || DEBUG.META))
@@ -123,6 +140,21 @@ public class ToolWindow
         }
     
     }
+
+    static void adjustMacWindows() {
+        adjustMacWindows(null, null);
+    }
+    static void adjustMacWindows(final String ensureShown, final String ensureHidden) {
+        if (VueUtil.isMacPlatform() && !VUE.inNativeFullScreen()) {
+            VUE.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        tufts.Util.adjustMacWindows(VUE.NAME + ":", ensureShown, ensureHidden, VUE.inFullScreen());
+                    }
+                });
+        }
+    }
+    
+    
     /**
      * WindowDelegate: The default delegate, a standard window, For PC, etc (all non-mac)
      *
