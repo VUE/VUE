@@ -117,7 +117,8 @@ public class VUE
         SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_DEFAULT);
     }
 
-
+    private VUE() {}
+    
     public static void main(String[] args)
     {
         String laf = null;
@@ -223,6 +224,301 @@ public class VUE
 
     }
 
+    public static MapViewer getActiveViewer()
+    {
+        return (MapViewer) tabbedPane.getSelectedComponent();
+    }
+    public static Vue2DMap getActiveMap()
+    {
+        return getActiveViewer().getMap();
+    }
+
+    public static void displayMap(Vue2DMap map)
+    {
+        // todo: figure out if we're already displaying this map
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
+        }
+        MapViewer mapViewer = new tufts.vue.MapViewer(map);
+        tabbedPane.addTab(map.getLabel(), mapViewer);
+        tabbedPane.setSelectedComponent(mapViewer);
+    }
+    
+    // really, this wants to be ComponentAction or something
+    // also, it doesn't belong in the MapViewer -- put it
+    // in VUE?  Vue2DMap?  Main menu's will also need to use this.
+    //private MapAction maBringToFront = new MapAction("Bring to Front");
+
+    //REALLY, these are ConceptMapActions -- they take a selection
+    // and make changes to a Vue2DMap based on what's in it.
+
+    // set to VUE.this for the singleton VUE instance
+    // We need this to access the actions statically.
+
+    static class Actions {
+        static final int META = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+        static final int CTRL = Event.CTRL_MASK;
+        static final int SHIFT = Event.SHIFT_MASK;
+        
+    static final MapAction Copy = new MapAction("Copy") {
+            void Xact(LWComponent c) {
+
+            }};
+    static final MapAction Group = new MapAction("Group") { // enable only when two or more objects in selection
+            boolean enabled(java.util.List l) { return l.size() > 1; }
+            void Xact(java.util.List selectionList)
+            {
+                //getMap().createGroup(selectionList);
+            }};
+    static final MapAction Ungroup = new MapAction("Ungroup") { // group objects only
+            void act(LWComponent c) {
+                if (c instanceof LWGroup)
+                    System.out.println("found group " + c);
+            }};
+    static final MapAction Rename = new MapAction("Rename") { //MapViewer action
+            boolean enabled(java.util.List l) { return l.size() == 1; }
+            void act(LWComponent c) {
+                getActiveViewer().activateLabelEdit(c);
+            }};
+    static final MapAction Delete = new MapAction("Delete") {
+            void act(java.util.List selectionList)
+            {
+                // need to copy list as selection gets modified as we delete
+                Object[] comps = selectionList.toArray();
+                for (int i = 0; i < comps.length; i++) {
+                    LWComponent c = (LWComponent) comps[i];
+                    c.getParent().removeChild(c);
+                }
+            }};
+    static final MapAction BringToFront =
+        new MapAction("Bring to Front",
+                      "Raise object to the top, completely unobscured",
+                      KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL+SHIFT))
+        {
+            void act(java.util.List selection) {
+                LWGroup.bringToFront(selection);
+            }
+        };
+    static final MapAction SendToBack =
+        new MapAction("Send to Back",
+                      "Make sure this object doesn't obscure any other object",
+                      KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL+SHIFT))
+        {
+            void act(java.util.List selection) {
+                LWGroup.sendToBack(selection);
+            }
+        };
+    static final MapAction BringForward =
+        new MapAction("Bring Forward",
+                      null,
+                      KeyStroke.getKeyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL))
+        {
+            void act(java.util.List selection) {
+                LWGroup.bringForward(selection);
+            }
+        };
+    static final MapAction SendBackward =
+        new MapAction("Send Backward",
+                      null,
+                      KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL))
+        {
+            void act(java.util.List selection) {
+                LWGroup.sendBackward(selection);
+            }
+        };
+    }
+
+    //componentaction? MapSelectionAction?
+    static class MapAction extends AbstractAction {
+        // handles an action on a selection (single or group)
+
+        // statically listen for selection events as their's
+        // only ever one selection, altho everybody needs
+        // to do their own check, so I guess everyone needs
+        // to listen anyway..
+        public MapAction(String name)
+        {
+            super(name);
+        }
+        public MapAction(String name, String shortDescription, KeyStroke keyStroke)
+        {
+            this(name);
+            if (shortDescription != null)
+                putValue(SHORT_DESCRIPTION, shortDescription);
+            putValue(ACCELERATOR_KEY, keyStroke);
+        }
+        public String getActionName()
+        {
+            return (String) getValue(Action.NAME);
+        }
+        public void actionPerformed(ActionEvent ae)
+        {
+            java.util.List selectionList = getActiveViewer().getSelectionList();
+            //todo: if no active viewer, try a static MapViewer in case it's running alone
+            System.out.println(ae.getActionCommand() + " " + selectionList);
+            if (selectionList.size() == 0) {
+                System.err.println("MapAction: nothing in selection!");
+                return;
+            }
+            if (enabled(selectionList)) {
+                act(selectionList);
+                getActiveViewer().repaint();
+            } else
+                System.out.println("Not allowed now");
+        }
+        boolean enabled(java.util.List l) { return true; }
+        
+        void act(java.util.List selectionList)
+        {
+            act(selectionList.iterator());
+        }
+        // automatically apply the action serially to everything in the
+        // selection -- override if this or isn't what the action
+        // wants to do.
+        void act(java.util.Iterator i)
+        {
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                act(c);
+            }
+        }
+        void act(LWComponent c)
+        {
+            System.out.println("unhandled MapAction: " + getActionName() + " on " + c);
+        }
+        void Xact(LWComponent c) {}// for commenting convenience
+    }
+    
+    private static void  setMenuToolbars(JFrame frame, Action[] windowActions)
+    {
+        final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+        
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenu editMenu = new JMenu("Edit");
+        JMenu viewMenu = new JMenu("View");
+        JMenu formatMenu = new JMenu("Format");
+        JMenu arrangeMenu = new JMenu("Arrange");
+        JMenu alignMenu = new JMenu("Align");
+        JMenu windowMenu = new JMenu("Window");
+        JMenu optionsMenu = new JMenu("Options");
+        JMenu helpMenu = new JMenu("Help");
+        
+        menuBar.add(fileMenu);
+        menuBar.add(editMenu);
+        menuBar.add(viewMenu);
+        menuBar.add(formatMenu);
+        menuBar.add(arrangeMenu);
+        menuBar.add(windowMenu);
+        menuBar.add(optionsMenu);
+        menuBar.add(helpMenu);
+        //adding actions
+        SaveAction saveAction = new SaveAction("Save", false);
+        SaveAction saveAsAction = new SaveAction("Save As...");
+        OpenAction openAction = new OpenAction("Open");
+        ExitAction exitAction = new ExitAction("Quit");
+        fileMenu.add(new JMenuItem("New"));
+        fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
+        fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
+        fileMenu.add(saveAsAction);
+        //fileMenu.add(htmlAction);
+        fileMenu.add(new JMenuItem("Export ..."));
+        fileMenu.addSeparator();
+        fileMenu.add(exitAction);
+        
+        editMenu.add(new JMenuItem("Undo"));
+        editMenu.add(new JMenuItem("Redo"));
+        editMenu.addSeparator();
+        editMenu.add(new JMenuItem("Cut"));
+        editMenu.add(new JMenuItem("Copy"));
+        editMenu.add(new JMenuItem("Paste"));
+        editMenu.addSeparator();
+        editMenu.add(new JMenuItem("Select All"));
+        
+        viewMenu.add(new JMenuItem("Zoom In"));
+        viewMenu.add(new JMenuItem("Zoom Out"));
+        viewMenu.add(new JMenuItem("Zoom Fit"));
+        viewMenu.add(new JMenuItem("Zoom 100%"));
+        viewMenu.addSeparator();
+        viewMenu.add(new JMenuItem("Resources"));
+        viewMenu.add(new JMenuItem("Collection"));
+        viewMenu.add(new JMenuItem("Inspector"));
+        viewMenu.add(new JMenuItem("Pathway"));
+        viewMenu.add(new JMenuItem("Toolbar"));
+        viewMenu.add(new JMenuItem("Overview"));
+        
+        JMenu fontMenu = new JMenu("Font");
+
+        /*
+        // this list bigger than screen & menu isn't scrolling for us!
+        String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+        System.out.println(java.util.Arrays.asList(fonts));
+        for (int i = 0; i < fonts.length; i++) {
+            JMenuItem fm = new JMenuItem(fonts[i]);
+            fontMenu.add(fm);
+        }
+        */
+                           
+        formatMenu.add(fontMenu);
+        formatMenu.add(new JMenuItem("Size"));
+        formatMenu.add(new JMenuItem("Style"));
+        formatMenu.add(new JMenuItem("Justify"));
+
+        alignMenu.add(new JMenuItem("Row"));
+        alignMenu.add(new JMenuItem("Column"));
+        
+        arrangeMenu.add(Actions.BringToFront);
+        arrangeMenu.add(Actions.SendToBack);
+        arrangeMenu.add(Actions.BringForward);
+        arrangeMenu.add(Actions.SendBackward);
+        arrangeMenu.addSeparator();
+        arrangeMenu.add(Actions.Group);
+        arrangeMenu.add(Actions.Ungroup);
+        arrangeMenu.addSeparator();
+        arrangeMenu.add(alignMenu);
+        
+        for (int i = 0; i < windowActions.length; i++) {
+            System.out.println("adding " + windowActions[i]);
+            windowMenu.add(new JCheckBoxMenuItem(windowActions[i]));
+        }
+
+        optionsMenu.add(new JMenuItem("Node Types..."));
+        optionsMenu.add(new JMenuItem("Map Preference..."));
+        optionsMenu.add(new JMenuItem("Preferences..."));
+        
+        helpMenu.add(new JMenuItem("Help"));
+        
+
+        //extra additions by the power team members
+        PDFConversion pdfAction = new PDFConversion("PDF");
+        HTMLConversion htmlAction = new HTMLConversion("Html");
+        ImageConversion imageAction = new ImageConversion("Jpeg");
+        ImageMap imageMap = new ImageMap("Imap");
+        //SVGConversion svgAction = new SVGConversion("SVG");
+        PrintAction printAction = new PrintAction("Print");
+        
+        JToolBar toolBar = new JToolBar();
+        toolBar.add(openAction);
+        toolBar.add(saveAction);
+        toolBar.add(saveAsAction);
+        toolBar.add(imageAction);
+        toolBar.add(htmlAction);
+        toolBar.add(pdfAction);
+        toolBar.add(imageMap);
+        //toolBar.add(svgAction);
+        toolBar.add(printAction);
+        //toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+        frame.setJMenuBar(menuBar);
+        frame.getContentPane().add(toolBar,BorderLayout.NORTH);
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {System.exit(0);}});
+    }
+
+
+
+
+
+
     static void installExampleNodes(Vue2DMap map)
     {
         map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
@@ -259,122 +555,5 @@ public class VUE
         map.addLink(new LWLink(n2, n4));
     }
 
-    public static MapViewer getActiveViewer()
-    {
-        return (MapViewer) tabbedPane.getSelectedComponent();
-    }
-    public static Vue2DMap getActiveMap()
-    {
-        return getActiveViewer().getMap();
-    }
 
-    public static void displayMap(Vue2DMap map)
-    {
-        // todo: figure out if we're already displaying this map
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-            MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
-        }
-        MapViewer mapViewer = new tufts.vue.MapViewer(map);
-        tabbedPane.addTab(map.getLabel(), mapViewer);
-        tabbedPane.setSelectedComponent(mapViewer);
-    }
-    
-    private static void  setMenuToolbars(JFrame frame, Action[] windowActions) {
-        JMenuBar menuBar = new JMenuBar();
-        JMenu fileMenu = new JMenu("File");
-        JMenu editMenu = new JMenu("Edit");
-        JMenu viewMenu = new JMenu("View");
-        JMenu formatMenu = new JMenu("Format");
-        JMenu windowMenu = new JMenu("Window");
-        JMenu optionsMenu = new JMenu("Options");
-        JMenu helpMenu = new JMenu("Help");
-        
-        menuBar.add(fileMenu);
-        menuBar.add(editMenu);
-        menuBar.add(viewMenu);
-        menuBar.add(formatMenu);
-        menuBar.add(windowMenu);
-        menuBar.add(optionsMenu);
-        menuBar.add(helpMenu);
-        //adding actions
-        SaveAction saveAction = new SaveAction("Save", false);
-        SaveAction saveAsAction = new SaveAction("Save As...");
-        OpenAction openAction = new OpenAction("Open");
-        ExitAction exitAction = new ExitAction("Quit");
-        fileMenu.add(new JMenuItem("New"));
-        fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
-        fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
-        fileMenu.add(saveAsAction);
-        //fileMenu.add(htmlAction);
-        fileMenu.add(new JMenuItem("Export ..."));
-        fileMenu.addSeparator();
-        fileMenu.add(exitAction);
-        
-        editMenu.add(new JMenuItem("Undo"));
-        editMenu.add(new JMenuItem("Redo"));
-        editMenu.addSeparator();
-        editMenu.add(new JMenuItem("Cut"));
-        editMenu.add(new JMenuItem("Copy"));
-        editMenu.add(new JMenuItem("Paste"));
-        editMenu.addSeparator();
-        editMenu.add(new JMenuItem("Select All"));
-        
-        viewMenu.add(new JMenuItem("Zoom In"));
-        viewMenu.add(new JMenuItem("Zoom Out"));
-        viewMenu.add(new JMenuItem("Zoom Fit"));
-        viewMenu.add(new JMenuItem("Zoom 100%"));
-        viewMenu.addSeparator();
-        viewMenu.add(new JMenuItem("Resources"));
-        viewMenu.add(new JMenuItem("Collection"));
-        viewMenu.add(new JMenuItem("Inspector"));
-        viewMenu.add(new JMenuItem("Pathway"));
-        viewMenu.add(new JMenuItem("Toolbar"));
-        viewMenu.add(new JMenuItem("Overview"));
-        
-        formatMenu.add(new JMenuItem("Font"));
-        formatMenu.add(new JMenuItem("Size"));
-        formatMenu.add(new JMenuItem("Style"));
-        formatMenu.add(new JMenuItem("Justify"));
-        formatMenu.add(new JMenuItem("Align"));
-        formatMenu.add(new JMenuItem("Group"));
-        formatMenu.add(new JMenuItem("UnGroup"));
-        
-        for (int i = 0; i < windowActions.length; i++) {
-            System.out.println("adding " + windowActions[i]);
-            windowMenu.add(new JCheckBoxMenuItem(windowActions[i]));
-        }
-
-        optionsMenu.add(new JMenuItem("Node Types..."));
-        optionsMenu.add(new JMenuItem("Map Preference..."));
-        optionsMenu.add(new JMenuItem("Preferences..."));
-        
-        helpMenu.add(new JMenuItem("Help"));
-        
-
-        
-
-        //extra additions by the power team members
-        PDFConversion pdfAction = new PDFConversion("PDF");
-        HTMLConversion htmlAction = new HTMLConversion("Html");
-        ImageConversion imageAction = new ImageConversion("Jpeg");
-        ImageMap imageMap = new ImageMap("Imap");
-        //SVGConversion svgAction = new SVGConversion("SVG");
-        PrintAction printAction = new PrintAction("Print");
-        
-        JToolBar toolBar = new JToolBar();
-        toolBar.add(openAction);
-        toolBar.add(saveAction);
-        toolBar.add(saveAsAction);
-        toolBar.add(imageAction);
-        toolBar.add(htmlAction);
-        toolBar.add(pdfAction);
-        toolBar.add(imageMap);
-        //toolBar.add(svgAction);
-        toolBar.add(printAction);
-        //toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
-        frame.setJMenuBar(menuBar);
-        frame.getContentPane().add(toolBar,BorderLayout.NORTH);
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {System.exit(0);}});
-    }
 }
