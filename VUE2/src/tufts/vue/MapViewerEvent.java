@@ -8,6 +8,7 @@ public class MapViewerEvent
     public static final int HIDDEN = 2;
     public static final int PAN = 4;
     public static final int ZOOM = 8;
+    public static final int FOCUSED = 16;
     
     private int id;
     
@@ -32,6 +33,11 @@ public class MapViewerEvent
         return (MapViewer) getSource();
     }
 
+    public boolean isActivationEvent()
+    {
+        return (id & (DISPLAYED|FOCUSED)) != 0;
+    }
+
     public void dispatch(Object listener)
     {
         if (DEBUG.EVENTS)  {
@@ -51,6 +57,7 @@ public class MapViewerEvent
         else if (id == HIDDEN) name = "HIDDEN";
         else if (id == PAN) name = "PAN";
         else if (id == ZOOM) name = "ZOOM";
+        else if (id == FOCUSED) name = "FOCUSED";
         return "MapViewerEvent[" + name + " src=" + getSource() + "]";
     }
     

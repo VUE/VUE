@@ -100,7 +100,10 @@ public class VUE
     static class VueFrame extends JFrame
         implements MapViewer.Listener
     {
-        final int TitleChangeMask = MapViewerEvent.DISPLAYED | MapViewerEvent.ZOOM;
+        final int TitleChangeMask =
+            MapViewerEvent.DISPLAYED |
+            MapViewerEvent.FOCUSED |
+            MapViewerEvent.ZOOM;        // title includes zoom
         
         VueFrame() {
             super("VUE: Tufts Concept Map Tool");

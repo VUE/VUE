@@ -52,9 +52,8 @@ public class MapPanner extends javax.swing.JPanel
      */
     public void mapViewerEventRaised(MapViewerEvent e)
     {
-        if (e.getID() == MapViewerEvent.DISPLAYED) {
+        if (e.isActivationEvent()) {
             setViewer(e.getMapViewer());
-            repaint();
         } else if (e.getSource() == this.mapViewer
                    && (e.getID() == MapViewerEvent.PAN ||
                        e.getID() == MapViewerEvent.ZOOM)) {
@@ -64,7 +63,10 @@ public class MapPanner extends javax.swing.JPanel
     
     private void setViewer(MapViewer mapViewer)
     {
-        this.mapViewer = mapViewer;
+        if (this.mapViewer != mapViewer) {
+            this.mapViewer = mapViewer;
+            repaint();
+        }
     }
     
     public void paintComponent(Graphics g)

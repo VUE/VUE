@@ -50,6 +50,17 @@ public class PathwayTable extends JTable
     public PathwayTable(PathwayPanel ta, PathwayTableModel model) {
         super(model);
 
+        model.addTableModelListener(new TableModelListener() {
+                public void tableChanged(TableModelEvent e) {
+                    System.out.println(this + " TableModelEvent[src="
+                                       + e.getSource()
+                                       + " rows=" + e.getFirstRow() + "-" + e.getLastRow()
+                                       + " col=" + e.getColumn()
+                                       + " type=" + e.getType()
+                                       + "]");
+                }
+            });
+
         final PathwayPanel pathPanel = ta;
 
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);

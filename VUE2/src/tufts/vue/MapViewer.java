@@ -613,10 +613,23 @@ public class MapViewer extends javax.swing.JComponent
         revalidate();
         //setMapOriginOffset(extent.x, extent.y);
         //((JViewport)getParent()).setExtentSize(d);
-        new MapViewerEvent(this, MapViewerEvent.PAN).raise();
+        //if (isDisplayed())
+        if (VUE.getActiveViewer() == this)
+            new MapViewerEvent(this, MapViewerEvent.PAN).raise(); // notify panner
 
     }
 
+    private boolean isDisplayed()
+    {
+        if (!isShowing())
+            return false;
+        if (inScrollPane) {
+            System.out.println("parent=" + getParent());
+            return getParent().getWidth() > 0 && getParent().getHeight() > 0;
+        } else
+            return getWidth() > 0 && getHeight() > 0;
+    }
+    
     private void panScrollRegion(int dx, int dy)
     {
         Point location = mViewport.getViewPosition();
@@ -4399,7 +4412,7 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
         grabVueApplicationFocus("focusGained");
         repaint();
-        new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
+        new MapViewerEvent(this, MapViewerEvent.FOCUSED).raise();
     }
 
     /**
