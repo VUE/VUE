@@ -1894,8 +1894,10 @@ public class MapViewer extends javax.swing.JComponent
                 if (shape instanceof RectangularPoly2D) {
                     if (((RectangularPoly2D)shape).getSides() > 4) {
                         Ellipse2D inscribed = new Ellipse2D.Float();
-                        inscribed.setFrame(shape.getBounds());
-                        g2.draw(inscribed);
+                        if (DEBUG_BOXES) {
+                            inscribed.setFrame(shape.getBounds());
+                            g2.draw(inscribed);
+                        }
                         inscribed.setFrame(c.getX(),
                                            c.getY()+(c.getHeight()-c.getWidth())/2,
                                            c.getWidth(),
