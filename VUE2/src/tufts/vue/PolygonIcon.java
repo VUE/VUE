@@ -36,7 +36,17 @@ public class PolygonIcon implements Icon {
         this.shape = shape;
         
     }
-    
+    public void setIconWidth(int width){
+        
+        this.width = width;
+        
+    }  
+      public void setIconHeight(int height){
+        
+        this.height = height;
+        
+    }  
+        
     public int getIconWidth() {
         return width;
     }
