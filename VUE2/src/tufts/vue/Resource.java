@@ -16,6 +16,8 @@ import org.w3c.dom.Text;
 import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import fedora.server.types.gen.*;
@@ -49,13 +51,14 @@ public class Resource
  	/** property name cache **/
  	private String [] mPropertyNames = null;
 
+    private URL url = null;
+    
     public Resource() {   
     }
     
     public Resource(String spec)
     {
-        this.spec = spec;
-        this.referenceCreated = System.currentTimeMillis();
+        setSpec(spec);
     }
 
     private void setPropertiesByAsset() {
@@ -113,18 +116,27 @@ public class Resource
         // platform, (meaning, a different separator char) unless
         // we're going to canonicalize everything ourselves coming
         // in...
-        
+
+        if (this.url == null)
+            txt = "file://" + spec;
+        else
+            txt = this.url.toString();
+        /*
         if (spec.startsWith(java.io.File.separator))
             txt = "file://" + spec;
         else
             txt = spec;
+        */
         return txt;
     }
     
     public java.net.URL toURL()
         throws java.net.MalformedURLException
     {
-        return new java.net.URL(toURLString());
+        if (url == null)
+            return new java.net.URL(toURLString());
+        else
+            return this.url;
     }
 
     public void displayContent()
@@ -177,6 +189,15 @@ public class Resource
 
     public void setSpec(String spec) {
         this.spec = spec;
+        this.referenceCreated = System.currentTimeMillis();
+        try {
+            url = new URL(this.spec);
+            //System.out.println("Resource [" + spec + "] has URL [" + url + "]");
+        } catch (MalformedURLException e) {
+            // Okay for url to be null: means local file
+            //System.err.println(e);
+            //System.out.println("Resource [" + spec + "] *** NOT A URL ***");
+        }
     }
     
     public String getSpec() {
@@ -185,8 +206,9 @@ public class Resource
 
     public boolean isLocalFile()
     {
-        String s = spec.toLowerCase();
-        return s.startsWith("file:") || s.indexOf(':') < 0;
+        return url == null || url.getProtocol().equals("file");
+        //String s = spec.toLowerCase();
+        //return s.startsWith("file:") || s.indexOf(':') < 0;
     }
 
     public String getExtension()
@@ -204,8 +226,8 @@ public class Resource
                     ext = spec.substring(i+1);
             }
         }
-        if (ext.length() > 4)
-            ext = ext.substring(0,4);
+        if (ext.length() > 3)
+            ext = ext.substring(0,3);
 
         return ext;
     }

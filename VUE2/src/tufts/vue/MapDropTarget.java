@@ -13,7 +13,11 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 
 import java.util.List;
+import java.util.regex.*;
+
 import java.io.File;
+import java.io.FileInputStream;
+
 import java.net.*;
 
 import osid.dr.*;
@@ -31,7 +35,9 @@ class MapDropTarget
         DnDConstants.ACTION_COPY |
         DnDConstants.ACTION_LINK;
         //DnDConstants.ACTION_MOVE;
-        // FYI, "move" doesn't appear to actually ever mean delete original source.
+        // Do NOT include MOVE, or dragging a URL from the IE address bar becomes
+        // a denied drag option!  Even dragged text from IE becomes disabled.
+        // FYI, also, "move" doesn't appear to actually ever mean delete original source.
         // Putting this in makes certial special windows files "available"
         // for drag (e.g., a desktop "hard" reference link), yet there are never
         // any data-flavors available to process it, so we might as well indicate
@@ -118,10 +124,6 @@ class MapDropTarget
             try {
                 Object data = transfer.getTransferData(flavor);
                 System.out.println(" [" + data + "]");
-                if (data instanceof java.net.URL) {
-                    URL url = (URL) data;
-                    System.out.println("\tURL: ref=" + url.getRef());
-                }
                 //if (flavor.getHumanPresentableName().equals("text/uri-list")) readTextFlavor(flavor, transfer);
             } catch (Exception ex) {
                 System.out.println("\tEXCEPTION: getTransferData: " + ex);
@@ -152,7 +154,7 @@ class MapDropTarget
         }
         
         boolean modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
-        // COPY action is default action.
+        // MOVE action is default action.
         
         // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
         // changes to dropAction that happen when the drag was
@@ -234,17 +236,34 @@ class MapDropTarget
             List addedNodes = new java.util.ArrayList();
             while (iter.hasNext()) {
                 File file = (File) iter.next();
-                if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
+
+                String resourceSpec = file.getPath();
+                String resourceName = file.getName();
+                
+                if (file.getPath().toLowerCase().endsWith(".url")) {
+                    // Search a windows .url file (an internet shortcut)
+                    // for the actual web reference.
+                    String url = convertWindowsURLShortCutToURL(file);
+                    if (url != null) {
+                        resourceSpec = url;
+                        if (file.getName().length() > 4)
+                            resourceName = file.getName().substring(0, file.getName().length() - 4);
+                        else
+                            resourceName = file.getName();
+                    }
+                }
+                
+                //if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
                 //if (hitComponent != null && fileList.size() == 1) {
+                
                 if (hitComponent != null) {
                     if (createAsChildren) {
-                        ((LWNode)hitComponent).addChild(createNewNode(file, null));
+                        ((LWNode)hitComponent).addChild(createNewNode(resourceSpec, resourceName, null));
                     } else {
-                        hitComponent.setResource(file.toString());
+                        hitComponent.setResource(resourceSpec);
                     }
                 } else {
-                    //createNewNode("file:///"+file.toString(), file.getName(), new java.awt.Point(x, y));
-                    addedNodes.add(createNewNode(file, new java.awt.Point(x, y)));
+                    addedNodes.add(createNewNode(resourceSpec, resourceName, new java.awt.Point(x, y)));
                     x += 15;
                     y += 15;
                 }
@@ -292,6 +311,33 @@ class MapDropTarget
 
         return success;
     }
+
+    private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
+    private String convertWindowsURLShortCutToURL(File file)
+    {
+        String url = null;
+        try {
+            if (debug) System.out.println("*** Searching for URL in: " + file);
+            FileInputStream is = new FileInputStream(file);
+            byte[] buf = new byte[2048]; // if not in first 2048, don't bother
+            int len = is.read(buf);
+            is.close();
+            String str = new String(buf, 0, len);
+            System.out.println("*** size="+str.length() +"["+str+"]");
+            Matcher m = URL_Line.matcher(str);
+            if (m.lookingAt()) {
+                url = m.group(1);
+                if (url != null)
+                    url = url.trim();
+                if (debug) System.out.println("*** FOUND URL ["+url+"]");
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return url;
+    }
+
+        
     
 
     private String readTextFlavor(DataFlavor flavor, Transferable transfer)
@@ -331,12 +377,14 @@ class MapDropTarget
         return node;
     }
 
+    /*
     private LWNode createNewNode(File file, Point p)
     {
         // TODO BUG: adding the file:/// here produces inconsistent results --
         // that needs to be done in the Resource object!
         return createNewNode("file://"+file.toString(), file.getName(), p);
     }
+    */
         
 
     private void createNewTextNode(String text, java.awt.Point p)
