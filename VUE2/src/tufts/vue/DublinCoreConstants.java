@@ -27,6 +27,6 @@ public interface DublinCoreConstants {
     public static int SUPPORTED_NUMBER = 9;
    
     public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
-    
+    public static final String DC_NAMESPACE = "dc:";
     
 }
