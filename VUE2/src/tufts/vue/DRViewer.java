@@ -144,11 +144,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         Insets defaultInsets = new Insets(2,2,2,2);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
-
-      
         
         
-         //adding the label Keywords
+        
+        
+        //adding the label Keywords
         c.gridx = 0;
         c.gridy = 1;
         
@@ -168,7 +168,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         gridbag.setConstraints(keywords, c);
         DRSearchPanel.add(keywords);
         
-       
+        
         
         // adding the number of search results tab.
         c.gridx=0;
@@ -358,7 +358,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     
     private void performAdvancedSearch() {
         try {
-            
+            advancedSearchButton.setEnabled(false);
             searchCriteria.setConditions((fedora.server.types.gen.Condition[])m_model.getConditions().toArray(new Condition[0]));
             searchCriteria.setMaxReturns(maxReturnsAdvancedSearch.getSelectedItem().toString());
             searchCriteria.setResults(0);
@@ -373,16 +373,19 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
                 countError = 0;
             }else {
+                advancedSearchButton.setEnabled(true);
                 countError++;
-                searchButton.doClick();
+                advancedSearchButton.doClick();
             }
             ex.printStackTrace();
-            
+        } finally {
+            advancedSearchButton.setEnabled(true);
         }
     }
     
     private void performMoreSearch() {
         try {
+            nextButton.setEnabled(false);
             searchCriteria.setSearchOperation(SearchCriteria.RESUME_FIND_OBJECTS);
             searchCriteria.setResults(0);
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType);
@@ -396,12 +399,14 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
                 VueUtil.alert(this, FEDORA_MESG,"Search Error");
                 countError = 0;
             }else {
+                nextButton.setEnabled(true);
                 countError++;
                 nextButton.doClick();
             }
             System.out.println("DRViewer.performMoreSearch :"+ex);
+        }finally {
+            nextButton.setEnabled(true);
         }
-        
     }
     public Iterator getAssetResourceIterator(AssetIterator i)  throws osid.dr.DigitalRepositoryException, osid.OsidException{
         Vector assetResources = new Vector();
