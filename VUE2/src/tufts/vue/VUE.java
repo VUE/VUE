@@ -462,7 +462,7 @@ public class VUE
         
         if (!nodr) {
             try {
-                OpenAction.displayMap(new File(System.getProperty("user.dir")+"/tufts/vue/resources/startup.xml"));// this will be loaded using vue resourece
+                OpenAction.displayMap(new File(VueResources.getURL("resource.startmap").getFile()));// this will be loaded using vue resourece
             } catch(Exception ex) {
                 VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
                 ex.printStackTrace();

@@ -75,8 +75,8 @@ public class VueResources
         public static URL getURL(String pLookupKey) {
             URL url = null;
             try {
-                url = sResourceBundle.getClass().getResource(pLookupKey);
-                System.out.println("URL found = "+url);
+                url = sResourceBundle.getClass().getResource(getString(pLookupKey));
+                System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+url);
             } catch (Exception e) {
 			alert("  !!! failed to lead due to "+ e.toString() );
             }
