@@ -72,7 +72,7 @@ public class XMLView extends AbstractAction{
     {   
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
         
-        if(VUE.tabbedPane.getSelectedComponent() instanceof MapViewer) {
+        if(VUE.getTabbedPane().getSelectedComponent() instanceof MapViewer) {
 
             //call marshaller in ActionUtil
             ActionUtil.marshallMap(new File(fileName));
@@ -104,16 +104,16 @@ public class XMLView extends AbstractAction{
             JScrollPane pane = new JScrollPane(xmlArea);
             
             String mapName = VUE.getActiveMap().getLabel();
-            JTabbedPane tabPane = VUE.tabbedPane;
+            JTabbedPane tabPane = VUE.getTabbedPane();
             for(int i = 0; i < tabPane.getComponentCount(); i++){
                 if(tabPane.getTitleAt(i).equals(mapName +".xml")){
-                    VUE.tabbedPane.setSelectedIndex(i);
+                    VUE.getTabbedPane().setSelectedIndex(i);
                     return;
                 }
             }
 
-            VUE.tabbedPane.addTab(mapName+".xml", pane);
-            VUE.tabbedPane.setSelectedIndex(VUE.tabbedPane.getComponentCount()-1);
+            VUE.getTabbedPane().addTab(mapName+".xml", pane);
+            VUE.getTabbedPane().setSelectedIndex(VUE.getTabbedPane().getComponentCount()-1);
             //setAttributes();
             
             pane.repaint();

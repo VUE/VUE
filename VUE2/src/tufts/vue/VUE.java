@@ -21,7 +21,7 @@ public class VUE
 
     /** The currently active viewer (e.g., is visible
         and has focus).  Actions (@see Actions.java) are performed on
-        the active model (sometiems querying the active viewer). */
+        the active model (sometimes querying the active viewer). */
     public static MapViewer ActiveViewer = null;
     /** The currently active selection.
         elements in ModelSelection should always be from the ActiveModel */
@@ -34,7 +34,7 @@ public class VUE
     //set to public so that action package can access it (Jay Briedis 6/4/03)
     //(lets add method calls/whatever API is needed by action on VUE so this doesn't
     // need to be public) -- SF 2003-06-30 10:39.21 Monday
-    public static JTabbedPane tabbedPane;
+    private static JTabbedPane tabbedPane;
     private static JTabbedPane tabbedPane2;//todo: rename left/right
     private static JSplitPane viewerSplit;
     
@@ -322,6 +322,10 @@ public class VUE
         // can't query the tabbed panes.
         return ActiveViewer;
 
+    }
+    
+    public static JTabbedPane getTabbedPane(){
+        return tabbedPane;
     }
     
     public static LWMap getActiveMap()
