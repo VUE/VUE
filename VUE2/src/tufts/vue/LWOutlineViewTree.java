@@ -178,6 +178,13 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
             
             LWTreeNode addedChildTreeNode = new LWTreeNode(addedChild);
             
+            if (parentTreeNode == null) {
+                System.err.println("*** NULL parentTreeNode in LWOutlineViewTree");
+                // don't know what right thing to do here, but this exception
+                // was driving me crazy -- SMF 2003-11-13 18:19.04
+                return;
+            }
+
             //adds the tree node
             parentTreeNode.add(addedChildTreeNode); 
                
