@@ -505,8 +505,9 @@ public class VUE
         //PDFConversion pdfAction = new PDFConversion("PDF");
         PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("HTML");
+        XMLView xmlAction = new XMLView("XML");
         ImageConversion imageAction = new ImageConversion("Jpeg");
-        ImageMap imageMap = new ImageMap("Imap");
+        ImageMap imageMap = new ImageMap("IMAP");
         //SVGConversion svgAction = new SVGConversion("SVG");
         PrintAction printAction = new PrintAction("Print");
         
@@ -516,6 +517,7 @@ public class VUE
         toolBar.add(saveAsAction);
         toolBar.add(imageAction);
         toolBar.add(htmlAction);
+        toolBar.add(xmlAction);
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
         //toolBar.add(svgAction);
