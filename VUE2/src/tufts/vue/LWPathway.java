@@ -95,9 +95,8 @@ public class LWPathway extends tufts.vue.LWComponent
         Iterator iter = getNodeIterator();
         while(iter.hasNext()){
             LWNode node = (LWNode)iter.next();
-            //if(!node.getStrokeColor().equals(borderColor))
-            //    node.setStrokeColor(borderColor);
-            node.setIndicated(true);
+            if(!node.getStrokeColor().equals(borderColor))
+                node.setStrokeColor(borderColor);
         }
     }
     
@@ -124,8 +123,18 @@ public class LWPathway extends tufts.vue.LWComponent
         return (Node)nodeList.getFirst();
     }
     
+    public boolean isFirst(Node node)
+    {
+        return (node.equals(getFirst()));
+    }
+    
     public Node getLast() {
         return (Node)nodeList.getLast();
+    }
+    
+    public boolean isLast(Node node)
+    {
+        return (node.equals(getLast()));
     }
     
     public Node getPrevious(Node current) {
@@ -198,4 +207,23 @@ public class LWPathway extends tufts.vue.LWComponent
         this.weight = weight;
     }
     
+    /**
+    public void setCategory(String category) {
+    }
+    
+    public void setID(String ID) {
+    }
+    
+    public void setLabel(String label) {
+    }
+    
+    public void setMetaData(String metaData) {
+    }
+    
+    public void setNotes(String notes) {
+    }
+    
+    public void setResource(Resource resource) {
+    }
+    */
 }
