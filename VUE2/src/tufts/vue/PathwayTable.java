@@ -78,6 +78,7 @@ public class PathwayTable extends JTable
         this.getSelectionModel().addListSelectionListener
             (new ListSelectionListener() {
                 public void valueChanged(ListSelectionEvent le) {
+                    // this usually happens via mouse click, but also possible via arrow key's moving selected item
                     ListSelectionModel lsm = (ListSelectionModel)le.getSource();
                     if (lsm.isSelectionEmpty())
                         return;

@@ -1332,8 +1332,10 @@ public class LWComponent
      */
     static void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
     {
-        if (sEventDepth > 5)
-            throw new IllegalStateException("looping on delivery of " + e + " in " + source + " to " + listeners);
+        if (sEventDepth > 5) // guestimate max based on current architecture -- increase if you need to
+            throw new IllegalStateException("eventDepth=" + sEventDepth
+                                            + ", assumed looping on delivery of "
+                                            + e + " in " + source + " to " + listeners);
 
         if (source instanceof LWComponent && ((LWComponent)source).isDeleted() || listeners == null) {
             System.err.println("DISPATCH: deleted component or null listeners attempting event dispatch:"

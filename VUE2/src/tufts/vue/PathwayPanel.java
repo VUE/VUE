@@ -134,7 +134,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         tableModel.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
                     if (DEBUG.PATHWAY) System.out.println(this + " " + e);
-                    updateLabels();
+                    updateTextAreas();
                     updateEnabledStates();
                 }
             });
@@ -226,10 +226,16 @@ public class PathwayPanel extends JPanel implements ActionListener
         notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
         notesArea.addKeyListener(new KeyAdapter() {
                 public void keyPressed(KeyEvent e) { mNoteKeyWasPressed = true; }
-                public void keyTyped(KeyEvent e) { if (e.getKeyCode() == KeyEvent.VK_ENTER) ensureNotesSaved(); }
+                public void keyReleased(KeyEvent e) { if (e.getKeyCode() == KeyEvent.VK_ENTER) ensureNotesSaved(); }
             });
         notesArea.addFocusListener(new FocusAdapter() {
-                public void focusLost(FocusEvent e) { ensureNotesSaved(); }
+                public void focusLost(FocusEvent e) {
+                    if (DEBUG.PATHWAY) System.out.println("PathwayPanel.notesArea     focusLost to " + e.getOppositeComponent());
+                    ensureNotesSaved();
+                }
+                public void focusGained(FocusEvent e) {
+                    if (DEBUG.PATHWAY) System.out.println("PathwayPanel.notesArea focusGained from " + e.getOppositeComponent());
+                }
             });
 
 
@@ -280,6 +286,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                 mDisplayedComponentPathway.setElementNotes(mDisplayedComponent, text);                        
             }
             VUE.getUndoManager().mark();
+            mNoteKeyWasPressed = false;
         }
     }
 
@@ -470,8 +477,35 @@ public class PathwayPanel extends JPanel implements ActionListener
         VUE.getActiveMap().getPathwayList().remove(p);
     }
     
-    private void updateLabels()
+    private boolean mTrailingNoteSave;
+    private void updateTextAreas()
     {
+        if (mTrailingNoteSave)
+            return;
+        try {
+
+            // Save any unsaved changes before re-setting the labels.
+            // This is backup lazy-save as workaround for java focusLost
+            // limitation.
+            //
+            // We also wrap this in a loop spoiler because if notes do
+            // get saved at this point, we'll come back here with an
+            // update event, and we want to ignore it as we're
+            // switching to a new note anyway.  Ideally, focusLost on
+            // the notesArea would have already handled this, but
+            // unfortunately java delivers that event LAST, after the
+            // new focus component has gotten and handled all it's
+            // events, and if it was the PathwayTable selecting
+            // another curent node to display, this code is needed
+            // to be sure the note gets saved.
+            
+            mTrailingNoteSave = true;
+            ensureNotesSaved(); 
+        } finally {
+            mTrailingNoteSave = false;
+        }
+    
+        
         LWPathway pathway = getSelectedPathway();
         if (pathway == null) {
             mDisplayedComponent = null;
