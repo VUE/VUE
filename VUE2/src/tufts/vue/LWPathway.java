@@ -2,6 +2,8 @@
  * LWPathway.java
  *
  * Created on June 18, 2003, 1:37 PM
+ *
+ * @author  Jay Briedis
  */
 
 package tufts.vue;
@@ -13,13 +15,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.BasicStroke;
-import java.awt.Stroke;
 import java.awt.geom.Area;
 import java.util.ArrayList;
-/**
- *
- * @author  Jay Briedis
- */
+
 public class LWPathway extends tufts.vue.LWComponent implements Pathway
 {
     private LinkedList elementList = null;
