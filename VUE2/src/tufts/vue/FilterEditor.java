@@ -28,7 +28,9 @@ public class FilterEditor extends JPanel  {
     public static final Key keyLabel = new Key("Label", TypeFactory.getStringType());
     public static final Key keyAnywhere = new Key("Anywhere", TypeFactory.getStringType());
     public static final Key keyNotes = new Key("Notes", TypeFactory.getStringType());
-    
+    JButton addButton=new tufts.vue.VueButton("add");
+    JButton deleteButton=new tufts.vue.VueButton("delete");
+        
     
     FilterTableModel filterTableModel;
     boolean editable = true;
@@ -89,11 +91,11 @@ public class FilterEditor extends JPanel  {
         //filterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
-        JButton addButton=new tufts.vue.VueButton("add");
-        JButton deleteButton=new tufts.vue.VueButton("delete");
         addButton.addActionListener(new AddButtonListener(filterTableModel));
+        addButton.setToolTipText("Add Filter");
         // GRID: deleteConditionButton
         deleteButton.setEnabled(false);
+        deleteButton.setToolTipText("Delete Filter");
         // adding the delete functionality */
         FilterSelectionListener sListener= new  FilterSelectionListener(deleteButton, -1);
         filterTable.getSelectionModel().addListSelectionListener(sListener);
