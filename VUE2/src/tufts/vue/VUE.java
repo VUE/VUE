@@ -110,8 +110,10 @@ implements VueConstants {
         
         VueFrame() {
             super("VUE: Visual Understanding Environment");
-            System.out.println("LOADING IMAGE"+Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon16x16")));
-            setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
+            //System.out.println("LOADING IMAGE"+Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon16x16")));
+            //setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
+            // On the PC, this is bombing out for me and halting the whole vue application -- doesn't
+            // look like the case in the filename matches -- SMF
         }
         
         /** never let the frame be hidden -- always ignored */
