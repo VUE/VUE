@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?> 
 <mapping>
 	<class name="tufts.vue.MapItem">
-		<map-to xml="map-item"/>
+		<map-to xml="mapItem"/>
 		<field name="ID" type="java.lang.String">
 			<bind-xml name="ID" node="attribute"/>
 		</field>
@@ -23,6 +23,9 @@
 		<field name="y" type="float">
 			<bind-xml name="y" node="element"/>
 		</field>
+		<field name="resource" type="tufts.vue.Resource">
+			<bind-xml name="resource" node="element"/>
+		</field>
 	</class>
 	
 	<class name="tufts.vue.Node" extends="tufts.vue.MapItem">
@@ -31,12 +34,66 @@
 	
 	<class name="tufts.vue.Link" extends="tufts.vue.MapItem">
 		<map-to xml="link"/>
+		<field name="fixed" type="boolean">
+			<bind-xml name="fixed" node="attribute"/>
+		</field>
+		<field name="ordered" type="boolean">
+			<bind-xml name="ordered" node="attribute"/>
+		</field>
+		<field name="weight" type="integer">
+			<bind-xml name="weight" node="attribute"/>
+		</field>
+		<field name="item1" type="tufts.vue.MapItem">
+			<bind-xml  name="item1" node="element"/>
+		</field>
+		<field name="item2" type="tufts.vue.MapItem">
+			<bind-xml name="item2" node="element"/>
+		</field>
 	</class>
 	
 	<class name="tufts.vue.ConceptMap" extends="tufts.vue.MapItem">
-		<map-to xml="concept-map"/>
+		<map-to xml="conceptMap"/>
+		<field name="nodeList" type="tufts.vue.Node" collection="vector">
+			<bind-xml name="node"/>
+		</field>
+		<field name="linkList" type="tufts.vue.Link" collection="vector">
+			<bind-xml name="link"/>
+		</field>
+		<field name="pathwayList" type="tufts.vue.Pathway" collection="vector">
+			<bind-xml name="pathway"/>
+		</field>
+	</class>
+	
+	<class name="tufts.vue.Pathway" extends="tufts.vue.MapItem">
+		<map-to xml="pathway"/>
+		<field name="weight" type="integer">
+			<bind-xml name="weight" type="attribute"/>
+		</field>
+		<field name="ordered" type="boolean">
+			<bind-xml name="ordered" type="attribute"/>
+		</field>
 		<field name="nodeList" type="tufts.vue.Node" collection="vector">
 			<bind-xml name="node"/>
 		</field>
 	</class>
+	
+	<class name="tufts.vue.Resource">
+		<map-to xml="resource"/>
+		<field name="referenceCreated" type="long">
+			<bind-xml name="referenceCreated" node="attribute"/>
+		</field>
+		<field name="accessAttempted" type="long">
+			<bind-xml name="accessAttempted" node="attribute"/>
+		</field>
+		<field name="accessSuccessful" type="long">
+			<bind-xml name="accessSuccessful" node="attribute"/>
+		</field>
+		<field name="size" type="long">
+			<bind-xml name="size" node="attribute"/>
+		</field>
+		<field name="spec" type="java.lang.String">
+			<bind-xml name="spec" node="element"/>
+		</field>
+	</class>
+	
 </mapping>
