@@ -41,7 +41,7 @@ import javax.swing.border.*;
  * are fired when the menu selection changes.
  *
  * @author Scott Fraize
- * @version March 2004
+ * @version June 2004
  *
  */
 public abstract class MenuButton extends JButton
@@ -54,7 +54,7 @@ public abstract class MenuButton extends JButton
     protected JMenuItem mEmptySelection;
     private Icon mButtonIcon;
 
-    protected static final String ArrowText = "v ";
+    //protected static final String ArrowText = "v ";
     private static boolean isButtonActionable = false;
 
     private boolean actionAreaClicked = false;
@@ -80,11 +80,6 @@ public abstract class MenuButton extends JButton
             //setRolloverIcon(new VueButtonIcon(null, VueButtonIcon.ROLLOVER, new Dimension(0,0)));
         }
 
-        
-        if (false) {
-            setFont(tufts.vue.VueConstants.FONT_ICONIC);
-            setText(ArrowText);
-        }
         setFocusable(false);
         addActionListener(this);
         addMouseListener(new tufts.vue.MouseAdapter(toString()) {

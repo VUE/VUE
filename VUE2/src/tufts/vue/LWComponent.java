@@ -146,17 +146,11 @@ public class LWComponent
         else if (key == LWKey.Size) {
             Size s = (Size) val;
             setSize(s.width, s.height);
-        }
-        /*else if (key == LWKey.Size) {
-            // Point2D used as Size2D for now
-            Point2D.Float p = (Point2D.Float) val;
-            c.setSize(p.x, p.y);
-            }*/
-        else if (key == LWKey.Frame) {
+        } else if (key == LWKey.Frame) {
             Rectangle2D.Float r = (Rectangle2D.Float) val;
             setFrame(r.x, r.y, r.width, r.height);
         } else {
-            out("setProperty: unknown key [" + key + "] with value [" + val + "]");
+            out(this + " setProperty: unknown key [" + key + "] with value [" + val + "]");
             //new Throwable().printStackTrace();
         }
     }
@@ -361,6 +355,12 @@ public class LWComponent
         notify("category");
     }
     */
+    /*
+    public String getCategory()
+    {
+        return this.category;
+    }
+    */
     public void setResource(Resource resource)
     {
         Object old = this.resource;
@@ -382,18 +382,17 @@ public class LWComponent
     {
         return this.resource;
     }
-    /*
-    public String getCategory()
-    {
-        return this.category;
-    }
-    */
     public String getID() {
         return this.ID;
     }
     public String getLabel() {
         return this.label;
     }
+    /**
+     * @return a label suitable for displaying in a list: if this component
+     * has no label set, generate a unique name for it, and if the label has any newlines
+     * in it, replace them with spaces.
+     */
     public String getDisplayLabel() {
         if (getLabel() == null) {
             String name = getClass().getName();
@@ -498,6 +497,9 @@ public class LWComponent
     
 
     /** for persistance */
+    // todo: move all this XML handling stuff to a special castor property mapper,
+    // presumably in conjunction with re-architecting the whole mapping style &
+    // save mechanism.
     public String getXMLlabel()
     {
         return escapeNewlines(this.label);
