@@ -130,7 +130,7 @@ public class MapViewer extends javax.swing.JPanel
     
     public void setZoom(double zoomFactor)
     {
-        setZoom(zoomFactor, true);
+        setZoom(zoomFactor, false);
     }
     
     private void setZoom(double zoomFactor, boolean centerZoom)
@@ -578,7 +578,7 @@ public class MapViewer extends javax.swing.JPanel
                     repaint();
                     break;
                 case KEY_ZOOM_ACTUAL:
-                    setZoom(1.0);
+                    setZoom(1.0, true);
                     break;
                 }
             } else {
