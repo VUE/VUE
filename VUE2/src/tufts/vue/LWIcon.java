@@ -702,7 +702,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         MetaData(LWComponent lwc, Color c) { super(lwc, c); }
         MetaData(LWComponent lwc) { super(lwc); }
 
-        boolean isShowing() { return true; }
+        boolean isShowing() { return mLWC.hasMetaData(); }
 
         void doDoubleClickAction() {
             System.out.println(this + ": ACTION");
