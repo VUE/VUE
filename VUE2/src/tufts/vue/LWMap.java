@@ -62,7 +62,7 @@ public class LWMap extends LWContainer
      * To be called once after a persisted map
      * is restored.
      */
-    private void resolvePersistedLinks()
+    public void resolvePersistedLinks()
     {
         // todo: technically, a LWContainer could contain a link,
         // and this won't restore any of those -- but there's

@@ -481,7 +481,7 @@ public class VUE
         link.add(n3);
         link.add(n4);
         p2.setNodeList(link);
-        map.addPathway(p1);
+        //map.addPathway(p1);
         //map.addPathway(p2);
     }
 
