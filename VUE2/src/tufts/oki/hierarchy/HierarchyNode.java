@@ -29,6 +29,7 @@ import java.util.Enumeration;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import tufts.vue.LWComponent;
+import tufts.vue.VUE;
 
 /**
  *
@@ -192,6 +193,9 @@ public class HierarchyNode implements osid.hierarchy.Node
         System.err.println(getClass() + ": changeLWComponentLabel: warning: ONLY call this is user has edited the label!");
         component.setLabel(label);
         updateDisplayName(label);
+        
+        //creating an undo action
+        VUE.getUndoManager().mark();
     }
     
     /**A method that sets the LWComponent associated with the hierarchy node*/
