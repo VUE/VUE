@@ -108,6 +108,9 @@ public class SaveAction extends AbstractAction
             else if (name.endsWith(".html"))
                 new HTMLConversion().convert(file);
             
+            else if (name.endsWith(".imap"))
+                new ImageMap().createImageMap(file);
+            
             // don't know this as not all the above stuff is passing
             // exceptions on to us!
             System.out.println("Save code completed for " + file);

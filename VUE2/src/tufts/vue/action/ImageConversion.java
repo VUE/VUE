@@ -88,7 +88,7 @@ public class ImageConversion extends AbstractAction {
         
        catch(Exception ex) 
        {
-            System.out.println("Couldn't convert to JPEG:" + ex);
+            System.out.println("Couldn't convert to jpeg:" + ex);
        }   
     }
     

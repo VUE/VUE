@@ -9,6 +9,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         svg = {".svg"},
         pdf = {".pdf"},
         html = {".html", ".htm"},
+        imap = {".imap"}, 
         vue = {".vue", ".xml"};
     private String[] extensions;
     private String description;
@@ -29,6 +30,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         
         else if (description.equals("html"))
           extensions = html;
+        
+        else if (description.equals("imap"))
+          extensions = imap;
         
         else if (description.equals("vue") || description.equals("xml")) {
             extensions = vue;
