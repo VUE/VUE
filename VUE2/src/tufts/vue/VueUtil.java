@@ -27,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
-import java.awt.geom.FlatteningPathIterator;
 import javax.swing.*;
 import javax.swing.border.*;
 

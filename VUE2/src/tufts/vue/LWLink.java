@@ -120,6 +120,26 @@ public class LWLink extends LWComponent
         computeLinkEndpoints();
     }
 
+    /**
+     * @param key property key (see LWKey)
+     * @return object representing appropriate value
+     */
+    public Object getPropertyValue(Object key)
+    {
+        if (key == LWKey.LinkArrows)
+            return new Integer(getArrowState());
+        return super.getPropertyValue(key);
+    }
+
+    public void setProperty(final Object key, Object val)
+    {
+        if (key == LWKey.LinkArrows)
+            setArrowState(((Integer) val).intValue());
+        else
+            super.setProperty(key, val);
+    }
+    
+
     static LWLink setDefaults(LWLink l)
     {
         l.setFont(DEFAULT_FONT);
@@ -445,7 +465,7 @@ public class LWLink extends LWComponent
     }
 
     /**
-     * This is a nested link if it's not a curved link, and: both ends
+     * This is a nested link (a visual characteristic) if it's not a curved link, and: both ends
      * of this link in the same LWNode parent, or it's a parent-child
      * link, or it's parent is a LWNode.
      */

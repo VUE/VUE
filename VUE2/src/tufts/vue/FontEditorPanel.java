@@ -19,7 +19,6 @@
 package tufts.vue;
 
 import tufts.vue.gui.*;
-import tufts.vue.beans.VueLWCPropertyMapper;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -35,21 +34,13 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
  * This creates a font editor panel for editing fonts in the UI
  *
  **/
-public class FontEditorPanel extends Box implements ActionListener, VueConstants
+public class FontEditorPanel extends Box
+    implements ActionListener, LWPropertyHandler, VueConstants
 {
-    /*
-    static Icon sItalicOn = VueResources.getImageIcon("italicOnIcon");
-    static Icon sItalicOff = VueResources.getImageIcon("italicOffIcon");
-    static Icon sBoldOn = VueResources.getImageIcon("boldOnIcon");
-    static Icon sBoldOff = VueResources.getImageIcon("boldOffIcon");
-    */
-    
-    //private static String [] sFontSizeMenuLabels = { };
     private static String [] sFontSizes = { "8","9","10","12","14","18","24","36","48"};
     
     /** the font list **/
     static String[] sFontNames = null;
- 
  	
     /** Text color editor button **/
     private ColorMenuButton mColorButton = null;
@@ -68,10 +59,6 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     
     /** the property name **/
     private String mPropertyName = LWKey.Font;
- 	
-    /** the font **/
-    private Font mFont = null;
- 	
  	
     private static final boolean debug = false;
     private static final Insets NoInsets = new Insets(0,0,0,0);
@@ -183,7 +170,13 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         //add(mTextColorButton);
  	
         setFontValue(FONT_DEFAULT);
-        this.initColors( VueResources.getColor("toolbar.background") );
+
+        initColors( VueResources.getColor("toolbar.background") );
+    }
+    
+    private void initColors( Color pColor) {
+        mBoldButton.setBackground( pColor);
+        mItalicButton.setBackground( pColor);
     }
 
     public void addNotify()
@@ -237,7 +230,6 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     /////////////////
  	
  	
- 	
     public void setPropertyName( String pName) {
         mPropertyName = pName;
     }
@@ -245,20 +237,43 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     public String getPropertyName() {
         return mPropertyName;
     }
+
+    public Object getPropertyKey() {
+        return mPropertyName;
+    }
+ 	
+    public Object getPropertyValue() {
+        return getFontValue();
+    }
+    public void setPropertyValue(Object value) {
+        setFontValue((Font) value);
+    }
  	
     /**
-     * getFontValue()
+     * @return the current Font represented by the state of the FontEditorPanel
      **/
     public Font getFontValue() {
-        return mFont;
+        return makeFont();
     }
  	
     /**
      * setFontValue()
      **/
-    public void setFontValue( Font pFont) {
-        setValue( pFont);
- 	
+
+    private boolean mIgnoreActionEvents = false;
+    public void setFontValue(Font font) {
+        if (DEBUG.TOOL) System.out.println(this + " setFontValue " + font);
+
+        String familyName = font.getFamily();
+
+        mIgnoreActionEvents = true;
+
+        mFontCombo.setSelectedItem(familyName);
+        mItalicButton.setSelected(font.isItalic());
+        mBoldButton.setSelected(font.isBold());
+        mSizeField.setSelectedItem(""+font.getSize());
+        
+        mIgnoreActionEvents = false;
     }
  	
  	
@@ -267,63 +282,48 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
      * Generic property editor access
      **/
     public void setValue( Object pValue) {
-        if (DEBUG.SELECTION) System.out.println(this + " setValue " + pValue);
-        //new Throwable().printStackTrace();
- 		
-        if( pValue instanceof Font) {
-            Font font = (Font) pValue;
- 			
-            String familyName = font.getFamily();
-            mFontCombo.setSelectedItem( familyName );
-            mItalicButton.setSelected( (Font.ITALIC & font.getStyle()) == Font.ITALIC );
-            mBoldButton.setSelected( font.isBold() );
-            //mSizeField.setValue( font.getSize() );
-            mSizeField.setSelectedItem( ""+font.getSize() );
- 			
-        }
- 	
+        if( pValue instanceof Font)
+            setFontValue((Font) pValue);
     }
  	
-    private void initColors( Color pColor) {
-        //mFontCombo.setBackground( pColor);
-        mBoldButton.setBackground( pColor);
-        mItalicButton.setBackground( pColor);
-    }
     
-    public void fireFontChanged( Font pOld, Font pNew) {
+    private void fireFontChanged( Font pOld, Font pNew) {
         PropertyChangeListener [] listeners = getPropertyChangeListeners() ;
         PropertyChangeEvent  event = new PropertyChangeEvent( this, getPropertyName(), pOld, pNew);
         if (listeners != null) {
             for( int i=0; i<listeners.length; i++) {
+                if (DEBUG.TOOL) System.out.println(this + " fireFontChanged to " + listeners[i]);
                 listeners[i].propertyChange( event);
             }
         }
     }
     
-    public void actionPerformed( ActionEvent pEvent) {
-        //System.out.println("FEP: actionPerformed " + pEvent);
-        Font old = mFont;
-        Font font = makeFont();
-        if( (old == null) || ( !old.equals( font)) ) {
-            fireFontChanged( old, font);
+    public void actionPerformed(ActionEvent pEvent) {
+        // we've never track the old font value here -- S.B. never finished this code
+        // todo: so this whole thing could probably use a freakin re-write
+
+        //new Throwable().printStackTrace();
+        if (mIgnoreActionEvents) {
+            if (DEBUG.TOOL) System.out.println(this + " ActionEvent ignored: " + pEvent.getActionCommand());
+        } else {
+            if (DEBUG.TOOL) System.out.println(this + " actionPerformed " + pEvent);
+            fireFontChanged(null, makeFont());
         }
     }
  	
     /**
-     * makeFont
+     * @return a Font constructed from the current state of the gui elements
      *
      **/
-    public Font makeFont() {
- 	 
-        String name = (String) mFontCombo.getSelectedItem() ;
+    private Font makeFont()
+    {
+        String name = (String) mFontCombo.getSelectedItem();
  	 	
         int style = Font.PLAIN;
-        if ( mItalicButton.isSelected() ) {
-            style = style + Font.ITALIC;
-        }
-        if ( mBoldButton.isSelected() ) {
-            style =  style + Font.BOLD;
-        }
+        if (mItalicButton.isSelected())
+            style |= Font.ITALIC;
+        if (mBoldButton.isSelected())
+            style |= Font.BOLD;
         //int size = (int) mSizeField.getValue();
         int size = 12;
         try {
@@ -332,8 +332,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
             System.err.println(e);
         }
  	 		
-        Font font = new Font( name, style, size);
-        return font;
+        return new Font(name, style, size);
     }
  	
     private int findFontName( String name) {
@@ -346,6 +345,10 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
             }
         }
         return -1;
+    }
+
+    public String toString() {
+        return "FontEditorPanel[" + makeFont() + "]";
     }
 
     public static void main(String[] args) {

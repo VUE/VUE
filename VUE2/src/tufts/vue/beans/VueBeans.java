@@ -52,12 +52,6 @@ public class VueBeans   {
 	/** proeprty map **/
 	private Map mDiscriptors = new HashMap();
 	
-    //static String kBackgroundColor = "background";
-    //static String kForeColor = "background";
-    //static String kLineColor = "background";
-		
-	
-	
 	
 	//////////////////
 	// Constructor

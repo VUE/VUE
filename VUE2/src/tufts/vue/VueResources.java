@@ -49,8 +49,6 @@ public class VueResources
         return sResourceBundle;
     }
     
-	
-	
     /**
      * getImageIcon()
      * This method returns an ImageIcon based on the file
@@ -236,7 +234,7 @@ public class VueResources
      * Format:  myStrings=File,Edit,Windows,Help
      * 
      * @param pLookupKey - the key in the properties file
-     * @return String [] the array
+     * @return String [] the array -- results are cached for follow-on requests
      **/
     public static String[] getStringArray(String key) {
         if (Cache.containsKey(key))
@@ -382,19 +380,13 @@ public class VueResources
                 int style = 0;
                 if( strs[1].equals("bold") ) {
                     style = Font.BOLD;
+                } else if (strs[1].equals("italic") ) {
+                    style = Font.ITALIC;
+                } else if (strs[1].equals("bolditalic") ) {
+                    style = Font.BOLD + Font. ITALIC;
+                } else {
+                    style = Font.PLAIN;
                 }
-                else
-                    if( strs[1].equals("italic") ) {
-                        style = Font.ITALIC;
-                    }
-                    else
-                        if( strs[1].equals("bolditalic") ) {
-                            style = Font.BOLD + Font. ITALIC;
-                        }
-                        else {
-                            style = Font.PLAIN;
-                        }
-				
                 Integer size = new Integer( strs[2] );
                 font = new Font( fontName, style, size.intValue()  );
             }

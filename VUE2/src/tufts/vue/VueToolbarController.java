@@ -16,13 +16,6 @@
  * -----------------------------------------------------------------------------
  */
 
-/*******
- **  VueToolbarController.java
- **
- **
- *********/
-
-
 package tufts.vue;
 
 import java.lang.*;
@@ -517,11 +510,16 @@ public class VueToolbarController
             return;
         */
         
-        // todo: clean this up: interested tool panels should listen to selection themselves
+        // TODO: CLEAN THIS UP: interested tool panels should listen to selection themselves
+        // The only value we get from this right now is that only the active tool panel
+        // will get loadValues called, letting inactive ones keep their state, which is
+        // handy for some cases, but as long as the tool could know if it's active or not,
+        // we'd have all the functionality we need, and in a much simpler & more effective
+        // manner.
         if (panel instanceof LWCToolPanel)
             ((LWCToolPanel)panel).loadValues(VUE.getSelection());
         else {
-            //System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
+            if (true||DEBUG.TOOL) System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
         }
     }
 	 

@@ -109,6 +109,60 @@ public class LWComponent
         nodeFilter = new NodeFilter();
     }
 
+
+    /**
+     * Get the named property value from this component.
+     * @param key property key (see LWKey)
+     * @return object representing appropriate value
+     */
+    public Object getPropertyValue(final Object key)
+    {
+        // todo: rest of values
+        
+        if (key == LWKey.FillColor)         return getFillColor();
+        if (key == LWKey.StrokeColor)       return getStrokeColor();
+        if (key == LWKey.TextColor)         return getTextColor();
+        if (key == LWKey.Font)              return getFont();
+        if (key == LWKey.StrokeWidth)       return new Float(getStrokeWidth());
+        if (key == LWKey.Label)             return getLabel();
+        
+        throw new RuntimeException("Unknown property key[" + key + "]");
+    }
+
+    public void setProperty(final Object key, Object val)
+    {
+        if (DEBUG.UNDO&&DEBUG.META) out("setProperty [" + key + "] to " + val);
+                                           
+             if (key == LWKey.FillColor)        setFillColor( (Color) val);
+        else if (key == LWKey.TextColor)        setTextColor( (Color) val);
+        else if (key == LWKey.StrokeColor)      setStrokeColor( (Color) val);
+        else if (key == LWKey.StrokeWidth)      setStrokeWidth( ((Float) val).floatValue());
+        else if (key == LWKey.Font)             setFont( (Font) val);
+        else if (key == LWKey.Label)            setLabel( (String) val);
+        else if (key == LWKey.Notes)            setNotes( (String) val);
+        else if (key == LWKey.Resource)         setResource( (Resource) val);
+        else if (key == LWKey.Location)         setLocation( (Point2D) val);
+        else if (key == LWKey.Hidden)           setHidden( ((Boolean)val).booleanValue());
+        else if (key == LWKey.Size) {
+            Size s = (Size) val;
+            setSize(s.width, s.height);
+        }
+        /*else if (key == LWKey.Size) {
+            // Point2D used as Size2D for now
+            Point2D.Float p = (Point2D.Float) val;
+            c.setSize(p.x, p.y);
+            }*/
+        else if (key == LWKey.Frame) {
+            Rectangle2D.Float r = (Rectangle2D.Float) val;
+            setFrame(r.x, r.y, r.width, r.height);
+        } else {
+            out("setProperty: unknown key [" + key + "] with value [" + val + "]");
+            //new Throwable().printStackTrace();
+        }
+    }
+    
+    
+
     /** Create a component with duplicate content & style.
      * Does not duplicate any links to this component,
      * and leaves it an unparented orphan.
@@ -1279,6 +1333,8 @@ public class LWComponent
     public synchronized void addLWCListener(Listener listener) {
         addLWCListener(listener, null);
     }
+    /** @param eventMask is a string constant (from LWKey) or an array of such. If one
+     of these non-null values, only events matching those keys will be delievered */
     public synchronized void addLWCListener(Listener listener, Object eventMask) {
         mChangeSupport.addListener(listener, eventMask);
     }

@@ -649,6 +649,7 @@ public abstract class LWContainer extends LWComponent
         }
         // we check curved links last because they can take up so much
         // hit-space (the entire interior of their arc)
+        // todo: this is a hack: do curved link detection via checking all segments...
         for (Iterator i = curvedLinks.iterator(); i.hasNext();) {
             LWComponent c = (LWComponent) i.next();
             if (c.contains(mapX, mapY))

@@ -34,7 +34,10 @@ import javax.swing.ImageIcon;
  */
 public class LWNode extends LWContainer
 {
-    public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
+    /* Mac arial fonts broken in java (no bold or italic) so using verdana on mac right now */
+    public static final Font  DEFAULT_NODE_FONT = VueUtil.isMacPlatform() ?
+        new Font("Verdana", Font.PLAIN, 14)
+            : VueResources.getFont("node.font");
     public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
     public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
     public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
@@ -117,6 +120,19 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
     
+    /**
+     * Get the named property value from this component.
+     * @param key property key (see LWKey)
+     * @return object representing appropriate value
+     */
+    public Object getPropertyValue(Object key)
+    {
+        if (key == LWKey.Shape)
+            return getShape();
+        else
+            return super.getPropertyValue(key);
+    }
+
     /** Duplicate this node.
      * @return the new node -- will be an exact copy, except for any pathway state from the source node */
     public LWComponent duplicate()
@@ -919,8 +935,7 @@ public class LWNode extends LWContainer
         min.width = text.width;
         min.height = EdgePadY + text.height + EdgePadY;
 
-        //float width = s.width + PadX;
-        //float height = s.height + PadY;
+
         //float height = getLabelBox().getHeight() + IconHeight/3f;
         //float height = getLabelBox().getHeight() + IconDescent;
         

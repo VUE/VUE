@@ -18,6 +18,7 @@
 
 package tufts.vue.beans;
 
+import tufts.vue.DEBUG;
 
 import java.io.*;
 import java.util.*;
@@ -148,13 +149,15 @@ public class VueBeanState implements VueBeanInfo
 		
         String[] propertyNames = getPropertyNames();
         //System.out.println("VueBeanState.applyState: "+ pBean.getClass().getName() );
-        System.out.println("VueBeanState.applyState: "+ pBean);
-        System.out.println("\tnames:  "+ propertyNames);
+        if (DEBUG.TOOL) {
+            System.out.println("VueBeanState.applyState: "+ pBean);
+            //System.out.println("\tnames:  "+ propertyNames);
+        }
         if( propertyNames != null) {
             for (int i = 0; i < propertyNames.length; i++) {
                 String name = propertyNames[i];
                 Object value = getPropertyValue(name);
-                System.out.println("    "+name+"  value: "+value);
+                if (DEBUG.TOOL) System.out.println("\t"+name+"="+value);
                 VueBeans.setPropertyValue( pBean, name, value);
             }
         }

@@ -503,7 +503,10 @@ public class VUE
         frame.setBackground(Color.white);
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
         frame.pack();
-        frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
+        if (nodr)
+            frame.setSize(700,350);
+        else
+            frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
         frame.validate();
         
         VueUtil.centerOnScreen(frame);
@@ -561,7 +564,7 @@ public class VUE
                 ex.printStackTrace();
             }
         } else {
-            pannerTool.setVisible(true);
+            //pannerTool.setVisible(true);
         }
 
         frame.show();

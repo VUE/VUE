@@ -35,7 +35,8 @@ import javax.swing.border.*;
  * This creates an editor panel for LWComponents
  **/
  
-public class LWCToolPanel extends JPanel implements ActionListener, PropertyChangeListener
+public class LWCToolPanel extends JPanel
+    implements ActionListener, PropertyChangeListener, LWComponent.Listener
 {
     /** fill button **/
     protected ColorMenuButton mFillColorButton;
@@ -56,8 +57,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     protected static final Insets NoInsets = new Insets(0,0,0,0);
     protected static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
 
-    private Box box;
-    
+    private Box mBox;
+
     public LWCToolPanel()
     {
         out("Constructing...");
@@ -78,10 +79,10 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              setBackground(Color.blue);
          else
              setBackground( bakColor);
-         this.box = Box.createHorizontalBox();
+         this.mBox = Box.createHorizontalBox();
          //if (false) box.setBackground(Color.green);
          //else box.setBackground(bakColor);
-         box.setBackground(bakColor);
+         mBox.setBackground(bakColor);
          //this.setAlignmentX( LEFT_ALIGNMENT);
  		
          //-------------------------------------------------------
@@ -133,6 +134,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          mTextColorButton.setToolTipText("Text Color");
          mTextColorButton.addPropertyChangeListener(this);
 
+
          /*
          mTextColorButton.setText("");
          mTextColorButton.setBackground( bakColor);
@@ -153,7 +155,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              mFontPanel.setBackground(Color.green);
          else
              mFontPanel.setBackground(bakColor);
-         mFontPanel.setPropertyName( LWKey.Font );
+         mFontPanel.setPropertyName(LWKey.Font);
          mFontPanel.addPropertyChangeListener(this);
  		
          //-------------------------------------------------------
@@ -170,10 +172,10 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              if (true) {
                  m.add(BorderLayout.CENTER, fillMenu);
                  //m.setBorderPainted(false);
-                 box.add(m);
+                 mBox.add(m);
              } else {
                  //fillMenu.setFocusable(true);
-                 box.add(fillMenu);
+                 mBox.add(fillMenu);
                  fillMenu.addMouseListener(new MouseAdapter() {
                          public void mousePressed(MouseEvent e) {
                              //Component c = e.getComponent(); 	
@@ -196,25 +198,22 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          //-------------------------------------------------------
 
          buildBox();
-
-         add(box);
- 		
+         add(mBox);
          initDefaultState();
-
          out("CONSTRUCTED.");
     }
 
 
     protected void buildBox() {
-        box.add( mFillColorButton);
-        box.add( mStrokeColorButton);
-        box.add( mStrokeButton);
-        box.add( mFontPanel);
-        box.add( mTextColorButton);
+        mBox.add( mFillColorButton);
+        mBox.add( mStrokeColorButton);
+        mBox.add( mStrokeButton);
+        mBox.add( mFontPanel);
+        mBox.add( mTextColorButton);
     }
 
     protected JComponent getBox() {
-        return box;
+        return mBox;
     }
     
     protected void initDefaultState() {
@@ -252,20 +251,27 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         setIgnorePropertyChangeEvents(true);
         
         mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
-        mTextColorButton.loadPropertyValue(state); // until is a MenuButton, might as will pick up property
-
-        if (true) {
+          mTextColorButton.loadPropertyValue(state); // until is a MenuButton, might as will pick up property
           mFillColorButton.loadPropertyValue(state);
         mStrokeColorButton.loadPropertyValue(state);
              mStrokeButton.loadPropertyValue(state);
-        }
 
         setIgnorePropertyChangeEvents(false);
     }
 
+
+    private LWComponent singleSelection = null;
     void loadValues(LWSelection s) {
         if (s.size() == 1) {
-            loadValues(s.first());
+            if (singleSelection != null)
+                singleSelection.removeLWCListener(this);
+            loadValues(singleSelection = s.first());
+            singleSelection.addLWCListener(this);
+
+            // do array of keys supported by this tool panel... Otherwise, we'll
+            // be doing constant load-values while, say, dragging the node!
+            //singleSelection.addLWCListener(this, LWKey.Font);
+
         } else if (s.size() > 1) {
             // todo: if we are to populate the tool bar properties when
             // there's a multiple selection, what do we use?
@@ -274,8 +280,39 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             //mStrokeColorButton.setColor(null);
             //mTextColorButton.setColor(null);
         }
+
+        if (s.size() != 1 && singleSelection != null) {
+            singleSelection.removeLWCListener(this);
+            singleSelection = null;
+        }
+    }
+
+    private void loadToolValue(Object propertyKey, LWComponent src) {
+        Component[] children = mBox.getComponents();
+        boolean success = false;
+        for (int i = 0; i < children.length; i++) {
+            if (children[i] instanceof LWPropertyHandler) { // todo: tool property handler interface (PropertyButton?)
+                LWPropertyHandler ph = (LWPropertyHandler) children[i];
+                if (DEBUG.TOOL&&DEBUG.META) System.out.println("Checking  key [" + propertyKey + "] against " + ph);
+                if (ph.getPropertyKey() == propertyKey) {
+                    if (DEBUG.TOOL) System.out.println("Matched key [" + propertyKey + "] to " + ph);
+                    ph.setPropertyValue(src.getPropertyValue(propertyKey));
+                    //ph.loadPropertyValue(propertyKey, src);
+                    success = true;
+                }
+            }
+        }
+        if (!success) {
+            System.err.println(this + " failed to loadToolValue for " + propertyKey + " in " + src);
+        }
+    }
+    
+    public void LWCChanged(LWCEvent e) {
+        // todo: would be good to elimate redundancy when setter was us, tho
+        loadToolValue(e.getWhat(), e.getComponent());
     }
  	
+    
     public VueBeanState getValue() {
         return mState;
     }
@@ -292,7 +329,6 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             return;
         }
         String name = e.getPropertyName();
-        //if (DEBUG.SELECTION) System.out.println(this + " PROPERTYCHANGE: " + name + " " + e);
 
         if( !name.equals("ancestor") ) {
             if (DEBUG.TOOL) out("propertyChange: " + name + " " + e);
@@ -311,12 +347,14 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             else
                 System.out.println("!!! Node ToolPanel mDefaultState is null!");
 
+        } else {
+            if (DEBUG.TOOL) System.out.println(this + " ignored propertyChange: " + name + " " + e);
         }
+
     }
  	
     public void actionPerformed( ActionEvent pEvent) {
         System.out.println(this + " " + pEvent);
- 	
     }
 
     protected void out(Object o) {

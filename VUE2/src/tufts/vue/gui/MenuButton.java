@@ -20,6 +20,8 @@ package tufts.vue.gui;
 
 import tufts.vue.DEBUG;
 import tufts.vue.VueAction;
+import tufts.vue.LWComponent;
+import tufts.vue.LWPropertyHandler;
 
 import java.io.*;
 import java.awt.*;
@@ -42,7 +44,8 @@ import javax.swing.border.*;
  * @version March 2004
  *
  */
-public abstract class MenuButton extends JButton implements ActionListener
+public abstract class MenuButton extends JButton
+    implements ActionListener, LWPropertyHandler
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
 // menu-popups would automatically work also.
 {
@@ -98,8 +101,10 @@ public abstract class MenuButton extends JButton implements ActionListener
             });
     }
 
+    /** if the there's an immediate action area of the button pressed, fire the property setter
+        right away instead of popping the menu (actionAreaClicked was determined in mousePressed) */
     public void actionPerformed(ActionEvent e) {
-        if (DEBUG.TOOL||DEBUG.EVENTS) System.out.println(this + " " + e);
+        if (DEBUG.TOOL) System.out.println(this + " " + e);
         if (actionAreaClicked)
             firePropertySetter();
     }
@@ -216,6 +221,10 @@ public abstract class MenuButton extends JButton implements ActionListener
         return mPropertyName;
     }
 
+    public Object getPropertyKey() {
+        return mPropertyName;
+    }
+
     /** Set the property value, AND change the displayed menu icon to approriate selection for that value */
     public abstract void setPropertyValue(Object propertyValue);
     public abstract Object getPropertyValue();
@@ -224,6 +233,13 @@ public abstract class MenuButton extends JButton implements ActionListener
         if (DEBUG.TOOL) System.out.println(this + " loading " + getPropertyName() + " from " + state);
         setPropertyValue(state.getPropertyValue(getPropertyName()));
     }
+
+    /*
+    public void loadPropertyValue(Object propertyKey, LWComponent src) {
+        if (DEBUG.TOOL) System.out.println(this + " loading " + propertyKey + " from lwc " + src);
+        setPropertyValue(src.getPropertyValue(propertyKey));
+    }
+    */
 	
     /** factory method for subclasses -- build's an icon for menu items */
     protected Icon makeIcon(Object value) {
@@ -241,7 +257,7 @@ public abstract class MenuButton extends JButton implements ActionListener
         buildMenu(values, null, false); 
     }
 
-    private final String mValueKey = "prop.value";
+    private static final String sValueKey = "prop.value";
     
     /**
      * @param values can be property values or actions
@@ -271,7 +287,7 @@ public abstract class MenuButton extends JButton implements ActionListener
                 item = new JMenuItem((Action)values[i]);
             else
                 item = new JMenuItem();
-            item.putClientProperty(mValueKey, values[i]);
+            item.putClientProperty(sValueKey, values[i]);
             Icon icon = makeIcon(values[i]);
             if (icon != null)
                 //item.setIcon(icon);
@@ -305,8 +321,8 @@ public abstract class MenuButton extends JButton implements ActionListener
             if (i != null)
                 setButtonIcon(i);
         }
-        System.out.println(this + " handleMenuSelection " + e);
-        handleValueSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
+        if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
+        handleValueSelection(((JComponent)e.getSource()).getClientProperty(sValueKey));
     }
     
     protected void handleValueSelection(Object newPropertyValue) {
@@ -327,6 +343,7 @@ public abstract class MenuButton extends JButton implements ActionListener
             if (listeners.length > 0) {
                 PropertyChangeEvent event = new PropertyChangeEvent(this, getPropertyName(), oldValue, newValue);
                 for (int i = 0; i< listeners.length; i++) {
+                    if (DEBUG.TOOL) System.out.println(this + " fires " + event + " to " + listeners[i]);
                     listeners[i].propertyChange(event);
                 }
             }
@@ -334,7 +351,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     }
     protected void firePropertySetter() {
         Object o = getPropertyValue();
-        if (DEBUG.TOOL||DEBUG.EVENTS) System.out.println(this + " firePropertySetter " + o);
+        if (DEBUG.TOOL) System.out.println(this + " firePropertySetter " + o);
         if (o instanceof Action) {
             if (o instanceof VueAction)
                 ((VueAction)o).fire(this);

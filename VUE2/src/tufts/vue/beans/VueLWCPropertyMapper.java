@@ -75,26 +75,32 @@ public class VueLWCPropertyMapper
     public Object getPropertyValue(Object pBean, String key)  {
 		
         if (pBean instanceof LWComponent) {
-            LWComponent obj = (LWComponent) pBean;
-			
-            if (key == LWKey.FillColor)         return obj.getFillColor();
-            if (key == LWKey.StrokeColor)       return obj.getStrokeColor();
-            if (key == LWKey.TextColor)         return obj.getTextColor();
-            if (key == LWKey.Font)              return obj.getFont();
-            if (key == LWKey.StrokeWidth)       return new Float(obj.getStrokeWidth());
-			
-            if (obj instanceof LWLink) {
-                LWLink link = (LWLink) obj;
-                if (key == LWKey.LinkArrows)
-                    return new Integer(link.getArrowState());
-            }
+            return ((LWComponent) pBean).getPropertyValue(key);
         } else {
             // should never happen...
             System.out.println(this + " getPropertyValue: unhandled class for " + key + " on " + pBean);
         }
-		
         return null;
     }
+
+    /*
+    public static Object getPropertyValue(LWComponent c, String key)
+    {
+        if (key == LWKey.FillColor)         return c.getFillColor();
+        if (key == LWKey.StrokeColor)       return c.getStrokeColor();
+        if (key == LWKey.TextColor)         return c.getTextColor();
+        if (key == LWKey.Font)              return c.getFont();
+        if (key == LWKey.StrokeWidth)       return new Float(c.getStrokeWidth());
+        if (key == LWKey.Shape)             return c.getShape();
+        
+        if (c instanceof LWLink) {
+            LWLink link = (LWLink) c;
+            if (key == LWKey.LinkArrows)
+                return new Integer(link.getArrowState());
+        }
+        return null;
+    }
+    */
 	
 	
 
@@ -113,11 +119,10 @@ public class VueLWCPropertyMapper
             throw new IllegalArgumentException("VueLWCPropertyMapper: can't handle class " + pBean + " name=" + pName + " val=" + pValue);
     }
 
-    // todo: have LWComponent & each subclass implement a property mapping
-    // interface for each of it's properties: this will perform a bit better
-    // than all those Undoable objects.
     public static void setProperty(LWComponent c, Object key, Object val)
     {
+        c.setProperty(key, val);
+        /*
         if (DEBUG.UNDO&&DEBUG.META) System.out.println("setProperty [" + key + "] on " + c + " with " + val);
                                            
         if (key == LWKey.FillColor)        c.setFillColor( (Color) val);
@@ -134,11 +139,11 @@ public class VueLWCPropertyMapper
             Size s = (Size) val;
             c.setSize(s.width, s.height);
         }
-        /*else if (key == LWKey.Size) {
-            // Point2D used as Size2D for now
-            Point2D.Float p = (Point2D.Float) val;
-            c.setSize(p.x, p.y);
-            }*/
+        //else if (key == LWKey.Size) {
+          //  // Point2D used as Size2D for now
+            //Point2D.Float p = (Point2D.Float) val;
+            //c.setSize(p.x, p.y);
+            //}
         else if (key == LWKey.Frame) {
             Rectangle2D.Float r = (Rectangle2D.Float) val;
             c.setFrame(r.x, r.y, r.width, r.height);
@@ -152,6 +157,7 @@ public class VueLWCPropertyMapper
             System.out.println("VueLWCPropertyMapper.setProperty: unknown key [" + key + "] with value [" + val + "] on " + c);
             //new Throwable().printStackTrace();
         }
+        */
     }
 
 

@@ -38,12 +38,12 @@ public class DEBUG
     public static boolean ROLLOVER = false; // MapViewer auto-zoom rollover
     public static boolean SCROLL = false; // MapViewer scroll-bars / scrolling
     public static boolean FOCUS = false; // AWT focus events, VUE MapViewer application focus
-    public static boolean EVENTS = false; // VUE LWCEvents & Action Events
+    public static boolean EVENTS = false; // VUE LWCEvents & Action Events (not tool events)
     public static boolean INIT = false; // startup / initializations
     public static boolean MARGINS = false; // turn off bounds margin adjustments for testing
     public static boolean DYNAMIC_UPDATE = false; // components process all LWCEvent's immediately
     public static boolean KEYS = false; // keyboard input
-    public static boolean TOOL = false; // toolbars
+    public static boolean TOOL = false; // toolbars & tool events
 
     public static boolean DR = false; // digital repository & data sources
     

@@ -250,7 +250,7 @@ public class UndoManager
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
-                tufts.vue.beans.VueLWCPropertyMapper.setProperty(component, propKey, oldValue);
+                component.setProperty(propKey, oldValue);
             }
         }
             

@@ -192,6 +192,11 @@ public class MapResource implements Resource {
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
     }
     
+    /**
+     * Scan an initial chunk of our content for an HTML title tag, and if one is found, set our title
+     * field to what we find there.
+     */
+    
     public void setTitleFromContent() {
         URL url = null;
         try {

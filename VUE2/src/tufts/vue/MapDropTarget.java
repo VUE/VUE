@@ -41,6 +41,11 @@ import java.net.*;
 import osid.dr.*;
 
 
+/**
+ * Handle the dropping of drags mediated by host operating system onto the map.
+ * Right now all we handle are the dropping of File's & URL's.
+ */
+
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
 {
@@ -74,6 +79,7 @@ class MapDropTarget
     public void dragEnter(DropTargetDragEvent e)
     {
         //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+        //if (VueUtil.isMacPlatform()) e.acceptDrag(DnDConstants.ACTION_COPY);
         if (debug) System.out.println("MapDropTarget: dragEnter " + e);
     }
 
@@ -87,6 +93,14 @@ class MapDropTarget
             viewer.setIndicated(over);
         else
             viewer.clearIndicated();
+
+        // doing this will turn on green "+" icon as the default, which is appropriate,
+        // yet doesn't allow for changing the indicator to the shortcut icon if CTRL
+        // is pressed, and the drop code for that is the huge bogus # on the mac,
+        // so we're skipping this for now.
+        //if (VueUtil.isMacPlatform())
+        //  e.acceptDrag(DnDConstants.ACTION_COPY);
+
         //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
     }
 
@@ -289,6 +303,14 @@ class MapDropTarget
 
         boolean success = false;
 
+        // TODO: we can handle Mac .fileloc's if we check multiple data-flavors: the initial LIST
+        // flavor gives us the .fileloc, which we could even pull a name from if we want, and in
+        // any case, a later STRING data-flavor actually gives us the source of the link!
+        // SAME APPLIES TO .webloc files...
+        // Of course, if they drop multple ones of these, we're screwed, as only the last
+        // one gets translated for us in the later string data-flavor.  Oh well -- at least
+        // we can handle the single case if we want.
+
         if (fileList != null) {
             if (DEBUG.DND) System.out.println("\tHANDLING LIST, size= " + fileList.size());
             java.util.Iterator iter = fileList.iterator();
@@ -339,7 +361,8 @@ class MapDropTarget
          
         } else if (resourceList != null) {
             if (DEBUG.DND) System.out.println("\tHANDLING RESOURCE LIST, size= " + resourceList.size());
-            if (resourceList.size() == 1 && hitComponent != null && overwriteResource) {
+            //if (resourceList.size() == 1 && hitComponent != null && overwriteResource) {
+            if (resourceList.size() == 1 && hitComponent != null && !createAsChildren) {
                 // modifier key was down: force resetting of the resource
                 hitComponent.setResource((Resource)resourceList.get(0));
             } else {
