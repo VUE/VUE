@@ -38,10 +38,21 @@ import tufts.vue.LWKey;
 
 /**
  *
+ * A class that represents the hierarchy model used for the outline view.
+ *
+ * This presents a transformed view of the model presented by the LWMap containment hierarchy.
+ * In the LWMap model, nodes & links are all children of the map, except nodes that can be parented
+ * to other nodes, in which case they are, of course, children of their parent nodes.  Here, we
+ * present a different view.  We make it look as if every link to any component is also
+ * a child of that component.  Thus links, if both ends are connected, appear twice in
+ * the model: once in each parent.  If only one endpoint is connected, they'll appear once,
+ * and if NO endpoints of the link are connected, they won't appear in the model at all.
+ * This view is similar to the LWMap hierarchy in that we present nodes that are children of other nodes
+ * in the same way.
+ *
  * @author  Daisuke Fujiwara
  */
 
-/**A class that represents the hierarchy model used for the outline view*/
 public class OutlineViewHierarchyModel extends HierarchyModel implements LWComponent.Listener 
 {    
     /** Creates a new instance of OutlineViewHierarchyModel */
@@ -273,45 +284,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         //if it is a LWLink
         else if (addedChild instanceof LWLink)
         {
-            HierarchyNode linkedNode1 = null;
-            HierarchyNode linkedNode2 = null;
             LWLink link = (LWLink)addedChild;
-            
-            //gets two components the link connects to
-            LWComponent component1 = link.getComponent1();
-            LWComponent component2 = link.getComponent2();
-         
             //finds the hierarchy nodes associated with the two components and adds a hierarchy node representing the link to
             //the two hierarchy nodes
-            if (component1 != null) 
-            {
-                linkedNode1 = findHierarchyNode(getRootNode(), component1, true);
-                    
-                if (linkedNode1 != null)
-                { 
-                    HierarchyNode linkNode = createHierarchyNode(linkedNode1, link);
-                    reloadTreeModel(linkedNode1);
-                }
-            }
-            
-            if (component2 != null) 
-            {   
-                linkedNode2 = findHierarchyNode(getRootNode(), component2, true);
-                    
-                if (linkedNode2 != null) 
-                {
-                    HierarchyNode linkNode = createHierarchyNode(linkedNode2, link);
-                    reloadTreeModel(linkedNode2);
-                }  
-            }
+            addLinkConnection(link.getComponent1(), link);
+            addLinkConnection(link.getComponent2(), link);
         }
     }
     
-    /** Deletes a hierarchy node.  Note that deletedChild may or may NOT be a proper
-     LWMap container hierarchy child -- for our purposes here, any connected LWLink
-    is a "child" as it is displayed as such in the outline views, but it is not a real
-    child of the parent.
-    */
+    /** Deletes a hierarchy node. */
     public void deleteHierarchyTreeNode(LWContainer parent, LWComponent deletedChild) throws osid.hierarchy.HierarchyException
     {    
         //if it is a LWNode
@@ -348,101 +329,58 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         //if it is a LWLink
         else if (deletedChild instanceof LWLink)
         {
-            HierarchyNode linkedNode1 = null, linkedNode2 = null;
             LWLink link = (LWLink)deletedChild;
-            
-            //gets two components the link connects to
-            LWComponent component1 = link.getComponent1();
-            LWComponent component2 = link.getComponent2();
-       
-            linkedNode1 = findHierarchyNode(getRootNode(), component1, true);
-            linkedNode2 = findHierarchyNode(getRootNode(), component2, true);
-                
             //finds the hierarchy nodes associated with the two components and deletes the tree node representing the link to
             //the two tree nodes
             //must check to see if the parent wasn't deleted in the process
-            if (linkedNode1 != null)
-            {
-                HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
-                
-                if (linkNode1 != null)
-                {
-                    deleteHierarchyNode(linkNode1);
-                    reloadTreeModel(linkedNode1);
-                }
-            }
-              
-            if (linkedNode2 != null)
-            {
-                HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
-                
-                if (linkNode2 != null)
-                {
-                    deleteHierarchyNode(linkNode2);
-                    reloadTreeModel(linkedNode2);
-                }
-            }
+            removeLinkConnection(link.getComponent1(), link);
+            removeLinkConnection(link.getComponent2(), link);
         }
         
         //validateHierarchyNodeLinkLabels();
     }
     
-    /*
-    public void validateHierarchyNodeLinkLabels() throws osid.hierarchy.HierarchyException
+    private void removeLinkConnection(LWComponent linkEndpoint, LWLink link)
+        throws osid.hierarchy.HierarchyException        
     {
-        for(osid.hierarchy.NodeIterator i = getAllNodes(); i.hasNext();)
-        {
-            HierarchyNode node = (HierarchyNode)i.next();
-            LWComponent component = node.getLWComponent();
-            
-            if (component instanceof LWLink)
-            {  
-               System.out.println("validating: " + component.getID());
-               
-               LWLink link = (LWLink)component;
-               
-               if(node.getDisplayName().equals(link.getLabel()))
-               {
-                 continue;
-               }
-               
-               if (link.getComponent1() == null || link.getComponent2() == null)    
-               {
-                 node.updateDisplayName("Link ID# " + link.getID() + " : to nothing");               
-               }
-               
-               else
-               {
-                   System.out.println("the connected nodes are " + link.getComponent1().getLabel() + ", " + link.getComponent2().getLabel());
-               }
-            }
+        if (linkEndpoint == null)
+            return;
+        HierarchyNode hierParent = findHierarchyNode(getRootNode(), linkEndpoint, true);
+        if (hierParent != null) {
+            HierarchyNode hierLink = findHierarchyNode(hierParent, link, false);
+            // in case this LWKey.LinkRemoved is result of the link being deleted,
+            // it will already have been taken out of the model, so we need
+            // to check for null first.
+            if (hierLink != null) 
+                deleteHierarchyNode(hierLink);
         }
     }
-    */
+
+    private void addLinkConnection(LWComponent linkEndpoint, LWLink link)
+        throws osid.hierarchy.HierarchyException        
+    {
+        if (linkEndpoint == null)
+            return;
+        HierarchyNode hierParent = findHierarchyNode(getRootNode(), linkEndpoint, true);
+        if (hierParent != null) {
+            HierarchyNode hierLink = createHierarchyNode(hierParent, link);
+            reloadTreeModel(hierParent);
+        }
+    }
     
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
         String message = e.getWhat();
-        
-        //old events
-        //if (message == LWKey.ChildAdded)
-        //  addHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
-        //else if (message == LWKey.ChildRemoved)
-        //deleteHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
-
-        // TODO: also needs to generally handle HierachyChanging events, which
-        // is all we get on undo's
-
         try
         {
             if (message == LWKey.LinkAdded)
             {
-                addHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
+                addLinkConnection((LWContainer)e.getSource(), (LWLink)e.getComponent());
             }
             else if (message == LWKey.LinkRemoved)
             {
-                deleteHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
+                removeLinkConnection((LWContainer)e.getSource(), (LWLink)e.getComponent());
             }
             else if (message == LWKey.ChildrenAdded)
             {
@@ -456,8 +394,10 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 for (Iterator i = childrenList.iterator(); i.hasNext();)
                   deleteHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
             }
+            /*
             else if (message == LWKey.HierarchyChanged)
             {   
+                //System.err.println(this + " needs to rebuild child list from scratch for " + e.getSource());
                 LWContainer container = (LWContainer)e.getSource();  
                 System.out.println("the container it needs to change is " + container.toString());
                 
@@ -491,9 +431,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                         addHierarchyTreeNode(container, component);
                     }
                 }
-                
-                System.err.println(this + " needs to rebuild child list from scratch for " + e.getSource());
             }
+            */
         }
         
         catch(osid.hierarchy.HierarchyException he)
@@ -502,6 +441,40 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             he.printStackTrace();
         }
     }
+    
+    
+    /*
+    public void validateHierarchyNodeLinkLabels() throws osid.hierarchy.HierarchyException
+    {
+        for(osid.hierarchy.NodeIterator i = getAllNodes(); i.hasNext();)
+        {
+            HierarchyNode node = (HierarchyNode)i.next();
+            LWComponent component = node.getLWComponent();
+            
+            if (component instanceof LWLink)
+            {  
+               System.out.println("validating: " + component.getID());
+               
+               LWLink link = (LWLink)component;
+               
+               if(node.getDisplayName().equals(link.getLabel()))
+               {
+                 continue;
+               }
+               
+               if (link.getComponent1() == null || link.getComponent2() == null)    
+               {
+                 node.updateDisplayName("Link ID# " + link.getID() + " : to nothing");               
+               }
+               
+               else
+               {
+                   System.out.println("the connected nodes are " + link.getComponent1().getLabel() + ", " + link.getComponent2().getLabel());
+               }
+            }
+        }
+    }
+    */
     
     /**A method that creates a hierarch node with a given parent and the given LWComponent*/
     private HierarchyNode createHierarchyNode(HierarchyNode parentNode, LWComponent component) throws osid.hierarchy.HierarchyException
