@@ -37,6 +37,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     String searchURL;
     int prevStartIndex = 0; 
     int nextStartIndex = 0;
+    JScrollPane jsp = new JScrollPane();
       JTextField keywords;
       JButton prevButton;
       JButton nextButton;
@@ -201,7 +202,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
               
                 
                 String searchString = keywords.getText();
-                
+                 System.out.println("Keywords" + searchString);
                   
                 
                if (!searchString.equals("")){
@@ -246,9 +247,9 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
 
                 tree.setRootVisible(false);
               
-            
-
-                JScrollPane jsp = new JScrollPane(tree);
+                
+                 googleResultsPanel.remove(jsp);
+                 jsp = new JScrollPane(tree);
                 
                
                  
