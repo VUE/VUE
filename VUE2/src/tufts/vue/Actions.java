@@ -346,8 +346,6 @@ class Actions {
             centerY = (minY + maxY) / 2;
             Iterator i = selection.iterator();
             totalWidth = totalHeight = 0;
-            float x = selection.first().getX();
-            float y = selection.first().getY();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 if (c instanceof LWLink)
@@ -416,7 +414,7 @@ class Actions {
         };
     static final AlignAction DistributeVertically = new AlignAction("Distribute Vertically", KeyEvent.VK_V) {
             boolean enabledFor(LWSelection s) { return s.size() >= 3; }
-            // only 2 in selection is useful with our minimum layout region setting
+            // use only *2* in selection if use our minimum layout region setting
             void align(LWSelection selection)
             {
                 LWComponent[] comps = sortByY(sortByX(selection.getArray()));
@@ -730,8 +728,10 @@ class Actions {
          * selection -- override if this isn't what the action
          * needs to do.
          *
-         * Note that the default is to descend into instances LWGroup
-         * and apply the action seperately to each child.
+         * Note that the default is to descend into instances of LWGroup
+         * and apply the action seperately to each child, and NOT
+         * do apply the action to any nodes that are children of
+         * other nodes.
          */
         void act(java.util.Iterator i)
         {
