@@ -440,7 +440,9 @@
        <field name = "userName" type = "string">
             <bind-xml name ="userName" node = "attribute" />
        </field>
-       
+        <field name = "searchURL" type = "string">
+            <bind-xml name ="searchURL" node = "element" />
+       </field>
        <field name = "activeDataSource" type = "boolean">
             <bind-xml name ="activeDataSource" node = "attribute" />
        </field>

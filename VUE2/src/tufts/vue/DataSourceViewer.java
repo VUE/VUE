@@ -271,7 +271,9 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
     }
     
     dataSourceChanged = true;
-    
+         if (type == DataSource.GOOGLE){
+        System.out.println("I am Search URL " + type +searchURL);
+         }
     
     if (dataSourceList.getModel().getSize() == 0){//only element in the list
         
