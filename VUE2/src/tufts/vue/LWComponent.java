@@ -1260,6 +1260,8 @@ public class LWComponent
                 w = (float) (h * mAspect);
                 
         }
+        if (w < 10) w = 10;
+        if (h < 10) h = 10;
         takeSize(w, h);
         if (getParent() != null && !(getParent() instanceof LWMap))
             getParent().layout();
