@@ -95,8 +95,7 @@ public class LWPathway extends tufts.vue.LWComponent
         Iterator iter = getNodeIterator();
         while(iter.hasNext()){
             LWNode node = (LWNode)iter.next();
-            if(!node.getStrokeColor().equals(borderColor))
-                node.setStrokeColor(borderColor);
+            //node.setIndicated(true);
         }
     }
     
