@@ -29,22 +29,22 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 	static public final String kFont = "font";
 	
 	static final String [] sNodeProperties = {  kFillColor,
-												kStrokeColor,
-												kTextColor,
-												kStrokeWeight,
-												kFont
-												};
+                                                    kStrokeColor,
+                                                    kTextColor,
+                                                    kStrokeWeight,
+                                                    kFont
+        };
 												
 	static final String  []  sLinkProperties = {  kStrokeColor,
-												kStrokeWeight,
-												kTextColor,
-												kLinkArrowState,
-												kFont
-												};
+                                                      kStrokeWeight,
+                                                      kTextColor,
+                                                      kLinkArrowState,
+                                                      kFont
+        };
 												
 	static final String [] sTextProperties = {  kTextColor,
-												kFont
-												};
+                                                    kFont
+        };
 												
 												
 	

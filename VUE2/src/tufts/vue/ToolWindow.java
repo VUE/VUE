@@ -93,7 +93,8 @@ public class ToolWindow
                 titlePanel.add(hideButton);
             }
             
-            if (VueUtil.isMacPlatform()) {
+            if (VueUtil.isMacAquaLookAndFeel()) {
+                // Mac OS X Aqua L&F
                 //titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
                 add(titlePanel, BorderLayout.NORTH);
                 contentPanel.setBorder(new LineBorder(Color.gray));
@@ -105,6 +106,7 @@ public class ToolWindow
                 titlePanel.setForeground(SystemColor.activeCaptionText);
                 titlePanel.setBorder(new LineBorder(SystemColor.activeCaptionBorder));
                 contentPanel.setBackground(SystemColor.control);
+                //contentPanel.setBorder(new LineBorder(Color.green, 5));
                 contentPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
                 contentPanel.add(titlePanel, BorderLayout.NORTH);
             }
@@ -146,7 +148,7 @@ public class ToolWindow
                 titlePanel.add(l);
                 //System.out.println("lh=" + l.getHeight());
                 int y = ((TitleHeight - l.getHeight())+1) / 2;
-                if (VueUtil.isMacPlatform())
+                if (VueUtil.isMacAquaLookAndFeel())
                     y++;
                 l.setLocation(2, y);
                 if (hideButton != null)
@@ -156,16 +158,22 @@ public class ToolWindow
             add(contentPanel, BorderLayout.CENTER);
         }
 
-        public void X_addNotify()
+        private int iconSize;
+        private int yoff;
+        private int edgeInset;
+        
+        public void addNotify()
         {
+            if (iconSize == 0) {
+                iconSize = TitleHeight - (VueUtil.isMacAquaLookAndFeel() ? 4 : 5);
+                yoff = VueUtil.isMacAquaLookAndFeel() ? 2 : 4;
+                edgeInset = VueUtil.isMacAquaLookAndFeel() ? TitleHeight : TitleHeight+1;
+            }
             super.addNotify();
             //System.out.println("hideButton=" + hideButton);
             //System.out.println("peer="+hideButton.getPeer());
         }
 
-        int iconSize = TitleHeight - (VueUtil.isMacPlatform() ? 4 : 5);
-        int yoff = VueUtil.isMacPlatform() ? 2 : 4;
-        int edgeInset = VueUtil.isMacPlatform() ? TitleHeight : TitleHeight+1;
         public void paint(Graphics g) {
             //System.out.println("painting " + this);
             super.paint(g);
@@ -249,9 +257,16 @@ public class ToolWindow
         addMouseMotionListener(this);
         setBackground(SystemColor.control);
         this.mTitle = title;
-        setContentPane(toolPanel = new ToolPanel(mTitle));
+        System.out.println(this + " cp=" + getContentPane());
+        toolPanel = new ToolPanel(mTitle);
+        getContentPane().add(toolPanel);
+        //setContentPane(toolPanel);
         Component gp = new GlassPane();
         setGlassPane(gp);
+        // FYI: I don't know if a glass pane is going to
+        // work if we override the content-pane -- see
+        // JRootPane custom layout mgr that handles glass
+        // pane layout for the *default* content-pane.
         gp.setVisible(true);
         pack();
         //setLocationRelativeTo(owner);

@@ -188,112 +188,113 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	
  	
  	
-     protected void initDefaultState() {
-         //System.out.println("NodeToolPanel.initDefaultState");
-         LWNode node = new LWNode("NodeToolPanel.initializer");
-         mDefaultState = VueBeans.getState(node);
-         setValue(mDefaultState);
-     }
+    protected void initDefaultState() {
+        //System.out.println("NodeToolPanel.initDefaultState");
+        LWNode node = new LWNode("NodeToolPanel.initializer");
+        mDefaultState = VueBeans.getState(node);
+        setValue(mDefaultState);
+    }
  	
- 	/**
- 	 * setValue
- 	 * Generic property editor access
- 	 **/
- 	public void setValue( Object pValue) {
-            //System.out.println("NTP setValue " + pValue);
- 		VueBeanState state = null;
+    /**
+     * setValue
+     * Generic property editor access
+     **/
+    public void setValue( Object pValue) {
+        //System.out.println("NTP setValue " + pValue);
+        VueBeanState state = null;
  		
- 		enablePropertyChangeListeners( false);
- 		if( pValue instanceof LWComponent) {
- 			state = VueBeans.getState( pValue);
- 			}
- 		else
- 		if( pValue instanceof VueBeanState ) {
- 			state = (VueBeanState) pValue;
- 			}
+        enablePropertyChangeListeners( false);
+        if( pValue instanceof LWComponent) {
+            if (!(pValue instanceof LWNode))
+                return;
+            state = VueBeans.getState( pValue);
+        }
+        else
+            if( pValue instanceof VueBeanState ) {
+                state = (VueBeanState) pValue;
+            }
  		
- 		if( state == null)  {
- 			state = mDefaultState;
- 			}
+        if( state == null)  {
+            state = mDefaultState;
+        }
  		
- 		mState = state;
+        mState = state;
  		
- 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
- 		mFontPanel.setValue( font);
+        Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+        mFontPanel.setValue( font);
  		
- 		Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
- 		float weightVal = 1;
- 		if( weight != null)
-                    weightVal = weight.floatValue();
- 		mStrokeButton.setStroke(weightVal);
+        Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
+        float weightVal = 1;
+        if( weight != null)
+            weightVal = weight.floatValue();
+        mStrokeButton.setStroke(weightVal);
  		
- 		Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kFillColor);
- 		mFillColorButton.setColor( fill);
+        Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kFillColor);
+        mFillColorButton.setColor( fill);
  		
- 		Color stroke = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
- 		mStrokeColorButton.setColor( stroke);
+        Color stroke = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
+        mStrokeColorButton.setColor( stroke);
  		
- 		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
- 		mTextColorButton.setColor( text);
+        Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+        mTextColorButton.setColor( text);
  		
- 		enablePropertyChangeListeners( true);
- 	}
+        enablePropertyChangeListeners( true);
+    }
  	
- 	/**
- 	 * getValue
- 	 *
- 	 **/
- 	public VueBeanState getValue() {
- 		return mState;
- 	}
+    /**
+     * getValue
+     *
+     **/
+    public VueBeanState getValue() {
+        return mState;
+    }
  	
- 	/**
- 	 *
- 	 **/
- 	public void enablePropertyChangeListeners( boolean pState) {
- 	 	if( pState ) {
-	 		mStrokeButton.addPropertyChangeListener( this );
-	 		mFontPanel.addPropertyChangeListener( this);
-	 		mTextColorButton.addPropertyChangeListener( this);
-	 		mStrokeColorButton.addPropertyChangeListener( this);
-	 		mFillColorButton.addPropertyChangeListener( this);
- 	 		}
- 	 	else {
-	 		mStrokeButton.removePropertyChangeListener( this );
-	 		mFontPanel.removePropertyChangeListener( this);
-	 		mTextColorButton.removePropertyChangeListener( this);
-	 		mStrokeColorButton.removePropertyChangeListener( this);
-	 		mFillColorButton.removePropertyChangeListener( this);
- 	 		}
- 	 }
+    /**
+     *
+     **/
+    public void enablePropertyChangeListeners( boolean pState) {
+        if( pState ) {
+            mStrokeButton.addPropertyChangeListener( this );
+            mFontPanel.addPropertyChangeListener( this);
+            mTextColorButton.addPropertyChangeListener( this);
+            mStrokeColorButton.addPropertyChangeListener( this);
+            mFillColorButton.addPropertyChangeListener( this);
+        } else {
+            mStrokeButton.removePropertyChangeListener( this );
+            mFontPanel.removePropertyChangeListener( this);
+            mTextColorButton.removePropertyChangeListener( this);
+            mStrokeColorButton.removePropertyChangeListener( this);
+            mFillColorButton.removePropertyChangeListener( this);
+        }
+    }
  	 
- 	public void propertyChange( PropertyChangeEvent pEvent) {
-            //System.out.println("Node property chaged: "+pEvent.getPropertyName());
-  		String name = pEvent.getPropertyName();
-  		if( !name.equals("ancestor") ) {
- 		System.out.println("Node property chaged: "+ pEvent.getPropertyName() + " " + pEvent);
+    public void propertyChange( PropertyChangeEvent pEvent) {
+        //System.out.println("Node property chaged: "+pEvent.getPropertyName());
+        String name = pEvent.getPropertyName();
+        if( !name.equals("ancestor") ) {
+            System.out.println("Node property chaged: "+ pEvent.getPropertyName() + " " + pEvent);
 	  		
-	  		VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
-  			if( mState != null) {
-  				mState.setPropertyValue( name, pEvent.getNewValue() );
-  				}
-  			else {
-  				// should never happen
-  				System.out.println("!!! Node ToolPanel mState is null!");
-  				}
-  			if( mDefaultState != null) {
-  				mDefaultState.setPropertyValue( name, pEvent.getNewValue() );
-  				}
-  			else {
-  				// should never happen
-  				System.out.println("!!! Node ToolPanel mDefaultState is null!");
-  				}
-  			}
-  	}
+            VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
+            if( mState != null) {
+                mState.setPropertyValue( name, pEvent.getNewValue() );
+            }
+            else {
+                // should never happen
+                System.out.println("!!! Node ToolPanel mState is null!");
+            }
+            if( mDefaultState != null) {
+                mDefaultState.setPropertyValue( name, pEvent.getNewValue() );
+            }
+            else {
+                // should never happen
+                System.out.println("!!! Node ToolPanel mDefaultState is null!");
+            }
+        }
+    }
  	
- 	public void actionPerformed( ActionEvent pEvent) {
+    public void actionPerformed( ActionEvent pEvent) {
  	
- 	}
+    }
  	
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");
@@ -304,4 +305,4 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
         VueUtil.displayComponent(new NodeToolPanel());
     }
  	
- }
+}

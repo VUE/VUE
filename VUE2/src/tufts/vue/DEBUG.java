@@ -1,20 +1,20 @@
 package tufts.vue;
 
-class DEBUG
+public class DEBUG
 {
     // Can leave these as static for runtime tweaking, or
     // make final to have compiler strip them out entirely.
-    static boolean CONTAINMENT = false;
-    static boolean PARENTING = false;
-    static boolean LAYOUT = false;
-    static boolean BOXES = false;
-    static boolean ROLLOVER = false;
-    static boolean EVENTS = false;
-    static boolean SCROLL = false;
-    static boolean SELECTION = false;
-    static boolean FOCUS = false;
-    static boolean UNDO = false;
-    static boolean PATHWAY = false;
+    public static boolean CONTAINMENT = false;
+    public static boolean PARENTING = false;
+    public static boolean LAYOUT = false;
+    public static boolean BOXES = false;
+    public static boolean ROLLOVER = false;
+    public static boolean EVENTS = false;
+    public static boolean SCROLL = false;
+    public static boolean SELECTION = false;
+    public static boolean FOCUS = false;
+    public static boolean UNDO = false;
+    public static boolean PATHWAY = false;
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
 

@@ -60,6 +60,8 @@ public class VueToolbarController
 	
 	// current selection id
 	private String mCurSelectionID = new String();
+
+     private LWCToolPanel mLWCToolPanel;
 	
 	
 	////////////////
@@ -85,6 +87,13 @@ public class VueToolbarController
      public VueTool[] getTools()
      {
          return mVueTools;
+     }
+
+     private LWCToolPanel getLWCToolPanel()
+     {
+         if (mLWCToolPanel == null)
+             mLWCToolPanel = new LWCToolPanel();
+         return mLWCToolPanel;
      }
 	
 	
@@ -418,85 +427,81 @@ public class VueToolbarController
 	 }
 	 
 	 
-	 /**
-	  * getSuggestedContextualPanel()
-	  * Retusn the suggest tool panel to use based on the current state
-	  * of the controller and map.
-	  **/
-	 public JPanel getSuggestedContextualPanel() {
-	 	JPanel panel = null;
-	 	VueToolbarController controller = VueToolbarController.getController();
-	 	LWSelection selection = VUE.ModelSelection;
-	 	VueTool tool = null;
+     /**
+      * getSuggestedContextualPanel()
+      * Retusn the suggest tool panel to use based on the current state
+      * of the controller and map.
+      **/
+     public JPanel getSuggestedContextualPanel() {
+         JPanel panel = null;
+         VueToolbarController controller = VueToolbarController.getController();
+         LWSelection selection = VUE.ModelSelection;
+         VueTool tool = null;
 	 	
-	 	if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
-	 		LWComponent c = (LWComponent) selection.get(0);
-	 		if( c instanceof LWNode) {
-	 			if( ((LWNode) c).isTextNode() ) {
-	 				tool = controller.getTool( "textTool");
-	 				}
-	 			else {
-		 			tool = controller.getTool( "nodeTool" );
-		 			}
-	 			}
-	 		else
-	 		if( c instanceof LWLink) {
-	 			tool = controller.getTool( "linkTool");
-	 			}
-	 		}
-	 	if( tool != null) {
-	 		panel = tool.getContextualPanel() ;
-	 		}
-	 	return panel;
-	 }
+         if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
+             LWComponent c = (LWComponent) selection.get(0);
+             if( c instanceof LWNode) {
+                 if( ((LWNode) c).isTextNode() ) {
+                     tool = controller.getTool( "textTool");
+                 }
+                 else {
+                     tool = controller.getTool( "nodeTool" );
+                 }
+             }
+             else
+                 if( c instanceof LWLink) {
+                     tool = controller.getTool( "linkTool");
+                 }
+         }
+         if (tool != null)
+             panel = tool.getContextualPanel();
+         System.out.println("getSuggestedContextualPanel returning " + panel);
+         return panel;
+     }
 	 
      
      private JPanel getContextualPanelForSelection() {
          JPanel panel = null;
          LWSelection selection = VUE.ModelSelection;
-         if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
-             LWComponent c = (LWComponent) selection.get(0);
-             if( c instanceof LWNode) {
-                 if( ((LWNode) c).isTextNode() ) {
+         if (selection.size() > 0 && selection.allOfSameType()) {
+             LWComponent c = selection.first();
+             if (c instanceof LWNode) {
+                 if( ((LWNode) c).isTextNode())
                      panel = TextTool.getTextToolPanel();
-                 }
-                 else {
+                 else
                      panel = NodeTool.getNodeToolPanel();
-                 }
-             }
-             else
-                 if( c instanceof LWLink) {
-                     panel = LinkTool.getLinkToolPanel();
-                 }
+             } else if (c instanceof LWLink)
+                 panel = LinkTool.getLinkToolPanel();
+
+         } else {
+             panel = getLWCToolPanel();
          }
-         //System.out.println(this + " getContextualPanelForSelection returning " + panel);
+         System.out.println("getContextualPanelForSelection returning " + panel);
          return panel;
      }
 	 
-	 void initContextualPanelFromSelection( JPanel panel) {
-	 	// FIX:  move this to an interface rather than instance checking
-	 //	if( true) return;
+     void initContextualPanelFromSelection( JPanel panel) {
+         // FIX:  move this to an interface rather than instance checking
+	 // (or even better: redo all of this so we don't have this problem).
 	 	
-	 	LWSelection selection = VUE.ModelSelection;
-	 	Object item = null;
-	 	if( (selection != null) && (!selection.isEmpty()) ) {
-	 		item = selection.get(0);
-	 		}
-	 	if( item == null) return;
+         LWSelection selection = VUE.ModelSelection;
+         Object item = null;
+         if (selection != null && selection.size() > 0)
+             item = selection.get(0);
+         if (item == null) return;
 	 	
-	 	if( panel instanceof NodeToolPanel ) {
-	 		
-	 		((NodeToolPanel) panel).setValue( item);
-	 		}
-	 	if( panel instanceof LinkToolPanel ) {
-	 		((LinkToolPanel) panel).setValue( item);
-	 		}
-	 	if( panel instanceof TextToolPanel ) {
-	 		((TextToolPanel) panel).setValue( item);
-	 	}
-	 }
+         if( panel instanceof NodeToolPanel )
+             ((NodeToolPanel) panel).setValue( item);
+         else if( panel instanceof LinkToolPanel )
+             ((LinkToolPanel) panel).setValue( item);
+         else if( panel instanceof TextToolPanel )
+             ((TextToolPanel) panel).setValue( item);
+         else if( panel instanceof LWCToolPanel)
+             ((LWCToolPanel) panel).setValue( item);
+     }
 	 
-	 
+
+     
 	 /**
 	  * handleMapEvent
 	  *

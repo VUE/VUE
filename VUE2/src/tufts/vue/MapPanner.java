@@ -147,13 +147,11 @@ public class MapPanner extends javax.swing.JPanel
         //System.out.println(pannerRect);
         //System.out.println(mapViewerRect);
 
-        //g2.scale(1/zoomFactor, 1/zoomFactor);
-        //g2.translate(offset.getX(), offset.getY());
-
-        
+        g2.scale(1/zoomFactor, 1/zoomFactor);
+        g2.translate(offset.getX(), offset.getY());
     }
 
-    protected void paintBorder(Graphics g) {
+    protected void X_paintBorder(Graphics g) {
         // panner disables any border
     }
 

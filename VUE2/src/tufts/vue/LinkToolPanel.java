@@ -175,6 +175,8 @@ import tufts.vue.beans.*;
          //System.out.println("LinkToolPanel setValue " + pValue);
          VueBeanState state = null;
          if( pValue instanceof LWComponent) {
+             if (!(pValue instanceof LWLink))
+                 return;
              state = VueBeans.getState( pValue);
              //System.out.println("got state " + state);
          }

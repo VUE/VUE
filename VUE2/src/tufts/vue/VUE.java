@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 import javax.swing.*;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 import tufts.vue.action.*;
 import java.util.LinkedList;
 import java.util.prefs.*;
@@ -234,13 +235,16 @@ public class VUE
 
     static void initUI(boolean debug)
     {
-        String laf = null;
-        //laf = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        //laf = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
-        //if (debug) laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        MetalLookAndFeel.setCurrentTheme(new VueTheme()); // no freakin effect at all!
+        
+        String lafn = null;
+        //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
+        //if (debug)
+        lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         try {
-            if (laf != null)
-                javax.swing.UIManager.setLookAndFeel(laf);
+            if (lafn != null)
+                javax.swing.UIManager.setLookAndFeel(lafn);
         } catch (Exception e) {
             System.err.println(e);
         }
@@ -303,13 +307,17 @@ public class VUE
             
         */
         //Color toolbarColor = VueResources.getColor("toolbar.background");
-        String lafName = UIManager.getLookAndFeel().getName();
-        System.out.println("LookAndFeel: \"" + lafName + "\" " + UIManager.getLookAndFeel());
+        LookAndFeel laf = UIManager.getLookAndFeel();
+        String lafName = laf.getName();
+        System.out.println("LookAndFeel: \"" + lafName + "\" " + laf);
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
 
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
             UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
-
+            UIManager.getLookAndFeelDefaults().put("Menu.font", FONT_MEDIUM);
+            UIManager.getLookAndFeelDefaults().put("MenuItem.font", FONT_MEDIUM);
+            UIManager.getLookAndFeelDefaults().put("TabbedPane.font", FONT_MEDIUM);
+            
             // This is doing nothing I can see:
             //UIManager.getLookAndFeelDefaults().put("Menu.background", Color.white);
 
@@ -335,7 +343,7 @@ public class VUE
             // Affects tabs but not tab contents background, so looks broken:
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
 
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
+            UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
             // Why, in metal, is the default window "gray" background color neither lightGray
             // nor equal to the SystemColor.control???
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.blue);
@@ -349,10 +357,9 @@ public class VUE
     static JPanel toolPanel;//todo: tmp hack
     public static void main(String[] args)
     {
+        System.out.println("VUE:main");
         initUI();
         
-   
-
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
@@ -370,9 +377,7 @@ public class VUE
         //-------------------------------------------------------
         
         toolPanel = new JPanel();
-        //JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        //DRBrowser drBrowser = new DRBrowser();
         DRBrowser drBrowser = null;
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         if (!nodr)  {
@@ -387,8 +392,6 @@ public class VUE
             //-------------------------------------------------------
             // create example map(s)
             //-------------------------------------------------------
-            //LWMap map1 = new LWMap("Test Nodes");
-            //LWMap map2 = new LWMap("Example Map");
             //LWMap map1 = new LWMap("Map 1");
             LWMap map2 = new LWMap("Map 2");
 
@@ -444,19 +447,16 @@ public class VUE
             drBrowserTool.addTool(drBrowser);
         
         // The real tool palette window withtools and contextual tools
-        ToolWindow toolbarWindow = new ToolWindow( VueResources.getString("tbWindowName"), frame);
+        ToolWindow toolbarWindow = null;
         VueToolbarController tbc = VueToolbarController.getController();
+        ModelSelection.addListener(tbc);
+        /*
+        ToolWindow toolbarWindow = new ToolWindow( VueResources.getString("tbWindowName"), frame);
         tbc.setToolWindow( toolbarWindow);
         toolbarWindow.getContentPane().add( tbc.getToolbar() );
         toolbarWindow.pack();
+        */
 
-        boolean scottHack =
-            System.getProperty("user.name").equals("sfraize") &&
-            System.getProperty("scottHack") != null;
-        // Need to factor some stuff out for the moment as has some bugs -- SMF 2003-12-29 21:32.39 Monday
-
-        if (!scottHack) ModelSelection.addListener(tbc);
-        
         frame.getContentPane().add( tbc.getToolbar(), BorderLayout.NORTH);
 		
 		// Map Inspector
@@ -464,13 +464,13 @@ public class VUE
 		// get the proper scree/main frame size
 		ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
 		MapInspectorPanel mip = new MapInspectorPanel();
-		if (!scottHack) ModelSelection.addListener( mip);
+		ModelSelection.addListener( mip);
 		mapInspector.addTool( mip );
 		
 		//ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
 		objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
 		objectInspectorPanel = new ObjectInspectorPanel();
-		if (!scottHack) ModelSelection.addListener(objectInspectorPanel);
+		ModelSelection.addListener(objectInspectorPanel);
 		sResourceSelection.addListener( objectInspectorPanel);
 		objectInspector.addTool(objectInspectorPanel);
 		
@@ -488,25 +488,25 @@ public class VUE
         pathwayInspector = new LWPathwayInspector(frame);
         //control = new PathwayControl(frame);
         
-        //hierarchyTree = new LWHierarchyTree(frame);
-        hierarchyTree = new LWHierarchyTree();
+        /*
         ToolWindow htWindow = new ToolWindow("Hierarchy Tree", frame);
+        hierarchyTree = new LWHierarchyTree();
         htWindow.addTool(hierarchyTree);
+        */
 
         outlineView = new LWOutlineView(frame);
         //end of addition
        
         Window[] toolWindows = {
-            toolbarWindow,
-            pannerTool,
-            inspectorTool,
-            drBrowserTool,
-            pathwayInspector,
-            htWindow,
-            //hierarchyTree,
-            mapInspector,
             objectInspector,
+            drBrowserTool,
+            toolbarWindow,
+            pathwayInspector,
+            pannerTool,
+            //htWindow,
+            mapInspector,
             outlineView,
+            inspectorTool,
         };
         
         // adding the menus and toolbars
@@ -602,6 +602,7 @@ public class VUE
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
+        MetalLookAndFeel.setCurrentTheme(new VueTheme()); // no effect whatsoever
     }
 
 
@@ -1001,11 +1002,13 @@ public class VUE
         JMenu alignMenu = new JMenu("Align");
         alignMenu.setBackground(menuColor);
 
-        JMenu windowMenu = new JMenu("Window");
+        JMenu windowMenu = new JMenu("Tools");
         windowMenu.setBackground( menuColor);
         
+        /*
         JMenu optionsMenu = new JMenu("Options");
         optionsMenu.setBackground( menuColor);
+        */
         
         JMenu helpMenu = new JMenu("Help");
         helpMenu.setBackground( menuColor);
@@ -1015,7 +1018,7 @@ public class VUE
         menuBar.add(viewMenu);
         menuBar.add(formatMenu);
         menuBar.add(arrangeMenu);
-        menuBar.add(optionsMenu);
+        //menuBar.add(optionsMenu);
         menuBar.add(windowMenu);
         menuBar.add(helpMenu);
         //adding actions
@@ -1143,15 +1146,20 @@ public class VUE
         for (int i = 0; i < toolWindows.length; i++) {
             //System.out.println("adding " + toolWindows[i]);
             Window window = toolWindows[i];
+            if (window == null)
+                continue;
             WindowDisplayAction windowAction = new WindowDisplayAction(window);
             JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
             windowAction.setLinkedButton(checkBox);
             windowMenu.add(checkBox);
         }
 
+        windowMenu.add(new UserDataAction());
+        /*
         optionsMenu.add(new UserDataAction());
         optionsMenu.add(new JMenuItem("Map Preference..."));
         optionsMenu.add(new JMenuItem("Preferences..."));
+        */
         
         helpMenu.add(new JMenuItem("Help"));
         

@@ -123,30 +123,6 @@ public class VueBeans   {
 		sPropertyMappers.put( pClass.getName(), pMapper);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	/**
 	 * getPropertyMapper
 	 * This method returns a VuePropertyMapper for the given object.
@@ -176,18 +152,19 @@ public class VueBeans   {
 	}
 
 
-	static public void setPropertyValueForLWSelection(LWSelection pSelection, String pName, Object pValue  ) {
+    static public void setPropertyValueForLWSelection(LWSelection pSelection, String pName, Object pValue  ) {
 		
-		if(  (pSelection == null) || pSelection.isEmpty()) {
-			return;
-			}
-		Iterator it = pSelection.iterator();
-		Object object = null;
-		// FIX:  THis may be a bad assumption that the mapper will work for 
-		// all items in the selection.
-		while( it.hasNext() ) {
-			object = it.next();
-			VueBeans.setPropertyValue( object, pName, pValue);
-			}
-	}
+        if (pSelection == null || pSelection.isEmpty())
+            return;
+
+        Iterator it = pSelection.iterator();
+        Object object = null;
+        // FIX:  THis may be a bad assumption that the mapper will work for 
+        // all items in the selection. [it should apply properties as it can]
+        while (it.hasNext() ) {
+            object = it.next();
+            if (tufts.vue.DEBUG.SELECTION) System.out.println("applying " + pName + " to " + object);
+            VueBeans.setPropertyValue( object, pName, pValue);
+        }
+    }
 }
