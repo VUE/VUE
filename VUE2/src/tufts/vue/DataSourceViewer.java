@@ -62,7 +62,7 @@ public class DataSourceViewer  extends JPanel{
         resourcesPanel = new JPanel();
         dataSourceList = new DataSourceList();     
         loadDataSources();
-        dataSourceList.setSelectedIndex(1);
+       
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
@@ -79,7 +79,10 @@ public class DataSourceViewer  extends JPanel{
         add(jSP,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
     }
-    
+    public Vector getDataSources(){
+        return this.dataSources;
+        
+    }
     public DataSource getActiveDataSource() {
         return this.activeDataSource;
     }
@@ -458,7 +461,7 @@ public class DataSourceViewer  extends JPanel{
     }
     
         
- public  void marshallMap(File file,SaveDataSourceViewer dataSourceViewer)
+ public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer)
     {
         Marshaller marshaller = null;
         
