@@ -190,37 +190,51 @@
 			<bind-xml name="Element" />
 		</field>
 	</class>
+		<!-- FEDORA OBJECTS -->
+	<class name="tufts.vue.CastorFedoraObject">
+		<field name="id" type="string">
+			<bind-xml name="id" node="attribute"/>
+		</field>
+		<field name="type" type="string">
+			<bind-xml name="type" node="element" />
+		</field>
+		<field name="displayName" type="string">
+			<bind-xml name="displayName" node="element" />
+		</field>
+		<field name="CastorDR" type="tufts.vue.CastorDR">
+			<bind-xml name="CastorDR" node="element"/>
+		</field>
+	</class>
+	<class name="tufts.vue.CastorDR">
+		<field name="id" type="string">
+			<bind-xml name="id" node="attribute"/>
+		</field>
+		<field name="displayName" type="string">
+			<bind-xml name="displayName" node="element" />
+		</field>
+		<field name="description" type="string">
+			<bind-xml name="description" node="element" />
+		</field>
+	</class>
 	
-	<!-- FEDORA OBJECTS -->
-	<class name="tufts.dr.fedora.FedoraObject">
-		<map-to xml="object"/>
-		<field name="ID" type="java.lang.String">
-			<bind-xml name="pid" node="attribute"/>
-		</field>
-		<field name="behaviorList" type="tufts.dr.fedora.Behavior" collection="vector">
-			<bind-xml name="bdef"/>
-		</field>
-		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
-			<bind-xml matches="*" />
+
+<!-- saving favorite nodes-->
+	<class name="tufts.vue.SaveVueJTree">
+		<map-to xml="SaveVueJTree" />
+		<field name="saveTreeRoot" type="tufts.vue.SaveNode">
+			<bind-xml name="SaveTreeRoot" node="element" />
 		</field>
 	</class>
-	<class name="tufts.dr.fedora.Behavior">
-		<field name="ID" type="java.lang.String">
-			<bind-xml name="pid" node="attribute"/>
+	<class name="tufts.vue.SaveNode">
+		<map-to xml="SaveNode" />
+		<field name="nodeType" type="java.lang.String">
+			<bind-xml name="nodeType" node="attribute" />
 		</field>
-		<field name="disseminationList" type="tufts.dr.fedora.Dissemination" collection="vector">
-			<bind-xml name="method"/>
+		<field name="resourceName" type="java.lang.String">
+			<bind-xml name="resourceName" node="element" />
 		</field>
-		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
-			<bind-xml matches="*" />
-		</field>
-	</class>
-	<class name="tufts.dr.fedora.Dissemination">
-		<field name="name" type="java.lang.String">
-			<bind-xml name="name" node="attribute"/>
-		</field>
-		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
-			<bind-xml matches="*" />
+		<field name="children" type="tufts.vue.SaveNode" collection="vector">
+			<bind-xml name="SaveNode" />
 		</field>
 	</class>
 </mapping>
