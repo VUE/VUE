@@ -33,12 +33,12 @@ public class VueToolbarController
 	/** the list of tools **/
 	public static final String kDefaultToolsKey = "defaultToolNames";
 	
-	static private VueToolbarController sController = new VueToolbarController();
+        static private VueToolbarController sController;
 	
 	/** Contextual tool panels for various selection types **/
-	static private NodeToolPanel sNodeSelectionContextualPanel= new NodeToolPanel();
-	static private TextToolPanel sTextSelectionContextualPanel = new TextToolPanel();
-	static LinkToolPanel sLinkSelectionContextualPanel = new LinkToolPanel();
+        static private NodeToolPanel sNodeSelectionContextualPanel;
+        static private TextToolPanel sTextSelectionContextualPanel;
+        static private LinkToolPanel sLinkSelectionContextualPanel;
 	
 	
 	
@@ -124,7 +124,8 @@ public class VueToolbarController
 		
 		try {
 			Class toolClass = getClass().getClassLoader().loadClass( className);
-			
+
+                        System.out.println("Loading tool " + pName + " " + toolClass);
 			tool = (VueTool) toolClass.newInstance();
 					
 			// set the tool's properties...
@@ -148,7 +149,7 @@ public class VueToolbarController
                         } else {
                             ImageIcon icon = VueResources.getImageIcon( pName+".cursor");
                             if (icon != null) {
-                                System.out.println(tool + " found cursor icon: " + icon);
+                                //System.out.println(tool + " found cursor icon: " + icon);
                                 //System.out.println(tool + " cursor icon image: " + icon.getImage());
                                 Toolkit toolkit = Toolkit.getDefaultToolkit();
                                 //System.out.println("Creating cursor for " + icon);
@@ -221,8 +222,9 @@ public class VueToolbarController
 	 * @return the static controller
 	 **/
 	 static public VueToolbarController getController() {
-
-		return sController;
+             if (sController == null)
+                 sController = new VueToolbarController();
+             return sController;
 	 }
 
 	
@@ -442,26 +444,46 @@ public class VueToolbarController
 	 }
 	 
 	 
-	 private JPanel getContextualPanelForSelection() {
-	 	JPanel panel = null;
-	 	LWSelection selection = VUE.ModelSelection;
-	 	if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
-	 		LWComponent c = (LWComponent) selection.get(0);
-	 		if( c instanceof LWNode) {
-	 			if( ((LWNode) c).isTextNode() ) {
-	 				panel = sTextSelectionContextualPanel;
-	 				}
-	 			else {
-		 			panel = sNodeSelectionContextualPanel;
-		 			}
-	 			}
-	 		else
-	 		if( c instanceof LWLink) {
-	 			panel = sLinkSelectionContextualPanel;
-	 			}
-	 		}
-	 	return panel;
-	 }
+     private static NodeToolPanel getNodeSelectionContextualPanel()
+     {
+         if (sNodeSelectionContextualPanel == null)
+             sNodeSelectionContextualPanel = new NodeToolPanel();
+         return sNodeSelectionContextualPanel;
+     }
+
+     private static LinkToolPanel getLinkSelectionContextualPanel()
+     {
+         if (sLinkSelectionContextualPanel == null)
+             sLinkSelectionContextualPanel = new LinkToolPanel();
+         return sLinkSelectionContextualPanel;
+     }
+     private static TextToolPanel getTextSelectionContextualPanel()
+     {
+         if (sTextSelectionContextualPanel == null)
+             sTextSelectionContextualPanel = new TextToolPanel();
+         return sTextSelectionContextualPanel;
+     }
+     
+     private JPanel getContextualPanelForSelection() {
+         JPanel panel = null;
+         LWSelection selection = VUE.ModelSelection;
+         if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
+             LWComponent c = (LWComponent) selection.get(0);
+             if( c instanceof LWNode) {
+                 if( ((LWNode) c).isTextNode() ) {
+                     panel = getTextSelectionContextualPanel();
+                 }
+                 else {
+                     panel = getNodeSelectionContextualPanel();
+                 }
+             }
+             else
+                 if( c instanceof LWLink) {
+                     panel = getLinkSelectionContextualPanel();
+                 }
+         }
+         return panel;
+     }
 	 
 	 void initContextualPanelFromSelection( JPanel panel) {
 	 	// FIX:  move this to an interface rather than instance checking
@@ -514,4 +536,22 @@ public class VueToolbarController
 		if( sDebug )
 			System.out.println( pMsg);
 	}
+
+    public static void main(String[] args) {
+        System.out.println("VueToolbarController:main");
+        JFrame frame = new JFrame("toolbar");
+        JComponent toolbar = getController().createDefaultToolbar();
+        toolbar.setSize(toolbar.getPreferredSize());
+        frame.setContentPane(toolbar);
+        frame.pack();
+        frame.validate();
+        if (VueUtil.getJavaVersion() >= 1.4f) {
+            Point p = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+            p.x -= frame.getWidth() / 2;
+            p.y -= frame.getHeight() / 2;
+            frame.setLocation(p);
+        }
+        frame.show();
+    }
+     
 }

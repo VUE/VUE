@@ -3702,7 +3702,7 @@ public class MapViewer extends javax.swing.JComponent
         frame.setBackground(Color.gray);
         frame.setSize(500,400);
         //frame.pack();
-        if (VueUtil.getJavaVersion() >= 1.4) {
+        if (VueUtil.getJavaVersion() >= 1.4f) {
             Point p = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
             p.x -= frame.getWidth() / 2;
             p.y -= frame.getHeight() / 2;

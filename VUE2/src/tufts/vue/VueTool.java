@@ -107,7 +107,7 @@ public abstract class VueTool extends AbstractAction
 	 **/
 	public void setID( String pID ) {
             mID = pID;
-            System.out.println("Initializing tool " + this);
+            //System.out.println("Initializing tool " + this);
             ResourceBundle rb = VueResources.getBundle();
             Enumeration e = rb.getKeys();
             while (e.hasMoreElements()) {

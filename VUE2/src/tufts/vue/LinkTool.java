@@ -12,7 +12,7 @@ public class LinkTool extends VueTool
     implements VueConstants
 {
     /** link tool contextual tool panel **/
-    static LinkToolPanel sLinkContextualPanel = new LinkToolPanel();
+    private static LinkToolPanel sLinkContextualPanel;
     
     LWComponent linkSource; // for starting a link
 
@@ -28,10 +28,8 @@ public class LinkTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-        
-        if( sLinkContextualPanel == null) {
-        	sLinkContextualPanel = new LinkToolPanel();
-        	}
+        if (sLinkContextualPanel == null)
+            sLinkContextualPanel = new LinkToolPanel();
         return sLinkContextualPanel;
     }
 

@@ -86,7 +86,13 @@ public class VueUtil
     }
 
 
-    public static double getJavaVersion()
+    /*
+     * Be sure to compare this value to a constant *float*
+     * value -- e.g. "1.4f" -- just "1.4" as double value may
+     * actually appear to be less than 1.4, as that can't
+     * be exactly represented by a double.
+     */
+    public static float getJavaVersion()
     {
         return javaVersion;
     }

@@ -33,7 +33,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
 	
 	
  	/** the font list **/
- 	static private String[] sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+     static private String[] sFontNames = null;
  
  	
  	/** Text color editor button **/
@@ -67,9 +67,14 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	
  	public FontEditorPanel() {
  		
+            if (sFontNames == null){
+                //new Throwable("Loading system fonts...").printStackTrace();
+                sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+            }
+                
  		Box box = Box.createHorizontalBox();
  		
- 		mFontCombo = new JComboBox( sFontNames);
+                mFontCombo = new JComboBox( sFontNames);
  		mFontCombo.addActionListener( this );
  		Font f = mFontCombo.getFont();
  		Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
