@@ -67,7 +67,7 @@ public class VUE
             /** teh global resource selection static model **/
     public final static ResourceSelection sResourceSelection = new ResourceSelection();
     
-    public static VueFrame frame;   // make this private!
+    private static VueFrame frame;   // make this private!
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
@@ -675,7 +675,7 @@ public class VUE
         }
 
         frame.show();
-        System.out.println("VUE: frame visible");
+        out("frame visible");
         
         if (splashScreen != null)
             splashScreen.setVisible(false);
@@ -711,41 +711,6 @@ public class VUE
         if (VueUtil.isMacPlatform())
             installMacOSXApplicationEventHandlers();
         
-        // An attempt to get the mac metal look picked up by something other than a frame
-        // & other window experiments.
-        /*
-        
-        Frame emptyFrame = new Frame();
-        Window emptyWindow = new Window(VUE.frame);
-        
-        //Window w = new java.awt.VFrame(frame);
-        //Window w = new Frame(); // only full-bread Frame's/JFrame's are picking up mac brushed metal look...
-        //Window w = new JWindow(VUE.frame);
-        //Window w = new Dialog(VUE.frame);
-        //Window w = new JDialog(VUE.frame);
-        Window w = new TestWindow(VUE.frame);
-        w.setLayout(new FlowLayout());
-        w.add(new JLabel("Hello."));
-        JComponent tf = new JTextField("text", 10);
-        w.add(tf);
-        tf.addFocusListener(new FocusAdapter() {
-                public void focusGained(FocusEvent e) {
-                    new Throwable("tf got focus " + e).printStackTrace();
-                }
-            });
-        // tf.setFocusable(false); // disable's field
-        //w.setFocusable(false);
-        //w.setFocusableWindowState(false);
-        w.setSize(200,100);
-        tufts.Util.centerOnScreen(w);
-        tf.enableInputMethods(true);
-        tf.requestFocus();
-        //w.setBackground(UIManager.getColor("info")); // tried window,control,desktop,windowBorder,menu,activeCaption,info
-        //w.setBackground(SystemColor.control);
-        //w.setBackground(frame.getBackground());
-        w.show();
-
-        */
         out("main completed.");
     }
 
@@ -787,6 +752,43 @@ public class VUE
                     VUE.displayMap(file);
                 }
             });
+        */
+
+        
+        // An attempt to get the mac metal look picked up by something other than a frame
+        // & other window experiments.
+        /*
+        
+        Frame emptyFrame = new Frame();
+        Window emptyWindow = new Window(VUE.frame);
+        
+        //Window w = new java.awt.VFrame(frame);
+        //Window w = new Frame(); // only full-bread Frame's/JFrame's are picking up mac brushed metal look...
+        //Window w = new JWindow(VUE.frame);
+        //Window w = new Dialog(VUE.frame);
+        //Window w = new JDialog(VUE.frame);
+        Window w = new TestWindow(VUE.frame);
+        w.setLayout(new FlowLayout());
+        w.add(new JLabel("Hello."));
+        JComponent tf = new JTextField("text", 10);
+        w.add(tf);
+        tf.addFocusListener(new FocusAdapter() {
+                public void focusGained(FocusEvent e) {
+                    new Throwable("tf got focus " + e).printStackTrace();
+                }
+            });
+        // tf.setFocusable(false); // disable's field
+        //w.setFocusable(false);
+        //w.setFocusableWindowState(false);
+        w.setSize(200,100);
+        tufts.Util.centerOnScreen(w);
+        tf.enableInputMethods(true);
+        tf.requestFocus();
+        //w.setBackground(UIManager.getColor("info")); // tried window,control,desktop,windowBorder,menu,activeCaption,info
+        //w.setBackground(SystemColor.control);
+        //w.setBackground(frame.getBackground());
+        w.show();
+
         */
         
     
@@ -887,6 +889,15 @@ public class VUE
         return frame;
     }
 
+    /** return the root VUE window, mainly for those who'd like it to be their parent */
+    public static Window getRootWindow() {
+        return frame;
+    }
+    /** return the root VUE frame, mainly for those who'd like it to be their parent */
+    public static Frame getRootFrame() {
+        return frame;
+    }
+    
     public static UndoManager getUndoManager() {
         LWMap map = getActiveMap();
         if (map != null)

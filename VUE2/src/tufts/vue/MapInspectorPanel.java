@@ -387,7 +387,7 @@ implements  VUE.ActiveMapListener {
             //mPathDisplay = new JPanel();
             //mPathDisplay.add( new JLabel("Pathway offline") );
             
-            mPathDisplay = new PathwayPanel(VUE.frame);
+            mPathDisplay = new PathwayPanel(VUE.getRootFrame());
             
             mPathScrollPane = new JScrollPane();
             mPathScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);

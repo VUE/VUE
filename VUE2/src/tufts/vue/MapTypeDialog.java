@@ -372,12 +372,12 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	}
 	
 	public boolean displayDialog() {
-		mDialog  = new JDialog( VUE.frame, true);
-		mDialog.getContentPane().add( this);
-		mDialog.pack();
-		mDialog.show();
-		
-		return mIsOkay;
+            mDialog  = new JDialog(VUE.getRootFrame(), true);
+            mDialog.getContentPane().add( this);
+            mDialog.pack();
+            mDialog.show();
+            
+            return mIsOkay;
 	}	
 
 

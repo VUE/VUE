@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.16 $ / $Date: 2004-11-17 20:22:14 $ -->
+<!-- $Revision: 1.17 $ / $Date: 2004-11-17 23:10:33 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -291,7 +291,7 @@
         <os family="windows"/>
       </not>
     </condition>
-
+    <mkdir dir="${build.class}"/>
     <tstamp />
   </target>
 
@@ -300,7 +300,6 @@
 
   <target name="compile" depends="prepare,version"
     description="Compile Java sources using default javac">
-    <mkdir dir="${build.class}"/>
     <!-- echo message="lib.home is ${lib.home}"/ -->
 
     <javac srcdir="${basedir}"
@@ -417,6 +416,7 @@
         <attribute name="Description" value="Tufts/MIT VUE 0.9+ (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
+        <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
       </manifest>
       <zipgroupfileset dir="${basedir}" includes="VUE-core.jar"/>
@@ -530,6 +530,7 @@ public class Version {
         public static final String BuildTime = "${TSTAMP}";
         public static final String BuildUser = "${user.name}";
         public static final String BuildPlatform = "${os.name} ${os.version} ${os.arch}";
+        public static final String WhatString = "@(#)VUE: built ${TODAY} at ${TSTAMP}";
 }
 </echo>
     <javac srcdir="${build.home}" 

@@ -91,7 +91,7 @@ public class ActionUtil {
         if(VueUtil.isCurrentDirectoryPathSet()) 
           chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
-        int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
+        int option = chooser.showDialog(tufts.vue.VUE.getRootWindow(), "Save");
         
         if (option == JFileChooser.APPROVE_OPTION) 
         {
@@ -136,7 +136,7 @@ public class ActionUtil {
         if (VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
-        int option = chooser.showDialog(tufts.vue.VUE.frame, "Open");
+        int option = chooser.showDialog(tufts.vue.VUE.getRootWindow(), "Open");
         
         if (option == JFileChooser.APPROVE_OPTION) 
         {

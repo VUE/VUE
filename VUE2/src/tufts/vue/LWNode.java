@@ -1655,7 +1655,7 @@ public class LWNode extends LWContainer
 
 
 
-    /** @deprecated - for castor restore only */
+    /** for castor restore & internal default's use only */
     public LWNode()
     {
         setShape(new java.awt.geom.Rectangle2D.Float());

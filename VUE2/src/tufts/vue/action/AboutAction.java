@@ -40,7 +40,7 @@ public class AboutAction extends AbstractAction
 
     private static Window createAboutWindow()
     {
-        JDialog window = new JDialog(VUE.frame, "VUE: About", true);
+        JDialog window = new JDialog(VUE.getRootFrame(), "VUE: About", true);
         //JFrame window = new JFrame("VUE: About");
         
         JPanel backPanel = new JPanel();

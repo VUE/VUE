@@ -382,9 +382,9 @@ public class PathwayTable extends JTable
                 else if (col == PathwayTableModel.COL_OPEN) {
                     setIcon(bool ? open : close);
                     if (bool)
-                        setToolTipText("Hide members");
+                        setToolTipText("Collapse member list");
                     else
-                        setToolTipText("Show members");
+                        setToolTipText("Expand member list");
                 }
                 else if (col == PathwayTableModel.COL_NOTES) {
                     setIcon(bool ? notes : null);

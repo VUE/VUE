@@ -2648,8 +2648,8 @@ public class MapViewer extends javax.swing.JComponent
                     tufts.Util.setFullScreen(fullScreenWindow);
                     fullScreenWindow.setVisible(true);
                 }
-                fullScreenOldVUELocation = VUE.frame.getLocation();
-                fullScreenOldVUESize = VUE.frame.getSize();
+                fullScreenOldVUELocation = VUE.getRootWindow().getLocation();
+                fullScreenOldVUESize = VUE.getRootWindow().getSize();
                 //VUE.frame.setSize(0,0);
                 //VUE.frame.setLocation(3072,2048);
                 //VUE.frame.setExtendedState(Frame.ICONIFIED);
@@ -2892,7 +2892,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
                 else if (c == '!') {
                     if (debugInspector == null) {
-                        debugInspector = new ToolWindow("Inspector", VUE.frame == null ? debugFrame : VUE.frame);
+                        debugInspector = new ToolWindow("Inspector", VUE.getRootFrame() == null ? debugFrame : VUE.getRootFrame());
                         debugInspector.addTool(new LWCInspector());
                     }
                     debugInspector.setVisible(true);
