@@ -32,7 +32,6 @@ class DRBrowser extends javax.swing.JTabbedPane
         VueDragTree fedoraTree = null;
         DigitalRepository dr = new DR();
         
-        //FedoraTree  fedoraTree = null;
         try {
             fedoraTree = new VueDragTree(dr.getAssets(),"Fedora Tree");
         } catch(OsidException e) {

@@ -31,9 +31,7 @@ public class VUE
     public static Cursor CURSOR_ZOOM_OUT;
     
     public static JFrame frame;
-    //set to public so that action package can access it (Jay Briedis 6/4/03)
-    //(lets add method calls/whatever API is needed by action on VUE so this doesn't
-    // need to be public) -- SF 2003-06-30 10:39.21 Monday
+    
     private static JTabbedPane tabbedPane;
     private static JTabbedPane tabbedPane2;//todo: rename left/right
     private static JSplitPane viewerSplit;
