@@ -96,6 +96,27 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             setModel(null);
     }
     
+    public void setSelectionPath(LWComponent component)
+    {
+        TreePath path = hierarchyModel.getTreePath(component);
+        super.setSelectionPath(path);
+    }
+    
+    /**a wrapper method*/
+    public boolean contains(LWComponent component)
+    {
+       return hierarchyModel.contains(component);
+    }
+    
+    public boolean isInitialized()
+    {
+        if (hierarchyModel != null)
+          return true;
+        
+        else
+          return false;
+    }
+    
     /**A method that deals with dynamic changes to the tree element*/
     public void treeNodesChanged(TreeModelEvent e)
     {

@@ -8,6 +8,7 @@ package tufts.oki.hierarchy;
 
 import java.util.Iterator;
 import java.util.ArrayList;
+import javax.swing.tree.TreePath;
 
 import tufts.vue.LWComponent;
 import tufts.vue.LWContainer;
@@ -422,5 +423,41 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         {
             System.err.println("other exception deleting");
         }
+    }
+    
+    public boolean contains(LWComponent component)
+    {
+        boolean result = false;
+        
+        try
+        {
+            if (findHierarchyNode(getRootNode(), component, true) != null)
+              result = true;
+        }
+        
+        catch (osid.hierarchy.HierarchyException he)
+        {
+            System.err.println("contains method didn't work");
+        }
+        
+        return result;
+    }
+    
+    public TreePath getTreePath(LWComponent component)
+    {
+        TreePath path = null;
+        
+        try
+        {
+            HierarchyNode node = findHierarchyNode(getRootNode(), component, true);
+            path = new TreePath(node.getTreeNode().getPath());
+        }
+        
+        catch (osid.hierarchy.HierarchyException he)
+        {
+            System.err.println("Exception doing the tree path method");
+        }
+        
+        return path;
     }
 }
