@@ -56,8 +56,8 @@
     <!-- castor can figure out types, we leave string as defaulted.
       -->
         <field name="ID"><bind-xml node="attribute"/></field>
-		<field name="label"><bind-xml node="attribute"/></field>
-		<field name="notes"><bind-xml node="element"/></field>
+		<field name="XMLlabel"><bind-xml name="label" node="attribute"/></field>
+		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
 		<field name="metaData"><bind-xml node="element"/></field>
 		<field name="category"><bind-xml node="element"/></field>
 		<field name="resource" type="tufts.vue.Resource">

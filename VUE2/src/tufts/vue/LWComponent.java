@@ -107,9 +107,9 @@ public class LWComponent
     }
     public String getLabel()
     {
-        //if (label!=null)label=label.replace('\n', '%');
         return this.label;
     }
+    
     public String getNotes()
     {
         return this.notes;
@@ -119,6 +119,45 @@ public class LWComponent
         return this.metaData;
     }
 
+    /** for persistance */
+    public String getXMLlabel()
+    {
+        return escapeNewlines(this.label);
+    }
+
+    /** for persistance */
+    public void setXMLlabel(String text)
+    {
+        setLabel(unescapeNewlines(text));
+    }
+
+    /** for persistance */
+    public String getXMLnotes()
+    {
+        return escapeNewlines(this.notes);
+    }
+
+    /** for persistance */
+    public void setXMLnotes(String text)
+    {
+        setNotes(unescapeNewlines(text));
+    }
+
+    private String escapeNewlines(String text)
+    {
+        if (text == null)
+            return null;
+        else
+            return text.replaceAll("\n", "%nl;");
+    }
+    private String unescapeNewlines(String text)
+    {
+        if (text == null)
+            return null;
+        else
+            return text.replaceAll("%nl;", "\n");
+    }
+    
     /**
      * If this component supports special layout for it's children,
      * or resizes based on font, label, etc, do it here.
@@ -225,18 +264,6 @@ public class LWComponent
         notify("fillColor");
     }
 
-    /*public String getXMLlabelText()
-    {
-        String s = getLabel();
-        s.replaceAll("t", "X");
-        s.replaceAll("\n", "<n>");
-        return s;
-    }
-    public void setXMLlabelText(String s)
-    {
-        System.out.println("setXMLlabelText " + s);
-        }*/
-    
     /** for persistance */
     public String getXMLfillColor()
     {
