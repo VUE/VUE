@@ -79,7 +79,7 @@ ActionListener {
             c.weightx = 1.0;
             
             JComponent field = (JComponent) labelTextPairs[i+1];
-            field.setFont(VueConstants.SmallFont);
+            //field.setFont(VueConstants.SmallFont);
             if (field instanceof JTextField)
                 ((JTextField)field).addActionListener(this);
             gridbag.setConstraints(field, c);

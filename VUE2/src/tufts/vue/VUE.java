@@ -373,7 +373,6 @@ public class VUE
                         rightViewer = mMapTabsRight.getSelectedViewer();
 
                     if (multipleMapsVisible()) {
-                        // pretend we panned to update MapPanner
                         if (leftViewer != null)
                             leftViewer.fireViewerEvent(MapViewerEvent.PAN);
                         if (rightViewer != null)
@@ -562,12 +561,14 @@ public class VUE
             splitPane.resetToPreferredSizes();
         }
 
-        System.out.println("VUE.main: loading fonts...");
+        out("loading fonts...");
         FontEditorPanel.getFontNames();
-        System.out.println("VUE.main completed.");
-
+        out("caching tool panels...");
+        NodeTool.getNodeToolPanel();
+        LinkTool.getLinkToolPanel();
         if (drBrowser != null && drBrowserTool != null)
             drBrowserTool.addTool(new DRBrowser());
+        out("main completed.");
     }
     
     

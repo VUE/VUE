@@ -29,9 +29,12 @@ public class LinkTool extends VueTool
         return getLinkToolPanel();
     }
 
+    private static final Object LOCK = new Object();
     static LinkToolPanel getLinkToolPanel() {
-        if (sLinkContextualPanel == null)
-            sLinkContextualPanel = new LinkToolPanel();
+        synchronized (LOCK) {
+            if (sLinkContextualPanel == null)
+                sLinkContextualPanel = new LinkToolPanel();
+        }
         return sLinkContextualPanel;
     }
 

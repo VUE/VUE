@@ -13,17 +13,13 @@ import tufts.vue.beans.VueBeanState;
 public class NodeTool extends VueTool
     implements VueConstants
 {
-	///////////
-	// Fields
-	/////////////
-	
-    
     private static NodeTool singleton = null;
     
     /** the contextual tool panel **/
     private static NodeToolPanel sNodeToolPanel;
+
     
-    
+    /** this constructed called via VueResources.properties init */
     public NodeTool()
     {
         super();
@@ -41,10 +37,16 @@ public class NodeTool extends VueTool
         return singleton;
     }
     
+    private static final Object LOCK = new Object();
+    // todo: promote a generic static to VueTool that handles the lock,
+    // and calls subclass factory for creating tool panel
     static NodeToolPanel getNodeToolPanel()
     {
-        if (sNodeToolPanel == null)
-            sNodeToolPanel = new NodeToolPanel();
+        synchronized (LOCK) {
+            if (sNodeToolPanel == null) {
+                sNodeToolPanel = new NodeToolPanel();
+            }
+        }
         return sNodeToolPanel;
     }
     

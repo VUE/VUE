@@ -1138,6 +1138,8 @@ public class MapViewer extends javax.swing.JComponent
         if (ignore)
             return;
         
+        fireViewerEvent(MapViewerEvent.PAN);
+        
         /*
         Point p=null;
         if (isShowing()) {
@@ -1158,7 +1160,6 @@ public class MapViewer extends javax.swing.JComponent
         //if (isShowing()) mLastCorner = getLocationOnScreen();
         //repaint(250); // why the delay?
         //requestFocus();
-        fireViewerEvent(MapViewerEvent.PAN);
         // may be causing problems on mac --
         // some components in tabbed is getting a reshape call
         // when switching tabs

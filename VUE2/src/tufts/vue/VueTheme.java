@@ -37,6 +37,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         return super.getName() + " (VUE)";
     }
     
+    public static Color getVueColor() { return getTheme().VueColor;  }
+    
     public FontUIResource getMenuTextFont() { return fontMedium;  }
     public FontUIResource getUserTextFont() { return fontSmall; }
     // controls: labels, buttons, tabs, tables, etc.
