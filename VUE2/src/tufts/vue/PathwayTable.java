@@ -114,35 +114,10 @@ public class PathwayTable extends JTable
                     tableModel.setCurrentPathway(path);
                     
                     if (c instanceof LWPathway) {
-                        //pathPanel.setAddElementEnabled();
-                        //pathPanel.removeElement.setEnabled(false);
-                        
                         if (col == 0 || col == 2 || col == 5)
-                            setValueAt(path, row, col); // toggle pathway visible, open or locked
-                        
-                        //tableModel.fireChanged(this); // setValueAt will trigger this...
-                        //tableModel.fireTableDataChanged(new TableModelEvent(this));
-                        //pathPanel.updateControlPanel();
-                        
+                            setValueAt(path, row, col); // toggle pathway bits: visible, open or locked
                     } else {
-                        path.setIndex(tableModel.getPathwayIndexForElementAt(row));
-                        //path.setCurrentElement(c);
-
-                        // temporarily calling this only to ensure an update of the
-                        // labels as per old code below -- but as soon as pathpanel
-                        // (via table model) is a listener to the LWPathway, it will
-                        // be able to pick up an LWCEvent issued from the setCurrentElement
-                        // above.
-                                tableModel.fireChanged(this);
-                                // BTW: repaint will NOT be enough to update the table --
-                                // it covers changes in field values no problem, but
-                                // it doesn't detect a change in the number of rows.
-
-                        
-                        //pathPanel.removeElement.setEnabled(true);
-                        //tableModel.fireChanged(this);
-                        //tableModel.fireTableDataChanged(new TableModelEvent(this)); // new
-                        //pathPanel.updateControlPanel();
+                        path.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
                     }
 
 
@@ -224,12 +199,8 @@ public class PathwayTable extends JTable
                         int row = getSelectedRow();
                         if (row == -1)
                             row = lastSelectedRow;
-                        if (row != -1){
+                        if (row != -1)
                             getTableModel().setValueAt(currentColor, row, 1);
-                            //getTableModel().fireChanged(this);
-                            //getTableModel().fireTableDataChanged(new TableModelEvent(this));
-                            //VUE.getActiveViewer().repaint();//todo: handle via event
-                        }
                     }               
                 }
             }

@@ -75,9 +75,7 @@ public class LWPathwayList implements LWComponent.Listener
      */
     public void setActivePathway(LWPathway pathway) {
         mActive = pathway;
-        
-        if (VUE.getActiveMap() != null)
-            VUE.getActiveMap().notify(this, LWCEvent.Repaint);
+        getMap().notify(this, "pathway.list.active");
     }
 
     private Object get(int i) { return mElements.get(i); }
@@ -99,24 +97,31 @@ public class LWPathwayList implements LWComponent.Listener
             return null;
     }
     
-    public boolean add(LWPathway p) {
+    public void add(LWPathway p) {
         p.setMap(getMap());
-        setActivePathway(p);
+        mElements.add(p);
+        LWCEvent e = new LWCEvent(this, p, "pathway.list.added");
+        getMap().notifyProxy(e);
+        LWComponent.dispatchLWCEvent(this, mListeners, e);
         p.addLWCListener(this);
-        return mElements.add(p);
+        setActivePathway(p);
     }
     
     public void addPathway(LWPathway pathway){
         add(pathway);
     }
 
-    public boolean remove(LWPathway p)
+    public void remove(LWPathway p)
     {
-        p.removeLWCListener(this);
+        // p.removeLWCListener(this); // happens auto in removeFromModel
         p.removeFromModel();
+        if (!mElements.remove(p))
+            throw new IllegalStateException(this + " didn't contain " + p + " for removal");
         if (mActive == p)
             setActivePathway(getFirst());
-        return mElements.remove(p);
+        LWCEvent e = new LWCEvent(this, p, "pathway.list.deleted");
+        getMap().notifyProxy(e);
+        LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
 
     public void LWCChanged(LWCEvent e) {

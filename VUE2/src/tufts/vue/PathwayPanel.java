@@ -20,7 +20,7 @@ import javax.swing.border.*;
  */
 
 /**A class which displays nodes in a pathway */
-public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Listener
+public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.Listener
 {    
     private PathwayTable pathwayTable = null;
     private PathwayTableModel tableModel = null;
@@ -317,26 +317,10 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
     /** Returns the currently selected pathway.  As currently
      * selected must always be same as VUE globally selected,
      * we just return that. */
-    private LWPathway getSelectedPathway()
-    {
+    private LWPathway getSelectedPathway() {
         return VUE.getActivePathway();
     }
-    /*
-    public LWPathway getCurrentPathway()
-    {
-        //return this.getPathwayManager().getCurrentPathway();
-        return getTableModel().getCurrentPathway();
-    }
-    */
-
-    public JFrame getParentFrame(){
-        return parent;
-    }
-    /*
-    public JComboBox getPathwayList(){
-        return pathwayList;
-    }
-    */
+    
     private void setupPathwayControl(){
         //pcPanel = new JPanel(new BorderLayout());
         
@@ -405,16 +389,6 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
         
     }
     
-    // For PathwayDialog
-    PathwayTableModel getTableModel(){
-        return this.tableModel;
-    }
-    
-    /**Notifies the table of data change*/
-    private void fireTableModelUpdate() {
-        getTableModel().fireChanged(this);
-    }
-    
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
@@ -442,13 +416,8 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
         else if (btn == forwardButton)  { pathway.setNext(); }
         else if (btn == backButton)     { pathway.setPrevious(); }
         else if (btn == removeButton)   { removePathway(pathway); }
-        else if (btn == createButton)   { new PathwayDialog(this, getLocationOnScreen()).show(); }
+        else if (btn == createButton)   { new PathwayDialog(this.parent, this.tableModel, getLocationOnScreen()).show(); }
         else if (btn == lockButton)     { pathway.setLocked(!pathway.isLocked()); }
-        
-        //getTableModel().fireTableDataChanged();
-        fireTableModelUpdate();
-        //updateEnabledStates();
-        VUE.getActiveMap().notify(this, LWCEvent.Repaint);//todo: remove
     }
    
     private void setElemSelection(boolean val){
@@ -592,7 +561,8 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
         displayedComponentPathway = path;
     }
 
-    public void mapViewerEventRaised(MapViewerEvent e) {
+    /*
+    public void X_mapViewerEventRaised(MapViewerEvent e) {
         if ((e.getID() & MapViewerEvent.DISPLAYED) != 0){
             if (DEBUG.PATHWAY) System.out.println(this + " got " + e + " updating...");
             fireTableModelUpdate();
@@ -607,6 +577,7 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
             //System.out.println("Active Map: "+VUE.getActiveMap().getLabel());
         }   
     }
+    */
 
     public String toString()
     {

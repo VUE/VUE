@@ -79,12 +79,10 @@ public class PathwayTableModel extends DefaultTableModel
         fireTableChanged(new DataEvent(invoker));
     }
 
-    // get rid of this
-    void setCurrentPathway(LWPathway path){
+    void setCurrentPathway(LWPathway path) {
         if (getPathwayList() != null){           
             getPathwayList().setActivePathway(path);
             fireTableDataChanged();
-            //SMF tab.updateControlPanel();
         }
     }
 
@@ -267,7 +265,7 @@ public class PathwayTableModel extends DefaultTableModel
     public void setValueAt(Object aValue, int row, int col){
         if (DEBUG.PATHWAY) System.out.println(this + " setValutAt " + row + "," + col + " " + aValue);
         LWComponent c = getElement(row);
-        if (c instanceof LWPathway){
+        if (c instanceof LWPathway) {
             LWPathway p = (LWPathway) c;
 
             if (col == 0) {
@@ -286,6 +284,10 @@ public class PathwayTableModel extends DefaultTableModel
             if (col == 3)
                 c.setLabel((String)aValue);
         }
+        // all the above sets will trigger LWCEvents, listeneted to by the
+        // LWPathways they're in, which are listeneted to by their map's
+        // LWPathwayList, which is listented to by us, the PathwayTableModel.
+        // When we get the callback to LWCChanged, we call fireTableDataChanged.
     }
 
 

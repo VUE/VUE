@@ -78,12 +78,24 @@ public class LWPathway extends LWContainer
     public int getWeight() { return weight; }
     public void setWeight(int weight) { this.weight = weight; }
 
-    int setIndex(int i)
+    public int getCurrentIndex() {
+        return mCurrentIndex;
+    }
+    public void setCurrentIndex(int i) {
+        setIndex(i);
+    }
+
+    private int setIndex(int i)
     {
         if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
+        if (mCurrentIndex == i)
+            return i;
+        Object oldValue = new Integer(mCurrentIndex);
         if (i >= 0 && VUE.getActivePathway() == this)
             VUE.ModelSelection.setTo(getElement(i));
-        return mCurrentIndex = i;
+        mCurrentIndex = i;
+        notify("index", oldValue);
+        return mCurrentIndex;
     }
 
     /**
@@ -442,10 +454,6 @@ public class LWPathway extends LWContainer
         notify(LWCEvent.Repaint);
     }
     
-    public int getCurrentIndex(){
-        return mCurrentIndex;
-    }
-
     public String getElementNotes(LWComponent c)
     {
         if (c == null) return null;

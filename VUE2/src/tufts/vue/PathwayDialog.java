@@ -17,15 +17,14 @@ import java.awt.*;
 /**A dialog displayed when the user chooses to add a new pathway to the current map */
 public class PathwayDialog extends JDialog implements ActionListener, KeyListener
 {
-    JButton okButton, cancelButton;
-    JTextField textField;
-    PathwayPanel pathPanel = null;
+    private JButton okButton, cancelButton;
+    private JTextField textField;
+    private PathwayTableModel tableModel = null;
     
-    public PathwayDialog(PathwayPanel pathPanel, Point location)
+    public PathwayDialog(Frame parentFrame, PathwayTableModel model, Point location)
     {
-        //super(pathPanel.getDialogParent(), "New Pathway Name", true);
-        super(pathPanel.getParentFrame(), "New Pathway Name", true);
-        this.pathPanel = pathPanel;
+        super(parentFrame, "New Pathway Name", true);
+        this.tableModel = model;
         setSize(250, 100);
         setLocation(location);
         setUpUI();
@@ -64,25 +63,21 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 
     public void actionPerformed(java.awt.event.ActionEvent e) 
     {
+        if (DEBUG.PATHWAY) System.out.println(this + " " + e);
         if (e.getSource() == okButton)
         {
             String pathLabel = textField.getText();
-            if (pathPanel.getTableModel().containsPathwayNamed(pathLabel)) {
+            if (tableModel.containsPathwayNamed(pathLabel)) {
                 JOptionPane option = new JOptionPane(
                     "Please rename this pathway.",
                     JOptionPane.INFORMATION_MESSAGE);
                 JDialog dialog = option.createDialog(okButton, "Pathway Name Exists");
                 dialog.show();
-            }
-            else{
-                //pathPanel.getTableModel().addPathway(new LWPathway(pathLabel));
+            } else {
                 VUE.getActiveMap().addPathway(new LWPathway(pathLabel));
-                //pathPanel.setAddElementEnabled();
-                //System.out.println("set add element enabled...");
                 dispose();
             }
         }
-
         else if (e.getSource() == cancelButton)
         {
             dispose();
@@ -95,24 +90,16 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 
     public void keyTyped(KeyEvent e) 
     {
-        if(e.getKeyChar()== KeyEvent.VK_ENTER)
+        if (e.getKeyChar()== KeyEvent.VK_ENTER)
         {
+            if (DEBUG.PATHWAY) System.out.println(this + " ENTER");
             //if the ok button or the text field has the focus, add a designated new pathway
-            if (okButton.isFocusOwner() || textField.isFocusOwner())
-            {    
-                //pathPanel.addPathway(new LWPathway(textField.getText()));
-                
-                //pathPanel.getTableModel().addPathway(new LWPathway(textField.getText()));
+            if (okButton.isFocusOwner() || textField.isFocusOwner()) {    
                 VUE.getActiveMap().addPathway(new LWPathway(textField.getText()));
                 dispose();                  
-            }
-
-            //else if the cancel button has the focus, just aborts it
-            else if (cancelButton.isFocusOwner())
-            {
-                //selects empty pathway if the cancel button was pressed
-                //pathwayList.setSelectedItem(noPathway);
-                dispose(); //does catch event?
+            } else if (cancelButton.isFocusOwner()) {
+                //else if the cancel button has the focus, just aborts it
+                dispose();
             }
         }
     }

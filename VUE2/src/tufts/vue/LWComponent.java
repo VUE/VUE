@@ -1335,6 +1335,10 @@ public class LWComponent
         notifyLWCListeners(new LWCEvent(source, this, what));
     }
 
+    void notifyProxy(LWCEvent e) {
+        notifyLWCListeners(e);
+    }
+
     protected void notify(String what, LWComponent contents)
     {
         notifyLWCListeners(new LWCEvent(this, contents, what));
