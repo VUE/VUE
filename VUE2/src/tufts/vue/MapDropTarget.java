@@ -85,7 +85,13 @@ class MapDropTarget
     
     public void drop(DropTargetDropEvent e)
     {
-        System.out.println("caps state="+VUE.getActiveViewer().getToolkit().getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
+        if (DEBUG.Enabled) {
+            try {
+                System.out.println("caps state="+VUE.getActiveViewer().getToolkit().getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
+            } catch (Exception ex) {
+                System.err.println(ex);
+            }
+        }
         if (debug) System.out.println("MapDropTarget: DROP " + e
                                       + "\n\tsourceActions=" + e.getSourceActions()
                                       + "\n\tdropAction=" + e.getDropAction()
