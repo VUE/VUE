@@ -386,6 +386,15 @@ public class VUE
         //formatMenu.add(new JMenuItem("Style"));
         formatMenu.add("Text Justify").setEnabled(false);
 
+
+        for (int i = 0; i < Actions.ALIGN_MENU_ACTIONS.length; i++) {
+            Action a = Actions.ALIGN_MENU_ACTIONS[i];
+            if (a == null)
+                alignMenu.addSeparator();
+            else
+                alignMenu.add(a);
+        }
+        /*
         alignMenu.add(Actions.AlignLeftEdges);
         alignMenu.add(Actions.AlignRightEdges);
         alignMenu.add(Actions.AlignTopEdges);
@@ -396,6 +405,7 @@ public class VUE
         alignMenu.addSeparator();
         alignMenu.add(Actions.DistributeVertically);
         alignMenu.add(Actions.DistributeHorizontally);
+        */
         
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
