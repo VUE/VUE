@@ -31,7 +31,7 @@ public class MapViewer extends javax.swing.JPanel
                , LWSelection.Listener
                , VueToolSelectionListener
 {
-    private Rectangle2D.Float RepaintRegion = null;
+    private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
 
     public interface Listener extends java.util.EventListener
@@ -83,7 +83,7 @@ public class MapViewer extends javax.swing.JPanel
         , 96, 128, 256, 384, 512 // overkill zoom factors for testing/debugging
     };
     private int curZoom = ZOOM_MANUAL; // index of current zoom factor
-    private Point2D zoomPoint = null;
+    private Point zoomPoint = null;
 
     private static final int ZOOM_FIT_PAD = 16;
 
@@ -398,9 +398,9 @@ public class MapViewer extends javax.swing.JPanel
     /**
      * set the center-on point in the map for the next zoom
      */
-    public void setZoomPoint(Point2D mapLocation)
+    public void setZoomPoint(Point screenLocation)
     {
-        this.zoomPoint = mapLocation;
+        this.zoomPoint = screenLocation;
     }
 
     public boolean setZoomBigger()
@@ -453,23 +453,17 @@ public class MapViewer extends javax.swing.JPanel
         }
 
         if (adjustViewport) {
-            Container c = (Container) this;
-            Point2D zoomMapCenter = null;
             if (this.zoomPoint == null) {
-                // center on the viewport
-                zoomMapCenter = new Point2D.Float(screenToMapX(c.getWidth() / 2),
-                                                  screenToMapY(c.getHeight() / 2));
-            } else {
-                // center on given point (e.g., where user clicked)
-                zoomMapCenter = this.zoomPoint;
-                this.zoomPoint = null;
+                // If no user selected zoom focus point, zoom in to
+                // towards the map location at the center of the
+                // viewport.
+                Container c = (Container) this;
+                this.zoomPoint = new Point(c.getWidth() / 2, c.getHeight() / 2);
             }
-
-            // todo: keep zoomed point at same location in viewport after zoom
-            // as opposed to in the center?
-            float offsetX = (float) (zoomMapCenter.getX() * newZoomFactor) - c.getWidth() / 2;
-            float offsetY = (float) (zoomMapCenter.getY() * newZoomFactor) - c.getHeight() / 2;
-
+            Point2D mapAnchor = screenToMapPoint(this.zoomPoint);
+            double offsetX = (mapAnchor.getX() * newZoomFactor) - zoomPoint.getX();
+            double offsetY = (mapAnchor.getY() * newZoomFactor) - zoomPoint.getY();
+            this.zoomPoint = null;
             setMapOriginOffset(offsetX, offsetY);
         }
         
@@ -1707,14 +1701,8 @@ public class MapViewer extends javax.swing.JPanel
             requestFocus();
             
             dragStart.setLocation(e.getX(), e.getY());
-            if (DEBUG_MOUSE)
-                System.out.println("dragStart set to " + dragStart);
+            if (DEBUG_MOUSE) System.out.println("dragStart set to " + dragStart);
             
-            //-------------------------------------------------------
-            // If any "tool" keys are being held down, start special
-            // operations and return (e.g., spacebar down for map drag)
-            //-------------------------------------------------------
-
             if (activeTool == HandTool) {
                 originAtDragStart = getOriginLocation();
                 if (getParent() instanceof JViewport)
@@ -1723,18 +1711,6 @@ public class MapViewer extends javax.swing.JPanel
                     viewportAtDragStart = null;
                 return;
             }
-            /*
-            else if (activeTool == ZoomTool) {
-                // FIX: zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
-                setZoomPoint(screenToMapPoint(e.getPoint()));
-                if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
-                    || toolKeyEvent != null && toolKeyEvent.isShiftDown())
-                    setZoomSmaller();
-                else
-                    setZoomBigger();
-                return;
-            }
-            */
             
             setLastMousePressPoint(e.getX(), e.getY());
 
@@ -1812,11 +1788,11 @@ public class MapViewer extends javax.swing.JPanel
                     //enables and disables the add/delete pathway nodes menu 
                     //depending on whether there is a selected pathway and the selected component 
                     //belongs to the pathway
-                    if(getMap().getPathwayManager().getCurrentPathway()!=null){
-                        if(getMap().getPathwayManager().getCurrentPathway().contains(hitComponent)){
+                    if (getMap().getPathwayManager().getCurrentPathway() != null) {
+                        if (getMap().getPathwayManager().getCurrentPathway().contains(hitComponent)) {
                             Actions.AddPathwayNode.setEnabled(false);
                             Actions.DeletePathwayNode.setEnabled(true);
-                        }else{
+                        } else {
                             Actions.AddPathwayNode.setEnabled(true);
                             Actions.DeletePathwayNode.setEnabled(false);
                         }   
@@ -1825,11 +1801,10 @@ public class MapViewer extends javax.swing.JPanel
                         Actions.DeletePathwayNode.setEnabled(false);
                     }
                     
-                    if (VUE.ModelSelection.size() == 1 && VUE.ModelSelection.get(0) instanceof LWNode)
-                      Actions.HierarchyView.setEnabled(true);
-                    
+                    if (VueSelection.size() == 1 && VueSelection.get(0) instanceof LWNode)
+                        Actions.HierarchyView.setEnabled(true);
                     else
-                      Actions.HierarchyView.setEnabled(false);
+                        Actions.HierarchyView.setEnabled(false);
                 }
             }
             else if (hitComponent != null)
@@ -1892,9 +1867,11 @@ public class MapViewer extends javax.swing.JPanel
                 // hitComponent was null
                 //-------------------------------------------------------
 
-                if (noModifierKeysDown(e) &&
-                    VueSelection.size() > 1 &&
-                    VueSelection.contains(mapX, mapY)) {
+                // SPECIAL CASE for dragging the entire selection
+                if (activeTool.supportsSelection() 
+                    && noModifierKeysDown(e)
+                    && VueSelection.size() > 1
+                    && VueSelection.contains(mapX, mapY)) {
                     //-------------------------------------------------------
                     // PICK UP A GROUP SELECTION FOR DRAGGING
                     //
@@ -2335,13 +2312,14 @@ public class MapViewer extends javax.swing.JPanel
             if (activeTool == ZoomTool) {
                 if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
                     || toolKeyEvent != null && toolKeyEvent.isShiftDown()) {
+                    setZoomPoint(e.getPoint());
                     setZoomSmaller();
                 } else {
                     if (draggedSelectorBox != null &&
                         draggedSelectorBox.getWidth() > 10 && draggedSelectorBox.getHeight() > 10) {
                         setZoomFitRegion(screenToMapRect(draggedSelectorBox));
                     } else {
-                        setZoomPoint(screenToMapPoint(e.getPoint()));
+                        setZoomPoint(e.getPoint());
                         setZoomBigger();
                     }
                 }
@@ -2555,18 +2533,6 @@ public class MapViewer extends javax.swing.JPanel
             if (isSingleClickEvent(e)) {
                 if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
 
-
-
-                /*if (activeTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
-                setZoomPoint(screenToMapPoint(e.getPoint()));
-                if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
-                    || toolKeyEvent != null && toolKeyEvent.isShiftDown())
-                    setZoomSmaller();
-                else
-                    setZoomBigger();
-                return;
-                }else*/
-                
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
                     if (activeTool == TextTool ||
                         hitComponent.isSelected()
