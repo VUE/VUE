@@ -45,19 +45,19 @@ public interface VueConstants
     
     // todo: create our own cursors for most of these
     // named cursor types
-    static Cursor CURSOR_HAND     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-    static Cursor CURSOR_MOVE     = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+    //static Cursor CURSOR_HAND     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    //static Cursor CURSOR_MOVE     = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
     static Cursor CURSOR_WAIT     = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-    static Cursor CURSOR_TEXT     = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
-    static Cursor CURSOR_CROSSHAIR= Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
+    //static Cursor CURSOR_TEXT     = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
+    //static Cursor CURSOR_CROSSHAIR= Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
     static Cursor CURSOR_DEFAULT  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     
     // tool cursor types
-    static Cursor CURSOR_ZOOM_IN  = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
-    static Cursor CURSOR_ZOOM_OUT = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
-    static Cursor CURSOR_PAN      = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-    static Cursor CURSOR_ARROW    = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
-    static Cursor CURSOR_SUBSELECT= Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR); // white arrow
+    //static Cursor CURSOR_ZOOM_IN  = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+    //static Cursor CURSOR_ZOOM_OUT = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+    //static Cursor CURSOR_PAN      = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    //static Cursor CURSOR_ARROW    = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    //static Cursor CURSOR_SUBSELECT= Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR); // white arrow
 
     static java.awt.BasicStroke STROKE_ZERO = new java.awt.BasicStroke(0f);
     static java.awt.BasicStroke STROKE_HALF = new java.awt.BasicStroke(0.5f);

@@ -62,6 +62,11 @@ public class LWNode extends LWContainer
         this(label, 0, 0);
     }
 
+    public LWNode(String label, RectangularShape shape)
+    {
+        this(label, 0, 0, shape);
+    }
+
     /*
     public LWNode(String label, String shapeName, float x, float y)
     {
@@ -78,9 +83,17 @@ public class LWNode extends LWContainer
     // internal convenience
     LWNode(String label, float x, float y)
     {
+        this(label, x, y, null);
+    }
+
+    LWNode(String label, float x, float y, RectangularShape shape)
+    {
         super.label = label; // todo: this for debugging
         setFillColor(COLOR_NODE_DEFAULT);
-        setNodeShape(StandardShapes[4]);
+        if (shape == null)
+            setNodeShape(StandardShapes[4]);
+        else
+            setShape(shape);
         setStrokeWidth(2f);//todo config: default node stroke
         setLocation(x, y);
         //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
@@ -106,7 +119,11 @@ public class LWNode extends LWContainer
     {
         LWNode node = (LWNode) super.duplicate();
         node.autoSized = this.autoSized;
-        node.setNodeShape(getNodeShape());
+        // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
+        if (getNodeShape() != null)
+            node.setNodeShape(getNodeShape());
+        //        else
+        //    node.setShape(shapename
         return node;
     }
     
@@ -119,6 +136,8 @@ public class LWNode extends LWContainer
         // with saved map files that have no shape information
     }
     
+    // Enable this to use differently shaped generated icons
+    // depending on if the resource is local or not
     public void X_setResource(Resource resource)
     {
         if (resource != null) {
@@ -144,10 +163,12 @@ public class LWNode extends LWContainer
         return false;
     }
 
+    // todo: remove this eventually
     static LWNode createTextNode(String text)
     {
         LWNode node = new LWNode(text);
-        node.setNodeShape(StandardShapes[3]);
+        //node.setNodeShape(StandardShapes[3]);
+        node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
         node.setFillColor(COLOR_TRANSPARENT);
         return node;
@@ -178,14 +199,18 @@ public class LWNode extends LWContainer
         setShape(nodeShape.getShapeInstance());
         // todo: getShapeInstance is redundant during restores
     }
-    
+
     /*
     public void setShape(Shape shape)
     {
         setShape((RectangularShape)shape);
     }
     */
-    private void setShape(RectangularShape shape)
+
+    /**
+     * @param shape a new instance of a shape for us to use
+     */
+    public void setShape(RectangularShape shape)
     {
         //System.out.println("SETSHAPE " + shape + " in " + this);
         //System.out.println("SETSHAPE bounds " + shape.getBounds());

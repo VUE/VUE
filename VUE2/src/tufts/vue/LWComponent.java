@@ -533,6 +533,12 @@ public class LWComponent
         // also: if enable, don't forget to put in setX/getX!
     }
 
+    public void setFrame(Rectangle2D r)
+    {
+        setLocation((float)r.getX(), (float)r.getY());
+        setSize((float)r.getWidth(), (float)r.getHeight());
+    }
+
     /**
      * Tell all links that have us as an endpoint that we've
      * moved or resized so the link knows to recompute it's

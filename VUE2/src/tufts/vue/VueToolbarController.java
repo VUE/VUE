@@ -144,7 +144,7 @@ public class VueToolbarController
                             ImageIcon icon = VueResources.getImageIcon( pName+".cursor");
                             if (icon != null) {
                                 Toolkit toolkit = Toolkit.getDefaultToolkit();
-                                System.out.println("Creating cursor for " + icon);
+                                //System.out.println("Creating cursor for " + icon);
                                 tool.setCursor(toolkit.createCustomCursor(icon.getImage(), new Point(0,0), pName));
                             }
                         }

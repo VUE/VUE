@@ -207,8 +207,7 @@ class MapDropTarget
         if (resourceTitle == null)
             resourceTitle = createResourceTitle(resourceName);
 
-        // todo: query the NodeTool for current node shape, etc.
-        LWNode node = new LWNode(resourceTitle);
+        LWNode node = NodeTool.createNode(resourceTitle);
         node.setLocation(dropToMapLocation(p));
         node.setResource(new Resource(resourceName));
         viewer.getMap().addNode(node);
@@ -218,7 +217,7 @@ class MapDropTarget
     private void createNewNode(java.awt.Image image, java.awt.Point p)
     {
         // todo: query the NodeTool for current node shape, etc.
-        LWNode node = new LWNode();
+        LWNode node = NodeTool.createNode();
         node.setLocation(dropToMapLocation(p));
         node.setImage(image);
         node.setNotes(image.toString());
@@ -247,7 +246,7 @@ class MapDropTarget
         } catch(Exception e) { System.out.println("MapDropTarget.createNewNode " +e ) ; }
         resource.setSpec(resourceTitle);
         resource.setAsset(asset);
-        LWNode node = new LWNode(resourceTitle);
+        LWNode node = NodeTool.createNode(resourceTitle);
         node.setLocation(dropToMapLocation(p));
         node.setResource(resource);
         viewer.getMap().addNode(node);

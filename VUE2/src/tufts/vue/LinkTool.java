@@ -30,10 +30,11 @@ public class LinkTool extends VueTool
         return true;
     }
     
-    public void drawSelectorBox(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
-        g.setXORMode(java.awt.Color.blue);
-        super.drawSelectorBox(g, r);
+        //g.setXORMode(java.awt.Color.blue);
+        g.setColor(java.awt.Color.blue);
+        super.drawSelector(g, r);
     }
 
 

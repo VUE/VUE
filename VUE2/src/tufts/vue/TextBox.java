@@ -206,7 +206,7 @@ class TextBox extends JTextPane
         } catch (Exception e) {
             System.err.println(e);
             }*/
-        System.out.println("TextBox.setText[" + text + "]");
+        if (debug) System.out.println("TextBox.setText[" + text + "]");
         super.setText(text);
         copyStyle(this.lwc);
         setSize(getPreferredSize());

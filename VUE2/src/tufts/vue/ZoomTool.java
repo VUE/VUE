@@ -45,13 +45,16 @@ public class ZoomTool extends VueTool
 
     private static final Color SelectorColor = Color.red;
     private static final Color SelectorColorInverted = new Color(0,255,255); // inverse of red
-    public void drawSelectorBox(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
+        /*
         if (VueUtil.isMacPlatform())
             g.setXORMode(SelectorColorInverted);
         else
             g.setXORMode(SelectorColor);
-        super.drawSelectorBox(g, r);
+        */
+        g.setColor(Color.red);
+        super.drawSelector(g, r);
     }
 
     public boolean usesRightClick()

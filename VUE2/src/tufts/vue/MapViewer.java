@@ -130,34 +130,6 @@ public class MapViewer extends javax.swing.JPanel
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
         // todo: tab to show/hide all tool windows
-        
-        
-        //FIX:  tool gone addTool(this.zoomTool = new ZoomTool(this));
-        
-        /*
-
-        /******
-        // CSB:  gone addTool(new ZoomTool(this, new int[]
-            { KEY_ZOOM_IN_0,
-              KEY_ZOOM_IN_1,
-              KEY_ZOOM_OUT_0,
-              KEY_ZOOM_OUT_1,
-              KEY_ZOOM_FIT,
-              KEY_ZOOM_ACTUAL },
-              CURSOR_ZOOM_IN,
-              CURSOR_ZOOM_OUT));
-
-        addTool(new PanTool(this, KEY_TOOL_PAN, CURSOR_PAN));
-        addTool(new SelectTool(this, KEY_TOOL_SELECT, CURSOR_SELECT));
-        addTool(new NodeTool(this, KEY_TOOL_NODE));
-        addTool(new LinkTool(this, KEY_TOOL_LINK));
-        addTool(new TextTool(this, KEY_TOOL_TEXT));
-        addTool(new PathwayTool(this, KEY_TOOL_PATHWAY));
-
-        Tool's will also handle creating their own undo/redo
-        objects with descriptions.
-
-        */
 
         //setPreferredSize(new Dimension(cw,ch));
         //setSize(new Dimension(cw,ch));
@@ -170,7 +142,7 @@ public class MapViewer extends javax.swing.JPanel
         // because the MapPanner, for instance, wants to use
         // it's own background color setting (hmm: should we let it?)
         //-------------------------------------------------------
-        setBackground(map.getFillColor()); // todo: will need to listen for fill color changsae
+        setBackground(map.getFillColor()); // todo: will need to listen for fill color changes
         
         setFont(VueConstants.DefaultFont);
         loadMap(map);
@@ -222,19 +194,6 @@ public class MapViewer extends javax.swing.JPanel
     	return activeTool;
     }
 
-    /*
-    static final String ID_ArrowTool = "arrowTool";
-    static final String ID_HandTool = "handTool";
-    static final String ID_ZoomTool = "zoomTool";
-    static final String ID_NodeTool = "nodeTool";
-    static final String ID_LinkTool = "linkTool";
-    static final String ID_TextTool = "textTool";
-    static final String ID_PathwayTool = "pathwayTool";
-    */
-
-    // This is a bit of a hack for now -- move to VueTool?
-    //    VueTool ArrowTool = activeTool; // hack to set this as default
-
     static final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     static final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     static final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
@@ -271,13 +230,13 @@ public class MapViewer extends javax.swing.JPanel
     private void setMapCursor(Cursor cursor)
     {
         //SwingUtilities.getRootPane(this).setCursor(cursor);
+        // could compute cursor-set pane in addNotify
         setCursor(cursor);
         // todo: also set this on the VueToolPanel so you can see cursor change
         // when selecting new tool -- actually, VueToolPanel should
         // do this itself as we're going to put the cursors right in
         // the tool
 
-        // could compute cursor-set pane in addNotify
     }
 
     /*
@@ -712,9 +671,6 @@ public class MapViewer extends javax.swing.JPanel
      * If NO nodes are in the list, search for links within the region
      * instead.  Of @param onlyLinks is true, only search for links.
      */
-    private int SELECT_DEFAULT = 1; // nodes if any, links otherwise
-    private int SELECT_LINKS = 2; // only select links
-    private int SELECT_ALL = 3; // nodes & links (everything)
     private java.util.List computeSelection(Rectangle2D mapRect, boolean onlyLinks)
     {
         java.util.List hits = new java.util.ArrayList();
@@ -871,10 +827,13 @@ public class MapViewer extends javax.swing.JPanel
             start = System.currentTimeMillis();
         }
         try {
-            if (redrawingSelector && draggedSelectorBox != null) {
+            // This a special speed optimization for the selector box -- NO LONGER VIABLE
+            // Try using a glass pane for this.
+            /*
+            if (redrawingSelector && draggedSelectorBox != null && activeTool.supportsXORSelectorDrawing()) {
                 redrawSelectorBox((Graphics2D)g);
                 redrawingSelector = false;
-            } else
+                } else*/
                 super.paint(g);
         } catch (Exception e) {
             e.printStackTrace();
@@ -1146,10 +1105,53 @@ public class MapViewer extends javax.swing.JPanel
         activeTextEdit.requestFocus();
     }
 
-    /** redraw the selection box being dragged by the user
-     * (erase old box, draw new box) */
+    private void drawSelectorBox(Graphics2D g2, Rectangle r)
+    {
+        // Setting XOR mode before setting the stroke actually
+        // changes the behaviour of what happens on the painted-over
+        // GC, and what happens appears pretty unpredicatable, thus
+        // I think XOR drawing for speed is no longer viable --
+        // Both pc's AND mac's now show garbage in GC sometimes also.
+        // Note that is POSSIBLE to get this do something useful
+        // on the Mac, except that it fills the whole selector region
+        // instead draw's bounds, which doesn't really look that bad,
+        // and actually looks great when you use a color other than
+        // gray, however we can't predict how to get that working...
+        //g2.setXORMode(COLOR_SELECTION_DRAG);
+        //g2.setStroke(STROKE_SELECTION_DYNAMIC);
+        //activeTool.drawSelector(g2, r);
+
+        // todo opt: would this be any faster done on a glass pane?
+        g2.setStroke(STROKE_SELECTION_DYNAMIC);
+        if (activeTool.supportsXORSelectorDrawing())
+            g2.setXORMode(COLOR_SELECTION_DRAG);// using XOR may also be working around below clip-edge bug
+        else
+            g2.setColor(COLOR_SELECTION_DRAG);
+        activeTool.drawSelector(g2, r);
+    }
+
+    /*
+    // redraw the selection box being dragged by the user
+    // (erase old box, draw new box) 
+    private void redrawSelectorBox_OLD(Graphics2D g2)
+    {
+        //if (DEBUG_PAINT) System.out.println(g2);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+        g2.setXORMode(COLOR_SELECTION_DRAG);
+        g2.setStroke(STROKE_SELECTION_DYNAMIC);
+        // first, erase last selector box if it was there (XOR redraw = undo)
+        if (lastPaintedSelectorBox != null)
+            g2.draw(lastPaintedSelectorBox);
+        // now, draw the new selector box
+        if (draggedSelectorBox == null)
+            throw new IllegalStateException("null selectorBox!");
+        g2.draw(draggedSelectorBox);
+        lastPaintedSelectorBox = new Rectangle(draggedSelectorBox);
+    }
+
     private void redrawSelectorBox(Graphics2D g2)
     {
+        //throw new UnsupportedOperationException("XOR redraw no longer supported");
         //if (DEBUG_PAINT) System.out.println(g2);
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
 
@@ -1158,27 +1160,17 @@ public class MapViewer extends javax.swing.JPanel
             g2.setXORMode(COLOR_SELECTION_DRAG);
             // In XOR mode, first erase last selector box if it was there (XOR redraw over same == undo)
             if (lastPaintedSelectorBox != null)
-                activeTool.drawSelectorBox(g2, lastPaintedSelectorBox);
+                activeTool.drawSelector(g2, lastPaintedSelectorBox);
         }
         
         // now, draw the new selector box
         if (draggedSelectorBox == null)
             throw new IllegalStateException("null selectorBox!");
-        activeTool.drawSelectorBox(g2, draggedSelectorBox);
-        lastPaintedSelectorBox = new Rectangle(draggedSelectorBox); // for XOR mode
+        activeTool.drawSelector(g2, draggedSelectorBox);
+        lastPaintedSelectorBox = new Rectangle(draggedSelectorBox); // for XOR mode: save to erase
     }
+    */
     
-    private void drawSelectorBox(Graphics2D g2, Rectangle r)
-    {
-        // todo opt: would this be any faster done on a glass pane?
-        g2.setStroke(STROKE_SELECTION_DYNAMIC);
-        if (activeTool.supportsXORSelectorDrawing())
-            g2.setXORMode(COLOR_SELECTION_DRAG);// using XOR may also be working around below clip-edge bug
-        else
-            g2.setColor(COLOR_SELECTION_DRAG);
-        activeTool.drawSelectorBox(g2, r);
-    }
-
     /* Java/JVM 1.4.1 PC (Win32) Graphics Bugs
 
     #1: bottom edge clip-region STROKE ERASE BUG
@@ -1621,14 +1613,16 @@ public class MapViewer extends javax.swing.JPanel
                 }
             }
 
-            if (toolKeyDown == 0) {
+            if (toolKeyDown == 0 && !isDraggingSelectorBox) {
+                // don't allow to switch if we're in the middle of a drag
+                // todo: actually, should we disallow switching if any mouse down at all?
                 switch (key) {
                 case KEY_TOOL_PAN:
                     if (dragComponent == null) {
                         // don't start dragging map if we're already
                         // dragging something on it.
                         toolKeyDown = key;
-                        setMapCursor(CURSOR_PAN);
+                        setMapCursor(HandTool.getCursor());
                     }
                     break;
                     /*
@@ -2006,12 +2000,19 @@ public class MapViewer extends javax.swing.JPanel
             if (DEBUG_PAINT && redrawingSelector)
                 System.out.println("dragResizeSelectorBox: already repainting selector");
 
-            if (VueUtil.isMacPlatform()) // todo bug: PC graphics context contains garbage when we do this
-                redrawingSelector = true;
+            // XOR drawing simply keeps repainting on an existing graphics context,
+            // which is extremely fast (because we can just XOR erase the previous
+            // paint by redrawing it again) but the PC graphics context gets
+            // polluted with garbage when left around, and now it looks like on mac too?
+            //if (VueUtil.isMacPlatform())
+            //redrawingSelector = true; // todo: does mac now do this same with 1.4.1-1 update?
             
             if (OPTIMIZED_REPAINT)
                 //paintImmediately(repaintRect);
                 repaint(repaintRect);
+            // todo: above helps alot, except that the outside halves of strokes are being erased
+            // because our node.intersects is failing to take into account stroke width...
+            // we're going to need to fix that anyway tho
             else
                 repaint();
             
@@ -2474,12 +2475,18 @@ public class MapViewer extends javax.swing.JPanel
             if (indication != null)
                 clearIndicated();
             
-            if (draggedSelectorBox != null) {
+            if (draggedSelectorBox != null && !activeTool.supportsSelectorBox())
+                System.err.println("Illegal state warming: we have selector box w/out tool that supports it");
+            
+            if (draggedSelectorBox != null && activeTool.supportsSelectorBox()) {
 
                 //System.out.println("dragged " + draggedSelectorBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
                 //System.out.println("map " + hitRect);
-                
+
+                activeTool.handleSelectorRelease(hitRect);
+
+                /*
                 if (activeTool == NodeTool) {
                     // NodeTool.createNode(hitRect);
                     LWNode node = new LWNode("new node");
@@ -2488,16 +2495,10 @@ public class MapViewer extends javax.swing.JPanel
                     node.setSize(hitRect.width, hitRect.height);
                     VUE.getActiveMap().addNode(node);
                     VUE.ModelSelection.setTo(node);
-                    
-                    // create new node
-                    // make this a tool event: selector box released
-                    // arrow tool selects
-                    // node/text tool creates,
-                    // zoom tool zooms to that region
-                    // link tool selects links? link tool disables this?
-                    // handtool never gets to this
-                    // pathway tool?
-                } else if (activeTool.supportsSelection()) {
+                } else
+                */
+
+                if (activeTool.supportsSelection()) {
                     // todo: e.isControlDown always false? only on mac? on the laptop?
                     java.util.List list = computeSelection(hitRect,
                                                            e.isControlDown()

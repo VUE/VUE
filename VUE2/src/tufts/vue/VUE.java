@@ -36,8 +36,8 @@ public class VUE
         elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
 
-    public static Cursor CURSOR_ZOOM_IN;
-    public static Cursor CURSOR_ZOOM_OUT;
+    //public static Cursor CURSOR_ZOOM_IN;
+    //public static Cursor CURSOR_ZOOM_OUT;
     
     public static JFrame frame;
     
@@ -72,7 +72,6 @@ public class VUE
         return url;
     }
     
-    static {
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
         URL imageURL = getClass().getResource(imgLocation);    FileOutputStream fos = new FileOutputStream("vue.conf");
@@ -83,6 +82,8 @@ public class VUE
         if (imageURL != null)
             button = new JButton(new ImageIcon(imageURL));
         */
+    /*
+    static {
 
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Image iconZoomIn;
@@ -97,6 +98,7 @@ public class VUE
         CURSOR_ZOOM_IN = toolkit.createCustomCursor(iconZoomIn, new Point(0,0), "ZoomIn");
         CURSOR_ZOOM_OUT = toolkit.createCustomCursor(iconZoomOut, new Point(0,0), "ZoomOut");
     }
+    */
 
     static class VueFrame extends JFrame
         implements MapViewer.Listener
@@ -720,6 +722,7 @@ public class VUE
         map.addNode(new LWNode("iiiiiiiiiiiiiiiiiiii"));
         
         map.addNode(LWNode.createTextNode("jumping"));
+        //map.addNode(NodeTool.createTextNode("jumping"));
 
         // Experiment in internal actions -- only works
         // partially here because they're all auto sized

@@ -624,18 +624,20 @@ class Actions {
         {
             LWComponent createNewItem(Point2D newLocation)
             {
-                //VueTool nodeTool = VueToolbarController.getController().getTool("nodeTool");
-                //System.out.println("got nodetool " + VUE.nodeTool);
-                //System.out.println("got nodetool " + NodeTool.getTool());
-                //nodeTool.getSubSelected
                 
                 // todo: this is where we'll get the active NodeTool
                 // and have it create the new node based on it's current
                 // settings -- move this logic to NodeTool
+                /*
                 LWNode node = new LWNode("new node");
                 node.setLocation(newLocation);
                 VUE.getActiveMap().addNode(node);
                 VUE.ModelSelection.setTo(node);
+                */
+
+                LWNode node = NodeTool.createNode("new node");
+                node.setLocation(newLocation);
+                VUE.getActiveMap().addNode(node);
 
                 //better: run a timer and do this if no activity (e.g., node creation)
                 // for 250ms or something -- todo bug: every other new node not activating label edit
@@ -655,7 +657,7 @@ class Actions {
         {
             LWComponent createNewItem(Point2D newLocation)
             {
-                LWNode node = LWNode.createTextNode("new text");
+                LWNode node = NodeTool.createTextNode("new text");
                 node.setLocation(newLocation);
                 VUE.getActiveMap().addNode(node);
                 VUE.ModelSelection.setTo(node); // also important so will be repainted

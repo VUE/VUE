@@ -6,27 +6,25 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-//todo: make this an interface?
 public abstract class VueTool extends AbstractAction
 {
 	
-	
 //////////////////////
-// Froperties and Fields
+// Properties and Fields
 //////////////////////
 	
 
-	/** the tool's unique id **/
-	protected String mID = null;
+    /** the tool's unique id **/
+    protected String mID = null;
 	
-	/** the tool name **/
+    /** the tool name **/
     protected String mToolName = null;
 	
-	/** the tool tip text, if any **/
-	protected String mToolTipText = null;
+    /** the tool tip text, if any **/
+    protected String mToolTipText = null;
 	
-	/** the currently active subtool name **/
-	protected VueTool mSelectedSubTool = null;
+    /** the currently active subtool name **/
+    protected VueTool mSelectedSubTool = null;
 	
     /** the sub tool map with toolname as key **/
     protected Map mSubToolMap = new HashMap();    
@@ -72,8 +70,8 @@ public abstract class VueTool extends AbstractAction
     
     /** is the tool currently enabled **/
     protected boolean mEnabled = true;
-    
-    //private VueTool singleton = null;
+
+    protected HashMap mResourceMap = new HashMap();
     
 
 //////////////////
@@ -81,9 +79,7 @@ public abstract class VueTool extends AbstractAction
 ///////////////////
     
 	public VueTool() {
-		super();
-                //if (singleton != null)System.err.println(this + " singleton=" + singleton);
-                //singleton = this;
+            super();
 	}
 	
 	
@@ -93,12 +89,6 @@ public abstract class VueTool extends AbstractAction
 // Methods
 ////////////////////
 
-    /** Only makes sense for subclasses to use
-    public static VueTool getTool()
-    {
-        return singleton;
-        }*/
-	
 	
 	/**
 	 * getID
@@ -115,9 +105,26 @@ public abstract class VueTool extends AbstractAction
 	 * @param pID the id String
 	 **/
 	public void setID( String pID ) {
-		mID = pID;
+            mID = pID;
+            System.out.println("Initializing tool " + this);
+            ResourceBundle rb = VueResources.getBundle();
+            Enumeration e = rb.getKeys();
+            while (e.hasMoreElements()) {
+                String key = (String) e.nextElement();
+                if (key.startsWith(pID)) {
+                    String localKey = key.substring(mID.length()+1, key.length());
+                    //System.out.println("\tkey: " + localKey + "=" + rb.getString(key));
+                    mResourceMap.put(localKey, rb.getString(key));// todo: use rb.getObject?
+                }
+            }
+            //tool.setToolName( VueResources.getString(( pName+".name") ) );
 	}
-	
+
+    public String getAttribute(String key)
+    {
+        return (String) mResourceMap.get(key);
+    }
+    
 	/**
 	 * getSelectionID
 	 * This method returns the full id of the selected tool
@@ -208,19 +215,21 @@ public abstract class VueTool extends AbstractAction
         return mShortcutKey;
     }
 
+    // rename supportsClickSelection?
     public boolean supportsSelection()
     {
         return false;
     }
     
+    // rename supportsSelector
     public boolean supportsSelectorBox()
     {
         return true;
     }
 
-    public boolean supportsXORSelectorDrawing()
+    public final boolean supportsXORSelectorDrawing()
     {
-        return true;
+        return false;
     }
 
     /** does tool make use of right click -- meaning the
@@ -230,9 +239,15 @@ public abstract class VueTool extends AbstractAction
         return false;
     }
 
-    public void drawSelectorBox(java.awt.Graphics2D g, java.awt.Rectangle r)
+    public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
+        //g.fill(r);//if mac?
         g.draw(r);
+    }
+
+    public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
+    {
+        System.err.println("VueTool: Unhandled selector release in " + this);
     }
 	
 	/**

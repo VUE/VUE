@@ -35,6 +35,12 @@ public class RectangularPoly2D extends RectangularShape
     /** For persistance */
     public RectangularPoly2D() {}
 
+    public static class Triangle extends RectangularPoly2D { public Triangle() { setSides(3); } }
+    public static class Diamond extends RectangularPoly2D { public Diamond() { setSides(4); } }
+    public static class Hexagon extends RectangularPoly2D { public Hexagon() { setSides(5); } }
+    public static class Pentagon extends RectangularPoly2D { public Pentagon() { setSides(6); } }
+    public static class Octagon extends RectangularPoly2D { public Octagon() { setSides(8); } }
+
     public void setSides(int sides)
     {
         if (sides < 3 || sides > 8)
