@@ -267,8 +267,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         //Already label filtered. 
        
         hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
-            
-        //repaints the entire tree
         repaint();       
     }
     
@@ -347,10 +345,12 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }   
     
+    /**A class that specifies the editing method of the outline view tree*/
     private class OutlineViewTreeEditor extends AbstractCellEditor implements TreeCellEditor, KeyListener, FocusListener 
     {
         // This is the component that will handle the editing of the cell value
         private OutlineViewEditorElement editorElement = null;
+        private boolean modified = false;
         private final int clickToStartEditing = 2;
         
         public OutlineViewTreeEditor()
@@ -391,6 +391,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             return editorElement.getText();
         }
         
+        /** When a certain combination of keys are pressed then the tree node value is modified */
         public void keyReleased(KeyEvent e) 
         {
             // if we hit return key either on numpad ("enter" key), or
@@ -401,16 +402,23 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                    || (e.getModifiersEx() != 0 && !e.isShiftDown())
                  )
                )
-              this.stopCellEditing();
+            {
+               this.stopCellEditing();
+               modified = false;
+            }
+        }
+        
+        /** When any key is pressed on the text area, then it sets the flag that the value needs to be modified **/
+        public void keyPressed(KeyEvent e) 
+        {
+            modified = true;
         }
         
         /** not used **/
-        public void keyPressed(KeyEvent e) 
-        {}
-        
         public void keyTyped(KeyEvent e) 
         {}
         
+        /** The tree node is only editable when it's clicked on more than a specified value */
         public boolean isCellEditable(java.util.EventObject anEvent) 
         { 
             if (anEvent instanceof java.awt.event.MouseEvent) 
@@ -421,15 +429,22 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
 	    return true;
         }
 
+        /** not used **/
         public void focusGained(FocusEvent e) 
         {}
         
+        /** When the focus is lost and if the text area has been modified, it changes the tree node value */
         public void focusLost(FocusEvent e) 
         {
-            this.stopCellEditing();
+            if (modified)
+            {
+                this.stopCellEditing();
+                modified = false;
+            }
         }     
     }
     
+    /** A class which displays the specified icon*/
     private class IconPanel extends JPanel
     {
         private ImageIcon icon = null;
@@ -459,6 +474,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         }
     }
     
+    /**A class which is used to display the rednerer for the outline view tree*/
     private class OutlineViewRenderElement extends JPanel
     {
         private JTextArea label = null;
@@ -481,19 +497,11 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             add(label);
         }
         
+        /**A method which gets called with the value of whether the renderer is focused */
         public void setIsFocused(boolean value)
-        {   
-            /*
-            if (value)
-              setBorder(new javax.swing.border.LineBorder(Color.green));
-            
-            else
-              setBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0));
-                
-            repaint();
-             */
-        }
+        {}
         
+        /**A method which gets called with the value of whether the renderer is selected */
         public void setIsSelected(boolean value)
         {   
             if (value)
@@ -521,6 +529,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         }
     }
     
+    /**A class which is used to display the editor for the outline view tree*/
     private class OutlineViewEditorElement extends JPanel
     {
         private IconPanel iconPanel = null;
