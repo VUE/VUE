@@ -21,70 +21,76 @@ public class MapPanner extends javax.swing.JPanel
                MouseListener,
                MouseMotionListener
 {
-    private MapViewer viewer;
+    private MapViewer mapViewer;
     private double zoomFactor;
     private Point dragStart;
     
-    public MapPanner(MapViewer viewer)
+    public MapPanner(MapViewer mapViewer)
     {
         //setBorder(new javax.swing.border.TitledBorder("Panner"));
         setPreferredSize(new Dimension(100,100));
-        setActiveViewer(viewer);
-        setBackground(Color.white);
-        // addMouseListener(this);
-        // addMouseMotionListener(this);
+        setViewer(mapViewer);
+        setBackground(SystemColor.control);
+        
+        //addMouseListener(this);
+        //addMouseMotionListener(this);
 
         // VUE.addEventListener(this, MapViewerEvent.class);
     }
 
     public void mapViewerEventRaised(MapViewerEvent e)
     {
-        if (e.getID() == MapViewerEvent.DISPLAYED
-            || e.getID() == MapViewerEvent.PANZOOM) {
-            setActiveViewer(e.getMapViewer());
+        if (e.getID() == MapViewerEvent.DISPLAYED) {
+            setViewer(e.getMapViewer());
+            repaint();
+        } else if (e.getID() == MapViewerEvent.PANZOOM
+                   && e.getSource() == this.mapViewer) {
             repaint();
         }
     }
     
-    public void setActiveViewer(MapViewer viewer)
+    public void setViewer(MapViewer mapViewer)
     {
-        this.viewer = viewer;
+        this.mapViewer = mapViewer;
     }
     
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
 
-        if (viewer == null || viewer.isEmpty())
+        if (mapViewer == null)
+            return;
+
+        Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
+        Rectangle   viewerBounds = new Rectangle(mapViewer.getWidth()-1, mapViewer.getHeight()-1);
+
+        if (viewerBounds.isEmpty())
             return;
         
-        //g.drawRect(0,0, getWidth()-1, getHeight()-1);
+        Rectangle2D mapViewerRect = mapViewer.screenToMapRect(viewerBounds);
+        Rectangle2D pannerRect = mapViewerRect.createUnion(allComponentBounds);
+
+        Dimension pannerViewportSize = getSize();
+        pannerViewportSize.width -= 1;
+        pannerViewportSize.height -= 1;
+        
         Graphics2D g2 = (Graphics2D) g;
         Point2D offset = new Point2D.Double();
-
-        Rectangle2D allComponentBounds = viewer.getAllComponentBounds();
-        //Rectangle vb = viewer.getBounds();
-        Rectangle vb = new Rectangle(viewer.getWidth()-1, viewer.getHeight()-1);
-        if (vb.getX() != 0 || vb.getY() != 0) {
-            System.err.println("OFFSET IN VIEWER BOUNDS " + vb);
-            // todo: is this a factor?
-            vb.x = vb.y = 0;
-        }
-        Rectangle2D viewerRect = viewer.screenToMapRect(vb);
-        Rectangle2D pannerRect = viewerRect.createUnion(allComponentBounds);
         
-        zoomFactor = ZoomTool.computeZoomFit(getSize(),
-                                             0, // todo: allow for gap w/out offsettig viewport
+        zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
+                                             0,
                                              pannerRect,
                                              offset);
 
-        
         g2.translate(-offset.getX(), -offset.getY());
         g2.scale(zoomFactor, zoomFactor);
-        viewer.paintLWComponents(g2);
+        g2.setColor(Color.white);
+        g2.fill(mapViewerRect);
+        mapViewer.paintLWComponents(g2);
         g2.setColor(Color.red);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g2.setStroke(STROKE_ONE);
-        g2.draw(viewerRect);
+        g2.draw(mapViewerRect);
 
         //g2.scale(1/zoomFactor, 1/zoomFactor);
         //g2.translate(offset.getX(), offset.getY());
@@ -104,13 +110,12 @@ public class MapPanner extends javax.swing.JPanel
     }
     public void mouseDragged(MouseEvent e)
     {
+        if (dragStart == null)
+            return;
+        
         //System.out.println(e);
         Point p = e.getPoint();
 
-        if (dragStart == null) {
-            System.out.println("mouseDragged with no dragStart!");
-            return;
-        }
         // move the panner
         /*
             // moving the window
