@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<mapping>
+	<class name="tufts.vue.MapItem">
+		<map-to xml="map-item"/>
+		<field name="ID" type="java.lang.String">
+			<bind-xml name="ID" node="attribute"/>
+		</field>
+		<field name="label" type="java.lang.String">
+			<bind-xml name="label" node="attribute"/>
+		</field>
+		<field name="notes" type="java.lang.String">
+			<bind-xml name="notes" node="element"/>
+		</field>
+		<field name="metaData" type="java.lang.String">
+			<bind-xml name="metaData" node="element"/>
+		</field>
+		<field name="category" type="java.lang.String">
+			<bind-xml name="category" node="element"/>
+		</field>
+		<field name="x" type="float">
+			<bind-xml name="x" node="element"/>
+		</field>
+		<field name="y" type="float">
+			<bind-xml name="y" node="element"/>
+		</field>
+	</class>
+	
+	<class name="tufts.vue.Node" extends="tufts.vue.MapItem">
+		<map-to xml="node"/>
+	</class>
+	
+	<class name="tufts.vue.Link" extends="tufts.vue.MapItem">
+		<map-to xml="link"/>
+	</class>
+	
+	<class name="tufts.vue.ConceptMap" extends="tufts.vue.MapItem">
+		<map-to xml="concept-map"/>
+		<field name="nodeList" type="tufts.vue.Node" collection="vector">
+			<bind-xml name="node"/>
+		</field>
+	</class>
+</mapping>
