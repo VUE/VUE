@@ -34,18 +34,23 @@ class DRBrowser extends JPanel {
     
     public void loadDataSourceViewer()
     {
-        DataSourceViewer dsv = new DataSourceViewer(this);
-        dsv.setName("Data Source Viewer"); 
-        if (dsViewer == null) {
-            // set the statics to the first initialized DRBrowser only
-            dsViewer = dsv;
-            //tufts.vue.VUE.dataSourceViewer = dsv;
+        try {
+            DataSourceViewer dsv = new DataSourceViewer(this);
+            dsv.setName("Data Source Viewer"); 
+            if (dsViewer == null) {
+                // set the statics to the first initialized DRBrowser only
+                dsViewer = dsv;
+                //tufts.vue.VUE.dataSourceViewer = dsv;
+            }
+            if (loadingLabel != null)
+                remove(loadingLabel);
+            setMinimumSize(null);
+            add(dsv, BorderLayout.NORTH);
+            validate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            loadingLabel.setText(e.toString());
         }
-        if (loadingLabel != null)
-            remove(loadingLabel);
-        setMinimumSize(null);
-        add(dsv, BorderLayout.NORTH);
-        validate();
     }
 
 
