@@ -35,7 +35,7 @@ public class CabinetResource extends MapResource{
     private int type = Resource.NONE;           //  Resource type.
     private boolean selected = false;           //  Selection flag.
              //  Object specification, usually URL.
-    private String ext = null;                  //  Extension.
+    private String extension = null;                  //  Extension.
     
     
     /**
@@ -57,9 +57,9 @@ public class CabinetResource extends MapResource{
         
         //  Force information to be cached.
         this.getEntry();
-        this.getExtension();
         //this.getProperties();
         this.getSpec();
+        this.getExtension();
         this.getTitle();
         
     }
@@ -89,9 +89,12 @@ public class CabinetResource extends MapResource{
     public String getExtension() {
         
         //  Check for a restored resource.
-        ext = "none";
-        if (this.entry == null)
-            return this.ext;
+        /**
+        if(extension == null || extension.length() == 0)
+            extension = "none";
+         */
+        if (this.extension != null && this.entry == null )
+            return this.extension;
         else {
             URL url = null;
             try {
@@ -103,16 +106,26 @@ public class CabinetResource extends MapResource{
 
             File file =  new File (url.getFile());  //  Extract the file portion.
             if (file.isDirectory())
-                this.ext = new String ("dir");              //  Directories don't have extensions.
+                this.extension = new String ("dir");              //  Directories don't have extensions.
             else {
                 String name = file.getName();       //  Get the filename with out path.
-               if(name.lastIndexOf('.')> -1) 
-                this.ext = name.substring (name.lastIndexOf ('.'));  //  Extract extention.
+                if(name.lastIndexOf('.')> -1) 
+                    this.extension = name.substring (name.lastIndexOf ('.'));  //  Extract extention.
+                else if(name.length() > 0)
+                    this.extension = "none";
+                else 
+                    return null;  // this is case where there is no file.  useful for castor save/restore
+                    
             }
-            return this.ext;
+            return this.extension;
         }
     }
     
+    
+    
+    public void setExtension(String extenstion) {
+        this.extension = extension;
+    }
     /**
      *  Return the metadata properties associated with this object.  Metadata is extracted
      *  from the various flavors of CabinetEntry and collected into a Properties object,
