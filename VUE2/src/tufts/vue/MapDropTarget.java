@@ -336,7 +336,6 @@ class MapDropTarget
                     // where '|' is where ':' should be -- still works
                     // for Windows 2000 as a shortcut, but NOT using
                     // Windows 2000 url DLL, so VUE can't open it.
-                    //url = url.replace('|', ':');
                     url = url.substring(0,i) + ":" + url.substring(i+1);
                     System.out.println("**PATCHED URL ["+url+"]");
                 }
