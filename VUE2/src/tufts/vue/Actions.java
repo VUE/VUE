@@ -619,7 +619,7 @@ class Actions {
             public boolean isEnabled() { return false; }
         };
 
-    static final Action NewNode =
+    static final VueAction NewNode =
         new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND))
         {
             LWComponent createNewItem(Point2D newLocation)
@@ -652,7 +652,7 @@ class Actions {
             }
         };
 
-    static final Action NewText =
+    static final VueAction NewText =
         new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND))
         {
             LWComponent createNewItem(Point2D newLocation)
@@ -660,7 +660,10 @@ class Actions {
                 LWNode node = NodeTool.createTextNode("new text");
                 node.setLocation(newLocation);
                 VUE.getActiveMap().addNode(node);
-                VUE.ModelSelection.setTo(node); // also important so will be repainted
+                VUE.ModelSelection.setTo(node); // also important so will be repainted (huh?)
+                MapViewer viewer = VUE.getActiveViewer();
+                viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
+                viewer.activateLabelEdit(node);
                 return node;
             }
         };
