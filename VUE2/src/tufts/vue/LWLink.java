@@ -735,8 +735,9 @@ public class LWLink extends LWComponent
      * This already assumes that we know they intersect somewhere (are not parallel), 
      */
     private static final float[] _intersection = new float[2];
-    private static float[] computeLineIntersection(float s1x1, float s1y1, float s1x2, float s1y2,
-                                                    float s2x1, float s2y1, float s2x2, float s2y2)
+    private static float[] computeLineIntersection
+        (float s1x1, float s1y1, float s1x2, float s1y2,
+         float s2x1, float s2y1, float s2x2, float s2y2)
     {
         // We are defining a line here using the formula:
         // y = mx + b  -- m is slope, b is y-intercept (where crosses x-axis)
