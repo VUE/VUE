@@ -173,31 +173,36 @@ public class LWSelection extends java.util.ArrayList
     {
         int count = 0;
         Iterator i = iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (clazz.isInstance(c))
+        while (i.hasNext())
+            if (clazz.isInstance(i.next()))
                 count++;
-        }
         return count;
+    }
+    
+    public boolean containsType(Class clazz)
+    {
+        Iterator i = iterator();
+        while (i.hasNext())
+            if (clazz.isInstance(i.next()))
+                return true;
+        return false;
     }
     
     public boolean allOfType(Class clazz)
     {
         Iterator i = iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (!clazz.isInstance(c))
+        while (i.hasNext())
+            if (!clazz.isInstance(i.next()))
                 return false;
-        }
         return true;
     }
     
     public boolean allOfSameType()
     {
-        LWComponent oc = null;
+        Object oc = null;
         Iterator i = iterator();
         while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+            Object c = i.next();
             if (oc != null && oc.getClass() != c.getClass())
                 return false;
             oc = c;

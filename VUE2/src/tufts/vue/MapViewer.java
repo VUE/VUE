@@ -1509,6 +1509,7 @@ public class MapViewer extends javax.swing.JPanel
                        //todo: dragComponent for moment is only ever the LWGroup or a LWLink
                        && dragComponent != null
                        && !(dragComponent instanceof LWLink)
+                       && !(VueSelection.allOfType(LWLink.class)) //todo opt: cache type
                     ) {
                 
                 // regular drag -- check for node drop onto another
@@ -1622,8 +1623,8 @@ public class MapViewer extends javax.swing.JPanel
                 java.util.Iterator i = VueSelection.iterator();
                 while (i.hasNext()) {
                     LWComponent droppedChild = (LWComponent) i.next();
-                    //if (!(droppedChild instanceof LWNode) // only allow nodes to drop
-                        //continue;
+                    if (droppedChild instanceof LWLink) // don't reparent links!
+                        continue;
                     // todo: actually re-do drop if anything other than map so will re-layout
                     if (droppedChild.getParent() != parentTarget && droppedChild != parentTarget) {
                         //-------------------------------------------------------
