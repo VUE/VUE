@@ -46,6 +46,8 @@ public class VUE
     public static LWPathwayInspector pathwayInspector;
     //public static PathwayControl control;
 
+    public static ToolWindow objectInspector;
+    
     //hierarchy view tree window component
     public static LWHierarchyTree hierarchyTree;
     
@@ -335,9 +337,8 @@ public class VUE
 		if (!scottHack) ModelSelection.addListener( mip);
 		mapInspector.addTool( mip );
 		
-		
-			
-		ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+		//ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+		objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
 		ObjectInspectorPanel oip = new ObjectInspectorPanel();
 		if (!scottHack) ModelSelection.addListener( oip);
 		objectInspector.addTool( oip);
@@ -360,21 +361,20 @@ public class VUE
         outlineView = new LWOutlineView(frame);
         //end of addition
        
-        Action[] windowActions = { toolbarWindow.getDisplayAction(),
-                                   pannerTool.getDisplayAction(),
-                                   inspectorTool.getDisplayAction(),
-                                   drBrowserTool.getDisplayAction(),
-                                   pathwayInspector.getDisplayAction(),
-                                   //control.getDisplayAction(), 
-                                   hierarchyTree.getDisplayAction(),
-                                   mapInspector.getDisplayAction(),
-                                   objectInspector.getDisplayAction(),
-                                   //outlineViewTree.getDisplayAction()
-                                   outlineView.getDisplayAction()
-                                 };
+        Window[] toolWindows = {
+            toolbarWindow,
+            pannerTool,
+            inspectorTool,
+            drBrowserTool,
+            pathwayInspector,
+            hierarchyTree,
+            mapInspector,
+            objectInspector,
+            outlineView,
+        };
         
         // adding the menus and toolbars
-        setMenuToolbars(frame, windowActions);
+        setMenuToolbars(frame, toolWindows);
         System.out.println("after setting menu toolbars...");
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
         //frame.setContentPane(vuePanel);
@@ -616,8 +616,7 @@ public class VUE
 
     }
     
-    static JMenu alignMenu = new JMenu("Align");    
-    private static void  setMenuToolbars(JFrame frame, Action[] windowActions)
+    private static void  setMenuToolbars(JFrame frame, Window[] toolWindows)
     {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
@@ -640,7 +639,9 @@ public class VUE
         JMenu arrangeMenu = new JMenu("Arrange");
         arrangeMenu.setBackground( menuColor);
         
-        //JMenu alignMenu = new JMenu("Align");
+        JMenu alignMenu = new JMenu("Align");
+        alignMenu.setBackground(menuColor);
+
         JMenu windowMenu = new JMenu("Window");
         windowMenu.setBackground( menuColor);
         
@@ -765,18 +766,6 @@ public class VUE
             else
                 alignMenu.add(a);
         }
-        /*
-        alignMenu.add(Actions.AlignLeftEdges);
-        alignMenu.add(Actions.AlignRightEdges);
-        alignMenu.add(Actions.AlignTopEdges);
-        alignMenu.add(Actions.AlignBottomEdges);
-        alignMenu.addSeparator();
-        alignMenu.add(Actions.AlignCentersRow);
-        alignMenu.add(Actions.AlignCentersColumn);
-        alignMenu.addSeparator();
-        alignMenu.add(Actions.DistributeVertically);
-        alignMenu.add(Actions.DistributeHorizontally);
-        */
         
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
@@ -788,9 +777,19 @@ public class VUE
         arrangeMenu.addSeparator();
         arrangeMenu.add(alignMenu);
         
-        for (int i = 0; i < windowActions.length; i++) {
-            System.out.println("adding " + windowActions[i]);
-            windowMenu.add(new JCheckBoxMenuItem(windowActions[i]));
+        for (int i = 0; i < toolWindows.length; i++) {
+            System.out.println("adding " + toolWindows[i]);
+            JCheckBoxMenuItem mi = null;
+            if (toolWindows[i] instanceof ToolWindow) {
+                ToolWindow tw = (ToolWindow) toolWindows[i];
+                mi = new JCheckBoxMenuItem(tw.getDisplayAction());
+                tw.setDisplayButton(mi);
+            } else if (toolWindows[i] instanceof InspectorWindow) {
+                mi = new JCheckBoxMenuItem(((InspectorWindow)toolWindows[i]).getDisplayAction());
+            } else
+                System.err.println("*** Window menu IGNORING toolWindow of unknown type " + toolWindows[i]);
+
+            windowMenu.add(mi);
         }
 
         optionsMenu.add(new JMenuItem("Node Types..."));

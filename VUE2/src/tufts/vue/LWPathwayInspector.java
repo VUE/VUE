@@ -79,9 +79,6 @@ public class LWPathwayInspector extends InspectorWindow
     /**standard border for all tabs*/
     private LineBorder border = new LineBorder(Color.black);
     
-    /**handles opening and closing inspector*/
-    private AbstractButton aButton = null;
-    
     public InfoTableModel model = null;
     private Notes notes = null;
     private PathwayTab pathwayTab = null;
@@ -102,7 +99,7 @@ public class LWPathwayInspector extends InspectorWindow
         Info info = new Info();
         info.setInfo(this.getPathway());
         
-        this.setTitle("PATHWAY INSPECTOR");
+        this.setTitle("Pathway Inspector");
         
         pane = new JTabbedPane();
         
@@ -114,17 +111,15 @@ public class LWPathwayInspector extends InspectorWindow
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
         this.setSize(420, 450);
-        /**unselects checkbox in VUE window menu on closing*/
+        /*unselects checkbox in VUE window menu on closing*/
+        /*
         super.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {setButton(false);}});
+        */
     }
     
     public void setPathwayManager(LWPathwayManager pathwayManager){
         pathwayTab.setPathwayManager(pathwayManager);
-    }
-    
-    public void setButton(boolean state){
-        aButton.setSelected(state);
     }
     
     public LWPathway getPathway(){
@@ -415,7 +410,7 @@ public class LWPathwayInspector extends InspectorWindow
             if(col == 1){
                 if(row == 0){
                     pathway.setLabel((String)value);
-                    setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
+                    setTitle("Pathway Inspector: " + pathway.getLabel());
                     VUE.getPathwayInspector().repaint();
                 } 
                 //can't set the length
@@ -439,27 +434,5 @@ public class LWPathwayInspector extends InspectorWindow
         }
     }
     
-    /**handles opening and closing window from menu list*/
-    class DisplayAction extends AbstractAction
-    {
-        public DisplayAction(String label)
-        {
-            super(label);
-        }
-        public void actionPerformed(ActionEvent e)
-        {
-            aButton = (AbstractButton) e.getSource();
-            setVisible(aButton.isSelected());
-        }
-    }
-    
-    Action displayAction = null;
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction("Pathway Inspector");
-        return displayAction;
-    }
-   
    
 }

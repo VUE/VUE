@@ -241,8 +241,10 @@ public class LWNode extends LWContainer
         } else {
             // by default, a double-click anywhere else in
             // node opens the resource
-            
-            if (hasResource()) {
+            if (notesIcon.contains(cx, cy)) {
+                System.out.println("***NOTES HIT");
+                VUE.objectInspector.setVisible(true);
+            } else if (hasResource()) {
                 getResource().displayContent();
                 // todo: some kind of animation or something to show
                 // we're "opening" this node -- maybe an indication

@@ -21,7 +21,7 @@ import java.awt.Color;
  */
 public class LWOutlineView extends InspectorWindow 
 {
-    private DisplayAction displayAction = null;
+    //private DisplayAction displayAction = null;
     private OutlineViewTree tree = null;
 
     /** Creates a new instance of LWOutlineView */
@@ -35,7 +35,8 @@ public class LWOutlineView extends InspectorWindow
         
         getContentPane().add(scrollPane);
         getContentPane().setBackground(Color.white);
-        
+
+        /*
         super.addWindowListener(new WindowAdapter()
             {
                 public void windowClosing(WindowEvent e) 
@@ -44,6 +45,7 @@ public class LWOutlineView extends InspectorWindow
                 }
             }
         );
+        */
     }
 
     public OutlineViewTree getTree() 
@@ -51,7 +53,9 @@ public class LWOutlineView extends InspectorWindow
         return tree;
     }
     
+
     /**A method used by VUE to display the tree*/
+    /*
     public Action getDisplayAction()
     {
         if (displayAction == null)
@@ -59,8 +63,9 @@ public class LWOutlineView extends InspectorWindow
         
         return (Action)displayAction;
     }
-    
+    */
     /**A class which controls the visibility of the tree */
+    /*
     private class DisplayAction extends AbstractAction
     {
         private AbstractButton aButton;
@@ -81,4 +86,5 @@ public class LWOutlineView extends InspectorWindow
             aButton.setSelected(state);
         }
     }
+    */
 }

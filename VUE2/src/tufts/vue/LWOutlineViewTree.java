@@ -33,7 +33,7 @@ import javax.swing.event.TreeModelEvent;
 /**A class which displays the outline view of a given LWMap in a tree form*/
 public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Listener, TreeModelListener
 {    
-    private DisplayAction displayAction = null;
+    //private DisplayAction displayAction = null;
     private JTree tree;
     private LWMap currentMap;
     private LWComponent selectedComponent;
@@ -75,7 +75,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
         
         getContentPane().add(scrollPane);
         getContentPane().setBackground(Color.white);
-        
+        /*
         super.addWindowListener(new WindowAdapter()
             {
                 public void windowClosing(WindowEvent e) 
@@ -84,6 +84,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
                 }
             }
         );
+        */
     }
     
     public LWOutlineViewTree(JFrame parent, LWMap map)
@@ -403,6 +404,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
     public void treeStructureChanged(TreeModelEvent e) {}
     
     /**A method used by VUE to display the tree*/
+    /*
     public Action getDisplayAction()
     {
         if (displayAction == null)
@@ -410,8 +412,9 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
         
         return (Action)displayAction;
     }
-    
+    */
     /**A class which controls the visibility of the tree */
+    /*
     private class DisplayAction extends AbstractAction
     {
         private AbstractButton aButton;
@@ -432,4 +435,5 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
             aButton.setSelected(state);
         }
     }
+    */
 }

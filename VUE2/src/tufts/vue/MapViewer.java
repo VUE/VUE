@@ -2359,6 +2359,7 @@ public class MapViewer extends javax.swing.JPanel
             //    mouseDragged(e);
             //}
 
+            // todo: don't use the Timer class here -- too unreliable
             if (RolloverAutoZoomDelay >= 0) {
                 if (DEBUG_TIMER_ROLLOVER && !inDrag && !(activeTextEdit != null)) {
                     if (RolloverAutoZoomDelay > 10) {

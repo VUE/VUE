@@ -29,7 +29,7 @@ import javax.swing.event.TreeSelectionListener;
 /**A class that displays the hierarchy of nodes in a tree*/
 public class LWHierarchyTree extends InspectorWindow 
 {
-    private DisplayAction displayAction = null;
+    //private DisplayAction displayAction = null;
     private JTree tree;
     private HierarchyTreeModel treeModel;
     
@@ -94,7 +94,8 @@ public class LWHierarchyTree extends InspectorWindow
         
         getContentPane().add(scrollPane);
         getContentPane().setBackground(Color.white);
-        
+
+        /*
         super.addWindowListener(new WindowAdapter()
             {
                 public void windowClosing(WindowEvent e) 
@@ -103,6 +104,7 @@ public class LWHierarchyTree extends InspectorWindow
                 }
             }
         );
+        */
     }
     
     /**Sets the model of the tree to the given hierarchy tree model
@@ -114,6 +116,7 @@ public class LWHierarchyTree extends InspectorWindow
     }
     
     /**A method used by VUE to display the tree*/
+    /*
     public Action getDisplayAction()
     {
         if (displayAction == null)
@@ -121,8 +124,9 @@ public class LWHierarchyTree extends InspectorWindow
         
         return (Action)displayAction;
     }
-    
+    */
     /**A class which controls the visibility of the tree */
+    /*
     private class DisplayAction extends AbstractAction
     {
         private AbstractButton aButton;
@@ -143,5 +147,6 @@ public class LWHierarchyTree extends InspectorWindow
             aButton.setSelected(state);
         }
     }
+    */
     
 }

@@ -17,7 +17,7 @@ public class ToolWindow
     extends JWindow
     implements MouseListener, MouseMotionListener
 {
-    final int TitleHeight = 11;
+    final int TitleHeight = VueUtil.isMacPlatform() ? 11 : 13;
     //final int TitleHeight = 44;
     final int ResizeCornerSize = 14;
     
@@ -32,6 +32,9 @@ public class ToolWindow
     private Point dragStart;
     private Dimension dragSizeStart; // tmp public hack
 
+    /**handles opening and closing inspector*/
+    private AbstractButton mDisplayButton = null;
+
     class ToolPanel extends JPanel
     {
         JPanel titlePanel = new JPanel();
@@ -39,6 +42,7 @@ public class ToolWindow
         
         //Component hideButton = new Button();
         //JButton hideButton = new JButton("X");
+        JButton hideButton = null;
             
         
         String ctos(Color c)
@@ -80,12 +84,12 @@ public class ToolWindow
             titlePanel.setPreferredSize(new Dimension(0, TitleHeight));
             contentPanel.setLayout(new BorderLayout());
             
-            /*
-            hideButton.setFont(new Font("SansSerf", Font.BOLD, 7));
-            hideButton.setMargin(new Insets(0,1,0,1));
-            hideButton.setDefaultCapable(false);
-            titlePanel.add(hideButton);
-            */
+            if (hideButton != null) {
+                hideButton.setFont(new Font("SansSerf", Font.BOLD, 7));
+                hideButton.setMargin(new Insets(0,1,0,1));
+                hideButton.setDefaultCapable(false);
+                titlePanel.add(hideButton);
+            }
             
             if (VueUtil.isMacPlatform()) {
                 //titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -143,6 +147,8 @@ public class ToolWindow
                 if (VueUtil.isMacPlatform())
                     y++;
                 l.setLocation(2, y);
+                if (hideButton != null)
+                    hideButton.setLocation(50,0);
             }
 
             add(contentPanel, BorderLayout.CENTER);
@@ -153,7 +159,19 @@ public class ToolWindow
             super.addNotify();
             //System.out.println("hideButton=" + hideButton);
             //System.out.println("peer="+hideButton.getPeer());
+        }
 
+        int iconSize = TitleHeight - (VueUtil.isMacPlatform() ? 4 : 5);
+        int yoff = VueUtil.isMacPlatform() ? 2 : 4;
+        int edgeInset = VueUtil.isMacPlatform() ? TitleHeight : TitleHeight+1;
+        public void paint(Graphics g) {
+            //System.out.println("painting " + this);
+            super.paint(g);
+            g.setColor(SystemColor.activeCaptionText);
+            int xoff = getWidth() - edgeInset;
+            g.drawRect(xoff, yoff, iconSize,iconSize);
+            g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
+            g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
         }
     }
     
@@ -218,7 +236,7 @@ public class ToolWindow
     }
 
     private ToolPanel toolPanel;
-    private String title;
+    private String mTitle;
     public ToolWindow(String title, Frame owner)
     {
         //setUndecorated(true);
@@ -226,14 +244,48 @@ public class ToolWindow
         addMouseListener(this);
         addMouseMotionListener(this);
         setBackground(SystemColor.control);
-        this.title = title;
-        setContentPane(toolPanel = new ToolPanel(title));
+        this.mTitle = title;
+        setContentPane(toolPanel = new ToolPanel(mTitle));
         Component gp = new GlassPane();
         setGlassPane(gp);
         gp.setVisible(true);
         pack();
         //setLocationRelativeTo(owner);
         //setFocusableWindowState(false); // nothing can get input
+
+        /*
+          // Window open & close only come to us the first time the window happens
+        addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {System.out.println(e); setButtonState(false); }
+                public void windowOpened(WindowEvent e) {System.out.println(e); setButtonState(true); }
+            });
+        addWindowStateListener(new WindowStateListener() {
+                public void windowStateChanged(WindowEvent e) {
+                    System.out.println("ToolWindow: " + e);
+                }
+            });
+        */
+        // the above window listeners never seem to happen -- must be because
+        // we're a "raw" window instead of a regular Frame or something.
+        addComponentListener(new ComponentAdapter() {
+                public void componentShown(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(true); }
+                public void componentHidden(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(false); }
+            });
+                
+        
+    }
+
+    private void setButtonState(boolean tv)
+    {
+        if (mDisplayButton != null) {
+            mDisplayButton.setSelected(tv);
+            System.out.println("Set button state to " + tv);
+        }
+    }
+
+    public void setDisplayButton(AbstractButton b)
+    {
+        mDisplayButton = b;
     }
     
     class DisplayAction extends AbstractAction
@@ -244,8 +296,9 @@ public class ToolWindow
         }
         public void actionPerformed(ActionEvent e)
         {
-            AbstractButton btn = (AbstractButton) e.getSource();
-            setVisible(btn.isSelected());
+            if (mDisplayButton == null)
+                mDisplayButton = (AbstractButton) e.getSource();
+            setVisible(mDisplayButton.isSelected());
         }
     }
 
@@ -253,8 +306,13 @@ public class ToolWindow
     public Action getDisplayAction()
     {
         if (displayAction == null)
-            displayAction = new DisplayAction(this.title);
+            displayAction = new DisplayAction(this.mTitle);
         return displayAction;
+    }
+
+    public String getTitle()
+    {
+        return mTitle;
     }
 
     public void addTool(Component c)
@@ -333,17 +391,26 @@ public class ToolWindow
             e.getX() > getWidth() - ResizeCornerSize &&
             e.getY() > getHeight() - ResizeCornerSize
             ||
-            e.getX() > getWidth() - 15 && e.getY() < TitleHeight; // tmp hack extra resize
+            e.getX() > getWidth() - 25 && e.getY() < TitleHeight; // tmp hack extra resize
+        
+    }
+
+    protected boolean closeCornerHit(MouseEvent e)
+    {
+        return e.getX() > getWidth() - TitleHeight && e.getY() < TitleHeight;
         
     }
     
     public void mousePressed(MouseEvent e)
     {
+        //System.out.println(e);
         dragStart = e.getPoint();
         // todo: will need to check this on the glass pane
         // in case underlying panel is also grabbing
         // mouse events (and then redispatch)
-        if (resizeCornerHit(e))
+        if (closeCornerHit(e))
+            hide();
+        else if (resizeCornerHit(e))
             dragSizeStart = getSize();
     }
     public void mouseReleased(MouseEvent e)
