@@ -818,7 +818,7 @@ class Actions
     static final Action Undo =
         new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
-            public boolean isEnabled() { return false; }
+            public boolean isEnabled() { return true; }
 
         };
     static final Action Redo =
@@ -962,6 +962,8 @@ class Actions
                 System.err.println("*** VueAction: event was " + ae);
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
+            VUE.getActiveMap().getUndoManager().markChangesAsUndoable(ae.getActionCommand());
+            //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();
             if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
             // normally handled by updateActionListeners, but if someone

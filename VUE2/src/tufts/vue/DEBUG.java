@@ -13,6 +13,7 @@ class DEBUG
     static boolean SCROLL = false;
     static boolean SELECTION = false;
     static boolean FOCUS = false;
+    static boolean UNDO = false;
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
 

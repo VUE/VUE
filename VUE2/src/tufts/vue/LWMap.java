@@ -50,12 +50,9 @@ public class LWMap extends LWContainer
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
+        // this can't be right: what about the LWPathwayManager that castor is constructing for us?
         mPathwayManager = new LWPathwayManager(this);
-    	long time = System.currentTimeMillis();
-    	java.util.Date date = new java.util.Date( time);
-    	java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
-    	String dateStr = df.format( date);
-    	setDate( dateStr);
+    	markDate();
     }
 
     public LWMap(String label)
@@ -67,12 +64,27 @@ public class LWMap extends LWContainer
         setFont(FONT_DEFAULT);
         setLabel(label);
         mPathwayManager = new LWPathwayManager(this);
+        markDate();
+        markAsSaved();
+    }
+
+    private void markDate()
+    {
     	long time = System.currentTimeMillis();
     	java.util.Date date = new java.util.Date( time);
     	java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
     	String dateStr = df.format( date);
-    	setDate( dateStr);
-        markAsSaved();
+    	setDate(dateStr);
+    }
+
+    private UndoManager mUndoManager;
+    public UndoManager getUndoManager()
+    {
+        return mUndoManager;
+    }
+    public void setUndoManager(UndoManager um)
+    {
+        mUndoManager = um;
     }
 
     public void setFile(File file)
@@ -92,11 +104,15 @@ public class LWMap extends LWContainer
         System.out.println(this + " explicitly marking as modified");
         if (mChanges == 0)
             mChanges = 1;
+        // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public void markAsSaved()
     {
         System.out.println(this + " marking " + mChanges + " modifications as current");
         mChanges = 0;
+        if (getUndoManager() == null)
+            setUndoManager(new UndoManager(this));
+        // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public boolean isModified() {
         return mChanges > 0;

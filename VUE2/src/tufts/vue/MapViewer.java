@@ -1094,6 +1094,7 @@ public class MapViewer extends javax.swing.JComponent
         this.map = null;
     }
     
+    //private UndoMangera
     private void loadMap(LWMap map)
 
     {
@@ -1101,8 +1102,13 @@ public class MapViewer extends javax.swing.JComponent
             throw new IllegalArgumentException("loadMap: null LWMap");
         if (this.map != null)
             unloadMap();
+        if (map.isModified())
+            VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
         this.map = map;
         this.map.addLWCListener(this);
+
+        //mUndo = new UndoManger(map);
+        
         repaint();
     }
  
