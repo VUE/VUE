@@ -29,8 +29,10 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
      
-    private ImageIcon mapIcon = null, nodeIcon = null, linkIcon = null, selectedIcon = null;
-    
+    private ImageIcon  selectedIcon = null;
+    private ImageIcon  nodeIcon = VueResources.getImageIcon("outlineIcon.node");
+    private ImageIcon linkIcon = VueResources.getImageIcon("outlineIcon.link");
+    private ImageIcon   mapIcon = VueResources.getImageIcon("outlineIcon.map");
     /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
     {
@@ -192,9 +194,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public OutlineViewTreeRenderer()
         {
             //retrieves the icons for nodes and links
-            nodeIcon = VueResources.getImageIcon("outlineIcon.node");
-            linkIcon = VueResources.getImageIcon("outlineIcon.link");
-            mapIcon = VueResources.getImageIcon("outlineIcon.map");
+           
         }
         
         public Component getTreeCellRendererComponent(
