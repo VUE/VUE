@@ -4140,7 +4140,7 @@ public class MapViewer extends javax.swing.JComponent
     private static JFrame debugFrame;
     public static void main(String[] args) {
         DEBUG.Enabled = true;
-        DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = true;
+        DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true;
         
         System.out.println("MapViewer:main");
         
@@ -4155,22 +4155,28 @@ public class MapViewer extends javax.swing.JComponent
         //installExampleNodes(map);
         installTestMap(map);
 
-        if (args.length > 0) {
+        if (args.length == 1) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
             VueUtil.displayComponent(new MapViewer(map), 400,300);
+
         } else {
 
             MapViewer viewer = new MapViewer(map);
             viewer.DEBUG_SHOW_ORIGIN = true;
             viewer.DEBUG_KEYS = true;
             viewer.setPreferredSize(new Dimension(500,300));
-            JScrollPane scrollPane = new JScrollPane(viewer);
-            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-            // set the menu bar just so we can get all the actions connected to MapViewer
-            JFrame frame = VueUtil.displayComponent(scrollPane);
+            JFrame frame;
+            if (args.length != 2) {
+                JScrollPane scrollPane = new JScrollPane(viewer);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                frame = VueUtil.displayComponent(scrollPane);
+            } else {
+                frame = VueUtil.displayComponent(viewer);
+            }
             JMenuBar menu = VUE.getMenuBar(null);
             menu.setFont(FONT_TINY);
+            // set the menu bar just so we can get all the actions connected to MapViewer
             frame.setJMenuBar(menu);
             frame.pack();
             debugFrame = frame;

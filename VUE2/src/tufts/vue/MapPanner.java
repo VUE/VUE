@@ -32,7 +32,7 @@ public class MapPanner extends javax.swing.JPanel
 
     // Enable this to keep viewport always visible in panner: (it causes while-you-drag
     // zoom adjusting tho, which can be a bit disorienting)
-    private static final boolean ViewerAlwaysVisible = false;
+    private static final boolean ViewerAlwaysVisible = true;
     private static final int MapMargin = 0;
     //private static final int MapMargin = ViewerAlwaysVisible ? 5 : 50;
     
@@ -157,7 +157,7 @@ public class MapPanner extends javax.swing.JPanel
             
             if (DEBUG.SCROLL) out("dx="+dx + " dy="+dy);
             
-            mapViewer.panScrollRegion(dx, dy, false);
+            mapViewer.panScrollRegion(dx, dy, true);
             lastDrag = e.getPoint();
             
         } else {
