@@ -65,10 +65,10 @@ public class LWLink extends LWComponent
 
     private boolean endpointMoved = true; // has an endpoint moved since we last compute shape?
 
-    private static final int ARROW_NONE = 0;
-    private static final int ARROW_EP1 = 0x1;
-    private static final int ARROW_EP2 = 0x2;
-    private static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
+    public static final int ARROW_NONE = 0;
+    public static final int ARROW_EP1 = 0x1;
+    public static final int ARROW_EP2 = 0x2;
+    public static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
     
     private int arrowState = ARROW_NONE;
     
