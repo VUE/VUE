@@ -146,6 +146,12 @@ public class HierarchyNode implements osid.hierarchy.Node
         return treeNode;
     }
     
+    public void changeLWComponentLabel(String label) throws osid.hierarchy.HierarchyException
+    {
+        component.setLabel(label);
+        updateDisplayName(label);
+    }
+    
     public void setLWComponent(LWComponent component)
     {
         this.component = component;
