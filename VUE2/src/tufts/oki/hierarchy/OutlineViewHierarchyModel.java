@@ -111,40 +111,35 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             return null;
         }
         
-        //try
+     
+        for (osid.hierarchy.NodeIterator i = hierarchyNode.getChildren(); i.hasNext();)
         {
-            for (osid.hierarchy.NodeIterator i = hierarchyNode.getChildren(); i.hasNext();)
-            {
-                HierarchyNode childNode = (HierarchyNode)i.next();
+            HierarchyNode childNode = (HierarchyNode)i.next();
             
-                if(childNode.getLWComponent() == component)
+            if(childNode.getLWComponent() == component)
+            {
+                foundNode = childNode;
+                break;
+            }
+            
+            else if (recursive)
+            {
+                childNode = findHierarchyNode(childNode, component, true);
+                
+                //redundant?
+                if(childNode != null && childNode.getLWComponent() == component)
                 {
                     foundNode = childNode;
                     break;
                 }
-            
-                else if (recursive)
-                {
-                    childNode = findHierarchyNode(childNode, component, true);
-                
-                    //redundant?
-                    if(childNode != null && childNode.getLWComponent() == component)
-                    {
-                        foundNode = childNode;
-                        break;
-                    }
-                }
             }
         }
-        
-        //catch(osid.hierarchy.HierarchyException he)
-        //{
-            //System.err.println("hierarchy exception");
-        //}
         
         return foundNode;
     }
     
+    /**A method which finds tree nodes representing the given component ID under the given tree node
+     */
     public ArrayList findHierarchyNodeByComponentID(HierarchyNode parentNode, String id) throws osid.hierarchy.HierarchyException
     {
         if (parentNode == null ||id == null)
@@ -170,6 +165,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         return nodes;
     }
     
+    /**A method which updates the hierarchy node with the given componenet ID to the given label
+     */
     public void updateHierarchyNodeLabel(String newLabel, String id)
     {
         try
@@ -181,8 +178,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 HierarchyNode hierarchyNode = (HierarchyNode)i.next();
                 hierarchyNode.updateDisplayName(newLabel);
             }
-            
-            System.out.println("successfully changed the node label");
         }
         
         catch(osid.hierarchy.HierarchyException he)
@@ -192,7 +187,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         
         catch(Exception e)
         {
-            System.err.println("null was found here");
+            System.err.println(e.getMessage());
             e.printStackTrace();
         }
     }
