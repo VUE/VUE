@@ -179,7 +179,8 @@ public class LWMap extends LWContainer
      * This sets the LWC Filter to filter out node and link componenets.
      * @param LWCFilter - the filter
      **/
-    public void setLWCFilter( LWCFilter pFilter) {
+    public void setLWCFilter(LWCFilter pFilter) {
+        out("setLWCFilter: " + pFilter);
         mLWCFilter = pFilter;
     }
     
@@ -289,6 +290,7 @@ public class LWMap extends LWContainer
     }
     
     public void setMapFilterModel(MapFilterModel mapFilterModel) {
+        out("setMapFilterModel " + mapFilterModel);
         this.mapFilterModel = mapFilterModel;
     }
 

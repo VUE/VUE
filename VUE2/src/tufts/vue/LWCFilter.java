@@ -69,7 +69,7 @@ public class LWCFilter {
     // Fields
     //////////////
     
-    /** a vector of contraints **/
+    /** a vector of contraints ??? still used ??? **/
     LogicalStatement [] mStatements = null;
     
     Vector  statements = null;
@@ -92,7 +92,7 @@ public class LWCFilter {
     ///////////////////
     // Constructors
     ////////////////////
-    
+
     public LWCFilter() {
         super();
         mStatements = new LogicalStatement[1];
@@ -156,7 +156,6 @@ public class LWCFilter {
     public void setStatements(Vector statements) {
         this.statements = statements;
     }
-    
     public Vector getStatements() {
         return this.statements;
     }
@@ -383,6 +382,14 @@ public class LWCFilter {
         return pLWC.getNodeFilter().compare(statement);
     }
     
+    public String toString() {
+        return "LWCFilter[" + mFilterAction
+            + " on=" + mIsFilterOn
+            //            + " mStatements=" + (mStatements==null?"null":Arrays.asList(mStatements).toString())
+            + " statements=" + statements
+            + "]";
+    }
+    
     /**
      * LogicalStatement
      * This class represents a logical statement for a search filter
@@ -560,7 +567,7 @@ public class LWCFilter {
         
         
         public String toString() {
-            return "LWCFilter[Source: "+mSourceType+" condition: "+mCondition+" value: "+mValue + "]";
+            return "LogicalStatement[Source: "+mSourceType+" condition: "+mCondition+" value: "+mValue + "]";
         }
     }
     private static final boolean DEBUG  = false;

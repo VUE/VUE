@@ -1601,9 +1601,14 @@ public class LWComponent
             +  " " + width + "x" + height;
     }
 
+    protected void out(String s) {
+        System.out.println(this + ": " + s);
+    }
+    /*
     static protected void out(Object o) {
         System.out.println((o==null?"null":o.toString()));
     }
+    */
 /*
     static protected void out(String s) {
         System.out.println(s);
