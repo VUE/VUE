@@ -252,9 +252,19 @@ public class LWMap extends LWContainer
     }
     
     public void draw(DrawContext dc){
-        LWPathway path = this.getPathwayManager().getCurrentPathway();        
-        if (path != null && path.getShowing()) {
-            path.drawPathway((Graphics2D) dc.g.create());
+        //LWPathway path = this.getPathwayManager().getCurrentPathway();        
+        Iterator i = getPathwayManager().getPathwayIterator();
+        while (i.hasNext()) {
+            Object o = i.next();
+            if (o instanceof LWPathway) {
+                LWPathway path = (LWPathway) o;
+                if (path != null && path.getShowing()) {
+                    path.drawPathway((Graphics2D) dc.g.create());
+                }
+            } else {
+                // What're the nodes doing in here?
+                //System.out.println("Not a pathway? " + o);
+            }
         }
         super.draw(dc);
 
