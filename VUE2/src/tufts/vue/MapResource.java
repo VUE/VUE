@@ -31,7 +31,7 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 import java.util.regex.*;
-
+import javax.swing.JComponent;
 
 public class MapResource implements Resource {
     static final long SIZE_UNKNOWN = -1;
@@ -50,6 +50,7 @@ public class MapResource implements Resource {
     protected transient boolean selected = false;
     String spec;
     int type;
+    JComponent viewer;
     
     /** the metadata property map **/
     protected   Map mProperties = new Properties();
@@ -422,6 +423,17 @@ public class MapResource implements Resource {
             PropertyEntry entry = (PropertyEntry) i.next();
             mProperties.put(entry.getEntryKey(),entry.getEntryValue());
         }
+    }
+    
+    public JComponent getAssetViewer(){
+        
+     return null;   
+        
+    }
+    public void setAssetViewer(JComponent viewer){
+        
+     this.viewer = viewer;   
+        
     }
     
 }

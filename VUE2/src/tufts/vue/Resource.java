@@ -33,6 +33,7 @@ package tufts.vue;
  * @author  akumar03
  */
 import java.util.Properties;
+import javax.swing.JComponent;
 
 public interface Resource {
         
@@ -94,5 +95,11 @@ public interface Resource {
      *  VueUtil.open() using the spec information.
      */
     public void displayContent();
+    
+    /**
+     *Associate a asset viewer with a resource. 
+     *
+     */
+    public JComponent getAssetViewer();
       
 }
