@@ -60,8 +60,10 @@ public class Publisher extends JDialog implements ActionListener {
     File activeMapFile;
     ResourceTableModel resourceTableModel;
     JTable resourceTable;
+    JComboBox dataSourceComboBox;
     
     public Publisher() {
+        //testing
         nextButton = new JButton("Next >");
         finishButton = new JButton("Finish");
         cancelButton = new JButton("Cancel");
@@ -85,8 +87,8 @@ public class Publisher extends JDialog implements ActionListener {
     }
     
     private void setUpModeSelectionPanel() {
-        Vector dataSourceVector = new Vector();
-        dataSourceVector.add("Tufts Digital Library");
+        Vector dataSourceVector = DataSourceViewer.dataSources;
+        //dataSourceVector.add("Tufts Digital Library");
         
         modeSelectionPanel = new JPanel();
         GridBagLayout gridbag = new GridBagLayout();
@@ -98,7 +100,7 @@ public class Publisher extends JDialog implements ActionListener {
         JLabel topLabel = new JLabel("Select the Publish Mode");
         
         //area for displaying information about publishing mode
-        informationArea = new JTextArea("Please select the mode for publiscation from above");
+        informationArea = new JTextArea("Please select the mode for publication from above");
         informationArea.setEditable(false);
         informationArea.setLineWrap(true);
         informationArea.setRows(4);
@@ -106,7 +108,7 @@ public class Publisher extends JDialog implements ActionListener {
         informationArea.setSize(WIDTH-50, HEIGHT/3);
         
         JLabel dsLabel = new JLabel("Where would you like to save the map:");
-        JComboBox dataSourceComboBox = new JComboBox(dataSourceVector);
+        dataSourceComboBox = new JComboBox(dataSourceVector);
         
         JPanel buttonPanel = new JPanel();
         publishMapRButton = new JRadioButton("Publish Map");
@@ -259,12 +261,16 @@ public class Publisher extends JDialog implements ActionListener {
     public void publishMap() {
         try {
             saveActiveMap();
+            String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, null).getIdString();
+            /**
             String transferredFileName = transferFile(activeMapFile,activeMapFile.getName());
             File METSfile = createMETSFile( transferredFileName,"obj-binary.xml");
             String pid = ingestToFedora(METSfile);
+             */
             System.out.println("Published Map: id = "+pid);
         } catch (Exception ex) {
-             VueUtil.alert(null, ex.getMessage(), "Publish Error");
+             VueUtil.alert(null,  "Publish Not Supported:"+ex.getMessage(), "Publish Error");
+             ex.printStackTrace();
         }
     }
     
@@ -278,8 +284,7 @@ public class Publisher extends JDialog implements ActionListener {
             String pid = ingestToFedora(METSfile);
             System.out.println("Published CMap: id = "+pid);
         } catch (Exception ex) {
-             VueUtil.alert(null, ex.getMessage(), "Publish Error");
-             ex.printStackTrace();
+             VueUtil.alert(null, "Publish Not Supported:"+ex.getMessage(), "Publish Error");
         }
    
     }
@@ -330,12 +335,7 @@ public class Publisher extends JDialog implements ActionListener {
         int port = 21;
         String userName = "vue";
         String password = "vue@at";
-        String directory = "public_html/fedora";
-        
-       // saveActiveMap(); // saving the activeMap;
-        
-        // transfering it to web-server
-          
+        String directory = "public_html/fedora"; 
         FTPClient client = new FTPClient();
         client.connect(host,port);
         client.login(userName,password);
@@ -377,13 +377,10 @@ public class Publisher extends JDialog implements ActionListener {
     
     private String ingestToFedora(File METSfile) throws IOException, FileNotFoundException, javax.xml.rpc.ServiceException{
         AutoIngestor a = new AutoIngestor("130.64.77.144", 8080,"fedoraAdmin","fedoraAdmin");
-        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest");
-        
+        String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest"); 
         System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
         return pid;
     }
-        
-    
     
     private File createIMSCP() throws IOException,URISyntaxException {
         
@@ -470,6 +467,9 @@ public class Publisher extends JDialog implements ActionListener {
         }
         
     }
+    private tufts.oki.dr.fedora.DR getDR() {
+        return ((tufts.oki.dr.fedora.DR)((DRViewer)((DataSource)dataSourceComboBox.getSelectedItem()).getResourceViewer()).getDR());
+    }
  
     public class ResourceTableModel  extends AbstractTableModel {
         
@@ -529,5 +529,6 @@ public class Publisher extends JDialog implements ActionListener {
             fireTableCellUpdated(row, col);
         }
     }
+    
     
 }

@@ -18,7 +18,7 @@ import java.awt.event.*;
 import java.util.Vector;
 import java.io.File;
 import java.io.*;
-
+import java.util.Iterator;
 // castor classes
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -28,6 +28,7 @@ import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
+
 //
 
 public class DataSourceViewer  extends JPanel{
@@ -35,7 +36,7 @@ public class DataSourceViewer  extends JPanel{
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
     public static final String[] dataSourceTypes = {"Favorites","Filing-Local", "Filing-Remote","Fedora","Google"};
-    java.util.Vector dataSources;
+    public static java.util.Vector dataSources;
     DataSource activeDataSource;
     DRBrowser drBrowser;
     JPopupMenu popup;       // add edit popup
@@ -172,7 +173,7 @@ public class DataSourceViewer  extends JPanel{
         return addEditDialog;
     }
     
-    public void addNewDataSource (String displayName, String name, String address, String user, String password, int type, boolean active) {   
+    public void addNewDataSource (String displayName, String name, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
         DataSource ds = new DataSource ("id", displayName, name, address, user, password, type);
         dataSources.addElement (ds);  //  Add datasource to data source vector.
         dataSourceList.getContents().addElement(ds); // SHOULD BE DONE IN SINGE STEP
@@ -312,7 +313,11 @@ public class DataSourceViewer  extends JPanel{
                     VueUtil.alert(null, "Not valid Tufts User. You are not allowed to create this dataSource", "Invalid User");
                     return;
                 }
-                dsv.addNewDataSource (dsNameStr, nameStr, adrStr, userStr, pwStr, type,false);
+                try {
+                    dsv.addNewDataSource (dsNameStr, nameStr, adrStr, userStr, pwStr, type,false);
+                } catch (Exception ex) {
+                    VueUtil.alert(null,"Cannot add Datasource"+nameStr+": "+ex.getMessage(), "Datasource can't be added");
+                }
                 System.out.println ("New data source added.");
 
                 dia.hide();
@@ -350,6 +355,7 @@ public class DataSourceViewer  extends JPanel{
         JButton okBut = new JButton ("Submit");
         okBut.setName ("Submit Button");
         //JButton canBut = new JButton ("Cancel");
+        adrField.setEditable(false); // this feature cannot be supported yet.  Once  DR is created it is difficult to change IP and be OKI compliant
 
         //  Add the gadgets to the Add Panel.
         editPanel.add(dsNameLabel);      //  1:  data source name label.
@@ -400,7 +406,7 @@ public class DataSourceViewer  extends JPanel{
             
         
             
-    private void loadDataSources() {
+    private void loadDataSources()  {
         
         
         //--Marshalling etc
@@ -423,35 +429,41 @@ public class DataSourceViewer  extends JPanel{
           while (!(rsources.isEmpty())){
                DataSource ds = (DataSource)rsources.remove(0);
                System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
-               addNewDataSource(ds.getDisplayName(),
+               try {
+                addNewDataSource(ds.getDisplayName(),
                                          ds.getName(), ds.getAddress(), ds.getUserName(), 
                                          ds.getPassword(), ds.getType(),ds.isActiveDataSource());
                                  }
+          catch(Exception ex) {
+          }
+          }
            
             }
        
             
             else{
         // this should be created automatically from a config file. That will be done in future.
-  
-        DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
-        //ds1.setDisplayColor(Color.BLACK);
-        dataSources.add(ds1);
-        dataSourceList.getContents().addElement(ds1);
-        DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora",DataSource.DR_FEDORA);
-        //ds2.setDisplayColor(Color.RED);
-        dataSources.add(ds2);
-        dataSourceList.getContents().addElement(ds2);
-        setActiveDataSource(ds2);
-        DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
-        //ds3.setDisplayColor(Color.BLUE);
-        dataSources.add(ds3);
-        dataSourceList.getContents().addElement(ds3);
-        DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
-        //ds4.setDisplayColor(Color.YELLOW);
-        dataSources.add(ds4);
-        dataSourceList.getContents().addElement(ds4);
-         
+                try {
+                    DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
+                    //ds1.setDisplayColor(Color.BLACK);
+                    dataSources.add(ds1);
+                    dataSourceList.getContents().addElement(ds1);
+                    DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","hosea.lib.tufts.edu","test","test",DataSource.DR_FEDORA);
+                    //ds2.setDisplayColor(Color.RED);
+                    dataSources.add(ds2);
+                    dataSourceList.getContents().addElement(ds2);
+                    setActiveDataSource(ds2);
+                    DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
+                    //ds3.setDisplayColor(Color.BLUE);
+                    dataSources.add(ds3);
+                    dataSourceList.getContents().addElement(ds3);
+                    DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
+                    //ds4.setDisplayColor(Color.YELLOW);
+                    dataSources.add(ds4);
+                    dataSourceList.getContents().addElement(ds4);
+                } catch (Exception ex) {
+                    System.out.println("Datasources can't be loaded");
+                }
       
     
             }
@@ -520,4 +532,15 @@ public class DataSourceViewer  extends JPanel{
         return sviewer;
     } 
     
+   public static Iterator getPublishableDataSources() {
+       Vector mDataSources = new Vector();
+       Iterator i = dataSources.iterator();
+       while(i.hasNext() ) {
+           DataSource mDataSource = (DataSource)i.next();
+           if(mDataSource.getType() == DataSource.DR_FEDORA)
+               mDataSources.add(mDataSource);
+       }
+       return mDataSources.iterator();
+           
+   }
 }

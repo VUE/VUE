@@ -65,6 +65,7 @@ public class IMSCP {
         int len;
         if(zos == null) 
             throw new ZipException("IMSCP.putEntry(File file): ZipOutputstream not initialized");
+        
         ZipEntry ze = new ZipEntry(entryName);
         zos.putNextEntry(ze);
         FileInputStream fis = new FileInputStream(file);

@@ -11,6 +11,7 @@ package tufts.vue;
  * @author  akumar03
  */
 
+import java.net.URL;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -59,7 +60,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     public DRViewer() {
     }
     
-    public DRViewer(String conf,  String id,String displayName,String description) {
+    public DRViewer(String conf,  String id,String displayName,String description, URL address, String userName, String password) {
        // setBorder(new TitledBorder(displayName));
         setLayout(new BorderLayout());
         DRSearchResults = new JPanel();
@@ -71,7 +72,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         searchType = new SearchType("Search");
         advancedSearchType = new SearchType("Advanced Search");
         try {
-            dr = new DR(id,displayName,description);
+            dr = new DR(id,displayName,description,address,userName,password);
             // this part will be taken from the configuration file later.
        } catch(osid.OsidException ex) {
             JOptionPane.showMessageDialog(this,
@@ -341,6 +342,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
                 performAdvancedSearch();
             }
         }
+    }
+    
+    public osid.dr.DigitalRepository getDR() {
+        return dr;
     }
     
 }

@@ -15,6 +15,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.util.Vector;
 import java.io.*;
+import java.net.URL;
 
 
 public class DataSource {
@@ -40,7 +41,7 @@ public class DataSource {
     }
     
     /**  Creates a DataSource given an id, display name, and name. */
-    public DataSource(String id,String displayName,String name) {
+    public DataSource(String id,String displayName,String name) throws java.net.MalformedURLException{
         this.id = id;
         this.displayName = displayName;
         this.name = name;
@@ -49,24 +50,26 @@ public class DataSource {
     }
     
     /**  Creates a DataSource given an id, display name, name, and type. */
-    public DataSource(String id,String displayName,String name,int type){
+    public DataSource(String id,String displayName,String name,int type) throws java.net.MalformedURLException{
         this(id,displayName,name);
         this.type=type;
         setViewer();
     }
     
     /**  Creates a DataSource given an id, display name, name, address, user name, password and type. */
-    public DataSource (String id, String displayName, String name, String address, String user, String password, int type) {
-        this(id, displayName, name, type);
+    public DataSource (String id, String displayName, String name, String address, String user, String password, int type) throws java.net.MalformedURLException{
+        this(id, displayName, name);
         this.address = address;
         this.userName = user;
+        this.type=type;
         this.password = password;
+        setViewer();
     }
     
     /**
      *  Intializes resource viewer and colors based on data source type.
      */
-    private void setViewer () {
+    private void setViewer () throws java.net.MalformedURLException{
         if(type == FAVORITES) {
             
             VUE.favoritesWindow = new FavoritesWindow(displayName);
@@ -94,7 +97,7 @@ public class DataSource {
             
         }
         else if(type== DR_FEDORA) {
-            this.resourceViewer = new DRViewer("fedora.conf", id,displayName,displayName);
+            this.resourceViewer = new DRViewer("fedora.conf", id,displayName,displayName,new URL("http",this.address,8080,"fedora/"),userName,password);
             
         } 
         else  if (type== GOOGLE) {
@@ -182,7 +185,7 @@ public class DataSource {
     }
     
     public String toString() {
-        return "tufts.vue.DataSource:"+id;
+        return displayName;
     }
     
    
