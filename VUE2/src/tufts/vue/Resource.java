@@ -84,6 +84,11 @@ public class Resource
         System.out.println("displayContent for " + this);
         try {
             this.accessAttempted = System.currentTimeMillis();
+            //if (getAsset() != null) {
+                //AssetViewer a = new AssetViewer(getAsset());
+                //a.setSize(600,400);
+                //a.show();
+            //} else
             VueUtil.openURL(toURLString());
             this.accessSuccessful = System.currentTimeMillis();
         } catch (Exception e) {
