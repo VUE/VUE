@@ -37,6 +37,23 @@ public class ToolWindow
     /**handles opening and closing inspector*/
     private AbstractButton mDisplayButton = null;
 
+    private boolean isRolledUp = false;
+
+    private void setRolledUp(boolean t) {
+        if (isRolledUp == t)
+            return;
+        isRolledUp = t;
+        if (isRolledUp) {
+            setSize(getWidth(), 0);
+        } else {
+            setSize(getPreferredSize());
+        }
+    }
+
+    public boolean isRolledUp() {
+        return isRolledUp;
+    }
+
     class ToolPanel extends JPanel
     {
         JPanel titlePanel = new JPanel();
@@ -439,7 +456,11 @@ public class ToolWindow
         //System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
     }
     
-    public void mouseClicked(MouseEvent e) {}
+    public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2)
+            setRolledUp(!isRolledUp());
+    }
+    
     public void mouseEntered(MouseEvent e) { /*System.err.println(e);*/ }
     public void mouseExited(MouseEvent e) { /*System.err.println(e);*/ }
     public void mouseMoved(MouseEvent e) {}
