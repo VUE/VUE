@@ -528,8 +528,13 @@ public class PathwayPanel extends JPanel implements ActionListener
             path_backward.setEnabled(!atFirst);
             path_forward.setEnabled(!atLast);
             path_last.setEnabled(!atLast);
-            btnElementUp.setEnabled(!atFirst);
-            btnElementDown.setEnabled(!atLast);
+            if (pathway.isLocked()) {
+                btnElementUp.setEnabled(false);
+                btnElementDown.setEnabled(false);
+            } else {
+                btnElementUp.setEnabled(!atFirst);
+                btnElementDown.setEnabled(!atLast);
+            }
         } else {
             PlayerAction.setAllEnabled(false);
             btnElementUp.setEnabled(false);
