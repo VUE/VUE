@@ -91,8 +91,6 @@ public class MapViewer extends javax.swing.JPanel
     //
     //-------------------------------------------------------
     
-    //CSB tool not tied to viewers:  // csb Tool gone:  ZoomTool zoomTool;
-    
     private boolean isRightSide = false;
     MapViewer(LWMap map, boolean rightSide)
     {
@@ -208,8 +206,8 @@ public class MapViewer extends javax.swing.JPanel
     
     
     /** The currently selected tool **/
-    private VueTool mCurTool;
-    //private VueTool activeTool;
+    private VueTool mActiveTool = new VueSimpleTool();
+    // todo: just so is not null -- need to start with arrow tool as default
     //java.util.List tools = new java.util.ArrayList();
 
 
@@ -219,40 +217,63 @@ public class MapViewer extends javax.swing.JPanel
      * @return the slected VueTool
      **/
     public VueTool getCurrentTool() {
-    	return mCurTool;
+    	return mActiveTool;
     }
     
     /**
-     * setCurrentTool(VueTool)
      * Sets the current VueTool for the map viewer.
      * Updates any selection or state issues pased on the tool
      * @param pTool - the new tool
      **/
-    static final String ArrowTool = "arrowTool";
-    static final String HandTool = "handTool";
-    static final String ZoomTool = "zoomTool";
-    static final String NodeTool = "nodeTool";
-    static final String LinkTool = "linkTool";
-    static final String TextTool = "textTool";
-    static final String PathwayTool = "pathwayTool";
-    public void toolSelected(VueTool pTool) {
-    	
-    	mCurTool = pTool;
+    static final String ID_ArrowTool = "arrowTool";
+    static final String ID_HandTool = "handTool";
+    static final String ID_ZoomTool = "zoomTool";
+    static final String ID_NodeTool = "nodeTool";
+    static final String ID_LinkTool = "linkTool";
+    static final String ID_TextTool = "textTool";
+    static final String ID_PathwayTool = "pathwayTool";
+
+    // This is a bit of a hack for now -- move to VueTool?
+    VueTool ArrowTool = mActiveTool; // hack to set this as default
+    static VueTool HandTool;
+    static VueTool ZoomTool;
+    static VueTool NodeTool;
+    static VueTool LinkTool;
+    static VueTool TextTool;
+    static VueTool PathwayTool;
+    
+    public void toolSelected(VueTool pTool)
+    {
+        mActiveTool = pTool;
     	System.out.println("MapViewer.toolSelected: " + pTool.getID());
-        if (pTool.getID().equals(ArrowTool)) {
+
+        if (pTool.getID().equals(ID_ArrowTool)) {
+            ArrowTool = pTool;
             setMapCursor(CURSOR_ARROW);
-        } else if (pTool.getID().equals(HandTool)) {
+            
+        } else if (pTool.getID().equals(ID_HandTool)) {
+            HandTool = pTool;
             setMapCursor(CURSOR_PAN);
-        } else if (pTool.getID().equals(ZoomTool)) {
+
+        } else if (pTool.getID().equals(ID_ZoomTool)) {
+            ZoomTool = pTool;
             setMapCursor(VUE.CURSOR_ZOOM_IN);
-        } else if (pTool.getID().equals(NodeTool)) {
-            setMapCursor(CURSOR_DEFAULT);
-        } else if (pTool.getID().equals(LinkTool)) {
+
+        } else if (pTool.getID().equals(ID_NodeTool)) {
+            NodeTool = pTool;
+            setMapCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+
+        } else if (pTool.getID().equals(ID_LinkTool)) {
+            LinkTool = pTool;
             setMapCursor(CURSOR_CROSSHAIR);
-        } else if (pTool.getID().equals(TextTool)) {
+
+        } else if (pTool.getID().equals(ID_TextTool)) {
+            TextTool = pTool;
             setMapCursor(CURSOR_TEXT);
-        } else if (pTool.getID().equals(PathwayTool)) {
-            setMapCursor(CURSOR_DEFAULT);
+
+        } else if (pTool.getID().equals(ID_PathwayTool)) {
+            PathwayTool = pTool;
+            setMapCursor(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR));
         }
 
     }
@@ -261,6 +282,11 @@ public class MapViewer extends javax.swing.JPanel
     {
         //SwingUtilities.getRootPane(this).setCursor(cursor);
         setCursor(cursor);
+        // todo: also set this on the VueToolPanel so you can see cursor change
+        // when selecting new tool -- actually, VueToolPanel should
+        // do this itself as we're going to put the cursors right in
+        // the tool
+
         // could compute cursor-set pane in addNotify
     }
 
@@ -500,6 +526,8 @@ public class MapViewer extends javax.swing.JPanel
                 this.zoomPoint = null;
             }
 
+            // todo: don't re-center on zoompoint -- make sure zoom point stays
+            //.centered under cursor AFTER zoom!
             float offsetX = (float) (zoomMapCenter.getX() * newZoomFactor) - c.getWidth() / 2;
             float offsetY = (float) (zoomMapCenter.getY() * newZoomFactor) - c.getHeight() / 2;
 
@@ -1249,7 +1277,10 @@ public class MapViewer extends javax.swing.JPanel
                 for (int i = 0; i < ctrlPoints.length; i++) {
                     Point2D.Float cp = ctrlPoints[i];
                     if (cp != null)
-                        drawSelectionHandleCentered(g2, mapToScreenX(cp.x), mapToScreenY(cp.y));
+                        drawSelectionHandleCentered(g2,
+                                                    mapToScreenX(cp.x),
+                                                    mapToScreenY(cp.y),
+                                                    COLOR_SELECTION_CONTROL);
                 }
             }
         }
@@ -1263,18 +1294,22 @@ public class MapViewer extends javax.swing.JPanel
     static final Rectangle2D SelectionHandle = new Rectangle2D.Float(0,0,0,0);
     static final Rectangle2D ComponentHandle = new Rectangle2D.Float(0,0,0,0);
 
-    private void drawSelectionHandleCentered(Graphics2D g, float x, float y)
+    private void drawSelectionHandleCentered(Graphics2D g, float x, float y, Color fillColor)
     {
         x -= SelectionHandleSize/2;
         y -= SelectionHandleSize/2;
-        drawSelectionHandle(g, x, y);
+        drawSelectionHandle(g, x, y, fillColor);
     }
     private void drawSelectionHandle(Graphics2D g, float x, float y)
+    {
+        drawSelectionHandle(g, x, y, COLOR_SELECTION_HANDLE);
+    }
+    private void drawSelectionHandle(Graphics2D g, float x, float y, Color fillColor)
     {
         //x = Math.round(x);
         //y = Math.round(y);
         SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
-        g.setColor(COLOR_SELECTION_HANDLE);
+        g.setColor(fillColor);
         g.fill(SelectionHandle);
         g.setColor(COLOR_SELECTION);
         g.draw(SelectionHandle);
@@ -1616,7 +1651,7 @@ public class MapViewer extends javax.swing.JPanel
                 /*if (! (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN)) {*/
                     toolKeyDown = 0;
                     toolKeyEvent = null;
-                    setMapCursor(CURSOR_DEFAULT);
+                    toolSelected(mActiveTool); // restore prior cursor
                     //}
             }
         }
@@ -1648,26 +1683,27 @@ public class MapViewer extends javax.swing.JPanel
             // operations and return (e.g., spacebar down for map drag)
             //-------------------------------------------------------
 
-            if (toolKeyDown == KEY_TOOL_PAN) {
+            if (mActiveTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
                 originAtDragStart = getOriginLocation();
                 if (getParent() instanceof JViewport)
                     viewportAtDragStart = ((JViewport)getParent()).getViewPosition();
                 else
                     viewportAtDragStart = null;
                 return;
-            } else if (toolKeyDown == KEY_TOOL_ZOOM) {
+            } else if (mActiveTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
                 // FIX: zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
-               // if (toolKeyEvent.isShiftDown())
-               //     //zoomTool.setZoomSmaller();
-               // else
-               //     zoomTool.setZoomBigger();
-               if (toolKeyEvent.isShiftDown())
-                   setZoomSmaller();
-               else
-                   setZoomBigger();
+                setZoomPoint(screenToMapPoint(e.getPoint()));
+                if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
+                    || toolKeyEvent != null && toolKeyEvent.isShiftDown())
+                    setZoomSmaller();
+                else
+                    setZoomBigger();
                 return;
             }
             
+            if (mActiveTool != ArrowTool && mActiveTool != LinkTool)
+                return;
+
             setLastMousePressPoint(e.getX(), e.getY());
             dragComponent = null;
 
@@ -1761,7 +1797,7 @@ public class MapViewer extends javax.swing.JPanel
                 // MOUSE: We've pressed the left (normal) mouse on SOME LWComponent
                 //-------------------------------------------------------
                 
-                if (e.isControlDown() || e.isAltDown()) {
+                if (mActiveTool == LinkTool || e.isControlDown() || e.isAltDown()) {
                     //-------------------------------------------------------
                     // Mod-drag off a component: NEW LINK CREATION
                     //-------------------------------------------------------
@@ -2013,7 +2049,7 @@ public class MapViewer extends javax.swing.JPanel
             int screenY = e.getY();
             Point currentMousePosition = e.getPoint();
             
-            if (toolKeyDown == KEY_TOOL_PAN) {
+            if (mActiveTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
                 // drag the entire map
                 if (originAtDragStart != null) {
                     dragRepositionViewport(currentMousePosition);
@@ -2039,6 +2075,9 @@ public class MapViewer extends javax.swing.JPanel
                 else if (screenY >= getHeight())
                     screenY = getHeight()-1;
             }
+
+            if (mActiveTool != ArrowTool && mActiveTool != LinkTool)
+                return;
             
             if (dragComponent == null && draggingSelectorBox) {
                 //-------------------------------------------------------
@@ -2365,7 +2404,9 @@ public class MapViewer extends javax.swing.JPanel
                 //System.out.println("dragged " + draggedSelectorBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
                 //System.out.println("map " + hitRect);
-                java.util.List list = computeSelection(hitRect, e.isControlDown());
+                java.util.List list = computeSelection(hitRect,
+                                                       e.isControlDown()
+                                                       || mActiveTool == LinkTool);
                 if (e.isShiftDown())
                     selectionToggle(list.iterator());
                 else
@@ -2415,6 +2456,9 @@ public class MapViewer extends javax.swing.JPanel
         public void mouseClicked(MouseEvent e)
         {
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+
+            if (mActiveTool != ArrowTool)
+                return;
 
             if (!hitOnSelectionHandle) {
                 
