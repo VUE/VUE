@@ -708,7 +708,8 @@ public class VueUtil
     public static float[] computeYCrossings(float x_axis, Shape shape, float[] result) {
         // Produces erroneous computation using the Float constants:
         //return computeIntersection(x_axis, Float.NEGATIVE_INFINITY, x_axis, Float.POSITIVE_INFINITY, shape, result, 2);
-        return computeIntersection(x_axis, MinCoord, x_axis, MaxCoord, shape, result, 2);
+        return computeIntersection(x_axis, Integer.MIN_VALUE, x_axis, Integer.MAX_VALUE, shape, result, 2);
+        //return computeIntersection(x_axis, MinCoord, x_axis, MaxCoord, shape, result, 2);
     }
     
     /** compute 2 y values for crossings of at x_axis, and store result in the given Line2D */
@@ -726,7 +727,7 @@ public class VueUtil
      * @param pad - padding: keep line endpoints at least this many units away from shape edge
      *
      * todo: presumes only 2 crossings: will only handle concave polygons
-     * Should relatively easy to extend this to work for non-vertical lines if the need should arise.
+     * Should be relatively easy to extend this to work for non-vertical lines if the need arises.
      */
     public static Line2D clipToYCrossings(Line2D line, Shape shape, float pad)
     {

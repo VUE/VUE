@@ -1931,6 +1931,13 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
         
+        DrawContext dc = new DrawContext(g2, getZoomFactor());
+        
+        dc.setAntiAlias(DEBUG_ANTI_ALIAS);
+        dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
+        dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
+        dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+        
         //-------------------------------------------------------
         // adjust GC for pan & zoom
         //-------------------------------------------------------
@@ -1944,6 +1951,12 @@ public class MapViewer extends javax.swing.JComponent
             g2.setColor(Color.lightGray);
             g2.draw(Xaxis);
             g2.draw(Yaxis);
+            if (mZoomFactor >= 6.0) {
+                dc.setAbsoluteStroke(1);
+                g2.setColor(Color.black);
+                g2.draw(Xaxis);
+                g2.draw(Yaxis);
+            }
         }
         
         if (DEBUG.SCROLL && mUserOrigin != null) {
@@ -1959,14 +1972,6 @@ public class MapViewer extends javax.swing.JComponent
         // LWNode's & LWGroup's are responsible for painting
         // their children (as any instance of LWContainer).
         //-------------------------------------------------------
-        
-        DrawContext dc = new DrawContext(g2, getZoomFactor());
-        
-        dc.setAntiAlias(DEBUG_ANTI_ALIAS);
-        dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
-        dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
-        
-        dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
         
         // anti-alias text
         //if (!DEBUG_ANTIALIAS_OFF) g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -2093,7 +2098,8 @@ public class MapViewer extends javax.swing.JComponent
             g2.drawLine(-99999, center.y, 99999, center.y);
             g2.drawLine(center.x, -99999, center.x, 99999);
         }
-        
+
+        /*
         if (DEBUG_SHOW_ORIGIN && mZoomFactor >= 6.0) {
             //g2.setComposite(java.awt.AlphaComposite.Xor);
             g2.translate(-getOriginX(), -getOriginY());
@@ -2102,6 +2108,7 @@ public class MapViewer extends javax.swing.JComponent
             g2.draw(Xaxis);
             g2.draw(Yaxis);
         }
+        */
         
         //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
         dc.setAntiAlias(true);
