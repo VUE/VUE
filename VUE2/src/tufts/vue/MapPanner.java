@@ -105,14 +105,20 @@ public class MapPanner extends javax.swing.JPanel
         //g2.setColor(Color.white);
         g2.setColor(mapViewer.getBackground());
         g2.fill(mapViewerRect);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        mapViewer.getMap().draw(g2);
+
+        DrawContext dc = new DrawContext(g2, zoomFactor);
+        //dc.setAntiAlias(true);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, mapViewer.AA_ON);
+        dc.setPrioritizeSpeed(true);
+        dc.setFractionalFontMetrics(false);
+        mapViewer.getMap().draw(dc);
+        
         g2.setColor(Color.red);
         // todo: de-scale us before drawing -- actually -- do on a glass pane as we're
         // very expensively rederawing the whole map here...
         if (!VueUtil.isMacPlatform()) {
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            dc.setAntiAlias(false);
+            //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
             g2.setStroke(STROKE_ONE);
         } else {
             g2.setStroke(new BasicStroke((float)(1/this.zoomFactor)));
