@@ -32,7 +32,7 @@ public class MapViewer extends javax.swing.JPanel
 {
     private Rectangle2D.Float RepaintRegion = null;
     private Rectangle paintedSelectionBounds = null;
-    
+
     public interface Listener extends java.util.EventListener
     {
         public void mapViewerEventRaised(MapViewerEvent e);
@@ -75,6 +75,21 @@ public class MapViewer extends javax.swing.JPanel
         this(map);
         this.isRightSide = true;
     }
+
+    private InputHandler inputHandler = new InputHandler();
+    public void addNotify()
+    {
+        super.addNotify();
+        if (getParent() instanceof JViewport) {
+            getParent().addMouseListener(inputHandler);
+            getParent().addMouseMotionListener(inputHandler);
+        } else {
+            this.addMouseListener(inputHandler);
+            this.addMouseMotionListener(inputHandler);
+        }
+        requestFocus();
+    }
+
     public MapViewer(LWMap map)
     {
         super(false); // turn off double buffering -- frame seems handle it?
@@ -82,10 +97,9 @@ public class MapViewer extends javax.swing.JPanel
         creationLink.setDisplayed(false);
         //setLayout(new NoLayout());
         setLayout(null);
-        InputHandler ih = new InputHandler();
-        addMouseListener(ih);
-        addMouseMotionListener(ih);
-        addKeyListener(ih);
+        //addMouseListener(ih);
+        //addMouseMotionListener(ih);
+        addKeyListener(inputHandler);
         addFocusListener(this);
         
         MapDropTarget mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
@@ -118,7 +132,10 @@ public class MapViewer extends javax.swing.JPanel
 
         */
 
-        //setPreferredSize(new Dimension(400,300));
+        //setPreferredSize(new Dimension(cw,ch));
+        //setSize(new Dimension(cw,ch));
+        
+        setPreferredSize(mapToScreenDim(map.getBounds()));
         
         //-------------------------------------------------------
         // set the background color here on the panel instead
@@ -239,6 +256,12 @@ public class MapViewer extends javax.swing.JPanel
         //screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
         return screenRect;
     }
+    Dimension mapToScreenDim(Rectangle2D mapRect)
+    {
+        Rectangle screenRect = mapToScreenRect(mapRect);
+        return new Dimension(screenRect.width, screenRect.height);
+    }
+    
     Rectangle2D.Float mapToScreenRect2D(Rectangle2D mapRect)
     {
         if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
@@ -272,6 +295,7 @@ public class MapViewer extends javax.swing.JPanel
         lastMousePressY = y;
         setLastMousePoint(x,y);
     }
+    /** last place mouse pressed */
     Point getLastMousePressPoint()
     {
         return new Point(lastMousePressX, lastMousePressY);
@@ -281,6 +305,7 @@ public class MapViewer extends javax.swing.JPanel
         lastMouseX = x;
         lastMouseY = y;
     }
+    /** last place mouse was either pressed or released */
     Point getLastMousePoint()
     {
         return new Point(lastMouseX, lastMouseY);
@@ -300,11 +325,13 @@ public class MapViewer extends javax.swing.JPanel
         return this.zoomFactor;
     }
     
+    private boolean skipPaint = false;
     public void reshape(int x, int y, int w, int h)
     {
+        if (DEBUG_PAINT) System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h);
         super.reshape(x,y, w,h);
         repaint(250);
-        requestFocus();
+        //requestFocus();
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
         // may be causing problems on mac --
         // some components in tabbed is getting a reshape call
@@ -620,7 +647,7 @@ public class MapViewer extends javax.swing.JPanel
     {
         long start = 0;
         if (DEBUG_PAINT) {
-            System.out.print("paint " + paints + "..."); System.out.flush();
+            System.out.print("paint " + paints + " " + g.getClipBounds()+" "); System.out.flush();
             start = System.currentTimeMillis();
         }
 
@@ -631,14 +658,17 @@ public class MapViewer extends javax.swing.JPanel
             System.err.println("*** Exception painting in: " + this);
             System.err.println("***          VueSelection: " + VueSelection);
         }
-
+        if (paints == 0 && getParent() instanceof JViewport) {
+            setPreferredSize(mapToScreenDim(getMap().getBounds()));
+            validate();
+        }
+        paints++;
         if (DEBUG_PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
             System.out.println("paint " + paints + " " + this + ": "
                                + delta
                                + "ms (" + fps + " fps)");
-            paints++;
         }
         RepaintRegion = null;
     }
@@ -656,8 +686,8 @@ public class MapViewer extends javax.swing.JPanel
         Rectangle cb = g.getClipBounds();
         // paint the background
         g.setColor(getBackground());
-        if (DEBUG_PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
-            System.out.println(this + " paintComponent: clipBounds " + cb);
+        //if (DEBUG_PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
+        //System.out.println(this + " paintComponent: clipBounds " + cb);
         g.fillRect(cb.x, cb.y, cb.width, cb.height);
         //g.fillRect(getBounds());
         
@@ -723,6 +753,7 @@ public class MapViewer extends javax.swing.JPanel
         // Draw the map
         //-------------------------------------------------------
 
+        if (!skipPaint)
         this.map.draw(g2);
 
         //-------------------------------------------------------
@@ -1151,8 +1182,11 @@ public class MapViewer extends javax.swing.JPanel
             mapPopup.add(Actions.NewNode);
             mapPopup.add(Actions.NewText);
             mapPopup.addSeparator();
+            mapPopup.add(Actions.SelectAll);
+            //mapPopup.add(Actions.DeselectAll);
+            //would be pointless to add deselect at moment as this menu only pops when no selection
             //mapPopup.add("Visible");
-            mapPopup.setBackground(Color.gray);
+            //mapPopup.setBackground(Color.gray);
         }
         return mapPopup;
     }
@@ -1257,7 +1291,7 @@ public class MapViewer extends javax.swing.JPanel
         
         public void keyPressed(KeyEvent e)
         {
-            if (DEBUG_KEYS) System.err.println("[" + e.paramString() + "]");
+            if (DEBUG_KEYS) System.out.println("[" + e.paramString() + "]");
 
             // FYI, Java 1.4.1 sends repeat key press events for
             // non-modal keys that are being held down (e.g. not for
@@ -1299,7 +1333,16 @@ public class MapViewer extends javax.swing.JPanel
                 }
                 //removeLabelEdit();
             }
-            
+
+            /*if (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN) {
+                // toggle cause mac auto-repeats space-bar screwing everything up
+                // todo: is this case only on my G4 kbd or does it happen on
+                // USB kbd w/external screen also?
+                toolKeyDown = 0;
+                toolKeyEvent = null;
+                setCursor(CURSOR_DEFAULT);
+                return;
+                }*/
 
             if (toolKeyDown == 0) {
                 switch (key) {
@@ -1368,9 +1411,11 @@ public class MapViewer extends javax.swing.JPanel
         public void keyReleased(KeyEvent e)
         {
             if (toolKeyDown == e.getKeyCode()) {
-                toolKeyDown = 0;
-                toolKeyEvent = null;
-                setCursor(CURSOR_DEFAULT);
+                /*if (! (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN)) {*/
+                    toolKeyDown = 0;
+                    toolKeyEvent = null;
+                    setCursor(CURSOR_DEFAULT);
+                    //}
             }
         }
 
@@ -1381,20 +1426,27 @@ public class MapViewer extends javax.swing.JPanel
 
 
         private LWComponent hitComponent = null;
-        private Point2D originBeforeDrag;
+        private Point2D originAtDragStart;
+        private Point viewportAtDragStart;
         public void mousePressed(MouseEvent e)
         {
             if (DEBUG_MOUSE)
-                System.err.println(MapViewer.this + "[" + e.paramString()
+                System.out.println(MapViewer.this + "[" + e.paramString()
                                    + (e.isPopupTrigger() ? " POP":"") + "]");
             
             grabVueApplicationFocus();
             requestFocus();
             
             dragStart.setLocation(e.getX(), e.getY());
+            if (DEBUG_MOUSE)
+                System.out.println("dragStart set to " + dragStart);
             
             if (toolKeyDown == KEY_TOOL_PAN) {
-                originBeforeDrag = getOriginLocation();
+                originAtDragStart = getOriginLocation();
+                if (getParent() instanceof JViewport)
+                    viewportAtDragStart = ((JViewport)getParent()).getViewPosition();
+                else
+                    viewportAtDragStart = null;
                 return;
             } else if (toolKeyDown == KEY_TOOL_ZOOM) {
                 zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
@@ -1525,8 +1577,81 @@ public class MapViewer extends javax.swing.JPanel
 
         }
         
+        private Point lastDrag = new Point();
+        private void dragRepositionViewport(Point mouse)
+        {
+            if (DEBUG_MOUSE) {
+                System.out.println("lastDragLoc " + lastDrag);
+                System.out.println("lastMouseLoc " + mouse);
+            }
+            //int dx = dragStart.x - screenX;
+            //int dy = dragStart.y - screenY;
+            int dx = lastDrag.x - mouse.x;
+            int dy = lastDrag.y - mouse.y;
+            if (getParent() instanceof JViewport) {
+                JViewport viewport = (JViewport) getParent();
+                Point location = viewport.getViewPosition();
+                if (DEBUG_MOUSE) System.out.println("current " + location);
+                if (DEBUG_MOUSE) System.out.println("ORIGIN  " + viewportAtDragStart + " dx=" + dx + " dy=" + dy);
+                //Point newPosition = new Point(viewportAtDragStart);
+                //if (Math.abs(dx) > Math.abs(dy))
+                //dy = 0;
+                //else
+                //    dx = 0;
+                location.translate(dx, dy);
+                //newPosition.translate(dx, dy);
+                //System.out.println("   new  " + newPosition);
+                if (DEBUG_MOUSE) System.out.println("   new  " + location);
+                viewport.setViewPosition(location);
+                //viewport.setViewPosition(newPosition);
+            } else {
+                setMapOriginOffset(originAtDragStart.getX() + dx,
+                                   originAtDragStart.getY() + dy);
+                repaint();
+            }
+        }
+
+                
+        private void dragResizeSelectorBox(int screenX, int screenY)
+        {
+            // Set repaint-rect to where old selection is
+            Rectangle repaintRect;
+            if (draggedSelectionBox != null)
+                repaintRect = draggedSelectionBox;
+            else
+                repaintRect = new Rectangle();
+            
+            // Set the current selection box
+            int sx = dragStart.x < screenX ? dragStart.x : screenX;
+            int sy = dragStart.y < screenY ? dragStart.y : screenY;
+            draggedSelectionBox = new Rectangle(sx, sy,
+                                                Math.abs(dragStart.x - screenX),
+                                                Math.abs(dragStart.y - screenY));
+
+            if (OPTIMIZED_REPAINT) {
+                // Now add to repaint-rect the new selection
+                repaintRect.add(draggedSelectionBox);
+                //repaintRect.grow(4,4);
+                // todo java bug: antialiased bottom or right edge of a stroke
+                // (a single pixel's worth) is erased by the dragged selection box
+                // when it passes exactly along/thru the edge in a 1-pixel increment.
+                // No amount of growing the region will help because the bug
+                // happens along the edge of whatever the repaint-region is itself,
+                // so all you can do is move around where the bug happens relative
+                // to dragged selection box.
+                repaintRect.width++;
+                repaintRect.height++;
+                repaint(repaintRect);
+            } else {
+                repaint();
+            }
+        }
+
+        
         public void mouseMoved(MouseEvent e)
         {
+            if (DEBUG_MOUSE_MOTION)
+                System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouseX = e.getX();
                 mouseY = e.getY();
@@ -1534,8 +1659,10 @@ public class MapViewer extends javax.swing.JPanel
             }
             // Workaround for known Apple Mac OSX Java 1.4.1 bug:
             // Radar #3164718 "Control-drag generates mouseMoved, not mouseDragged"
-            if (dragComponent != null && VueUtil.isMacPlatform())
+            if (dragComponent != null && VueUtil.isMacPlatform()) {
+                if (DEBUG_MOUSE_MOTION) System.out.println("manually invoking mouseDragged");
                 mouseDragged(e);
+            }
         }
 
         private int drags=0;
@@ -1544,9 +1671,11 @@ public class MapViewer extends javax.swing.JPanel
             inDrag = true;
             //System.out.println("drag " + drags++);
             if (mouseWasDragged == false) {
+                // dragStart
                 // we're just starting this drag
                 if (dragComponent != null)
                     mouseWasDragged = true;
+                lastDrag.setLocation(dragStart);
             }
             
             if (DEBUG_SHOW_MOUSE_LOCATION) {
@@ -1554,7 +1683,7 @@ public class MapViewer extends javax.swing.JPanel
                 mouseY = e.getY();
             }
             
-            if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+            if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
 
             // todo:
             // activeTool.mouseDragged(e)
@@ -1562,60 +1691,32 @@ public class MapViewer extends javax.swing.JPanel
 
             int screenX = e.getX();
             int screenY = e.getY();
+            Point currentMousePosition = e.getPoint();
             
             if (toolKeyDown == KEY_TOOL_PAN) {
                 // drag the entire map
-                if (originBeforeDrag != null) {
-                    int dx = dragStart.x - screenX;
-                    int dy = dragStart.y - screenY;
-                    setMapOriginOffset(originBeforeDrag.getX() + dx,
-                                       originBeforeDrag.getY() + dy);
-                    repaint();
+                if (originAtDragStart != null) {
+                    dragRepositionViewport(currentMousePosition);
+                    lastDrag.setLocation(currentMousePosition);
                     return;
-                }
+                } else
+                    throw new RuntimeException("null originAtDragStart");
             }
             
+            //-------------------------------------------------------
             // Stop component dragging if the mouse leaves our component
             // todo: auto-pan as we get close to edge
+            //-------------------------------------------------------
+
             if (!e.getComponent().contains(screenX, screenY))
                 return;
-
             
-            //-------------------------------------------------------
-            // Update the dragged selection box
-            //-------------------------------------------------------
             if (dragComponent == null && draggingSelectionBox) {
-                // Set repaint-rect to where old selection is
-                Rectangle repaintRect;
-                if (draggedSelectionBox != null)
-                    repaintRect = draggedSelectionBox;
-                else
-                    repaintRect = new Rectangle();
-                
-                // Set the current selection box
-                int sx = dragStart.x < screenX ? dragStart.x : screenX;
-                int sy = dragStart.y < screenY ? dragStart.y : screenY;
-                draggedSelectionBox = new Rectangle(sx, sy,
-                                             Math.abs(dragStart.x - screenX),
-                                             Math.abs(dragStart.y - screenY));
-
-                if (OPTIMIZED_REPAINT) {
-                    // Now add to repaint-rect the new selection
-                    repaintRect.add(draggedSelectionBox);
-                    //repaintRect.grow(4,4);
-                    // todo java bug: antialiased bottom or right edge of a stroke
-                    // (a single pixel's worth) is erased by the dragged selection box
-                    // when it passes exactly along/thru the edge in a 1-pixel increment.
-                    // No amount of growing the region will help because the bug
-                    // happens along the edge of whatever the repaint-region is itself,
-                    // so all you can do is move around where the bug happens relative
-                    // to dragged selection box.
-                    repaintRect.width++;
-                    repaintRect.height++;
-                    repaint(repaintRect);
-                } else {
-                    repaint();
-                }
+                //-------------------------------------------------------
+                // We're doing a drag select-in-region.
+                // Update the dragged selection box.
+                //-------------------------------------------------------
+                dragResizeSelectorBox(screenX, screenY);
                 return;
             } else
                 draggedSelectionBox = null;
@@ -1791,7 +1892,7 @@ public class MapViewer extends javax.swing.JPanel
         public void mouseReleased(MouseEvent e)
         {
             inDrag = false;
-            if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + "]");
+            if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + "]");
 
             setLastMousePoint(e.getX(), e.getY());
             
@@ -1932,7 +2033,12 @@ public class MapViewer extends javax.swing.JPanel
                 // SelectionGroup if we keep using it this way.
                 
             }
+
+            if (getParent() instanceof JViewport)
+                setPreferredSize(mapToScreenDim(getMap().getBounds()));
+
         }
+            
 
         private final boolean noModifierKeysDown(MouseEvent e)
         {
@@ -1955,7 +2061,7 @@ public class MapViewer extends javax.swing.JPanel
         
         public void mouseClicked(MouseEvent e)
         {
-            if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+            if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
             if (isSingleClickEvent(e)) {
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
@@ -1969,7 +2075,7 @@ public class MapViewer extends javax.swing.JPanel
                         // todo: some kind of animation or something to show
                         // we're "opening" this node -- maybe an indication
                         // flash -- we'll need another thread for that.
-                        System.err.println("opening resource for: " + hitComponent);
+                        System.out.println("opening resource for: " + hitComponent);
                         resource.displayContent();
                     } else
                         activateLabelEdit(hitComponent);
@@ -2036,22 +2142,6 @@ public class MapViewer extends javax.swing.JPanel
             return true;
         }
         
-    }
-
-    public void addNotify()
-    {
-        super.addNotify();
-        requestFocus();
-        /*
-        LWContainer c = new LWContainer();
-        add(c.getAWTComponent());
-        c.setLocation(100,100);
-        addComponent(c);
-        */
-    }
-
-    protected String paramString() {
-	return getMap() + super.paramString();
     }
 
     private boolean isAnythingCurrentlyVisible()
@@ -2257,6 +2347,10 @@ public class MapViewer extends javax.swing.JPanel
     }   
 // this class will move out of here
 
+    protected String paramString() {
+	return getMap() + super.paramString();
+    }
+
     public String toString()
     {
         return "MapViewer[" + (isRightSide ? "right" : "left") + "] "
@@ -2274,6 +2368,7 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_KEYS = false;
     private boolean DEBUG_MOUSE = false;
+    private boolean DEBUG_MOUSE_MOTION = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
     private boolean DEBUG_FOCUS = false;
     private boolean OPTIMIZED_REPAINT = false;
