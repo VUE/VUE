@@ -106,6 +106,7 @@ public class MapViewer extends javax.swing.JComponent
         return inScrollPane;
     }
 
+    /*
     class Viewport extends JViewport {
         public Viewport() {
             setView(MapViewer.this);
@@ -118,6 +119,7 @@ public class MapViewer extends javax.swing.JComponent
             fireStateChanged();
         }
     }
+    */
     
     private JComponent mIndicator = new JPanel();
     private InputHandler inputHandler = new InputHandler();
@@ -4548,52 +4550,6 @@ public class MapViewer extends javax.swing.JComponent
         + "\'" + (map==null?"nil":map.getLabel()) + "\'";
         //+ Integer.toHexString(hashCode());
     }
-    
-    /**By Daisuke */
-    /*
-    private boolean outlineMode = false;
-    private OutlineViewTree tree;
-    private JScrollPane scrollPane;
-     
-    public void setMode(boolean flag)
-    {
-        //deals with switching the display mode
-        //if it tries to switch to do the same mode, it does nothing
-     
-        if (outlineMode == false && flag == true)
-        {
-           outlineMode = flag;
-     
-           setBackground(Color.white);
-           scrollPane.setVisible(true);
-     
-           //setLayout(new BorderLayout());
-           //add(scrollPane, BorderLayout.CENTER);
-           //invalidate();
-           //validate();
-           revalidate();
-        }
-     
-        else if (outlineMode == true && flag == false)
-        {
-           outlineMode = flag;
-     
-           setBackground(null);
-           scrollPane.setVisible(false);
-     
-           //remove(scrollPane);
-           //setLayout(null);
-           //invalidate();
-           //validate();
-           revalidate();
-        }
-     
-        System.out.println("about to issue a repaint()");
-        repaint();
-    }
-     */
-    /**End Daisuke*/
-    
     
     //-------------------------------------------------------
     // debugging stuff

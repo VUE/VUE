@@ -1,15 +1,5 @@
 package tufts.vue;
 
-/**
- * LWMap.java
- *
- * This is the core VUE model class -- used for saving
- * and restoring maps to XML.
- *
- * @author Scott Fraize
- * @version 3/10/03
- */
-
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,8 +12,34 @@ import java.io.File;
 import tufts.vue.beans.*;
 import tufts.vue.filter.*;
 
+/**
+ * LWMap
+ *
+ * This is the top-level VUE model class.
+ *
+ * LWMap is a specialized LWContainer that acts as the top-level node
+ * for a VUE application map.  It has special handling code for XML
+ * saves/restores, keeping a reference to an UndoManager & tracking if
+ * map has been user modified, maintaing user values for global zoom &
+ * pan offset, keeping a list of LWPathways and telling them to draw
+ * when needed, generating uniqe ID's for LWComponents, maintaining map-wide
+ * meta-data definitions, etc.
+ *
+ * As LWCEvent's issued by changes to LWComponents are bubbled up
+ * through their parents, listenting to the map for LWCevents will
+ * tell you about every change that happens anywhere in the map.
+ * For instance: the UndoManager is just another listener on the map.
+ *
+ * As it extends LWComponent/LWContainer, in the future it is
+ * ready to be embedded / rendered as a child of another LWContainer/LWMap.
+ *
+ * @author Scott Fraize
+ * @version March 2004
+ */
+
 public class LWMap extends LWContainer
-implements ConceptMap {
+    implements ConceptMap
+{
     // these for persistance use only
     private float userOriginX;
     private float userOriginY;
