@@ -48,7 +48,7 @@ public class LWMap extends LWContainer
         manager = new LWPathwayManager(this);
     }
     
-    public LWPathwayManager getPathwayManager(){       
+    public LWPathwayManager getPathwayManager(){ 
         return manager;
     }
     
@@ -159,7 +159,6 @@ public class LWMap extends LWContainer
     
     LWPathway addPathway(LWPathway c)
     {
-        //addChild(c);
         manager.addPathway(c);
         return c;
     }

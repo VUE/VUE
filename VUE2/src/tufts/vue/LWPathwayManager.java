@@ -44,13 +44,15 @@ public class LWPathwayManager {
         return (LWPathway)pathways.get(index);
     }
 
-    public void setPathways(ArrayList pathways)
+    public void setPathwayList(ArrayList pathways)
     {
+        System.out.println("setting the pathways in the manager");
         this.pathways = pathways;
     }
      
-    public ArrayList getPathways()
+    public ArrayList getPathwayList()
     {
+        System.out.println("getting the pathways in the manager");
         return pathways;
     }
     
@@ -60,6 +62,7 @@ public class LWPathwayManager {
     
     public void setCurrentPathway(LWPathway pathway) {
         current = pathway;
+        
         VUE.getPathwayInspector().setPathway(pathway);
         VUE.getActiveViewer().repaint();
     }
@@ -82,6 +85,7 @@ public class LWPathwayManager {
     
     public void setCurrentIndex(int index)
     {
+        System.out.println("Current Pathway is now " + index);
         try
         {
             current = (LWPathway)pathways.get(index);

@@ -137,10 +137,10 @@
 		<field name="userOrigin">
 			<bind-xml name="userOrigin" node="element"/>
 		</field>
-	
 		<field name="PathwayManager" type="tufts.vue.LWPathwayManager">
 			<bind-xml name="PathwayManager" node="element" />
 		</field>
+	
 		
         <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
             <bind-xml matches="*"/> 
@@ -149,8 +149,9 @@
 	</class>
 
 	<class name="tufts.vue.LWPathwayManager">
-		<field name="PathwayList" set-method="setPathways" get-method="getPathways" type="tufts.vue.LWPathway" collection="arraylist">
-			<bind-xml name="Pathway" node="element" />
+		<map-to xml="PathwayManager"/>
+		<field name="PathwayList" type="tufts.vue.LWPathway" collection="collection">
+			<bind-xml name="Pathway" />
 		</field>
 		<field name="currentIndex" type="integer">
 			<bind-xml name="CurrentPathway" node="attribute" />
@@ -164,8 +165,8 @@
 		<field name="currentIndex" type="integer">
 			<bind-xml name="CurrentIndex" node="attribute" />
 		</field>
-		<field name="ElementArrayList" type="integer" collection="arraylist">
-			<bind-xml name="Element" node="element" />
+		<field name="ElementArrayList" type="tufts.vue.LWComponent" collection="collection" >
+			<bind-xml name="Element" />
 		</field>
 	</class>
 	
