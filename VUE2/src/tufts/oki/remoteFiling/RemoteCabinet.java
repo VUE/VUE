@@ -438,4 +438,7 @@ public class RemoteCabinet extends RemoteCabinetEntry implements osid.filing.Cab
         //  Change the name of the Cabinet.
         updateDisplayName (newName);
     }
+     public String getUrl() {
+        return "ftp://" + RemoteClient.getServerName() + this.getFullName();
+    }
 }
