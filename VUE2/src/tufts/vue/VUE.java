@@ -257,9 +257,10 @@ public class VUE
         toolPanel = new JPanel();
         //JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        DRBrowser drBrowser = new DRBrowser();
+        //DRBrowser drBrowser = new DRBrowser();
+        DRBrowser drBrowser = null;
         if (args.length < 1 || !args[0].equals("-nodr"))
-            toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+            toolPanel.add(drBrowser = new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
 
         JSplitPane splitPane = new JSplitPane();
@@ -293,7 +294,8 @@ public class VUE
         inspectorTool.addTool(new LWCInspector());
         
         ToolWindow drBrowserTool  = new ToolWindow("DR Browser", frame);
-        drBrowserTool.addTool(drBrowser);
+        if (drBrowser != null)
+            drBrowserTool.addTool(drBrowser);
         
         // The real tool palette window withtools and contextual tools
         ToolWindow toolbarWindow = new ToolWindow( VueResources.getString("tbWindowName"), frame);
