@@ -45,7 +45,9 @@ ActionListener {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(new BorderLayout());
         metadataPane.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
-        metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
+        propertiesEditor = new PropertiesEditor(false);
+        metadataPane.add(propertiesEditor,BorderLayout.NORTH);
+        validate();
         
     }
     
@@ -55,7 +57,7 @@ ActionListener {
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.EAST;
         int num = labelTextPairs.length;
-     
+        
         for (int i = 0; i < num; i += 2) {
             c.insets = new Insets(0, 0, 1, 0);
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
@@ -102,12 +104,12 @@ ActionListener {
             }
         }
         /**
-        JLabel field  = new JLabel("Metadata");
-        c.gridwidth = GridBagConstraints.REMAINDER;     //end row
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.anchor = GridBagConstraints.WEST;
-        gridbag.setConstraints(field, c);
-        container.add(field);
+         * JLabel field  = new JLabel("Metadata");
+         * c.gridwidth = GridBagConstraints.REMAINDER;     //end row
+         * c.fill = GridBagConstraints.HORIZONTAL;
+         * c.anchor = GridBagConstraints.WEST;
+         * gridbag.setConstraints(field, c);
+         * container.add(field);
          */
     }
     
@@ -176,28 +178,42 @@ ActionListener {
         loadText(labelField, c.getLabel());
         
         //loading the metadata if it exists
-        if(propertiesEditor == null) {
-            if(c.getResource() != null && c.getResource().getProperties() != null) {
-                if(c.getResource().getType() == Resource.ASSET_FEDORA)
-                    propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), false);
-                else
-                    propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
-                resourceMetadataPanel = propertiesEditor;
-                metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
-                validate();
-            }
-        } else {
-            if(c.getResource() != null && c.getResource().getProperties() != null) {
+        if(c.getResource() != null){
+            if(c.getResource().getProperties() != null){
                 if(c.getResource().getType() == Resource.ASSET_FEDORA)
                     propertiesEditor.setProperties(c.getResource().getProperties(), false);
                 else
                     propertiesEditor.setProperties(c.getResource().getProperties(), true);
-            } else {
-                propertiesEditor.clear();
-               // metadataPane.remove(propertiesEditor);
-               // validate();
             }
+            
+        } else{
+            propertiesEditor.clear();
         }
+        
+        /**
+         * if(propertiesEditor == null) {
+         * if(c.getResource() != null && c.getResource().getProperties() != null) {
+         * if(c.getResource().getType() == Resource.ASSET_FEDORA)
+         * propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), false);
+         * else
+         * propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
+         * resourceMetadataPanel = propertiesEditor;
+         * metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
+         * validate();
+         * }
+         * } else {
+         * if(c.getResource() != null && c.getResource().getProperties() != null) {
+         * if(c.getResource().getType() == Resource.ASSET_FEDORA)
+         * propertiesEditor.setProperties(c.getResource().getProperties(), false);
+         * else
+         * propertiesEditor.setProperties(c.getResource().getProperties(), true);
+         * } else {
+         * propertiesEditor.clear();
+         * // metadataPane.remove(propertiesEditor);
+         * // validate();
+         * }
+         * }
+         **/
     }
     
     public void actionPerformed(ActionEvent e) {
