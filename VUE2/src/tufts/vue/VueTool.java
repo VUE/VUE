@@ -289,15 +289,20 @@ public abstract class VueTool extends AbstractAction
     // rename supportsClickSelection?
     public boolean supportsSelection() { return false; }
     //public boolean supportsClick() { return false; }
+
+    /** does tool make use of a dragged box for selecting objects? */
     public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
+    /** does tool make use of the resize controls? */
+    public boolean supportsResizeControls() { return true; }
     /** does tool make use of right click -- meaning the
      * viewer shouldn't pop a context menu on right-clicks */
     public boolean usesRightClick() { return false; }
 
-    public final boolean supportsXORSelectorDrawing()
-    // temporarily disabled feature
-    {
-        return false;
+    /** does the tool draw it's own decorations, reqiring a repaint when it's selected/deselected? */
+    public boolean hasDecorations() { return false; }
+
+    public final boolean supportsXORSelectorDrawing() {
+        return true;
     }
 
     //public abstract void handleSelection( );
