@@ -110,6 +110,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         maxReturns = new JComboBox(maxReturnItems);
         maxReturns.setEditable(true);
+        maxReturns.setToolTipText("Maximum Number of Results");
+        
         
         // Jlabel and
         returnLabelAdvancedSearch = new JLabel("Maximum number of returns?");
@@ -117,7 +119,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         maxReturnsAdvancedSearch = new JComboBox(maxReturnItems);
         maxReturnsAdvancedSearch.setEditable(true);
-        
+        maxReturnsAdvancedSearch.setToolTipText("Maximum Number of Results");
         searchCriteria  = new SearchCriteria();
         searchType = new SearchType("Search");
         advancedSearchType = new SearchType("Advanced Search");
@@ -137,7 +139,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         setAdvancedSearchPanel();
         tabbedPane.addTab("Search" , DRSearch);
         tabbedPane.addTab("Advanced Search",DRAdvancedSearch);
-        tabbedPane.addTab("Search Results",DRSearchResults);
+        tabbedPane.addTab("Results",DRSearchResults);
         tabbedPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 /**
@@ -172,9 +174,9 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         
         //adding the label Keywords
-        c.gridx = 0;
-        c.gridy = 1;
-        
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.anchor = GridBagConstraints.EAST;
+        c.weightx = 0;
         c.insets = new Insets(10,2,2, 2);
         JLabel keyLabel = new JLabel("Keywords: ");
         keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
@@ -182,9 +184,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         DRSearchPanel.add(keyLabel);
         
         //adding the serch box
-        c.gridx=1;
-        c.gridy=1;
-        c.gridwidth= 2;
+        
+        c.weightx = 1;
+        c.gridwidth=  GridBagConstraints.REMAINDER;
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(10, 2,2, 2);
         //keywords.setPreferredSize(new Dimension(120,20));
         keywords.addKeyListener(this);
@@ -194,6 +197,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         
         // adding the number of search results tab.
+        /**
         c.gridx=0;
         c.gridy=2;
         c.gridwidth=2;
@@ -201,19 +205,17 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         gridbag.setConstraints(returnLabel, c);
         DRSearchPanel.add(returnLabel);
-        
-        c.gridx=2;
-        c.gridy=2;
-        c.gridwidth=1;
+        **/
+  
+        c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
         // maxReturns.setPreferredSize(new Dimension(40,20));
         gridbag.setConstraints(maxReturns,c);
         DRSearchPanel.add(maxReturns);
         
-        c.gridx=2;
-        c.gridy=3;
         c.insets = new Insets(10, 2,2,2);
         searchButton = new JButton("Search");
-        searchButton.setPreferredSize(new Dimension(40,20));
+        //searchButton.setPreferredSize(new Dimension(40,20));
         searchButton.addActionListener(this);
         gridbag.setConstraints(searchButton,c);
         DRSearchPanel.add(searchButton);
@@ -254,11 +256,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         deleteConditionButton.setToolTipText("Delete Condition");
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));
-        questionLabel.setToolTipText("Add or Delete conditions using +/- buttons. Click on table cell to modify  conditions");
-        
-        
-        
-        advancedSearchButton = new JButton("Advanced Search");
+        questionLabel.setToolTipText("Add or delete search criteria. Click on table cell to modify conditions");
+        advancedSearchButton = new JButton("Search");
         advancedSearchButton.setSize(new Dimension(100,20));
         advancedSearchButton.addActionListener(this);
         // Now that buttons are available, register the
@@ -293,7 +292,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         JPanel returnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
         returnPanel.setBorder(BorderFactory.createEmptyBorder(4,6,6,0));
-        returnPanel.add(returnLabelAdvancedSearch);
+        //returnPanel.add(returnLabelAdvancedSearch);
         returnPanel.add(maxReturnsAdvancedSearch);
         
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
@@ -518,11 +517,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         public String getColumnName(int col) {
             if (col==0) {
-                return "Field";
+                return "Element Name";
             } else if (col==1) {
-                return "Criteria";
+                return "Operator";
             } else {
-                return "Search";
+                return "Value";
             }
         }
         
@@ -655,7 +654,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             } catch (Exception ex) {
                 cond.setProperty("label");
             }
-            cond.setOperator(ComparisonOperator.has);
+            cond.setOperator(ComparisonOperator.eq);
             cond.setValue("");
             m_model.getConditions().add(cond);
             m_model.fireTableDataChanged();
