@@ -307,32 +307,23 @@ implements LWSelection.Listener {
          **/
         public void updatePanel( LWComponent pComponent) {
             // update display based on the LWNode
-   /**
-             if(pComponent instanceof LWContainer)   {
-     
-                  
-                    tree.switchContainer((LWContainer)pComponent);
-                    
-             }else if(pComponent instanceof LWLink) {
-                 tree.removeAll();
-                  
-             }
-      */      
-             
+            
             //if the tree is not intiliazed, hidden, or doesn't contain the given node,
             //then it switches the model of the tree using the given node
-     
+             
              if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pComponent)) {
                 //panelLabel.setText("Node: " + pNode.getLabel());
                if(pComponent instanceof LWContainer)  
                     tree.switchContainer((LWContainer)pComponent);
+               
+               else if (pComponent instanceof LWLink)
+                    tree.switchContainer(null);
              }
             
             //if the node is in the model and the panel is visible and intialized,
             //then it sets the selected path to the one which ends with the given node
-             else 
-                tree.setSelectionPath(pComponent);
-          
+               //else   
+               //tree.setSelectionPath(pComponent);
             }
               
     }
