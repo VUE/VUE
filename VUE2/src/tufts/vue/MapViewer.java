@@ -2982,6 +2982,7 @@ public class MapViewer extends javax.swing.JComponent
                     // have happen if user is toggling the selection.
                     //-------------------------------------------------------
                     selectionClear();
+                    repaint(); // if selection handles not on, we need manual repaint here
                 }
                 isDraggingSelectorBox = true;
             }

@@ -23,7 +23,7 @@ public class PathwayTool extends VueSimpleTool
     public boolean supportsSelection() { return true; }
 
     // todo: need selection, but no drag, and click-to-deselect still working
-    public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return false; }
+    public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
 
     public JPanel getContextualPanel() {
         if (sControlPanel == null)
