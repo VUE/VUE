@@ -85,7 +85,7 @@ public class AddDataSourcePanel extends JPanel {
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
-            JLabel pathLabel = new JLabel("Path :");
+            JLabel pathLabel = new JLabel("Path:");
             dsNameField = new JTextField();
             pathField = new JTextField();
             
@@ -241,9 +241,9 @@ public class AddDataSourcePanel extends JPanel {
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
-            JLabel addressLabel = new JLabel("Address :");
+            JLabel addressLabel = new JLabel("Address:");
             JLabel userLabel = new JLabel("User Name:");
-            JLabel passwordLabel = new JLabel("Password");
+            JLabel passwordLabel = new JLabel("Password:");
             dsNameField = new JTextField();
             addressField = new JTextField();
             userField = new JTextField();
@@ -358,9 +358,9 @@ public class AddDataSourcePanel extends JPanel {
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
-            JLabel addressLabel = new JLabel("Address :");
+            JLabel addressLabel = new JLabel("Address:");
             JLabel userLabel = new JLabel("User Name:");
-            JLabel passwordLabel = new JLabel("Password");
+            JLabel passwordLabel = new JLabel("Password:");
             dsNameField = new JTextField();
             addressField = new JTextField();
             userField = new JTextField();
@@ -473,7 +473,7 @@ public class AddDataSourcePanel extends JPanel {
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
-            JLabel addressLabel = new JLabel("Address :");
+            JLabel addressLabel = new JLabel("Address:");
             dsNameField = new JTextField();
             addressField = new JTextField();
             

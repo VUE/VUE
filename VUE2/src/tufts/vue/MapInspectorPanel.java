@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -67,8 +67,10 @@ implements  VUE.ActiveMapListener {
     PathwayPane mPathPanel = null;
     
     /** filter panel **/
-    FilterPanel mFilterPanel = null;
+    FilterApplyPanel mFilterApplyPanel = null;
     
+    /** Filter Create Panel **/
+    FilterCreatePanel mFilterCreatePanel = null;
     /** Metadata Panel **/
     //MetadataPanel metadataPanel = null; // metadata added to infoPanel
     
@@ -89,12 +91,14 @@ implements  VUE.ActiveMapListener {
         
         mInfoPanel = new InfoPanel();
         mPathPanel = new PathwayPane();
-        mFilterPanel = new FilterPanel();
+        mFilterApplyPanel = new FilterApplyPanel();
+        mFilterCreatePanel = new FilterCreatePanel();
         //metadataPanel = new MetadataPanel();
         
         mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
-        mTabbedPane.addTab( mFilterPanel.getName(), mFilterPanel);
+        mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
+        mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
         // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         
         add( BorderLayout.CENTER, mTabbedPane );
@@ -119,10 +123,11 @@ implements  VUE.ActiveMapListener {
     public void setMap( LWMap pMap) {
         
         // if we have a change in maps...
-        if( pMap != mMap) {
-            mMap = pMap;
-            updatePanels();
-        }
+        //if( pMap != mMap) {
+        //    mMap = pMap;
+        //}
+        mMap = pMap;
+        updatePanels();
     }
     
     
@@ -133,14 +138,14 @@ implements  VUE.ActiveMapListener {
      *
      **/
     public void updatePanels() {
-        
         if( mMap == null) {
             //clear it
         }
         else {
             mInfoPanel.updatePanel( mMap);
             mPathPanel.updatePanel( mMap);
-            
+            mFilterApplyPanel.updatePanel(mMap);
+            mFilterCreatePanel.updatePanel(mMap);
             //   metadataPanel.updatePanel(mMap);
         }
     }
@@ -171,7 +176,7 @@ implements  VUE.ActiveMapListener {
     }
     
     public void activateFilterTab() {
-        mTabbedPane.setSelectedComponent( mFilterPanel);
+        mTabbedPane.setSelectedComponent( mFilterApplyPanel);
     }
     /**
      * public void activateMetadataTab() {
@@ -211,7 +216,7 @@ implements  VUE.ActiveMapListener {
         //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
-       public InfoPanel() {
+        public InfoPanel() {
             JPanel innerPanel = new JPanel();
             BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
             innerPanel.setLayout(boxLayout);
@@ -440,7 +445,356 @@ implements  VUE.ActiveMapListener {
         
     }
     
+    public class FilterApplyPanel extends JPanel implements ActionListener {
+        
+        /** the scroll pane **/
+        JScrollPane mFilterScrollPane = null;
+        
+        
+        /** the main filter panel **/
+        JPanel mMainFilterPanel = null;
+        
+        /** the buttons **/
+        JPanel mLowerPanel = null;
+        
+        JPanel mMoreFewerPanel = null;
+        
+        /**  the top part panel **/
+        JPanel mUpperPanel = null;
+        
+        /** the vertical box container **/
+        Box mFilterBox  = null;
+        
+        /** the filter button **/
+        JToggleButton mFilterButton = null;
+        
+        /** the stop filter button **/
+        JButton mClearFilterButton = null;
+        
+        /** the more button **/
+        JButton mMoreButton = null;
+        
+        /** the fewer button **/
+        JButton mFewerButton = null;
+        
+        /** Radio Buttons **/
+        JRadioButton mShowButton = null;
+        JRadioButton mSelectButton = null;
+        JRadioButton mHideButton = null;
+        ButtonGroup modeSelectionGroup = null;
+        
+        
+        /** mode combo **/
+        JComboBox mModeCombo = null;
+        
+        /** action combo Hide/Show/Select **/
+        JComboBox mActionCombo = null;
+        
+        
+        LWCFilter mFilter = null;
+        Vector mStatementEditors = new Vector();
+        
+        FilterEditor filterEditor;
+        
+        
+        ////////////
+        // Constructors
+        ////////////////
+        
+        /**
+         * FilterPanel Constructor
+         **/
+        public FilterApplyPanel() {
+            ButtonGroup criteriaSelectionGroup = new ButtonGroup();
+            
+            setLayout( new BorderLayout() );
+            setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
+            
+            mMainFilterPanel = new JPanel();
+            mMainFilterPanel.setLayout( new BorderLayout() );
+            mLowerPanel = new JPanel();
+            mLowerPanel.setLayout( new BorderLayout() );
+            mUpperPanel = new JPanel();
+            mUpperPanel.setLayout( new BorderLayout() );
+            
+            mActionCombo = new JComboBox();
+            mActionCombo.addItem(LWCFilter.ACTION_SHOW);
+            mActionCombo.addItem(LWCFilter.ACTION_SELECT);
+            mActionCombo.addItem(LWCFilter.ACTION_HIDE);
+            
+            
+            // disabled for now. May add a modified version later
+            mShowButton = new JRadioButton(LWCFilter.ACTION_SHOW,true);
+            mSelectButton = new JRadioButton(LWCFilter.ACTION_SELECT);
+            mHideButton = new JRadioButton(LWCFilter.ACTION_HIDE);
+            mShowButton.setFont(tufts.vue.VueConstants.FONT_MEDIUM);
+            mShowButton.addActionListener(this);
+            mSelectButton.addActionListener(this);
+            mHideButton.addActionListener(this);
+            
+            modeSelectionGroup = new ButtonGroup();
+            modeSelectionGroup.add(mShowButton);
+            modeSelectionGroup.add(mHideButton);
+            modeSelectionGroup.add(mSelectButton);
+            
+            mUpperPanel.add( BorderLayout.NORTH, new JLabel("Display Criteria:"));
+            Box topBox = Box.createHorizontalBox();
+            //topBox.add( mActionCombo);
+            topBox.add(mShowButton);
+            topBox.add(mHideButton);
+            topBox.add(mSelectButton);
+            JLabel clause = new JLabel(" / objects on map ");
+            topBox.add( clause);
+            //topBox.add( mAnyAllCombo);
+            
+            mUpperPanel.add( BorderLayout.SOUTH, topBox);
+            
+            mFilterButton = new JToggleButton( "Disable Filter",false);
+            mFilterButton.setText("Apply Filter");
+            mClearFilterButton = new JButton("Disable Filter");
+            mMoreButton = new VueButton("add");
+            mFewerButton = new VueButton("delete");
+            
+            mFewerButton.hide();
+            
+            mFilterButton.addActionListener( this);
+            mClearFilterButton.addActionListener( this);
+            mMoreButton.addActionListener( this);
+            mFewerButton.addActionListener( this);
+            
+            
+            Box moreBox = Box.createHorizontalBox();
+            moreBox.add( mFewerButton);
+            moreBox.add( mMoreButton);
+            mMoreFewerPanel = new JPanel();
+            mMoreFewerPanel.setLayout( new BorderLayout() );
+            mMoreFewerPanel.add( BorderLayout.WEST, moreBox);
+            //mLowerPanel.add( BorderLayout.NORTH, mMoreFewerPanel);
+            
+            
+            JPanel abp = new JPanel();
+            abp.setLayout( new BorderLayout() );
+            Box abBox = Box.createHorizontalBox();
+            //abBox.add( mClearFilterButton);
+            abBox.add( mFilterButton);
+            abp.add( BorderLayout.EAST, abBox);
+            mLowerPanel.add( BorderLayout.SOUTH, abp);
+            mLowerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0,0,0));
+            
+            
+            mFilterBox = Box.createVerticalBox();
+            mFilter = new LWCFilter();
+            
+            mFilterScrollPane = new JScrollPane();
+            
+            filterEditor = new FilterEditor();
+            filterEditor.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+            mFilterBox.add(filterEditor);
+            mFilterBox.add(mUpperPanel);
+            mFilterBox.add(mLowerPanel);
+            mMainFilterPanel.add( BorderLayout.NORTH, mFilterBox);
+            
+            mFilterScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            mFilterScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            mFilterScrollPane.setLocation(new Point(8, 9));
+            mFilterScrollPane.setVisible(true);
+            mFilterScrollPane.getViewport().add( mMainFilterPanel);
+            mFilterScrollPane.setBorder( BorderFactory.createEmptyBorder());
+            //mMainFilterPanel.setBackground(VueResources.getColor("filterPanelColor"));
+            add( BorderLayout.CENTER, mFilterScrollPane );
+        }
+        
+        
+        public String getName() {
+            //return VueResources.getString("mapFilterTabName") ;
+            return "Filter";
+        }
+        
+        
+        /**
+         * updatePanel
+         * Updates teh panel based on the passed in LWMap
+         * @param the LWMap
+         **/
+        public void updatePanel( LWMap pMap) {
+            boolean hasMap = pMap != null;
+            mFilterButton.enable(hasMap);
+            mClearFilterButton.enable( hasMap);
+            mMoreButton.enable( hasMap);
+            mFewerButton.enable( hasMap);
+            
+            if (hasMap) {
+                if(pMap.getLWCFilter() == null) {
+                    mFilter = new LWCFilter(pMap);     
+                    pMap.setLWCFilter(mFilter);
+                }   else 
+                    mFilter = pMap.getLWCFilter();
+            }else{
+                mFilter = new LWCFilter();
+                return;
+            }
+            
+            
+            
+            
+            if(mFilter.getStatements() == null) {
+                mFilter.setStatements(new Vector());
+                
+            }
+            filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
+            //mActionCombo.setSelectedItem(mFilter.getFilterAction());
+            if(mFilter.getFilterAction().toString().equals(LWCFilter.ACTION_HIDE)) {
+                mHideButton.setSelected(true);
+            } else if(mFilter.getFilterAction().toString().equals(LWCFilter.ACTION_SELECT)) {
+                mSelectButton.setSelected(true);
+            } else {
+                mShowButton.setSelected(true);
+            }
+            if(mMap.isFiltered()) 
+                mFilterButton.setSelected(false);
+            else
+                mFilterButton.setSelected(true);
+            mFilterButton.doClick();
+            int val = ANY_MODE;
+            if( !mFilter.getIsAny() )
+                val = ALL_MODE;
+            if( mFilter.isLogicalNot() )
+                val += 2;
+            
+            //buildFilterBox( pMap);
+            /**
+             * mMainFilterPanel.remove(filterEditor);
+             *
+             * filterEditor = new FilterEditor();
+             * mFilter.setStatements(filterEditor.getFilterTableModel());
+             * mMainFilterPanel.add(BorderLayout.CENTER, filterEditor);
+             */
+            mMainFilterPanel.validate();
+        }
+        
+        public LWCFilter makeNewFIlter() {
+            LWCFilter filter = new LWCFilter();
+            LWCFilter.LogicalStatement [] satements = new LWCFilter.LogicalStatement[ mStatementEditors.size() ];
+            return filter;
+        }
+        
+        
+        public LWCFilter makeFilter() {
+            LWCFilter filter = new LWCFilter( mStatementEditors );
+            //LWCFilter filter = new LWCFilter(filterEditor.getFilterTableModel());
+            filter.setStatements(filterEditor.getFilterTableModel().getFilters());
+            filter.setMap( mMap);
+            if(mHideButton.isSelected())
+                filter.setFilterAction(LWCFilter.ACTION_HIDE);
+            else if(mSelectButton.isSelected())
+                filter.setFilterAction(LWCFilter.ACTION_SELECT);
+            else
+                filter.setFilterAction(LWCFilter.ACTION_SHOW);
+            
+            return filter;
+        }
+        
+        public void applyFilter() {
+            mFilter = makeFilter();
+            if( mMap != null) {
+                mMap.setLWCFilter( mFilter);
+                mFilter.applyFilter();
+                mMap.setIsFiltered(true);
+            }
+        }
+        
+        public void clearFilter() {
+            
+            if( mMap == null)
+                return;
+            java.util.List list = mMap.getAllDescendents();
+            
+            Iterator it = list.iterator();
+            while (it.hasNext()) {
+                LWComponent c = (LWComponent) it.next();
+                c.setIsFiltered( false);
+            }
+            mMap.notify( this, "repaint");
+           mMap.setIsFiltered(false);
+        }
+        
+        public void addStatement() {
+            mFewerButton.show();
+            LWCFilter.LogicalStatement ls = mFilter.createLogicalStatement() ;
+            FilterStatementEditor fse = new FilterStatementEditor( mFilter, ls);
+            mStatementEditors.add( fse);
+            
+            mFilterBox.remove( mMoreFewerPanel);
+            mFilterBox.add( fse);
+            mFilterBox.add( mMoreFewerPanel);
+            validate();
+        }
+        
+        public void removeStatement() {
+            FilterStatementEditor fse = (FilterStatementEditor) mStatementEditors.lastElement();
+            mFilterBox.remove( fse);
+            mStatementEditors.remove( fse);
+            if( mStatementEditors.size() <= 1 ) {
+                mFewerButton.hide();
+            }
+            validate();
+        }
+        
+        public void actionPerformed( ActionEvent pEvent) {
+            Object source = pEvent.getSource();
+            filterEditor.stopEditing();
+            if( source == mFilterButton ) {
+                JToggleButton button = (JToggleButton)source;
+                if(button.isSelected()) {
+                    applyFilter();
+                    button.setText("Disable Filter");
+                }else {
+                    clearFilter();
+                    button.setText("Apply Filter");
+                }
+            }
+        }
+        
+    }
     
+    public class FilterCreatePanel extends JPanel implements ActionListener, PropertyChangeListener {
+        MapFilterModelEditor mapFilterModelEditor = null;
+        
+        public FilterCreatePanel() {
+            
+            //  setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+            setLayout(new BorderLayout());
+            setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
+            
+        }
+        
+        public FilterCreatePanel(LWMap map) {
+            
+            this();
+            mapFilterModelEditor = new MapFilterModelEditor(map.getMapFilterModel());
+            add(mapFilterModelEditor,BorderLayout.NORTH);
+            
+        }
+        
+        public void actionPerformed(ActionEvent e) {
+        }
+        
+        public void propertyChange(PropertyChangeEvent evt) {
+        }
+        public String getName() {
+            return "Custom Metadata"; // this should come from VueResources
+        }
+        public void updatePanel( LWMap pMap) {
+            // update the display
+            if(mapFilterModelEditor == null) {
+                mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
+                add(mapFilterModelEditor,BorderLayout.NORTH);
+            }else {
+                mapFilterModelEditor.setMapFilterModel(pMap.getMapFilterModel());
+            }
+            validate();
+        }
+    }
     
 }
 

@@ -18,7 +18,9 @@
 
 /*
  * MapFilterModelEvent.java
- *
+ * MapFilterModelEvent is generated when a Key is added or deleted from MapFilterModel.
+ * It stores the MapFilterModel that generated the event, the Key and integer to 
+ * identify addition or deletion
  * Created on March 2, 2004, 9:40 PM
  */
 
@@ -34,11 +36,13 @@ public class MapFilterModelEvent {
     public static int KEY_DELETED = 1;
     
     Key key = null;
+    MapFilterModel model = null;
     int action;
     /** Creates a new instance of MapFilterModelEvent */
-    public MapFilterModelEvent(Key key,int action) {
+    public MapFilterModelEvent(MapFilterModel model,Key key,int action) {
         this.key = key;
         this.action = action;
+        this.model = model;
     }
 
     public Key getKey() {
@@ -46,5 +50,9 @@ public class MapFilterModelEvent {
     }
     public int getAction(){
         return action;
+    }
+    
+    public MapFilterModel getMapFilterModel() {
+        return this.model;
     }
 }

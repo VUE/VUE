@@ -41,6 +41,8 @@ import java.util.*;
 import java.util.ArrayList;
 
 public class MapFilterModelEditor extends JPanel {
+    public static final String MAP_FILTER_INFO = tufts.vue.VueResources.getString("info.filter.map");
+    
     MapFilterModel mapFilterModel;
     JTable mapFilterTable;
     AddButtonListener addButtonListener = null;
@@ -49,11 +51,12 @@ public class MapFilterModelEditor extends JPanel {
     boolean editable = false;
     JButton addButton=new tufts.vue.gui.VueButton("add");
     JButton deleteButton=new tufts.vue.gui.VueButton("delete");
-    
+    JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
     
     /** Creates a new instance of MapFilterModelEditor */
     public MapFilterModelEditor(MapFilterModel mapFilterModel) {
         this.mapFilterModel = mapFilterModel;
+        questionLabel.setToolTipText(this.MAP_FILTER_INFO);
         setMapFilterModelPanel();
         
     }
@@ -95,7 +98,7 @@ public class MapFilterModelEditor extends JPanel {
         //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
-        
+        bottomPanel.add(questionLabel);
         //innerPanel.add(labelPanel);
         innerPanel.add(bottomPanel);
        

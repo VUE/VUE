@@ -317,7 +317,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         public void actionPerformed(ActionEvent e) {
         }
         public String getName() {
-            return "Node Filters"; // this should come from VueResources
+            return "Custom Metadata"; // this should come from VueResources
         }
         public void updatePanel( LWNode node) {
             // update the display

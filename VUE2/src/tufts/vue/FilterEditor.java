@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -46,9 +46,12 @@ public class FilterEditor extends JPanel  {
     public static final Key keyLabel = new Key("Label", TypeFactory.getStringType());
     public static final Key keyAnywhere = new Key("Anywhere", TypeFactory.getStringType());
     public static final Key keyNotes = new Key("Notes", TypeFactory.getStringType());
+    public static final JLabel triangleLabel = new JLabel(VueResources.getImageIcon("triangleDownIcon"));
+    JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+    public static final String FILTER_INFO = tufts.vue.VueResources.getString("info.filter.node");
     JButton addButton=new tufts.vue.gui.VueButton("add");
     JButton deleteButton=new tufts.vue.gui.VueButton("delete");
-        
+    
     
     FilterTableModel filterTableModel;
     boolean editable = true;
@@ -60,6 +63,7 @@ public class FilterEditor extends JPanel  {
     /** Creates a new instance ofFilterEditor */
     public FilterEditor() {
         filterTableModel = new FilterTableModel();
+        questionLabel.setToolTipText(FILTER_INFO);
         setFilterEditorPanel();
         
     }
@@ -84,6 +88,7 @@ public class FilterEditor extends JPanel  {
     
     
     private void setFilterEditorPanel() {
+        ButtonGroup criteriaSelectionGroup = new ButtonGroup();
         filterTable = new JTable(filterTableModel);
         filterTable.addFocusListener(new FocusListener() {
             public void focusLost(FocusEvent e) {
@@ -106,7 +111,6 @@ public class FilterEditor extends JPanel  {
         JPanel  filterPanel=new JPanel();
         filterPanel.setLayout(new BorderLayout());
         filterPanel.add(filterScrollPane, BorderLayout.CENTER);
-        //filterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
         addButton.addActionListener(new AddButtonListener(filterTableModel));
@@ -119,7 +123,9 @@ public class FilterEditor extends JPanel  {
         filterTable.getSelectionModel().addListSelectionListener(sListener);
         deleteButton.addActionListener(new DeleteButtonListener(filterTable, sListener));
         filterTable.getColumnModel().getColumn(FilterTableModel.KEY_COL).setCellEditor(new KeyCellEditor());
+        filterTable.getColumnModel().getColumn(FilterTableModel.KEY_COL).setCellRenderer(new KeyCellRenderer());
         filterTable.getColumnModel().getColumn(FilterTableModel.OPERATOR_COL).setCellEditor(new OperatorCellEditor());
+        filterTable.getColumnModel().getColumn(FilterTableModel.OPERATOR_COL).setCellRenderer(new OperatorCellRenderer());
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -127,6 +133,7 @@ public class FilterEditor extends JPanel  {
         //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
+        bottomPanel.add(questionLabel);
         innerPanel.add(bottomPanel);
         innerPanel.add(filterPanel);
         
@@ -315,6 +322,21 @@ public class FilterEditor extends JPanel  {
         
     }
     
+    public class OperatorCellRenderer extends DefaultTableCellRenderer {
+        Vector keys = new Vector();;
+        JComboBox editor = null;
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            if(value.toString().equals("")) 
+                value = keyAnywhere.getType().getDefaultOperator().toString();
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+            panel.add(new JLabel(value.toString()));
+            panel.add(triangleLabel);
+            panel.setBackground(Color.WHITE);
+            return panel;
+        }
+    }
+    
+    
     public class KeyCellEditor extends DefaultCellEditor {
         /** setting the defaultCellEditor **/
         Vector keys = new Vector();;
@@ -346,6 +368,21 @@ public class FilterEditor extends JPanel  {
         
         
     }
+    
+    public class KeyCellRenderer extends DefaultTableCellRenderer {
+        Vector keys = new Vector();;
+        JComboBox editor = null;
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            if(value.toString().equals("")) 
+                value = keyAnywhere.toString();
+            JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+            panel.add(new JLabel(value.toString()));
+            panel.add(triangleLabel);
+            panel.setBackground(Color.WHITE);
+            return panel;
+        }
+    }
+    
     /** not used currently.  **/
     
     

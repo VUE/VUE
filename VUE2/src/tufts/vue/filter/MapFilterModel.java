@@ -50,7 +50,7 @@ public class MapFilterModel  extends AbstractTableModel{
     }
     public synchronized void add(Key key) {
         keyVector.add(key);
-        notifyListeners(new MapFilterModelEvent(key,MapFilterModelEvent.KEY_ADDED));
+        notifyListeners(new MapFilterModelEvent(this,key,MapFilterModelEvent.KEY_ADDED));
     }
     public synchronized void remove(Key key) {
         int i = keyVector.indexOf(key);
@@ -59,7 +59,7 @@ public class MapFilterModel  extends AbstractTableModel{
         while(iter.hasNext()) 
             ((tufts.vue.LWComponent)iter.next()).getNodeFilter().removeStatements(key);
         tufts.vue.VUE.getActiveMap().getLWCFilter().removeStatements(key);
-        notifyListeners(new MapFilterModelEvent(key,MapFilterModelEvent.KEY_DELETED));
+        notifyListeners(new MapFilterModelEvent(this,key,MapFilterModelEvent.KEY_DELETED));
     }
     
     public synchronized void remove(int i) {

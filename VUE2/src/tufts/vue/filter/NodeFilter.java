@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -18,7 +18,9 @@
 
 /*
  * NodeFilter.java
- *
+ * Now Called custom Metadata element for map items.  This is the model that 
+ * stores the custom metadata elements. Note this extends AbstractTableModel for 
+ * the convenience of rendering in JTable
  * Created on February 14, 2004, 2:55 PM
  */
 
@@ -34,8 +36,8 @@ import javax.swing.table.*;
 import javax.swing.event.*;
 public class NodeFilter extends AbstractTableModel  {
     public static final int KEY_COL = 0;
-    public static final int OPERATOR_COL = 1;
-    public static final int VALUE_COL = 2;
+    //public static final int OPERATOR_COL = 1;
+    public static final int VALUE_COL = 1;
     public static final int TYPE_COL = 3;
     /** Creates a new instance of NodeFilter */
     private Vector statementVector;
@@ -49,7 +51,7 @@ public class NodeFilter extends AbstractTableModel  {
         this(false);
     }
     
-
+    
     
     public synchronized void removeStatements(Key key) {
         Vector removeStatements = new Vector();
@@ -140,11 +142,10 @@ public class NodeFilter extends AbstractTableModel  {
     
     public String getColumnName(int col) {
         if (col==0) {
-            return "Field";
-        } else if(col == 1) {
-            return "Criteria";
-        } else
-            return "Search";
+            return "Element Name";
+        }
+        else
+            return "Value";
         
         
     }
@@ -154,7 +155,7 @@ public class NodeFilter extends AbstractTableModel  {
     }
     
     public int getColumnCount() {
-        return 3;
+        return 2;
     }
     /**
      * public Class getColumnClass(int c) {
@@ -167,8 +168,6 @@ public class NodeFilter extends AbstractTableModel  {
         Statement statement = (Statement) get(row);
         if (col== KEY_COL)
             return statement.getKey().toString();
-        else if(col == OPERATOR_COL)
-            return statement.getOperator();
         else
             return statement.getValue();
         
@@ -184,18 +183,11 @@ public class NodeFilter extends AbstractTableModel  {
             }
         } else if(col == KEY_COL)  {
             statement.setKey((Key)value);
-            setValueAt(((Key)value).getType().getDefaultOperator(),row,OPERATOR_COL);
+            //setValueAt(((Key)value).getType().getDefaultOperator(),row,OPERATOR_COL);
             setValueAt(((Key)value).getDefaultValue(), row,VALUE_COL);
-            //statement.setOperator(((Key)value).getType().getDefaultOperator());
-            //statement.setValue(((Key)value).getDefaultValue());
-            // fireTableRowsUpdated(row,row);
             
-        }else if(col == OPERATOR_COL)  {
-            if(value instanceof Operator)
-                statement.setOperator((Operator)value);
         }
         
-        // row = -1 adds new condions else replace the existing one.
         
         fireTableCellUpdated(row, col);
         fireTableDataChanged();
@@ -206,7 +198,12 @@ public class NodeFilter extends AbstractTableModel  {
         //Note that the data/cell address is constant,
         //no matter where the cell appears onscreen.
         //  return editable;
-        return true;
+        if(col == this.VALUE_COL) {
+            return true;
+        } else
+            return false;
+        
     }
-    
 }
+
+

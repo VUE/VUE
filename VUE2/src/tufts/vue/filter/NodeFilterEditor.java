@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -18,7 +18,9 @@
 
 /*
  * NodeFilterEditor.java
- *
+ * This is the panel to edit nodeFilters.  Note Filters are called custom metadata Elements.
+ * The panel is the view component for NodeFilter. It renders them and enables addition, deletion
+ *  of  filters to Map Element
  * Created on February 16, 2004, 2:10 PM
  */
 
@@ -41,6 +43,9 @@ import java.util.*;
 import java.util.ArrayList;
 
 public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,tufts.vue.VUE.ActiveMapListener{
+    public static final String ADD_ELEMENT = "Define New Element";
+    public static final String SELECT_ELEMENT = "Select";
+    public static final String NODE_FILTER_INFO = tufts.vue.VueResources.getString("info.filter.node");
     NodeFilter nodeFilter;
     boolean editable = false;
     KeyCellEditor keyEditor;
@@ -51,13 +56,20 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     NodeFilterSelectionListener sListener = null;
     JButton addButton=new tufts.vue.gui.VueButton("add");
     JButton deleteButton=new tufts.vue.gui.VueButton("delete");
-    
+    JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+    JLabel elementLabel = new JLabel("Select Element: ");
+    JComboBox elements;
+    ElementComboBoxModel elementsModel;
+    Vector elementsVector;
+    private tufts.vue.LWMap lWMap = null; // for reference;
     /** Creates a new instance of NodeFilterEditor */
     public NodeFilterEditor( NodeFilter nodeFilter,boolean editable) {
         this.nodeFilter = nodeFilter;
         tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this);
         tufts.vue.VUE.addActiveMapListener(this);
+        questionLabel.setToolTipText(this.NODE_FILTER_INFO);
         setNodeFilterPanel();
+        
     }
     
     public NodeFilterEditor( NodeFilter nodeFilter) {
@@ -65,12 +77,36 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         
     }
     public void mapFilterModelChanged(MapFilterModelEvent e) {
+        elementsModel.setElements(e.getMapFilterModel().getKeyVector());
         nodeFilter.fireTableDataChanged();
     }
     
     private void setNodeFilterPanel() {
+        lWMap= tufts.vue.VUE.getActiveMap();
         addButton.setToolTipText("Add Node Filter");
         deleteButton.setToolTipText("Delete Delete Filter");
+        elementsModel = new ElementComboBoxModel();
+        elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
+        elements = new JComboBox(elementsModel);
+        /// this is not user friendly may want to fix later.
+        /**
+        elements.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                if(e.getStateChange() == ItemEvent.SELECTED) {
+                    if(e.getItem().toString() == ADD_ELEMENT) {
+                    } else if(e.getItem() instanceof Key) {
+                        Statement stmt = new Statement();
+                        stmt.setKey((Key)e.getItem());
+                        nodeFilter.addStatement(stmt);
+                        nodeFilter.fireTableDataChanged();
+                    } else {
+                        System.out.println("Not Supported");
+                    }
+                }
+            }
+        });
+        **/
+        
         nodeFilterTable = new JTable(nodeFilter);
         nodeFilterTable.addFocusListener(new FocusListener() {
             public void focusLost(FocusEvent e) {
@@ -96,42 +132,31 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         JPanel  nodeFilterPanel=new JPanel();
         nodeFilterPanel.setLayout(new BorderLayout());
         nodeFilterPanel.add( nodeFilterScrollPane, BorderLayout.CENTER);
-        // nodeFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
-        
-        // GRID: addConditionButton
         addButtonListener = new AddButtonListener(nodeFilter);
         addButton.addActionListener(addButtonListener);
-        
-        
-        // GRID: deleteConditionButton
-        
         deleteButton.setEnabled(false);
-        // adding the delete functionality */
         sListener= new NodeFilterSelectionListener(deleteButton, -1);
         nodeFilterTable.getSelectionModel().addListSelectionListener(sListener);
         deleteButtonListener = new DeleteButtonListener(nodeFilterTable, sListener);
         deleteButton.addActionListener(deleteButtonListener);
         
-        /** setting editors ***/
-        keyEditor = new KeyCellEditor();
-        nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
-        operatorEditor = new OperatorCellEditor();
-        //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
-        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);
+        //keyEditor = new KeyCellEditor();
+        //nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-        //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        bottomPanel.add(elementLabel);
+        bottomPanel.add(elements);
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
+        bottomPanel.add(questionLabel);
         //innerPanel.add(labelPanel);
         innerPanel.add(bottomPanel);
         innerPanel.add(nodeFilterPanel);
         setLayout(new BorderLayout());
         add(innerPanel,BorderLayout.CENTER);
         
-        //setSize(300, 300);
         validate();
     }
     
@@ -146,13 +171,24 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         deleteButton.addActionListener(deleteButtonListener);
         keyEditor = new KeyCellEditor();
         nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
-        operatorEditor = new OperatorCellEditor();
-        //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
-        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);
     }
     
     public void activeMapChanged(tufts.vue.LWMap lWMap) {
+        this.lWMap = lWMap;
         lWMap.getMapFilterModel().addListener(this);
+        elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
+    }
+    
+    public class ElementComboBoxModel extends DefaultComboBoxModel {
+        public void setElements(Vector v) {
+            removeAllElements();
+            Iterator i = v.iterator();
+            while(i.hasNext()) {
+                addElement(i.next());
+            }
+            addElement(new String(ADD_ELEMENT)) ;
+            fireContentsChanged(this,0,v.size()+1);
+        }
     }
     
     public class AddButtonListener implements ActionListener {
@@ -163,20 +199,18 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         
         public void actionPerformed(ActionEvent e) {
             addStatement();
+            //AllFilterDialog aDilaog  = new AllFilterDialog();
         }
         
         void addStatement() {
-            if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
-                Key key = (Key) tufts.vue.VUE.getActiveMap().getMapFilterModel().get(0);
+            Object obj = elements.getSelectedItem();
+            if(obj.toString().equals(ADD_ELEMENT)) {
+                AddElementDialog addDialog = new AddElementDialog(lWMap.getMapFilterModel());
+            } else if(obj instanceof Key) {
                 Statement stmt = new Statement();
-                stmt.setKey(key);
-                stmt.setOperator(key.getType().getDefaultOperator());
-                stmt.setValue(key.getDefaultValue());
-                model.addStatement(stmt);
-                //tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(model);
-                model.fireTableDataChanged();
-            } else {
-                JOptionPane.showMessageDialog(NodeFilterEditor.this,"To create node filter, please add keys in Map Inspector","No Keys In Map",JOptionPane.YES_OPTION);
+                stmt.setKey((Key)obj);
+                nodeFilter.addStatement(stmt);
+                nodeFilter.fireTableDataChanged();
             }
             
         }
@@ -421,5 +455,75 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 table.setRowSelectionInterval(0,0);
         }
     }
-    
+    public class AddElementDialog extends JDialog {
+        MapFilterModel model;
+        JLabel keyLabel;
+        JLabel typeLabel;
+        JTextField keyEditor;
+        JComboBox typeEditor;
+        Vector allTypes;
+        
+        public AddElementDialog(MapFilterModel model) {
+            super(tufts.vue.VUE.getInstance(),"Add Key",true);
+            this.model = model;
+            allTypes = (Vector)TypeFactory.getAllTypes();
+            keyLabel = new JLabel("Field");
+            typeLabel = new JLabel("Type");
+            keyEditor = new JTextField();
+            typeEditor = new JComboBox(allTypes);
+            keyEditor.setPreferredSize(new Dimension(80,20));
+            JPanel keyPanel=new JPanel();
+            keyPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            keyPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+            keyPanel.add(keyLabel);
+            keyPanel.add(keyEditor);
+            
+            JPanel typePanel=new JPanel();
+            typePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            typePanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+            typePanel.add(typeLabel);
+            typePanel.add(typeEditor);
+            
+            // SOUTH: southPanel(cancelButton, okButton)
+            
+            JButton okButton=new JButton("Ok");
+            okButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    updateModelAndNotify();
+                    setVisible(false);
+                }
+            });
+            
+            JButton cancelButton=new JButton("Cancel");
+            cancelButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    setVisible(false);
+                }
+            });
+            
+            JPanel southPanel=new JPanel();
+            southPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            southPanel.add(okButton);
+            southPanel.add(cancelButton);
+            BoxLayout layout = new BoxLayout(getContentPane(), BoxLayout.Y_AXIS);
+            
+            
+            
+            getContentPane().setLayout(layout);
+            getContentPane().add(keyPanel);
+            getContentPane().add(typePanel);
+            getContentPane().add(southPanel);
+            pack();
+            setLocation(NodeFilterEditor.this.getLocationOnScreen());
+            show();
+            
+        }
+        
+        private void updateModelAndNotify(){
+            Key key = new Key(keyEditor.getText(),(Type)typeEditor.getSelectedItem());
+            model.addKey(key);
+            System.out.println("ADDED KEY of Type = "+((Type)typeEditor.getSelectedItem()).getDisplayName());
+            model.fireTableDataChanged();
+        }
+    }
 }
