@@ -45,7 +45,9 @@ public class LWPathwayList implements LWComponent.Listener
     public LWPathwayList(LWMap map) {
         setMap(map);
         // Always include an untitled example pathway for new maps
-        add(new LWPathway(map, "Untitled Pathway"));
+        LWPathway defaultPath = new LWPathway(map, "Untitled Pathway");
+        defaultPath.setVisible(false);
+        add(defaultPath);
     }
 
     public LWPathway getRevealer() {
