@@ -195,14 +195,16 @@ public class Resource
             ext = "www";
         else if (spec.startsWith("file"))
             ext = "file";
-        else
+        else {
             ext = spec.substring(0, Math.min(spec.length(), 3));
-
-        if (!spec.endsWith("/")) {
-            int i = spec.lastIndexOf('.');
-            if (i > 0 && i < spec.length()-1)
-                ext  = spec.substring(i+1);
+            if (!spec.endsWith("/")) {
+                int i = spec.lastIndexOf('.');
+                if (i > 0 && i < spec.length()-1)
+                    ext = spec.substring(i+1);
+            }
         }
+        if (ext.length() > 5)
+            ext = ext.substring(0,5);
 
         return ext;
     }

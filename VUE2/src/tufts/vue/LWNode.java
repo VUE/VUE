@@ -6,6 +6,9 @@ import java.awt.font.TextLayout;
 
 import javax.swing.ImageIcon;
 import javax.swing.border.LineBorder;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTextArea;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -99,7 +102,7 @@ public class LWNode extends LWContainer
 
     private boolean isRectShape = true;
 	
-	private boolean mIsTextNode = false;
+    private boolean mIsTextNode = false;
 	
     private NodeIcon resourceIcon = new ResourceIcon();
     private NodeIcon notesIcon = new NotesIcon(this);
@@ -233,7 +236,122 @@ public class LWNode extends LWContainer
             cx <= lx + width &&
             cy <= ly + height;
     }
+
+    private JComponent ttResource = null;
+    private JComponent ttNotes = null;
+    public void setResource(Resource resource)
+    {
+        super.setResource(resource);
+        ttResource = null;
+    }
+    public void setNotes(String notes)
+    {
+        super.setNotes(notes);
+        ttNotes = null;
+    }
+
+    private JComponent getResourceToolTip()
+    {
+        if (ttResource == null) {
+            JLabel c = new JLabel("<html>&nbsp;<b>"
+                                  + getResource()
+                                  + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
+            c.setFont(FONT_MEDIUM);
+            ttResource = c;
+        }
+        return ttResource;
+    }
+    private JComponent getNotesToolTip()
+    {
+        if (ttNotes == null) {
+            String notes = getNotes();
+            int width = notes.length();
+            //System.out.println("width="+width);
+
+            if (width > 30) {
+                //JTextArea ta = new JTextArea(notes, 1, width);
+                JTextArea ta = new JTextArea(notes, 1, 30);
+                ta.setFont(FONT_SMALL);
+                ta.setLineWrap(true);
+                ta.setWrapStyleWord(true);
+                /*
+                  System.out.println("    size="+ta.getSize());
+                  Dimension ps = ta.getPreferredSize();
+                  System.out.println("prefsize="+ps);
+                  System.out.println(" minsize="+ta.getMinimumSize());
+                */
+                ttNotes = ta;
+            } else {
+                ttNotes = new JLabel(notes);
+                ttNotes.setFont(FONT_SMALL);
+            }
+            
+                /*
+                if (width > 30)
+                    width = 30;
+                System.out.println("width="+width);
+                JTextArea c = new JTextArea(notes, 1, width);
+                c.setFont(FONT_SMALL);
+                c.setLineWrap(true);
+                c.setWrapStyleWord(true);
+                System.out.println("    size="+c.getSize());
+                Dimension ps = c.getPreferredSize();
+                System.out.println("prefsize="+ps);
+                System.out.println(" minsize="+c.getMinimumSize());
+
+                if (notes.length() < 30) {
+                    ps.width = notes.length();
+                    c.setPreferredSize(ps);
+                    System.out.println("setprefsize="+ps);
+                }
+                */
+
+        }
+        return ttNotes;
+    }
     
+    public void mouseOver(MapMouseEvent e)
+    {
+        //System.out.println("MouseOver " + this);
+        float cx = e.getComponentX();
+        float cy = e.getComponentY();
+        /*
+        if (textBoxHit(cx, cy)) {
+            System.out.println("over label");
+        } else
+        */
+        if (iconShowing()) {
+
+            JComponent tipComponent = null;
+            double y = 0;
+            if (hasResource() && resourceIcon.contains(cx, cy)) {
+
+                //System.out.println("over resource");
+                tipComponent = getResourceToolTip();
+                y = resourceIcon.getY();
+                
+            } else if (hasNotes() && notesIcon.contains(cx, cy)) {
+                
+                //System.out.println("over notes");
+                tipComponent = getNotesToolTip();
+                y = notesIcon.getY();
+            }
+            
+            if (tipComponent != null) {
+                float mapY = getY() + (float) y;
+                Point tp = new Point
+                    (e.getViewer().mapToScreenX(getX()),
+                     e.getViewer().mapToScreenY(mapY));
+                e.getViewer().setTipComponent(tp, tipComponent);
+            }
+            
+        }
+    }
+    public void mouseExited(MapMouseEvent e)
+    {
+        super.mouseExited(e);
+        e.getViewer().clearTip();
+    }
     
     public boolean handleDoubleClick(MapMouseEvent e)
     {
@@ -252,6 +370,7 @@ public class LWNode extends LWContainer
             // node opens the resource
             if (hasNotes() && notesIcon.contains(cx, cy)) {
                 System.out.println("***NOTES HIT");
+                VUE.objectInspectorPanel.activateNotesTab();
                 VUE.objectInspector.setVisible(true);
             } else if (hasResource()) {
                 getResource().displayContent();
@@ -596,6 +715,7 @@ public class LWNode extends LWContainer
             if (inPathway()) icons++;
 
             float iconPillarHeight = icons * IconHeight + IconPillarPadY * 2;
+            float totalIconHeight = icons * IconHeight;
 
             if (height < iconPillarHeight)
                 height += iconPillarHeight - height;
@@ -604,13 +724,19 @@ public class LWNode extends LWContainer
                 // the icon stack would only drop it down by up to a few
                 // pixels, go ahead and do so because it's so much nicer
                 // to look at.
-                float totalIconHeight = icons * IconHeight;
                 float centerY = (height - totalIconHeight) / 2;
                 if (centerY > IconPillarPadY+3)
                     centerY = IconPillarPadY+3;
                 this.iconPillarY = centerY;
             }
             
+            if (!isRectShape) {
+                // center pillar at left if we're not rectangular
+                // TODO: this not fully working -- bugs out when
+                // dragging node to smallest size
+                this.iconPillarY = (givenHeight - totalIconHeight) / 2;
+            }
+
             float y = this.iconPillarY;
             if (hasResource()) {
                 resourceIcon.setFrame(iconX, y, iconWidth, iconHeight);
@@ -1230,11 +1356,12 @@ public class LWNode extends LWContainer
             dc.g.translate(x, y);
 
             // an experiment in semantic zoom
+            /*
             if (dc.zoom >= 8.0) {
                 dc.g.setFont(MinisculeFont);
                 dc.g.setColor(Color.gray);
                 dc.g.drawString(this.node.getNotes(), 0, (int)(super.height));
-            }
+                }*/
 
             double x2 = (getWidth() - iconWidth) / 2;
             double y2 = (getHeight() - iconHeight) / 2;

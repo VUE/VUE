@@ -46,7 +46,8 @@ public class VUE
     public static LWPathwayInspector pathwayInspector;
     //public static PathwayControl control;
 
-    public static ToolWindow objectInspector;
+    static ToolWindow objectInspector;
+    static ObjectInspectorPanel objectInspectorPanel;
     
     //hierarchy view tree window component
     public static LWHierarchyTree hierarchyTree;
@@ -343,16 +344,16 @@ public class VUE
 		
 		//ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
 		objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
-		ObjectInspectorPanel oip = new ObjectInspectorPanel();
-		if (!scottHack) ModelSelection.addListener( oip);
-		objectInspector.addTool( oip);
+		objectInspectorPanel = new ObjectInspectorPanel();
+		if (!scottHack) ModelSelection.addListener(objectInspectorPanel);
+		objectInspector.addTool(objectInspectorPanel);
 		
 		
 		if( false) {
 			JFrame testFrame = new JFrame("Debug");
 			testFrame.setSize( 300,300);
 			//testFrame.getContentPane().add( new NodeInspectorPanel() );
-			testFrame.getContentPane().add( oip);
+			testFrame.getContentPane().add(objectInspectorPanel);
 			testFrame.show();
 		}
 		

@@ -857,10 +857,6 @@ public abstract class LWContainer extends LWComponent
         c.setScale(scale);
     }
 
-    public void mouseEntered(MapMouseEvent e)
-    {
-    }
-
     public void draw(DrawContext dc)
     {
         int nodes = 0;

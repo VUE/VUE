@@ -900,6 +900,95 @@ public class MapViewer extends javax.swing.JPanel
         }
     }
 
+    //private static String mTipMessage;
+    private static JComponent mTipComponent;
+    private static Point mTipPoint;
+    private static Popup mTipWindow;
+    /*
+    void setRolloverMessage(Point point, String message)
+    {
+        if (message != mTipMessage && message != null) {
+
+            if (mTipWindow != null)
+                mTipWindow.hide();
+            
+            //System.out.println("Creating tip window " + message);
+        
+            //JToolTip tip = new JToolTip();
+            //tip.setComponent(this);
+            JToolTip ttip = createToolTip();
+            ttip.setTipText(message);
+        
+            PopupFactory popupFactory = PopupFactory.getSharedInstance();
+            
+            //if (true) popupFactory.setPopupType(PopupFactory.LIGHT_WEIGHT_POPUP);
+            //else popupFactory.setPopupType(PopupFactory.MEDIUM_WEIGHT_POPUP);
+
+            JLabel l = new JLabel("<html>&nbsp;" + message + "<font size=-2 color=#bbbbbb>x<br>&nbsp;Double-click to open in new window");
+            l.setOpaque(true);
+            l.setBackground(COLOR_TOOLTIP);
+            // fyi, can't do transparency on a window -- what's underneath is GC garbage
+            l.setFont(FONT_MEDIUM);
+            l.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
+            //l.setIcon(new LineIcon(10,10, Color.red, null));
+            Dimension size = l.getPreferredSize();
+            Component tip = l;
+
+            SwingUtilities.convertPointToScreen(point, this);
+            int x = point.x - (size.width + 6);
+            int y = point.y - (size.height / 2);
+
+	    mTipWindow = popupFactory.getPopup(this, tip, x, y);
+	    mTipWindow.show();
+        }
+
+        mTipMessage = message;
+        mTipPoint = point;
+    }
+    */
+    void setTipComponent(Point point, JComponent c)
+    {
+        if (c != mTipComponent && c != null) {
+
+            if (mTipWindow != null)
+                mTipWindow.hide();
+            
+            PopupFactory popupFactory = PopupFactory.getSharedInstance();
+
+            c.setOpaque(true);
+            c.setBackground(COLOR_TOOLTIP);
+            c.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
+            //c.setIcon(new LineIcon(10,10, Color.red, null));//test -- icons w/tex work
+            
+            Dimension size = c.getPreferredSize();
+
+            //System.out.println("    size="+c.getSize());
+            //System.out.println("prefsize="+c.getPreferredSize());
+            //System.out.println(" minsize="+c.getMinimumSize());
+
+            SwingUtilities.convertPointToScreen(point, this);
+            int x = point.x - size.width;
+            int y = point.y;
+            //int y = point.y - (size.height / 2);
+
+	    mTipWindow = popupFactory.getPopup(this, c, x, y);
+	    mTipWindow.show();
+        }
+
+        mTipComponent = c;
+        mTipPoint = point;
+        
+    }
+    
+    void clearTip()
+    {
+        mTipComponent = null;
+        if (mTipWindow != null) {
+            mTipWindow.hide();
+            mTipWindow = null;
+        }
+    }
+
     
     /**
      * Render all the LWComponents on the panel
@@ -1144,6 +1233,27 @@ public class MapViewer extends javax.swing.JPanel
 
         //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
         dc.setAntiAlias(true);
+
+        /*
+        if (false&&mTipMessage != null) {
+            g2.setFont(FONT_MEDIUM);
+            TextRow msg = new TextRow(mTipMessage, g2);
+            int x = mTipPoint.x - (int) msg.getWidth();
+            int y = mTipPoint.y - (int) (msg.getHeight() / 2f);
+            x -= 2;
+            if (VueUtil.isMacPlatform())
+                g2.setColor(COLOR_TOOLTIP);
+            else
+                g2.setColor(SystemColor.info);
+            int p=3;
+            g2.fillRect(x-p, y-p, (int)msg.getWidth()+p*2, (int)msg.getHeight()+p*2-1);
+            g2.setColor(Color.black);
+            g2.setStroke(STROKE_ONE);
+            g2.drawRect(x-p, y-p, (int)msg.getWidth()+p*2, (int)msg.getHeight()+p*2-1);
+            g2.setColor(SystemColor.infoText);
+            msg.draw(x, y);
+        }
+        */
         
         //setOpaque(false);
         if (activeTextEdit != null)     // This is a real Swing JComponent 
@@ -1352,12 +1462,15 @@ public class MapViewer extends javax.swing.JPanel
         g2.translate(-getOriginX(), -getOriginY());
         if (zoomFactor != 1) g2.scale(zoomFactor, zoomFactor);
         it = VueSelection.iterator();
-        g2.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() / zoomFactor)));
+        g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() / zoomFactor)));
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
-            if (inDrag || c.getStrokeWidth() == 0)
+            if (inDrag || c.getStrokeWidth() == 0) {
+                //g2.setColor(c.getStrokeColor());
                 g2.draw(c.getShape());
+            }
         }
+        g2.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() / zoomFactor)));
         if (indication != null) {
             DrawContext dc2 = dc;//dc.create();
             dc2.g.setColor(COLOR_INDICATION);
@@ -2412,18 +2525,39 @@ public class MapViewer extends javax.swing.JPanel
         */
 
 
-        //private LWComponent mouseOver;
+        private LWComponent mMouseOver;
         public void mouseMoved(MouseEvent e)
         {
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             lastMouseX = e.getX();
             lastMouseY = e.getY();
 
+
+            float mapX = screenToMapX(e.getX());
+            float mapY = screenToMapY(e.getY());
+            LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
+
+            if (hit != mMouseOver) {
+                if (mMouseOver != null) {
+                    MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+                    mMouseOver.mouseExited(mme);
+                }
+            }
+            if (hit != null) {
+                MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+                if (hit == mMouseOver)
+                    hit.mouseMoved(mme);
+                else
+                    hit.mouseEntered(mme);
+            }
+            mMouseOver = hit;
+
             if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouse.x = lastMouseX;
                 mouse.y = lastMouseY;
                 repaint();
             }
+
             // Workaround for known Apple Mac OSX Java 1.4.1 bug:
             // Radar #3164718 "Control-drag generates mouseMoved, not mouseDragged"
             //if (dragComponent != null && VueUtil.isMacPlatform()) {
@@ -2446,7 +2580,16 @@ public class MapViewer extends javax.swing.JPanel
             }
         }
 
-
+        public void mouseExited(MouseEvent e)
+        {
+            System.out.println(e);
+            if (mMouseOver != null) {
+                mMouseOver.mouseExited(new MapMouseEvent(e));
+                mMouseOver = null;
+            }
+            clearTip();
+        }
+        
         //private int drags=0;
         public void mouseDragged(MouseEvent e)
         {

@@ -188,7 +188,14 @@ public class LWComponent
     /** for persistance */
     public void setXMLnotes(String text)
     {
-        setNotes(unescapeNewlines(text));
+        String notes = unescapeNewlines(text);
+        // hack in case castor xml indent was on when save was done
+        /*
+        System.out.println("got notes " + notes);
+        notes.replaceAll("            ", " ");
+        System.out.println("fixed notes " + notes);
+        */
+        setNotes(notes);
     }
 
     private String escapeNewlines(String text)
@@ -1091,6 +1098,29 @@ public class LWComponent
     {
         return excluded == this ? null : this;
     }
+
+
+    public void mouseEntered(MapMouseEvent e)
+    {
+        System.out.println("MouseEntered " + this);
+        //e.getViewer().setIndicated(this);
+        mouseOver(e);
+    }
+    public void mouseMoved(MapMouseEvent e)
+    {
+        //System.out.println("MouseMoved " + this);
+        mouseOver(e);
+    }
+    public void mouseOver(MapMouseEvent e)
+    {
+        //System.out.println("MouseOver " + this);
+    }
+    public void mouseExited(MapMouseEvent e)
+    {
+        System.out.println("MouseExited " + this);
+        //e.getViewer().clearIndicated();
+    }
+    
 
     /** pesistance default */
     public void addObject(Object obj)

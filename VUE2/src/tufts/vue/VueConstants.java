@@ -47,6 +47,8 @@ public interface VueConstants
     static java.awt.Color COLOR_NODE_INVERTED = new Color(225, 225, 255);
 
     static java.awt.Color COLOR_HIGHLIGHT = new Color(255,255,0, 128);
+    static java.awt.Color COLOR_TOOLTIP = new Color(255,255,192);
+    static java.awt.Color COLOR_TOOLTIP_TRANSPARENT = new Color(255,255,192, 192);
     
     // todo: create our own cursors for most of these
     // named cursor types
