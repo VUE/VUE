@@ -39,7 +39,7 @@ public class UndoManager
         Object old = e.getOldValue();
         if (old != null) {
             if (DEBUG.UNDO) System.out.println("\tgot old value " + old);
-            if (mPropertyChanges.get
+            //if (mPropertyChanges.get
         } else {
             if (DEBUG.UNDO) System.out.println("\tunhandled");
         }
