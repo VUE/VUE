@@ -625,6 +625,10 @@ public class VueUtil
         return result;
     }
 
+    // java bug: Do NOT create try and create an axis using Integer.MIN_VALUE or Integer.MAX_VALUE
+    // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K) -- same for floats.
+    public static final int MinCoord = -10240;
+    public static final int MaxCoord = 10240;
     
     public static final float[] NoIntersection = { Float.NaN, Float.NaN };
     private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" }; // for debug
@@ -633,7 +637,7 @@ public class VueUtil
                                               float rayX2, float rayY2,
                                               java.awt.Shape shape)
     {
-        return computeIntersection(rayX1,rayY1, rayX2,rayY2, shape, new float[2]);
+        return computeIntersection(rayX1,rayY1, rayX2,rayY2, shape, new float[2], 1);
     }
     
     /**
@@ -642,13 +646,16 @@ public class VueUtil
      * with an endpoint (rayX2,rayY2) that ends in the center of the
      * shape, tho that's not required.
      *
+     * @param max - max number of intersections to compute. An x/y
+     * pair of coords will put into result up to max times. Must be >= 1.
+     *
      * @return float array of size 2: x & y values of intersection,
      * or ff no intersection, returns Float.NaN values for x/y.
      */
     public static float[] computeIntersection(float rayX1, float rayY1,
                                               float rayX2, float rayY2,
                                               java.awt.Shape shape,
-                                              float[] result)
+                                              float[] result, int max)
     {
         java.awt.geom.PathIterator i = shape.getPathIterator(null);
         // todo performance: if this shape has no curves (CUBICTO or QUADTO)
@@ -663,6 +670,7 @@ public class VueUtil
         float lastX = 0f;
         float lastY = 0f;
         int cnt = 0;
+        int hits = 0;
         while (!i.isDone()) {
             int segType = i.currentSegment(seg);
             if (cnt == 0) {
@@ -672,18 +680,21 @@ public class VueUtil
                 seg[0] = firstX; 
                 seg[1] = firstY; 
             }
-            float endX, endY;
-            //if (segType == PathIterator.SEG_CUBICTO) {
-            //    endX = seg[4];
-            //    endY = seg[5];
-            //} else {
-                endX = seg[0];
-                endY = seg[1];
-            //}
+            float endX = seg[0];
+            float endY = seg[1];
+                
+            // at cnt == 0, we have only the first point from the path iterator, and so no line yet.
             if (cnt > 0 && Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
                 //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
-                return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1], result);
-              //return computeLineIntersection(rayX2, rayY2, rayX1, rayY1, lastX, lastY, seg[0], seg[1], result);
+                if (max <= 1) {
+                    return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1], result);
+                } else {
+                    float[] tmp = computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1], new float[2]);
+                    result[hits*2 + 0] = tmp[0];
+                    result[hits*2 + 1] = tmp[1];
+                    if (++hits >= max)
+                        return result;
+                }
             }
             cnt++;
             lastX = endX;
@@ -692,6 +703,58 @@ public class VueUtil
         }
         return NoIntersection;
     }
+
+    /** compute the first two y value crossings of the given x_axis and shape */
+    public static float[] computeYCrossings(float x_axis, Shape shape, float[] result) {
+        // Produces erroneous computation using the Float constants:
+        //return computeIntersection(x_axis, Float.NEGATIVE_INFINITY, x_axis, Float.POSITIVE_INFINITY, shape, result, 2);
+        return computeIntersection(x_axis, MinCoord, x_axis, MaxCoord, shape, result, 2);
+    }
+    
+    /** compute 2 y values for crossings of at x_axis, and store result in the given Line2D */
+    public static Line2D computeYCrossings(float x_axis, Shape shape, Line2D result) {
+        float[] coords = computeYCrossings(x_axis, shape, new float[4]);
+        result.setLine(x_axis, coords[1], x_axis, coords[3]);
+        return result;
+    }
+    
+    /**
+     * This will clip the given vertical line to the edges of the given shape.
+     * Assumes line start is is min y (top), line end is max y (bottom).
+     * @param line - line to clip y values if outside edge of given shape
+     * @param shape - shape to clip line to
+     * @param pad - padding: keep line endpoints at least this many units away from shape edge
+     *
+     * todo: presumes only 2 crossings: will only handle concave polygons
+     * Should relatively easy to extend this to work for non-vertical lines if the need should arise.
+     */
+    public static Line2D clipToYCrossings(Line2D line, Shape shape, float pad) {
+        float x_axis = (float) line.getX1();
+        float[] coords = computeYCrossings(x_axis, shape, new float[4]);
+        // coords[0] & coords[2], the x values, can be ignored, as they always == x_axis
+        float cross1 = coords[1];
+        float cross2 = coords[3];
+        float y1, y2;
+        //out("cross1, cross2: " + cross1 + "," + cross2);
+        if (cross1 < cross2) {
+            // cross1 is min cross
+            cross1 += pad;
+            cross2 -= pad;
+            y1 = cross1 > line.getY1() ? cross1 : (float) line.getY1();
+            y2 = cross2 < line.getY2() ? cross2 : (float) line.getY2();
+        } else {
+            // cross2 is min cross
+            cross2 += pad;
+            cross1 -= pad;
+            y1 = cross2 > line.getY1() ? cross2 : (float) line.getY1();
+            y2 = cross1 < line.getY2() ? cross1 : (float) line.getY2();
+        }
+        //out("clipping " + out(line));
+        line.setLine(x_axis, y1, x_axis, y2);
+        //out("      to " + out(line));
+        return line;
+    }
+    
 
     /**
      * One a line drawn from the center of c1 to the center of c2, compute the the line segment
@@ -740,10 +803,19 @@ public class VueUtil
         return result;
     }
     
+    public static void out(Object o) {
+        System.out.println((o==null?"null":o.toString()));
+    }
+
+    /*
+    public static void out(String s) {
+        System.out.println(s==null?"null":s);
+    }
+    */
     public static String out(Object[] o) {
         return Arrays.asList(o).toString();
     }
-
+    
     public static String out(java.awt.geom.Point2D p) {
         return (float)p.getX() + "," + (float)p.getY();
     }

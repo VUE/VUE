@@ -1835,8 +1835,8 @@ public class MapViewer extends javax.swing.JComponent
     /**
      * Render all the LWComponents on the panel
      */
-    // java bug: Do NOT create try and create an axis using Integer.{MIN,MAX}_VALUE
-    // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K)
+    // java bug: Do NOT create try and create an axis using Integer.MIN_VALUE or Integer.MAX_VALUE
+    // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K) -- same for floats.
     private static final int MinCoord = -10240;
     private static final int MaxCoord = 10240;
     private static final Line2D Xaxis = new Line2D.Float(MinCoord, 0, MaxCoord, 0);

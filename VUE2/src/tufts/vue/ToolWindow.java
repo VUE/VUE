@@ -81,7 +81,8 @@ public class ToolWindow extends JWindow
 
     /** look for a tabbed pane within us with the given title, and select it */
     public void showTab(final String name) {
-
+        // event raiser wasn't designed for this, but turns out
+        // to be very convienent for it.
         EventRaiser e = new EventRaiser(this) {
                 public Class getListenerClass() { return JTabbedPane.class; }
                 void dispatch(Object pTabbedPane) {

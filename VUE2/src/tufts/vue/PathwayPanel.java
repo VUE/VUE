@@ -22,7 +22,7 @@ import javax.swing.border.*;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @author  Daisuke Fujiwara - 8-fold cyclic repetition of a beta-strand-loop-alpha- helix-loop module with helix alpha 7 missing. 
+ * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  * @version February 2004
  */
@@ -95,8 +95,6 @@ public class PathwayPanel extends JPanel implements ActionListener
         btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
         //btnPathwayShowOnly = new VueButton.Toggle("pathways.showOnly", this);
         
-        
-        //        JPanel pathwayMasterPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
         JPanel pathwayMasterPanel = new VueUtil.JPanel_aa() {
                 public void addNotify() {
                     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -142,9 +140,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         btnElementDown = new VueButton("move-down", this);
 
         JPanel elementControlPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
-        //JPanel elementControlPanel = new VueUtil.JPanel_aa() {
                 public void addNotify() {
-                    //setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
                     setBackground(new Color(98,115,161));
                     setBorder(new EmptyBorder(1,2,1,5));
 
@@ -154,15 +150,10 @@ public class PathwayPanel extends JPanel implements ActionListener
                     label.setBackground(getBackground());
                     label.setBorder(new EmptyBorder(0,0,1,2)); //tlbr
                     
-                    //add(Box.createHorizontalGlue());
                     add(label);
-                    //add(Box.createHorizontalStrut(1));
                     add(btnElementAdd);
-                    //add(Box.createHorizontalStrut(1));
                     add(btnElementRemove);
-                    //add(Box.createHorizontalStrut(2));
                     add(btnElementUp);
-                    //add(Box.createHorizontalStrut(1));
                     add(btnElementDown);
                     
                     super.addNotify();
@@ -339,6 +330,9 @@ public class PathwayPanel extends JPanel implements ActionListener
     private static class PlayerAction extends AbstractAction
     {
         PlayerAction(String name) {
+            // as we're to be used by a VueButton, store the key
+            // as the action command, not the name, as we don't
+            // want it to show up as the button label
             putValue(Action.ACTION_COMMAND_KEY, name);
         }
         
@@ -366,7 +360,6 @@ public class PathwayPanel extends JPanel implements ActionListener
         }
     }
 
-    /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
         Object btn = e.getSource();

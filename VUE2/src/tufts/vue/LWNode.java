@@ -107,7 +107,7 @@ public class LWNode extends LWContainer
     //private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, IconWidth,IconHeight, 12,12);
     //private RectangularShape genIcon = new Rectangle2D.Float(0,0, IconWidth,IconHeight);
     private Line2D dividerUnderline = new Line2D.Float();
-    private Line2D dividerMarginLine = new Line2D.Float();
+    private Line2D.Float dividerMarginLine = new Line2D.Float();
     private Line2D dividerStub = new Line2D.Float();
 
     private transient boolean mIsRectShape = true;
@@ -1322,30 +1322,30 @@ public class LWNode extends LWContainer
             g.setColor(marginColor);
             //g.setColor(Color.gray);
             g.setStroke(STROKE_ONE);
-            g.draw(dividerMarginLine);
 
+            if (DEBUG.BOXES) dc.setAbsoluteStroke(1);
+            
+            if (mIsRectShape)
+                g.draw(dividerMarginLine);
+            else
+                g.draw(VueUtil.clipToYCrossings(dividerMarginLine, drawnShape, MarginLinePadY));
+            
             mIconBlock.draw(dc);
         }
     }
+}
 
-    /*
-    public String paramString()
-    {
-        return isAutoSized() ? "" : " userSize";
-    }
-    */
-    
+
+
     
 
     /*
-    //@deprecated
     public NodeShape getNodeShape()
     {
         //System.err.println("*** Warning: deprecated use of LWNode.getNodeShape in " + this);
         //return this.nodeShape;
         return null;
     }
-    // @deprecated
     public void setNodeShape(NodeShape nodeShape)
     {
         //System.err.println("*** Warning: deprecated use of LWNode.setNodeShape on " + this);
@@ -1402,7 +1402,7 @@ public class LWNode extends LWContainer
         }
     }
 
-    // @deprecated -- remove this -- only here for ancient backward compat
+    // @remove this -- only here for ancient backward compat
     static final NodeShape StandardShapes[] = {
         //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
         new NodeShape("Oval", new Ellipse2D.Float(0,0,10,10)),
@@ -1429,9 +1429,6 @@ public class LWNode extends LWContainer
 
     //private final boolean debug = true;
     */
-    
-    
-}
 
 
 

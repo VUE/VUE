@@ -807,7 +807,7 @@ public class LWLink extends LWComponent
                 srcX = endX;
                 srcY = endY;
             }
-            float[] result = VueUtil.computeIntersection(startX, startY, srcX, srcY, ep1Shape, intersection);
+            float[] result = VueUtil.computeIntersection(startX, startY, srcX, srcY, ep1Shape, intersection, 1);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
             //if (!Float.isNaN(intersection[0])) startX = intersection[0];
@@ -829,7 +829,7 @@ public class LWLink extends LWComponent
                 srcX = startX;
                 srcY = startY;
             }
-            float[] result = VueUtil.computeIntersection(srcX, srcY, endX, endY, ep2Shape, intersection);
+            float[] result = VueUtil.computeIntersection(srcX, srcY, endX, endY, ep2Shape, intersection, 1);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
             //if (!Float.isNaN(intersection[0])) endX = intersection[0];
