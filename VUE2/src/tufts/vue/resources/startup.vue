@@ -108,7 +108,7 @@
         <notes>Online user documentation for VUE.</notes>
         <resource referenceCreated="1085871880135" accessAttempted="0"
             accessSuccessful="0" size="-1" xsi:type="map-resource">
-            <spec>http:/vue.tccs.tufts.edu/userdoc/</spec>
+            <spec>http://vue.tccs.tufts.edu/userdoc/</spec>
             <type>0</type>
         </resource>
         <fillColor>#d7f1ca</fillColor>
@@ -165,7 +165,7 @@
         autoSized="true" xsi:type="node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <resource referenceCreated="1085871880415" accessAttempted="0"
             accessSuccessful="0" size="-1" xsi:type="map-resource">
-            <spec>http:/vue.tccs.tufts.edu/userdoc/maps.cfm</spec>
+            <spec>http://vue.tccs.tufts.edu/userdoc/maps.cfm</spec>
             <type>0</type>
         </resource>
         <fillColor>#fcfabb</fillColor>
@@ -190,7 +190,7 @@
         autoSized="true" xsi:type="node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <resource referenceCreated="1085871880495" accessAttempted="0"
             accessSuccessful="0" size="-1" xsi:type="map-resource">
-            <spec>http:/vue.tccs.tufts.edu/userdoc/resources.cfm</spec>
+            <spec>http://vue.tccs.tufts.edu/userdoc/resources.cfm</spec>
             <type>0</type>
         </resource>
         <fillColor>#fcfabb</fillColor>
@@ -215,7 +215,7 @@
         autoSized="true" xsi:type="node" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <resource referenceCreated="1085871880647" accessAttempted="0"
             accessSuccessful="0" size="-1" xsi:type="map-resource">
-            <spec>http:/vue.tccs.tufts.edu/userdoc/pathways.cfm</spec>
+            <spec>http://vue.tccs.tufts.edu/userdoc/pathways.cfm</spec>
             <type>0</type>
         </resource>
         <fillColor>#fcfabb</fillColor>
