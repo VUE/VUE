@@ -29,8 +29,8 @@ import tufts.vue.filter.*;
  *
  * \**/
 public class LWCFilter {
-    static public final String ACTION_HIDE = "Hide All";
-    static public final String ACTION_SHOW = "Show Only";
+    static public final String ACTION_HIDE = "Exclude";
+    static public final String ACTION_SHOW = "Display";
     static public final String ACTION_SELECT = "Select";
     
     /** condition constants **/
@@ -54,7 +54,7 @@ public class LWCFilter {
     /** a vector of contraints **/
     LogicalStatement [] mStatements = null;
     
-    FilterEditor.FilterTableModel  statements = null;
+    Vector  statements = null;
     
     /** the logical op state **/
     boolean mIsAny = false;
@@ -135,11 +135,11 @@ public class LWCFilter {
     }
     
     
-    public void setStatements(FilterEditor.FilterTableModel statements) {
+    public void setStatements(Vector statements) {
         this.statements = statements;
     }
     
-    public FilterEditor.FilterTableModel getStatements() {
+    public Vector getStatements() {
         return this.statements;
     }
     
@@ -307,7 +307,7 @@ public class LWCFilter {
          * }
          **/
         
-        Iterator i = statements.getFilters().iterator();
+        Iterator i = statements.iterator();
         while(i.hasNext()) {
             Statement statement = (Statement) i.next();
             boolean result = matchStatementComponent(statement,pLWC);
