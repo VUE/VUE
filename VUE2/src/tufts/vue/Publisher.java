@@ -42,7 +42,11 @@ public class Publisher extends JDialog implements ActionListener {
     public final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
     public final int WIDTH = 600; 
     public final int HEIGHT = 250;
-    public final String[] PUBLISH_INFORMATION = {" Publish Map"," Publish Map and its contents"," Publish each item of the map and then the map with references to publish items."};
+    public final String[] PUBLISH_INFORMATION = {" “Export Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
+                          "“Export IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
+                          "“Export All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map."
+
+                          };
     
     private int publishMode = PUBLISH_MAP; 
     private final int BUFFER_SIZE = 10240;// size for transferring files
@@ -101,10 +105,10 @@ public class Publisher extends JDialog implements ActionListener {
         Insets defaultInsets = new Insets(2,9,2,2);
         
         ButtonGroup modeSelectionGroup = new ButtonGroup();
-        JLabel topLabel = new JLabel("Select the Publish Mode");
+        JLabel topLabel = new JLabel("Select the Export Mode");
         
         //area for displaying information about publishing mode
-        informationArea = new JTextArea(" Please select the mode for publication from above");
+        informationArea = new JTextArea(" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.");
         informationArea.setEditable(false);
         informationArea.setLineWrap(true);
         informationArea.setRows(4);
@@ -116,9 +120,9 @@ public class Publisher extends JDialog implements ActionListener {
         dataSourceComboBox = new JComboBox(dataSourceVector);
         
         JPanel buttonPanel = new JPanel();
-        publishMapRButton = new JRadioButton("Publish Map");
-        publishCMapRButton = new JRadioButton("Publish IMSCP MAP");
-        publishAllRButton = new JRadioButton("Publish All");
+        publishMapRButton = new JRadioButton("Export Map");
+        publishCMapRButton = new JRadioButton("Export IMSCP Map");
+        publishAllRButton = new JRadioButton("Export All");
         publishMapRButton.addActionListener(this);
         publishCMapRButton.addActionListener(this);
         publishAllRButton.addActionListener(this);
@@ -291,11 +295,11 @@ public class Publisher extends JDialog implements ActionListener {
             saveActiveMap();
             Properties metadata = VUE.getActiveMap().getMetadata();
             String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, metadata).getIdString();
-            JOptionPane.showMessageDialog(null, "Map successfully published. Asset ID for Map = "+pid, "Map Published",JOptionPane.INFORMATION_MESSAGE);
-            System.out.println("Published Map: id = "+pid);
+            JOptionPane.showMessageDialog(null, "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("Exported Map: id = "+pid);
             this.dispose();
         } catch (Exception ex) {
-             VueUtil.alert(null,  "Publish Not Supported:"+ex.getMessage(), "Publish Error");
+             VueUtil.alert(null,  "Export Not Supported:"+ex.getMessage(), "Export Error");
              ex.printStackTrace();
         }
     }
@@ -305,11 +309,11 @@ public class Publisher extends JDialog implements ActionListener {
             File savedCMap = createIMSCP();
             Properties metadata  = VUE.getActiveMap().getMetadata();
             String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
-            JOptionPane.showMessageDialog(null, "Map successfully published. Asset ID for Map = "+pid, "Map Published",JOptionPane.INFORMATION_MESSAGE);
-            System.out.println("Published CMap: id = "+pid);
+            JOptionPane.showMessageDialog(null, "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("Exported Map: id = "+pid);
             this.dispose();
         } catch (Exception ex) {
-             VueUtil.alert(null, "Publish Not Supported:"+ex.getMessage(), "Publish Error");
+             VueUtil.alert(null, "Export Not Supported:"+ex.getMessage(), "Export Error");
              ex.printStackTrace();
         }
    
@@ -336,9 +340,9 @@ public class Publisher extends JDialog implements ActionListener {
               
             }
             publishMap();
-            System.out.println("Publish All");
+            System.out.println("Export All");
         } catch (Exception ex) {
-            VueUtil.alert(null, ex.getMessage(), "Publish Error");
+            VueUtil.alert(null, ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
     }
