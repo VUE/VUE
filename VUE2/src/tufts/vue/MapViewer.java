@@ -1363,6 +1363,16 @@ public class MapViewer extends javax.swing.JComponent
         return hits;
     }
     
+    // TODO: consolodate this into a single LWContainer tree descent
+    // code -- allow for traversals that can hit a point (for clicks)
+    // or a region (for selection) and handle all the hidden/filter
+    // cases, as well as allowing for only selecting certian types
+    // (for various selection types, including new ones like select
+    // children, etc) -- the traversal is essentially dynamic search,
+    // and if we're heavy duty enough even the filter code could use
+    // it (tho performance may be an issue at that point).  (So, we
+    // might have a "Traversal" object that does the search).
+    
     private java.util.List computeSelection(Rectangle2D mapRect, Class selectionType)
     {
         java.util.List hits = new java.util.ArrayList();

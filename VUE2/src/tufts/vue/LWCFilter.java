@@ -29,47 +29,45 @@ import tufts.vue.beans.*;
 \**/
 public class LWCFilter  
 {
+    static public final String ACTION_HIDE = "Hide";
+    static public final String ACTION_SHOW = "Show Only";
+    static public final String ACTION_SELECT = "Select";
+    
+    /** condition constants **/
+    static public final int CONTAINS = 0;
+    static public final int IS = 1;
+    static public final int STARTS = 2;
+    static public final int ENDS = 3;
 
-
-	/////////////
-	// Statics
-	//////////////
-		
-	/** condition constants **/
-	static public final int CONTAINS = 0;
-	static public final int IS = 1;
-	static public final int STARTS = 2;
-	static public final int ENDS = 3;
-
-	/** property source types **/
-	static public final int ANYWHERE = 0;
-	static public final int LABEL = 1;
-	static public final int NOTES = 2;
-	static public final int USERTYPE= 3;
-	static public final int METADATA = 4;
-	static public final int USERDATA = 5;
+    /** property source types **/
+    static public final int ANYWHERE = 0;
+    static public final int LABEL = 1;
+    static public final int NOTES = 2;
+    static public final int USERTYPE= 3;
+    static public final int METADATA = 4;
+    static public final int USERDATA = 5;
 	
-	/////////////
-	// Fields
-	//////////////
+    /////////////
+    // Fields
+    //////////////
 	
-	/** a vector of contraints **/
-	LogicalStatement [] mStatements = null;
+    /** a vector of contraints **/
+    LogicalStatement [] mStatements = null;
 	
-	/** the logical op state **/
-	boolean mIsAny = false;
+    /** the logical op state **/
+    boolean mIsAny = false;
 	
-	/** the mode **/
-	private boolean mIsFiltering = true;
+    /** the filter action **/
+    private Object mFilterAction = ACTION_HIDE;
 	
-	/** is the matching inverse of the logical?  A logical NOT **/
-	private boolean mIsLogicalNot = false;
+    /** is the matching inverse of the logical?  A logical NOT **/
+    private boolean mIsLogicalNot = false;
 	
-	/** is the map filter currenlty on **/
-	boolean mIsFilterOn = true;
+    /** is the map filter currenlty on **/
+    boolean mIsFilterOn = true;
 	
-	/** LWMap **/
-	private LWMap mMap = null;
+    /** LWMap **/
+    private LWMap mMap = null;
 	
 	///////////////////
 	// Constructors
@@ -124,31 +122,41 @@ public class LWCFilter
 	public boolean isFilterOn() {
 		return mIsFilterOn;
 	}
-	
-	/**
+
+    public void setFilterAction(Object action) {
+        if (action != ACTION_HIDE && action != ACTION_SHOW && action != ACTION_SELECT)
+            throw new IllegalArgumentException(this + " illegal filter action: " + action);
+        mFilterAction = action;
+    }
+    public Object getFilterAction() {
+        return mFilterAction;
+    }
+    
+	/*
 	 * isSelecting
 	 * @return true if filter should select items on apply; false if not
-	 **/
+
 	public boolean isSelecting() {
-		return ! mIsFiltering;
+            return mFilterAction == ACTION_SELECT;
 	}
 	
 	/**
 	 * isFiltering
 	 * @return true iff should hide or filter matches; false if not
-	 **/
+
 	public boolean isFiltering() {
-		return mIsFiltering;
+            return mFilterAction == ACTION_HIDE;
 	}
 	
 	/**
 	 * setFiltering
 	 * @param boolean true if should filter; false if not and should select
-	 **/
+
 	public void setIsFiltering( boolean pState) {
 		mIsFiltering = pState;
 	}
-	
+	 **/
+    
 	/**
 	 * isLogicalNot
 	 * @return true if filter should be !isMatch; false if normal
@@ -213,52 +221,52 @@ public class LWCFilter
 	}
 	
 	
-	/**
-	 * applyFilter
-	 * Applies this filter to the map.  It uses
-	 * the isFiltering, isSelecting, isLogicalNot, isAny to
-	 * constuct the terms and cations for logical expression.
-	 * isFiltering causes Map items to be hidden or shown
-	 * isSelecting causes the current selection to change
-	 * isLogicalNot inverses the result set
-	 * isAny is a logical OR, !isAny is a logcal AND for statements
-	 *
-	 **/
-	public void applyFilter() {
+    /**
+     * applyFilter
+     * Applies this filter to the map.  It uses
+     * the isFiltering, isSelecting, isLogicalNot, isAny to
+     * constuct the terms and cations for logical expression.
+     * isFiltering causes Map items to be hidden or shown
+     * isSelecting causes the current selection to change
+     * isLogicalNot inverses the result set
+     * isAny is a logical OR, !isAny is a logcal AND for statements
+     *
+     **/
+    public void applyFilter() {
 
-		if( mMap == null) {
-			return;
-			}
-		debug("LWCFilter.applyFilter()");
+        if( mMap == null) {
+            return;
+        }
+        if (DEBUG) debug("LWCFilter.applyFilter()");
 		
-		if( isSelecting() ) {
-			// clear the selection
-			VUE.getSelection().clear();
-			}
-		java.util.List list = mMap.getAllDescendents();
-		Iterator it = list.iterator();
-		while (it.hasNext()) {
-			LWComponent c = (LWComponent) it.next();
-			if( (c instanceof LWNode) || (c instanceof LWLink) ) {
-				boolean state = isMatch( c);
-				debug("  FINAL: "+c.getLabel()+"  is  "+ state  );
-				if( isLogicalNot() ) {
-					state = !state;
-					}
-				if(isFiltering() ) {
-					c.setIsFiltered( !state );
-					}
-				if( isSelecting() ) {
-					if( state)
-						VUE.getSelection().add( c);
-					}
-				}
-			}
+        if (getFilterAction() == ACTION_SELECT)
+            VUE.getSelection().clear();
+
+        java.util.List list = mMap.getAllDescendents();
+        Iterator it = list.iterator();
+        while (it.hasNext()) {
+            LWComponent c = (LWComponent) it.next();
+            if( (c instanceof LWNode) || (c instanceof LWLink) ) {
+                boolean state = isMatch( c);
+                if (DEBUG) debug("  FINAL: "+c.getLabel()+"  is  "+ state  );
+                if( isLogicalNot() ) {
+                    state = !state;
+                }
+                if (getFilterAction() == ACTION_HIDE)
+                    c.setIsFiltered(state);
+                else if (getFilterAction() == ACTION_SHOW)
+                    c.setIsFiltered(!state);
+                else if (getFilterAction() == ACTION_SELECT) {
+                    if (state)
+                        VUE.getSelection().add(c);
+                }
+            }
+        }
 		
-		// repaint
-		mMap.notify(this, "repaint");
+        // repaint
+        mMap.notify(this, "repaint");
 		
-	}
+    }
 	
 	
 	/**
@@ -370,22 +378,14 @@ public class LWCFilter
 		public boolean isMatch( LWComponent pLWC) {
 			boolean state = false;
 			
-			
-			switch( getSourceType() ) {
-				case ANYWHERE:
-					return matchAnywhere( pLWC);
-				case LABEL:
-					return matchLabel( pLWC);
-				case NOTES:
-					return matchNotes( pLWC);
-				case USERTYPE:
-					return matchUserMapType( pLWC);
-				case METADATA:
-					return matchMetaData( pLWC);
-				case USERDATA:
-					return matchUserProperty( pLWC, false);
-				
-				}
+			switch (getSourceType()) {
+                        case ANYWHERE:  return matchAnywhere( pLWC);
+                        case LABEL:     return matchLabel( pLWC);
+                        case NOTES:     return matchNotes( pLWC);
+                        case USERTYPE:  return matchUserMapType( pLWC);
+                        case METADATA:  return matchMetaData( pLWC);
+                        case USERDATA:  return matchUserProperty( pLWC, false);
+                        }
 			return state;
 		}
 		
@@ -462,47 +462,32 @@ public class LWCFilter
              **/
             private boolean isMatch( String pStr) {
 			
-                boolean state = false;
-			
                 if (pStr == null || mValue == null)
                     return false;
 
+		if (DEBUG) debug(" ...checking( "+pStr+" } to value: "+ mValue);
+                
                 String search = pStr.toLowerCase();
                 String filter = mValue.toLowerCase();
-
 				
                 switch (getCondition()) {
-                case CONTAINS:
-                    state = (search.indexOf(filter) != -1);
-                    break;
-                case IS:
-                    state = search.equals(filter);
-                    break;
-                case STARTS:
-                    state = search.startsWith(filter);
-                    break;
-                case ENDS:
-                    state = search.endsWith(filter);
-                    break;
-                default:
-                    // should never happen
-                    break;
+                case CONTAINS:  return search.indexOf(filter) != -1;
+                case IS:        return search.equals(filter);
+                case STARTS:    return search.startsWith(filter);
+                case ENDS:      return search.endsWith(filter);
                 }
 			
-		debug(" ...checking( "+pStr+" } to value: "+ mValue + " result: "+state);
-		return state;
+                // should never happen
+		throw new IllegalStateException(this + " unknown condition " + getCondition());
             }
-
 
             
-            public String toSTring() {
-                String str = "Source: "+mSourceType+" condition: "+mCondition+" value: "+mValue;
-                return str;
+            public String toString() {
+                return "LWCFilter[Source: "+mSourceType+" condition: "+mCondition+" value: "+mValue + "]";
             }
 	}
-    private boolean sDebug = true;
+    private static final boolean DEBUG  = false;
     protected void debug( String str) {
-        if( sDebug)
-            System.out.println(" -> "+str);
+        if (DEBUG) System.out.println(" -> "+str);
     }
 }

@@ -22,21 +22,14 @@ import javax.swing.border.*;
 * The Object  Inspector Panel!
 *
 \**/
-public class MapInspectorPanel  extends JPanel 
-			implements LWSelection.Listener
+public class MapInspectorPanel extends JPanel 
+    implements VUE.ActiveMapListener
 {
-
-	/////////////
-	// Statics
-	/////////////
-	
-	static public final int SELECT_ACTION = 0;
-	static public final int FILTER_ACTION = 1;
-	static public final int ANY_MODE = 0;
-	static public final int ALL_MODE = 1;
-	static public final int NOT_ANY_MODE = 2;
-	static public final int NONE_MODE = 3;
-	
+    static public final int ANY_MODE = 0;
+    static public final int ALL_MODE = 1;
+    static public final int NOT_ANY_MODE = 2;
+    static public final int NONE_MODE = 3;
+    
 	/////////////
 	// Fields
 	//////////////
@@ -84,6 +77,8 @@ public class MapInspectorPanel  extends JPanel
                 mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
 	
 		add( BorderLayout.CENTER, mTabbedPane );
+                setMap(VUE.getActiveMap());
+                VUE.addActiveMapListener(this);
 		validate();
 		show();
 	}
@@ -162,14 +157,9 @@ public class MapInspectorPanel  extends JPanel
 		mTabbedPane.setSelectedComponent( metadataPanel);
 	}
 	
-	/////////////
-		// LWSelection.Listener Interface Implementation
-		/////////
-		public void selectionChanged( LWSelection pSelection) {
-			
-			LWMap map = VUE.getActiveMap();
-			setMap( map);
-		}
+        public void activeMapChanged(LWMap map) {
+            setMap(map);
+        }
 	
 	
 	
@@ -371,7 +361,7 @@ public class MapInspectorPanel  extends JPanel
 		/** mode combo **/
 		JComboBox mModeCombo = null;
 		
-		/** action combo Select or Hide **/
+		/** action combo Hide/Show/Select **/
 		JComboBox mActionCombo = null;
 		
 		JComboBox mAnyAllCombo = null;
@@ -401,8 +391,9 @@ public class MapInspectorPanel  extends JPanel
 			mUpperPanel.setLayout( new BorderLayout() );
 			
 			mActionCombo = new JComboBox();
-			mActionCombo.addItem("Select");
-			mActionCombo.addItem("Show");
+			mActionCombo.addItem(LWCFilter.ACTION_HIDE);
+			mActionCombo.addItem(LWCFilter.ACTION_SHOW);
+			mActionCombo.addItem(LWCFilter.ACTION_SELECT);
 			
 			mAnyAllCombo = new JComboBox();
 			mAnyAllCombo.addItem("match any");
@@ -422,7 +413,7 @@ public class MapInspectorPanel  extends JPanel
 			mUpperPanel.add( BorderLayout.NORTH, new JLabel("Create a filter:"));
 			Box topBox = Box.createHorizontalBox();
 			topBox.add( mActionCombo);
-			JLabel clause = new JLabel("map items that");
+			JLabel clause = new JLabel(" map items that ");
 			topBox.add( clause);
 			topBox.add( mAnyAllCombo);
 			
@@ -493,40 +484,32 @@ public class MapInspectorPanel  extends JPanel
 		 * Updates teh panel based on the passed in LWMap
 		 * @param the LWMap
 		 **/
-		public void updatePanel( LWMap pMap) {
+            public void updatePanel( LWMap pMap) {
 
-			boolean hasMap = pMap != null;
+                boolean hasMap = pMap != null;
 			
-			mFilterButton.enable(hasMap);
-			mClearFilterButton.enable( hasMap);
-			mMoreButton.enable( hasMap);
-			mFewerButton.enable( hasMap);
+                mFilterButton.enable(hasMap);
+                mClearFilterButton.enable( hasMap);
+                mMoreButton.enable( hasMap);
+                mFewerButton.enable( hasMap);
 			
-			if( hasMap) {
-				mFilter = pMap.getLWCFilter();
-				}
-			else {
-				mFilter = new LWCFilter();
+                if (hasMap)
+                    mFilter = pMap.getLWCFilter();
+                else
+                    mFilter = new LWCFilter();
 			
-				}
-			
-			int val = SELECT_ACTION;
-			if( mFilter.isFiltering() ) {
-				val = FILTER_ACTION;
-				}
-			mActionCombo.setSelectedIndex( val);
-			val = ANY_MODE;
-			if( !mFilter.getIsAny() ) {
-				val = ALL_MODE;
-				}
-			if( mFilter.isLogicalNot() ) {
-				val += 2;
-				}
-			mAnyAllCombo.setSelectedIndex( val);
-			
-			buildFilterBox( pMap);
+                mActionCombo.setSelectedItem(mFilter.getFilterAction());
+
+                int val = ANY_MODE;
+                if( !mFilter.getIsAny() )
+                    val = ALL_MODE;
+                if( mFilter.isLogicalNot() )
+                    val += 2;
+
+                mAnyAllCombo.setSelectedIndex( val);
+                buildFilterBox( pMap);
 				
-		}
+            }
 		
 		public LWCFilter makeNewFIlter() {
 			LWCFilter filter = new LWCFilter();
@@ -574,7 +557,7 @@ public class MapInspectorPanel  extends JPanel
 		public LWCFilter makeFilter() {
 			LWCFilter filter = new LWCFilter( mStatementEditors );
 			filter.setMap( mMap);
-			filter.setIsFiltering( ( mActionCombo.getSelectedIndex() == FILTER_ACTION) );
+			filter.setFilterAction(mActionCombo.getSelectedItem());
 			int mode = mAnyAllCombo.getSelectedIndex();
 			filter.setIsAny( (mode == ANY_MODE) || (mode == NOT_ANY_MODE) );
 			filter.setLogicalNot( (mode == NONE_MODE) || (mode == NOT_ANY_MODE) );

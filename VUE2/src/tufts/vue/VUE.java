@@ -61,6 +61,11 @@ implements VueConstants {
     public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
     
+    private static java.util.List sActiveMapListeners = new java.util.ArrayList();
+    public interface ActiveMapListener {
+        public void activeMapChanged(LWMap map);
+    }
+    
     public static java.net.URL getResource(String name) {
         java.net.URL url = null;
         // First, check the current directory:
@@ -472,7 +477,6 @@ implements VueConstants {
         // get the proper scree/main frame size
         sMapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
         MapInspectorPanel mi = new MapInspectorPanel();
-        ModelSelection.addListener(mi);
         sMapInspector.addTool(mi);
         
         //ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
@@ -613,11 +617,6 @@ implements VueConstants {
     }
     
     
-    static java.util.List sActiveMapListeners = new java.util.ArrayList();
-    public interface ActiveMapListener {
-        public void activeMapChanged(LWMap map);
-    }
-    
     public static void addActiveMapListener(ActiveMapListener l) {
         sActiveMapListeners.add(l);
     }
@@ -627,6 +626,7 @@ implements VueConstants {
     
     
     public static void setActiveViewer(MapViewer viewer) {
+        // todo: does this make sense?
         if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
             ActiveViewer = viewer;
             if (ActiveViewer != null) {
