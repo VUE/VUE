@@ -74,7 +74,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
-         setCellEditor(new OutlineViewTreeEditor(this));
+         setCellEditor(new OutlineViewTreeEditor());
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -269,6 +269,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
             
         //repaints the entire tree
+        revalidate();
         repaint();       
     }
     
@@ -349,18 +350,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         // This is the component that will handle the editing of the cell value
         private OutlineViewEditorElement editorElement = null;
         private final int clickToStartEditing = 2;
-        private JTree tree = null;
         
-        /*
         public OutlineViewTreeEditor()
         {
-            editorElement = new OutlineViewEditorElement(this);
-        }
-        */
-        
-        public OutlineViewTreeEditor(JTree tree)
-        {
-            this.tree = tree;
             editorElement = new OutlineViewEditorElement(this);
         }
         
@@ -393,6 +385,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             if (e.getKeyCode() == KeyEvent.VK_CONTROL)
               this.stopCellEditing();
         }
+        
         /** not used **/
         public void keyPressed(KeyEvent e) 
         {}
@@ -454,8 +447,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         private JTextArea label = null;
         private IconPanel iconPanel = null;
         
-        //private Color selectedColor = VueResources.getColor("treeSelectionColor");
-        private Color selectedColor = Color.blue;
+        private Color selectedColor = VueResources.getColor("outlineTreeSelectionColor");
         private Color nonSelectedColor = Color.white;
         
         public OutlineViewRenderElement()
