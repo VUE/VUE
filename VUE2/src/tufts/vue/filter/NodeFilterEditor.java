@@ -44,39 +44,41 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     
     public NodeFilterEditor( NodeFilter nodeFilter) {
         this(nodeFilter,true);
- 
+        
     }
-     public void mapFilterModelChanged(MapFilterModelEvent e) {
+    public void mapFilterModelChanged(MapFilterModelEvent e) {
         nodeFilter.fireTableDataChanged();
     }
     
     private void setNodeFilterPanel() {
+        addButton.setToolTipText("Add Node Filter");
+        deleteButton.setToolTipText("Delete Delete Filter");
         nodeFilterTable = new JTable(nodeFilter);
         nodeFilterTable.addFocusListener(new FocusListener() {
-             public void focusLost(FocusEvent e) {
-                 if(nodeFilterTable.isEditing()) {
-                     nodeFilterTable.getCellEditor(nodeFilterTable.getEditingRow(),nodeFilterTable.getEditingColumn()).stopCellEditing();
-                 }
-                 nodeFilterTable.removeEditor();
-             }
-             public void focusGained(FocusEvent e) {
-             }
-         });
-       nodeFilterTable.addKeyListener(new KeyAdapter() {
-             public void keyPressed(KeyEvent e) {
-                 if(nodeFilterTable.getSelectedRow() == (nodeFilterTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
-                     addButtonListener.addStatement();
-                 }
-             }
-         });  
-       
+            public void focusLost(FocusEvent e) {
+                if(nodeFilterTable.isEditing()) {
+                    nodeFilterTable.getCellEditor(nodeFilterTable.getEditingRow(),nodeFilterTable.getEditingColumn()).stopCellEditing();
+                }
+                nodeFilterTable.removeEditor();
+            }
+            public void focusGained(FocusEvent e) {
+            }
+        });
+        nodeFilterTable.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if(nodeFilterTable.getSelectedRow() == (nodeFilterTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
+                    addButtonListener.addStatement();
+                }
+            }
+        });
+        
         nodeFilterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         JScrollPane nodeFilterScrollPane=new JScrollPane(nodeFilterTable);
         nodeFilterScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel  nodeFilterPanel=new JPanel();
         nodeFilterPanel.setLayout(new BorderLayout());
         nodeFilterPanel.add( nodeFilterScrollPane, BorderLayout.CENTER);
-       // nodeFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        // nodeFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
         addButtonListener = new AddButtonListener(nodeFilter);
@@ -97,7 +99,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
         operatorEditor = new OperatorCellEditor();
         //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
-        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);        
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -106,12 +108,12 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
         //innerPanel.add(labelPanel);
-        innerPanel.add(bottomPanel);        
+        innerPanel.add(bottomPanel);
         innerPanel.add(nodeFilterPanel);
         setLayout(new BorderLayout());
         add(innerPanel,BorderLayout.CENTER);
         
-        //setSize(300, 300);        
+        //setSize(300, 300);
         validate();
     }
     
@@ -128,13 +130,13 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         nodeFilterTable.getColumnModel().getColumn(NodeFilter.KEY_COL).setCellEditor(keyEditor);
         operatorEditor = new OperatorCellEditor();
         //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
-        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);         
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);
     }
     
     public void activeMapChanged(tufts.vue.LWMap lWMap) {
         lWMap.getMapFilterModel().addListener(this);
-    }    
-  
+    }
+    
     public class AddButtonListener implements ActionListener {
         private  NodeFilter model;
         public AddButtonListener(NodeFilter model) {
@@ -142,11 +144,11 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         }
         
         public void actionPerformed(ActionEvent e) {
-           addStatement();
+            addStatement();
         }
         
         void addStatement() {
-             if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
+            if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
                 Key key = (Key) tufts.vue.VUE.getActiveMap().getMapFilterModel().get(0);
                 Statement stmt = new Statement();
                 stmt.setKey(key);
@@ -156,9 +158,9 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 //tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(model);
                 model.fireTableDataChanged();
             } else {
-              JOptionPane.showMessageDialog(NodeFilterEditor.this,"To create node filter, please add keys in Map Inspector","No Keys In Map",JOptionPane.YES_OPTION);
+                JOptionPane.showMessageDialog(NodeFilterEditor.this,"To create node filter, please add keys in Map Inspector","No Keys In Map",JOptionPane.YES_OPTION);
             }
-                
+            
         }
         
     }
@@ -249,7 +251,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
             typeEditor.setEditable(false);
             
             keyEditor.setPreferredSize(new Dimension(80,20));
-       
+            
             GridBagLayout gridbag = new GridBagLayout();
             GridBagConstraints c  = new GridBagConstraints();
             c.insets = new Insets(2,2, 2, 2);
