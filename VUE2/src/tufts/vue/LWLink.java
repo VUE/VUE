@@ -1023,10 +1023,11 @@ public class LWLink extends LWComponent
         else if (xdiff <= 0 && ydiff >= 0)
             deg = -90 - (90-deg);
 
-        if (VueUtil.isMacPlatform()) {
+        if (false&&VueUtil.isMacPlatform()) {
             // Mac MRJ 69.1 / Java 1.4.1 java bug: approaching 45/-45 & 225/-135 degrees,
             // rotations seriously fuck up (most shapes are translated to infinity and
             // back, except at EXACTLY 45 degrees, where it works fine).
+            // (FYI: fixed at least as of MRJ 117.1 (probably in java 1.4.2 release)
             final int ew = 10; // error-window: # of degrees around 45 that do broken rotations
             if (deg > 45-ew && deg < 45+ew)
                 deg = 45;

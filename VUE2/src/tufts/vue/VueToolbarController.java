@@ -394,22 +394,30 @@ public class VueToolbarController
      * It will notify all toolbar
      *
      **/
-    protected void handleToolSelection( VueTool pTool) {
-		
+    protected void handleToolSelection(VueTool pTool)
+    {
+        if (DEBUG.TOOL) out("handleToolSelection " + pTool);
+        
         VueTool rootTool = pTool;
 		
-        if( pTool.getParentTool() != null ) {
+        if (pTool.getParentTool() != null)
             rootTool = pTool.getParentTool();
-        }
 		
         // check to see if it is the same selection...
         String selectionID = pTool.getSelectionID();
-        if( mCurSelectionID.equals( selectionID) ) {
+        if (mCurSelectionID.equals(selectionID)) {
+            if (DEBUG.TOOL) out("same selection: noop");
+            return;
+        }
+
+        if (rootTool == mSelectedTool) {
+            if (DEBUG.TOOL) out("same root tool: noop");
             return;
         }
 			
         // new tool selection...
-        debug(">>> new tool selection from: "+mCurSelectionID+ " to: "+selectionID );
+        //debug(">>> new tool selection from: "+mCurSelectionID+ " to: "+selectionID );
+
         mCurSelectionID = selectionID;	  	
 
         // update contextual panel
@@ -424,10 +432,13 @@ public class VueToolbarController
 		
         // notify listeners
         int size = mToolSelectionListeners.size();
-        for(int i=0; i<size; i++) {
-            VueToolSelectionListener listener= (VueToolSelectionListener) mToolSelectionListeners.get(i);
-            listener.toolSelected( rootTool);
+        for (int i = 0; i < size; i++) {
+            VueToolSelectionListener listener = (VueToolSelectionListener) mToolSelectionListeners.get(i);
+            if (DEBUG.TOOL) System.out.println("\tVueToolbarController -> toolSelected " + listener);
+            listener.toolSelected(rootTool);
         }
+
+        mSelectedTool = rootTool;
     }
 	 
     /**
@@ -557,6 +568,14 @@ public class VueToolbarController
     }
 
 
+    private void out(String s) {
+        System.out.println(this + " " + s);
+    }
+
+    public String toString() {
+        return "VueToolbarController[" + mSelectedTool + "]";
+    }
+    
     private void debug(String pMsg) {
         if( sDebug )
             System.out.println( pMsg);

@@ -54,27 +54,13 @@ public class NodeToolPanel extends LWCToolPanel
     public static boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    private static class ShapeMenuButton extends MenuButton
+    private static class ShapeMenuButton extends VuePopupMenu
     {
         protected RectangularShape mShape; // an instance of the currently selected shape
 
         public ShapeMenuButton() {
+            super(LWKey.Shape, NodeTool.getTool().getShapeSetterActions());
             setToolTipText("Node Shape");
-            setPropertyKey(LWKey.Shape);
-            Action[] actions = NodeTool.getTool().getShapeSetterActions();
-
-            /*
-            if (DEBUG.Enabled) {
-                for (int i = 0; i < actions.length; i++) {
-                    Action a = actions[i];
-                    System.out.println("*** " + a + " " + a.getValue(LWKey.Shape).getClass());
-                }
-            }
-            */
-            buildMenu(actions);
-
-            // start with icon set to that of first item in the menu
-            //setButtonIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
         }
 
         protected Dimension getButtonSize() {
@@ -103,46 +89,18 @@ public class NodeToolPanel extends LWCToolPanel
             }
         }
 
+        /** @return  an instanceof RectangularShape, suitable for cloning & installing as a new node shape via setShape */
+        public Object getPropertyValue() {
+            return mShape;
+        }
+        
         /** @return new icon for the given shape */
         protected Icon makeIcon(Object value) {
             RectangularShape shape = (RectangularShape) value;
             return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
         }
 	 
-        /** @return  an instanceof RectangularShape, suitable for cloning & installing as a new node shape via setShape */
-        public Object getPropertyValue() {
-            return mShape;
-        }
-
-        /*
-        protected void handleMenuSelection(ActionEvent e) {
-            Icon i = ((AbstractButton)e.getSource()).getIcon();
-            System.out.println(this + " handeMenuSelection: selection was " + i);
-            if (i != null) {
-                setButtonIcon(i);// note: inefficient as creates a new set of VueButtonIcons every time
-                setToolTipText("Node Shape: " + e.getActionCommand());
-            }
-            super.handleMenuSelection(e);
-            //mPopup.setSelected(o);
-        }
-        */
-        
     }
-
-
-    /*
-    void loadValues(Object data) {
-        super.loadValues(data);
-        if (data instanceof LWNode) {
-            if (DEBUG.TOOL) out("loadValues (NodeToolPanel) " + data);
-            LWNode node = (LWNode) data;
-            System.out.println(this + " set the selected shape menu button to " + node.getShape());
-            //mShapeMenuButton.setPropertyValue(...)
-            // and if not save to change above to automatically do the below:
-            //mShapeMenuButton.setButtonIcon(...)
-        }
-    }
-    */
     
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");

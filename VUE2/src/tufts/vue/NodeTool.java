@@ -72,8 +72,22 @@ public class NodeTool extends VueTool
         return sNodeToolPanel;
     }
     
+    public void setSelectedSubTool(VueTool tool) {
+        if (DEBUG.TOOL) out("setSelectedSubTool: " + tool);
+        super.setSelectedSubTool(tool);
+        if (VUE.getSelection().size() > 0) {
+            SubTool shapeTool = (SubTool) tool;
+            shapeTool.getShapeSetterAction().fire(this);
+        }
+    }
+    
     public JPanel getContextualPanel() {
         return getNodeToolPanel();
+    }
+
+    public static NodeTool.SubTool getActiveSubTool()
+    {
+        return (SubTool) getTool().getSelectedSubTool();
     }
 
     public boolean supportsSelection() { return true; }
@@ -193,12 +207,6 @@ public class NodeTool extends VueTool
         return node;
     }
     
-    public static NodeTool.SubTool getActiveSubTool()
-    {
-        return (SubTool) getTool().getSelectedSubTool();
-    }
-
-    
     /** @return an array of actions, with icon set, that will set the shape of selected
      * LWNodes */
     public Action[] getShapeSetterActions() {
@@ -230,7 +238,7 @@ public class NodeTool extends VueTool
     {
         private Class shapeClass = null;
         private RectangularShape cachedShape = null;
-        private Action shapeSetterAction = null;
+        private VueAction shapeSetterAction = null;
             
         public SubTool() {}
 
@@ -243,7 +251,7 @@ public class NodeTool extends VueTool
         
         /** @return an action, with icon set, that will set the shape of selected
          * LWNodes to the current shape for this SubTool */
-        public Action getShapeSetterAction() {
+        public VueAction getShapeSetterAction() {
             if (shapeSetterAction == null) {
                 shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon(getShapeInstance())) {
                         void act(LWNode n) { n.setShape(getShapeInstance()); }

@@ -56,6 +56,15 @@ public class LinkTool extends VueTool
         return sLinkContextualPanel;
     }
 
+    public void setSelectedSubTool(VueTool tool) {
+        if (DEBUG.TOOL) out("setSelectedSubTool: " + tool);
+        super.setSelectedSubTool(tool);
+        if (VUE.getSelection().size() > 0) {
+            SubTool subTool = (SubTool) tool;
+            subTool.getSetterAction().fire(this);
+        }
+    }
+
     public boolean supportsSelection() { return true; }
 
     public boolean handleMousePressed(MapMouseEvent e)
@@ -234,31 +243,22 @@ public class LinkTool extends VueTool
                 commonParent.addChild(pLinkDest);
                 createdNode = true;
             }
+
             LWLink link = new LWLink(pLinkSource, pLinkDest);
 
-            /*
-            if (getSelectedSubTool().getID().equals("linkTool.curve")) {
-                link.setControlCount(1);
-                // new ctrl points are on-center of curve: set ctrl pt off center a bit so can see curve
-                link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
-            }
-            */
-            
             // init link based on user defined state
             VueBeanState state = getLinkToolPanel().getCurrentState();
             if (state != null) {
-                //System.out.println("sst: " + getSelectedSubTool());
                 // override the curve count from the contextual tool state with
                 // the state from the main link tool state.
-                String id = getSelectedSubTool().getID();
-                if (id.endsWith("1"))
-                    state.setPropertyValue(LWKey.LinkCurves, new Integer(1));
-                else if (id.endsWith("2"))
-                    state.setPropertyValue(LWKey.LinkCurves, new Integer(2));
-                else
-                    state.setPropertyValue(LWKey.LinkCurves, new Integer(0));
-
+                SubTool subTool = (SubTool) getSelectedSubTool();
+                state.setPropertyValue(LWKey.LinkCurves, new Integer(subTool.getCurveCount()));
                 state.applyState(link);
+
+                // new ctrl points are on-center of curve: set ctrl pt off center a bit so can see curve
+                //if (subTool.getCurveCount() > 0)
+                //link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
+                
             }
             
             commonParent.addChild(link);
@@ -273,5 +273,40 @@ public class LinkTool extends VueTool
             e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
         }
     }
+
+    public static class SubTool extends VueSimpleTool
+    {
+        private int curveCount = -1;
+        private VueAction setterAction = null;
+            
+        public SubTool() {}
+
+	public void setID(String pID) {
+            super.setID(pID);
+            try {
+                curveCount = Integer.parseInt(getAttribute("curves"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public int getCurveCount() {
+            return curveCount;
+        }
+        
+        /** @return an action that will set the style of selected
+         * LWLinks to the current link style for this SubTool */
+        public VueAction getSetterAction() {
+            if (setterAction == null) {
+                setterAction = new Actions.LWCAction(getToolName(), getIcon()) {
+                        void act(LWLink c) { c.setControlCount(curveCount); }
+                    };
+                setterAction.putValue("property.value", new Integer(curveCount)); // this may be handy
+                // key is from: MenuButton.ValueKey
+            }
+            return setterAction;
+        }
+    }
+    
 
 }

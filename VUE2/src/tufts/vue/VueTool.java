@@ -454,6 +454,10 @@ public abstract class VueTool extends AbstractAction
         setMenuItemSelectedIcon(new ToolIcon(mRawIcon, ToolIcon.MENU_SELECTED));
     }
 
+    public void out(String s) {
+        System.out.println(this + ": " + s);
+    }
+
     static class ToolIcon extends tufts.vue.gui.VueButtonIcon
     {
         static final int Width = 38;
@@ -487,21 +491,21 @@ public abstract class VueTool extends AbstractAction
      * handleSelection
      * @param pEvent the action event
      **/
-    public void actionPerformed( ActionEvent pEvent) {
+    public void actionPerformed(ActionEvent pEvent) {
 		
-        //System.out.println("!!! VueTool.performAction "+getID() );
+        if (DEBUG.TOOL) System.out.println("\n" + this + " " + pEvent);
 		
         VueTool parent = this.getParentTool();
 		
-        if( parent != null) {
-            parent.setSelectedSubTool( this );
-        }
+        if (parent != null)
+            parent.setSelectedSubTool(this);
+
         this.handleSelection();
 		
-        if( parent != null) {
+        if (parent != null)
             parent.handleSelection();
-        }
-        VueToolbarController.getController().handleToolSelection( this);
+
+        VueToolbarController.getController().handleToolSelection(this);
     }
 	
     public abstract JPanel getContextualPanel();
