@@ -29,9 +29,7 @@
       <METS:mdWrap MIMETYPE="text/xml" MDTYPE="OTHER" LABEL="Dublin Core for the Document object">
         <METS:xmlData>
           <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/elements/1.1/">
-            <dc:type>file/binary</dc:type>
-            <dc:title>%file.title%</dc:title>
-            <dc:creator>%creator.name%</dc:creator>
+            %dc.Metadata%
           </oai_dc:dc>
         </METS:xmlData>
       </METS:mdWrap>

@@ -38,7 +38,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 /**
- *
+ * 8-fold cyclic repetition of a beta-strand-loop-alpha- helix-loop module with helix alpha 7 missing. 
  * @author  Daisuke Fujiwara
  */
 

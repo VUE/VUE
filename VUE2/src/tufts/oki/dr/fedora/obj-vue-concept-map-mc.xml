@@ -9,7 +9,7 @@
   <!---*******************************************************************************************************************************************-->
   <METS:metsHdr ID="H1" CREATEDATE="2003-06-10T17:17:19" LASTMODDATE="2003-06-10T17:17:19" RECORDSTATUS="A">
     <METS:agent ID="A1" ROLE="CREATOR" TYPE="INDIVIDUAL">
-      <METS:name>Nikolai Schwertner</METS:name>
+      <METS:name>%creator.name%</METS:name>
       <METS:note/>
     </METS:agent>
     <METS:agent ID="A2" ROLE="CUSTODIAN" TYPE="ORGANIZATION">
@@ -29,9 +29,7 @@
       <METS:mdWrap MIMETYPE="text/xml" MDTYPE="OTHER" LABEL="Dublin Core for the Document object">
         <METS:xmlData>
           <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/elements/1.1/">
-            <dc:type>application/zip</dc:type>
-            <dc:title>Sample Concept Map</dc:title>
-            <dc:creator>VUI Editor</dc:creator>
+      		%dc.Metadata%
           </oai_dc:dc>
         </METS:xmlData>
       </METS:mdWrap>

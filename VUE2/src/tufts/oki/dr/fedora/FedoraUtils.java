@@ -61,10 +61,10 @@ public class FedoraUtils {
     }
     
     public static String[] getAdvancedSearchFields(DR dr)  throws osid.dr.DigitalRepositoryException{
-        return getFedoraPropertyArray(dr,"fedora.advanced.search.fields");
+        return getFedoraPropertyArray(dr,"fedora.search.advanced.fields");
     }
     public static String[] getAdvancedSearchOperators(DR dr)  throws osid.dr.DigitalRepositoryException{
-        return getFedoraPropertyArray(dr,"fedora.advanced.search.operators");
+        return getFedoraPropertyArray(dr,"fedora.search.advanced.operators");
 
     }
     public static String getAdvancedSearchOperatorsActuals(DR dr,String pOperator) throws osid.dr.DigitalRepositoryException{

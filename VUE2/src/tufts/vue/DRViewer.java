@@ -53,20 +53,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             "10",
             "25" 
       };
-    JTextField idField = new JTextField();
-    JTextField titleField = new JTextField();
-    JTextField creatorField = new JTextField();
-    JTextField typeField = new JTextField();
-    JTextField coverageField = new JTextField();
     
-    Object[] labelTextPairs = {
-            "ID", idField,
-            "title", titleField,
-            "Creator", creatorField ,
-            "type", typeField,
-            "coverage", coverageField
-    };
-    
+  
     /** Creates a new instance of DRViewer */
     public DRViewer() {
     }
@@ -85,19 +73,18 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         try {
             dr = new DR(conf,id,displayName,description,address,userName,password);
             // this part will be taken from the configuration file later.
-       } catch(osid.OsidException ex) {
+        } catch(osid.OsidException ex) {
             JOptionPane.showMessageDialog(this,
-                                          "Cannot Create Digital Repository\n"
-                                          + ex.getClass().getName() + ":\n" + ex.getMessage(),
-                                          "FEDORA Alert",
-                                          JOptionPane.ERROR_MESSAGE);
+                "Cannot Create Digital Repository\n" + ex.getClass().getName() + ":\n" + ex.getMessage(),
+                "FEDORA Alert",
+                JOptionPane.ERROR_MESSAGE);
         }
         keywords = new JTextField();
         setSearchPanel();
         setAdvancedSearchPanel();
         tabbedPane.addTab("Search" , DRSearch);
         tabbedPane.addTab("Advanced Search",advancedSearchPanel);
-        tabbedPane.add("Search Results",DRSearchResults);   
+        tabbedPane.addTab("Search Results",DRSearchResults);   
        // tabbedPane.setBackground(new Color(200,200,50));
        // tabbedPane.setBackgroundAt(1,new Color(100,100,50));
         //tabbedPane.setForeground(new Color(100,100,240));
@@ -230,16 +217,14 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          // NORTH: modifyConditionsInnerPanel
          
          // GRID: addConditionButton
-         JButton addConditionButton=new JButton("Add..");
-         addConditionButton.setSize(new Dimension(100,20));
+         JButton addConditionButton=new JButton(VueResources.getImageIcon("addLight"));
+         addConditionButton.setPreferredSize(new Dimension(17, 17));
          
          // GRID: modifyConditionButton
-         JButton modifyConditionButton=new JButton("Change..");
-         modifyConditionButton.setSize(new Dimension(100,20));
          
          // GRID: deleteConditionButton
-         JButton deleteConditionButton=new JButton("Delete");
-         deleteConditionButton.setSize(new Dimension(100,20));
+         JButton deleteConditionButton=new JButton( VueResources.getImageIcon("deleteLight"));
+         deleteConditionButton.setPreferredSize(new Dimension(17, 17));
          
          JButton advancedSearchButton = new JButton("Advanced Search");
          advancedSearchButton.setSize(new Dimension(100,20));
@@ -247,91 +232,50 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          // Now that buttons are available, register the
          // list selection listener that sets their enabled state.
          conditionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-         ConditionSelectionListener sListener= new ConditionSelectionListener(modifyConditionButton,deleteConditionButton, -1);
+         
+         // setting editors for columns
+         // field column.
+         try {
+            JComboBox comboBox = new JComboBox(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr));
+            conditionsTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
+            comboBox = new JComboBox(FedoraUtils.getAdvancedSearchOperators((tufts.oki.dr.fedora.DR)dr));
+            conditionsTable.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(comboBox));
+         } catch(Exception ex) {
+             System.out.println("Can't set the editors"+ex);
+         }
+         ConditionSelectionListener sListener= new ConditionSelectionListener(deleteConditionButton, -1);
          conditionsTable.getSelectionModel().addListSelectionListener(sListener);
          // ..and add listeners to the buttons
          
+         
          addConditionButton.addActionListener(new AddConditionButtonListener(m_model));
-         modifyConditionButton.addActionListener(new ChangeConditionButtonListener(m_model, sListener));
          deleteConditionButton.addActionListener(new DeleteConditionButtonListener(m_model, sListener));
          
-         JPanel modifyConditionsInnerPanel=new JPanel();
-         modifyConditionsInnerPanel.setLayout(new GridLayout(4, 1));
-         modifyConditionsInnerPanel.add(addConditionButton);
-         modifyConditionsInnerPanel.add(modifyConditionButton);
-         modifyConditionsInnerPanel.add(deleteConditionButton);
-         modifyConditionsInnerPanel.add(advancedSearchButton);
+         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+         topPanel.add(addConditionButton);
+         topPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+         topPanel.add(deleteConditionButton);
          
+         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,6,0));
+         bottomPanel.add(advancedSearchButton);
+         bottomPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
          
-         JPanel modifyConditionsOuterPanel=new JPanel();
-         modifyConditionsOuterPanel.setLayout(new BorderLayout());
-         modifyConditionsOuterPanel.add(modifyConditionsInnerPanel, BorderLayout.NORTH);
-
+        
         
          advancedSearchPanel=new JPanel();
-         advancedSearchPanel.setLayout(new BorderLayout());
+         advancedSearchPanel.setLayout(new BoxLayout(advancedSearchPanel, BoxLayout.Y_AXIS));
          advancedSearchPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
-         advancedSearchPanel.add(innerConditionsPanel, BorderLayout.CENTER);
-         advancedSearchPanel.add(modifyConditionsOuterPanel, BorderLayout.EAST);
+         
+         advancedSearchPanel.add(topPanel);
+         advancedSearchPanel.add(innerConditionsPanel);
+         advancedSearchPanel.add(bottomPanel);
+        
+        
          //advancedSearchPanel.add(advancedSearchButton,BorderLayout.SOUTH);
          advancedSearchPanel.validate();
      }
      
-     /**
-     private void setAdvancedSearchPanel() {
-         advancedSearchPanel = new JPanel();
-         GridBagLayout gridBag = new GridBagLayout();
-         advancedSearchPanel.setLayout(gridBag);
-         addLabelTextRows(labelTextPairs,gridBag,advancedSearchPanel);
-     }
-    
-    
-    private void addLabelTextRows(Object[] labelTextPairs,
-                                  GridBagLayout gridbag,
-                                  Container container)
-    {
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.EAST;
-        int num = labelTextPairs.length;
-
-        for (int i = 0; i < num; i += 2) {
-            c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
-            c.fill = GridBagConstraints.NONE;      //reset to default
-            c.weightx = 0.0;                       //reset to default
-
-            String txt = (String) labelTextPairs[i];
-            txt += ": ";
-
-            JLabel label = new JLabel(txt);
-            //JLabel label = new JLabel(labels[i]);
-            //label.setFont(VueConstants.SmallFont);
-            gridbag.setConstraints(label, c);
-            container.add(label);
-
-            c.gridwidth = GridBagConstraints.REMAINDER;     //end row
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.weightx = 1.0;
-
-            JComponent field = (JComponent) labelTextPairs[i+1];
-            //field.setFont(VueConstants.SmallFont);
-            if (field instanceof JTextField) {
-                ((JTextField)field).addActionListener(this);
-                ((JTextField)field).addKeyListener(this);
-            }
-            gridbag.setConstraints(field, c);
-            container.add(field);
-        }
-        
-        c.insets = new Insets(20, 40, 10, 5);
-        c.anchor = GridBagConstraints.EAST;
-        c.fill = GridBagConstraints.NONE;
-        JButton advancedSearchButton = new JButton("Advanced Search");
-        advancedSearchButton.setSize(new Dimension(160,20));
-        advancedSearchButton.addActionListener(this);
-        gridbag.setConstraints(advancedSearchButton,c);
-        container.add(advancedSearchButton);
-    }   
-    **/
+   
      
     private void performSearch() {
         osid.dr.AssetIterator resultObjectsIterator;
@@ -353,45 +297,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     private void performAdvancedSearch() {
         osid.dr.AssetIterator resultObjectsIterator;
         try {
-            java.util.Vector conditionVector = new java.util.Vector();
-            Condition condition=new Condition();
-            if(idField.getText().length() > 0) {
-                condition.setValue(idField.getText());
-                condition.setProperty("pid");
-                condition.setOperator(ComparisonOperator.eq);
-                conditionVector.add(condition);
-            }
-            if(titleField.getText().length()>0) {
-                condition.setValue(titleField.getText());
-                condition.setProperty("title");
-                condition.setOperator(ComparisonOperator.has);
-                conditionVector.add(condition);
-            }
-             if(creatorField.getText().length()>0) {
-                condition.setValue(creatorField.getText());
-                condition.setProperty("creator");
-                condition.setOperator(ComparisonOperator.has);
-                conditionVector.add(condition);
-            }
-            if(typeField.getText().length()>0) {
-                condition.setValue(typeField.getText());
-                condition.setProperty("type");
-                condition.setOperator(ComparisonOperator.has);
-                conditionVector.add(condition);
-            }
-             if(coverageField.getText().length()>0) {
-                condition.setValue(coverageField.getText());
-                condition.setProperty("coverage");
-                condition.setOperator(ComparisonOperator.has);
-                conditionVector.add(condition);
-            }
-            Condition[] cond=new Condition[conditionVector.size()];
-            for(int i=0;i<cond.length;i++)
-                cond[i] = (Condition)conditionVector.get(i);
-            searchCriteria.setConditions(cond);
+           
+            searchCriteria.setConditions((fedora.server.types.gen.Condition[])m_model.getConditions().toArray(new Condition[0]));
             searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
-            resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
-            //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
+            resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
             JScrollPane jsp = new JScrollPane(tree);
@@ -399,7 +308,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             DRSearchResults.add(jsp,BorderLayout.CENTER,0);
             tabbedPane.setSelectedComponent(DRSearchResults);
         } catch (Exception ex) {
-                        System.out.println(ex);
+            ex.printStackTrace();
+                       
         }
     }
     
@@ -450,6 +360,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
 
         public ConditionsTableModel() {
             m_conditions=new ArrayList();
+            Condition cond = new Condition();
+            cond.setProperty("label");
+            cond.setOperator(ComparisonOperator.has);
+            cond.setValue("");
+            m_conditions.add(cond);
         }
 
         public ConditionsTableModel(List conditions) {
@@ -459,14 +374,14 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         public List getConditions() {
             return m_conditions;
         }
-
+      
         public String getColumnName(int col) {
             if (col==0) {
                 return "Field";
             } else if (col==1) {
-                return "Operator";
+                return "Criteria";
             } else {
-                return "Value";
+                return "Search";
             }
         }
 
@@ -487,12 +402,48 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             if (col==0) {
                 return cond.getProperty();
             } else if (col==1) {
-                return getNiceName(cond.getOperator().toString());
+               return getNiceName(cond.getOperator().toString());
             } else {
                 return cond.getValue();
             }
         }
+        public boolean isCellEditable(int row, int col) {
+            //Note that the data/cell address is constant,
+            //no matter where the cell appears onscreen.
+            return true;
+        }
 
+        /*
+         * Don't need to implement this method unless your table's
+         * data can change.
+         */
+     
+        public void setValueAt(Object value, int row, int col) {
+            Condition cond;
+            if(row == -1)
+                cond  = new Condition();
+            else
+                cond = (Condition) m_conditions.get(row);
+            if(col == 0)
+                cond.setProperty((String)value);
+            if(col == 1) {
+                try {
+                    cond.setOperator(ComparisonOperator.fromValue(FedoraUtils.getAdvancedSearchOperatorsActuals((tufts.oki.dr.fedora.DR)dr,(String)value)));
+                } catch (Exception ex) {
+                    System.out.println("Value = "+value+": Not supported -"+ex);
+                    cond.setOperator(ComparisonOperator.ge);
+                }
+            }
+            if(col == 2)
+                cond.setValue((String)value);
+            // row = -1 adds new condions else replace the existing one.
+            if (row==-1)
+               m_conditions.add(cond);
+            else 
+                m_conditions.set(row, cond);
+            fireTableCellUpdated(row, col);
+        }
+    
         private String getNiceName(String operString) {
             if (operString.equals("has")) return "contains";
             if (operString.equals("eq")) return "equals";
@@ -508,13 +459,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             implements ListSelectionListener {
 
         private int m_selectedRow;
-        private JButton m_modifyButton;
-        private JButton m_deleteButton;
+       private JButton m_deleteButton;
 
-        public ConditionSelectionListener(JButton modifyButton,
-                JButton deleteButton, int selectedRow) {
+        public ConditionSelectionListener(JButton deleteButton, int selectedRow) {
             m_selectedRow=selectedRow;
-            m_modifyButton=modifyButton;
             m_deleteButton=deleteButton;
             updateButtons();
         }
@@ -538,10 +486,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
 
         private void updateButtons() {
             if (getSelectedRow()==-1) {
-                m_modifyButton.setEnabled(false);
-                m_deleteButton.setEnabled(false);
+               m_deleteButton.setEnabled(false);
             } else {
-                m_modifyButton.setEnabled(true);
                 m_deleteButton.setEnabled(true);
             }
         }
@@ -553,12 +499,22 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
 
         public AddConditionButtonListener(ConditionsTableModel model) {
             m_model=model;
+           
         }
 
         public void actionPerformed(ActionEvent e) {
-            ModConditionDialog dialog=new ModConditionDialog(m_model, -1);
-            dialog.setVisible(true);
+            Condition cond=new Condition();
+            try {
+                cond.setProperty(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr)[0]);
+            } catch (Exception ex) {
+               cond.setProperty("label");
+            }
+            cond.setOperator(ComparisonOperator.has);
+            cond.setValue("");
+            m_model.getConditions().add(cond);
+            m_model.fireTableDataChanged();
         }
+          
     }
       
       public class ChangeConditionButtonListener
