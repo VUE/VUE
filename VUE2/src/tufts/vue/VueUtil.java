@@ -910,8 +910,22 @@ public class VueUtil
     
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
-         javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      
+         javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
     }
    
+    public static void alert(String message,String title) {
+         javax.swing.JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
+    }
+   
+    public static void confirm(String message,String title) {
+        JOptionPane.showConfirmDialog(tufts.vue.VUE.getInstance(),message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
+    }
+    
+    public static void confirm(javax.swing.JComponent component, String message, String title) {
+        JOptionPane.showConfirmDialog(component,message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
+    }
+    
+               
+        
     
 }
