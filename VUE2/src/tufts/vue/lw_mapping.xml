@@ -16,7 +16,29 @@
     <field name="x" direct="true"><bind-xml node="attribute"/></field>
     <field name="y" direct="true"><bind-xml node="attribute"/></field>
   </class>
-
+  <!--class name="java.awt.geom.RectangularShape">
+    <map-to xml="shape"/>
+  </class -->
+  <class name="java.awt.geom.Rectangle2D$Float">
+    <map-to xml="rectangle"/>
+  </class>
+  <class name="java.awt.geom.Ellipse2D$Float">
+    <map-to xml="ellipse"/>
+  </class>
+  <class name="java.awt.geom.RoundRectangle2D$Float">
+    <map-to xml="roundRect"/>
+    <field name="arcwidth" direct="true"><bind-xml node="attribute"/></field>
+    <field name="archeight" direct="true"><bind-xml node="attribute"/></field>
+  </class>
+  <class name="tufts.vue.LWNode$NodeShape">
+    <map-to xml="nodeShape"/>
+    <field name="equalAspect" type="boolean">
+      <bind-xml node="attribute"/>
+    </field>
+    <field name="shape">
+      <bind-xml node="element"/>
+    </field>
+  </class>
   <class name="tufts.vue.LWComponent">
     <!-- castor can figure out types, we leave string as defaulted.
       -->
@@ -55,8 +77,7 @@
 			<bind-xml name="strokeWidth" node="attribute"/>
 		</field>
                 
-                <!-- Shape doesn't marshall, is ignored because is interface. -->
-                <!-- now it's trying!-->
+                <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
 		</field -->
@@ -93,6 +114,9 @@
 		<field name="autoSized" type="boolean">
 			<bind-xml name="autoSized" node="attribute"/>
 		</field>
+		<field name="nodeShape">
+			<bind-xml name="nodeShape" node="element"/>
+		</field>
 	</class>
 	
 	<class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
@@ -127,6 +151,7 @@
 	</class>
         -->
 	<!-- FEDORA OBJECTS -->
+        <!--
 	<class name="tufts.dr.fedora.FedoraObject">
 		<map-to xml="object"/>
 		<field name="ID" type="java.lang.String">
@@ -157,5 +182,6 @@
 		<field name="extraTags" set-method="addObject" type="java.lang.Object" collection="vector">
 			<bind-xml matches="*" />
 		</field>
-	</class>  
+	</class>
+        -->
 </mapping>

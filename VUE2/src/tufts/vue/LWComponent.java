@@ -143,9 +143,8 @@ public class LWComponent
     // list of LWLinks that contain us as an endpoint
     private transient java.util.List links = new java.util.ArrayList();
 
-    // Scale currently exists ONLY to support the child-node feature.
+    // Scale currently exists ONLY to support the auto-managed child-node feature of nodes
     protected transient float scale = 1.0f;
-    protected final float ChildScale = 0.75f;
 
     private transient java.util.List listeners;
 
@@ -155,17 +154,6 @@ public class LWComponent
         //System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
     }
     
-    // If the component has an area, it should
-    // implement getShape().  Links, for instance,
-    // don't need to implement this.
-    public Shape getShape()
-    {
-        return null;
-    }
-    public void setShape(Shape shape)
-    {
-        throw new RuntimeException("UNIMPLEMNTED setShape in " + this);
-    }
     public Color getFillColor()
     {
         return this.fillColor;
@@ -409,46 +397,8 @@ public class LWComponent
     {
         return getLinkTo(c) != null;
     }
-
-    // todo: okay, this is messy -- do we really want this?
-    protected void ensureLinksPaintOnTopOfAllParents()
-    {
-        java.util.Iterator i = this.links.iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
-            // don't need to do anything if link doesn't cross a (logical) parent boundry
-            if (l.getComponent1().getParent() == l.getComponent2().getParent())
-                continue;
-            // also don't need to do anything if link is BETWEEN a parent and a child
-            // (in which case, btw, we don't even SEE the link)
-            if (l.getComponent1().getParent() == l.getComponent2())
-                continue;
-            if (l.getComponent2().getParent() == l.getComponent1())
-                continue;
-            /*
-            System.err.println("*** ENSURING " + l);
-            System.err.println("    (parent) " + l.getParent());
-            System.err.println("  ep1 parent " + l.getComponent1().getParent());
-            System.err.println("  ep2 parent " + l.getComponent2().getParent());
-            */
-            LWContainer commonParent = l.getParent();
-            if (commonParent != getParent()) {
-                // If we don't have the same parent, we may need to shuffle the deck
-                // so that any links to us will be sure to paint on top of the parent
-                // we do have, so you can see the link goes to us (this), and not our
-                // parent.  todo: nothing in runtime that later prevents user from
-                // sending link to back and creating a very confusing visual situation,
-                // unless all of our parents happen to be transparent.
-                LWComponent topMostParentThatIsSiblingOfLink = getParentWithParent(commonParent);
-                if (topMostParentThatIsSiblingOfLink == null)
-                    System.err.println("### COULDN'T FIND COMMON PARENT FOR " + this);
-                else
-                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
-            }
-        }
-    }
-
-    LWComponent getParentWithParent(LWContainer parent)
+    /* supports ensure link paint order code */
+    protected  LWComponent getParentWithParent(LWContainer parent)
     {
         if (getParent() == parent)
             return this;
@@ -457,7 +407,7 @@ public class LWComponent
         return getParent().getParentWithParent(parent);
     }
 
-    public void setScale(float scale)
+    void setScale(float scale)
     {
         this.scale = scale;
         notify("scale");
@@ -521,6 +471,21 @@ public class LWComponent
     public void setAbsoluteWidth(float w) { this.width = w; }
     public void setAbsoluteHeight(float h) { this.height = h; }
     
+    // If the component has an area, it should
+    // implement getShape().  Links, for instance,
+    // don't need to implement this.
+    // todo: that seems a bit inconsistent...  Why
+    // don't links just return their line??
+    public Shape getShape()
+    {
+        //return getBounds(); ?
+        return null;
+    }
+    public void setShape(Shape shape)
+    {
+        throw new UnsupportedOperationException("unimplemented setShape in " + this);
+    }
+
     public Rectangle2D getBounds()
     {
         // todo opt: cache this object?

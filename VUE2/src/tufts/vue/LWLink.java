@@ -296,6 +296,7 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         // Set the stroke line
         //-------------------------------------------------------
+        // todo: compute & return this in getShape
         this.line.setLine(startX, startY, endX, endY);
 
 

@@ -187,12 +187,15 @@ public final class LWGroup extends LWContainer
         // so don't have to do all this
     }
     
-    // don't scale the group object -- only it's children
     // todo: Can't sanely support scaling of a group because
     // we'd also have to scale the space between the
     // the children, and scale is already a hack feature
     // that I'm hoping we'll be able to make go away.
-    public void setScale(float scale) {}
+    void setScale(float scale)
+    {
+        // intercept any attempt at scaling us and turn it off
+        super.setScale(1f);
+    }
 
     public void XsetScale(float scale)
     {

@@ -419,6 +419,7 @@ public class VUE
         JToolBar toolBar = new JToolBar();
         toolBar.add(Actions.NewMap);
         toolBar.add(openAction);
+        toolBar.add(Actions.CloseMap);
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);
         toolBar.add(printAction);
@@ -449,6 +450,8 @@ public class VUE
         map.addNode(new LWNode("Two"));
         map.addNode(new LWNode("Three"));
         map.addNode(new LWNode("Four"));
+        
+        map.addNode(LWNode.createTextNode("jumping"));
     }
     
     static void installExampleMap(LWMap map)

@@ -28,6 +28,7 @@ public interface VueConstants
     static java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
     static java.awt.Color COLOR_BORDER = java.awt.Color.black;
     static java.awt.Color COLOR_FAINT = java.awt.Color.lightGray;
+    static java.awt.Color COLOR_TRANSPARENT = null;
 
     static java.awt.Color COLOR_TEXT = java.awt.Color.black;
     static java.awt.Color COLOR_FILL = java.awt.Color.gray;

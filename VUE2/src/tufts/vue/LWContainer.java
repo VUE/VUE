@@ -200,23 +200,60 @@ public abstract class LWContainer extends LWComponent
     public void addChild(LWComponent c)
     {
         addChildInternal(c);
-        c.ensureLinksPaintOnTopOfAllParents();
+        ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
         c.notify("added", this);
         notify("childAdded", c);
     }
     
-    // todo: okay, this is messy -- do we really want this?
-    protected void ensureLinksPaintOnTopOfAllParents()
+    private void ensureLinksPaintOnTopOfAllParents()
     {
-        super.ensureLinksPaintOnTopOfAllParents();
+        ensureLinksPaintOnTopOfAllParents((LWComponent) this);
         java.util.Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.ensureLinksPaintOnTopOfAllParents();
+            ensureLinksPaintOnTopOfAllParents(c);
             if (c instanceof LWContainer)
-                ((LWContainer)c).ensureLinksPaintOnTopOfAllParents();
+                ensureLinksPaintOnTopOfAllParents((LWContainer)c);
         }
     }
+
+    private static void ensureLinksPaintOnTopOfAllParents(LWComponent component)
+    {
+        java.util.Iterator i = component.getLinkRefs().iterator();
+        while (i.hasNext()) {
+            LWLink l = (LWLink) i.next();
+            // don't need to do anything if link doesn't cross a (logical) parent boundry
+            if (l.getComponent1().getParent() == l.getComponent2().getParent())
+                continue;
+            // also don't need to do anything if link is BETWEEN a parent and a child
+            // (in which case, at the moment, we don't even see the link)
+            if (l.getComponent1().getParent() == l.getComponent2())
+                continue;
+            if (l.getComponent2().getParent() == l.getComponent1())
+                continue;
+            /*
+            System.err.println("*** ENSURING " + l);
+            System.err.println("    (parent) " + l.getParent());
+            System.err.println("  ep1 parent " + l.getComponent1().getParent());
+            System.err.println("  ep2 parent " + l.getComponent2().getParent());
+            */
+            LWContainer commonParent = l.getParent();
+            if (commonParent != component.getParent()) {
+                // If we don't have the same parent, we may need to shuffle the deck
+                // so that any links to us will be sure to paint on top of the parent
+                // we do have, so you can see the link goes to us (this), and not our
+                // parent.  todo: nothing in runtime that later prevents user from
+                // sending link to back and creating a very confusing visual situation,
+                // unless all of our parents happen to be transparent.
+                LWComponent topMostParentThatIsSiblingOfLink = component.getParentWithParent(commonParent);
+                if (topMostParentThatIsSiblingOfLink == null)
+                    System.err.println("### COULDN'T FIND COMMON PARENT FOR " + component);
+                else
+                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
+            }
+        }
+    }
+    
     protected void removeChild(LWComponent c)
     {
         removeChildInternal(c);
@@ -544,27 +581,26 @@ public abstract class LWContainer extends LWComponent
         
     }
 
-    // todo: this really wants to be in LWNode, not general to container,
-    // or even better, support this feature in a much cleaner way
+    // todo: even better, support this feature in a much cleaner way
     // (e.g., tweak the font size or something)
-    public void setScale(float scale)
+    void setScale(float scale)
     {
-        super.setScale(scale);
         //System.out.println("Scale set to " + scale + " in " + this);
+        super.setScale(scale);
         java.util.Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            // todo: temporary hack color change for children
-            if (c.isManagedColor()) {
-                if (COLOR_NODE_DEFAULT.equals(getFillColor()))
-                    c.setFillColor(COLOR_NODE_INVERTED);
-                else
-                    c.setFillColor(COLOR_NODE_DEFAULT);
-            }
-            c.setScale(scale * ChildScale);
+            setScaleOnChild(scale, c);
         }
         layout(); // todo: if we leave scaling in, see if can do this less frequently
     }
+
+    void setScaleOnChild(float scale, LWComponent c)
+    {
+        // vanilla containers don't scale down their children -- only nodes do
+        c.setScale(scale);
+    }
+    //void float getChildScale() // if we get rid of color toggling, cleaner to implement this way
     
     /**
      * If this container supports special layout for it's children,
@@ -578,7 +614,7 @@ public abstract class LWContainer extends LWComponent
             java.util.Iterator i = getChildIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                c.draw((java.awt.Graphics2D) g.create());
+                c.draw((java.awt.Graphics2D) g.create()); // todo opt: remove the create?
             }
         }
         if (DEBUG_CONTAINMENT) {

@@ -22,15 +22,17 @@ import java.util.ArrayList;
 public class LWNode extends LWContainer
     implements Node
 {
+    protected final float ChildScale = 0.75f;   // % scale-down of children
     private final int VerticalChildGap = 2;
     
     protected RectangularShape drawnShape; // 0 based, not scaled
-    protected RectangularShape boundsShape; // map based, scaled
+    protected RectangularShape boundsShape; // map based, scaled (not used at moment)
+    protected NodeShape nodeShape;
+    protected boolean equalAspect = false;
+    //todo: probably collapse off of the above into NodeShape
     
-    private float borderWidth = 2;
     private ArrayList borderList = new ArrayList();
     private ImageIcon imageIcon = null;
-    private boolean fixedAspect = false;
     private boolean autoSized = true; // compute size from label & children
 
     // Internal spacial layout
@@ -38,6 +40,7 @@ public class LWNode extends LWContainer
     private final int padY = 6;
     private float fontHeight;
     private float fontStringWidth;
+    private float borderWidth = 2; // what is this really?
 
     
     public LWNode(String label)
@@ -49,8 +52,7 @@ public class LWNode extends LWContainer
     LWNode(String label, float x, float y)
     {
         setLabel(label);
-        // set default shape -- todo: get this from NodeTool
-        setShape(StandardShapes[4]);
+        setNodeShape(StandardShapes[4]);
         setFillColor(COLOR_NODE_DEFAULT);
         setLocation(x, y);
         setStrokeWidth(2f);
@@ -61,28 +63,31 @@ public class LWNode extends LWContainer
         this(label, 0, 0);
         setResource(resource);
     }
-    // for save/restore only
+    // internal convenience
+    LWNode(String label, int shapeType)
+    {
+        this(label);
+        setNodeShape(StandardShapes[shapeType]);
+    }
+
+    /** for save/restore only */
     public LWNode()
     {
-        setShape(StandardShapes[4]);//todo: from persist
+        setNodeShape(StandardShapes[4]);
+        //todo: remove this setShape eventually (or change to plain rectangle)
+        // this is only here for temporary backward compat
+        // with saved map files that have no shape information
     }
 
     static LWNode createTextNode(String text)
     {
         LWNode node = new LWNode(text);
-        node.setShape(StandardShapes[3]);
+        node.setNodeShape(StandardShapes[3]);
         node.setStrokeWidth(0f);
-        node.setFillColor(null);
+        node.setFillColor(COLOR_TRANSPARENT);
         return node;
     }
     
-    // temporary convience
-    LWNode(String label, int shapeType)
-    {
-        this(label);
-        setShape(StandardShapes[shapeType]);
-    }
-
     public void setIcon(javax.swing.ImageIcon icon) {}
     public javax.swing.ImageIcon getIcon() { return null; }
     
@@ -101,17 +106,25 @@ public class LWNode extends LWContainer
         return this.boundsShape;
     }
 
-    public void setShape(NodeShape nodeShape)
+    /** for persistance */
+    public NodeShape getNodeShape()
     {
-        this.fixedAspect = nodeShape.equalAspect;
-        setShape(nodeShape.getShape());
+        return this.nodeShape;
+    }
+    public void setNodeShape(NodeShape nodeShape)
+    {
+        this.nodeShape = nodeShape;
+        this.equalAspect = nodeShape.equalAspect;
+        setShape(nodeShape.getShapeInstance());
+        // todo: getShapeInstance is redundant during restores
     }
     
-    // for persistance
+    /*
     public void setShape(Shape shape)
     {
         setShape((RectangularShape)shape);
     }
+    */
     private void setShape(RectangularShape shape)
     {
         //System.out.println("SETSHAPE " + shape + " in " + this);
@@ -152,23 +165,21 @@ public class LWNode extends LWContainer
     public void addChild(LWComponent c)
     {
         super.addChild(c);
-        //c.setScale(getScale() * ChildScale);
-        setScale(getScale());// to propagate color toggle hack
+        setScale(getScale());// todo: only to propagate color toggle hack
         layout();
     }
 
     public void setSize(float w, float h)
     {
-        if (DEBUG_LAYOUT) System.out.println("*** LWNode setSize " + w + "x" + h + " " + this);
+        if (DEBUG_LAYOUT) System.out.println("*** " + this + " setSize " + w + "x" + h);
         setSizeNoLayout(w, h);
         layout();
     }
     
     private void setSizeNoLayout(float w, float h)
     {
-        //System.out.println("setSize " + w + "x" + h);
-        if (this.fixedAspect) {
-            // todo: remember aspect so can keep it if other than 1/1
+        if (DEBUG_LAYOUT) System.out.println("*** " + this + " setSizeNoLayout " + w + "x" + h);
+        if (equalAspect) {
             if (w > h)
                 h = w;
             else
@@ -179,10 +190,21 @@ public class LWNode extends LWContainer
         adjustDrawnShape();
     }
 
-    public void setScale(float scale)
+    void setScale(float scale)
     {
         super.setScale(scale);
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
+    }
+    void setScaleOnChild(float scale, LWComponent c)
+    {
+        // todo: temporary hack color change for children
+        if (c.isManagedColor()) {
+            if (COLOR_NODE_DEFAULT.equals(getFillColor()))
+                c.setFillColor(COLOR_NODE_INVERTED);
+            else
+                c.setFillColor(COLOR_NODE_DEFAULT);
+        }
+        c.setScale(scale * ChildScale);
     }
     
     private void adjustDrawnShape()
@@ -429,7 +451,6 @@ public class LWNode extends LWContainer
         float scale = getScale();
         if (scale != 1f)
             g.scale(scale, scale);
-        g.setFont(getFont());
             
         String label = getLabel();
 
@@ -504,10 +525,6 @@ public class LWNode extends LWContainer
                 g.draw(drawnShape);
             }
         }
-        
-        //g.setStroke(new java.awt.BasicStroke(0.001f));
-        //g.setColor(Color.green);
-        //g.draw(boundsShape);
 
         //-------------------------------------------------------
         // Draw the text label if any
@@ -524,12 +541,14 @@ public class LWNode extends LWContainer
                                              fontStringWidth,
                                              fontHeight));
             }
+            g.setFont(getFont());
             g.setColor(getTextColor());
             g.drawString(label, labelX(), textBaseline);
             //g.drawString(label, getX() + labelX(), getY() + textBaseline);
         }
 
         /*
+          // todo: make a viewer option?
           // temp: show the resource--  todo: display an icon
         if (getNode().getResource() != null) {
             g.setFont(VueConstants.SmallFont);
@@ -552,10 +571,11 @@ public class LWNode extends LWContainer
         super.draw(g);
     }
 
-    static class NodeShape {
-        private final String name;
-        private final RectangularShape shape;
-        private final boolean equalAspect;
+    public static class NodeShape {
+        String name;
+        RectangularShape shape;
+        boolean equalAspect;
+
         private NodeShape(String name, RectangularShape shape, boolean equalAspect)
         {
             this.name = name;
@@ -566,7 +586,30 @@ public class LWNode extends LWContainer
         {
             this(name, shape, false);
         }
-        RectangularShape getShape()
+
+        /** for XML persistance */
+        public NodeShape() {}
+
+        public Shape getShape()
+        {
+            return shape;
+        }
+        /** for XML persistance */
+        public void setShape(RectangularShape s)
+        {
+            shape = s;
+        }
+        /** for XML persistance */
+        public boolean isEqualAspect()
+        {
+            return equalAspect;
+        }
+        /** for XML persistance */
+        public void setEqualAspect(boolean tv)
+        {
+            equalAspect = tv;
+        }
+        RectangularShape getShapeInstance()
         {
             return (RectangularShape) shape.clone();
         }

@@ -53,6 +53,7 @@ public class LWMap extends LWContainer
         System.out.println(getLabel() + ": completing restore...");
         resolvePersistedLinks(this);
         setChildScaleValues();
+        //setScale(getScale());
         setChildParentReferences();
         nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
