@@ -68,6 +68,7 @@ class MapDropTarget
         // that we can't accept it.
 
     private final boolean debug = true;
+    private final static boolean CenterNodesOnDrop = true;
     
     private MapViewer viewer;
 
@@ -528,7 +529,10 @@ class MapDropTarget
         LWNode node = NodeTool.createNode(resourceName);
         node.setResource(resource);
         if (p != null) {
-            node.setCenterAt(dropToMapLocation(p));
+            if (CenterNodesOnDrop)
+                node.setCenterAt(dropToMapLocation(p));
+            else
+                node.setLocation(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?
         } // else: special case: no node location, so we're creating a child node -- don't add to map
         return node;
@@ -544,7 +548,10 @@ class MapDropTarget
         LWNode node = NodeTool.createNode(title);
         node.setResource(resource);
         if (p != null) {
-            node.setCenterAt(dropToMapLocation(p));
+            if (CenterNodesOnDrop)
+                node.setCenterAt(dropToMapLocation(p));
+            else
+                node.setLocation(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?
         } // else: special case: no node location, so we're creating a child node -- don't add to map
         return node;
@@ -563,7 +570,10 @@ class MapDropTarget
     private void createNewTextNode(String text, java.awt.Point p)
     {
         LWNode node = NodeTool.createTextNode(text);
-        node.setCenterAt(dropToMapLocation(p));
+        if (CenterNodesOnDrop)
+            node.setCenterAt(dropToMapLocation(p));
+        else
+            node.setLocation(dropToMapLocation(p));
         viewer.getMap().addNode(node);
     }
 
@@ -571,7 +581,10 @@ class MapDropTarget
     {
         // todo: query the NodeTool for current node shape, etc.
         LWNode node = NodeTool.createNode();
-        node.setCenterAt(dropToMapLocation(p));
+        if (CenterNodesOnDrop)
+            node.setCenterAt(dropToMapLocation(p));
+        else
+            node.setLocation(dropToMapLocation(p));
         node.setImage(image);
         node.setNotes(image.toString());
         viewer.getMap().addNode(node);
