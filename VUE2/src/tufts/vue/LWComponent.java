@@ -350,6 +350,7 @@ public class LWComponent
                 this.stroke = new BasicStroke(w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
             else
                 this.stroke = STROKE_ZERO;
+            layout();
             notify("strokeWidth");
         }
     }
@@ -631,10 +632,12 @@ public class LWComponent
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
     public float getBoundsWidth() {
-        return (this.width + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
+        return (this.width + this.strokeWidth) * getScale();
+        //return (this.width + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
     }
     public float getBoundsHeight() {
-        return (this.height + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
+        return (this.height + this.strokeWidth) * getScale();
+        //return (this.height + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
     }
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }

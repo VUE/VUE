@@ -35,8 +35,10 @@ public class LWNode extends LWContainer
     //------------------------------------------------------------------
     private static final int PadX = 12;
     private static final int PadY = 6;
-    private static final int VerticalChildGap = 2; // vertical space between children
+    private static final int VerticalChildGap = 3; // vertical space between children
     private static final float ChildScale = 0.75f;   // % scale-down of children
+
+    private static final int IconPadRight = 3;
     
     //------------------------------------------------------------------
     // Instance info
@@ -55,8 +57,15 @@ public class LWNode extends LWContainer
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
 
+    //private int iconWidth = 
+
     private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, 28,19, 12,12);
-    private Line2D dividerLine = new Line2D.Float();
+    private Line2D.Float dividerLine = new Line2D.Float();
+    private Line2D.Float dividerStub = new Line2D.Float();
+    private static final int DividerStubPadX = 7;
+    // at some zooms, e.g. 75%, we get huge understatement errors from java in
+    // computing the width of some font strings, so this pad needs to be big enough
+    // to compensate for the error in the worst case.
     
     public LWNode(String label)
     {
@@ -160,7 +169,13 @@ public class LWNode extends LWContainer
     {
         System.out.println("handleDoubleClick " + p + " " + this);
         if (getResource() != null) {
-            if (genIcon.contains(p)) {
+            double x = p.getX();
+            double y = p.getY();
+            if (getScale() != 1.0) {
+                x /= getScale();
+                y /= getScale();
+            }
+            if (genIcon.contains(x, y)) {
                 // todo: flash the genIcon red or something
                 getResource().displayContent();
                 // todo: some kind of animation or something to show
@@ -401,6 +416,7 @@ public class LWNode extends LWContainer
     protected void layout()
     {
         if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
+
         if (isAutoSized() || hasChildren())
             setPreferredSize(!isAutoSized());
 
@@ -417,7 +433,12 @@ public class LWNode extends LWContainer
             genIcon.setFrame(iconX, iconY, genIcon.getWidth(), genIcon.getHeight());
 
             double dividerY = iconY + iconHeight*(2f/3f);
-            dividerLine.setLine(0, dividerY, getAbsoluteWidth(), dividerY);
+            double stubX = relativeLabelX() + getLabelBox().getWidth() + DividerStubPadX;
+            double stubHeight = genIcon.getHeight() / 3;
+            
+            //dividerLine.setLine(0, dividerY, getAbsoluteWidth(), dividerY);
+            dividerLine.setLine(0, dividerY, stubX, dividerY);
+            dividerStub.setLine(stubX, dividerY, stubX, dividerY - stubHeight);
         }
 
         
@@ -450,6 +471,7 @@ public class LWNode extends LWContainer
         }
         if (getResource() != null) {
             width += PadX*1.5 + genIcon.getWidth();
+            //height += genIcon.getHeight(); // better match to spec
             height += genIcon.getHeight() * (2f/3f); //crude for now
         }
 
@@ -496,13 +518,13 @@ public class LWNode extends LWContainer
         return new Rectangle2D.Float(0f, 0f, maxWidth, height);
     }
     
-    // todo: okay, we do NOT want to do this every damn paint --
-    // makes it impossible to drag out a child!
+    // children are laid out within/relative to parent, but
+    // given absolute map coordinates.
+    // TODO: combine with getAllChildrenBounds
     protected void layoutChildren()
     {
         if (!hasChildren())
             return;
-        //new Throwable("layoutChildren " + this).printStackTrace();
         //System.out.println("layoutChildren " + this);
         java.util.Iterator i = getChildIterator();
         //float y = (relativeLabelY() + PadY) * getScale();
@@ -512,19 +534,31 @@ public class LWNode extends LWContainer
         if (genIcon != null)
             y += genIcon.getHeight() / 2f;
         y *= getScale();
+        float childX = relativeLabelX() * getScale();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            //float childX = PadX * getScale();
-            float childX = (this.getWidth() - c.getWidth()) / 2;
+            c.setLocation(getX() + childX, getY() + y);
+            y += c.getHeight();
+            y += VerticalChildGap * getScale();
+        }
+        /*
+          messed up attempt to include strokewidth -- ignore it for now...
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            //old //float childX = PadX * getScale();
+            //float childX = (this.getWidth() - c.getWidth()) / 2;
+            if (c.getStrokeWidth() > 0)
+                y -= (c.getStrokeWidth() / 2) * getScale();
             c.setLocation(getX() + childX, getY() + y);
             y += c.getBoundsHeight();
             y += VerticalChildGap * getScale();
         }
+        */
     }
 
     public float getLabelX()
     {
-        return getX() + relativeLabelX();
+        return getX() + relativeLabelX() * getScale();
     }
     public float getLabelY()
     {
@@ -667,6 +701,7 @@ public class LWNode extends LWContainer
             g.setColor(Color.black);
             g.setStroke(STROKE_HALF);
             g.draw(dividerLine);
+            g.draw(dividerStub);
             
             //-------------------------------------------------------
             // paint the resource icon
