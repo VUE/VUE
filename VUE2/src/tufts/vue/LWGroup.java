@@ -24,6 +24,10 @@ public final class LWGroup extends LWContainer
 {
     public LWGroup() {}
 
+    public boolean supportsUserResize() {
+        return true;
+    }
+    
     /**
      * For the viewer selection code -- we're mainly interested
      * in the ability of a group to move all of it's children
@@ -210,17 +214,24 @@ public final class LWGroup extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
 
+            boolean inGroup = c.getParent() instanceof LWGroup;
+                
             // If parent and some child both in selection and you
             // drag, the selection (an LWGroup) and the parent fight
             // to control the location of the child.  There may be a
             // cleaner way to handle this, but checking it here works.
-            // TODO BUG: when we drop in above case, the children
-            // think they've been seperatly dragged, and thus get
-            // "dropped" out of the parent!
-            
-            if (c.isSelected() && c.getParent().isSelected())
+            // Also, do NOT skip if we're in a group -- that condition
+            // is caught below.
+            if (!inGroup && c.isSelected() && c.getParent().isSelected())
                 continue;
             
+            // If this component is part of the "temporary" group for the selection,
+            // don't move it -- only it's real parent group should reposition it.
+            // (The only way we could be here without "this" being the parent is
+            // if we're in the MapViewer special use draggedSelectionGroup)
+            if (inGroup && c.getParent() != this)
+                continue;
+
             c.translate(dx, dy);
         }
         super.setLocation(x, y);
@@ -319,22 +330,32 @@ public final class LWGroup extends LWContainer
     }
 
     private static final Rectangle2D EmptyBounds = new Rectangle2D.Float();
-    // is this needed?
-    public Rectangle2D X_getBounds()
+
+    public Rectangle2D getBounds()
     {
         Rectangle2D bounds = null;
         Iterator i = getChildIterator();
         if (i.hasNext()) {
             bounds = new Rectangle2D.Float();
             bounds.setRect(((LWComponent)i.next()).getBounds());
-        } else
+        } else {
+            System.out.println(this + " getBounds: EMPTY!");
             return EmptyBounds;
+        }
 
         while (i.hasNext())
             bounds.add(((LWComponent)i.next()).getBounds());
-        System.out.println(this + " getBounds: " + bounds);
+        //System.out.println(this + " getBounds: " + bounds);
         return bounds;
     }
+
+    /*
+    public void layout()
+    {
+        super.layout();
+        setFrame(computeBounds());
+    }
+    */
     
     
     public void draw(java.awt.Graphics2D g)
@@ -352,6 +373,7 @@ public final class LWGroup extends LWContainer
                 g.draw(getBounds());
             }
         }
+
         if (DEBUG_CONTAINMENT) {
             if (isRollover())
                 g.setColor(java.awt.Color.green);
