@@ -858,6 +858,7 @@ public class VUE
             // for that mater), which kills off a huge chunk of
             // BLIT_SCROLL_MODE's optimization.  However, using
             // backing store completely fucks up if we start
+
             // hand-panning the map, tho I'm presuming that's because
             // the hand panning isn't being done thru the viewport
             // yet.
@@ -955,13 +956,12 @@ public class VUE
             if (viewer == getActiveViewer()) {
                 // be sure to clear active viewer -- it was probably us.
                 // If there are other maps open, one of them will shortly get a
-                // focusGained event and set itself to the active viewer.
 
+                setActiveViewer(null);
                 // we might want to force notification even if selection is already empty:
                 // we want all listeners, particularly the actions, to
                 // update in case this is last map open
                 VUE.ModelSelection.clear();
-                //VUE.ModelSelection.clearAndNotify();
 
                 
                 if (mapTabIndex >= 1)
@@ -970,6 +970,7 @@ public class VUE
                     setActiveViewer(getViewerAt(mapTabIndex + 1));
                 else
                     setActiveViewer(null); // TODO: this really isn't supported... NPE's everywhere.
+                //VUE.ModelSelection.clearAndNotify();
             }
             remove(mapTabIndex);
         }
@@ -1076,10 +1077,9 @@ public class VUE
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open");
         ExitAction exitAction = new ExitAction("Quit");
-        Publish publishAction = new Publish(frame,"Publish");
+        Publish publishAction = new Publish(frame,"Export");
         
         /**Actions added by the power team*/
-        JMenu exportMenu = new JMenu("Export");
         
         PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("HTML");
@@ -1089,12 +1089,15 @@ public class VUE
         PrintAction printAction = new PrintAction("Print");
         XMLView xmlAction = new XMLView("XML View");
         
+         /*
+        JMenu exportMenu = new JMenu("Export");
         exportMenu.add(htmlAction);
         exportMenu.add(pdfAction);
         exportMenu.add(imageAction);
         exportMenu.add(svgAction);
         exportMenu.add(xmlAction);
         exportMenu.add(imageMap);
+         */
         /**End of addition*/
         
         fileMenu.add(Actions.NewMap);
@@ -1104,7 +1107,7 @@ public class VUE
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
         fileMenu.add(publishAction);
-        fileMenu.add(exportMenu);
+        //fileMenu.add(exportMenu);
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
         
@@ -1336,8 +1339,7 @@ public class VUE
         k2.setControlCount(2);
         map.addLink(k1);
         map.addLink(k2);
-        map.addLink(k3);
-        
+        map.markAsSaved();
         // create test pathways
         if (false) {
             LWPathway p = new LWPathway("Test Pathway");
@@ -1348,6 +1350,7 @@ public class VUE
         }
         
         /*else if(map.getLabel().equals("Test Nodes")){        
+        }/*else if(map.getLabel().equals("Test Nodes")){        
             LWPathway p2 = new LWPathway("Pathway 2");
             
             p2.setComment("A comment.");
@@ -1359,10 +1362,10 @@ public class VUE
             anotherList.add(k3);
             p2.setElementList(anotherList);
             map.addPathway(p2);            
-        }*/
 
         map.markAsSaved();
         
+        }*/
     }
 
 }

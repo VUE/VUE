@@ -76,8 +76,9 @@ public class SaveAction extends AbstractAction
         File file = map.getFile();
         
         if (saveAs || file == null)
-            file = ActionUtil.selectFile("Save Map", "vue");
-
+            //file = ActionUtil.selectFile("Save Map", "vue");
+            file = ActionUtil.selectFile("Save Map", null);
+        
         if (file == null)
             return false;
         

@@ -52,12 +52,15 @@ public class ActionUtil {
         
         else
         {
-            //chooser.addChoosableFileFilter(new VueFileFilter("xml"));  
-            chooser.setFileFilter(new VueFileFilter("xml")); 
+            VueFileFilter defaultFilter = new VueFileFilter("xml");
+            
+            chooser.addChoosableFileFilter(defaultFilter);  
             chooser.addChoosableFileFilter(new VueFileFilter("jpeg"));  
             chooser.addChoosableFileFilter(new VueFileFilter("svg"));
             chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
             chooser.addChoosableFileFilter(new VueFileFilter("html"));
+            
+            chooser.setFileFilter(defaultFilter); 
         }
             
         if(VueUtil.isCurrentDirectoryPathSet()) 
