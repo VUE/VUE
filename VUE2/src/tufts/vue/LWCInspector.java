@@ -38,6 +38,7 @@ class LWCInspector extends javax.swing.JPanel
     private JTextField labelField = new JTextField(15);
     private JTextField widthField = new JTextField();
     private JTextField heightField = new JTextField();
+    private JTextField zoomField = new JTextField();
     private JTextField fontField = new JTextField();
     private JTextField strokeField = new JTextField();
     private JTextField fillColorField = new JTextField();
@@ -62,6 +63,7 @@ class LWCInspector extends javax.swing.JPanel
         "Label",    labelField,
         "Width",    widthField,
         "Height",    heightField,
+        "Zoom",    zoomField,
         "Font",     fontField,
         "Stroke",   strokeField,
         "Fill Color",fillColorField,
@@ -324,6 +326,7 @@ class LWCInspector extends javax.swing.JPanel
         sizeField.setText(sizeText);
         widthField.setText(""+c.getAbsoluteWidth());
         heightField.setText(""+c.getAbsoluteHeight());
+        zoomField.setText(""+c.getScale());
         //Font f = c.getFont();
         //if (c.getScale() != 1)
         //  fontString += " (" + (f.getSize()*c.getScale()) + ")";
@@ -398,31 +401,41 @@ class LWCInspector extends javax.swing.JPanel
     private void setStrokeWidths(String text)
         throws NumberFormatException
     {
+        float w = Float.parseFloat(text);
         Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            float w = Float.parseFloat(text);
             c.setStrokeWidth(w);
         }
     }
     private void setWidths(String text)
         throws NumberFormatException
     {
+        float w = Float.parseFloat(text);
         Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            float w = Float.parseFloat(text);
             c.setAbsoluteSize(w, c.getAbsoluteHeight());
         }
     }
     private void setHeights(String text)
         throws NumberFormatException
     {
+        float h = Float.parseFloat(text);
         Iterator i = getSelection().iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            float h = Float.parseFloat(text);
             c.setAbsoluteSize(c.getAbsoluteWidth(), h);
+        }
+    }
+    private void setScales(String text)
+        throws NumberFormatException
+    {
+        float s = Float.parseFloat(text);
+        Iterator i = getSelection().iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setScale(s);
         }
     }
     private void setFonts(String text)
@@ -450,11 +463,12 @@ class LWCInspector extends javax.swing.JPanel
             if (src == labelField)          c.setLabel(text);
             //else if (src == categoryField)  c.setCategory(text);
             //else if (src == notesField)     c.setNotes(text);
-            else if (src == widthField)  setWidths(text);
-            else if (src == heightField) setHeights(text);
-            else if (src == resourceField)  c.setResource(text);
-            else if (src == fontField)      setFonts(text);
-            else if (src == fillColorField) setFillColors(text);
+            else if (src == widthField)         setWidths(text);
+            else if (src == heightField)        setHeights(text);
+            else if (src == zoomField)          setScales(text);
+            else if (src == resourceField)      c.setResource(text);
+            else if (src == fontField)          setFonts(text);
+            else if (src == fillColorField)     setFillColors(text);
             else if (src == textColorField)     setTextColors(text);
             else if (src == strokeColorField)   setStrokeColors(text);
             else if (src == strokeField)        setStrokeWidths(text);
