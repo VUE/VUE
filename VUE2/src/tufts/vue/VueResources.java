@@ -45,7 +45,7 @@ public class VueResources
      **/
     public static ImageIcon getImageIcon(String key)  {
         if (Cache.containsKey(key))
-            return (ImageIcon) Cache.get(key);            
+            return (ImageIcon) Cache.get(key);
 
         ImageIcon icon = null;
         String str = getString(key);
@@ -74,7 +74,10 @@ public class VueResources
     }
 
     public static Dimension getSize(String key) {
-        String[] data = VueResources.getStringArray(key);
+        if (Cache.containsKey(key))
+            return (Dimension) Cache.get(key);
+
+        String[] data = _getStringArray(key);
         if (data == null)
             return null;
         Dimension d = new Dimension();
@@ -83,12 +86,13 @@ public class VueResources
             if (data.length > 1)
                 d.height = parseInt(data[1]);
         }
+        Cache.put(key, d);
         return d;
     }
         
     public static Cursor getCursor(String key)
     {
-        String[] data = VueResources.getStringArray(key);
+        String[] data = _getStringArray(key);
         if (data == null)
             return null;
         ImageIcon icon = loadImageIcon(data[0]);
@@ -184,14 +188,20 @@ public class VueResources
      * @param pLookupKey - the key in the properties file
      * @return String [] the array
      **/
-    public static String [] getStringArray(String key) {
+    public static String[] getStringArray(String key) {
         if (Cache.containsKey(key))
-            return (String[]) Cache.get(key);            
+            return (String[]) Cache.get(key);
+        String[] value = _getStringArray(key);
+        Cache.put(key, value);
+        return value;
+    }
+
+    // non-caching string array fetch
+    private static String[] _getStringArray(String key) {
         String[] value = null;
         String s = getString(key);
         if (s != null)
             value = s.split(",\\s*");
-        Cache.put(key, value);
         return value;
     }
 	
@@ -205,28 +215,44 @@ public class VueResources
      * @param String pLookupKey the key of the property
      * #return int [] the array of ints
      **/
-    public static int[] getIntArray(String pLookupKey) {
-        int[] retValue = null;
-        String[] s = getStringArray(pLookupKey);
-		
+    public static int[] getIntArray(String key) {
+        if (Cache.containsKey(key))
+            return (int[]) Cache.get(key);
+        int[] value = _getIntArray(key);
+        Cache.put(key, value);
+        return value;
+    }
+
+    private static int[] _getIntArray(String key) {
+        return _getIntArray(key, 0);
+    }
+    // non-caching int array fetch
+    private static int[] _getIntArray(String key, int minSize) {
+        int[] value = null;
+        String[] s = _getStringArray(key);
+
         if (s != null) {
-            retValue = new int[s.length];
+            value = new int[Math.max(s.length, minSize)];
             for (int i = 0; i < s.length; i++)
-                retValue[i] = parseInt(s[i]);
+                value[i] = parseInt(s[i]);
         }
-        return retValue;
+        return value;
     }
     
-    public static float[] getFloatArray(String pLookupKey) {
-        float[] retValue = null;
-        String[] s = getStringArray(pLookupKey);
+    public static float[] getFloatArray(String key) {
+        if (Cache.containsKey(key))
+            return (float[]) Cache.get(key);
+        
+        float[] value = null;
+        String[] s = _getStringArray(key);
 		
         if (s != null) {
-            retValue = new float[s.length];
+            value = new float[s.length];
             for (int i = 0; i < s.length; i++)
-                retValue[i] = parseFloat(s[i]);
+                value[i] = parseFloat(s[i]);
         }
-        return retValue;
+        Cache.put(key, value);
+        return value;
     }
 
 
@@ -235,16 +261,16 @@ public class VueResources
      * getInt
      * This returns an int based on the int at the lookup key.
      * Format: myInt=123
-     * @param pLookupKey - the lookup key
+     * @param key - the lookup key
      * @returns int - the int value in the properties file
      **/
-    static public int getInt( String pLookupKey)
+    static public int getInt( String key)
     {
-        int retValue = 0;
-        String s = getString(pLookupKey);
+        int value = 0;
+        String s = getString(key);
         if (s != null)
-            retValue = Integer.parseInt(s);
-	return retValue;
+            value = Integer.parseInt(s);
+	return value;
     }
 
 	
@@ -252,34 +278,34 @@ public class VueResources
      * getInt
      * Returns an int value if one is found for the given key,
      * otherwise the default value.
-     * @param pLookupKey - the lookup key
+     * @param key - the lookup key
      * @param pDefault - value to return if none found under key
      * @return int - value found or default
      */
-    static public int getInt(String pLookupKey, int pDefault)
+    static public int getInt(String key, int pDefault)
     {
-        int retValue = pDefault;
-        String s = getString(pLookupKey);
+        int value = pDefault;
+        String s = getString(key);
         if (s != null) {
             Integer i = new Integer(s);
-            retValue = i.intValue();
+            value = i.intValue();
         }
-	return retValue;
+	return value;
     }
 
     /**
      * getChar
      * Gets a char value for the given key.
-     * @param pLookupKey - the lookup key
+     * @param key - the lookup key
      * @return char - value found or 0 if key not found
      */
-    static public char getChar(String pLookupKey)
+    static public char getChar(String key)
     {
-        char retValue = 0;
-        String s = getString(pLookupKey);
+        char value = 0;
+        String s = getString(key);
         if (s != null)
-            retValue = s.charAt(0);
-	return retValue;
+            value = s.charAt(0);
+	return value;
     }
 
 
@@ -290,15 +316,17 @@ public class VueResources
      *   myFont=fontname,plain|bold|italic|bolditalic,size
      * 
      *
-     * @param pLookupKey the string lookupkey in the properties file
+     * @param key the string lookupkey in the properties file
      * @return Font the Font, or null if missing
      **/
-    static public Font getFont( String pLookupKey) {
+    static public Font getFont( String key) {
+        if (Cache.containsKey(key))
+            return (Font) Cache.get(key);            
 		
         Font font = null;
 		
         try {
-            String [] strs  = getStringArray( pLookupKey);
+            String [] strs  = getStringArray( key);
             if( (strs != null)  && (strs.length == 3) ) {
                 String fontName = strs[0];
                 int style = 0;
@@ -321,8 +349,9 @@ public class VueResources
                 font = new Font( fontName, style, size.intValue()  );
             }
         } catch (Exception e) {
-            alert("Missing or malformed font with key: "+pLookupKey);
+            alert("Missing or malformed font with key: "+key);
         }
+        Cache.put(key, font);
         return font;
     }
 
@@ -330,28 +359,35 @@ public class VueResources
     /**
      * getColor()
      * This method gets a color based on the color string in the
-     * the properties file.  Use formate:  myColor=rgbHex
+     * the properties file.  Use format:  myColor=rgbHex
      * grayColor=4F4F4F
      * blue=FF
+     * or rgb decimal: e.g, : myColor=201,208,223
      *
-     * @param pLookupKey the string lookupkey in the properties file
+     * @param key the string lookupkey in the properties file
      * @return Color the color, or null if missing
      **/
-    static public Color getColor( String pLookupKey) {
+    static public Color getColor( String key) {
+        if (Cache.containsKey(key))
+            return (Color) Cache.get(key);
 		
-        Color retValue = null;
+        Color value = null;
 		
         try {
-            String str = sResourceBundle.getString( pLookupKey);
-            if( str != null) {
-                Integer intVal =  Integer.valueOf(str, 16);
-				 
-                retValue = new Color( intVal.intValue() );
+            String s = sResourceBundle.getString(key);
+            if (s != null) {
+                if (s.indexOf(',') > 0) {
+                    int[] rgb = _getIntArray(key, 3);
+                    value = new Color(rgb[0], rgb[1], rgb[2]);
+                } else {
+                    value = new Color(Integer.valueOf(s, 16).intValue());
+                }
             }
         } catch (Exception e) {
-            alert("Missing Color resource: "+pLookupKey);
+            alert("Missing Color resource: "+key);
         }
-        return retValue;
+        Cache.put(key, value);
+        return value;
     }
 
 
@@ -362,31 +398,31 @@ public class VueResources
      * grayColor=4F4F4F,BBCCDD,FFAAFF
      * blue=FF
      *
-     * @param pLookupKey the string lookupkey in the properties file
+     * @param key the string lookupkey in the properties file
      * @return Color[]  the colors, or null if missing
      **/
     static public Color[] getColorArray(String key) {
         if (Cache.containsKey(key))
             return (Color[]) Cache.get(key);            
 		
-        Color [] retValue = null;
+        Color [] value = null;
         try {
-            String []  strs = getStringArray( key);
+            String[] strs = _getStringArray(key);
             if( strs != null) {
                 int len = strs.length;
-                retValue = new Color [ len];
+                value = new Color [ len];
 				
                 for( int i=0; i< len; i++) {
                     Integer intVal =  Integer.valueOf(strs[i], 16);
-                    retValue[i] = new Color( intVal.intValue() );
+                    value[i] = new Color( intVal.intValue() );
                 }
             }
         } catch (Exception e) {
             alert("Missing Color resource: "+key);
-            retValue = null;
+            value = null;
         }
-        Cache.put(key, retValue);
-        return retValue;
+        Cache.put(key, value);
+        return value;
     }
 
 
@@ -394,20 +430,20 @@ public class VueResources
      * getBool
      * Usage: flag=true
      *
-     * @param pLookupKey the string lookupkey in the properties file
+     * @param key the string lookupkey in the properties file
      * @return true if found and is set to "true"
      **/
-    static public boolean getBool(String pLookupKey)
+    static public boolean getBool(String key)
     {
-        boolean retValue = false;
+        boolean value = false;
         try {
-            String str = sResourceBundle.getString( pLookupKey);
+            String str = sResourceBundle.getString( key);
             if (str != null)
-                retValue = str.equalsIgnoreCase("true");
+                value = str.equalsIgnoreCase("true");
         } catch (Exception e) {
-            alert("Unknown bool resource: "+pLookupKey);
+            alert("Unknown bool resource: "+key);
         }
-        return retValue;
+        return value;
     }
 
 
@@ -416,14 +452,14 @@ public class VueResources
 	 * Fetches a message resource string the  bundle 
 	 * and fills in the parameters
 	 *
-	 * @param pLookupKey the lookup key
+	 * @param key the lookup key
 	 * @param pArgs an object array of parameter strings
 	 *
 	 * @returns the formatted string
 	 **/
-	static public String getMessageString (String pLookupKey, Object[] pArgs)
+	static public String getMessageString (String key, Object[] pArgs)
 	{
-		String msg = VueResources.getString( pLookupKey);
+		String msg = VueResources.getString( key);
 		msg = MessageFormat.format(msg, pArgs);
 		return msg;
 	}
