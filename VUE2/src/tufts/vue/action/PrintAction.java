@@ -227,7 +227,11 @@ public class PrintAction extends tufts.vue.VueAction
             // compute zoom & offset for visible map components
             Point2D offset = new Point2D.Double();
             double scale = ZoomTool.computeZoomFit(page, 0, bounds, offset);
-            g.translate(-offset.getX(), -offset.getY());
+            // center vertically only if landscape mode
+            if (format.getOrientation() == PageFormat.LANDSCAPE)
+                g.translate(-offset.getX(), -offset.getY());
+            else
+                g.translate(-offset.getX(), 0);
             g.scale(scale,scale);
 
             if (isPrintingView())
