@@ -357,16 +357,20 @@ public class VUE
                     //System.out.println("VS " + e);
                     if (!e.getPropertyName().equals("dividerLocation"))
                         return;
-                    if (DEBUG.FOCUS) System.out.println("viewerSplit: " + e.getPropertyName()
+                    if (DEBUG.FOCUS) out("viewerSplit: " + e.getPropertyName()
                                        + "=" + e.getNewValue().getClass().getName()
                                        + " " + e.getNewValue());
                     if (multipleMapsVisible() == false) {
-                        MapViewer viewer = mMapTabsLeft.getSelectedViewer();
-                        if (viewer != null && viewer != getActiveViewer()) {
-                            if (DEBUG.FOCUS) System.out.println("viewerSplit: default focus to " + viewer);
-                            viewer.requestFocus();
+                        MapViewer leftViewer = mMapTabsLeft.getSelectedViewer();
+                        if (leftViewer != null && leftViewer != getActiveViewer()) {
+                            if (DEBUG.FOCUS) out("viewerSplit: default focus to " + leftViewer);
+                            leftViewer.requestFocus();
                             //viewer.grabVueApplicationFocus("split-pane-other-hidden");
-                            mMapTabsRight.getSelectedViewer().fireViewerEvent(MapViewerEvent.HIDDEN);
+                            if (mMapTabsRight != null) {
+                                MapViewer rightViewer = mMapTabsRight.getSelectedViewer();
+                                if (rightViewer != null)
+                                    rightViewer.fireViewerEvent(MapViewerEvent.HIDDEN);
+                            }
                         }
                     }
                     

@@ -110,7 +110,6 @@ public class MapPanner extends javax.swing.JPanel
     {
         if (DEBUG.MOUSE) out(e);
         dragStart = lastDrag = null;
-        //mapViewer.adjustScrollRegion();// for now
     }
 
     public void mouseDragged(MouseEvent e)

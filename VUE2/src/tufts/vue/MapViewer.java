@@ -102,11 +102,6 @@ public class MapViewer extends javax.swing.JComponent
     private JViewport mViewport;
     //private Viewport mViewport;
 
-    MapViewer(LWMap map, boolean rightSide) {
-        this(map);
-        this.isRightSide = true;
-    }
-
     boolean inScrollPane() {
         return inScrollPane;
     }
@@ -151,7 +146,7 @@ public class MapViewer extends javax.swing.JComponent
                     final Color bg = new Color(100,255,111);
                     final Color line = bg.darker();
                     public void paintComponent(Graphics g) {
-                        if (DEBUG.Enabled || VUE.multipleMapsVisible())
+                        if (VUE.multipleMapsVisible() || DEBUG.Enabled || DEBUG.FOCUS)
                             paintIcon(g);
                     }
                     void paintIcon(Graphics g) {
@@ -244,11 +239,19 @@ public class MapViewer extends javax.swing.JComponent
     MapDropTarget getMapDropTarget() {
         return mapDropTarget;
     }
-    
+
     public MapViewer(LWMap map) {
+        this(map, false);
+    }
+    
+    MapViewer(LWMap map, boolean rightSide)
+    {
+        this.isRightSide = rightSide;
+    
         //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
-        //setFocusable(false); // not till setVsible 
+        if (isRightSide)
+            setFocusable(false); // not till setVsible 
         
         setLayout(null);
         addKeyListener(inputHandler);
@@ -309,6 +312,7 @@ public class MapViewer extends javax.swing.JComponent
         //setMapOriginOffset(p.getX(), p.getY());
 
         VUE.addActiveViewerListener(this);
+        if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
     
     
@@ -369,6 +373,15 @@ public class MapViewer extends javax.swing.JComponent
         
     }
     
+    public double getZoomFactor() {
+        return mZoomFactor;
+    }
+    
+    void fireViewerEvent(int id) {
+        if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this))
+            new MapViewerEvent(this, id).raise();
+    }
+    
     /**
      * @param pZoomFactor -- the new zoom factor
      * @param pReset -- completely reset the scrolling region to the map bounds
@@ -387,6 +400,9 @@ public class MapViewer extends javax.swing.JComponent
         
         //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
         //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
+        
+        // TODO: fix (for now, force all zooms to be on-center)
+        pFocus = getVisibleCenter();
         
         // Record the on-screen map location of focus point before
         // the zoom.
@@ -422,6 +438,8 @@ public class MapViewer extends javax.swing.JComponent
 
         mZoomFactor = pZoomFactor;
         mZoomInverse = 1.0 / mZoomFactor;
+
+        if (DEBUG.SCROLL) out("ZOOM FACTOR set to " + mZoomFactor);
         
         // record zoom factor in map for saving
         getMap().setUserZoom(mZoomFactor);
@@ -430,7 +448,7 @@ public class MapViewer extends javax.swing.JComponent
         
         
         if (inScrollPane) {
-            adjustScrollRegion(false, pReset);
+            adjustExtent(false, pReset, true);
             if (mapAnchor != null && !pReset) {
                 Point extentAnchor = mapToScreenPoint(mapAnchor);
                 if (DEBUG.SCROLL) System.out.println("  ZOOM EXTENT ANCHOR: " + out(extentAnchor));
@@ -441,9 +459,9 @@ public class MapViewer extends javax.swing.JComponent
                 setExtentPosition(extentOffset);
                 //mViewport.setViewPosition(extentOffset);
                 //setLocation(-extentOffset.x, -extentOffset.y);
-                //adjustScrollRegion(false, false);
+                //adjustExtent(false, false);
             }// else
-            //adjustScrollRegion(false, pReset);
+            //adjustExtent(false, pReset);
         } else {
             if (mapAnchor != null) {
                 // Now: find out where the anchor has moved to,
@@ -462,23 +480,6 @@ public class MapViewer extends javax.swing.JComponent
         fireViewerEvent(MapViewerEvent.ZOOM);
     }
 
-    void fireViewerEvent(int id) {
-        if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this))
-            new MapViewerEvent(this, id).raise();
-    }
-    
-    public double getZoomFactor() {
-        return mZoomFactor;
-    }
-    
-    void resetScrollRegion() {
-        adjustScrollRegion(false, true);
-    }
-    
-    void adjustScrollRegion() {
-        adjustScrollRegion(false, false);
-    }
-    
     
     /**
      * This is scary complicated to deal with the fact that
@@ -493,16 +494,38 @@ public class MapViewer extends javax.swing.JComponent
     private Point2D lastMapLocationAtExtentOrigin = new Point2D.Float();
 
     private void setExtentPosition(Point p) {
+        if (DEBUG.SCROLL) {
+            out("setExtentPosition " + out(p));
+            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
+        }
         if (p.x > 0 || p.y > 0) {
             out("GROW ORIGIN");
-            mViewport.setViewPosition(p);
+            //placeMapLocationAtExtentOrigin(mapExtent.x, mapExtent.y);
+            //mViewport.setViewPosition(p);
+            panScrollRegion(-p.x, -p.y, true);
         } else {
             mViewport.setViewPosition(p);
         }
-        adjustScrollRegion(false, false);
+        if (DEBUG.SCROLL) {
+            out("setExtentPosition, setViewPosition completed");
+            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
+        }
+        /*
+        out("setExtentPosition, ASR:");
+        try { Thread.sleep(1000); } catch (Exception e) {}
+        adjustExtent(false, false);
+        */
     }
 
-    private void adjustScrollRegion(boolean panning, boolean collapse)
+    void resetScrollRegion() {
+        adjustExtent(false, true, true);
+    }
+    
+    private void adjustExtent() {
+        adjustExtent(false, false, false);
+    }
+    
+    private void adjustExtent(boolean panning, boolean collapse, boolean shrink)
     {
         if (!inScrollPane)
             return;
@@ -545,7 +568,7 @@ public class MapViewer extends javax.swing.JComponent
         //------------------------------------------------------------------
         
         Rectangle2D mapBounds = map.getBounds();
-        if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds) + " collapse="+collapse + " panning="+panning);
+        if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds) + " collapse="+collapse + " shrink="+shrink + " pan="+panning);
         if (DEBUG.SCROLL) out("view position: " + out(mViewport.getViewPosition()));
 
         Rectangle2D.Float mapExtent = getContentBounds();
@@ -619,21 +642,21 @@ public class MapViewer extends javax.swing.JComponent
         //------------------------------------------------------------------
         
         if (!collapse) {
-            boolean growOrigin = false;
-            // but, but... mOffset is.. what?
+            boolean originGrew = false;
+            // mOffset is what?
             //float ox = mOffset.x;
             //float oy = mOffset.y;
             float ox = mapLocationAtExtentOrigin.x;
             float oy = mapLocationAtExtentOrigin.y;
             if (mapExtent.x < mapLocationAtExtentOrigin.x) {
                 ox = mapExtent.x;
-                growOrigin = true;
+                originGrew = true;
             }
             if (mapExtent.y < mapLocationAtExtentOrigin.y) {
                 oy = mapExtent.y;
-                growOrigin = true;
+                originGrew = true;
             }
-            if (growOrigin)
+            if (originGrew)
                 placeMapLocationAtExtentOrigin(ox, oy);
         }
         
@@ -662,9 +685,8 @@ public class MapViewer extends javax.swing.JComponent
             out("   vport size: " + out(mViewport.getSize()) + " (calling revalidate)");
         }
         
-        boolean growOnly = true && !collapse;
-
-        if (growOnly) {
+        if (!shrink) {
+            // don't let new size be less than current size
             if (newSize.width < curSize.width)
                 newSize.width = curSize.width;
             if (newSize.height < curSize.height)
@@ -672,42 +694,25 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         setExtentSize(newSize);
-        
-        //mViewport.update();
         revalidate();
-
-        
-        //setMapOriginOffset(extent.x, extent.y);
-        //((JViewport)getParent()).setExtentSize(d);
-        //if (isDisplayed())
-        //if (!sDragUnderway)
-        //fireViewerEvent(MapViewerEvent.PAN); // notify panner
-        
     }
     
     public void setExtentSize(Dimension d) {
-        // ignore with new Viewport
         setPreferredSize(d);
     }
 
-    private boolean isDisplayed() {
-        if (!isShowing())
-            return false;
-        if (inScrollPane) {
-            System.out.println("parent=" + getParent());
-            return getParent().getWidth() > 0 && getParent().getHeight() > 0;
-        } else
-            return getWidth() > 0 && getHeight() > 0;
+    void panScrollRegion(int dx, int dy) {
+        panScrollRegion(dx, dy, false);
     }
     
-    void panScrollRegion(int dx, int dy) {
+    // allowGrowth == true not working
+    private void panScrollRegion(int dx, int dy, boolean allowGrowth) {
         Point location = mViewport.getViewPosition();
         if (DEBUG.SCROLL) out("PAN: dx=" + dx + " dy=" + dy);
         if (DEBUG.SCROLL) out("PAN: viewport start: " + location);
         location.translate(dx, dy);
         if (DEBUG.SCROLL) out("PAN: viewport   end: " + location);
         
-        final boolean allowGrowth = false; // not-working as true
         float ox = mOffset.x;
         float oy = mOffset.y;
         boolean originMoved = false;
@@ -742,7 +747,7 @@ public class MapViewer extends javax.swing.JComponent
                 location.y = getExtentHeight() - mViewport.getHeight();
         }
         if (originMoved) {
-            // not working -- adjustScrollRegion should
+            // not working -- adjustExtent should
             // handle setPreferredSize?
             //setMapOriginOffset(ox, oy);
             Dimension s = getPreferredSize();
@@ -751,9 +756,19 @@ public class MapViewer extends javax.swing.JComponent
             setExtentSize(s);
         }
         
+        if (DEBUG.SCROLL) {
+            out("PAN: setViewPosition " + out(location));
+            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
+        }
+        
         mViewport.setViewPosition(location);
         
-        adjustScrollRegion(true, false);
+        if (DEBUG.SCROLL) {
+            out("PAN: adjustExtent");
+            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
+        }
+        
+        adjustExtent(true, false, true);
         
         if(false){
             Rectangle2D.Float extent = getContentBounds();
@@ -821,7 +836,8 @@ public class MapViewer extends javax.swing.JComponent
      */
     
     void setMapOriginOffset(float panelX, float panelY, boolean update) {
-        if (DEBUG.SCROLL) out("setMapOriginOffset " + panelX + "," + panelY);
+        if (DEBUG.SCROLL) out("setMapOriginOffset " + out(mOffset) + " (old)");
+        if (DEBUG.SCROLL) out("setMapOriginOffset " + panelX + ", " + panelY);
         mOffset.x = panelX;
         mOffset.y = panelY;
         // todo: when in scroll region, user origin being offset 12 or so pixels
@@ -833,17 +849,8 @@ public class MapViewer extends javax.swing.JComponent
             repaint();
             fireViewerEvent(MapViewerEvent.PAN);
         }
-        /*
-        if (true||!inScrollPane) {
-            this.mOffset.x = panelX;
-            this.mOffset.y = panelY;
-            getMap().setUserOrigin(panelX, panelY);
-            repaint();
-        }
-        adjustScrollRegion();
-        new MapViewerEvent(this, MapViewerEvent.PAN).raise();
-         */
     }
+    
     public void setMapOriginOffset(float panelX, float panelY) {
         setMapOriginOffset(panelX, panelY, true);
     }
@@ -1103,29 +1110,6 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
-    private int lastMouseX;
-    private int lastMouseY;
-    private int lastMousePressX;
-    private int lastMousePressY;
-    private void setLastMousePressPoint(int x, int y) {
-        lastMousePressX = x;
-        lastMousePressY = y;
-        setLastMousePoint(x,y);
-    }
-    /** last place mouse pressed */
-    Point getLastMousePressPoint() {
-        return new Point(lastMousePressX, lastMousePressY);
-    }
-    private void setLastMousePoint(int x, int y) {
-        lastMouseX = x;
-        lastMouseY = y;
-    }
-    /** last place mouse was either pressed or released */
-    Point getLastMousePoint() {
-        return new Point(lastMouseX, lastMouseY);
-    }
-    
-    
     //private Point mLastCorner;
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
@@ -1174,6 +1158,39 @@ public class MapViewer extends javax.swing.JComponent
         // may be causing problems on mac --
         // some components in tabbed is getting a reshape call
         // when switching tabs
+    }
+    
+    private boolean isDisplayed() {
+        if (!isShowing())
+            return false;
+        if (inScrollPane) {
+            System.out.println("parent=" + getParent());
+            return getParent().getWidth() > 0 && getParent().getHeight() > 0;
+        } else
+            return getWidth() > 0 && getHeight() > 0;
+    }
+    
+    
+    private int lastMouseX;
+    private int lastMouseY;
+    private int lastMousePressX;
+    private int lastMousePressY;
+    private void setLastMousePressPoint(int x, int y) {
+        lastMousePressX = x;
+        lastMousePressY = y;
+        setLastMousePoint(x,y);
+    }
+    /** last place mouse pressed */
+    Point getLastMousePressPoint() {
+        return new Point(lastMousePressX, lastMousePressY);
+    }
+    private void setLastMousePoint(int x, int y) {
+        lastMouseX = x;
+        lastMouseY = y;
+    }
+    /** last place mouse was either pressed or released */
+    Point getLastMousePoint() {
+        return new Point(lastMouseX, lastMouseY);
     }
     
     public LWMap getMap() {
@@ -1375,7 +1392,7 @@ public class MapViewer extends javax.swing.JComponent
         //            return;
         
         //if (isBoundsEvent(key))
-            adjustScrollRegion();
+            adjustExtent();
         
         // TODO: OPTIMIZE -- we get tons of location events
         // when dragging, esp if there are children if
@@ -1852,7 +1869,7 @@ public class MapViewer extends javax.swing.JComponent
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
         if (paints == 0 && inScrollPane)
-            adjustScrollRegion();
+            adjustExtent();
         if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
@@ -3371,7 +3388,7 @@ public class MapViewer extends javax.swing.JComponent
             int dx = lastDrag.x - mouse.x;
             int dy = lastDrag.y - mouse.y;
             if (inScrollPane) {
-                panScrollRegion(dx, dy);
+                panScrollRegion(dx, dy, false);
             } else {
                 setMapOriginOffset(originAtDragStart.getX() + dx,
                 originAtDragStart.getY() + dy);
@@ -3918,8 +3935,6 @@ public class MapViewer extends javax.swing.JComponent
             // for performance)
             if (mouseWasDragged) {
                 VUE.getUndoManager().mark("Drag");
-                //adjustScrollRegion();
-
                 // this is an to ensure any map modifications are noticed 
                 // by other viewers, as other viewers ignore events during drags
                 //getMap().notify(MapViewer.this, ViewerEndDragEvent);
@@ -3995,7 +4010,7 @@ public class MapViewer extends javax.swing.JComponent
             // reset all in-drag only state
             //-------------------------------------------------------
             
-            adjustScrollRegion();
+            adjustExtent();
             // now that scroll region has been adjust to fit everything,
             // scroll to visible anything we may have dropped off the edge
             // of the screen.
@@ -4593,9 +4608,9 @@ public class MapViewer extends javax.swing.JComponent
         System.out.println(this + " " + (o==null?"null":o.toString()));
     }
 
-    private String out(Point2D p) { return (float)p.getX() + " , " + (float)p.getY(); }
+    private String out(Point2D p) { return (float)p.getX() + ", " + (float)p.getY(); }
     private String out(Rectangle2D r) { return ""
-            + (float)r.getX() + " , " + (float)r.getY()
+            + (float)r.getX() + ", " + (float)r.getY()
             + "  "
             + (float)r.getWidth() + " x " + (float)r.getHeight()
             ;
