@@ -38,14 +38,22 @@ public class MapViewerEvent
         return (id & (DISPLAYED|FOCUSED)) != 0;
     }
 
+
+    public void raise() {
+        if (DEBUG.EVENTS)  {
+            System.out.println(this + " RAISING");
+            if (DEBUG.META) new Throwable("MapViewerEvent.RAISE").printStackTrace();
+        }
+        super.raise();
+    }
+    
     public void dispatch(Object listener)
     {
-        if (DEBUG.EVENTS)  {
+        if (DEBUG.EVENTS && DEBUG.META)  {
             System.out.println(this
                                + " dispatching to "
                                + listener.getClass().getName()
                                + "@" +  Integer.toHexString(listener.hashCode()));
-            //if (DEBUG.META) new Throwable().printStackTrace();
         }
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
@@ -58,7 +66,7 @@ public class MapViewerEvent
         else if (id == PAN)     name = "PAN      ";
         else if (id == ZOOM)    name = "ZOOM     ";
         else if (id == FOCUSED) name = "FOCUSED  ";
-        return "MapViewerEvent[" + name + " src=" + getSource() + "]";
+        return "MapViewerEvent[" + name + " " + getSource() + "]";
     }
     
     

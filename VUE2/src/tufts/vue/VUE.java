@@ -62,8 +62,12 @@ public class VUE
     public static FavoritesWindow favoritesWindow;
     
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
+    private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
+    }
+    public interface ActiveViewerListener {
+        public void activeViewerChanged(MapViewer viewer);
     }
     
     public static java.net.URL getResource(String name) {
@@ -562,17 +566,33 @@ public class VUE
     public static void removeActiveMapListener(ActiveMapListener l) {
         sActiveMapListeners.remove(l);
     }
+    public static void addActiveViewerListener(ActiveViewerListener l) {
+        sActiveViewerListeners.add(l);
+    }
+    public static void removeActiveViewerListener(ActiveViewerListener l) {
+        sActiveViewerListeners.remove(l);
+    }
     
     
     public static void setActiveViewer(MapViewer viewer) {
         // todo: does this make sense?
-        if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
+        //if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
+        if (ActiveViewer != viewer) {
+            LWMap oldActiveMap = null;
+            if (ActiveViewer != null)
+                oldActiveMap = ActiveViewer.getMap();
             ActiveViewer = viewer;
             out("ActiveViewer set to " + viewer);
+            if (DEBUG.FOCUS) new Throwable("ACTIVE VIEWER SET").printStackTrace();
             if (ActiveViewer != null) {
-                java.util.Iterator i = sActiveMapListeners.iterator();
+                java.util.Iterator i = sActiveViewerListeners.iterator();
                 while (i.hasNext())
-                    ((ActiveMapListener)i.next()).activeMapChanged(viewer.getMap());
+                    ((ActiveViewerListener)i.next()).activeViewerChanged(viewer);
+                if (oldActiveMap != ActiveViewer.getMap()) {
+                    i = sActiveMapListeners.iterator();
+                    while (i.hasNext())
+                        ((ActiveMapListener)i.next()).activeMapChanged(viewer.getMap());
+                }
             }
         } else {
             ActiveViewer = viewer;

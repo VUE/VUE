@@ -187,10 +187,6 @@ public class MapViewer extends javax.swing.JComponent
         //setFocusable(false); // not till setVsible [only for no scroll-panes]
         
         setLayout(null);
-        //setLayout(new NoLayout());
-        //setLayout(new FlowLayout());
-        //addMouseListener(ih);
-        //addMouseMotionListener(ih);
         addKeyListener(inputHandler);
         
         //MapDropTarget mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
@@ -320,7 +316,7 @@ public class MapViewer extends javax.swing.JComponent
      * don't want to make this adjustment.  */
     
     void setZoomFactor(double pZoomFactor, boolean pReset, Point pFocus) {
-        if (DEBUG.SCROLL) System.out.println(this + " ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+pFocus);
+        if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+pFocus);
         
         //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
         //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
@@ -390,7 +386,7 @@ public class MapViewer extends javax.swing.JComponent
     }
 
     void fireViewerEvent(int id) {
-        if (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
+        if (!sDragUnderway && (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this))
             new MapViewerEvent(this, id).raise();
     }
     
@@ -580,8 +576,8 @@ public class MapViewer extends javax.swing.JComponent
         //setMapOriginOffset(extent.x, extent.y);
         //((JViewport)getParent()).setExtentSize(d);
         //if (isDisplayed())
-        if (!sDragUnderway)
-            fireViewerEvent(MapViewerEvent.PAN); // notify panner
+        //if (!sDragUnderway)
+        //fireViewerEvent(MapViewerEvent.PAN); // notify panner
         
     }
     
@@ -1021,17 +1017,17 @@ public class MapViewer extends javax.swing.JComponent
         
         if (DEBUG.SCROLL||DEBUG_PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
             out("      reshape: "
-                + w + "x" + h
+                + w + " x " + h
                 + " "
                 + x + "," + y
                 + (ignore?" (IGNORING)":""));
-            //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
-            super.reshape(x,y, w,h);
-            if (ignore && activeTextEdit != null)
-                repaint(); // why do we need to do this?
-            if (ignore)
-                return;
-            
+        //out("reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
+        super.reshape(x,y, w,h);
+        if (ignore && activeTextEdit != null)
+            repaint(); // why do we need to do this?
+        if (ignore)
+            return;
+        
         /*
         Point p=null;
         if (isShowing()) {
@@ -1044,18 +1040,18 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
          */
-            //System.out.println(" ul start: "+p);
-            //
-            //if (p!=null) p = getLocationOnScreen();
-            //System.out.println("ul finish: "+p);
-            
-            //if (isShowing()) mLastCorner = getLocationOnScreen();
-            repaint(250); // why the delay?
-            //requestFocus();
-            fireViewerEvent(MapViewerEvent.PAN);
-            // may be causing problems on mac --
-            // some components in tabbed is getting a reshape call
-            // when switching tabs
+        //System.out.println(" ul start: "+p);
+        //
+        //if (p!=null) p = getLocationOnScreen();
+        //System.out.println("ul finish: "+p);
+        
+        //if (isShowing()) mLastCorner = getLocationOnScreen();
+        repaint(250); // why the delay?
+        //requestFocus();
+        fireViewerEvent(MapViewerEvent.PAN);
+        // may be causing problems on mac --
+        // some components in tabbed is getting a reshape call
+        // when switching tabs
     }
     
     public LWMap getMap() {
@@ -1076,7 +1072,7 @@ public class MapViewer extends javax.swing.JComponent
         this.map.addLWCListener(this);
         if (this.map.getUndoManager() == null) {
             if (map.isModified()) {
-                System.out.println(this + " Note: this map has modifications undo will not see");
+                out("Note: this map has modifications undo will not see");
                 //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
             }
             this.map.setUndoManager(new UndoManager(this.map));
@@ -1190,7 +1186,7 @@ public class MapViewer extends javax.swing.JComponent
             VueSelection = null; // insurance: nothing should be happening here if we're not active
         else {
             if (VueSelection != VUE.ModelSelection) {
-                if (DEBUG.FOCUS) System.out.println("*** Pointing to selection: " + this);
+                if (DEBUG.FOCUS) out("*** Pointing to selection");
                 VueSelection = VUE.ModelSelection;
             }
         }
@@ -1209,8 +1205,8 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
-    private static final String ViewerInteractiveDragEvent = "viewer.drag.interactive";
-    private static final String ViewerEndDragEvent = "viewer.drag.completed";
+    //private static final String ViewerInteractiveDragEvent = "viewer.drag.interactive";
+    //private static final String ViewerEndDragEvent = "viewer.drag.completed";
 
     private boolean isBoundsEvent(String k) {
         return k == LWKey.Size
@@ -1233,13 +1229,19 @@ public class MapViewer extends javax.swing.JComponent
      * for updating the current rollover zoom.
      */
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.EVENTS && DEBUG.META) System.out.println(this + " got " + e);
+        if (DEBUG.EVENTS && DEBUG.META) out("got " + e);
         
         // comment this out if want other viewers to interactively see drag events (is slower)
-        if (sDragUnderway && VUE.getActiveViewer() != this)
-            return;
-        
+
         final String key = e.getWhat();
+
+        if (VUE.getActiveViewer() != this) {
+            if (sDragUnderway || key != LWKey.UserActionCompleted)
+                return;
+        } else {
+            if (key == LWKey.UserActionCompleted)
+                return;
+        }
         
         // ignore size & location events during drag as performance enhancement
         //if (sDragUnderway && (key == LWKey.Size || key == LWKey.Location))
@@ -1742,7 +1744,7 @@ public class MapViewer extends javax.swing.JComponent
         
         Rectangle cb = g.getClipBounds();
         //if (DEBUG_PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
-        //System.out.println(this + " paintComponent: clipBounds " + cb);
+        //out("paintComponent: clipBounds " + cb);
         
         //-------------------------------------------------------
         // paint the background
@@ -2730,7 +2732,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
-    class InputHandler extends tufts.vue.MouseAdapter
+    private class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener
     {
         LWComponent dragComponent;//todo: RENAME dragGroup -- make a ControlListener??
@@ -2754,7 +2756,7 @@ public class MapViewer extends javax.swing.JComponent
         
         private int kk = 0;
         public void keyPressed(KeyEvent e) {
-            if (DEBUG_KEYS) System.out.println(MapViewer.this + " [" + e.paramString() + "]");
+            if (DEBUG_KEYS) out("[" + e.paramString() + "]");
             
             clearTip();
             
@@ -3749,11 +3751,11 @@ public class MapViewer extends javax.swing.JComponent
             // for performance)
             if (mouseWasDragged) {
                 VUE.getUndoManager().mark("Drag");
-                adjustScrollRegion();
+                //adjustScrollRegion();
 
                 // this is an to ensure any map modifications are noticed 
                 // by other viewers, as other viewers ignore events during drags
-                getMap().notify(MapViewer.this, ViewerEndDragEvent);
+                //getMap().notify(MapViewer.this, ViewerEndDragEvent);
             }
             
             if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(e))
@@ -4078,7 +4080,7 @@ public class MapViewer extends javax.swing.JComponent
      */
     
     public void focusLost(FocusEvent e) {
-        if (DEBUG.FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
+        if (DEBUG.FOCUS) out("focusLost (to " + e.getOppositeComponent() +")");
         
         if (VueUtil.isMacPlatform()) {
             
@@ -4120,11 +4122,11 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     void grabVueApplicationFocus(String from) {
-        if (DEBUG.FOCUS) System.out.println(this + " grabVueApplicationFocus triggered thru " + from);
+        if (DEBUG.FOCUS) out("grabVueApplicationFocus triggered thru " + from);
         this.VueSelection = VUE.ModelSelection;
         setFocusable(true);
         if (VUE.getActiveViewer() != this) {
-            if (DEBUG.FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
+            if (DEBUG.FOCUS) out("grabVueApplicationFocus " + from + " *** GRABBING ***");
             //new Throwable("REAL GRAB").printStackTrace();
             MapViewer activeViewer = VUE.getActiveViewer();
             // why are we checking this again if we just checked it???
@@ -4160,7 +4162,7 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     public void focusGained(FocusEvent e) {
-        if (DEBUG.FOCUS) System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        if (DEBUG.FOCUS) out("focusGained (from " + e.getOppositeComponent() + ")");
         // do NOT grab focus if we're not actually visible
         grabVueApplicationFocus("focusGained");
         repaint();
@@ -4411,7 +4413,7 @@ public class MapViewer extends javax.swing.JComponent
     //-------------------------------------------------------
     
     private void out(String s) {
-        if (VUE.getActiveViewer() == this && !DEBUG.META) // for now
+        //if (VUE.getActiveViewer() == this || DEBUG.META)
             System.out.println(this + " " + s);
     }
     private String out(Point2D p) { return (float)p.getX() + "," + (float)p.getY(); }
@@ -4423,7 +4425,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     private String out(Dimension d) { return d.width + " x " + d.height; }
     
-    private boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
+    private static boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
     //private boolean DEBUG.MOUSE = true;
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");
     

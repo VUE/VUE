@@ -6,6 +6,8 @@ package tufts.vue;
  * recognized */
 public interface LWKey {
 
+    public String UserActionCompleted = "user.action.completed";
+    
     public String Location = "location"; 
     public String Size = "size";
     public String Frame = "frame"; // location & size

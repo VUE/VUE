@@ -339,6 +339,7 @@ public class UndoManager
                 sRedoUnderway = false;
             }
             UndoList.advance();
+            mMap.notify(this, LWKey.UserActionCompleted);
         }
         updateActionLabels();
     }
@@ -352,8 +353,9 @@ public class UndoManager
         if (undoAction != null) {
             mRedoCaptured = false;
             undoAction.undo();
+            RedoList.add(collectChangesAsUndoAction(undoAction.name));
+            mMap.notify(this, LWKey.UserActionCompleted);
         }
-        RedoList.add(collectChangesAsUndoAction(undoAction.name));
         updateActionLabels();
         // We've undo everything: we can mark the map as having no modifications
         if (UndoList.peek() == null)
@@ -404,6 +406,7 @@ public class UndoManager
         }
         UndoList.add(collectChangesAsUndoAction(name));
         RedoList.clear();
+        mMap.notify(this, LWKey.UserActionCompleted);
         updateActionLabels();
     }
 

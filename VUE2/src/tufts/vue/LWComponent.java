@@ -1342,8 +1342,8 @@ public class LWComponent
             // This is likely to produce event loops, and the exception is here as a safety measure.
             throw new IllegalArgumentException(this + " attempt to add self as LWCEvent listener: not allowed");
         } else {
-            if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\t+++ADDS " + this
-                                                 + (eventMask==null?"":(" eventMask=" + eventMask)));
+            if (DEBUG.EVENTS && DEBUG.META)
+                outln("*** LISTENER " + listener + "\t+++ADDS " + this + (eventMask==null?"":(" eventMask=" + eventMask)));
             if (eventMask == null)
                 listeners.add(listener);
             else
@@ -1403,10 +1403,8 @@ public class LWComponent
         if (listeners != null && listeners.size() > 0) {
             dispatchLWCEvent(this, listeners, e);
         } else {
-            if (DEBUG.EVENTS) {
-                for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
-                System.out.println(e + " -> " + "<NO LISTENERS>" + (isOrphan() ? " (orphan)":""));
-            }
+            if (DEBUG.EVENTS && DEBUG.META)
+                eoutln(e + " -> " + "<NO LISTENERS>" + (isOrphan() ? " (orphan)":""));
         }
 
         // todo: have a seperate notifyParent? -- every parent
@@ -1419,8 +1417,7 @@ public class LWComponent
         
         if (parent != null) {
             if (DEBUG.EVENTS && DEBUG.META) {
-                for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
-                System.out.println(e + " " + parent + " ** PARENT UP-NOTIFICATION");
+                eoutln(e + " " + parent + " ** PARENT UP-NOTIFICATION");
             }
             parent.notifyLWCListeners(e);
         } else if (isOrphan()) {
@@ -1436,11 +1433,23 @@ public class LWComponent
                 System.out.println(e + " (FYI: orphan node event)");
         }
     }
+
+    private static void eout(String s) {
+        for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
+        System.out.print(s);
+    }
+    private static void eoutln(String s) {
+        eout(s + "\n");
+    }
+    private static void outln(String s) {
+        System.out.println(s);
+    }
     
     /**
      * Deliver LWCEvent @param e to all the @param listeners
      */
-    static void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
+    private static Listener[] listener_buf = new Listener[16];
+    static synchronized void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
     {
         if (sEventDepth > 5) // guestimate max based on current architecture -- increase if you need to
             throw new IllegalStateException("eventDepth=" + sEventDepth
@@ -1465,47 +1474,50 @@ public class LWComponent
         // an event has already had it's notification and we don't
         // need to make sure it doesn't get one further down the list.
         
-        Listener[] listener_array = new Listener[listeners.size()];
-        listeners.toArray(listener_array);
-        //java.util.Iterator i = listeners.iterator();
-        //while (i.hasNext()) {
-        for (int i = 0; i < listener_array.length; i++) {
+        int nlistener = listeners.size();
+        Listener[] listener_array = (Listener[]) listeners.toArray(listener_buf);
+        if (listener_array != listener_buf)
+            out("FYI: listener count " + nlistener + " exceeded performance buffer.");
+
+        for (int i = 0; i < nlistener; i++) {
             if (DEBUG.EVENTS && DEBUG.META) {
-                for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
                 if (e.getSource() != source)
-                    System.out.print(e + " " + source + " >> ");
+                    eout(e + " => " + source + " >> ");
                 else
-                    System.out.print(e + " >> ");
+                    eout(e + " >> ");
             }
-            //Listener l = (Listener) i.next();
             Listener l = listener_array[i];
+            //-------------------------------------------------------
+            // If a listener proxy, extract the real listener
+            //-------------------------------------------------------
             if (l instanceof LWCListenerProxy) {
                 LWCListenerProxy lp = (LWCListenerProxy) l;
                 if (!lp.isListeningFor(e)) {
                     if (DEBUG.EVENTS && DEBUG.META)
-                        System.out.println(l + " (filtered)");
+                        outln(l + " (filtered)");
                     continue;
                 }
                 l = lp.listener;
             }
-            if (DEBUG.EVENTS && !DEBUG.META) {
-                for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
-                if (e.getSource() != source)
-                    System.out.print(e + " => " + source + " -> ");
-                else
-                    System.out.print(e + " -> ");
-            }
+            //-------------------------------------------------------
+            // now we know we have the real listener
+            //-------------------------------------------------------
             if (DEBUG.EVENTS) {
-                if (e.getSource() == l)
-                    System.out.println(l + " (SKIPPED: source)");
-                //else if (e.getSource() != source)
-                //    System.out.println(l + " (" + source + ")");
-                else
-                    System.out.println(l);
+                if (DEBUG.META) {
+                    if (e.getSource() == l)
+                        outln(l + " (SKIPPED: source)");
+                } else if (e.getSource() != l) {
+                    if (e.getSource() != source)
+                        eout(e + " => " + source + " -> ");
+                    else
+                        eout(e + " -> ");
+                }
             }
             if (e.getSource() == l) // this prevents events from going back to their source
                 continue;
             sEventDepth++;
+            if (DEBUG.EVENTS)
+                outln(l.toString());
             try {
                 //-------------------------------------------------------
                 // deliver the event

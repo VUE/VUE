@@ -57,8 +57,11 @@ public class VueAction extends javax.swing.AbstractAction
     }
     public void actionPerformed(ActionEvent ae)
     {
-        if (DEBUG.EVENTS) System.out.println("\n-------------------------------------------------------\n"
-                                             + this + " START OF actionPerformed: ActionEvent=" + ae.paramString());
+        if (DEBUG.EVENTS) System.out.println("\n------------------------------------------------------------------\n"
+                                             + this
+                                             + " START OF actionPerformed: ActionEvent="
+                                             + ae.paramString()
+                                             + " src=" + ae.getSource());
         if (allIgnored) {
             if (DEBUG.EVENTS) System.out.println("ACTIONS DISABLED.");
             return;

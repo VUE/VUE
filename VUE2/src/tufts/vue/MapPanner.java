@@ -19,6 +19,8 @@ import javax.swing.JViewport;
 public class MapPanner extends javax.swing.JPanel
     implements VueConstants,
                MapViewer.Listener,
+               VUE.ActiveViewerListener,
+               LWComponent.Listener,
                MouseListener,
                MouseMotionListener
 {
@@ -26,6 +28,7 @@ public class MapPanner extends javax.swing.JPanel
     private double zoomFactor; // zoomFactor that will fit entire map in the panner
     private Point dragStart; // where mouse was at mouse press
     private Point2D mapStart; // where map origin was at mouse press
+    private LWMap map; // active map
 
     /**
      * Get's global (thru AWT hierarchy) MapViewerEvent's
@@ -42,23 +45,32 @@ public class MapPanner extends javax.swing.JPanel
         addMouseListener(this);
         addMouseMotionListener(this);
 
-        // VUE.addEventListener(this, MapViewerEvent.class);
+        VUE.addActiveViewerListener(this);
     }
 
+    
     /**
      * All instances of MapViewer raise MapViewer events
      * as the act, and the MapPanner hears all of them
      * here.
      */
+
     public void mapViewerEventRaised(MapViewerEvent e)
     {
+        /*
         if (e.isActivationEvent()) {
             setViewer(e.getMapViewer());
-        } else if (e.getSource() == this.mapViewer
-                   && (e.getID() == MapViewerEvent.PAN ||
-                       e.getID() == MapViewerEvent.ZOOM)) {
+        } else
+        */
+        if (e.getSource() == this.mapViewer
+            && (e.getID() == MapViewerEvent.PAN ||
+                e.getID() == MapViewerEvent.ZOOM)) {
             repaint();
         }
+    }
+
+    public void activeViewerChanged(MapViewer viewer) {
+        setViewer(viewer);
     }
     
     private void setViewer(MapViewer mapViewer)
@@ -73,8 +85,22 @@ public class MapPanner extends javax.swing.JPanel
 
         if (this.mapViewer != mapViewer) {
             this.mapViewer = mapViewer;
+            setMap(mapViewer.getMap());
             repaint();
         }
+    }
+
+    private void setMap(LWMap map) {
+        if (this.map != map) {
+            if (this.map != null)
+                this.map.removeLWCListener(this);
+            this.map = map;
+            this.map.addLWCListener(this, LWKey.UserActionCompleted);
+        }
+    }
+
+    public void LWCChanged(LWCEvent e) {
+        repaint();
     }
     
     public void paintComponent(Graphics g)
@@ -226,5 +252,9 @@ public class MapPanner extends javax.swing.JPanel
     public void mouseEntered(MouseEvent e) { /*System.err.println(e);*/ }
     public void mouseExited(MouseEvent e) { /*System.err.println(e);*/ }
     public void mouseMoved(MouseEvent e) {}
+
+    public String toString() {
+        return "MapPanner[" + mapViewer + "]";
+    }
     
 }
