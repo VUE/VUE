@@ -411,7 +411,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         catch (Exception e)
         {
            //possible null pointer 
-           System.err.println("other exception");
+            System.err.println(this + " createHierarchyNode " + e);
+            e.printStackTrace();
         }
         
         return node;
@@ -433,7 +434,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         
         catch(Exception e)
         {
-            System.err.println("other exception deleting");
+            System.err.println(this + " deleteHierarchyNode " + e);
+            e.printStackTrace();
         }
     }
     

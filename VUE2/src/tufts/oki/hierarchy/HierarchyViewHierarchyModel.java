@@ -338,7 +338,8 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         catch (Exception e)
         {
            //possible null pointer 
-           System.err.println("other exception");
+            System.err.println(this + " createHierarchyNode " + e);
+            e.printStackTrace();
         }
         
         return node;
@@ -360,7 +361,8 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         
         catch(Exception e)
         {
-            System.err.println("other exception deleting");
+            System.err.println(this + " deleteHierarchyNode " + e);
+            e.printStackTrace();
         }
     }
     
