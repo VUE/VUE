@@ -95,6 +95,10 @@ public class LWLink extends LWComponent
         computeLinkEndpoints();
     }
 
+    public boolean supportsUserLabel() {
+        return true;
+    }
+    
     /*
     public void setSelected(boolean selected)
     {
