@@ -57,11 +57,11 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public void addElement(LWComponent comp){
-        this.manager.addPathwayElement(comp);
+        this.manager.addPathwayElement(comp, this.getCurrentPathway());
     }
     
     public void addElements(LWComponent[] array){
-        this.manager.addPathwayElements(array);
+        this.manager.addPathwayElements(array, this.getCurrentPathway());
     }
     
     public void removeElement(LWComponent comp){
@@ -114,11 +114,9 @@ public class PathwayTableModel extends DefaultTableModel{
     }
 
     public Class getColumnClass(int col){
-        if(col == 0)
-            return Boolean.class;
-        else if(col == 1)
+        if(col == 1)
             return Color.class;
-        else if(col == 2 || col == 4)
+        else if(col == 0 || col == 2 || col == 4)
             return ImageIcon.class;
         else
             return String.class;
@@ -133,13 +131,14 @@ public class PathwayTableModel extends DefaultTableModel{
         return colClass == Boolean.class || colClass == String.class;
     }
     
+    /*
     public void setCurrentOpen(boolean val){
         manager.setCurrentOpen(val);
     }
     
     public void setCurrentOpen(){
         manager.setCurrentOpen();
-    }
+    }*/
     
     public boolean isRepeat(String name){
         boolean isRep = false;
@@ -165,16 +164,18 @@ public class PathwayTableModel extends DefaultTableModel{
             if(pathway.getNotes().equals(null) || pathway.getNotes().equals(""))
                 hasNotes = false;
                 
+            boolean isDisplayed = false;
+            if(pathway.getShowing())
+                isDisplayed = true;
+            
             boolean isOpen = false;
-            if(manager.getCurrentPathway() != null
-                && manager.getCurrentPathway().equals(pathway)
-                && manager.getCurrentOpen())
+            if(pathway.getOpen())
                 isOpen = true;
                 
             try{
                 switch(col){
                     case 0:
-                        return new Boolean(true);
+                        return new Boolean(isDisplayed);
                     case 1:
                         return pathway.getBorderColor();
                     case 2:
@@ -189,21 +190,18 @@ public class PathwayTableModel extends DefaultTableModel{
             } 
         }else if (elem instanceof LWComponent){
             LWComponent comp = (LWComponent)elem;
-            LWPathway pathway = manager.getCurrentPathway();
             
-            int elemIndex = pathway.getElementIndex(comp);
+            //LWPathway pathway = manager.getPathwayforElementAt(row);
+            //int elemIndex = pathway.getElementIndex(comp);
 
-            boolean isCurrent = false;
+            /*boolean isCurrent = false;
             if(pathway.getCurrentIndex() == elemIndex)
                 isCurrent = true;
-            
-
+                */
             try{
                 switch(col){
-                    case 2:
-                        return new Boolean(isCurrent);
                     case 3:
-                        return pathway.getElement(elemIndex).getLabel();
+                        return comp.getLabel();
                 }
             }catch (Exception e){
                 System.err.println("exception in the table model, setting pathway element cell:" + e);
@@ -221,14 +219,14 @@ public class PathwayTableModel extends DefaultTableModel{
             
             if(path != null){
                 if(col == 0){
-                    
+                    path.setShowing();
                 }
                 else if(col == 1){
-                    path.setBorderColor((Color)aValue);
+                    //path.setBorderColor((Color)aValue);
                     //manager.setCurrentPathway(path);
                 }
                 else if(col == 2){
-                    manager.setCurrentOpen();
+                    manager.setPathOpen(path);
                     //manager.setCurrentPathway(path);                   
                 }
                 else if(col == 3){
@@ -247,6 +245,8 @@ public class PathwayTableModel extends DefaultTableModel{
                 comp.setLabel((String)aValue);
             }
         }
+        this.fireTableDataChanged();
+        System.out.println("just fired table data changed in SetValueAt");
     }   
 }
 

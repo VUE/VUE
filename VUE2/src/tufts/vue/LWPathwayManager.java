@@ -23,7 +23,7 @@ public class LWPathwayManager {
     private ArrayList pathways = null;
     private LWPathway current = null;
     private LWMap map = null;
-    private boolean currentOpen = false;
+    //private boolean currentOpen = false;
     
     /* beginning of castor mapping methods */
     
@@ -65,7 +65,7 @@ public class LWPathwayManager {
     public Object getPathwaysElement(int index){
         return pathways.get(index);
     }
-    
+    /*
     public boolean getCurrentOpen(){
         return this.currentOpen;
     }
@@ -82,7 +82,7 @@ public class LWPathwayManager {
     public void setCurrentOpen(){
         boolean newValue = !this.currentOpen;
         this.setCurrentOpen(newValue);
-    }
+    }*/
     
     public int getPathwayIndex(LWPathway path){
         return this.pathways.indexOf(path);
@@ -98,43 +98,111 @@ public class LWPathwayManager {
         return pathways;
     }
     
-    public void addPathwayElement(LWComponent comp){
-        if(this.getCurrentOpen()){
+    public void addPathwayElement(LWComponent comp, LWPathway path){
+        System.out.println("adding pathway element");
+        if(path.getOpen()){
             this.hidePathwayElements();
-            this.getCurrentPathway().addElement(comp);
+            path.addElement(comp);
             this.showPathwayElements();
-        }else
-            this.getCurrentPathway().addElement(comp);
+        }else{
+            path.addElement(comp);
+        
+            System.out.println("completed adding pathway element");
+            for(int i=0; i < pathways.size(); i++){
+                if(pathways.get(i) instanceof LWPathway)
+                    System.out.println("element " +i+ ": " + ((LWPathway)pathways.get(i)).getLabel());
+                else
+                    System.out.println("element " +i+ ": " + ((LWComponent)pathways.get(i)).getLabel());
+            }
+        }
     }
     
-    public void addPathwayElements(LWComponent[] array){
-        if(this.getCurrentOpen()){
+    public void addPathwayElements(LWComponent[] array, LWPathway path){
+        if(path.getOpen()){
             this.hidePathwayElements();
             for (int i = 0; i < array.length; i++){
-                this.getCurrentPathway().addElement(array[i]);                        
+                path.addElement(array[i]);                        
             }
             this.showPathwayElements();
         }else{
             for (int i = 0; i < array.length; i++){
-                this.getCurrentPathway().addElement(array[i]);                        
+                path.addElement(array[i]);                        
             }
         }
     }
     
     private void showPathwayElements(){
-        LWPathway pathway = this.getCurrentPathway();
-        java.util.List list = pathway.getElementList();
-        this.pathways.addAll(this.getCurrentIndex()+1, list);
+        ArrayList list = new ArrayList();
+        for(int i = 0; i < pathways.size(); i++){
+            if(pathways.get(i) instanceof LWPathway && ((LWPathway)pathways.get(i)).getOpen())
+                list.add((LWPathway)pathways.get(i));
+        }
+        
+        for(int j = 0; j < list.size(); j++){
+            LWPathway path = (LWPathway)list.get(j);
+            java.util.List elementList = path.getElementList();
+            this.pathways.addAll(this.getPathwayIndex(path)+1, elementList);
+        }
+        
+        /*boolean c = true;
+        int index = 0;
+        
+        while(c){
+            LWPathway path = null;
+            
+            for(int i = index; i < pathways.size(); i++){
+                boolean chosen = false;
+                if(pathways.get(i) instanceof LWPathway && ((LWPathway)pathways.get(i)).getOpen() && !chosen){
+                    path = (LWPathway)pathways.get(i);
+                    chosen = true;
+                    index = i;
+                }
+            }
+            
+            if(path == null)
+                c =false;
+            else{
+                java.util.List list = path.getElementList();
+                this.pathways.addAll(this.getCurrentIndex()+1, list);
+                index += list.size();
+            }               
+        }*/
+        System.out.println("completed showing elements");
+    }
+    
+    public void setPathOpen(LWPathway path){
+        this.hidePathwayElements();
+        path.setOpen();
+        this.showPathwayElements();
     }
     
     private void hidePathwayElements(){
-        LWPathway pathway = this.getCurrentPathway();
-        Iterator iter = pathway.getElementIterator();
-        while(iter.hasNext()){
-            LWComponent comp = (LWComponent)iter.next();
-            if(pathways.contains(comp))
-                pathways.remove(comp);   
+        //LWPathway pathway = this.getCurrentPathway();
+        
+        ArrayList list = new ArrayList();
+        for(int i = 0; i < pathways.size(); i++){
+            if(pathways.get(i) instanceof LWComponent){
+                list.add(pathways.get(i));
+            }
         }
+        
+        for(int j = 0; j < list.size(); j++){
+            if(list.get(j) instanceof LWComponent)
+                pathways.remove(list.get(j));
+        }
+        
+        System.out.println("completed hiding elements");
+    }
+    
+    public LWPathway getPathwayforElementAt(int index){
+        if(index < 0){
+            for(int i = index; i > 0; i--){
+                if(pathways.get(i) instanceof LWPathway){
+                    return (LWPathway)pathways.get(i);
+                }
+            }
+        }
+        return null;
     }
     
     public LWPathway getCurrentPathway() {
@@ -142,8 +210,8 @@ public class LWPathwayManager {
     }
     
     public void setCurrentPathway(LWPathway pathway) {
-        if(this.getCurrentPathway() != null && !this.getCurrentPathway().equals(pathway) && this.getCurrentOpen())
-            this.hidePathwayElements();
+        //if(this.getCurrentPathway() != null && !this.getCurrentPathway().equals(pathway))
+        //    this.hidePathwayElements();
         current = pathway;
         VUE.getActiveViewer().repaint();
     }
@@ -195,7 +263,7 @@ public class LWPathwayManager {
     }
     
     public void removeElement(LWComponent comp){
-        if(this.getCurrentOpen()){
+        if(this.getCurrentPathway().getOpen()){
             this.hidePathwayElements();
             this.getCurrentPathway().removeElement(comp);
             this.showPathwayElements();

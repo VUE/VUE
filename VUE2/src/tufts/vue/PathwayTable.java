@@ -23,22 +23,18 @@ import java.awt.*;
 public class PathwayTable extends JTable{
         
     
-    private final ImageIcon close = new ImageIcon("ZoomIn16.gif");
-    private final ImageIcon open = new ImageIcon("ZoomOut16.gif");
-    private final ImageIcon notes = new ImageIcon("Zoom16.gif");
+    private final ImageIcon close = VueResources.getImageIcon("pathwayClose");
+    private final ImageIcon open = VueResources.getImageIcon("pathwayOpen");
+    private final ImageIcon notes = VueResources.getImageIcon("notes");
+    private final ImageIcon lock = VueResources.getImageIcon("lock");
+    private final ImageIcon eyeOpen = VueResources.getImageIcon("pathwayOn");
+    private final ImageIcon eyeClosed = VueResources.getImageIcon("pathwayOff");
     
     JCheckBox box = null;
     JTextField field = null;
     
     private final Color notSelected = Color.white;
     private final Color selected = Color.orange;
-    
-    private final MatteBorder border = new MatteBorder(3,0,3,0,notSelected);
-    private final MatteBorder selectedBorder = new MatteBorder(3,0,3,0, selected);
-    private final MatteBorder leftBorder = new MatteBorder(3,3,3,0,notSelected);
-    private final MatteBorder leftSelectedBorder = new MatteBorder(3,3,3,0,selected);    
-    private final MatteBorder rightBorder = new MatteBorder(3,0,3,3,notSelected);
-    private final MatteBorder rightSelectedBorder = new MatteBorder(3,0,3,3,selected);  
     
     //sets whether or not table column headers are shown
     boolean showHeaders = true;
@@ -48,6 +44,10 @@ public class PathwayTable extends JTable{
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
+        
+        this.setShowVerticalLines(false);
+        this.setShowHorizontalLines(true);
+        this.setGridColor(Color.gray);
         
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);
@@ -62,7 +62,7 @@ public class PathwayTable extends JTable{
         box = new JCheckBox();
         field = new JTextField();
         
-        this.setDefaultRenderer(Boolean.class, new CheckRenderer(tab));
+        //this.setDefaultRenderer(Boolean.class, new CheckRenderer(tab));
         this.setDefaultRenderer(Color.class, new ColorRenderer(tab));
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer(tab));
         this.setDefaultRenderer(String.class, new LabelRenderer(tab));
@@ -85,18 +85,21 @@ public class PathwayTable extends JTable{
 
                         if(elem instanceof LWPathway){
                             LWPathway path = (LWPathway)elem;
-                            boolean same = tableModel.getCurrentPathway().equals(path);
                             tableModel.setCurrentPathway(path);
+                            
                             tab.removeElement.setEnabled(false);
-
-                            if(col == 2){
-                                if(same)
-                                    tableModel.setCurrentOpen();
-                                else
-                                    tableModel.setCurrentOpen(true);
-                                tab.updateControlPanel();
+                            
+                            if(col == 0){
+                                setValueAt(path, row, col);
                             }
+                            else if(col == 2){
+                                System.out.println("toggling open switch");
+                                setValueAt(path, row, col);
+                            }
+                            
                             tableModel.fireTableDataChanged();
+                            tab.updateControlPanel();
+                            
                         }else
                             tab.removeElement.setEnabled(true);
                     }
@@ -184,12 +187,17 @@ public class PathwayTable extends JTable{
                                     int row, 
                                     int col)
         {
+            Font currentFont = new Font("Dialog", Font.ITALIC, 10);
+            Font normalFont = new Font("SansSerif", Font.PLAIN, 10);
             Object path = tab.getPathwayTableModel().getElement(row);
+            this.setFont(normalFont);
             
-            //if(tab.getPathwayTable().getSelectedRow() == row)
-                //this.setBorder(selectedBorder);
-            //else
-                //this.setBorder(border);
+            if(value instanceof LWComponent){
+                    LWComponent comp = (LWComponent)value;
+                    if(tab.getPathwayTableModel().getCurrentPathway().getCurrent().equals(comp)){
+                        this.setFont(currentFont);
+                    }
+            }
             
             return this;
         }  
@@ -205,7 +213,7 @@ public class PathwayTable extends JTable{
         
         public java.awt.Component getTableCellRendererComponent(
                                     javax.swing.JTable jTable, 
-                                    Object value, 
+                                    Object obj, 
                                     boolean isSelected, 
                                     boolean hasFocus, 
                                     int row, 
@@ -214,26 +222,34 @@ public class PathwayTable extends JTable{
             Object path = tab.getPathwayTableModel().getElement(row);
             if(path instanceof LWPathway){
                 //System.out.println("in image renderer color: "+value.toString());
-                if(col == 2){
-                    if(((Boolean)value).booleanValue())
+                if(col == 0) {
+                    if(((Boolean)obj).booleanValue())
+                        this.setIcon(eyeOpen);
+                    else
+                        this.setIcon(eyeClosed);
+                }
+                else if(col == 2){
+                    if(((Boolean)obj).booleanValue())
                         this.setIcon(open);
                     else
                         this.setIcon(close);
                 }
                 else if(col == 4){
-                    if(((Boolean)value).booleanValue())
+                    if(((Boolean)obj).booleanValue())
                         this.setIcon(notes);
                     else
                         this.setIcon(null);
-                }  
+                }
+                
             }else{
                 if(col == 2){
-                    if(((Boolean)value).booleanValue())
+                    this.setIcon(null);
+                }
+                if(col == 4){
+                    if( ((LWComponent)path).getNotes() != null && ((LWComponent)path).getNotes() != "")
                         this.setIcon(notes);
                     else
                         this.setIcon(null);
-                }else{
-                    this.setIcon(null);
                 }
             }
             if(tab.getPathwayTable().getSelectedRow() == row){
@@ -251,8 +267,9 @@ public class PathwayTable extends JTable{
             return this;
         }  
     }
+}
     
-    private class CheckRenderer extends JCheckBox implements TableCellRenderer{
+/*    private class CheckRenderer extends JCheckBox implements TableCellRenderer{
         
         PathwayTab tab = null;
         
@@ -268,7 +285,6 @@ public class PathwayTable extends JTable{
                                     int row, 
                                     int col)
         {
-            //System.out.println("in check renderer value: "+value);
             Object path = tab.getPathwayTableModel().getElement(row);
             
             //if(tab.getPathwayTable().getSelectedRow() == row)
@@ -283,7 +299,7 @@ public class PathwayTable extends JTable{
             return new JLabel();
         }     
     }
-}
+}*/
     /*
     private class CheckEditor extends DefaultCellEditor{
         private PathwayTab tab = null;

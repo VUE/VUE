@@ -31,7 +31,8 @@ public class LWPathway
     private String label = "";
     private int currentIndex;
     private String notes = "";
-    private boolean isShowing = false;
+    private boolean showing = false;
+    private boolean open = false;
     private boolean mDoingXMLRestore = false;
     
     /**default constructor used for marshalling*/
@@ -67,12 +68,35 @@ public class LWPathway
         return map;
     }
     
-    public void setIsShowing(boolean isShowing){
-        this.isShowing = isShowing;
+    
+    public void setShowing(boolean showing){
+        this.showing = showing;
     }
     
-    public boolean getIsShowing(){
-        return isShowing;
+    public void setShowing(){
+        if(this.showing)
+            this.showing = false;
+        else
+            this.showing = true;
+    }
+    
+    public boolean getShowing(){
+        return showing;
+    }
+    
+    public void setOpen(boolean open){
+        this.open = open;
+    }
+    
+    public void setOpen(){
+        if(this.open)
+            this.open = false;
+        else
+            this.open = true;
+    }
+    
+    public boolean getOpen(){
+        return open;
     }
     
     public void drawPathway(Graphics2D g){

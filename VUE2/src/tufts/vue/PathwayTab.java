@@ -62,9 +62,16 @@ public class PathwayTab extends JPanel implements   ActionListener,
     
 private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     /* Pathway control properties */
+
+    private JButton firstButton = new JButton(VueResources.getImageIcon("controlRewindUp"));
+    private JButton backButton = new JButton(VueResources.getImageIcon("controlPlayBackwardUp"));
+    private JButton forwardButton = new JButton(VueResources.getImageIcon("controlPlayForwardUp"));
+    private JButton lastButton = new JButton(VueResources.getImageIcon("controlForwardUp"));
     
-    private JButton firstButton, lastButton, forwardButton, backButton;
-    private JButton removeButton, createButton;
+    private ImageIcon addIcon = VueResources.getImageIcon("addLight");
+    private ImageIcon deleteIcon = VueResources.getImageIcon("deleteLight");
+        
+    private JButton removeButton, createButton, lockButton;
     //private JComboBox pathwayList;
     private JPanel southNotes = null;
     private JTextArea notesArea = null;
@@ -76,6 +83,9 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     
     private LWPathway dispPath = null;
     private LWComponent dispComp = null;
+    
+    private Color bgColor = new Color(200, 200, 255);
+    
     /* end Pathway Control Properties */
     
     private String[] colNames = {"A", "B", "C", "D", "E"};
@@ -86,7 +96,8 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     {   
         this.parent = parent;
         
-        setLayout(new GridLayout(2,1,5,0));
+        //setLayout(new GridLayout(2,1,5,0));
+        setLayout(new BorderLayout());
         pathLabel = new JLabel();
         //nodeLabel = new JLabel();
         //used but not added to GUI
@@ -94,31 +105,54 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         setPathwayNameLabel();
         //end of used
         
+        
         JPanel pathwayPanel = new JPanel(new BorderLayout());
-        
-        createButton = new JButton("+");
-        createButton.setPreferredSize(new Dimension(bWidth, bHeight));
+         
+        createButton = new JButton(addIcon);
+        createButton.setPreferredSize(new Dimension(17, 17));
         createButton.addActionListener(this);
-        removeButton = new JButton("-");
-        removeButton.setPreferredSize(new Dimension(bWidth, bHeight));
+        removeButton = new JButton(deleteIcon);
+        removeButton.setPreferredSize(new Dimension(17, 17));
         removeButton.addActionListener(this);
+        lockButton = new JButton(VueResources.getImageIcon("lock"));
+        lockButton.setPreferredSize(new Dimension(17, 17));
+        lockButton.addActionListener(this);
         
-        JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        editPathwaysPanel.add(new JLabel("Add / Delete Pathways"));
+        JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        editPathwaysPanel.add(new JLabel("Pathways"));
         editPathwaysPanel.add(createButton);
         editPathwaysPanel.add(removeButton);
+        editPathwaysPanel.add(lockButton);
         
-        pathwayPanel.add(editPathwaysPanel, BorderLayout.NORTH);
+        add(editPathwaysPanel, BorderLayout.NORTH);
         
         JPanel tablePanel = new JPanel(new BorderLayout());
         FlowLayout flow = new FlowLayout(FlowLayout.RIGHT);
-        JPanel northPanel = new JPanel(flow);
-   
-        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel northPanel = new JPanel(new BorderLayout());
+        
+        JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+        questionLabel.setPreferredSize(new Dimension(14, 14));
+        
+        northPanel.add(questionLabel, BorderLayout.WEST);
+        northPanel.add(new JLabel(" "), BorderLayout.CENTER);
+        
+        JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        JLabel playBackLabel = new JLabel("Highlight a path to playback:");
+        playBackLabel.setBackground(bgColor);
+        buttonGroupPanel.add(playBackLabel);
+        
+        buttonPanel.setBackground(bgColor);
+        
+        buttonGroupPanel.add(buttonPanel);
+        buttonGroupPanel.setBackground(bgColor);
+        
+        northPanel.add(buttonGroupPanel, BorderLayout.EAST);
+        
+        northPanel.setBackground(bgColor);
         
         //pathway table setup
         tableModel = new PathwayTableModel(this);   
-        
         pathwayTable = new PathwayTable(this);
         pathwayTable.setModel(tableModel);
         pathwayTable.setDefaultRenderer(String.class, new javax.swing.table.DefaultTableCellRenderer());        
@@ -129,11 +163,10 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
             if(i != 3) col.setMaxWidth(colWidths[i]);
         } 
         
-        northPanel.add(new JLabel("Highlight a path to playback:"));
-        northPanel.add(buttonPanel);
-        northPanel.setBackground(new Color(200, 200, 255));
         
         setButtons();
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
         southPanel.add(new JLabel("Add selected object on map to path"));
         southPanel.add(buttons);
         southPanel.setBackground(new Color(200, 200, 255));
@@ -144,7 +177,7 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         
         pathwayPanel.add(tablePanel, BorderLayout.CENTER);
         
-        add(pathwayPanel);
+        add(pathwayPanel, BorderLayout.CENTER);
         
         JPanel notesPanel = new JPanel(new BorderLayout());
         southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -158,16 +191,16 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
+        notesArea.setMaximumSize(new Dimension(this.getWidth(), 200));
         notesArea.addKeyListener(this);
-        notesPanel.add(notesArea, BorderLayout.CENTER);
+        notesPanel.add(new JScrollPane(notesArea), BorderLayout.CENTER);
         
-        add(notesPanel);
+        add(notesPanel, BorderLayout.SOUTH);
         
     }
     
     public void setButton(JButton button){
         button.addActionListener(this);
-        button.setPreferredSize(new Dimension(bWidth2, bHeight));
         buttonPanel.add(button);
     }
     
@@ -187,10 +220,11 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.setBackground(Color.white);
         
-        firstButton = new JButton("<<");
-        lastButton = new JButton(">>");
-        forwardButton = new JButton(">");
-        backButton = new JButton("<");
+        firstButton.setPreferredSize(new Dimension(19, 19));
+        lastButton.setPreferredSize(new Dimension(19, 19));
+        forwardButton.setPreferredSize(new Dimension(19, 19));
+        backButton.setPreferredSize(new Dimension(19, 19));
+        
         setButton(firstButton);
         setButton(backButton);
         setButton(forwardButton);
@@ -237,12 +271,12 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     public void setButtons(){
         
         buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        addElement = new JButton("+");
-        addElement.setPreferredSize(new Dimension(bWidth, bHeight));
+        addElement = new JButton(addIcon);
+        addElement.setPreferredSize(new Dimension(16, 16));
         addElement.addActionListener(this);
         addElement.setEnabled(false);
-        removeElement = new JButton("-");
-        removeElement.setPreferredSize(new Dimension(bWidth, bHeight));
+        removeElement = new JButton(deleteIcon);
+        removeElement.setPreferredSize(new Dimension(16, 16));
         removeElement.addActionListener(this);
         removeElement.setEnabled(false);
         
@@ -428,7 +462,10 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
             PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
             dialog.show();
         }
-          
+        else if (e.getSource() == lockButton){
+            //add lock code here
+        }
+        
         this.getPathwayTableModel().fireTableDataChanged();
         updateControlPanel();
         VUE.getActiveViewer().repaint();
