@@ -393,7 +393,7 @@ public class Publisher extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == cancelButton) {   
             this.dispose();
-        }
+        } 
         if(e.getSource() == finishButton) {
             if(stage == 1) {
                 if(publishMapRButton.isSelected())
