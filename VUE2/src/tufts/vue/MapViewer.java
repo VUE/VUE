@@ -726,8 +726,8 @@ public class MapViewer extends javax.swing.JPanel
             float mapX = screenToMapX(lastMouseX);
             float mapY = screenToMapY(lastMouseY);
             LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
-            System.out.println("RolloverTask: hit=" + hit);
-            //if (hit != null && !hit.isSelected())
+            //System.out.println("RolloverTask: hit=" + hit);
+            //if (hit != null && VueSelection.size() <= 1)
             if (hit != null)
                 setRollover(hit);
             else
@@ -761,6 +761,7 @@ public class MapViewer extends javax.swing.JPanel
             if (newScale > oldScale) {
                 //c.setScale(1f);
                 rollover = c;
+                System.out.println("setRollover: " + c);
                 c.setRollover(true);
                 c.setZoomedFocus(true);
                 if (c instanceof LWNode) {
@@ -778,6 +779,7 @@ public class MapViewer extends javax.swing.JPanel
     void clearRollover()
     {
         if (rollover != null) {
+            System.out.println("clearRollover: " + rollover);
             if (rolloverTask != null) {
                 rolloverTask.cancel();
                 rolloverTask = null;
@@ -2975,13 +2977,14 @@ public class MapViewer extends javax.swing.JPanel
         frame.setContentPane(mapView);
         frame.setBackground(Color.gray);
         frame.setSize(500,400);
-        frame.pack();
+        //frame.pack();
         if (VueUtil.getJavaVersion() >= 1.4) {
             Point p = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
             p.x -= frame.getWidth() / 2;
             p.y -= frame.getHeight() / 2;
             frame.setLocation(p);
         }
+        frame.validate();
         frame.show();
     }
 
@@ -2995,17 +2998,20 @@ public class MapViewer extends javax.swing.JPanel
         LWNode n5 = new LWNode("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
         LWNode n6 = new LWNode("abcdefghijklmnopqrstuvwxyz");
         
+        n2.setResource("foo.jpg");
         n3.setResource("/tmp/foo.txt");
+        n3.setNotes("I am a note.");
         
         n1.setLocation(100, 50);
         n2.setLocation(100, 100);
-        n3.setLocation(50, 150);
+        n3.setLocation(100, 150);
         n4.setLocation(150, 150);
         n5.setLocation(150, 200);
         n6.setLocation(150, 250);
-        map.addNode(n1);
+        //map.addNode(n1);
         map.addNode(n2);
         map.addNode(n3);
+        /*
         map.addNode(n4);
         map.addNode(n5);
         map.addNode(n6);
@@ -3017,6 +3023,7 @@ public class MapViewer extends javax.swing.JPanel
         map.addNode(new LWNode("Two"));
         map.addNode(new LWNode("Three"));
         map.addNode(new LWNode("Four"));
+        */
 
     }
     private JMenu getAssetMenu(Asset asset) {
