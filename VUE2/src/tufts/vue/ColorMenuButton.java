@@ -35,7 +35,7 @@ public class ColorMenuButton extends MenuButton
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
     public ColorMenuButton(Color[] pColors, String[] pMenuNames, boolean pHasCustom) {
-        setButtonIcon(new BlobIcon(20,16, true));
+        setButtonIcon(new BlobIcon(16,16, true));
         buildMenu(pColors, pMenuNames, pHasCustom);
     }
 	
