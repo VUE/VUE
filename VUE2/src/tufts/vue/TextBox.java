@@ -69,7 +69,7 @@ class TextBox extends JTextPane
 {
     static final Color SelectionColor = VueResources.getColor("mapViewer.textBox.selection.color");
     static final boolean debug = false;
-    static final boolean debug_box = false;
+    static final boolean debug_box = DEBUG_BOXES;
     
     private LWComponent lwc;
     private float mapX;
@@ -347,6 +347,7 @@ class TextBox extends JTextPane
         setFontAttributes(a, f);
         StyledDocument doc = getStyledDocument();
         doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
+        // must do this twice:
         setSize(getPreferredSize());
         setSize(getPreferredSize());
     }
@@ -382,9 +383,10 @@ class TextBox extends JTextPane
         Dimension s = super.getPreferredSize();
         //s.width = (int) lwc.getWidth();
         //System.out.println("MTP lwcWidth " + lwc.getWidth());
-        s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
-        //if (getParent() != null)
-        //s.width += 10;
+        if (getParent() != null)
+            s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
+        //if (getParent() == null)
+        //    s.width += 10;//fudge factor for understated string widths (don't do this here -- need best accuracy here)
         if (debug) System.out.println("MTP lwc " + lwc);
         if (debug) System.out.println("MTP getPreferred " + s);
         //new Throwable("getPreferredSize").printStackTrace();
@@ -474,16 +476,13 @@ class TextBox extends JTextPane
         // turn on anti-aliasing -- the cursor repaint loop doesn't
         // set anti-aliasing, so text goes jiggy around cursor/in selection if we don't do this
         super.paintComponent(g);
-        
-        // todo: ser hilite color to non-purple (yellow) on PC -- is
-        // virtually identical to our default node color!
 
         // todo: draw a 1 pixel border?
     }
 
     private static final BasicStroke MinStroke = new BasicStroke(1/8f);
     private static final BasicStroke MinStroke2 = new BasicStroke(1/24f);
-    public void draw(Graphics2D g)
+    public void draw(DrawContext dc)
     {
         if (getParent() != null)
             System.err.println("Warning: 2nd draw of an AWT drawn component!");
@@ -496,7 +495,7 @@ class TextBox extends JTextPane
         // when setting the translation before painting us.
         
         //super.paintBorder(g);
-        super.paintComponent(g);
+        super.paintComponent(dc.g);
         //super.paint(g);
 
         // draw a border for links -- why?
@@ -512,7 +511,8 @@ class TextBox extends JTextPane
             g.drawRect(0,0, s.width-1, s.height-2);
         }
         */
-        
+
+        Graphics2D g = dc.g;
         if (debug || debug_box) {
             Dimension s = getPreferredSize();
             g.setColor(Color.blue);
