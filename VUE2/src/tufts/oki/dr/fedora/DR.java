@@ -104,22 +104,28 @@ public class DR implements osid.dr.DigitalRepository {
                            + address + ", "
                            + userName + ", "
                            + password + "] " + this);
+        try
+        {
+            this.id = new PID(id);
+            this.displayName = displayName;
+            this.description = description;
+            this.address = address;
+            this.userName = userName;
+            this.password = password;
+            this.conf = conf;
+            this.configuration = getResource(conf);
         
-        this.id = new PID(id);
-        this.displayName = displayName;
-        this.description = description;
-        this.address = address;
-        this.userName = userName;
-        this.password = password;
-        this.conf = conf;
-        this.configuration = getResource(conf);
-        
-        setFedoraProperties(configuration);
-        loadFedoraObjectAssetTypes();
-        //setFedoraProperties(FedoraUtils.CONF);
-        searchTypes.add(new SearchType("Search"));
-        searchTypes.add(new SearchType("Advanced Search"));
-        //loadAssetTypes();
+            setFedoraProperties(configuration);
+            loadFedoraObjectAssetTypes();
+            //setFedoraProperties(FedoraUtils.CONF);
+            searchTypes.add(new SearchType("Search"));
+            searchTypes.add(new SearchType("Advanced Search"));
+            //loadAssetTypes();
+        }
+        catch (Throwable t)
+        {
+            t.printStackTrace();
+        }
     }
     
     /** sets a soap call to perform all digital repository operations
@@ -258,7 +264,7 @@ public class DR implements osid.dr.DigitalRepository {
      */
     
     
-    public AssetIterator getAssets() throws osid.dr.DigitalRepositoryException {
+    public osid.dr.AssetIterator getAssets() throws osid.dr.DigitalRepositoryException {
         Vector assetVector = new Vector();
         String assetId = "tufts:";
         String location = null;
@@ -272,7 +278,7 @@ public class DR implements osid.dr.DigitalRepository {
         } catch(Exception ex) {
             throw new DigitalRepositoryException(ex.getMessage());
         }
-        return (AssetIterator) new FedoraObjectIterator(assetVector);
+        return (osid.dr.AssetIterator) new FedoraObjectIterator(assetVector);
     }
     
     /**     Get all the Assets of the specified AssetType in this DigitalRepository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -398,7 +404,7 @@ public class DR implements osid.dr.DigitalRepository {
         SearchCriteria searchCriteria = new SearchCriteria();
         searchCriteria.setConditions(condition);
         searchCriteria.setMaxReturns("1");
-        AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
+        osid.dr.AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
         if(mAssetIterator.hasNext())
             return  mAssetIterator.next();
         else
@@ -414,15 +420,37 @@ public class DR implements osid.dr.DigitalRepository {
         throw new osid.dr.DigitalRepositoryException("Not Implemented");
     }
     
-    public AssetIterator getAssets(java.io.Serializable searchCriteria, osid.shared.Type searchType) throws osid.dr.DigitalRepositoryException {
+    public osid.dr.AssetIterator getAssets(java.io.Serializable searchCriteria, osid.shared.Type searchType) throws osid.dr.DigitalRepositoryException {
         System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
-        SearchCriteria lSearchCriteria = (SearchCriteria)searchCriteria;
-        if(searchType.getKeyword().equals("Search")) {
-            return FedoraSoapFactory.search(this,lSearchCriteria);
-        } else if(searchType.getKeyword().equals("Advanced Search")) {
-            return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
-        }else {
-            throw new osid.dr.DigitalRepositoryException("Search Type Not Supported");
+        SearchCriteria lSearchCriteria = null;
+        
+        if (searchCriteria instanceof String)
+        {
+            lSearchCriteria = new SearchCriteria();
+            lSearchCriteria.setKeywords((String)searchCriteria);
+            lSearchCriteria.setMaxReturns("10");
+        }
+        else if (searchCriteria instanceof SearchCriteria)
+        {
+            lSearchCriteria = (SearchCriteria)searchCriteria;            
+        }
+        else
+        {
+            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.UNKNOWN_TYPE);
+        }
+        
+        
+        System.out.println("Search Type is " + searchType.getDomain() + "," + searchType.getAuthority() + searchType.getKeyword());
+        
+        if(searchType.getKeyword().equals("Search")) 
+        {
+            return (FedoraSoapFactory.search(this,lSearchCriteria));
+        } else if(searchType.getKeyword().equals("Advanced Search")) 
+        {
+            return (FedoraSoapFactory.advancedSearch(this,lSearchCriteria));
+        }else 
+        {
+            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.UNKNOWN_TYPE);
         }
     }
     

@@ -31,7 +31,7 @@ import java.util.Iterator;
  *
  * @author  akumar03
  */
-public class FedoraObjectIterator implements  AssetIterator {
+public class FedoraObjectIterator implements  osid.dr.AssetIterator {
     
     /** Creates a new instance of FedoraObjectIterator */
     java.util.Vector vector = new java.util.Vector();
