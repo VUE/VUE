@@ -53,7 +53,7 @@ public class MapResource implements Resource {
     private long accessSuccessful;
     private long size = SIZE_UNKNOWN;
     protected transient boolean selected = false;
-    private String spec;
+    private String spec = "";
     private int type;
     private JComponent viewer;
     private JComponent preview = null;
@@ -72,6 +72,8 @@ public class MapResource implements Resource {
     // for castor to save and restore
     Vector propertyList = null;
     
+    // we REALLY need to get rid of this constructor: all the code
+    // expects SPEC to be non-null!  Castor won't let us though...
     public MapResource() {
         this.type =  Resource.NONE;
     }
