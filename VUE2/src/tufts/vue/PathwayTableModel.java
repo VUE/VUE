@@ -17,7 +17,7 @@ import java.util.*;
  * @version February 2004
  */
 public class PathwayTableModel extends DefaultTableModel {
-    
+
     public PathwayTableModel() { }
 
     private LWPathwayList getPathwayList() {
@@ -204,7 +204,6 @@ public class PathwayTableModel extends DefaultTableModel {
         } else {
             try {
                 if (col == 3) return c.getLabel();
-                //if (col == 4) return Boolean.FALSE;
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);
@@ -214,22 +213,24 @@ public class PathwayTableModel extends DefaultTableModel {
     }
 
     public void setValueAt(Object aValue, int row, int col){
+        if (DEBUG.PATHWAY) System.out.println(this + " setValutAt " + row + "," + col + " " + aValue);
         LWComponent c = getElement(row);
         if (c instanceof LWPathway){
             LWPathway p = (LWPathway) c;
 
             if (col == 0) {
-                p.setVisible(!p.isVisible());
+                p.setVisible(!p.isVisible()); // not proper
             } else if (col == 1){
                 p.setStrokeColor((Color)aValue);
             } else if (col == 2){
-                p.setOpen(!p.isOpen());
+                p.setOpen(!p.isOpen()); // not proper
                 setActivePathway(p);
             } else if (col == 3){
                 p.setLabel((String)aValue);
                 setActivePathway(p);
-            } else if (col == 5){
-                p.setLocked(!p.isLocked());
+            } else if (col == 5) {
+                //p.setLocked(((Boolean)aValue).getBooleanValue());
+                p.setLocked(!p.isLocked()); // not proper
             }
             fireTableDataChanged();
         } else if (c != null) {

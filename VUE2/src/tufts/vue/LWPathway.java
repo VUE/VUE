@@ -27,11 +27,11 @@ public class LWPathway extends LWContainer
     private int weight = 1;
     private boolean ordered = false;
     private int mCurrentIndex = -1;
-    private boolean open = true;
     private boolean locked = false;
-    private boolean mDoingXMLRestore = false;
-
     private ArrayList elementPropertyList = new ArrayList();
+
+    private transient boolean open = true;
+    private transient boolean mDoingXMLRestore = false;
 
     private static Color[] ColorTable = {
         new Color(153, 51, 51),
@@ -81,12 +81,15 @@ public class LWPathway extends LWContainer
     private int setIndex(int i)
     {
         if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
+        if (VUE.getActivePathway() == this)
+            VUE.ModelSelection.setTo(getElement(i));
         return mCurrentIndex = i;
     }
 
     /**
      * Overrides LWContainer addChild.  Pathways aren't true
-     * parents, so all we want to do is add a reference to them.
+     * parents, so all we want to do is add a reference to them,
+     * and raise a change event.
      */
     public void addChild(LWComponent c)
     {
@@ -100,6 +103,12 @@ public class LWPathway extends LWContainer
         c.addLWCListener(this);       
         notify(LWCEvent.ChildAdded, c);
     }
+
+    /**
+     * Overrides LWContainer addChild.  Pathways aren't true
+     * parents, so all we want to do is remove the reference to them
+     * and raise a change event.
+     */
     public void removeChild(LWComponent c)
     {
         children.remove(c);
@@ -144,6 +153,7 @@ public class LWPathway extends LWContainer
 
     public void setLocked(boolean t) {
         this.locked = t;
+        notify(t ? "pathway.lock" : "pathway.unlock");
     }
     public boolean isLocked(){
         return locked;
@@ -165,11 +175,11 @@ public class LWPathway extends LWContainer
         return children.size();
     }
     
-    public LWComponent getFirst()
+    public LWComponent setFirst()
     {
         if (length() > 0) {
             setIndex(0);
-            return (LWComponent) children.get(0);
+            return getElement(0);
         }
         return null;
     }
@@ -178,10 +188,10 @@ public class LWPathway extends LWContainer
         return (mCurrentIndex == 0);
     }
     
-    public LWComponent getLast() {        
+    public LWComponent setLast() {
         if (length() > 0) {
             setIndex(length() - 1);
-            return (LWComponent) children.get(length() - 1);
+            return getElement(length() - 1);
         }
         return null;
     }
@@ -190,33 +200,29 @@ public class LWPathway extends LWContainer
         return (mCurrentIndex == (length() - 1));
     }
       
-    public LWComponent getPrevious(){
+    public LWComponent setPrevious(){
         if (mCurrentIndex > 0)
-            return (LWComponent) children.get(setIndex(mCurrentIndex - 1));
+            return getElement(setIndex(mCurrentIndex - 1));
         else
             return null;
     }
     
-    public LWComponent getNext(){
+    public LWComponent setNext(){
         if (mCurrentIndex < (length() - 1))
-            return (LWComponent) children.get(setIndex(mCurrentIndex + 1));
+            return getElement(setIndex(mCurrentIndex + 1));
         else 
             return null;
     }
 
-    /*
     public LWComponent getElement(int index){
-        LWComponent element = null;
-        
-        try{
-            element = (LWComponent)elementList.get(index);
-        }catch (IndexOutOfBoundsException ie){
-            element = null;
+        LWComponent c = null;
+        try {
+            c = (LWComponent) children.get(index);
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println(this + " getElement " + index + " " + e);
         }    
-        
-        return element;
+        return c;
     }
-    */
 
     /** Pathway interface */
     public java.util.Iterator getElementIterator() {

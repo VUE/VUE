@@ -198,6 +198,9 @@
 		<field name="currentIndex" type="integer">
 			<bind-xml name="currentIndex" node="attribute"/>
 		</field>
+		<field name="locked" type="boolean">
+			<bind-xml name="locked" node="attribute"/>
+		</field>
 		<field name="elementIDList" type="string" collection="collection">
 			<bind-xml name="id" />
 		</field>

@@ -52,7 +52,7 @@ public class PathwayTable extends JTable
 
         model.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
-                    System.out.println(this + " " + e);
+                    if (DEBUG.PATHWAY) System.out.println(this + " " + e + " (FYI)");
                 }
             });
 
@@ -122,7 +122,6 @@ public class PathwayTable extends JTable
                             
                         } else {
                             p.setCurrentElement(c);
-                            VUE.ModelSelection.setTo(c);
                             //pathPanel.removeElement.setEnabled(true);
                             //tableModel.fireChanged(this);
                             //tableModel.fireTableDataChanged(new TableModelEvent(this)); // new
@@ -400,5 +399,11 @@ public class PathwayTable extends JTable
             
         }  
     }
+
+    public String toString()
+    {
+        return "PathwayTable[" + VUE.getActivePathway() + "]";
+    }
+    
 }
     

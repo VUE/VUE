@@ -207,12 +207,10 @@ public class VUE
         return pathwayInspector;
         }*/
     public static LWPathway getActivePathway() {
-        //LWPathway p1 = pathwayInspector.getPathway();
-        //LWPathway p2 = getActiveMap().getPathwayManager().getCurrentPathway();
-        //if (p1 != p2) System.out.println("Pathway mayhem: too many cooks:\n\t" + p1 + "\n\t" + p2);
-        //return p2 == null ? p1 : p2;
-        LWPathway p = getActiveMap().getPathwayList().getActivePathway();
-        if (DEBUG.PATHWAY) System.out.println("getActivePathway: " + p);
+        LWPathway p = null;
+        if (getActiveMap() != null && getActiveMap().getPathwayList() != null)
+            p = getActiveMap().getPathwayList().getActivePathway();
+        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println("getActivePathway: " + p);
         return p;
     }
     
