@@ -5,6 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
 import javax.swing.JViewport;
+import javax.swing.JScrollPane;
 
 /**
  * MapMouseEvent.java
@@ -88,9 +89,12 @@ public class MapMouseEvent extends MouseEvent
 
 
     public MapViewer getViewer() {
+        // todo perf: cache viewer
         Object src = super.getSource();
         if (src instanceof JViewport)
             return (MapViewer) ((JViewport)src).getView();
+        else if (src instanceof JScrollPane)
+            return (MapViewer) ((JScrollPane)src).getViewport().getView();
         else
             return (MapViewer) src;
     }
