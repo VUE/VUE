@@ -211,7 +211,8 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
         //if it is a LWLink
         else if (addedChild instanceof LWLink)
         {
-            LWTreeNode linkedTreeNode1, linkedTreeNode2;
+            LWTreeNode linkedTreeNode1 = null;
+            LWTreeNode linkedTreeNode2 = null;
             LWLink link = (LWLink)addedChild;
             
             //gets two components the link connects to
@@ -220,16 +221,27 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
          
             //finds the tree nodes associated with the two components and adds the tree node representing the link to
             //the two tree nodes
-            linkedTreeNode1 = findLWTreeNode((LWTreeNode)tree.getModel().getRoot(), component1, true);
-            linkedTreeNode2 = findLWTreeNode((LWTreeNode)tree.getModel().getRoot(), component2, true);
-            linkedTreeNode1.add(new LWTreeNode(link));
-            linkedTreeNode2.add(new LWTreeNode(link));
+            if (component1 != null) {
+                linkedTreeNode1 = findLWTreeNode((LWTreeNode)tree.getModel().getRoot(), component1, true);
+                if (linkedTreeNode1 != null) {
+                    linkedTreeNode1.add(new LWTreeNode(link));
+                    ((DefaultTreeModel)tree.getModel()).reload(linkedTreeNode1);
+                }
+            }
+            if (component2 != null) {
+                linkedTreeNode2 = findLWTreeNode((LWTreeNode)tree.getModel().getRoot(), component2, true);
+                if (linkedTreeNode2 != null) {
+                    linkedTreeNode2.add(new LWTreeNode(link));
+                    ((DefaultTreeModel)tree.getModel()).reload(linkedTreeNode2);
+                }
+            }
             
             //updates the tree
-            ((DefaultTreeModel)tree.getModel()).reload(linkedTreeNode1);
-            ((DefaultTreeModel)tree.getModel()).reload(linkedTreeNode2);
-            tree.scrollPathToVisible(new TreePath(linkedTreeNode1.getPath()));
-            tree.scrollPathToVisible(new TreePath(linkedTreeNode2.getPath()));
+
+            if (linkedTreeNode1 != null)
+                tree.scrollPathToVisible(new TreePath(linkedTreeNode1.getPath()));
+            if (linkedTreeNode2 != null)
+                tree.scrollPathToVisible(new TreePath(linkedTreeNode2.getPath()));
         }
     }
     
