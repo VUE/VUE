@@ -251,15 +251,12 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             
             //finds the parent hierarchy node
             if (parent instanceof LWMap)
-              parentNode = getRootNode();
-            
+                parentNode = getRootNode();
             else
-              parentNode = findHierarchyNode(getRootNode(), parent, true);
+                parentNode = findHierarchyNode(getRootNode(), parent, true);
             
             if (parentNode == null) {
-                System.err.println("*** NULL parentNode when adding a hierarchy node in OutlineViewHierarchyModel");
-                // don't know what right thing to do here, but this exception
-                // was driving me crazy -- SMF 2003-11-13 18:19.04
+                System.err.println(this + " *** NULL parentNode when adding a hierarchy node");
                 return;
             }
 
@@ -275,7 +272,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                
             //adds anything that is contained in the added LWNode
             for (Iterator nodeIterator = ((LWNode)addedChild).getNodeIterator(); nodeIterator.hasNext();)
-              addHierarchyTreeNode((LWNode)addedChild, (LWNode)nodeIterator.next());
+                addHierarchyTreeNode((LWNode)addedChild, (LWNode)nodeIterator.next());
             
             //updates the tree
             reloadTreeModel(parentNode);
@@ -284,11 +281,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         //if it is a LWLink
         else if (addedChild instanceof LWLink)
         {
-            LWLink link = (LWLink)addedChild;
-            //finds the hierarchy nodes associated with the two components and adds a hierarchy node representing the link to
-            //the two hierarchy nodes
+            LWLink link = (LWLink) addedChild;
             addLinkConnection(link.getComponent1(), link);
             addLinkConnection(link.getComponent2(), link);
+            // We aren't using this code anymore: handled via the LinkAdded event.
+            // However, if the model ever changes to include fully disconnected links
+            // at the top level of the tree, we'll need to do something here.  (Instead
+            // of calling addLinkConnection above, we need to just add a new child leaf
+            // node to the given parent)
+            new Throwable(this + " FYI: deprecated use of addHierarchyTreeNode for " + addedChild).printStackTrace();
         }
     }
     
@@ -302,16 +303,12 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             
             //finds the parent hierarchy node
             if (parent instanceof LWMap)
-              parentNode = getRootNode();
-            
+                parentNode = getRootNode();
             else
-              parentNode = findHierarchyNode(getRootNode(), parent, true);
+                parentNode = findHierarchyNode(getRootNode(), parent, true);
                 
-            if (parentNode == null) 
-            {
-                System.err.println("*** NULL parentNode when deleting a hierarchy node in OutlineViewHierarchyModel");
-                // don't know what right thing to do here, but this exception
-                // was driving me crazy -- SMF 2003-11-13 18:19.04
+            if (parentNode == null) {
+                System.err.println(this + " *** NULL parentNode when deleting a hierarchy node");
                 return;
             }
             
@@ -325,16 +322,16 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 reloadTreeModel(parentNode);
             }
         }
-         
-        //if it is a LWLink
+        // if it is a LWLink
         else if (deletedChild instanceof LWLink)
         {
             LWLink link = (LWLink)deletedChild;
-            //finds the hierarchy nodes associated with the two components and deletes the tree node representing the link to
-            //the two tree nodes
-            //must check to see if the parent wasn't deleted in the process
             removeLinkConnection(link.getComponent1(), link);
             removeLinkConnection(link.getComponent2(), link);
+            // We aren't using this code anymore: handled via the LinkRemoved event.
+            // However, if the model ever changes to include fully disconnected links
+            // at the top level of the tree, we'll need this -- in that case, comment out this warning.
+            new Throwable(this + " FYI: unexpected use of deleteHierarchyTreeNode for " + deletedChild).printStackTrace();
         }
         
         //validateHierarchyNodeLinkLabels();
@@ -376,11 +373,11 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         {
             if (message == LWKey.LinkAdded)
             {
-                addLinkConnection((LWContainer)e.getSource(), (LWLink)e.getComponent());
+                addLinkConnection((LWComponent)e.getSource(), (LWLink)e.getComponent());
             }
             else if (message == LWKey.LinkRemoved)
             {
-                removeLinkConnection((LWContainer)e.getSource(), (LWLink)e.getComponent());
+                removeLinkConnection((LWComponent)e.getSource(), (LWLink)e.getComponent());
             }
             else if (message == LWKey.ChildrenAdded)
             {
