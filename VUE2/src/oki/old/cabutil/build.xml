@@ -1,0 +1,103 @@
+<project name="Cabinet Utilities" default="compile" basedir=".">
+
+  <target name="init">
+    <property name="app.name"   value="CabUtil" />
+    <property name="build.dir"  value="./build" />
+    <property name="top.dir" value="../../../../../../.." />
+    <property name="lib.dir"  value="${top.dir}/build/lib" />
+    <condition property="libs.present">
+      <and>
+       <available file="${lib.dir}/okiServiceApi.jar" />
+       <available file="${lib.dir}/okiServiceImpl.jar" />
+      </and>
+    </condition>
+
+    <path id="project.class.path">
+        <pathelement location="${lib.dir}/okiServiceApi.jar" />
+        <pathelement location="${lib.dir}/okiServiceImpl.jar" />
+        <pathelement location="${lib.dir}/mitServiceImpl.jar" />
+        <pathelement path="build" />
+    </path>
+    
+  </target>
+
+  <target name="compile" depends="init,lib">
+    <mkdir dir="${build.dir}"/>
+      <javac srcdir="." destdir="${build.dir}" debug="on">
+        <classpath>
+          <pathelement location="${lib.dir}/okiServiceApi.jar" />
+          <pathelement location="${lib.dir}/okiServiceImpl.jar" />
+          <pathelement path="" />
+        </classpath>
+        <include name="**/*.java"/>
+      </javac>
+  <jar jarfile="filingAll.jar">
+      <fileset dir="${build.dir}">
+        <include name="*.class"/>
+      </fileset>
+      <fileset dir="${top.dir}/build/classes">
+        <include name="org/**"/>
+      </fileset>
+      <fileset dir="${top.dir}/contrib/mit/impl/build/classes">
+        <include name="edu/**"/>
+        <include name="krb4/**"/>
+      </fileset>
+  </jar>
+  <copy file="filingAll.jar" todir="${lib.dir}"/>
+  </target>
+
+  <target name="jar" depends="compile">
+  <jar jarfile="filingAll.jar">
+      <fileset dir="${build.dir}">
+        <include name="*.class"/>
+      </fileset>
+      <fileset dir="${top.dir}/build/classes">
+        <include name="org/**"/>
+      </fileset>
+      <fileset dir="${top.dir}/contrib/mit/impl/build/classes">
+        <include name="edu/**"/>
+        <include name="krb4/**"/>
+      </fileset>
+  </jar>
+  <copy file="filingAll.jar" todir="${lib.dir}"/>
+  </target>
+
+  <target name="lib" unless="libs.present">
+    <ant dir="${top.dir}" inheritAll="false" />
+  </target>
+
+    <target name="CabList" depends="compile">
+    <java classname="CabList">
+        <classpath refid="project.class.path"/>
+    </java>
+    </target>
+
+    <target name="TestOKI1" depends="compile" >
+    <java classname="CabList" taskname="TestOKI1">
+        <classpath refid="project.class.path"/>
+        <arg value="http://oki1.mit.edu:1799/tmp"/>
+    </java>
+    </target>
+    
+    <target name="CabSyncLocal" depends="compile">
+    <mkdir dir="local"/>
+    <mkdir dir="remote"/>
+    <java classname="CabSyncViewer" fork="yes">
+        <!-- need to fork if there's any java GUI -->
+        <classpath refid="project.class.path"/>
+        <arg line="-poll 5 local remote"/>
+        <arg value="-verbose"/>
+    </java>
+    </target>
+
+    <target name="CabSyncOKI1" depends="compile">
+    <mkdir dir="local"/>
+    <java classname="CabSyncViewer" fork="yes">
+        <classpath refid="project.class.path"/>
+        <arg line="-poll 30 local"/>
+        <arg value="http://oki1.mit.edu:1799/tmp/test"/>
+    </java>
+    </target>
+
+</project>
+
