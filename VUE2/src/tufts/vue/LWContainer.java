@@ -53,6 +53,10 @@ public abstract class LWContainer extends LWComponent
     {
         return getLinkList().iterator();
     }
+    public Iterator getPathwayIterator()
+    {
+        return getPathwayList().iterator();
+    }
     
     // todo: temporary for html? 
     private List getNodeList()
@@ -74,6 +78,18 @@ public abstract class LWContainer extends LWComponent
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c instanceof LWLink)
+                list.add(c);
+        }
+        return list;
+    }
+    
+    private List getPathwayList()
+    {
+        ArrayList list = new ArrayList();
+        java.util.Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWPathway)
                 list.add(c);
         }
         return list;

@@ -31,7 +31,7 @@ public class SearchPanel extends JInternalFrame{
      
         
         final JPanel resultPanel = new JPanel();
-        resultPanel.setSize(400,400);
+        resultPanel.setSize(400,300);
         resultPanel.setLayout(new BorderLayout());
          
         

@@ -731,6 +731,21 @@ public class VUE
         map.addLink(new LWLink(n1, n2));
         map.addLink(new LWLink(n2, n3));
         map.addLink(new LWLink(n2, n4));
+        
+        //creating test pathways
+        
+        LWPathway p1 = new LWPathway("Pathway 1");
+        LWPathway p2 = new LWPathway("Pathway 2");
+        java.util.LinkedList link = new java.util.LinkedList();
+        link.add(n1);
+        link.add(n2);
+        p1.setNodeList(link);
+        link.remove(n1);
+        link.add(n3);
+        link.add(n4);
+        p2.setNodeList(link);
+        //map.addPathway(p1);
+        //map.addPathway(p2);
     }
 
 

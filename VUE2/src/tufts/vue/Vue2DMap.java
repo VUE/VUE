@@ -136,6 +136,13 @@ public class Vue2DMap extends LWContainer
         addChild(c);
         return c;
     }
+    
+    LWPathway addPathway(LWPathway c)
+    {
+        addChild(c);
+        return c;
+    }
+    
     LWComponent addLWC(LWComponent c)
     {
         addChild(c);
@@ -154,11 +161,11 @@ public class Vue2DMap extends LWContainer
     public void removeLink(Link l) { removeLWC(l); }
     public void removePathway(Pathway p) {}
     */
-
+    /*
     public java.util.Iterator getPathwayIterator()
     {
         return null;
-    }
+    }*/
 
     public java.awt.geom.Rectangle2D getBounds()
     {
