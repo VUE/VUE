@@ -27,7 +27,7 @@ import tufts.vue.*;
 
 public class OpenAction extends AbstractAction
 {
-    final String XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
+    final static String XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
 
     /** Creates a new instance of OpenAction */
     public OpenAction() {
@@ -64,7 +64,7 @@ public class OpenAction extends AbstractAction
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
 
-    private LWMap loadMap(String filename)
+    public static LWMap loadMap(String filename)
     {
         try {
             Unmarshaller unmarshaller = getUnmarshaller();
@@ -81,12 +81,11 @@ public class OpenAction extends AbstractAction
     }
     
 
-    private Unmarshaller unmarshaller = null;
-    private Unmarshaller getUnmarshaller()
+    private static Unmarshaller unmarshaller = null;
+    private static Unmarshaller getUnmarshaller()
     {
-        if (this.unmarshaller == null) {
-            
-            this.unmarshaller = new Unmarshaller();
+        if (unmarshaller == null) {
+            unmarshaller = new Unmarshaller();
             Mapping mapping = new Mapping();
             try {
                 if (debug) System.err.println("Loading " + XML_MAPPING + "...");
@@ -98,7 +97,7 @@ public class OpenAction extends AbstractAction
                 System.err.println("OpenAction.getUnmarshaller: " + e);
             }
         }
-        return this.unmarshaller;
+        return unmarshaller;
     }
 
     public static void main(String args[])

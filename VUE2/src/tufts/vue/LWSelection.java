@@ -1,13 +1,15 @@
 package tufts.vue;
 
 import java.util.Iterator;
+import java.awt.geom.Rectangle2D;
 
 public class LWSelection extends java.util.ArrayList
 {
     static final boolean DEBUG_SELECTION = false;
 
-    java.util.ArrayList listeners = new java.util.ArrayList();
-
+    private java.util.List listeners = new java.util.ArrayList();
+    private Rectangle2D bounds = null;
+    
     public interface Listener extends java.util.EventListener {
         void selectionChanged(LWSelection selection);
     }
@@ -30,11 +32,16 @@ public class LWSelection extends java.util.ArrayList
         }
     }
        
-    
     void setTo(LWComponent c)
     {
         clear0();
         add(c);
+    }
+    
+    void setTo(Iterator i)
+    {
+        clear0();
+        add(i);
     }
      
     void add(LWComponent c)
@@ -65,6 +72,7 @@ public class LWSelection extends java.util.ArrayList
     {
         if (DEBUG_SELECTION) System.out.println("LWSelection adding " + c);
         c.setSelected(true);
+        bounds = null;
         super.add(c);
     }
     
@@ -72,6 +80,7 @@ public class LWSelection extends java.util.ArrayList
     {
         if (DEBUG_SELECTION) System.out.println("LWSelection removing " + c);
         c.setSelected(false);
+        bounds = null;
         if (!super.remove(c))
             throw new RuntimeException("LWSelection remove: doesn't contain! " + c);
         notifyListeners();
@@ -79,29 +88,48 @@ public class LWSelection extends java.util.ArrayList
     
     public void clear()
     {
-        clear0();
-        notifyListeners();
+        if (clear0())
+            notifyListeners();
     }
 
-    private void clear0()
+    private boolean clear0()
     {
+        if (isEmpty())
+            return false;
         if (DEBUG_SELECTION) System.out.println("LWSelection clear " + this);
         java.util.Iterator i = iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setSelected(false);
         }
+        bounds = null;
         super.clear();
+        return true;
     }
 
-    public java.awt.geom.Rectangle2D getBounds()
+    /** return bounds of map selection in map (not screen) coordinates */
+    public Rectangle2D getBounds()
     {
         if (size() == 0)
             return null;
-        // todo opt: cache bounds
-        java.awt.geom.Rectangle2D bounds = LWMap.getBounds(iterator());
-        //System.out.println("SELECTION BOUNDS=" + bounds);
+        //todo:not really safe to cache as we don't know if anything in has has moved?
+        //if (bounds == null) {
+            bounds = LWMap.getBounds(iterator());
+            //System.out.println("COMPUTED SELECTION BOUNDS=" + bounds);
+            //}
         return bounds;
+    }
+
+    void flushBounds()
+    {
+        bounds = null;
+    }
+
+    public boolean contains(float mapX, float mapY)
+    {
+        if (size() == 0)
+            return false;
+	return getBounds().contains(mapX, mapY);
     }
 
     public LWComponent first()

@@ -43,8 +43,10 @@ public class MapViewer extends javax.swing.JPanel
     // Selection support
     //-------------------------------------------------------
     protected LWSelection VueSelection = VUE.ModelSelection;
+    protected LWGroup draggedSelectionGroup = LWGroup.createTemporary(VueSelection);
     protected Rectangle draggedSelectionBox;     // currently dragged selection box
-    protected boolean draggingSelectionBox;     // currently dragged selection box
+    protected boolean draggingSelectionBox;     // are we currently dragging a selection box?
+    protected boolean inDrag;                   // are we currently in a drag?
 
     //-------------------------------------------------------
     // For dragging out new links
@@ -105,7 +107,7 @@ public class MapViewer extends javax.swing.JPanel
 
         */
 
-        setPreferredSize(new Dimension(400,300));
+        //setPreferredSize(new Dimension(400,300));
         setBackground(map.getFillColor());
         setFont(VueConstants.DefaultFont);
         loadMap(map);
@@ -121,6 +123,10 @@ public class MapViewer extends javax.swing.JPanel
             
         // we repaint any time the global selection changes
         VueSelection.addListener(this);
+
+        // draggedSelectionGroup is always a selected component as
+        // it's only used when it IS the selection
+        draggedSelectionGroup.setSelected(true);
 
         /*
         Toolkit.getDefaultToolkit().addAWTEventListener(this,
@@ -273,7 +279,7 @@ public class MapViewer extends javax.swing.JPanel
     {
         return this.zoomFactor;
     }
-
+    
     public void reshape(int x, int y, int w, int h)
     {
         super.reshape(x,y, w,h);
@@ -310,6 +316,7 @@ public class MapViewer extends javax.swing.JPanel
     
     public void selectionChanged(LWSelection l)
     {
+        //System.out.println("MapViewer: selectionChanged");
         repaint();
     }
     
@@ -327,6 +334,9 @@ public class MapViewer extends javax.swing.JPanel
             LWComponent c = e.getComponent();
             boolean wasSelected = c.isSelected();
             selectionRemove(c); // ensure isn't in selection
+
+            // if we just dispersed a group that was selected,
+            // put all the former children into the selection instead
             if (wasSelected && c instanceof LWGroup)
                 selectionAdd(((LWGroup)c).getChildIterator());
         }
@@ -472,8 +482,10 @@ public class MapViewer extends javax.swing.JPanel
     /**
      * Java Swing JComponent.paintComponent -- paint the map on the map viewer canvas
      */
+    private static int paints=0;
     public void paintComponent(Graphics g)
     {
+        //System.out.println("paint " + paints++);
         // paint the background
         Rectangle r = g.getClipBounds();
         g.setColor(getBackground());
@@ -802,11 +814,14 @@ public class MapViewer extends javax.swing.JPanel
             float mapY = iY / 100f;
 
             g2.setFont(VueConstants.DefaultFont);
-            g2.drawString("(" + mouseX + "," +  mouseY + ")screen", 10, 20);
-            //g2.drawString("(" + mapX + "," +  mapY + ")map", 10, 40);
-            g2.drawString("mapX " + mapX, 10, 40);
-            g2.drawString("mapY " + mapY, 10, 60);
-            g2.drawString("zoom " + getZoomFactor(), 10, 80);
+            int y = 0;
+            g2.drawString("screen(" + mouseX + "," +  mouseY + ")", 10, y+=20);
+            g2.drawString("mapX " + mapX, 10, y+=20);
+            g2.drawString("mapY " + mapY, 10, y+=20);;
+            g2.drawString("zoom " + getZoomFactor(), 10, y+=20);
+            g2.drawString("anitAlias " + !DEBUG_ANTIALIAS_OFF, 10, y+=20);
+            g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, 10, y+=20);
+            g2.drawString("repaintOptimize " + !DEBUG_REPAINT_OPTIMIZE_OFF, 10, y+=20);
         }
 
         if (VueSelection.size() > 0) {
@@ -856,7 +871,7 @@ public class MapViewer extends javax.swing.JPanel
             g2.setStroke(STROKE_SELECTION_DYNAMIC);
             g2.drawRect(draggedSelectionBox.x, draggedSelectionBox.y,
                         draggedSelectionBox.width, draggedSelectionBox.height);
-        } else if (VueSelection.size() > 0) {
+        } else if (!VueSelection.isEmpty() && !inDrag) {
             g2.setStroke(STROKE_ONE);
             Rectangle2D selectionBounds = VueSelection.getBounds();
             //System.out.println("mapSelectionBounds="+selectionBounds);
@@ -932,6 +947,10 @@ public class MapViewer extends javax.swing.JPanel
     protected void selectionRemove(LWComponent c)
     {
         VueSelection.remove(c);
+    }
+    protected void selectionSet(LWComponent c)
+    {
+        VueSelection.setTo(c);
     }
     protected void selectionClear()
     {
@@ -1128,20 +1147,25 @@ public class MapViewer extends javax.swing.JPanel
             if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
                 // display debugging features
                 char c = e.getKeyChar();
+                boolean did = true;
                 if (c == 'M') {
                     DEBUG_SHOW_MOUSE_LOCATION = !DEBUG_SHOW_MOUSE_LOCATION;
-                    repaint();
                 } else if (c == 'A') {
                     DEBUG_ANTIALIAS_OFF = !DEBUG_ANTIALIAS_OFF;
                     if (DEBUG_ANTIALIAS_OFF)
                         AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
                     else
                         AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
-                    repaint();
                 } else if (c == 'O') {
                     DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN;
+                } else if (c == 'R') {
+                    DEBUG_REPAINT_OPTIMIZE_OFF = !DEBUG_REPAINT_OPTIMIZE_OFF;
+                } else if (c == 'P') {
+                    DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF;
+                } else
+                    did = false;
+                if (did)
                     repaint();
-                }
             }
         }
         
@@ -1182,11 +1206,12 @@ public class MapViewer extends javax.swing.JPanel
             }
             
             setLastMousePressPoint(e.getX(), e.getY());
+            dragComponent = null;
             
             float mapX = screenToMapX(e.getX());
             float mapY = screenToMapY(e.getY());
 
-            this.hitComponent = getMap().findLWComponentAt(mapX, mapY);
+            hitComponent = getMap().findLWComponentAt(mapX, mapY);
             if (DEBUG_MOUSE)
                 //if (hitComponent != null)
                 System.out.println("\t    on " + hitComponent + "\n" + 
@@ -1203,10 +1228,10 @@ public class MapViewer extends javax.swing.JPanel
                 // a context menu depending on what's in selection.
                 //-------------------------------------------------------
                 
-                if (VueSelection.size() == 0) {
+                if (VueSelection.isEmpty()) {
                     getMapPopup().show(e.getComponent(), e.getX(), e.getY());
                 } else {
-                    getComponentPopup(this.hitComponent).show(e.getComponent(), e.getX(), e.getY());
+                    getComponentPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
                 }
             }
             else if (hitComponent != null)
@@ -1237,39 +1262,64 @@ public class MapViewer extends javax.swing.JPanel
                         selectionAdd(hitComponent);
                 } else {
                     //-------------------------------------------------------
-                    // Vanilla mouse press: SET SELECTION
+                    // Vanilla mouse press:
+                    //          (1) SET SELECTION
+                    //          (2) GET READY FOR A POSSIBLE UPCOMING DRAG
                     // Clear any existing selection, and set to hitComponent.
                     // Also: mark drag start in case they start dragging
                     //-------------------------------------------------------
 
-                    if (!hitComponent.isSelected()) {
-                        //&& (lastSelection != hitComponent || VueSelection.size() > 1)) {
-                        selectionClear();
-                        selectionAdd(justSelected = hitComponent);
-                    }
+                    if (!hitComponent.isSelected())
+                        selectionSet(justSelected = hitComponent);
+
+                    //-------------------------------------------------------
+                    // Something is now selected -- get prepared to drag
+                    // it in case they start dragging.  If it's a mult-selection,
+                    // set us up for a group drag.
+                    //-------------------------------------------------------
                     if (VueSelection.size() > 1) {
-                        // could have this be a permanent group who's
-                        // child list has actually been set to the VueSelection...
-                        dragComponent = LWGroup.createTemporary(VueSelection);
-                        // todo opt: could cache this group instead of creating
-                        // every click -- might speed up huge selections
-                        // also, wouldn't need to create until they actually start a drag
+                        // pick up a group selection for dragging
+                        draggedSelectionGroup.useSelection(VueSelection);
+                        dragComponent = draggedSelectionGroup;
                     } else {
+                        // just pick up the single component
                         dragComponent = hitComponent;
                     }
-                    dragOffset.setLocation(dragComponent.getX() - mapX,
-                                           dragComponent.getY() - mapY);
-                        
 
                 }
             } else {
-                if (!e.isShiftDown())
-                    // don't clear if shift down -- we may have missed our target
-                    // and have to manually do all our selection over again
+                //-------------------------------------------------------
+                // hitComponent was null
+                //-------------------------------------------------------
+
+                if (VueSelection.size() > 1 && VueSelection.contains(mapX, mapY)) {
+                    //-------------------------------------------------------
+                    // PICK UP A GROUP SELECTION FOR DRAGGING
+                    //
+                    // If we clicked on nothing, but are actually within
+                    // the bounds of an existing selection, pick it
+                    // up for dragging.
+                    //-------------------------------------------------------
+                    draggedSelectionGroup.useSelection(VueSelection);
+                    dragComponent = draggedSelectionGroup;
+                } else if (!e.isShiftDown()) {
+                    //-------------------------------------------------------
+                    // CLEAR SELECTION
+                    //
+                    // If we truly clicked on nothing, clear the selection,
+                    // unless shift was down, which is easy to accidentally
+                    // have happen if user is toggling the selection.
+                    //-------------------------------------------------------
                     selectionClear();
+                }
                 draggingSelectionBox = true;
             }
-            repaint();
+
+            if (dragComponent != null)
+                dragOffset.setLocation(dragComponent.getX() - mapX,
+                                       dragComponent.getY() - mapY);
+
+            //repaint(); // todo opt: could do some repaint opt here
         }
         
         public void mouseMoved(MouseEvent e)
@@ -1285,9 +1335,15 @@ public class MapViewer extends javax.swing.JPanel
                 mouseDragged(e);
         }
 
+        private int drags=0;
         public void mouseDragged(MouseEvent e)
         {
-            mouseWasDragged = true;
+            inDrag = true;
+            //System.out.println("drag " + drags++);
+            if (mouseWasDragged == false) {
+                // we're just starting this drag 
+                mouseWasDragged = true;
+            }
             
             if (DEBUG_SHOW_MOUSE_LOCATION) {
                 mouseX = e.getX();
@@ -1315,16 +1371,19 @@ public class MapViewer extends javax.swing.JPanel
                 }
             }
             
-            // Stop all dragging if the mouse leaves our component
+            // Stop component dragging if the mouse leaves our component
             // todo: auto-pan as we get close to edge
             if (!e.getComponent().contains(screenX, screenY))
                 return;
 
-            // selection box
+            
+            //-------------------------------------------------------
+            // Update the dragged selection box
+            //-------------------------------------------------------
             if (dragComponent == null && draggingSelectionBox) {
                 int sx = dragStart.x < screenX ? dragStart.x : screenX;
                 int sy = dragStart.y < screenY ? dragStart.y : screenY;
-                Rectangle repaintRect = null;
+                Rectangle repaintRect;
                 if (draggedSelectionBox != null)
                     repaintRect = draggedSelectionBox;
                 else
@@ -1341,16 +1400,17 @@ public class MapViewer extends javax.swing.JPanel
 
             float mapX = screenToMapX(screenX);
             float mapY = screenToMapY(screenY);
+
             Rectangle2D repaintRegion = null;
 
             if (dragComponent != null) {
                 //-------------------------------------------------------
-                // Compute repaint region
+                // Compute repaint region based on what's being dragged
                 //-------------------------------------------------------
                 repaintRegion = dragComponent.getBounds();
                 if (dragComponent instanceof LWLink) {
                     LWLink lwl = (LWLink) dragComponent;
-                    
+                    // todo: not currently used as link dragging disabled
                     // todo: will help to add topmost parent of linked-to
                     // component to rr because text labels are being
                     // subtly shifted when the clip region passes through
@@ -1374,6 +1434,7 @@ public class MapViewer extends javax.swing.JPanel
                 //-------------------------------------------------------
                 repaintRegion.add(dragComponent.getBounds());
                 if (dragComponent instanceof LWLink) {
+                    // todo: not currently used as link dragging disabled
                     LWLink lwl = (LWLink) dragComponent;
                     repaintRegion.add(lwl.getComponent1().getBounds());
                     repaintRegion.add(lwl.getComponent2().getBounds());
@@ -1392,7 +1453,7 @@ public class MapViewer extends javax.swing.JPanel
                     setIndicated(over);
                     repaintRegion.add(over.getBounds());
                 }
-          } else if (dragComponent instanceof LWNode) {
+          } else if (dragComponent instanceof LWNode && !DEBUG_FINDPARENT_OFF) {
                 // regular drag -- check for node drop onto another
                 LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
                 if (indication != null && indication != over) {
@@ -1406,52 +1467,64 @@ public class MapViewer extends javax.swing.JPanel
             }
 
             
-            if (dragComponent != null) {
+            if (dragComponent != null && DEBUG_REPAINT_OPTIMIZE_OFF) {
+                
+                repaint();
 
-                if (true || dragComponent.hasChildren()) {
-                    // todo: repaint optimization turned off for now
-                    // as node bounds computation doesn't include border
-                    // stroke width (bounds falls ON stroke, not outside)
-                    // so outer edge of border stroke isn't being
-                    // included in the clear region.
-                    repaint();
-                } else {
-                    //-------------------------------------------------------
-                    // Do some repaint optimzation:
-                    // This makes a big difference when cavas is big.
-                    // At moment we skip this if LWC has any children as
-                    // we don't have a traversal that produces all child links.
-                    //-------------------------------------------------------
-                    java.util.Iterator i;
-                    if (dragComponent instanceof LWLink) {
-                        LWLink lwl = (LWLink) dragComponent;
-                        i = new VueUtil.GroupIterator(lwl.getLinkEndpointsIterator(),
-                                                      lwl.getComponent1().getLinkEndpointsIterator(),
-                                                      lwl.getComponent2().getLinkEndpointsIterator());
+            } else if (dragComponent != null) {
+
+                //-------------------------------------------------------
+                //
+                // Do Repaint optimzation: This makes a HUGE
+                // difference when cavas is big, or when there are
+                // alot of visible nodes to paint, and especially when
+                // both conditions are true.  This is much faster even
+                // with with all the computation & recursive list
+                // generation we we're doing below.
+                //
+                //-------------------------------------------------------
+
+                // todo: node bounds computation doesn't include
+                // border stroke width (bounds falls in middle of
+                // stroke, not outside) so outer half of border stroke
+                // isn't being included in the clear region -- it's
+                // hacked-patched for now with a fixed slop region.
+                // Will also need to grow by stroke width of a dragged link
+                // as it's corners are beyond bounds point with very wide strokes.
+
+                java.util.Iterator i;
+                if (dragComponent instanceof LWLink) {
+                    // todo: not in use as moment as Link dragging disabled...
+                    LWLink lwl = (LWLink) dragComponent;
+                    i = new VueUtil.GroupIterator(lwl.getLinkEndpointsIterator(),
+                                                  lwl.getComponent1().getLinkEndpointsIterator(),
+                                                  lwl.getComponent2().getLinkEndpointsIterator());
                                                       
-                    } else
-                        i = dragComponent.getLinkEndpointsIterator();
-                    while (i.hasNext()) {
-                        LWComponent c = (LWComponent) i.next();
-                        repaintRegion.add(c.getBounds());
-                    }
-                    if (linkSource != null)
-                        repaintRegion.add(linkSource.getBounds());
-                    //Rectangle rr = mapToScreenRect(repaintRegion); // todo opt: use rounded version?
-                    // We fudge the bounds here to include any selection
-                    // handles that may be rendering as we drag the component
-                    //rr.grow(SelectionHandleSize-1,SelectionHandleSize-1); // todo: restore this!
-                    // todo: ALSO: need to grow by stroke width of a dragged link
-                    // as it's corners are beyond point with a wide stroke
-                    //repaint(rr);
+                } else
+                    //i = dragComponent.getLinkEndpointsIterator();
+                    i = dragComponent.getAllConnectedNodes().iterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    repaintRegion.add(c.getBounds());
                 }
+                if (linkSource != null)
+                    repaintRegion.add(linkSource.getBounds());
+                Rectangle rr = mapToScreenRect(repaintRegion);
+                // We grow the bounds here to include any selection
+                // handles that may be rendering as we drag the component
+                //rr.grow(SelectionHandleSize-1,SelectionHandleSize-1);
+                rr.grow(SelectionHandleSize+3,SelectionHandleSize+3);//todo: tmp hack slop region
+                repaint(rr);
             }
         }
 
         public void mouseReleased(MouseEvent e)
         {
+            inDrag = false;
             if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + "]");
 
+            //if (dragComponent == draggedSelectionGroup)
+            //draggedSelectionGroup.useSelection(VueSelection);
             setLastMousePoint(e.getX(), e.getY());
             
             if (linkSource != null) {
@@ -1504,6 +1577,7 @@ public class MapViewer extends javax.swing.JPanel
             
             dragComponent = null;
             draggingSelectionBox = false;
+            mouseWasDragged = false;
 
             if (indication != null)
                 clearIndicated();
@@ -1517,7 +1591,6 @@ public class MapViewer extends javax.swing.JPanel
                 draggedSelectionBox = null;
             }
             repaint();
-            mouseWasDragged = false;
         }
 
         private final boolean isDoubleClickEvent(MouseEvent e)
@@ -1801,6 +1874,8 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_KEYS = false;
     private boolean DEBUG_MOUSE = false;
+    private boolean DEBUG_REPAINT_OPTIMIZE_OFF = false;
+    private boolean DEBUG_FINDPARENT_OFF = false;
     private int mouseX;
     private int mouseY;
 

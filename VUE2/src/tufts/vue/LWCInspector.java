@@ -1,5 +1,6 @@
 package tufts.vue;
 
+import java.util.Iterator;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -13,7 +14,7 @@ class LWCInspector extends javax.swing.JPanel
                LWComponent.Listener,
                ActionListener
 {
-    LWSelection selection;
+    private LWSelection selection;
 
     JLabel idField = new JLabel();
     JLabel locationField = new JLabel();
@@ -194,10 +195,10 @@ class LWCInspector extends javax.swing.JPanel
         this.selection = selection;
         //System.err.println("Inspector setSelection: " + sl);
 
-        if (selection.size() != 1)
-            return;
-
-        loadItem(selection.first());
+        if (selection.size() == 1)
+            loadItem(selection.first());
+        else //if (!selection.isEmpty())
+            loadSelection(selection);
     }
 
     private void setAllEnabled(boolean tv)
@@ -208,8 +209,53 @@ class LWCInspector extends javax.swing.JPanel
             field.setEnabled(tv);
         }
     }
-                      
 
+    private void disable(JTextComponent tc)
+    {
+        tc.setText("");
+        tc.setEnabled(false);
+    }
+    private void disable(JLabel l)
+    {
+        l.setText("");
+        l.setEnabled(false);
+    }
+
+    private void loadSelection(LWSelection selection)
+    {
+        this.selection = selection;
+        if (selection.isEmpty()) {
+            setAllEnabled(false);
+            return;
+        }
+        setAllEnabled(true);
+
+        String id = "" + selection.size();
+        if (selection.allOfSameType())
+            id += " (" + selection.first().getClass().getName() + ")";
+        else
+            id += " components";
+
+        LWComponent c = selection.first();
+        
+        idField.setText(id);
+        labelField.setBackground(c.getFillColor());
+        loadText(labelField, "");
+        loadText(categoryField, "");
+        
+        disable(notesField);
+        disable(resourceField);
+        disable(locationField);
+        disable(sizeField);
+        
+        fontField.setText("");
+        fillColorField.setText(c.getXMLfillColor());
+        textColorField.setText(c.getXMLtextColor());
+        strokeColorField.setText(c.getXMLstrokeColor());
+        strokeField.setText(""+c.getStrokeWidth());
+    }
+
+    
     private void loadItem(LWComponent lwc)
     {
         if (this.lwc != lwc) {
@@ -223,14 +269,16 @@ class LWCInspector extends javax.swing.JPanel
                 setAllEnabled(false);
         }
 
-        if (lwc == null)
+        LWComponent c = this.lwc;
+        if (c == null)
             return;
 
-        //System.out.println(this + " loading " + lwc);
+        setAllEnabled(true);
+        //System.out.println(this + " loading " + c);
 
-        if (lwc instanceof LWNode) { // todo: instanceof Node interface
-            if (lwc.getResource() != null)
-                loadText(resourceField, lwc.getResource().toString());
+        if (c instanceof LWNode) { // todo: instanceof Node interface
+            if (c.getResource() != null)
+                loadText(resourceField, c.getResource().toString());
             else
                 loadText(resourceField, "");
             resourceField.setEditable(true);
@@ -243,61 +291,83 @@ class LWCInspector extends javax.swing.JPanel
             //resourceField.setVisible(false);
         }
 
-        String id = lwc.getID();
-        if (lwc.getParent() == null)
+        String id = c.getID();
+        if (c.getParent() == null)
             id += " [PARENT IS NULL]";
         else {
-            id += " [parent: " + lwc.getParent().getLabel() + "]";
-            id += " z:" + lwc.getParent().getLayer(lwc);
+            id += " [parent: " + c.getParent().getLabel() + "]";
+            id += " z:" + c.getParent().getLayer(c);
         }
         
         idField.setText(id);
-        labelField.setBackground(lwc.getFillColor());
-        loadText(labelField, lwc.getLabel());
-        loadText(categoryField, lwc.getCategory());
-        loadText(notesField, lwc.getNotes());
-        //loadText(widthField, new Float(lwc.getWidth()));
-        //loadText(heightField, new Float(lwc.getHeight()).toString());
+        labelField.setBackground(c.getFillColor());
+        loadText(labelField, c.getLabel());
+        loadText(categoryField, c.getCategory());
+        loadText(notesField, c.getNotes());
+        //loadText(widthField, new Float(c.getWidth()));
+        //loadText(heightField, new Float(c.getHeight()).toString());
         
-        locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
-        String sizeText = lwc.getWidth() + " x " + lwc.getHeight();
-        if (lwc.getScale() != 1f)
-            sizeText += "  z" + lwc.getScale();
+        locationField.setText("x: " + c.getX() + "   y: " + c.getY());
+        String sizeText = c.getWidth() + " x " + c.getHeight();
+        if (c.getScale() != 1f)
+            sizeText += "  z" + c.getScale();
         sizeField.setText(sizeText);
-        //Font f = lwc.getFont();
-        //if (lwc.getScale() != 1)
-        //  fontString += " (" + (f.getSize()*lwc.getScale()) + ")";
-        fontField.setText(lwc.getXMLfont());
+        //Font f = c.getFont();
+        //if (c.getScale() != 1)
+        //  fontString += " (" + (f.getSize()*c.getScale()) + ")";
+        fontField.setText(c.getXMLfont());
         //fontField.setText(f.getName() + "-" + fontSize);
-        //sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
+        //sizeField.setText(c.getWidth() + "x" + c.getHeight());
         
-        fillColorField.setText(lwc.getXMLfillColor());
-        textColorField.setText(lwc.getXMLtextColor());
-        strokeColorField.setText(lwc.getXMLstrokeColor());
-        strokeField.setText(""+lwc.getStrokeWidth());
+        fillColorField.setText(c.getXMLfillColor());
+        textColorField.setText(c.getXMLtextColor());
+        strokeColorField.setText(c.getXMLstrokeColor());
+        strokeField.setText(""+c.getStrokeWidth());
+    }
+
+    private void setFillColors(String text)
+    {
+        Iterator i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setXMLfillColor(text);
+        }
+    }
+    private void setStrokeWidths(String text)
+        throws NumberFormatException
+    {
+        Iterator i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            float w = Float.parseFloat(text);
+            c.setStrokeWidth(w);
+        }
     }
 
     public void actionPerformed(ActionEvent e)
     {
-        //if (this.component == null)
+        //if (this.lwcomponent == null)
         if (this.lwc == null)
             return;
         String text = e.getActionCommand();
         Object src = (JTextComponent) e.getSource();
+        LWComponent c = this.lwc;
         //System.out.println("Inspector " + e);
         try {
-            if (src == labelField)          lwc.setLabel(text);
-            else if (src == categoryField)  lwc.setCategory(text);
-            else if (src == notesField)     lwc.setNotes(text);
-            else if (src == resourceField)  lwc.setResource(text);
-            else if (src == fontField)      lwc.setXMLfont(text);
-            else if (src == fillColorField) lwc.setXMLfillColor(text);
-            else if (src == textColorField) lwc.setXMLtextColor(text);
-            else if (src == strokeColorField) lwc.setXMLstrokeColor(text);
-            else if (src == strokeField) {
-                float w = Float.parseFloat(text);
-                lwc.setStrokeWidth(w);
-            }
+            if (src == labelField)          c.setLabel(text);
+            else if (src == categoryField)  c.setCategory(text);
+            else if (src == notesField)     c.setNotes(text);
+            else if (src == resourceField)  c.setResource(text);
+            else if (src == fontField)      c.setXMLfont(text);
+            else if (src == fillColorField) setFillColors(text);
+            //else if (src == fillColorField) c.setXMLfillColor(text);
+            else if (src == textColorField)     c.setXMLtextColor(text);
+            else if (src == strokeColorField)   c.setXMLstrokeColor(text);
+            else if (src == strokeField)        setStrokeWidths(text);
+            //            else if (src == strokeField) {
+            //                float w = Float.parseFloat(text);
+            //                c.setStrokeWidth(w);
+            //            }
             else
                 return;
         } catch (Exception ex) {

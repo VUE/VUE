@@ -68,7 +68,8 @@ public class VUE
             String title = "VUE: " + viewer.getMap().getLabel();
             
             int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
-            // round the display value down to 2 digits
+            // Present the zoom factor as a percentange
+            // truncated down to 2 digits
             title += " [";
             if ((displayZoom / 100) * 100 == displayZoom)
                 title += (displayZoom / 100) + "%";
@@ -137,20 +138,27 @@ public class VUE
 
         tabbedPane = new JTabbedPane();
         tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
-
+        tabbedPane.setPreferredSize(new Dimension(500,400));
+        
+        if (args.length < 1) {
         //-------------------------------------------------------
         // Temporary: create example map(s)
         //-------------------------------------------------------
-        
-        LWMap map1 = new LWMap("One");
-        LWMap map2 = new LWMap("Two");
 
-        installExampleMap(map1);
-        installExampleMap(map2);
-        installExampleNodes(map1);
+            LWMap map1 = new LWMap("One");
+            LWMap map2 = new LWMap("Two");
 
-        displayMap(map1);
-        displayMap(map2);
+            installExampleMap(map1);
+            installExampleMap(map2);
+            installExampleNodes(map1);
+            
+            displayMap(map1);
+            displayMap(map2);
+        } else {
+            // Create an empty map
+            //displayMap(new LWMap("New Map"));
+        }
+
         
         //-------------------------------------------------------
         // create a an application frame and layout components
@@ -208,6 +216,16 @@ public class VUE
         
         frame.show();
 
+        if (args.length > 0) {
+            VUE.activateWaitCursor();
+            try {
+                LWMap map = OpenAction.loadMap(args[0]);
+                if (map != null)
+                    displayMap(map);
+            } finally {
+                VUE.clearWaitCursor();
+            }
+        }
     }
 
     public static int openMapCount()
@@ -392,6 +410,7 @@ public class VUE
         PrintAction printAction = new PrintAction("Print");
         
         JToolBar toolBar = new JToolBar();
+        toolBar.add(Actions.NewMap);
         toolBar.add(openAction);
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);

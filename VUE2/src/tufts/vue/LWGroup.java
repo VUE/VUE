@@ -20,19 +20,24 @@ import java.awt.geom.Rectangle2D;
  */
 public final class LWGroup extends LWContainer
 {
-    /** Set size & location of this group based on LWComponents in selection */
-    private LWGroup(java.util.List selection)
+    /** to support restore only */
+    public LWGroup() {}
+
+    /**
+     * For the viewer selection code -- we're mainly interested
+     * in the ability of a group to move all of it's children
+     * with it.
+     */
+    void useSelection(LWSelection selection)
     {
-        Rectangle2D bounds = LWMap.getBounds(selection.iterator());
+        Rectangle2D bounds = selection.getBounds();
+        super.children = selection;
         super.setSize((float)bounds.getWidth(),
                       (float)bounds.getHeight());
         super.setLocation((float)bounds.getX(),
                           (float)bounds.getY());
     }
-
-    /** to support restore only */
-    public LWGroup() {}
-
+    
     /**
      * Create a new LWGroup, reparenting all the LWComponents
      * in the selection to the new group.
@@ -63,6 +68,18 @@ public final class LWGroup extends LWContainer
         if (DEBUG_CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
         return group;
     }
+
+    /** Set size & location of this group based on LWComponents in selection */
+    private LWGroup(java.util.List selection)
+    {
+        Rectangle2D bounds = LWMap.getBounds(selection.iterator());
+        super.setSize((float)bounds.getWidth(),
+                      (float)bounds.getHeight());
+        super.setLocation((float)bounds.getX(),
+                          (float)bounds.getY());
+    }
+
+
     /**
      * Remove all children and re-parent to this group's parent,
      * then remove this now empty group object from the parent.

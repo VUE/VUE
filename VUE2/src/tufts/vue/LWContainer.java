@@ -149,7 +149,7 @@ public abstract class LWContainer extends LWComponent
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (!this.children.remove(c))
-            throw new RuntimeException(this + " DIDN'T CONTAIN CHILD FOR REMOVAL: " + c);
+            throw new IllegalStateException(this + " didn't contain child for removal: " + c);
         c.setParent(null);
         notify("childRemoved", c);
     }
@@ -162,7 +162,24 @@ public abstract class LWContainer extends LWComponent
         // note that parents of c will not get this event as
         // c.parent has been nulled by now -- but listeners will get it.
         //c.notify("deleted");
-        c.removeAllLWCListeners();
+        c.removeFromModel();
+    }
+    
+    public java.util.List getAllConnectedNodes()
+    {
+        // todo opt: could cache this list, or organize as giant iterator tree
+        // see LWComponent comment for where to go next
+        // Could also make this faster with a cached bounds
+        // and explicitly call a getRepaintRegion here that
+        // just returns that + any nodes(links) connected to any children
+        java.util.List list = super.getAllConnectedNodes();
+        list.addAll(children);
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            list.addAll(c.getAllConnectedNodes());
+        }
+        return list;
     }
 
     /**
@@ -211,22 +228,23 @@ public abstract class LWContainer extends LWComponent
     }
 
     
-    // existed only for MapDropTarget -- drop event should
-       // make this obsolete
     public LWNode findLWNodeAt(float mapX, float mapY, LWComponent excluded)
     {
         // hit detection must traverse list in reverse as top-most
         // components are at end
-        java.util.ListIterator i = children.listIterator(children.size());
-        while (i.hasPrevious()) {
-            LWComponent c = (LWComponent) i.previous();
-            if (!(c instanceof LWNode))
-                continue;
-            if (c != excluded && c.contains(mapX, mapY)) {
-                if (c.hasChildren())
-                    return ((LWContainer)c).findLWNodeAt(mapX, mapY, excluded);
-                else
-                    return (LWNode) c;
+        
+        if (children.size() > 0) {
+            java.util.ListIterator i = children.listIterator(children.size());
+            while (i.hasPrevious()) {
+                LWComponent c = (LWComponent) i.previous();
+                if (!(c instanceof LWNode))
+                    continue;
+                if (c != excluded && c.contains(mapX, mapY)) {
+                    if (c.hasChildren())
+                        return ((LWContainer)c).findLWNodeAt(mapX, mapY, excluded);
+                    else
+                        return (LWNode) c;
+                }
             }
         }
         if (this instanceof LWNode)

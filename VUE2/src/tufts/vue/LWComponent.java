@@ -1,6 +1,5 @@
 package tufts.vue;
 
-import java.util.ArrayList;
 
 import java.awt.Shape;
 import java.awt.Color;
@@ -143,7 +142,7 @@ public class LWComponent
     protected transient LWContainer parent = null;
 
     // list of LWLinks that contain us as an endpoint
-    private transient ArrayList links = new ArrayList();
+    private transient java.util.List links = new java.util.ArrayList();
 
     // Scale currently exists ONLY to support the child-node feature.
     protected transient float scale = 1.0f;
@@ -312,52 +311,47 @@ public class LWComponent
         return getCenterY();
     }
     
+    public boolean isChild()
+    {
+        return this.parent != null || parent instanceof LWMap; // todo: kind of a hack
+    }
+    void setParent(LWContainer c)
+    {
+        this.parent = c;
+    }
+    public LWContainer getParent()
+    {
+        return this.parent;
+    }
+
+    public boolean hasChildren()// todo: can we get rid of this?
+    {
+        return false;
+    }
+
     /* for tracking who's linked to us */
     void addLinkRef(LWLink link)
     {
+        if (this.links.contains(link))
+            throw new IllegalStateException("addLinkRef: " + this + " already contains " + link);
         this.links.add(link);
     }
     /* for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
-        this.links.remove(link);
+        if (!this.links.remove(link))
+            throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
     }
     /* tell us all the links who have us as one of their endpoints */
     java.util.List getLinkRefs()
     {
         return this.links;
     }
-
-    /*
-    public java.util.Iterator getNodeIterator()
-    {
-        return
-            new java.util.Iterator() {
-                java.util.Iterator i = getChildIterator();
-                boolean hasAnother = true;
-                LWComponent c = next
-                public boolean hasNext()
-                {
-                    return i.hasNext();
-                }
-		public Object next()
-                {
-                    LWLink lwl = (LWLink) i.next();
-                    if (lwl.getComponent1() == LWComponent.this)
-                        return lwl.getComponent2();
-                    else
-                        return lwl.getComponent1();
-                }
-		public void remove() {
-		    throw new UnsupportedOperationException();
-                }
-            };
-            }*/
     
     /**
      * Return an iterator over all link endpoints,
      * which will all be instances of LWComponent.
-     * If this is a LWLink, it will include it's
+     * If this is a LWLink, it should include it's
      * own endpoints in the list.
      */
     public java.util.Iterator getLinkEndpointsIterator()
@@ -379,32 +373,40 @@ public class LWComponent
                 }
             };
     }
-
-    public boolean isChild()
+    
+    /**
+     * Return all LWComponents connected via LWLinks to this object.
+     * Included everything except LWLink objects themselves (unless
+     * it's an endpoint -- a link to a link)
+     *
+     * todo opt: this is repaint optimization -- when links
+     * eventually know their own bounds (they know real connection
+     * endpoints) we can re-do this as getAllConnections(), which
+     * will can return just the linkRefs and none of the endpoints)
+     */
+    public java.util.List getAllConnectedNodes()
     {
-        return this.parent != null || parent instanceof LWMap; // todo: kind of a hack
-    }
-    void setParent(LWContainer c)
-    {
-        this.parent = c;
-    }
-    public LWContainer getParent()
-    {
-        return this.parent;
-    }
-
-    public boolean hasChildren()// todo: can we get rid of this?
-    {
-        return false;
+        java.util.List list = new java.util.ArrayList(this.links.size());
+        java.util.Iterator i = this.links.iterator();
+        while (i.hasNext()) {
+            LWLink l = (LWLink) i.next();
+            if (l.getComponent1() != this)
+                list.add(l.getComponent1());
+            else if (l.getComponent2() != this) // todo opt: remove extra check eventually
+                list.add(l.getComponent2());
+            else
+                throw new IllegalStateException("link to self on " + this);
+        }
+        return list;
     }
 
     public LWLink getLinkTo(LWComponent c)
     {
         java.util.Iterator i = this.links.iterator();
         while (i.hasNext()) {
-            LWLink lwl = (LWLink) i.next();
-            if (lwl.getComponent1() == c || lwl.getComponent2() == c)
-                return lwl;
+            LWLink l = (LWLink) i.next();
+            if (l.getComponent1() == c || l.getComponent2() == c)
+                return l;
         }
         return null;
     }
@@ -422,7 +424,6 @@ public class LWComponent
     
     public float getScale()
     {
-        //return 1f;
         return this.scale;
     }
     public void translate(float dx, float dy)
@@ -463,9 +464,9 @@ public class LWComponent
 
     public float getX() { return this.x; }
     public float getY() { return this.y; }
-    /** for XML restore only! */
+    /** for XML restore only --todo: remove*/
     public void setX(float x) { this.x = x; }
-    /** for XML restore only! */
+    /** for XML restore only! --todo remove*/
     public void setY(float y) { this.y = y; }
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
@@ -480,6 +481,7 @@ public class LWComponent
     
     public Rectangle2D getBounds()
     {
+        // todo opt: cache this object?
         return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
     }
     
@@ -604,7 +606,7 @@ public class LWComponent
     public void addLWCListener(LWComponent.Listener listener)
     {
         if (listeners == null)
-            listeners = new ArrayList();
+            listeners = new java.util.ArrayList();
         listeners.add(listener);
     }
     public void removeLWCListener(LWComponent.Listener listener)
@@ -615,7 +617,8 @@ public class LWComponent
     }
     public void removeAllLWCListeners()
     {
-        listeners.clear();
+        if (listeners != null)
+            listeners.clear();
     }
     public void notifyLWCListeners(LWCEvent e)
     {
@@ -638,6 +641,15 @@ public class LWComponent
     protected void notify(String what, LWComponent c)
     {
         notifyLWCListeners(new LWCEvent(this, c, what));
+    }
+
+    /**
+     * Do any cleanup needed now that this LWComponent has
+     * been removed from the model
+     */
+    protected void removeFromModel()
+    {
+        removeAllLWCListeners();
     }
     
     public void setSelected(boolean selected)
@@ -667,7 +679,7 @@ public class LWComponent
     {
         return this.indicated;
     }
-    
+
     /** pesistance default */
     public void addObject(Object obj)
     {

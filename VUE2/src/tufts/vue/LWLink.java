@@ -95,9 +95,7 @@ public class LWLink extends LWComponent
     /**
      * Used ONLY for restore -- must be public so can be reflected
      */
-    public LWLink()
-    {
-    }
+    public LWLink() {}
 
     /**
      * Create a new link between two LWC's
@@ -105,14 +103,21 @@ public class LWLink extends LWComponent
     public LWLink(LWComponent c1, LWComponent c2)
     {
         if (c1 == null || c2 == null)
-            throw new java.lang.IllegalArgumentException("LWLink: c1=" + c1 + " c2=" + c2);
+            throw new IllegalArgumentException("LWLink: c1=" + c1 + " c2=" + c2);
         this.c1 = c1;
         this.c2 = c2;
         setSize(10,10);
         setFont(FONT_LINKLABEL);
         setTextColor(COLOR_LINK_LABEL);
-        c1.addLinkRef(this);
-        c2.addLinkRef(this);
+        setEndPoint1(c1);
+        setEndPoint2(c2);
+    }
+    
+    protected void removeFromModel()
+    {
+        super.removeFromModel();
+        c1.removeLinkRef(this);
+        c2.removeLinkRef(this);
     }
 
     public boolean intersects(Rectangle2D rect)
@@ -150,12 +155,18 @@ public class LWLink extends LWComponent
     }
     void setEndPoint1(LWComponent c)
     {
+        if (c == null)
+            throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
         this.c1 = c;
+        c.addLinkRef(this);
         //System.out.println(this + " ep1 = " + c);
     }
     void setEndPoint2(LWComponent c)
     {
+        if (c == null)
+            throw new IllegalArgumentException(this + " attempt to set endPoint2 to null");
         this.c2 = c;
+        c.addLinkRef(this);
         //System.out.println(this + " ep2 = " + c);
     }
     public java.util.Iterator getLinkEndpointsIterator()
@@ -166,6 +177,15 @@ public class LWLink extends LWComponent
         return new VueUtil.GroupIterator(endpoints,
                                          super.getLinkEndpointsIterator());
         
+    }
+    
+    public java.util.List getAllConnectedComponents()
+    {
+        java.util.List list = new java.util.ArrayList(getLinkRefs().size() + 2);
+        list.addAll(getLinkRefs());
+        list.add(getComponent1());
+        list.add(getComponent2());
+        return list;
     }
 
     /*

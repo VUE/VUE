@@ -38,7 +38,7 @@ class Actions {
             boolean enabledFor(LWSelection l) { return true; }
             public void act()
             {
-                VUE.ModelSelection.add(VUE.getActiveViewer().getMap().getChildIterator());
+                VUE.ModelSelection.setTo(VUE.getActiveViewer().getMap().getChildIterator());
             }
         };
     static final Action DeselectAll =
@@ -90,6 +90,7 @@ class Actions {
                 VUE.ModelSelection.setTo(group);
                 // setting selection here is slightly sketchy in that it's
                 // really a UI policy that belongs to the viewer
+                // todo: could handle in viewer via "created" LWCEvent
             }
         };
     static final Action Ungroup =
@@ -239,6 +240,7 @@ class Actions {
         static float maxX, maxY;
         static float centerX, centerY;
         static float totalWidth, totalHeight;
+        static boolean allHaveSameX, allHaveSameY;
         // obviously not thread-safe here
         
         private AlignAction(String name) { super(name); }
@@ -254,8 +256,15 @@ class Actions {
             centerY = (minY + maxY) / 2;
             Iterator i = selection.iterator();
             totalWidth = totalHeight = 0;
+            float x = selection.first().getX();
+            float y = selection.first().getY();
+            allHaveSameX = allHaveSameY = true;
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
+                if (c.getX() != x)
+                    allHaveSameX = false;
+                if (c.getY() != y)
+                    allHaveSameY = false;
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
@@ -267,6 +276,35 @@ class Actions {
                 align((LWComponent) i.next());
         }
         void align(LWComponent c) { throw new RuntimeException("unimplemented align action"); }
+
+        LWComponent[] sortByX(LWSelection selection)
+        {
+            LWComponent[] array = new LWComponent[selection.size()];
+            selection.toArray(array);
+            return sortByX(array);
+        }
+        LWComponent[] sortByX(LWComponent[] array)
+        {
+            java.util.Arrays.sort(array, new java.util.Comparator() {
+                    public int compare(Object o1, Object o2) {
+                        return (int) (((LWComponent)o1).getX() - ((LWComponent)o2).getX());
+                    }});
+            return array;
+        }
+        LWComponent[] sortByY(LWSelection selection)
+        {
+            LWComponent[] array = new LWComponent[selection.size()];
+            selection.toArray(array);
+            return sortByY(array);
+        }
+        LWComponent[] sortByY(LWComponent[] array)
+        {
+            java.util.Arrays.sort(array, new java.util.Comparator() {
+                    public int compare(Object o1, Object o2) {
+                        return (int) (((LWComponent)o1).getY() - ((LWComponent)o2).getY());
+                    }});
+            return array;
+        }
     };
         
     private static final Action[] ALIGN_ACTIONS = {
@@ -300,19 +338,14 @@ class Actions {
             // only 2 in selection is useful with our minimum layout region setting
             void align(LWSelection selection)
             {
-                LWComponent[] array = new LWComponent[selection.size()];
-                selection.toArray(array);
-                java.util.Arrays.sort(array, new java.util.Comparator() {
-                        public int compare(Object o1, Object o2) {
-                            return (int) (((LWComponent)o1).getY() - ((LWComponent)o2).getY());
-                        }});
+                LWComponent[] comps = sortByY(sortByX(selection));
                 float layoutRegion = maxY - minY;
                 if (layoutRegion < totalHeight)
                     layoutRegion = totalHeight;
                 float verticalGap = (layoutRegion - totalHeight) / (selection.size() - 1);
                 float y = minY;
-                for (int i = 0; i < array.length; i++) {
-                    LWComponent c = array[i];
+                for (int i = 0; i < comps.length; i++) {
+                    LWComponent c = comps[i];
                     c.setLocation(c.getX(), y);
                     y += c.getHeight() + verticalGap;
                 }
@@ -323,19 +356,14 @@ class Actions {
             //boolean enabledFor(LWSelection l) { return l.size() >= 3; }
             void align(LWSelection selection)
             {
-                LWComponent[] array = new LWComponent[selection.size()];
-                selection.toArray(array);
-                java.util.Arrays.sort(array, new java.util.Comparator() {
-                        public int compare(Object o1, Object o2) {
-                            return (int) (((LWComponent)o1).getX() - ((LWComponent)o2).getX());
-                        }});
+                LWComponent[] comps = sortByX(sortByY(selection));
                 float layoutRegion = maxX - minX;
                 if (layoutRegion < totalWidth)
                     layoutRegion = totalWidth;
                 float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
                 float x = minX;
-                for (int i = 0; i < array.length; i++) {
-                    LWComponent c = array[i];
+                for (int i = 0; i < comps.length; i++) {
+                    LWComponent c = comps[i];
                     c.setLocation(x, c.getY());
                     x += c.getWidth() + horizontalGap;
                 }
@@ -357,7 +385,7 @@ class Actions {
             }
         };
     static final Action CloseMap =
-        new VueAction("Close")
+        new VueAction("Close", keyStroke(KeyEvent.VK_W, META))
         {
             // todo: listen to map viewer display event to tag
             // with currently displayed map name\
