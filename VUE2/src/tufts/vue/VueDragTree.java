@@ -478,6 +478,10 @@ class CabinetNode extends ResourceNode {
      *  This only applies if the current node is a cabinet.
      */
     public void explore() {
+
+        if (this.explored)
+            return;
+        
         //  If this is not a cabinet, then it cannot be expanded.
         //if(getCabinet() != null) {
        // System.out.println(" Cabinet ="+getUserObject()+ " is dir" +isLeaf()+" Extension = "+((CabinetResource)getUserObject()).getExtension());
@@ -513,6 +517,9 @@ class CabinetNode extends ResourceNode {
                         CabinetNode rootNode = new CabinetNode(res, this.type);
                         //rootNode.explore();
                         this.add(rootNode);
+                        // todo fix: note, this is still happening twice per
+                        // directory on startup! SMF 2005-03-11
+                        //System.out.println(this + " adding " + rootNode);
                     }
                     this.explored = true;
                 }
