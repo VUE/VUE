@@ -317,7 +317,7 @@ class LWCInspector extends javax.swing.JPanel
         idField.setText(id);
         labelField.setBackground(c.getFillColor());
         loadText(labelField, c.getLabel());
-        loadText(categoryField, c.getCategory());
+        //loadText(categoryField, c.getCategory());
         loadText(notesField, c.getNotes());
         //loadText(widthField, new Float(c.getWidth()));
         //loadText(heightField, new Float(c.getHeight()).toString());
@@ -414,7 +414,7 @@ class LWCInspector extends javax.swing.JPanel
         //System.out.println("Inspector " + e);
         try {
             if (src == labelField)          c.setLabel(text);
-            else if (src == categoryField)  c.setCategory(text);
+            //else if (src == categoryField)  c.setCategory(text);
             //else if (src == notesField)     c.setNotes(text);
             else if (src == resourceField)  c.setResource(text);
             else if (src == fontField)      setFonts(text);

@@ -62,7 +62,7 @@ public class LWComponent
      * This returns true if there is user metadata for this component
      * @return true if meta data values exist; false if not
      **/
-   public boolean haMetaData() {
+   public boolean hasMetaData() {
    	boolean hasData = false;
    	if( mUserPropertyValues != null) {
    		hasData = (getUserMapType() != null) && ( !mUserPropertyValues.isEmpty() ); 
@@ -159,7 +159,7 @@ public class LWComponent
         notify(LWCEvent.Notes, old);
     }
 
-    // todo: setMetaData still relevant?
+    /*
     public void setMetaData(String metaData)
     {
         this.metaData = metaData;
@@ -173,6 +173,7 @@ public class LWComponent
         layout();
         notify("category");
     }
+    */
     public void setResource(Resource resource)
     {
         Object old = this.resource;
@@ -194,10 +195,12 @@ public class LWComponent
     {
         return this.resource;
     }
+    /*
     public String getCategory()
     {
         return this.category;
     }
+    */
     public String getID()
     {
         return this.ID;
@@ -233,6 +236,7 @@ public class LWComponent
     {
         return this.resource != null;
     }
+    /*
     public String getMetaData()
     {
         return this.metaData;
@@ -241,6 +245,7 @@ public class LWComponent
     {
         return this.metaData != null;
     }
+    */
     public boolean inPathway()
     {
         return pathwayRefs != null && pathwayRefs.size() > 0;
@@ -366,8 +371,8 @@ public class LWComponent
     private String ID = null;
     protected String label = null; // protected for debugging purposes
     private String notes = null;
-    private String metaData = null;
-    private String category = null;
+    //private String metaData = null;
+    //private String category = null;
     private Resource resource = null;
     private float x;
     private float y;
