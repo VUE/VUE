@@ -12,9 +12,11 @@ package tufts.vue;
 
 import java.util.Vector;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.Graphics2D;
 
 public class LWMap extends LWContainer
     implements ConceptMap
@@ -71,6 +73,14 @@ public class LWMap extends LWContainer
         nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
+    }
+    
+    public void draw(Graphics2D g){
+        super.draw(g);
+        LWPathway path = this.getPathwayManager().getCurrentPathway();        
+        if(path != null){
+            path.drawPathway(g);
+        }
     }
 
     protected LWComponent findChildByID(String ID)

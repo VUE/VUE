@@ -173,17 +173,20 @@ public class VUE
             //-------------------------------------------------------
             // Temporary: create example map(s)
             //-------------------------------------------------------
-            LWMap map1 = new LWMap("Test Nodes");
-            LWMap map2 = new LWMap("Example Map");
+            //LWMap map1 = new LWMap("Test Nodes");
+            //LWMap map2 = new LWMap("Example Map");
+            LWMap map1 = new LWMap("Map 1");
+            LWMap map2 = new LWMap("Map 2");
 
             //installExampleMap(map1);
             installExampleNodes(map1);
             installExampleMap(map2);
 
-            map1.setFillColor(new Color(255, 255, 192));
+            //map1.setFillColor(new Color(255, 255, 192));
             
             displayMap(map1);
             displayMap(map2);
+            
         }
         
         
@@ -228,6 +231,7 @@ public class VUE
         
         //addtion by the power team
         pathwayInspector = new LWPathwayInspector(frame);
+
         control = new PathwayControl(frame);
         
         //end of addition
@@ -264,7 +268,6 @@ public class VUE
                 VUE.clearWaitCursor();
             }
         }
-
         //setViewerScrollbarsDisplayed(true);
     }
 
@@ -308,12 +311,8 @@ public class VUE
                     return (MapViewer) tabbedPane.getComponentAt(i);
                 }
             }
-        }
-        //MapViewer view = (MapViewer) c;
-        //LWMap map = view.getMap();
-        //return view;
-        
-        // don't know how this will impact the pathway stuff, but we're
+        }        
+        // don't know how this will impact the pathway stuff, but we're (?)
         // ActiveViewer now has to be maintained seperately, so we
         // can't query the tabbed panes.
         return ActiveViewer;
@@ -614,9 +613,10 @@ public class VUE
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
-        System.out.println("map label::"+map.getLabel());
+        
         //creating test pathways
-        if(map.getLabel().equals("Three")){
+        if(map.getLabel().equals("Map 1")){
+            System.out.println("Map 1 label::"+map.getLabel());
             LWPathway p1 = new LWPathway("Pathway 1");
             LinkedList linkedlist = new LinkedList();
             linkedlist.add(n1);
@@ -625,8 +625,10 @@ public class VUE
             linkedlist.add(k1);
             p1.setElementList(linkedlist);
             map.addPathway(p1);
-        }else{        
+        }/*else if(map.getLabel().equals("Test Nodes")){        
+            System.out.println("2 map label::"+map.getLabel());
             LWPathway p2 = new LWPathway("Pathway 2");
+            
             p2.setComment("A comment.");
             LinkedList anotherList = new LinkedList();
             anotherList.add(n3);
@@ -636,6 +638,6 @@ public class VUE
             anotherList.add(k3);
             p2.setElementList(anotherList);
             map.addPathway(p2);            
-        }
+        }*/
     }
 }

@@ -33,6 +33,8 @@ import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -62,7 +64,8 @@ public class LWPathwayInspector extends InspectorWindow
     private JTable info = null, pathwayTable = null;
     
     /**current pathway as indicated by the manager*/
-    private LWPathway pathway = null; //new LWPathway(1);
+    private LWPathway pathway = null;
+    private LWMap map = null;
     
     /**third tab which holds the notes for the current pathway*/
     public JTextArea text = null;
@@ -78,93 +81,64 @@ public class LWPathwayInspector extends InspectorWindow
     
     public InfoTableModel model = null;
     private Notes notes = null;
-    private PathwayTab path = null;
+    private PathwayTab pathwayTab = null;
     
     public LWPathwayInspector(JFrame owner, LWPathway pathway){
         this(owner);
-        this.pathway = pathway;
-        path.setPathway(pathway);
+        this.setPathway(pathway);
     }
  
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
         
-        /**three components to be added to the tabbed pane*/
         InfoTable table = new InfoTable();
         notes = new Notes();
-        path = new PathwayTab();
+        pathwayTab = new PathwayTab();
         
-        if(pathway != null)
-            this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
-        else
-            this.setTitle("PATHWAY INSPECTOR");
+        this.setTitle("PATHWAY INSPECTOR");
         
-        /**instantiating and setting up tabbed pane*/
         pane = new JTabbedPane();
         pane.addTab("General Info", null, new JScrollPane(table), "Info Panel");
-        pane.addTab("Node Info", null, path, "Path Panel");
+        pane.addTab("Node Info", null, pathwayTab, "Path Panel");
         pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
         this.setSize(350, 300);
         
-        /**unselects checkbox in VUE window menu*/
+        /**unselects checkbox in VUE window menu on closing*/
         super.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {setButton(false);}});
-    }
-    
-    class DisplayAction extends AbstractAction
-    {
-        public DisplayAction(String label)
-        {
-            super(label);
-        }
-        public void actionPerformed(ActionEvent e)
-        {
-            aButton = (AbstractButton) e.getSource();
-            setVisible(aButton.isSelected());
-        }
     }
     
     public void setButton(boolean state){
         aButton.setSelected(state);
     }
     
+    public LWPathway getPathway(){
+        return pathway;
+    }
+    
     public void setPathway(LWPathway pathway){
         this.pathway = pathway;
+        if(pathway!=null) map = pathway.getPathwayMap();
         if(pathway != null)
             setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
         else
-            setTitle("PATHWAY INSPECTOR");        
-        path.setPathway(pathway);
-
-        notes.setNotes(pathway);
+            setTitle("PATHWAY INSPECTOR");
         
-        model.fireTableDataChanged();
+        pathwayTab.setPathway(pathway);
+        notes.setNotes();        
+        model.fireTableDataChanged();        
     }
     
-    public LWPathway getPathway(){
-        return this.pathway;
+    public void notifyPathwayTab(){
+        pathwayTab.updateTable();
     }
     
-    public void notifyPathwayTab()
-    {
-        path.updateTable();
-    }
-    
-    Action displayAction = null;
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction("Pathway Inspector");
-        return displayAction;
-    }
-   
     private class Notes extends JPanel
     {
         private JTextArea area = null;
-        private LWPathway notesPathway = null;
         
         public Notes ()
         {
@@ -179,31 +153,25 @@ public class LWPathwayInspector extends InspectorWindow
                 {
                     public void keyTyped(KeyEvent e)
                     {
-                        notesPathway.setComment(area.getText());
+                        //notesPathway.setComment(area.getText());
+                        pathway.setComment(area.getText());
                     }
-                });
-                
+                });                
             JLabel north = new JLabel("Pathway Notes", JLabel.CENTER);
         
             add(north, BorderLayout.NORTH);
             add(area, BorderLayout.CENTER);    
         }
         
-        public void setNotes(LWPathway givenPathway)
+        public void setNotes()
         {
-            notesPathway = givenPathway;
-            
-            //if the pathway is null disable the notes panel
-            if (notesPathway == null)
-            {
+            if (pathway == null){
                 area.setEnabled(false);
                 area.setText(null);
-            }
-            
-            else
-            {
+            }           
+            else{
                 area.setEnabled(true);
-                area.setText(notesPathway.getComment());
+                area.setText(pathway.getComment());
             }     
         }
     }
@@ -220,24 +188,21 @@ public class LWPathwayInspector extends InspectorWindow
                this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
                this.setCellSelectionEnabled(true);
                this.setBorder(border);
-               /**creates a color chooser when pathway color is selected*/
-               if(pathway != null){
-                   this.addMouseListener(new MouseAdapter(){
-
-                       public void mouseClicked(MouseEvent e){
-                            int row = getSelectedRow();
-                            int col = getSelectedColumn();
-                            if(row==3 && col==1){
-                                JColorChooser choose = new JColorChooser();
-                                Color newColor = choose.showDialog((Component)null, 
-                                    "Choose Pathway Color", 
-                                    (Color)model.getValueAt(row, col));
-                                if(newColor != null)
-                                    model.setValueAt(newColor, row, col);
-                            }
-                       }
-                    });
-               }
+               this.addMouseListener(new MouseAdapter(){
+                   public void mouseClicked(MouseEvent e){
+                        int row = getSelectedRow();
+                        int col = getSelectedColumn();
+                        if(row==3 && col==1 && pathway!=null){
+                            JColorChooser choose = new JColorChooser();
+                            Color newColor = choose.showDialog((Component)null, 
+                                "Choose Pathway Color", 
+                                (Color)model.getValueAt(row, col));
+                            if(newColor != null)
+                                model.setValueAt(newColor, row, col);           
+                        }
+                   }
+                });
+               
                
                TableColumn col = this.getColumn(this.getColumnName(1));
                InfoRenderer rend = new InfoRenderer();
@@ -305,6 +270,8 @@ public class LWPathwayInspector extends InspectorWindow
                 if(row == 0){
                     pathway.setLabel((String)value);
                     setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
+                    PathwayControl control = VUE.getPathwayControl();
+                    control.repaint();
                 } 
                 //can't set the length
                 else if(row == 2){
@@ -313,6 +280,10 @@ public class LWPathwayInspector extends InspectorWindow
                 else if(row == 3){
                     pathway.setBorderColor((Color)value);
                 }
+                
+                if((row == 0 || row == 3) && map != null)
+                    map.draw((Graphics2D)getGraphics());
+                    //pathway.getPathwayMap().draw((Graphics2D)getGraphics());
             }
         }
 
@@ -322,4 +293,28 @@ public class LWPathwayInspector extends InspectorWindow
             else return null;
         }
     }
+    
+    /**handles opening and closing window from menu list*/
+    class DisplayAction extends AbstractAction
+    {
+        public DisplayAction(String label)
+        {
+            super(label);
+        }
+        public void actionPerformed(ActionEvent e)
+        {
+            aButton = (AbstractButton) e.getSource();
+            setVisible(aButton.isSelected());
+        }
+    }
+    
+    Action displayAction = null;
+    public Action getDisplayAction()
+    {
+        if (displayAction == null)
+            displayAction = new DisplayAction("Pathway Inspector");
+        return displayAction;
+    }
+   
+   
 }
