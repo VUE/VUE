@@ -109,6 +109,9 @@ implements VueConstants {
         
         VueFrame() {
             super("VUE: Tufts Concept Map Tool");
+            System.out.println("LOADING IMAGE"+Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon16x16")));
+            setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
+
         }
         
         /** never let the frame be hidden -- always ignored */
