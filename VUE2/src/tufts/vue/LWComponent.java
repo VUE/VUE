@@ -1170,13 +1170,19 @@ public class LWComponent
                                             + "\n\tattempted notification=" + e);
 
         if (listeners != null && listeners.size() > 0) {
-            java.util.Iterator i = listeners.iterator();
-            while (i.hasNext()) {
+            // todo perf: take this out and see if can fix all concurrent mod exceptions
+            // (delete out from under a pathway in particular)
+            Listener[] listener_array = new Listener[listeners.size()];
+            listeners.toArray(listener_array);
+            //java.util.Iterator i = listeners.iterator();
+            //while (i.hasNext()) {
+            for (int i = 0; i < listener_array.length; i++) {
                 if (DEBUG.EVENTS) {
                     for (int x = 0; x < sDepth; x++) System.out.print("    ");
                     System.out.print(e + " -> ");
                 }
-                Listener l = (Listener) i.next();
+                //Listener l = (Listener) i.next();
+                Listener l = listener_array[i];
                 if (DEBUG.EVENTS) {
                     if (e.getSource() == l)
                         System.out.println(l + " (SKIPPED: source)");
