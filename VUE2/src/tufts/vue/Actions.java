@@ -774,15 +774,14 @@ class Actions
         new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
             boolean undoable() { return false; }
-            public void act() {
-                VUE.getUndoManager().undo();
-            }
+            public void act() { VUE.getUndoManager().undo(); }
 
         };
     static final Action Redo =
         new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT))
         {
             boolean undoable() { return false; }
+            public void act() { VUE.getUndoManager().redo(); }
         };
 
     static final VueAction NewNode =
@@ -904,6 +903,7 @@ class Actions
                 if (DEBUG.EVENTS) System.out.println("ACTIONS DISABLED.");
                 return;
             }
+            boolean hadException = false;
             try {
                 /*
                 String msg = "VueAction: " + getActionName();
@@ -924,10 +924,15 @@ class Actions
                 System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
                 System.err.println("*** VueAction: selection is " + VUE.ModelSelection);
                 System.err.println("*** VueAction: event was " + ae);
+                hadException = true;
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
-            if (VUE.getUndoManager() != null && undoable())
-                VUE.getUndoManager().markChangesAsUndo(ae.getActionCommand());
+            if (VUE.getUndoManager() != null && undoable()) {
+                String undoName = ae.getActionCommand();
+                if (hadException)
+                    undoName += " (!)";
+                VUE.getUndoManager().markChangesAsUndo(undoName);
+            }
             //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();
             if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");

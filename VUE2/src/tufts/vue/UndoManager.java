@@ -23,9 +23,11 @@ public class UndoManager
     static class UndoAction {
         String name;
         Map propertyChanges;
-        UndoAction(String name, Map propertyChanges) {
+        int propertyChangeCount;
+        UndoAction(String name, Map propertyChanges, int propCount) {
             this.name = name;
             this.propertyChanges = propertyChanges;
+            this.propertyChangeCount = propCount;
         }
 
         void undoPropertyChanges()
@@ -56,7 +58,9 @@ public class UndoManager
         }
 
         public String toString() {
-            return "UndoAction[" + name + " propertyChanges=" + propertyChanges.size() + "]";
+            return "UndoAction[" + name
+                + " cnt=" + propertyChangeCount
+                + " propertyChanges=" + propertyChanges.size() + "]";
         }
     }
 
@@ -85,6 +89,11 @@ public class UndoManager
             return null;
     }
 
+    public void redo()
+    {
+        if (DEBUG.UNDO) System.out.println(this + ": REDO");
+    }
+    
     public void undo()
     {
         UndoAction undoAction = pop();
@@ -113,7 +122,7 @@ public class UndoManager
                 uaName = Character.toUpperCase(uaName.charAt(0)) + uaName.substring(1);
             name += uaName;
             //if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + ua.propertyChanges.size() + ")";
-            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + mPropCount + ")";
+            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + undoAction.propertyChangeCount + ")";
             Actions.Undo.setEnabled(true);
         } else {
             Actions.Undo.setEnabled(false);
@@ -128,20 +137,35 @@ public class UndoManager
         markChangesAsUndo(null);
     }
 
+    public void mark(String aggregateName) {
+        // If only one property changed, use the name of that property,
+        // otherwise use the aggregateName for the group of property
+        // changes that took place.
+        String name = null;
+        if (mPropCount == 1 && mLastEvent != null)
+            name = mLastEvent.getWhat();
+        else
+            name = aggregateName;
+        markChangesAsUndo(name);
+    }
+
     private LWCEvent mLastEvent;
     private int mPropCount;
     public synchronized void markChangesAsUndo(String name)
     {
+        if (mPropCount == 0) // if nothing changed, don't bother adding an UndoAction
+            return;
         if (name == null) {
             if (mLastEvent == null)
                 return;
             name = mLastEvent.getWhat();
         }
-        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges);
+        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mPropCount);
         mUndoActions.add(newUndoAction);
         if (DEBUG.UNDO) System.out.println("UNDO: marked " + mPropCount + " property changes under '" + name + "'");
         setUndoActionLabel(newUndoAction);
         mPropertyChanges = new HashMap();
+        mLastEvent = null;
         mPropCount = 0;
     }
 

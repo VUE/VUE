@@ -257,52 +257,78 @@ public class LWLink extends LWComponent
         return curveControls > 0;
     }
 
-    /** for persistance or setting CubicCurve */
-    public void setControlCount(int points)
+    /**
+     * This sets a link's curve controls to 0, 1 or 2 and manages
+     * switching betweens states.  0 is straignt, 1 is quad curve,
+     * 2 is cubic curve.  Also called by persistance to establish
+     * curved state of a link.
+     */
+    public void setControlCount(int newControlCount)
     {
-        //System.out.println(this + " setting CONTROL COUNT " + points);
-        if (points > 2)
-            throw new IllegalArgumentException("LWLink: max 2 control points " + points);
+        //System.out.println(this + " setting CONTROL COUNT " + newControlCount);
+        if (newControlCount > 2)
+            throw new IllegalArgumentException("LWLink: max 2 control points " + newControlCount);
 
-        if (curveControls == points)
+        if (curveControls == newControlCount)
             return;
 
         // Note: Float.MIN_VALUE is used as a special marker
         // to say that that control point hasn't been initialized
         // yet.
 
-        if (curveControls == 0 && points == 1) {
-            this.curve = this.quadCurve = new QuadCurve2D.Float();
-            this.quadCurve.ctrlx = Float.MIN_VALUE;
+        if (curveControls == 0 && newControlCount == 1) {
+            if (quadCurve != null) {
+                // restore old curve
+                this.curve = quadCurve;
+            } else {
+                this.curve = this.quadCurve = new QuadCurve2D.Float();
+                this.quadCurve.ctrlx = Float.MIN_VALUE;
+            }
         }
-        else if (curveControls == 0 && points == 2) {
-            this.curve = this.cubicCurve = new CubicCurve2D.Float();
-            this.cubicCurve.ctrlx1 = Float.MIN_VALUE;
-            this.cubicCurve.ctrlx2 = Float.MIN_VALUE;
+        else if (curveControls == 0 && newControlCount == 2) {
+            if (cubicCurve != null) {
+                // restore old curve
+                this.curve = cubicCurve;
+            } else {
+                this.curve = this.cubicCurve = new CubicCurve2D.Float();
+                this.cubicCurve.ctrlx1 = Float.MIN_VALUE;
+                this.cubicCurve.ctrlx2 = Float.MIN_VALUE;
+            }
         }
-        else if (curveControls == 1 && points == 2) {
+        else if (curveControls == 1 && newControlCount == 2) {
             // adding one (up from quadCurve to cubicCurve)
-            this.curve = this.cubicCurve = new CubicCurve2D.Float();
-            this.cubicCurve.ctrlx1 = quadCurve.ctrlx;
-            this.cubicCurve.ctrly1 = quadCurve.ctrly;
-            this.cubicCurve.ctrlx2 = Float.MIN_VALUE;
+            if (cubicCurve != null) {
+                // restore old cubic curve if had one
+                this.curve = cubicCurve;
+            } else {
+                this.curve = this.cubicCurve = new CubicCurve2D.Float();
+                // if new & had quadCurve, keep the old ctrl point as one of the new ones
+                this.cubicCurve.ctrlx1 = quadCurve.ctrlx;
+                this.cubicCurve.ctrly1 = quadCurve.ctrly;
+                this.cubicCurve.ctrlx2 = Float.MIN_VALUE;
+            }
         }
-        else if (curveControls == 2 && points == 1) {
+        else if (curveControls == 2 && newControlCount == 1) {
             // removing one (drop from cubicCurve to quadCurve)
-            this.curve = this.quadCurve = new QuadCurve2D.Float();
-            this.quadCurve.ctrlx = cubicCurve.ctrlx1;
-            this.quadCurve.ctrly = cubicCurve.ctrly1;
-        }
-        else {
-            this.quadCurve = null;
-            this.cubicCurve = null;
+            if (quadCurve != null) {
+                // restore old quad curve if had one
+                this.curve = quadCurve;
+            } else {
+                this.curve = this.quadCurve = new QuadCurve2D.Float();
+                this.quadCurve.ctrlx = cubicCurve.ctrlx1;
+                this.quadCurve.ctrly = cubicCurve.ctrly1;
+            }
+        } else {
+            // this means we're straight (newControlCount == 0)
             this.curve = null;
         }
         
-        curveControls = points;
+        Object old = new Integer(curveControls);
+        curveControls = newControlCount;
         this.controlPoints = new LWSelection.ControlPoint[2 + curveControls];
 
-        endpointMoved = true;        
+        endpointMoved = true;
+        notify("link.curve", new Undoable(old) { void undo(int i) { setControlCount(i); }} );
     }
 
     /** for persistance */
