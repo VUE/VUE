@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.util.*;
+import java.io.File;
 
 public class VueUtil
 {
@@ -287,8 +288,33 @@ public class VueUtil
         else
             return true;
     }
+
+    public static File getDefaultUserFolder() {
+        File userHome = new File(System.getProperty("user.home"));
+        if(userHome == null) 
+            userHome = new File(System.getProperty("java.io.tmpdir"));
+        File userFolder = new File(userHome.getPath()+File.separatorChar+"vue");
+        if(userFolder.isDirectory())
+            return userFolder;
+        if(!userFolder.mkdir())
+            throw new RuntimeException(userFolder.getAbsolutePath()+":cannot be created");
+        return userFolder;
+    }
+    
+    public static void deleteDefaultUserFolder() {
+        File userFolder = getDefaultUserFolder();
+        File[] files = userFolder.listFiles();
+        System.out.println("file count = "+files.length);
+        for(int i = 0; i<files.length;i++) {
+            if(files[i].isFile() && !files[i].delete()) 
+                throw new RuntimeException(files[i].getAbsolutePath()+":cannot be created");
+        }
+        if(!userFolder.delete()) 
+             throw new RuntimeException(userFolder.getAbsolutePath()+":cannot be deleted");
+    }
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
          javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      
     }
+    
 }
