@@ -20,6 +20,7 @@ import java.util.Vector;
 import java.util.Properties;
 import java.util.Iterator;
 import java.util.Enumeration;
+import java.util.prefs.Preferences;
 import java.net.*;
 import java.io.*;
 import javax.swing.JOptionPane;
@@ -80,15 +81,13 @@ public class DR implements osid.dr.DigitalRepository {
     public DR(String conf,String id,String displayName,String description,URL address,String userName,String password)
         throws osid.dr.DigitalRepositoryException, osid.shared.SharedException
     {
-        if (false)
-            new Throwable("DR CONSTRUCTING["
-                      + id + ", "
-                      + displayName + ", "
-                      + description + ", "
-                      + address + ", "
-                      + userName + ", "
-                      + password
-                      + "] " + this).printStackTrace();
+        System.out.println("DR CONSTRUCTING["
+                           + id + ", "
+                           + displayName + ", "
+                           + description + ", "
+                           + address + ", "
+                           + userName + ", "
+                           + password + "] " + this);
         
         this.id = new PID(id);
         this.displayName = displayName;
@@ -118,21 +117,36 @@ public class DR implements osid.dr.DigitalRepository {
     public void setFedoraProperties(java.net.URL conf) {
         String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile()+"/";
         fedoraProperties = new Properties();
-        java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
         try {
-            System.out.println("Fedora Properties"+conf.getFile().replaceAll("%20"," "));
-            FileInputStream fis = new FileInputStream(conf.getFile().replaceAll("%20"," "));
-            prefs.importPreferences(fis);
+            System.out.println("Fedora Properties " + conf);
+            Preferences prefs = loadPreferences(conf);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", ""));
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", ""));
             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types",""));
-            fis.close();
             System.out.println("Fedora soap access = "+fedoraProperties.getProperty("url.fedora.soap.access"));
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
  
     }
+
+    private static java.util.Map prefsCache = new java.util.HashMap();
+    static Preferences loadPreferences(URL url)
+        throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException
+    {
+        String filename = url.getFile().replaceAll("%20"," ");
+        Preferences prefs = (Preferences) prefsCache.get(filename);
+        if (prefs != null)
+            return prefs;
+        prefs = Preferences.userRoot().node("/");
+        System.out.println("*** DR.loadPreferences: loading & caching prefs from \"" + filename + "\"");
+        InputStream stream = new BufferedInputStream(new FileInputStream(filename));
+        prefs.importPreferences(stream);
+        prefsCache.put(filename, prefs);
+        stream.close();
+        return prefs;
+    }
+    
     private void loadFedoraObjectAssetTypes() {
         try {
              Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));

@@ -46,7 +46,7 @@ public class FedoraObjectAssetType extends osid.shared.Type {
     {
         Vector infoStructures = new Vector();
         try {
-            Preferences prefs = loadPreferences(dr);
+            Preferences prefs = DR.loadPreferences(dr.getConfiguration());
             String infoStructureString = prefs.get(type,"fedora-system:3");
             Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);
             Iterator i = infoStructureVector.iterator();
@@ -62,21 +62,6 @@ public class FedoraObjectAssetType extends osid.shared.Type {
             throw new osid.dr.DigitalRepositoryException("DR.loadInfoStructure  "+ex);
         }
         return infoStructures;
-    }
-
-    private static Map prefsCache = new HashMap();
-    private static Preferences loadPreferences(DR dr)
-        throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException
-    {
-        String filename = dr.getConfiguration().getFile().replaceAll("%20"," ");
-        Preferences prefs = (Preferences) prefsCache.get(filename);
-        if (prefs != null)
-            return prefs;
-        prefs = Preferences.userRoot().node("/");
-        System.out.println("*** FedoraObjectAssetType: loading & caching prefs from \"" + filename + "\"");
-        prefs.importPreferences(new BufferedInputStream(new FileInputStream(filename)));
-        prefsCache.put(filename, prefs);
-        return prefs;
     }
 
     private void out(String s)
