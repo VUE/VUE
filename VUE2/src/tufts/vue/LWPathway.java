@@ -4,7 +4,6 @@
  * Created on June 18, 2003, 1:37 PM
  */
 
-
 package tufts.vue;
 
 import java.util.LinkedList;
@@ -23,19 +22,21 @@ import java.awt.geom.Area;
 public class LWPathway extends tufts.vue.LWComponent 
     implements Pathway
 {
-        
     private LinkedList elementList = null;
-    private LWComponent current = null;
+    //private LWComponent current = null;
     private int weight = 1;
     private String comment = "";
     private boolean ordered = false;
     private Color borderColor = Color.blue;
     private LWMap map = null;
     
+    private int currentIndex;
+    
     /**default constructor used for marshalling*/
     public LWPathway() {
         //added by Daisuke
         elementList = new LinkedList();    
+        currentIndex = -1;
     }
     
     public LWPathway(LWMap map, String label) {
@@ -48,20 +49,25 @@ public class LWPathway extends tufts.vue.LWComponent
     public LWPathway(String label) {
         super.setLabel(label);
         elementList = new LinkedList();
-        
+        currentIndex = -1;
     }
      
     /** adds an element to the 'end' of the pathway */
     public void addElement(LWComponent element) {
         elementList.add(element);
-        if(current == null) setCurrent(element);
+        
+        //if (current == null) setCurrent(element);
+        
+       if (currentIndex == -1) currentIndex = length() - 1;
     }
     
     /** adds an element at the specified location within the pathway*/
     public void addElement(LWComponent element, int index){
         if(elementList.size() >= index){
             elementList.add(index, element);
-            if(current == null) setCurrent(element);
+            //if(current == null) setCurrent(element);
+            
+            if (currentIndex == -1) currentIndex = index;
         }else{
             System.out.println("LWPathway.addElement(element, index), index out of bounds");
         }
@@ -111,6 +117,7 @@ public class LWPathway extends tufts.vue.LWComponent
         try
         {
             firstElement = (LWComponent)elementList.getFirst();
+            currentIndex = 0;
         }
         
         catch(NoSuchElementException ne)
@@ -121,9 +128,16 @@ public class LWPathway extends tufts.vue.LWComponent
         return firstElement;
     }
     
+    /*
     public boolean isFirst(LWComponent element)
     {
         return (element.equals(getFirst()));
+    }
+    */
+    
+    public boolean isFirst()
+    {
+        return (currentIndex == 0);
     }
     
     public LWComponent getLast() {
@@ -133,6 +147,7 @@ public class LWPathway extends tufts.vue.LWComponent
         try
         {
             lastElement = (LWComponent)elementList.getLast();
+            currentIndex = length() - 1;
         }
         
         catch(NoSuchElementException ne)
@@ -143,41 +158,87 @@ public class LWPathway extends tufts.vue.LWComponent
         return lastElement;
     }
     
+    /*
     public boolean isLast(LWComponent element)
     {
         return (element.equals(getLast()));
     }
+    */
     
+    public boolean isLast()
+    {
+        return (currentIndex == (length() - 1));
+    }
+    
+    /*
     public LWComponent getPrevious(LWComponent current) {
         int index = elementList.indexOf(current);
         
         if (index > 0)
           return (LWComponent)elementList.get(--index);
-       
+        
+        //if (currentIndex > 0)
+          //return (LWComponent)elementList.get(currentIndex - 1);
         else
           return null;
         
     }
+    */
     
+    public LWComponent getPrevious()
+    {
+        if (currentIndex > 0)
+            return (LWComponent)elementList.get(--currentIndex);
+        
+        else
+            return null;
+    }
+    
+    /*
     public LWComponent getNext(LWComponent current) {
         int index = elementList.indexOf(current);
         
         if (index >= 0 && index < (length() - 1))
           return (LWComponent)elementList.get(++index);
         
+        //if (currentIndex >= 0 && currentIndex < (length() - 1))
+          //return (LWComponent)elementList.get(currentIndex + 1);
         else
           return null;
     }
-   
+   */
+    
+    public LWComponent getNext()
+    {
+        if (currentIndex < (length() - 1))
+            return (LWComponent)elementList.get(++currentIndex);
+        
+        else 
+            return null;
+    }
+    
     public LWComponent getElement(int index)
     {
-        return (LWComponent)elementList.get(index);
+        LWComponent element = null;
+        
+        try
+        {
+            element = (LWComponent)elementList.get(index);
+        }
+        
+        catch (IndexOutOfBoundsException ie)
+        {
+            element = null;
+        }
+       
+        return element;
     }
     
     public java.util.Iterator getElementIterator() {
         return elementList.iterator();
     }
     
+    /*
     public void removeElement(LWComponent element) {
         
         if (element.equals(getCurrent()))
@@ -192,6 +253,39 @@ public class LWPathway extends tufts.vue.LWComponent
         boolean success = elementList.remove(element);
         if(!success)
             System.err.println("LWPathway.removeElement: element does not exist in pathway");
+    }
+    */
+    
+    public void removeElement(int index) {
+        
+        if (index == currentIndex)
+        {
+            //gotta fix this
+            if (!isFirst())
+            {
+              getPrevious();
+              System.out.println("moved back to " + currentIndex);
+            }
+            
+            else
+            {
+              System.out.println("moved forward to " + currentIndex);
+            }
+        }
+        
+        LWComponent element = (LWComponent)elementList.remove(index);
+        
+        if(element == null)
+            System.err.println("LWPathway.removeElement: element does not exist in pathway");
+    }
+   
+    /**moves the selected element to a new index*/
+    public void moveElement(int oldIndex, int newIndex) 
+    {
+        LWComponent element = getElement(oldIndex);
+        
+        removeElement(oldIndex);
+        addElement(element, newIndex);
     }
     
     /**accessor methods used also by xml marshalling process*/
@@ -225,16 +319,35 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setElementList(java.util.List elementList) {
         this.elementList = (LinkedList)elementList;
-        if(elementList.size() >= 1) current = (LWComponent)elementList.get(0);
+        //if(elementList.size() >= 1) current = (LWComponent)elementList.get(0);
+        
+        if (elementList.size() >= 1) currentIndex = 0;
     }
     
     public LWComponent getCurrent() {
-        return current;
+ 
+        LWComponent element = null;
+        
+        try
+        {
+            element = (LWComponent)elementList.get(currentIndex);
+        }
+        
+        catch (IndexOutOfBoundsException ie)
+        {
+            element = null;
+        }
+       
+        return element;
     }
     
+    /*
     public void setCurrent(LWComponent comp){
         current = comp;
+        
+        //currentIndex = index;
     }
+    */
     
     public String getComment(){
         return comment;
@@ -247,42 +360,7 @@ public class LWPathway extends tufts.vue.LWComponent
     public void mapViewerEventRaised(MapViewerEvent e) {
         System.out.println("MapViewer event: "+e);
     }
-    
-    //testing constructor
-    /*public LWPathway(int i)
-    {
-        this();
-        
-        if (i == 0)
-        {
-            LWNode node1 = new LWNode("Node 1");
-            LWNode node2 = new LWNode("Node 2");
-            LWNode node3 = new LWNode("Node 3");
-            LWNode node4 = new LWNode("Node 4");
-        
-            this.addNode(node1);
-            this.addNode(node2);
-            this.addNode(node3);
-            this.addNode(node4);
-        }
-        
-        else
-        {
-            LWNode node1 = new LWNode("AT");
-            LWNode node2 = new LWNode("Power Team");
-            LWNode node3 = new LWNode("VUE");
-            LWNode node4 = new LWNode("Pathway");
-        
-            this.addNode(node1);
-            this.addNode(node2);
-            this.addNode(node3);
-            this.addNode(node4);
-            
-            this.setComment("Testing new notes section with a long string." +
-                "This string needs to be much longer than this.");
-        }
-    }*/
-    
+   
     /*
     public void dividePathway(Node node1, Node node2){
         

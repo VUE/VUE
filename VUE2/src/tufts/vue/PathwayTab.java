@@ -38,7 +38,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
 {    
     //necessary widgets
     private JTable pathwayTable;
-    private JButton moveUp, moveDown, remove, submit;
+    private JButton moveUp, moveDown, remove, submit, add;
     private JTextArea text;
     
     /** Creates a new instance of PathwayTab */
@@ -63,6 +63,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         moveDown = new JButton("Down");
         remove = new JButton("Remove");
         submit = new JButton("Submit");
+        add = new JButton("add");
         
         text = new JTextArea();
         text.setEditable(true);
@@ -77,14 +78,32 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         moveDown.addActionListener(this);
         remove.addActionListener(this);
         submit.addActionListener(this);
+        add.addActionListener(this);
         
         moveUp.setEnabled(false);
         moveDown.setEnabled(false);
         remove.setEnabled(false);
         submit.setEnabled(false);
+        add.setEnabled(false);
+        
+        //toggles the add button's availability depending on the selection
+        VUE.ModelSelection.addListener(
+            new LWSelection.Listener()
+            {
+                public void selectionChanged(LWSelection selection)
+                {
+                    if (selection.isEmpty())
+                      add.setEnabled(false);
+                    
+                    else
+                      add.setEnabled(true);
+                }
+            }     
+        );
         
         buttons.add(moveUp);
         buttons.add(moveDown);
+        buttons.add(add);
         buttons.add(remove);
         
         JPanel textPanel = new JPanel();
@@ -129,7 +148,10 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //moves up the selected row 
         if (e.getSource() == moveUp)
         {
-            selected--;
+            //selected--;
+            //pathwayTable.setRowSelectionInterval(selected, selected);
+            
+            ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, --selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
         }
@@ -137,7 +159,10 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //moves down the selected row
         else if (e.getSource() == moveDown)
         {
-            selected++; 
+            //selected++; 
+            //pathwayTable.setRowSelectionInterval(selected, selected);
+            
+            ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, ++selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
         }
@@ -153,6 +178,24 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
                 submit.setEnabled(false);
              }  
         }        
+        
+        //add selected elements to the pathway where the table is selected
+        else if (e.getSource() == add)
+        {
+            LWComponent array[] = VUE.ModelSelection.getArray();
+            
+            //if nothing was selcted then add to the beginning
+            if (selected == -1)
+                selected = 0;
+            
+            for (int i = 0; i < array.length; i++)
+            {
+                ((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], selected);
+                selected++;
+            }
+            
+            pathwayTable.setRowSelectionInterval(selected, selected);
+        }
         
         //submit
         else
@@ -311,17 +354,23 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         }
         
         //adds a row to the table (insertion)
-        public synchronized void addRow(Node node)
+        public synchronized void addRow(LWComponent element, int row)
         {
-            pathway.addElement((LWComponent)node);
-            fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
+            pathway.addElement(element, row);
+            fireTableRowsInserted(row, row);
         }
         
         //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
-            pathway.removeElement(pathway.getElement(row));
+            pathway.removeElement(row);
             fireTableRowsDeleted(row, row);  
+        }
+        
+        public void switchRow(int oldRow, int newRow)
+        {
+            pathway.moveElement(oldRow, newRow);
+            fireTableDataChanged();
         }
     }
 }
