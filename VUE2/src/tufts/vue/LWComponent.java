@@ -128,12 +128,15 @@ public class LWComponent
     void setLabel0(String label, boolean setDocument)
     {
         Object old = this.label;
-        if (label == null || this.label == label)
+        if (this.label == label)
             return;
         if (this.label != null && this.label.equals(label))
             return;
-        if (label.length() == 0) {
+        if (label == null || label.length() == 0) {
             this.label = null;
+            if (labelBox != null)
+                labelBox.setText("");
+                
         } else {
             this.label = label;
             // todo opt: only do this if node or link
@@ -223,9 +226,12 @@ public class LWComponent
         return this.label;
     }
     public String getDisplayLabel() {
-        if (getLabel() == null)
-            return getClass().getName() + " #" + getID();
-        else
+        if (getLabel() == null) {
+            String name = getClass().getName();
+            if (name.startsWith("tufts.vue.LW"))
+                name = name.substring(12);
+            return name + " #" + getID();
+        } else
             return getLabel().replace('\n', ' ');
     }
     

@@ -2906,6 +2906,9 @@ public class MapViewer extends javax.swing.JComponent
             }
             */
 
+            //-------------------------------------------------------
+            // DEBUGGING
+            //-------------------------------------------------------
 
             // BUTTON1_DOWN_MASK Doesn't appear to be getting set in mac Java 1.4!
             //if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
@@ -2926,7 +2929,6 @@ public class MapViewer extends javax.swing.JComponent
                 } else
                     kk = 0;
 
-                // display debugging features
                 boolean did = true;
                 if (!DEBUG.Enabled)
                     did = false;
