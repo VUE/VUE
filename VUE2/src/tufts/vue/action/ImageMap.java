@@ -16,7 +16,6 @@ import java.io.*;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.geom.Rectangle2D;
-//import tufts.vue.action.ActionUtil;
 import tufts.vue.*;
 
 public class ImageMap extends AbstractAction {

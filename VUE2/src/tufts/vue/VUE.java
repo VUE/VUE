@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import tufts.vue.action.*;
+import tufts.vue.action.ImageMap;
 
 import java.util.*;
 import java.util.prefs.*;
