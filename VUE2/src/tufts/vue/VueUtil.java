@@ -72,7 +72,7 @@ public class VueUtil extends tufts.Util
         File userHome = new File(System.getProperty("user.home"));
         if(userHome == null) 
             userHome = new File(System.getProperty("java.io.tmpdir"));
-        final String vueUserDir = isMacPlatform() ? ".vue" : "vue";
+        final String vueUserDir = isWindowsPlatform() ? "vue" : ".vue";
         File userFolder = new File(userHome.getPath() + File.separatorChar + vueUserDir);
         if(userFolder.isDirectory())
             return userFolder;
