@@ -11,7 +11,7 @@ package tufts.vue;
  * @author  akumar03
  *
  * This class allows creation and edition of filters. Filters are stored in a vector
- * in subclass FilterTableModel.
+ * in  FilterTableModel.
  */
 
 import javax.swing.*;
@@ -51,6 +51,7 @@ public class FilterEditor extends JPanel{
     private void setNodeFilterPanel() {
         filterTable = new JTable(filterTableModel);
         filterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
+        filterTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
         JScrollPane filterScrollPane=new JScrollPane(filterTable);
         filterScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel  filterPanel=new JPanel();

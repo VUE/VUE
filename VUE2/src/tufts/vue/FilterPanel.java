@@ -43,14 +43,15 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         
         super();
         VUE.addActiveMapListener(this);
-        setMinimumSize( new Dimension( 150,200) );
+        //setMinimumSize( new Dimension( 150,200) );
         mTabbedPane = new JTabbedPane();
         VueResources.initComponent( mTabbedPane, "tabPane");
         filterCreatePanel = new FilterCreatePanel();
         filterApplyPanel = new FilterPanel.FilterApplyPanel();
         mTabbedPane.addTab(filterCreatePanel.getName(),filterCreatePanel);
         mTabbedPane.addTab(filterApplyPanel.getName(),filterApplyPanel);
-        add( BorderLayout.CENTER, mTabbedPane );
+        setLayout(new BorderLayout());
+        add( BorderLayout.WEST, mTabbedPane );
         setMap(VUE.getActiveMap());
         validate();
         show();
