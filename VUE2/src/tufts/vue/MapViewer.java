@@ -607,7 +607,8 @@ public class MapViewer extends javax.swing.JPanel
         // todo: optimize -- we get tons of location events
         // when dragging, esp if there are children if
         // we have those events turned in...
-        //System.out.println("MapViewer: " + e);
+        //if (!isRightSide)
+            System.out.println(e + " delivered to " + this);
         if (e.getWhat().equals("location")
             || e.getWhat().equals("added") // depend on childAdded 
             )
@@ -642,7 +643,9 @@ public class MapViewer extends javax.swing.JPanel
             if (rollover == c)
                 clearRollover();
         }
-        if (e.getSource() == this)//todo: still relevant?
+        // ignore events from ourself: they're there only
+        // to notify any other map viewers listenting to this map.
+        if (e.getSource() == this)
             return;
         if (paintedSelectionBounds != null) {
             // this will handle any size shrinkages -- old selection bounds
@@ -2997,6 +3000,13 @@ public class MapViewer extends javax.swing.JPanel
             else if (mouseWasDragged && (indication == null || indication instanceof LWNode)) {
                 checkAndHandleNodeDropReparenting();
             }
+
+            // special case event notification for any other viewers
+            // of this map that may now need to repaint (LWComponents currently
+            // don't sent event notifications for location & size changes
+            // for performance)
+            if (mouseWasDragged)
+                getMap().notifyLWCListeners(new LWCEvent(this, getMap(), "repaint"));
 
             //-------------------------------------------------------
             // reset all in-drag only state
