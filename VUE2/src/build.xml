@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.19 $ / $Date: 2004-12-03 05:13:49 $ -->
+<!-- $Revision: 1.20 $ / $Date: 2004-12-03 05:47:07 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -310,8 +310,9 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
+           classpath="${lib.home}/VUE-MacOSX.jar">
            >
-      <classpath refid="compile.classpath.vue"/>
+      <!--classpath refid="compile.classpath.vue"/-->
       <include name="tufts/*.java"/>
     </javac>
 
