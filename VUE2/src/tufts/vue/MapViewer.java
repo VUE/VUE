@@ -7,7 +7,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 //import java.util.*;
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
+//import javax.swing.text.JTextComponent;
 
 import osid.dr.*;
 
@@ -41,7 +41,8 @@ public class MapViewer extends javax.swing.JPanel
     java.util.List tools = new java.util.ArrayList();
 
     protected LWMap map;                   // the map we're displaying & interacting with
-    private MapTextEdit activeTextEdit;          // Current on-map text edit
+    private TextBox activeTextEdit;          // Current on-map text edit
+    //private MapTextEdit activeTextEdit;          // Current on-map text edit
 
     //-------------------------------------------------------
     // Selection support
@@ -93,11 +94,12 @@ public class MapViewer extends javax.swing.JPanel
 
     public MapViewer(LWMap map)
     {
-        super(false); // turn off double buffering -- frame seems handle it?
+        //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
         creationLink.setDisplayed(false);
-        //setLayout(new NoLayout());
         setLayout(null);
+        //setLayout(new NoLayout());
+        //setLayout(new FlowLayout());
         //addMouseListener(ih);
         //addMouseMotionListener(ih);
         addKeyListener(inputHandler);
@@ -645,7 +647,7 @@ public class MapViewer extends javax.swing.JPanel
     //public boolean isOpaque() {return false;}
 
     private int paints=0;
-    private boolean repaintingSelector = false;
+    private boolean redrawingSelector = false;
     public void paint(Graphics g)
     {
         long start = 0;
@@ -654,25 +656,21 @@ public class MapViewer extends javax.swing.JPanel
             start = System.currentTimeMillis();
         }
         try {
-            if (repaintingSelector && draggedSelectorBox != null) {
-                //g.setColor(getBackground());
-                //Rectangle cb = g.getClipBounds();
-                //g.fillRect(cb.x, cb.y, cb.width, cb.height);
+            if (redrawingSelector && draggedSelectorBox != null) {
                 redrawSelectorBox((Graphics2D)g);
-                repaintingSelector = false;
-            } else {
+                redrawingSelector = false;
+            } else
                 super.paint(g);
-            }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("*** Exception painting in: " + this);
-            System.err.println("***          VueSelection: " + VueSelection);
+            System.err.println("*paint* Exception painting in: " + this);
+            System.err.println("*paint* VueSelection: " + VueSelection);
+            System.err.println("*paint* Graphics: " + g);
         }
         if (paints == 0 && getParent() instanceof JViewport) {
             setPreferredSize(mapToScreenDim(getMap().getBounds()));
             validate();
         }
-        paints++;
         if (DEBUG_PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
@@ -680,6 +678,7 @@ public class MapViewer extends javax.swing.JPanel
                                + delta
                                + "ms (" + fps + " fps)");
         }
+        paints++;
         RepaintRegion = null;
     }
 
@@ -691,29 +690,30 @@ public class MapViewer extends javax.swing.JPanel
     public void paintComponent(Graphics g)
     {
         Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
-
+        
         Rectangle cb = g.getClipBounds();
-        // paint the background
-        g.setColor(getBackground());
         //if (DEBUG_PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
         //System.out.println(this + " paintComponent: clipBounds " + cb);
-        g.fillRect(cb.x, cb.y, cb.width, cb.height);
-        //g.fillRect(getBounds());
+
+        //-------------------------------------------------------
+        // paint the background
+        //-------------------------------------------------------
+        
+        g2.setColor(getBackground());
+        g2.fill(cb);
+        
+        //-------------------------------------------------------
+        // paint the focus border if needed (todo: change to some extra-pane method)
+        //-------------------------------------------------------
         
         if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this && hasFocus()) {
             g.setColor(COLOR_ACTIVE_VIEWER);
             g.drawRect(0, 0, getWidth()-1, getHeight()-1);
             g.drawRect(1, 1, getWidth()-3, getHeight()-3);
         }
-        /*
-        if (VUE.getActiveMap() == this.map) {
-            g.setColor(COLOR_ACTIVE_MODEL);
-            g.drawRect(1, 1, getWidth()-3, getHeight()-3);
-        }
-        */
         
         if (OPTIMIZED_REPAINT) {
+            // debug: shows the repaint region
             if (DEBUG_PAINT && RepaintRegion != null) {
                 g2.setColor(rrColor);
                 g2.fillRect(0, 0, getWidth(), getHeight());
@@ -725,6 +725,10 @@ public class MapViewer extends javax.swing.JPanel
                 g2.draw(r);
             }
         }
+        
+        //-------------------------------------------------------
+        // adjust GC for pan & zoom
+        //-------------------------------------------------------
         
         g2.translate(-getOriginX(), -getOriginY());
         if (zoomFactor != 1)
@@ -744,8 +748,9 @@ public class MapViewer extends javax.swing.JPanel
         }
         
         //-------------------------------------------------------
-        // Paint all the nodes & links
-        // Nodes are responsible for painting their children.
+        // Draw the map: nodes, links, etc.
+        // LWNode's & LWGroup's are responsible for painting
+        // their children (as any instance of LWContainer).
         //-------------------------------------------------------
         
         // anti-alias shapes by default
@@ -760,7 +765,7 @@ public class MapViewer extends javax.swing.JPanel
 
 
         //-------------------------------------------------------
-        // Draw the map
+        // Draw the map: Ask the model to render itself to our GC
         //-------------------------------------------------------
 
         this.map.draw(g2);
@@ -797,15 +802,26 @@ public class MapViewer extends javax.swing.JPanel
         if (!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
 
-        /*if (draggedSelectorBox != null) {
-            drawSelectorBox(g2, draggedSelectorBox);
-            if (VueSelection != null && !VueSelection.isEmpty())
-                new Throwable("selection box while selection visible").printStackTrace(); // todo: dev assertion
-                }//else*/
-        if (VueSelection != null && !VueSelection.isEmpty()) {
+        //-------------------------------------------------------
+        // draw selection if there is one
+        //-------------------------------------------------------
+        
+        if (VueSelection != null && !VueSelection.isEmpty())
             drawSelection(g2);
-        }
 
+        //-------------------------------------------------------
+        // draw the dragged selector box
+        // Note: mac uses XOR method to update selector -- we'll
+        // never hit this code -- see paint(Graphics).
+        //-------------------------------------------------------
+        
+        if (draggedSelectorBox != null) {
+            drawSelectorBox(g2, draggedSelectorBox);
+            //if (VueSelection != null && !VueSelection.isEmpty())
+            //    new Throwable("selection box while selection visible").printStackTrace();
+            // totally reasonable if doing a shift-drag for SELECTION TOGGLE
+        }
+        
         if (DEBUG_SHOW_MOUSE_LOCATION) {
             g2.setColor(Color.red);
             g2.setStroke(new java.awt.BasicStroke(0.01f));
@@ -845,164 +861,68 @@ public class MapViewer extends javax.swing.JPanel
         
     }
 
-    protected void paintChildren(Graphics g) {
-        // super.paint() will call this, and
-        // we want it to do nothing because
-        // we need to invoke this ourself
-    }
+    /** This paintChildren is a no-op.  super.paint() will call this,
+     * and we want it to do nothing because we need to invoke this
+     * ourself at a time later than it normally would (we call
+     * super.paintChildren directly, only if there is an activeTextEdit,
+     * at the bottom of paintComponent()).
+     */
+    protected void paintChildren(Graphics g) {}
 
-    class MapTextEdit extends JTextField
-        implements ActionListener
-                   , KeyListener
-                   , FocusListener
+    /** overriden only to catch when the activeTextEdit is being
+     * removed from the panel */
+    public void remove(Component c)
     {
-        LWComponent lwc;
-        
-        MapTextEdit(LWComponent lwc)
-        {
-            super(lwc.getLabel());
-            if (getColumns() < 4)
-                setColumns(4);
-            this.lwc = lwc;
-            addActionListener(this);
-            addFocusListener(this);
-            addKeyListener(this);
-            Font baseFont = lwc.getFont();
-            int pointSize = (int) (baseFont.getSize() * zoomFactor * lwc.getScale());
-            if (pointSize < 10)
-                pointSize = 10;
-            Font f = new Font(baseFont.getName(), baseFont.getStyle(), pointSize);
-            
-            //System.out.println(DefaultFont.getAttributes());
-            setFont(f);
-            FontMetrics fm = getFontMetrics(f);
-            //System.out.println("margin="+getMargin());
-            Dimension prefSize = getPreferredSize();
-
-            int prefWidth = mapToScreenDim(lwc.getWidth()-14);
-            int textWidth = fm.stringWidth(getText()) + 4; // add 4 for borders
-            if (prefWidth < textWidth)
-                prefWidth = textWidth;
-            if (prefWidth < 50)
-                prefWidth = 50;
-            if (prefSize.width < prefWidth)
-                prefSize.width = prefWidth;
-            prefSize.height = fm.getAscent() + fm.getDescent();
-            setSize(prefSize);
-            setSelectionColor(Color.yellow);
-            //setSelectionColor(SystemColor.textHighlight);
-            selectAll();
-
-            /*
-            System.out.println("Actions supported:");
-            Object[] actions = getActions();
-            for (int i=0; i < actions.length; i++) {
-                System.out.println("\t" + i + " " + actions[i]);
-            }
-            */
-        }
-
-        public void actionPerformed(ActionEvent e)
-        {
-            //System.out.println("MapTextEdit " + e);
-            lwc.setLabel(e.getActionCommand());
-            removeLabelEdit();
-        }
-
-        public void keyPressed(KeyEvent e)
-        {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
-                removeLabelEdit();
-        }
-        public void keyReleased(KeyEvent e) {}
-        public void keyTyped(KeyEvent e) {}
-        
-        public void focusLost(FocusEvent e)
-        {
-            System.out.println("mapTextEdit focusLost to " + e.getOppositeComponent());
-            removeLabelEdit();
-        }
-        public void focusGained(FocusEvent e)
-        {
-            //System.out.println("map edit focusGained");
-        }
-    
-    
-        public void X_paint(Graphics g)
-        {
-            //System.out.println("paint mtf");
-            ((Graphics2D)g).scale(zoomFactor, zoomFactor);
-            super.paint(g);
-            ((Graphics2D)g).scale(1/zoomFactor, 1/zoomFactor);
-        }
-
-        /*
-        private void removeMouseListeners()
-        {
-            // We may want to use this if we allow zooming while a
-            // real JComponent is displayed -- we can handle repaints
-            // just by scaling the Graphics in paint methods, but to
-            // handle an interactive component, we'd need to have the
-            // parent retarget mouse events based on the zoomed screen
-            // size of the object.  If we go for that, we'd ideally
-            // just override the add(Component) method on the panel,
-            // and have it insert itself as a relay-proxy for mouse
-            // events for any components that are listening for
-            // them. (the retargeting code should be easy).
-            // (Actually, setting an interceptor glassPane is probably
-            // an even cleaner way to do this).
-            
-            MouseListener[] ml = getMouseListeners();
-            MouseMotionListener[] mml = getMouseMotionListeners();
-            for (int i = 0; i < ml.length; i++) {
-                System.out.println("Removing MouseListener " + ml[i].getClass() + " " + ml[i]);
-                removeMouseListener(ml[i]);
-            }
-            for (int i = 0; i < mml.length; i++) {
-                System.out.println("Removing MouseMotionListener " + mml[i].getClass() + " " + mml[i]);
-                removeMouseMotionListener(mml[i]);
-            }
-        }
-        */
-
-
-    }
-    
-    void removeLabelEdit()
-    {
-        if (activeTextEdit != null) {
-            remove(activeTextEdit);
+        super.remove(c);
+        if (c == activeTextEdit) {
             activeTextEdit = null;
-            repaint();
-            requestFocus();
+            try {
+                repaint();
+                requestFocus();
+            } finally {
+                Actions.setAllIgnored(false);
+            }
         }
     }
 
+    /**
+     * Enable an interactive label edit box (TextBox) for the given LWC.
+     * Only one of these should be active at a time.
+     *
+     * Important: This actually add's the component to the Container
+     * (MapViewer) in order to get events (key, mouse, etc).
+     * super.paintChildren is called in MapViewer.paintComponent only
+     * to handle the case where a Component like this is active on the
+     * MapViewer panel.  Note that this component only simulates zoom
+     * by scaling it's font, so we must not zoom the panel while this
+     * component is active, and other actions are probably not very
+     * safe, thus, we ignore all action events while this is active.
+     * When the edit is done (determined via focus loss) the Component
+     * is removed from the panel and returns to being drawn through
+     * our own LWC draw hierarchy.
+     *
+     * @see tufts.vue.TextBox
+     */
+    
     void activateLabelEdit(LWComponent lwc)
     {
-        if (activeTextEdit != null && activeTextEdit.lwc == lwc)
+        if (activeTextEdit != null && activeTextEdit.getLWC() == lwc)
             return;
-        removeLabelEdit();
-        activeTextEdit = new MapTextEdit(lwc);
+        if (activeTextEdit != null)
+            remove(activeTextEdit);
+        Actions.setAllIgnored(true);
+        activeTextEdit = lwc.getLabelBox();
 
-        float ew = screenToMapDim(activeTextEdit.getWidth());
-        float eh = screenToMapDim(activeTextEdit.getHeight());
-        float cx = lwc.getX() + (lwc.getWidth() - ew) / 2f;
-        float cy;
-        LWNode node = null;
-        if (lwc instanceof LWNode)
-            node = (LWNode) lwc;
-        if (node != null && node.isAutoSized() && !node.hasChildren())
-            cy = lwc.getY() + (lwc.getHeight() - eh) / 2f;
-        else
-            cy = lwc.getLabelY();
-        
-        activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy));
-        // we must add the component to the container in order to get events.
-        // super.paintChildren is called in paintComponent only to handle
-        // the case where a field like this is active on the panel.
-        // Note that this component only simulates zoom by scaling it's font,
-        // so we must not zoom the panel while this component is active.
+        // todo: this is a tad off at high scales...
+        float cx = lwc.getLabelX();
+        float cy = lwc.getLabelY();
+        //cx--; // to compensate for line border inset?
+        //cy--; // to compensate for line border inset?
+        // todo: if is child (scaled) node, this location
+        // is wrong -- it's shifted down/right
+        activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy)-1);
+
+        activeTextEdit.selectAll();
         add(activeTextEdit);
         activeTextEdit.requestFocus();
     }
@@ -1011,6 +931,7 @@ public class MapViewer extends javax.swing.JPanel
      * (erase old box, draw new box) */
     private void redrawSelectorBox(Graphics2D g2)
     {
+        //if (DEBUG_PAINT) System.out.println(g2);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
         g2.setXORMode(COLOR_SELECTION_DRAG);
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
@@ -1024,53 +945,56 @@ public class MapViewer extends javax.swing.JPanel
         lastPaintedSelectorBox = new Rectangle(draggedSelectorBox);
     }
     
-    /*
     private void drawSelectorBox(Graphics2D g2, Rectangle r)
     {
-            
         // todo opt: would this be any faster done on a glass pane?
-            
-        //-------------------------------------------------------
-        //
-        // 2003-07-09 09:12.55
-        // Below bug appears to have gone away now that we're
-        // using XOR erase/redraw of selector box.
-        //
-        // *** Okay -- all this only happens when repaint optimization is on
-        // -- a bug in repainting with clip region?  might try
-        // manually setting the region instead of using repaint(region)
-        //
-        // TODO BUG: pixels seems to subtly shift for SOME nodes as they
-        // pass in and out of the drag region on PC JVM 1.4 -- doesn't
-        // depend on region on screen -- actually the node!!
-        // Happens to text more often -- somtimes text & strokes.
-        // Happens much more frequently at zoom exactly 100%.
-            
-        // BTW, XOR isn't the problem -- maybe if we used
-        // Graphics2D.draw(Shape) instead of drawRect?
-        // Doesn't appear to have anything to do with the layer of
-        // the node either.  Perhaps if it's shape contains rounded
-        // components?  Or maybe this is an anti-alias bug?
-        // doesn't appear to be anti-alias or fractional-metrics
-        // related for the text, tho switchin AA off stops
-        // it when the whole node is sometimes slightly streteched
-        // or compressed off to the right.
-
-        // Doesn't seem to happen right away either -- have
-        // to zoom in/out some and/or pan the map around first
-        // Poss requirement: change zoom (in worked), then PAN
-        // while at the zoom level, then zoom back to 100%
-        // this seems to do it for the text shifting anyway --
-        // shifting of everything takes something else I guess.
-        //-------------------------------------------------------
-            
         //g2.setColor(COLOR_SELECTION_DRAG);
-        g2.setXORMode(COLOR_SELECTION_DRAG);
+        g2.setXORMode(COLOR_SELECTION_DRAG);// using XOR may be working around below clip-edge bug
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
-        g2.drawRect(r.x, r.y, r.width, r.height);
+        g2.draw(r);
     }
-    */
+
+    /* Java/JVM 1.4.1 PC (Win32) Graphics Bugs
+
+    #1: bottom edge clip-region STROKE ERASE BUG
+    #2: clip-region (top edge?) TEXT WIGGLE BUG
+
+    Can only see these bugs with repaint opt turned on -- where a clip
+    region smaller than the whole panel is used during painting.
+
+    #1 appears to go away when using XOR erase/redraw of selector box
+    (currently a mac only option).
+            
+    Diagnosis 4: XOR selector erase/redraw seems to be a workaround
+    for #1.  Can still reliablly produce using below trigger method
+    plus dragging a LINKED node with repaint optimization on -- watch
+    what happens to links as the bottom edge of the clip region passes
+    over them.  ANOTHER CLUE: unlinked nodes ("simple" clip region)
+    don't cause it, but a linked node, generating a compound repaint
+    region during optimized repaint, is where it's happening.  This
+    explains why it did it for some links (those at bottom edge of
+    COMPOUND clipping region) and not others (anyone who was
+    surrounded in repaint region)
+        
+    Diagnosis 3: Doesn't seem to happen right away either -- have to
+    zoom in/out some and/or pan the map around first Poss requirement:
+    change zoom (in worked), then PAN while at the zoom level, then
+    zoom back to 100% this seems to do it for the text shifting anyway
+    -- shifting of everything takes something else I guess.
+
+    Diagnosis 2: doesn't appear to be anti-alias or fractional-metrics
+    related for the text, tho switchin AA off stops it when the whole
+    node is sometimes slightly streteched or compressed off to the
+    right.
+
+    Diagnosis 1: pixels seems to subtly shift for SOME nodes as
+    they pass in and out of the drag region on PC JVM 1.4 -- doesn't
+    depend on region on screen -- actually the node!!  Happens to text
+    more often -- somtimes text & strokes.  Happens much more
+    frequently at zoom exactly 100%.
     
+    */
+            
     
     // todo: move all this code to LWSelection?
     private void drawSelection(Graphics2D g2)
@@ -1686,9 +1610,11 @@ public class MapViewer extends javax.swing.JPanel
 
             repaintRect.width++;
             repaintRect.height++;
-            if (repaintingSelector)
-                System.out.println("already repainting selector");//todo: debug
-            repaintingSelector = true;
+            if (DEBUG_PAINT && redrawingSelector)
+                System.out.println("dragResizeSelectorBox: already repainting selector");
+
+            if (VueUtil.isMacPlatform()) // todo bug: PC graphics context contains garbage when we do this
+                redrawingSelector = true;
             
             if (OPTIMIZED_REPAINT)
                 //paintImmediately(repaintRect);
@@ -1696,7 +1622,7 @@ public class MapViewer extends javax.swing.JPanel
             else
                 repaint();
             
-            // must paint immediately or might miss cleaning up some old boxes
+            // might need paint immediately or might miss cleaning up some old boxes
             // (RepaintManager coalesces repaint requests that are close temporally)
             // We use an explicit XOR re-draw to erase old and then draw the new
             // selector box.
@@ -1737,7 +1663,7 @@ public class MapViewer extends javax.swing.JPanel
                 // to dragged selection box.
                 repaintRect.width++;
                 repaintRect.height++;
-                repaintingSelector = true;
+                redrawingSelector = true;
                 paintImmediately(repaintRect);
                 //repaint(repaintRect);
             } else {
@@ -2175,11 +2101,13 @@ public class MapViewer extends javax.swing.JPanel
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
             if (isSingleClickEvent(e)) {
+                if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
                     if (hitComponent.isSelected() && hitComponent != justSelected)
                         activateLabelEdit(hitComponent);
                 }
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
+                if (DEBUG_MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
                 if (hitComponent instanceof LWNode) {
                     Resource resource = hitComponent.getResource();
                     if (resource != null) {
@@ -2197,7 +2125,9 @@ public class MapViewer extends javax.swing.JPanel
                         System.out.println("opening resource for: " + hitComponent);
                     } else
                         activateLabelEdit(hitComponent);
-                }
+                } else if (hitComponent instanceof LWLink)
+                    // todo: need LWComponent flag as to if supports displaying a label
+                    activateLabelEdit(hitComponent);
             }
 
             justSelected = null;
@@ -2503,8 +2433,8 @@ public class MapViewer extends javax.swing.JPanel
     private int mouseX;
     private int mouseY;
 
-    private final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
-    private Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+    final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
+    Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
 
 
 
