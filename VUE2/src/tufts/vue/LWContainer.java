@@ -562,6 +562,8 @@ public abstract class LWContainer extends LWComponent
             LWComponent c = (LWComponent) i.previous();
             if (c.isHidden())
                 continue;
+            if (c.isFiltered() && !c.hasChildren())  // even if filtered out, children may not be
+                continue;
             if (c instanceof LWLink && ((LWLink)c).getControlCount() > 0) {
                 curvedLinks.add(c);
                 continue;
@@ -569,8 +571,8 @@ public abstract class LWContainer extends LWComponent
             if (c.contains(mapX, mapY)) {
                 if (c.hasChildren())
                     return ((LWContainer)c).findChildAt(mapX, mapY);
-                else
-                    return c;
+                else 
+                    return c.isFiltered() ? null : c;
             }
         }
         // we check curved links last because they can take up so much
@@ -578,7 +580,7 @@ public abstract class LWContainer extends LWComponent
         for (Iterator i = curvedLinks.iterator(); i.hasNext();) {
             LWComponent c = (LWComponent) i.next();
             if (c.contains(mapX, mapY))
-                return c;
+                return c.isFiltered() ? null : c;
         }
         return defaultHitComponent();
     }
@@ -612,6 +614,8 @@ public abstract class LWContainer extends LWComponent
             if (c == excluded)
                 continue;
             if (c.isHidden())
+                continue;
+            if (c.isFiltered() && !c.hasChildren())  // even if filtered out, children may not be
                 continue;
             if (c instanceof LWLink && ((LWLink)c).getControlCount() > 0) {
                 curvedLinks.add(c);
@@ -682,7 +686,7 @@ public abstract class LWContainer extends LWComponent
 
     protected LWComponent defaultHitComponent()
     {
-        return this;
+        return (isHidden() || isFiltered()) ? null : this;
     }
 
     public LWComponent findDeepestChildAt(float mapX, float mapY)

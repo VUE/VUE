@@ -110,7 +110,6 @@ public class UndoManager
         map.addLWCListener(this);
         VUE.addActiveMapListener(this);
         setUndoActionLabel(null); // disable undo action at start
-        new Throwable("UNDOMANAGERE)*FU)UF)*EFJW)*F").printStackTrace();
     }
 
     public void activeMapChanged(LWMap map)

@@ -428,8 +428,8 @@ public class MapInspectorPanel  extends JPanel
 			
 			mUpperPanel.add( BorderLayout.SOUTH, topBox);
 			
-			mFilterButton = new JButton( "Apply Now");
-			mClearFilterButton = new JButton("Show All");
+			mFilterButton = new JButton("Apply Filter");
+			mClearFilterButton = new JButton("Cancel Filter");
 			mMoreButton = new JButton("More");
 			mFewerButton = new JButton("Fewer");
 			mFewerButton.hide();

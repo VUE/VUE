@@ -451,56 +451,58 @@ public class LWCFilter
 			
 			return state;
 		}
+            
 		
-		/**
-		 * isMathc
-		 * Determines if the passed string meets the statement requirements
-		 * from the getValue and getCondition values of this statement
-		 *
-		 * @returns true if match; false if no match
-		 **/
-		private boolean isMatch( String pStr) {
+            /**
+             * isMathc
+             * Determines if the passed string meets the statement requirements
+             * from the getValue and getCondition values of this statement
+             *
+             * @returns true if match; false if no match
+             **/
+            private boolean isMatch( String pStr) {
 			
-			boolean state = false;
+                boolean state = false;
 			
-			if( ( pStr == null) || (mValue == null)) {
-				return false;
-				}
+                if (pStr == null || mValue == null)
+                    return false;
+
+                String search = pStr.toLowerCase();
+                String filter = mValue.toLowerCase();
+
 				
-			switch ( getCondition() ) {
-				case CONTAINS:
-					state = (pStr.indexOf( mValue) != -1);
-					break;
-					
-				case IS:
-						state = pStr.equals( mValue);
-					break;
-					
-				case STARTS:
-						state = pStr.startsWith( mValue);
-					break;
-					
-				case ENDS:
-						state = pStr.endsWith( mValue);
-					break;
-					
-				default:
-					// should never happen
-					break;
-				}
+                switch (getCondition()) {
+                case CONTAINS:
+                    state = (search.indexOf(filter) != -1);
+                    break;
+                case IS:
+                    state = search.equals(filter);
+                    break;
+                case STARTS:
+                    state = search.startsWith(filter);
+                    break;
+                case ENDS:
+                    state = search.endsWith(filter);
+                    break;
+                default:
+                    // should never happen
+                    break;
+                }
 			
 		debug(" ...checking( "+pStr+" } to value: "+ mValue + " result: "+state);
 		return state;
-		}
-		
-		public String toSTring() {
-			String str = "Source: "+mSourceType+" condition: "+mCondition+" value: "+mValue;
-			return str;
-		}
+            }
+
+
+            
+            public String toSTring() {
+                String str = "Source: "+mSourceType+" condition: "+mCondition+" value: "+mValue;
+                return str;
+            }
 	}
-	private boolean sDebug = true;
-	protected void debug( String str) {
-		if( sDebug)
-			System.out.println(" -> "+str);
-	}
+    private boolean sDebug = true;
+    protected void debug( String str) {
+        if( sDebug)
+            System.out.println(" -> "+str);
+    }
 }

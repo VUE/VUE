@@ -97,6 +97,14 @@ public class LWComponent
     public boolean isFiltered() {
     	return mIsFiltered;
     }
+
+    /**
+     * isFiltered
+     * @return true - if should be hidden; false if not
+     **/
+    public boolean mayHaveVisibleChildren() {
+    	return mIsFiltered;
+    }
     
     public void setID(String ID)
     {
@@ -1548,6 +1556,10 @@ public class LWComponent
     {
         return " " + x+","+y
             +  " " + width + "x" + height;
+    }
+
+    static protected void out(String s) {
+        System.out.println(s);
     }
 
     public String toString()

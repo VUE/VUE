@@ -1334,6 +1334,10 @@ public class MapViewer extends javax.swing.JComponent
 
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+
+            if (c.isHidden() || c.isFiltered())
+                continue;
+
             boolean isLink = c instanceof LWLink;
             //if (!onlyLinks && isLink) // DISABLED IGNORING OF LINKS FOR NOW
             //  continue;
@@ -1367,8 +1371,13 @@ public class MapViewer extends javax.swing.JComponent
 
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+
+            if (c.isHidden() || c.isFiltered())
+                continue;
+            
             if (selectionType != null && !selectionType.isInstance(c))
                 continue;
+
             if (c.intersects(mapRect))
                 hits.add(c);
         }
