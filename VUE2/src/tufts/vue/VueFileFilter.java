@@ -5,6 +5,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
     private final String[] extensions = {".vue", ".xml"};
     public boolean accept(java.io.File f)
     {
+        if(f.isDirectory())
+            return true;
         String lname = f.getName().toLowerCase();
         for (int i = 0; i < extensions.length; i++)
             if (lname.endsWith(extensions[i]))
