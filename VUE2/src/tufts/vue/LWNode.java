@@ -752,6 +752,8 @@ public class LWNode extends LWContainer
             return (this.height - getLabelBox().getPreferredSize().height) / 2;
     }
 
+    //private static AlphaComposite childComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    
     public void draw(DrawContext dc)
     {
         Graphics2D g = dc.g;
@@ -772,6 +774,9 @@ public class LWNode extends LWContainer
             Color fillColor = getFillColor();
             if (fillColor != null) { // transparent if null
                 g.setColor(fillColor);
+                //g.setColor(new Color(128,128,128,128));
+                if (isZoomedFocus())
+                    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
                 g.fill(drawnShape);
             }
         }
@@ -874,6 +879,7 @@ public class LWNode extends LWContainer
             //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
             //g.scale(ChildScale, ChildScale);
             //super.draw(dc.createScaled(ChildScale)); // not using this
+            //g.setComposite(childComposite);
             super.draw(dc);
         }
     }
