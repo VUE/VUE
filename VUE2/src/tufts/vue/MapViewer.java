@@ -1583,7 +1583,6 @@ public class MapViewer extends javax.swing.JPanel
                     repaint();
                     return;
                 }
-                //removeLabelEdit();
             }
 
             /*if (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN) {
@@ -1596,7 +1595,9 @@ public class MapViewer extends javax.swing.JPanel
                 return;
                 }*/
 
-            if (e.getModifiers() == 0) {
+            // If any modifier keys down, may be an action command.
+            // Is actually okay if a mouse is down while we do this tho.
+            if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0) {
                 VueTool[] tools =  VueToolbarController.getController().getTools();
                 for (int i = 0; i < tools.length; i++) {
                     VueTool tool = tools[i];
@@ -1760,7 +1761,7 @@ public class MapViewer extends javax.swing.JPanel
             // Check for hits on map LWComponents
             //-------------------------------------------------------
                 
-            if (activeTool.supportsSelection()) {
+            if (activeTool.supportsSelection() || activeTool.supportsClick()) {
                 hitComponent = getMap().findLWComponentAt(mapX, mapY);
                 if (DEBUG_MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" + 
@@ -2455,7 +2456,8 @@ public class MapViewer extends javax.swing.JPanel
                 //System.out.println("dragged " + draggedSelectorBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
                 //System.out.println("map " + hitRect);
-                activeTool.handleSelectorRelease(hitRect);
+                if (draggedSelectorBox.getWidth() > 10 && draggedSelectorBox.getHeight() > 10)
+                    activeTool.handleSelectorRelease(hitRect);
 
                 if (activeTool.supportsSelection()) {
                     // todo: e.isControlDown always false? only on mac? on the laptop?
@@ -2529,29 +2531,40 @@ public class MapViewer extends javax.swing.JPanel
         {
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
-            if (activeTool != ArrowTool && activeTool != TextTool)
-                return;
+            //if (activeTool != ArrowTool && activeTool != TextTool)
+            //return;  check supportsClick, and add such to node tool
+            
 
             if (!hitOnSelectionHandle) {
                 
             if (isSingleClickEvent(e)) {
                 if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
 
+                // move to arrow tool
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
                     if (activeTool == TextTool ||
-                        hitComponent.isSelected()
-                        && hitComponent != justSelected
+                        hitComponent.isSelected() && hitComponent != justSelected
                         //&& !(hitComponent instanceof ClickHandler)
                         // activate label edits in a handleSingleClick?
                         // or hit-test on the actual label?
                         )
                         activateLabelEdit(hitComponent);
+                } else if (activeTool == TextTool) {
+                    Actions.NewText.act();
+                } else if (activeTool == NodeTool) {
+                    Actions.NewNode.act();
                 }
+                /*
+                if (activeTool.supportsClick()) {
+                    //activeTool.handleClickEvent(e, hitComponent); send in mapxy
+                }
+                */
+                
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
                 if (DEBUG_MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
                 if (activeTool == TextTool && hitComponent != null) {
                     activateLabelEdit(hitComponent);
-                } if (hitComponent instanceof ClickHandler) {
+                } else if (hitComponent instanceof ClickHandler) {
                     // TODO: we're getting singleClick event before double-click
                     // event, which is activating label edit...
                     
@@ -2882,6 +2895,7 @@ public class MapViewer extends javax.swing.JPanel
     
     private boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
     private boolean DEBUG_MOUSE = VueResources.getBool("mapViewer.debug.mouse");
+    //private boolean DEBUG_MOUSE = true;
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");
     
     private boolean DEBUG_SHOW_ORIGIN = false;
