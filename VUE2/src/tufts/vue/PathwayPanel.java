@@ -45,7 +45,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     private Font defaultFont = null;
     private Font highlightFont = null;
     
-    private JButton removeButton, createButton, lockButton;
+    private JButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock;
     private JButton firstButton, backButton, forwardButton, lastButton;
     private JPanel southNotes = null;
     private JTextArea notesArea = null;
@@ -77,9 +77,9 @@ public class PathwayPanel extends JPanel implements ActionListener
         
         setupPathwayControl();
          
-        createButton = new VueButton("add", this);
-        removeButton = new VueButton("delete", this);
-        lockButton = new VueButton("lock", this);
+        btnPathwayCreate = new VueButton("pathways.add", this);
+        btnPathwayDelete = new VueButton("pathways.delete", this);
+        btnPathwayLock = new VueButton("pathways.lock", this);
         
         JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         editPathwaysPanel.setBackground(bgColor);
@@ -93,9 +93,9 @@ public class PathwayPanel extends JPanel implements ActionListener
         //groupPanel.setPreferredSize(new Dimension(57, 24));
         groupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
         groupPanel.setBackground(bgColor);
-        groupPanel.add(createButton);
-        groupPanel.add(removeButton);
-        groupPanel.add(lockButton);
+        groupPanel.add(btnPathwayCreate);
+        groupPanel.add(btnPathwayDelete);
+        groupPanel.add(btnPathwayLock);
         
         editPathwaysPanel.add(lab);
         editPathwaysPanel.add(groupPanel);
@@ -361,7 +361,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         Object btn = e.getSource();
         LWPathway pathway = getSelectedPathway();
 
-        if (pathway == null && btn != createButton)
+        if (pathway == null && btn != btnPathwayCreate)
             return;
         
         if (btn == removeElement) {
@@ -391,9 +391,10 @@ public class PathwayPanel extends JPanel implements ActionListener
         else if (btn == lastButton)     { pathway.setLast(); }
         else if (btn == forwardButton)  { pathway.setNext(); }
         else if (btn == backButton)     { pathway.setPrevious(); }
-        else if (btn == removeButton)   { deletePathway(pathway); }
-        else if (btn == createButton)   { new PathwayDialog(this.parent, this.tableModel, getLocationOnScreen()).show(); }
-        else if (btn == lockButton)     { pathway.setLocked(!pathway.isLocked()); }
+        
+        else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
+        else if (btn == btnPathwayCreate)   { new PathwayDialog(this.parent, this.tableModel, getLocationOnScreen()).show(); }
+        else if (btn == btnPathwayLock)     { pathway.setLocked(!pathway.isLocked()); }
 
         VUE.getUndoManager().mark();
     }
@@ -407,11 +408,11 @@ public class PathwayPanel extends JPanel implements ActionListener
         if (path == null || path.isLocked()) {
             addElement.setEnabled(false);
             removeElement.setEnabled(false);
-            removeButton.setEnabled(false);
+            btnPathwayDelete.setEnabled(false);
             return;
         }
 
-        removeButton.setEnabled(true);
+        btnPathwayDelete.setEnabled(true);
         
         boolean removeDone = false;
         LWSelection selection = VUE.ModelSelection;
@@ -447,7 +448,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                 removeElement.setEnabled(false);
         }
     }
-    
+
     /**A method which updates the widgets accordingly*/
     private void updateEnabledStates()
     {
@@ -468,15 +469,17 @@ public class PathwayPanel extends JPanel implements ActionListener
                 lastButton.setEnabled(false);
                 forwardButton.setEnabled(false);
                 backButton.setEnabled(false);
-            }           
+            }
+            btnPathwayLock.setEnabled(true);
         }
-        //if currently no pathway is selected, disables all buttons and resets the label
         else
         {
+            //if currently no pathway is selected, disables all buttons and resets the label
             firstButton.setEnabled(false);
             lastButton.setEnabled(false);
             forwardButton.setEnabled(false);
             backButton.setEnabled(false);
+            btnPathwayLock.setEnabled(false);
             //nodeLabel.setText(emptyLabel);
         }
     }

@@ -35,7 +35,6 @@ public class LWNode extends LWContainer
     // Constants affecting the internal layout of nodes & any children
     //------------------------------------------------------------------
     static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
-    //static final float ChildScale = 0.75f;   // % scale-down of children
 
     private static final boolean AlwaysShowIcon = false;
         
@@ -106,8 +105,8 @@ public class LWNode extends LWContainer
     private Line2D dividerMarginLine = new Line2D.Float();
     private Line2D dividerStub = new Line2D.Float();
 
-    private boolean mIsRectShape = true;
-    private boolean mIsTextNode = false;
+    private transient boolean mIsRectShape = true;
+    private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -115,6 +114,8 @@ public class LWNode extends LWContainer
                          null,
                          LWIcon.Block.VERTICAL,
                          LWIcon.Block.COORDINATES_COMPONENT);
+
+    private transient Point2D.Float mLabel = new Point2D.Float();
     
     public LWNode(String label)
     {
@@ -319,7 +320,7 @@ public class LWNode extends LWContainer
     }
     
     public boolean isTextNode() {
-    	return mIsTextNode;
+    	return mIsTextNode || (getFillColor() == null && mIsRectShape);
     }
     
     /** If true, compute node size from label & children */
@@ -544,8 +545,6 @@ public class LWNode extends LWContainer
     {
         super.setScale(scale);
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
-        //layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
-        // LWContainer.setScale handles this
     }
     
     void setScaleOnChild(float scale, LWComponent c) {
@@ -596,7 +595,6 @@ public class LWNode extends LWContainer
         //if (isAutoSized() || hasChildren())
         //setPreferredSize(!isAutoSized());
 
-        boolean growOnly = false;//for non-autosized
         Dimension text = getLabelBox().getPreferredSize(); // may be important to use pref size -- keep for now
         float width = text.width;
         //float width = s.width + PadX;
@@ -724,19 +722,6 @@ public class LWNode extends LWContainer
         setSizeNoLayout(width, height);
         dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, height-MarginLinePadY);
 
-        /*
-        if (growOnly) {
-            if (this.width > width)
-                width = this.width;
-            if (this.height > height)
-                height = this.height;
-            if (width > this.width || height > this.height)
-                setSizeNoLayout(width, height);
-        } else
-            setSizeNoLayout(width, height);
-        */
-        
-
         // todo: handle thru event?
         //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
         if (getParent() != null && !(getParent() instanceof LWMap)) {
@@ -752,6 +737,21 @@ public class LWNode extends LWContainer
         layoutChildren(null);
     }
     
+    private float childOffsetX() {
+        return iconShowing() ? ChildOffsetX : ChildPadX;
+    }
+    private float childOffsetY() {
+        float baseY;
+        if (iconShowing()) {
+            //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
+            baseY = (float) dividerUnderline.getY1();
+        } else {
+            baseY = relativeLabelY() + getLabelBox().getHeight();
+        }
+        baseY += ChildOffsetY;
+        return baseY;
+    }
+    
     /**
      * Need to be able to do this seperately from layout -- this
      * get's called everytime a node's location is changed so
@@ -763,8 +763,7 @@ public class LWNode extends LWContainer
      * the current scale factor of the parent.
      */
     
-    //private float childBaseX = 0;
-    //private float childBaseY = 0;
+
     private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
     protected void layoutChildren(float[] size)
     {
@@ -772,15 +771,8 @@ public class LWNode extends LWContainer
             return;
 
         float baseX = childOffsetX() * getScale();
-        float baseY = 0;
-        if (iconShowing()) {
-            //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
-            baseY = (float) dividerUnderline.getY1();
-        } else {
-            baseY = relativeLabelY() + getLabelBox().getHeight();
-        }
-        baseY += ChildOffsetY;
-        baseY *= getScale();
+        float baseY = childOffsetY() * getScale();
+        
         baseX += getX();
         baseY += getY();
 
@@ -920,11 +912,6 @@ public class LWNode extends LWContainer
         */
     }
 
-    private int childOffsetX()
-    {
-        return iconShowing() ? ChildOffsetX : ChildPadX;
-    }
-
     private float relativeLabelX()
     {
         float offset;
@@ -978,10 +965,7 @@ public class LWNode extends LWContainer
         */
     }
 
-    //private static AlphaComposite childComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-    
-    private static final float ZoomAlpha = 0.8f;
-    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ZoomAlpha);
+    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
     public Color getRenderFillColor()
     {
@@ -1038,7 +1022,7 @@ public class LWNode extends LWContainer
         // This produces the cleanest code in all above -- don't
         // need to manage scaling if we translate to a region
         // where all the nodes will lie within, and then their
-        // positioning auto-collapses as their scaled down...
+        // positioning auto-collapses as they're scaled down...
         if (hasChildren()) {
             //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
             //g.scale(ChildScale, ChildScale);

@@ -587,6 +587,17 @@ public class VueUtil
         return (float)p.getX() + "," + (float)p.getY();
     }
 
+    public static String out(java.awt.Dimension d) {
+        return d.width + "x" + d.height;
+    }
+
+    public String out(java.awt.geom.Rectangle2D r) {
+        return ""
+            + (float)r.getX() + "," + (float)r.getY()
+            + " "
+            + (float)r.getWidth() + "x" + (float)r.getHeight()
+            ;
+    }
     public static String out(java.awt.geom.Line2D l) {
         return ""
             + (float)l.getX1() + "," + (float)l.getY1()

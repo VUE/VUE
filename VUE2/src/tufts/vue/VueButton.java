@@ -30,14 +30,20 @@ public class VueButton extends JButton {
     {
         super(VueResources.getImageIcon(name+"."+UP));
         Icon i;
-        if ((i = VueResources.getImageIcon(name+"."+DOWN)) != null)     setSelectedIcon(i);
+        if ((i = VueResources.getImageIcon(name+"."+DOWN)) != null)     setPressedIcon(i);
         if ((i = VueResources.getImageIcon(name+"."+DISABLED)) != null) setDisabledIcon(i);
         setBorderPainted(false);
         //setBackground(Color.white);
+        //setBackground(Color.red);
         setOpaque(false);
-        setPreferredSize(new Dimension(17, 17));
+        Dimension imageSize = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
+        System.out.println("VueButton: icon size is " + VueUtil.out(imageSize) + " on " + name);
+        setPreferredSize(imageSize);
         if (listener != null)
             addActionListener(listener);
+        setFocusable(false);
+        
+        //new Throwable().printStackTrace();
     }
     
     public VueButton(String name) {
