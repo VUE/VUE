@@ -519,7 +519,7 @@ public class VUE
     {
         private static final Color BgColor = VueResources.getColor("toolbar.background");
 
-        int mWasSelected = -1;
+        private int mWasSelected = -1;
         protected void fireStateChanged() {
             super.fireStateChanged();
             if (!VueUtil.isMacPlatform()) { // don't mess w/aqua
