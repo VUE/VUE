@@ -65,7 +65,7 @@ public class ResourceSelection extends java.util.ArrayList
     
     public boolean add(Object o)
     {
-        throw new RuntimeException("LWSelection can't add " + o.getClass() + ": " + o);
+        throw new RuntimeException("ResourceSelection can't add " + o.getClass() + ": " + o);
     }
     
     /** Make sure all in iterator are in selection & do a single change notify at the end */
@@ -84,7 +84,7 @@ public class ResourceSelection extends java.util.ArrayList
             notifyListeners();
     }
     
-    /** Change the selection status of all LWComponents in iterator */
+    /** Change the selection status of all ResourceComponents in iterator */
     void toggle(Iterator i)
     {
         Resource r;
@@ -103,13 +103,13 @@ public class ResourceSelection extends java.util.ArrayList
     
     private void add0(Resource r)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection: adding " + r);
+        if (DEBUG_SELECTION) System.out.println("ResourceSelection: adding " + r);
         
         if (!r.isSelected()) {
             if (!isClone) r.setSelected(true);
             super.add(r);
         } else
-            throw new RuntimeException("LWSelection: attempt to add already selected component " + r);
+            throw new RuntimeException("ResourceSelection: attempt to add already selected resource " + r);
     }
     
     public void remove(Resource r)
@@ -120,10 +120,10 @@ public class ResourceSelection extends java.util.ArrayList
 
     private void remove0(Resource r)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection: removing " + r);
+        if (DEBUG_SELECTION) System.out.println("ResourceSelection: removing " + r);
         if (!isClone) r.setSelected(false);
         if (!super.remove(r))
-            throw new RuntimeException("LWSelection remove: list doesn't contain " + r);
+            throw new RuntimeException("ResourceSelection remove: list doesn't contain " + r);
     }
     
     /**
@@ -147,7 +147,7 @@ public class ResourceSelection extends java.util.ArrayList
     {
         if (isEmpty())
             return false;
-        if (DEBUG_SELECTION) System.out.println("LWSelection clear " + this);
+        if (DEBUG_SELECTION) System.out.println("ResourceSelection clear " + this);
 
         if (!isClone) {
             java.util.Iterator i = iterator();
