@@ -87,19 +87,32 @@ public class DataSourceList extends JList implements DropTargetListener{
         breakIcon.setIconHeight(1);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
-                super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-               
                 
-                if (((DataSource)value).getType() == DataSource.FAVORITES){
+                if (value instanceof String){
+                    
+                    super.getListCellRendererComponent(list,"",index,iss,chf);
+                }
+                        else{
+                    
+                super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
+                        }
+                
+                //if (((DataSource)value).getType() == DataSource.FAVORITES){
+                
+                if (value instanceof FavoritesDataSource){
                     setIcon(myFavoritesIcon);
                     this.setPreferredSize(new Dimension(200,20));
                 }
+                
+                /*
+                
                 else if (((DataSource)value).getType() == DataSource.FILING_LOCAL){
                     
                     setIcon(myComputerIcon);
                     this.setPreferredSize(new Dimension(200,20));
                 }
-                else  if (((DataSource)value).getType() == DataSource.BREAK){
+                 */
+                else  if (value instanceof String){
                     
                     
                   
@@ -133,6 +146,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                    
                     
                 }
+                 
                 else{
                     setIcon(remoteIcon);
                     this.setPreferredSize(new Dimension(200,20));
