@@ -30,7 +30,7 @@ import tufts.vue.beans.*;
  
 public class TextToolPanel extends LWCToolPanel
 {
-    public static boolean isPreferredType(Object o) {
+    public boolean isPreferredType(Object o) {
         return o instanceof LWNode && ((LWNode)o).isTextNode();
     }
 

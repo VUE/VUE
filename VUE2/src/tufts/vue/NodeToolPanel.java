@@ -51,7 +51,7 @@ public class NodeToolPanel extends LWCToolPanel
         //getBox().add(label, 0);
     }
     
-    public static boolean isPreferredType(Object o) {
+    public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
     private static class ShapeMenuButton extends VuePopupMenu

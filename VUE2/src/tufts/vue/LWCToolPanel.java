@@ -276,7 +276,7 @@ public class LWCToolPanel extends JPanel
         loadValues(mDefaultState);
     }
 
-    public static boolean isPreferredType(Object o) {
+    public boolean isPreferredType(Object o) {
         return o instanceof LWComponent;
     }
         
@@ -374,7 +374,7 @@ public class LWCToolPanel extends JPanel
             }
         }
         if (!success) {
-            if (DEBUG.TOOL) System.out.println(this + " loadToolValue: no LWPropertyProducer for " + propertyKey + " in " + src);
+            if (DEBUG.TOOL) System.out.println(this + " loadToolValue: FYI, no LWPropertyProducer for '" + propertyKey + "' in " + src);
         }
     }
     

@@ -427,7 +427,10 @@ public class ToolWindow extends JWindow
                 //titlePanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
                 //System.out.println("ActiveCaption=" + out(SystemColor.activeCaption));
                 
-                titlePanel.setBackground(SystemColor.activeCaption);
+                if (VueUtil.isMacPlatform())
+                    titlePanel.setBackground(SystemColor.control);
+                else
+                    titlePanel.setBackground(SystemColor.activeCaption);
                 titlePanel.setForeground(SystemColor.activeCaptionText);
                 titlePanel.setBorder(new LineBorder(SystemColor.activeCaptionBorder));
 
