@@ -59,15 +59,23 @@ public class RemoteFileDataSource extends VueDataSource{
     }
     public RemoteFileDataSource(String DisplayName, String address, String username, String password){
           this.setDisplayName(DisplayName); 
-          this.setAddress(address);
           this.setUserName(username);
           this.setPassword(password);
-          this.setResourceViewer();
+          this.setAddress(address);
+          
           
         
      }
 
-    
+
+      public void setAddress(String address){
+        
+        super.setAddress(address);
+        this.setResourceViewer();
+        
+    }
+   
+
      public void setUserName(String username){
         
         this.UserName = username;
@@ -112,7 +120,7 @@ public class RemoteFileDataSource extends VueDataSource{
             localPanel.setLayout(new BorderLayout());
             localPanel.add(rSP,BorderLayout.CENTER);
             this.resourceViewer = localPanel;
-            
+            DataSourceViewer.refreshDataSourcePanel(this);
            
 
    
