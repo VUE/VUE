@@ -31,7 +31,7 @@ public class PathwayPanel extends JPanel implements ActionListener
 {    
     private PathwayTable pathwayTable = null;
     private PathwayTableModel tableModel = null;
-    private JButton removeElement = null, addElement = null, moveUp = null, moveDown = null; //, submit 
+    private JButton removeElement, addElement, moveUp, moveDown;
 
     private JLabel pathLabel = null;//, nodeLabel = null, slashLabel = new JLabel(" / ");
     
@@ -232,7 +232,10 @@ public class PathwayPanel extends JPanel implements ActionListener
                     // thus we add it here manually (already slow and a hack to do this every
                     // key press -- should do it on focus loss instead -- this won't handle
                     // saving after a selection delete for example!)
-                    String text = notesArea.getText() + e.getKeyChar();
+                    //String text = notesArea.getText() + e.getKeyChar();
+                    // this is doubling key's now (what changed?) in any case, we have
+                    // to handle focus loss because we still miss the last key 
+                    String text = notesArea.getText();
                     if (displayedComponent instanceof LWPathway) {
                         if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
                         displayedComponent.setNotes(text);
@@ -372,7 +375,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         else if (btn == lastButton)     { pathway.setLast(); }
         else if (btn == forwardButton)  { pathway.setNext(); }
         else if (btn == backButton)     { pathway.setPrevious(); }
-        else if (btn == removeButton)   { removePathway(pathway); }
+        else if (btn == removeButton)   { deletePathway(pathway); }
         else if (btn == createButton)   { new PathwayDialog(this.parent, this.tableModel, getLocationOnScreen()).show(); }
         else if (btn == lockButton)     { pathway.setLocked(!pathway.isLocked()); }
 
@@ -388,9 +391,12 @@ public class PathwayPanel extends JPanel implements ActionListener
         if (path == null || path.isLocked()) {
             addElement.setEnabled(false);
             removeElement.setEnabled(false);
+            removeButton.setEnabled(false);
             return;
         }
 
+        removeButton.setEnabled(true);
+        
         boolean removeDone = false;
         LWSelection selection = VUE.ModelSelection;
         
@@ -459,9 +465,9 @@ public class PathwayPanel extends JPanel implements ActionListener
         }
     }
     
-    /**Removes the given pathway from the combo box list and the pathway manager*/
-    private void removePathway(LWPathway oldPathway) {
-        VUE.getActiveMap().getPathwayList().remove(oldPathway);
+    /** Delete's a pathway and all it's contents */
+    private void deletePathway(LWPathway p) {
+        VUE.getActiveMap().getPathwayList().remove(p);
     }
     
     private void updateLabels()
@@ -469,7 +475,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         LWPathway pathway = getSelectedPathway();
         if (pathway == null)
             return;
-        LWComponent c = pathway.getCurrent();
+        LWComponent c = tableModel.getElement(pathwayTable.getLastSelectedRow());
         
         String labelText = "Notes: " + pathway.getLabel();
         String notesText = "";
@@ -478,7 +484,7 @@ public class PathwayPanel extends JPanel implements ActionListener
             notesText = c.getNotes();
         } else if (c != null) {
             notesText = pathway.getElementNotes(c);
-            labelText += " / " + c.getLabel();
+            labelText += " / " + c.getDisplayLabel();
         }
         pathLabel.setText(labelText);
         notesArea.setText(notesText);

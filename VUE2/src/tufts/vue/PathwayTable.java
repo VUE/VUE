@@ -35,14 +35,14 @@ public class PathwayTable extends JTable
     private final ImageIcon eyeOpen = VueResources.getImageIcon("pathwayOn");
     private final ImageIcon eyeClosed = VueResources.getImageIcon("pathwayOff");
     
-    private static final Font currentFont = new Font("SansSerif", Font.BOLD, 12);
-    private static final Font normalFont = new Font("SansSerif", Font.PLAIN, 10);
-    private static final Color bgColor = new Color(241, 243, 246);;
-    private static final Color selectedbgColor = Color.white;
-    private static final Color currentNodeColor = Color.red;
+    private final Font currentFont = new Font("SansSerif", Font.BOLD, 12);
+    private final Font normalFont = new Font("SansSerif", Font.PLAIN, 10);
+    private final Color bgColor = new Color(241, 243, 246);;
+    private final Color selectedbgColor = Color.white;
+    private final Color currentNodeColor = Color.red;
     
-    private static final LineBorder normalBorder = null;//new LineBorder(regular, 2);
-    private static final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
+    private final LineBorder normalBorder = null;//new LineBorder(regular, 2);
+    private final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
     
     private int lastSelectedRow = -1;
     private static final boolean showHeaders = true;    //sets whether or not table column headers are shown(?)
@@ -118,7 +118,11 @@ public class PathwayTable extends JTable
         
         // end of PathwayTable constructor
     }
-    
+
+
+    public int getLastSelectedRow() {
+        return lastSelectedRow;
+    }
 
     private PathwayTableModel getTableModel() {
         return (PathwayTableModel) getModel();

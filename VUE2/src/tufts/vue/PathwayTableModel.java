@@ -163,7 +163,9 @@ public class PathwayTableModel extends DefaultTableModel
      * be an LWComponent -- either a LWPathway or an LWComponent
      * memeber of a pathway.
      */
-    LWComponent getElement(int pRow){
+    LWComponent getElement(int pRow) {
+        if (pRow < 0)
+            return null;
         Iterator i = getPathwayIterator();
         int row = 0;
         while (i.hasNext()) {
@@ -179,7 +181,7 @@ public class PathwayTableModel extends DefaultTableModel
                 }
             }
         }
-        throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
+        throw new IllegalStateException(this + " failed to find any element at row " + pRow);
         
         /* The simple but slow version of getElement:
         return (LWComponent) getList().get(pRow);
