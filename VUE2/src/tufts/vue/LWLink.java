@@ -144,12 +144,14 @@ public class LWLink extends LWComponent
         // TODO BUG: above doesn't work if everything is selected
         System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
         if (dropTarget != null) {
-            if (index == 0 && ep1 == null && (ep2 != dropTarget || false/*isCubic*/))
+            if (index == 0 && ep1 == null && ep2 != dropTarget)
                 setComponent1(dropTarget);
-            else if (index == 1 && ep2 == null && (ep1 != dropTarget || false/*isCubic*/))
+            else if (index == 1 && ep2 == null && ep1 != dropTarget)
                 setComponent2(dropTarget);
+            // todo: ensure paint sequence same as LinkTool.makeLink
         }
     }
+
 
     //private Point2D.Float[] controlPoints = new Point2D.Float[2];
     //public Point2D.Float[] getControlPoints()

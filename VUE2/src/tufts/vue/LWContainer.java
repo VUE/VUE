@@ -836,12 +836,15 @@ VueAction: Zoom 100% n=1
     // essentially this implements an "insert-after" of top relative to bottom
     void ensurePaintSequence(LWComponent onBottom, LWComponent onTop)
     {
-        if (onBottom.getParent() != this || onTop.getParent() != this)
-            throw new IllegalArgumentException(this + " both aren't children " + onBottom + " " + onTop);
+        if (onBottom.getParent() != this || onTop.getParent() != this) {
+            System.out.println(this + "ensurePaintSequence: both aren't children " + onBottom + " " + onTop);
+            return;
+            //throw new IllegalArgumentException(this + "ensurePaintSequence: both aren't children " + onBottom + " " + onTop);
+        }
         int bottomIndex = getIndex(onBottom);
         int topIndex = getIndex(onTop);
         if (bottomIndex < 0 || topIndex < 0)
-            throw new IllegalArgumentException(this + " both aren't in list! " + bottomIndex + " " + topIndex);
+            throw new IllegalStateException(this + "ensurePaintSequence: both aren't in list! " + bottomIndex + " " + topIndex);
         //if (DEBUG_PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
         if (topIndex == (bottomIndex - 1)) {
             swap(topIndex, bottomIndex);

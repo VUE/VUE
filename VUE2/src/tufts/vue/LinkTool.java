@@ -203,9 +203,15 @@ public class LinkTool extends VueTool
             }
             LWLink link = new LWLink(pLinkSource, pLinkDest);
             commonParent.addChild(link);
+            // We ensure a paint sequence here because a link to a link
+            // is currently drawn to it's center, which might paint over
+            // a label.
+            if (pLinkSource instanceof LWLink)
+                commonParent.ensurePaintSequence(link, pLinkSource);
+            if (pLinkDest instanceof LWLink)
+                commonParent.ensurePaintSequence(link, pLinkDest);
             e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
         }
     }
-
 
 }
