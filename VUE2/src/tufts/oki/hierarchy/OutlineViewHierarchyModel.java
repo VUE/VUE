@@ -16,6 +16,7 @@ import tufts.vue.LWMap;
 import tufts.vue.LWNode;
 import tufts.vue.LWLink;
 import tufts.vue.LWCEvent;
+import tufts.vue.LWKey;
 
 /**
  *
@@ -338,22 +339,22 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         String message = e.getWhat();
         
         //when a child is added to the map
-        if (message.equals("childAdded")) 
-          addHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
+        //if (message == LWKey.ChildAdded) // event not currently used
+        //  addHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
             
         //when a child is removed from the map
-        else if (message.equals("childRemoved"))
-          deleteHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
-
+        //else
+        if (message == LWKey.ChildRemoved)
+            deleteHierarchyTreeNode((LWContainer)e.getSource(), e.getComponent());
         //when children added to the map
-        else if (message.equals("childrenAdded"))
+        else if (message == LWKey.ChildrenAdded)
         {
             ArrayList childrenList = e.getComponents();
             for (Iterator i = childrenList.iterator(); i.hasNext();)
                 addHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
         }
         //when children are removed from the map
-        else if (message.equals("childrenRemoved"))
+        else if (message == LWKey.ChildrenRemoved)
         {
             ArrayList childrenList = e.getComponents();
             for (Iterator i = childrenList.iterator(); i.hasNext();)

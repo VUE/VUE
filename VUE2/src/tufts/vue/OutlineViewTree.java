@@ -102,7 +102,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             model.addTreeModelListener(this);
             setModel(model);
             
-            currentContainer.addLWCListener(this);
+            currentContainer.addLWCListener(this, LWKey.Label);
             currentContainer.addLWCListener(hierarchyModel);
         }
         
@@ -176,11 +176,10 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
-        String message = e.getWhat();
-        
         //when a label on a node was changed
-        if (message.equals("label"))
-          repaint();      
+        //if (message.equals("label"))
+        // Already label filtered.
+        repaint();      
     }
     
     /**A class that specifies the rendering method of the outline view tree*/

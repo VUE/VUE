@@ -108,7 +108,7 @@ public class NotePanel extends JPanel
                 mTextPane.setText(text);
                 mKeyWasPressed = false;
                 if (pObj != mObject)
-                    pObj.addLWCListener(this);
+                    pObj.addLWCListener(this, LWKey.Deleting);
             }
             mObject = pObj;
         }
@@ -116,7 +116,8 @@ public class NotePanel extends JPanel
 	
     public void LWCChanged(LWCEvent e)
     {
-        if (e.getComponent() == mObject && e.getWhat() == LWKey.Deleting)
+        //if (e.getComponent() == mObject && e.getWhat() == LWKey.Deleting)
+        if (e.getComponent() == mObject)
             mObject = null;
     }
 

@@ -1211,9 +1211,50 @@ public class LWComponent
         throw new UnsupportedOperationException("unimplemented draw in " + this);
     }
 
-    private static class LWCListener {
+    private static class LWCListenerProxy implements Listener
+    {
         Listener listener;
         Object eventKey;
+
+        public LWCListenerProxy(Listener listener, Object eventKey) {
+            this.listener = listener;
+            this.eventKey = eventKey;
+        }
+
+        /** this should never actually get used, as we pluck the real listener
+            out of the proxy in dispatch */
+        public void LWCChanged(LWCEvent e) {
+            listener.LWCChanged(e);
+        }
+
+        public String toString() {
+            String s = listener.toString();
+            if (eventKey != null)
+                s += " filter<" + eventKey + ">";
+            return s;
+        }
+    }
+
+    private class LWCListenerList extends java.util.Vector {
+        public synchronized int indexOf(Object elem, int index) {
+            if (elem == null) {
+                for (int i = index ; i < elementCount ; i++)
+                    if (elementData[i]==null)
+                        return i;
+            } else {
+                for (int i = index ; i < elementCount ; i++) {
+                    Object ed = elementData[i];
+                    if (elem.equals(ed))
+                        return i;
+                    if (ed instanceof LWCListenerProxy && ((LWCListenerProxy)ed).listener == elem)
+                        return i;
+                }
+            }
+            return -1;
+        }
+        public synchronized int lastIndexOf(Object elem, int index) {
+            throw new UnsupportedOperationException("lastIndexOf");
+        }
     }
     
     public synchronized void addLWCListener(Listener listener) {
@@ -1222,7 +1263,8 @@ public class LWComponent
     public synchronized void addLWCListener(Listener listener, Object eventKey)
     {
         if (listeners == null)
-            listeners = new java.util.ArrayList();
+            //listeners = new java.util.ArrayList();
+            listeners = new LWCListenerList();
         if (listeners.contains(listener)) {
             // do nothing (they're already listening to us)
             if (DEBUG.EVENTS) {
@@ -1231,13 +1273,14 @@ public class LWComponent
             }
         } else {
             if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\t+++ADDS " + this);
-            listeners.add(listener);
-            /*
+
+            //listeners.add(new LWCListenerProxy(listener, eventKey));
+            //listeners.add(listener);
+            
             if (eventKey == null)
                 listeners.add(listener);
             else
-                listeners.add(new LWCListener(listener, eventKey));
-            */
+                listeners.add(new LWCListenerProxy(listener, eventKey));
         }
     }
     public synchronized void removeLWCListener(Listener listener)
@@ -1355,20 +1398,37 @@ public class LWComponent
         // an event has already had it's notification and we don't
         // need to make sure it doesn't get one further down the list.
         
+        //LWCListener[] listener_array = new LWCListener[listeners.size()];
         Listener[] listener_array = new Listener[listeners.size()];
         listeners.toArray(listener_array);
         //java.util.Iterator i = listeners.iterator();
         //while (i.hasNext()) {
         for (int i = 0; i < listener_array.length; i++) {
-            if (DEBUG.EVENTS) {
+            if (DEBUG.EVENTS && DEBUG.META) {
+                for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
+                if (e.getSource() != source)
+                    System.out.print(e + " " + source + " >> ");
+                else
+                    System.out.print(e + " >> ");
+            }
+            //Listener l = (Listener) i.next();
+            Listener l = listener_array[i];
+            if (l instanceof LWCListenerProxy) {
+                LWCListenerProxy lp = (LWCListenerProxy) l;
+                if (lp.eventKey != null && lp.eventKey != e.getWhat()) {
+                    if (DEBUG.EVENTS && DEBUG.META)
+                        System.out.println(l + " (filtered)");
+                    continue;
+                }
+                l = lp.listener;
+            }
+            if (DEBUG.EVENTS && !DEBUG.META) {
                 for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
                 if (e.getSource() != source)
                     System.out.print(e + " " + source + " -> ");
                 else
                     System.out.print(e + " -> ");
             }
-            //Listener l = (Listener) i.next();
-            Listener l = listener_array[i];
             if (DEBUG.EVENTS) {
                 if (e.getSource() == l)
                     System.out.println(l + " (SKIPPED: source)");

@@ -45,7 +45,7 @@ public class MapViewerEvent
                                + " dispatching to "
                                + listener.getClass().getName()
                                + "@" +  Integer.toHexString(listener.hashCode()));
-            if (DEBUG.META) new Throwable().printStackTrace();
+            //if (DEBUG.META) new Throwable().printStackTrace();
         }
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }

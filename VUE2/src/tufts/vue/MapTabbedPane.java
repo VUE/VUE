@@ -112,7 +112,8 @@ public class MapTabbedPane extends JTabbedPane
     
     public void LWCChanged(LWCEvent e) {
         Object src = e.getSource();
-        if (src instanceof LWMap && e.getWhat() == LWKey.Label) {
+        //if (src instanceof LWMap && e.getWhat() == LWKey.Label) // already filtered for label
+        if (src instanceof LWMap) {
             //System.out.println("MapTabbedPane " + e);
             LWMap map = (LWMap) src;
             int i = findTabWithMap(map);
@@ -148,7 +149,6 @@ public class MapTabbedPane extends JTabbedPane
     // for that mater), which kills off a huge chunk of
     // BLIT_SCROLL_MODE's optimization.  However, using
     // backing store completely fucks up if we start
-         
     // hand-panning the map, tho I'm presuming that's because
     // the hand panning isn't being done thru the viewport
     // yet.
