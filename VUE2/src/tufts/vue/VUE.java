@@ -50,6 +50,7 @@ implements VueConstants {
     static ToolWindow sMapInspector;
     static ToolWindow objectInspector;
     static ObjectInspectorPanel objectInspectorPanel;
+    static SplashScreen splashScreen;
     //private static MapInspectorPanel sMapInspectorPanel;
     
     //hierarchy view tree window component
@@ -61,6 +62,8 @@ implements VueConstants {
     public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
     
+    
+   
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
@@ -367,7 +370,8 @@ implements VueConstants {
         System.out.println("VUE:main");
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         if (!nodr) {
-            SplashScreen splashScreen = new SplashScreen();
+           splashScreen = new SplashScreen();
+          
         }
         initUI();
         
@@ -434,7 +438,7 @@ implements VueConstants {
         
         //splitPane.setRightComponent(mMapTabsLeft);
         splitPane.setRightComponent(viewerSplit);
-        
+        splashScreen.setVisible(false);
         frame = new VueFrame();
         //JPanel vuePanel = new AAPanel();
         JPanel vuePanel = new JPanel();

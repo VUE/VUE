@@ -35,9 +35,9 @@ public class SplashScreen extends JWindow {
         getContentPane().add(logoLabel,BorderLayout.CENTER);
         this.setVisible(true);
         try {
-            Thread.sleep(sleepTime);
+          //  Thread.sleep(sleepTime);
         } catch(Exception ex) {}
-        this.setVisible(false);
+        //this.setVisible(false);
     }
     
 }
