@@ -8,6 +8,7 @@ package tufts.vue;
  */
 
 import osid.dr.*;
+import tufts.dr.fedora.*;
 
 public class Resource
 {
@@ -18,6 +19,7 @@ public class Resource
     long accessSuccessful;
     long size = SIZE_UNKNOWN;
     private Asset asset;
+    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
     String spec;
 
     public Resource() {   
@@ -31,10 +33,21 @@ public class Resource
 
     public void setAsset(Asset asset) {
         this.asset = asset;
+        this.castorFedoraObject = new CastorFedoraObject((FedoraObject)asset);
     }
     
     public Asset getAsset() {
+        
         return this.asset;
+    }
+    
+    public void setCastorFedoraObject(CastorFedoraObject castorFedoraObject) {
+        this.castorFedoraObject = castorFedoraObject; 
+        this.asset = this.castorFedoraObject.getFedoraObject();
+    }
+    
+    public CastorFedoraObject getCastorFedoraObject() {
+        return this.castorFedoraObject;
     }
     
     public Object toDigitalRepositoryReference()
@@ -119,5 +132,4 @@ public class Resource
         return getSpec();
     }
     
-
 }
