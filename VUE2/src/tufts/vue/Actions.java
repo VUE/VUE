@@ -73,6 +73,15 @@ class Actions {
                 //updates the control panel
                 VUE.getPathwayControl().updateControlPanel();
             }
+            
+            public boolean enabled()
+            {
+              if (VUE.getPathwayInspector().getPathway() == null)
+                  return false;
+              
+              else
+                  return true;
+            }
         };
         
     /**End of Addition by Daisuke Fujiwara*/
