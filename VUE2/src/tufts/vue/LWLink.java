@@ -41,6 +41,14 @@ class LWLink extends LWComponent
     {
         return rect.intersectsLine(this.line);
     }
+
+    public boolean contains(float x, float y)
+    {
+        if (super.contains(x, y))
+            return true;
+        float maxDist = (link.getWeight() * WEIGHT_RENDER_RATIO) / 2;
+        return line.ptSegDistSq(x, y) <= (maxDist * maxDist);
+    }
     
     public MapItem getMapItem()
     {
@@ -130,7 +138,8 @@ class LWLink extends LWComponent
         if (mi != null) {
             String label = mi.getLabel();
             if (label != null && label.length() > 0) {
-                g.setFont(SmallFont);
+                g.setColor(COLOR_LINK_LABEL);
+                g.setFont(LinkLabelFont);
                 FontMetrics fm = g.getFontMetrics();
                 float w = fm.stringWidth(label);
                 g.drawString(label, lx - w/2, ly-(strokeWidth/2));
