@@ -52,8 +52,19 @@ public class PathwayTableModel extends DefaultTableModel{
         else
             return null;
     }
-  
+
     public Object getElement(int row){
+        /*
+        Iterator i = pathways.iterator();
+        int idx = 0;
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            if (cnt == row)
+                return p;
+            idx++;
+        }
+        */
+        
         if(this.getManager() != null)
             return this.getManager().getPathwaysElement(row);
         return null;

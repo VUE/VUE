@@ -79,7 +79,7 @@ public class LinkTool extends VueTool
     {
         LWComponent indication = e.getViewer().getIndication();
         LWComponent over = findLWLinkTargetAt(linkSource, link, e);
-        if (DEBUG_CONTAINMENT) System.out.println("LINK-TARGET: " + over);
+        if (DEBUG.CONTAINMENT) System.out.println("LINK-TARGET: " + over);
         if (indication != null && indication != over) {
             //repaintRegion.add(indication.getBounds());
             e.getViewer().clearIndicated();
@@ -124,7 +124,7 @@ public class LinkTool extends VueTool
         float mapX = e.getMapX();
         float mapY = e.getMapY();
         LWComponent directHit = e.getMap().findDeepestChildAt(mapX, mapY, link);
-        //if (DEBUG_CONTAINMENT) System.out.println("findLWLinkTargetAt: directHit=" + directHit);
+        //if (DEBUG.CONTAINMENT) System.out.println("findLWLinkTargetAt: directHit=" + directHit);
         if (directHit != null && isValidLinkTarget(linkSource, directHit))
             return directHit;
         

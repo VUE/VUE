@@ -1295,7 +1295,7 @@ public class LWComponent
 
     public void mouseEntered(MapMouseEvent e)
     {
-        if (DEBUG_ROLLOVER) System.out.println("MouseEntered:     " + this);
+        if (DEBUG.ROLLOVER) System.out.println("MouseEntered:     " + this);
         //e.getViewer().setIndicated(this);
         mouseOver(e);
     }
@@ -1310,7 +1310,7 @@ public class LWComponent
     }
     public void mouseExited(MapMouseEvent e)
     {
-        if (DEBUG_ROLLOVER) System.out.println(" MouseExited:     " + this);
+        if (DEBUG.ROLLOVER) System.out.println(" MouseExited:     " + this);
         //e.getViewer().clearIndicated();
     }
 

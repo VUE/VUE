@@ -111,7 +111,7 @@ public final class LWGroup extends LWContainer
                 //if (linksInSelection.contains(l))
                 //continue;
                 if (!linkSet.add(l)) {
-                    if (DEBUG_PARENTING) System.out.println("["+group.getLabel() + "] GRABBING " + c + " (both ends in group)");
+                    if (DEBUG.PARENTING) System.out.println("["+group.getLabel() + "] GRABBING " + c + " (both ends in group)");
                     moveList.add(l);
                 }
             }
@@ -140,7 +140,7 @@ public final class LWGroup extends LWContainer
         LWGroup group = new LWGroup();
         group.children = (java.util.ArrayList) selection.clone();
         group.setSizeFromChildren();
-        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
+        if (DEBUG.CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
         return group;
     }
 
@@ -189,7 +189,7 @@ public final class LWGroup extends LWContainer
         // todo: better to insert all the children back into the
         //      parent at the layer of group object...
 
-        if (DEBUG_PARENTING) System.out.println("dispersing group " + this);
+        if (DEBUG.PARENTING) System.out.println("dispersing group " + this);
 
         ArrayList children = getChildList();
         Iterator i = children.iterator();
@@ -320,7 +320,7 @@ public final class LWGroup extends LWContainer
      */
     public LWComponent findChildAt(float mapX, float mapY)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findChildAt " + getLabel());
+        if (DEBUG.CONTAINMENT) System.out.println("LWGroup.findChildAt " + getLabel());
         // hit detection must traverse list in reverse as top-most
         // components are at end
         //todo: handle focusComponent here?
@@ -338,7 +338,7 @@ public final class LWGroup extends LWContainer
     /*
     public LWComponent findLWSubTargetAt(float mapX, float mapY)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findLWSubTargetAt[" + getLabel() + "]");
+        if (DEBUG.CONTAINMENT) System.out.println("LWGroup.findLWSubTargetAt[" + getLabel() + "]");
         LWComponent c = super.findLWSubTargetAt(mapX, mapY);
         return c == this ? null : c;
         }*/
@@ -401,7 +401,7 @@ public final class LWGroup extends LWContainer
 
         
 
-        if (DEBUG_CONTAINMENT) {
+        if (DEBUG.CONTAINMENT) {
             if (isRollover())
                 dc.g.setColor(java.awt.Color.green);
             else

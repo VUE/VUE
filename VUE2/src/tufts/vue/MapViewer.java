@@ -1456,7 +1456,7 @@ public class MapViewer extends javax.swing.JComponent
         // use deepest to penetrate into groups
         LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
         //LWComponent hit = getMap().findChildAt(mapX, mapY);
-        if (DEBUG_ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
+        if (DEBUG.ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
         //if (hit != null && VueSelection.size() <= 1)
         if (hit != null)
             setRollover(hit);
@@ -1498,7 +1498,7 @@ public class MapViewer extends javax.swing.JComponent
                 newScale - mZoomoverOldScale > RolloverMinZoomDeltaTrigger) {
                 //c.setScale(1f);
                 rollover = c;
-                if (DEBUG_ROLLOVER) System.out.println("setRollover: " + c);
+                if (DEBUG.ROLLOVER) System.out.println("setRollover: " + c);
                 c.setRollover(true);
                 c.setZoomedFocus(true);
                 if (false&&c instanceof LWNode) {
@@ -1517,7 +1517,7 @@ public class MapViewer extends javax.swing.JComponent
     void clearRollover()
     {
         if (rollover != null) {
-            if (DEBUG_ROLLOVER) System.out.println("clrRollover: " + rollover);
+            if (DEBUG.ROLLOVER) System.out.println("clrRollover: " + rollover);
             if (rolloverTask != null) {
                 rolloverTask.cancel();
                 rolloverTask = null;
@@ -2843,6 +2843,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
                 else if (c == 'M') { DEBUG_MOUSE = !DEBUG_MOUSE; }
                 else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
+                else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
                 else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == 'Z') { resetScrollRegion(); }
@@ -2854,6 +2855,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
+                else if (c == '}') { DEBUG.PARENTING = !DEBUG.PARENTING; }
                 else
                     did = false;
                 if (did) {
@@ -3293,7 +3295,7 @@ public class MapViewer extends javax.swing.JComponent
             // use deepest to penetrate into groups
             LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
             //LWComponent hit = getMap().findChildAt(mapX, mapY);
-            if (DEBUG_ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
+            if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
 
             if (hit != sMouseOver) {
                 if (sMouseOver != null) {
@@ -3351,7 +3353,7 @@ public class MapViewer extends javax.swing.JComponent
 
         public void mouseEntered(MouseEvent e)
         {
-            if (DEBUG_ROLLOVER) System.out.println(e);
+            if (DEBUG.ROLLOVER) System.out.println(e);
             if (sMouseOver != null) {
                 sMouseOver.mouseExited(new MapMouseEvent(e));
                 sMouseOver = null;
@@ -3360,7 +3362,7 @@ public class MapViewer extends javax.swing.JComponent
 
         public void mouseExited(MouseEvent e)
         {
-            if (DEBUG_ROLLOVER) System.out.println(e);
+            if (DEBUG.ROLLOVER) System.out.println(e);
             if (sMouseOver != null && sMouseOver == rollover)
                 clearRollover();
             if (false&&sMouseOver != null) {
@@ -3846,7 +3848,7 @@ public class MapViewer extends javax.swing.JComponent
                     //-------------------------------------------------------
                     // we were over a valid NEW parent -- reparent
                     //-------------------------------------------------------
-                    if (DEBUG_PARENTING)
+                    if (DEBUG.PARENTING)
                         System.out.println("*** REPARENTING " + droppedChild + " as child of " + parentTarget);
                     moveList.add(droppedChild);
                 }
@@ -3872,7 +3874,7 @@ public class MapViewer extends javax.swing.JComponent
             java.util.Iterator pi = parents.iterator();
             while (pi.hasNext()) {
                 LWContainer parent = (LWContainer) pi.next();
-                if (DEBUG_PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
+                if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
                 parent.removeChildren(moveList.iterator());
             }
             i = moveList.iterator();

@@ -76,9 +76,4 @@ public interface VueConstants
     static java.awt.BasicStroke STROKE_SELECTION_DYNAMIC = new java.awt.BasicStroke(1f);
 
     static int SelectionStrokeWidth = 8;
-    
-    static boolean DEBUG_CONTAINMENT = false;
-    static boolean DEBUG_PARENTING = false;
-    static boolean DEBUG_ROLLOVER = false;
-    
 }

@@ -210,10 +210,11 @@ public abstract class LWContainer extends LWComponent
 
     protected void addChildInternal(LWComponent c)
     {
-        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
+        if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
         if (c.getParent() != null) {
+            if (DEBUG.EVENTS) System.out.println(this + " auto-deparenting " + c + " from " + c.getParent());
             if (c.getParent() == this) {
-                if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
+                if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
                 // this okay -- in fact useful for child node re-drop on existing parent to trigger
                 // re-ordering & re-layout
             }
@@ -345,7 +346,7 @@ public abstract class LWContainer extends LWComponent
 
     protected void removeChildInternal(LWComponent c)
     {
-        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
+        if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (this.children == null) {
             // this should never be possible now
             new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
@@ -401,7 +402,7 @@ public abstract class LWContainer extends LWComponent
      */
     public void deleteChildPermanently(LWComponent c)
     {
-        if (true||DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
+        if (true||DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
         // we do the "deleting" notification first, so anybody listening
         // can still see the node in it's full current state before
         // anything changes.
@@ -524,7 +525,7 @@ public abstract class LWContainer extends LWComponent
     private static ArrayList curvedLinks = new ArrayList();
     public LWComponent findChildAt(float mapX, float mapY)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findChildAt[" + getLabel() + "]");
+        if (DEBUG.CONTAINMENT) System.out.println("LWContainer.findChildAt[" + getLabel() + "]");
 
         // if there's a focus (zoomed) component, it's always on top
         if (focusComponent != null && focusComponent.contains(mapX, mapY)) {
@@ -572,8 +573,8 @@ public abstract class LWContainer extends LWComponent
      */
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
-        if (DEBUG_CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
+        if (DEBUG.CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
+        if (DEBUG.CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
 
         // TODO: change this gross focusComponent hack to a cleaner special case:
         // have the entire LWMap maintain a list of all the current focus components,
@@ -622,8 +623,8 @@ public abstract class LWContainer extends LWComponent
     /*
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
     {
-        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
-        if (DEBUG_CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
+        if (DEBUG.CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
+        if (DEBUG.CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
         if (focusComponent != null && focusComponent.contains(mapX, mapY)) {
             if (focusComponent instanceof LWContainer)
                 return ((LWContainer)focusComponent).findDeepestChildAt(mapX, mapY, excluded);
@@ -802,7 +803,7 @@ public abstract class LWContainer extends LWComponent
             comps[i].getParent().sendBackward(comps[i]);
     }
 
-    boolean bringToFront(LWComponent c)
+    private boolean bringToFront(LWComponent c)
     {
         // Move to END of list, so it will paint last (visually on top)
         int idx = children.indexOf(c);
@@ -814,10 +815,11 @@ public abstract class LWContainer extends LWComponent
         children.add(c);
         // we layout the parent because a parent node will lay out
         // it's children in the order they appear in this list
+        notify("reorder.ToFront", c);
         c.getParent().layoutChildren();
         return true;
     }
-    boolean sendToBack(LWComponent c)
+    private boolean sendToBack(LWComponent c)
     {
         // Move to FRONT of list, so it will paint first (visually on bottom)
         int idx = children.indexOf(c);
@@ -826,10 +828,11 @@ public abstract class LWContainer extends LWComponent
         //System.out.println("sendToBack " + c);
         children.remove(idx);
         children.add(0, c);
+        notify("reorder.ToBack", c);
         c.getParent().layoutChildren();
         return true;
     }
-    boolean bringForward(LWComponent c)
+    private boolean bringForward(LWComponent c)
     {
         // Move toward the END of list, so it will paint later (visually on top)
         int idx = children.indexOf(c);
@@ -838,10 +841,11 @@ public abstract class LWContainer extends LWComponent
             return false;
         //System.out.println("bringForward " + c);
         swap(idx, idx + 1);
+        notify("reorder.Forward", c);
         c.getParent().layoutChildren();
         return true;
     }
-    boolean sendBackward(LWComponent c)
+    private boolean sendBackward(LWComponent c)
     {
         // Move toward the FRONT of list, so it will paint sooner (visually on bottom)
         int idx = children.indexOf(c);
@@ -849,6 +853,7 @@ public abstract class LWContainer extends LWComponent
             return false;
         //System.out.println("sendBackward " + c);
         swap(idx, idx - 1);
+        notify("reorder.Backward", c);
         c.getParent().layoutChildren();
         return true;
     }
@@ -871,10 +876,10 @@ public abstract class LWContainer extends LWComponent
         int topIndex = getIndex(onTop);
         if (bottomIndex < 0 || topIndex < 0)
             throw new IllegalStateException(this + "ensurePaintSequence: both aren't in list! " + bottomIndex + " " + topIndex);
-        //if (DEBUG_PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
+        //if (DEBUG.PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
         if (topIndex == (bottomIndex - 1)) {
             swap(topIndex, bottomIndex);
-            if (DEBUG_PARENTING) System.out.println("ensurePaintSequence: swapped " + onTop);
+            if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: swapped " + onTop);
         } else if (topIndex < bottomIndex) {
             children.remove(topIndex);
             // don't forget that after above remove the indexes have all been shifted down one
@@ -882,11 +887,11 @@ public abstract class LWContainer extends LWComponent
                 children.add(onTop);
             else
                 children.add(bottomIndex, onTop);
-            if (DEBUG_PARENTING) System.out.println("ensurePaintSequence: inserted " + onTop);
+            if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: inserted " + onTop);
         } else {
-            //if (DEBUG_PARENTING) System.out.println("ensurePaintSequence: already sequenced");
+            //if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: already sequenced");
         }
-        //if (DEBUG_PARENTING) System.out.println("ensurepaintsequence: " + onBottom + " " + onTop);
+        //if (DEBUG.PARENTING) System.out.println("ensurepaintsequence: " + onBottom + " " + onTop);
         
     }
     
@@ -986,7 +991,7 @@ public abstract class LWContainer extends LWComponent
             if (MapViewer.DEBUG_PAINT) // todo: remove MapViewer reference
                 System.out.println(this + " painted " + links + " links, " + nodes + " nodes");
         }
-        if (DEBUG_CONTAINMENT) {
+        if (DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.green);
             dc.g.setStroke(STROKE_ONE);
             dc.g.draw(getBounds());

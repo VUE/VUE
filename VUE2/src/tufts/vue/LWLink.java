@@ -1421,7 +1421,7 @@ public class LWLink extends LWComponent
         }
         */
 
-        if (DEBUG_CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
+        if (DEBUG.CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }
 
 
