@@ -166,7 +166,7 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public void removeElement(int index) {
-        System.out.p rm `ls -al | awk '$3=="lokvani"{ print $9}'`rintln("this remove element is called...");
+        System.out.println("this remove element is called...");
         
         //if the current node needs to be deleted and it isn't the first node, 
         //set the current index to the one before, else keep the same index
@@ -212,7 +212,7 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public int getWeight() {
-        return rm `ls -al | awk '$3=="lokvani"{ print $9}'` weight;
+        return weight;
     }
     
     public void setWeight(int weight) {
