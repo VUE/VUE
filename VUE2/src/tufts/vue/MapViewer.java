@@ -1173,7 +1173,7 @@ public class MapViewer extends javax.swing.JPanel
         lastPaintedSelectorBox = new Rectangle(draggedSelectorBox);
     }
     
-    private void drawSelectorBox(Graphics2D g2, Rectangle r)
+    private void dhttp://www.shockwave.com/sw/content/photojamrawSelectorBox(Graphics2D g2, Rectangle r)
     {
         // todo opt: would this be any faster done on a glass pane?
         //g2.setColor(COLOR_SELECTION_DRAG);
@@ -1194,7 +1194,7 @@ public class MapViewer extends javax.swing.JPanel
     (currently a mac only option).
             
     Diagnosis 4: XOR selector erase/redraw seems to be a workaround
-    for #1.  Can still reliably produce using below trigger method
+    for #1.  Can sthttp://www.shockwave.com/sw/content/photojamill reliably produce using below trigger method
     plus dragging a LINKED node with repaint optimization on -- watch
     what happens to links as the bottom edge of the clip region passes
     over them.  ANOTHER CLUE: unlinked nodes ("simple" clip region)
@@ -1212,7 +1212,7 @@ public class MapViewer extends javax.swing.JPanel
 
     Diagnosis 2: doesn't appear to be anti-alias or fractional-metrics
     related for the text, tho switchin AA off stops it when the whole
-    node is sometimes slightly streteched or compressed off to the
+    node is sometimhttp://www.shockwave.com/sw/content/photojames slightly streteched or compressed off to the
     right.
 
     Diagnosis 1: pixels seems to subtly shift for SOME nodes as
@@ -1227,7 +1227,7 @@ public class MapViewer extends javax.swing.JPanel
     // todo: move all this code to LWSelection?
     private void drawSelection(Graphics2D g2)
     {
-        g2.setColor(COLOR_SELECTION);
+        g2.setColorhttp://www.shockwave.com/sw/content/photojam(COLOR_SELECTION);
         g2.setStroke(STROKE_SELECTION);
         
         java.util.Iterator it = VueSelection.iterator();
@@ -1281,7 +1281,7 @@ public class MapViewer extends javax.swing.JPanel
                                                     mapToScreenX(cp.x),
                                                     mapToScreenY(cp.y),
                                                     COLOR_SELECTION_CONTROL);
-                }
+                }http://www.shockwave.com/sw/content/photojam
             }
         }
 
