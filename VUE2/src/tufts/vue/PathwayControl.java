@@ -159,8 +159,13 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         //maybe not necessary
         else
         {
-            System.out.println("setting false");
-            Actions.AddPathwayNode.setEnabled(false);   
+            Actions.AddPathwayNode.setEnabled(false); 
+            
+            if (!Actions.AddPathwayNode.isEnabled())
+              System.out.println("setting false managed");
+            
+            else
+              System.out.println("setting false failed");
         }    
     }
     
@@ -342,6 +347,17 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 VUE.getPathwayInspector().setPathway(currentPathway);
                  
                 updateControlPanel();
+                
+                if (!Actions.AddPathwayNode.isEnabled())
+                {
+                   Actions.AddPathwayNode.setEnabled(true); 
+            
+                   if (Actions.AddPathwayNode.isEnabled())
+                     System.out.println("setting true managed");
+            
+                   else
+                     System.out.println("setting true failed");
+                }
             }
             
             //if "no" pathway was selected, then set the current pathway to nothing and updates accordingly
@@ -353,6 +369,17 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 VUE.getPathwayInspector().setPathway(currentPathway);
                 
                 updateControlPanel();
+                
+                if (Actions.AddPathwayNode.isEnabled())
+                {
+                   Actions.AddPathwayNode.setEnabled(false); 
+            
+                   if (!Actions.AddPathwayNode.isEnabled())
+                     System.out.println("setting false managed");
+            
+                   else
+                     System.out.println("setting false failed");
+                }
             }
             
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly
@@ -412,6 +439,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         }   
     }    
     
+    /**A dialog displayed when the user chooses to add a new pathway to the current map */
     private class PathwayDialog extends JDialog implements ActionListener
     {
         JButton okButton, cancelButton;
@@ -456,6 +484,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         {
             if (e.getSource() == okButton)
             {
+                //calls addPathway method defined in PathwayControl
                 addPathway(new LWPathway(textField.getText()));
                 dispose();
             }

@@ -128,11 +128,13 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
           add.setEnabled(true);
     }
     
+    /**Gets the current pathway associated with the pathway table*/
     public LWPathway getPathway()
     {
         return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
     }
     
+    /**Notifies the table of data change*/
     public void updateTable()
     {
         ((PathwayTableModel)pathwayTable.getModel()).fireTableDataChanged();
@@ -187,6 +189,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             if (selected == -1)
                 selected = 0;
             
+            //adds everything in the current selection 
             for (int i = 0; i < array.length; i++)
             {
                 ((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], selected);
@@ -352,7 +355,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             return "";
         }
         
-        //adds a row to the table (insertion)
+        //adds a row at the designated location
         public synchronized void addRow(LWComponent element, int row)
         {
             pathway.addElement(element, row);
@@ -366,6 +369,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             fireTableRowsDeleted(row, row);  
         }
         
+        //switches a row to a new location
         public void switchRow(int oldRow, int newRow)
         {
             pathway.moveElement(oldRow, newRow);
