@@ -1149,17 +1149,23 @@ public class LWComponent
             parent.notifyLWCListeners(e);
     }
     
-    void notify(String what)
+    
+    void notify(Object source, String what)
+    {
+        notifyLWCListeners(new LWCEvent(source, this, what));
+    }
+
+    protected void notify(String what, LWComponent contents)
+    {
+        notifyLWCListeners(new LWCEvent(this, contents, what));
+    }
+
+    protected void notify(String what)
     {
         // todo: we still need both src & component? (this,this)
         notifyLWCListeners(new LWCEvent(this, this, what));
     }
     
-    protected void notify(String what, LWComponent c)
-    {
-        notifyLWCListeners(new LWCEvent(this, c, what));
-    }
-
     /**a notify with an array of components
        added by Daisuke Fujiwara
      */
