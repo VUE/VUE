@@ -324,10 +324,9 @@ public class LWLink extends LWComponent
             return this.curve;
         else
             return this.line;
-        // return stroked shape?
     }
 
-    /** @deprecated */
+    /** @deprecated -- use getShape() */
     public Line2D getLine()
     {
         if (endpointMoved)
@@ -599,6 +598,7 @@ public class LWLink extends LWComponent
      * by two given points for each line.
      * This already assumes that we know they intersect somewhere (are not parallel), 
      */
+    private static final float[] _intersection = new float[2];
     private static float[] computeLineIntersection(float s1x1, float s1y1, float s1x2, float s1y2,
                                                     float s2x1, float s2y1, float s2x2, float s2y2)
     {
@@ -652,7 +652,10 @@ public class LWLink extends LWComponent
         }
         //System.out.println("x=" + x + " y=" + y);
 
-        return new float[] { x, y };
+        _intersection[0] = x;
+        _intersection[1] = y;
+        return _intersection;
+        //return new float[] { x, y };
     }
 
     // this for debug
@@ -663,7 +666,6 @@ public class LWLink extends LWComponent
      * If no intersection, returns Float.NaN values for x/y.
      */
     private static final float[] NoIntersection = { Float.NaN, Float.NaN };
-
     private static float[] computeShapeIntersection(Shape shape,
                                                     float rayX1, float rayY1,
                                                     float rayX2, float rayY2)
@@ -1087,7 +1089,7 @@ public class LWLink extends LWComponent
         }
     
         //-------------------------------------------------------
-        // If selected or indicated, draw a standout stroke
+        // Fancy border selection: If selected or indicated, draw a standout stroke
         // bigger than the actual stroke first.
         //-------------------------------------------------------
         /*
@@ -1097,7 +1099,7 @@ public class LWLink extends LWComponent
             else
                 g.setColor(COLOR_INDICATION);
             g.setStroke(new BasicStroke(stroke.getLineWidth() + 2));
-            g.draw(this.line);
+            g.draw(getShape());
         }
         */
         
@@ -1115,7 +1117,10 @@ public class LWLink extends LWComponent
         g.setStroke(stroke);
         
         if (this.isCurved) {
+            //-------------------------------------------------------
             // draw the curve
+            //-------------------------------------------------------
+
             g.draw(this.curve);
 
             if (isSelected()) {
@@ -1141,6 +1146,9 @@ public class LWLink extends LWComponent
             //g.drawLine((int)line.getX1(), (int)line.getY1(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
             //g.drawLine((int)line.getX2(), (int)line.getY2(), (int)curve.getCtrlX(), (int)curve.getCtrlY());
         } else {
+            //-------------------------------------------------------
+            // draw the line
+            //-------------------------------------------------------
             g.draw(this.line);
         }
 
