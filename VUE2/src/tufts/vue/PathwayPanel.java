@@ -168,7 +168,6 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
                     if (DEBUG.PATHWAY) System.out.println(this + " " + e);
                     updateLabels();
                     updateEnabledStates();
-                    //repaint();
                 }
             });
         
@@ -261,14 +260,19 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
                     // thus we add it here manually (already slow and a hack to do this every
                     // key press -- should do it on focus loss instead)
                     String text = notesArea.getText() + e.getKeyChar();
-                    if (displayedComponent instanceof LWPathway){
+                    boolean updateIcon = false;
+                    if (displayedComponent instanceof LWPathway) {
                         if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
+                        updateIcon = !displayedComponent.hasNotes();
                         displayedComponent.setNotes(text);
                     } else {
                         if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
-                        displayedComponentPathway.setElementNotes(displayedComponent, text);
+                        updateIcon = (displayedComponentPathway.getElementNotes(displayedComponent) == null);
+                        displayedComponentPathway.setElementNotes(displayedComponent, text);                        
                     }
-                    //fireTableModelUpdate(); // only need this if first key typed to turn on note icon
+                    //if (updateIcon)
+                    //fireTableModelUpdate(); // only need this if first time notes set to turn on note icon
+                    // don't need to do this at all as note set will trigger LWCEvent picked up by table model
                 }
             });
 

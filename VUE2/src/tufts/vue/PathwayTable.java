@@ -50,11 +50,13 @@ public class PathwayTable extends JTable
     public PathwayTable(PathwayPanel ta, PathwayTableModel model) {
         super(model);
 
+        /*
         model.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
                     if (DEBUG.PATHWAY) System.out.println(this + " " + e + " (FYI)");
                 }
             });
+        */
 
         final PathwayPanel pathPanel = ta;
 

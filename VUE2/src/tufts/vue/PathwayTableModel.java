@@ -44,12 +44,14 @@ public class PathwayTableModel extends DefaultTableModel
         if (e.getSource() instanceof LWPathway) {
             // The events mainly of interest to us are either a structural event, or a LWPathway label/note event,
             // although if anything in the pathway changes, fire a change event just in case.
-            System.out.println(this + " pathway event " + e);
+            if (DEBUG.PATHWAY) System.out.println(this + " pathway event " + e);
             fireTableDataChanged();
-        } else if (e.getWhat() == LWCEvent.Label) {
+        } else if (e.getWhat() == LWCEvent.Label || e.getWhat().startsWith("pathway.")) {
+            if (DEBUG.PATHWAY) System.out.println(this + " pathway child event " + e);
             // This means one of the LWComponents in the pathway has changed.
             // We only care about label changes as that's all that's displayed
-            // in the PathwayTable.
+            // in the PathwayTable, or if pathway.notes has changed so we can update
+            // the note icon.
             // We only really need the PathwayTable to repaint if a label
             // has changed, but this will do it.
             fireTableDataChanged();

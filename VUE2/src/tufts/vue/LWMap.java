@@ -505,7 +505,14 @@ public class LWMap extends LWContainer
         return rect;
     }
 
-    public String paramString()
+    public String toString()
+    {
+        return "LWMap[" + getLabel()
+            + " n=" + children.size()
+            + (file==null?"":" <" + this.file + ">")
+            + "]";
+    }
+    public String X_paramString()
     {
         if (this.file == null)
             return " n=" + children.size();
