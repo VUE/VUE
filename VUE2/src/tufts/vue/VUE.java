@@ -107,9 +107,8 @@ public class VUE
         }
         public void mapViewerEventRaised(MapViewerEvent e)
         {
-            if ((e.getID() & TitleChangeMask) != 0){
-                setTitleFromViewer(e.getMapViewer()); 
-            }
+            if ((e.getID() & TitleChangeMask) != 0)
+                setTitleFromViewer(e.getMapViewer());
         }
 
         private void setTitleFromViewer(MapViewer viewer)
@@ -473,18 +472,6 @@ public class VUE
         System.out.println("VUE.main completed.");
     }
 
-    /*
-    private static void setViewerScrollbarsDisplayed(boolean add)
-    {
-        if (add) {
-            JScrollPane scroller = new JScrollPane(mMapTabsLeft.getComponentAt(0));
-            //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
-            mMapTabsLeft.addTab("scrolling test", scroller);
-            //mMapTabsLeft.setComponentAt(0, scroller);
-        }
-    }
-    */
-
     public static int openMapCount() {
         return mMapTabsLeft.getTabCount();
     }
@@ -560,6 +547,18 @@ public class VUE
         }
         */
         
+        public void reshape(int x, int y, int w, int h) {
+            boolean ignore = 
+                getX() == x &&
+                getY() == y &&
+                getWidth() == w &&
+                getHeight() == h;
+            
+            // if w or h <= 0 we can know we're being hidden
+            //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
+            super.reshape(x,y, w,h);
+        }
+
         public void focusGained(FocusEvent e)
         {
             System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
@@ -575,14 +574,20 @@ public class VUE
                 setForeground(Color.darkGray);
                 //setBackground(BgColor);
             }
-            addFocusListener(this);
+            addFocusListener(this); // hope not to hear anything...
+            // don't let us be focusable or sometimes you can select
+            // & activate a new map for interaction, but we keep
+            // the focus here in the tabbed instead of giving to
+            // the component in the tab.
+            setFocusable(false);
         }
         
         
         public void addViewer(MapViewer viewer)
         {
             Component c = viewer;
-            if (DEBUG_SCROLL || !this.name.startsWith("*"))
+            //if (DEBUG_SCROLL || !this.name.startsWith("*"))
+            if (!this.name.startsWith("*"))
                 c = new JScrollPane(viewer);
             LWMap map = viewer.getMap();
             addTab(map.getLabel(), c);
