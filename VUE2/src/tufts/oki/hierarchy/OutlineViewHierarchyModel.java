@@ -93,7 +93,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             
             //do it recursively
             //just get the nodelist?
-            for(Iterator i = container.getChildList().iterator(); i.hasNext();)
+            for(Iterator i = container.getChildIterator(); i.hasNext();)
             {
                 LWComponent component = (LWComponent)i.next();
             
@@ -431,7 +431,53 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                   deleteHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
             }
             else if (message == LWKey.HierarchyChanged)
-            {
+            {   
+                LWContainer container = (LWContainer)e.getSource();
+                
+                //reinitializing
+                if (container instanceof LWMap)
+                {    
+                    String label, description;
+                    
+                    if ((label = container.getLabel()) == null)   
+                      label = new String("Container:" + container.getID());
+              
+                    if ((description = container.getNotes()) == null)
+                      description = new String("No description for " + label);
+                    
+                    HierarchyNode rootNode = getRootNode();
+                    rootNode.updateDisplayName(label);
+                    rootNode.updateDescription(description);
+                    rootNode.setLWComponent(container);
+                    
+                    for (osid.hierarchy.NodeIterator ni = rootNode.getChildren(); ni.hasNext();)
+                      deleteHierarchyNode(rootNode, (HierarchyNode)ni.next()); 
+                    
+                    for (Iterator i = container.getChildIterator(); i.hasNext();)
+                    {
+                        LWComponent component = (LWComponent)i.next();
+                        addHierarchyTreeNode(container, component);
+                    }
+                }
+                
+                else
+                {
+                    ArrayList nodes = findHierarchyNodeByComponentID(getRootNode(), container.getID());
+                 
+                    for (Iterator i = nodes.iterator(); i.hasNext();)
+                    {   
+                        HierarchyNode hierarchyNode = (HierarchyNode)i.next();
+                        
+                        for (osid.hierarchy.NodeIterator ni = hierarchyNode.getParents(); ni.hasNext();)
+                        {
+                            HierarchyNode parentNode = (HierarchyNode)ni.next();
+                            
+                            deleteHierarchyNode(parentNode, hierarchyNode);
+                            addHierarchyTreeNode((LWContainer)parentNode.getLWComponent(), container);
+                        }
+                    }
+                }
+                
                 System.err.println(this + " needs to rebuild child list from scratch for " + e.getSource());
             }
         }
@@ -483,8 +529,16 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
     {
         try
         {  
+            for (osid.hierarchy.NodeIterator ni = childNode.getChildren(); ni.hasNext();)
+            {
+                HierarchyNode node = (HierarchyNode)ni.next();
+                deleteNode(node.getId());
+            }
+            
             deleteNode(childNode.getId());
-            reloadTreeModel(parentNode);
+            
+            if (parentNode != null)
+              reloadTreeModel(parentNode);
         }
                
         catch(Exception e)
