@@ -16,6 +16,7 @@ import javax.swing.table.*;
 import java.io.*;
 import java.net.*;
 import org.apache.commons.net.ftp.*;
+import java.util.Properties;
 
 
 import fedora.server.management.FedoraAPIM;
@@ -261,7 +262,8 @@ public class Publisher extends JDialog implements ActionListener {
     public void publishMap() {
         try {
             saveActiveMap();
-            String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, null).getIdString();
+            Properties metadata = new Properties();
+            String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, metadata).getIdString();
             System.out.println("Published Map: id = "+pid);
         } catch (Exception ex) {
              VueUtil.alert(null,  "Publish Not Supported:"+ex.getMessage(), "Publish Error");
@@ -272,8 +274,8 @@ public class Publisher extends JDialog implements ActionListener {
     public void publishCMap() {
         try {
             File savedCMap = createIMSCP();
-           // String transferredFileNameLocal = activeMapFile.getName().split("\\.")[0] +".zip";
-            String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, null).getIdString();
+            Properties metadata = new Properties();
+            String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
             /**
             String transferredFileName = transferFile(savedCMap,savedCMap.getName());
             File METSfile = createMETSFile( transferredFileName,"obj-vue-concept-map-mc.xml");
@@ -297,7 +299,7 @@ public class Publisher extends JDialog implements ActionListener {
             File file = new File(r.getFileName());
             if(file.isFile() && b.booleanValue()) {
                  resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
-                 String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, null).getIdString();
+                 String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
                  resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                  System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" pid ="+pid+" vector ="+resourceVector.indexOf(vector)+" table value= "+resourceTable.getValueAt(resourceVector.indexOf(vector),STATUS_COL));
               

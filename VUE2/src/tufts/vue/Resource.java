@@ -35,8 +35,7 @@ public class Resource
     static final int ASSET_OKIDR  = 10;
     static final int ASSET_FEDORA = 11;
     
-    static final String[] dcFields = {"dc:title","dc:creator","dc:subject","dc:date","dc:type","dc:format","dc:identifier","dc:collection","dc:coverage"};
-    
+    static final String[] dcFields = tufts.oki.dr.fedora.DR.DC_FIELDS;
     long referenceCreated;
     long accessAttempted;
     long accessSuccessful;
@@ -47,7 +46,7 @@ public class Resource
     String spec;
     
     /** the metadata property map **/
-    private    Map mProperties = new HashMap();
+    private    Map mProperties = new Properties();
     
     /** property name cache **/
     private String [] mPropertyNames = null;
@@ -388,6 +387,10 @@ public class Resource
      		mPropertyNames = null;
      		}	
      	mProperties.put( pName, pValue);
+     }
+     
+     public Properties getProperties() {
+         return (Properties)mProperties;
      }
      
      /**
