@@ -83,6 +83,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	 **/
 	public PaletteButton() {
 		super();
+		setBorder( null);
 	}
 	
 	
@@ -101,6 +102,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		super();
 		setPaletteButtonItems( pItems );
 		setRolloverEnabled( true);
+		setBorder( null);
 		
 	}
 	
@@ -364,6 +366,8 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		super.paint( pGraphics);
 		
 		Dimension dim = getPreferredSize();
+		Insets insets = getInsets();
+		
 		// now overlay the popup menu icon indicator
 		// either from an icon or by brute painting
 		if(  (!isPopupIconIndicatorEnabled() ) 
@@ -397,7 +401,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 				overlay = mPopupIndicatorDownIcon;
 				}
 			if( overlay != null) {
-				overlay.paintIcon( this, pGraphics, 0, 0);
+				overlay.paintIcon( this, pGraphics, insets.top, insets.left);
 				}
 			/***
 			pGraphics.drawImage( mPopupIndicatorIcon.getImage(),
@@ -439,7 +443,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	}
 	
 	
-	private static boolean sDebug = true;
+	private static boolean sDebug = false;
 	private void debug( String pStr) {
 		if( sDebug) {
 			System.out.println("PaletteButton: "+pStr);
