@@ -938,6 +938,7 @@ class Actions
                 System.err.println("*** VueAction: event was " + ae);
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
+            System.out.println("active map: "+VUE.getActiveMap());
             VUE.getActiveMap().getUndoManager().markChangesAsUndoable(ae.getActionCommand());
             //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();
