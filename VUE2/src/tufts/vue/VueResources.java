@@ -89,7 +89,6 @@ public class VueResources
             }
             //System.out.println("Creating cursor for " + icon);
             //System.out.println("Creating cursor " + pLookupKey + " " + Arrays.asList(data) + " with hotspot " + hot);
-            // Well, hotspot appears to have no effect on Windows 2000, JVM 1.4.2.
             cursor = Toolkit.getDefaultToolkit().createCustomCursor(icon.getImage(), hot, pLookupKey+":"+icon.toString());
         }
         return cursor;
