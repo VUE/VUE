@@ -705,12 +705,16 @@ public class LWComponent
     {
         return getFillColor();
     }
+    void takeFillColor(Color color)
+    {
+        this.fillColor = color;
+    }
     public void setFillColor(Color color)
     {
         if (eq(color, fillColor))
             return;
         Object old = this.fillColor;
-        this.fillColor = color;
+        takeFillColor(color);
         notify(KEY_FillColor, old);
         //notify(LWKey.FillColor, old);
     }
