@@ -51,6 +51,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private static int FAVORITES = 4;
     private static int newFavorites = 0;
     JTextField keywords;
+    boolean fileOpen = false;
+   
     /** Creates a new instance of HierarchyTreeWindow */
     public FavoritesWindow(String displayName ) {
         setLayout(new BorderLayout());
@@ -58,39 +60,42 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         
         favoritesPane = new JTabbedPane();
         
-        System.out.println("Did I get here?FW");
-        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
         
-        if (f.exists()){
-            System.out.println("Did I get here?FW" +f);
+        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
+       
+        
+     
+            try {
             SaveVueJTree restorefavtree = unMarshallMap(f);
-            //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
-            VueDandDTree favoritesTree =restorefavtree.restoreTree();
+            fileOpen = true;
+              favoritesTree =restorefavtree.restoreTree();
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             
             this.setFavoritesTree(favoritesTree);
+            }catch (Exception ex){fileOpen = false;
+               
+            }
             
-        }
-        
-        else{
-            
-            
+           if (!fileOpen){
+            //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
+          
+    
             MapResource favResource = new MapResource("My Favorites");
             favResource.setType(Resource.FAVORITES);
             
             
             FavoritesNode favRoot= new FavoritesNode(favResource);
-            System.out.println("in Favorites window the resource is" + favResource+ "root is" + favRoot);
-            VueDandDTree favoritesTree = new VueDandDTree(favRoot);
+           
+            favoritesTree = new VueDandDTree(favRoot);
             
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             this.setFavoritesTree(favoritesTree);
             
-        }
+         }
         
         
         searchResultsPane = new JPanel();
@@ -220,19 +225,29 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         
         //Create the popup menu.
         JPopupMenu popup = new JPopupMenu();
+        
+        menuItem = new JMenuItem("Add Favorites Folder");
+        menuItem.addActionListener(this);
+        popup.add(menuItem);
+        menuItem = new JMenuItem("Remove Favorites Folder");
+        menuItem.addActionListener(this);
+        popup.add(menuItem);
+        JPopupMenu popup2 = new JPopupMenu();
+        
         menuItem = new JMenuItem("Open Resource");
         menuItem.addActionListener(this);
-        popup.add(menuItem);
-        menuItem = new JMenuItem("Add Bookmark Folder");
-        menuItem.addActionListener(this);
-        popup.add(menuItem);
+        popup2.add(menuItem);
         menuItem = new JMenuItem("Remove Resource");
         menuItem.addActionListener(this);
-        popup.add(menuItem);
+        popup2.add(menuItem);
         
+         JPopupMenu popup3 = new JPopupMenu();
         
-        //Add listener to the text area so the popup menu can come up.
-        MouseListener popupListener = new PopupListener(popup);
+        menuItem = new JMenuItem("Add Favorites Folder");
+        menuItem.addActionListener(this);
+        popup3.add(menuItem);
+       
+        MouseListener popupListener = new PopupListener(popup,popup2,popup3);
         favoritesTree.addMouseListener(popupListener);
     }
     
@@ -240,9 +255,10 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public void actionPerformed(ActionEvent e) {
         ResourceNode resNode;
         FavoritesNode favresNode;
+        ResourceNode temp;
         
         if (e.getSource() instanceof JMenuItem){
-            System.out.println("This is menu" + e.getSource());
+            
             
             JMenuItem source = (JMenuItem)(e.getSource());
             TreePath tp = favoritesTree.getSelectionPath();
@@ -259,7 +275,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             
             
-            if (e.getActionCommand().toString().equals("Remove Resource")){
+            if (e.getActionCommand().toString().equals("Remove Resource") | e.getActionCommand().toString().equals("Remove Favorites Folder")) {
                 
                 if (resNode.isRoot()) {
                     System.out.println("cannot delete root");
@@ -273,20 +289,22 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             
             
             
-            else if (e.getActionCommand().toString().equals("Add Bookmark Folder")){//add a new bookmak folder
+            else if (e.getActionCommand().toString().equals("Add Favorites Folder")){//add a new bookmak folder
                 
+              
+              
                 
-                if (resNode.getResource().getType() == FAVORITES){
-                    
-                    if (tp == null){ favresNode = (FavoritesNode)model.getRoot();
-                    }
-                    else{
+                         tp = new TreePath(resNode.getPath());
+                        
+                       
                         favresNode = (FavoritesNode)tp.getLastPathComponent();
-                        
-                    }
+                         
+                       
+                  
                     
-                    if ((resNode.isLeaf())){
+                    if ((favresNode.isLeaf())){
                         
+                    
                         
                         MapResource favResource = new MapResource("New Favorites Folder");
                         favResource.setType(FAVORITES);
@@ -295,30 +313,28 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         
                         if (model.getRoot() != resNode){
                             
+                         
+                            
                             model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
                             
                             favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                            //favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                            favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                            
                             favoritesTree.setRootVisible(true);
                             this.setFavoritesTree(favoritesTree);
                             favoritesTree.setRootVisible(false);
                         }
                         else {
                             
-                            
+                        
                             model.insertNodeInto(favNode, favresNode, (favresNode.getChildCount()));
-                            
-                            
-                            
-                            favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                            TreePath newPath = new TreePath(favNode.getPath());
-                            favoritesTree.setSelectionPath(newPath);
-                            //favoritesTree.startEditingAtPath(newPath);
-                            
+            
                             favoritesTree.setRootVisible(true);
+                            
                             this.setFavoritesTree(favoritesTree);
                             
                             favoritesTree.expandRow(0);
+                            favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
                             favoritesTree.setRootVisible(false);
                             
                             
@@ -329,37 +345,40 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     
                     else{
                         
-                        System.out.println("In favoriteswindow was I here not leaf?");
-                        
+                      
                         MapResource favResource = new MapResource("New Favorites Folder");
                         favResource.setType(FAVORITES);
                         FavoritesNode favNode = new FavoritesNode(favResource);
                         
                         
                         model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
-                         TreePath newPath = new TreePath(favNode.getPath());
-                          favoritesTree.setSelectionPath(newPath);
                      
+                        
+                        
                         favoritesTree.setRootVisible(true);
                         
                         favoritesTree.expandPath(new TreePath(favresNode.getPath()));
-                      //  favoritesTree.startEditingAtPath(new 
+                         favoritesTree.startEditingAtPath(new TreePath(favNode.getPath()));
+                    
                         favoritesTree.setRootVisible(false);
                         this.setFavoritesTree(favoritesTree);
                         
                         
                     }
                     
-                }
                 
-                else{System.out.println("cannot add a Favorites to a non-favorties folder");}
+                
+               
                 
             }//Finish add a bookmark folder
             else
                 
             {
-                resNode.getResource().displayContent();
                 
+                if (resNode instanceof FileNode) { ((FileNode)resNode).displayContent();}
+                else {
+                resNode.getResource().displayContent();
+                }
             }
             
             
@@ -629,36 +648,72 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     }
     
  class PopupListener extends MouseAdapter {
-        JPopupMenu popup;
-
-        PopupListener(JPopupMenu popupMenu) {
+        JPopupMenu popup,popup2,popup3;
+         VueDandDTree vtree = FavoritesWindow.this.getFavoritesTree();
+        
+        PopupListener(JPopupMenu popupMenu, JPopupMenu popupMenu2, JPopupMenu popupMenu3 ) {
             popup = popupMenu;
+            popup2 = popupMenu2;
+             popup3 = popupMenu3;
+            
         }
 
         public void mousePressed(MouseEvent e) {
+            
+           
             maybeShowPopup(e);
         }
 
          public void mouseClicked(MouseEvent e) {
+            
+              if (vtree.getSelectionPath() != null){
+               DefaultMutableTreeNode seltreeNode = (DefaultMutableTreeNode)vtree.getSelectionPath().getLastPathComponent();
+               
+                  DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)vtree.getClosestPathForLocation(e.getX(), e.getY()).getLastPathComponent();
+               if (treeNode != seltreeNode) {
+                    
+                   vtree.clearSelection();
+               }
+               }  
             maybeShowPopup(e);
         }
 
         public void mouseReleased(MouseEvent e) {
+           
             maybeShowPopup(e);
         }
 
         private void maybeShowPopup(MouseEvent e) {
+            
             if (e.isPopupTrigger()) {
-               
-                
-                popup.show(e.getComponent(),
+                   
+                    popup3.show(e.getComponent(),
                            e.getX(), e.getY());
+                    
+                
+                if (vtree.getSelectionPath() != null){
+               if (vtree.getSelectionPath().getLastPathComponent() instanceof FavoritesNode){
+                    popup.show(e.getComponent(),
+                           e.getX(), e.getY());
+                         }
+                   else{
+                       popup2.show(e.getComponent(),
+                           e.getX(), e.getY());
+                       
+                   }
+                }
+                
+                 
+                
+                
+               
             }
+             }
         }
    }      
      
     
-}
+
 
 
 
