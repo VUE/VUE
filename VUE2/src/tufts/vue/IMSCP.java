@@ -19,9 +19,9 @@ import java.util.zip.*;
  */
 public class IMSCP {
     
-    /** Creates a new instance of IMSCP */
-    private final String MANIFEST_FILE = "imsmanifest.xml";
-    private final String RESOURCE_FILES = "resource-files";
+    public static final String MANIFEST_FILE = "imsmanifest.xml";
+    public static final String MAP_FILE = "concept_map.xml";
+    public static final String RESOURCE_FILES = "resource-files";
     private final int BUFFER_SIZE = 10240;
 
     private URL location;
@@ -48,10 +48,8 @@ public class IMSCP {
     }
     
     public InputStream getConceptMap() throws ZipException,IOException {
-        String fileName = location.getFile();
-        String prefix = fileName.substring(fileName.lastIndexOf("/")+1,fileName.indexOf("."));
-        String suffix = ".xml";
-        return getContent(prefix+suffix);
+
+        return getContent(MAP_FILE);
     }
     
     public InputStream getResource(String fileName) throws ZipException, IOException{
