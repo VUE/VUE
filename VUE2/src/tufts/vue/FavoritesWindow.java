@@ -67,14 +67,27 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         }catch(Exception e) { System.out.println("Favorites"+e);}
         
            
-            File f  = new File(FAVORITES_MAPPING);
-                         
+         
+           File f  = new File(FAVORITES_MAPPING);
+             
+              if (f.exists()){ 
+                  
             SaveVueJTree restorefavtree = unMarshallMap(f);
-            System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
+          //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
             VueDandDTree favoritesTree =restorefavtree.restoreTree();
-            this.setFavoritesTree(favoritesTree); 
+              this.setFavoritesTree(favoritesTree); 
+          
+           }
            
-          System.out.println("Favorites--"+ FAVORITES_MAPPING);
+           else{
+               
+               FavoritesNode favRoot = new FavoritesNode("My Favorites");
+               VueDandDTree favoritesTree = new VueDandDTree(favRoot);
+                this.setFavoritesTree(favoritesTree); 
+           }
+            
+           
+          //System.out.println("Favorites--"+ FAVORITES_MAPPING);
         JPanel searchResultsPane = new JPanel();
         FavSearchPanel favSearchPanel = new FavSearchPanel(favoritesTree,favoritesPane,searchResultsPane);
             
