@@ -147,15 +147,19 @@ public class LWComponent
     {
         if (text == null)
             return null;
-        else
+        else {
+            text = text.replaceAll("%", "%pct;");
             return text.replaceAll("\n", "%nl;");
+        }
     }
     private String unescapeNewlines(String text)
     {
         if (text == null)
             return null;
-        else
-            return text.replaceAll("%nl;", "\n");
+        else { 
+            text = text.replaceAll("%nl;", "\n");
+            return text.replaceAll("%pct;", "%");
+        }
     }
     
     /**
