@@ -1030,6 +1030,7 @@ public class LWComponent
                                        + "\n\tevent was: " + e
                                        + "\n\tfailing listener: " + l);
                     ex.printStackTrace();
+                    java.awt.Toolkit.getDefaultToolkit().beep();
                 }
             }
         }
@@ -1190,7 +1191,7 @@ public class LWComponent
         String s = cname.substring(cname.lastIndexOf('.')+1);
         s += "[" + getID();
         if (getLabel() != null)
-            s += " \"" + getLabel() + "\"";
+            s += " \"" + escapeNewlines(getLabel()) + "\"";
         if (getScale() != 1f)
             s += " z" + getScale();
         s += paramString();

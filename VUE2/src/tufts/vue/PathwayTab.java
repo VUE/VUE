@@ -505,8 +505,13 @@ private int bHeight = 23, bWidth = 42, bWidth2 = 48;
         //pathwayList.addItem(addPathway);
         
         //iterting through to add existing pathways to the combo box list
-        for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
-           //pathwayList.addItem((LWPathway)i.next());           
+        // this was a coded infinite loop!  ugh -- SMF 2004-01-06 17:40.57 Tuesday
+        for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();) {
+            LWPathway p = (LWPathway) i.next();
+            System.out.println("PathwayTab.setPathwayManger: would be processing " + p);
+            // Commenting out the "i.next()" leaves this an infinite loop calling i.hasNext()...
+            //pathwayList.addItem((LWPathway)i.next());
+        }
         
         //sets the current pathway to the current pathway of the manager
         if ((pathwayManager.getCurrentPathway() != null) 

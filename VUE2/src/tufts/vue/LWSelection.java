@@ -95,10 +95,20 @@ public class LWSelection extends java.util.ArrayList
     {
         if (isClone) throw new IllegalStateException("LWSelection: clone's can't notify listeners! " + this);
         
+        if (DEBUG_SELECTION) System.out.println("LWSelection NOTIFYING LISTENERS " + this);
         Iterator i = listeners.iterator();
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
-            l.selectionChanged(this);
+            try {
+                if (DEBUG_SELECTION) System.out.println("LWSelection notifying: " + l);
+                l.selectionChanged(this);
+            } catch (Exception ex) {
+                System.err.println("LWSelection.notifyListeners: exception during selection change notification:"
+                                   + "\n\tselection: " + this
+                                   + "\n\tfailing listener: " + l);
+                ex.printStackTrace();
+                java.awt.Toolkit.getDefaultToolkit().beep();
+            }
         }
     }
 

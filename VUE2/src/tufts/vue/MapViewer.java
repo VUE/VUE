@@ -905,6 +905,7 @@ public class MapViewer extends javax.swing.JPanel
     private static LWComponent mTipLWC;
     private static JComponent mTipComponent;
     private static Popup mTipWindow;
+    private static LWComponent mMouseOver;
     void setTip(LWComponent lwc, JComponent jc, Rectangle2D tipRegion)
     {
         if (jc != mTipComponent && jc != null) {
@@ -1833,9 +1834,16 @@ public class MapViewer extends javax.swing.JPanel
                 componentPopup.remove(assetMenu);
             }
             
-        } else {
-            //componentPopup.remove(Actions.NodeMakeAutoSized);
         }
+        /*
+          // TODO: if JUST a group is selected, need to add Ungroup
+          // to the menu
+        else if (c instanceof LWGroup) {
+            componentPopup.add(Actions.Ungroup);
+        } else {
+            componentPopup.remove(Actions.Ungroup);
+        }
+        */
 
 
         if (c instanceof LWLink)
@@ -2505,7 +2513,6 @@ public class MapViewer extends javax.swing.JPanel
         */
 
 
-        private LWComponent mMouseOver;
         public void mouseMoved(MouseEvent e)
         {
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
@@ -2563,14 +2570,28 @@ public class MapViewer extends javax.swing.JPanel
             }
         }
 
-        public void mouseExited(MouseEvent e)
+        public void mouseEntered(MouseEvent e)
         {
             System.out.println(e);
             if (mMouseOver != null) {
                 mMouseOver.mouseExited(new MapMouseEvent(e));
                 mMouseOver = null;
             }
-            clearTip();
+        }
+
+        public void mouseExited(MouseEvent e)
+        {
+            System.out.println(e);
+            if (false&&mMouseOver != null) {
+                mMouseOver.mouseExited(new MapMouseEvent(e));
+                mMouseOver = null;
+            }
+            //clearTip();//todo: on a timer instead so no flashing of rollover the tip
+            // would still be nice to do this tho because we get a mouse
+            // exited when you rollover the tip-window itself, and if
+            // it's right at the edge of the node and you're going for
+            // the resize-control, better to have the note clear out
+            // so you don't accidentally hit the tip when going for the control.
         }
         
         //private int drags=0;
@@ -3336,7 +3357,7 @@ public class MapViewer extends javax.swing.JPanel
 
     private void grabVueApplicationFocus(String from)
     {
-        //if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from);
+        if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from);
         if (VUE.getActiveViewer() != this) {
             if (DEBUG_FOCUS) System.out.println(this + " grabVueApplicationFocus " + from + " *** GRABBING ***");
             //new Throwable("REAL GRAB").printStackTrace();
@@ -3350,24 +3371,23 @@ public class MapViewer extends javax.swing.JPanel
                 //added by Daisuke Fujiwara
                 //accomodates pathway manager swapping when the displayed map is changed
                 //can this be moved to setActiveViewer method????
-                // todo: cleanup -- this conditional makes no sense as we've just set the active viewer to us...
-                if (this == VUE.getActiveViewer())
-                {
-                    if (VUE.getPathwayInspector() != null) {
-                        VUE.getPathwayInspector().setPathwayManager(this.map.getPathwayManager());
+
+                if (VUE.getPathwayInspector() != null) {
+                    if (DEBUG_FOCUS) System.err.println("Setting pathway manager to: " + getMap().getPathwayManager());
+                    VUE.getPathwayInspector().setPathwayManager(getMap().getPathwayManager());
                     
-                        //outline view
-                        VUE.getOutlineViewTree().getTree().switchContainer(this.map);
-                        
-                        //hierarchy view
-                        /*
-                          Doesn't compile -- SMF 2004-01-04 12:32.51 Sunday
-                        if(this.map instanceof LWHierarchyMap)
-                          VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
-                        else
-                          VUE.getHierarchyTree().setHierarchyModel(null);
-                        */
-                    }
+                    //outline view
+                    if (DEBUG_FOCUS) System.err.println("Notifying outline tree view...");
+                    VUE.getOutlineViewTree().getTree().switchContainer(getMap());
+                    
+                    //hierarchy view
+                    /*
+                      Doesn't compile -- SMF 2004-01-04 12:32.51 Sunday
+                      if(this.map instanceof LWHierarchyMap)
+                      VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
+                      else
+                      VUE.getHierarchyTree().setHierarchyModel(null);
+                    */
                 }
                 //end of addition
                 

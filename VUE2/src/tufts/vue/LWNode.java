@@ -1066,8 +1066,10 @@ public class LWNode extends LWContainer
     public Color getRenderFillColor()
     {
         Color c = getFillColor();
-        if (c != null && c.equals(getParent().getRenderFillColor()))
-            c = darkerColor(c);
+        if (getParent() instanceof LWNode) {
+            if (c != null && c.equals(getParent().getRenderFillColor()))
+                c = darkerColor(c);
+        }
         return c;
     }
     
