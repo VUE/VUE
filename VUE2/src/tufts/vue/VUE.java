@@ -1021,7 +1021,8 @@ public class VUE
             helpMenu.add(aboutUs);
             aboutusTool = new ToolWindow("VUE: About VUE", tufts.vue.VUE.getInstance());
             JPanel backPanel = new JPanel();
-            backPanel.setBorder(new LineBorder(Color.WHITE,20));
+            //backPanel.setBorder(new LineBorder(Color.WHITE,20));
+            backPanel.setBorder(new EmptyBorder(20,20,20,20));
             backPanel.setMinimumSize(new Dimension(275,147));
       
         
@@ -1035,6 +1036,8 @@ public class VUE
             labelPanel.add(jtf,BorderLayout.CENTER);
           
             aboutusPanel.setLayout(new BorderLayout());
+            //spLabel.setBorder(new LineBorder(Color.white, 5));
+            //spLabel.setBackground(Color.white);
             aboutusPanel.add(spLabel,BorderLayout.CENTER);
          
             jtf.addMouseListener(new MouseAdapter(){
@@ -1045,7 +1048,7 @@ public class VUE
                     }
                 });
        
-            labelPanel.setBackground(Color.WHITE);
+            //labelPanel.setBackground(Color.WHITE);
             aboutusPanel.add(labelPanel,BorderLayout.SOUTH);
         
             backPanel.setLayout(new BorderLayout());

@@ -54,8 +54,11 @@ public interface LWKey {
     public String HierarchyChanged = "hier.changed"; // post-change event for hierarchy changes during undo operations
 
     public String Deleting = ":deleting"; // the component's just-before-delete notify
-    public String Deleted = "deleted"; // the component's after-delete notify
+    //public String Deleted = "deleted"; // the component's after-delete notify
 
+    public String LinkAdded = "lwc.link.added"; // a link has been added to this component
+    public String LinkRemoved = "lwc.link.removed"; // a link has been removed from this component
+    
     public String Repaint = "repaint"; // general: visual change but no permanent data change
 
     /** link arrow state: 0=none, 1=start arrow, 2=end arrow, 3=both arrows */

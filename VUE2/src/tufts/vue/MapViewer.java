@@ -981,7 +981,7 @@ public class MapViewer extends javax.swing.JComponent
             || k == LWKey.StrokeWidth  // because size events special off for this!
             || k == LWKey.Font // because size events special off for this!
             || k == LWKey.Label // because size events special off for this!
-            || k == LWKey.Deleted // not currently being issued!
+            //|| k == LWKey.Deleted // not currently being issued!
             //|| k == LWKey.Filtered // no such event yet
             ;
     }

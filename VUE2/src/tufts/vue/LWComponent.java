@@ -825,6 +825,7 @@ public class LWComponent
         if (this.links.contains(link))
             throw new IllegalStateException("addLinkRef: " + this + " already contains " + link);
         this.links.add(link);
+        notify(LWKey.LinkAdded, link); // informational only event
     }
     /* for tracking who's linked to us */
     void removeLinkRef(LWLink link)
@@ -832,7 +833,9 @@ public class LWComponent
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
         if (!this.links.remove(link))
             throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
+        notify(LWKey.LinkRemoved, link); // informational only event
     }
+    
     /* tell us all the links who have us as one of their endpoints */
     java.util.List getLinkRefs()
     {
