@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 public class LWSelection extends java.util.ArrayList
 {
-    static final boolean DEBUG_SELECTION = true;
+    static final boolean DEBUG_SELECTION = false;
 
     java.util.ArrayList listeners = new java.util.ArrayList();
 

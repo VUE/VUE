@@ -108,10 +108,11 @@ public abstract class LWContainer extends LWComponent
     public void deleteChild(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING " + c);
+        c.notify("deleting");
         removeChild(c);
         // note that parents of c will not get this event as
         // c.parent has been nulled by now -- but listeners will get it.
-        c.notify("deleted");
+        //c.notify("deleted");
         c.removeAllLWCListeners();
     }
 

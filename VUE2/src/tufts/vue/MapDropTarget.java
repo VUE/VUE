@@ -8,7 +8,11 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
 import java.awt.geom.Point2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 
+
+//todo: rename LWMapDropTarget?
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
 {
@@ -17,52 +21,62 @@ class MapDropTarget
     // this existed in 1.3, but apparently went away in 1.4.
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
 
-    private final int ACCEPTABLE_DROP_TYPES = DnDConstants.ACTION_COPY_OR_MOVE | DnDConstants.ACTION_LINK;
-
-    //ConceptMap conceptMap;
-    java.awt.Container mapContainer;
-    java.awt.Point lastPoint;
+    private final int ACCEPTABLE_DROP_TYPES =
+        DnDConstants.ACTION_COPY |
+        DnDConstants.ACTION_LINK;
+        //DnDConstants.ACTION_MOVE;
+        // FYI, "move" doesn't appear to actually ever mean delete original source.
+        // Putting this in makes certial special windows files "available"
+        // for drag (e.g., a desktop "hard" reference link), yet there are never
+        // any data-flavors available to process it, so we might as well indicate
+        // that we can't accept it.
 
     private final boolean debug = true;
     
-    //public MapDropTarget(java.awt.Container mapContainer, ConceptMap conceptMap)
-    public MapDropTarget(java.awt.Container mapContainer)
+    private MapViewer viewer;
+
+    public MapDropTarget(MapViewer viewer)
     {
-       this.mapContainer = mapContainer;
-       //this.conceptMap = conceptMap;
+       this.viewer = viewer;
     }
 
     public void dragEnter(DropTargetDragEvent e)
     {
         e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-        if (debug) System.err.println("MapDropTarget: dragEnter " + e);
+        if (debug) System.out.println("MapDropTarget: dragEnter " + e);
     }
 
     public void dragOver(DropTargetDragEvent e)
     {
         e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-        lastPoint = e.getLocation();
-        //System.err.println("MapDropTarget:  dragOver");
+        //System.out.println("MapDropTarget:  dragOver");
     }
 
     public void dragExit(DropTargetEvent e)
     {
-        if (debug) System.err.println("MapDropTarget: dragExit " + e);
+        if (debug) System.out.println("MapDropTarget: dragExit " + e);
     }
 
     public void dropActionChanged(DropTargetDragEvent e)
     {
-        if (debug) System.err.println("MapDropTarget: dropActionChanged " + e);
+        if (debug) System.out.println("MapDropTarget: dropActionChanged " + e);
     }
     
     public void drop(DropTargetDropEvent e)
     {
-        if (debug) System.err.println("MapDropTarget: drop " + e);
-        if (debug) System.err.println("MapDropTarget: lastPoint=" + lastPoint);
+        if (debug) System.out.println("MapDropTarget: DROP " + e
+                                      + "\n\tsourceActions=" + e.getSourceActions()
+                                      + "\n\tdropAction=" + e.getDropAction()
+                                      + "\n\tlocation=" + e.getLocation()
+                                      );
+        java.awt.Point dropLocation = e.getLocation();
 
-        if ((e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
+        //if ((e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
+        if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
+            //e.acceptDrop(e.getDropAction());
             e.acceptDrop(DnDConstants.ACTION_COPY);
         } else {
+            if (debug) System.out.println("MapDropTarget: rejecting drop");
             e.rejectDrop();
             return;
         }
@@ -77,22 +91,23 @@ class MapDropTarget
         java.awt.Image droppedImage = null;
         java.util.List fileList = null;
         
-        if (debug) System.err.println("drop: found " + dataFlavors.length + " dataFlavors");
+        if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
         for (int i = 0; i < dataFlavors.length; i++) {
             DataFlavor flavor = dataFlavors[i];
             Object data = null;
             
-            if (debug) System.err.print("flavor" + i + " " + flavor.getMimeType());
+            if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
             try {
                 data = transfer.getTransferData(flavor);
             } catch (Exception ex) {
-                System.err.println("getTransferData: " + ex);
+                System.out.println("getTransferData: " + ex);
             }
-            if (debug) System.err.println(" transferData=" + data);
+            if (debug) System.out.println(" transferData=" + data);
 
             try {
                 if (data instanceof java.awt.Image) {
                     droppedImage = (java.awt.Image) data;
+                    if (debug) System.out.println("drop: found image " + droppedImage);
                     break;
                 } else if (flavor.isFlavorJavaFileListType()) {
                     fileList = (java.util.List) transfer.getTransferData(flavor);
@@ -111,108 +126,97 @@ class MapDropTarget
                         break;
                     
                 } else {
-                    //System.err.println("Unhandled flavor: " + flavor);
+                    //System.out.println("Unhandled flavor: " + flavor);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
-                //System.err.println(ex);
+                //System.out.println(ex);
                 continue;
             }
         }
 
-        //MapDropEvent mapDropEvent = null;
-
         if (droppedImage != null) {
-            createNewNode(droppedImage, lastPoint);
-            //mapDropEvent = new MapDropEvent(droppedImage, lastPoint);
+            createNewNode(droppedImage, dropLocation);
             success = true;
         } else if (fileList != null) {
-            if (debug) System.err.println("\tLIST, size= " + fileList.size());
+            if (debug) System.out.println("\tLIST, size= " + fileList.size());
             java.util.Iterator iter = fileList.iterator();
-            int x = lastPoint.x;
-            int y = lastPoint.y;
+            int x = dropLocation.x;
+            int y = dropLocation.y;
             while (iter.hasNext()) {
                 java.io.File file = (java.io.File) iter.next();
-                if (debug) System.err.println("\t" + file.getClass().getName() + " " + file);
+                if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
                 createNewNode(file.toString(), file.getName(), new java.awt.Point(x, y));
-                //mapDropEvent = new MapDropEvent(file.toString(), file.getName(), new java.awt.Point(x, y));
-                // todo: need to raise here too... or rather, should
-                // raise a MapDropCollectionEvent, or rather the MapDropEvent contains a collection
                 x += 15;
                 y += 15;
                 success = true;
             }
         } else if (resourceName != null) {
-            createNewNode(resourceName, null, lastPoint);
-            //mapDropEvent = new MapDropEvent(resourceName, null, lastPoint);
+            createNewNode(resourceName, null, dropLocation);
             success = true;
         }
 
         e.dropComplete(success);
-        
-        /*if (mapDropEvent != null) {
-            e.dropComplete(true);            
-        } else {
-            e.dropComplete(false);
-            }*/
-
-            
     }
 
-    String readTextFlavor(DataFlavor flavor, Transferable transfer)
+    private String readTextFlavor(DataFlavor flavor, Transferable transfer)
     {
         java.io.Reader reader = null;
         String value = null;
         try {
             reader = flavor.getReaderForText(transfer);
-            if (debug) System.err.println("\treader=" + reader);
+            if (debug) System.out.println("\treader=" + reader);
             char buf[] = new char[512];
             int got = reader.read(buf);
             value = new String(buf, 0, got);
-            if (debug) System.err.println("\t[" + value + "]");
+            if (debug) System.out.println("\t[" + value + "]");
             if (reader.read() != -1)
-                System.err.println("there was more data in the reader");
+                System.out.println("there was more data in the reader");
         } catch (Exception e) {
             System.err.println("readTextFlavor: " + e);
         }
         return value;
     }
 
-    // fixme todo: change this to a resource-dropped event (w/location)
+    // todo?: change this to a resource-dropped event (w/location)
     // then we don't even have to know about the map, or the MapViewer
     // which for instance can do the zoom conversion of the drop location
     // for us.
-    void createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
+    private void createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
     {
-        Point2D location = dropToMapLocation(p);
-
         if (resourceTitle == null)
             resourceTitle = createResourceTitle(resourceName);
 
-        /*
-        Node n = new Node(resourceTitle, new Resource(resourceName), location);
-        conceptMap.addNode(n);
-        */
-        throw new RuntimeException("tmp unimp");
-        //((MapViewer)mapContainer).setSelection(((MapViewer)mapContainer).findLWNode(n));
-        //todo:fixme
+        // todo: query the NodeTool for current node shape, etc.
+        LWNode node = new LWNode(resourceTitle);
+        node.setLocation(dropToMapLocation(p));
+        node.setResource(new Resource(resourceName));
+        viewer.getMap().addNode(node);
+        //set selection to node?
     }
 
-    void createNewNode(java.awt.Image image, java.awt.Point p)
+    private void createNewNode(java.awt.Image image, java.awt.Point p)
     {
-        Point2D location = dropToMapLocation(p);
-
-        throw new RuntimeException("tmp unimp");
+        // todo: query the NodeTool for current node shape, etc.
+        LWNode node = new LWNode();
+        node.setLocation(dropToMapLocation(p));
+        node.setImage(image);
+        node.setNotes(image.toString());
+        viewer.getMap().addNode(node);
+        //set selection to node?
         
         /*
-          Node n = new Node("Image Label", location);
-        conceptMap.addNode(n);
-        LWNode lwNode = ((MapViewer)mapContainer).findLWNode(n);
-        lwNode.setImage(image);
-        */
-        
-        //((MapViewer)mapContainer).setSelection(lwNode);
-        //todo:fixme
+        String label = "[image]";
+        if (image instanceof BufferedImage) {
+            BufferedImage bi = (BufferedImage) image;
+            label = "[image "
+                + bi.getWidth() + "x"
+                + bi.getHeight()
+                + " type " + bi.getType()
+                + "]";
+            //System.out.println("BufferedImage: " + bi.getColorModel());
+            // is null System.out.println("BufferedImage props: " + java.util.Arrays.asList(bi.getPropertyNames()));
+            }*/
     }
 
     private Point2D dropToMapLocation(java.awt.Point p)
@@ -222,23 +226,21 @@ class MapDropTarget
 
     private Point2D dropToMapLocation(int x, int y)
     {
+        return viewer.screenToMapPoint(x, y);
         /*
-        java.awt.Insets mapInsets = mapContainer.getInsets();
-        java.awt.Point mapLocation = mapContainer.getLocation();
-        System.err.println("mapContainer insets=" + mapInsets);
-        System.err.println("mapContainer location=" + mapLocation);
+        java.awt.Insets mapInsets = viewer.getInsets();
+        java.awt.Point mapLocation = viewer.getLocation();
+        System.out.println("viewer insets=" + mapInsets);
+        System.out.println("viewer location=" + mapLocation);
         x -= mapLocation.x;
         y -= mapLocation.y;
         x -= mapInsets.left;
         y -= mapInsets.top;
         */
-
-        // todo: hack till we raise an application drop event
-        return ((MapViewer)mapContainer).screenToMapPoint(x, y);
     }
 
 
-    String createResourceTitle(String resourceName)
+    private String createResourceTitle(String resourceName)
     {
         int i = resourceName.lastIndexOf('/');
         if (i == resourceName.length() - 1)

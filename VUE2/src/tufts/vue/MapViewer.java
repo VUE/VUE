@@ -19,7 +19,7 @@ import javax.swing.text.JTextComponent;
  * @version 3/16/03
  */
 
-//todo: rename LWViewer
+//todo: rename LWViewer or LWCanvas
 public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
@@ -60,7 +60,6 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_KEYS = false;
     private boolean DEBUG_MOUSE = false;
-    private boolean DEBUG_SELECTION = false;
     private int mouseX;
     private int mouseY;
     //-------------------------------------------------------
@@ -319,7 +318,7 @@ public class MapViewer extends javax.swing.JPanel
         System.out.println("MapViewer: " + e);
         if (e.getWhat().equals("location"))
             return;
-        if (e.getWhat().equals("deleted")) {
+        if (e.getWhat().equals("deleting")) {
             // FYI, the selection itself could listen for this,
             // but that's a ton of events for this one thing.
             // todo: maybe have LWContainer check isSelected & manage it in deleteChild?
@@ -1118,8 +1117,8 @@ public class MapViewer extends javax.swing.JPanel
             float mapY = screenToMapY(e.getY());
 
             this.hitComponent = getMap().findLWComponentAt(mapX, mapY);
-            //if (DEBUG_MOUSE)
-            if (hitComponent != null)
+            if (DEBUG_MOUSE)
+                //if (hitComponent != null)
                 System.out.println("\t    on " + hitComponent + "\n" + 
                                    "\tparent " + hitComponent.getParent());
             
@@ -1179,6 +1178,8 @@ public class MapViewer extends javax.swing.JPanel
                         selectionAdd(justSelected = hitComponent);
                     }
                     if (VueSelection.size() > 1) {
+                        // could have this be a permanent group who's
+                        // child list has actually been set to the VueSelection...
                         dragComponent = LWGroup.createTemporary(VueSelection);
                         // todo opt: could cache this group instead of creating
                         // every click -- might speed up huge selections

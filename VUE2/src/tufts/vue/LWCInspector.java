@@ -156,7 +156,7 @@ class LWCInspector extends javax.swing.JPanel
         System.out.println("LWCInspector: " + e);
         if (this.lwc != e.getComponent())
             return;
-        if (e.getWhat().equals("deleted")) {
+        if (e.getWhat().equals("deleting")) {
             this.lwc = null;
             //loadItem(null);
             setAllEnabled(false);
@@ -226,6 +226,8 @@ class LWCInspector extends javax.swing.JPanel
         if (lwc == null)
             return;
 
+        //System.out.println(this + " loading " + lwc);
+
         if (lwc instanceof LWNode) { // todo: instanceof Node interface
             if (lwc.getResource() != null)
                 loadText(resourceField, lwc.getResource().toString());
@@ -240,8 +242,13 @@ class LWCInspector extends javax.swing.JPanel
             //resourceLabel.setVisible(false);
             //resourceField.setVisible(false);
         }
-        
-        idField.setText(lwc.getID());
+
+        String id = lwc.getID();
+        if (lwc.getParent() == null)
+            id += " [parent is null!]";
+        else
+            id += " [parent: " + lwc.getParent().getLabel() + "]";
+        idField.setText(id);
         labelField.setBackground(lwc.getFillColor());
         loadText(labelField, lwc.getLabel());
         loadText(categoryField, lwc.getCategory());
@@ -250,7 +257,10 @@ class LWCInspector extends javax.swing.JPanel
         //loadText(heightField, new Float(lwc.getHeight()).toString());
         
         locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
-        sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
+        String sizeText = lwc.getWidth() + " x " + lwc.getHeight();
+        if (lwc.getScale() != 1f)
+            sizeText += "  z" + lwc.getScale();
+        sizeField.setText(sizeText);
         //Font f = lwc.getFont();
         //if (lwc.getScale() != 1)
         //  fontString += " (" + (f.getSize()*lwc.getScale()) + ")";
@@ -308,7 +318,7 @@ class LWCInspector extends javax.swing.JPanel
 
     public String toString()
     {
-        return getClass().getName() + "@" + Integer.toHexString(hashCode());
+        return "LWCInspector@" + Integer.toHexString(hashCode());
     }
 
 

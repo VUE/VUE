@@ -25,6 +25,8 @@ public class LWComponent
     implements MapItem,
                VueConstants
 {
+    static boolean DEBUG_LAYOUT = false;
+    
     public interface Listener extends java.util.EventListener
     {
         public void LWCChanged(LWCEvent e);
@@ -449,6 +451,7 @@ public class LWComponent
     
     public void setSize(float w, float h)
     {
+        if (DEBUG_LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
         this.width = w;
         this.height = h;
     }
@@ -671,6 +674,8 @@ public class LWComponent
             s += " \"" + getLabel() + "\"";
         s += " " + x+","+y;
         s += " " + width + "x" + height;
+        if (getScale() != 1f)
+            s += " z" + getScale();
         s += "]";
         return s;
     }

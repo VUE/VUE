@@ -119,6 +119,7 @@ public class LWNode extends LWContainer
     {
         // experimental
         imageIcon = new ImageIcon(image, "Image Description");
+        setAutoSized(false);
         setShape(new Rectangle2D.Float());
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
     }
@@ -149,6 +150,7 @@ public class LWNode extends LWContainer
 
     public void setSize(float w, float h)
     {
+        if (DEBUG_LAYOUT) System.out.println("*** LWNode setSize " + w + "x" + h + " " + this);
         setSizeNoLayout(w, h);
         layout();
     }
@@ -176,7 +178,7 @@ public class LWNode extends LWContainer
     
     private void adjustDrawnShape()
     {
-        this.drawnShape.setFrame(0, 0, this.width, this.height);
+        this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
     }
     
     private void X_adjustDrawnShape()
@@ -287,10 +289,14 @@ public class LWNode extends LWContainer
         layoutChildren();
     }
     
+    // TODO OPT: way too much activity setting these layouts --
+    // everybody is getting there size reset all the time --
+    // see DEBUG_LAYOUT & work w/child nodes.
     protected void layout()
     {
         //System.out.println("layout " + this);
-        setPreferredSize();
+        if (isAutoSized())
+            setPreferredSize();
         layoutChildren();
         
         // could set size from label first, then layout children and
@@ -453,23 +459,25 @@ public class LWNode extends LWContainer
             g.draw(boundsShape);
         }
 
-        if (imageIcon != null)
-            return;
+        //-------------------------------------------------------
+        // Draw the text label
+        //-------------------------------------------------------
         
-        // Draw the text
-        float textBaseline = labelY();
-        if (false) {
-            // box the text for seeing layout metrics
-            g.setStroke(new BasicStroke(0.0001f));
-            g.setColor(Color.black);
-            g.draw(new Rectangle2D.Float(this.padX,
-                                         textBaseline-fontHeight,
-                                         fontStringWidth,
-                                         fontHeight));
+        if (label != null) {
+            float textBaseline = labelY();
+            if (false) {
+                // box the text for seeing layout metrics
+                g.setStroke(new BasicStroke(0.0001f));
+                g.setColor(Color.black);
+                g.draw(new Rectangle2D.Float(this.padX,
+                                             textBaseline-fontHeight,
+                                             fontStringWidth,
+                                             fontHeight));
+            }
+            g.setColor(getTextColor());
+            g.drawString(label, labelX(), textBaseline);
+            //g.drawString(label, getX() + labelX(), getY() + textBaseline);
         }
-        g.setColor(getTextColor());
-        g.drawString(label, labelX(), textBaseline);
-        //g.drawString(label, getX() + labelX(), getY() + textBaseline);
 
         /*
           // temp: show the resource--  todo: display an icon
@@ -492,19 +500,6 @@ public class LWNode extends LWContainer
         // Draw any children
         //-------------------------------------------------------
         super.draw(g);
-
-        /*
-        if (hasChildren()) {
-            if (scale != 1f)
-                g.scale(1/scale, 1/scale);
-            g.translate(-getX(), -getY());
-            java.util.Iterator i = getChildIterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                c.draw((Graphics2D) g.create());
-            }
-        }
-        */
     }
 
     static class NodeShape {
