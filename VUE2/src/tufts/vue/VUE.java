@@ -38,8 +38,8 @@ public class VUE
 
     public static JFrame frame;
     
-    private static MapTabbedPane tabbedPane;
-    private static MapTabbedPane tabbedPane2;//todo: rename left/right
+    private static MapTabbedPane mMapTabsLeft;
+    private static MapTabbedPane mMapTabsRight;
     private static JSplitPane viewerSplit;
     
     //pathway components
@@ -234,13 +234,13 @@ public class VUE
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
 
-        tabbedPane = new MapTabbedPane();
-        tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
-        tabbedPane.setPreferredSize(new Dimension(300,400));
+        mMapTabsLeft = new MapTabbedPane();
+        mMapTabsLeft.setTabPlacement(SwingConstants.BOTTOM);
+        mMapTabsLeft.setPreferredSize(new Dimension(300,400));
         
-        tabbedPane2 = new MapTabbedPane();
-        tabbedPane2.setTabPlacement(SwingConstants.BOTTOM);
-        tabbedPane2.setPreferredSize(new Dimension(300,400));
+        mMapTabsRight = new MapTabbedPane();
+        mMapTabsRight.setTabPlacement(SwingConstants.BOTTOM);
+        mMapTabsRight.setPreferredSize(new Dimension(300,400));
 
         if (true||args.length < 1) { // pathway code currently blowing us out unless we have these maps loaded
             //-------------------------------------------------------
@@ -289,16 +289,16 @@ public class VUE
 
         viewerSplit = new JSplitPane();
         viewerSplit.setOneTouchExpandable(true);
-        viewerSplit.setRightComponent(tabbedPane2);
+        viewerSplit.setRightComponent(mMapTabsRight);
         // NOTE: set left component AFTER set right component -- the
         // LAST set left/right call determines the default focus component!
         // It needs to be the LEFT component as the right one isn't
         // even visible at startup!
-        viewerSplit.setLeftComponent(tabbedPane);
+        viewerSplit.setLeftComponent(mMapTabsLeft);
         viewerSplit.setResizeWeight(0.5);
         viewerSplit.setDividerLocation(9999);
 
-        //splitPane.setRightComponent(tabbedPane);
+        //splitPane.setRightComponent(mMapTabsLeft);
         splitPane.setRightComponent(viewerSplit);
 
         frame = new VueFrame();
@@ -425,16 +425,16 @@ public class VUE
     public static void setViewerScrollbarsDisplayed(boolean add)
     {
         if (add) {
-            JScrollPane scroller = new JScrollPane(tabbedPane.getComponentAt(0));
+            JScrollPane scroller = new JScrollPane(mMapTabsLeft.getComponentAt(0));
             //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
-            tabbedPane.addTab("scrolling test", scroller);
-            //tabbedPane.setComponentAt(0, scroller);
+            mMapTabsLeft.addTab("scrolling test", scroller);
+            //mMapTabsLeft.setComponentAt(0, scroller);
         }
     }
 
     public static int openMapCount()
     {
-        return tabbedPane.getTabCount();
+        return mMapTabsLeft.getTabCount();
     }
     
     public static void setActiveViewer(MapViewer viewer)
@@ -455,14 +455,14 @@ public class VUE
     public static MapViewer getActiveViewer()
     {
         /*   
-        Object c = tabbedPane.getSelectedComponent();
+        Object c = mMapTabsLeft.getSelectedComponent();
         if(c instanceof JScrollPane){
             
-            String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
+            String title = mMapTabsLeft.getTitleAt(mMapTabsLeft.getSelectedIndex());
             title = title.substring(0, title.length()-4);
-            for(int i = 0; i < tabbedPane.getTabCount(); i++){
-                if(tabbedPane.getTitleAt(i).equals(title)){
-                    return (MapViewer) tabbedPane.getComponentAt(i);
+            for(int i = 0; i < mMapTabsLeft.getTabCount(); i++){
+                if(mMapTabsLeft.getTitleAt(i).equals(title)){
+                    return (MapViewer) mMapTabsLeft.getComponentAt(i);
                 }
             }
         } 
@@ -475,7 +475,7 @@ public class VUE
     }
     
     public static JTabbedPane getTabbedPane(){
-        return tabbedPane;
+        return mMapTabsLeft;
     }
 
     public static LWMap getActiveMap()
@@ -489,7 +489,7 @@ public class VUE
     /*
     public static void addViewer(MapViewer viewer)
     {
-        tabbedPane.addTab(viewer.getMap().getLabel(), viewer);
+        mMapTabsLeft.addTab(viewer.getMap().getLabel(), viewer);
     }
     */
     
@@ -497,8 +497,8 @@ public class VUE
     public static void closeViewer(Component c)
     {
         // todo: as closeMap
-        tabbedPane.remove(c);
-        tabbedPane2.remove(c);
+        mMapTabsLeft.remove(c);
+        mMapTabsRight.remove(c);
     }
     */
 
@@ -506,8 +506,8 @@ public class VUE
     public static void closeMap(LWMap map)
     {
         // TODO: check for modifications and ask for save!
-        tabbedPane.closeMap(map);
-        tabbedPane2.closeMap(map);
+        mMapTabsLeft.closeMap(map);
+        mMapTabsRight.closeMap(map);
     }
 
     static class MapTabbedPane extends JTabbedPane
@@ -560,8 +560,8 @@ public class VUE
         // todo: figure out if we're already displaying this map
 
         System.out.println("VUE.displayMap Looking for " + map.getFile());
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-            MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            MapViewer mv = (MapViewer) mMapTabsLeft.getComponentAt(i);
             File existingFile = mv.getMap().getFile();
             System.out.println("VUE.displayMap matching " + existingFile);
             if (existingFile != null && existingFile.equals(map.getFile())) {
@@ -571,10 +571,6 @@ public class VUE
                 //break;
             }
         }
-        
-        // TODO: need to subclass JTabbedPane with something that
-        // will listen for name change events on the LWMap's so
-        // we can keep the filenames displayed current.
         
         final boolean useScrollbars = false; // in-progress feature
         JScrollPane sp = null;
@@ -586,9 +582,9 @@ public class VUE
                 setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
             System.out.println("VUE.displayMap:      created new viewer: " + mapViewer);
             if (useScrollbars)
-                tabbedPane.addTab(map, sp = new JScrollPane(mapViewer));
+                mMapTabsLeft.addTab(map, sp = new JScrollPane(mapViewer));
             else
-                tabbedPane.addTab(map, mapViewer);
+                mMapTabsLeft.addTab(map, mapViewer);
 
             // put BACKINGSTORE mode on a diag switch and test
             // performance difference -- the obvious difference is
@@ -604,24 +600,24 @@ public class VUE
             //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             
             MapViewer mv2 = new tufts.vue.MapViewer(map, true);
-            tabbedPane2.addTab(map, mv2);
+            mMapTabsRight.addTab(map, mv2);
 
-            //tabbedPane.requestFocus();
+            //mMapTabsLeft.requestFocus();
             
         }
          
-        int idx = tabbedPane.indexOfComponent(mapViewer);
+        int idx = mMapTabsLeft.indexOfComponent(mapViewer);
         /*
-        //tabbedPane.setBackgroundAt(idx, Color.blue);
-        tabbedPane.setForegroundAt(tabbedPane.getSelectedIndex(), Color.black);
-        tabbedPane.setForegroundAt(idx, Color.blue);
+        //mMapTabsLeft.setBackgroundAt(idx, Color.blue);
+        mMapTabsLeft.setForegroundAt(mMapTabsLeft.getSelectedIndex(), Color.black);
+        mMapTabsLeft.setForegroundAt(idx, Color.blue);
         // need to add a listener to change colors -- PC gui feedback of which
         // tab is selected is completely horrible.
         */
         if (useScrollbars)
-            tabbedPane.setSelectedComponent(sp);
+            mMapTabsLeft.setSelectedComponent(sp);
         else
-            tabbedPane.setSelectedComponent(mapViewer);
+            mMapTabsLeft.setSelectedComponent(mapViewer);
 
     }
     
