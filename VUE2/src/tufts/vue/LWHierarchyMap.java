@@ -65,7 +65,13 @@ public class LWHierarchyMap extends LWMap
         
         //initial set up for the computation for the shortest path
         nodesVector.add(rootNode);
+        
         originalNodes.add(rootNode);
+        LWNode copy = (LWNode)rootNode.duplicate();
+        addNode(copy);
+            
+        //maps the orginal node to the duplicated one using the nodes' toString method
+        nodeHash.put(rootNode, copy);
         
         //stores default values to the distance and parent hashtables
         distanceHash.put(rootNode, new Integer(0));
@@ -108,37 +114,38 @@ public class LWHierarchyMap extends LWMap
                 
                 //keep track of nodes that are connected 
                 if(!originalNodes.contains(nextNode))
+                {
                   originalNodes.add(nextNode);
+                    
+                  //create the duplicates of the nodes and map them to the original nodes
+                  //using the node hashtable
+                  copy = (LWNode)nextNode.duplicate();
+                  addNode(copy);
+            
+                  //maps the orginal node to the duplicated one using the nodes' toString method
+                  nodeHash.put(nextNode, copy);
+                }
             }
         }
           
         //debugging
-        /*
-        for (Enumeration e = parentHash.keys(); e.hasMoreElements();)
+        for (Iterator ii = parentHash.keySet().iterator(); ii.hasNext();)
         {
-          Object a = e.nextElement();
-          System.out.println("key " + a);
-          System.out.println("value " + parentHash.get(a) + "\n\n");
+          LWNode a = (LWNode)ii.next();
+          System.out.println("key " + a.toString());
+          
+          if(parentHash.get(a) != null)
+            System.out.println("value " + ((LWNode)parentHash.get(a)).toString() + "\n\n");
+          
+          else
+            System.out.println("value null" + "\n\n");
         }
-         **/
     }
     
     /**creates the elements for the hierarchy map including duplicated nodes
        and links between them according to the shortest path*/
     public void createMap()
     {
-        //create the duplicates of the nodes and map them to the original nodes
-        //using the node hashtable
-        for (Iterator i = originalNodes.iterator(); i.hasNext();)
-        {
-            LWNode node = (LWNode)i.next();
-            LWNode copy = (LWNode)node.duplicate();
-            addNode(copy);
-            
-            //maps the orginal node to the duplicated one using the nodes' toString method
-            nodeHash.put(node, copy);
-        }
-        
         //verify a path between nodes and create a link between the nodes
         for (Iterator i = originalNodes.iterator(); i.hasNext();)
         {
@@ -161,23 +168,29 @@ public class LWHierarchyMap extends LWMap
     /**organizes the nodes in a hierarchical manner*/
     public void layout(LWNode currentNode)
     {   
+        System.out.println("calling layout() on " + currentNode.toString());
+        originalNodes.add(currentNode);
+        
         LWNode copyNode = (LWNode)nodeHash.get(currentNode);
         LWNode parentNode = (LWNode)parentHash.get(currentNode);
             
-        if(parent != null)
+        if(parentNode != null)
           {
             //set the location
-            Point2D point = parent.getLocation();
-            double x = point.getX();
-            double y = point.getY();
+            Point2D point = parentNode.getLocation();
+            float x = (float)point.getX();
+            float y = (float)point.getY();
             
-            copyNode.setLocation(0, 0);
+            x += 10;
+            y += 30;
+            
+            copyNode.setLocation(x, y);
           }
             
         //if it is the rootnode
         else
           {
-            copyNode.setLocation(0, 0);
+            copyNode.setLocation(200f, 0f);
           }
             
         for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
@@ -189,7 +202,8 @@ public class LWHierarchyMap extends LWMap
             if ((nextNode = (LWNode)link.getComponent1()) == currentNode)
               nextNode = (LWNode)link.getComponent2();
             
-            layout(nextNode);
+            if(!originalNodes.contains(nextNode))
+              layout(nextNode);
         }
     }
     
@@ -198,6 +212,8 @@ public class LWHierarchyMap extends LWMap
     {    
         computeShortestPath();
         createMap();
+        
+        originalNodes.clear();
         layout(rootNode);
     }
 }
