@@ -2241,7 +2241,6 @@ public class MapViewer extends javax.swing.JPanel
                   InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
                   while(inf.hasNext()) {
                       InfoField infoField = (InfoField)inf.next();
-                      System.out.println("InfoField "+ infoField+" Value " );
                       String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getValue().toString();
                       infoRecordMenu.add(new FedoraAction(infoField.getValue().toString(),method));
                   }
