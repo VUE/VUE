@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Dimension;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
@@ -44,6 +45,7 @@ public class PresentationTool extends VueTool
     private JCheckBox mNavigate = new JCheckBox("Show All");
     private JCheckBox mToBlack = new JCheckBox("Black");
     private JCheckBox mZoomLock = new JCheckBox("Lock 100%");
+    private boolean mShowNavigator = false;
 
     private boolean mFadeEffect = true;
     private boolean mZoomToPage = true;
@@ -86,9 +88,13 @@ public class PresentationTool extends VueTool
             startPresentation();
             VUE.toggleFullScreen(true);
         } else if (ae.getSource() instanceof JCheckBox) {
-            VUE.getActiveViewer().repaint();
+            repaint();
         } else
             super.actionPerformed(ae);
+    }
+
+    private void repaint() {
+        VUE.getActiveViewer().repaint();            
     }
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
@@ -105,10 +111,17 @@ public class PresentationTool extends VueTool
         } else if (k == 'f')             { mFadeEffect = !mFadeEffect;
         } else if (k == 's' || k == 'n') { mNavigate.doClick();
         } else if (k == 'b')             { mToBlack.doClick();
-            //        } else if (k == 'z')             { mZoomToPage = !mZoomToPage;
+        } else if (k == 'm')             {
+            mShowNavigator = !mShowNavigator;
+            repaint();
         } else
+            //        } else if (k == 'z')             { mZoomToPage = !mZoomToPage;
             return false;
         return true;
+    }
+
+    public boolean handleKeyReleased(java.awt.event.KeyEvent e) {
+        return false;
     }
     
     public LWComponent X_findComponentAt(LWMap map, float mapX, float mapY) {
@@ -143,12 +156,23 @@ public class PresentationTool extends VueTool
                 // problem is case of nav'd to a link, then click on edge of node to right of link,
                 // where you'd want to go to that node, but instead if that's it's only link, it follows
                 // the link back to where you came from.  This is not a likely usage case tho.
-                setPage((LWComponent) linked.get(0));
+                followLink(hit, hit.getLinkTo((LWComponent) linked.get(0)));
+                /*
+                LWComponent linkingTo = 
+                mLastFollowed = mCurrentPage.getLinkTo(linkingTo);
+                setPage(linkingTo);
+                */
             } else {
                 setPage(hit);
             }
         }
         return true;
+    }
+
+    private void followLink(LWComponent src, LWLink link) {
+        LWComponent linkingTo = link.getFarPoint(src);
+        mLastFollowed = link;
+        setPage(linkingTo);
     }
 
     // need to handle this and have MapViewer allow interrupt, so clicks on
@@ -224,13 +248,15 @@ public class PresentationTool extends VueTool
         if (toFollow != null) {
             mLastFollowed = toFollow;
             nextPage = toFollow.getFarNavPoint(mCurrentPage);
+            if (nextPage.getParent() instanceof LWGroup)
+                nextPage = nextPage.getParent();
         }
         // TODO: each page keeps a mPrevPage, which we use instead of
         // the peek here to find the "default" backup.  Maybe
         // a useful "uparrow" functionality can also make use of this?
         // uparrow should also go back up to the parent of the current
         // page if it's anything other than the map itself
-        if (nextPage == null && !mBackList.empty())
+        if (nextPage == null && !mBackList.empty() && mBackList.peek() != mCurrentPage)
             nextPage = (LWComponent) mBackList.peek();
         if (nextPage != null)
             setPage(nextPage);
@@ -284,7 +310,7 @@ public class PresentationTool extends VueTool
     }
     private void setPage(final MapViewer viewer, final LWComponent page, boolean backup) {
         if (!backup && mCurrentPage != null) {
-            if (mBackList.empty() || mBackList.peek() != mCurrentPage)
+            if (mBackList.empty() || mBackList.peek() != page)
                 mBackList.push(mCurrentPage);
         }
         mLastPage = mCurrentPage;
@@ -310,9 +336,11 @@ public class PresentationTool extends VueTool
     private void zoomToPage(LWComponent page) {
         if (mZoomToPage == false)
             return;
-        int margin = 32;
+
+        int margin = 0;
         if (page instanceof LWImage)
             margin = 0;
+        else margin = 32; // turn this off soon
         if (page != null)
             ZoomTool.setZoomFitRegion(page.getBounds(), margin);
         
@@ -335,10 +363,32 @@ public class PresentationTool extends VueTool
 
         boolean clipped = false;
         Shape savedClip = null;
+        Color savedColor = null;
         if (mCurrentPage instanceof LWNode && isPresenting()) {
             LWNode node = (LWNode) mCurrentPage;
+            // if had an in-group link from one region of image to another,
+            // would still want to present as a clipped: really need to
+            // check if it has any out-bound links, or REALLY, if we
+            // were just *sent* here via link, as opposed to clicking on us.
+            // Tho what if somebody DOES click on us?  We still want to be clipped,
+            // not follow the link: so any transparency wants to clip?  But
+            // what about "check out the mouth"  -- okay, that has a label:
+            // so if any transparency and NO label, then we're covered, right?
+            // NO!  The left ring in the ladies, we just wanted to be a click
+            // region.  So, there's no way to deterministically figure this out:
+            // user will have to specify somehow if we want to offer both options.
+            // COULD use a heursitc where we follow first if it's an out-of-group
+            // link (and has label), tho that's getting really hairy.
+
+            // or, could get object-fancy and have LWRegion object, who's
+            // label isn't displayed, but that's getting whack complex.
+
+            // BTW: really only want to check if there are no *outbound* links,
+            // to non-null locations.
             if (node.isTranslucent() && !node.hasLabel() && node.getLinks().size() == 0) {
                 savedClip = dc.g.getClip();
+                savedColor = mCurrentPage.getFillColor();
+                mCurrentPage.takeFillColor(null);
                 dc.g.clip(node.getShape());
                 clipped = true;
                 // FYI: drawing the whole map when clipped is noticably slower
@@ -351,8 +401,14 @@ public class PresentationTool extends VueTool
             map.draw(dc);
         } else if (clipped /*|| (mCurrentPage instanceof LWNode && mCurrentPage.isTranslucent() && !mCurrentPage.hasLabel())*/ ) {
             mCurrentPage.getParent().draw(dc);
-        } else
-            mCurrentPage.draw(dc);
+        } else {
+            if (false&&mCurrentPage instanceof LWGroup) {
+                LWGroup group = (LWGroup) mCurrentPage;
+                group.drawChildren(dc);
+            } else {
+                mCurrentPage.draw(dc);
+            }
+        }
 
         if (oldColor != null)
             map.takeFillColor(oldColor);
@@ -361,11 +417,34 @@ public class PresentationTool extends VueTool
         // draw connected goto's (maybe do only if presenting?)
         //-------------------------------------------------------
         
-        if (clipped)
+        if (clipped) {
+            mCurrentPage.takeFillColor(savedColor);
             dc.g.setClip(savedClip);
-        if (mCurrentPage != null)
-            drawNavNodes(dc);
+        }
 
+        if (VUE.inFullScreen() && mShowNavigator)
+            drawNavigatorMap(dc);
+        
+        //if (DEBUG.Enabled&&mCurrentPage != null)
+        //drawNavNodes(dc);
+
+    }
+
+    /** Draw a ghosted panner */
+    private void drawNavigatorMap(DrawContext sourceDC) {
+
+        final Rectangle panner = new Rectangle(0,0, 150,150);
+
+        sourceDC.setRawDrawing();
+        DrawContext dc = sourceDC.create();
+        //dc.setAlpha(0.2);
+        //dc.g.setColor(Color.white);
+        dc.setAlpha(0.3);
+        dc.g.setColor(Color.black);
+        dc.g.fill(panner);
+        dc.setAlpha(1);
+        dc.g.clipRect(0,0, panner.width, panner.height);
+        MapPanner.paintViewerIntoRectangle(dc.g, VUE.getActiveViewer(), panner);
     }
 
     private void drawNavNodes(DrawContext dc)
