@@ -507,7 +507,7 @@ public class LWPathway extends LWContainer
     }
 
     
-    private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
+    private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
     private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.Src;
     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
@@ -529,14 +529,17 @@ public class LWPathway extends LWContainer
         g.setColor(getStrokeColor());
         LWComponent last = null;
         Line2D connector = new Line2D.Float();
+
+        final int BaseStroke = 4;
+
         BasicStroke connectorStroke =
-            new BasicStroke(5, BasicStroke.CAP_BUTT
+            new BasicStroke(BaseStroke,
+                            BasicStroke.CAP_BUTT
                             , BasicStroke.JOIN_BEVEL
                             , 0f
                             , new float[] { dash_length, dash_length }
                             , dash_phase);
 
-        final int BaseStroke = 3;
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent)i.next();
@@ -550,10 +553,13 @@ public class LWPathway extends LWContainer
             // outside the edge of the object, except for links,
             // which are one-dimensional, so we use a narrower
             // stroke width for them.
+            /*
             if (c instanceof LWLink)
                 ;//strokeWidth++;
             else
                 strokeWidth *= 2;
+            */
+            //if (c instanceof LWLink) strokeWidth -= 2;
 
             if (selected)
                 g.setComposite(PathSelectedTranslucence);
