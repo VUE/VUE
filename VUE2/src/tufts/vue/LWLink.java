@@ -415,6 +415,7 @@ public class LWLink extends LWComponent
         super.restoreToModel();
         if (ep1 != null) ep1.addLinkRef(this);
         if (ep2 != null) ep2.addLinkRef(this);
+        endpointMoved = true; // for some reason cached label position is off on restore
     }
 
     /** Is this link between a parent and a child? */

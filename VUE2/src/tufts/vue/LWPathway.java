@@ -150,10 +150,7 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChild " + added.size() + " " + c);
-            if (!contains(c)) {
-                c.addPathwayRef(this);
-                c.addLWCListener(this);
-            }
+            addChildRefs(c);
             super.children.add(c);
 
             // For now you can only have one set of properties per element in the list,
@@ -170,8 +167,48 @@ public class LWPathway extends LWContainer
         if (added.size() > 0) {
             if (added.size() == 1)
                 setIndex(length()-1);
-            notify("hier.pathway.add", added);
-            //notify(LWKey.ChildrenAdded, added);
+            notify("pathway.add", new Undoable(added) { void undo() { undoAddChildren((List)old); }} );
+        }
+    }
+
+    private void removeChildRefs(LWComponent c) {
+        // We only do the ref removes if we don't still contain it, which is possible
+        // since pathway's can contain multiple entries for the same LWComponent.
+        if (!contains(c)) {
+            c.removePathwayRef(this);
+            c.removeLWCListener(this);
+        }
+    }
+    private void addChildRefs(LWComponent c) {
+        // We only do the ref add's if the component doesn't already think it's in us,
+        // which can happen since pathway's can contain multiple entries for the same LWComponent.
+        if (!c.inPathway(this)) {
+            c.addPathwayRef(this);
+            c.addLWCListener(this);
+        }
+    }
+    
+    // In support of undo.  As LWPathway is an LWContainer, the references
+    // to the children and their order is handled by the hierarchy change event,
+    // but that won't patch up the special pathway refs's that any component
+    // that's a member of a pathway has.
+    private void undoAddChildren(List list)
+    {
+        Iterator i = list.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (DEBUG.UNDO) System.out.println(this + " undoAddChildren undoing " + c);
+            removeChildRefs(c);
+        }
+    }
+    
+    private void undoRemoveChildren(List list)
+    {
+        Iterator i = list.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (DEBUG.UNDO) System.out.println(this + " undoRemoveChildren undoing " + c);
+            addChildRefs(c);
         }
     }
 
@@ -193,7 +230,6 @@ public class LWPathway extends LWContainer
      * need to make sure we can remove pathway entries by index, and
      * not just by content.
      */
-    private LWComponent removingComponent = null;
     public synchronized void remove(int index) {
         remove(index, false);
     }
@@ -246,11 +282,11 @@ public class LWPathway extends LWContainer
                 setIndex(length() - 1);
             else
                 setIndex(mCurrentIndex);
-            notify("hier.pathway.remove", removed);
-            //notify(LWKey.ChildrenRemoved, removed);
+            notify("pathway.remove", new Undoable(removed) { void undo() { undoRemoveChildren((List)old); }} );
         }
     }
     
+    private LWComponent removingComponent = null;
     private synchronized void remove(int index, boolean deleting)
     {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " remove index " + index + " deleting=" + deleting);
@@ -285,8 +321,7 @@ public class LWPathway extends LWContainer
             setIndex(mCurrentIndex);
 
         removingComponent = c; // todo: should be able to remove this now that we don't deliver events back to source
-        notify("hier.pathway.remove", c);
-        //notify(LWKey.ChildRemoved, c);
+        notify("pathway.remove-index", new Undoable(c) { void undo() { addChildRefs((LWComponent)old); }} );
         removingComponent = null;
     }
     
@@ -411,10 +446,21 @@ public class LWPathway extends LWContainer
      */
     protected void removeFromModel()
     {
+        super.removeFromModel();
         Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.removePathwayRef(this);
+       }
+    }
+
+    protected void restoreToModel()
+    {
+        super.restoreToModel();
+        Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.addPathwayRef(this);
        }
     }
     

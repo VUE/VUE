@@ -124,6 +124,7 @@ public class LWPathwayList implements LWComponent.Listener
             throw new IllegalStateException(this + " didn't contain " + p + " for removal");
         if (mActive == p)
             setActivePathway(getFirst());
+
         LWCEvent e = new LWCEvent(this, p, "pathway.delete", new Undoable(p) { void undo() { add((LWPathway)old); }} );
         getMap().notifyProxy(e);
         LWComponent.dispatchLWCEvent(this, mListeners, e);

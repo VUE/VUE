@@ -91,7 +91,7 @@ public class UndoManager
             while (ci.hasNext()) {
                 LWComponent child = (LWComponent) ci.next();
                 if (parent instanceof LWPathway)
-                    ; // special case: todo: something cleaner
+                    ; // special case: todo: something cleaner (pathways don't "own" their children)
                 else {
                     if (child.isDeleted()) {
                         child.restoreToModel();
@@ -207,11 +207,14 @@ public class UndoManager
             if (uName.startsWith("hier."))
                 uName = uName.substring(5);
             // Replace all '.' with ' ' and capitalize first letter of each word
+            uName = uName.replace('-', '.');
             String[] word = uName.split("\\.");
             for (int i = 0; i < word.length; i++) {
                 if (Character.isLowerCase(word[i].charAt(0)))
                     word[i] = Character.toUpperCase(word[i].charAt(0)) + word[i].substring(1);
-                name += word[i] + " ";
+                if (i > 0)
+                    name += " ";
+                name += word[i];
             }
             if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + undoAction.propertyChangeCount + ")";
             Actions.Undo.setEnabled(true);
