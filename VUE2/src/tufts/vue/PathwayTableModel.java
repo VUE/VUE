@@ -28,7 +28,7 @@ public class PathwayTableModel extends DefaultTableModel {
     }
     
     // get rid of this
-    private void setCurrentPathway(LWPathway path){
+    void setCurrentPathway(LWPathway path){
         if (getPathways() != null){           
             getPathways().setActivePathway(path);
             fireTableDataChanged();
