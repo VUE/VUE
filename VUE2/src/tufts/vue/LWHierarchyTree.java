@@ -21,17 +21,20 @@ import javax.swing.JTree;
 import javax.swing.tree.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+
 /**
  *
  * @author  Daisuke Fujiwara
  */
 
 /**A class that displays the hierarchy of nodes in a tree*/
-public class LWHierarchyTree extends InspectorWindow 
+public class LWHierarchyTree extends InspectorWindow implements TreeModelListener
 {
     //private DisplayAction displayAction = null;
     private JTree tree;
-    private HierarchyTreeModel treeModel;
+    private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     
     /** Creates a new instance of HierarchyTreeWindow */
     public LWHierarchyTree(JFrame parent) 
@@ -76,16 +79,25 @@ public class LWHierarchyTree extends InspectorWindow
         //tree selection listener to keep track of the selected node 
         tree.addTreeSelectionListener(
             new TreeSelectionListener() 
-            {
+            { 
                 public void valueChanged(TreeSelectionEvent e) 
                 {
-                    LWTreeNode treeNode = (LWTreeNode)tree.getLastSelectedPathComponent();
-        
-                    if (treeNode == null) 
-                      return;
-
-                    else
-                      treeModel.setSelectedNode((LWNode)treeNode.getUserObject());
+                    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+                    
+                    //if there is no selected node
+                    if (treeNode == null)
+                      selectedNode = null;
+                                
+                    else 
+                    {
+                        //retrieves the LWComponent associated with the selected tree node
+                        selectedNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
+                        LWComponent selectedComponent = selectedNode.getLWComponent();
+                        
+                        //if the selected node is not an instance of LWMap
+                        if(!(selectedComponent instanceof LWMap))
+                          VUE.ModelSelection.setTo(selectedComponent);
+                    }
                 }
             }
         );
@@ -107,12 +119,57 @@ public class LWHierarchyTree extends InspectorWindow
         */
     }
     
+     /**A method that deals with dynamic changes to the tree element*/
+    public void treeNodesChanged(TreeModelEvent e)
+    {
+        //retrieves the selected node
+        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
+        
+        //it appropriate retrieves the child of the selected node
+        try 
+        {
+            int index = e.getChildIndices()[0];
+            treeNode = (DefaultMutableTreeNode)(treeNode.getChildAt(index));
+        } 
+        
+        catch (NullPointerException exc) {}
+       
+        //might want to come up with an exception
+        if(treeNode != (DefaultMutableTreeNode)tree.getModel().getRoot())
+        {
+            //changes the node's label and sets it as a new object of the tree node
+            try
+            {
+                selectedNode.changeLWComponentLabel(treeNode.toString());
+                treeNode.setUserObject(selectedNode);
+            }
+            
+            catch (osid.hierarchy.HierarchyException he)
+            {
+                //resets the change to the previous one
+                treeNode.setUserObject(selectedNode);
+            }
+        }
+    }
+    
+    /**unused portion of the interface*/
+    public void treeNodesInserted(TreeModelEvent e) {}
+    public void treeNodesRemoved(TreeModelEvent e) {}
+    public void treeStructureChanged(TreeModelEvent e) {}
+    
     /**Sets the model of the tree to the given hierarchy tree model
        Also stores the reference to the model*/
-    public void setTree(HierarchyTreeModel treeModel)
+    public void setHierarchyModel(tufts.oki.hierarchy.HierarchyViewHierarchyModel hierarchyModel)
     {
-        this.treeModel = treeModel;
-        tree.setModel(treeModel.getModel());
+        if (hierarchyModel != null)
+        {
+            DefaultTreeModel model = hierarchyModel.getTreeModel();
+            model.addTreeModelListener(this);
+            tree.setModel(model);
+        }
+        
+        else
+          tree.setModel(null);
     }
     
     /**A method used by VUE to display the tree*/
