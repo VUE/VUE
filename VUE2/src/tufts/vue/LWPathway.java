@@ -7,9 +7,12 @@
 
 package tufts.vue;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Iterator;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.BasicStroke;
 
 /**
  *
@@ -73,7 +76,17 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void draw(Graphics2D g)
     {
-        //do nothing: drawing of pathway is handled in LWNode and LWLink
+        //grab locations of nodes and links
+        Iterator iter = this.getElementIterator();
+        while(iter.hasNext()){
+            LWComponent comp = (LWComponent)iter.next();
+            if(comp instanceof LWNode){
+                Shape s = comp.getShape();
+                g.setColor(this.getBorderColor());
+                g.setStroke(new BasicStroke(5/8f));
+                g.draw(s);
+            }
+        }
     }
     
     public boolean contains(LWComponent element){
