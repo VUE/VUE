@@ -28,6 +28,8 @@ public class DEBUG
     public static  void setAllEnabled(boolean t) {
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=t;
+        if (t == false)
+            META = false;
     }
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
