@@ -10,9 +10,6 @@ import tufts.vue.action.*;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * modified by John Briedis on 5/29/03
- * added support for Save as type html
- * and support for html image mapping
  */
 public class VUE
     implements VueConstants

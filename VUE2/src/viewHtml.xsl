@@ -1,63 +1,103 @@
 <?xml version="1.0"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/TR/WD-xsl">
-
+<xsl:stylesheet version="1.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	
 	<xsl:template match="/">
+		<xsl:apply-templates/>
+	</xsl:template>
+
+	<xsl:template match="vue2d-map">
 		<HTML>
 			<HEAD>
 				<TITLE>XML to HTML Test</TITLE>
 			</HEAD>
 			<BODY>
-				<xsl:apply-templates/>
+				<p><H1 align="center">
+					<U>Concept Map: <xsl:value-of select="@label"/></U>
+				</H1></p>
+				<H3><B>
+					Attributes:
+				</B></H3>
+					<p>location <B>x:</B><xsl:value-of select="@x"/>,
+								<B>y:</B><xsl:value-of select="@y"/>,
+								<B>width:</B><xsl:value-of select="@width"/>,
+								<B>height:</B><xsl:value-of select="@height"/>
+					</p>
+					<p>
+						<B>ID:</B> <xsl:value-of select="@ID"/>, 
+						<B>Stroke Width:</B> <xsl:value-of select="@strokeWidth"/>
+					</p>
+				<H3><B>
+					Properties:
+				</B></H3>
+					<p>
+						<B>fill color:</B><xsl:value-of select="fillColor"/>,
+						<B>font:</B> <xsl:value-of select="font"/>
+					</p>		
+				<xsl:apply-templates select="child"/>
 			</BODY>
-		</HTML>
-	</xsl:template>
-
-	<xsl:template match="concept-map">
-		<H1>
-			<xsl:value-of select="label"/>
-		</H1>		
-			<xsl:apply-templates/>
+		</HTML>	
 	</xsl:template>
 	
-	<xsl:template match="node-list">
-		<P><U><H2>Node: </H2><H3>
-			Label : <xsl:value-of select="label"/>
-		</H3></U></P>
-		<P><H3>Attributes: </H3></P>
-		<P>X : <xsl:value-of select="@x"/></P> 
-		<P>Y : <xsl:value-of select="@y"/></P>
-		<P>xsi:type : <xsl:value-of select="@xsi:type"/></P>
-		<P>xmlns:xsi : <xsl:value-of select="@xmlns:xsi"/></P>
-	
-		<H3>Properties: </H3>
-			<P>ID: <xsl:value-of select="ID"/></P>
-			<P>Category: <xsl:value-of select="category"/></P>
-			<P>Meta-Data: <xsl:value-of select="meta-data"/></P>
-			<P>Notes: <xsl:value-of select="notes"/></P>
-			<P>Child-Iterator: <xsl:value-of select="child-iterator"/></P>
-			<P>Resource: <xsl:apply-templates/></P>
-
-	</xsl:template>
-	
-	<xsl:template match="link-list">
-		<P><U><H2> Link: </H2><H3>
-			Between Nodes "<xsl:apply-templates select="item1"/>" and "<xsl:apply-templates select="item2"/>"
-		</H3></U></P>
+	<xsl:template match="child">
+		<P><U><H2 align="center">
+			<xsl:value-of select="@xsi:type"/>: <xsl:value-of select="@label"/>
+		</H2></U></P>
 		
-		<P><H3>Attributes: </H3></P>
-		<P>Fixed? : <xsl:value-of select="@fixed"/></P> 
-		<P>Weight : <xsl:value-of select="@weight"/></P>
-		<P>Ordered : <xsl:value-of select="@ordered"/></P>
-		<P>xsi:type : <xsl:value-of select="@xsi:type"/></P>
-		<P>xmlns:xsi : <xsl:value-of select="@xmlns:xsi"/></P>
-		
-	</xsl:template>
-	
-	<xsl:template match="item1 | item2">
-		<xsl:value-of select="label"/>
+		<P><B><H3>Attributes: </H3></B></P>
+		<P>location: <B>x:</B><xsl:value-of select="@x"/>,
+					 <B>y:</B><xsl:value-of select="@y"/>,
+					 <B>width:</B><xsl:value-of select="@width"/>,
+					 <B>height:</B><xsl:value-of select="@height"/>
+		</P>
+		<P>
+			<B>ID:</B><xsl:value-of select="@ID"/>,
+			<B>stroke width:</B><xsl:value-of select="@strokeWidth"/>,  
+			<xsl:if test="starts-with(@xsi:type,'n')">
+				<B>autoSized:</B><xsl:value-of select="@autoSized"/>
+			</xsl:if>
+		</P>
+		<P><B><H3>Properties: </H3></B></P>
+		<P>
+			<B>fill color:</B><xsl:value-of select="fillColor"/>,  
+			<xsl:if test="starts-with(@xsi:type,'l')">
+				<B>text color:</B><xsl:value-of select="textColor"/>, 
+			</xsl:if>
+			<B>font:</B><xsl:value-of select="font"/>
+		</P>
+		<P>
+			  
+			<xsl:if test="starts-with(@xsi:type,'l')">
+				<B>ID1:</B><xsl:value-of select="ID1"/>, 
+				<B>ID2:</B><xsl:value-of select="ID2"/>
+			</xsl:if>
+		</P>
+		<P><H3>Resource: <xsl:apply-templates select="resource"/></H3></P>		
 	</xsl:template>
 	
 	<xsl:template match="resource">
-			<xsl:value-of select="spec"/>
+			<a>
+				<xsl:attribute name="href">
+					<xsl:choose>
+						<xsl:when test="starts-with(spec, 'www')">
+							http://<xsl:value-of select="spec"/>
+						</xsl:when>
+						<xsl:when test="starts-with(spec, 'C:')">
+							file:///<xsl:value-of select="spec"/>	
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:value-of select="spec"/>
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:attribute>
+				<B>
+					<xsl:value-of select="spec"/>
+				</B>
+			</a>	
 	</xsl:template>
 </xsl:stylesheet>	
+
+
+
+
