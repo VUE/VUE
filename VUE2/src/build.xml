@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.22 $ / $Date: 2004-12-03 05:48:54 $ -->
+<!-- $Revision: 1.23 $ / $Date: 2004-12-09 01:19:50 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -449,7 +449,7 @@
     </jar>
   </target>
   
-  <target name="mac-lib"
+  <target name="mac-lib" depends="prepare"
           description="Create the library containing Mac OS X specific VUE code (Mac OS X platform build only)">
     <!-- Build for stuff that makes use of the Apple com.apple.cocoa.{application,foundation}.* classes
          that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
