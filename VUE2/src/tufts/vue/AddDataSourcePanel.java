@@ -487,22 +487,27 @@ public class AddDataSourcePanel extends JPanel {
     
     class GoogleDataSourcePanel extends JPanel {
         JTextField dsNameField;
-        JTextField addressField ;
+        JTextField addressField;
+        JTextField siteField;
+        JTextField clientField;
         public GoogleDataSourcePanel() {
             GridBagLayout gridbag = new GridBagLayout();
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel addressLabel = new JLabel("Address:");
+            JLabel siteLabel = new JLabel("Site:");
+            JLabel clientLabel = new JLabel("Client:");
             dsNameField = new JTextField();
             addressField = new JTextField();
-            
+            siteField = new JTextField();
+            clientField = new JTextField();
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton submitButton = new JButton("Submit");
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
-                        DataSource ds = new GoogleDataSource(dsNameField.getText(), addressField.getText());
+                        DataSource ds = new GoogleDataSource(dsNameField.getText(), addressField.getText(),siteField.getText(),clientField.getText());
                         DataSourceViewer.addDataSource(ds);
                         dialog.hide();
                         dialog.dispose();
@@ -542,6 +547,30 @@ public class AddDataSourcePanel extends JPanel {
             c.weightx = 1.0;
             gridbag.setConstraints(addressField,c);
             this.add(addressField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(siteLabel,c);
+            this.add(siteLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(siteField,c);
+            this.add(siteField);
+            
+             c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(clientLabel,c);
+            this.add(clientLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(clientField,c);
+            this.add(clientField);
             
             c.anchor = GridBagConstraints.EAST;
             c.gridwidth = GridBagConstraints.REMAINDER;
