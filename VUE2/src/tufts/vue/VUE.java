@@ -26,7 +26,7 @@ public class VUE
     public static final String VUE_CONF = "vue.conf";
     
     // preferences for the application 
-    public static Preferences prefs;
+    //public static Preferences prefs;
     
     /** The currently active viewer (e.g., is visible
         and has focus).  Actions (@see Actions.java) are performed on
@@ -351,12 +351,7 @@ public class VUE
     {
         initUI();
         
-        // loading preferences
-        prefs = java.util.prefs.Preferences.userRoot().node("/");
-        try {
-            FileInputStream fis = new FileInputStream(getResource(VUE_CONF).getPath());
-            prefs.importPreferences(fis);
-        } catch (Exception e) { System.out.println(e);}
+   
 
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
@@ -411,7 +406,7 @@ public class VUE
         //toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
 
         JSplitPane splitPane = new JSplitPane();
-        splitPane.setResizeWeight(0.25); // 25% space to the left component
+        //splitPane.setResizeWeight(0.40); // 25% space to the left component
         splitPane.setContinuousLayout(false);
         splitPane.setOneTouchExpandable(true);
         splitPane.setLeftComponent(toolPanel);

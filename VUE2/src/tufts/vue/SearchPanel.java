@@ -45,11 +45,10 @@ public class SearchPanel extends JPanel{
     private static URL url;
     
     public SearchPanel() {
-        prefs = tufts.vue.VUE.prefs;
-        try {
-            searchURL = prefs.get("url.google","");
-            XML_MAPPING = prefs.get("mapping.google","");
-        }catch(Exception e) { System.out.println("SearchPanel :"+e);}
+
+        searchURL = VueResources.getString("url.google");
+        XML_MAPPING = VueResources.getString("mapping.google");
+ 
         this.setLayout(new BorderLayout());
        //Create the query panel and result panel//      
         JPanel queryPanel =  new JPanel();        
