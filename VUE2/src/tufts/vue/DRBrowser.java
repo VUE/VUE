@@ -10,7 +10,7 @@ import javax.swing.border.*;
 class DRBrowser extends JPanel {
     public static DataSourceViewer dsViewer = null;
 
-    private static final int DRBrowserWidth = 329;
+    private static final int DRBrowserWidth = 299;
 
     private JLabel loadingLabel;
    
