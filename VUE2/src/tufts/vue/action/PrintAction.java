@@ -70,13 +70,13 @@ public class PrintAction extends AbstractAction implements Printable {
          
         try
         {
-            PageFormat format = job.pageDialog(job.defaultPage());
-            job.setPrintable(this, format);
             //job.setPrintable(this);
             
             if (job.printDialog()) {
                 try 
                 {
+                    PageFormat format = job.pageDialog(job.defaultPage());
+                    job.setPrintable(this, format);
                     job.print();
                 } 
                 catch (Exception ex) 
