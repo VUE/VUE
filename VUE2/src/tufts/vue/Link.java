@@ -5,7 +5,7 @@ public class Link extends MapItem
     private MapItem item1;
     private MapItem item2;
     private int weight = 1;
-    private boolean ordered = true;
+    private boolean ordered = false;
     private boolean fixed = false;
 
     // these used only during restore
