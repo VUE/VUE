@@ -1020,8 +1020,10 @@ public class LWLink extends LWComponent
 
     public void rotateArrowState()
     {
-        if (++mArrowState > ARROW_BOTH)
-            mArrowState = ARROW_NONE;
+        int newState = mArrowState + 1;
+        if (newState > ARROW_BOTH)
+            newState = ARROW_NONE;
+        setArrowState(newState);
     }
 
     private void drawArrows(DrawContext dc)

@@ -2970,7 +2970,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
-                else if (c == '*') { tufts.vue.PrintAction.getPrintAction().fire(this); }
+                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
                 else
                     did = false;
                 if (did) {
