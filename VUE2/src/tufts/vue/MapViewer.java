@@ -4358,11 +4358,13 @@ public class MapViewer extends javax.swing.JComponent
                 //accomodates pathway manager swapping when the displayed map is changed
                 //can this be moved to setActiveViewer method????
 
+                /*
                 if (VUE.getPathwayInspector() != null) {
                     if (DEBUG.FOCUS) System.err.println("Setting pathway manager to: " + getMap().getPathwayManager());
                     VUE.getPathwayInspector().setPathwayManager(getMap().getPathwayManager());
                 }
-                    
+                */
+                
                 // outline view switching
                 if (VUE.getOutlineViewTree() != null) // in case just running MapViewer w/out VUE app
                     VUE.getOutlineViewTree().switchMap(getMap());

@@ -16,6 +16,12 @@ public class LWPathwayElementProperty
     private String notes = null;
     
     /** Creates a new instance of LWPathwayElement */
+    public LWPathwayElementProperty()
+    {
+        ID = "no ID";
+        notes = "no pathway notes";
+    }
+    
     public LWPathwayElementProperty(String ID) 
     {
         this.ID = ID;
