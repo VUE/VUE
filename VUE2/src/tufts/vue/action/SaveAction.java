@@ -30,25 +30,26 @@ import java.io.*;
 import tufts.vue.*;
 
 /**
+ * Save the currently active map.
  *
- * @author  akumar03
- *
+ * @author akumar03
+ * @author Scott Fraize
  */
-public class SaveAction extends AbstractAction
+public class SaveAction extends VueAction
 {
     private boolean saveAs = true;
    
-    public SaveAction() {}
-    
-    public SaveAction(String label) {
-        super(label);
-        putValue(Action.SHORT_DESCRIPTION,label);
+    public SaveAction(String label, boolean saveType){
+        super(label, null, ":general/Save");
+        setSaveAs(saveType);
     }
     
-    public SaveAction(String label, boolean saveType){
-        super(label);
-        setSaveAs(saveType);
-        putValue(Action.SHORT_DESCRIPTION,label);
+    public SaveAction(String label) {
+        this(label, false);
+    }
+    
+    public SaveAction() {
+        this("Save", false);
     }
     
     public boolean isSaveAs() {

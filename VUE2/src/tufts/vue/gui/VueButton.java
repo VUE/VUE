@@ -43,6 +43,7 @@ import javax.swing.border.*;
 public class VueButton extends JButton
 {
     protected String key;
+    private boolean isToolbarButton;
 
     public VueButton(String name, ActionListener l)
     {
@@ -58,6 +59,19 @@ public class VueButton extends JButton
     public VueButton(Action a) {
         setAction(a);
         init((String) a.getValue(Action.ACTION_COMMAND_KEY));
+    }
+
+    public void setAsToolbarButton(boolean tb) {
+        isToolbarButton = tb;
+        if (isToolbarButton)
+            super.setText(null);
+    }
+
+    public void setText(String text) {
+        if (isToolbarButton)
+            setToolTipText(text);
+        else
+            super.setText(text);
     }
 
     public void addNotify() {
@@ -113,7 +127,12 @@ public class VueButton extends JButton
 
     static void init(AbstractButton b, String key)
     {
-        installResourceConfiguration(b, key);
+        if (key == null) {
+            // from an action init w/no action command
+            VueButtonIcon.installGenerated(b, b.getIcon(), null);
+        } else {
+            installResourceConfiguration(b, key);
+        }
 
         if (true) {
             b.setBorder(null);
@@ -145,9 +164,8 @@ public class VueButton extends JButton
 
     public static void installResourceConfiguration(AbstractButton b, String key)
     {
-        Icon i;
+        Icon i = null;
         if ((i = VueResources.getImageIcon(key + kRAW)) != null) {
-            
             VueButtonIcon.installGenerated(b, i, VueResources.getSize(key + kSIZE));
         } else {
             if ((i = VueResources.getImageIcon(key + kUP)) != null)       b.setIcon(i);
@@ -162,7 +180,12 @@ public class VueButton extends JButton
     
 
     public String toString() {
-        return "VueButton[" + key + "]";
+        String label;
+        if (key == null)
+            label = "action=" + getText();
+        else
+            label = key;
+        return "VueButton[" + label + "]";
     }
 
    

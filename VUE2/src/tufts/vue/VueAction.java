@@ -47,6 +47,8 @@ public class VueAction extends javax.swing.AbstractAction
         super(name, icon);
         if (shortDescription != null)
             putValue(SHORT_DESCRIPTION, shortDescription);
+        else
+            putValue(SHORT_DESCRIPTION, name);
         if (keyStroke != null)
             putValue(ACCELERATOR_KEY, keyStroke);
         if (icon != null)
@@ -54,7 +56,10 @@ public class VueAction extends javax.swing.AbstractAction
         //if (DEBUG.Enabled) System.out.println("Constructed: " + this);
     }
     public VueAction(String name, KeyStroke keyStroke, String icon) {
-        this(name, null, keyStroke, icon == null ? null : VueResources.getImageIcon(icon));
+        this(name, null, keyStroke, icon == null ? null :
+             (icon.startsWith(":")
+              ? VueResources.getImageIconResource("/toolbarButtonGraphics/" + icon.substring(1) + "24.gif")
+              : VueResources.getImageIconResource(icon)));
     }
     public VueAction(String name, KeyStroke keyStroke) {
         this(name, null, keyStroke, null);
@@ -62,6 +67,7 @@ public class VueAction extends javax.swing.AbstractAction
     public VueAction(String name) {
         this(name, null, null, null);
     }
+
 
     /** undoable: the undo manager already won't bother to create an
      * undo action if it didn't detect any changes.  This method is

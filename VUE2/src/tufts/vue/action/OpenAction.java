@@ -33,18 +33,16 @@ import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
 
-public class OpenAction extends AbstractAction
+public class OpenAction extends VueAction
 {
-    /** Creates a new instance of OpenAction */
-    public OpenAction() {
-    }
-    
     public OpenAction(String label) {
-        super(label);
-        //System.out.println("in openAction constructor...");
-        putValue(Action.SHORT_DESCRIPTION,label);
+        super(label, null, ":general/Open");
     }
 
+    public OpenAction() {
+        this("Open");
+    }
+    
 
     // workaround for rapid-succession Ctrl-O's which pop multiple open dialogs
     private static final Object LOCK = new Object();

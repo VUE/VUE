@@ -19,7 +19,7 @@
 package tufts.vue;
 
 import tufts.vue.action.*;
-import tufts.vue.action.ImageMap;
+import tufts.vue.gui.*;
 
 import java.util.*;
 import java.util.prefs.*;
@@ -295,8 +295,6 @@ public class VUE
     
     /**End of overview related method*/
     
-    public  VUE() {}
-    
     static void initUI() {
         initUI(false);
     }
@@ -532,9 +530,20 @@ public class VUE
         toolbarWindow.getContentPane().add( tbc.getToolbar() );
         toolbarWindow.pack();
          */
-        
-        frame.getContentPane().add(tbc.getToolbar(), BorderLayout.NORTH);
-        
+
+        //frame.getContentPane().add(tbc.getToolbar(), BorderLayout.NORTH);
+                
+        JPanel toolBarPanel = new JPanel(new BorderLayout());
+        //JPanel toolBarPanel = new JPanel();
+
+        toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
+        //toolBarPanel.add(VueToolBar.makeButton(new SaveAction()), BorderLayout.SOUTH);
+        toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
+        //toolBarPanel.add(tbc.getToolbar());
+        //toolBarPanel.add(new VueToolBar());
+        frame.getContentPane().add(toolBarPanel, BorderLayout.NORTH);
+        //frame.getContentPane().add(new VueToolBar(), BorderLayout.NORTH);
+
         // Map Inspector
         
         // get the proper scree/main frame size
@@ -904,6 +913,11 @@ public class VUE
             return null;
     }
     
+    /**
+     * If any open maps have been modified and not saved, run
+     * dialogs to determine what to do.
+     * @return true if we're cleared to exit, false if we want to abort the exit
+     */
     public static boolean isOkayToExit() {
         int tabs = mMapTabsLeft.getTabCount();
         for (int i = 0; i < tabs; i++)
@@ -1032,6 +1046,41 @@ public class VUE
         }
         return frame;
     }
+
+    static class VueToolBar extends JToolBar
+    {
+        public VueToolBar()
+        {
+            super("Toolbar");
+            add(Actions.NewMap);
+            add(new OpenAction());
+            add(new SaveAction());
+            add(new PrintAction()); // deal with print singleton issue / getactioncommand is null here
+            //addSeparator(); // not doing much
+            add(Actions.Undo);
+            add(Actions.Redo);
+            add(Actions.ZoomFit);
+            add(Actions.ZoomIn);
+            add(Actions.ZoomOut);
+
+            setRollover(true);
+            setMargin(new Insets(0,0,0,0));
+        }
+
+        public JButton add(Action a) {
+            //return super.add(a);
+            JButton b = makeButton(a);
+            super.add(b);
+            return b;
+        }
+
+        private static JButton makeButton(Action a) {
+            VueButton b = new VueButton(a);
+            b.setAsToolbarButton(true);
+            return b;
+        }
+    }
+
     
     static class VueMenuBar extends JMenuBar
         implements FocusListener

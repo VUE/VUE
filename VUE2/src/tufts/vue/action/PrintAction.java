@@ -48,14 +48,18 @@ public class PrintAction extends tufts.vue.VueAction
     private static PrintAction singleton;
     public static PrintAction getPrintAction() {
         if (singleton == null)
-            singleton = new PrintAction();
+            singleton = new PrintAction("Print Map...");
         return singleton;
     }
 
     private boolean isPrintUnderway;
     
-    private PrintAction() {
-        super("Print Map...");
+    private PrintAction(String label) {
+        super(label, null, ":general/Print");
+    }
+    // either make private or get rid of getPrintAction singleton
+    public PrintAction() {
+        this("Print");
     }
 
     private PrinterJob printerJob;
@@ -107,7 +111,10 @@ public class PrintAction extends tufts.vue.VueAction
             out("nothing to print in " + map);
             return;
         }
-        boolean viewerPrint = ae.getActionCommand().indexOf("Visible") >= 0;
+        boolean viewerPrint = false;
+        if (ae.getActionCommand() != null &&
+            ae.getActionCommand().indexOf("Visible") >= 0)
+            viewerPrint = true;
 
         // if any tool windows open in W2K/1.4.2 when start this thread,
         // the print dialog get's obscured!

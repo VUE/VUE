@@ -776,7 +776,7 @@ implements VueConstants {
     // VueActions
     //-----------------------------------------------------------------------------
     static final Action NewMap =
-    new VueAction("New Map", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT)) {
+    new VueAction("New", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
         boolean undoable() { return false; }
         boolean enabled() { return true; }
@@ -794,15 +794,13 @@ implements VueConstants {
         }
     };
     static final Action Undo =
-    new VueAction("Undo",
-    keyStroke(KeyEvent.VK_Z, COMMAND),
-    "/toolbarButtonGraphics/general/Undo16.gif") {
+    new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND), ":general/Undo") {
         boolean undoable() { return false; }
         void act() { VUE.getUndoManager().undo(); }
         
     };
     static final Action Redo =
-    new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT)) {
+    new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT), ":general/Redo") {
         boolean undoable() { return false; }
         void act() { VUE.getUndoManager().redo(); }
     };
@@ -851,19 +849,19 @@ implements VueConstants {
     
     static final Action ZoomIn =
     //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, COMMAND)) {
-    new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT)) {
+    new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, COMMAND+SHIFT), ":general/ZoomIn") {
         void act() {
             ZoomTool.setZoomBigger(null);
         }
     };
     static final Action ZoomOut =
-    new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
+    new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT), ":general/ZoomOut") {
         void act() {
             ZoomTool.setZoomSmaller(null);
         }
     };
     static final Action ZoomFit =
-    new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
+        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
         void act() {
             ZoomTool.setZoomFit();
         }
