@@ -78,7 +78,7 @@ public class VueButtonIcon implements Icon
     //private static final AbstractBorder sRolloverBorder = new EtchedBorder(EtchedBorder.RAISED);
     //private static final AbstractBorder sRolloverBorder = new BevelBorder(BevelBorder.LOWERED);
     //private static final AbstractBorder sRolloverBorder = new SoftBevelBorder(BevelBorder.LOWERED);
-    private static final AlphaComposite DisabledAlpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
+    private static final AlphaComposite DisabledAlpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f);
     
     protected final int width;
     protected final int height;
