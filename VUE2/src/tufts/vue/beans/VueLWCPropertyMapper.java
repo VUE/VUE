@@ -31,6 +31,7 @@ import java.awt.geom.Rectangle2D;
 * can get and set dynamic properties of dynamic beans belonging to
 * Java classes or interfaces for which it has registered.
 *
+* This is still original S.B. code and could use reworking & better integration.
 *
 **/
 
@@ -41,6 +42,7 @@ public class VueLWCPropertyMapper
                                                 LWKey.StrokeColor,
                                                 LWKey.StrokeWidth,
                                                 LWKey.TextColor,
+                                                LWKey.Shape,
                                                 LWKey.Font
     };
 												

@@ -550,7 +550,8 @@ class TextBox extends JTextPane
         if (debug || DEBUG.BOXES) {
             Dimension s = getPreferredSize();
             g.setColor(Color.red);
-            g.setStroke(MinStroke2);
+            dc.setAbsoluteStroke(0.5);
+            //g.setStroke(MinStroke);
             g.drawRect(0,0, s.width, s.height);
             //g.drawRect(0,0, s.width-1, s.height);
         }
@@ -563,7 +564,8 @@ class TextBox extends JTextPane
         if (debug || DEBUG.BOXES || getParent() != null) {
             Dimension s = getSize();
             g.setColor(Color.blue);
-            g.setStroke(MinStroke);
+            dc.setAbsoluteStroke(0.5);
+            //g.setStroke(MinStroke);
             g.drawRect(0,0, s.width, s.height);
             //g.drawRect(0,0, s.width-1, s.height);
         }

@@ -18,12 +18,6 @@
 
 package tufts.vue.action;
 
-import javax.swing.*;
-import java.io.*;
-import java.net.URL;
-import java.net.URI;
-import java.util.HashMap;
-
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
 import tufts.vue.LWMap;
@@ -44,6 +38,13 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.swing.JOptionPane;
+import javax.swing.JFileChooser;
+import java.net.URL;
+import java.net.URI;
+import java.util.HashMap;
+import java.io.*;
+
 /**
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
@@ -54,14 +55,11 @@ import org.xml.sax.SAXException;
  */
 public class ActionUtil {
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
-    private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
-    private final static URL XML_MAPPING_UNVERSIONED = VueResources.getURL("mapping.lw.version_none");
-    private final static URL XML_MAPPING_OLD_RESOURCES = VueResources.getURL("mapping.lw.version_resource_fix");
-    //final static java.net.URL XML_MAPPING = VueResources.getURL("mapping.lw");
+    private final static URL XML_MAPPING_DEFAULT =      VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
+    private final static URL XML_MAPPING_UNVERSIONED =  VueResources.getURL("mapping.lw.version_none");
+    private final static URL XML_MAPPING_OLD_RESOURCES =VueResources.getURL("mapping.lw.version_resource_fix");
     
-    /** Creates a new instance of Class */
-    public ActionUtil() {
-    }
+    public ActionUtil() {}
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
        It returns the selected file or null if the process didn't complete*/
@@ -217,7 +215,7 @@ public class ActionUtil {
 
     
     /**
-     * Marshall the given map to XML and write it out to the given file
+     * Marshall the given map to XML and write it out to the given file.
      */
     public static void marshallMap(File file, LWMap map)
     /*throws java.io.IOException,
@@ -280,6 +278,7 @@ public class ActionUtil {
 
         } catch (Exception e) {
             System.err.println("ActionUtil.marshallMap: " + e);
+            e.printStackTrace();
             // until everyone has chance to update their code
             // to handle the exceptions, wrap this in a runtime exception.
             throw new RuntimeException(e);
@@ -329,7 +328,10 @@ public class ActionUtil {
         // are NO comment lines, file is of one of our original save
         // formats that is not versioned, and that may need special
         // processing for the Resource class to Resource interface
-        // change over.  The first instance
+        // change over.  If there are comments, the version instance
+        // of the string "@version(##)" will set the version ID to ##,
+        // and we'll use the mapping appropriate for that version
+        // of the save file.
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
         String line;
@@ -425,43 +427,4 @@ public class ActionUtil {
         
         return map;
     }
-
-    /*
-    public static LWMap unmarshallMap(java.net.URL url)
-    {
-        Unmarshaller unmarshaller = null;
-        LWMap map = null; 
-            
-        try {
-            unmarshaller = new Unmarshaller();
-            unmarshaller.setMapping(getDefaultMapping());  
-            
-            InputStream istream = url.openStream();
-            map = (LWMap) unmarshaller.unmarshal(new InputSource(istream));
-            map.setFile(null); // appears as a modification, so be sure to do completeXMLRestore last.
-            map.completeXMLRestore();
-            istream.close();
-        } 
-        
-        catch (MappingException me)
-        {
-            me.printStackTrace(System.err);
-            JOptionPane.showMessageDialog(null, "Error in mapping file, closing the application", 
-              "LW_Mapping Exception", JOptionPane.PLAIN_MESSAGE);
-                
-            // besides being very unfriendly, this could really hamper
-            // debbugging!
-            //System.exit(0);
-        }
-        
-        catch (Exception e) 
-        {
-            System.err.println("XML_MAPPING ="+XML_MAPPING.getFile());
-            System.err.println("ActionUtil.unmarshallMap: " + e);
-            e.printStackTrace();
-            map = null;
-        }
-        return map;
-    }
-    */
 }

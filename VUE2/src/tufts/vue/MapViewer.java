@@ -4080,32 +4080,46 @@ public class MapViewer extends javax.swing.JComponent
     
     static void installExampleNodes(LWMap map) {
         // create some test nodes & links
-        LWNode n1 = new LWNode("Test node1");
-        LWNode n2 = new LWNode("Test node2");
-        LWNode n3 = new LWNode("foo.txt");
-        LWNode n4 = new LWNode("Tester Node Four");
-        LWNode n5 = new LWNode("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-        LWNode n6 = new LWNode("abcdefghijklmnopqrstuvwxyz");
-        
-        n2.setResource("foo.jpg");
-        n3.setResource("/tmp/foo.txt");
-        n3.setNotes("I am a note.");
-        
-        n1.setLocation(100, 50);
-        n2.setLocation(100, 100);
-        n3.setLocation(100, 150);
-        n4.setLocation(150, 150);
-        n5.setLocation(150, 200);
-        n6.setLocation(150, 250);
-        //map.addNode(n1);
-        //map.addNode(n2);
-        //map.addNode(n3);
+        if (false) {
+            LWNode n1 = new LWNode("Test node1");
+            LWNode n2 = new LWNode("Test node2");
+            LWNode n3 = new LWNode("foo.txt");
+            LWNode n4 = new LWNode("Tester Node Four");
+            LWNode n5 = new LWNode("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+            LWNode n6 = new LWNode("abcdefghijklmnopqrstuvwxyz");
             
-        if (true) {
+            n2.setResource("foo.jpg");
+            n3.setResource("/tmp/foo.txt");
+            n3.setNotes("I am a note.");
+            
+            n1.setLocation(100, 50);
+            n2.setLocation(100, 100);
+            n3.setLocation(100, 150);
+            n4.setLocation(150, 150);
+            n5.setLocation(150, 200);
+            n6.setLocation(150, 250);
+            //map.addNode(n1);
+            //map.addNode(n2);
+            //map.addNode(n3);
+        }
+            
+        if (false) {
             // group resize testing
             map.addNode(new LWNode("aaa", 100,100));
             map.addNode(new LWNode("bbb", 150,130));
             map.addNode(new LWNode("ccc", 200,160));
+        }
+        if (true) {
+            // node layout testing
+            //map.addNode(new LWNode("PARENT CENTER", 50,50, new Ellipse2D.Float()));
+            LWNode parent = new LWNode("PARENT CENTER *x", 0,0, new RectangularPoly2D.Diamond());
+            parent.setStrokeWidth(0);
+            parent.setFillColor(Color.lightGray);
+            map.addNode(parent);
+            map.addNode(new LWNode("child", 0,0, new Rectangle2D.Float())).setStrokeWidth(0);
+            //map.addNode(new LWNode("c one", 100,100, new Rectangle2D.Float()));
+            //map.addNode(new LWNode("c two", 150,130, new Rectangle2D.Float()));
+            //map.addNode(new LWNode("PARENT BOX", 200,160, new Rectangle2D.Float())).setFillColor(Color.orange);
         }
         
         /*
@@ -4123,7 +4137,7 @@ public class MapViewer extends javax.swing.JComponent
         */
     }
 
-    static void installTestMap(LWMap map) {
+    static void installZoomTestMap(LWMap map) {
         // for print testing & scroll testing
         LWNode n = new LWNode("+origin");
         n.setAutoSized(false);
@@ -4206,7 +4220,6 @@ public class MapViewer extends javax.swing.JComponent
     private static JFrame debugFrame;
     public static void main(String[] args) {
         DEBUG.Enabled = true;
-        DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true;
         
         System.out.println("MapViewer:main");
         
@@ -4218,18 +4231,28 @@ public class MapViewer extends javax.swing.JComponent
             
         LWMap map = new LWMap("test");
         
-        //installExampleNodes(map);
-        installTestMap(map);
 
         if (args.length == 1) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
+            installExampleNodes(map);
             VueUtil.displayComponent(new MapViewer(map), 400,300);
 
         } else {
 
+            final boolean zoomTest = false;
+
+            if (zoomTest) {
+                DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true; // zoom test
+                DEBUG.KEYS = true;
+                installZoomTestMap(map);
+            } else {
+                DEBUG.BOXES = true; // node layout test
+                installExampleNodes(map);
+            }
+            
             MapViewer viewer = new MapViewer(map);
             viewer.DEBUG_SHOW_ORIGIN = true;
-            DEBUG.KEYS = true;
+            viewer.DEBUG_TIMER_ROLLOVER = false;
             viewer.setPreferredSize(new Dimension(500,300));
             JFrame frame;
             if (args.length != 2) {
@@ -4247,10 +4270,12 @@ public class MapViewer extends javax.swing.JComponent
             frame.pack();
             debugFrame = frame;
             
-            ToolWindow pannerTool = new ToolWindow("Panner", frame);
-            pannerTool.setSize(120,120);
-            pannerTool.addTool(new MapPanner());
-            pannerTool.setVisible(true);
+            if (zoomTest) {
+                ToolWindow pannerTool = new ToolWindow("Panner", frame);
+                pannerTool.setSize(120,120);
+                pannerTool.addTool(new MapPanner());
+                pannerTool.setVisible(true);
+            }
         }
     }
     

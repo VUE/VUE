@@ -230,17 +230,17 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         
     /** load values from either a LWComponent, or a VueBeanState */
     void loadValues(Object pValue) {
-        if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + pValue);
+        if (DEBUG.TOOL) out("loadValues0 (LWCToolPanel) " + pValue);
         VueBeanState state = null;
  		
         if (pValue instanceof LWComponent) {
             if (!isPreferredType(pValue))
                 return;
             state = VueBeans.getState(pValue);
-            if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + state + " from " + pValue);
+            if (DEBUG.TOOL) out("loadValues1 (LWCToolPanel) " + state);
         } else if (pValue instanceof VueBeanState) {
             state = (VueBeanState) pValue;
-            if (DEBUG.TOOL) out("loadValues (LWCToolPanel) " + state);
+            //if (DEBUG.TOOL) out("loadValues2 (LWCToolPanel) " + state);
         }
         if (state == null)
             state = mDefaultState;
@@ -319,7 +319,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  	
     }
 
-    private void out(Object o) {
+    protected void out(Object o) {
         System.out.println(this + " " + (o==null?"null":o.toString()));
     }
     public String toString() {

@@ -30,11 +30,22 @@ import sun.awt.geom.Crossings;
  */
 public abstract class RectangularPoly2D extends RectangularShape
 {
-    public double x;
-    public double y;
-    public double width;
-    public double height;
-    public int sides;
+    public static final int CENTER = 0;
+    public static final int NORTH      = 1;
+    public static final int NORTH_EAST = 2;
+    public static final int EAST       = 3;
+    public static final int SOUTH_EAST = 4;
+    public static final int SOUTH      = 5;
+    public static final int SOUTH_WEST = 6;
+    public static final int WEST       = 7;
+    public static final int NORTH_WEST = 8;
+        
+    protected double x;
+    protected double y;
+    protected double width;
+    protected double height;
+    protected int sides;
+    protected int layout;
     
     protected double[] xpoints;
     protected double[] ypoints;
@@ -53,10 +64,16 @@ public abstract class RectangularPoly2D extends RectangularShape
     /** For persistance */
     public RectangularPoly2D() {}
 
+    public int getContentGravity() {
+        return CENTER;
+    }
+
     protected abstract void computeVertices();
 
+    /** a point-up triangle */
     public static class Triangle extends RectangularPoly2D {
         public Triangle() { setSides(3); }
+        public int getContentGravity() { return SOUTH; }
         protected void computeVertices()
         {
             xpoints[0] = x + width/2;
@@ -70,8 +87,27 @@ public abstract class RectangularPoly2D extends RectangularShape
         }
         
     }
+    /** a point-down triangle */
+    public static class Shield extends RectangularPoly2D {
+        public Shield() { setSides(3); }
+        public int getContentGravity() { return NORTH; }
+        protected void computeVertices()
+        {
+            xpoints[0] = x;
+            ypoints[0] = y;
+            
+            xpoints[1] = x + width;
+            ypoints[1] = y;
+
+            xpoints[2] = x + width/2;
+            ypoints[2] = y + height;
+        }
+        
+    }
+    /** a point to the right triangle */
     public static class Flag extends RectangularPoly2D {
         public Flag() { setSides(3); }
+        public int getContentGravity() { return EAST; }
         protected void computeVertices()
         {
             xpoints[0] = x;
@@ -85,6 +121,8 @@ public abstract class RectangularPoly2D extends RectangularShape
         }
         
     }
+
+    /** a 4 sided polygon */
     public static class Diamond extends RectangularPoly2D {
         public Diamond() { setSides(4); }
         protected void computeVertices()
@@ -102,6 +140,8 @@ public abstract class RectangularPoly2D extends RectangularShape
             ypoints[3] = y + height/2;
         }
     }
+
+    /** a 5 sided polygon */
     public static class Pentagon extends RectangularPoly2D {
         public Pentagon() { setSides(5); }
         protected void computeVertices()
@@ -122,6 +162,8 @@ public abstract class RectangularPoly2D extends RectangularShape
             ypoints[4] = y + height/2;
         }
     }
+
+    /** a 6 sided polygon */
     public static class Hexagon extends RectangularPoly2D {
         public Hexagon() { setSides(6); }
         protected void computeVertices()
@@ -157,6 +199,8 @@ public abstract class RectangularPoly2D extends RectangularShape
             ypoints[5] = y + halfH;
         }
     }
+
+    /** an 8 sided polygon */
     public static class Octagon extends RectangularPoly2D {
         public Octagon() { setSides(8); }
         protected void computeVertices()
@@ -449,7 +493,7 @@ public abstract class RectangularPoly2D extends RectangularShape
 
     public String toString()
     {
-        return "RectangularPoly2D[sides=" + sides + " " + x + "," + y + " " + width + "x" + height + "]";
+        return getClass().getName() + "[sides=" + sides + " " + x + "," + y + " " + width + "x" + height + "]";
     }
     
     class PolyIterator implements PathIterator

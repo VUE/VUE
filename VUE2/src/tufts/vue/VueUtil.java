@@ -659,7 +659,7 @@ public class VueUtil
         return result;
     }
 
-    public static final float[] NoIntersection = { Float.NaN, Float.NaN };
+    public static final float[] NoIntersection = { Float.NaN, Float.NaN, Float.NaN, Float.NaN };
     private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" }; // for debug
     
     public static float[] computeIntersection(float rayX1, float rayY1,
@@ -763,6 +763,9 @@ public class VueUtil
 
         if (coords.length < 4) {
             // TODO FIX: if line is outside edge of shape, we're screwed (see d:/test-layout.vue)
+            // TODO: we were getting this of NoIntersection being returned (which was only of size
+            // 2, and thus give us array bounds exceptions below) -- do we need to do anything
+            // here to make sure the NoIntersection case is handled more smoothly?
             System.err.println("clip error " + coords);
             new Throwable("CLIP ERROR shape=" + shape).printStackTrace();
             return null;
@@ -857,13 +860,25 @@ public class VueUtil
         return d.width + "x" + d.height;
     }
 
-    public String out(java.awt.geom.Rectangle2D r) {
+    public static String out(java.awt.geom.Rectangle2D r) {
         return ""
             + (float)r.getX() + "," + (float)r.getY()
             + " "
             + (float)r.getWidth() + "x" + (float)r.getHeight()
             ;
     }
+
+    public static String out(java.awt.geom.RectangularShape r) {
+        String name = r.getClass().getName();
+        name = name.substring(name.lastIndexOf('.') + 1);
+        return name + "["
+            + (float)r.getX() + "," + (float)r.getY()
+            + " "
+            + (float)r.getWidth() + "x" + (float)r.getHeight()
+            + "]"
+            ;
+    }
+    
     public static String out(java.awt.geom.Line2D l) {
         return ""
             + (float)l.getX1() + "," + (float)l.getY1()

@@ -175,7 +175,7 @@ class MapDropTarget
     {
         Point dropLocation = null;
         int dropAction = DnDConstants.ACTION_MOVE; // default action
-        final boolean modifierKeyWasDown = false;
+        boolean modifierKeyWasDown = false;
         
         if (e != null) {
             dropLocation = e.getLocation();
@@ -214,6 +214,16 @@ class MapDropTarget
             hitComponent = viewer.getMap().findChildAt(dropToMapLocation(dropLocation));
             System.out.println("\thitComponent=" + hitComponent);
         }
+
+        if (VueUtil.isMacPlatform()) {
+            if (dropAction > 2) // hack: drop action == 1073741842 with Ctrl down on mac.
+                modifierKeyWasDown = true;
+        } else {
+            // not safe: see above re: unpredictable due to drags from browsers and/or WinXP
+            //if (dropAction == 1)
+            //modifierKeyWasDown = true;
+        }
+            
         
         boolean createAsChildren = !modifierKeyWasDown && hitComponent instanceof LWNode;
         boolean overwriteResource = modifierKeyWasDown;

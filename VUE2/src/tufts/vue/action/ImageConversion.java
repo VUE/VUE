@@ -91,7 +91,7 @@ public class ImageConversion extends AbstractAction {
          g.setClip(bounds);   
          DrawContext dc = new DrawContext(g);
          dc.disableAntiAlias(true);
-         //dc.setPrinting(true);
+         dc.setPrinting(true);
          // render the map
          currentMap.draw(dc);
          //begins the conversion to the file

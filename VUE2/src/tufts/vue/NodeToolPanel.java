@@ -38,15 +38,29 @@ import javax.swing.border.*;
  
 public class NodeToolPanel extends LWCToolPanel
 {
+    private ShapeMenuButton mShapeButton;
+    
      public NodeToolPanel() {
          JLabel label = new JLabel("   Node: ");
          label.setFont(VueConstants.FONT_SMALL);
-         getBox().add(new ShapeMenuButton(), 0);
+         getBox().add(mShapeButton = new ShapeMenuButton(), 0);
          getBox().add(label, 0);
      }
          
     public static boolean isPreferredType(Object o) {
         return o instanceof LWNode;
+    }
+
+    void loadValues(Object data) {
+        super.loadValues(data);
+        if (data instanceof LWNode) {
+            if (DEBUG.TOOL) out("loadValues (NodeToolPanel) " + data);
+            LWNode node = (LWNode) data;
+            System.out.println(this + " set the selected shape menu button to " + node.getShape());
+            //mShapeMenuButton.setPropertyValue(...)
+            // and if not save to change above to automatically do the below:
+            //mShapeMenuButton.setButtonIcon(...)
+        }
     }
     
     private static class ShapeMenuButton extends MenuButton
@@ -82,14 +96,17 @@ public class NodeToolPanel extends LWCToolPanel
         protected void handleMenuSelection(ActionEvent e) {
             Icon i = ((AbstractButton)e.getSource()).getIcon();
             System.out.println(this + " handeMenuSelection: selection was " + i);
-            if (i != null)
+            if (i != null) {
                 setButtonIcon(i);// note: inefficient as creates a new set of VueButtonIcons every time
+                setToolTipText("Node Shape: " + e.getActionCommand());
+            }
             super.handleMenuSelection(e);
         }
         
         public void setPropertyValue(Object o) {
             System.out.println(this + " setPropertyValue " + o);
             mSelectedAction = o;
+            //mPopup.setSelected(o);
             //setShape((RectangularShape)o);
         }
 	 

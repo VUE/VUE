@@ -934,7 +934,7 @@ class Actions
     }
     
     /**
-     * LWCAction: actions that operate on one or more LWComponents
+     * LWCAction: actions that operate on one or more LWComponents.
      * Provides a number of convenience methods to allow code in
      * each action to be tight & focused.
      */

@@ -35,7 +35,7 @@ public class TextRow
     private Graphics2D g2d;
     private TextLayout row;
 
-    private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
+    private static final BasicStroke BorderStroke = new BasicStroke(0.1f);
 
     private Rectangle2D.Float bounds;
 
@@ -71,18 +71,21 @@ public class TextRow
         draw(this.g2d, xoff, yoff);
     }
         
+    private Rectangle2D.Float cachedBounds;
+
     public void draw(Graphics2D g2d, float xoff, float yoff)
     {
-        //g.drawString(extension, 0, (int)(genIcon.getHeight()/1.66));
-        
-        //if (true||DEBUG.LAYOUT) System.out.println("TextRow[" + text + "]@"+bounds);
-
         // Mac & PC 1.4.1 implementations haved reversed baselines
         // and differ in how descents are factored into bounds offsets
 
-        Rectangle2D.Float tb = (Rectangle2D.Float) row.getBounds();
-        float baseline = 0; // not used currently
         if (VueUtil.isMacPlatform()) {
+            if (cachedBounds == null) {
+                // for some reason, getting the bounds is only accurate the FIRST
+                // time we ask for it on mac JVM 1.4.2_03
+                cachedBounds = (Rectangle2D.Float) row.getBounds();
+            }
+            final Rectangle2D.Float tb = (Rectangle2D.Float) cachedBounds.clone();
+            //System.out.println("TextRow[" + text + "]@"+tb);
             yoff += tb.height;
             yoff += tb.y;
             xoff += tb.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
@@ -109,12 +112,13 @@ public class TextRow
             }
                 
         } else {
+            final Rectangle2D.Float tb = (Rectangle2D.Float) row.getBounds();
             // This is cleaner, thus I'm assuming the PC
             // implementation is also cleaner, and worthy of being
             // the default case.
                 
             row.draw(g2d, -tb.x + xoff, -tb.y + yoff);
-            baseline = yoff + tb.height;
+            //baseline = yoff + tb.height;
 
             if (DEBUG.BOXES||DEBUG.LAYOUT) {
                 // draw a red bounding box for testing

@@ -41,6 +41,9 @@ public interface LWKey {
     public String Font = "font";
     public String Hidden = "hidden";
 
+    /** an instance of a RectangularShape */
+    public String Shape = "node.shape"; 
+
     public String Created = "new.component"; // any LWComponets creation event
     //public String Added = "added"; // a child components add-notify
     //public String ChildAdded = "childAdded";// the parent component's add-notify

@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.vue.shape.*;
+
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.TextLayout;
@@ -99,13 +101,15 @@ public class LWNode extends LWContainer
     // font strings, so this pad needs to be big enough to compensate
     // for the error in the worst case, which we're guessing at here
     // based on a small set of random test cases.
-    private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
+    //private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
+    private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
     // put back to constant??  Also TODO: Text nodes left-aligned, not centered, and for real disallow BG color.
     //private static final float TextWidthFudgeFactor = 1;
     //private static final int DividerStubPadX = TextWidthFudgeAmount;
 
     private static final int MarginLinePadY = 5;
     private static final int IconPillarPadY = MarginLinePadY;
+    private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
     
 
     
@@ -125,11 +129,16 @@ public class LWNode extends LWContainer
     //private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, IconWidth,IconHeight, 12,12);
     //private RectangularShape genIcon = new Rectangle2D.Float(0,0, IconWidth,IconHeight);
     private Line2D dividerUnderline = new Line2D.Float();
-    private Line2D.Float dividerMarginLine = new Line2D.Float();
     private Line2D dividerStub = new Line2D.Float();
 
     private transient boolean mIsRectShape = true;
     //private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
+
+    private Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
+    
+    private Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
+    private Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
+
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -150,32 +159,7 @@ public class LWNode extends LWContainer
         this(label, 0, 0, shape);
     }
 
-    public boolean supportsUserLabel() {
-        return true;
-    }
-    public boolean supportsUserResize() {
-        return true;
-    }
-    
-    /*
-    public LWNode(String label, String shapeName, float x, float y)
-    {
-        super.label = label; // todo: this for debugging
-        setFillColor(COLOR_NODE_DEFAULT);
-        setNodeShape(getNamedNodeShape(shapeName));
-        setStrokeWidth(2f);//todo config: default node stroke
-        setLocation(x, y);
-        //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
-        setSize(10,10);
-        setLabel(label);
-    }
-    */
-    // internal convenience
-    LWNode(String label, float x, float y)
-    {
-        this(label, x, y, null);
-    }
-
+    /** internal convenience */
     LWNode(String label, float x, float y, RectangularShape shape)
     {
         super.label = label; // todo: this for debugging
@@ -194,18 +178,30 @@ public class LWNode extends LWContainer
         setFont(DEFAULT_NODE_FONT);
     }
     
-    // internal convenience
+    /** internal convenience */
+    LWNode(String label, float x, float y)
+    {
+        this(label, x, y, null);
+    }
+
+    /** internal convenience */
     LWNode(String label, Resource resource)
     {
         this(label, 0, 0);
         setResource(resource);
     }
-    // internal convenience todo: remove -- uses old shape impl
+    
     /*
-    LWNode(String label, int shapeType)
+    public LWNode(String label, String shapeName, float x, float y)
     {
-        this(label);
-        setNodeShape(StandardShapes[shapeType]);
+        super.label = label; // todo: this for debugging
+        setFillColor(COLOR_NODE_DEFAULT);
+        setNodeShape(getNamedNodeShape(shapeName));
+        setStrokeWidth(2f);//todo config: default node stroke
+        setLocation(x, y);
+        //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
+        setSize(10,10);
+        setLabel(label);
     }
     */
 
@@ -250,6 +246,13 @@ public class LWNode extends LWContainer
         super.setResource(resource);
     }
     */
+    
+    public boolean supportsUserLabel() {
+        return true;
+    }
+    public boolean supportsUserResize() {
+        return true;
+    }
     
     private boolean iconShowing()
     {
@@ -450,11 +453,11 @@ public class LWNode extends LWContainer
         this.drawnShape = (RectangularShape) shape.clone();
         adjustDrawnShape();
         layout();
-        notify("node.shape", new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
+        notify(LWKey.Shape, new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
     }
 
-    public Shape getShape()
-    {
+    /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
+    public Shape getShape() {
         return this.boundsShape;
     }
 
@@ -502,25 +505,29 @@ public class LWNode extends LWContainer
 
     public boolean contains(float x, float y)
     {
-        if (imageIcon != null)
+        if (imageIcon != null) {
             return super.contains(x,y);
-        else {
-            // TODO: util irregular shapes can still give access to children
-            // outside their bounds, we're checking everything in the bounding box
-            // for the moment if there are any children.
-            if (hasChildren())
-                return super.contains(x,y);
-            else if (mIsRectShape) {
+        } else {
+            if (true) {
                 return boundsShape.contains(x, y);
             } else {
-                float cx = x - getX();
-                float cy = y - getY();
-                // if we end up using these zillion checks, be sure to
-                // first surround with a fast-reject bounding-box check
-                return boundsShape.contains(x, y)
-                    || textBoxHit(cx, cy)
-                    ;
+                // DEBUG: util irregular shapes can still give access to children
+                // outside their bounds, we're checking everything in the bounding box
+                // for the moment if there are any children.
+                if (hasChildren())
+                    return super.contains(x,y);
+                else if (mIsRectShape) {
+                    return boundsShape.contains(x, y);
+                } else {
+                    float cx = x - getX();
+                    float cy = y - getY();
+                    // if we end up using these zillion checks, be sure to
+                    // first surround with a fast-reject bounding-box check
+                    return boundsShape.contains(x, y)
+                        || textBoxHit(cx, cy)
+                        ;
                     //|| mIconBlock.contains(cx, cy)
+                }
             }
         }
         
@@ -601,7 +608,7 @@ public class LWNode extends LWContainer
     }
     
     private boolean inLayout = false;
-    private boolean isCenterLayout = false;
+    private boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
     protected void layout()
     {
         if (inLayout) {
@@ -658,9 +665,16 @@ public class LWNode extends LWContainer
 
         setSizeNoLayout(min.width, min.height);
 
-        dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
-        if (!mIsRectShape)
-            VueUtil.clipToYCrossings(dividerMarginLine, drawnShape, MarginLinePadY);
+        if (mIsRectShape) {
+            // todo: cleaner move this to layout_boxed, and have layout methods handle
+            // the auto-size check (min gets set to request if request is bigger), as
+            // layout_centered has to compute that now anyway.
+            mIconDivider.setLine(IconMargin, MarginLinePadY, IconMargin, min.height-MarginLinePadY);
+        } else {
+            if (iconShowing())
+                VueUtil.clipToYCrossings(mIconDivider, drawnShape, MarginLinePadY);
+        }
+
     
         if (getParent() != null && !(getParent() instanceof LWMap)) {
             //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
@@ -676,44 +690,340 @@ public class LWNode extends LWContainer
         return s;
     }
 
-    private Point2D.Float labelP = new Point2D.Float();
-    private Point2D.Float childP = new Point2D.Float();
-    private static final float CenterPad = 5;
+    
+    /**
+     * Layout the contents of the node centered, and return the min size of the node.
+     * @return the minimum rectangular size of node shape required to to contain all
+     * the visual node contents
+     */
     private Size layout_centered()
     {
-        Size box = get_minimum_content_size();
-        Size node = new Size(box);
-        //min.width += CenterPad * 2;
-        //min.height += CenterPad * 2;
+        //Size minSize = get_minimum_content_size();
+        NodeContent content = getLaidOutNodeContent();
+        Size minSize = new Size(content);
+        Size node = new Size(content);
 
-        node.fitWidth(getWidth());
-        node.fitHeight(getHeight());
+        // Current node size is largest of current size, or
+        // minimum content size.
+        if (!isAutoSized()) {
+            node.fitWidth(getWidth());
+            node.fitHeight(getHeight());
+        }
 
-        float xoff = (node.width - box.width) / 2;
-        float yoff = (node.height - box.height) / 2;
+        //Rectangle2D.Float content = new Rectangle2D.Float();
+        //content.width = minSize.width;
+        //content.height = minSize.height;
+
+        RectangularShape nodeShape = (RectangularShape) drawnShape.clone();
+        nodeShape.setFrame(0,0, content.width, content.height);
+        //nodeShape.setFrame(0,0, minSize.width, minSize.height);
         
-        Size text = getTextSize();
-        labelP.x = xoff + (box.width - text.width) / 2;
-        labelP.y = yoff;
+        // todo perf: allow for skipping of searching for minimum size
+        // if current size already big enough for content
 
-        yoff += text.height + LabelPadY;
-
-        if (iconShowing()) {
-            float yIconBlock = (node.height - mIconBlock.height) / 2;
-            mIconBlock.setLocation(xoff, yIconBlock);
-            xoff += mIconBlock.width;
+        if (growShapeUntilContainsContent(nodeShape, content)) {
+            // content x/y is now at the center location of our MINUMUM size,
+            // even tho our current size may be bigger and require moving it..
+            minSize.fit(nodeShape);
+            node.fit(minSize);
         }
 
-        if (hasChildren()) {
-            xoff += ChildPadX;
-            yoff += ChildPadY;
-            childP.x = xoff;
-            childP.y = yoff;
-            layoutChildren(xoff, yoff);
+        //Size text = getTextSize();
+        //mLabelPos.x = content.x + (((float)nodeShape.getWidth()) - text.width) / 2;
+        //mLabelPos.x = content.x + (node.width - text.width) / 2;
+
+        nodeShape.setFrame(0,0, node.width, node.height);
+        layoutContentInShape(nodeShape, content);
+        if (DEBUG.LAYOUT) System.out.println("*** " + this + " content placed at " + content + " in " + nodeShape);
+
+        content.layoutTargets(node);
+        
+        return minSize;
+    }
+
+    /**
+     * Brute force increase the size of the given arbitrary shape until it's borders fully
+     * contain the given rectangle when it is centered in the shape.  Algorithm starts
+     * with size of content for shape (which would work it it was rectangular) then increases
+     * width & height incrememntally by %10 until content is contained, then backs off 1 pixel
+     * at a time to tighten the fit.
+     *
+     * @param shape - the shape to grow: expected be zero based (x=y=0)
+     * @param content - the rectangle to ensure we can contain (x/y is ignored: it's x/y value at end will be centered)
+     * @return true if the shape was grown
+     */
+    private boolean growShapeUntilContainsContent(RectangularShape shape, NodeContent content)
+    {
+        final int MaxTries = 1000; // in case of loops (e.g., a broke shape class whose contains() never succeeds)
+        final float increment;
+        if (content.width > content.height)
+            increment = content.width * 0.1f;
+        else
+            increment = content.height * 0.1f;
+        final float xinc = increment;
+        final float yinc = increment;
+        //final float xinc = content.width * 0.1f;
+        //final float yinc = (content.height / content.width) * xinc;
+        //System.out.println("xinc=" + xinc + " yinc=" + yinc);
+        int tries = 0;
+        while (!shape.contains(content) && tries < MaxTries) {
+        //while (!content.fitsInside(shape) && tries < MaxTries) {
+            shape.setFrame(0, 0, shape.getWidth() + xinc, shape.getHeight() + yinc);
+            //System.out.println("trying size " + shape + " for content " + content);
+            layoutContentInShape(shape, content);
+            tries++;
         }
-        return box;
+        if (tries > 0) {
+            final float shrink = 0.5f;
+            System.out.println("Contents of " + shape + "  rought  fit  to " + content + " in " + tries + " tries");
+            do {
+                shape.setFrame(0, 0, shape.getWidth() - shrink, shape.getHeight() - shrink);
+                //System.out.println("trying size " + shape + " for content " + content);
+                layoutContentInShape(shape, content);
+                tries++;
+            } while (shape.contains(content) && tries < MaxTries);
+            //} while (content.fitsInside(shape) && tries < MaxTries);
+            shape.setFrame(0, 0, shape.getWidth() + shrink, shape.getHeight() + shrink);
+            //layoutContentInShape(shape, content);
+
+            /*
+            if (getLabel().indexOf("*s") >= 0) {
+            do {
+                shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() - shrink);
+                tries++;
+            } while (content.fitsInside(shape) && tries < MaxTries);
+            shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() + shrink);
+            }
+
+            if (getLabel().indexOf("*ml") >= 0) {
+            do {
+                shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() - shrink);
+                tries++;
+            } while (content.fitsInside(shape) && tries < MaxTries);
+            shape.setFrame(0, 0, shape.getWidth(), shape.getHeight() + shrink);
+            }
+            */
+            
+        }
+        
+        if (tries >= MaxTries) {
+            System.err.println("Contents of " + shape + " failed to contain " + content + " after " + tries + " tries.");
+        } else if (tries > 0) {
+            if (DEBUG.Enabled) System.out.println("Contents of " + shape + " grown to contain " + content + " in " + tries + " tries");
+        } else
+            if (DEBUG.Enabled) System.out.println("Contents of " + shape + " already contains " + content);
+        if (DEBUG.LAYOUT) System.out.println("*** " + this + " content minput at " + content + " in " + shape);
+        return tries > 0;
     }
     
+    /**
+     * Layout the given content rectangle in the given shape.  The default is to center
+     * the content rectangle in the shape, however, if the shape in an instance
+     * of tufts.vue.shape.RectangularPoly2D, it will call getContentGravity() to
+     * determine layout gravity (CENTER, NORTH, EAST, etc).
+     *
+     * @param shape - the shape to layout the content in
+     * @param content - the region to layout in the shape: x/y values will be set
+     *
+     * @see tufts.vue.shape.RectangularPoly2D, 
+     */
+    private void layoutContentInShape(RectangularShape shape, NodeContent content)
+    {
+        final float width = (float) shape.getWidth();
+        final float height = (float) shape.getHeight();
+        final float margin = 0.5f; // safety so 100% sure will be in-bounds
+        boolean content_laid_out = false;
+
+        if (shape instanceof RectangularPoly2D) {
+            int gravity = ((RectangularPoly2D)shape).getContentGravity();
+            content_laid_out = true;
+            if (gravity == RectangularPoly2D.CENTER) {
+                content.x = (width - content.width) / 2;
+                content.y = (height - content.height) / 2;
+            } else if (gravity == RectangularPoly2D.EAST) {
+                content.x = margin;
+                content.y = (float) (height - content.height) / 2;
+            } else if (gravity == RectangularPoly2D.WEST) {
+                content.x = (width - content.width) + margin;
+                content.y = (float) Math.floor((height - content.height) / 2);
+            } else if (gravity == RectangularPoly2D.NORTH) {
+                content.x = (width - content.width) / 2;
+                content.y = margin;
+            } else if (gravity == RectangularPoly2D.SOUTH) {
+                content.x = (width - content.width) / 2;
+                content.y = (height - content.height) - margin;
+            } else {
+                System.err.println("Unsupported content gravity " + gravity + " on shape " + shape + "; defaulting to CENTER");
+                content_laid_out = false;
+            }
+        }
+        if (!content_laid_out) {
+            // default is center layout
+            content.x = (width - content.width) / 2;
+            content.y = (height - content.height) / 2;
+        }
+    }
+
+    //private static final Rectangle2D.Float EmptyRegion = new Rectangle2D.Float(0,0,0,0);
+
+    private class NodeContent extends Rectangle2D.Float {
+
+        // regions for icons, label & children
+        private Rectangle2D.Float rIcons;
+        private Rectangle2D.Float rLabel = new Rectangle2D.Float();
+        private Rectangle2D.Float rChildren;
+
+        /**
+         * Initial position is 0,0.  Regions are all normalized to offsets from 0,0.
+         * Construct node content layout object: layout the regions for
+         * icons, label & children.  Does NOT do the final layout (setting
+         * LWNode member variables, laying out the child nodes, etc, until
+         * layoutTargts() is called).
+         */
+        NodeContent()
+        {
+            if (hasLabel()) {
+                Size text = getTextSize();
+                //rLabel = new Rectangle2D.Float(0,0, text.width, text.height);
+                rLabel.width = text.width;
+                rLabel.height = text.height;
+                this.width = text.width;
+                this.height = text.height;
+            } 
+            if (iconShowing()) {
+                rIcons = new Rectangle2D.Float(0, 0, mIconBlock.width, mIconBlock.height);
+                width += mIconBlock.width;
+                // move label to right to make room for icon block at left
+                rLabel.x += mIconBlock.width + ChildPadX;
+            }
+            if (hasChildren()) {
+                Size children = layoutChildren(new Size(), true);
+                //float childx = rLabel.x + ChildPadX;
+                float childx = rLabel.x;
+                float childy = rLabel.height + ChildPadY;
+                rChildren = new Rectangle2D.Float(childx,childy, children.width, children.height);
+                height = rLabel.height + ChildPadY + children.height;
+
+                fitWidth(rLabel.x + children.width); // as we're 0 based, rLabel.x == width of gap at left of children
+                /*
+                if (rIcons != null) {
+                    fitWidth(mIconBlock.width + ChildPadX + children.width);
+                } else {
+                    fitWidth(children.width + ChildPadX);
+                }
+                */
+                //height += ChildOffsetY + children.height + ChildrenPadBottom;
+            }
+            
+            if (rIcons != null) {
+                fitHeight(mIconBlock.height);
+                // vertically center icon block
+                // [no point for now as we are never smaller than the full content bounding box]
+                //rIcons.y = (height - rIcons.height) / 2;
+
+                // fudge the icon block down a bit in same way as layout_boxed
+                // as prettification.
+
+                // todo: even better: first priority should be to
+                // center the top SEGMENT of the icon block
+                // verticallly in the height of the FIRST LINE of the
+                // text label (which is usually taller) and then only
+                // move up if we're pressed for space.  We don't have
+                // a way to get the height of that first line handy
+                // at the moment tho.
+
+                float iconBlockExtraY = height - mIconBlock.height;
+                if (iconBlockExtraY > 0) {
+                    if (iconBlockExtraY >= IconPillarFudgeY)
+                        rIcons.y = IconPillarFudgeY;
+                    else
+                        rIcons.y = iconBlockExtraY;
+                }
+            }
+        }
+
+        /** layout the actual targets of our regions */
+        void layoutTargets(Size nodeSize) {
+            if (DEBUG.LAYOUT) System.out.println("*** " + this + " laying out targets");
+            mLabelPos.setLocation(x + rLabel.x, y + rLabel.y);
+            if (rIcons != null) {
+                mIconBlock.setLocation(x + rIcons.x, y + rIcons.y);
+                mIconDivider.setLine(mIconBlock.x + mIconBlock.width, 0,
+                                     mIconBlock.x + mIconBlock.width, nodeSize.height);
+                //mIconDivider.setLine(mIconBlock.x + mIconBlock.width, -1000,
+                //                     mIconBlock.x + mIconBlock.width, 1000);
+                // Cannot clip here: must wait till we've drawShape is updated, which won't
+                // happen till setSize has been called
+                //VueUtil.clipToYCrossings(mIconDivider, LWNode.this.drawnShape, MarginLinePadY);
+            }
+            if (rChildren != null) {
+                mChildPos.setLocation(x + rChildren.x, y + rChildren.y);
+                layoutChildren(mChildPos.x, mChildPos.y);
+            }
+        }
+        
+        private Rectangle2D.Float checker = new Rectangle2D.Float();
+        boolean fitsInside(RectangularShape shape) {
+            //return shape.contains(this);
+            boolean fit = true;
+            copyTranslate(rLabel, checker, x, y);
+            fit &= shape.contains(checker);
+            System.out.println(this + " checked " + VueUtil.out(shape) + " for label " + VueUtil.out(rLabel) + " RESULT=" + fit);
+            if (rIcons != null) {
+                copyTranslate(rIcons, checker, x, y);
+                fit &= shape.contains(checker);
+                System.out.println("Contains    icons: " + fit);
+            }
+            if (rChildren != null) {
+                copyTranslate(rChildren, checker, x, y);
+                fit &= shape.contains(checker);
+                System.out.println("Contains children: " + fit);
+            }
+            return fit;
+        }
+
+        private void copyTranslate(Rectangle2D.Float src, Rectangle2D.Float dest, float xoff, float yoff) {
+            dest.width = src.width;
+            dest.height = src.height;
+            dest.x = src.x + xoff;
+            dest.y = src.y + yoff;
+        }
+
+        private void fitWidth(float w) {
+            if (width < w)
+                width = w;
+        }
+        private void fitHeight(float h) {
+            if (height < h)
+                height = h;
+        }
+        
+        /** layout the REGIONS only: not the underlying components */
+        /*
+        void setLocation(float x, float y) {
+            this.x = x;
+            this.y = y;
+        }
+        */
+
+        public String toString() {
+            return "NodeContent[" + VueUtil.out(this) + "]";
+        }
+    }
+
+    /** 
+     * @return internal node content already laid out
+     */
+    
+    private NodeContent _lastNodeContent;
+    private NodeContent getLaidOutNodeContent()
+    {
+        return _lastNodeContent = new NodeContent();
+    }
+
+    /** @return the minimum size rectangular area required to contain all visible node
+     * contents
+     */
     private Size get_minimum_content_size()
     {
         Size box = new Size();
@@ -722,7 +1032,7 @@ public class LWNode extends LWContainer
         //box.width  = LabelPadX + text.width + LabelPadX;
         //box.height = LabelPadY + text.height + LabelPadY;
         box.width  = text.width;
-        box.height = text.height + LabelPadY;
+        box.height = text.height;
 
         if (iconShowing()) {
             box.width += mIconBlock.width;
@@ -731,10 +1041,11 @@ public class LWNode extends LWContainer
 
         if (hasChildren()) {
             Size children = layoutChildren(new Size(), true);
+            //box.height += LabelPadY;
             box.fitWidth(ChildPadX + children.width + ChildPadX);
             box.height += ChildOffsetY + children.height + + ChildrenPadBottom;
         }
-        
+
         return box;
     }
     
@@ -825,8 +1136,8 @@ public class LWNode extends LWContainer
                 // pixels, go ahead and do so because it's so much nicer
                 // to look at.
                 float centerY = (min.height - totalIconHeight) / 2;
-                if (centerY > IconPillarPadY+3)
-                    centerY = IconPillarPadY+3;
+                if (centerY > IconPillarPadY+IconPillarFudgeY)
+                    centerY = IconPillarPadY+IconPillarFudgeY;
                 iconPillarY = centerY;
             }
             
@@ -847,12 +1158,12 @@ public class LWNode extends LWContainer
 
     private float childOffsetX() {
         if (isCenterLayout)
-            return childP.x;
+            return mChildPos.x;
         return iconShowing() ? ChildOffsetX : ChildPadX;
     }
     private float childOffsetY() {
         if (isCenterLayout)
-            return childP.y;
+            return mChildPos.y;
         float baseY;
         if (iconShowing()) {
             //baseY = (float) (mIconResource.getY() + IconHeight + ChildOffsetY);
@@ -884,7 +1195,7 @@ public class LWNode extends LWContainer
         return layoutChildren(0, 0, result);
     }
 
-    private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
+    //private Rectangle2D child_box = new Rectangle2D.Float(); // for debug
     private Size layoutChildren(Size result, boolean sizeOnly)
     {
         if (!hasChildren())
@@ -921,7 +1232,7 @@ public class LWNode extends LWContainer
             result.width /= getScale();
             result.height /= getScale();
             //if (DEBUG.BOXES)
-                child_box.setRect(baseX, baseY, result.width, result.height);
+            //child_box.setRect(baseX, baseY, result.width, result.height);
         }
         return result;
     }
@@ -931,13 +1242,17 @@ public class LWNode extends LWContainer
     {
         float y = baseY;
         float maxWidth = 0;
-        
+        boolean first = true;
         java.util.Iterator i = getChildIterator();
+        
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (first)
+                first = false;
+            else
+                y += ChildVerticalGap * getScale();
             c.setLocation(baseX, y);
             y += c.getHeight();
-            y += ChildVerticalGap * getScale();
 
             if (result != null) {
                 // track max width
@@ -1041,10 +1356,11 @@ public class LWNode extends LWContainer
         */
     }
 
+    //todo: change to use membar variable only (can get rid of method actually if do so)
     private float relativeLabelX()
     {
         if (isCenterLayout) {
-            return labelP.x;
+            return mLabelPos.x;
         } else if (isTextNode() && strokeWidth == 0) {
             return 1;
             //return 1 + (strokeWidth == 0 ? 0 : strokeWidth / 2);
@@ -1063,12 +1379,13 @@ public class LWNode extends LWContainer
             return offset;
         }
     }
+    //todo: change to use membar variable only (can get rid of method actually if do so)
     private float relativeLabelY()
     {
         //return EdgePadY;
         
         if (isCenterLayout) {
-            return labelP.y;
+            return mLabelPos.y;
         } else if (hasChildren()) {
             return EdgePadY;
         } else {
@@ -1141,14 +1458,9 @@ public class LWNode extends LWContainer
             // auto multiply by the scale factor, and actually resizing
             // the bounds-shape when we scale an object.
             
+
             if (scale != 1f) dc.g.scale(1/scale, 1/scale);
             dc.g.translate(-getX(), -getY());
-
-            if (DEBUG.BOXES && hasChildren()) {
-                dc.g.setColor(Color.blue);
-                dc.setAbsoluteStroke(0.5);
-                dc.g.draw(child_box);
-            }
         }
 
         //-------------------------------------------------------
@@ -1249,6 +1561,14 @@ public class LWNode extends LWContainer
         }
 
 
+        if (DEBUG.BOXES) {
+            dc.g.setColor(Color.darkGray);
+            dc.setAbsoluteStroke(0.5);
+            //if (hasChildren()) dc.g.draw(child_box);
+            if (_lastNodeContent != null && !mIsRectShape)
+                dc.g.draw(_lastNodeContent);
+        }
+            
         //-------------------------------------------------------
         // Draw the generated icon
         //-------------------------------------------------------
@@ -1274,6 +1594,7 @@ public class LWNode extends LWContainer
             float lx = relativeLabelX();
             float ly = relativeLabelY();
             g.translate(lx, ly);
+            if (DEBUG.LAYOUT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
             this.labelBox.draw(dc);
             g.translate(-lx, -ly);
 
@@ -1341,12 +1662,12 @@ public class LWNode extends LWContainer
         //float iconX = iconPillarX;
         //float iconY = iconPillarY;
 
-        if (DEBUG.BOXES) {
+        if (DEBUG.BOXES && mIsRectShape) {
             //-------------------------------------------------------
             // paint a divider line
             //-------------------------------------------------------
             g.setColor(Color.gray);
-            g.setStroke(STROKE_EIGHTH);
+            dc.setAbsoluteStroke(0.5);
             g.draw(dividerUnderline);
             g.draw(dividerStub);
         }
@@ -1369,7 +1690,7 @@ public class LWNode extends LWContainer
             }
             g.setColor(marginColor);
             g.setStroke(STROKE_ONE);
-            g.draw(dividerMarginLine);
+            g.draw(mIconDivider);
             mIconBlock.draw(dc);
         }
     }

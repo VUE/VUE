@@ -50,6 +50,10 @@ import tufts.vue.filter.*;
  * through their parents, listenting to the map for LWCEvents will
  * tell you about every change that happens anywhere in the map.
  * For instance: the UndoManager is just another listener on the map.
+ * (Note however, that the application depends on LWKey.UserActionCompleted
+ * events delivered from the UndoManager to indicate the right time
+ * to redisplay; e.g., in the panner tool and in other map viewers
+ * of the same map).
  *
  * As it extends LWComponent/LWContainer, in the future it is
  * ready to be embedded / rendered as a child of another LWContainer/LWMap.

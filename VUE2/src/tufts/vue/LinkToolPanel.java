@@ -106,6 +106,10 @@ import javax.swing.*;
  		
          setIgnorePropertyChangeEvents(true);
 
+         // ick: we're relying on the side-effect of mState having been set in parent call
+         // TODO: either force everything to use a loadValues(state), or have a loadValues(LWComponent)
+         // and loadValues(VueBeanState), or perhaps get rid of the hairy-ass VueBeanState crap
+         // alltogether.
          if (mState.hasProperty(LWKey.LinkArrows)) {
              int arrowState = mState.getIntValue(LWKey.LinkArrows);
              mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);

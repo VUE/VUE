@@ -19,6 +19,8 @@
 package tufts.vue;
 
 import java.awt.Dimension;
+import java.awt.geom.RectangularShape;
+import java.awt.geom.Rectangle2D;
 
 public class Size {
 
@@ -34,21 +36,22 @@ public class Size {
      */
     public float height;
 
-    public Size() {
-	this(0, 0);
-    }
-
-    public Size(Size s) {
-	this(s.width, s.height);
-    }
-
-    public Size(Dimension d) {
-	this(d.width, d.height);
-    }
-
     public Size(float width, float height) {
 	this.width = width;
 	this.height = height;
+    }
+    
+    public Size() {
+	this(0, 0);
+    }
+    public Size(Size s) {
+	this(s.width, s.height);
+    }
+    public Size(Dimension d) {
+	this(d.width, d.height);
+    }
+    public Size(Rectangle2D.Float r) {
+	this(r.width, r.height);
     }
 
     public float getWidth() {
@@ -59,6 +62,16 @@ public class Size {
 	return height;
     }
 
+    public void fit(Size s) {
+        fitWidth(s.width);
+        fitHeight(s.height);
+    }
+
+    public void fit(RectangularShape s) {
+        fitWidth(s.getWidth());
+        fitHeight(s.getHeight());
+    }
+
     public void fitHeight(float h) {
         if (height < h)
             height = h;
@@ -67,6 +80,15 @@ public class Size {
         if (width < w)
             width = w;
     }
+
+    public void fitHeight(double h) {
+        if (height < h)
+            height = (float) h;
+    }
+    public void fitWidth(double w) {
+        if (width < w)
+            width = (float) w;
+    }    
 
     public void setSize(float width, float height) {
 	this.width = width;
