@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.ArrayList;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
@@ -240,7 +241,6 @@ class Actions {
         {
             boolean mayModifySelection() { return true; }
             void act(LWComponent c) {
-                c.getParent().deleteChild(c);
                 //have to update pathways - jay briedis
                 Iterator iter = VUE.getActiveViewer()
                     .getMap()
@@ -248,12 +248,24 @@ class Actions {
                     .getPathwayIterator();
                 while(iter.hasNext()){
                     LWPathway pathway = (LWPathway)iter.next();
-                    if(pathway.contains(c)) pathway.removeElement(c);
-                    if(c instanceof LWNode){
-                        LWNode node = (LWNode)c;
-                        //in progress
+                    if(pathway.contains(c)){
+                        if(c instanceof LWNode){
+                            LWNode node = (LWNode)c;
+                            ArrayList links = (ArrayList)c.getLinks(); // may be modified concurrently
+                            if(links != null){
+                                for (int i = 0; i < links.size(); i++) {
+                                    LWLink l = (LWLink) links.get(i);
+                                    if(pathway.contains(l)){
+                                        pathway.removeElement(l);
+                                    }
+                                }
+                            }
+                        }
+                        pathway.removeElement(c);                        
                     }
                 }
+                
+                c.getParent().deleteChild(c);
             }
         };
     
