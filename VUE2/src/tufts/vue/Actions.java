@@ -365,7 +365,12 @@ implements VueConstants {
     };
     
     static final LWCAction Delete =
-    new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
+        new LWCAction("Delete",
+                      // todo: check what PC does with delete/backspace
+                      // MapViewer special cases these at the moment to always fire Delete,
+                      // but anything else that has focus will only respond to what's here.
+                      VueUtil.isMacPlatform() ? keyStroke(KeyEvent.VK_BACK_SPACE) : keyStroke(KeyEvent.VK_DELETE),
+                      ":general/Delete") {
         // hierarchicalAction is true: if parent being deleted,
         // let it handle deleting the children (ignore any
         // children in selection who's parent is also in selection)
