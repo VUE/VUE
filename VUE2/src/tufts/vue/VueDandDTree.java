@@ -64,86 +64,178 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
 
    }
         
-    public void drop(DropTargetDropEvent e ) {       
+    public void drop(DropTargetDropEvent e ) {
         java.awt.Point dropLocation = e.getLocation();
-        TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
+        
+        ResourceNode rootNode;
         
         
-        if ( (treePath != null) && (((ResourceNode)treePath.getLastPathComponent()).getResource().getType() == FAVORITES) ){
-            if (e.isLocalTransfer()) 
-                e.acceptDrop(DnDConstants.ACTION_MOVE);
-            else 
-                e.acceptDrop(DnDConstants.ACTION_COPY);
-            boolean success = false;
-            Transferable transfer = e.getTransferable();
-            DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-            String resourceName = null;
-            java.util.List fileList = null;
-            java.util.List resourceList = null;
-           
-            if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
-            try {
-                if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
-                    if (debug) System.out.println("RESOURCE FOUND" );
-                  
-                    resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
-                    DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)treePath.getLastPathComponent();
-                    
-                    java.util.Iterator iter = resourceList.iterator();
-                    
-                    
-                    DefaultTreeModel model = (DefaultTreeModel)this.getModel(); 
-                    
-                    while(iter.hasNext()) {
-                        Resource resource = (Resource) iter.next();
-                        System.out.println("RESOURCE FOUND 2" + resource + resource.getTitle() + resource.getSpec());
-                         
-                                   if (resource instanceof CabinetResource){
-                             
-                                     CabinetEntry entry = ((CabinetResource)resource).getEntry();
-                                      CabinetNode cabNode = null;
-                                       if (entry instanceof RemoteCabinetEntry)
-                                                cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.REMOTE);
-                                         else
-                                                 cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.LOCAL);
-                                   
-                                        cabNode.explore();
-                             
-                                      this.setRootVisible(true);
-                                        model.insertNodeInto(cabNode, rootNode, (rootNode.getChildCount()));
-                                      this.expandPath(new TreePath(rootNode.getPath()));
-                                    
-                                      this.setRootVisible(false);
-                                    }
-                         else {
-                             
-                             ResourceNode newNode =new ResourceNode(resource);
-                             this.setRootVisible(true);
-                              model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
-                              this.expandPath(new TreePath(rootNode.getPath()));
-                            this.expandRow(0);
-                            this.setRootVisible(false);
-                             
-                         }   
-                      
-                      
-                          
-                    }
-                }
+        
+        if (e.isLocalTransfer())
+            e.acceptDrop(DnDConstants.ACTION_MOVE);
+        else
+            e.acceptDrop(DnDConstants.ACTION_COPY);
+        boolean success = false;
+        
+        Transferable transfer = e.getTransferable();
+        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+        String resourceName = null;
+        // java.util.List fileList = null;
+        //java.util.List resourceList = null;
+        java.util.List resourceList = null;
+        java.util.List fileList = null;
+        String droppedText = null;
+        DataFlavor foundFlavor = null;
+        Object foundData = null;
+        
+        
+        if (debug) System.out.println("drop: found " + dataFlavors.length +  dataFlavors.toString());
+        
+        
+        
+        try {
+            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
                 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                //System.out.println(ex);
-                //continue;
+                foundFlavor = VueDragTreeNodeSelection.resourceFlavor;
+                foundData = transfer.getTransferData(foundFlavor);
+                resourceList = (java.util.List)foundData;
+                System.out.println("I am a resource DROPP");
+                
+            } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                
+                foundFlavor = DataFlavor.javaFileListFlavor;
+                foundData = transfer.getTransferData(foundFlavor);
+                fileList = (java.util.List)foundData;
+                System.out.println("I am a file DROPP");
+                
+            } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                
+                foundFlavor = DataFlavor.stringFlavor;
+                foundData = transfer.getTransferData(DataFlavor.stringFlavor);
+                droppedText = (String)foundData;
+                System.out.println("I am a string DROPP");
+                
+            } else {
+                System.out.println("TRANSFER: found no supported dataFlavors");
+                
             }
-            
-            
-            e.dropComplete(success);
-            }else{
-                if (debug) System.out.println("Invalid Drop Node");
+        } catch (UnsupportedFlavorException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: Transfer lied about supporting " + foundFlavor);
+            e.dropComplete(false);
+            return;
+        } catch (ClassCastException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: Transfer data did not match declared type! flavor="
+            + foundFlavor + " data=" + foundData.getClass());
+            e.dropComplete(false);
+            return;
+        } catch (java.io.IOException ex) {
+            ex.printStackTrace();
+            System.err.println("TRANSFER: data no longer available");
+            e.dropComplete(false);
+            return;
+        }
+        
+        
+        
+        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+        if (this.getPathForLocation(dropLocation.x, dropLocation.y) == null){rootNode = (ResourceNode)model.getRoot();
+        }
+        else{
+            rootNode = (ResourceNode)this.getPathForLocation(dropLocation.x, dropLocation.y).getLastPathComponent();
+        }
+        
+        
+        if (rootNode.getResource().getType() == FAVORITES){
+ 
+           
+  
+              if (resourceList != null){
+                  java.util.Iterator iter = resourceList.iterator();
+                   while(iter.hasNext()) {
+                Resource resource = (Resource) iter.next();
+                System.out.println("RESOURCE FOUND 2" + resource + resource.getTitle() + resource.getSpec());
+                
+                if (resource instanceof CabinetResource){
+                    
+                    CabinetEntry entry = ((CabinetResource)resource).getEntry();
+                    CabinetNode cabNode = null;
+                    if (entry instanceof RemoteCabinetEntry)
+                        cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.REMOTE);
+                    else
+                        cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
+                    
+                    cabNode.explore();
+                    
+                    this.setRootVisible(true);
+                    model.insertNodeInto(cabNode, rootNode, (rootNode.getChildCount()));
+                    this.expandPath(new TreePath(rootNode.getPath()));
+                    
+                    this.setRootVisible(false);
+                    success =true;
+                }
+                else {
+                    
+                    ResourceNode newNode =new ResourceNode(resource);
+                    this.setRootVisible(true);
+                    model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
+                    this.expandPath(new TreePath(rootNode.getPath()));
+                    //this.expandRow(0);
+                    this.setRootVisible(false);
+                    
+                }
+    
             }
-
-    }
+        }
+              if (fileList != null){
+                  
+                  java.util.Iterator iter = fileList.iterator();
+                   while(iter.hasNext()) {
+                       
+                     File file = (File)iter.next();
+                     
+                     System.out.println("this is file " +file);
+                  
+                   FileNode newNode =new FileNode(file);
+                   newNode.explore();
+                    this.setRootVisible(true);
+                    model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
+                    this.expandPath(new TreePath(rootNode.getPath()));
+                    //this.expandRow(0);
+                    this.setRootVisible(false);
+                  
+              }
+              
+              }
+              
+              else  if (droppedText != null){
+                  
+                  ResourceNode newNode = new ResourceNode(new MapResource(droppedText));;
+                  this.setRootVisible(true);
+                    model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
+                    this.expandPath(new TreePath(rootNode.getPath()));
+                    //this.expandRow(0);
+                    this.setRootVisible(false);
+                  
+                  
+              }
+              
+              else {System.out.println("Vue Dand D tree it should not get here");}
+           
+              
+              e.dropComplete(true);
+        }
+        else{
+            VueUtil.alert(null, "You can only add resources to a Favorites Folder", "Error Adding Resource to Favorites");
+            e.dropComplete(false);
+        }
+        
+    
+    
+    
+    
+}
    
  
   class VueTreeModelListener implements TreeModelListener {
@@ -228,24 +320,27 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                      
                  
                    super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-            
-                       if ((((ResourceNode)value).getResource()).getType()==FAVORITES) 
-                      {
+                        if ( !(value instanceof FileNode) && ((((ResourceNode)value).getResource()).getType()==FAVORITES) ){ 
+                      
                           
                                    if ((((DefaultMutableTreeNode)value).getChildCount()) > 0 ){ setIcon(activeIcon);}
                                    else {setIcon(inactiveIcon);}
                         
                           
-                       }
                        
+                        }
+                      
                        else if (leaf){ setIcon(leafIcon);}
                      
                        else {setIcon(activeIcon);}
+                        
+                   
+                       
      
                     return this;
                   }
 
- }
+}
 
    
     public void dragEnter(DropTargetDragEvent me) { }
