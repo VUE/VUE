@@ -905,7 +905,7 @@ public class VUE
             windowMenu.add(checkBox);
         }
 
-        optionsMenu.add(new JMenuItem("Node Types..."));
+        optionsMenu.add(new UserDataAction());
         optionsMenu.add(new JMenuItem("Map Preference..."));
         optionsMenu.add(new JMenuItem("Preferences..."));
         
