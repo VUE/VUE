@@ -241,12 +241,17 @@ public class LWPathwayInspector extends InspectorWindow
             
             //if the pathway is null disable the notes panel
             if (notesPathway == null)
+            {
                 area.setEnabled(false);
+                area.setText(null);
+            }
             
             else
+            {
                 area.setEnabled(true);
-               
-            area.setText(givenPathway.getComment());
+                area.setText(notesPathway.getComment());
+            }
+            
         }
     }
     
