@@ -48,43 +48,43 @@ public class ExitAction extends AbstractAction {
         exitVue();
     }
     
-    public static void exitVue(){
-        
-                
+    public static void exitVue()
+    {
         //Saving favorites
         
-                tufts.vue.VueDandDTree ft =  tufts.vue.VUE.favoritesWindow.getFavoritesTree();
-                tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
+        if (tufts.vue.VUE.favoritesWindow != null) {
+            
+            tufts.vue.VueDandDTree ft =  tufts.vue.VUE.favoritesWindow.getFavoritesTree();
+            tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
                         
-                         
-                 try {
+            try {
           
-                        FAVORITES_MAPPING = prefs.get("mapping.favorites","") ;
-                        }catch(Exception e) { System.out.println("Favorites"+e);}
+                FAVORITES_MAPPING = prefs.get("mapping.favorites","") ;
+            }catch(Exception e) { System.out.println("Favorites"+e);}
         
                          
-                         File favf  = new File(FAVORITES_MAPPING);
-                         FavoritesWindow.marshallMap(favf,sfavtree);
+            File favf  = new File(FAVORITES_MAPPING);
+            FavoritesWindow.marshallMap(favf,sfavtree);
                
         
-                         System.out.println("Favorites Saved");
+            System.out.println("Favorites Saved");
                          
-         //Saving Datasources
-                   try {
+            //Saving Datasources
+            try {
           
-                         DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
-                         }catch(Exception e) { System.out.println("datasources"+e);}
+                DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
+            }catch(Exception e) { System.out.println("datasources"+e);}
         
            
-                           File dsf  = new File(DATASOURCES_MAPPING);
-                           Vector sdataSources = tufts.vue.VUE.dataSourceViewer.getDataSources();
-                           tufts.vue.SaveDataSourceViewer sViewer= new tufts.vue.SaveDataSourceViewer(sdataSources);
+            File dsf  = new File(DATASOURCES_MAPPING);
+            Vector sdataSources = tufts.vue.VUE.dataSourceViewer.getDataSources();
+            tufts.vue.SaveDataSourceViewer sViewer= new tufts.vue.SaveDataSourceViewer(sdataSources);
              
-                           tufts.vue.DataSourceViewer.marshallMap(dsf,sViewer);
+            tufts.vue.DataSourceViewer.marshallMap(dsf,sViewer);
                          
-                          System.out.println("Datasources Saved");
-                          System.exit(0);
-        
+            System.out.println("Datasources Saved");
+            System.exit(0);
+        }
     }
     
 }
