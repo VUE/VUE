@@ -49,7 +49,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     SearchType searchType;
     SearchType advancedSearchType;
     
-    
+    int count = 0;
     String[] maxReturnItems = { 
             "5",
             "10",
@@ -182,8 +182,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          // GRID: addConditionButton
          JButton addConditionButton=new JButton(VueResources.getImageIcon("addLight"));
          addConditionButton.setPreferredSize(new Dimension(17, 17));
-         
-         // GRID: modifyConditionButton
+
          
          // GRID: deleteConditionButton
          JButton deleteConditionButton=new JButton( VueResources.getImageIcon("deleteLight"));
@@ -244,8 +243,15 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     private void performSearch() {
         osid.dr.AssetIterator resultObjectsIterator;
         try {
-            searchCriteria.setKeywords(keywords.getText());
-            searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+            if(count == 0) {
+                searchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
+                searchCriteria.setKeywords(keywords.getText());
+                searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+            } else {
+                searchCriteria.setSearchOperation(SearchCriteria.RESUME_FIND_OBJECTS);
+            }
+            
+                
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
@@ -253,6 +259,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             DRSearchResults.setLayout(new BorderLayout());
             DRSearchResults.add(jsp,BorderLayout.CENTER,0);
             tabbedPane.setSelectedComponent(DRSearchResults);
+            count++;
         } catch (Exception ex) {
                         System.out.println("DRViewer.performSearch :"+ex);
         }

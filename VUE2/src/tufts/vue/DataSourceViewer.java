@@ -442,12 +442,12 @@ public class DataSourceViewer  extends JPanel{
                    dataSources.add(ds1);
                    dataSourceList.getContents().addElement(ds1);
                     }catch (Exception ex){}
-                    DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","hosea.lib.tufts.edu","test","test",DataSource.DR_FEDORA);
+                    DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","130.64.77.144","test","test",DataSource.DR_FEDORA);
                     //ds2.setDisplayColor(Color.RED);
                     dataSources.add(ds2);
                     dataSourceList.getContents().addElement(ds2);
                     setActiveDataSource(ds2);
-                 DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
+                    DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
                     //ds3.setDisplayColor(Color.BLUE);
                    dataSources.add(ds3);
                     dataSourceList.getContents().addElement(ds3);
