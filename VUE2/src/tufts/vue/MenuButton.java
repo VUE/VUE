@@ -96,6 +96,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     public abstract Object getPropertyValue();
 
     public void loadPropertyValue(tufts.vue.beans.VueBeanState state) {
+        if (DEBUG.SELECTION) System.out.println(this + " loading " + getPropertyName() + " from " + state);
         setPropertyValue(state.getPropertyValue(getPropertyName()));
     }
 	

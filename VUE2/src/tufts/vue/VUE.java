@@ -275,7 +275,9 @@ public class VUE
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         Window splashScreen = null;
 
-        if (!nodr)
+        if (nodr)
+            DEBUG.Enabled = true;
+        else
             splashScreen = new SplashScreen();
         
         initUI();

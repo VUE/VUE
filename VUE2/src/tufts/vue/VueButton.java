@@ -63,8 +63,7 @@ public class VueButton extends JButton
 
         //setBackground(Color.white);
         //setBackground(Color.red);
-        if (DEBUG.SELECTION)
-            new Throwable().printStackTrace();
+        if (DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
         
     }
    

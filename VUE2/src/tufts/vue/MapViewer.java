@@ -1908,7 +1908,7 @@ public class MapViewer extends javax.swing.JComponent
             // totally reasonable if doing a shift-drag for SELECTION TOGGLE
         }
         
-        if (DEBUG_SHOW_MOUSE_LOCATION) {
+        if (DEBUG.VIEWER) {
             g2.setColor(Color.red);
             g2.setStroke(new java.awt.BasicStroke(1f));
             g2.drawLine(mouse.x,mouse.y, mouse.x,mouse.y);
@@ -1937,7 +1937,7 @@ public class MapViewer extends javax.swing.JComponent
             g2.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
             g2.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
             g2.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
-            g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
+            //g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
             g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
         }
 
@@ -2311,7 +2311,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         //}
 
-        if (DEBUG_SHOW_MOUSE_LOCATION) resizeControl.draw(dc); // debug
+        if (DEBUG.VIEWER) resizeControl.draw(dc); // debug
 
         /*
         it = VueSelection.iterator();
@@ -2793,6 +2793,7 @@ public class MapViewer extends javax.swing.JComponent
          * pressed down. */
         Point2D.Float dragOffset = new Point2D.Float();
         
+        private int kk = 0;
         public void keyPressed(KeyEvent e)
         {
             if (DEBUG_KEYS) System.out.println("[" + e.paramString() + "]");
@@ -2909,23 +2910,40 @@ public class MapViewer extends javax.swing.JComponent
             // BUTTON1_DOWN_MASK Doesn't appear to be getting set in mac Java 1.4!
             //if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
             if (e.isShiftDown() && !e.isControlDown()) {
-                // display debugging features
                 char c = e.getKeyChar();
+                if ("DEBUG".charAt(kk++) == c) {
+                    if (kk == 5) {
+                        DEBUG.Enabled = !DEBUG.Enabled;
+                        java.awt.Toolkit.getDefaultToolkit().beep();
+                        System.out.println("debug: " + DEBUG.Enabled);
+                        if (!DEBUG.Enabled) {
+                            DEBUG.setAllEnabled(false);
+                            repaint();
+                        }
+                        kk = 0;
+                        return;
+                    } 
+                } else
+                    kk = 0;
+
+                // display debugging features
                 boolean did = true;
-                if (c == 'A') {
+                if (!DEBUG.Enabled)
+                    did = false;
+                else if (c == 'A') {
                     DEBUG_ANTI_ALIAS = !DEBUG_ANTI_ALIAS;
                     if (DEBUG_ANTI_ALIAS)
                          AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
                     else AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
                 }
-                else if (c == 'I') { DEBUG_SHOW_MOUSE_LOCATION = !DEBUG_SHOW_MOUSE_LOCATION; }
+                else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
                 else if (c == 'R') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
                 //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
                 else if (c == 'F') { DEBUG.FOCUS = !DEBUG.FOCUS; }
                 else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
-                else if (c == 'M') { DEBUG_MOUSE = !DEBUG_MOUSE; }
+                else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
                 else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
                 else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
@@ -2942,6 +2960,8 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
                 else if (c == '}') { DEBUG.PARENTING = !DEBUG.PARENTING; }
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
+                else if (c == '(') { DEBUG.setAllEnabled(true); }
+                else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else
                     did = false;
                 if (did) {
@@ -3025,7 +3045,7 @@ public class MapViewer extends javax.swing.JComponent
                         clearRollover(); // must do now to make sure bounds are set back to small
                         // TODO URGENT: need to translate map mouse event to location of
                         // control point on shrunken back (regular scale) node -- WHAT A HACK! UGH!
-                        if (DEBUG_MOUSE||DEBUG.LAYOUT) System.out.println("hit on control point " + i + " of controlListener " + cl);
+                        if (DEBUG.MOUSE||DEBUG.LAYOUT) System.out.println("hit on control point " + i + " of controlListener " + cl);
                         dragControl = cl;
                         dragControlIndex = i;
                         dragControl.controlPointPressed(i, e);
@@ -3048,7 +3068,7 @@ public class MapViewer extends javax.swing.JComponent
         private boolean mLabelEditWasActiveAtMousePress;
         public void mousePressed(MouseEvent e)
         {
-            if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
             
             mLabelEditWasActiveAtMousePress = (activeTextEdit != null);
             if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
@@ -3059,7 +3079,7 @@ public class MapViewer extends javax.swing.JComponent
             requestFocus();
 
             dragStart.setLocation(e.getX(), e.getY());
-            if (DEBUG_MOUSE) System.out.println("dragStart set to " + dragStart);
+            if (DEBUG.MOUSE) System.out.println("dragStart set to " + dragStart);
             
             if (activeTool == HandTool) {
                 originAtDragStart = getOriginLocation();
@@ -3098,7 +3118,7 @@ public class MapViewer extends javax.swing.JComponent
             // Change to supportsComponentSelection?
             if (activeTool.supportsSelection()) {
                 hitComponent = getMap().findChildAt(mapX, mapY);
-                if (DEBUG_MOUSE && hitComponent != null)
+                if (DEBUG.MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" + 
                                        "\tparent " + hitComponent.getParent());
                 mme.setHitComponent(hitComponent);
@@ -3235,7 +3255,7 @@ public class MapViewer extends javax.swing.JComponent
         private Point lastDrag = new Point();
         private void dragRepositionViewport(Point mouse)
         {
-            if (DEBUG_MOUSE) {
+            if (DEBUG.MOUSE) {
                 System.out.println("lastDragLoc " + lastDrag);
                 System.out.println("lastMouseLoc " + mouse);
             }
@@ -3378,7 +3398,7 @@ public class MapViewer extends javax.swing.JComponent
             
             sMouseOver = hit;
 
-            if (DEBUG_SHOW_MOUSE_LOCATION) {
+            if (DEBUG.VIEWER) {
                 mouse.x = lastMouseX;
                 mouse.y = lastMouseY;
                 repaint();
@@ -3488,7 +3508,7 @@ public class MapViewer extends javax.swing.JComponent
                 lastDrag.setLocation(dragStart);
             }
             
-            if (DEBUG_SHOW_MOUSE_LOCATION) mouse = e.getPoint();
+            if (DEBUG.VIEWER) mouse = e.getPoint();
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
 
             int screenX = e.getX();
@@ -3759,7 +3779,7 @@ public class MapViewer extends javax.swing.JComponent
         public void mouseReleased(MouseEvent e)
         {
             sDragUnderway = false;
-            if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + "]");
+            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "]");
 
             setLastMousePoint(e.getX(), e.getY());
 
@@ -4010,7 +4030,7 @@ public class MapViewer extends javax.swing.JComponent
         
         public void mouseClicked(MouseEvent e)
         {
-            if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
+            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
             //if (activeTool != ArrowTool && activeTool != TextTool)
             //return;  check supportsClick, and add such to node tool
@@ -4019,7 +4039,7 @@ public class MapViewer extends javax.swing.JComponent
             if (!hitOnSelectionHandle) {
                 
             if (isSingleClickEvent(e)) {
-                if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
+                if (DEBUG.MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
 
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
 
@@ -4065,7 +4085,7 @@ public class MapViewer extends javax.swing.JComponent
                 */
                 
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0 && hitComponent != null) {
-                if (DEBUG_MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
+                if (DEBUG.MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
                 
                 boolean handled = false;
                 
@@ -4150,7 +4170,7 @@ public class MapViewer extends javax.swing.JComponent
         /** interface ControlListener handler -- for handling resize on selection */
         public void controlPointPressed(int index, MapMouseEvent e)
         {
-            if (DEBUG.LAYOUT||DEBUG_MOUSE) System.out.println(this + " resize control point " + index + " pressed");
+            if (DEBUG.LAYOUT||DEBUG.MOUSE) System.out.println(this + " resize control point " + index + " pressed");
             mOriginalGroup_bounds = (Rectangle2D.Float) VueSelection.getShapeBounds();
             if (DEBUG.LAYOUT) System.out.println(this + " originalGroup_bounds " + mOriginalGroup_bounds);
             mOriginalGroupULC_bounds = LWMap.getULCBounds(VueSelection.iterator());
@@ -4782,14 +4802,12 @@ public class MapViewer extends javax.swing.JComponent
     //-------------------------------------------------------
     
     private boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
-    private boolean DEBUG_MOUSE = VueResources.getBool("mapViewer.debug.mouse");
-    //private boolean DEBUG_MOUSE = true;
+    //private boolean DEBUG.MOUSE = true;
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");
     
     private boolean DEBUG_SHOW_ORIGIN = false;
     private boolean DEBUG_ANTI_ALIAS = true;
     private boolean DEBUG_RENDER_QUALITY = false;
-    private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_FINDPARENT_OFF = false;
     private boolean DEBUG_TIMER_ROLLOVER = true;
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
