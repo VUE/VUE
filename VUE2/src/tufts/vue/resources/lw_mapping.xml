@@ -201,8 +201,8 @@
 		<field name="currentIndex" type="integer">
 			<bind-xml name="CurrentIndex" node="attribute" />
 		</field>
-		<field name="elementList" type="tufts.vue.LWComponent" collection="collection" >
-			<bind-xml name="Element" />
+		<field name="elementIDList" type="string" collection="collection">
+			<bind-xml name="id" />
 		</field>
 	</class>
 		<class name="tufts.vue.MapResource">
