@@ -248,9 +248,9 @@ public class VUE
         
         //addtion by the power team
         pathwayInspector = new LWPathwayInspector(frame);
-
+        System.out.println("before pathway control...");
         control = new PathwayControl(frame);
-        
+        System.out.println("after pathway control...");
         //end of addition
            
         Action[] windowActions = { pannerTool.getDisplayAction(),
@@ -261,7 +261,7 @@ public class VUE
         
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);
-        
+        System.out.println("after setting menu toolbars...");
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
         //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
@@ -274,7 +274,7 @@ public class VUE
         frame.setLocation(x, y);
         
         frame.show();
-
+        System.out.println("after showing frame...");
         if (args.length > 0) {
             VUE.activateWaitCursor();
             try {
@@ -383,9 +383,9 @@ public class VUE
         JScrollPane sp = null;
         if (mapViewer == null) {
             mapViewer = new tufts.vue.MapViewer(map);
-            if (VUE.ActiveViewer == null)
+            //if (VUE.ActiveViewer == null)
                 VUE.ActiveViewer = mapViewer;
-
+            System.out.println("active viewer: " + VUE.getActiveViewer().getMap().getLabel());
             if (useScrollbars)
                 tabbedPane.addTab(map.getLabel(), sp = new JScrollPane(mapViewer));
             else

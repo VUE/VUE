@@ -2302,7 +2302,6 @@ public class MapViewer extends javax.swing.JPanel
                     VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
                 }
                 //end of addition
-                
                 if (oldActiveMap != this.map)
                     VUE.ModelSelection.clear();
             }

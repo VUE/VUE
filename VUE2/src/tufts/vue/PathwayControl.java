@@ -148,7 +148,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         if ((pathwayManager.getCurrentPathway() != null) 
             && (pathwayManager.getCurrentPathway().getCurrent() == null) )
           pathwayManager.getCurrentPathway().getFirst();
-        
         pathwayList.setSelectedItem(pathwayManager.getCurrentPathway());
         
         updateControlPanel();
@@ -190,6 +189,14 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {
         return this.getPathwayManager().getCurrentPathway();
     }
+    
+    /** sets the active pathway as current position in pathway menu*/
+//    public void setCurrentPosition(){
+//        if(this.getPathwayManager() != null && 
+//            this.getPathwayManager().getCurrentPathway() != null)
+//                this.pathwayList.setSelectedItem(this.getPathwayManager().getCurrentPathway().getLabel());
+//        //System.out.println("setting the current position to: " + this.getPathwayManager().getCurrentPathway().getLabel());
+//    }
     
     /**Saves the current pathway so that it can be restored next time the pathway manager is chosen*/
     /*public void saveCurrentPathway()
@@ -503,6 +510,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         {
             aButton = (AbstractButton) e.getSource();
             setVisible(aButton.isSelected());
+            System.out.println("setting pathway manager in actionPerformed-DisplayAction for Map: "+VUE.getActiveViewer().getMap().getLabel());
+            setPathwayManager(VUE.getActiveViewer().getMap().getPathwayManager());
         }
         
         public void setButton(boolean state)
