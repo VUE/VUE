@@ -138,7 +138,7 @@ public class MapPanner extends javax.swing.JPanel
         int x = e.getX();
         int y = e.getY();
 
-        if (false&&mapViewer.inScrollPane()) {
+        if (mapViewer.inScrollPane()) {
             if (x < 0 || x > getWidth() || y < 0 || y > getHeight()) {
                 lastDrag = e.getPoint();
                 return;
