@@ -153,7 +153,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.gridy = 1;
         
         c.insets = new Insets(10,2,2, 2);
-        JLabel keyLabel = new JLabel("Keywords..");
+        JLabel keyLabel = new JLabel("Keywords: ");
         keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
         gridbag.setConstraints(keyLabel, c);
         DRSearchPanel.add(keyLabel);

@@ -32,6 +32,7 @@ public class SplashScreen extends JWindow {
         int y = (screen.height - height)/2;
         this.setBounds(x, y, width, height);
         JLabel logoLabel = new JLabel(VueResources.getImageIcon("splashScreen"));
+        
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(logoLabel,BorderLayout.CENTER);
         this.setVisible(true);

@@ -908,17 +908,19 @@ public class VUE
          */
         
         JMenuItem userGuide = new JMenuItem("User Guide");
-        JMenuItem aboutUs = new JMenuItem("About Us");
+        JMenuItem aboutUs = new JMenuItem("About VUE");
         helpMenu.add(userGuide);
         helpMenu.add(aboutUs);
-        aboutusTool = new ToolWindow("VUE: About Us", tufts.vue.VUE.getInstance());
+        aboutusTool = new ToolWindow("VUE: About VUE", tufts.vue.VUE.getInstance());
         JPanel aboutusPanel = new JPanel();
         aboutusPanel.setMinimumSize(new Dimension(400,400));
-        JTextArea jtf = new JTextArea("Version # 1.0 \n Created By:  Academic Technology \n Tufts University, Medford, MA \n Copyright@Tufts University 2004\nAll Rights Reserved ",5, 1);
-        jtf.setEditable(false);
-        jtf.setOpaque(false);
+        
+         JLabel spLabel = new JLabel(VueResources.getImageIcon("splashScreen"));
+        //JTextArea jtf = new JTextArea("Version # 1.0 \n Created By:  Academic Technology \n Tufts University, Medford, MA \n Copyright@Tufts University 2004\nAll Rights Reserved ",5, 1);
+        //jtf.setEditable(false);
+        //jtf.setOpaque(false);
         aboutusPanel.setLayout(new BorderLayout());
-        aboutusPanel.add(jtf,BorderLayout.CENTER);
+        aboutusPanel.add(spLabel,BorderLayout.CENTER);
         aboutusTool.addTool(aboutusPanel, true);
         
         userGuide.addActionListener(new ActionListener() {

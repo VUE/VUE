@@ -139,7 +139,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         c.gridy = 0;
         c.gridwidth = 1;
         c.insets = new Insets(10,2,2, 2);
-        JLabel keyLabel = new JLabel("Keywords..");
+        JLabel keyLabel = new JLabel("Keywords: ");
         keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
         gridbag.setConstraints(keyLabel,c);
         queryPanel.add(keyLabel);

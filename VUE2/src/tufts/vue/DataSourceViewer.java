@@ -88,6 +88,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         // GRID: addConditionButton
         JButton addButton=new VueButton("add");
         addButton.setBackground(this.getBackground());
+        addButton.setToolTipText("Add/Edit Datasource Information");
         
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -100,6 +101,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         // GRID: deleteConditionButton
         JButton deleteButton=new VueButton("delete");
         deleteButton.setBackground(this.getBackground());
+        deleteButton.setToolTipText("Remove a Datasource from VUE");
+        
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 deleteDataSource(activeDataSource);
@@ -112,6 +115,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JButton refreshButton=new VueButton("refresh");
         
         refreshButton.setBackground(this.getBackground());
+        refreshButton.setToolTipText("Refresh Local Datasource");
         
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
