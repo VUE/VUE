@@ -226,7 +226,7 @@ public class LWMap extends LWContainer
     }
     
     
-    public String getDescrition() {
+    public String getDescription() {
         return mDescription;
     }
     

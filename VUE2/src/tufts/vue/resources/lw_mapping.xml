@@ -180,6 +180,15 @@
 		<field name="PathwayList">
 			<bind-xml name="PathwayList" node="element"/>
 		</field>
+                <field name="author">
+                    <bind-xml name="author" node="element"/>
+                </field>
+                <field name="date">
+                    <bind-xml name="date"  node="element"/>
+                </field>
+                <field name="description">
+                    <bind-xml name="description" node="element"/>
+                 </field>
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                   <bind-xml matches="*"/> 
                 </field>
