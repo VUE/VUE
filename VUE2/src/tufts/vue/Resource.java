@@ -7,6 +7,8 @@ package tufts.vue;
  * more work.
  */
 
+import java.util.*;
+
 import osid.dr.*;
 import tufts.oki.dr.fedora.*;
 
@@ -21,6 +23,12 @@ public class Resource
     private Asset asset;
     private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
     String spec;
+    
+    /** the metadata property map **/
+ 	private    Map mProperties = new HashMap();
+ 	
+ 	/** property name cache **/
+ 	private String [] mPropertyNames = null;
 
     public Resource() {   
     }
@@ -160,6 +168,59 @@ public class Resource
         return ext;
     }
 
+    
+    /**
+     * getPropertyNames
+     * This returns an array of property names
+     * @return String [] the list of property names
+     **/
+    public String [] getPropertyNames() {
+    	
+    	if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
+	    	Set keys = mProperties.keySet();
+			if( ! keys.isEmpty() ) {
+				mPropertyNames = new String[ keys.size() ];
+				Iterator it = keys.iterator();
+				int i=0;
+				while( it.hasNext()) {
+					mPropertyNames[i] = (String) it.next();
+					i++;
+					}
+				}
+			}
+    	return mPropertyNames;
+    }
+    
+    /**
+     * setPropertyValue
+     * This method sets a property value
+     * Note:  This method will add a new property if called.
+     *        Since this is a small version of a VUEBean, only
+     *        two property class values are supported:  String and Vector
+     *        where Vector is a vector of String objects.
+     * @param STring pName the proeprty name
+     * @param Object pValue the value
+     **/
+     public void setPropertyValue( String pName, Object pValue) {
+     	/** invalidate our dumb cache of names if we add a new one **/
+     	if( !mProperties.containsKey( pName) ) {
+     		mPropertyNames = null;
+     		}	
+     	mProperties.put( pName, pValue);
+     }
+     
+     /**
+      * getPropertyValue
+      * This method returns a value for the given property name.
+      * @param pname the property name.
+      * @return Object the value
+      **/
+     public Object getPropertyValue( String pName) {
+     	Object value = null;
+     	value = mProperties.get( pName);
+     	return value;
+     }
+    
     public String toString()
     {
         return getSpec();
