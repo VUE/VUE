@@ -410,7 +410,7 @@ public abstract class LWContainer extends LWComponent
         c.removeFromModel();
     }
 
-    protected void removeFromModel()
+    protected void removeChildrenFromModel()
     {
         // don't actaully deparent our children -- leave them parented
         // to us even tho we're being deleted, which will facilitate
@@ -421,6 +421,11 @@ public abstract class LWContainer extends LWComponent
             c.notify("deleting");
             c.removeFromModel();
         }
+    }
+    
+    protected void removeFromModel()
+    {
+        removeChildrenFromModel();
         super.removeFromModel();
         if (this.children == VUE.ModelSelection) // todo: tmp debug
             throw new IllegalStateException("attempted to delete selection");
@@ -480,6 +485,23 @@ public abstract class LWContainer extends LWComponent
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c instanceof LWContainer)
+                list.addAll(((LWContainer)c).getAllDescendents());
+        }
+        return list;
+    }
+
+    /**
+     * Get all descendents, but do not seperately include
+     * the children of groups.
+     */
+    public java.util.List getAllDescendentsGroupOpaque()
+    {
+        java.util.List list = new java.util.ArrayList();
+        list.addAll(children);
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWContainer && !(c instanceof LWGroup))
                 list.addAll(((LWContainer)c).getAllDescendents());
         }
         return list;

@@ -58,10 +58,8 @@ class Actions
     static final Action SelectAll =
         new MapAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
             boolean enabledFor(LWSelection s) { return true; }
-            public void act()
-            {
-                //VUE.ModelSelection.setTo(VUE.getActiveMap().getChildIterator());
-                VUE.ModelSelection.setTo(VUE.getActiveMap().getAllDescendents().iterator());
+            public void act() {
+                VUE.ModelSelection.setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
             }
         };
     static final Action DeselectAll =

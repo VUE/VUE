@@ -159,6 +159,14 @@ public final class LWGroup extends LWContainer
     }
 
 
+    protected void removeChildrenFromModel()
+    {
+        // groups don't actually delete their children
+        // when the group object goes away.  Overriden
+        // so LWContainer.removeChildrenFromModel
+        // is skipped.
+    }
+    
     /**
      * Remove all children and re-parent to this group's parent,
      * then remove this now empty group object from the parent.
