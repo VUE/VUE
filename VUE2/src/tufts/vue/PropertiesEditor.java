@@ -72,7 +72,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         JPanel propertiesPanel=new JPanel();
         propertiesPanel.setLayout(new BorderLayout());
         propertiesPanel.add(conditionsScrollPane, BorderLayout.CENTER);
-        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(3,0,3,3));
+        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(8,0,3,0));
         
         
         // setting the properties editor for fields
@@ -108,14 +108,15 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         // setting box layout
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-        innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
+        //innerPanel.setBorder(BorderFactory.createEmptyBorder(0,6,6,6));
         
         
         innerPanel.add(labelPanel);
         innerPanel.add(propertiesPanel);
         //innerPanel.add(topPanel);
-        
-        add(innerPanel);
+        //innerPanel.setBorder(BorderFactory.createTitledBorder("Metadata"));
+        setLayout(new BorderLayout());
+        add(innerPanel,BorderLayout.CENTER);
         //setSize(300, 300);
         
         validate();

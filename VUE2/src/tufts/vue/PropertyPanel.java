@@ -69,8 +69,8 @@ public class PropertyPanel extends JPanel {
 	public void addProperty( JComponent pLabel, JComponent pEditor ){
 
 	    GridBagConstraints c = new GridBagConstraints();
-	    c.anchor = GridBagConstraints.WEST;
-
+	    //c.anchor = GridBagConstraints.WEST;
+            c.anchor = GridBagConstraints.NORTHWEST;
 	        
 		// add the property's label string
 		//

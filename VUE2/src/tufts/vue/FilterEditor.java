@@ -68,7 +68,7 @@ public class FilterEditor extends JPanel {
         filterTable = new JTable(filterTableModel);
         filterTable.addFocusListener(new FocusListener() {
             public void focusLost(FocusEvent e) {
-              //  stopEditing();
+                //  stopEditing();
             }
             public void focusGained(FocusEvent e) {
             }
@@ -87,7 +87,7 @@ public class FilterEditor extends JPanel {
         JPanel  filterPanel=new JPanel();
         filterPanel.setLayout(new BorderLayout());
         filterPanel.add(filterScrollPane, BorderLayout.CENTER);
-        filterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        //filterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
         JButton addButton=new tufts.vue.VueButton("add");
@@ -111,19 +111,20 @@ public class FilterEditor extends JPanel {
         
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-        innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
+        //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
         
         
         
         //innerPanel.add(labelPanel);
-        innerPanel.add(filterPanel);
         innerPanel.add(bottomPanel);
+        innerPanel.add(filterPanel);
         
-        add(innerPanel);
+        setLayout(new BorderLayout());
+        add(innerPanel,BorderLayout.CENTER);
         //setSize(300, 300);
         
         validate();

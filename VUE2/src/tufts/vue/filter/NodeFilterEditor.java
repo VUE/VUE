@@ -76,7 +76,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         JPanel  nodeFilterPanel=new JPanel();
         nodeFilterPanel.setLayout(new BorderLayout());
         nodeFilterPanel.add( nodeFilterScrollPane, BorderLayout.CENTER);
-        nodeFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+       // nodeFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
         addButtonListener = new AddButtonListener(nodeFilter);
@@ -100,15 +100,17 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);        
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-        innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
+        //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
         //innerPanel.add(labelPanel);
         innerPanel.add(bottomPanel);        
         innerPanel.add(nodeFilterPanel);
-        add(innerPanel);
+        setLayout(new BorderLayout());
+        add(innerPanel,BorderLayout.CENTER);
+        
         //setSize(300, 300);        
         validate();
     }

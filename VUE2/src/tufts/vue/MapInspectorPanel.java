@@ -77,7 +77,7 @@ implements  VUE.ActiveMapListener {
         mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
         mTabbedPane.addTab( mFilterPanel.getName(), mFilterPanel);
-       // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
+        // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         
         add( BorderLayout.CENTER, mTabbedPane );
         setMap(VUE.getActiveMap());
@@ -123,7 +123,7 @@ implements  VUE.ActiveMapListener {
             mInfoPanel.updatePanel( mMap);
             mPathPanel.updatePanel( mMap);
             
-         //   metadataPanel.updatePanel(mMap);
+            //   metadataPanel.updatePanel(mMap);
         }
     }
     
@@ -156,11 +156,11 @@ implements  VUE.ActiveMapListener {
         mTabbedPane.setSelectedComponent( mFilterPanel);
     }
     /**
-    public void activateMetadataTab() {
-        mTabbedPane.setSelectedComponent( metadataPanel);
-    }
-    
-    **/
+     * public void activateMetadataTab() {
+     * mTabbedPane.setSelectedComponent( metadataPanel);
+     * }
+     *
+     **/
     public void activeMapChanged(LWMap map) {
         setMap(map);
     }
@@ -193,11 +193,8 @@ implements  VUE.ActiveMapListener {
         //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
-        private final PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
-        public InfoPanel() {
+       public InfoPanel() {
             JPanel innerPanel = new JPanel();
-            lineIcon.setIconWidth(1600);
-            lineIcon.setIconHeight(1);
             BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
             innerPanel.setLayout(boxLayout);
             
@@ -223,33 +220,40 @@ implements  VUE.ActiveMapListener {
             mPropPanel.addProperty("Date:", mDate);
             mPropPanel.addProperty("Location:",mLocation);
             mPropPanel.addProperty("Description:",mDescriptionEditor);
-            mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
+            //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
             innerPanel.add(mPropPanel);
             /**
-            JPanel metaDataLabelPanel  = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
-            metaDataLabelPanel.add(new JLabel("Metadata"));
-             
-            innerPanel.add(metaDataLabelPanel);
+             * JPanel metaDataLabelPanel  = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+             * metaDataLabelPanel.add(new JLabel("Metadata"));
+             *
+             * innerPanel.add(metaDataLabelPanel);
              */
-    
             
-            JPanel linePanel = new JPanel(new BorderLayout());
-            linePanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-            linePanel.add(new JLabel(lineIcon),BorderLayout.CENTER);
-            linePanel.setSize(300, 11);
-            //innerPanel.add(linePanel); //not working need to re-do
+            
+            JPanel linePanel = new JPanel() {
+                protected void paintComponent(Graphics g) {
+                    g.setColor(Color.DARK_GRAY);
+                    g.drawLine(0,15, this.getSize().width, 15);
+                }
+            };
+            
+            
+            innerPanel.add(linePanel);
+            linePanel.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
             propertiesEditor = new PropertiesEditor(true);
             JPanel metadataPanel = new JPanel(new BorderLayout());
-            metadataPanel.add(propertiesEditor,BorderLayout.WEST);
+            metadataPanel.add(propertiesEditor,BorderLayout.NORTH);
+            //metadataPanel.setBorder(BorderFactory.createEmptyBorder(0,9,0,6));
             innerPanel.add(metadataPanel);
             //innerPanel.add(mInfoScrollPane,BorderLayout.CENTER);
             mInfoScrollPane.getViewport().add( innerPanel);
-            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
-           
+            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+            
             setLayout(new BorderLayout());
-            setBorder( new EmptyBorder(4,4,4,4) );
-            add(innerPanel,BorderLayout.NORTH);
+            //setBorder( new EmptyBorder(4,4,4,4) );
+            add(mInfoScrollPane,BorderLayout.NORTH);
+            setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
             addFocusListener(this);
         }
         
@@ -375,7 +379,7 @@ implements  VUE.ActiveMapListener {
         public MetadataPanel() {
             //setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
             setLayout(new BorderLayout());
-            setBorder( new EmptyBorder(4,4,4,4) );
+            setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
         }
         
         

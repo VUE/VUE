@@ -44,7 +44,8 @@ ActionListener {
     private void setUpMetadataPane() {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(new BorderLayout());
-        metadataPane.add(resourceMetadataPanel,BorderLayout.WEST);
+        metadataPane.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+        metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
         
     }
     
@@ -56,7 +57,7 @@ ActionListener {
         int num = labelTextPairs.length;
      
         for (int i = 0; i < num; i += 2) {
-            c.insets = new Insets(0, 10, 1, 0);
+            c.insets = new Insets(0, 0, 1, 0);
             c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
             c.fill = GridBagConstraints.NONE;      //reset to default
             c.weightx = 0.0;                       //reset to default
@@ -182,7 +183,7 @@ ActionListener {
                 else
                     propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
                 resourceMetadataPanel = propertiesEditor;
-                metadataPane.add(resourceMetadataPanel,BorderLayout.WEST);
+                metadataPane.add(resourceMetadataPanel,BorderLayout.NORTH);
             }
         } else {
             if(c.getResource() != null && c.getResource().getProperties() != null) {

@@ -129,7 +129,7 @@ public class VueUtil
         
         if(quotedURL.endsWith(VueResources.getString("vue.extension"))) {
             try {
-                tufts.vue.action.OpenAction.displayMap(new File(quotedURL));
+                tufts.vue.action.OpenAction.displayMap(new File(new java.net.URL(quotedURL).getFile()));
             } catch(Exception ex) {
                 ex.printStackTrace();
                 openURL_Check_Platform(quotedURL);

@@ -57,7 +57,7 @@ public class MapFilterModelEditor extends JPanel {
         JPanel  mapFilterPanel=new JPanel();
         mapFilterPanel.setLayout(new BorderLayout());
         mapFilterPanel.add( mapFilterScrollPane, BorderLayout.CENTER);
-        mapFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        //mapFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         // addConditionButton
         addButtonListener = new AddButtonListener(mapFilterModel);
         addButton.addActionListener(addButtonListener);
@@ -70,16 +70,18 @@ public class MapFilterModelEditor extends JPanel {
         deleteButton.setEnabled(false);
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-        innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
+        //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
         
         //innerPanel.add(labelPanel);
-        innerPanel.add(mapFilterPanel);
         innerPanel.add(bottomPanel);
-        add(innerPanel);
+       
+        innerPanel.add(mapFilterPanel);
+        setLayout(new BorderLayout());
+        add(innerPanel,BorderLayout.CENTER);
         //setSize(300, 300);
         validate();
         

@@ -56,6 +56,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         mTabbedPane.setBorder(BorderFactory.createEmptyBorder());
         setLayout(new BorderLayout());
         setBackground(VueResources.getColor("filterPanelColor"));
+        
         add( mTabbedPane,BorderLayout.CENTER );
         setMap(VUE.getActiveMap());
         validate();
@@ -150,7 +151,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         public FilterApplyPanel() {
             
             setLayout( new BorderLayout() );
-            setBorder( new EmptyBorder( 4,4,4,4) );
+            setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
             
             mMainFilterPanel = new JPanel();
             mMainFilterPanel.setLayout( new BorderLayout() );
@@ -213,6 +214,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             abBox.add( mFilterButton);
             abp.add( BorderLayout.EAST, abBox);
             mLowerPanel.add( BorderLayout.SOUTH, abp);
+            mLowerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0,0,0));
             
             
             mFilterBox = Box.createVerticalBox();
@@ -425,17 +427,17 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         
         public FilterCreatePanel() {
             
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
-            setBorder( new EmptyBorder(4,4,4,4) );
+          //  setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+            setLayout(new BorderLayout());
+            setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
             
         }
         
         public FilterCreatePanel(LWMap map) {
             
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
-            setBorder( new EmptyBorder(4,4,4,4) );
+           this();
             mapFilterModelEditor = new MapFilterModelEditor(map.getMapFilterModel());
-            add(mapFilterModelEditor);
+            add(mapFilterModelEditor,BorderLayout.NORTH);
             
         }
         
@@ -451,7 +453,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             // update the display
             if(mapFilterModelEditor == null) {
                 mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
-                add(mapFilterModelEditor);
+                add(mapFilterModelEditor,BorderLayout.NORTH);
             }else {
                 mapFilterModelEditor.setMapFilterModel(pMap.getMapFilterModel());
             }

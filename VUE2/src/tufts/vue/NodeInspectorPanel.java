@@ -171,7 +171,8 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
             mInfoScrollPane.getViewport().add( new LWCInfoPanel());
             mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
             //mInfoScrollPane.getViewport().add(new JPanel());
-            
+             
+            setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
             add(mInfoScrollPane,BorderLayout.NORTH );
             
             //mInfoBox.add( new JLabel("Node Info") );
@@ -279,8 +280,8 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         
         public NodeFilterPanel() {
             
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
-            setBorder( new EmptyBorder(4,4,4,4) );
+            setLayout(new BorderLayout());
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
             
             // todo in VUE to create map before adding panels or have a model that
             // has selection loaded when map is added.
@@ -301,7 +302,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                 nodeFilterEditor.setNodeFilter(node.getNodeFilter());
             }else {
                 nodeFilterEditor = new NodeFilterEditor(node.getNodeFilter(),true);
-                add(nodeFilterEditor);
+                add(nodeFilterEditor,BorderLayout.CENTER);
             }
             validate();  
         }
