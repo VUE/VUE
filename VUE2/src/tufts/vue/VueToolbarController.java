@@ -401,12 +401,46 @@ public class VueToolbarController
 		
 		if( panel == null) {
 			panel = getContextualPanelForSelection();
-			if( panel != null) {
-				initContextualPanelFromSelection(panel);
-				}
 			} 	
+		if( panel != null) {
+			initContextualPanelFromSelection(panel);
+			}
 		getToolbar().setContextualToolPanel( panel );
 	 }
+	 
+	 
+	 /**
+	  * getSuggestedContextualPanel()
+	  * Retusn the suggest tool panel to use based on the current state
+	  * of the controller and map.
+	  **/
+	 public JPanel getSuggestedContextualPanel() {
+	 	JPanel panel = null;
+	 	VueToolbarController controller = VueToolbarController.getController();
+	 	LWSelection selection = VUE.ModelSelection;
+	 	VueTool tool = null;
+	 	
+	 	if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
+	 		LWComponent c = (LWComponent) selection.get(0);
+	 		if( c instanceof LWNode) {
+	 			if( ((LWNode) c).isTextNode() ) {
+	 				tool = controller.getTool( "textTool");
+	 				}
+	 			else {
+		 			tool = controller.getTool( "nodeTool" );
+		 			}
+	 			}
+	 		else
+	 		if( c instanceof LWLink) {
+	 			tool = controller.getTool( "linkToolo");
+	 			}
+	 		}
+	 	if( tool != null) {
+	 		panel = tool.getContextualPanel() ;
+	 		}
+	 	return panel;
+	 }
+	 
 	 
 	 private JPanel getContextualPanelForSelection() {
 	 	JPanel panel = null;
@@ -414,7 +448,12 @@ public class VueToolbarController
 	 	if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
 	 		LWComponent c = (LWComponent) selection.get(0);
 	 		if( c instanceof LWNode) {
-	 			panel = sNodeSelectionContextualPanel;
+	 			if( ((LWNode) c).isTextNode() ) {
+	 				panel = sTextSelectionContextualPanel;
+	 				}
+	 			else {
+		 			panel = sNodeSelectionContextualPanel;
+		 			}
 	 			}
 	 		else
 	 		if( c instanceof LWLink) {
@@ -426,7 +465,8 @@ public class VueToolbarController
 	 
 	 void initContextualPanelFromSelection( JPanel panel) {
 	 	// FIX:  move this to an interface rather than instance checking
-	 	if( true) return;
+	 //	if( true) return;
+	 	
 	 	LWSelection selection = VUE.ModelSelection;
 	 	Object item = null;
 	 	if( (selection != null) && (!selection.isEmpty()) ) {

@@ -9,6 +9,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
+import tufts.vue.beans.VueBeanState;
 
 public class NodeTool extends VueTool
                               implements VueConstants
@@ -20,7 +21,7 @@ public class NodeTool extends VueTool
     private static NodeTool singleton = null;
     
     /** the contextual tool panel **/
-    private NodeToolPanel mNodeToolPanel = null;
+    static private NodeToolPanel sNodeToolPanel = new NodeToolPanel();
     
     
     public NodeTool()
@@ -49,12 +50,12 @@ public class NodeTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-        if( mNodeToolPanel == null) {
+        if( sNodeToolPanel == null) {
         	
-        	mNodeToolPanel = new NodeToolPanel();
+        	sNodeToolPanel = new NodeToolPanel();
         	}
         	
-        return mNodeToolPanel;
+        return sNodeToolPanel;
     }
 
     public boolean supportsSelection() { return true; }
@@ -96,6 +97,8 @@ public class NodeTool extends VueTool
     {
         LWNode node = createNode();
         node.setAutoSized(false);
+        
+        	
         node.setFrame(e.getMapSelectorBox());
         e.getMap().addNode(node);
         VUE.ModelSelection.setTo(node);
@@ -117,6 +120,11 @@ public class NodeTool extends VueTool
     public static LWNode createNode(String name)
     {
         LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
+        VueBeanState state = sNodeToolPanel.getValue();
+        if( state != null) {
+        	state.applyState( node);
+        	}
+        
         node.setAutoSized(true);
         return node;
     }
@@ -127,11 +135,18 @@ public class NodeTool extends VueTool
     public static LWNode createTextNode(String text)
     {
         LWNode node = createNode(text);
+        node.setIsTextNode( true);
         node.setAutoSized(true);
         node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
         node.setFillColor(COLOR_TRANSPARENT);
         node.setFont(FONT_TEXT_DEFAULT);
+        
+        VueBeanState state = sNodeToolPanel.getValue();
+        if( state != null) {
+        	state.applyState( node);
+        	}
+        
         return node;
     }
     

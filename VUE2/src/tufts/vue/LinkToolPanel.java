@@ -23,9 +23,8 @@ import tufts.vue.beans.*;
  	// Statics
  	/////////////
  	
- 	private static float [] sStrokeValues = { 0,1,2,3,4,5,6};
- 	private static String [] sStrokeMenuLabels = { "nonne",
- 											   "1 pixel",
+ 	private static float [] sStrokeValues = { 1,2,3,4,5,6};
+ 	private static String [] sStrokeMenuLabels = {  "1 pixel",
  											   "2 pixels",
  											   "3 pixels",
  											   "4 pixels",
@@ -61,9 +60,9 @@ import tufts.vue.beans.*;
  	FontEditorPanel mFontPanel = null;
  	
  	
-	Object mDefualtState = null;
+	VueBeanState mDefaultState = null;
 	
-	Object mState = null;
+	VueBeanState mState = null;
 	
 	 	 	
  	
@@ -77,8 +76,9 @@ import tufts.vue.beans.*;
 		Box box = Box.createHorizontalBox();
  		setBackground( bakColor);
  		
- 		Color [] linkColors = VueResources.getColorArray( "fillColorValues");
- 		mLinkColorButton = new ColorMenuButton( linkColors, null, true);
+ 		Color [] linkColors = VueResources.getColorArray( "linkColorValues");
+ 		String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
+ 		mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
  		ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
 		BlobIcon fillBlob = new BlobIcon();
 		fillBlob.setOverlay( fillIcon );
@@ -90,7 +90,8 @@ import tufts.vue.beans.*;
  		
  		
  		 Color [] textColors = VueResources.getColorArray( "textColorValues");
- 		 mTextColorButton = new ColorMenuButton( textColors, null, true);
+ 		 String [] textColorNames = VueResources.getStringArray( "textColorNames");
+ 		 mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
  		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
 		if( textIcon == null) System.out.println("issing resource: textColorIcon");
 		BlobIcon textBlob = new BlobIcon();
@@ -134,6 +135,8 @@ import tufts.vue.beans.*;
  		box.add( mFontPanel);
  		
  		this.add( box);
+ 	
+ 		initDefaultState();
  	}
  	
  	
@@ -142,6 +145,10 @@ import tufts.vue.beans.*;
  	/////////////////
  	
  	
+ 	private void initDefaultState() {
+ 		LWLink  link = new LWLink();
+ 		mDefaultState = VueBeans.getState( link);
+ 	}
  	
  	
  	/**
@@ -154,23 +161,51 @@ import tufts.vue.beans.*;
  		if( pValue instanceof LWComponent) {
  			state = VueBeans.getState( pValue);
  			}
- 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
- 		mFontPanel.setValue( font);
+ 			
+ 			
+ 		mState = state;
  		
- 		Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
- 		mStrokeButton.setStroke( weight.floatValue() );
+ 		if( mState.hasProperty( VueLWCPropertyMapper.kFont) ) {
+	 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+ 			mFontPanel.setValue( font);
+ 			}
+ 		else {
+ 			debug("missing font property in state");
+ 			}
  		
- 		Integer arrows = (Integer) state.getPropertyValue( VueLWCPropertyMapper.kLinkArrowState );
- 		int arrowState = arrows.intValue();
- 		mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
- 		mArrowEndButton.setSelected( (arrowState % LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
+ 		if( mState.hasProperty( VueLWCPropertyMapper.kStrokeWeight) ) {
+			Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
+			mStrokeButton.setStroke( weight.floatValue() );
+ 			}
+ 		else {
+ 			debug("missing stroke weight proeprty in state.");
+ 			}
+ 			
+ 		if( mState.hasProperty( VueLWCPropertyMapper.kLinkArrowState) ) {
+ 			Integer arrows = (Integer) state.getPropertyValue( VueLWCPropertyMapper.kLinkArrowState );
+ 			int arrowState = arrows.intValue();
+ 			mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
+ 			mArrowEndButton.setSelected( (arrowState % LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
+ 			}
+ 		else {
+ 			debug("missing arrow state property in state");
+ 			}
  		
- 		Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
- 		mLinkColorButton.setColor( fill);
- 		 		
- 		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
- 		mTextColorButton.setColor( text);
+ 		if( mState.hasProperty( VueLWCPropertyMapper.kStrokeColor) ) {
+ 			Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
+ 			mLinkColorButton.setColor( fill);
+ 			}
+ 		else {
+ 			debug(" missing link stroke color property.");
+ 			}
  		
+ 		if( mState.hasProperty( VueLWCPropertyMapper.kTextColor) ) {
+ 			Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+ 			mTextColorButton.setColor( text);
+ 			}
+ 		else {
+ 			debug("missing text color property in state.");
+ 			}
  	
  	 	
  	}
@@ -179,7 +214,7 @@ import tufts.vue.beans.*;
  	 * getValue
  	 *
  	 **/
- 	public Object getValue() {
+ 	public VueBeanState getValue() {
  		return mState;
  	}
  	
@@ -191,6 +226,12 @@ import tufts.vue.beans.*;
 	  		System.out.println("! Link Property Change: "+name);	
 	  		VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
   			
+  			if( mState != null) {
+  				mState.setPropertyValue( name, pEvent.getNewValue() );
+  				}
+  			if( mDefaultState != null) {
+  				mDefaultState.setPropertyValue( name,  pEvent.getNewValue() );
+  				}
   			}
   	}
  	
@@ -219,4 +260,10 @@ import tufts.vue.beans.*;
  	
  	
  	
+ 	boolean sDebug = true;
+ 	private void debug( String str) {
+ 		if( sDebug ) {
+ 			System.out.println("  LinkToolPanel - "+str);
+ 			}
+ 	}
  }

@@ -23,16 +23,6 @@ import tufts.vue.beans.*;
  	// Statics
  	/////////////
  	
- 	private static float [] sStrokeValues = { 0,1,2,3,4,5,6};
- 	private static String [] sStrokeMenuLabels = { "nonne",
- 											   "1 pixel",
- 											   "2 pixels",
- 											   "3 pixels",
- 											   "4 pixels",
- 											   "5 pixels",
- 											   "6 pixels"  };
- 											   
- // End of array list
  
  	
 	///////////
@@ -40,28 +30,16 @@ import tufts.vue.beans.*;
 	////////////
 	
 	
- 	
- 	/** link color button **/
- 	ColorMenuButton mLinkColorButton = null;
- 	
+ 	 	
  	
  	/** Text color menu editor **/
  	ColorMenuButton mTextColorButton = null;
- 	
- 	/** stroke size selector menu **/
- 	StrokeMenuButton mStrokeButton = null;
- 	
- 	/** Arrow Start toggle button **/
- 	JToggleButton mArrowStartButton = null;
- 	
- 	/** end arrow button **/
- 	JToggleButton mArrowEndButton = null;
- 	
+ 	 	
  	/** the Font selection combo box **/
  	FontEditorPanel mFontPanel = null;
  	
  	
-	Object mDefualtState = null;
+	VueBeanState mDefaultState = null;
 	
 	Object mState = null;
 	
@@ -73,28 +51,37 @@ import tufts.vue.beans.*;
  	
  	public TextToolPanel() {
  		
+  		Color bakColor = VueResources.getColor("toolbar.background");
  		Box box = Box.createHorizontalBox();
- 		
+ 		setBackground( bakColor);
  		
  		
  		
  		 Color [] textColors = VueResources.getColorArray( "textColorValues");
- 		 mTextColorButton = new ColorMenuButton( textColors, null, true);
+ 		 String [] textColorNames = VueResources.getStringArray( "textColorNames");
+ 		 mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
  		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
 		BlobIcon textBlob = new BlobIcon();
 		textBlob.setOverlay( textIcon );
+		textBlob.setColor( VueResources.getColor("defaultTextColor"));
 		mTextColorButton.setIcon(textBlob);
- 		mTextColorButton.setPropertyName("nodeTextColor");
+ 		mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
+ 		mTextColorButton.setColor( VueResources.getColor( "defaultTextColor"));
+ 		mTextColorButton.setBackground( bakColor );
  		mTextColorButton.addPropertyChangeListener( this);
  		
  		mFontPanel = new FontEditorPanel();
- 		mFontPanel.addPropertyChangeListener( this);
+ 		mFontPanel.setBackground( bakColor);
+ 		mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
+		mFontPanel.addPropertyChangeListener( this);
 
  		
  		box.add(mTextColorButton);
  		box.add( mFontPanel);
  		
  		this.add( box);
+ 		
+ 		initDefaultState();
  	}
  	
  	
@@ -102,7 +89,12 @@ import tufts.vue.beans.*;
  	// Methods
  	/////////////////
  	
+ 	private void initDefaultState() {
  	
+ 		LWNode node = new LWNode();
+ 		node.setIsTextNode( true);
+ 		mDefaultState = VueBeans.getState( node);
+ 	}
  	
  	
  	/**
@@ -110,12 +102,28 @@ import tufts.vue.beans.*;
  	 * Generic property editor access
  	 **/
  	public void setValue( Object pValue) {
- 		/**
- 		if( pValue instanceof LWNode) {
- 			
+ 		VueBeanState state = null;
+ 		if( pValue instanceof LWComponent) {
+ 			state = VueBeans.getState( pValue);
  			}
- 		**/
- 	
+ 		else
+ 		if( pValue instanceof VueBeanState ) {
+ 			state = (VueBeanState) pValue;
+ 			}
+ 		
+ 		if( state == null)  {
+ 			state = mDefaultState;
+ 			}
+ 		
+ 		mState = state;
+ 		
+ 		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+ 		mFontPanel.setValue( font);
+ 		
+ 		
+ 		
+ 		Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+ 		mTextColorButton.setColor( text);
  	}
  	
  	/**
@@ -128,7 +136,13 @@ import tufts.vue.beans.*;
  	
  	
  	public void propertyChange( PropertyChangeEvent pEvent) {
- 		System.out.println("Link property chaged: "+pEvent.getPropertyName());
+ 		//System.out.println("Text property chaged: "+pEvent.getPropertyName());
+  		String name = pEvent.getPropertyName();
+  		if( !name.equals("ancestor") ) {
+	  		
+	  		VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
+  			
+  			}
   	}
  	
  	

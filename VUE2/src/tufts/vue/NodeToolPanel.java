@@ -58,9 +58,9 @@ import tufts.vue.beans.*;
  	FontEditorPanel mFontPanel = null;
  	
  	
-	Object mDefualtState = null;
+	VueBeanState mDefaultState = null;
 	
-	Object mState = null;
+	VueBeanState mState = null;
 	
 	 	 	
  	
@@ -77,7 +77,8 @@ import tufts.vue.beans.*;
  		this.setAlignmentX( LEFT_ALIGNMENT);
  		
  		Color [] fillColors = VueResources.getColorArray( "fillColorValues");
- 		mFillColorButton = new ColorMenuButton( fillColors, null, true);
+ 		String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
+ 		mFillColorButton = new ColorMenuButton( fillColors, fillColorNames, true);
  		mFillColorButton.setBackground( bakColor);
 		ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
 		BlobIcon fillBlob = new BlobIcon();
@@ -89,7 +90,8 @@ import tufts.vue.beans.*;
  		mFillColorButton.addPropertyChangeListener( this);
 
  		Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
- 		mStrokeColorButton = new ColorMenuButton( strokeColors, null, true);
+ 		String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
+ 		mStrokeColorButton = new ColorMenuButton( strokeColors, strokeColorNames, true);
  		mStrokeColorButton.setBackground( bakColor);
 		ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
 		BlobIcon strokeBlob = new BlobIcon();
@@ -98,11 +100,11 @@ import tufts.vue.beans.*;
 		mStrokeColorButton.setIcon( strokeBlob);
  		mStrokeColorButton.addPropertyChangeListener( this);
  		
- 		 Color [] textColors = VueResources.getColorArray( "textColorValues");
- 		 mTextColorButton = new ColorMenuButton( textColors, null, true);
+ 		Color [] textColors = VueResources.getColorArray( "textColorValues");
+ 		String [] textColorNames = VueResources.getStringArray( "textColorNames");
+ 		mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
  		mTextColorButton.setBackground( bakColor);
 		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-		if( textIcon == null) System.out.println("issing resource: textColorIcon");
 		BlobIcon textBlob = new BlobIcon();
 		textBlob.setOverlay( textIcon );
 		mTextColorButton.setIcon(textBlob);
@@ -133,6 +135,8 @@ import tufts.vue.beans.*;
  		box.add( mFontPanel);
  		
  		this.add( box);
+ 		
+ 		initDefaultState();
  	}
  	
  	
@@ -142,6 +146,12 @@ import tufts.vue.beans.*;
  	
  	
  	
+ 	private void initDefaultState() {
+ 	
+ 		LWNode node = new LWNode();
+ 		mDefaultState = VueBeans.getState( node);
+ 		setValue( mDefaultState);
+ 	}
  	
  	/**
  	 * setValue
@@ -152,10 +162,27 @@ import tufts.vue.beans.*;
  		if( pValue instanceof LWComponent) {
  			state = VueBeans.getState( pValue);
  			}
+ 		else
+ 		if( pValue instanceof VueBeanState ) {
+ 			state = (VueBeanState) pValue;
+ 			}
+ 		
+ 		if( state == null)  {
+ 			state = mDefaultState;
+ 			}
+ 		
+ 		mState = state;
+ 		
  		Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
  		mFontPanel.setValue( font);
  		
+ 		
  		Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
+ 		float weightVal = 1;
+ 		if( weight != null) {
+	 		weightVal = weight.floatValue();
+ 			}
+ 				
  		mStrokeButton.setStroke( weight.floatValue() );
  		
  		Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kFillColor);
@@ -174,18 +201,31 @@ import tufts.vue.beans.*;
  	 * getValue
  	 *
  	 **/
- 	public Object getValue() {
+ 	public VueBeanState getValue() {
  		return mState;
  	}
  	
  	
  	public void propertyChange( PropertyChangeEvent pEvent) {
- 		System.out.println("Node property chaged: "+pEvent.getPropertyName());
+ 		//System.out.println("Node property chaged: "+pEvent.getPropertyName());
   		String name = pEvent.getPropertyName();
   		if( !name.equals("ancestor") ) {
 	  		
 	  		VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
-  			
+  			if( mState != null) {
+  				mState.setPropertyValue( name, pEvent.getNewValue() );
+  				}
+  			else {
+  				// should never happen
+  				System.out.println("!!! Node ToolPanel mState is null!");
+  				}
+  			if( mDefaultState != null) {
+  				mDefaultState.setPropertyValue( name, pEvent.getNewValue() );
+  				}
+  			else {
+  				// should never happen
+  				System.out.println("!!! Node ToolPanel mDefaultState is null!");
+  				}
   			}
   	}
  	

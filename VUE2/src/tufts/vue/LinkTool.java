@@ -6,12 +6,13 @@ import java.lang.*;
 import java.util.*;
 import javax.swing.*;
 import java.awt.geom.Point2D;
+import tufts.vue.beans.VueBeanState;
 
 public class LinkTool extends VueTool
     implements VueConstants
 {
     /** link tool contextual tool panel **/
-    LinkToolPanel mLinkContextualPanel = null;
+    static LinkToolPanel sLinkContextualPanel = new LinkToolPanel();
     
     LWComponent linkSource; // for starting a link
 
@@ -28,10 +29,10 @@ public class LinkTool extends VueTool
     
     public JPanel getContextualPanel() {
         
-        if( mLinkContextualPanel == null) {
-        	mLinkContextualPanel = new LinkToolPanel();
+        if( sLinkContextualPanel == null) {
+        	sLinkContextualPanel = new LinkToolPanel();
         	}
-        return mLinkContextualPanel;
+        return sLinkContextualPanel;
     }
 
     public boolean supportsSelection() { return true; }
@@ -209,6 +210,15 @@ public class LinkTool extends VueTool
                 createdNode = true;
             }
             LWLink link = new LWLink(pLinkSource, pLinkDest);
+            
+           /**
+           // init link based on user defined state
+            VueBeanState state = sLinkContextualPanel.getValue();
+            if( state != null) {
+            	state.applyState( link);
+            	}
+           **/
+            
             commonParent.addChild(link);
             // We ensure a paint sequence here because a link to a link
             // is currently drawn to it's center, which might paint over

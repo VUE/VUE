@@ -71,9 +71,17 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  		
  		mFontCombo = new JComboBox( sFontNames);
  		mFontCombo.addActionListener( this );
+ 		Font f = mFontCombo.getFont();
+ 		Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
+ 		mFontCombo.setFont( menuFont);
+ 		
  		
  		mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
  		mSizeField.addActionListener( this);
+ 		f = mSizeField.getFont();
+ 		Font sizeFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
+ 		mSizeField.setFont( sizeFont);
+ 		
  		
  		mBoldButton = new JToggleButton();
  		mBoldButton.setSelectedIcon( sBoldOn);
@@ -136,7 +144,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  			Font font = (Font) pValue;
  			mFontCombo.setSelectedItem( font.getFontName() );
  			mItalicButton.setSelected( (Font.ITALIC & font.getStyle()) == Font.ITALIC );
- 			mBoldButton.setSelected( font.isItalic() );
+ 			mBoldButton.setSelected( font.isBold() );
  			mSizeField.setValue( font.getSize() );
  			
  			}
@@ -152,7 +160,6 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	public void fireFontChanged( Font pOld, Font pNew) {
  		
  		PropertyChangeListener [] listeners = getPropertyChangeListeners() ;
- 		System.out.println("Fire font changed!");
  		PropertyChangeEvent  event = new PropertyChangeEvent( this, getPropertyName(), pOld, pNew);
  		if( listeners != null) {
  			for( int i=0; i<listeners.length; i++) {
@@ -186,7 +193,6 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	 		}
  	 		int size = (int) mSizeField.getValue();
  	 		
- 	 	System.out.println("-- making new font: "+name+" style:"+style+" size:"+size);
  	 	Font font = new Font( name, style, size);
  	 	return font;
  	 }
