@@ -69,6 +69,7 @@ class TextBox extends JTextPane
 {
     static final Color SelectionColor = VueResources.getColor("mapViewer.textBox.selection.color");
     static final boolean debug = false;
+    static final boolean debug_box = false;
     
     private LWComponent lwc;
     private float mapX;
@@ -490,7 +491,7 @@ class TextBox extends JTextPane
         }
         */
         
-        if (debug) {
+        if (debug || debug_box) {
             Dimension s = getPreferredSize();
             g.setColor(Color.green);
             g.setStroke(MinStroke);
@@ -502,7 +503,7 @@ class TextBox extends JTextPane
         //g.setStroke(new BasicStroke(1/8f));
         //g.drawRect(0,0, s.width, s.height);
 
-        if (debug || getParent() != null) {
+        if (debug || debug_box || getParent() != null) {
             Dimension s = getSize();
             g.setColor(Color.red);
             g.setStroke(MinStroke);

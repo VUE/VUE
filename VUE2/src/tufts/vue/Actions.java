@@ -651,6 +651,7 @@ class Actions {
 
                 LWNode node = NodeTool.createNode("new node");
                 node.setLocation(newLocation);
+                //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
                 VUE.getActiveMap().addNode(node);
 
                 //better: run a timer and do this if no activity (e.g., node creation)
@@ -673,8 +674,12 @@ class Actions {
             {
                 LWNode node = NodeTool.createTextNode("new text");
                 node.setLocation(newLocation);
+                //node.setCenterAt(newLocation);
+                // todo: using setCenter, here and in NewNode action, will have to
+                // redo NewItemAction if want to be able to change the creation location
+                // automatically of they keep clicking in the same spot
                 VUE.getActiveMap().addNode(node);
-                VUE.ModelSelection.setTo(node); // also important so will be repainted (repaint optimziation only)
+                //VUE.ModelSelection.setTo(node); // also important so will be repainted (repaint optimziation only)
                 MapViewer viewer = VUE.getActiveViewer();
                 //viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
                 viewer.activateLabelEdit(node);
