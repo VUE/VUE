@@ -169,6 +169,7 @@ public class MapViewer extends javax.swing.JComponent
                 };
             sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, mIndicator);
 
+            /*
             if (false) {
                 out("creating viewport");
                 mViewport = new Viewport();
@@ -176,6 +177,7 @@ public class MapViewer extends javax.swing.JComponent
                 sp.setViewport(mViewport);
                 out("back from setting viewport on JScrollPane");
             }
+            */
             
         } else {
             //scrollerCoords = false;
