@@ -50,8 +50,12 @@ class MapDropTarget
 
     public void dragOver(DropTargetDragEvent e)
     {
+        LWComponent over = viewer.getMap().findLWComponentAt(dropToMapLocation(e.getLocation()));
+        if (over instanceof LWNode)
+            viewer.setIndicated(over);
+        else
+            viewer.clearIndicated();
         e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-        //System.out.println("MapDropTarget:  dragOver");
     }
 
     public void dragExit(DropTargetEvent e)
@@ -87,6 +91,7 @@ class MapDropTarget
         boolean success = processTransferable(e.getTransferable(), e.getLocation());
 
         e.dropComplete(success);
+        viewer.clearIndicated();        
     }
 
     public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
@@ -140,8 +145,9 @@ class MapDropTarget
                     System.out.println("ASSET FOUND");
                     assetList = (java.util.List) transfer.getTransferData(flavor);
                     break;
-                } else if (flavor.isFlavorTextType() || flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
-                    // && flavor.isFlavorTextType() -- java 1.4 only
+                } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
+                    //} else if (flavor.isFlavorTextType() || flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
+                    // flavor.isFlavorTextType() is picking up text/html, etc, which we don't want here.
                 {
                     // checking isFlavorTextType() above should be
                     // enough, but some Windows apps (e.g.,
