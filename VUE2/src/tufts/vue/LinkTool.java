@@ -25,10 +25,7 @@ public class LinkTool extends VueTool
         return null;
     }
 
-    public boolean supportsSelection()
-    {
-        return true;
-    }
+    public boolean supportsSelection() { return true; }
     
     public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
