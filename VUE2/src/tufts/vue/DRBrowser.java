@@ -23,7 +23,7 @@ class DRBrowser extends JPanel {
         if (delayed) {
             setMinimumSize(new Dimension(DRBrowserWidth,100));
             JLabel label = new JLabel("Loading data sources...");
-            label.setBorder(new EmptyBorder(22,22,0,0));
+            label.setBorder(new EmptyBorder(22,22,22,22));
             add(label, BorderLayout.NORTH);
         } else {
             loadDataSourceViewer();
