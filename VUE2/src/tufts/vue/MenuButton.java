@@ -46,7 +46,7 @@ public abstract class MenuButton extends JButton
                 }
             });
     }
-	
+
     protected JPopupMenu getPopupMenu() {
         return mPopup;
     }
@@ -61,6 +61,10 @@ public abstract class MenuButton extends JButton
 
     public abstract void setPropertyValue(Object propertyValue);
     public abstract Object getPropertyValue();
+
+    public void loadPropertyValue(tufts.vue.beans.VueBeanState state) {
+        setPropertyValue(state.getPropertyValue(getPropertyName()));
+    }
 	
     /** factory method for subclasses */
     protected Icon makeIcon(Object value) {
@@ -114,12 +118,13 @@ public abstract class MenuButton extends JButton
         repaint();
     }
 	
+    /** fire a property change event even if old & new values are the same */
     protected void firePropertyChanged(Object oldValue, Object newValue)
     {
-        PropertyChangeListener [] listeners = getPropertyChangeListeners();
-        if (listeners != null) {
-            PropertyChangeEvent event = new PropertyChangeEvent( this, mPropertyName, oldValue, newValue);
-            for (int i=0; i< listeners.length; i++) {
+        PropertyChangeListener[] listeners = getPropertyChangeListeners();
+        if (listeners.length > 0) {
+            PropertyChangeEvent event = new PropertyChangeEvent(this, mPropertyName, oldValue, newValue);
+            for (int i = 0; i< listeners.length; i++) {
                 listeners[i].propertyChange(event);
             }
         }
@@ -132,17 +137,8 @@ public abstract class MenuButton extends JButton
         super.paint(g);
     }
 	
-    /* -- why was this here?
-     * actionPerformed( ActionEvent pEvent)
-     * This method handles remote or direct  selection of a MenuButtonItem
-     *
-     * It will update its own icons based on the selected item
-     *
-     * @param pEvent the action event.
-     **/
-    public void X_actionPerformed( ActionEvent pEvent) {
-        // fake a click to handle radio selection after menu selection
-        doClick();		
+    public String toString() {
+        return getClass().getName() + "[" + mPropertyName + "]";
     }
 }
 

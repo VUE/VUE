@@ -21,82 +21,60 @@ public class VueLWCPropertyMapper
 {
     static final String [] sNodeProperties = {  LWKey.FillColor,
                                                 LWKey.StrokeColor,
-                                                LWKey.TextColor,
                                                 LWKey.StrokeWidth,
+                                                LWKey.TextColor,
                                                 LWKey.Font
     };
 												
     static final String  []  sLinkProperties = {  LWKey.StrokeColor,
                                                   LWKey.StrokeWidth,
                                                   LWKey.TextColor,
-                                                  LWKey.LinkArrows,
-                                                  LWKey.Font
+                                                  LWKey.Font,
+                                                  LWKey.LinkArrows
     };
 												
     static final String [] sTextProperties = {  LWKey.TextColor, LWKey.Font };
 												
-	
-    ////////////
-    // Fields
-    /////////////
 	
     VueBeanInfo mLWCInfo = null;
     VueBeanInfo mNodeInfo = null;
     VueBeanInfo mLinkInfo = null;
 	
 	
-	//////////////////
-	// VUePropertyMapper Interface
-	//////////////////
+    //////////////////
+    // VUePropertyMapper Interface
+    //////////////////
 	
-	/**
-	 * getPropertyValue
-	 * Gets the value of the property from the specified object.
-	 * @param Object - the object
-	 * @param String name
-	 * @return Object the value
-	 **/
-	public Object getPropertyValue(Object pBean, String pName)  {
-		Object value = null;
+    /**
+     * getPropertyValue
+     * Gets the value of the property from the specified object.
+     * @param Object - the object
+     * @param String name
+     * @return Object the value
+     **/
+    public Object getPropertyValue(Object pBean, String key)  {
 		
-		if(  pBean instanceof LWComponent) {
-			LWComponent obj = (LWComponent) pBean;
+        if (pBean instanceof LWComponent) {
+            LWComponent obj = (LWComponent) pBean;
 			
-			if( pName.equals(LWKey.FillColor) ) {
-				return obj.getFillColor();
-				}
-			if( pName.equals(LWKey.StrokeColor) ) {
-				return obj.getStrokeColor();
-				}
-			if( pName.equals(LWKey.TextColor) ) {
-				return obj.getTextColor();
-				}
-			if( pName.equals(LWKey.StrokeWidth) ) {
-				float f;
-				Float width = new Float( obj.getStrokeWidth() );
-				return width;
-				}
-			if( pName.equals(LWKey.Font) ) {
-				return obj.getFont();
-				}
+            if (key == LWKey.FillColor)         return obj.getFillColor();
+            if (key == LWKey.StrokeColor)       return obj.getStrokeColor();
+            if (key == LWKey.TextColor)         return obj.getTextColor();
+            if (key == LWKey.Font)              return obj.getFont();
+            if (key == LWKey.StrokeWidth)       return new Float(obj.getStrokeWidth());
 			
-			if( obj instanceof LWLink ) {
-				LWLink link = (LWLink) obj;
-
-				
-				if( pName.equals(LWKey.LinkArrows) ) {
-					Integer state = new Integer( link.getArrowState() );
-					return state;
-					}
-				}
-			}
-		else {
-			// should never happen...
-			System.out.println("Error - VueLWCPropertyMapper mapped to wrong class.");
-			}
+            if (obj instanceof LWLink) {
+                LWLink link = (LWLink) obj;
+                if (key == LWKey.LinkArrows)
+                    return new Integer(link.getArrowState());
+            }
+        } else {
+            // should never happen...
+            System.out.println(this + " getPropertyValue: unhandled class for " + key + " on " + pBean);
+        }
 		
-		return value;
-	}
+        return null;
+    }
 	
 	
 
@@ -122,7 +100,7 @@ public class VueLWCPropertyMapper
     {
         if (DEBUG.UNDO&&DEBUG.META) System.out.println("setProperty [" + key + "] on " + c + " with " + val);
                                            
-             if (key == LWKey.FillColor)        c.setFillColor( (Color) val);
+        if (key == LWKey.FillColor)        c.setFillColor( (Color) val);
         else if (key == LWKey.TextColor)        c.setTextColor( (Color) val);
         else if (key == LWKey.StrokeColor)      c.setStrokeColor( (Color) val);
         else if (key == LWKey.StrokeWidth)      c.setStrokeWidth( ((Float) val).floatValue());
@@ -147,7 +125,7 @@ public class VueLWCPropertyMapper
                 link.setArrowState(((Integer) val).intValue());
             }
         } else {
-            System.out.println("Unknown key in setProperty: [" + key + "] with " + val + " on " + c);
+            System.out.println("VueLWCPropertyMapper.setProperty: unknown key [" + key + "] with value [" + val + "] on " + c);
             //new Throwable().printStackTrace();
         }
     }
@@ -167,104 +145,101 @@ public class VueLWCPropertyMapper
     }
 
 	
-	public class LWCBeanInfo implements VueBeanInfo {
+    public class LWCBeanInfo implements VueBeanInfo {
 		
-		String [] mPropertyNames = null;
-		VuePropertyDescriptor [] mDescriptors = null;
-		Map mMap = null;
+        String [] mPropertyNames = null;
+        VuePropertyDescriptor [] mDescriptors = null;
+        Map mMap = null;
 		
 		
-		LWCBeanInfo( LWComponent pLWC ) {
+        LWCBeanInfo( LWComponent pLWC ) {
 			
-			if( pLWC instanceof LWNode) {
-				//FIX:  add check for text node ehre.
-				if( ((LWNode) pLWC).isTextNode() ) {
-					mPropertyNames = sTextProperties;
-					}
-				else {
-					mPropertyNames = sNodeProperties;
-					}
-				}
-			else
-			if( pLWC instanceof LWLink) {
-				mPropertyNames = sLinkProperties;
-			}
+            if (pLWC instanceof LWNode) {
+                // until we have time to clean up all this hairy property code,
+                // treat text nodes just like the LWNode's they really are.
+                if (false && ((LWNode) pLWC).isTextNode())
+                    mPropertyNames = sTextProperties;
+                else
+                    mPropertyNames = sNodeProperties;
+            } else if( pLWC instanceof LWLink) {
+                    mPropertyNames = sLinkProperties;
+            }
 			
-			if( mPropertyNames != null) {
-				mDescriptors = new VuePropertyDescriptor[ mPropertyNames.length];
-				mMap = new HashMap();
-				VuePropertyDescriptor desc = null;
-				for(int i=0; i<mPropertyNames.length; i++) {
-					desc = createDescriptor( mPropertyNames[i]);
-					mDescriptors[i] = desc;
-					mMap.put( mPropertyNames[i], desc);
-					}
-				}
-		}
+            if (mPropertyNames != null) {
+                mDescriptors = new VuePropertyDescriptor[mPropertyNames.length];
+                mMap = new HashMap();
+                VuePropertyDescriptor desc = null;
+                for(int i=0; i<mPropertyNames.length; i++) {
+                    desc = createDescriptor( mPropertyNames[i]);
+                    mDescriptors[i] = desc;
+                    mMap.put( mPropertyNames[i], desc);
+                }
+            }
+        }
 		
-		public VuePropertyDescriptor[] getPropertyDescriptors() {
-	 		return mDescriptors;
-	 	}
+        public VuePropertyDescriptor[] getPropertyDescriptors() {
+            return mDescriptors;
+        }
 
 
-		public boolean hasProperty( String pName) {
-	 		boolean hasKey = mMap.containsKey( pName);
-	 	return hasKey;
-	 	}
+        public boolean hasProperty( String pName) {
+            boolean hasKey = mMap.containsKey( pName);
+            return hasKey;
+        }
 	  
 
-		public String [] getPropertyNames() {
-	 		return mPropertyNames;
-	 	}
+        public String [] getPropertyNames() {
+            return mPropertyNames;
+        }
 
 
-		public VuePropertyDescriptor getPropertyDescriptor( String pName) {
-	 		return (VuePropertyDescriptor) mMap.get( pName);
-	 	}
+        public VuePropertyDescriptor getPropertyDescriptor( String pName) {
+            return (VuePropertyDescriptor) mMap.get( pName);
+        }
 
 
 	 			
 	
 		
-		private VuePropertyDescriptor createDescriptor( String pName) {
-			VuePropertyDescriptor desc = null;
-			String str = new String();
-			Font font = new Font("Default",1,Font.PLAIN);
-			Integer  i = new Integer(1);
-			Color color = new Color(0,0,0);;
-			Class theClass = null;
+        private VuePropertyDescriptor createDescriptor( String pName) {
+            VuePropertyDescriptor desc = null;
+            String str = new String();
+            Font font = new Font("Default",1,Font.PLAIN);
+            Integer  i = new Integer(1);
+            Color color = new Color(0,0,0);;
+            Class theClass = null;
 			
-			if( pName.equals(LWKey.FillColor) ||
-				pName.equals(LWKey.StrokeColor) ||
-				pName.equals(LWKey.TextColor) ) {
-				theClass = color.getClass();
-				}
-			else
-			if( pName.equals(LWKey.StrokeWidth) ) {
-				Float thefloat = new Float(0);
-				theClass = thefloat.getClass();
-			}
-			else
-			if( pName.equals(LWKey.LinkArrows) ) {
+            if( pName.equals(LWKey.FillColor) ||
+                pName.equals(LWKey.StrokeColor) ||
+                pName.equals(LWKey.TextColor) ) {
+                theClass = color.getClass();
+            }
+            else
+                if( pName.equals(LWKey.StrokeWidth) ) {
+                    Float thefloat = new Float(0);
+                    theClass = thefloat.getClass();
+                }
+                else
+                    if( pName.equals(LWKey.LinkArrows) ) {
 				
-				theClass = i.getClass();
-				}
-			else
+                        theClass = i.getClass();
+                    }
+                    else
 			if( pName.equals(LWKey.Font) ) {
-				theClass = font.getClass();
-				}
+                            theClass = font.getClass();
+                        }
 				
-			desc = new VuePropertyDescriptor( pName, theClass, null);
+            desc = new VuePropertyDescriptor( pName, theClass, null);
 			
-			return desc;
-		}
-	}
+            return desc;
+        }
+    }
 	
-	boolean sDebug = true;
-	private void debug( String s) {
-		if( sDebug)
-			System.out.println( s);
-	}
+    boolean sDebug = true;
+    private void debug( String s) {
+        if( sDebug)
+            System.out.println( s);
+    }
 }
 
 

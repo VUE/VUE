@@ -34,20 +34,21 @@ public class StrokeMenuButton extends MenuButton
 
     public StrokeMenuButton() {}
 	
-    public void setStroke( float pValue) {
-        mStroke = pValue;
+    public void setStroke(float width) {
+        setToolTipText("Stroke Width: " + width);
+        mStroke = width;
 	 	
-        // if we are using a LineIcon, update teh visual feedback **/
-        if( getIcon() instanceof LineIcon ) {
+        // if we are using a LineIcon, update it
+        if (getIcon() instanceof LineIcon ) {
             LineIcon icon = (LineIcon) getIcon();
-            icon.setWeight( mStroke);
+            icon.setWeight(mStroke);
         }
     }
     public float getStroke() {
         return mStroke;
     }
     public void setPropertyValue(Object o) {
-        setStroke(((Float)o).floatValue());
+        setStroke(o == null ? 0f : ((Float)o).floatValue());
     }
     public Object getPropertyValue() {
         return new Float(getStroke());

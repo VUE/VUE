@@ -21,6 +21,8 @@ public class LineIcon extends BlobIcon
 {
     /** the weight of the stroke **/
     private float mWeight;	
+    private boolean mDiagonal;
+    private BasicStroke stroke = new BasicStroke();
 	
     public LineIcon() {
         super();
@@ -30,13 +32,18 @@ public class LineIcon extends BlobIcon
         this( pWidth, pHeight, null, null);
     }
 	
-    public LineIcon( int pWidth,int  pHeight, float pWeight) {
-        this( pWidth, pHeight, null, null);
-        setWeight(pWeight);
-    }
-	
     public LineIcon( int pWidth, int pHeight, Color pColor) {
         this( pWidth, pHeight, pColor, null);
+    }
+	
+    public LineIcon( int pWidth, int pHeight, float pWeight) {
+        this(pWidth, pHeight, pWeight, false);
+    }
+	
+    public LineIcon( int pWidth,int  pHeight, float pWeight, boolean diagonal) {
+        this( pWidth, pHeight, null, null);
+        setWeight(pWeight);
+        mDiagonal = diagonal;
     }
 	
 	
@@ -55,6 +62,7 @@ public class LineIcon extends BlobIcon
     /** Sets the stroke weight **/
     public void setWeight(float pWeight) {
         mWeight = pWeight;
+        stroke = new BasicStroke(mWeight);
     }
 	
     /** Gets the stroke weight **/
@@ -83,11 +91,16 @@ public class LineIcon extends BlobIcon
         g.fillRect(x,y, getIconWidth(), getIconHeight());
         */
 			
-        if (getWeight() > 0 ) {
+        if (getWeight() > 0) {
             g.setColor(getColor());
             int weight = (int) getWeight();
-            int y1 =  y+ ( (getIconHeight() - weight) /2);
-            g.fillRect( x, y1, getIconWidth(), weight );
+            if (mDiagonal) {
+                //g.setStroke
+                g.drawLine(x, getIconHeight(), getIconWidth(), y);
+            } else {
+                int y1 =  y+ ( (getIconHeight() - weight) /2);
+                g.fillRect( x, y1, getIconWidth(), weight );
+            }
 			
         }
         if (getOverlay() != null) {

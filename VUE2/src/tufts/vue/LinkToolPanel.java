@@ -26,14 +26,9 @@ import tufts.vue.beans.*;
      /** arrow tail toggle button **/
      JToggleButton mArrowEndButton = null;
  	
-     public LinkToolPanel() {
-         //new Throwable("LINKTOOLPANEL CREATED").printStackTrace();
-         
-         //Color bakColor = VueResources.getColor("toolbar.background");
-         //Box box = Box.createHorizontalBox();
-         //setBackground( bakColor);
-         //setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
-                
+     public LinkToolPanel()
+     {
+         /*
          Color [] linkColors = VueResources.getColorArray( "linkColorValues");
          String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
          mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
@@ -44,30 +39,23 @@ import tufts.vue.beans.*;
          mLinkColorButton.setPropertyName(LWKey.StrokeColor);
          mLinkColorButton.setBorderPainted(false);
          mLinkColorButton.setMargin(ButtonInsets);
-         //mLinkColorButton.setBackground( bakColor);
          mLinkColorButton.addPropertyChangeListener( this);
- 		
+         */
  		
          mArrowStartButton = new JToggleButton();
-         mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
-         mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
-         //mArrowStartButton.setBackground( bakColor);
-         mArrowStartButton.setBorderPainted(false);
+         mArrowStartButton.setIcon(VueResources.getImageIcon( "arrowStartOffIcon") );
+         mArrowStartButton.setSelectedIcon(VueResources.getImageIcon("arrowStartOnIcon") );
          mArrowStartButton.setMargin(ButtonInsets);
-         mArrowStartButton.addActionListener( this);
+         mArrowStartButton.setBorderPainted(false);
+         mArrowStartButton.addActionListener(this);
 		
          mArrowEndButton = new JToggleButton();
-         mArrowEndButton.setIcon( VueResources.getImageIcon( "arrowEndOffIcon") );
-         mArrowEndButton.setSelectedIcon( VueResources.getImageIcon("arrowEndOnIcon") );
-         mArrowEndButton.addActionListener( this);
+         mArrowEndButton.setIcon(VueResources.getImageIcon( "arrowEndOffIcon") );
+         mArrowEndButton.setSelectedIcon(VueResources.getImageIcon("arrowEndOnIcon") );
          mArrowEndButton.setMargin(ButtonInsets);
          mArrowEndButton.setBorderPainted(false);
+         mArrowEndButton.addActionListener(this);
 		
- 		
-         //box.add( mLinkColorButton);
-         //box.add( mArrowStartButton);
-         //box.add( mArrowEndButton);
- 		
          getBox().add(mArrowEndButton, 0);
          getBox().add(mArrowStartButton, 0);
          
@@ -89,101 +77,26 @@ import tufts.vue.beans.*;
          if (!(pValue instanceof LWLink))
              return;
  		
-         enablePropertyChangeListeners( false);// todo: already did once in parent loadValues
+         setIgnorePropertyChangeEvents(true);
 
          if (mState.hasProperty(LWKey.LinkArrows)) {
-             int arrowState = ((Integer) mState.getPropertyValue(LWKey.LinkArrows)).intValue();
+             int arrowState = mState.getIntValue(LWKey.LinkArrows);
              mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);
                mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
          } else
              debug("missing arrow state property in state");
  		
+         /*
          if (mState.hasProperty( LWKey.StrokeColor) ) {
              Color c = (Color) mState.getPropertyValue(LWKey.StrokeColor);
              mLinkColorButton.setColor(c);
          } else 
              debug("missing link stroke color property.");
+         */
 
-         enablePropertyChangeListeners( true);
+         setIgnorePropertyChangeEvents(false);
      }
      
-     /*
-     public void setValue( Object pValue) {
-         //System.out.println("LinkToolPanel setValue " + pValue);
-         VueBeanState state = null;
-         if( pValue instanceof LWComponent) {
-             if (!(pValue instanceof LWLink))
-                 return;
-             state = VueBeans.getState( pValue);
-             //System.out.println("got state " + state);
-         }
- 			
-         mState = state;
- 		
-         // stop listening while we change the values
-         enablePropertyChangeListeners( false);
-
-         if( mState.hasProperty( LWKey.Font) ) {
-             Font font = (Font) state.getPropertyValue( LWKey.Font);
-             mFontPanel.setValue( font);
-         }
-         else {
-             debug("missing font property in state");
-         }
- 		
-         if( mState.hasProperty( LWKey.StrokeWidth) ) {
-             Float weight = (Float) state.getPropertyValue( LWKey.StrokeWidth);
-             mStrokeButton.setStroke( weight.floatValue() );
-         }
-         else {
-             debug("missing stroke weight proeprty in state.");
-         }
- 			
-         if( mState.hasProperty( LWKey.LinkArrows) ) {
-             Integer arrows = (Integer) state.getPropertyValue( LWKey.LinkArrows );
-             int arrowState = arrows.intValue();
-             mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
-             mArrowEndButton.setSelected( (arrowState & LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
-         }
-         else {
-             debug("missing arrow state property in state");
-         }
- 		
-         if( mState.hasProperty( LWKey.StrokeColor) ) {
-             Color fill = (Color) state.getPropertyValue( LWKey.StrokeColor);
-             mLinkColorButton.setColor( fill);
-         }
-         else {
-             debug(" missing link stroke color property.");
-         }
- 		
-         if( mState.hasProperty( LWKey.TextColor) ) {
-             Color text = (Color) state.getPropertyValue( LWKey.TextColor);
-             mTextColorButton.setColor( text);
-         }
-         else {
-             debug("missing text color property in state.");
-         }
-         // all done setting... start listening  again.
-         enablePropertyChangeListeners( true);
-     }
-     */
-
- 	
-     protected void enablePropertyChangeListeners(boolean pEnable) {
-         super.enablePropertyChangeListeners(pEnable);
-         
-         if (pEnable) {	
-             mLinkColorButton.addPropertyChangeListener(this);
-             mArrowStartButton.addActionListener(this);
-             mArrowEndButton.addActionListener(this);
-         } else {
-             mLinkColorButton.removePropertyChangeListener(this);
-             mArrowStartButton.removeActionListener(this);
-             mArrowEndButton.removeActionListener(this);
-	 }
-     }
-  	
  	
      public void actionPerformed( ActionEvent pEvent) {
          Object source = pEvent.getSource();

@@ -13,12 +13,6 @@ public class TextToolPanel extends NodeToolPanel
         return o instanceof LWNode && ((LWNode)o).isTextNode();
     }
      
-    protected javax.swing.JComponent getLabelComponent() {
-        javax.swing.JComponent label = new javax.swing.JLabel("   Text:");
-        label.setFont(VueConstants.FONT_SMALL);
-        return label;
-    }
-
     protected void initDefaultState() {
         //System.out.println("TextToolPanel.initDefaultState");
         super.mDefaultState = VueBeans.getState(NodeTool.initTextNode(new LWNode()));

@@ -85,6 +85,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          mFillColorButton.setColor(VueResources.getColor("defaultFillColor") );
          mFillColorButton.setPropertyName(LWKey.FillColor);
          mFillColorButton.setToolTipText("Fill Color");
+         mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
           
          //-------------------------------------------------------
          // Stroke Color menu
@@ -93,9 +94,10 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setIcon(new LineIcon(20,16, 3));
+         mStrokeColorButton.setIcon(new LineIcon(20,16, 3, false));
          mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
          mStrokeColorButton.setToolTipText("Stroke Color");
+         mStrokeColorButton.addPropertyChangeListener(this);
          
          //-------------------------------------------------------
          // Stroke Width menu
@@ -106,6 +108,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          mStrokeButton.setStroke( (float) 1);
          mStrokeButton.setPropertyName( LWKey.StrokeWidth);
          mStrokeButton.setToolTipText("Stroke Width");
+         mStrokeButton.addPropertyChangeListener(this);
 
          //-------------------------------------------------------
          // Text Color menu
@@ -124,6 +127,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
          mTextColorButton.setToolTipText("Text Color");
+         mTextColorButton.addPropertyChangeListener(this);
 
          //-------------------------------------------------------
          // Font face & size editor
@@ -135,6 +139,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          else
              mFontPanel.setBackground(bakColor);
          mFontPanel.setPropertyName( LWKey.Font );
+         mFontPanel.addPropertyChangeListener(this);
  		
          //-------------------------------------------------------
          if (debug) {
@@ -203,8 +208,9 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         return o instanceof LWComponent;
     }
         
+    /** load values from either a LWComponent, or a VueBeanState */
     void loadValues(Object pValue) {
-        System.out.println(this + " loadValues (LWCToolPanel) " + pValue);
+        //System.out.println(this + " loadValues (LWCToolPanel) " + pValue);
         VueBeanState state = null;
  		
         if (pValue instanceof LWComponent) {
@@ -218,28 +224,18 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             state = mDefaultState;
  		
         mState = state;
- 		
-        enablePropertyChangeListeners(false);
         
-        Font font = (Font) state.getPropertyValue( LWKey.Font);
-        mFontPanel.setValue( font);
- 		
-        Float weight = (Float) state.getPropertyValue( LWKey.StrokeWidth);
-        float weightVal = 1;
-        if( weight != null)
-            weightVal = weight.floatValue();
-        mStrokeButton.setStroke(weightVal);
- 		
-        Color fill = (Color) state.getPropertyValue( LWKey.FillColor);
-        mFillColorButton.setColor( fill);
- 		
-        Color stroke = (Color) state.getPropertyValue( LWKey.StrokeColor);
-        mStrokeColorButton.setColor( stroke);
- 		
-        Color text = (Color) state.getPropertyValue( LWKey.TextColor);
-        mTextColorButton.setColor( text);
- 		
-        enablePropertyChangeListeners( true);
+        System.out.println(this + " loadValues (LWCToolPanel) " + pValue + " state=" + state);
+        
+        setIgnorePropertyChangeEvents(true);
+        
+                mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
+          mFillColorButton.loadPropertyValue(state);
+        mStrokeColorButton.loadPropertyValue(state);
+          mTextColorButton.loadPropertyValue(state);
+             mStrokeButton.loadPropertyValue(state);
+
+        setIgnorePropertyChangeEvents(false);
     }
 
     void loadValues(LWSelection s) {
@@ -254,48 +250,36 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         }
     }
  	
-    /**
-     * getValue
-     *
-     **/
     public VueBeanState getValue() {
         return mState;
     }
  	
-    protected void enablePropertyChangeListeners( boolean pState) {
-        if (pState) {
-            mStrokeButton.addPropertyChangeListener( this );
-            mFontPanel.addPropertyChangeListener( this);
-            mTextColorButton.addPropertyChangeListener( this);
-            mStrokeColorButton.addPropertyChangeListener( this);
-            mFillColorButton.addPropertyChangeListener( this);
-        } else {
-            mStrokeButton.removePropertyChangeListener( this );
-            mFontPanel.removePropertyChangeListener( this);
-            mTextColorButton.removePropertyChangeListener( this);
-            mStrokeColorButton.removePropertyChangeListener( this);
-            mFillColorButton.removePropertyChangeListener( this);
-        }
+    private boolean mIgnoreEvents = false;
+    protected void setIgnorePropertyChangeEvents(boolean t) {
+        mIgnoreEvents = t;
     }
- 	 
-    public void propertyChange( PropertyChangeEvent pEvent)
+
+    public void propertyChange( PropertyChangeEvent e)
     {
-        //System.out.println("Node property chaged: "+pEvent.getPropertyName());
-        String name = pEvent.getPropertyName();
+        if (mIgnoreEvents)
+            return;
+        String name = e.getPropertyName();
+        //if (DEBUG.SELECTION) System.out.println(this + " PROPERTYCHANGE: " + name + " " + e);
+
         if( !name.equals("ancestor") ) {
-            System.out.println("LWC property changed: "+ pEvent.getPropertyName() + " " + pEvent);
+            if (DEBUG.SELECTION) System.out.println(this + " propertyChange: " + name + " " + e);
 	  		
-            VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, pEvent.getNewValue());
+            VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, e.getNewValue());
             if (VUE.getUndoManager() != null)
-                VUE.getUndoManager().markChangesAsUndo(pEvent.getPropertyName());
+                VUE.getUndoManager().markChangesAsUndo(e.getPropertyName());
 
             if (mState != null)
-                mState.setPropertyValue( name, pEvent.getNewValue() );
+                mState.setPropertyValue( name, e.getNewValue() );
             else
                 System.out.println("!!! Node ToolPanel mState is null!");
 
             if (mDefaultState != null)
-                mDefaultState.setPropertyValue( name, pEvent.getNewValue() );
+                mDefaultState.setPropertyValue( name, e.getNewValue() );
             else
                 System.out.println("!!! Node ToolPanel mDefaultState is null!");
 
