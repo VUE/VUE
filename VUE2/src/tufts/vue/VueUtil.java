@@ -37,7 +37,7 @@ public class VueUtil
             MacPlatform = true;
             System.out.println("Mac JVM: " + osName);
             System.out.println("Mac mrj.version: " + System.getProperty("mrj.version"));
-        } else if (osn.startsWith("WINDOWS")) {
+        } else if (osn.indexOf("WINDOWS") >= 0) {
             WindowsPlatform = true;
             System.out.println("Windows JVM: " + osName);
         } else {
