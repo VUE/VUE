@@ -77,14 +77,19 @@ public class Triangle2D extends RectangularShape
         
     public PathIterator getPathIterator(AffineTransform affineTransform)
     {
-        return new TriIterator();
+        return new TriIterator(affineTransform);
     }
 
 class TriIterator implements PathIterator
 {
-    final int maxIndex = 4;
     int index = 0;
-            
+    AffineTransform affine;
+
+    public TriIterator(AffineTransform affine)
+    {
+        this.affine = affine;
+    }
+    
     double[][] dCurrentPoint = {
         {x + width/2, y},
         {x, y + height},
@@ -108,7 +113,9 @@ class TriIterator implements PathIterator
             coords[0] = dCurrentPoint[index][0];  
             coords[1] = dCurrentPoint[index][1];
         }
-        //System.out.println("i"+index + " TRI Dcoords=" +coords[0] + "," + coords[1]);
+	if (affine != null)
+	    affine.transform(coords, 0, coords, 0, 1);
+        //System.out.println("i"+index + " TriIterator(double)coords=" +coords[0] + "," + coords[1]);
         return segment[index];
     }
 			
@@ -120,12 +127,14 @@ class TriIterator implements PathIterator
             coords[0] = (float)dCurrentPoint[index][0];  
             coords[1] = (float)dCurrentPoint[index][1];
         }
-        //System.out.println("i"+index + " TRI Fcoords=" +coords[0] + "," + coords[1]);
+	if (affine != null)
+	    affine.transform(coords, 0, coords, 0, 1);
+        //System.out.println("i"+index + " TriIterator(float)coords=" +coords[0] + "," + coords[1]);
         return segment[index];
     } 
 			
     public int getWindingRule() { return PathIterator.WIND_NON_ZERO; }
-    public boolean isDone() { return index == maxIndex; } 
+    public boolean isDone() { return index == 4; } 
     public void next() { index++ ; } 
 }
     

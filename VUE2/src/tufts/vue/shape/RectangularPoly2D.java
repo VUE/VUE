@@ -347,7 +347,7 @@ public class RectangularPoly2D extends RectangularShape
         
     public PathIterator getPathIterator(AffineTransform affineTransform)
     {
-        return new PolyIterator();
+        return new PolyIterator(affineTransform);
     }
 
     public Object clone()
@@ -369,11 +369,19 @@ public class RectangularPoly2D extends RectangularShape
     class PolyIterator implements PathIterator
     {
         int index = 0;
+        AffineTransform affine;
+
+        public PolyIterator(AffineTransform affine)
+        {
+            this.affine = affine;
+        }
     
         public int currentSegment(double[] coords) { 
             coords[0] = xpoints[index];  
             coords[1] = ypoints[index];
-            //System.out.println("i"+index + " dcoords=" +coords[0] + "," + coords[1]);
+            if (affine != null)
+                affine.transform(coords, 0, coords, 0, 1);            
+            //System.out.println("i"+index + " (double)coords=" +coords[0] + "," + coords[1]);
             if (index == 0)
                 return SEG_MOVETO;
             else if (index == sides)
@@ -385,7 +393,9 @@ public class RectangularPoly2D extends RectangularShape
         public int currentSegment(float[] coords){ 
             coords[0] = (float) xpoints[index];  
             coords[1] = (float) ypoints[index];
-            //System.out.println("i"+index + " Fcoords=" +coords[0] + "," + coords[1]);
+            if (affine != null)
+                affine.transform(coords, 0, coords, 0, 1);            
+            //System.out.println("i"+index + " (float)coords=" +coords[0] + "," + coords[1]);
             if (index == 0)
                 return SEG_MOVETO;
             else if (index == sides)
