@@ -4264,7 +4264,7 @@ public class MapViewer extends javax.swing.JComponent
             } else {
                 frame = VueUtil.displayComponent(viewer);
             }
-            JMenuBar menu = VUE.getMenuBar(null);
+            JMenuBar menu = new VUE.VueMenuBar(null);
             menu.setFont(FONT_TINY);
             // set the menu bar just so we can get all the actions connected to MapViewer
             frame.setJMenuBar(menu);

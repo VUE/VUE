@@ -34,6 +34,8 @@ public class VueUtil
 {
     private static boolean WindowsPlatform = false;
     private static boolean MacPlatform = false;
+    private static boolean MacAquaLAF = false;
+    private static boolean MacAquaLAF_set = false;
     private static boolean UnixPlatform = false;
     private static float javaVersion = 1.0f;
     private static String currentDirectoryPath = "";
@@ -268,8 +270,14 @@ public class VueUtil
 
     public static boolean isMacAquaLookAndFeel()
     {
-        return isMacPlatform() &&
-            javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().indexOf("aqua") >= 0;
+        // we can't set this at static init time because the LAF can be set after that
+        if (MacAquaLAF_set == false) {
+            MacAquaLAF =
+                isMacPlatform() &&
+                javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().indexOf("aqua") >= 0;
+            MacAquaLAF_set = true;
+        }
+        return MacAquaLAF;
     }
 
     public static java.util.Iterator EmptyIterator = new java.util.Iterator() {

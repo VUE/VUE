@@ -110,7 +110,7 @@ public class LWCToolPanel extends JPanel
          else
              setBorder(new EmptyBorder(2,1,2,1));//t,l,b,r
 
-         Color bakColor = VueResources.getColor("toolbar.background");
+         Color bakColor = VueTheme.getToolbarColor();
          if (debug) bakColor = Color.red;
          if (debug)
              setBackground(Color.blue);
@@ -464,10 +464,11 @@ public class LWCToolPanel extends JPanel
  	
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
+        VUE.parseArgs(args);
         DEBUG.Enabled = true;
         //DEBUG.INIT = true;
         DEBUG.TOOL = DEBUG.EVENTS = true;
-        DEBUG.BOXES = true;
+        //DEBUG.BOXES = true;
         VUE.initUI(true);
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueUtil.displayComponent(new LWCToolPanel());

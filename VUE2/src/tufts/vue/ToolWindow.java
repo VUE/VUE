@@ -42,6 +42,7 @@ import javax.swing.border.*;
  */
 
 public class ToolWindow extends JWindow
+//public class ToolWindow extends JFrame // will need on mac version, so convert to factory
     implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
@@ -60,15 +61,19 @@ public class ToolWindow extends JWindow
     public ToolWindow(String title, Frame owner)
     {
         super(owner);
+        //setUndecorated(true);
+        //if (owner instanceof JFrame) setRootPane(((JFrame)owner).getRootPane()); // no help getting menu bars shared on mac
         this.mTitle = title;
         setName(title);
         //setUndecorated(true);
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
-        addFocusListener(this);
+        //setFocusable(false);
+        addFocusListener(this); // should never see...
         if (debug) out("contentPane=" + getContentPane());
         mContentPane = new ContentPane(mTitle);
+        //mContentPane.setFocusable(false);
         //getContentPane().add(mContentPane);
         setContentPane(mContentPane);
         // todo checkout: setting content-pane v.s. adding to it may affect glass pane?

@@ -535,9 +535,12 @@ public class VueResources
         Color background = getColor( pKey + ".background");
 		
         if( font != null)
-            pObj.setFont( font);
-        if( background != null)
-            pObj.setBackground( background);	
+            pObj.setFont(font);
+        if (background != null && !VueUtil.isMacAquaLookAndFeel())
+            pObj.setBackground(background);
+
+        if (pObj instanceof JTabbedPane)
+            pObj.setFocusable(false);
 	
     }
 	

@@ -63,7 +63,10 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
 
     protected FontUIResource getSmallFont() { return fontSmall; }
     
+    //public static Color getVueColor() { return VueUtil.isMacAquaLookAndFeel() ? SystemColor.control : VueColor;  }
+    //public static Color getToolbarColor() { return VueUtil.isMacAquaLookAndFeel() ? SystemColor.control : ToolbarColor; }
     public static Color getVueColor() { return getTheme().VueColor;  }
+    public static Color getToolbarColor() { return getTheme().ToolbarColor;  }
     
     public FontUIResource getMenuTextFont() { return fontMedium;  }
     public FontUIResource getUserTextFont() { return fontSmall; }

@@ -391,7 +391,7 @@ public class VueToolbarController
         return panel;
     }
 	 
-    private void initContextualPanelFromSelection( JPanel panel) {
+    private void initContextualPanelFromSelection(JPanel panel) {
         /*
         LWSelection selection = VUE.getSelection();
         LWComponent c = null;
@@ -414,7 +414,7 @@ public class VueToolbarController
         if (panel instanceof LWCToolPanel)
             ((LWCToolPanel)panel).loadSelection(VUE.getSelection());
         else {
-            if (true||DEBUG.TOOL) System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
+            if (DEBUG.TOOL) System.out.println(this + " IGNORING initContextualPanelFromSelection on non LWCToolPanel " + panel);
         }
     }
 	 
@@ -493,6 +493,7 @@ public class VueToolbarController
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
         DEBUG.Enabled = DEBUG.INIT = true;
+        VUE.parseArgs(args);
         VUE.initUI(true);
 
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts

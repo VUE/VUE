@@ -686,24 +686,31 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
      * If the data was requested in the "java.lang.String" flavor,
      * return the String representing the selection.
      */
-    public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+    public synchronized Object getTransferData(DataFlavor flavor)
+        throws UnsupportedFlavorException, IOException
+    {
+        Object result = null;
         
         if (flavor.equals(flavors[STRING])) {
             //throw new UnsupportedFlavorException(flavors[STRING]);
             // Always support something for the string flavor, or
             // we get an exception thrown (even tho I think that
             // may be against the published API).
-            return get(0).toString();
+            result = get(0).toString();
         } else if (flavor.equals(flavors[PLAIN])) {
            // System.out.println("I am plain"+this.elementAt(0));
-            return new StringReader(displayName);
+            result = new StringReader(displayName);
         } else if (flavor.equals(flavors[RESOURCE])) {
-            return this;
+            result = this;
         } else if (flavor.equals(flavors[FILE])){
-            return this;
+            result = this;
         } else {
             throw new UnsupportedFlavorException(flavor);
         }
+        if (DEBUG.DND && DEBUG.META)
+            System.out.println("VueDragTreeNodeSelection: getTransferData(flavor=" + flavor + ") returns "
+                               + result.getClass() + "[" + result + "]");
+        return result;
     }
     
 }

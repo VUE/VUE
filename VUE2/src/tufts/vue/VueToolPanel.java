@@ -56,7 +56,7 @@ public class VueToolPanel extends JPanel
     private Map mToolButtons = new HashMap();
 	
     /** background color **/
-    static private Color mBakColor = VueResources.getColor("toolbar.background");
+    static private Color mBakColor; // = VueResources.getColor("toolbar.background");
 	
 	
     /***
@@ -66,12 +66,12 @@ public class VueToolPanel extends JPanel
     private static final boolean debug = false;
     public VueToolPanel() {
         super();
+        mBakColor = VueTheme.getToolbarColor();
         mButtonGroup = new ButtonGroup();
-
         if (debug)
             setBackground(Color.blue);
         else
-            setBackground( VueResources.getColor( "toolbar.background") );
+            setBackground(VueTheme.getToolbarColor());
 		
         setLayout( new BorderLayout() );
         setBorder( new EmptyBorder(1,3,2,10) );//tlbr

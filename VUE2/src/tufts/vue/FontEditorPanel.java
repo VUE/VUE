@@ -51,12 +51,6 @@ public class FontEditorPanel extends Box
     private AbstractButton mBoldButton;
     private AbstractButton mItalicButton;
  	
-    /** the font size **/
-    private int mSize = 14;
- 	
-    /* Text color menu editor **/
-    //ColorMenuButton mTextColorButton = null;
-    
     /** the property name **/
     private Object mPropertyKey = LWKey.Font;
  	
@@ -86,7 +80,7 @@ public class FontEditorPanel extends Box
         */
 
         mFontCombo = new JComboBox(getFontNames());
-        mFontCombo.addActionListener( this );
+        mFontCombo.addActionListener(this);
         Font f = mFontCombo.getFont();
         Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
         mFontCombo.setFont(menuFont);
@@ -94,7 +88,6 @@ public class FontEditorPanel extends Box
         //Dimension comboSize = mFontCombo.getPreferredSize();
         //comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
         //mFontCombo.setMaximumSize(comboSize);
-        mFontCombo.setBackground(VueTheme.getVueColor());
 
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
@@ -110,6 +103,14 @@ public class FontEditorPanel extends Box
         //mSizeField.setMaximumSize(d);
         mSizeField.setEditable(true);
         
+        if (VueUtil.isMacAquaLookAndFeel()) {
+            mFontCombo.setBackground(VueTheme.getToolbarColor());
+            mSizeField.setBackground(VueTheme.getToolbarColor());
+        } else {
+            mFontCombo.setBackground(VueTheme.getVueColor());
+            mSizeField.setBackground(VueTheme.getVueColor());
+        }
+        
         //mSizeField.setPrototypeDisplayValue("100"); // no help in making it smaller
         //System.out.println("EDITOR " + mSizeField.getEditor());
         //System.out.println("EDITOR-COMP " + mSizeField.getEditor().getEditorComponent());
@@ -117,7 +118,8 @@ public class FontEditorPanel extends Box
         if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
             JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
             sizeEditor.setColumns(2); // not exactly character columns
-            sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
+            if (!VueUtil.isMacAquaLookAndFeel())
+                sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
             //sizeEditor.setPreferredSize(new Dimension(20,10)); // does squat
             
             // the default size for a combo-box editor field is 9 chars
@@ -138,7 +140,7 @@ public class FontEditorPanel extends Box
         Font sizeFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
         mSizeField.setFont( sizeFont);
         //mSizeField.setMaximumSize(mSizeField.getPreferredSize());
-        mSizeField.setBackground(VueTheme.getVueColor());
+        //mSizeField.setBackground(VueTheme.getVueColor());
  		
         mBoldButton = new VueButton.Toggle("font.button.bold", this);
         mItalicButton = new VueButton.Toggle("font.button.italic", this);
@@ -174,7 +176,7 @@ public class FontEditorPanel extends Box
  	
         setFontValue(FONT_DEFAULT);
 
-        initColors( VueResources.getColor("toolbar.background") );
+        initColors(VueTheme.getToolbarColor());
     }
     
     private void initColors( Color pColor) {
@@ -227,21 +229,9 @@ public class FontEditorPanel extends Box
         return sFontNames;
     }
  	
- 	
-    ////////////////
-    // Methods
-    /////////////////
- 	
- 	
     public void setPropertyKey(Object key) {
         mPropertyKey = key;
     }
-
-    /*
-    public String getPropertyName() {
-        return mPropertyKey == null ? null : mPropertyKey.toString();
-    }
-    */
 
     public Object getPropertyKey() {
         return mPropertyKey;

@@ -265,17 +265,20 @@ public class VUE
         initUI(false);
     }
     
+    private static boolean useMacLAF = false;
     static void initUI(boolean debug)
     {
-        if (!themeSet)
-            MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
-        
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
-        //if (debug)
-        if (VueUtil.isMacPlatform()) // for now for testing
+        if (!useMacLAF && VueUtil.isMacPlatform()) {
             lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        } else 
+           themeSet = true; // not using metal, so theme will have no effect
+
+        if (!themeSet)
+            MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
+        
         try {
             if (lafn != null)
                 javax.swing.UIManager.setLookAndFeel(lafn);
@@ -294,14 +297,24 @@ public class VUE
         */
         
     }
+
+    static void parseArgs(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-nodr"))
+                nodr = true;
+            else if (args[i].equals("-mac"))
+                useMacLAF = true;
+        }
+    }
     
     
     private static JPanel toolPanel;
     private static boolean themeSet = false;
+    private static boolean nodr = false;
+    
     public static void main(String[] args) {
         System.out.println("VUE:main");
-        
-        boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
+        parseArgs(args);
 
         // Must install theme before any other GUI code or our VueTheme gets ignored
         MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
@@ -312,7 +325,7 @@ public class VUE
             DEBUG.Enabled = true;
         else
             splashScreen = new SplashScreen();
-        
+
         initUI();
         
         //-------------------------------------------------------
@@ -451,17 +464,17 @@ public class VUE
         toolbarWindow.pack();
          */
         
-        frame.getContentPane().add( tbc.getToolbar(), BorderLayout.NORTH);
+        frame.getContentPane().add(tbc.getToolbar(), BorderLayout.NORTH);
         
         // Map Inspector
         
         // get the proper scree/main frame size
-        sMapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
+        sMapInspector = new ToolWindow(VueResources.getString("mapInspectorTitle"), frame);
         MapInspectorPanel mi = new MapInspectorPanel();
         sMapInspector.addTool(mi);
         
         //ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
-        objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+        objectInspector = new ToolWindow(VueResources.getString("objectInspectorTitle"), frame);
         objectInspectorPanel = new ObjectInspectorPanel();
         ModelSelection.addListener(objectInspectorPanel);
         //sResourceSelection.addListener( objectInspectorPanel);
@@ -495,9 +508,25 @@ public class VUE
             outlineView,
             inspectorTool,
         };
+
+        // must be called before first call to buildMenuBar
+        //buildWindowDisplayActions(toolWindows);
         
         // adding the menus and toolbars
-        frame.setJMenuBar(getMenuBar(toolWindows));
+        frame.setJMenuBar(new VueMenuBar(toolWindows));
+        // Attempts to get all the windows to keep the same menu at the top
+        // of a mac application are failing... what a bug!
+        if (useMacLAF && VueUtil.isMacPlatform()) {
+            for (int i = 0; i < toolWindows.length; i++) {
+                Window w = toolWindows[i];
+                if (w == null)
+                    continue;
+                if (w instanceof JFrame)
+                    ((JFrame)w).setJMenuBar(new VueMenuBar(toolWindows));
+                //((JFrame)w).setJMenuBar(buildMenuBar(toolWindows));
+                //((JWindow)w).getRootPane().setJMenuBar(buildMenuBar(toolWindows));
+            }
+        }
         out("menu toolbars set.");
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
         //frame.setContentPane(vuePanel);
@@ -794,262 +823,259 @@ public class VUE
         
     }
     
-    static JMenuBar getMenuBar(Window[] toolWindows) {
-        final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+    static class VueMenuBar extends JMenuBar
+        implements FocusListener
+    {
+        // this may be created multiple times as a workaround for the inability
+        // to support a single JMenuBar for the while application on the Mac
+        public VueMenuBar(Window[] toolWindows)
+        {
+            addFocusListener(this);
+            final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
-        JMenuBar menuBar = new JMenuBar();
-        
-        JMenu fileMenu = menuBar.add(new JMenu("File"));
-        JMenu editMenu = menuBar.add(new JMenu("Edit"));
-        JMenu viewMenu = menuBar.add(new JMenu("View"));
-        JMenu formatMenu = menuBar.add(new JMenu("Format"));
-        JMenu arrangeMenu = menuBar.add(new JMenu("Arrange"));
-        JMenu windowMenu = menuBar.add(new JMenu("Window"));
-        JMenu alignMenu = menuBar.add(new JMenu("Arrange/Align"));
-        //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
-        JMenu helpMenu = menuBar.add(new JMenu("Help"));
+            JMenu fileMenu = add(new JMenu("File"));
+            JMenu editMenu = add(new JMenu("Edit"));
+            JMenu viewMenu = add(new JMenu("View"));
+            JMenu formatMenu = add(new JMenu("Format"));
+            JMenu arrangeMenu = add(new JMenu("Arrange"));
+            JMenu windowMenu = add(new JMenu("Window"));
+            JMenu alignMenu = add(new JMenu("Arrange/Align"));
+            //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
+            JMenu helpMenu = add(new JMenu("Help"));
 
-        //adding actions
-        SaveAction saveAction = new SaveAction("Save", false);
-        SaveAction saveAsAction = new SaveAction("Save As...");
-        OpenAction openAction = new OpenAction("Open");
-        ExitAction exitAction = new ExitAction("Quit");
-        Publish publishAction = new Publish(frame,"Export");
+            //adding actions
+            SaveAction saveAction = new SaveAction("Save", false);
+            SaveAction saveAsAction = new SaveAction("Save As...");
+            OpenAction openAction = new OpenAction("Open");
+            ExitAction exitAction = new ExitAction("Quit");
+            Publish publishAction = new Publish(frame,"Export");
         
-        // Actions added by the power team
-        PrintAction printAction = PrintAction.getPrintAction();
-        PDFTransform pdfAction = new PDFTransform("PDF");
-        HTMLConversion htmlAction = new HTMLConversion("HTML");
-        ImageConversion imageAction = new ImageConversion("JPEG");
-        ImageMap imageMap = new ImageMap("IMAP");
-        SVGConversion svgAction = new SVGConversion("SVG");
-        XMLView xmlAction = new XMLView("XML View");
+            // Actions added by the power team
+            PrintAction printAction = PrintAction.getPrintAction();
+            PDFTransform pdfAction = new PDFTransform("PDF");
+            HTMLConversion htmlAction = new HTMLConversion("HTML");
+            ImageConversion imageAction = new ImageConversion("JPEG");
+            ImageMap imageMap = new ImageMap("IMAP");
+            SVGConversion svgAction = new SVGConversion("SVG");
+            XMLView xmlAction = new XMLView("XML View");
         
-        if (DEBUG.Enabled) {
-            JButton u = new JButton(Actions.Undo);
-            JButton r = new JButton(Actions.Redo);
-            JButton p = new JButton(printAction);
-            JButton v = new JButton(printAction);
-            v.setText("Print Visible");
+            if (DEBUG.Enabled) {
+                JButton u = new JButton(Actions.Undo);
+                JButton r = new JButton(Actions.Redo);
+                JButton p = new JButton(printAction);
+                JButton v = new JButton(printAction);
+                v.setText("Print Visible");
             
-            u.setBackground(Color.white);
-            r.setBackground(Color.white);
-            menuBar.add(u).setFocusable(false);
-            menuBar.add(r).setFocusable(false);
-            menuBar.add(p).setFocusable(false);
-            menuBar.add(v).setFocusable(false);
+                u.setBackground(Color.white);
+                r.setBackground(Color.white);
+                add(u).setFocusable(false);
+                add(r).setFocusable(false);
+                add(p).setFocusable(false);
+                add(v).setFocusable(false);
 
-            //menuBar.add(new tufts.vue.gui.VueButton(Actions.Undo)).setFocusable(false);
-            // not picking up icon yet...
-        }
-
-        if (DEBUG.Enabled) {
-            JMenu exportMenu = menuBar.add(new JMenu("Export"));
-            exportMenu.add(htmlAction);
-            exportMenu.add(pdfAction);
-            exportMenu.add(imageAction);
-            exportMenu.add(svgAction);
-            exportMenu.add(xmlAction);
-            exportMenu.add(imageMap);
-
-        }
-        
-        fileMenu.add(Actions.NewMap);
-        fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
-        fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
-        fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
-        fileMenu.add(Actions.CloseMap);
-        fileMenu.add(printAction);
-        fileMenu.add(printAction).setText("Print Visible...");
-        fileMenu.add(publishAction);
-        //fileMenu.add(exportMenu);
-        fileMenu.addSeparator();
-        fileMenu.add(exitAction);
-        
-        editMenu.add(Actions.Undo);
-        editMenu.add(Actions.Redo);
-        editMenu.addSeparator();
-        editMenu.add(Actions.NewNode);
-        editMenu.add(Actions.NewText);
-        editMenu.add(Actions.Rename);
-        editMenu.add(Actions.Duplicate);
-        editMenu.add(Actions.Delete);
-        editMenu.addSeparator();
-        editMenu.add(Actions.Cut);
-        editMenu.add(Actions.Copy);
-        editMenu.add(Actions.Paste);
-        editMenu.addSeparator();
-        editMenu.add(Actions.SelectAll);
-        editMenu.add(Actions.DeselectAll);
-        editMenu.addSeparator();
-        editMenu.add(Actions.editDataSource);
-        
-        
-        viewMenu.add(Actions.ZoomIn);
-        viewMenu.add(Actions.ZoomOut);
-        viewMenu.add(Actions.ZoomFit);
-        viewMenu.add(Actions.ZoomActual);
-        /*
-        viewMenu.addSeparator();
-        viewMenu.add(new JMenuItem("Resources"));
-        viewMenu.add(new JMenuItem("Collection"));
-        viewMenu.add(new JMenuItem("Inspector"));
-        viewMenu.add(new JMenuItem("Pathway"));
-        viewMenu.add(new JMenuItem("Toolbar"));
-        viewMenu.add(new JMenuItem("Overview"));
-         */
-        
-        JMenu fontMenu = new JMenu("Font");
-        
-        //formatMenu.add(fontMenu);
-        formatMenu.add(Actions.FontSmaller);
-        formatMenu.add(Actions.FontBigger);
-        formatMenu.add(Actions.FontBold);
-        formatMenu.add(Actions.FontItalic);
-        //formatMenu.add(new JMenuItem("Size"));
-        //formatMenu.add(new JMenuItem("Style"));
-        //formatMenu.add("Text Justify").setEnabled(false);
-        // TODO: ultimately better to break these out in to Node & Link submenus
-        formatMenu.addSeparator();
-        buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
-        formatMenu.addSeparator();
-        buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
-        
-        buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
-
-        arrangeMenu.add(Actions.BringToFront);
-        arrangeMenu.add(Actions.BringForward);
-        arrangeMenu.add(Actions.SendToBack);
-        arrangeMenu.add(Actions.SendBackward);
-        arrangeMenu.addSeparator();
-        arrangeMenu.add(Actions.Group);
-        arrangeMenu.add(Actions.Ungroup);
-        arrangeMenu.addSeparator();
-        arrangeMenu.add(alignMenu);
-        
-        if (toolWindows != null) {
-            int accel_index = 0;
-            for (int i = 0; i < toolWindows.length; i++) {
-                //System.out.println("adding " + toolWindows[i]);
-                Window window = toolWindows[i];
-                if (window == null)
-                    continue;
-                WindowDisplayAction windowAction = new WindowDisplayAction(window);
-                windowAction.putValue(Action.ACCELERATOR_KEY,
-                                      KeyStroke.getKeyStroke(KeyEvent.VK_1 + accel_index++, Actions.COMMAND));
-                JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
-                windowAction.setLinkedButton(checkBox);
-                windowMenu.add(checkBox);
+                //menuBar.add(new tufts.vue.gui.VueButton(Actions.Undo)).setFocusable(false);
+                // not picking up icon yet...
             }
-        }
+
+            if (DEBUG.Enabled) {
+                JMenu exportMenu = add(new JMenu("Export"));
+                exportMenu.add(htmlAction);
+                exportMenu.add(pdfAction);
+                exportMenu.add(imageAction);
+                exportMenu.add(svgAction);
+                exportMenu.add(xmlAction);
+                exportMenu.add(imageMap);
+
+            }
         
-        //windowMenu.add(new UserDataAction());
-        /*
-        optionsMenu.add(new UserDataAction());
-        optionsMenu.add(new JMenuItem("Map Preference..."));
-        optionsMenu.add(new JMenuItem("Preferences..."));
-         */
+            fileMenu.add(Actions.NewMap);
+            fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
+            fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
+            fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
+            fileMenu.add(Actions.CloseMap);
+            fileMenu.add(printAction);
+            fileMenu.add(printAction).setText("Print Visible...");
+            fileMenu.add(publishAction);
+            //fileMenu.add(exportMenu);
+            fileMenu.addSeparator();
+            fileMenu.add(exitAction);
         
-        JMenuItem vueOnline = new JMenuItem("VUE Online");
-        JMenuItem userGuide = new JMenuItem("User Guide");
-        JMenuItem aboutUs = new JMenuItem("About VUE");
-        helpMenu.add(vueOnline); 
-        helpMenu.add(userGuide);
-        helpMenu.add(aboutUs);
-        aboutusTool = new ToolWindow("VUE: About VUE", tufts.vue.VUE.getInstance());
-        JPanel backPanel = new JPanel();
-        backPanel.setBorder(new LineBorder(Color.WHITE,20));
-        backPanel.setMinimumSize(new Dimension(275,147));
+            editMenu.add(Actions.Undo);
+            editMenu.add(Actions.Redo);
+            editMenu.addSeparator();
+            editMenu.add(Actions.NewNode);
+            editMenu.add(Actions.NewText);
+            editMenu.add(Actions.Rename);
+            editMenu.add(Actions.Duplicate);
+            editMenu.add(Actions.Delete);
+            editMenu.addSeparator();
+            editMenu.add(Actions.Cut);
+            editMenu.add(Actions.Copy);
+            editMenu.add(Actions.Paste);
+            editMenu.addSeparator();
+            editMenu.add(Actions.SelectAll);
+            editMenu.add(Actions.DeselectAll);
+            editMenu.addSeparator();
+            editMenu.add(Actions.editDataSource);
+        
+        
+            viewMenu.add(Actions.ZoomIn);
+            viewMenu.add(Actions.ZoomOut);
+            viewMenu.add(Actions.ZoomFit);
+            viewMenu.add(Actions.ZoomActual);
+            /*
+              viewMenu.addSeparator();
+              viewMenu.add(new JMenuItem("Resources"));
+              viewMenu.add(new JMenuItem("Collection"));
+              viewMenu.add(new JMenuItem("Inspector"));
+              viewMenu.add(new JMenuItem("Pathway"));
+              viewMenu.add(new JMenuItem("Toolbar"));
+              viewMenu.add(new JMenuItem("Overview"));
+            */
+        
+            JMenu fontMenu = new JMenu("Font");
+        
+            //formatMenu.add(fontMenu);
+            formatMenu.add(Actions.FontSmaller);
+            formatMenu.add(Actions.FontBigger);
+            formatMenu.add(Actions.FontBold);
+            formatMenu.add(Actions.FontItalic);
+            //formatMenu.add(new JMenuItem("Size"));
+            //formatMenu.add(new JMenuItem("Style"));
+            //formatMenu.add("Text Justify").setEnabled(false);
+            // TODO: ultimately better to break these out in to Node & Link submenus
+            formatMenu.addSeparator();
+            buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
+            formatMenu.addSeparator();
+            buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
+        
+            buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
+
+            arrangeMenu.add(Actions.BringToFront);
+            arrangeMenu.add(Actions.BringForward);
+            arrangeMenu.add(Actions.SendToBack);
+            arrangeMenu.add(Actions.SendBackward);
+            arrangeMenu.addSeparator();
+            arrangeMenu.add(Actions.Group);
+            arrangeMenu.add(Actions.Ungroup);
+            arrangeMenu.addSeparator();
+            arrangeMenu.add(alignMenu);
+        
+            int index = 0;
+            if (toolWindows != null) {
+                for (int i = 0; i < toolWindows.length; i++) {
+                    //System.out.println("adding " + toolWindows[i]);
+                    Window window = toolWindows[i];
+                    if (window == null)
+                        continue;
+                    WindowDisplayAction windowAction = new WindowDisplayAction(window);
+                    windowAction.putValue(Action.ACCELERATOR_KEY,
+                                          KeyStroke.getKeyStroke(KeyEvent.VK_1 + index++, Actions.COMMAND));
+                    JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
+                    windowAction.setLinkedButton(checkBox);
+                    windowMenu.add(checkBox);
+                }
+            }
+        
+            //windowMenu.add(new UserDataAction());
+            /*
+              optionsMenu.add(new UserDataAction());
+              optionsMenu.add(new JMenuItem("Map Preference..."));
+              optionsMenu.add(new JMenuItem("Preferences..."));
+            */
+        
+            JMenuItem vueOnline = new JMenuItem("VUE Online");
+            JMenuItem userGuide = new JMenuItem("User Guide");
+            JMenuItem aboutUs = new JMenuItem("About VUE");
+            helpMenu.add(vueOnline); 
+            helpMenu.add(userGuide);
+            helpMenu.add(aboutUs);
+            aboutusTool = new ToolWindow("VUE: About VUE", tufts.vue.VUE.getInstance());
+            JPanel backPanel = new JPanel();
+            backPanel.setBorder(new LineBorder(Color.WHITE,20));
+            backPanel.setMinimumSize(new Dimension(275,147));
       
         
-        JPanel aboutusPanel = new JPanel();
-        JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
+            JPanel aboutusPanel = new JPanel();
+            JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
         
-        JLabel jtf = new JLabel("<html> <font color = \"#20316A\"> <br><br>&nbsp;&nbsp;&nbsp;Developed by  Academic Technology <br> &nbsp;&nbsp;&nbsp;Copyright &copy; 2004 Tufts University<br>&nbsp; &nbsp;&nbsp;All Rights Reserved <br><br> &nbsp;&nbsp;&nbsp;Version 0.9 <br><br>&nbsp;&nbsp;&nbsp;<u> http://vue.tccs.tufts.edu</u><br></font></html>");
+            JLabel jtf = new JLabel("<html> <font color = \"#20316A\"> <br><br>&nbsp;&nbsp;&nbsp;Developed by  Academic Technology <br> &nbsp;&nbsp;&nbsp;Copyright &copy; 2004 Tufts University<br>&nbsp; &nbsp;&nbsp;All Rights Reserved <br><br> &nbsp;&nbsp;&nbsp;Version 0.9 <br><br>&nbsp;&nbsp;&nbsp;<u> http://vue.tccs.tufts.edu</u><br></font></html>");
   
-        
-       
-        JPanel labelPanel = new JPanel();
-        labelPanel.setLayout(new BorderLayout());
-        labelPanel.add(jtf,BorderLayout.CENTER);
+            JPanel labelPanel = new JPanel();
+            labelPanel.setLayout(new BorderLayout());
+            labelPanel.add(jtf,BorderLayout.CENTER);
           
-        aboutusPanel.setLayout(new BorderLayout());
-      
-       aboutusPanel.add(spLabel,BorderLayout.CENTER);
-        
-        
+            aboutusPanel.setLayout(new BorderLayout());
+            aboutusPanel.add(spLabel,BorderLayout.CENTER);
          
- jtf.addMouseListener(new MouseAdapter(){
-    
-  
-        public void mouseClicked(MouseEvent evt) {
-           
-                try{
-                       VueUtil.openURL("http://vue.tccs.tufts.edu");
-                }catch (Exception ex){}
-            
-        }
- });
+            jtf.addMouseListener(new MouseAdapter(){
+                    public void mouseClicked(MouseEvent evt) {
+                        try{
+                            VueUtil.openURL("http://vue.tccs.tufts.edu");
+                        }catch (Exception ex){}
+                    }
+                });
        
-        labelPanel.setBackground(Color.WHITE);
-       aboutusPanel.add(labelPanel,BorderLayout.SOUTH);
+            labelPanel.setBackground(Color.WHITE);
+            aboutusPanel.add(labelPanel,BorderLayout.SOUTH);
         
-        backPanel.setLayout(new BorderLayout());
-        backPanel.add(aboutusPanel,BorderLayout.CENTER);
- 
-      
-       
-            
-     
+            backPanel.setLayout(new BorderLayout());
+            backPanel.add(aboutusPanel,BorderLayout.CENTER);
+            aboutusTool.addTool(backPanel, false);
         
-                 
-         
-        
-        aboutusTool.addTool(backPanel, false);
-        
-        userGuide.addActionListener(new ActionListener() {
-               public void actionPerformed(ActionEvent e) {
-                   try {
-                       VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
-                   } catch (Exception ex) { out(ex); }
-               }});
+            userGuide.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
+                        } catch (Exception ex) { out(ex); }
+                    }});
                
-        vueOnline.addActionListener(new ActionListener() {
-               public void actionPerformed(ActionEvent e) {
-                   try {
-                       VueUtil.openURL("http://vue.tccs.tufts.edu/");
-                   } catch (Exception ex) { out(ex); }
-               }});
+            vueOnline.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            VueUtil.openURL("http://vue.tccs.tufts.edu/");
+                        } catch (Exception ex) { out(ex); }
+                    }});
         
-        aboutUs.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    //aboutusTool.setLocation(200,200);
-                    VueUtil.centerOnScreen(aboutusTool);
-                    aboutusTool.setVisible(true);
-                }});
+            aboutUs.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        //aboutusTool.setLocation(200,200);
+                        VueUtil.centerOnScreen(aboutusTool);
+                        aboutusTool.setVisible(true);
+                    }});
         
-          /*
-        JToolBar toolBar = new JToolBar();
-        toolBar.add(Actions.NewMap);
-        toolBar.add(openAction);
-        toolBar.add(Actions.CloseMap);
-        toolBar.add(saveAction);
-        toolBar.add(saveAsAction);
-        toolBar.add(printAction);
-        toolBar.add(imageAction);
-        toolBar.add(htmlAction);
-        toolBar.add(xmlAction);
-        toolBar.add(pdfAction);
-        toolBar.add(imageMap);
-        toolBar.add(svgAction);
-        // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
-        toolBar.add(new JButton(new PolygonIcon(Color.RED)));
-        frame.getContentPane().add(toolBar,BorderLayout.NORTH);
-          */
+            /*
+              JToolBar toolBar = new JToolBar();
+              toolBar.add(Actions.NewMap);
+              toolBar.add(openAction);
+              toolBar.add(Actions.CloseMap);
+              toolBar.add(saveAction);
+              toolBar.add(saveAsAction);
+              toolBar.add(printAction);
+              toolBar.add(imageAction);
+              toolBar.add(htmlAction);
+              toolBar.add(xmlAction);
+              toolBar.add(pdfAction);
+              toolBar.add(imageMap);
+              toolBar.add(svgAction);
+              // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+              toolBar.add(new JButton(new PolygonIcon(Color.RED)));
+              frame.getContentPane().add(toolBar,BorderLayout.NORTH);
+            */
+        }
 
-        return menuBar;
-
+        public void setVisible(boolean b) {
+            out("VMB: setVisible: " + b);
+            super.setVisible(b);
+        }
+        public void focusGained(FocusEvent e) {
+            out("VMB: focusGained from " + e.getOppositeComponent());
+        }
+        public void focusLost(FocusEvent e) {
+            out("VMB: focusLost to " + e.getOppositeComponent());
+        }
     }
+    
 
     public static JMenu buildMenu(String name, Action[] actions) {
         return buildMenu(new JMenu(name), actions);
