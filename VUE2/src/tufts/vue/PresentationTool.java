@@ -207,7 +207,7 @@ public class PresentationTool extends VueTool
             try {
                 tufts.macosx.Screen.makeMainInvisible();
                 invisible = true;
-            } catch (Exception e) {
+            } catch (Error e) {
                 System.err.println(e);
             }
         }
@@ -220,7 +220,7 @@ public class PresentationTool extends VueTool
                 if (tufts.macosx.Screen.isMainInvisible())
                     tufts.macosx.Screen.fadeUpMainWindow();
                 invisible = false;
-            } catch (Exception e) {
+            } catch (Error e) {
                 System.err.println(e);
             }
         }
