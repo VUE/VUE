@@ -50,7 +50,7 @@ class MapDropTarget
 
     public void dragOver(DropTargetDragEvent e)
     {
-        LWComponent over = viewer.getMap().findLWComponentAt(dropToMapLocation(e.getLocation()));
+        LWComponent over = viewer.getMap().findChildAt(dropToMapLocation(e.getLocation()));
         if (over instanceof LWNode)
             viewer.setIndicated(over);
         else
@@ -99,7 +99,7 @@ class MapDropTarget
         LWComponent hitComponent = null;
 
         if (dropLocation != null) {
-            hitComponent = viewer.getMap().findLWComponentAt(dropToMapLocation(dropLocation));
+            hitComponent = viewer.getMap().findChildAt(dropToMapLocation(dropLocation));
             System.out.println("\thitComponent=" + hitComponent);
         }
         

@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.geom.Point2D;
 
 public class LinkTool extends VueTool
+    implements VueConstants
 {
     LWComponent linkSource; // for starting a link
 
@@ -33,7 +34,7 @@ public class LinkTool extends VueTool
         //System.out.println(this + " handleMousePressed " + e);
         LWComponent hit = e.getHitComponent();
         if (hit instanceof LWGroup)
-            hit = ((LWGroup)hit).findLWSubTargetAt(e.getMapPoint());
+            hit = ((LWGroup)hit).findDeepestChildAt(e.getMapPoint());
 
         if (hit != null) {
             linkSource = hit;
@@ -57,7 +58,7 @@ public class LinkTool extends VueTool
     {
         if (linkSource == null)
             return false;
-        setMapIndicationIfOverValidTarget(linkSource, e);
+        setMapIndicationIfOverValidTarget(linkSource, null, e);
 
         //-------------------------------------------------------
         // we're dragging a new link looking for an
@@ -66,10 +67,11 @@ public class LinkTool extends VueTool
         return true;
     }
 
-    static void setMapIndicationIfOverValidTarget(LWComponent linkSource, MapMouseEvent e)
+    static void setMapIndicationIfOverValidTarget(LWComponent linkSource, LWLink link, MapMouseEvent e)
     {
         LWComponent indication = e.getViewer().getIndication();
-        LWComponent over = findLWLinkTargetAt(linkSource, e);
+        LWComponent over = findLWLinkTargetAt(linkSource, link, e);
+        if (DEBUG_CONTAINMENT) System.out.println("LINK-TARGET: " + over);
         if (indication != null && indication != over) {
             //repaintRegion.add(indication.getBounds());
             e.getViewer().clearIndicated();
@@ -109,11 +111,12 @@ public class LinkTool extends VueTool
             creationLink.draw(g);
     }
     
-    static LWComponent findLWLinkTargetAt(LWComponent linkSource, MapMouseEvent e)
+    private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
     {
         float mapX = e.getMapX();
         float mapY = e.getMapY();
-        LWComponent directHit = e.getMap().findLWSubTargetAt(mapX, mapY);
+        LWComponent directHit = e.getMap().findDeepestChildAt(mapX, mapY, link);
+        //if (DEBUG_CONTAINMENT) System.out.println("findLWLinkTargetAt: directHit=" + directHit);
         if (directHit != null && isValidLinkTarget(linkSource, directHit))
             return directHit;
         
