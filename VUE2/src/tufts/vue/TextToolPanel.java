@@ -105,8 +105,8 @@ import tufts.vue.beans.*;
 
      public void setValue( Object pValue) {
          VueBeanState state = null;
-         if( pValue instanceof LWComponent) {
-             if (!(pValue instanceof LWNode) && ((LWNode)pValue).isTextNode())
+         if (pValue instanceof LWComponent) {
+             if (!(pValue instanceof LWNode) || !((LWNode)pValue).isTextNode())
                  return;
              state = VueBeans.getState( pValue);
          }
