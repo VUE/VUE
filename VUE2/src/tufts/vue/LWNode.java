@@ -349,11 +349,13 @@ public class LWNode extends LWContainer
 
         // optimization hack
         mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
-        
+
+        Object old = this.boundsShape;
         this.boundsShape = shape;
         this.drawnShape = (RectangularShape) shape.clone();
         adjustDrawnShape();
         layout();
+        notify("node.shape", new Undoable(old) { void undo() { setShape((RectangularShape)old); }} );
     }
 
     public Shape getShape()
@@ -478,17 +480,7 @@ public class LWNode extends LWContainer
         // LWContainer.setScale handles this
     }
     
-    void setScaleOnChild(float scale, LWComponent c)
-    {
-        /*
-        // todo: temporary hack color change for children
-        if (c.isManagedColor()) {
-            if (COLOR_NODE_DEFAULT.equals(getFillColor()))
-                c.setFillColor(COLOR_NODE_INVERTED);
-            else
-                c.setFillColor(COLOR_NODE_DEFAULT);
-        }
-        */
+    void setScaleOnChild(float scale, LWComponent c) {
         c.setScale(scale * ChildScale);
     }
     

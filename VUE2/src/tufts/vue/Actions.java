@@ -16,6 +16,7 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
+import javax.swing.Icon;
 
 /**
  * VUE application actions (file, viewer/component, etc)
@@ -883,19 +884,19 @@ class Actions
     //-----------------------------------------------------------------------------
     static class VueAction extends javax.swing.AbstractAction
     {
-        VueAction(String name, String shortDescription, KeyStroke keyStroke)
+        VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
         {
-            super(name);
+            super(name, icon);
             if (shortDescription != null)
                 putValue(SHORT_DESCRIPTION, shortDescription);
             if (keyStroke != null)
                 putValue(ACCELERATOR_KEY, keyStroke);
         }
         VueAction(String name, KeyStroke keyStroke) {
-            this(name, null, keyStroke);
+            this(name, null, keyStroke, null);
         }
         VueAction(String name) {
-            this(name, null, null);
+            this(name, null, null, null);
         }
 
         boolean undoable() { return true; }
@@ -993,7 +994,7 @@ class Actions
         static Point2D lastLocation = null;
         
         NewItemAction(String name, KeyStroke keyStroke) {
-            super(name, null, keyStroke);
+            super(name, null, keyStroke, null);
         }
             
         void act()
@@ -1020,20 +1021,27 @@ class Actions
     }
     //-----------------------------------------------------------------------------
     // MapAction: actions that depend on the selection in the map viewer
+    // todo: should really call this SelectionAction or something similar.
     //-----------------------------------------------------------------------------
     static class MapAction extends VueAction
         implements LWSelection.Listener
     {
-        MapAction(String name, String shortDescription, KeyStroke keyStroke)
+        MapAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
         {
-            super(name, shortDescription, keyStroke);
+            super(name, shortDescription, keyStroke, icon);
             VUE.getSelection().addListener(this);
         }
+        MapAction(String name, String shortDescription, KeyStroke keyStroke) {
+            this(name, shortDescription, keyStroke, null);
+        }
         MapAction(String name) {
-            this(name, null, null);
+            this(name, null, null, null);
+        }
+        MapAction(String name, Icon icon) {
+            this(name, null, null, icon);
         }
         MapAction(String name, KeyStroke keyStroke) {
-            this(name, null, keyStroke);
+            this(name, null, keyStroke, null);
         }
         void act()
         {

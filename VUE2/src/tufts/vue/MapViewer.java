@@ -302,7 +302,7 @@ public class MapViewer extends javax.swing.JComponent
     private static final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     private static final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     private static final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
-    private static final VueTool NodeTool = VueToolbarController.getController().getTool("nodeTool");
+    private static final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
     private static final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     private static final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
     private static final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
@@ -2537,6 +2537,11 @@ public class MapViewer extends javax.swing.JComponent
                     nodeMenu.addSeparator();
                 else
                     nodeMenu.add(a);
+            }
+            nodeMenu.addSeparator();
+            Action[] shapeActions = NodeTool.getShapeSetterActions();
+            for (int i = 0; i < shapeActions.length; i++) {
+                nodeMenu.add(shapeActions[i]);
             }
         }
         return nodeMenu;

@@ -1,5 +1,3 @@
-
-
 package tufts.vue;
 
 import tufts.vue.shape.*;
@@ -7,6 +5,7 @@ import tufts.vue.shape.*;
 import java.lang.*;
 import java.util.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.*;
 import javax.swing.*;
 import tufts.vue.beans.VueBeanState;
@@ -145,12 +144,26 @@ public class NodeTool extends VueTool
         return (SubTool) getTool().getSelectedSubTool();
     }
 
+    
+    public Action[] getShapeSetterActions() {
+        Action[] actions = new Action[getSubToolIDs().size()];
+        Enumeration e = getSubToolIDs().elements();
+        int i = 0;
+        while (e.hasMoreElements()) {
+            String id = (String) e.nextElement();
+            NodeTool.SubTool nt = (NodeTool.SubTool) getSubTool(id);
+            actions[i++] = nt.getShapeSetterAction();
+        }
+        return actions;
+    }
+
     private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
     
     public static class SubTool extends VueSimpleTool
     {
         private Class shapeClass = null;
         private RectangularShape cachedShape = null;
+        private Action shapeSetterAction = null;
             
         public SubTool() {}
 
@@ -159,6 +172,17 @@ public class NodeTool extends VueTool
             //System.out.println(this + " ID set");
             //getShape(); // cache it for fast response first time
             setGeneratedIcons(new ShapeIcon());
+        }
+        
+        public Action getShapeSetterAction() {
+            if (shapeSetterAction == null) {
+                shapeSetterAction = new Actions.MapAction(getToolName(), new ShapeIcon()) {
+                        void act(LWNode n) {
+                            n.setShape(getShapeInstance());
+                        }
+                    };
+            }
+            return shapeSetterAction;
         }
 
         public RectangularShape getShapeInstance()
@@ -187,7 +211,6 @@ public class NodeTool extends VueTool
             if (cachedShape == null)
                 cachedShape = getShapeInstance();
             return cachedShape;
-                    
         }
 
         static final int nearestEven(double d)
@@ -267,6 +290,7 @@ public class NodeTool extends VueTool
             
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.translate(x,y);
                 if (sShapeGradient != null)
                     g2.setPaint(sShapeGradient);

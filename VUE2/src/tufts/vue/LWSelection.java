@@ -338,7 +338,7 @@ public class LWSelection extends java.util.ArrayList
         while (i.hasNext())
             if (!clazz.isInstance(i.next()))
                 return false;
-        return true;
+        return size() != 0;
     }
 
     public boolean allOfSameType()
