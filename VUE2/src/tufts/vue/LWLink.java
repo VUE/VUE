@@ -712,65 +712,17 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
 
-        // Clip the node shape so the link doesn't draw into it.
-        // We need to do this instead of just drawing links first
-        // because SOME links need to be on top -- links to child links,
-        // for instance, or maybe just a link you want on the top layer.
-        // todo: this works, but it may be a big performance hit,
-        // and it doesn't solve the problem of knowing the true
-        // visible link length so we can properly center the label
-        // todo: this will eventually be replace by links knowing
-        // their exact endpoint at edge of the shape of each node --
-        // we need to compute the intersection of a shape and a line segment
-
-        //if ((ep1.getShape() != null && !ep1.isChild())
-        //|| (ep2.getShape() != null && !ep2.isChild())) {
-        //if (ep1.getShape() != null || ep2.getShape() != null) {
-
-        // todo!!: FYI -- doing this clip stuff is what's responsible
-        // for the "edge-of-clip-region" erasing bug!  So that's
-        // another thing to look forward to when we don't need
-        // this code anymore.
-        
-        // temporarily disable while we work on arrows
-        if (false&&!viewerCreationLink) {
-            if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
-                && !(ep1.getShape() == null && ep2.getShape() == null)) {
-                Area clipArea = new Area(g.getClipBounds());
-                if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
-                    clipArea.subtract(new Area(ep1.getShape()));
-                if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
-                    clipArea.subtract(new Area(ep2.getShape()));
-                g.clip(clipArea);
-            }
-        }
-
-        
-        /*
-        // temporary: draw hit box
-        // todo: make a handle?
-        g.setColor(Color.lightGray);
-        g.setStroke(STROKE_ONE);
-        //g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
-        if (VueUtil.StrokeBug05)
-            box.setRect(getX()-0.5, getY()-0.5, getWidth(), getHeight());
-        else
-            box.setRect(getX(), getY(), getWidth(), getHeight());
-        g.draw(box);
-        */
-
-        //
         //strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
         //if (strokeWidth > MAX_RENDER_WIDTH)
         //    strokeWidth = MAX_RENDER_WIDTH;
         
-
         BasicStroke stroke;
 
         // If either end of this link is scaled, scale stroke
         // to smallest of the scales (even better: render the stroke
         // in a variable width narrowing as it went...)
         // todo: cache this scaled stroke
+        // todo: do we really even want this functionality?
         if (ep1.getScale() != 1f || ep2.getScale() != 1f) {
             float strokeWidth = getStrokeWidth();
             if (ep1.getScale() < ep2.getScale())
