@@ -27,8 +27,11 @@ public class LWOutlineView extends InspectorWindow
     {
         super(parent, "Outline View");
         setSize(500, 300);
+        setBackground(Color.white);
         
         tree = new OutlineViewTree();
+        tree.setBorder(new EmptyBorder(4,4,4,4));
+        
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setBorder(new EmptyBorder(0,0,0,0));
         
