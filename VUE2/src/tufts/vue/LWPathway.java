@@ -23,7 +23,6 @@ public class LWPathway extends tufts.vue.LWComponent
     implements Pathway
 {
     private LinkedList elementList = null;
-    //private LWComponent current = null;
     private int weight = 1;
     private String comment = "";
     private boolean ordered = false;
@@ -56,8 +55,6 @@ public class LWPathway extends tufts.vue.LWComponent
     public void addElement(LWComponent element) {
         elementList.add(element);
         
-        //if (current == null) setCurrent(element);
-        
        if (currentIndex == -1) currentIndex = length() - 1;
     }
     
@@ -65,7 +62,6 @@ public class LWPathway extends tufts.vue.LWComponent
     public void addElement(LWComponent element, int index){
         if(elementList.size() >= index){
             elementList.add(index, element);
-            //if(current == null) setCurrent(element);
             
             if (currentIndex == -1) currentIndex = index;
         }else{
@@ -128,13 +124,6 @@ public class LWPathway extends tufts.vue.LWComponent
         return firstElement;
     }
     
-    /*
-    public boolean isFirst(LWComponent element)
-    {
-        return (element.equals(getFirst()));
-    }
-    */
-    
     public boolean isFirst()
     {
         return (currentIndex == 0);
@@ -157,13 +146,6 @@ public class LWPathway extends tufts.vue.LWComponent
         
         return lastElement;
     }
-    
-    /*
-    public boolean isLast(LWComponent element)
-    {
-        return (element.equals(getLast()));
-    }
-    */
     
     public boolean isLast()
     {
@@ -319,7 +301,6 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setElementList(java.util.List elementList) {
         this.elementList = (LinkedList)elementList;
-        //if(elementList.size() >= 1) current = (LWComponent)elementList.get(0);
         
         if (elementList.size() >= 1) currentIndex = 0;
     }
@@ -340,14 +321,6 @@ public class LWPathway extends tufts.vue.LWComponent
        
         return element;
     }
-    
-    /*
-    public void setCurrent(LWComponent comp){
-        current = comp;
-        
-        //currentIndex = index;
-    }
-    */
     
     public String getComment(){
         return comment;

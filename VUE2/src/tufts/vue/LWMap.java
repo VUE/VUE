@@ -149,7 +149,7 @@ public class LWMap extends LWContainer
     
     LWPathway addPathway(LWPathway c)
     {
-        addChild(c);
+        //addChild(c);
         manager.addPathway(c);
         return c;
     }
