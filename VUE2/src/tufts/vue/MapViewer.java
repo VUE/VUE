@@ -369,7 +369,7 @@ public class MapViewer extends javax.swing.JComponent
     
     void setZoomFactor(double pZoomFactor, boolean pReset, Point pFocus)
     {
-        if (DEBUG_SCROLL) System.out.println(this + " ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+pFocus);
+        if (DEBUG.SCROLL) System.out.println(this + " ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+pFocus);
         
         //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
             //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
@@ -379,8 +379,8 @@ public class MapViewer extends javax.swing.JComponent
         Point2D mapAnchor = null;
         if (pFocus != null) {
             mapAnchor = screenToMapPoint(pFocus);
-            if (DEBUG_SCROLL) System.out.println(" ZOOM FOCUS: " + pFocus);
-            if (DEBUG_SCROLL) System.out.println("ZOOM ANCHOR: " + mapAnchor);
+            if (DEBUG.SCROLL) System.out.println(" ZOOM FOCUS: " + pFocus);
+            if (DEBUG.SCROLL) System.out.println("ZOOM ANCHOR: " + mapAnchor);
             float offsetX = (float) ((mapAnchor.getX() * pZoomFactor) - pFocus.getX());
             float offsetY = (float) ((mapAnchor.getY() * pZoomFactor) - pFocus.getY());
             /*
@@ -506,9 +506,9 @@ public class MapViewer extends javax.swing.JComponent
         // only via ZoomFit).
         //------------------------------------------------------------------
 
-        if (DEBUG_SCROLL) System.out.println(this + "---MAP BOUNDS: " + out(map.getBounds()));
+        if (DEBUG.SCROLL) System.out.println(this + "---MAP BOUNDS: " + out(map.getBounds()));
         Rectangle2D.Float mapExtent = getAllComponentBounds();
-        if (DEBUG_SCROLL) System.out.println(this + "   map extent: " + out(mapExtent));
+        if (DEBUG.SCROLL) System.out.println(this + "   map extent: " + out(mapExtent));
 
         Point2D.Float mapLocationAtExtentOrigin = getMapLocationAtExtentOrigin();
 
@@ -518,9 +518,9 @@ public class MapViewer extends javax.swing.JComponent
             // origin to the upper left hand corner of all the
             // component bounds.
 
-            if (DEBUG_SCROLL) System.out.println(this + "   old origin: " + out(mOffset));
+            if (DEBUG.SCROLL) System.out.println(this + "   old origin: " + out(mOffset));
             placeMapLocationAtExtentOrigin(mapExtent.x, mapExtent.y);
-            if (DEBUG_SCROLL) System.out.println(this + " reset origin: " + out(mOffset));
+            if (DEBUG.SCROLL) System.out.println(this + " reset origin: " + out(mOffset));
         } else {
 
             // add the current origin, otherwise everything would
@@ -529,11 +529,11 @@ public class MapViewer extends javax.swing.JComponent
             // component with the smalles x/y (farthest into the upper
             // left).
 
-            if (DEBUG_SCROLL) System.out.println(this + "   add offset: " + out(mOffset));
-            if (DEBUG_SCROLL) System.out.println(this + "   is map loc: " + out(mapLocationAtExtentOrigin));
+            if (DEBUG.SCROLL) System.out.println(this + "   add offset: " + out(mOffset));
+            if (DEBUG.SCROLL) System.out.println(this + "   is map loc: " + out(mapLocationAtExtentOrigin));
             mapExtent.add(mapLocationAtExtentOrigin);
             //mapExtent.add(mOffset);
-            if (DEBUG_SCROLL) System.out.println(this + "  +plusOrigin: " + out(mapExtent));
+            if (DEBUG.SCROLL) System.out.println(this + "  +plusOrigin: " + out(mapExtent));
         }
         //Point vPos = mViewport.getViewPosition();
         /*
@@ -555,7 +555,7 @@ public class MapViewer extends javax.swing.JComponent
         // okay to call this mapToScreen while adjusting origin as we're
         // only interested in the zoom conversion for the size.
         Dimension extent = mapToScreenDim(mapExtent);
-        if (DEBUG_SCROLL) System.out.println(this + " pixel extent: " + out(extent));
+        if (DEBUG.SCROLL) System.out.println(this + " pixel extent: " + out(extent));
         //Rectangle vb = mapToScreenRect(mapExtent);
             
         if (alwaysAdjust || extent.width > newWidth)
@@ -603,11 +603,11 @@ public class MapViewer extends javax.swing.JComponent
           }
         */
         //if (reset)
-        //if (DEBUG_SCROLL) System.out.println(this + " setting size: " + out(newSize));
+        //if (DEBUG.SCROLL) System.out.println(this + " setting size: " + out(newSize));
         //setSize(newSize); // does this tract preferred size at all?  -- is called thru the revalidate.
         setPreferredSize(newSize);
-        if (DEBUG_SCROLL) System.out.println(this + "   panel size: " + out(getSize()));
-        if (DEBUG_SCROLL) System.out.println(this + "   vport size: " + out(mViewport.getSize()) + " (calling revalidate)");
+        if (DEBUG.SCROLL) System.out.println(this + "   panel size: " + out(getSize()));
+        if (DEBUG.SCROLL) System.out.println(this + "   vport size: " + out(mViewport.getSize()) + " (calling revalidate)");
         revalidate();
         //setMapOriginOffset(extent.x, extent.y);
         //((JViewport)getParent()).setExtentSize(d);
@@ -618,10 +618,10 @@ public class MapViewer extends javax.swing.JComponent
     private void panScrollRegion(int dx, int dy)
     {
         Point location = mViewport.getViewPosition();
-        if (DEBUG_SCROLL) System.out.println("PAN: dx=" + dx + " dy=" + dy);
-        if (DEBUG_SCROLL) System.out.println("PAN: viewport start: " + location);
+        if (DEBUG.SCROLL) System.out.println("PAN: dx=" + dx + " dy=" + dy);
+        if (DEBUG.SCROLL) System.out.println("PAN: viewport start: " + location);
         location.translate(dx, dy);
-        if (DEBUG_SCROLL) System.out.println("PAN: viewport   end: " + location);
+        if (DEBUG.SCROLL) System.out.println("PAN: viewport   end: " + location);
                 
         final boolean allowGrowth = false;
         float ox = mOffset.x;
@@ -629,7 +629,7 @@ public class MapViewer extends javax.swing.JComponent
         boolean originMoved = false;
         if (location.x < 0) {
             if (allowGrowth) {
-                if (DEBUG_SCROLL) System.out.println("PAN: ADJUST X " + location.x);
+                if (DEBUG.SCROLL) System.out.println("PAN: ADJUST X " + location.x);
                 ox += location.x;
                 location.x = 0;
                 originMoved = true;
@@ -639,7 +639,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         if (location.y < 0) {
             if (allowGrowth) {
-                if (DEBUG_SCROLL) System.out.println("PAN: ADJUST Y " + location.y);
+                if (DEBUG.SCROLL) System.out.println("PAN: ADJUST Y " + location.y);
                 oy += location.y;
                 location.y = 0;
                 originMoved = true;
@@ -668,7 +668,7 @@ public class MapViewer extends javax.swing.JComponent
         Point vPos = location;
             
         Rectangle2D.union(extent, getVisibleMapBounds(), extent);
-        if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + "   plusVISMAP: " + extent);
+        if (DEBUG.SCROLL) System.out.println(getMap().getLabel() + "   plusVISMAP: " + extent);
         
         //extent.add(mOffset);
         //System.out.println(getMap().getLabel() + "   plusOrigin: " + extent);
@@ -702,12 +702,12 @@ public class MapViewer extends javax.swing.JComponent
 
     public void setPreferredSize(Dimension d)
     {
-        if (DEBUG_SCROLL) System.out.println(this + " setPreferred: " + out(d));
+        if (DEBUG.SCROLL) System.out.println(this + " setPreferred: " + out(d));
         super.setPreferredSize(d);
     }
     public void setSize(Dimension d)
     {
-        if (DEBUG_SCROLL) System.out.println(this + "      setSize: " + out(d));
+        if (DEBUG.SCROLL) System.out.println(this + "      setSize: " + out(d));
         super.setSize(d);
     }
 
@@ -726,7 +726,7 @@ public class MapViewer extends javax.swing.JComponent
     
     void setMapOriginOffset(float panelX, float panelY, boolean update)
     {
-        if (DEBUG_SCROLL) System.out.println(this + " setMapOriginOffset " + panelX + "," + panelY);
+        if (DEBUG.SCROLL) System.out.println(this + " setMapOriginOffset " + panelX + "," + panelY);
         mOffset.x = panelX;
         mOffset.y = panelY;
         getMap().setUserOrigin(panelX, panelY);
@@ -1044,7 +1044,7 @@ public class MapViewer extends javax.swing.JComponent
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (DEBUG_SCROLL||DEBUG_PAINT||DEBUG.EVENTS)
+        if (DEBUG.SCROLL||DEBUG_PAINT||DEBUG.EVENTS)
             System.out.println(this + "      reshape: "
                                + w + "x" + h
                                + " "
@@ -1760,7 +1760,7 @@ public class MapViewer extends javax.swing.JComponent
             g2.draw(Yaxis);
         }
         
-        if (DEBUG_SCROLL && mUserOrigin != null) {
+        if (DEBUG.SCROLL && mUserOrigin != null) {
             g2.setStroke(STROKE_ONE);
             g2.setColor(Color.blue);
             g2.draw(new Line2D.Float(-1000, mUserOrigin.y, 1000, mUserOrigin.y));
@@ -2148,7 +2148,7 @@ public class MapViewer extends javax.swing.JComponent
                 if (shape instanceof RectangularPoly2D) {
                     if (((RectangularPoly2D)shape).getSides() > 4) {
                         Ellipse2D inscribed = new Ellipse2D.Float();
-                        if (DEBUG_BOXES) {
+                        if (DEBUG.BOXES) {
                             inscribed.setFrame(shape.getBounds());
                             g2.draw(inscribed);
                         }
@@ -2201,7 +2201,7 @@ public class MapViewer extends javax.swing.JComponent
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
-            if (DEBUG_BOXES || VueSelection.size() > 1 || !VueSelection.allOfType(LWLink.class))
+            if (DEBUG.BOXES || VueSelection.size() > 1 || !VueSelection.allOfType(LWLink.class))
                 g2.draw(mapSelectionBounds);
             // no resize handles if only links or groups
             resizeControl.active = false;
@@ -2817,6 +2817,9 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'Z') { resetScrollRegion(); }
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
+                else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
+                else if (c == 'C') { DEBUG.SCROLL = !DEBUG.SCROLL; }
+                else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
                 else
                     did = false;
                 if (did) {

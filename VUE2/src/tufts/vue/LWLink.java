@@ -1346,7 +1346,7 @@ public class LWLink extends LWComponent
                 // (probably put a textbox factory on LWComponent and override in LWLink)
 
                     //c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
-                if (!DEBUG_BOXES) {
+                if (!DEBUG.BOXES) {
                     if (fillColor != null) {
                         textBox.setBackground(fillColor);
                         textBox.setOpaque(true);

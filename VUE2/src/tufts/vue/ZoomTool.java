@@ -202,7 +202,7 @@ public class ZoomTool extends VueTool
     public static void setZoomFit()
     {
         setZoomFitRegion(VUE.getActiveViewer().getAllComponentBounds(),
-                         DEBUG_SCROLL ? 0 : ZOOM_FIT_PAD);
+                         DEBUG.SCROLL ? 0 : ZOOM_FIT_PAD);
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion)

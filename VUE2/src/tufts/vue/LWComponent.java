@@ -811,7 +811,7 @@ public class LWComponent
 
     public void setFrame(Rectangle2D r)
     {
-        if (DEBUG_LAYOUT) System.out.println("*** setFrame " + r + " " + this);
+        if (DEBUG.LAYOUT) System.out.println("*** setFrame " + r + " " + this);
         if (r.getX() != getX() || r.getY() != getY())
             setLocation((float)r.getX(), (float)r.getY());
         setSize((float)r.getWidth(), (float)r.getHeight());
@@ -880,7 +880,7 @@ public class LWComponent
     /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
-        if (DEBUG_LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
+        if (DEBUG.LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
         this.width = w;
         this.height = h;
         updateConnectedLinks();
@@ -891,7 +891,7 @@ public class LWComponent
      */
     public void setAbsoluteSize(float w, float h)
     {
-        if (DEBUG_LAYOUT) System.out.println("*** LWComponent setAbsoluteSize " + w + "x" + h + " " + this);
+        if (DEBUG.LAYOUT) System.out.println("*** LWComponent setAbsoluteSize " + w + "x" + h + " " + this);
         setSize(w / getScale(), h / getScale());
     }
 

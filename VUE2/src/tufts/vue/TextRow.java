@@ -12,8 +12,6 @@ import java.awt.geom.Rectangle2D;
 public class TextRow
     implements VueConstants
 {
-    private final boolean debug = DEBUG_BOXES;
-    
     private String text;
     private Graphics2D g2d;
     private TextLayout row;
@@ -58,7 +56,7 @@ public class TextRow
     {
         //g.drawString(extension, 0, (int)(genIcon.getHeight()/1.66));
         
-        //if (true||DEBUG_LAYOUT) System.out.println("TextRow[" + text + "]@"+bounds);
+        //if (true||DEBUG.LAYOUT) System.out.println("TextRow[" + text + "]@"+bounds);
 
         // Mac & PC 1.4.1 implementations haved reversed baselines
         // and differ in how descents are factored into bounds offsets
@@ -72,7 +70,7 @@ public class TextRow
             row.draw(g2d, xoff, yoff);
 
             
-            if (debug||DEBUG_LAYOUT) {
+            if (DEBUG.BOXES||DEBUG.LAYOUT) {
                 // draw a red bounding box for testing
                 tb.x += xoff;
                 // tb.y seems to default at to -1, and if
@@ -99,7 +97,7 @@ public class TextRow
             row.draw(g2d, -tb.x + xoff, -tb.y + yoff);
             baseline = yoff + tb.height;
 
-            if (debug||DEBUG_LAYOUT) {
+            if (DEBUG.BOXES||DEBUG.LAYOUT) {
                 // draw a red bounding box for testing
                 tb.x = xoff;
                 tb.y = yoff;

@@ -80,9 +80,6 @@ public interface VueConstants
     
     static boolean DEBUG_CONTAINMENT = false;
     static boolean DEBUG_PARENTING = false;
-    static boolean DEBUG_LAYOUT = false;
-    static boolean DEBUG_BOXES = false;
     static boolean DEBUG_ROLLOVER = false;
-    static boolean DEBUG_SCROLL = false;
     
 }

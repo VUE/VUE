@@ -450,14 +450,14 @@ public class LWNode extends LWContainer
 
     public void setSize(float w, float h)
     {
-        if (DEBUG_LAYOUT) System.out.println("*** " + this + " setSize " + w + "x" + h);
+        if (DEBUG.LAYOUT) System.out.println("*** " + this + " setSize " + w + "x" + h);
         setSizeNoLayout(w, h);
         layout();
     }
 
     private void setSizeNoLayout(float w, float h)
     {
-        if (DEBUG_LAYOUT) System.out.println("*** " + this + " setSizeNoLayout " + w + "x" + h);
+        if (DEBUG.LAYOUT) System.out.println("*** " + this + " setSizeNoLayout " + w + "x" + h);
         if (equalAspect) {
             if (w > h)
                 h = w;
@@ -496,7 +496,7 @@ public class LWNode extends LWContainer
         // This was to shrink the drawn shape size by border width
         // so it fits entirely inside the bounds shape, tho
         // we're not making use of that right now.
-        if (DEBUG_LAYOUT) System.out.println(this + " adjustDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
+        if (DEBUG.LAYOUT) System.out.println(this + " adjustDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
         //System.out.println("boundsShape.bounds: " + boundsShape.getBounds());
         //System.out.println("drawnShape.setFrame " + x + "," + y + " " + w + "x" + h);
         this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
@@ -525,7 +525,7 @@ public class LWNode extends LWContainer
             return;
         }
         inLayout = true;
-        if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
+        if (DEBUG.LAYOUT) System.out.println("*** LAYOUT " + this);
 
         float givenWidth = getWidth();
         float givenHeight = getHeight();
@@ -544,7 +544,7 @@ public class LWNode extends LWContainer
         //float height = getLabelBox().getHeight() + IconDescent;
         float height = EdgePadY + text.height + EdgePadY;
         
-        if (DEBUG_LAYOUT && getLabelBox().getHeight() != text.height) {
+        if (DEBUG.LAYOUT && getLabelBox().getHeight() != text.height) {
             // NOTE: prefHeight often a couple of pixels less than getHeight
             System.err.println("prefHeight != height in " + this);
             System.err.println("\tpref=" + text.height);
@@ -1138,7 +1138,7 @@ public class LWNode extends LWContainer
         //float iconX = iconPillarX;
         //float iconY = iconPillarY;
 
-        if (DEBUG_BOXES) {
+        if (DEBUG.BOXES) {
             //-------------------------------------------------------
             // paint a divider line
             //-------------------------------------------------------

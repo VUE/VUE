@@ -15,6 +15,7 @@ class DEBUG
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
 
+    /*
     abstract class Mapper {
         String mName;
         Mapper(String name) { mName = name; }
@@ -25,4 +26,6 @@ class DEBUG
         new Mapper("selection") { void set(boolean v) { SELECTION=v; } boolean get() { return SELECTION; } },
         new Mapper("scroll") { void set(boolean v) { SCROLL=v; } boolean get() { return SCROLL; } }
     };
+    // use introspection instead
+    */
 }

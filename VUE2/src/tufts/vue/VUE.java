@@ -670,7 +670,6 @@ public class VUE
         public void addViewer(MapViewer viewer)
         {
             Component c = viewer;
-            //if (DEBUG_SCROLL || !this.name.startsWith("*"))
             if (!this.name.startsWith("*"))
                 c = new JScrollPane(viewer);
             LWMap map = viewer.getMap();

@@ -65,7 +65,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     
     void draw(DrawContext dc)
     {
-        if (DEBUG_BOXES) {
+        if (DEBUG.BOXES) {
             dc.g.setColor(Color.red);
             dc.g.setStroke(STROKE_SIXTEENTH);
             dc.g.draw(this);
