@@ -313,7 +313,7 @@ public abstract class LWContainer extends LWComponent
             */
             LWContainer commonParent = l.getParent();
             if (commonParent == null) {
-                System.err.println("ELPOTOAP: has no parent: " + l);
+                System.out.println("ELPOTOAP: ignoring link with no parent: " + l);
                 continue;
             }
             if (commonParent != component.getParent()) {
@@ -329,40 +329,7 @@ public abstract class LWContainer extends LWComponent
                     System.err.println("*** couldn't find common parent for " + component);
                     new Throwable().printStackTrace();
                 } else
-                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l); // <-was line 253 in bug comment below
-                
-/*
-  I think this happened dropping a node on to another where there was a link between them...
-                  
-LWMap[0 "Map 2" 0.0,0.0 83.0x88.0 nChild=3] getBounds: java.awt.geom.Rectangle2D$Float[x=96.0,y=103.5,w=83.0,h=88.0]
-apple.awt.EventQueueExceptionHandler Caught Throwable : 
-java.lang.NullPointerException
-        at tufts.vue.LWContainer.ensureLinksPaintOnTopOfAllParents(LWContainer.java:253)
-        at tufts.vue.LWContainer.addChild(LWContainer.java:206)
-        at tufts.vue.LWNode.addChild(LWNode.java:214)
-        at tufts.vue.MapViewer$InputHandler.mouseReleased(MapViewer.java:2029)
-        at java.awt.Component.processMouseEvent(Component.java:5093)
-        at java.awt.Component.processEvent(Component.java:4890)
-        at java.awt.Container.processEvent(Container.java:1566)
-        at java.awt.Component.dispatchEventImpl(Component.java:3598)
-        at java.awt.Container.dispatchEventImpl(Container.java:1623)
-        at java.awt.Component.dispatchEvent(Component.java:3439)
-        at java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:3450)
-        at java.awt.LightweightDispatcher.processMouseEvent(Container.java:3165)
-        at java.awt.LightweightDispatcher.dispatchEvent(Container.java:3095)
-        at java.awt.Container.dispatchEventImpl(Container.java:1609)
-        at java.awt.Window.dispatchEventImpl(Window.java:1585)
-        at java.awt.Component.dispatchEvent(Component.java:3439)
-        at java.awt.EventQueue.dispatchEvent(EventQueue.java:450)
-        at java.awt.EventDispatchThread.pumpOneEventForHierarchy(EventDispatchThread.java:230)
-        at java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:183)
-        at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:177)
-        at java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:169)
-        at java.awt.EventDispatchThread.run(EventDispatchThread.java:99)
-VueAction: Zoom 100% n=1
-
-*/
-
+                    commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, l);
             }
         }
     }
