@@ -63,12 +63,12 @@ public class DataSourceList extends JList implements DropTargetListener{
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         
-        breakIcon.setIconWidth(1600);
+        breakIcon.setIconWidth(300);
         breakIcon.setIconHeight(1);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                
+               
                 
                 if (((DataSource)value).getType() == DataSource.FAVORITES){
                     setIcon(myFavoritesIcon);
@@ -82,7 +82,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                 else  if (((DataSource)value).getType() == DataSource.BREAK){
                     setIcon(breakIcon);
                     
-                    this.setPreferredSize(new Dimension(200,3));
+                    this.setPreferredSize(new Dimension(180,3));
                     
                 }
                 else{
@@ -196,6 +196,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                         
                         try{
                             
+                          
                             LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                             osid.shared.Agent agent = null;
                             
@@ -216,12 +217,14 @@ public class DataSourceList extends JList implements DropTargetListener{
                                 
                                 cabNode = new CabinetNode(res, CabinetNode.LOCAL);
                             
-                            System.out.println(" I am in cab node ---- Datasourcelist");
+                           // System.out.println(" I am in cab node ---- Datasourcelist");
                             
+                           
                            if (file.isDirectory()){cabNode.explore();
                                              System.out.println(" I am also here");
                                              
                            }
+                            
                             
                             
                             model.insertNodeInto(cabNode, rootNode, 0);
