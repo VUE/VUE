@@ -308,8 +308,9 @@ public class PathwayTable extends JTable{
                 this.setText(c.getLabel());
                 
                 //use p & c for border, font?
-                
-                if(tab.getPathwayTableModel().getCurrentPathway().equals(p)
+                System.out.println("current path: " + tab.getPathwayTableModel().getCurrentPathway());
+                if(tab.getPathwayTableModel().getCurrentPathway() != null
+                        && tab.getPathwayTableModel().getCurrentPathway().equals(p)
                         && p.getCurrent().equals(c)){
                     this.setForeground(currentNodeColor);
                     this.setText("* "+this.getText());
@@ -407,8 +408,9 @@ public class PathwayTable extends JTable{
                         this.setIcon(null);
                 }
                 else if(col == 5){
-                    if(((Boolean)obj).booleanValue())
+                    if(((Boolean)obj).booleanValue()){
                         this.setIcon(lock);
+                    }
                     else
                         this.setIcon(null);
                 }

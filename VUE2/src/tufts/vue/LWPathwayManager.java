@@ -59,8 +59,11 @@ public class LWPathwayManager {
         System.out.println(this + " completeXMLRestore");
         Iterator i = getPathwayIterator();
         while (i.hasNext()) {
-            LWPathway p = (LWPathway) i.next();
-            p.completeXMLRestore(getMap());
+            Object obj = (Object)i.next();
+            if(obj instanceof LWPathway){
+                LWPathway p = (LWPathway) obj;
+                p.completeXMLRestore(getMap());
+            }
         }
     }
     
@@ -197,6 +200,7 @@ public class LWPathwayManager {
     }
     
     public LWPathway getCurrentPathway() {
+        System.out.println("getting current pathway...current: "+current);
         return current;
     }
     
@@ -204,8 +208,11 @@ public class LWPathwayManager {
         //if(this.getCurrentPathway() != null && !this.getCurrentPathway().equals(pathway))
         //    this.hidePathwayElements();
         current = pathway;
+        System.out.println("'setting current pathway...curreny: "+current);
+        
         if (VUE.getActiveMap() != null)
             VUE.getActiveMap().notify(this, LWCEvent.Repaint);
+        VUE.getPathwayInspector().repaint();
     }
    
     public Object getFirst(){

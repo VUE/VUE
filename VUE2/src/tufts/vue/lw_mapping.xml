@@ -56,221 +56,243 @@
     <!-- castor can figure out types, we leave string as defaulted.
       -->
         <field name="ID"><bind-xml node="attribute"/></field>
-		<field name="XMLlabel"><bind-xml name="label" node="attribute"/></field>
-		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
-		<field name="metaData"><bind-xml node="element"/></field>
-		<field name="category"><bind-xml node="element"/></field>
-		<field name="resource" type="tufts.vue.Resource">
-			<bind-xml name="resource" node="element"/>
-		</field>
-		<field name="x" type="float"><bind-xml node="attribute"/></field>
-		<field name="y" type="float"><bind-xml node="attribute"/></field>
+        <field name="XMLlabel"><bind-xml name="label" node="attribute"/></field>
+        <field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
+        <field name="metaData"><bind-xml node="element"/></field>
+        <field name="category"><bind-xml node="element"/></field>
+        <field name="resource" type="tufts.vue.Resource">
+                <bind-xml name="resource" node="element"/>
+        </field>
+        <field name="x" type="float"><bind-xml node="attribute"/></field>
+        <field name="y" type="float"><bind-xml node="attribute"/></field>
+
+        <!-- impl data -->
+
+        <field name="absoluteWidth">
+                <bind-xml name="width" node="attribute"/>
+        </field>
+        <field name="absoluteHeight">
+                <bind-xml name="height" node="attribute"/>
+        </field>
+        <field name="XMLfillColor">
+                <bind-xml name="fillColor" node="element"/>
+        </field>
+        <field name="XMLstrokeColor">
+                <bind-xml name="strokeColor" node="element"/>
+        </field>
+        <field name="XMLtextColor">
+                <bind-xml name="textColor" node="element"/>
+        </field>
+        <field name="XMLfont" type="string">
+                <bind-xml name="font" node="element"/>
+        </field>
+        <field name="strokeWidth" type="float">
+                <bind-xml name="strokeWidth" node="attribute"/>
+        </field>
                 
-                <!-- impl data -->
+        <!-- We can save a shape interface, but it won't restore properly -->
+        <!-- field name="shape" type="java.awt.Shape">
+                <bind-xml name="shape" node="element"/>
+        </field -->
+        <!-- -->
 
-		<field name="absoluteWidth">
-			<bind-xml name="width" node="attribute"/>
-		</field>
-		<field name="absoluteHeight">
-			<bind-xml name="height" node="attribute"/>
-		</field>
-		<field name="XMLfillColor">
-			<bind-xml name="fillColor" node="element"/>
-		</field>
-		<field name="XMLstrokeColor">
-			<bind-xml name="strokeColor" node="element"/>
-		</field>
-		<field name="XMLtextColor">
-			<bind-xml name="textColor" node="element"/>
-		</field>
-		<field name="XMLfont" type="string">
-			<bind-xml name="font" node="element"/>
-		</field>
-		<field name="strokeWidth" type="float">
-			<bind-xml name="strokeWidth" node="attribute"/>
-		</field>
+        <!--
+        <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
+                <bind-xml matches="*"/> 
+        </field>
+        -->
                 
-                <!-- We can save a shape interface, but it won't restore properly -->
-		<!-- field name="shape" type="java.awt.Shape">
-			<bind-xml name="shape" node="element"/>
-		</field -->
-                <!-- -->
+    </class>
 
-                <!--
-                <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
-                        <bind-xml matches="*"/> 
-                </field>
-                -->
-                
-	</class>
+    <class name="tufts.vue.LWContainer" extends="tufts.vue.LWComponent">
+        <!--
+        <field name="nodeList" type="tufts.vue.LWNode" collection="arraylist">
+                <bind-xml name="node"/>
+        </field>
+        <field name="linkList" type="tufts.vue.LWLink" collection="arraylist">
+                <bind-xml name="link"/>
+        </field>
+        -->
+        <field name="childList" type="tufts.vue.LWComponent" collection="arraylist">
+                <bind-xml name="child"/>
+        </field>
+    </class>
 
-	<class name="tufts.vue.LWContainer" extends="tufts.vue.LWComponent">
-                <!--
-                <field name="nodeList" type="tufts.vue.LWNode" collection="arraylist">
-			<bind-xml name="node"/>
-		</field>
-                <field name="linkList" type="tufts.vue.LWLink" collection="arraylist">
-			<bind-xml name="link"/>
-		</field>
-                -->
-                <field name="childList" type="tufts.vue.LWComponent" collection="arraylist">
-			<bind-xml name="child"/>
-		</field>
-	</class>
-	
-	<class name="tufts.vue.LWGroup" extends="tufts.vue.LWContainer">
-		<map-to xml="group"/>
-	</class>
-	
-	<class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
-		<map-to xml="node"/>
-		<field name="autoSized" type="boolean">
-			<bind-xml name="autoSized" node="attribute"/>
-		</field>
-		<field name="nodeShape">
-			<bind-xml name="nodeShape" node="element"/>
-		</field>
-		<field name="shape">
-			<bind-xml name="shape" node="element"/>
-		</field>
-	</class>
-	
-	<class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
-		<map-to xml="link"/>
-	        <field name="point1">
-			<bind-xml name="point1" node="element"/>
-		</field>
-	        <field name="point2">
-			<bind-xml name="point2" node="element"/>
-		</field>
-		<field name="endPoint1_ID" type="string">
-			<bind-xml name="ID1" node="element"/>
-		</field>
-	        <field name="endPoint2_ID" type="string">
-			<bind-xml name="ID2" node="element"/>
-		</field>
-	        <field name="controlCount">
-			<bind-xml name="controlCount" node="attribute"/>
-		</field>
-	        <field name="arrowState">
-			<bind-xml name="arrowState" node="attribute"/>
-		</field>
-                <!-- if isn't curved, these will be null, and thus not saved. so if this
-                     is present, we know it's a curved link-->
-	        <field name="ctrlPoint0">
-			<bind-xml name="ctrlPoint0" node="element"/>
-		</field>
-	        <field name="ctrlPoint1">
-			<bind-xml name="ctrlPoint1" node="element"/>
-		</field>
-	</class>
+    <class name="tufts.vue.LWGroup" extends="tufts.vue.LWContainer">
+        <map-to xml="group"/>
+    </class>
 
-	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
-		<map-to xml="LW-MAP"/>
-		<field name="userZoom">
-			<bind-xml name="userZoom"/>
-		</field>
-		<field name="userOrigin">
-			<bind-xml name="userOrigin" node="element"/>
-		</field>
-		<field name="PathwayManager" type="tufts.vue.LWPathwayManager">
-			<bind-xml name="PathwayManager" node="element" />
-		</field>
-	
-		
+    <class name="tufts.vue.LWNode" extends="tufts.vue.LWContainer">
+        <map-to xml="node"/>
+        <field name="autoSized" type="boolean">
+                <bind-xml name="autoSized" node="attribute"/>
+        </field>
+        <field name="nodeShape">
+                <bind-xml name="nodeShape" node="element"/>
+        </field>
+        <field name="shape">
+                <bind-xml name="shape" node="element"/>
+        </field>
+    </class>
+
+    <class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
+        <map-to xml="link"/>
+        <field name="point1">
+                <bind-xml name="point1" node="element"/>
+        </field>
+        <field name="point2">
+                <bind-xml name="point2" node="element"/>
+        </field>
+        <field name="endPoint1_ID" type="string">
+                <bind-xml name="ID1" node="element"/>
+        </field>
+        <field name="endPoint2_ID" type="string">
+                <bind-xml name="ID2" node="element"/>
+        </field>
+        <field name="controlCount">
+                <bind-xml name="controlCount" node="attribute"/>
+        </field>
+        <field name="arrowState">
+                <bind-xml name="arrowState" node="attribute"/>
+        </field>
+        <!-- if isn't curved, these will be null, and thus not saved. so if this
+             is present, we know it's a curved link-->
+        <field name="ctrlPoint0">
+                <bind-xml name="ctrlPoint0" node="element"/>
+        </field>
+        <field name="ctrlPoint1">
+                <bind-xml name="ctrlPoint1" node="element"/>
+        </field>
+    </class>
+
+    <class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
+        <map-to xml="LW-MAP"/>
+        <field name="userZoom">
+                <bind-xml name="userZoom"/>
+        </field>
+        <field name="userOrigin">
+                <bind-xml name="userOrigin" node="element"/>
+        </field>
+        <field name="PathwayManager" type="tufts.vue.LWPathwayManager">
+                <bind-xml name="PathwayManager" node="element" />
+        </field>
+
+
         <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
             <bind-xml matches="*"/> 
         </field>
-        
-	</class>
 
-	<class name="tufts.vue.LWPathwayManager">
-		<map-to xml="PathwayManager"/>
-		<field name="PathwayList" type="tufts.vue.LWPathway" collection="collection">
-			<bind-xml name="Pathway" />
-		</field>
-		<field name="currentIndex" type="integer">
-			<bind-xml name="CurrentPathway" node="attribute" />
-		</field>
-	</class>
-	
-	<class name="tufts.vue.LWPathway">
-		<field name="label" type="string">
-			<bind-xml name="label" node="attribute" />
-		</field>
-		<field name="currentIndex" type="integer">
-			<bind-xml name="CurrentIndex" node="attribute" />
-		</field>
-                <field name="elementIDList" type="string" collection="collection">
-			<bind-xml name="id"/>
-		</field>
-	</class>
-		<class name="tufts.vue.Resource">
-		<field name="referenceCreated" type="long">
-			<bind-xml name="referenceCreated" node="attribute"/>
-		</field>
-		<field name="accessAttempted" type="long">
-			<bind-xml name="accessAttempted" node="attribute"/>
-		</field>
-		<field name="accessSuccessful" type="long">
-			<bind-xml name="accessSuccessful" node="attribute"/>
-		</field>
-		<field name="size" type="long">
-			<bind-xml name="size" node="attribute"/>
-		</field>
-		<field name="spec" type="string">
-			<bind-xml name="spec" node="element" />
-		</field>
-		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
-			<bind-xml name="castorFedoraObject" node="element"/>
-		</field>
-	</class>
-		<!-- FEDORA OBJECTS -->
-	<class name="tufts.vue.CastorFedoraObject">
-		<field name="id" type="string">
-			<bind-xml name="id" node="attribute"/>
-		</field>
-		<field name="type" type="string">
-			<bind-xml name="type" node="element" />
-		</field>
-		<field name="displayName" type="string">
-			<bind-xml name="displayName" node="element" />
-		</field>
-		<field name="CastorDR" type="tufts.vue.CastorDR">
-			<bind-xml name="CastorDR" node="element"/>
-		</field>
-	</class>
-	<class name="tufts.vue.CastorDR">
-		<field name="id" type="string">
-			<bind-xml name="id" node="attribute"/>
-		</field>
-		<field name="displayName" type="string">
-			<bind-xml name="displayName" node="element" />
-		</field>
-		<field name="description" type="string">
-			<bind-xml name="description" node="element" />
-		</field>
-	</class>
-	
+    </class>
 
-<!-- saving favorite nodes-->
+    <class name="tufts.vue.LWPathwayManager">
+            <map-to xml="PathwayManager"/>
+            <!--<field name="PathwayList" type="tufts.vue.LWPathway" collection="collection">
+                    <bind-xml name="Pathway" />
+            </field>-->
+            <field name="PathwayList" type="java.lang.Object" collection="collection">
+                    <bind-xml name="Pathway" />
+            </field>
+            <field name="currentIndex" type="integer">
+                    <bind-xml name="currentIndex" node="attribute" />
+            </field>
+            <field name="currentPathway" type="tufts.vue.LWPathway">
+                    <bind-xml name="current"/>
+            </field>
+    </class>
 
-	<class name="tufts.vue.SaveVueJTree">
-		<map-to xml="SaveVueJTree" />
-		<field name="saveTreeRoot" type="tufts.vue.SaveNode">
-			<bind-xml name="SaveTreeRoot" node="element" />
-		</field>
-	</class>
-	<class name="tufts.vue.SaveNode">
-		<map-to xml="SaveNode" />
-		<field name="nodeType" type="java.lang.String">
-			<bind-xml name="nodeType" node="attribute" />
-		</field>
-		<field name="resourceName" type="java.lang.String">
-			<bind-xml name="resourceName" node="element" />
-		</field>
-		<field name="children" type="tufts.vue.SaveNode" collection="vector">
-			<bind-xml name="SaveNode" />
-		</field>
-	</class>
+    <class name="tufts.vue.LWPathway">
+            <field name="label" type="string">
+                    <bind-xml name="label" node="attribute" />
+            </field>
+            <field name="currentIndex" type="integer">
+                    <bind-xml name="CurrentIndex" node="attribute" />
+            </field>
+            <field name="elementIDList" type="string" collection="collection">
+                    <bind-xml name="id"/>
+            </field>
+            <field name="showing" type="boolean">
+                    <bind-xml name="showing"/>
+            </field>
+            <field name="open" type="boolean">
+                    <bind-xml name="open"/>
+            </field>
+            <field name="locked" type="boolean">
+                    <bind-xml name="locked"/>
+            </field>
+            <field name="borderColor" type="java.awt.Color">
+                    <bind-xml name="showing"/>
+            </field>
+            <field name="comment" type="string">
+                    <bind-xml name="comment"/>
+            </field>
+    </class>
+    
+    <class name="tufts.vue.Resource">
+            <field name="referenceCreated" type="long">
+                    <bind-xml name="referenceCreated" node="attribute"/>
+            </field>
+            <field name="accessAttempted" type="long">
+                    <bind-xml name="accessAttempted" node="attribute"/>
+            </field>
+            <field name="accessSuccessful" type="long">
+                    <bind-xml name="accessSuccessful" node="attribute"/>
+            </field>
+            <field name="size" type="long">
+                    <bind-xml name="size" node="attribute"/>
+            </field>
+            <field name="spec" type="string">
+                    <bind-xml name="spec" node="element" />
+            </field>
+            <field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
+                    <bind-xml name="castorFedoraObject" node="element"/>
+            </field>
+    </class>
+            <!-- FEDORA OBJECTS -->
+    <class name="tufts.vue.CastorFedoraObject">
+            <field name="id" type="string">
+                    <bind-xml name="id" node="attribute"/>
+            </field>
+            <field name="type" type="string">
+                    <bind-xml name="type" node="element" />
+            </field>
+            <field name="displayName" type="string">
+                    <bind-xml name="displayName" node="element" />
+            </field>
+            <field name="CastorDR" type="tufts.vue.CastorDR">
+                    <bind-xml name="CastorDR" node="element"/>
+            </field>
+    </class>
+    <class name="tufts.vue.CastorDR">
+            <field name="id" type="string">
+                    <bind-xml name="id" node="attribute"/>
+            </field>
+            <field name="displayName" type="string">
+                    <bind-xml name="displayName" node="element" />
+            </field>
+            <field name="description" type="string">
+                    <bind-xml name="description" node="element" />
+            </field>
+    </class>
+
+
+    <!-- saving favorite nodes-->
+
+    <class name="tufts.vue.SaveVueJTree">
+            <map-to xml="SaveVueJTree" />
+            <field name="saveTreeRoot" type="tufts.vue.SaveNode">
+                    <bind-xml name="SaveTreeRoot" node="element" />
+            </field>
+    </class>
+    <class name="tufts.vue.SaveNode">
+            <map-to xml="SaveNode" />
+            <field name="nodeType" type="java.lang.String">
+                    <bind-xml name="nodeType" node="attribute" />
+            </field>
+            <field name="resourceName" type="java.lang.String">
+                    <bind-xml name="resourceName" node="element" />
+            </field>
+            <field name="children" type="tufts.vue.SaveNode" collection="vector">
+                    <bind-xml name="SaveNode" />
+            </field>
+    </class>
 </mapping>

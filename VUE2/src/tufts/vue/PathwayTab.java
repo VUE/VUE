@@ -78,8 +78,11 @@ public class PathwayTab extends JPanel implements   ActionListener,
     private JButton forwardButton = new JButton(VueResources.getImageIcon("controlPlayForwardUp"));
     private JButton lastButton = new JButton(VueResources.getImageIcon("controlForwardUp"));
     
-    private ImageIcon addIcon = VueResources.getImageIcon("addLight");
-    private ImageIcon deleteIcon = VueResources.getImageIcon("deleteLight");
+    private ImageIcon addUpIcon = VueResources.getImageIcon("addPathwayUp");
+    private ImageIcon addDownIcon = VueResources.getImageIcon("addPathwayDown");
+    private ImageIcon deleteUpIcon = VueResources.getImageIcon("deletePathwayUp");
+    private ImageIcon deleteDownIcon = VueResources.getImageIcon("deletePathwayDown");
+    private ImageIcon lockUpIcon = VueResources.getImageIcon("lockUp");
         
     private JButton removeButton, createButton, lockButton;
     //private JComboBox pathwayList;
@@ -118,17 +121,25 @@ public class PathwayTab extends JPanel implements   ActionListener,
         setPathwayNameLabel();
         
          
-        createButton = new JButton(addIcon);
-        createButton.setPreferredSize(new Dimension(17, 17));
+        createButton = new JButton(addUpIcon);
+        createButton.setSelectedIcon(addDownIcon);
+        createButton.setDisabledIcon(null);
         createButton.addActionListener(this);
+        createButton.setBorderPainted(false);
+        createButton.setBackground(Color.white);
         
-        removeButton = new JButton(deleteIcon);
-        removeButton.setPreferredSize(new Dimension(17, 17));
+        removeButton = new JButton(deleteUpIcon);
+        removeButton.setSelectedIcon(deleteDownIcon);
+        removeButton.setDisabledIcon(null);
         removeButton.addActionListener(this);
+        removeButton.setBorderPainted(false);
+        removeButton.setBackground(Color.white);
         
-        lockButton = new JButton(VueResources.getImageIcon("lock"));
-        lockButton.setPreferredSize(new Dimension(17, 17));
+        lockButton = new JButton(lockUpIcon);
+        lockButton.setSelectedIcon(lockUpIcon);
+        lockButton.setBackground(Color.white);
         lockButton.addActionListener(this);
+        lockButton.setBorderPainted(false);
         
         JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         editPathwaysPanel.setBackground(bgColor);
@@ -136,15 +147,15 @@ public class PathwayTab extends JPanel implements   ActionListener,
         JLabel lab = new JLabel("Pathways");
         lab.setBackground(bgColor);
         lab.setFont(defaultFont);
+        lab.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
         
         JPanel groupPanel = new JPanel(new GridLayout(1, 3, 0, 0));
-        groupPanel.setPreferredSize(new Dimension(56, 25));
+        groupPanel.setPreferredSize(new Dimension(57, 24));
+        groupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
+        groupPanel.setBackground(bgColor);
         groupPanel.add(createButton);
         groupPanel.add(removeButton);
         groupPanel.add(lockButton);
-        
-        lab.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
-        groupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
         
         editPathwaysPanel.add(lab);
         editPathwaysPanel.add(groupPanel);
@@ -420,12 +431,14 @@ public class PathwayTab extends JPanel implements   ActionListener,
     
     public void setButtons(){
         
-        addElement = new JButton(addIcon);
+        addElement = new JButton(addUpIcon);
+        addElement.setSelectedIcon(addDownIcon);
         addElement.setPreferredSize(new Dimension(16, 16));
         addElement.addActionListener(this);
         addElement.setEnabled(false);
         
-        removeElement = new JButton(deleteIcon);
+        removeElement = new JButton(deleteUpIcon);
+        removeElement.setSelectedIcon(deleteDownIcon);
         removeElement.setPreferredSize(new Dimension(16, 16));
         removeElement.addActionListener(this);
         removeElement.setEnabled(false);
@@ -605,10 +618,12 @@ public class PathwayTab extends JPanel implements   ActionListener,
             dialog.show();
         }
         else if (e.getSource() == lockButton){
-            int currentRow = this.getPathwayTableModel().getManager().getPathwayIndex(
-                this.getPathwayTableModel().getCurrentPathway());
-            this.getPathwayTable().setValueAt(this, currentRow, 5);
-            this.setAddElementEnabled();
+            if(this.getPathwayTableModel().getCurrentPathway() != null){
+                int currentRow = this.getPathwayTableModel().getManager().getPathwayIndex(
+                    this.getPathwayTableModel().getCurrentPathway());
+                this.getPathwayTable().setValueAt(this, currentRow, 5);
+                this.setAddElementEnabled();
+            }
         }
         
         this.getPathwayTableModel().fireTableDataChanged();
