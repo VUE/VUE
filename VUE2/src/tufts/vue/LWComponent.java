@@ -540,6 +540,7 @@ public class LWComponent
     }
     
     //needed for pathways to access a node's links - jay briedis
+    // todo: this same as getLinkRefs
     public List getLinks(){
         return this.links;
     }
