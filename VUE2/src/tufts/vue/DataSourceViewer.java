@@ -17,6 +17,18 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
 import java.io.File;
+import java.io.*;
+
+// castor classes
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.Unmarshaller;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
+
+import org.exolab.castor.mapping.Mapping;
+import org.exolab.castor.mapping.MappingException;
+import org.xml.sax.InputSource;
+//
 
 public class DataSourceViewer  extends JPanel{
     /** Creates a new instance of DataSourceViewer */
@@ -33,7 +45,10 @@ public class DataSourceViewer  extends JPanel{
     AbstractAction addAction;//
     AbstractAction editAction; 
     AbstractAction deleteAction;
-
+    AbstractAction saveAction;
+    final static String XML_MAPPING = "lw_mapping.xml";
+    private static String  DATASOURCES_MAPPING;
+    private static java.util.prefs.Preferences prefs;
 
     public DataSourceViewer(DRBrowser drBrowser){
         
@@ -46,7 +61,12 @@ public class DataSourceViewer  extends JPanel{
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
         dataSourceList = new DataSourceList();
-        loadDataSources();
+        
+        
+     
+            
+         loadDataSources();
+        
         
         
         dataSourceList.setSelectedIndex(1);
@@ -74,14 +94,27 @@ public class DataSourceViewer  extends JPanel{
         return this.activeDataSource;
     }
     public void setActiveDataSource(DataSource ds){ 
-        activeDataSource = ds;
+         
+       
+       if(this.getActiveDataSource()!= null)this.getActiveDataSource().setActiveDataSource(false);
+         
+        
+        this.activeDataSource = ds;
+        
+        ds.setActiveDataSource(true);;
+        
         dataSourceList.setSelectedValue(ds,true);
         drBrowser.remove(resourcesPanel);
+       
         resourcesPanel  = new JPanel();
         resourcesPanel.setLayout(new BorderLayout());
         resourcesPanel.setBorder(new TitledBorder(activeDataSource.getDisplayName()));
+        
+     
         resourcesPanel.add(activeDataSource.getResourceViewer(),BorderLayout.CENTER);
+        
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
+          
         drBrowser.repaint();
         drBrowser.validate();
         System.out.println("Setting active datasource = "+ds.getDisplayName());
@@ -106,11 +139,19 @@ public class DataSourceViewer  extends JPanel{
                 deleteDataSource(activeDataSource);
             }
         };
+        
+         saveAction =  new AbstractAction("Save") {
+            public void actionPerformed(ActionEvent e) {
+                saveDataSourceViewer();
+            }
+        };
         popup.add(addAction);
         popup.addSeparator();
         popup.add(editAction);
         popup.addSeparator();
         popup.add(deleteAction);
+         popup.addSeparator();
+        popup.add(saveAction);
     }
     
     public void showAddEditWindow(int mode) {
@@ -152,14 +193,16 @@ public class DataSourceViewer  extends JPanel{
         return addEditDialog;
     }
     
-    public void addNewDataSource (String displayName, String name, String address, String user, String password, int type) {
+    public void addNewDataSource (String displayName, String name, String address, String user, String password, int type, boolean active) {
         DataSource ds = new DataSource ("id", displayName, name, address, user, password, type);
         //  Following example of above, we'd set color here, but I think it should be moved to DataSource, based on type.
         
         dataSources.addElement (ds);  //  Add datasource to data source vector.
         dataSourceList.getContents().addElement(ds); // SHOULD BE DONE IN SINGE STEP
        
-        setActiveDataSource (ds);
+        if (active) setActiveDataSource(ds);
+         drBrowser.repaint();
+        drBrowser.validate();
     }
     
     public void deleteDataSource(DataSource dataSource) {
@@ -176,6 +219,24 @@ public class DataSourceViewer  extends JPanel{
         }
     }
 
+    public void saveDataSourceViewer(){
+          prefs = tufts.vue.VUE.prefs;
+        try {
+          
+            DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
+        }catch(Exception e) { System.out.println("datasources"+e);}
+        
+           
+            File f  = new File(DATASOURCES_MAPPING);
+             SaveDataSourceViewer sViewer= new SaveDataSourceViewer(this.dataSources);
+             
+                  marshallMap(f,sViewer);
+            
+            
+            
+            
+    }
+        
     private void createAddPanel(JPanel addPanel) {
         JComboBox typeField = new JComboBox(dataSourceTypes);    //  This will be a menu, later.
         JTextField dsNameField = new JTextField();
@@ -260,7 +321,7 @@ public class DataSourceViewer  extends JPanel{
                  */
                 System.out.println ("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
 
-                dsv.addNewDataSource (dsNameStr, nameStr, adrStr, userStr, pwStr, type);
+                dsv.addNewDataSource (dsNameStr, nameStr, adrStr, userStr, pwStr, type,false);
                 System.out.println ("New data source added.");
 
                 dia.hide();
@@ -273,7 +334,7 @@ public class DataSourceViewer  extends JPanel{
         JTextField nameField = new JTextField(activeDataSource.getName());
         JTextField adrField = new JTextField(activeDataSource.getAddress());
         JTextField userField = new JTextField(activeDataSource.getUserName());
-        JTextField pwField = new JTextField(activeDataSource.getPasword());
+        JTextField pwField = new JTextField(activeDataSource.getPassword());
 
         //  Set them to a uniform size.
         Dimension dim = new Dimension (150, 22);
@@ -345,30 +406,126 @@ public class DataSourceViewer  extends JPanel{
         
             
     private void loadDataSources() {
-         // this should be created automatically from a config file. That will be done in future.
+        
+        
+        //--Marshalling etc
+      
+          
+         
+           prefs = tufts.vue.VUE.prefs;
+        try {
+          
+            DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
+        }catch(Exception e) { System.out.println("datasources"+e);}
+        
+           
+            File f  = new File(DATASOURCES_MAPPING);
+            
+            if(f.exists()){
+        
+          SaveDataSourceViewer rViewer = unMarshallMap(f);
+          Vector rsources = rViewer.getSaveDataSources();
+          while (!(rsources.isEmpty())){
+               DataSource ds = (DataSource)rsources.remove(0);
+               System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
+               addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(), ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
+                                 }
+           
+            }
+       
+            
+            else{
+        // this should be created automatically from a config file. That will be done in future.
   
         DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
-        ds1.setDisplayColor(Color.BLACK);
+        //ds1.setDisplayColor(Color.BLACK);
         dataSources.add(ds1);
         dataSourceList.getContents().addElement(ds1);
         DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora",DataSource.DR_FEDORA);
-        ds2.setDisplayColor(Color.RED);
+        //ds2.setDisplayColor(Color.RED);
         dataSources.add(ds2);
         dataSourceList.getContents().addElement(ds2);
         setActiveDataSource(ds2);
         
        
         DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
-        ds3.setDisplayColor(Color.BLUE);
+        //ds3.setDisplayColor(Color.BLUE);
         dataSources.add(ds3);
          dataSourceList.getContents().addElement(ds3);
       
         DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
-        ds4.setDisplayColor(Color.YELLOW);
+        //ds4.setDisplayColor(Color.YELLOW);
         dataSources.add(ds4);
          dataSourceList.getContents().addElement(ds4);
+         
       
+    
+            }
         //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.CENTER);
         //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.SOUTH);
+       
     }
+    
+        
+ public  void marshallMap(File file,SaveDataSourceViewer dataSourceViewer)
+    {
+        Marshaller marshaller = null;
+        
+        
+        Mapping mapping = new Mapping();
+            
+        try 
+        {  
+            FileWriter writer = new FileWriter(file);
+            
+            marshaller = new Marshaller(writer);
+            mapping.loadMapping(XML_MAPPING);
+            marshaller.setMapping(mapping);
+            
+           
+            marshaller.marshal(dataSourceViewer);
+            
+            writer.flush();
+            writer.close();
+            
+        } 
+        catch (Exception e) {System.err.println("DRBrowser.marshallMap " + e);}
+      
+    }
+    
+    
+   public  SaveDataSourceViewer unMarshallMap(File file)
+    {
+        Unmarshaller unmarshaller = null;
+        SaveDataSourceViewer sviewer = null;
+      
+        
+       
+        Mapping mapping = new Mapping();
+            
+        try 
+        {
+            unmarshaller = new Unmarshaller();
+            mapping.loadMapping(XML_MAPPING);    
+            unmarshaller.setMapping(mapping);  
+            
+            FileReader reader = new FileReader(file);
+            
+            sviewer = (SaveDataSourceViewer) unmarshaller.unmarshal(new InputSource(reader));
+            
+            reader.close();
+        } 
+        catch (Exception e) 
+        {
+            System.err.println("ActionUtil.unmarshallMap: " + e);
+            e.printStackTrace();
+            sviewer = null;
+        }
+       
+        
+        return sviewer;
+    } 
+    
 }

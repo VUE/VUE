@@ -42,7 +42,10 @@ public class DataSourceList extends JList implements DropTargetListener{
         DnDConstants.ACTION_LINK |
         DnDConstants.ACTION_MOVE;
      private final boolean debug = true;
-     
+     private final Icon myComputerIcon = new ImageIcon("tufts/vue/images/datasourceMyComputer.gif");
+     private final Icon myFavoritesIcon = new ImageIcon("tufts/vue/images/datasourceMyFavorites.gif");
+     private final Icon remoteIcon = new ImageIcon("tufts/vue/images/datasourceRemote.gif");
+ 
 
      public DataSourceList() {
         super(new DefaultListModel());
@@ -56,7 +59,20 @@ public class DataSourceList extends JList implements DropTargetListener{
          DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                setIcon(new PolygonIcon(((DataSource)value).getDisplayColor()));
+                if (((DataSource)value).getType() == 0){
+                    setIcon(myFavoritesIcon);
+                }
+                else if (((DataSource)value).getType() == 1){
+                    
+                    setIcon(myComputerIcon);
+                    
+                }
+                else {
+                    
+                    setIcon(remoteIcon);
+                    
+                }
+                    
                 return this;
             }
         };

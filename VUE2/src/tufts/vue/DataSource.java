@@ -30,7 +30,7 @@ public class DataSource {
     private String address;   
     private String userName;    
     private String password;
-    private Color displayColor = Color.BLACK;
+    private boolean activeDataSource = false;
     private JComponent resourceViewer;
     private boolean autoConnect = false;
     
@@ -45,7 +45,7 @@ public class DataSource {
         this.displayName = displayName;
         this.name = name;
         resourceViewer = new JLabel(displayName+" : No Viewer Available");
-        this.displayColor = Color.GRAY;
+        
     }
     
     /**  Creates a DataSource given an id, display name, name, and type. */
@@ -63,6 +63,7 @@ public class DataSource {
         this.address = address;
         this.userName = user;
         this.password = password;
+        
     }
     
     /**
@@ -71,7 +72,7 @@ public class DataSource {
     private void setViewer () {
         if(type == FAVORITES) {
             this.resourceViewer = new FavoritesWindow(displayName);
-            this.displayColor = Color.BLUE;
+            
         }
         else if(type == FILING_LOCAL) {
             Vector fileVector  = new Vector();
@@ -79,21 +80,21 @@ public class DataSource {
             VueDragTree fileTree = new VueDragTree(fileVector.iterator(),displayName);
             JScrollPane jSP = new JScrollPane(fileTree);   
             this.resourceViewer = jSP;
-            this.displayColor = Color.BLACK;
+            
         }
         else if (type == FILING_REMOTE) {
             
         }
         else if(type== DR_FEDORA) {
             this.resourceViewer = new DRViewer("fedora.conf", id,displayName,displayName);
-            this.displayColor = Color.RED;
+            
         } 
         else  if (type== GOOGLE) {
             this.resourceViewer = new TuftsGoogle();
-            this.displayColor = Color.GREEN;
+           
         } else {
             this.resourceViewer = new JLabel(displayName+" : No Viewer Available");
-            this.displayColor = Color.GRAY;
+            
         }
     }
     
@@ -126,15 +127,34 @@ public class DataSource {
     public void setPassword(String password)  {
         this.password = password;
     }
-    public String getPasword() {
+    public String getPassword() {
         return password;
     }
-    public void setDisplayColor(Color color) {
-        this.displayColor = color;
+   
+     public String getId() {
+        return this.id;
     }
-    public Color getDisplayColor() {
-        return displayColor;
+    
+    public void setId(String id){
+        this.id = id;
     }
+
+    public boolean isActiveDataSource(){
+       
+        return this.activeDataSource;
+    }
+    public void setActiveDataSource(boolean active){
+        this.activeDataSource =active;
+    }
+        
+    public boolean isAutoConnect() {
+        return this.autoConnect;
+    }
+    
+    public void setAutoConnect(boolean autoConnect){
+        this.autoConnect = autoConnect;
+    }
+
     public void setResourceViewer(JComponent resourceViewer) {
       
         this.resourceViewer = resourceViewer;
