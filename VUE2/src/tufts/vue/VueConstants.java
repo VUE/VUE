@@ -63,6 +63,9 @@ public interface VueConstants
     //static Cursor CURSOR_SUBSELECT= Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR); // white arrow
 
     static java.awt.BasicStroke STROKE_ZERO = new java.awt.BasicStroke(0f);
+    static java.awt.BasicStroke STROKE_SIXTEENTH = new java.awt.BasicStroke(0.0625f);
+    static java.awt.BasicStroke STROKE_EIGHTH = new java.awt.BasicStroke(0.125f);
+    static java.awt.BasicStroke STROKE_FOURTH = new java.awt.BasicStroke(0.25f);
     static java.awt.BasicStroke STROKE_HALF = new java.awt.BasicStroke(0.5f);
     static java.awt.BasicStroke STROKE_ONE = new java.awt.BasicStroke(1f);
     static java.awt.BasicStroke STROKE_TWO = new java.awt.BasicStroke(2f);
@@ -75,5 +78,6 @@ public interface VueConstants
     static boolean DEBUG_PARENTING = false;
     static boolean DEBUG_LAYOUT = false;
     static boolean DEBUG_EVENTS = false;
+    static boolean DEBUG_BOXES = false;
     
 }
