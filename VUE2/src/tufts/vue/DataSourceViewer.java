@@ -1352,8 +1352,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 addNewDataSource("UVA Finding Aids", "uva:fedora", "", "dl.lib.virginia.edu", "test", "test", DataSource.DR_FEDORA, false);
                 addNewDataSource("Tufts Web","google",VueResources.getString("url.google"), "","", "", DataSource.GOOGLE,false);
                 addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
-                addNewDataSource("OSID DR","OSID DR","ca.edusource.osid_dr.dr","","","",DataSource.OSID_DR, false);
-                addNewDataSource("OSID DR","OSID DR","comet.osidimpl.dr.sql","","","",DataSource.OSID_DR, false);
+                addNewDataSource("OSID DR","OSID DR","ca.edusource.osid_dr.dr","ca.edusource.osid_dr.dr","","",DataSource.OSID_DR, false);
+                addNewDataSource("OSID DR","OSID DR","comet.osidimpl.dr.sql","comet.osidimpl.dr.sql","","",DataSource.OSID_DR, false);
                 
             } catch (Exception ex) {
               
