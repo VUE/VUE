@@ -696,126 +696,6 @@ public class LWLink extends LWComponent
         }
     }
 
-    /**
-     * Compute the intersection point of two lines, as defined
-     * by two given points for each line.
-     * This already assumes that we know they intersect somewhere (are not parallel), 
-     */
-    private static final float[] _intersection = new float[2];
-    private static float[] computeLineIntersection
-        (float s1x1, float s1y1, float s1x2, float s1y2,
-         float s2x1, float s2y1, float s2x2, float s2y2)
-    {
-        // We are defining a line here using the formula:
-        // y = mx + b  -- m is slope, b is y-intercept (where crosses x-axis)
-        
-        boolean m1vertical = (s1x1 == s1x2);
-        boolean m2vertical = (s2x1 == s2x2);
-        float m1 = Float.NaN;
-        float m2 = Float.NaN;
-        if (!m1vertical)
-            m1 = (s1y1 - s1y2) / (s1x1 - s1x2);
-        if (!m2vertical)
-            m2 = (s2y1 - s2y2) / (s2x1 - s2x2);
-        
-        // Solve for b using any two points from each line.
-        // to solve for b:
-        //      y = mx + b
-        //      y + -b = mx
-        //      -b = mx - y
-        //      b = -(mx - y)
-        // float b1 = -(m1 * s1x1 - s1y1);
-        // float b2 = -(m2 * s2x1 - s2y1);
-        // System.out.println("m1=" + m1 + " b1=" + b1);
-        // System.out.println("m2=" + m2 + " b2=" + b2);
-
-        // if EITHER line is vertical, the x value of the intersection
-        // point will obviously have to be the x value of any point
-        // on the vertical line.
-        
-        float x = 0;
-        float y = 0;
-        if (m1vertical) {   // first line is vertical
-            //System.out.println("setting X to first vertical at " + s1x1);
-            float b2 = -(m2 * s2x1 - s2y1);
-            x = s1x1; // set x to any x point from the first line
-            // using y=mx+b, compute y using second line
-            y = m2 * x + b2;
-        } else {
-            float b1 = -(m1 * s1x1 - s1y1);
-            if (m2vertical) { // second line is vertical (has no slope)
-                //System.out.println("setting X to second vertical at " + s2x1);
-                x = s2x1; // set x to any point from the second line
-            } else {
-                // second line has a slope (is not veritcal: m is valid)
-                float b2 = -(m2 * s2x1 - s2y1);
-                x = (b2 - b1) / (m1 - m2);
-            }
-            // using y=mx+b, compute y using first line
-            y = m1 * x + b1;
-        }
-        //System.out.println("x=" + x + " y=" + y);
-
-        _intersection[0] = x;
-        _intersection[1] = y;
-        return _intersection;
-        //return new float[] { x, y };
-    }
-
-    // this for debug
-    private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" };
-    
-    /*
-     * Compute the intersection of an arbitrary shape and a line.
-     * If no intersection, returns Float.NaN values for x/y.
-     */
-    private static final float[] NoIntersection = { Float.NaN, Float.NaN };
-    private static float[] computeShapeIntersection(Shape shape,
-                                                    float rayX1, float rayY1,
-                                                    float rayX2, float rayY2)
-    {
-        PathIterator i = shape.getPathIterator(null);
-        // todo performance: if this shape has no curves (CUBICTO or QUADTO)
-        // this flattener is redundant.  Also, it would be faster to
-        // actually do the math for arcs and compute the intersection
-        // of the arc and the line, tho we can save that for another day.
-        i = new java.awt.geom.FlatteningPathIterator(i, 0.5);
-        
-        float[] seg = new float[6];
-        float firstX = 0f;
-        float firstY = 0f;
-        float lastX = 0f;
-        float lastY = 0f;
-        int cnt = 0;
-        while (!i.isDone()) {
-            int segType = i.currentSegment(seg);
-            if (cnt == 0) {
-                firstX = seg[0];
-                firstY = seg[1];
-            } else if (segType == PathIterator.SEG_CLOSE) {
-                seg[0] = firstX; 
-                seg[1] = firstY; 
-            }
-            float endX, endY;
-            //if (segType == PathIterator.SEG_CUBICTO) {
-            //    endX = seg[4];
-            //    endY = seg[5];
-            //} else {
-                endX = seg[0];
-                endY = seg[1];
-            //}
-            if (cnt > 0 && Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
-                //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
-                return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1]);
-            }
-            cnt++;
-            lastX = endX;
-            lastY = endY;
-            i.next();
-        }
-        return NoIntersection;
-    }
-
 
     /**
      * Compute the endpoints of this link based on the edges
@@ -828,6 +708,7 @@ public class LWLink extends LWComponent
      * unpredicatable happens, we just leave the connection
      * point as the center of the object.
      */
+    private float[] intersection = new float[2]; // result cache for intersection coords
     void computeLinkEndpoints()
     {
         //if (ep1 == null || ep2 == null) throw new IllegalStateException("LWLink: attempting to compute shape w/out endpoints");
@@ -896,7 +777,7 @@ public class LWLink extends LWComponent
         // connection point works out if the link approaches from
         // the convex side, but from the concave side, it winds
         // up at the center point for a regular straight link.
-        
+
         if (ep1Shape != null && !(ep1Shape instanceof Line2D)) {
             if (curveControls == 1) {
                 srcX = quadCurve.ctrlx;
@@ -908,11 +789,15 @@ public class LWLink extends LWComponent
                 srcX = endX;
                 srcY = endY;
             }
-            float[]intersection = computeShapeIntersection(ep1Shape, startX, startY, srcX, srcY);
+            float[] result = VueUtil.computeIntersection(startX, startY, srcX, srcY, ep1Shape, intersection);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
-            if (!Float.isNaN(intersection[0])) startX = intersection[0];
-            if (!Float.isNaN(intersection[1])) startY = intersection[1];
+            //if (!Float.isNaN(intersection[0])) startX = intersection[0];
+            //if (!Float.isNaN(intersection[1])) startY = intersection[1];
+            if (result != VueUtil.NoIntersection) {
+                 startX = intersection[0];
+                 startY = intersection[1];
+            }
         }
         Shape ep2Shape = ep2 == null ? null : ep2.getShape();
         if (ep2Shape != null && !(ep2Shape instanceof Line2D)) {
@@ -926,11 +811,15 @@ public class LWLink extends LWComponent
                 srcX = startX;
                 srcY = startY;
             }
-            float[]intersection = computeShapeIntersection(ep2Shape, srcX, srcY, endX, endY);
+            float[] result = VueUtil.computeIntersection(srcX, srcY, endX, endY, ep2Shape, intersection);
             // If intersection fails for any reason, leave endpoint as center
             // of object.
-            if (!Float.isNaN(intersection[0])) endX = intersection[0];
-            if (!Float.isNaN(intersection[1])) endY = intersection[1];
+            //if (!Float.isNaN(intersection[0])) endX = intersection[0];
+            //if (!Float.isNaN(intersection[1])) endY = intersection[1];
+            if (result != VueUtil.NoIntersection) {
+                 endX = intersection[0];
+                 endY = intersection[1];
+            }
         }
         
         this.centerX = startX - (startX - endX) / 2;

@@ -3,6 +3,11 @@ package tufts.vue;
 import java.util.*;
 import java.io.File;
 import java.awt.Color;
+import java.awt.Shape;
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.FlatteningPathIterator;
+    
 
 public class VueUtil
 {
@@ -391,6 +396,203 @@ public class VueUtil
 	return new Color((int)(c.getRed()  *factor),
 			 (int)(c.getGreen()*factor),
 			 (int)(c.getBlue() *factor));
+    }
+
+
+    /**
+     * Compute the intersection point of two lines, as defined
+     * by two given points for each line.
+     * This already assumes that we know they intersect somewhere (are not parallel), 
+     */
+
+    public static float[] computeLineIntersection
+        (float s1x1, float s1y1, float s1x2, float s1y2,
+         float s2x1, float s2y1, float s2x2, float s2y2, float[] result)
+    {
+        // We are defining a line here using the formula:
+        // y = mx + b  -- m is slope, b is y-intercept (where crosses x-axis)
+        
+        boolean m1vertical = (s1x1 == s1x2);
+        boolean m2vertical = (s2x1 == s2x2);
+        float m1 = Float.NaN;
+        float m2 = Float.NaN;
+        if (!m1vertical)
+            m1 = (s1y1 - s1y2) / (s1x1 - s1x2);
+        if (!m2vertical)
+            m2 = (s2y1 - s2y2) / (s2x1 - s2x2);
+        
+        // Solve for b using any two points from each line.
+        // to solve for b:
+        //      y = mx + b
+        //      y + -b = mx
+        //      -b = mx - y
+        //      b = -(mx - y)
+        // float b1 = -(m1 * s1x1 - s1y1);
+        // float b2 = -(m2 * s2x1 - s2y1);
+        // System.out.println("m1=" + m1 + " b1=" + b1);
+        // System.out.println("m2=" + m2 + " b2=" + b2);
+
+        // if EITHER line is vertical, the x value of the intersection
+        // point will obviously have to be the x value of any point
+        // on the vertical line.
+        
+        float x = 0;
+        float y = 0;
+        if (m1vertical) {   // first line is vertical
+            //System.out.println("setting X to first vertical at " + s1x1);
+            float b2 = -(m2 * s2x1 - s2y1);
+            x = s1x1; // set x to any x point from the first line
+            // using y=mx+b, compute y using second line
+            y = m2 * x + b2;
+        } else {
+            float b1 = -(m1 * s1x1 - s1y1);
+            if (m2vertical) { // second line is vertical (has no slope)
+                //System.out.println("setting X to second vertical at " + s2x1);
+                x = s2x1; // set x to any point from the second line
+            } else {
+                // second line has a slope (is not veritcal: m is valid)
+                float b2 = -(m2 * s2x1 - s2y1);
+                x = (b2 - b1) / (m1 - m2);
+            }
+            // using y=mx+b, compute y using first line
+            y = m1 * x + b1;
+        }
+        //System.out.println("x=" + x + " y=" + y);
+
+        result[0] = x;
+        result[1] = y;
+        return result;
+    }
+
+    
+    public static final float[] NoIntersection = { Float.NaN, Float.NaN };
+    private static final String[] SegTypes = { "MOVEto", "LINEto", "QUADto", "CUBICto", "CLOSE" }; // for debug
+    
+    public static float[] computeIntersection(float rayX1, float rayY1,
+                                              float rayX2, float rayY2,
+                                              java.awt.Shape shape)
+    {
+        return computeIntersection(rayX1,rayY1, rayX2,rayY2, shape, new float[2]);
+    }
+    
+    /**
+     * Compute the intersection of an arbitrary shape and a line segment
+     * that is assumed to pass throught the shape.  Usually used
+     * with an endpoint (rayX2,rayY2) that ends in the center of the
+     * shape, tho that's not required.
+     *
+     * @return float array of size 2: x & y values of intersection,
+     * or ff no intersection, returns Float.NaN values for x/y.
+     */
+    public static float[] computeIntersection(float rayX1, float rayY1,
+                                              float rayX2, float rayY2,
+                                              java.awt.Shape shape,
+                                              float[] result)
+    {
+        java.awt.geom.PathIterator i = shape.getPathIterator(null);
+        // todo performance: if this shape has no curves (CUBICTO or QUADTO)
+        // this flattener is redundant.  Also, it would be faster to
+        // actually do the math for arcs and compute the intersection
+        // of the arc and the line, tho we can save that for another day.
+        i = new java.awt.geom.FlatteningPathIterator(i, 0.5);
+        
+        float[] seg = new float[6];
+        float firstX = 0f;
+        float firstY = 0f;
+        float lastX = 0f;
+        float lastY = 0f;
+        int cnt = 0;
+        while (!i.isDone()) {
+            int segType = i.currentSegment(seg);
+            if (cnt == 0) {
+                firstX = seg[0];
+                firstY = seg[1];
+            } else if (segType == PathIterator.SEG_CLOSE) {
+                seg[0] = firstX; 
+                seg[1] = firstY; 
+            }
+            float endX, endY;
+            //if (segType == PathIterator.SEG_CUBICTO) {
+            //    endX = seg[4];
+            //    endY = seg[5];
+            //} else {
+                endX = seg[0];
+                endY = seg[1];
+            //}
+            if (cnt > 0 && Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
+                //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
+                return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1], result);
+              //return computeLineIntersection(rayX2, rayY2, rayX1, rayY1, lastX, lastY, seg[0], seg[1], result);
+            }
+            cnt++;
+            lastX = endX;
+            lastY = endY;
+            i.next();
+        }
+        return NoIntersection;
+    }
+
+    /**
+     * One a line drawn from the center of c1 to the center of c2, compute the the line segment
+     * from the intersection at the edge of shape c1 to the intersection at the edge of shape c2.
+     */
+    
+    public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
+    {
+        float segX1 = c1.getCenterX();
+        float segY1 = c1.getCenterY();
+        float segX2 = c2.getCenterX();
+        float segY2 = c2.getCenterY();
+
+        // compute intersection at shape 2 of ray from center of shape 1 to center of shape 2
+        //float[] intersection_at_2 = computeIntersection(segX1, segY1, segX2, segY2, c2.getShape());
+        // compute intersection at shape 1 of ray from center of shape 2 to center of shape 1
+        //float[] intersection_at_1 = computeIntersection(segX2, segY2, segX1, segY1, c1.getShape());
+
+        // compute intersection at shape 1 of ray from center of shape 1 to center of shape 2
+        float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1.getShape());
+        // compute intersection at shape 2 of ray from center of shape 2 to center of shape 1
+        float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2.getShape());
+
+        if (intersection_at_1 == NoIntersection) {
+            // default to center of component 1
+            result.x1 = segX1;
+            result.y1 = segY1;
+        } else {
+            result.x1 = intersection_at_1[0];
+            result.y1 = intersection_at_1[1];
+        }
+        
+        if (intersection_at_2 == NoIntersection) {
+            // default to center of component 2
+            result.x2 = segX2;
+            result.y2 = segY2;
+        } else {
+            result.x2 = intersection_at_2[0];
+            result.y2 = intersection_at_2[1];
+        }
+
+        //System.out.println("connector: " + out(result));
+        //System.out.println("\tfrom: " + c1);
+        //System.out.println("\t  to: " + c2);
+        
+        return result;
+    }
+    
+    public static String out(Object[] o) {
+        return Arrays.asList(o).toString();
+    }
+
+    public static String out(java.awt.geom.Point2D p) {
+        return (float)p.getX() + "," + (float)p.getY();
+    }
+
+    public static String out(java.awt.geom.Line2D l) {
+        return ""
+            + (float)l.getX1() + "," + (float)l.getY1()
+            + " -> "
+            + (float)l.getX2() + "," + (float)l.getY2()
+            ;
     }
     
     

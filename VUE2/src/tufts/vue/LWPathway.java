@@ -9,7 +9,8 @@ import java.awt.Shape;
 import java.awt.BasicStroke;
 import java.awt.AlphaComposite;
 import java.awt.geom.Line2D;
-import java.awt.geom.Area;
+import java.awt.geom.Point2D;
+import java.awt.geom.Ellipse2D;
 
 /**
  * LWPathway.java
@@ -679,7 +680,7 @@ public class LWPathway extends LWContainer
         
         dc.g.setColor(getStrokeColor());
 
-        Line2D connector = new Line2D.Float();
+        Line2D.Float connector = new Line2D.Float();
 
         BasicStroke connectorStroke =
             new BasicStroke(4,
@@ -695,9 +696,23 @@ public class LWPathway extends LWContainer
             LWComponent c = (LWComponent)i.next();
             if (last != null) {
                 dc.g.setComposite(PathTranslucence);
-                connector.setLine(last.getCenterPoint(), c.getCenterPoint());
+                //connector.setLine(last.getCenterPoint(), c.getCenterPoint());
+                VueUtil.computeConnector(last, c, connector);
                 dc.g.setStroke(connectorStroke);
                 dc.g.draw(connector);
+                if (DEBUG.BOXES) {
+                    Ellipse2D dot = new Ellipse2D.Float(0,0, 10,10);
+                    Point2D.Float corner = (Point2D.Float) connector.getP1();
+                    corner.x+=5; corner.y+=5;
+                    dot.setFrameFromCenter(connector.getP1(), corner);
+                    dc.g.setColor(Color.green);
+                    dc.g.fill(dot);
+                    corner = (Point2D.Float) connector.getP2();
+                    corner.x+=5; corner.y+=5;
+                    dot.setFrameFromCenter(connector.getP2(), corner);
+                    dc.g.setColor(Color.red);
+                    dc.g.fill(dot);
+                }
             }
             last = c;
         }
