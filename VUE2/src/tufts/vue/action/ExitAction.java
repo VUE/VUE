@@ -49,6 +49,13 @@ public class ExitAction extends AbstractAction {
     
     public static void exitVue()
     {
+        if (!VUE.isOkayToExit())
+            return;
+
+        // todo: if either of these last minute saves throw an
+        // exception, the user will never be able to exit the
+        // application!
+        
         if (tufts.vue.VUE.favoritesWindow != null) {
             //Saving favorites
             
@@ -61,7 +68,7 @@ public class ExitAction extends AbstractAction {
         
         tufts.vue.DataSourceViewer.saveDataSourceViewer();
 
+        System.out.println("Exiting VUE.");
         System.exit(0);
     }
-    
 }

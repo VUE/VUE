@@ -101,9 +101,20 @@ public class VUE
     {
         final int TitleChangeMask = MapViewerEvent.DISPLAYED | MapViewerEvent.ZOOM;
         
-        VueFrame()
-        {
+        VueFrame() {
             super("VUE: Tufts Concept Map Tool");
+        }
+
+        /** never let the frame be hidden -- always ignored */
+        public void setVisible(boolean tv) {
+            System.out.println("VueFrame setVisible " + tv);
+
+            // The frame should never be "hidden" -- iconification
+            // doesn't trigger that (nor Mac os "hide") -- so if we're
+            // here the OS window manager is attempting to hide us
+            // (the 'x' button on the window frame). 
+
+            super.setVisible(true);
         }
         public void mapViewerEventRaised(MapViewerEvent e)
         {
@@ -497,8 +508,48 @@ public class VUE
         mapInspector.setLocation( inspectorx, frame.getY());
         objectInspector.setLocation( inspectorx, frame.getY() + mapInspector.getHeight() );
         
+        frame.addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                    System.out.println(e);
+                    ExitAction.exitVue();
+
+                    //-------------------------------------------------------
+                    // if we get here, it means exit was aborted.
+                    // (something wasn't saved & they decided to cancel or
+                    // there was an error during the save)
+                    //-------------------------------------------------------
+
+                    //frame.show();
+                    // not working!  How to cancel this windowClose?
+                    // According to WindowEvent.java &
+                    // WindowAdapter.java, canceling this
+                    // windowClosing is supposed to be possible, but
+                    // they don't mention how. Anyway, we've overriden
+                    // setVisible on VueFrame to make it impossible to
+                    // hide it, and that works, so this event just
+                    // becomes the they've pressed on the close button
+                    // event.
+                    
+                    return;
+                }
+                public void windowClosed(WindowEvent e) {
+                    // I've never see us even get this event...
+                    System.err.println(e);
+                    System.err.println("Too late: window disposed: exiting.");
+                    System.exit(-1);
+                }
+                public void windowStateChanged(WindowEvent e) {
+                    System.out.println(e);
+                }
+            });
+
+        /*
+        frame.addComponentListener(new ComponentAdapter() {
+                public void componentShown(ComponentEvent e) { System.out.println(e); }
+                public void componentHidden(ComponentEvent e) { System.out.println(e); frame.show(); }
+            });
         
-        
+        */
         frame.show();
         System.out.println("after showing frame...");
         if (args.length > 0) {
@@ -529,6 +580,7 @@ public class VUE
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
     }
+
 
     public static int openMapCount() {
         return mMapTabsLeft.getTabCount();
@@ -564,27 +616,60 @@ public class VUE
             return null;
     }
 
+
+    public static boolean isOkayToExit()
+    {
+        int tabs = mMapTabsLeft.getTabCount();
+        for (int i = 0; i < tabs; i++)
+            if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
+                return false;
+        return true;
+    }
+
+    /*
+     * Returns true if either they save it or say go ahead and close w/out saving.
+     */
+    private static boolean askSaveIfModified(LWMap map)
+    {
+        /*
+          int response = JOptionPane.showConfirmDialog(VUE.frame,
+          "'" + map.getLabel() + "' "
+          + "has been modified.  \nSave changes before closing?"
+          + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
+          " Save changes?",
+          JOptionPane.YES_NO_CANCEL_OPTION);
+        */
+
+        if (!map.isModified())
+            return true;
+        
+        int response = JOptionPane.showOptionDialog
+            (VUE.frame,
+
+             "Do you want to save the changes you made to \n"
+             + "'" + map.getLabel() + "'?"
+             + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
+
+             " Save changes?",
+             JOptionPane.YES_NO_CANCEL_OPTION,
+             JOptionPane.QUESTION_MESSAGE,
+             null,
+             new Object[] { "Save", "Don't Save", "Cancel"}, // todo: reversed order on mac!
+             "Save"
+             );
+
+        if (response == JOptionPane.YES_OPTION) {
+            return SaveAction.saveMap(map);
+        } else if (response == JOptionPane.NO_OPTION) {
+            // don't save -- just close
+            return true;
+        } else // anything else
+            return false;
+    }
+    
     public static void closeMap(LWMap map)
     {
-        boolean proceed = true;
-        if (map.isModified()) {
-            // todo: even better - make buttons say "save", "don't save" & "cancel" like OSX
-            int response = JOptionPane.showConfirmDialog(VUE.frame,
-                                                         "'" + map.getLabel() + "' "
-                                                         + "has been modified.  \nSave changes before closing?"
-                                                         + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
-                                                         " Save changes?",
-                                                         JOptionPane.YES_NO_CANCEL_OPTION);
-            if (response == JOptionPane.YES_OPTION) {
-                if (SaveAction.saveMap(map))
-                    proceed = true;
-                else
-                    proceed = false;
-            } else if (response == JOptionPane.CANCEL_OPTION) {
-                proceed = false;
-            }
-        }
-        if (proceed) {
+        if (askSaveIfModified(map)) {
             mMapTabsLeft.closeMap(map);
             mMapTabsRight.closeMap(map);
         }
@@ -1049,9 +1134,6 @@ public class VUE
         toolBar.add(new JButton(new PolygonIcon(Color.RED)));
         frame.setJMenuBar(menuBar);
         //frame.getContentPane().add(toolBar,BorderLayout.NORTH);
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {ExitAction.exitVue();}});
-
     }
     
     static class WindowDisplayAction extends AbstractAction
