@@ -71,7 +71,7 @@ public class IMSCP {
     }
     
     public InputStream getResource(String fileName) throws ZipException, IOException{
-       return getContent(RESOURCE_FILES+"/"+fileName);
+       return getContent(RESOURCE_FILES+File.separator+fileName);
     }
     
     public File getFile() throws IOException {
