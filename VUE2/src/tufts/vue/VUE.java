@@ -361,8 +361,12 @@ public class VUE
         ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("Imap");
         SVGConversion svgAction = new SVGConversion("SVG");
+<<<<<<< VUE.java
+        PrintAction printAction = new PrintAction("Print");
+=======
         
 
+>>>>>>> 1.24
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);
@@ -373,6 +377,7 @@ public class VUE
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
         toolBar.add(svgAction);
+        toolBar.add(printAction);
         toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
