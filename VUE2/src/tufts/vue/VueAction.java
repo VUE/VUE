@@ -39,8 +39,12 @@ public class VueAction extends javax.swing.AbstractAction
         this(name, null, null, null);
     }
 
-    // todo: should be able to get rid of this flag: undo manager
-    // now just does nothing if it detected no changes
+    /** undoable: the undo manager already won't bother to create an
+     * undo action if it didn't detect any changes.  This method is
+     * here as a backup just in case we know for sure we don't even
+     * want to talk to the undo manager during an action, such as the
+     * undo actions.
+     */
     boolean undoable() { return true; }
 
     public String getActionName()
@@ -121,18 +125,22 @@ public class VueAction extends javax.swing.AbstractAction
         }
     }
 
-    /** note that overriding this will not update the action's enabled
-     * state based on what's in the selection -- you need to use
-     * enabledFor(LWSelection s) for that -- it gets called whenever
-     * the selection changes and will update the actions enabled
-     * state based on the return value.
+    /** Note that overriding enabled() will not update the action's enabled
+     * state based on what's in the selection -- you need to subclass
+     * Actions.LWCAction and override enabledFor(LWSelection s) for
+     * that -- it gets called whenever the selection changes and will
+     * update the actions enabled state based on what it returns.  If
+     * you want an action to update it's enabled state based on any
+     * other VUE application state, all enabled states are updated
+     * after every action is performed, but if you need more than
+     * that, the action will need it's own listener for whatever event
+     * it's interested in.
      */
     boolean enabled() { return VUE.openMapCount() > 0; }
 
     void act() {
         System.err.println("Unhandled VueAction: " + getActionName());
     }
-    void Xact() {}// for commenting convenience
 
     public String toString() { return "VueAction[" + getActionName() + "]"; }
 }

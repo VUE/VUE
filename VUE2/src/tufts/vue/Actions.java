@@ -47,14 +47,12 @@ class Actions
     
     static final Action SelectAll =
         new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
-            boolean undoable() { return false; }
             public void act() {
                 VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque().iterator());
             }
         };
     static final Action DeselectAll =
         new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
-            boolean undoable() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             public void act() {
                 VUE.getSelection().clear();
@@ -94,7 +92,7 @@ class Actions
     static final Action HierarchyView = 
         new LWCAction("Hierarchy View")
         {
-            boolean undoable() { return false; }
+
             public void act()
             {
                 LWNode rootNode = (LWNode)(VUE.getSelection().get(0));
@@ -802,7 +800,7 @@ class Actions
         new VueAction("Close", keyStroke(KeyEvent.VK_W, COMMAND))
         {
             // todo: listen to map viewer display event to tag
-            // with currently displayed map name\
+            // with currently displayed map name
             boolean undoable() { return false; }
             public void act() {
                 VUE.closeMap(VUE.getActiveMap());
@@ -874,21 +872,18 @@ class Actions
             public void act() {
                 ZoomTool.setZoomBigger(null);
             }
-            boolean undoable() { return false; }
         };
     static final Action ZoomOut =
         new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, COMMAND+SHIFT)) {
             public void act() {
                 ZoomTool.setZoomSmaller(null);
             }
-            boolean undoable() { return false; }
         };
     static final Action ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT)) {
             public void act() {
                 ZoomTool.setZoomFit();
             }
-            boolean undoable() { return false; }
         };
     static final Action ZoomActual =
         new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
@@ -897,7 +892,6 @@ class Actions
             public void act() {
                 ZoomTool.setZoom(1.0);
             }
-            boolean undoable() { return false; }
         };
 
 
@@ -1082,31 +1076,3 @@ class Actions
     }
     
 }
-
-
-
-
-                /*
-                  Cut.act(LWSelection)
-                // todo perf: if want to be risky & hairy,
-                // could do all this instead:
-                ScratchBuffer.clear();
-                // we can put the originals into the scratch
-                // buffer in the case of Cut, but need to
-                // make sure nobody is listening to them, and
-                // manually remove them from the map.
-                // This is different than doing a "Delete"
-                Iterator i = selection.iterator();
-                while (i.hasNext()) {
-                    LWComponent c = (LWComponent) i.next();
-                    c.getParent().removeChild(c);
-                    c.removeAllLWCListeners();
-                    // will also need to disconnect all link
-                    // connections that pass over the "selection"
-                    // boundry of what's in and out ... not
-                    // worth the hassle when we can just Copy
-                    // then Delete
-                    ScratchBuffer.add(c);
-                }
-                VUE.getSelection().clear();
-                */
