@@ -18,20 +18,11 @@
 
 package tufts.vue;
 
-import tufts.vue.shape.*;
-
+import tufts.vue.shape.RectangularPoly2D;
+import java.util.Iterator;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.font.TextLayout;
-
 import javax.swing.ImageIcon;
-import javax.swing.border.LineBorder;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JTextArea;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  *

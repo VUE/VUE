@@ -250,6 +250,8 @@ public class ActionUtil {
             // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
             //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
+
+            /*
             marshaller.setMarshalListener(new MarshalListener() {
                     public boolean preMarshal(Object o) {
                         System.out.println(" preMarshal " + o.getClass().getName() + " " + o);
@@ -259,6 +261,7 @@ public class ActionUtil {
                         System.out.println("postMarshal " + o.getClass().getName() + " " + o);
                     }
                 });
+            */
 
             //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
