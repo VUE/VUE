@@ -20,6 +20,9 @@ import tufts.vue.action.ActionUtil;
 
 public class ImageMap extends AbstractAction {
     
+    private int xOffset, yOffset;
+    private LWMap map;
+    private double scale = 1.0;
     /** Creates a new instance of ImageConversion */
     public ImageMap() {
     }
@@ -33,13 +36,25 @@ public class ImageMap extends AbstractAction {
     private void createJpeg(String location, String format, MapViewer currentMap, Dimension size)
     {     
         BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-        Graphics g = mapImage.getGraphics();
-        g.setClip(0, 0, size.width, size.height);
-        currentMap.paintComponent(g);
+        this.map = currentMap.getMap();
+        Graphics2D g = (Graphics2D) mapImage.getGraphics();
+         g.setColor(Color.WHITE);
+        g.fillRect(0, 0, size.width, size.height);
+        g.setColor(Color.BLACK);
+        g.drawRect(0, 0, size.width-1, size.height-1);
+        //g.drawRect(xOffset, yOffset, size.width+xOffset- 1, size.height+yOffset - 1);
+       
         
-        g.setColor(Color.black);
-        g.drawRect(0, 0, size.width - 1, size.height - 1);
+         g.translate(-xOffset, -yOffset);
+        g.setClip(0, 0, size.width, size.height);
+       //currentMap.paintComponent(g);
+        
             
+        DrawContext dc = new DrawContext(g, scale);
+             // render the map
+            map.draw(dc);
+           
+        
         try
         {
             System.out.println(location);
@@ -74,8 +89,12 @@ public class ImageMap extends AbstractAction {
         MapViewer currentMap = VUE.getActiveViewer();
         
         Rectangle2D bounds = currentMap.getAllComponentBounds();
-        int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
-        Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
+        xOffset = (int)bounds.getX(); 
+        yOffset = (int)bounds.getY();
+        System.out.println("bounds are " + xOffset + ", " + yOffset);
+        
+        //Dimension size = new Dimension((int)bounds.getWidth() + xOffset, (int)bounds.getHeight() + yOffset);
+        Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
             
         /**
             JFileChooser chooser = new JFileChooser();
@@ -124,12 +143,19 @@ public class ImageMap extends AbstractAction {
               out += computeImageMapArea((LWContainer)node);
             
             String shape = "rect";
-            String label = node.getLabel();
+            String altLabel = null;
+            
+            if ((altLabel = node.getNotes()) == null)
+              altLabel = "No Notes";
+            
             String res = "";
-            int ox = (int)node.getX();
-            int oy = (int)node.getY();
+            int ox = (int)node.getX() -  xOffset;
+            int oy = (int)node.getY() -  yOffset;
+            //int ox = (int)node.getX();
+            //int oy = (int)node.getY();
             int ow = (int)node.getWidth();
             int oh = (int)node.getHeight();
+            
             String href = "";
             
             if(node.getResource() != null){
@@ -143,7 +169,7 @@ public class ImageMap extends AbstractAction {
             else href = "href=\"" + res + "\"";
             
             out += "<area " + href
-                +" alt=\""+label
+                +" alt=\""+ altLabel
                 +"\" shape=\""+shape
                 +"\" coords=\""+ox
                 +","+oy
