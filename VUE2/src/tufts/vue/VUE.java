@@ -259,11 +259,15 @@ public class VUE
         toolPanel = new JPanel();
         //JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        //DRBrowser drBrowser = new DRBrowser();
-        DRBrowser drBrowser = null;
-        if (args.length < 1 || !args[0].equals("-nodr"))
-            toolPanel.add(drBrowser = new DRBrowser(), BorderLayout.CENTER);
-        toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
+       DRBrowser drBrowser = new DRBrowser();
+        //DRBrowser drBrowser = null;
+        if (args.length < 1 || !args[0].equals("-nodr"))  {
+            toolPanel.add( new DRBrowser(), BorderLayout.CENTER);
+			}
+			        
+        // DEMO FIX:
+        // no lwinspector in left
+        //toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
 
         JSplitPane splitPane = new JSplitPane();
         splitPane.setResizeWeight(0.25); // 25% space to the left component
