@@ -21,8 +21,7 @@ import tufts.vue.*;
 public class ImageMap extends AbstractAction {
     
     private int xOffset, yOffset;
-    private LWMap map;
-    private double scale = 1.0;
+   
     /** Creates a new instance of ImageConversion */
     public ImageMap() {
     }
@@ -33,6 +32,7 @@ public class ImageMap extends AbstractAction {
         putValue(Action.SHORT_DESCRIPTION,label);        
     }
     
+    /* this method is not used anymore
     private void createJpeg(String location, String format, LWMap currentMap, Dimension size)
     {     
         BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
@@ -63,6 +63,7 @@ public class ImageMap extends AbstractAction {
             System.out.println("Couldn't write to the file:" + e);
         }
     }
+    */
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
        System.out.println("Performing Conversion for ImageMap:" + actionEvent.getActionCommand());
@@ -82,45 +83,14 @@ public class ImageMap extends AbstractAction {
     }
 
     public void createImageMap(File file)
-    {
-        LWMap currentMap = VUE.getActiveMap();
-        
-        Rectangle2D bounds = currentMap.getBounds();
-        xOffset = (int)bounds.getX(); 
-        yOffset = (int)bounds.getY();
-        Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
-            
-        /**
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Save Image Map File");
-            if(VueUtil.isCurrentDirectoryPathSet()) 
-                chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-                
-            int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-                
-            if (option == JFileChooser.APPROVE_OPTION) {
-                String fileName = chooser.getSelectedFile().getAbsolutePath();
-                String imageLocation = fileName; 
-                String imageName = chooser.getSelectedFile().getName();
-                if(imageName.endsWith(".html")){
-                    imageName = imageName.substring(0, imageName.length()-5)+".jpeg";
-                    imageLocation = imageLocation.substring(0, imageLocation.length()-5)+".jpeg";
-                }else{
-                    imageName += ".jpeg";
-                    imageLocation += ".jpeg";
-                    fileName += ".html";
-                }
-                createJpeg(imageLocation, "jpeg", currentMap, size);
-                createHtml(imageName, fileName, currentMap, size);
-            }
-           **/
-        
+    {    
        String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".jpeg";
        String imageName = file.getName().substring(0, file.getName().length()-5)+".jpeg";
        String fileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".html";
        
-       createJpeg(imageLocation, "jpeg", currentMap, size);
-       createHtml(imageName, fileName, currentMap, size);
+       //createJpeg(imageLocation, "jpeg", currentMap, size);
+       new ImageConversion().createJpeg(new File(imageLocation));
+       createHtml(imageName, fileName);
     }
     
     private String computeImageMapArea(LWContainer container)
@@ -173,7 +143,13 @@ public class ImageMap extends AbstractAction {
         return out;
     }
     
-    private void createHtml(String imageName, String fileName, LWMap currentMap, Dimension size){
+    private void createHtml(String imageName, String fileName){
+        
+        LWMap currentMap = VUE.getActiveMap();   
+        Rectangle2D bounds = currentMap.getBounds();
+        xOffset = (int)bounds.getX(); 
+        yOffset = (int)bounds.getY();
+        Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
         
         String out = "<HTML><HEAD><TITLE>" + currentMap.getLabel();
         out += "</TITLE></HEAD><BODY>";
