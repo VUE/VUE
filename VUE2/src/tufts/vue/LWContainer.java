@@ -30,6 +30,7 @@ public abstract class LWContainer extends LWComponent
             id = Integer.parseInt(idStr);
         } catch (Exception e) {
             System.err.println(e + " invalid ID: '" + idStr + "'");
+            e.printStackTrace();
         }
         return id;
     }
@@ -69,14 +70,13 @@ public abstract class LWContainer extends LWComponent
             try {
                 String ep1ID = l.getEndPoint1_ID();
                 String ep2ID = l.getEndPoint2_ID();
-                if (ep1ID != null)
-                    l.setEndPoint1(topLevelContainer.findChildByID(ep1ID));
-                if (ep2ID != null)
-                    l.setEndPoint2(topLevelContainer.findChildByID(ep2ID));
+                if (ep1ID != null) l.setEndPoint1(topLevelContainer.findChildByID(ep1ID));
+                if (ep2ID != null) l.setEndPoint2(topLevelContainer.findChildByID(ep2ID));
             } catch (Exception e) {
                 e.printStackTrace();
-                System.err.println("*** removing bad link " + l);
-                i.remove();
+                System.err.println("*** bad link? " + l);
+                // we can now have links without endpoints
+                //i.remove();
             }
         }
     }
@@ -88,6 +88,10 @@ public abstract class LWContainer extends LWComponent
         Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (c.getID() == null) {
+                System.err.println("*** FOUND LWC WITH NULL ID " + c + " (reparent to fix)");
+                continue;
+            }
             int curID = idStringToInt(c.getID());
             if (curID > maxID)
                 maxID = curID;
@@ -99,6 +103,7 @@ public abstract class LWContainer extends LWComponent
         }
         return maxID;
     }
+        
     /** for use during restore */
     protected void setChildParentReferences()
     {
@@ -126,7 +131,7 @@ public abstract class LWContainer extends LWComponent
      */
     public boolean hasChildren()
     {
-        return this.children.size() > 0;
+        return children != null && children.size() > 0;
     }
     public ArrayList getChildList()
     {
@@ -188,6 +193,14 @@ public abstract class LWContainer extends LWComponent
         return list;
     }*/
 
+    protected String getNextUniqueID()
+    {
+        if (getParent() == null)
+            throw new IllegalStateException("LWContainer needs a parent subclass of LWContainer that implements getNextUniqueID: " + this);
+        else
+            return getParent().getNextUniqueID();
+    }
+
     protected void addChildInternal(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
@@ -203,6 +216,9 @@ public abstract class LWContainer extends LWComponent
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
+
+        if (c.getID() == null)
+            c.setID(getNextUniqueID());
     }
 
     public void addChild(LWComponent c)
@@ -585,6 +601,9 @@ VueAction: Zoom 100% n=1
         //System.out.println("bringToFront " + c);
         children.remove(idx);
         children.add(c);
+        // we layout the parent because a parent node will lay out
+        // it's children in the order they appear in this list
+        c.getParent().layout();
         return true;
     }
     boolean sendToBack(LWComponent c)
@@ -596,6 +615,7 @@ VueAction: Zoom 100% n=1
         //System.out.println("sendToBack " + c);
         children.remove(idx);
         children.add(0, c);
+        c.getParent().layout();
         return true;
     }
     boolean bringForward(LWComponent c)
@@ -607,6 +627,7 @@ VueAction: Zoom 100% n=1
             return false;
         //System.out.println("bringForward " + c);
         swap(idx, idx + 1);
+        c.getParent().layout();
         return true;
     }
     boolean sendBackward(LWComponent c)
@@ -617,6 +638,7 @@ VueAction: Zoom 100% n=1
             return false;
         //System.out.println("sendBackward " + c);
         swap(idx, idx - 1);
+        c.getParent().layout();
         return true;
     }
 
@@ -686,6 +708,8 @@ VueAction: Zoom 100% n=1
 
             // fudge clip bounds to deal with anti-aliasing
             // edges that are being missed.
+            // TODO: so this is growing every time we descend into
+            // a container?  We only want to do this at the LWMap level...
             clipBounds.grow(1,1);
             
             /*if (false) {

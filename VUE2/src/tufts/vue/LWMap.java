@@ -17,6 +17,7 @@ import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Graphics2D;
+import java.io.File;
 
 public class LWMap extends LWContainer
     implements ConceptMap
@@ -25,6 +26,7 @@ public class LWMap extends LWContainer
     private float userOriginX;
     private float userOriginY;
     private double userZoom = 1;
+    private File file;
     
     private LWPathwayManager manager = null;
     
@@ -45,6 +47,17 @@ public class LWMap extends LWContainer
         setLabel(label);
         manager = new LWPathwayManager(this);
     }
+
+    public void setFile(File file)
+    {
+        this.file = file;
+        setLabel(file.getName());
+    }
+
+    public File getFile()
+    {
+        return this.file;
+    }
     
     public LWPathwayManager getPathwayManager(){ 
         return manager;
@@ -56,7 +69,7 @@ public class LWMap extends LWContainer
     }
     
     private int nextID = 1;
-    private String getNextUniqueID()
+    protected String getNextUniqueID()
     {
         return Integer.toString(nextID++, 10);
     }
@@ -91,19 +104,20 @@ public class LWMap extends LWContainer
             return c;
     }
     
-    /**
+    /*
      * Because this is where we set the ID's, all brand new nodes
      * should be going through this addChild -- this means that new
      * nodes should always be created as children of the top level
      * map, and never as children of any other LWContainer (e.g., a
-     * LWGroup or LWNode)
-     */
+     * LWGroup or LWNode) -- Okay -- now getNextUniqueID is
+     * on LWContainer...
     public void addChild(LWComponent c)
     {
         super.addChild(c);
         if (c.getID() == null)
             c.setID(getNextUniqueID());
     }
+    */
     
     /** for viewer to report user origin sets via pan drags */
     void setUserOrigin(float x, float y)
