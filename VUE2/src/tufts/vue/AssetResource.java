@@ -23,7 +23,10 @@ import java.io.*;
 import java.net.*;
 
 import javax.swing.*;
-/** Rssource implementation for Fedora Assets **/
+
+/** *  A wrapper for Fedora Object implementation of osid.dr.Asset which can be used as the user object in a 
+ *  DefaultMutableTreeNode.  It implements the Resource interface specification.
+ */
 
 public class AssetResource extends MapResource{
     
@@ -109,28 +112,30 @@ public class AssetResource extends MapResource{
     public CastorFedoraObject getCastorFedoraObject() {
         return this.castorFedoraObject;
     }
-     public static AbstractAction getFedoraAction(osid.dr.InfoRecord infoRecord,osid.dr.DigitalRepository dr) throws osid.dr.DigitalRepositoryException {
-         final DR mDR = (DR)dr;
-         final tufts.oki.dr.fedora.InfoRecord mInfoRecord = (tufts.oki.dr.fedora.InfoRecord)infoRecord;
+    
+    //todo:menu will be generated in AssetResource.
+    public static AbstractAction getFedoraAction(osid.dr.InfoRecord infoRecord,osid.dr.DigitalRepository dr) throws osid.dr.DigitalRepositoryException {
+        final DR mDR = (DR)dr;
+        final tufts.oki.dr.fedora.InfoRecord mInfoRecord = (tufts.oki.dr.fedora.InfoRecord)infoRecord;
         
         try {
             AbstractAction fedoraAction = new AbstractAction(infoRecord.getId().getIdString()) {
                 public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
                     try {
-                      //String fedoraUrl = mDR.getFedoraProperties().getProperty("url.fedora.get","http://vue-dl.tccs..tufts.edu:8080/fedora/get");
-                      String fedoraUrl = mInfoRecord.getInfoField(new PID(FedoraUtils.getFedoraProperty(mDR, "DisseminationURLInfoPartId"))).getValue().toString();
-                      URL url = new URL(fedoraUrl);
-                      URLConnection connection = url.openConnection();
-                      System.out.println("FEDORA ACTION: Content-type:"+connection.getContentType()+" for url :"+fedoraUrl);
-                      
-                      VueUtil.openURL(fedoraUrl);
-                     } catch(Exception ex) {  } 
+                        //String fedoraUrl = mDR.getFedoraProperties().getProperty("url.fedora.get","http://vue-dl.tccs..tufts.edu:8080/fedora/get");
+                        String fedoraUrl = mInfoRecord.getInfoField(new PID(FedoraUtils.getFedoraProperty(mDR, "DisseminationURLInfoPartId"))).getValue().toString();
+                        URL url = new URL(fedoraUrl);
+                        URLConnection connection = url.openConnection();
+                        System.out.println("FEDORA ACTION: Content-type:"+connection.getContentType()+" for url :"+fedoraUrl);
+                        
+                        VueUtil.openURL(fedoraUrl);
+                    } catch(Exception ex) {  }
                 }
-
+                
             };
             return fedoraAction;
         } catch(Exception ex) {
             throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraAction "+ex.getMessage());
-        } 
+        }
     }
 }
