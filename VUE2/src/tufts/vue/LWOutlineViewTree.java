@@ -61,7 +61,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
                 {
                     LWTreeNode treeNode = (LWTreeNode)tree.getLastSelectedPathComponent();
         
-                    if (treeNode == null) 
+                    if (treeNode == null || treeNode.getUserObject() instanceof String) 
                       selectedComponent = null;
 
                     else
@@ -336,9 +336,12 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
         
         catch (NullPointerException exc) {}
        
-        //changes the node's label and sets it as a new object of the tree node
-        selectedComponent.setLabel(treeNode.toString());
-        treeNode.setUserObject(selectedComponent);
+        if(treeNode != (LWTreeNode)tree.getModel().getRoot())
+        {
+            //changes the node's label and sets it as a new object of the tree node
+            selectedComponent.setLabel(treeNode.toString());
+            treeNode.setUserObject(selectedComponent);
+        }
         
         //VUE.getActiveViewer().repaint();
     }

@@ -14,33 +14,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class LWTreeNode extends DefaultMutableTreeNode 
 {
-    private boolean isLink;
-    
     /** Creates a new instance of LWTreeNode */
-    public LWTreeNode(LWNode node) 
-    {
-        super(node);
-        isLink = false;
-    }
-    
-    public LWTreeNode(LWLink link)
-    {
-        super(link);
-        isLink = true;
-    }
-    
     public LWTreeNode(LWComponent component)
     {
         super(component);
-        
-        if (component instanceof LWLink)
-            isLink = true;
     }
     
     public LWTreeNode(String label)
     {
         super(label);
-        isLink = false;
     }
     
     public String toString() 
