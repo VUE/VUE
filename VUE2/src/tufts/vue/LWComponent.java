@@ -66,8 +66,8 @@ public class LWComponent
     private boolean mIsFiltered = false;
     private NodeFilter nodeFilter = null;
     
-    protected float width = 10;
-    protected float height = 10;
+    protected float width = 9;
+    protected float height = 9;
 
     protected Color fillColor = null;           //style
     protected Color textColor = COLOR_TEXT;     //style
@@ -200,6 +200,15 @@ public class LWComponent
         
         return c;
     }
+
+    protected String getNextUniqueID()
+    {
+        if (getParent() == null)
+            throw new IllegalStateException("LWComponent needs a parent subclass of LWContainer that implements getNextUniqueID: " + this);
+        else
+            return getParent().getNextUniqueID();
+    }
+    
 
     // Below is last minute hacked in code by Scott Bresnahan
     // that needs to be re-implemented if we're going to use it.
@@ -374,7 +383,6 @@ public class LWComponent
         layout();
         notify(LWKey.Resource, old);
     }
-   
 
     public void setResource(String urn)
     {
