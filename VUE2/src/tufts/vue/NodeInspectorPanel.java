@@ -217,6 +217,8 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                         
                         
                         tree = new OutlineViewTree();
+                        tree.setBorder(new EmptyBorder(4,4,4,4));
+                        
                         //panelLabel = new JLabel();
                         
 			mTreeScrollPane = new JScrollPane(tree);
@@ -227,7 +229,6 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 		
                         //add(panelLabel, BorderLayout.NORTH);
                         add(mTreeScrollPane, BorderLayout.CENTER);
-			//add( mTreeScrollPane );
 		}
 		
 		
