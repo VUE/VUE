@@ -240,7 +240,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         noteLabelPanel.add(pathLabel = new JLabel(""));
         noteLabelPanel.add(pathElementLabel = new JLabel(""));
         pathLabel.setFont(smallBoldFont);
-        pathElementLabel.setFont(smallBoldFont);
+        pathElementLabel.setFont(smallFont);
         pathElementLabel.setForeground(Color.red.darker());
 
         JPanel notesPanel = new JPanel(new BorderLayout(0,0));
@@ -487,12 +487,12 @@ public class PathwayPanel extends JPanel implements ActionListener
             path_backward.setEnabled(!atFirst);
             path_forward.setEnabled(!atLast);
             path_last.setEnabled(!atLast);
-            btnElementUp.setEnabled(!atFirst);
-            btnElementDown.setEnabled(!atLast);
+            //btnElementUp.setEnabled(!atFirst);
+            //btnElementDown.setEnabled(!atLast);
         } else {
             PlayerAction.setAllEnabled(false);
-            btnElementUp.setEnabled(false);
-            btnElementDown.setEnabled(false);
+            //btnElementUp.setEnabled(false);
+            //btnElementDown.setEnabled(false);
         }
         btnPathwayLock.setEnabled(pathway != null);
     }

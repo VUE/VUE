@@ -158,15 +158,15 @@ public class LWComponent
         return this.labelBox;
     }
     
-    public void setNotes(String notes)
+    public void setNotes(String pNotes)
     {
         Object old = this.notes;
-        if (notes == null) {
+        if (pNotes == null) {
             this.notes = null;
         } else {
-            String trimmed = notes.trim();
+            String trimmed = pNotes.trim();
             if (trimmed.length() > 0)
-                this.notes = trimmed;
+                this.notes = pNotes;
             else
                 this.notes = null;
         }

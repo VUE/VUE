@@ -337,7 +337,7 @@ public class UndoManager
     {
         UndoAction newUndoAction = new UndoAction(name, mUndoSequence);
         if (DEBUG.UNDO) System.out.println(this + " marked " + mChangeCount + " property changes as " + newUndoAction);
-        mUndoSequence = new LinkedList();
+        mUndoSequence = new ArrayList();
         mComponentChanges.clear();
         mLastEvent = null;
         mChangeCount = 0;
