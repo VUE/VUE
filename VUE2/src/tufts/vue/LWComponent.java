@@ -1401,8 +1401,18 @@ public class LWComponent
     
     public void setHidden(boolean hidden)
     {
+        Object oldValue = new Boolean(this.hidden);
         this.hidden = hidden;
+        notify("hidden", oldValue);
     }
+
+    public Boolean getXMLhidden() {
+        return hidden ? Boolean.TRUE : null;
+    }
+    public void setXMLhidden(Boolean b) {
+        setHidden(b.booleanValue());
+    }
+    
     public boolean isHidden()
     {
         return this.hidden || isFiltered();

@@ -220,15 +220,15 @@ public class PathwayTable extends JTable
                     fireEditingStopped();
                 } else { 
                     currentColor = colorChooser.getColor();
-                    if(currentColor != null){
+                    if (currentColor != null){
                         int row = getSelectedRow();
-                        if(row == -1)
+                        if (row == -1)
                             row = lastSelectedRow;
-                        if(row != -1){
+                        if (row != -1){
                             getTableModel().setValueAt(currentColor, row, 1);
-                            getTableModel().fireChanged(this);
+                            //getTableModel().fireChanged(this);
                             //getTableModel().fireTableDataChanged(new TableModelEvent(this));
-                            VUE.getActiveViewer().repaint();//todo: handle via event
+                            //VUE.getActiveViewer().repaint();//todo: handle via event
                         }
                     }               
                 }

@@ -260,14 +260,14 @@ public class PathwayPanel extends JPanel implements ActionListener, MapViewer.Li
                     // thus we add it here manually (already slow and a hack to do this every
                     // key press -- should do it on focus loss instead)
                     String text = notesArea.getText() + e.getKeyChar();
-                    boolean updateIcon = false;
+                    //boolean updateIcon = false;
                     if (displayedComponent instanceof LWPathway) {
                         if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
-                        updateIcon = !displayedComponent.hasNotes();
+                        //updateIcon = !displayedComponent.hasNotes();
                         displayedComponent.setNotes(text);
                     } else {
                         if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
-                        updateIcon = (displayedComponentPathway.getElementNotes(displayedComponent) == null);
+                        //updateIcon = (displayedComponentPathway.getElementNotes(displayedComponent) == null);
                         displayedComponentPathway.setElementNotes(displayedComponent, text);                        
                     }
                     //if (updateIcon)

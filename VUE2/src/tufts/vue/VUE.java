@@ -645,11 +645,13 @@ public class VUE
 
     
     public static void setActiveViewer(MapViewer viewer) {
-        if (ActiveViewer == null || viewer.getMap() != ActiveViewer.getMap()) {
+        if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
             ActiveViewer = viewer;
-            java.util.Iterator i = sActiveMapListeners.iterator();
-            while (i.hasNext())
-                ((ActiveMapListener)i.next()).activeMapChanged(viewer.getMap());
+            if (ActiveViewer != null) {
+                java.util.Iterator i = sActiveMapListeners.iterator();
+                while (i.hasNext())
+                    ((ActiveMapListener)i.next()).activeMapChanged(viewer.getMap());
+            }
         } else {
             ActiveViewer = viewer;
         }
@@ -741,7 +743,11 @@ public class VUE
     
     public static void closeMap(LWMap map)
     {
-        if (askSaveIfModified(map)) {
+        // for now, we don't let them close the last open map as we get NPE's
+        // all over the place if there's isn't an active map (we could have
+        // a dummy map as a reasonable hack to solve the problem so everybody
+        // doesn't have to check for a null active map)
+        if (mMapTabsLeft.getTabCount() > 1 && askSaveIfModified(map)) {
             mMapTabsLeft.closeMap(map);
             mMapTabsRight.closeMap(map);
         }
@@ -955,12 +961,20 @@ public class VUE
                 // be sure to clear active viewer -- it was probably us.
                 // If there are other maps open, one of them will shortly get a
                 // focusGained event and set itself to the active viewer.
-                setActiveViewer(null);
+
                 // we might want to force notification even if selection is already empty:
                 // we want all listeners, particularly the actions, to
                 // update in case this is last map open
                 VUE.ModelSelection.clear();
                 //VUE.ModelSelection.clearAndNotify();
+
+                
+                if (mapTabIndex >= 1)
+                    setActiveViewer(getViewerAt(mapTabIndex - 1));
+                else if (getTabCount() > 1)
+                    setActiveViewer(getViewerAt(mapTabIndex + 1));
+                else
+                    setActiveViewer(null); // TODO: this really isn't supported... NPE's everywhere.
             }
             remove(mapTabIndex);
         }

@@ -39,6 +39,7 @@ public class PathwayTableModel extends DefaultTableModel
         fireTableDataChanged();
     }
 
+    /** LWComponent.Listener */
     public void LWCChanged(LWCEvent e)
     {
         if (e.getSource() instanceof LWPathway) {
@@ -58,6 +59,7 @@ public class PathwayTableModel extends DefaultTableModel
         }
     }
 
+    /** VUE.ActiveMapListener */
     public void activeMapChanged(LWMap map)
     {
         if (DEBUG.PATHWAY) System.out.println(this + " activeMapChanged to " + map);
@@ -85,16 +87,6 @@ public class PathwayTableModel extends DefaultTableModel
             //SMF tab.updateControlPanel();
         }
     }
-    
-    /** for PathwayTable */
-    /*
-    LWPathway getCurrentPathway(){
-        if (getPathwayList() != null)
-            return getPathwayList().getActivePathway();
-        else
-            return null;
-    }
-    */
 
     /** for PathwayPanel */
     int getCurrentPathwayIndex(){
@@ -139,15 +131,10 @@ public class PathwayTableModel extends DefaultTableModel
             LWPathway p = (LWPathway) i.next();
             if (row++ == pRow)
                 return -1;
-            //System.out.println("searching pw " + p + " row=" + row);
             if (p.isOpen()) {
-                for (int index = 0; index < p.length(); index++) {
-                    //System.out.println("searching pw " + p + " row=" + row + " sub-index " + pathIndex);
-                    if (row++ == pRow) {
-                        //System.out.println("searching pw " + p + " row=" + row + " sub-index " + pathIndex + " THIS IS ROW " + pRow);
+                for (int index = 0; index < p.length(); index++)
+                    if (row++ == pRow)
                         return index;
-                    }
-                }
             }
         }
         throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
@@ -166,7 +153,11 @@ public class PathwayTableModel extends DefaultTableModel
         return list;
     }
 
-    /** for PathwayTable */
+    /** for PathwayTable
+     * Returns the element at @param pRow, which will
+     * be an LWComponent -- either a LWPathway or an LWComponent
+     * memeber of a pathway.
+     */
     LWComponent getElement(int pRow){
         Iterator i = getPathwayIterator();
         int row = 0;
@@ -185,9 +176,7 @@ public class PathwayTableModel extends DefaultTableModel
         }
         throw new IllegalArgumentException("Couldn't find any element at row " + pRow);
         
-        /* works but slower
-        if (getPathwayList() == null)
-            return null;
+        /* The simple but slow version of getElement:
         return (LWComponent) getList().get(pRow);
         */
     }
@@ -278,6 +267,7 @@ public class PathwayTableModel extends DefaultTableModel
     public void setValueAt(Object aValue, int row, int col){
         if (DEBUG.PATHWAY) System.out.println(this + " setValutAt " + row + "," + col + " " + aValue);
         LWComponent c = getElement(row);
+        boolean changed = true;
         if (c instanceof LWPathway){
             LWPathway p = (LWPathway) c;
 
@@ -292,12 +282,16 @@ public class PathwayTableModel extends DefaultTableModel
             } else if (col == 5) {
                 //p.setLocked(((Boolean)aValue).getBooleanValue()); // proper
                 p.setLocked(!p.isLocked()); // not proper
-            }
-            fireTableDataChanged();
+            } else
+                changed = false;
         } else if (c != null) {
             if (col == 3)
                 c.setLabel((String)aValue);
+            else
+                changed = false;
         }
+        if (changed)
+            fireTableDataChanged();
     }
 
 
@@ -319,12 +313,16 @@ public class PathwayTableModel extends DefaultTableModel
         }
     }
 
+    
+    /** for PathwayTable */
     /*
-    private void setActivePathway(LWPathway p) {
-        getPathwayList().setActivePathway(p);
+    LWPathway getCurrentPathway(){
+        if (getPathwayList() != null)
+            return getPathwayList().getActivePathway();
+        else
+            return null;
     }
     */
-
     
 
 }

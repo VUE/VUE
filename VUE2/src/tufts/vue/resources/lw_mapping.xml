@@ -86,6 +86,9 @@
 		<field name="XMLfont" type="string">
 			<bind-xml name="font" node="element"/>
 		</field>
+		<field name="XMLhidden">
+			<bind-xml name="hidden" node="attribute"/>
+		</field>
 		<field name="strokeWidth" type="float">
 			<bind-xml name="strokeWidth" node="attribute"/>
 		</field>
