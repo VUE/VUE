@@ -89,7 +89,7 @@ public class PathwayTable extends JTable
                     int row = lsm.getMinSelectionIndex();
                     lastSelectedRow = row;
                     int col = getSelectedColumn();
-                    System.out.println("PathwayTable: clicked row "+row+", col "+col);    
+                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: clicked row "+row+", col "+col);    
                     
                     //PathwayTableModel tableModel = pathPanel.getTableModel();
                     // could this have even been null??

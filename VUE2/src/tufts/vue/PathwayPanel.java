@@ -805,7 +805,10 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     public void mapViewerEventRaised(MapViewerEvent e) {
         if ((e.getID() & MapViewerEvent.DISPLAYED) != 0){
             updateControlPanel();
-            parent.repaint();
+            getTableModel().fireTableDataChanged();
+
+            //old:
+            //parent.repaint();
             //this.setPathwayManager();
             //VUE.getPathwayInspector().repaint();
             //System.out.println("Map Viewer Event: "+e.getID());

@@ -80,7 +80,7 @@ public class LWPathway extends LWContainer
 
     private int setIndex(int i)
     {
-        System.out.println(this + " setIndex " + i);
+        if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
         return mCurrentIndex = i;
     }
 
@@ -463,7 +463,7 @@ public class LWPathway extends LWContainer
             dash_phase = 0;
         else
             dash_phase = 0.5f;
-        if (DEBUG.PATHWAY) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
+        if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         
         g.setColor(getStrokeColor());
         LWComponent last = null;
@@ -503,6 +503,7 @@ public class LWPathway extends LWContainer
             if (selected) {
                 g.setStroke(new BasicStroke(strokeWidth*2));
             } else {
+                if (DEBUG.PATHWAY && dc.getIndex() % 2 != 0) dash_phase = c.getStrokeWidth();
                 g.setStroke(new BasicStroke(strokeWidth
                                             , BasicStroke.CAP_BUTT
                                             , BasicStroke.JOIN_BEVEL
