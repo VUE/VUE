@@ -153,6 +153,13 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         LWPathway pathway;
         if ((pathway = this.pathwayManager.getCurrentPathway()) != null)
           setCurrentPathway(pathway);
+        
+        //maybe not necessary
+        else
+        {
+            System.out.println("setting false");
+            Actions.AddPathwayNode.setEnabled(false);   
+        }    
     }
     
     /**Returns the currently associated pathway manager*/
@@ -168,9 +175,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         
         //sets to the first node if there is no current node set
         if ((currentPathway.getCurrent() == null) && (currentPathway.getFirst() != null) )
-            currentPathway.setCurrent(currentPathway.getFirst());
+          currentPathway.getFirst();
         
-        System.out.println("selecting the pathway to be displayed to: " + pathway.getLabel());
         pathwayList.setSelectedItem(pathway);
         
         updateControlPanel();
@@ -222,7 +228,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 nodeLabel.setText(currentElement.getLabel());
           
                 //if it is the first node in the pathway, then disables first and back buttons
-                if (currentPathway.isFirst(currentElement))
+                if (currentPathway.isFirst())
                 {
                     backButton.setEnabled(false);
                     firstButton.setEnabled(false);
@@ -235,7 +241,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 }
           
                 //if it is the last node in the pathway, then disables last and forward buttons
-                if (currentPathway.isLast(currentElement))
+                if (currentPathway.isLast())
                 {
                     forwardButton.setEnabled(false);
                     lastButton.setEnabled(false);
@@ -298,19 +304,19 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     {       
         //moves to the first node of the pathway
         if (e.getSource() == firstButton)
-          currentPathway.setCurrent(currentPathway.getFirst());
+          currentPathway.getFirst();
             
         //moves to the last node of the pathway
         else if (e.getSource() == lastButton)
-          currentPathway.setCurrent(currentPathway.getLast());
+          currentPathway.getLast();
             
         //moves to the next node of the pathway
         else if (e.getSource() == forwardButton)
-          currentPathway.setCurrent(currentPathway.getNext(currentPathway.getCurrent()));
+          currentPathway.getNext();
             
         //moves to the previous node of the pathway
         else if (e.getSource() == backButton)
-          currentPathway.setCurrent(currentPathway.getPrevious(currentPathway.getCurrent()));
+          currentPathway.getPrevious();
             
         //temporarily here
         else if (e.getSource() == removeButton)
@@ -330,23 +336,16 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             {
                 currentPathway = (LWPathway)pathwayList.getSelectedItem();
                 
-                //if (pathwayManager != null)
-                   // pathwayManager.setCurrentPathway(currentPathway);
-                
                 //update the inspector here
                 VUE.getPathwayInspector().setPathway(currentPathway);
-                
+                 
                 updateControlPanel();
             }
             
             //if "no" pathway was selected, then set the current pathway to nothing and updates accordingly
             else if (pathwayList.getSelectedItem().equals(noPathway))
             {
-                System.out.println("selecting empty string");
                 currentPathway = null;
-                
-                //if (pathwayManager != null)
-                   // pathwayManager.setCurrentPathway(currentPathway);
                 
                 //update the inspector here
                 VUE.getPathwayInspector().setPathway(currentPathway);

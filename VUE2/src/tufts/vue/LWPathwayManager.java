@@ -46,11 +46,19 @@ public class LWPathwayManager {
     }
    
     public LWPathway getFirst(){
-        return (LWPathway)pathways.get(0);
+        if (length() != 0)
+            return (LWPathway)pathways.get(0);
+        
+        else
+            return null;
     }
     
     public LWPathway getLast(){
-        return (LWPathway)pathways.get(length() - 1);
+        if (length() != 0)
+            return (LWPathway)pathways.get(length() - 1);
+        
+        else
+            return null;
     }
     
     public int length(){
