@@ -15,7 +15,7 @@ import tufts.vue.action.*;
 public class VUE
     implements VueConstants
 {
-    public static final String CASTOR_XML_MAPPING = Vue2DMap.CASTOR_XML_MAPPING;
+    public static final String CASTOR_XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
 
     public static LWSelection ModelSelection = new LWSelection();
 
@@ -142,8 +142,8 @@ public class VUE
         // Temporary: create example map(s)
         //-------------------------------------------------------
         
-        Vue2DMap map1 = new Vue2DMap("One");
-        Vue2DMap map2 = new Vue2DMap("Two");
+        LWMap map1 = new LWMap("One");
+        LWMap map2 = new LWMap("Two");
 
         installExampleMap(map1);
         installExampleMap(map2);
@@ -233,7 +233,7 @@ public class VUE
         //}
     }
     
-    public static Vue2DMap getActiveMap()
+    public static LWMap getActiveMap()
     {
         return getActiveViewer().getMap();
     }
@@ -248,7 +248,7 @@ public class VUE
         tabbedPane.remove(c);
     }
 
-    public static void displayMap(Vue2DMap map)
+    public static void displayMap(LWMap map)
     {
         System.out.println("VUE.displayMap " + map);
         MapViewer mapViewer = null;
@@ -411,7 +411,7 @@ public class VUE
     }
 
 
-    static void installExampleNodes(Vue2DMap map)
+    static void installExampleNodes(LWMap map)
     {
         map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
         map.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
@@ -425,7 +425,7 @@ public class VUE
         map.addNode(new LWNode("Four"));
     }
     
-    static void installExampleMap(Vue2DMap map)
+    static void installExampleMap(LWMap map)
     {
         /*
          * create some test nodes & links

@@ -382,7 +382,7 @@ public class LWComponent
 
     public boolean isChild()
     {
-        return this.parent != null || parent instanceof Vue2DMap; // todo: kind of a hack
+        return this.parent != null || parent instanceof LWMap; // todo: kind of a hack
     }
     void setParent(LWContainer c)
     {

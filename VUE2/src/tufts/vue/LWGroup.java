@@ -23,7 +23,7 @@ public final class LWGroup extends LWContainer
     /** Set size & location of this group based on LWComponents in selection */
     private LWGroup(java.util.List selection)
     {
-        Rectangle2D bounds = Vue2DMap.getBounds(selection.iterator());
+        Rectangle2D bounds = LWMap.getBounds(selection.iterator());
         super.setSize((float)bounds.getWidth(),
                       (float)bounds.getHeight());
         super.setLocation((float)bounds.getX(),

@@ -105,8 +105,8 @@
 		</field>
 	</class>
 
-	<class name="tufts.vue.Vue2DMap" extends="tufts.vue.LWContainer">
-		<map-to xml="vue2d-map"/>
+	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
+		<map-to xml="LW-MAP"/>
 		<field name="userZoom">
 			<bind-xml name="userZoom"/>
 		</field>

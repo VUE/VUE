@@ -99,7 +99,7 @@ public class LWSelection extends java.util.ArrayList
         if (size() == 0)
             return null;
         // todo opt: cache bounds
-        java.awt.geom.Rectangle2D bounds = Vue2DMap.getBounds(iterator());
+        java.awt.geom.Rectangle2D bounds = LWMap.getBounds(iterator());
         //System.out.println("SELECTION BOUNDS=" + bounds);
         return bounds;
     }

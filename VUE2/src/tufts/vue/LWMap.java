@@ -1,7 +1,7 @@
 package tufts.vue;
 
 /**
- * Vue2DMap.java
+ * LWMap.java
  *
  * This is the core VUE model class -- used for saving
  * and restoring maps to XML.
@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-public class Vue2DMap extends LWContainer
+public class LWMap extends LWContainer
     implements ConceptMap
 {
-    public static final String CASTOR_XML_MAPPING = "vue2d_map.xml";
+    public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
     
     // these for persistance use only
     private float userOriginX;
@@ -27,12 +27,12 @@ public class Vue2DMap extends LWContainer
     
     
     // only to be used during a restore from persisted
-    public Vue2DMap()
+    public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
     }
 
-    public Vue2DMap(String label)
+    public LWMap(String label)
     {
         setLabel(label);
         setID("0");
@@ -185,8 +185,8 @@ public class Vue2DMap extends LWContainer
 
     public java.awt.geom.Rectangle2D getBounds()
     {
-        System.out.println("Vue2DMap getbounds");
-        return Vue2DMap.getBounds(getChildIterator());
+        System.out.println("LWMap getbounds");
+        return LWMap.getBounds(getChildIterator());
     }
     
     /**

@@ -245,7 +245,7 @@ class Actions {
         boolean enabledFor(LWSelection l) { return l.size() >= 2; }
         void act(LWSelection selection)
         {
-            Rectangle2D.Float r = (Rectangle2D.Float) Vue2DMap.getBounds(selection.iterator());
+            Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
             minX = r.x;
             minY = r.y;
             maxX = r.x + r.width;
@@ -352,7 +352,7 @@ class Actions {
             int count = 1;
             public void act()
             {
-                Vue2DMap map = new Vue2DMap("New Map " + count++);
+                LWMap map = new LWMap("New Map " + count++);
                 VUE.displayMap(map);
             }
         };

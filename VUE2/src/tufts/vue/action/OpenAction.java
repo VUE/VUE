@@ -27,7 +27,7 @@ import tufts.vue.*;
 
 public class OpenAction extends AbstractAction
 {
-    final String XML_MAPPING = Vue2DMap.CASTOR_XML_MAPPING;
+    final String XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
 
     /** Creates a new instance of OpenAction */
     public OpenAction() {
@@ -55,7 +55,7 @@ public class OpenAction extends AbstractAction
             
             VUE.activateWaitCursor();
             try {
-                Vue2DMap loadedMap = loadMap(fileName);
+                LWMap loadedMap = loadMap(fileName);
                 VUE.displayMap(loadedMap);
             } finally {
                 VUE.clearWaitCursor();
@@ -64,12 +64,12 @@ public class OpenAction extends AbstractAction
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
 
-    private Vue2DMap loadMap(String filename)
+    private LWMap loadMap(String filename)
     {
         try {
             Unmarshaller unmarshaller = getUnmarshaller();
             if (debug) System.err.println("Unmarshalling from " + filename);
-            Vue2DMap map = (Vue2DMap) unmarshaller
+            LWMap map = (LWMap) unmarshaller
                 .unmarshal(new InputSource(new FileReader(filename)));
             map.completeXMLRestore();
             return map;

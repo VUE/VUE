@@ -15,7 +15,7 @@ import osid.dr.*;
  * MapViewer.java
  *
  * Implements a panel for displaying & interacting with
- * an instance of Vue2DMap.
+ * an instance of LWMap.
  *
  * @author Scott Fraize
  * @version 3/16/03
@@ -36,7 +36,7 @@ public class MapViewer extends javax.swing.JPanel
 
     java.util.List tools = new java.util.ArrayList();
 
-    protected Vue2DMap map;                   // the map we're displaying & interacting with
+    protected LWMap map;                   // the map we're displaying & interacting with
     private MapTextEdit activeTextEdit;          // Current on-map text edit
 
     //-------------------------------------------------------
@@ -63,7 +63,7 @@ public class MapViewer extends javax.swing.JPanel
     private VueTool activeTool;
     ZoomTool zoomTool;
     
-    public MapViewer(Vue2DMap map)
+    public MapViewer(LWMap map)
     {
         super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
@@ -285,7 +285,7 @@ public class MapViewer extends javax.swing.JPanel
         // when switching tabs
     }
 
-    Vue2DMap getMap()
+    LWMap getMap()
     {
         return this.map;
     }
@@ -296,11 +296,11 @@ public class MapViewer extends javax.swing.JPanel
         this.map = null;
     }
     
-    private void loadMap(Vue2DMap map)
+    private void loadMap(LWMap map)
 
     {
         if (map == null)
-            throw new IllegalArgumentException("loadMap: null Vue2DMap");
+            throw new IllegalArgumentException("loadMap: null LWMap");
         if (this.map != null)
             unloadMap();
         this.map = map;
@@ -438,12 +438,11 @@ public class MapViewer extends javax.swing.JPanel
      * for the whole set.  This can't be a ConceptMap method
      * because we don't actually know the component sizes
      * until they're rendered (e.g., font metrics taken into
-     * account, etc). todo: move to vue2dmap
+     * account, etc). todo: have only in LWMap
      */
     public Rectangle2D getAllComponentBounds()
     {
-        return Vue2DMap.getBounds(getMap().getChildIterator());
-        //return getComponentBounds(new VueUtil.GroupIterator(componentList, nodeList, linkList));
+        return LWMap.getBounds(getMap().getChildIterator());
     }
     
     public void setIndicated(LWComponent c)
@@ -1705,7 +1704,7 @@ public class MapViewer extends javax.swing.JPanel
          * create an example map
          */
         //tufts.vue.ConceptMap map = new tufts.vue.ConceptMap("Example Map");
-        tufts.vue.Vue2DMap map = new tufts.vue.Vue2DMap("Example Map");
+        tufts.vue.LWMap map = new tufts.vue.LWMap("Example Map");
         
         /*
          * create the viewer
@@ -1734,7 +1733,7 @@ public class MapViewer extends javax.swing.JPanel
         frame.show();
     }
 
-    static void installExampleNodes(Vue2DMap map)
+    static void installExampleNodes(LWMap map)
     {
         // create some test nodes & links
         LWNode n1 = new LWNode("Test node1");
