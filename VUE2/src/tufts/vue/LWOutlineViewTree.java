@@ -187,6 +187,7 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
                 addedChildTreeNode.add(new LWTreeNode(link));
             }
                
+            //adding anything that the added node contains
             for (Iterator nodeIterator = ((LWNode)addedChild).getNodeIterator(); nodeIterator.hasNext();)
             {
                 LWNode subNode = (LWNode)nodeIterator.next();
