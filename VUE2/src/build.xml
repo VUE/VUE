@@ -1,7 +1,7 @@
 
 <project name="vue" default="vuedemo" basedir=".">
 
-<!-- $Revision: 1.6 $ / $Date: 2004-06-18 19:35:18 $ -->
+<!-- $Revision: 1.7 $ / $Date: 2004-06-23 18:00:52 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -56,6 +56,7 @@
     <pathelement path="${lib.home}/batik.jar"/>
     <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/> 
 <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX - we only need XML-->
+    <pathelement path="${lib.home}/CometOsidImpl.jar"/>
     <pathelement path="${lib.home}/commons-discovery.jar"/>
     <pathelement path="${lib.home}/commons-httpclient.jar"/>
     <pathelement path="${lib.home}/commons-logging.jar"/>
@@ -251,7 +252,7 @@
            optimize="${compile.optimize}">
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/vue/**/*.java"/>
-      <exclude name="tufts/vue/OsidAssetViewer.java"/>
+      <exclude name="tufts/vue/OsidAsset*.java"/>
     </javac>
 
     </target>
