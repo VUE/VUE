@@ -20,7 +20,6 @@ import javax.swing.AbstractAction;
  * @author Scott Fraize
  * @version 6/19/03
  */
-
 class Actions {
     static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
     static final int CTRL = Event.CTRL_MASK;
@@ -97,7 +96,7 @@ class Actions {
             {
                 LWComponent[] array = VUE.ModelSelection.getArray();
                 System.out.println("deleting the current node for the pathway...");
-                //adds the elements to the current pathway associated with the map
+                //deletes the elements to the current pathway associated with the map
                 for (int i = 0; i < array.length; i++)
                     VUE.getPathwayInspector().getPathway().removeElement(array[i]);
 
