@@ -92,34 +92,57 @@ public class LWSelection extends java.util.ArrayList
     }
 
     private Listener[] listener_buf = new Listener[128];
+    private boolean inNotify = false;
     private synchronized void notifyListeners()
     {
         if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
+
+        if (notifyUnderway())
+            return;
         
-        if (DEBUG.SELECTION) System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS");
-        Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
-        int nlistener = listeners.size();
-        long start = 0;
-        for (int i = 0; i < nlistener; i++) {
-            if (DEBUG.SELECTION) System.out.print(this + " notifying: #" + (i+1) + " " + (i<9?" ":""));
-            Listener l = listener_iter[i];
-            try {
-                if (DEBUG.SELECTION) {
-                    System.out.print(l + "...");
-                    start = System.currentTimeMillis();
-                }
-                l.selectionChanged(this);
-                if (DEBUG.SELECTION) {
-                    long delta = System.currentTimeMillis() - start;
-                    System.out.println(delta + "ms");
-                }
-            } catch (Exception ex) {
-                System.err.println(this + " notifyListeners: exception during selection change notification:"
-                                   + "\n\tselection: " + this
-                                   + "\n\tfailing listener: " + l);
-                ex.printStackTrace();
-                //java.awt.Toolkit.getDefaultToolkit().beep();
+        try {
+            inNotify = true;
+        
+            if (DEBUG.SELECTION) {
+                System.out.println("-----------------------------------------------------------------------------");
+                System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS");
             }
+            Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
+            int nlistener = listeners.size();
+            long start = 0;
+            for (int i = 0; i < nlistener; i++) {
+                if (DEBUG.SELECTION) System.out.print(this + " notifying: #" + (i+1) + " " + (i<9?" ":""));
+                Listener l = listener_iter[i];
+                try {
+                    if (DEBUG.SELECTION) {
+                        System.out.print(l + "...");
+                        start = System.currentTimeMillis();
+                    }
+                    l.selectionChanged(this);
+                    if (DEBUG.SELECTION) {
+                        long delta = System.currentTimeMillis() - start;
+                        System.out.println(delta + "ms");
+                    }
+                } catch (Exception ex) {
+                    System.err.println(this + " notifyListeners: exception during selection change notification:"
+                                       + "\n\tselection: " + this
+                                       + "\n\tfailing listener: " + l);
+                    ex.printStackTrace();
+                    //java.awt.Toolkit.getDefaultToolkit().beep();
+                }
+            }
+        } finally {
+            inNotify = false;
+        }
+    }
+
+    private boolean notifyUnderway() {
+        if (inNotify) {
+            new Throwable(this + " attempt to change selection during selection change notification").printStackTrace();
+            java.awt.Toolkit.getDefaultToolkit().beep();            
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -131,6 +154,8 @@ public class LWSelection extends java.util.ArrayList
 
     synchronized void setTo(LWComponent c)
     {
+        if (notifyUnderway())
+            return;
         if (size() == 1 && first() == c)
             return;
         clear0();
@@ -139,12 +164,16 @@ public class LWSelection extends java.util.ArrayList
     
     synchronized void setTo(Iterator i)
     {
+        if (notifyUnderway())
+            return;
         clear0();
         add(i);
     }
      
     synchronized void add(LWComponent c)
     {
+        if (notifyUnderway())
+            return;
         if (!c.isSelected()) {
             add0(c);
             notifyListeners();
@@ -160,6 +189,9 @@ public class LWSelection extends java.util.ArrayList
     /** Make sure all in iterator are in selection & do a single change notify at the end */
     synchronized void add(Iterator i)
     {
+        if (notifyUnderway())
+            return;
+        
         LWComponent c;
         boolean changed = false;
         while (i.hasNext()) {
@@ -176,6 +208,9 @@ public class LWSelection extends java.util.ArrayList
     /** Change the selection status of all LWComponents in iterator */
     synchronized void toggle(Iterator i)
     {
+        if (notifyUnderway())
+            return;
+        
         LWComponent c;
         boolean changed = i.hasNext();
         while (i.hasNext()) {
@@ -192,6 +227,9 @@ public class LWSelection extends java.util.ArrayList
     private synchronized void add0(LWComponent c)
     {
         if (DEBUG.SELECTION) System.out.println(this + " adding " + c);
+
+        if (notifyUnderway())
+            return;
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -212,6 +250,8 @@ public class LWSelection extends java.util.ArrayList
     private synchronized void remove0(LWComponent c)
     {
         if (DEBUG.SELECTION) System.out.println(this + " removing " + c);
+        if (notifyUnderway())
+            return;
         if (!isClone) c.setSelected(false);
         if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
@@ -241,6 +281,8 @@ public class LWSelection extends java.util.ArrayList
     private synchronized boolean clear0()
     {
         if (isEmpty())
+            return false;
+        if (notifyUnderway())
             return false;
         if (DEBUG.SELECTION) System.out.println(this + " clear0");
 
