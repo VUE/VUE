@@ -141,7 +141,7 @@ public class VUE
 
         installExampleMap(map1);
         installExampleMap(map2);
-        //installExampleNodes(map1, mapViewer1);
+        installExampleNodes(map1, mapViewer1);
 
         tabbedPane = new JTabbedPane();        
         tabbedPane.addTab(map1.getLabel(), mapViewer1);
@@ -216,11 +216,19 @@ public class VUE
 
     static void installExampleNodes(ConceptMap map, MapViewer view)
     {
-        view.addLWC(new LWNode(map.addNode(new Node("Oval")), 0)).setFillColor(Color.red);
+        view.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
+        view.addLWC(new LWNode("Circle", 1)).setFillColor(Color.green);
+        view.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
+        view.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
+        view.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
+
+        /*
+          view.addLWC(new LWNode(map.addNode(new Node("Oval")), 0)).setFillColor(Color.red);
         view.addLWC(new LWNode(map.addNode(new Node("Circle")), 1)).setFillColor(Color.green);
         view.addLWC(new LWNode(map.addNode(new Node("Square")), 2)).setFillColor(Color.orange);
         view.addLWC(new LWNode(map.addNode(new Node("Rectangle")), 3)).setFillColor(Color.blue);
         view.addLWC(new LWNode(map.addNode(new Node("Rounded Rectangle")), 4)).setFillColor(Color.yellow);
+        */
     }
     
     static void installExampleMap(ConceptMap map)

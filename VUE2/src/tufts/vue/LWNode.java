@@ -45,9 +45,10 @@ class LWNode extends LWComponent
         setFillColor(COLOR_NODE_DEFAULT);
     }
     
-    LWNode(Node node, int shapeType)
+    // temporary convience
+    LWNode(String label, int shapeType)
     {
-        this(node);
+        this(new Node(label));
         setShape(StandardShapes[shapeType]);
     }
 
