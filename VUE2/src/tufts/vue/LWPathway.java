@@ -19,6 +19,7 @@ public class LWPathway extends tufts.vue.LWComponent
     implements Pathway{
         
     LinkedList nodeList = null;
+    private Node currentNode = null;
     int weight = 1;
     boolean ordered = false;
     Color borderColor = Color.green;
@@ -69,11 +70,17 @@ public class LWPathway extends tufts.vue.LWComponent
     /** adds a node to the 'end' of the pathway */
     public void addNode(Node node) {
         nodeList.add(node);
+        if(currentNode.equals(null)) currentNode = node;
     }
     
     /** adds a node at the specified location within the pathway*/
     public void addNode(Node node, int index){
-        nodeList.add(index, node);
+        if(nodeList.size() >= index){
+            nodeList.add(index, node);
+            if(currentNode.equals(null)) currentNode = node;
+        }else{
+            System.out.println("LWPathway.addNode(node, index), index out of bounds");
+        }
     }
     
     /** adds a node in between two other nodes, if they are adjacent*/
@@ -81,11 +88,15 @@ public class LWPathway extends tufts.vue.LWComponent
         int index1 = nodeList.indexOf(adj1);
         int index2 = nodeList.indexOf(adj2);
         int dif = index1 - index2;
-        if(Math.abs(dif) == 1){
-            if(dif == -1)
-                nodeList.add(index2, node);
-            else
-                nodeList.add(index1, node);
+        if(nodeList.size() >= index1 && nodeList.size() >= index2){
+            if(Math.abs(dif) == 1){
+                if(dif == -1)
+                    nodeList.add(index2, node);
+                else
+                    nodeList.add(index1, node);
+            }
+        }else{
+            System.out.println("LWPathway.addNode(node,adj1,adj2), index out of bounds");
         }
     }
     
@@ -129,6 +140,10 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public Node getLast() {
         return (Node)nodeList.getLast();
+    }
+    
+    public Node getCurrent() {
+        return currentNode;
     }
     
     public boolean isLast(Node node)
@@ -192,6 +207,11 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setNodeList(java.util.List nodeList) {
         this.nodeList = (LinkedList)nodeList;
+        if(nodeList.size() >= 1) currentNode = (Node)nodeList.get(0);
+    }
+    
+    public void setCurrent(Node node){
+        currentNode = node;
     }
     
     public void setOrdered(boolean ordered) {
