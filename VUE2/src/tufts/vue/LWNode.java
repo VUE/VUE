@@ -779,11 +779,11 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         // Draw the indicated border if any
         //-------------------------------------------------------
-        // todo perf: factor out these conditionals
         if (false&&isRollover()) {
             // temporary debug
             //g.setColor(new Color(0,0,128));
             g.setColor(Color.blue);
+            g.draw(drawnShape);
         }
         else if (isIndicated()) {
             // todo: okay, it is GROSS to handle the indication here --
@@ -793,6 +793,7 @@ public class LWNode extends LWContainer
                 g.setStroke(STROKE_INDICATION);
             else
                 g.setStroke(this.stroke);
+            g.draw(drawnShape);
         }
         else if (getStrokeWidth() > 0) {
             //if (LWSelection.DEBUG_SELECTION && isSelected())
@@ -801,9 +802,9 @@ public class LWNode extends LWContainer
             else
                 g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
+            g.draw(drawnShape);
         }
 
-        g.draw(drawnShape);
 
         //-------------------------------------------------------
         // Draw the generated icon
