@@ -61,7 +61,8 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
-        dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
+        //dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
+         dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY,tree);
         addTreeExpansionListener(new TreeExpansionListener(){
             public void treeCollapsed(TreeExpansionEvent e) {}
             public void treeExpanded(TreeExpansionEvent e) {
@@ -85,9 +86,15 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                 TreePath path = e.getPath();
                 if (path.getLastPathComponent() instanceof CabinetNode) {
                     CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
+                  
                     if (cabNode == null) return;
+                    
                     setSelectionPath(path);
-                    cabNode.getDataModel().reload();
+                      
+                   cabNode.getDataModel().reload();
+                 
+                    
+                   
                 }
             }
             public void treeWillCollapse(TreeExpansionEvent e) {}
@@ -159,7 +166,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
        //Object resource = getObject();
        
        Resource resource = oldnode.getResource();
-        
+          
         
         if (resource != null) {
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
@@ -170,12 +177,15 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     }
     
     public void dragDropEnd(DragSourceDropEvent e) {
-        if (e.getDropAction() == DnDConstants.ACTION_MOVE){
-            
+       
+            if (tufts.vue.VUE.dropIsLocal == true){
             DefaultTreeModel model = (DefaultTreeModel)this.getModel();
             
             model.removeNodeFromParent(oldnode);
-        }
+            
+             tufts.vue.VUE.dropIsLocal = false;
+            }
+        
     }
     
     public void dragEnter(DragSourceDragEvent e) { }
@@ -451,7 +461,7 @@ class CabinetNode extends ResourceNode {
      *  Return the cabinet entry associated with this tree node.  If it is a cabinet,
      *  then return it.  Otherwise, return null.
      */
-    private Cabinet getCabinet() {
+    public Cabinet getCabinet() {
         CabinetResource res = (CabinetResource) getUserObject();
         if (res.getEntry() instanceof Cabinet)
             return (Cabinet) res.getEntry();
@@ -633,7 +643,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     
     DataFlavor flavors[] = {DataFlavor.plainTextFlavor,
     DataFlavor.stringFlavor,
-    DataFlavor.plainTextFlavor};
+    DataFlavor.plainTextFlavor, DataFlavor.javaFileListFlavor};
     
     public VueDragTreeNodeSelection(Object resource) {
         addElement(resource);
@@ -663,7 +673,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
         boolean b  = false;
         b |= flavor.equals(flavors[RESOURCE]);
         b |= flavor.equals(flavors[STRING]);
-         //b |= flavor.equals(flavors[FILE]);
+        b |= flavor.equals(flavors[FILE]);
         return (b);
     }
     /**

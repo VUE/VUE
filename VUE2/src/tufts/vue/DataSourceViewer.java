@@ -33,7 +33,7 @@ import org.xml.sax.InputSource;
 
 //
 
-public class DataSourceViewer  extends JPanel{
+public class DataSourceViewer  extends JPanel implements KeyListener{
     /** Creates a new instance of DataSourceViewer */
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
@@ -105,8 +105,7 @@ public class DataSourceViewer  extends JPanel{
                 
             }
         });
-        
-        
+
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));
         questionLabel.setToolTipText("Add or Delete a Data Source");
@@ -114,6 +113,7 @@ public class DataSourceViewer  extends JPanel{
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         topPanel.add(addButton);
         //topPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 0);
+
         topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,0));
         topPanel.add(deleteButton);
         topPanel.add(questionLabel);
@@ -125,9 +125,11 @@ public class DataSourceViewer  extends JPanel{
         dataSourcePanel.add(topPanel,BorderLayout.NORTH);
         
         
+
         JScrollPane jSP = new JScrollPane(dataSourceList);
-        
-        
+
+        dataSourceList.addKeyListener(this);
+
         dataSourcePanel.add(jSP,BorderLayout.CENTER);
         add(dataSourcePanel,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
@@ -1263,4 +1265,25 @@ public class DataSourceViewer  extends JPanel{
         return mDataSources;
         
     }
+    
+    public void keyPressed(KeyEvent e) {
+      
+        if(e.getKeyCode() == 116){
+              
+             refreshDataSourceViewer();
+             
+            
+         }
+   }
+   
+   public void keyReleased(KeyEvent e) {
+       
+   }
+   
+   public void keyTyped(KeyEvent e) {
+       
+        
+       
+   }
+
 }

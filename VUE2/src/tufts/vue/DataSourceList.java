@@ -20,13 +20,14 @@ import java.util.Iterator;
 
 import java.io.*;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.swing.*;
 
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
- import osid.filing.*;
+import osid.filing.*;
 import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
 
@@ -58,15 +59,17 @@ public class DataSourceList extends JList implements DropTargetListener{
     
     public DataSourceList() {
         super(new DefaultListModel());
-        this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);  
+        this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
-       
+        
         breakIcon.setIconWidth(1600);
         breakIcon.setIconHeight(1);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
+                
+                
                 if (((DataSource)value).getType() == DataSource.FAVORITES){
                     setIcon(myFavoritesIcon);
                     this.setPreferredSize(new Dimension(200,20));
@@ -77,23 +80,33 @@ public class DataSourceList extends JList implements DropTargetListener{
                 }
                 else  if (((DataSource)value).getType() == DataSource.BREAK){
                     setIcon(breakIcon);
-                    this.setPreferredSize(new Dimension(200,3));   
+                    
+                    this.setPreferredSize(new Dimension(200,3));
+                    
                 }
                 else{
                     setIcon(remoteIcon);
                     this.setPreferredSize(new Dimension(200,20));
+                    
                 }
+                
+                
                 return this;
                 
             }
             
             
             
-
+            
         };
-         
+        
         this.setCellRenderer(renderer);
     }
+    
+    
+    
+    
+    
     
     public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
@@ -104,38 +117,38 @@ public class DataSourceList extends JList implements DropTargetListener{
     public void dragExit(DropTargetEvent e) {}
     public void dragOver(DropTargetDragEvent e) {}
     
-    public void drop(DropTargetDropEvent e) { 
-        e.acceptDrop(DnDConstants.ACTION_COPY); 
+    public void drop(DropTargetDropEvent e) {
+        e.acceptDrop(DnDConstants.ACTION_COPY);
         int current = this.getSelectedIndex();
         System.out.println("What is the current index " + this.getSelectedIndex());
         int dropLocation = locationToIndex(e.getLocation());
-       this.setSelectedIndex(dropLocation);
+        this.setSelectedIndex(dropLocation);
         
-         
-       DataSource ds = (DataSource)getSelectedValue();
+        
+        DataSource ds = (DataSource)getSelectedValue();
         //DataSource ds =(DataSource)((this.getContents()).getElementAt(dropLocation));
         try {
-        FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
-        
-        
-        VueDandDTree favoritesTree = fw.getFavoritesTree();
-        favoritesTree.setRootVisible(true);
-        DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
-        FavoritesNode rootNode = (FavoritesNode)model.getRoot();
-        
-        
-        //---------------------transferable Business
-        
-        
-        
-        boolean success = false;
-        Transferable transfer = e.getTransferable();
-        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-        
-        String resourceName = null;
-        java.util.List fileList = null;
-        java.util.List resourceList = null;
-        try {
+            FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
+            
+            
+            VueDandDTree favoritesTree = fw.getFavoritesTree();
+            favoritesTree.setRootVisible(true);
+            DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
+            FavoritesNode rootNode = (FavoritesNode)model.getRoot();
+            
+            
+            //---------------------transferable Business
+            
+            
+            
+            boolean success = false;
+            Transferable transfer = e.getTransferable();
+            DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+            
+            String resourceName = null;
+            java.util.List fileList = null;
+            java.util.List resourceList = null;
+            try {
                 if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
                     if (debug) System.out.println("RESOURCE FOUND");
                     resourceList = (java.util.List) transfer.getTransferData(VueDragTreeNodeSelection.resourceFlavor);
@@ -143,52 +156,129 @@ public class DataSourceList extends JList implements DropTargetListener{
                     while(iter.hasNext()) {
                         Resource resource = (Resource) iter.next();
                         
-                          if (resource instanceof CabinetResource){
-                             
-                                     CabinetEntry entry = ((CabinetResource)resource).getEntry();
-                                      CabinetNode cabNode = null;
-                                       if (entry instanceof RemoteCabinetEntry)
-                                                cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.REMOTE);
-                                         else
-                                                 cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.LOCAL);
-                                        cabNode.explore();
-                                        model.insertNodeInto(cabNode, rootNode, 0);
-                                      favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                                    
-                                      favoritesTree.setRootVisible(false);
-                                    }
-                          else{
-                        ResourceNode newNode =new  ResourceNode(resource);
-                          
-                                        model.insertNodeInto(newNode, rootNode, 0);
-                                      favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                                      favoritesTree.setRootVisible(false);
-        
-                          }
+                        if (resource instanceof CabinetResource){
+                            
+                            CabinetEntry entry = ((CabinetResource)resource).getEntry();
+                            CabinetNode cabNode = null;
+                            if (entry instanceof RemoteCabinetEntry)
+                                cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.REMOTE);
+                            else
+                                cabNode = new CabinetNode((CabinetResource)resource, CabinetNode.LOCAL);
+                            
+                            cabNode.explore();
+                            
+                            
+                            model.insertNodeInto(cabNode, rootNode, 0);
+                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                            
+                            favoritesTree.setRootVisible(false);
+                        }
+                        else{
+                            ResourceNode newNode =new  ResourceNode(resource);
+                            
+                            model.insertNodeInto(newNode, rootNode, 0);
+                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                            favoritesTree.setRootVisible(false);
+                            
+                        }
                     }
                 }
+                else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)){
+                    
+                    fileList = (java.util.List)transfer.getTransferData(DataFlavor.javaFileListFlavor);
+                    java.util.Iterator iter = fileList.iterator();
+                    
+                    
+                    while(iter.hasNext()){
+                        
+                        File file = (File)iter.next();
+                        
+                        try{
+                            
+                            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+                            osid.shared.Agent agent = null;
+                            
+                            LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                            
+                            
+                            
+                            CabinetResource res = new CabinetResource(cab);
+                            
+                            
+                            
+                            CabinetEntry entry = res.getEntry();
+                            
+                            CabinetNode cabNode = null;
+                            if (entry instanceof RemoteCabinetEntry)
+                                cabNode = new CabinetNode(res, CabinetNode.REMOTE);
+                            else
+                                
+                                cabNode = new CabinetNode(res, CabinetNode.LOCAL);
+                            
+                            
+                            
+                            if (file.isDirectory())cabNode.explore();
+                            
+                            
+                            model.insertNodeInto(cabNode, rootNode, 0);
+                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                            
+                            
+                            
+                            
+                            favoritesTree.setRootVisible(false);
+                            
+                            
+                            
+                        }catch (Exception EX) {}
+                        
+                    }
+                    
+                }
+                
+                else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)){
+                    
+                    
+                    
+                    String dataString = (String)transfer.getTransferData(DataFlavor.stringFlavor);
+                    
+                    
+                    
+                    Resource resource = new MapResource(dataString);
+                    ResourceNode newNode =new  ResourceNode(resource);
+                    
+                    model.insertNodeInto(newNode, rootNode, 0);
+                    favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                    favoritesTree.setRootVisible(false);
+                    
+                    
+                    
+                    
+                }
+                
+                
             } catch (Exception ex) {
                 ex.printStackTrace();
                 //System.out.println(ex);
                 //continue;
             }
-        
-        
-        e.dropComplete(success);
-        
-        favoritesTree.expandRow(0);
-        favoritesTree.setRootVisible(false);
-        this.setSelectedIndex(current);
-        fw.favoritesPane.setSelectedIndex(2);
-        // VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
-        } catch (Exception ex) { 
+            
+            
+            e.dropComplete(success);
+            
+            favoritesTree.expandRow(0);
+            favoritesTree.setRootVisible(false);
             this.setSelectedIndex(current);
-        
+            fw.favoritesPane.setSelectedIndex(2);
+            // VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
+        } catch (Exception ex) {
+            this.setSelectedIndex(current);
+            
             VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
             
         }
-           
-            
+        
+        
     }
     
     

@@ -50,6 +50,7 @@ public class VUE
     static ToolWindow sMapInspector;
     static ToolWindow objectInspector;
     static ObjectInspectorPanel objectInspectorPanel;
+    static ToolWindow aboutusTool;
     //private static MapInspectorPanel sMapInspectorPanel;
     
     //hierarchy view tree window component
@@ -60,6 +61,7 @@ public class VUE
     
     //public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
+    public static boolean  dropIsLocal = false;
     
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
@@ -889,7 +891,41 @@ public class VUE
         optionsMenu.add(new JMenuItem("Preferences..."));
          */
         
-        helpMenu.add(new JMenuItem("Help"));
+        JMenuItem userGuide = new JMenuItem("User Guide");
+        JMenuItem aboutUs = new JMenuItem("About Us");
+        helpMenu.add(userGuide);
+        helpMenu.add(aboutUs);
+        aboutusTool = new ToolWindow("About Us",tufts.vue.VUE.getInstance());
+        JPanel aboutusPanel = new JPanel();
+        aboutusPanel.setMinimumSize(new Dimension(400,400));
+        JTextArea jtf = new JTextArea("Version # 1.0 \n Created By:  Academic Technology \n Tufts University, Medford, MA \n Copyright@Tufts University 2004\nAll Rights Reserved ",5, 1);
+        aboutusPanel.setLayout(new BorderLayout());
+       
+         aboutusPanel.add(jtf,BorderLayout.CENTER);
+         aboutusTool.addTool(aboutusPanel);
+       
+        userGuide.addActionListener(new ActionListener() {
+               public void actionPerformed(ActionEvent e) 
+               {
+                   
+               try{
+                   VueUtil.openURL("http://vue.tccs.tufts.edu/userdoc/");
+               }catch (Exception EX) {}
+                   
+               }    
+                   
+                       });
+        
+          aboutUs.addActionListener(new ActionListener() {
+               public void actionPerformed(ActionEvent e) 
+               {
+     
+                aboutusTool.setLocation(200,200);
+                aboutusTool.setVisible(true);
+        
+            }
+        });
+        
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(Actions.NewMap);
