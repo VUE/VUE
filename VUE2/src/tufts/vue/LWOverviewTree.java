@@ -59,13 +59,10 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
                     LWTreeNode treeNode = (LWTreeNode)tree.getLastSelectedPathComponent();
         
                     if (treeNode == null) 
-                      return;
+                      selectedNode = null;
 
                     else
-                    {
-                      System.out.println(treeNode.toString());
                       selectedNode = (LWNode)treeNode.getUserObject();
-                    }
                 }
             }
         );
@@ -142,35 +139,18 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
             
                 if (component instanceof LWNode)
                   treeNode.add(setUpOverview((LWNode)component));
-                
-                /*commented out because this was for different implementation
-                else if (component instanceof LWLink)
-                  treeNode.add(new LWTreeNode((LWLink)component));
-                */ 
             } 
         }
         
         return treeNode;
     }
-     
-    /**A method used by VUE to display the tree*/
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction("Overview Tree");
-        
-        return (Action)displayAction;
-    }
     
     public void LWCChanged(LWCEvent e)
     {
-        //System.out.println("event: " + e.toString());
-        
         String message = e.getWhat();
         
         if (message.equals("childAdded")) 
         {
-            System.out.println("adding in overview");
             LWContainer parent = (LWContainer)e.getSource();
             LWTreeNode parentTreeNode;
             
@@ -190,7 +170,6 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
         
         else if (message.equals("childRemoved"))
         {
-            System.out.println("removing in overview");
             LWContainer parent = (LWContainer)e.getSource();
             LWComponent deletedChild = e.getComponent();
             
@@ -219,8 +198,36 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
             ((DefaultTreeModel)tree.getModel()).reload(parentTreeNode);
         }
         
+        else if (message.equals("childrenRemoved"))
+        {
+            
+            LWContainer parent = (LWContainer)e.getSource();
+            LWTreeNode parentTreeNode;
+            
+            if(parent instanceof LWMap)
+              setMap(parent.getChildList(), parent.getLabel());
+            
+            else
+            {
+              parentTreeNode = findLWTreeNode((LWTreeNode)tree.getModel().getRoot(), parent);
+              
+              parentTreeNode.removeAllChildren();
+              
+              for (Iterator i = parent.getChildIterator(); i.hasNext();)
+              {
+                LWComponent component = (LWComponent)i.next();
+            
+                if (component instanceof LWNode)
+                  parentTreeNode.add(setUpOverview((LWNode)component));
+              }
+              
+              ((DefaultTreeModel)tree.getModel()).reload(parentTreeNode);
+            }
+        }
+        
         else if (message.equals("label"))
-          tree.repaint();      
+          tree.repaint();    
+        
     }
     
     public LWTreeNode findLWTreeNode(LWTreeNode treeNode, LWComponent component)
@@ -269,6 +276,7 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
         //changes the node's label and sets it as a new object for the tree node
         selectedNode.setLabel(treeNode.toString());
         treeNode.setUserObject(selectedNode);
+        
         //VUE.getActiveViewer().repaint();
     }
     
@@ -276,6 +284,15 @@ public class LWOverviewTree extends InspectorWindow implements LWComponent.Liste
     public void treeNodesInserted(TreeModelEvent e) {}
     public void treeNodesRemoved(TreeModelEvent e) {}
     public void treeStructureChanged(TreeModelEvent e) {}
+    
+    /**A method used by VUE to display the tree*/
+    public Action getDisplayAction()
+    {
+        if (displayAction == null)
+            displayAction = new DisplayAction("Overview Tree");
+        
+        return (Action)displayAction;
+    }
     
     /**A class which controls the visibility of the tree */
     private class DisplayAction extends AbstractAction
