@@ -4,7 +4,7 @@
  * Created on October 23, 2003, 3:07 PM
  */
 
-package tufts;
+package tufts.oki;
 import osid.OsidOwner;
 
 /**

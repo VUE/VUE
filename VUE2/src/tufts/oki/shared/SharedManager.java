@@ -21,7 +21,7 @@ import osid.shared.SharedException;
  *
  *  @author  Mark Norton
  */
-public class SharedManager extends osid.OsidManager implements osid.shared.SharedManager {
+public class SharedManager extends OsidManager implements osid.shared.SharedManager {
     public static final String SERIALIZED_FILE_NAME = "c:/java/serialized/osid_shared_manager.sid";
     private Vector ids = null;
     private Vector agents = null;
@@ -425,17 +425,4 @@ public class SharedManager extends osid.OsidManager implements osid.shared.Share
     public boolean isRestored() {
         return (restored);
     }    
-    
-    public osid.OsidOwner getOwner() throws osid.OsidException {
-    }
-    
-    public void osidVersion_1_0() throws osid.OsidException {
-    }
-    
-    public void updateConfiguration(java.util.Map map) throws osid.OsidException {
-    }
-    
-    public void updateOwner(osid.OsidOwner osidOwner) throws osid.OsidException {
-    }
-    
 }
