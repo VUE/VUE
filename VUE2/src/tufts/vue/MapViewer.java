@@ -656,10 +656,12 @@ public class MapViewer extends javax.swing.JPanel
         Rectangle cb = g.getClipBounds();
         // paint the background
         g.setColor(getBackground());
+        if (DEBUG_PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
+            System.out.println(this + " paintComponent: clipBounds " + cb);
         g.fillRect(cb.x, cb.y, cb.width, cb.height);
         //g.fillRect(getBounds());
         
-        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this) {
+        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this && hasFocus()) {
             g.setColor(COLOR_ACTIVE_VIEWER);
             g.drawRect(0, 0, getWidth()-1, getHeight()-1);
             g.drawRect(1, 1, getWidth()-3, getHeight()-3);
@@ -2057,6 +2059,15 @@ public class MapViewer extends javax.swing.JPanel
     public void focusLost(FocusEvent e)
     {
         if (DEBUG_FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
+        // todo: if focus is lost but NOT to another map viewer which then
+        // grabs vue app focus, then we repaint here to clear our green
+        // focus border, BUT, we still have application focus..
+
+        // todo: going to have to have a *vue* application focus event
+        // we can listen to so we simply know when any other viewer
+        // grabs the focus from us.  (The vue application focus is
+        // used to determine what viewer all the toolbar menu actions
+        // should act upon)
         repaint();
     }
 
