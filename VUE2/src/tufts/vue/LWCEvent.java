@@ -58,6 +58,13 @@ public class LWCEvent
     public String getWhat() {
         return this.what;
     }
+
+    /**
+     * Return an old value if one was given to us.  As null is a valid
+     * old value, it's distinguished from having no old value set
+     * by the @return value LWCEvent.NO_OLD_VALUE.  Or you can
+     * check for the presence of an old value by calling hasOldValue().
+     */
     public Object getOldValue() {
         return this.oldValue;
     }
