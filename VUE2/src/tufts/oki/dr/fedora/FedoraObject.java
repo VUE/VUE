@@ -168,8 +168,9 @@ public class FedoraObject implements osid.dr.Asset{
      *     @return AssetIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws DigitalRepositoryException if there is a general failure
      */
+ 
     public osid.dr.AssetIterator getAssets() throws osid.dr.DigitalRepositoryException {
-        return new AssetIterator(new java.util.Vector());
+        return new FedoraObjectIterator(new java.util.Vector());
     }
     
     /**     Get an Asset's content.  This method can be a convenience if one is not interested in all the structure of the InfoRecords.
