@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.12 $ / $Date: 2004-09-10 19:44:00 $ -->
+<!-- $Revision: 1.13 $ / $Date: 2004-10-15 22:14:45 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -380,6 +380,10 @@
           description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">
     <!-- echo message="top.dir is ${top.dir}"/ -->
     <echo message="build.class is ${build.class}"/>
+    <antcall target="run-jar-core"/>
+  </target>
+
+  <target name="run-jar-core">
     <jar zipfile="${basedir}/VUE-core.jar" update="true" compress="false" index="true">
       <!--fileset dir="${src}" includes="**/*.xml"/-->
       <fileset dir="${src}" includes="**/*.conf"/>
