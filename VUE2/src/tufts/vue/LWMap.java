@@ -228,7 +228,7 @@ public class LWMap extends LWContainer
 
         if (DEBUG_SCROLL || DEBUG_CONTAINMENT) {
             dc.g.setColor(java.awt.Color.red);
-            dc.g.setStroke(STROKE_ONE);
+            dc.g.setStroke(new java.awt.BasicStroke(1f / (float) dc.g.getTransform().getScaleX()));
             dc.g.draw(getBounds());
         }
         
@@ -336,7 +336,7 @@ public class LWMap extends LWContainer
         if (mCachedBoundsOld) {
             mCachedBounds = getBounds(getChildIterator());
             setFrame(mCachedBounds);
-            System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
+            //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
             if (!DEBUG_SCROLL && !DEBUG_CONTAINMENT)
                 mCachedBoundsOld = false;
         }
