@@ -17,6 +17,7 @@ import java.util.Iterator;
 public abstract class LWIcon extends Rectangle2D.Float
     implements VueConstants
 {
+    private static final float DefaultScale = 0.045f;
     static final Font FONT_ICON = VueResources.getFont("node.icon.font");
     static final Color DefaultColor = new Color(61, 0, 88);
     
@@ -435,7 +436,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private final static float MaxX = 155;
         private final static float MaxY = 212;
 
-        private final static float scale = 0.04f;
+        private final static float scale = DefaultScale;
         private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
 
         private final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
@@ -563,7 +564,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private final static float MaxX = 224;
         private final static float MaxY = 145;
 
-        private final static double scale = 0.04f;
+        private final static double scale = DefaultScale;
         private final static double scaleInv = 1/scale;
 
         private final static Stroke stroke = new BasicStroke((float)(0.5/scale));
@@ -650,7 +651,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private final static float MaxX = 221;
         private final static float MaxY = 114+w;
 
-        private final static double scale = 0.04f;
+        private final static double scale = DefaultScale;
         private final static double scaleInv = 1/scale;
         private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
 
@@ -740,7 +741,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private final static float sMaxX = 194;
         private final static float sMaxY = 155;
 
-        private final static double scale = 0.04f;
+        private final static double scale = DefaultScale;
         private final static double scaleInv = 1/scale;
 
         static float iconWidth = (float) (sMaxX * scale);
@@ -812,7 +813,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         private final static float MaxX = 220;
         private final static float MaxY = 155;
 
-        private final static double scale = 0.04f;
+        private final static double scale = DefaultScale;
         private final static double scaleInv = 1/scale;
 
         private final static Stroke stroke = STROKE_TWO;
