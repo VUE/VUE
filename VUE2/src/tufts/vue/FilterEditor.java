@@ -24,7 +24,7 @@ import java.awt.*;
 import java.util.*;
 import tufts.vue.filter.*;
 
-public class FilterEditor extends JPanel {
+public class FilterEditor extends JPanel  {
     public static final Key keyLabel = new Key("Label", TypeFactory.getStringType());
     public static final Key keyAnywhere = new Key("Anywhere", TypeFactory.getStringType());
     public static final Key keyNotes = new Key("Notes", TypeFactory.getStringType());
@@ -39,7 +39,6 @@ public class FilterEditor extends JPanel {
     
     /** Creates a new instance ofFilterEditor */
     public FilterEditor() {
-        
         filterTableModel = new FilterTableModel();
         setFilterEditorPanel();
         
@@ -92,23 +91,15 @@ public class FilterEditor extends JPanel {
         // GRID: addConditionButton
         JButton addButton=new tufts.vue.VueButton("add");
         JButton deleteButton=new tufts.vue.VueButton("delete");
-        
-        
-        
         addButton.addActionListener(new AddButtonListener(filterTableModel));
-        
-        
         // GRID: deleteConditionButton
         deleteButton.setEnabled(false);
         // adding the delete functionality */
         FilterSelectionListener sListener= new  FilterSelectionListener(deleteButton, -1);
         filterTable.getSelectionModel().addListSelectionListener(sListener);
         deleteButton.addActionListener(new DeleteButtonListener(filterTable, sListener));
-        
         filterTable.getColumnModel().getColumn(FilterTableModel.KEY_COL).setCellEditor(new KeyCellEditor());
         filterTable.getColumnModel().getColumn(FilterTableModel.OPERATOR_COL).setCellEditor(new OperatorCellEditor());
-        
-        
         JPanel innerPanel=new JPanel();
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         //innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -116,10 +107,6 @@ public class FilterEditor extends JPanel {
         //bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
-        
-        
-        
-        //innerPanel.add(labelPanel);
         innerPanel.add(bottomPanel);
         innerPanel.add(filterPanel);
         
@@ -131,7 +118,7 @@ public class FilterEditor extends JPanel {
     }
     
     
-    public class FilterTableModel extends AbstractTableModel{
+    public class FilterTableModel extends AbstractTableModel implements MapFilterModel.Listener{
         public static final int KEY_COL = 0;
         public static final int OPERATOR_COL = 1;
         public static final int VALUE_COL = 2;
@@ -150,7 +137,9 @@ public class FilterEditor extends JPanel {
         }
         
         public void setFilters(Vector filters) {
+            tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this); // this is a hack needs to be fixed.  Filtermodel should be aware of map it belongs to
             this.filters = filters;
+            
             fireTableDataChanged();
             
         }
@@ -172,6 +161,9 @@ public class FilterEditor extends JPanel {
             addStatement(stmt);
         }
         
+        public void mapFilterModelChanged(MapFilterModelEvent e) {
+            filterTableModel.fireTableDataChanged();
+        }
         
         public boolean isEditable() {
             return editable;

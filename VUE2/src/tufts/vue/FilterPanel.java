@@ -278,11 +278,11 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             
             if(pMap.getLWCFilter() == null) {
                 pMap.setLWCFilter(new LWCFilter(pMap));
-                System.out.println("Created new filter for map ="+pMap);
+                
             }
             if(pMap.getLWCFilter().getStatements() == null) {
                 pMap.getLWCFilter().setStatements(new Vector());
-                System.out.println("Created new statements ="+pMap.getLWCFilter());
+               
             }
             mFilter = pMap.getLWCFilter();
             filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
