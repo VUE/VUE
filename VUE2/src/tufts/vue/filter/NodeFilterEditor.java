@@ -106,8 +106,8 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         bottomPanel.add(addButton);
         bottomPanel.add(deleteButton);
         //innerPanel.add(labelPanel);
-        innerPanel.add(nodeFilterPanel);
         innerPanel.add(bottomPanel);        
+        innerPanel.add(nodeFilterPanel);
         add(innerPanel);
         //setSize(300, 300);        
         validate();
