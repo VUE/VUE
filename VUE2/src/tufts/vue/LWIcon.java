@@ -840,7 +840,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.hasChildren(); }
 
         void doDoubleClickAction() {
-            //VUE.objectInspectorPanel.activateHierarchyTab();
+            VUE.objectInspectorPanel.activateTreeTab();
             VUE.objectInspector.setVisible(true);
         }
         

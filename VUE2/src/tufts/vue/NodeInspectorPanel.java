@@ -265,19 +265,19 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 	}
 	
 
-	/**
-	 * setTab
-	 * Sets the selected Tab for teh panel to the specifided ObjectInspector panel key
-	 **/
-	public void setTab( int pTabKey) {
-		if( pTabKey == ObjectInspectorPanel.NOTES_TAB ) {
-			mTabbedPane.setSelectedComponent( mNotePanel);
-			}
-		else
-		if( pTabKey == ObjectInspectorPanel.INFO_TAB ) {
-			mTabbedPane.setSelectedComponent( mInfoPanel );
-			}
-	}
+    /**
+     * setTab
+     * Sets the selected Tab for teh panel to the specifided ObjectInspector panel key
+     **/
+    public void setTab( int pTabKey) {
+        if (pTabKey == ObjectInspectorPanel.NOTES_TAB ) {
+            mTabbedPane.setSelectedComponent( mNotePanel);
+        } else if (pTabKey == ObjectInspectorPanel.INFO_TAB ) {
+            mTabbedPane.setSelectedComponent( mInfoPanel );
+        } else if (pTabKey == ObjectInspectorPanel.TREE_TAB ) {
+            mTabbedPane.setSelectedComponent( mTreePanel );
+        }
+    }
 
 
 }

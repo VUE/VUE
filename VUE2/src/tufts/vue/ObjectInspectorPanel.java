@@ -30,8 +30,10 @@ public class ObjectInspectorPanel  extends JPanel
 	// Statics
 	//////////////
 	
-	public static final int INFO_TAB = 0;
-	public static final int NOTES_TAB = 1;
+    // these 3 constants want to be elsewhere
+    public static final int INFO_TAB = 0;
+    public static final int NOTES_TAB = 1;
+    public static final int TREE_TAB = 2;
 	
 	private static final String kNullType = "null";
 	private static final String kNodeType = "node";
@@ -59,7 +61,7 @@ public class ObjectInspectorPanel  extends JPanel
 	
 	
 	/** no selection card **/
-	JPanel mNullCard = null;
+	//JPanel mNullCard = null;
 	
 	/** currentn displayed object panel **/
 	JPanel mCurCard = null;
@@ -87,24 +89,24 @@ public class ObjectInspectorPanel  extends JPanel
 		mCardPanel = new JPanel();
 		mCards = new CardLayout();
 		mCardPanel.setLayout( mCards );
-		
+
+                /*
 		mNullCard = new JPanel();
 		mNullCard.setLayout( new BorderLayout() );
 		mNullCard.add( BorderLayout.CENTER, new JLabel("No Selection"));
+                */
 		
 		mNodeCard = new NodeInspectorPanel();
-		
 		mLinkCard = new LinkInspectorPanel();
-		
 		mAssetCard = new AssetInspectorPanel();
 		
-		mCards.addLayoutComponent( kNullType,  mNullCard);
+		//mCards.addLayoutComponent( kNullType,  mNullCard);
 		mCards.addLayoutComponent( kNodeType,  mNodeCard);
 		mCards.addLayoutComponent( kLinkType,  mLinkCard);
 		mCards.addLayoutComponent( kAssetType,  mAssetCard);
 		
 		add( mCardPanel);
-		setCard( mNullCard);
+		//setCard( mNullCard);
 		//add( BorderLayout.CENTER, mCardPanel);
 	}
 	
@@ -129,43 +131,45 @@ public class ObjectInspectorPanel  extends JPanel
 			repaint();
 			}
 	}
-	/**
-	 * setMap
-	 * Sets the LWMap component and updates teh display
-	 *
-	 * @param pMap - the LWMap to inspect
-	 **/
-	public void setLWComponent( LWComponent pObject) {
+    
+    /**
+     * Set the LWComponent to display
+     **/
+    public void setLWComponent( LWComponent pObject) {
 		
-		// if we have a change in maps... 
-		if( pObject != mObject) {
-			mObject = pObject;
-			
-			if( mObject == null) {
-				debug("  null type");
-				//mCards.show( mCardPanel, kNullType);
-				setCard( mNullCard);
-				}
-			else
-			if( mObject instanceof LWNode ) {
-				debug("  node type selection");
-				mNodeCard.setNode( (LWNode) mObject);
-				//mCards.show( mCardPanel, kNodeType);
-				setCard( mNodeCard);
-				}
-			else
-			if( mObject instanceof  LWLink ) {
-				debug("  link selection");
-				mLinkCard.setLink( (LWLink) mObject);
-				//mCards.show( mCardPanel, kLinkType);
-				setCard( mLinkCard);
-				}
-			else {
-				debug("  unknown selection: "+ pObject.getClass().getName() );
-				}
-			
-			}
-	}
+        // if we have a change in maps... 
+        if (pObject != mObject) {
+            mObject = pObject;
+
+            if (mObject == null) {
+                debug("  null type");
+                //mCards.show( mCardPanel, kNullType);
+                //setCard( mNullCard);
+                if (mCurCard != null)
+                    mCurCard.setEnabled(false);
+                return;
+            }
+            
+            if (mObject instanceof LWNode ) {
+                debug("  node type selection");
+                mNodeCard.setNode( (LWNode) mObject);
+                //mCards.show( mCardPanel, kNodeType);
+                setCard( mNodeCard);
+            }
+            else if (mObject instanceof  LWLink ) {
+                    debug("  link selection");
+                    mLinkCard.setLink( (LWLink) mObject);
+                    //mCards.show( mCardPanel, kLinkType);
+                    setCard( mLinkCard);
+            }
+            else {
+                debug("  unhandled selection: "+ pObject);
+            }
+
+            mCurCard.setEnabled(true);
+            
+        }
+    }
 	
 	
 	/**
@@ -178,22 +182,28 @@ public class ObjectInspectorPanel  extends JPanel
 		
 	}
 	
-	public void activateNotesTab() {
-		if( mCurCard != null) {
-			if( mCurCard instanceof InspectorCard ) {
-				( (InspectorCard) mCurCard).setTab( NOTES_TAB);
-				}
-			}
-	}
-	
-	public void activateInfoTab() {
-		if( mCurCard != null) {
-			if( mCurCard instanceof InspectorCard ) {
-				( (InspectorCard) mCurCard).setTab( INFO_TAB);
-				}
-			}
-	}
-	
+    public void activateNotesTab() {
+        if( mCurCard != null) {
+            if( mCurCard instanceof InspectorCard ) {
+                ( (InspectorCard) mCurCard).setTab( NOTES_TAB);
+            }
+        }
+    }
+    public void activateInfoTab() {
+        if( mCurCard != null) {
+            if( mCurCard instanceof InspectorCard ) {
+                ( (InspectorCard) mCurCard).setTab( INFO_TAB);
+            }
+        }
+    }
+    public void activateTreeTab() {
+        if( mCurCard != null) {
+            if( mCurCard instanceof InspectorCard ) {
+                ( (InspectorCard) mCurCard).setTab( TREE_TAB);
+            }
+        }
+    }
+    
 	//////////////////////
 	// OVerrides
 	//////////////////////
