@@ -17,16 +17,11 @@ import javax.swing.JDialog;
 import javax.swing.JTextField;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.border.LineBorder;
-import java.awt.FlowLayout;
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -62,7 +57,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     public PathwayControl(JFrame parent) 
     {   
         super(parent, "Pathway Control");
-        setSize(450, 300);
+        setSize(450, 120);
         
         currentPathway = null;
         pathwayManager = null;
@@ -293,6 +288,9 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         
         pathwayList.removeItem(oldPathway);
         pathwayManager.removePathway(oldPathway);
+        
+        //updates the inspector
+        VUE.getPathwayInspector().setPathway(null);
     }
     
     /**Reacts to actions dispatched by the buttons*/
@@ -316,10 +314,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             
         //temporarily here
         else if (e.getSource() == removeButton)
-        {
-          System.out.println("remove was pressed");
           removePathway(currentPathway);
-        }
           
         //notifies the change to the panel
         updateControlPanel();
@@ -369,7 +364,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             {
                 System.out.println("adding a new pathway");
                 
-                PathwayDialog dialog = new PathwayDialog(this);
+                PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
                 dialog.show();
                 
                 pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
@@ -430,10 +425,11 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         JButton okButton, cancelButton;
         JTextField textField;
         
-        public PathwayDialog(JDialog dialog)
+        public PathwayDialog(JDialog dialog, Point location)
         {
             super(dialog, "New Pathway Name", true);
             setSize(250, 100);
+            setLocation(location);
             setUpUI();
         }
         

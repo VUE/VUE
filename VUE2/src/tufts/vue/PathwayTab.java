@@ -115,6 +115,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
     }
     
+    public void updateTable()
+    {
+        ((PathwayTableModel)pathwayTable.getModel()).fireTableDataChanged();
+    }
+    
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
@@ -143,6 +148,10 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
              if (selected != -1)
              {
                 ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);
+                
+                //needs to fix this stuff
+                VUE.getPathwayControl().updateControlPanel();
+                
                 submit.setEnabled(false);
              }  
         }        
@@ -198,6 +207,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         }
     }
    
+    /**document listener's methods*/
     public void removeUpdate(javax.swing.event.DocumentEvent documentEvent) 
     {
         if(pathwayTable.getSelectedRow() != -1)
@@ -215,6 +225,8 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
        if(pathwayTable.getSelectedRow() != -1)
          submit.setEnabled(true);
     }
+    
+    /**end of the document listener methods*/
     
     /**
      * @param args the command line arguments
@@ -264,8 +276,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //returns the number of row (nodes of the pathway)
         public synchronized int getRowCount()
         {
-            if(pathway != null) return pathway.length();
-            return 0;
+            if(pathway != null) 
+                return pathway.length();
+            
+            else
+                return 0;
         }
         
         public int getColumnCount()
@@ -306,7 +321,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //adds a row to the table (insertion)
         public synchronized void addRow(Node node)
         {
-            //pathway.addNode(node);
             pathway.addElement((LWComponent)node);
             fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
         }
