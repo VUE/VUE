@@ -462,7 +462,7 @@ public class VUE
         objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
         objectInspectorPanel = new ObjectInspectorPanel();
         ModelSelection.addListener(objectInspectorPanel);
-        sResourceSelection.addListener( objectInspectorPanel);
+        //sResourceSelection.addListener( objectInspectorPanel);
         objectInspector.addTool(objectInspectorPanel);
         
         
