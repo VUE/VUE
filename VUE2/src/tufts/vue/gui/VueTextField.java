@@ -31,8 +31,10 @@ package tufts.vue.gui;
  * @author  akumar03
  */
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
-public class VueTextField extends JTextField{
+public class VueTextField extends JTextField implements MouseListener,FocusListener{
     
     public static final int LENGTH = 42;
     private String longText ="";
@@ -52,6 +54,8 @@ public class VueTextField extends JTextField{
         if(text.length() > LENGTH) {
             super.setText(text.substring(0,LENGTH)+"...");
             super.setEditable(false);
+            this.addMouseListener(this);
+            this.addFocusListener(this);
         }else {
             super.setText(text);
             super.setEditable(true);
@@ -59,6 +63,35 @@ public class VueTextField extends JTextField{
         super.setToolTipText(longText);
         
     }
+    
+    public void mouseClicked(MouseEvent e) {
+        if(longText.length() > LENGTH) {
+            if((e.getButton() == MouseEvent.BUTTON1) && (e.getClickCount() == 2)) {
+                super.setText(longText);
+                super.setEditable(true);
+            }
+        }
+    }
+    
+    public void mouseEntered(MouseEvent e) {
+    }
+    
+    public void mouseExited(MouseEvent e) {
+    }
+    
+    public void mousePressed(MouseEvent e) {
+    }
+    
+    public void mouseReleased(MouseEvent e) {
+    }
+    
+    public void focusGained(FocusEvent e) {
+    }
+    
+    public void focusLost(FocusEvent e) {
+        setText(this.getText());
+    }
+    
 }
 
 
