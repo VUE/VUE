@@ -57,6 +57,7 @@ public class OpenAction extends AbstractAction {
                 .unmarshal(new InputSource(new FileReader(filename)));
         } catch (Exception e) {
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
+            e.printStackTrace();
             return null;
         }
     }
@@ -78,22 +79,10 @@ public class OpenAction extends AbstractAction {
         return this.unmarshaller;
     }
 
-    class VueFileFilter extends javax.swing.filechooser.FileFilter
+    public static void main(String args[])
     {
-        private final String[] extensions = {".vue", ".xml"};
-        public boolean accept(File f)
-        {
-            String lname = f.getName().toLowerCase();
-            for (int i = 0; i < extensions.length; i++)
-                if (lname.endsWith(extensions[i]))
-                    return true;
-            return false;
-        }
-        public String getDescription()
-        {
-            return "VUE Files";
-        }
+        System.err.println("Attempting to read map " + args[0]);
+        new OpenAction().loadMap(args[0]);
     }
 
-    
 }

@@ -39,6 +39,7 @@ public class SaveAction extends AbstractAction {
         Mapping mapping;
         Marshaller marshaller;
         JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new VueFileFilter());
         if(VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         int option = chooser.showSaveDialog(tufts.vue.VUE.frame);
