@@ -345,6 +345,10 @@ public class ActionUtil {
         for (;;) {
             reader.mark(2048);
             line = reader.readLine();
+            if (line == null) {
+                System.err.println("Unexpected end-of-stream in [" + url + "]");
+                throw new java.io.IOException("end of stream in " + url);
+            }
             System.out.println("Top of file[" + line + "]");
             if (!line.startsWith("<!--"))
                 break;

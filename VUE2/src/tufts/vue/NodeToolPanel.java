@@ -41,30 +41,18 @@ public class NodeToolPanel extends LWCToolPanel
 {
     private ShapeMenuButton mShapeButton;
     
-     public NodeToolPanel() {
-         JLabel label = new JLabel("   Node: ");
-         label.setFont(VueConstants.FONT_SMALL);
-         getBox().add(mShapeButton = new ShapeMenuButton(), 0);
-         addPropertyProducer(mShapeButton);
-         getBox().add(label, 0);
-     }
-         
+    public NodeToolPanel() {
+        JLabel label = new JLabel("   Node: ");
+        label.setFont(VueConstants.FONT_SMALL);
+        getBox().add(mShapeButton = new ShapeMenuButton(), 0);
+        mShapeButton.addPropertyChangeListener(this);
+        addPropertyProducer(mShapeButton);
+        getBox().add(label, 0);
+    }
+    
     public static boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-
-    void X_loadValues(Object data) {
-        super.loadValues(data);
-        if (data instanceof LWNode) {
-            if (DEBUG.TOOL) out("loadValues (NodeToolPanel) " + data);
-            LWNode node = (LWNode) data;
-            System.out.println(this + " set the selected shape menu button to " + node.getShape());
-            //mShapeMenuButton.setPropertyValue(...)
-            // and if not save to change above to automatically do the below:
-            //mShapeMenuButton.setButtonIcon(...)
-        }
-    }
-    
     private static class ShapeMenuButton extends MenuButton
     {
         protected RectangularShape mShape; // an instance of the currently selected shape
@@ -74,16 +62,18 @@ public class NodeToolPanel extends LWCToolPanel
             setPropertyKey(LWKey.Shape);
             Action[] actions = NodeTool.getTool().getShapeSetterActions();
 
+            /*
             if (DEBUG.Enabled) {
                 for (int i = 0; i < actions.length; i++) {
                     Action a = actions[i];
                     System.out.println("*** " + a + " " + a.getValue(LWKey.Shape).getClass());
                 }
             }
+            */
             buildMenu(actions);
 
             // start with icon set to that of first item in the menu
-            setButtonIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
+            //setButtonIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
         }
 
         protected Dimension getButtonSize() {
@@ -91,13 +81,11 @@ public class NodeToolPanel extends LWCToolPanel
         }
 
         /** @param o an instance of RectangularShape */
-        public void setPropertyValue(Object o) {
-            if (true||DEBUG.TOOL) System.out.println(this + " setPropertyValue " + o.getClass() + " [" + o + "]");
+        public void setPropertyValue(Object value) {
+            if (true||DEBUG.TOOL) System.out.println(this + " setPropertyValue " + value.getClass() + " [" + value + "]");
 
-            RectangularShape shape = (RectangularShape) o;
-
-            if (mShape == null || !mShape.getClass().equals(shape.getClass())) {
-                mShape = shape;
+            if (mShape == null || !mShape.getClass().equals(value.getClass())) {
+                mShape = (RectangularShape) value;
 
                 // This is inefficent in that we there are already shape icons out there 
                 // (produced in getShapeSetterActions()) that we could use, but doing
@@ -110,13 +98,18 @@ public class NodeToolPanel extends LWCToolPanel
                 // for all the various states the button can take, for a totale of 7 objects
                 // every time we do this (1 for the clone, 1 for proxy, 5 via VueButtonIcon.installGenerated)
                 
-                setButtonIcon(new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone()));
+                setButtonIcon(makeIcon(value));
             }
+        }
+
+        /** @return new icon for the given shape */
+        protected Icon makeIcon(Object value) {
+            RectangularShape shape = (RectangularShape) value;
+            return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
         }
 	 
         /** @return  an instanceof RectangularShape, suitable for cloning & installing as a new node shape via setShape */
         public Object getPropertyValue() {
-            new Throwable("ShapeMenuButton.getPropertyValue").printStackTrace();
             return mShape;
         }
 
@@ -136,6 +129,20 @@ public class NodeToolPanel extends LWCToolPanel
     }
 
 
+    /*
+    void loadValues(Object data) {
+        super.loadValues(data);
+        if (data instanceof LWNode) {
+            if (DEBUG.TOOL) out("loadValues (NodeToolPanel) " + data);
+            LWNode node = (LWNode) data;
+            System.out.println(this + " set the selected shape menu button to " + node.getShape());
+            //mShapeMenuButton.setPropertyValue(...)
+            // and if not save to change above to automatically do the below:
+            //mShapeMenuButton.setButtonIcon(...)
+        }
+    }
+    */
+    
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");
         VUE.initUI(true);

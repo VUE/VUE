@@ -38,10 +38,10 @@ import javax.swing.*;
 **/
 public class VueBeanState implements VueBeanInfo
 {
-    /** the info for this sitate **/
+    /** the info for this state **/
     private VueBeanInfo mInfo = null;
 	
-    /** proeprty values map **/
+    /** property values map **/
     private Map mProperties = new HashMap();
 	
     /** change listeners **/
@@ -82,10 +82,9 @@ public class VueBeanState implements VueBeanInfo
      *
      **/
     public String [] getPropertyNames() {
-        String [] names = null;
-        if( mInfo != null) {
+        String[] names = null;
+        if (mInfo != null)
             names = mInfo.getPropertyNames();
-        }
         return names;
     }	
 
@@ -96,7 +95,9 @@ public class VueBeanState implements VueBeanInfo
      **/
     public VuePropertyDescriptor[] getPropertyDescriptors()  {
         VuePropertyDescriptor [] descs = null;
-        return descs;
+        // nice: this was never even implemented
+        throw new UnsupportedOperationException();
+        //return descs;
     }
 	
     /**
@@ -107,9 +108,15 @@ public class VueBeanState implements VueBeanInfo
         return mProperties.containsKey(pName);
     } 
 
+    /** If a property with the given name is in the state, remove it.
+     * @return the existing property value if there was one, null otherwise
+     */
+    public Object removeProperty(String pName) {
+        return mProperties.remove(pName);
+    }
+
     public VuePropertyDescriptor getPropertyDescriptor( String pName) {
         VuePropertyDescriptor desc = null;
-		
         return desc;
     }
 	
@@ -145,22 +152,28 @@ public class VueBeanState implements VueBeanInfo
      * This method applies teh property VueBeanState to an object
      * @param Object pBean - the object to take the properties
      **/
-    public void applyState(Object pBean) {
-		
-        String[] propertyNames = getPropertyNames();
-        //System.out.println("VueBeanState.applyState: "+ pBean.getClass().getName() );
-        if (DEBUG.TOOL) {
-            System.out.println("VueBeanState.applyState: "+ pBean);
-            //System.out.println("\tnames:  "+ propertyNames);
+    public void applyState(Object pBean)
+    {
+        if (DEBUG.TOOL) System.out.println("VueBeanState.applyState -> " + pBean);
+        Iterator i = mProperties.entrySet().iterator();
+        while (i.hasNext()) {
+            Map.Entry entry = (Map.Entry) i.next();
+            String name = (String) entry.getKey();
+            Object value = entry.getValue();
+            if (DEBUG.TOOL) System.out.println("\t" + name + " <- " + value);
+            VueBeans.setPropertyValue(pBean, name, value);
         }
-        if( propertyNames != null) {
+        /*
+        String[] propertyNames = getPropertyNames();
+        if (propertyNames != null) {
             for (int i = 0; i < propertyNames.length; i++) {
                 String name = propertyNames[i];
                 Object value = getPropertyValue(name);
-                if (DEBUG.TOOL) System.out.println("\t"+name+"="+value);
-                VueBeans.setPropertyValue( pBean, name, value);
+                if (DEBUG.TOOL) System.out.println("\t"+name+" <- "+value);
+                VueBeans.setPropertyValue(pBean, name, value);
             }
         }
+        */
     }
 
 

@@ -108,7 +108,7 @@ public class NodeTool extends VueTool
     
     public boolean handleSelectorRelease(MapMouseEvent e)
     {
-        LWNode node = createNode();
+        LWNode node = createNode("New Node", true);
         node.setAutoSized(false);
         node.setFrame(e.getMapSelectorBox());
         e.getMap().addNode(node);
@@ -131,18 +131,36 @@ public class NodeTool extends VueTool
 
     /**
      * Create a new node with the current default properties.
-     * @param name the name for the new node
+     * @param name the name for the new node, can be null
+     * @param useToolShape if true, shape of node is shape of node tool, otherwise, shape in contextual toolbar
      * @return the newly constructed node
      */
-    public static LWNode createNode(String name)
+    public static LWNode createNode(String name, boolean useToolShape)
     {
         LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
         VueBeanState state = getNodeToolPanel().getCurrentState();
-        if (state != null)
+        if (state != null) {
+            if (useToolShape) {
+                // clear out shape if there is one as node already had it's
+                // shape set based on state of the node tool
+                state.removeProperty(LWKey.Shape);
+            }
             state.applyState(node);
+        }
         node.setAutoSized(true);
         return node;
     }
+    
+    /**
+     * Create a new node with the current default properties
+     * @param name the name for the new node, can be null
+     * @return the newly constructed node
+     */
+    public static LWNode createNode(String name) {
+        return createNode(name, false);
+    }
+
+    
     /** @return a new default node with no label */
     public static LWNode createNode() {
         return createNode(null);
@@ -194,9 +212,20 @@ public class NodeTool extends VueTool
         }
         return actions;
     }
-
-    private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
     
+    /** @return an array of standard supported shapes for nodes */
+    public Object[] getAllShapeValues() {
+        Object[] values = new Object[getSubToolIDs().size()];
+        Enumeration e = getSubToolIDs().elements();
+        int i = 0;
+        while (e.hasMoreElements()) {
+            String id = (String) e.nextElement();
+            NodeTool.SubTool nt = (NodeTool.SubTool) getSubTool(id);
+            values[i++] = nt.getShape();
+        }
+        return values;
+    }
+
     public static class SubTool extends VueSimpleTool
     {
         private Class shapeClass = null;
@@ -219,7 +248,9 @@ public class NodeTool extends VueTool
                 shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon(getShapeInstance())) {
                         void act(LWNode n) { n.setShape(getShapeInstance()); }
                     };
-                shapeSetterAction.putValue(LWKey.Shape, getShapeInstance()); // this may be handy
+                shapeSetterAction.putValue("property.value", getShape()); // this may be handy
+                // Really: MenuButton.ValueKey
+                //shapeSetterAction.putValue(LWKey.Shape, getShape()); // this may be handy
             }
             return shapeSetterAction;
         }

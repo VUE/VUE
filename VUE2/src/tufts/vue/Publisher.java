@@ -607,7 +607,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private String readRawManifest() {
         String s = "";
         try {
-            BufferedInputStream fis = new BufferedInputStream(new FileInputStream(VueResources.getFile("imsmanifest")));
+            BufferedInputStream fis = new BufferedInputStream(VueResources.getURL("imsmanifest").openStream());
             byte[] buf = new byte[BUFFER_SIZE];
             int ch;
             int len;

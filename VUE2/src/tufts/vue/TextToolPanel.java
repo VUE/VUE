@@ -24,6 +24,8 @@ import tufts.vue.beans.*;
 /**
  * TextToolPanel
  * This creates an editor panel for text LWNode's (isTextNode() == true)
+ * This is really a sub-set of an LWCToolPanel: we use only the font
+ * panel and the text color properties.
  */
  
 public class TextToolPanel extends LWCToolPanel
@@ -33,8 +35,8 @@ public class TextToolPanel extends LWCToolPanel
     }
 
     protected void buildBox() {
-        getBox().add(mFontPanel);
-        getBox().add(mTextColorButton);
+        addComponent(mFontPanel);
+        addComponent(mTextColorButton);
     }
      
     protected void initDefaultState() {

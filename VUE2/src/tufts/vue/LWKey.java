@@ -58,6 +58,9 @@ public interface LWKey {
 
     public String Repaint = "repaint"; // general: visual change but no permanent data change
 
-    public String LinkArrows = "link.arrows"; // link arrow state (0,1,2)
+    /** link arrow state: 0=none, 1=start arrow, 2=end arrow, 3=both arrows */
+    public String LinkArrows = "link.arrows";
+    /** link curve state: 0=straight, 1=1 control point (Quadric), 2=2 control points (Cubic) */
+    public String LinkCurves = "link.curves"; 
     
 }

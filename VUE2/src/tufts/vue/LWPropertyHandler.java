@@ -3,7 +3,7 @@ package tufts.vue;
 /**
  * Interface for anythying that is both a property producer & consumer.
  *
- * Intended for gui components that in total represent a SINGLE property, 
+ * Intended for gui components that in total represent a <b>SINGLE</b> property, 
  * indicated by getPropertyKey(), and can provide or set the current
  * property value.  Although property keys are currently always
  * strings, this API is defined using objects in case we decide
@@ -17,7 +17,7 @@ package tufts.vue;
  * represent a single font value (family,size,bold/italic).
  */
 
-// rename LWPropertyHolder or LWPropertyProducer
+// rename LWPropertyHolder or LWPropertyProducer: key is that this is for a SINGLE property holder
 public interface LWPropertyHandler {
 
     /** @return the property key (LWKey) for the property we hold */

@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
 import javax.swing.*;
@@ -49,7 +50,8 @@ public class PathwayTool extends VueSimpleTool
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
         if (DEBUG.TOOL) System.out.println("PATHWAYTOOL " + e);
-        VUE.sMapInspector.showTab("Pathway");
+        if (VUE.sMapInspector != null)
+            VUE.sMapInspector.showTab("Pathway");
     }
 
 
@@ -133,8 +135,10 @@ public class PathwayTool extends VueSimpleTool
 
         
     }
-    
     private static class  PathwayToolPanel extends VueUtil.JPanel_aa {
+        
+        private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
+        
         public PathwayToolPanel() {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             JLabel label = new JLabel("Pathway playback:  ");
@@ -142,6 +146,14 @@ public class PathwayTool extends VueSimpleTool
             add(label);
             JComboBox combo = new JComboBox(new PathwayComboBoxModel());
             combo.setBackground(VueTheme.getVueColor());
+
+            // A total hack so the visible height of the combo-box is squeezed down a bit
+            // Setting the size only appears to work for the width, not the height.
+            combo.setBorder(new MatteBorder(2,0,2,0, ToolbarColor));
+            //combo.setBorder(new EmptyBorder(2,0,2,0)); // so height get's squeezed
+            //combo.setPreferredSize(new Dimension(150, 18));
+            //combo.setSize(new Dimension(150, 18));
+            
             add(combo);
             add(Box.createHorizontalStrut(5));
             JPanel controls = new PathwayPanel.PlaybackToolPanel();

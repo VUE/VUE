@@ -56,9 +56,9 @@ public class VueLWCPropertyMapper
     static final String [] sTextProperties = {  LWKey.TextColor, LWKey.Font };
 												
 	
-    VueBeanInfo mLWCInfo = null;
-    VueBeanInfo mNodeInfo = null;
-    VueBeanInfo mLinkInfo = null;
+    //VueBeanInfo mLWCInfo = null;
+    //VueBeanInfo mNodeInfo = null;
+    //VueBeanInfo mLinkInfo = null;
 	
 	
     //////////////////
@@ -187,7 +187,7 @@ public class VueLWCPropertyMapper
             if (pLWC instanceof LWNode) {
                 // until we have time to clean up all this hairy property code,
                 // treat text nodes just like the LWNode's they really are.
-                if (false && ((LWNode) pLWC).isTextNode())
+                if (((LWNode) pLWC).isTextNode())
                     mPropertyNames = sTextProperties;
                 else
                     mPropertyNames = sNodeProperties;

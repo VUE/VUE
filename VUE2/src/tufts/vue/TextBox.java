@@ -62,14 +62,14 @@ import javax.swing.text.*;
  * upon removal.  Note that users of this class (e.g., LWNode) should
  * not bother to paint it (call draw()) if it's in edit mode
  * (getParent() != null) as the AWT/Swing tree is dealing with that
- * while it's in it's activated edit state.
+ * while it's in its activated edit state.
  *
  * We use a JTextPane because it supports a StyledDocument, which is
  * what we need to be able to set left/center/right aligment for all
  * the paragraphs in the document.  This is a bit heavy weight for our
  * uses right now as we only make use of one font at a time for the whole
  * document (this is the heaviest weight text component in Swing).
- * JTextArea would have worked for us, except it only supports it's
+ * JTextArea would have worked for us, except it only supports its
  * fixed default of left-aligned text.  However, eventually we're
  * probably going to want to suport intra-string formatting (fonts,
  * colors, etc) and so we'll be ready for that, with the exception of

@@ -133,6 +133,13 @@ public class LWNode extends LWContainer
         else
             return super.getPropertyValue(key);
     }
+    public void setProperty(final Object key, Object val)
+    {
+        if (key == LWKey.Shape)
+            _applyShape(val);
+        else
+            super.setProperty(key, val);
+    }
 
     /** Duplicate this node.
      * @return the new node -- will be an exact copy, except for any pathway state from the source node */
@@ -141,7 +148,8 @@ public class LWNode extends LWContainer
         LWNode newNode = (LWNode) super.duplicate();
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
         if (getShape() != null)
-            newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
+            newNode._applyShape(getShape());
+        //newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
 
         newNode.setSize(super.getWidth(), super.getHeight()); // make sure shape get's set with old size
         //else if (getNodeShape() != null) // todo: for backward compat only 
@@ -349,9 +357,17 @@ public class LWNode extends LWContainer
             return false;
     }
 
+    /** Clone the given shape and call setShape.
+     * @param shape - an instance of RectangularShape */
+    private void _applyShape(Object shape) {
+        setShape((RectangularShape)((RectangularShape)shape).clone());
+    }
+
     /**
-     * @param shape a new instance of a shape for us to use
+     * @param shape a new instance of a shape for us to use: should be a clone and not an original
      */
+    // todo: should probably just force a clone of this shape every time for safety
+    // and just eat the wasted shape objects built when doing castor XML restores.
     public void setShape(RectangularShape shape)
     {
         //System.out.println("SETSHAPE " + shape + " in " + this);

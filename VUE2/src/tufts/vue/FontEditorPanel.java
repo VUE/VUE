@@ -313,7 +313,6 @@ public class FontEditorPanel extends Box
  	
     /**
      * @return a Font constructed from the current state of the gui elements
-     *
      **/
     private Font makeFont()
     {

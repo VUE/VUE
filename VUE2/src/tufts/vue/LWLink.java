@@ -132,13 +132,18 @@ public class LWLink extends LWComponent
     {
         if (key == LWKey.LinkArrows)
             return new Integer(getArrowState());
-        return super.getPropertyValue(key);
+        else if (key == LWKey.LinkCurves)
+            return new Integer(getControlCount());
+        else
+            return super.getPropertyValue(key);
     }
 
     public void setProperty(final Object key, Object val)
     {
         if (key == LWKey.LinkArrows)
             setArrowState(((Integer) val).intValue());
+        else if (key == LWKey.LinkCurves)
+            setControlCount(((Integer) val).intValue());
         else
             super.setProperty(key, val);
     }
@@ -354,9 +359,8 @@ public class LWLink extends LWComponent
         Object old = new Integer(curveControls);
         curveControls = newControlCount;
         this.controlPoints = new LWSelection.ControlPoint[2 + curveControls];
-
         endpointMoved = true;
-        notify("link.curve", new Undoable(old) { void undo(int i) { setControlCount(i); }} );
+        notify(LWKey.LinkCurves, old);
     }
 
     /** for persistance */
@@ -408,6 +412,7 @@ public class LWLink extends LWComponent
     public void setCtrlPoint0(Point2D point) {
         setCtrlPoint0((float) point.getX(), (float) point.getY());
     }
+
     public void setCtrlPoint0(float x, float y)
     {
         if (curveControls == 0) {

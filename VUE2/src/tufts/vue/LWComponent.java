@@ -113,25 +113,33 @@ public class LWComponent
     /**
      * Get the named property value from this component.
      * @param key property key (see LWKey)
-     * @return object representing appropriate value
+     * @return object representing appropriate value, or null if none found (note: properties may be null also -- todo: fix)
      */
+    //public static final Object UnsupportedPropertyValue = "<value-of-unsupported-property>";
     public Object getPropertyValue(final Object key)
     {
-        // todo: rest of values
-        
-        if (key == LWKey.FillColor)         return getFillColor();
-        if (key == LWKey.StrokeColor)       return getStrokeColor();
-        if (key == LWKey.TextColor)         return getTextColor();
-        if (key == LWKey.Font)              return getFont();
-        if (key == LWKey.StrokeWidth)       return new Float(getStrokeWidth());
-        if (key == LWKey.Label)             return getLabel();
-        
-        throw new RuntimeException("Unknown property key[" + key + "]");
+        if (key == LWKey.FillColor)     return getFillColor();
+        if (key == LWKey.TextColor)     return getTextColor();
+        if (key == LWKey.StrokeColor)   return getStrokeColor();
+        if (key == LWKey.StrokeWidth)   return new Float(getStrokeWidth());
+        if (key == LWKey.Font)          return getFont();
+        if (key == LWKey.Label)         return getLabel();
+        if (key == LWKey.Notes)         return getNotes();
+        if (key == LWKey.Resource)      return getResource();
+        if (key == LWKey.Location)      return getLocation();
+        if (key == LWKey.Hidden)        return new Boolean(isHidden());
+             
+        if (DEBUG.Enabled) out(this + " note: unsupported property [" + key + "]");
+        //return UnsupportedPropertyValue;
+        return null;
+        //throw new RuntimeException("Unknown property key[" + key + "]");
     }
 
     public void setProperty(final Object key, Object val)
     {
         if (DEBUG.UNDO&&DEBUG.META) out("setProperty [" + key + "] to " + val);
+
+        //if (val == UnsupportedPropertyValue) return;
                                            
              if (key == LWKey.FillColor)        setFillColor( (Color) val);
         else if (key == LWKey.TextColor)        setTextColor( (Color) val);

@@ -175,7 +175,7 @@ public class VueUtil
     {
         System.out.println("openURL_Windows[" + url + "]");
 
-        // On at least Windows 200, %20's don't work when given to url.dll FileProtocolHandler
+        // On at least Windows 2000, %20's don't work when given to url.dll FileProtocolHandler
         
         // Also at least Win2K: file:///C:/foo/bar.html works, but start that with file:/ or file://
         // and it DOES NOT work -- you MUST have the three slashes, OR, you can have NO SLASHES,
@@ -281,7 +281,7 @@ public class VueUtil
             public void remove() { throw new UnsupportedOperationException(); }
         };
 
-    // Single element convience iterator
+    /** Convenience class: proivdes a single element iterator */
     public static class SingleIterator implements java.util.Iterator {
         Object object;
         public SingleIterator(Object o) {
@@ -292,6 +292,8 @@ public class VueUtil
         public void remove() { throw new UnsupportedOperationException(); }
     };
     
+    /** GroupIterator allows you to construct a new iterator that
+     * will aggregate an underlying set of Iterators and/or Collections */
     public static class GroupIterator extends java.util.ArrayList
         implements java.util.Iterator
     {
@@ -300,10 +302,12 @@ public class VueUtil
         
         public GroupIterator() {}
         
+        /** All parameters must be either instances of Iterator or Collection */
         public GroupIterator(Object i1, Object i2)
         {
             this(i1, i2, null);
         }
+        /** All parameters must be either instances of Iterator or Collection */
         public GroupIterator(Object i1, Object i2, Object i3)
         {
             super(3);
@@ -315,6 +319,12 @@ public class VueUtil
                 add(i3);
         }
 
+        /**
+         * Add a new Iterator or Collection to this GroupIterator.  This can only be
+         * done before iteration has started for this GroupIterator.
+         * @param o an Iterator or Collection
+         * @return result of super.add (ArrayList.add)
+         */
         public boolean add(Object o) {
             if (!(o instanceof Collection) &&
                 !(o instanceof Iterator))

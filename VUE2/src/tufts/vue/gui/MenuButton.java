@@ -272,13 +272,23 @@ public abstract class MenuButton extends JButton
         buildMenu(values, null, false); 
     }
 
-    private static final String sValueKey = "prop.value";
+    /** Key for JMenuItem's: a place to store a property value for this menu item */
+    public static final String ValueKey = "property.value";
     
     /**
      * @param values can be property values or actions
      * @param names is optional
      * @param createCustom - add a "Custom" menu item that calls runCustomChooser
      *
+     * The ability to pass in an array of actions is a convenience to create
+     * the needed JMenuItem's using the Action.NAME & Action.SMALL_ICON & MenuButton.ValueKey
+     * values stored in the action. The action is not actually fired when the menu
+     * item is selected (this used to be the case, but no longer).
+     * 
+     * If values are actions, the action's will be expected to value under key
+     * MenuButton.ValueKey representing the value of the object.
+     *
+     * OLD:
      * If values are actions, the default handleValueSelection won't ever
      * do anything as a value wasn't set on the JMenuItem -- it's assumed
      * that the action is handling the value change.  In this case override
@@ -298,15 +308,22 @@ public abstract class MenuButton extends JButton
             
         for (int i = 0; i < values.length; i++) {
             JMenuItem item;
-            if (values[i] instanceof Action)
-                item = new JMenuItem((Action)values[i]);
-            else
+            Object value;
+            Icon icon = null;
+            if (values[i] instanceof Action) {
+                Action a = (Action) values[i];
+                item = new JMenuItem((String) a.getValue(Action.NAME));
+                value = a.getValue(ValueKey);
+                icon = (Icon) a.getValue(Action.SMALL_ICON);
+            } else {
                 item = new JMenuItem();
-            item.putClientProperty(sValueKey, values[i]);
-            Icon icon = makeIcon(values[i]);
+                value = values[i];
+            }
+            item.putClientProperty(ValueKey, value);
+            if (icon == null)
+                icon = makeIcon(value);
             if (icon != null)
-                //item.setIcon(icon);
-                item.setIcon(makeIcon(values[i]));
+                item.setIcon(icon);
             if (names != null)
                 item.setText(names[i]);
             item.addActionListener(menuItemAction);
@@ -337,10 +354,11 @@ public abstract class MenuButton extends JButton
                 setButtonIcon(i);
         }
         if (DEBUG.TOOL) System.out.println("\n" + this + " handleMenuSelection " + e);
-        handleValueSelection(((JComponent)e.getSource()).getClientProperty(sValueKey));
+        handleValueSelection(((JComponent)e.getSource()).getClientProperty(ValueKey));
     }
     
     protected void handleValueSelection(Object newPropertyValue) {
+        if (DEBUG.TOOL) System.out.println(this + " handleValueSelection: newPropertyValue=" + newPropertyValue);
         if (newPropertyValue == null) // could be result of custom chooser
             return;
         // even if we were build from actions, in which case the LWComponents

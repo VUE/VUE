@@ -86,6 +86,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     //    return new ColorUIResource(Color.green);
     //}
 
+    /** Check java impl: how is this different? Border or color I think */
     public static class VueTabbedPaneUI extends MetalTabbedPaneUI {
         public static ComponentUI createUI( JComponent x ) {
             if (DEBUG.Enabled) System.out.println("Creating VueTabbedPaneUI");

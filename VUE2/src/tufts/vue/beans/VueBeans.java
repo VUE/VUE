@@ -164,21 +164,20 @@ public class VueBeans   {
 	}
 
 
-    static public void setPropertyValueForLWSelection(LWSelection pSelection, String pName, Object pValue  ) {
-		
-        if (pSelection == null || pSelection.isEmpty())
+    static public void applyPropertyValueToSelection(LWSelection s, String pName, Object pValue)
+    {
+        if (s == null || s.isEmpty())
             return;
-
-        Iterator it = pSelection.iterator();
-        Object object = null;
+        Iterator i = s.iterator();
         // FIX:  THis may be a bad assumption that the mapper will work for 
         // all items in the selection. [it should apply properties as it can]
-        while (it.hasNext() ) {
-            object = it.next();
-            if (object instanceof LWLink && pName == LWKey.FillColor)
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWLink && pName == LWKey.FillColor)
                 continue;
-            if (tufts.vue.DEBUG.SELECTION) System.out.println("applying " + pName + " to " + object);
-            VueBeans.setPropertyValue( object, pName, pValue);
+            if (tufts.vue.DEBUG.SELECTION) System.out.println("applying " + pName + " to " + c);
+            c.setProperty(pName, pValue);
+            //VueBeans.setPropertyValue(c, pName, pValue);
         }
     }
 }

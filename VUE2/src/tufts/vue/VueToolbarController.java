@@ -517,7 +517,7 @@ public class VueToolbarController
         // we'd have all the functionality we need, and in a much simpler & more effective
         // manner.
         if (panel instanceof LWCToolPanel)
-            ((LWCToolPanel)panel).loadValues(VUE.getSelection());
+            ((LWCToolPanel)panel).loadSelection(VUE.getSelection());
         else {
             if (true||DEBUG.TOOL) System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
         }

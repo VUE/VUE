@@ -156,18 +156,6 @@ public class LWCToolPanel extends JPanel
          mTextColorButton.setToolTipText("Text Color");
          mTextColorButton.addPropertyChangeListener(this);
 
-
-         /*
-         mTextColorButton.setText("");
-         mTextColorButton.setBackground( bakColor);
-         ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-         BlobIcon textBlob = new BlobIcon();
-         textBlob.setOverlay( textIcon );
-         mTextColorButton.setButtonIcon(textBlob);
-         mTextColorButton.setBorderPainted(false);
-         mTextColorButton.setMargin(ButtonInsets);
-         */
-
          //-------------------------------------------------------
          // Font face & size editor
          //-------------------------------------------------------
@@ -244,7 +232,7 @@ public class LWCToolPanel extends JPanel
     }
 
     /** @param c component to add to the box-row.  If an instance of LWPropertyProducer,
-     * also add to out tracking list of these for property updates */
+     * also add to our tracking list of these for property updates */
     public void addComponent(Component c) {
         mBox.add(c);
         if (c instanceof LWPropertyHandler)
@@ -281,77 +269,48 @@ public class LWCToolPanel extends JPanel
         if (source instanceof LWComponent) {
             if (!isPreferredType(source))
                 return;
-            //state = VueBeans.getState(source);
+            state = VueBeans.getState(source);
             if (DEBUG.TOOL) out("loadValues1 (LWCToolPanel) " + state);
         } else if (source instanceof VueBeanState) {
             state = (VueBeanState) source;
             //if (DEBUG.TOOL) out("loadValues2 (LWCToolPanel) " + state);
         }
-        //if (state == null)
-             //    state = mDefaultState;
+
+        if (state == null)
+            mState = mDefaultState;
+        else
+            mState = state;
+
         if (source == null)
-            source = mDefaultState;
- 		
-        mState = state;
-        
-        //new Throwable().printStackTrace();
+            source = mState;
         
         setIgnorePropertyChangeEvents(true);
-
-        //------------------------------------------------------------------
-        // OKAY, COOL: now, really make LWCToolPanel hold an ArrayList
-        // of LWPropertyHanders: change buildBox to addToBox, and in
-        // it check for any LWPropertyHanders (so NodeTool ShapeMenu
-        // MenuButton is picked up) then we can iterate through that
-        // SAME list here as we do below in loadToolValue (change name
-        // to loadSingleValue or something)
-        //
-        // Can we make addToBox take an LWPropertyHander?  It could take
-        // two args I guess, one for Component and one for handler, and
-        // we could just to add(component, handler), and add(handler)
-        // could be a shortcut that throws exception if not also a
-        // Component.
-        // ------------------------------------------------------------------
 
         Iterator i = mPropertyHandlers.iterator();
         while (i.hasNext()) {
             LWPropertyHandler dest = (LWPropertyHandler) i.next();
             copyProperty(source, dest);
         }
-
-        /*
-        copyProperty(source, mFontPanel);
-        copyProperty(source, mTextColorButton);
-        copyProperty(source, mFillColorButton);
-        copyProperty(source, mStrokeColorButton);
-        copyProperty(source, mStrokeButton);
-        */
-
-        /*
-        mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
-          mTextColorButton.loadPropertyValue(state); // until is a MenuButton, might as will pick up property
-          mFillColorButton.loadPropertyValue(state);
-        mStrokeColorButton.loadPropertyValue(state);
-             mStrokeButton.loadPropertyValue(state);
-        */
-
         setIgnorePropertyChangeEvents(false);
     }
 
     private void copyProperty(Object source, LWPropertyHandler dest) {
-        Object propertyKey = dest.getPropertyKey();
-
         if (DEBUG.TOOL) System.out.println(dest + " loading [" + dest.getPropertyKey() + "] from " + source);
-        if (source instanceof VueBeanState) {
-            dest.setPropertyValue( ((VueBeanState)source).getPropertyValue( (String) dest.getPropertyKey()) );
-        } else if (source instanceof LWComponent) {
-            dest.setPropertyValue( ((LWComponent)source).getPropertyValue(dest.getPropertyKey()) );
-        }
+        Object value = null;
+        if (source instanceof VueBeanState)
+            value = ((VueBeanState)source).getPropertyValue(dest.getPropertyKey().toString());
+        else //if (source instanceof LWComponent)
+            value = ((LWComponent)source).getPropertyValue(dest.getPropertyKey());
+
+        if (value != null)
+            dest.setPropertyValue(value);
     }
 
 
     private LWComponent singleSelection = null;
-    void loadValues(LWSelection s) {
+    // currenly only called from VueToolbarController
+    void loadSelection(LWSelection s) {
+        if (DEBUG.Enabled) out("loadSelection " + s);
         if (s.size() == 1) {
             if (singleSelection != null)
                 singleSelection.removeLWCListener(this);
@@ -366,9 +325,6 @@ public class LWCToolPanel extends JPanel
             // todo: if we are to populate the tool bar properties when
             // there's a multiple selection, what do we use?
             loadValues(s.first());
-            //mFillColorButton.setColor(null);
-            //mStrokeColorButton.setColor(null);
-            //mTextColorButton.setColor(null);
         }
 
         if (s.size() != 1 && singleSelection != null) {
@@ -381,16 +337,18 @@ public class LWCToolPanel extends JPanel
         boolean success = false;
         Iterator i = mPropertyHandlers.iterator();
         while (i.hasNext()) {
-            LWPropertyHandler propertyHolder = (LWPropertyHandler) i.next();
-            if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyHolder);
-            if (propertyHolder.getPropertyKey() == propertyKey) {
-                if (DEBUG.TOOL) System.out.println(this + " matched key [" + propertyKey + "] to " + propertyHolder);
-                propertyHolder.setPropertyValue(src.getPropertyValue(propertyKey));
+            LWPropertyHandler propertyProducer = (LWPropertyHandler) i.next();
+            if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
+            if (propertyProducer.getPropertyKey() == propertyKey) {
+                if (DEBUG.TOOL) System.out.println(this + " matched key [" + propertyKey + "] to " + propertyProducer);
+                Object value = src.getPropertyValue(propertyKey);
+                propertyProducer.setPropertyValue(value);
+                mState.setPropertyValue((String) propertyKey, value);
                 success = true;
             }
         }
         if (!success) {
-            if (DEBUG.TOOL) System.out.println(this + " loadToolValue couldn't find LWPropertyHandler for " + propertyKey + " in " + src);
+            if (DEBUG.TOOL) System.out.println(this + " loadToolValue: no LWPropertyHandler for " + propertyKey + " in " + src);
         }
     }
     
@@ -412,6 +370,15 @@ public class LWCToolPanel extends JPanel
     // I think we may ONLY need this if the tool panel cannot actually
     // operate on something that's currently selected.  Is it really useful
     // for the tool panel to even OPERATE if nothing is selected??
+
+    /** This is called when some gui sub-component of the LWCToolPanel
+     * has changed state, indicating a different property value.  We
+     * get this as a PropertyChangeEvent here, apply it as we can to
+     * everything in the LWSelection, and apply the property value to
+     * the current default state reprsented by this tool panel, used
+     * for initializing new LWComponents.
+     */
+    
     public void propertyChange(PropertyChangeEvent e)
     {
         if (mIgnoreEvents) {
@@ -423,22 +390,22 @@ public class LWCToolPanel extends JPanel
         if( !name.equals("ancestor") ) {
             if (DEBUG.TOOL) out("propertyChange: " + name + " " + e);
 	  		
-            VueBeans.setPropertyValueForLWSelection(VUE.getSelection(), name, e.getNewValue());
+            VueBeans.applyPropertyValueToSelection(VUE.getSelection(), name, e.getNewValue());
             if (VUE.getUndoManager() != null)
                 VUE.getUndoManager().markChangesAsUndo(e.getPropertyName());
 
             if (mState != null)
-                mState.setPropertyValue( name, e.getNewValue() );
+                mState.setPropertyValue(name, e.getNewValue());
             else
-                System.out.println("!!! Node ToolPanel mState is null!");
+                out("mState is null");
 
             if (mDefaultState != null)
-                mDefaultState.setPropertyValue( name, e.getNewValue() );
+                mDefaultState.setPropertyValue(name, e.getNewValue());
             else
-                System.out.println("!!! Node ToolPanel mDefaultState is null!");
+                out("mDefaultState is null");
 
         } else {
-            if (DEBUG.TOOL) System.out.println(this + " ignored propertyChange: " + name + " " + e);
+            if (DEBUG.TOOL) System.out.println(this + " ignored ancestor propertyChange: " + e);
         }
 
     }
