@@ -191,15 +191,18 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
-            tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
-            LWComponent component = hierarchyNode.getLWComponent();
+            if (((DefaultMutableTreeNode)value).getUserObject() instanceof tufts.oki.hierarchy.HierarchyNode)
+            {
+                tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
+                LWComponent component = hierarchyNode.getLWComponent();
             
-            if (component instanceof LWNode)
-              setIcon(nodeIcon);
+                if (component instanceof LWNode)
+                  setIcon(nodeIcon);
             
-            else if (component instanceof LWLink)
-              setIcon(linkIcon);
-           
+                else if (component instanceof LWLink)
+                  setIcon(linkIcon);
+            }
+            
             return this;
         }
     }
