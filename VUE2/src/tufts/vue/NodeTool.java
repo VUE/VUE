@@ -214,12 +214,16 @@ public class NodeTool extends VueTool
         private static int sHeight;
 
         static {
-            // Select a width/height that will perfectly center
-            // within the parent button icon.  If parent width
-            // is even, our width should be even, if odd, we
-            // should be odd.  This is independent of the
-            // 50% size of the parent button we're using
-            // as a baseline (before the pixel tweak).
+
+            // Select a width/height that will perfectly center within
+            // the parent button icon.  If parent width is even, our
+            // width should be even, if odd, we should be odd.  This
+            // is independent of the 50% size of the parent button
+            // we're using as a baseline (before the pixel tweak).
+            // This also means if somebody goes to center us in the
+            // parent (ToolIcon), that computation will always have an
+            // even integer result, thus perfectly pixel aligned.
+            
             if (ToolIcon.width % 2 == 0)
                 sWidth = nearestEven(ToolIcon.width / 2);
             else

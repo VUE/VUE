@@ -474,12 +474,12 @@ public abstract class VueTool extends AbstractAction
     class ToolIcon implements Icon
     {
         static final int UP = 0;        // TOOLBAR: unselected/default
-        static final int DOWN = 1;      // TOOLBAR: only while being held down, sometimes (rarely seen)
-        static final int SELECTED = 2;  // TOOLBAR: selected (down)
-        static final int DISABLED = 3;  // unimplemented
-        static final int ROLLOVER = 4;  // TOOLBAR: Rollover
+        static final int DOWN = 1;      // TOOLBAR: only while being held down by a mouse press
+        static final int SELECTED = 2;  // TOOLBAR: selected (after mouse click)
+        static final int DISABLED = 3;  // DISABLED
+        static final int ROLLOVER = 4;  // TOOLBAR: rollover
         static final int MENU = 5;      // SUB-MENU: default (palette menu)
-        static final int MENU_SELECTED = 6; // SUB-MENU: Rollover (palette menu)
+        static final int MENU_SELECTED = 6; // SUB-MENU: rollover (palette menu)
             
         static final int width = 38;
         static final int height = 26;
@@ -569,8 +569,8 @@ public abstract class VueTool extends AbstractAction
                 //g2.draw3DRect(0,0, w-1,h-1, false);
             }
 
-            // now fill the icon
-            if (mIsDown) {
+            // now fill the icon, but don't fill if we're just holding the mouse down
+            if (mIsDown && mType != DOWN) {
                 g2.setPaint(gradient);
                 g2.fillRect(1,1, w-2,h-2);
             }
@@ -584,10 +584,10 @@ public abstract class VueTool extends AbstractAction
                 g2.translate(1,1);
 
             // now draw the actual graphic in the center
-            //int ix = Math.round((w - mRawIcon.getIconWidth()) / 2f);
-            //int iy = Math.round((h - mRawIcon.getIconHeight()) / 2f);
             int ix = (w - mRawIcon.getIconWidth()) / 2;
             int iy = (h - mRawIcon.getIconHeight()) / 2;
+            if (mType == DISABLED)
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             drawGraphic(c, g2, ix, iy);
             if (DEBUG.BOXES) {
                 g2.setColor(Color.red);
@@ -599,6 +599,11 @@ public abstract class VueTool extends AbstractAction
         void drawGraphic(Component c, Graphics2D g, int x, int y)
         {
             mRawIcon.paintIcon(c, g, x, y);
+        }
+
+        public String toString()
+        {
+            return "ToolIcon[" + mType + " " + mRawIcon + "]";
         }
     }
     
