@@ -49,6 +49,8 @@ public class PathwayTable extends JTable
 
     private final boolean showHeaders = true; // sets whether or not table column headers are shown
     private final int[] colWidths = {20,20,13,100,20,20};
+
+    private final Color selectedColor = VueTheme.getTheme().getTextHighlightColor();
     
     public PathwayTable(PathwayTableModel model) {
         super(model);
@@ -252,7 +254,7 @@ public class PathwayTable extends JTable
             if (c instanceof LWPathway){
                 LWPathway p = (LWPathway) c;
                 if (p == VUE.getActivePathway())
-                    this.setBackground(Color.yellow);
+                    this.setBackground(selectedColor);
                 else
                     this.setBackground(bgColor);
                 this.setFont(currentFont);
@@ -310,14 +312,14 @@ public class PathwayTable extends JTable
                 else if (col == 4) {
                     setIcon(bool ? notes : null);
                     if (p == VUE.getActivePathway())
-                        setBackground(Color.yellow);
+                        setBackground(selectedColor);
                     else
                         setBackground(bgColor);
                 }
                 else if (col == 5) {
                     setIcon(bool ? lock : null);
                     if (p == VUE.getActivePathway())
-                        setBackground(Color.yellow);
+                        setBackground(selectedColor);
                     else
                         setBackground(bgColor);
                 }

@@ -7,28 +7,54 @@ import javax.swing.plaf.*;
 class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     implements VueConstants
 {
-    private FontUIResource defaultFont = new FontUIResource(FONT_MEDIUM);
-    private ColorUIResource VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));
+    private static VueTheme singleton;
+    public static VueTheme getTheme() {
+        if (singleton == null)
+            singleton = new VueTheme();
+        return singleton;
+    }
+
+    private VueTheme() {}
+    
+    private FontUIResource fontMedium = new FontUIResource(FONT_MEDIUM);
+    private FontUIResource fontSmall  = new FontUIResource(FONT_SMALL);
+    private FontUIResource fontControl  = new FontUIResource(FONT_MEDIUM);
+    private FontUIResource fontWindowTitle  = new FontUIResource(FixedFont);
+    private FontUIResource fontSubText  = new FontUIResource(FONT_TINY);
+    
+    private ColorUIResource VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));    
+    private ColorUIResource FocusColor = new ColorUIResource(Color.red);
     
     // these are gray in Metal Default Theme
     private ColorUIResource VueSecondary1 = new ColorUIResource(VueColor.darker().darker());
     private ColorUIResource VueSecondary2 = new ColorUIResource(VueColor.darker());
     private ColorUIResource VueSecondary3 = new ColorUIResource(VueColor);
+
+    private ColorUIResource TestColor1 = new ColorUIResource(Color.red);
+    private ColorUIResource TestColor2 = new ColorUIResource(Color.green);
+    private ColorUIResource TestColor3 = new ColorUIResource(Color.blue);
     
     public String getName() {
         return super.getName() + " (VUE)";
     }
     
-    public FontUIResource getMenuTextFont() { return defaultFont;  }
-    public FontUIResource getUserTextFont() { return defaultFont; }
+    public FontUIResource getMenuTextFont() { return fontMedium;  }
+    public FontUIResource getUserTextFont() { return fontSmall; }
     // controls: labels, buttons, tabs, tables, etc.
-    public FontUIResource getControlTextFont() { return defaultFont; }
+    public FontUIResource getControlTextFont() { return fontControl; }
+    public FontUIResource getWindowTitleFont() { return fontWindowTitle; }
+    //public FontUIResource getSubTextFont() { return fontSubText; } // accelerator names
     
     protected ColorUIResource getSecondary1() { return VueSecondary1; }
     protected ColorUIResource getSecondary2() { return VueSecondary2; }
     protected ColorUIResource getSecondary3() { return VueSecondary3; }
     
-
+    //protected ColorUIResource getPrimary1() { return TestColor1; }
+    //protected ColorUIResource getPrimary2() { return TestColor2; }
+    //protected ColorUIResource getPrimary3() { return TestColor3; }
+    
+    //public ColorUIResource getFocusColor() { return FocusColor; }
+    
     //public ColorUIResource getMenuBackground() {
     //    return new ColorUIResource(Color.green);
     //}
@@ -37,6 +63,21 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     {
         table.put("ComboBox.background", Color.white);
         table.put("Button.font", FONT_SMALL);
+        table.put("Label.font", FONT_SMALL);
+        table.put("TitledBorder.font", FONT_MEDIUM.deriveFont(Font.BOLD));
+
+        // From BasicLookAndFeel:
+        table.put("TabbedPane.selected", Color.white); // fill & content border
+        //table.put("TabbedPane.foreground", Color.green); // text color
+        //table.put("TabbedPane.background", Color.red); // ???
+        //table.put("TabbedPane.highlight", Color.red);
+        //table.put("TabbedPane.light", Color.green); // edge border
+        //table.put("TabbedPane.shadow", Color.red); / /???
+        //table.put("TabbedPane.darkShadow", Color.green); // edge border
+        table.put("TabbedPane.focus", Color.white); // annoying focus border: same as selected hides
+        // from MetalLookAndFeel:
+        //table.put("TabbedPane.tabAreaBackground", Color.red); // ???
+        //table.put("TabbedPane.selectHighlight", Color.red); // edge border
         
         //new Throwable("addCustomEntriesToTable " + table).printStackTrace();
 

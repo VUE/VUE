@@ -80,7 +80,7 @@ public class PathwayPanel extends JPanel implements ActionListener
 
         JPanel playbackPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         JLabel playbackLabel = new JLabel("Playback on selected path:  ");
-        playbackLabel.setFont(defaultFont);
+        //playbackLabel.setFont(defaultFont);
         playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
         playbackPanel.add(playbackLabel);
         playbackPanel.add(new PlaybackToolPanel());
@@ -95,22 +95,29 @@ public class PathwayPanel extends JPanel implements ActionListener
         btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
         
         
-        JPanel pathwayMasterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
+        //        JPanel pathwayMasterPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
+        JPanel pathwayMasterPanel = new VueUtil.JPanel_aa() {
                 public void addNotify() {
                     super.addNotify();
+                    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
                     setBackground(new Color(66,76,105));
                     setBorder(new EmptyBorder(2,2,2,4));
 
-                    //JLabel label = new JLabel("Pathways:");
-                    //label.setFont(defaultFont);
-                    //label.setForeground(Color.white);
-                    //label.setBorder(new EmptyBorder(0,0,2,2));
-                    //add(label);
-        
-                    add(btnPathwayCreate);
-                    add(btnPathwayDelete);
-                    add(btnPathwayLock);
                     add(btnPathwayShowOnly);
+                    add(Box.createHorizontalGlue());
+                        
+                    JLabel label = new JLabel("Create Pathways");
+                    label.setFont(boldFont);
+                    label.setForeground(Color.white);
+                    label.setBorder(new EmptyBorder(0,0,2,3));
+                    add(label);
+        
+                    add(Box.createHorizontalStrut(2));
+                    add(btnPathwayCreate);
+                    add(Box.createHorizontalStrut(2));
+                    add(btnPathwayDelete);
+                    add(Box.createHorizontalStrut(2));
+                    add(btnPathwayLock);
                     
                     //JLabel help = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
                     //help.setBackground(altbgColor);
@@ -137,7 +144,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                     setBorder(new EmptyBorder(2,2,2,5));
                     //setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
 
-                    JLabel label = new JLabel("OBJECT to pathway");
+                    JLabel label = new JLabel("Add object to pathway");
                     label.setFont(boldFont);
                     label.setForeground(Color.white);
                     label.setBackground(getBackground());
@@ -180,14 +187,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         tablePanel.add(pathwayMasterPanel);
         
         //-------------------------------------------------------
-        // add pathway element add/remove control panel
-        gc.insets = new Insets(3,0,3,0);
-        gridBag.setConstraints(elementControlPanel, gc);
-        tablePanel.add(elementControlPanel);
-        gc.insets = new Insets(0,0,0,0);
-        
-        //-------------------------------------------------------
         // add the PathwayTable
+        gc.insets = new Insets(0,0,0,0);
         gc.fill = GridBagConstraints.BOTH;
         gc.weighty = 3.0;
         gc.gridheight = 18;
@@ -196,6 +197,12 @@ public class PathwayPanel extends JPanel implements ActionListener
         //tablePane.setBorder(BorderFactory.createMatteBorder(0,1,0,1,Color.gray));
         gridBag.setConstraints(tablePane, gc);
         tablePanel.add(tablePane);
+        
+        //-------------------------------------------------------
+        // add pathway element add/remove control panel
+        gc.insets = new Insets(3,0,3,0);
+        gridBag.setConstraints(elementControlPanel, gc);
+        tablePanel.add(elementControlPanel);
         
         //-------------------------------------------------------
         // Add the selected item text label
@@ -228,7 +235,7 @@ public class PathwayPanel extends JPanel implements ActionListener
 
         JPanel noteLabelPanel = new VueUtil.JPanel_aa();
         JLabel notesLabel = new JLabel(" Notes: ");
-        notesLabel.setFont(smallFont);
+        //notesLabel.setFont(smallFont);
         noteLabelPanel.setLayout(new BoxLayout(noteLabelPanel, BoxLayout.X_AXIS));
         noteLabelPanel.add(notesLabel);
         noteLabelPanel.add(pathLabel = new JLabel(""));
@@ -461,9 +468,11 @@ public class PathwayPanel extends JPanel implements ActionListener
             btnElementAdd.setEnabled(false);
             btnElementRemove.setEnabled(false);
             btnPathwayDelete.setEnabled(false);
+            notesArea.setEnabled(false);
             return;
         }
 
+        notesArea.setEnabled(true);
         btnPathwayDelete.setEnabled(true);
         
         boolean removeDone = false;

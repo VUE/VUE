@@ -274,7 +274,7 @@ public class VUE
         System.out.println("VUE:main");
         
         // Must install theme before any other GUI code or our VueTheme gets ignored
-        MetalLookAndFeel.setCurrentTheme(new VueTheme());
+        MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
 
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         Window splashScreen = null;
