@@ -2874,7 +2874,7 @@ public class MapViewer extends javax.swing.JComponent
 
             // BUTTON1_DOWN_MASK Doesn't appear to be getting set in mac Java 1.4!
             //if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
-            if (e.isShiftDown()) {
+            if (e.isShiftDown() && !e.isControlDown()) {
                 // display debugging features
                 char c = e.getKeyChar();
                 boolean did = true;

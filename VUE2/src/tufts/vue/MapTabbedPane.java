@@ -82,7 +82,6 @@ public class MapTabbedPane extends JTabbedPane
         return title;
     }
 
-    private static final int precision = 1; // max # of digits after decimal place
     private String viewerToTabTitle(MapViewer viewer) {
         String title = mapToTabTitle(viewer.getMap());
 
