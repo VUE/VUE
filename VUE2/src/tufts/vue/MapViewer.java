@@ -2845,9 +2845,9 @@ public class MapViewer extends javax.swing.JPanel
         
         InfoRecordIterator i;
         try {
-            i = (InfoRecordIterator)asset.getInfoRecords();
+            i = asset.getInfoRecords();
             while(i.hasNext()) {
-                  InfoRecord infoRecord = (InfoRecord)i.next();
+                  InfoRecord infoRecord = i.next();
                   JMenu infoRecordMenu = new  JMenu(infoRecord.getId().getIdString());
                   InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
                   while(inf.hasNext()) {

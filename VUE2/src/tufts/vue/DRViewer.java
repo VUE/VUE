@@ -16,7 +16,7 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
-import tufts.dr.fedora.*;
+import tufts.oki.dr.fedora.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import fedora.server.types.gen.*;
@@ -31,9 +31,9 @@ public class DRViewer extends JPanel implements ActionListener {
     JComboBox maxReturns;
     osid.dr.DigitalRepository dr;
     osid.dr.AssetIterator assetIterator;
-    tufts.dr.fedora.SearchCriteria searchCriteria;
-    tufts.dr.fedora.SearchType searchType;
-    tufts.dr.fedora.SearchType advancedSearchType;
+    SearchCriteria searchCriteria;
+    SearchType searchType;
+    SearchType advancedSearchType;
     JPanel advancedSearchPanel;
     
     String[] maxReturnItems = { 
@@ -172,6 +172,7 @@ public class DRViewer extends JPanel implements ActionListener {
         c.gridy=4;
         c.gridwidth = 3;
         c.insets = new Insets(10, 2, 10, 2);
+       
         JLabel advancedLabel = new JLabel("Advanced Search");
         gridbag.setConstraints(advancedLabel,c);
         DRSearchPanel.add(advancedLabel);
@@ -229,9 +230,11 @@ public class DRViewer extends JPanel implements ActionListener {
             gridbag.setConstraints(field, c);
             container.add(field);
         }
+        
         c.insets = new Insets(20, 10, 10, 10);
+        c.anchor = GridBagConstraints.EAST;
         JButton advancedSearchButton = new JButton("Advanced Search");
-        advancedSearchButton.setPreferredSize(new Dimension(160,20));
+        advancedSearchButton.setSize(new Dimension(160,20));
         advancedSearchButton.addActionListener(this);
         gridbag.setConstraints(advancedSearchButton,c);
         container.add(advancedSearchButton);
@@ -243,7 +246,7 @@ public class DRViewer extends JPanel implements ActionListener {
                 try {
                     searchCriteria.setKeywords(keywords.getText());
                     searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
-                    resultObjectsIterator = dr.getAssets(searchCriteria,searchType); 
+                    resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
                     VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
                     tree.setRootVisible(false);
                     JScrollPane jsp = new JScrollPane(tree);
@@ -294,7 +297,7 @@ public class DRViewer extends JPanel implements ActionListener {
                         cond[i] = (Condition)conditionVector.get(i);
                     searchCriteria.setConditions(cond);
                     searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
-                    resultObjectsIterator = dr.getAssets(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
+                    resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
                     //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
                     VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
                     tree.setRootVisible(false);

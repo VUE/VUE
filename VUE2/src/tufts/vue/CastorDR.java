@@ -11,7 +11,7 @@ package  tufts.vue;
  * @author  akumar03
  */
 import osid.dr.*;
-import tufts.dr.fedora.*;
+import tufts.oki.dr.fedora.*;
 
 public class CastorDR {
     DR dr;

@@ -12,7 +12,7 @@ package tufts.vue;
  */
 // this object exists only for saving and restoring assets
 import osid.dr.*;
-import tufts.dr.fedora.*;
+import tufts.oki.dr.fedora.*;
 
 
 public class CastorFedoraObject {
