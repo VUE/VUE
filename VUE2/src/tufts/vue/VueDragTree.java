@@ -45,7 +45,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         implementDrag(this);
         createPopupMenu();
         
-        
+       this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         resourceSelection = VUE.sResourceSelection;
         addTreeSelectionListener(this);
     }
@@ -162,9 +162,13 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     //****************************************
     
     public void dragGestureRecognized(DragGestureEvent e) {
-        // drag anything ...
+      
         if (getSelectionPath() != null)
         {TreePath path = getLeadSelectionPath();
+        
+       
+        
+       
         oldnode = (ResourceNode)path.getLastPathComponent();
         ResourceNode parentnode = (ResourceNode)oldnode.getParent();
        //Object resource = getObject();
@@ -178,7 +182,9 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             this);  // drag source listener
         }
         }
+        
     }
+    
     
     public void dragDropEnd(DragSourceDropEvent e) {
        
@@ -481,7 +487,7 @@ class CabinetNode extends ResourceNode {
        if(getCabinet() != null) {
  
         
-            System.out.println("In cabinet--"+getCabinet());
+           // System.out.println("In cabinet--"+getCabinet());
             
             try {
                 if (this.type.equals(CabinetNode.REMOTE)) {
@@ -696,7 +702,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
             // may be against the published API).
             return get(0).toString();
         } else if (flavor.equals(flavors[PLAIN])) {
-            System.out.println("I am plain"+this.elementAt(0));
+           // System.out.println("I am plain"+this.elementAt(0));
             return new StringReader(displayName);
         } else if (flavor.equals(flavors[RESOURCE])) {
             return this;

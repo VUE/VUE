@@ -140,10 +140,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         dataSourcePanel.setLayout(new BorderLayout());
         dataSourcePanel.add(topPanel,BorderLayout.NORTH);
-        //dataSourcePanel.setMaximumSize(new Dimension(300, 400));
-        
-       // System.out.println("size =--" + topPanel.getMaximumSize() + "data" + dataSourcePanel.getMaximumSize() + "res" + resourcesPanel.getMaximumSize());        
-
+      
         
         JScrollPane jSP = new JScrollPane(dataSourceList);
         
@@ -323,12 +320,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     }
         
         try{
-              System.out.println("This is address" + address+"type" +type);
+             // System.out.println("This is address" + address+"type" +type);
             ds = new DataSource("id", displayName, name, searchURL,address, user, password, type);
         }catch (Exception ex){
            
             VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
-           System.out.println("There was a problem adding this Data Source" + ex);
+           //System.out.println("There was a problem adding this Data Source" + ex);
             return;
         }
         
@@ -539,7 +536,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
         }
         
-       System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
+     //  System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
         
         if (preBreakSpot > 0){
             
@@ -589,7 +586,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         int currIndex;DataSource nextDs,breakDs = new DataSource(),preBreakDs = new DataSource(); int type; int breakExists = 0;boolean lastElement = false, onlyElement = false;
         int nDs;
         
-        System.out.println("DataSource --del beg"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
+        //System.out.println("DataSource --del beg"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         int choice = JOptionPane.showConfirmDialog(null,"Do you want to delete Datasource "+dataSource.getDisplayName(),"Confirm Delete",JOptionPane.YES_NO_CANCEL_OPTION);
         if(choice == 0) {
             
@@ -645,7 +642,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         if (google > 0) google = google - breakExists - 1;
                         
                         
-                        System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
+                       // System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
                         
                     }
                     else if(type == DataSource.FAVORITES){
@@ -733,7 +730,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     lastElement = true;
                     nextDs = (DataSource)dataSourceList.getModel().getElementAt(currIndex - 1);
                     if (nextDs.getType() == DataSource.BREAK){
-                        System.out.println("I am here last" + nextDs);
+                       // System.out.println("I am here last" + nextDs);
                         breakExists = 1;
                         
                         breakDs = nextDs;
@@ -782,7 +779,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     if (google > 0) google = google - breakExists - 1;
                     
                     
-                    System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
+                   // System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
                     
                 }
                 else if(type == DataSource.FAVORITES){
@@ -858,7 +855,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 this.setActiveDataSource(nextDs);
                 
                 dataSourceList.getContents().removeElement(dataSource);
-                System.out.println("datasource here nextDs" + nextDs);
+              //  System.out.println("datasource here nextDs" + nextDs);
                 
                 
                 
@@ -1019,7 +1016,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 //System.out.println("Did I get here in ok" + panel.getComponent(0));
                 JComboBox typeField = (JComboBox) panel.getComponent(1);
                 int type = typeField.getSelectedIndex();
-                  System.out.println("Did I get here in ok");
+                 // System.out.println("Did I get here in ok");
                 JTextField dsNameField = (JTextField) panel.getComponent(3);
                 String dsNameStr = dsNameField.getText();
                 String nameStr = dsNameStr;
@@ -1033,7 +1030,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 String  searchURLStr = searchURLField.getText();
                 
                 
-                System.out.println("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
+             //   System.out.println("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
                 if(dsNameStr.length() < 1) {
                     VueUtil.alert(null, "Datasourcename should be atleast 1 char long", "Invalid DataSource Name");
                     return;
@@ -1078,12 +1075,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     return;
                 }
                 try {
-                    System.out.println("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
+                   // System.out.println("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
                     dsv.addNewDataSource(dsNameStr, nameStr, searchURLStr, adrStr, userStr, pwStr, type,false);
                 } catch (Exception ex) {
                     VueUtil.alert(null,"Cannot add Datasource"+nameStr+": "+ex.getMessage(), "Datasource can't be added");
                 }
-                System.out.println("New data source added.");
+               // System.out.println("New data source added.");
                 
                 dia.hide();
                 
@@ -1213,13 +1210,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             if (rViewer == null) {
                 
                 problemloadingfromfile = true;
-                System.out.println("There was a problem loading previously saved DataSources. Using default Data Sources");
+               System.out.println("There was a problem loading previously saved DataSources. Using default Data Sources");
                 
             } else {
                 Vector rsources = rViewer.getSaveDataSources();
                 while (!(rsources.isEmpty())){
                     DataSource ds = (DataSource)rsources.remove(0);
-                    System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
+                   // System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
                     try {
                         addNewDataSource(ds.getDisplayName(),
                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(),
@@ -1236,8 +1233,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             // this should be created automatically from a config file. That will be done in future.
             
             loadingFromFile = false;
-            System.out.println("this is load " + DataSource.FILING_LOCAL+"rem"
-            +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
+          //  System.out.println("this is load " + DataSource.FILING_LOCAL+"rem"
+           // +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
             try {
                 addNewDataSource("My Computer", "My Computer", "", "", "", "", DataSource.FILING_LOCAL,true);
                 addNewDataSource("My Favorties", "My Favorties", "", "", "", "", DataSource.FAVORITES,true);
@@ -1247,7 +1244,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
                 
             } catch (Exception ex) {
-                System.out.println(this + " oops problem "+ ex);
+              
             }
         }
     }
@@ -1301,9 +1298,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
         }
         catch (Exception e) {
-            System.err.println("DataSourceViewer.SaveDataSourceViewer " + e);
+            //System.err.println("DataSourceViewer.SaveDataSourceViewer " + e);
             loadingFromFile = false;
-            e.printStackTrace();
+           //e.printStackTrace();
             sviewer = null;
         }
         

@@ -48,7 +48,7 @@ public class DataSourceList extends JList implements DropTargetListener{
     DnDConstants.ACTION_COPY |
     DnDConstants.ACTION_LINK |
     DnDConstants.ACTION_MOVE;
-    private final boolean debug = true;
+    private final boolean debug = false;
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
     private final Icon myFavoritesIcon = VueResources.getImageIcon("dataSourceMyFavorites");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
@@ -93,7 +93,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                                                       BasicStroke.JOIN_MITER, 
                                                      10.0f, dash1, 0.0f);
                         g2d.setStroke(dashed);
-                        g2d.drawLine(0,3,DataSourceList.this.dsViewer.getSize().width - 30 ,3);
+                        g2d.drawLine(0,3,DataSourceList.this.dsViewer.getSize().width - 50 ,3);
 
                  
                    }
@@ -219,14 +219,14 @@ public class DataSourceList extends JList implements DropTargetListener{
                         
                         File file = (File)iter.next();
                         
-                          System.out.println("did i come out  here "+file);
+                         // System.out.println("did i come out  here "+file);
                           
                           
                           
                           
                         if (file.isDirectory()){
                             
-                            System.out.println("did i come here "+file);
+                           // System.out.println("did i come here "+file);
                         
                         try{
                             
@@ -430,7 +430,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                     // for Windows 2000 as a shortcut, but NOT using
                     // Windows 2000 url DLL, so VUE can't open it.
                     url = url.substring(0,i) + ":" + url.substring(i+1);
-                    System.out.println("**PATCHED URL ["+url+"]");
+                   // System.out.println("**PATCHED URL ["+url+"]");
                 }
                 // if this is a file:/// url to a local html page,
                 // AND we can determine that we're on another computer
@@ -452,7 +452,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                 */
             }
         } catch (Exception e) {
-            System.out.println(e);
+            //System.out.println(e);
         }
         return url;
     }
@@ -468,7 +468,7 @@ public class DataSourceList extends JList implements DropTargetListener{
     
     
     public void dropActionChanged( DropTargetDragEvent e ) {
-        System.out.println( "list Drop action changed");
+      
     }
     private String readTextFlavor(DataFlavor flavor, Transferable transfer) {
         java.io.Reader reader = null;

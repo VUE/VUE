@@ -63,7 +63,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         this.expandRow(0);
         this.setExpandsSelectedPaths(true);
         this.getModel().addTreeModelListener(new VueTreeModelListener());
-        
+        this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
       
         this.setCellRenderer(renderer);

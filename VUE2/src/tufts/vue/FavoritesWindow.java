@@ -318,7 +318,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         MapResource favResource = new MapResource("New Favorites Folder");
                         favResource.setType(FAVORITES);
                         FavoritesNode favNode = new FavoritesNode(favResource);
-                        System.out.println("Am in fav" + favNode);
+                        //System.out.println("Am in fav" + favNode);
                         
                         if (model.getRoot() != resNode){
                             
@@ -458,8 +458,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             reader.close();
         }
         catch (Exception e) {
-            System.err.println("ActionUtil.unmarshallMap: " + e);
-            e.printStackTrace();
+           // System.err.println("ActionUtil.unmarshallMap: " + e);
+            //e.printStackTrace();
             sTree = null;
         }
         //}

@@ -52,7 +52,7 @@ public class DataSource {
     
     /**  Creates a DataSource given an id, display name, and name. */
     public DataSource(String id,String displayName,String name) throws java.net.MalformedURLException{
-        System.out.println("CREATING DATASOURCE "+ id+":"+displayName);
+       // System.out.println("CREATING DATASOURCE "+ id+":"+displayName);
         this.id = id;
         this.displayName = displayName;
         this.name = name;
@@ -120,9 +120,9 @@ public class DataSource {
             Vector cabVector = new Vector();
             RemoteFilingManager manager = new RemoteFilingManager();   // get a filing manager
             manager.createClient(address,userName,password);       // make a connection to the ftp site
-            System.out.println("can I connect?");
+           // System.out.println("can I connect?");
             RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots();
-             System.out.println("can I connect? 2");
+             //System.out.println("can I connect? 2");
             osid.shared.Agent agent = null; //  This may cause problems later.
             while(rootCabs.hasNext()){
                 RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
