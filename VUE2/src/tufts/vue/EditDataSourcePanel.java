@@ -41,7 +41,7 @@ public class EditDataSourcePanel extends JPanel{
         editDataSourcePanel = new JPanel();
         setLayout(new BorderLayout());
         setDataSource(DataSourceViewer.getActiveDataSource());
-        
+        DataSourceViewer.saveDataSourceViewer();
     }
     
     public void setDataSource(DataSource dataSource) {
