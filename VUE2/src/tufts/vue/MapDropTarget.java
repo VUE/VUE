@@ -201,6 +201,9 @@ class MapDropTarget
         location.x -= mapInsets.left;
         location.y -= mapInsets.top;
         */
+
+        location.x -= conceptMap.dGetOriginX();
+        location.y -= conceptMap.dGetOriginY();
         
         return location;
     }
