@@ -103,7 +103,7 @@ public class ActionUtil {
         } 
         catch (Exception e) 
         {
-            System.err.println("ActionUtil.getMarshaller: " + e);
+            System.err.println("ActionUtil.marshallMap: " + e);
         }
         //}
     }
