@@ -12,16 +12,25 @@ import sun.awt.geom.Crossings;
  */
 public class RectangularPoly2D extends RectangularShape
 {
-    protected double x;
-    protected double y;
-    protected double width;
-    protected double height;
-
-    protected int sides;
+    public double x;
+    public double y;
+    public double width;
+    public double height;
+    public int sides;
+    
     protected double[] xpoints;
     protected double[] ypoints;
     
     public RectangularPoly2D(int sides, double x, double y, double width, double height)
+    {
+        setSides(sides);
+        setFrame(x, y, width, height);
+    }
+
+    /** For persistance */
+    public RectangularPoly2D() {}
+
+    public void setSides(int sides)
     {
         if (sides < 3 || sides > 8)
             throw new IllegalArgumentException("RectangularPoly2D: sides not >=3 && <=8: "+sides);
@@ -30,8 +39,11 @@ public class RectangularPoly2D extends RectangularShape
         ypoints = new double[sides+1];
         xpoints[sides] = 0;
         ypoints[sides] = 0;
+    }
 
-        setFrame(x, y, width, height);
+    public int getSides()
+    {
+        return this.sides;
     }
 
     public Rectangle2D getBounds2D() {
