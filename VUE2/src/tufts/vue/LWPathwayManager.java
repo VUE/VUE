@@ -79,7 +79,6 @@ public class LWPathwayManager {
         return pathways.size();
     }
     
-
     public void addPathway(LWPathway pathway){
         pathways.add(pathway);
         if(current == null)
