@@ -40,18 +40,18 @@ class LWCInspector extends javax.swing.JPanel
     
         //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
         Object[] labelTextPairs = {
-            "-ID",      idField,
-            "-Location",locationField,
-            "-Size",    sizeField,
+            //"-ID",      idField,
+            //"-Location",locationField,
+            //"-Size",    sizeField,
             "Label",    labelField,
-            "Font",     fontField,
-            "Stroke",   strokeField,
-            "Fill Color",fillColorField,
-            "Text Color",textColorField,
-            "Stroke Color",strokeColorField,
+            //"Font",     fontField,
+            //"Stroke",   strokeField,
+            //"Fill Color",fillColorField,
+            //"Text Color",textColorField,
+            //"Stroke Color",strokeColorField,
             //"Category", categoryField,
             "Resource", resourceField,
-            "-Notes",    notesField,
+            //"-Notes",    notesField,
             //"Extra",    extraPanel,
         };
 
