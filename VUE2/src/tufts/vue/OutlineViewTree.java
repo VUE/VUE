@@ -104,7 +104,12 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     for(int i = 0; i < paths.length; i++)
                     {   
                         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)paths[i].getLastPathComponent();
-                        tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
+                        Object o = treeNode.getUserObject();
+                        if (DEBUG.FOCUS) System.out.println(this
+                                                            + " valueChanged in treeNode["
+                                                            + treeNode
+                                                            + "] userObject=" + o.getClass() + "[" + o + "]");
+                        tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode) o;
                         
                         LWComponent component = hierarchyNode.getLWComponent();
                         
@@ -366,7 +371,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     }   
     
     /**A class that specifies the editing method of the outline view tree*/
-    private class OutlineViewTreeEditor extends AbstractCellEditor implements TreeCellEditor, KeyListener
+    private class OutlineViewTreeEditor extends AbstractCellEditor
+        implements TreeCellEditor, KeyListener, FocusListener
     {
         // This is the component that will handle the editing of the cell value
         private OutlineViewEditorElement editorElement = null;
@@ -409,7 +415,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public Object getCellEditorValue() 
         {
             Object text = editorElement.getText();
-            if (DEBUG.FOCUS) System.out.println("getCellEditorValue returns [" + text + "]");
+            if (DEBUG.FOCUS) System.out.println(this + " getCellEditorValue returns [" + text + "]");
             return text;
         }
         
@@ -449,7 +455,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
 	    return true;
         }
 
-        /*
         public void focusGained(FocusEvent e) 
         {
             if (DEBUG.FOCUS) System.out.println(this + " focusGained from " + e.getOppositeComponent());
@@ -458,14 +463,12 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         // When the focus is lost and if the text area has been modified, it changes the tree node value
         public void focusLost(FocusEvent e) 
         {
-            if (DEBUG.FOCUS) System.out.println(this + " focusLost to " + e.getOppositeComponent());
-            if (modified)
-            {
+            if (DEBUG.FOCUS) System.out.println(this + " focusLost to " + e.getOppositeComponent() + " modified="+modified);
+            if (modified) {
                 this.stopCellEditing();
                 modified = false;
             }
         }
-        */
     }
     
     /** A class which displays the specified icon*/
@@ -574,7 +577,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             this.editor = editor;
             addKeyListener(editor);
             //addFocusListener(editor);
-            //label.addFocusListener(this.editor);
+            label.addFocusListener(this.editor);
             
             iconPanel = new IconPanel();
 
