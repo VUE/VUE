@@ -148,8 +148,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
              if (selected != -1)
              {
                 ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);
-                
-                //needs to fix this stuff
                 VUE.getPathwayControl().updateControlPanel();
                 
                 submit.setEnabled(false);
