@@ -1,7 +1,7 @@
 
 <project name="vue" default="vuedemo" basedir=".">
 
-<!-- $Revision: 1.2 $ / $Date: 2004-05-19 23:13:18 $ -->
+<!-- $Revision: 1.3 $ / $Date: 2004-06-03 00:14:28 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -61,6 +61,7 @@
     <pathelement path="${lib.home}/jaxrpc.jar"/>
     <pathelement path="${lib.home}/jdom.jar"/>
     <pathelement path="${lib.home}/jhbasic.jar"/>
+    <pathelement path="${lib.home}/jlfgr-1_0.jar"/> <!-- Java toolbarButtonGraphics -->
     <pathelement path="${lib.home}/jms.jar"/>
     <pathelement path="${lib.home}/jxtaid.jar"/>
     <pathelement path="${lib.home}/jxtasecurity.jar"/>
