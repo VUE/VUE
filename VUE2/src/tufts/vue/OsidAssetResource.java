@@ -86,6 +86,8 @@ public class OsidAssetResource extends MapResource
                     while (infoFieldIterator.hasNext())
                     {
                         osid.dr.InfoField infoField = infoFieldIterator.next();
+                        osid.dr.InfoPart infoPart = infoField.getInfoPart();
+                        String dname = infoPart.getDisplayName();
                         mProperties.put(infoField.getInfoPart().getDisplayName(),infoField.getValue());
                     }
                 }
