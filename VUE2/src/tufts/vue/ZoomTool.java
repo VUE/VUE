@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import javax.swing.*;
 
 public class ZoomTool extends VueTool
 // implements VueKeys -- to keep organized all in one place
@@ -27,15 +28,25 @@ public class ZoomTool extends VueTool
 
     private static final int ZOOM_FIT_PAD = 16;
 
-    public ZoomTool(MapViewer mapViewer)
-    {
-        super(mapViewer);
-    }
-    public String getToolName()
-    {
-        return "Zoom";
-    }
+    
+    
+    
+    public ZoomTool() {
+		super();
+	}
+	
+	
+	public void handleSelection() {
+	
+	}
+	
+	public JPanel getContextualPanel() {
+		return null;
+	}
 
+
+
+    
     public boolean handleKeyPressed(KeyEvent e){return false;}
     // todo: this is redundant when the full VUE app is running
     // as the actions in the menu trigger via their own accelerators
@@ -71,8 +82,8 @@ public class ZoomTool extends VueTool
 
     void setZoomFit()
     {
-        setZoomFitContent(this.mapView);
-        this.mapView.repaint();
+        setZoomFitContent( VUE.getActiveViewer() );
+        VUE.getActiveViewer().repaint();
     }
     
     
@@ -89,7 +100,7 @@ public class ZoomTool extends VueTool
         if (curZoom == ZOOM_MANUAL) {
             // find next highest zoom default
             for (int i = 0; i < ZoomDefaults.length; i++) {
-                if (ZoomDefaults[i] > mapView.getZoomFactor()) {
+                if (ZoomDefaults[i] > VUE.getActiveViewer().getZoomFactor()) {
                     setZoom(ZoomDefaults[curZoom = i]);
                     break;
                 }
@@ -106,7 +117,7 @@ public class ZoomTool extends VueTool
         if (curZoom == ZOOM_MANUAL) {
             // find next lowest zoom default
             for (int i = ZoomDefaults.length - 1; i >= 0; i--) {
-                if (ZoomDefaults[i] < mapView.getZoomFactor()) {
+                if (ZoomDefaults[i] < VUE.getActiveViewer().getZoomFactor()) {
                     setZoom(ZoomDefaults[curZoom = i]);
                     break;
                 }
@@ -134,12 +145,12 @@ public class ZoomTool extends VueTool
         }
 
         if (adjustViewport) {
-            Container c = this.mapView;
+            Container c = VUE.getActiveViewer();
             Point2D zoomMapCenter = null;
             if (this.zoomPoint == null) {
                 // center on the viewport
-                zoomMapCenter = new Point2D.Float(mapView.screenToMapX(c.getWidth() / 2),
-                                                  mapView.screenToMapY(c.getHeight() / 2));
+                zoomMapCenter = new Point2D.Float(VUE.getActiveViewer().screenToMapX(c.getWidth() / 2),
+                                                  VUE.getActiveViewer().screenToMapY(c.getHeight() / 2));
             } else {
                 // center on given point (e.g., where user clicked)
                 zoomMapCenter = this.zoomPoint;
@@ -149,10 +160,10 @@ public class ZoomTool extends VueTool
             float offsetX = (float) (zoomMapCenter.getX() * newZoomFactor) - c.getWidth() / 2;
             float offsetY = (float) (zoomMapCenter.getY() * newZoomFactor) - c.getHeight() / 2;
 
-            this.mapView.setMapOriginOffset(offsetX, offsetY);
+            VUE.getActiveViewer().setMapOriginOffset(offsetX, offsetY);
         }
         
-        this.mapView.setZoomFactor(newZoomFactor);
+        VUE.getActiveViewer().setZoomFactor(newZoomFactor);
         
     }
 
@@ -161,11 +172,11 @@ public class ZoomTool extends VueTool
         Point2D.Double offset = new Point2D.Double();
         double newZoom = computeZoomFit(viewport.getSize(),
                                         ZOOM_FIT_PAD,
-                                        this.mapView.getMap().getBounds(),
-                                        //this.mapView.getAllComponentBounds(),
+                                        VUE.getActiveViewer().getMap().getBounds(),
+                                        //VUE.getActiveViewer().getAllComponentBounds(),
                                         offset);
         setZoom(newZoom, false);
-        this.mapView.setMapOriginOffset(offset.getX(), offset.getY());
+        VUE.getActiveViewer().setMapOriginOffset(offset.getX(), offset.getY());
     }
 
     public static double computeZoomFit(Dimension viewport,
