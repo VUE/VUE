@@ -796,7 +796,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     /**Removes the given pathway from the combo box list and the pathway manager*/
     private void removePathway(LWPathway oldPathway)
     {
-        VUE.getActiveMap().getPathways().remove(oldPathway);
+        VUE.getActiveMap().getPathwayList().remove(oldPathway);
     }
     
     public void updateLabels(String text, String notes, LWPathway path, LWComponent comp){

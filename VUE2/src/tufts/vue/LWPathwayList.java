@@ -18,7 +18,7 @@ import java.awt.*;
  * @author Scott Fraize
  * @version Feb 2004
  */
-//public class LWPathwayList extends java.util.ArrayList {
+
 public class LWPathwayList
 {
     private java.util.List elements = new java.util.ArrayList();
@@ -52,11 +52,6 @@ public class LWPathwayList
     }
 
     public Collection getElementList() {
-        /*
-        java.util.List list = new ArrayList();
-        list.addAll(this);
-        return list;
-        */
         return elements;
     }
     
@@ -122,8 +117,6 @@ public class LWPathwayList
     public int size() { return elements.size(); }
     public Iterator iterator() { return elements.iterator(); }
     public int indexOf(Object o) { return elements.indexOf(o); }
-    //public boolean add(Object o) { return elements.add(o); }
-    //public boolean remove(Object o) { return elements.remove(o); }
    
     public LWPathway getFirst(){
         if (size() != 0)

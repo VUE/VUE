@@ -20,17 +20,23 @@ public class PathwayTableModel extends DefaultTableModel {
     
     public PathwayTableModel() { }
 
-    private LWPathwayList getPathways() {
-        return VUE.getActiveMap() == null ? null : VUE.getActiveMap().getPathways();
+    private LWPathwayList getPathwayList() {
+        return VUE.getActiveMap() == null ? null : VUE.getActiveMap().getPathwayList();
     }
     Iterator getPathwayIterator() {
-        return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathways().iterator();
+        return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathwayList().iterator();
     }
+    
+    private void setActivePathway(LWPathway p)
+    {
+        getPathwayList().setActivePathway(p);
+    }
+
     
     // get rid of this
     void setCurrentPathway(LWPathway path){
-        if (getPathways() != null){           
-            getPathways().setActivePathway(path);
+        if (getPathwayList() != null){           
+            getPathwayList().setActivePathway(path);
             fireTableDataChanged();
             //SMF tab.updateControlPanel();
         }
@@ -38,8 +44,8 @@ public class PathwayTableModel extends DefaultTableModel {
     
     /** for PathwayTable */
     LWPathway getCurrentPathway(){
-        if (getPathways() != null)
-            return getPathways().getActivePathway();
+        if (getPathwayList() != null)
+            return getPathwayList().getActivePathway();
         else
             return null;
     }
@@ -87,7 +93,7 @@ public class PathwayTableModel extends DefaultTableModel {
 
     /** for PathwayTable */
     LWComponent getElement(int row){
-        if (getPathways() == null)
+        if (getPathwayList() == null)
             return null;
         return (LWComponent) getList().get(row);
         /*
@@ -134,7 +140,7 @@ public class PathwayTableModel extends DefaultTableModel {
     }
     
     public boolean isCellEditable(int row, int col){
-        if (getPathways() != null){
+        if (getPathwayList() != null){
             LWPathway p = getPathwayForElementAt(row);
             if (p.isLocked())
                 return false;
@@ -184,12 +190,6 @@ public class PathwayTableModel extends DefaultTableModel {
         return null;
     }
 
-    private void setActivePathway(LWPathway p)
-    {
-        getPathways().setActivePathway(p);
-    }
-
-    
     public void setValueAt(Object aValue, int row, int col){
         LWComponent c = getElement(row);
         if (c instanceof LWPathway){

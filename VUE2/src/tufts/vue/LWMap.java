@@ -219,11 +219,11 @@ public class LWMap extends LWContainer
         return mPathwayManager;
     }
     */
-    public LWPathwayList getPathways(){ 
+    public LWPathwayList getPathwayList(){ 
         return mPathways;
     }
     /** for persistance restore only */
-    public void setPathways(LWPathwayList l){
+    public void setPathwayList(LWPathwayList l){
         System.out.println(this + " pathways set to " + l);
         mPathways = l;
         mPathways.setMap(this);
@@ -267,7 +267,7 @@ public class LWMap extends LWContainer
     public void draw(DrawContext dc){
         //LWPathway path = this.getPathwayManager().getCurrentPathway();        
         //Iterator i = getPathwayManager().getPathwayIterator();
-        Iterator i = getPathways().iterator();
+        Iterator i = getPathwayList().iterator();
         int pathIndex = 0;
         while (i.hasNext()) {
             Object o = i.next();

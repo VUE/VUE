@@ -208,7 +208,7 @@ public class VUE
         //LWPathway p2 = getActiveMap().getPathwayManager().getCurrentPathway();
         //if (p1 != p2) System.out.println("Pathway mayhem: too many cooks:\n\t" + p1 + "\n\t" + p2);
         //return p2 == null ? p1 : p2;
-        LWPathway p = getActiveMap().getPathways().getActivePathway();
+        LWPathway p = getActiveMap().getPathwayList().getActivePathway();
         System.out.println("getActivePathway: " + p);
         return p;
     }

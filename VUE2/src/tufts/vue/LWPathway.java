@@ -92,7 +92,8 @@ public class LWPathway extends LWContainer
         // simulate being parented to our map -- this
         // is how the map knows to redraw itself if
         // something is added/removed to the pathway
-        getMap().notifyLWCListeners(event);
+        if (getMap() != null)
+            getMap().notifyLWCListeners(event);
     }
 
     /**

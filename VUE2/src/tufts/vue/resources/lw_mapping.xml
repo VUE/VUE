@@ -174,7 +174,7 @@
 			<bind-xml name="userOrigin" node="element"/>
 		</field>
 		<!-- field name="Pathways" type="tufts.vue.LWPathwayList" -->
-		<field name="Pathways">
+		<field name="PathwayList">
 			<bind-xml name="PathwayList" node="element"/>
 		</field>
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
