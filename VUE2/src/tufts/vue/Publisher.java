@@ -57,6 +57,9 @@ public class Publisher extends JDialog implements ActionListener {
     private int publishMode = PUBLISH_MAP;
     private final int BUFFER_SIZE = 10240;// size for transferring files
     private int stage; // keep tracks of the screen
+    private static final  String VUE_MIME_TYPE = VueResources.getString("vue.type");
+    private static final  String BINARY_MIME_TYPE = "application/binary";
+
     JPanel modeSelectionPanel;
     JPanel resourceSelectionPanel;
     JButton cancelButton;
@@ -76,6 +79,7 @@ public class Publisher extends JDialog implements ActionListener {
     public Publisher(Frame owner,String title) {
         //testing
         super(owner,title);
+    
         nextButton = new JButton("Next >");
         finishButton = new JButton("Finish");
         cancelButton = new JButton("Cancel");
@@ -294,21 +298,22 @@ public class Publisher extends JDialog implements ActionListener {
         try {
             saveMap(map);
             Properties metadata = map.getMetadata();
-            String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, metadata).getIdString();
-            JOptionPane.showMessageDialog(null, "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
+         
+            String pid = getDR().ingest(activeMapFile.getName() ,"obj-binary.xml", VUE_MIME_TYPE,activeMapFile, metadata).getIdString();
+            JOptionPane.showMessageDialog(VUE.getInstance(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
             this.dispose();
         } catch (Exception ex) {
-            VueUtil.alert(null,  "Export Not Supported:"+ex.getMessage(), "Export Error");
+            alert(VUE.getInstance(),  "Export Not Supported:"+ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
     }
     
     public void publishMap() {
-        try {
+         try {
             publishMap((LWMap)VUE.getActiveMap().clone());
         } catch (Exception ex) {
-            VueUtil.alert(null,  "Export Not Supported:"+ex.getMessage(), "Export Error");
+            alert(VUE.getInstance(),  "Export Not Supported:"+ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
         
@@ -331,7 +336,7 @@ public class Publisher extends JDialog implements ActionListener {
                 ostream.close();
             } else {
                 Properties metadata  = VUE.getActiveMap().getMetadata();
-                String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
+                String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml",BINARY_MIME_TYPE, savedCMap, metadata).getIdString();
                 JOptionPane.showMessageDialog(VUE.getInstance(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
                 System.out.println("Exported Map: id = "+pid);
                 
@@ -356,10 +361,11 @@ public class Publisher extends JDialog implements ActionListener {
                 Boolean b = (Boolean)(vector.elementAt(0));
                 // File file = new File((String)vector.elementAt(1));
                 System.out.println("RESOURCE = "+r.getSpec());
-                File file = new File(new URL(r.getSpec()).getFile());
+                URL url = new URL(r.getSpec());
+                File file = new File(url.getFile());
                 if(file.isFile() && b.booleanValue()) {
                     resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
-                    String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
+                    String pid = getDR().ingest(file.getName(),"obj-binary.xml",url.openConnection().getContentType(),file, r.getProperties()).getIdString();
                     resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                     replaceResource(saveMap,r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
                     
@@ -500,6 +506,10 @@ public class Publisher extends JDialog implements ActionListener {
         return ((tufts.oki.dr.fedora.DR)((DRViewer)((DataSource)dataSourceComboBox.getSelectedItem()).getResourceViewer()).getDR());
     }
     
+    private void alert(javax.swing.JFrame frame,String message,String title) {
+        javax.swing.JOptionPane.showMessageDialog(frame,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);   
+    }
+      
     
     public class ResourceTableModel  extends AbstractTableModel {
         
@@ -554,11 +564,16 @@ public class Publisher extends JDialog implements ActionListener {
          * Don't need to implement this method unless your table's
          * data can change.
          */
+        
+        
+        
         public void setValueAt(Object value, int row, int col) {
             ((Vector)data.elementAt(row)).setElementAt(value,col);
             fireTableCellUpdated(row, col);
         }
     }
+   
+           
     
     
 }
