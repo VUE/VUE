@@ -42,7 +42,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
             this.expandRow(1);
         }        
         implementDrag(this);
-        resourceSelection = new ResourceSelection();
+        resourceSelection = VUE.sResourceSelection;
         addTreeSelectionListener(this);
     }   
   
