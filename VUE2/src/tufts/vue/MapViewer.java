@@ -139,6 +139,8 @@ public class MapViewer extends javax.swing.JComponent
     
     private boolean inScrollPane = false;
     private MapViewport mViewport;
+    private boolean isFirstReshape = true;
+    private boolean didReshapeZoomFit = false;
     private static final boolean scrollerCoords = false;// get rid of this
     
     public MapViewer(LWMap map) {
@@ -149,15 +151,15 @@ public class MapViewer extends javax.swing.JComponent
     MapViewer(LWMap map, String instanceName)
     {
         this.instanceName = instanceName;
-        this.activeTool = ArrowTool;
+        this.activeTool = VueToolbarController.getActiveTool();
+        if (activeTool == null)
+            activeTool = ArrowTool;
         this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
     
         setOpaque(true);
         setLayout(null);
-        if (map.getFillColor() == null)
-            setBackground(SystemColor.window);
-        else
+        if (map.getFillColor() != null)
             setBackground(map.getFillColor());
         loadMap(map);
         
@@ -204,7 +206,13 @@ public class MapViewer extends javax.swing.JComponent
         }
         mAddNotifyUnderway = true;
         inScrollPane = (getParent() instanceof JViewport);
-        if (inScrollPane) {
+        boolean bootstrapped = false;
+        if (getParent() instanceof MapViewport) {
+            bootstrapped = true;
+            // we're already in a MapViewport -- happens after
+            // reparenting back from a full-screen display.
+            mViewport = (MapViewport) getParent();
+        } else if (inScrollPane) {
             JScrollPane sp = (JScrollPane) getParent().getParent();
 
             if (true) {
@@ -266,11 +274,23 @@ public class MapViewer extends javax.swing.JComponent
         }
          */
         
+        // if nothing visible, do a zoom fit
+        /*
+          // can't do this here: nothing visible yet
+        if (computeSelection(getVisibleMapBounds(), null).size() == 0) {
+            out("***GET VISIBLE BOUNDS " + getVisibleBounds());
+            out("***GET SIZE " + getSize());
+            out("***GET PREF SIZE " + getPreferredSize());
+            //tufts.vue.ZoomTool.setZoomFit(this);
+            DEBUG.FOCUS=true;
+        }
+        */
         
         //addKeyListener(inputHandler);
-        addFocusListener(this);
+        if (!bootstrapped)
+            addFocusListener(this);
         
-        if (inScrollPane) {
+        if (inScrollPane && !bootstrapped) {
             //mViewport.addFocusListener(this); // do we need this?
             mViewport.getParent().addFocusListener(this);
         }
@@ -282,8 +302,7 @@ public class MapViewer extends javax.swing.JComponent
             Point2D p = getMap().getUserOrigin();
             setMapOriginOffset(p.getX(), p.getY());
         }
-        
-        
+
         if (scrollerCoords) {
             // Do this is you want mouse events to
             // come to us in view as opposed to canvas
@@ -296,8 +315,10 @@ public class MapViewer extends javax.swing.JComponent
             //addMouseListener(inputHandler);
             //addMouseMotionListener(inputHandler);
         }
+
         requestFocus();
         mAddNotifyUnderway = false;
+        //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
     }
     
     /*
@@ -372,7 +393,8 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     void fireViewerEvent(int id) {
-        if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this))
+        if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
+            || (id == MapViewerEvent.ZOOM && VUE.multipleMapsVisible())) // todo: good enough for presentation mode viewer
             new MapViewerEvent(this, id).raise();
     }
     
@@ -770,6 +792,14 @@ public class MapViewer extends javax.swing.JComponent
         return rr;
     }
     
+    protected void processEvent(AWTEvent e) {
+        if (e instanceof MouseEvent) {
+            super.processEvent(e);
+            return;
+        }
+        if (DEBUG.VIEWER) out("MAPVIEWER: processEvent " + e);
+        super.processEvent(e);
+    }
     
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
@@ -788,6 +818,16 @@ public class MapViewer extends javax.swing.JComponent
                 + x + "," + y
                 + (ignore?" (IGNORING)":""));
 
+        /*
+        if (w > 1 && h > y) {
+            if (isFirstReshape || VUE.isStartupUnderway()) {
+                isFirstReshape = false;
+                // if nothing visible, do a zoom-fit
+                out("*******REZOOMING******");
+            }
+        }
+        */
+
         super.reshape(x,y, w,h);
 
         if (DEBUG.VIEWER || ignore && activeTextEdit != null)
@@ -796,6 +836,16 @@ public class MapViewer extends javax.swing.JComponent
 
         if (!ignore)
             fireViewerEvent(MapViewerEvent.PAN);
+    }
+
+    void ensureMapVisible()
+    {
+        if (getMap().hasChildren()) {
+            int count = computeSelection(getVisibleMapBounds(), null).size();
+            if (DEBUG.Enabled) out("count="+count + " in " + getVisibleMapBounds());
+            if (count == 0)
+                tufts.vue.ZoomTool.setZoomFit(this);
+        }
     }
     
     private boolean isDisplayed() {
@@ -959,6 +1009,7 @@ public class MapViewer extends javax.swing.JComponent
     
     public void selectionChanged(LWSelection s) {
         //System.out.println("MapViewer: selectionChanged");
+        activeTool.handleSelectionChange(s);
         if (VUE.getActiveMap() != this.map)
             VueSelection = null; // insurance: nothing should be happening here if we're not active
         else {
@@ -1034,7 +1085,11 @@ public class MapViewer extends javax.swing.JComponent
             setBackground(this.map.getFillColor());
         }
         
-        if (OPTIMIZED_REPAINT == false) {
+        if (e.getKey() == LWKey.RepaintComponent) {
+            Rectangle r = mapToScreenRect(e.getComponent().getBounds());
+            super.paintImmediately(r);
+            //super.repaint(0,r.x,r.y,r.width,r.height);            
+        } else if (OPTIMIZED_REPAINT == false) {
             repaint();
         } else {
             if (paintedSelectionBounds != null) {
@@ -1195,7 +1250,7 @@ public class MapViewer extends javax.swing.JComponent
         if (indication != c) {
             clearIndicated();
             indication = c;
-            c.setIndicated(true);
+            //c.setIndicated(true);
             if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
                 repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
             else
@@ -1204,7 +1259,7 @@ public class MapViewer extends javax.swing.JComponent
     }
     void clearIndicated() {
         if (indication != null) {
-            indication.setIndicated(false);
+            //indication.setIndicated(false);
             if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
                 repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
             else
@@ -1463,14 +1518,12 @@ public class MapViewer extends javax.swing.JComponent
             start = System.currentTimeMillis();
         }
         try {
-            // This a special speed optimization for the selector box -- NO LONGER VIABLE
-            // Try using a glass pane for this.
-            /*
+            // This a special speed optimization for the selector box -- not sure it helps anymore tho...
             if (redrawingSelector && draggedSelectorBox != null && activeTool.supportsXORSelectorDrawing()) {
                 redrawSelectorBox((Graphics2D)g);
                 redrawingSelector = false;
-                } else*/
-            super.paint(g);
+            } else
+                super.paint(g);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("*paint* Exception painting in: " + this);
@@ -1478,8 +1531,11 @@ public class MapViewer extends javax.swing.JComponent
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
-        if (paints == 0 && inScrollPane)
-            adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
+        if (paints == 0) {
+            if (inScrollPane)
+                adjustCanvasSize(); // need for intial scroll-bar sizes if bigger than viewport on startup
+            VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
+        }
         if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
@@ -1497,33 +1553,15 @@ public class MapViewer extends javax.swing.JComponent
     //private static final Color rrColor = new Color(208,208,208);
     private static final Color rrColor = Color.yellow;
     
-    public void paintComponent(Graphics g) {
+    public void paintComponent(Graphics g)
+    {
+        isScaleDraw = false;
         Graphics2D g2 = (Graphics2D) g;
         
+        /*
         Rectangle cb = g.getClipBounds();
         //if (DEBUG.PAINT && !OPTIMIZED_REPAINT && (cb.x>0 || cb.y>0))
         //out("paintComponent: clipBounds " + cb);
-        
-        //-------------------------------------------------------
-        // paint the background
-        //-------------------------------------------------------
-        
-        g2.setColor(getBackground());
-        g2.fill(cb);
-        
-        //-------------------------------------------------------
-        // paint the focus border if needed (todo: change to some extra-pane method)
-        //-------------------------------------------------------
-        
-        /*
-          // TODO: setViewportBorder, or if scroll bars always there, setCorner to green block
-        if (VUE.multipleMapsVisible() && VUE.getActiveViewer() == this
-        //&& hasFocus()
-        ) {
-            g.setColor(COLOR_ACTIVE_VIEWER);
-            g.drawRect(0, 0, getWidth()-1, getHeight()-1);
-            g.drawRect(1, 1, getWidth()-3, getHeight()-3);
-        }
         */
         
         if (OPTIMIZED_REPAINT) {
@@ -1553,9 +1591,7 @@ public class MapViewer extends javax.swing.JComponent
         // adjust GC for pan & zoom
         //-------------------------------------------------------
         
-        g2.translate(-getOriginX(), -getOriginY());
-        if (mZoomFactor != 1)
-            g2.scale(mZoomFactor, mZoomFactor);
+        setScaleDraw(g2);
         
         if (DEBUG_SHOW_ORIGIN) {
             g2.setStroke(STROKE_ONE);
@@ -1571,41 +1607,19 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         //-------------------------------------------------------
-        // Draw the map: nodes, links, etc.
-        // LWNode's & LWGroup's are responsible for painting
-        // their children (as any instance of LWContainer).
+        // DRAW THE MAP
+        //
+        // The active tool draws the map.  Most will use the default
+        // handleDraw of VueTtool, which fills the background and
+        // then just draws the map. Some, like PresentationTool,
+        // may do something dramatically different.
+        //
+        // That will draw all the nodes, links, etc.  LWContainer's
+        // such as LWNode's & LWGroup's are responsible for painting
+        // their children, etc down the line.
         //-------------------------------------------------------
         
-        // anti-alias text
-        //if (!DEBUG_ANTIALIAS_OFF) g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        // Do we need fractional metrics?  Gives us slightly more accurate
-        // string widths on noticable on long strings
-        /*
-        if (!DEBUG_ANTIALIAS_OFF) {
-            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-        } else {
-            // was hoping prioritizing render quality would improve computation of font string widths,
-            // but no such luck...
-            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        }
-         
-        if (DEBUG_FONT_METRICS)
-            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        else
-            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
-         */
-        
-        //-------------------------------------------------------
-        // Draw the map: Ask the model to render itself to our GC
-        //-------------------------------------------------------
-        
-        this.map.draw(dc);
-        
-        //-------------------------------------------------------
-        // If current tool has anything it wants to draw, it
-        // can do that here.
-        //-------------------------------------------------------
-        activeTool.handlePaint(dc);
+        activeTool.handleDraw(dc, this.map);
         
         /*
         if (dragComponent != null) {
@@ -1614,39 +1628,38 @@ public class MapViewer extends javax.swing.JComponent
         }
          */
         
-        //if (draggingChild) {
-        //    dragComponent.setDispalyed(true);
-        //}
-        
-        //-------------------------------------------------------
-        // Restore us to raw screen coordinates & turn off
-        // anti-aliasing to draw selection indicators
-        //-------------------------------------------------------
-        
-        if (mZoomFactor != 1)
-            g2.scale(1.0/mZoomFactor, 1.0/mZoomFactor);
-        g2.translate(getOriginX(), getOriginY());
-        
+        /*
         if (true||!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
             //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
             dc.setAntiAlias(true);
+        */
         
         //-------------------------------------------------------
-        // draw selection if there is one
+        // DRAW THE SELECTION DECORATIONS - if anything is selected
         //-------------------------------------------------------
         
-        if (VueSelection != null && !VueSelection.isEmpty() && activeTool != PathwayTool)
+        //if (VueSelection != null && !VueSelection.isEmpty() && activeTool != PathwayTool)
+        if (VueSelection != null && !VueSelection.isEmpty() && activeTool.supportsResizeControls())
             drawSelection(dc);
         else
             resizeControl.active = false;
+
+        //-------------------------------------------------------
+        // DRAW THE CURRENT INDICATION, if any (for targeting during drags)
+        //-------------------------------------------------------
+
+        if (indication != null)
+            drawIndication(dc);
+
+        setRawDraw(dc.g);
         
         //-------------------------------------------------------
         // draw the dragged selector box
-        // Note: mac uses XOR method to update selector -- we'll
-        // never hit this code -- see paint(Graphics).
         //-------------------------------------------------------
         
+        //if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(null)) {
         if (draggedSelectorBox != null) {
+            // todo: box should already be null of tool doesn't support selector
             drawSelectorBox(g2, draggedSelectorBox);
             //if (VueSelection != null && !VueSelection.isEmpty())
             //    new Throwable("selection box while selection visible").printStackTrace();
@@ -1878,6 +1891,7 @@ public class MapViewer extends javax.swing.JComponent
         g2.draw(draggedSelectorBox);
         lastPaintedSelectorBox = new Rectangle(draggedSelectorBox);
     }
+     */
      
     private void redrawSelectorBox(Graphics2D g2)
     {
@@ -1899,7 +1913,6 @@ public class MapViewer extends javax.swing.JComponent
         activeTool.drawSelector(g2, draggedSelectorBox);
         lastPaintedSelectorBox = new Rectangle(draggedSelectorBox); // for XOR mode: save to erase
     }
-     */
     
     /* Java/JVM 1.4.1 PC (Win32) Graphics Bugs
      
@@ -1963,15 +1976,20 @@ public class MapViewer extends javax.swing.JComponent
         //-------------------------------------------------------
         // draw ghost shapes
         //-------------------------------------------------------
-        g2.translate(-getOriginX(), -getOriginY());
-        if (mZoomFactor != 1) g2.scale(mZoomFactor, mZoomFactor);
+
+        setScaleDraw(g2);
+
         it = VueSelection.iterator();
         //g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() * mZoomInverse)));
         //g2.setStroke(STROKE_ONE);
         dc.setAbsoluteStroke(0.5);
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
-            if (sDragUnderway || c.getStrokeWidth() == 0) {
+            if (sDragUnderway || c.getStrokeWidth() == 0 || c instanceof LWLink) {
+                // todo: the ideal is to always draw the ghost (not just when
+                // dragging) but figure out a way not to uglify the border if
+                // it's visible with the blue streak -- may XOR draw to the border
+                // color? (or it's inverse)
                 //g2.setColor(c.getStrokeColor());
                 Shape shape = c.getShape();
                 g2.draw(shape);
@@ -1991,20 +2009,9 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
         }
-        g2.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() * mZoomInverse)));
-        if (indication != null) {
-            DrawContext dc2 = dc;//dc.create();
-            dc2.g.setColor(COLOR_INDICATION);
-            dc2.g.draw(indication.getShape());
-            dc2.g.setColor(COLOR_SELECTION);
-            // really, only the dragComponent should be transparent...
-            //dc2.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
-            //indication.draw(dc2);
-            //g2.setComposite(AlphaComposite.Src);
-        }
         
-        if (mZoomFactor != 1) g2.scale(1.0/mZoomFactor, 1.0/mZoomFactor);
-        g2.translate(getOriginX(), getOriginY());
+        setRawDraw(g2);
+        
         g2.setStroke(STROKE_SELECTION);
         //g2.setComposite(AlphaComposite.Src);
         g2.setColor(COLOR_SELECTION);
@@ -2119,9 +2126,51 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
          */
-        
-        
     }
+
+    // Helper methods for keeping us scaled the way we want.
+    // Assumes we only ever work with a single GC per cycle.
+    // todo: cleaner: do with saving & restoring current transform
+    private boolean isScaleDraw = false;
+    private AffineTransform savedTransform;
+    private void setScaleDraw(Graphics2D g) {
+        if (!isScaleDraw) {
+            savedTransform = g.getTransform();
+            g.translate(-getOriginX(), -getOriginY());
+            g.scale(mZoomFactor, mZoomFactor);
+            isScaleDraw = true;
+        }
+    }
+    private void setRawDraw(Graphics2D g) {
+        if (isScaleDraw) {
+            g.setTransform(savedTransform);
+            //g.scale(1.0/mZoomFactor, 1.0/mZoomFactor);
+            //g.translate(getOriginX(), getOriginY());
+            isScaleDraw = false;
+        }
+    }
+
+    private void drawIndication(DrawContext dc)
+    {
+        if (indication == null)
+            return;
+        
+        setScaleDraw(dc.g);
+        double minStroke = STROKE_SELECTION.getLineWidth() * 2 * mZoomInverse;
+        if (indication.getStrokeWidth() > minStroke)
+            dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
+        else
+            dc.g.setStroke(new BasicStroke((float) minStroke));
+        //dc.g.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() * 2 * mZoomInverse)));
+        dc.g.setColor(COLOR_INDICATION);
+        dc.g.draw(indication.getShape());
+        dc.g.setColor(COLOR_SELECTION);
+        // really, only the dragComponent should be transparent...
+        //dc2.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
+        //indication.draw(dc2);
+        //g2.setComposite(AlphaComposite.Src);
+    }
+    
     
     // exterior drawn box will be 1 pixel bigger
     static final int SelectionHandleSize = VueResources.getInt("mapViewer.selection.handleSize"); // fill size
@@ -2566,97 +2615,6 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
-        boolean fullScreenMode = false;
-        //JWindow fullScreenWindow = null;
-        JFrame fullScreenWindow = null;
-        Container fullScreenOldParent = null;
-        Point fullScreenOldVUELocation;
-        Dimension fullScreenOldVUESize;
-
-        void toggleFullScreen()
-        {
-            /*
-            public class JFullScreenWindow extends JWindow {
-                public JFullScreenWindow() {
-                    super();
-                }
-                public void setJMenuBar(JMenuBar menubar) {
-                    getRootPane().setMenuBar(menubar);
-                }
-            }
-            */
-
-            // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
-                
-            // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
-            // z-order, with the last being on top -- this INCLUDES the full-screen window, so when it get's
-            // shown, all the tool windows will always go below it, (including the main VUE frame) so we have
-            // have to hide/show all the tool windows each time so they come back to the front.
-
-            // If the tool window was open when fs popped, you can get it back by hitting it's shortcuut
-            // twice, hiding it then bringing it back, tho it appeared on mac that this didn't always work.
-
-            // More Mac Problems: We need the FSW (full screen window) to be a frame so we can set a
-            // jmenu-bar for the top (MRJAdapter non-active jmenu bar won't help: it's for only for when
-            // there's NO window active).  But then as a sibling frame, to VUE.frame instead ofa child to it,
-            // VUE.frame can appear on top of you Option-~.  Trying to move VUE.frame off screen doesn't
-            // appear to be working -- maybe we could set it to zero size?  Furthermore, all the tool
-            // Windows, which are children to VUE.frame, won't stay on top of the FSW after it takes focus.
-            // We need to see what happens if they're frames, as they're going to need to be anyway.  (There
-            // is the nice ability to Option-~ them all front/back at once, as children of the VUE.frame, if
-            // they're windows tho...)
-
-            // What about using a JDialog instead of a JFrame?  JDialog's can have
-            // a parent frame AND a JMenuBar...
-                    
-            if (fullScreenMode) {
-                //VUE.frame.setLocation(fullScreenOldVUELocation); // mac window manger not allowing
-                //VUE.frame.setSize(fullScreenOldVUESize); // mac window manager won't go to 0
-                //VUE.frame.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
-                fullScreenWindow.setVisible(false);
-                fullScreenOldParent.add(this);
-                fullScreenMode = false;
-            } else {
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                out("Native full screen support available: " + ge.getDefaultScreenDevice().isFullScreenSupported());
-                //GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().
-                //  setFullScreenWindow(SwingUtilities.getWindowAncestor(this));
-                //VUE.frame.setVisible(false); // this also hids all children of the frame, including the new fs window.
-                if (fullScreenWindow == null) {
-                    //fullScreenWindow = new JWindow(VUE.frame); // if VUE.frame is parent, it will stay on top of it
-                    fullScreenWindow = VUE.createFrame(); // but we need a Frame in order to have the menu-bar on the mac!
-                    fullScreenWindow.setUndecorated(true);
-                }
-                fullScreenOldParent = getParent();
-                fullScreenWindow.getContentPane().add(this);
-                //fullScreenWindow.getContentPane().add(MapViewer.this.getParent().getParent()); // add with scroll bars
-                fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
-
-                if (false) {
-                    //addKeyListener(inputHandler);
-                    ge.getDefaultScreenDevice().setFullScreenWindow(fullScreenWindow);
-                    //w.enableInputMethods(true);
-                    //enableInputMethods(true);
-                            
-                    // We run into a serious problem using the special java full-screen mode on the mac: if
-                    // you right-click, it attemps to pop-up a menu over the full screen window, which is not
-                    // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
-                    // but just leaves you at a fully blank screen that you can sometimes never recover from
-                    // without powering off!  This true as of java version "1.4.2_05", Mac OS X 10.3.5.
-                            
-                } else {
-                    tufts.Util.setFullScreen(fullScreenWindow);
-                    fullScreenWindow.setVisible(true);
-                }
-                fullScreenOldVUELocation = VUE.getRootWindow().getLocation();
-                fullScreenOldVUESize = VUE.getRootWindow().getSize();
-                //VUE.frame.setSize(0,0);
-                //VUE.frame.setLocation(3072,2048);
-                //VUE.frame.setExtendedState(Frame.ICONIFIED);
-            }
-            requestFocus();
-        }
-    
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
     private class InputHandler extends tufts.vue.MouseAdapter
@@ -2739,9 +2697,8 @@ public class MapViewer extends javax.swing.JComponent
                     isDraggingSelectorBox = false;
                     repaint();
                 }
-                if (fullScreenMode == true) {
-                    toggleFullScreen();
-                }
+                if (VUE.inFullScreen())
+                    VUE.toggleFullScreen();
             } else if (e.isShiftDown() && VueSelection.isEmpty()) {
                 // this is mainly for debug.
                      if (key == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
@@ -2752,9 +2709,11 @@ public class MapViewer extends javax.swing.JComponent
                     handled = false;
             }
             else if (key == KeyEvent.VK_BACK_SLASH || key == KeyEvent.VK_F11) {
-                toggleFullScreen();
+                VUE.toggleFullScreen(e.isShiftDown());
             }
-            else {
+            else if (activeTool.handleKeyPressed(e)) {
+                ;
+            } else {
                 handled = false;
             }
 
@@ -2767,7 +2726,7 @@ public class MapViewer extends javax.swing.JComponent
                 // toggle cause mac auto-repeats space-bar screwing everything up
                 // todo: is this case only on my G4 kbd or does it happen on
                 // USB kbd w/external screen also?
-                toolKeyDown = 0;
+
                 toolKeyEvent = null;
                 setCursor(CURSOR_DEFAULT);
                 return;
@@ -2786,6 +2745,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
             
+
             if (toolKeyDown == 0 && !isDraggingSelectorBox && !sDragUnderway) {
                 // todo: handle via resources
                 VueTool tempTool = null;
@@ -2806,16 +2766,6 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
             
-            // Now check for immediate action commands
-            
-            /*
-            java.util.Iterator i = tools.iterator();
-            while (i.hasNext()) {
-                VueTool tool = (VueTool) i.next();
-                if (tool.handleKeyPressed(e))
-                    break;
-            }
-             */
             
             //-------------------------------------------------------
             // DEBUGGING
@@ -2870,7 +2820,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 
-                else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
+                //else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == '^') { DEBUG.DR = !DEBUG.DR; }
                 else if (c == '+') { DEBUG.META = !DEBUG.META; }
                 else if (c == '?') { DEBUG.SCROLL = !DEBUG.SCROLL; }
@@ -2880,15 +2830,15 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
+                //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
+                //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
+                //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
                 else if (c == '~') { System.err.println("ABORT!"); System.exit(-1); }
                 else if (c == '\\') {
-                    toggleFullScreen();
-                    /*
-                    VUE.frame.hide();
-                    VUE.frame.setFullScreen(!fullScreenMode);
-                    VUE.frame.show();
-                    fullScreenMode = !fullScreenMode;
-                    */
+                    VUE.toggleFullScreen();
+                }
+                else if (c == '|') {
+                    VUE.toggleFullScreen(true); // native full screen mode
                 }
                 else if (c == '!') {
                     if (debugInspector == null) {
@@ -3038,6 +2988,9 @@ public class MapViewer extends javax.swing.JComponent
             
             MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, null);
             
+            if (activeTool.handleMousePressed(mme))
+                return;
+            
             if (e.getButton() == MouseEvent.BUTTON1 && activeTool.supportsSelection()) {
                 hitOnSelectionHandle = checkAndHandleControlPointPress(mme);
                 if (hitOnSelectionHandle) {
@@ -3052,7 +3005,7 @@ public class MapViewer extends javax.swing.JComponent
             //if (activeTool.supportsSelection() || activeTool.supportsClick()) {
             // Change to supportsComponentSelection?
             if (activeTool.supportsSelection()) {
-                hitComponent = getMap().findChildAt(mapX, mapY);
+                hitComponent = activeTool.findComponentAt(getMap(), mapX, mapY);
                 if (DEBUG.MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" +
                     "\tparent " + hitComponent.getParent());
@@ -3091,7 +3044,7 @@ public class MapViewer extends javax.swing.JComponent
                 // MOUSE: We've pressed the left (normal) mouse on SOME LWComponent
                 //-------------------------------------------------------
                 
-                activeTool.handleMousePressed(mme);
+                //activeTool.handleMousePressed(mme);
                 
                 if (mme.getDragRequest() != null) {
                     dragComponent = mme.getDragRequest(); // TODO: okay, at least HERE, dragComponent CAN be a real component...
@@ -3166,7 +3119,10 @@ public class MapViewer extends javax.swing.JComponent
                     selectionClear();
                     repaint(); // if selection handles not on, we need manual repaint here
                 }
-                isDraggingSelectorBox = true;
+                if (activeTool.supportsDraggedSelector(e))
+                    isDraggingSelectorBox = true;
+                else
+                    isDraggingSelectorBox = false;// todo ??? this was true?
             }
             
             if (dragComponent != null)
@@ -3176,6 +3132,13 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         private void displayContextMenu(MouseEvent e, LWComponent hitComponent) {
+
+            if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
+                // on mac, attempt to pop a menu in true full-screen mode
+                // put's us to black screen and leaves us there!
+                return;
+            }
+            
             if (VueSelection.isEmpty()) {
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
             } else if (VueSelection.size() == 1) {
@@ -3235,8 +3198,10 @@ public class MapViewer extends javax.swing.JComponent
             // which is extremely fast (because we can just XOR erase the previous
             // paint by redrawing it again) but the PC graphics context gets
             // polluted with garbage when left around, and now it looks like on mac too?
+            // 2004-11-23 03:51.31 Tuesday -- Mac okay now, but appears no faster!
+            // And still misses clearing old frames sometimes if window is huge
             //if (VueUtil.isMacPlatform())
-            //redrawingSelector = true; // todo: does mac now do this same with 1.4.1-1 update?
+            //redrawingSelector = true;
             
             if (OPTIMIZED_REPAINT)
                 //paintImmediately(repaintRect);
@@ -3610,8 +3575,18 @@ public class MapViewer extends javax.swing.JComponent
                 // vanilla drag -- check for node drop onto another node
                 //-------------------------------------------------------
                 
-                //LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
-                LWNode over = getMap().findLWNodeAt(mapX, mapY);
+                LWComponent over = null;
+                LWComponent dragLWC = null;
+                if (dragComponent instanceof LWGroup) {
+                    // dragComponent is (always?)) a LWGroup these days...
+                    LWGroup group = (LWGroup) dragComponent;
+                    if (group.getChildList().size() == 1)
+                        dragLWC = (LWComponent) group.getChildList().get(0);
+                } 
+                if (dragLWC == null)
+                    over = getMap().findLWNodeAt(mapX, mapY);
+                else
+                    over = getMap().findDeepestChildAt(mapX, mapY, dragLWC);
                 if (indication != null && indication != over) {
                     //repaintRegion.add(indication.getBounds());
                     clearIndicated();
@@ -3784,14 +3759,9 @@ public class MapViewer extends javax.swing.JComponent
                     //java.util.List list = computeSelection(screenToMapRect(draggedSelectorBox),
                     //                                     e.isControlDown()
                     //                                     || activeTool == LinkTool);
-                    Class selectionType = null;
-                    // todo: use something link activeTool.getSelectionType
-                    if (activeTool == LinkTool)
-                        selectionType = LWLink.class;
-                    else if (activeTool == NodeTool)
-                        selectionType = LWNode.class;
-                    
-                    List list = computeSelection(screenToMapRect(draggedSelectorBox), selectionType);
+
+                    List list = computeSelection(screenToMapRect(draggedSelectorBox),
+                                                 activeTool.getSelectionType());
                     
                     if (e.isShiftDown())
                         selectionToggle(list.iterator());
@@ -3882,14 +3852,15 @@ public class MapViewer extends javax.swing.JComponent
                 if (droppedChild instanceof LWLink)
                     continue;
                 // can only pull something out of group via ungroup
-                if (droppedChild.getParent() instanceof LWGroup)
-                    continue;
+                //if (droppedChild.getParent() instanceof LWGroup)
+                //  continue; // not with new "page" groups
                 // don't do anything if parent might be reparenting
                 if (droppedChild.getParent().isSelected())
                     continue;
                 // todo: actually re-do drop if anything other than map so will re-layout
-                if ((droppedChild.getParent() != parentTarget || parentTarget instanceof LWNode)
-                && droppedChild != parentTarget) {
+                if (
+                    (droppedChild.getParent() != parentTarget || parentTarget instanceof LWNode) &&
+                    droppedChild != parentTarget) {
                     //-------------------------------------------------------
                     // we were over a valid NEW parent -- reparent
                     //-------------------------------------------------------
@@ -4070,6 +4041,8 @@ public class MapViewer extends javax.swing.JComponent
                 return false;
             if (parentTarget.getParent() == dragComponent)
                 return false;
+            if (parentTarget instanceof LWContainer == false)
+                return false;
             return true;
         }
     }
@@ -4137,6 +4110,7 @@ public class MapViewer extends javax.swing.JComponent
     
     void grabVueApplicationFocus(String from) {
         if (DEBUG.FOCUS) out("grabVueApplicationFocus triggered thru " + from);
+        //tufts.macosx.Screen.dumpMainMenu();        
         this.VueSelection = VUE.ModelSelection;
         setFocusable(true);
         if (VUE.getActiveViewer() != this) {
@@ -4375,7 +4349,7 @@ public class MapViewer extends javax.swing.JComponent
     private boolean DEBUG_ANTI_ALIAS = true;
     private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
-    private boolean DEBUG_TIMER_ROLLOVER = true;
+    private boolean DEBUG_TIMER_ROLLOVER = false; // todo: preferences
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     

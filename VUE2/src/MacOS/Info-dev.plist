@@ -53,6 +53,7 @@
 		<array>
                   <string>$APP_PACKAGE/Contents/VUE-core.jar</string>
                   <string>$APP_PACKAGE/Contents/VUE-lib.jar</string>
+                  <string>/System/Library/Java</string>
                   <string>$JAVAROOT</string>
  		</array>
 		<key>Properties</key>

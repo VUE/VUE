@@ -123,6 +123,16 @@ implements ConceptMap//, Printable
         markDate();
         markAsSaved();
     }
+
+    /** create a temporary, uneditable map that contains just the given component */
+    LWMap(LWComponent c) {
+
+        this(c.getDisplayLabel());
+        if (c instanceof LWGroup && c.getFillColor() != null)
+            setFillColor(c.getFillColor());
+        children.add(c);
+        // todo: listen to child for events & pass up
+    }
     
     private void markDate() {
         long time = System.currentTimeMillis();
@@ -145,7 +155,7 @@ implements ConceptMap//, Printable
     public void setFile(File file) {
         this.file = file;
         if (file != null)
-            setLabel(file.getName());
+            setLabel(file.getName()); // todo: don't let this be undoable!
     }
     
     public File getFile() {
@@ -167,6 +177,11 @@ implements ConceptMap//, Printable
         return mChanges > 0;
     }
     long getModCount() { return mChanges; }
+
+    /** set the fill color w/out sending any events -- for temporary use */
+    void takeFillColor(java.awt.Color c) {
+        super.fillColor = c;
+    }
     
     /**
      * getLWCFilter()
@@ -567,8 +582,8 @@ implements ConceptMap//, Printable
     public java.awt.geom.Rectangle2D getBounds() {
         if (true||mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator());
-            setSize0(mCachedBounds.width, mCachedBounds.height);
-            setLocation0(mCachedBounds.x, mCachedBounds.y);
+            takeSize(mCachedBounds.width, mCachedBounds.height);
+            takeLocation(mCachedBounds.x, mCachedBounds.y);
             /*
             try {
                 setEventsSuspended();
@@ -582,6 +597,8 @@ implements ConceptMap//, Printable
             //mCachedBoundsOld = false;
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
+        if (DEBUG.CONTAINMENT && DEBUG.META)
+            out("computed bounds: " + mCachedBounds);
         return mCachedBounds;
     }
     

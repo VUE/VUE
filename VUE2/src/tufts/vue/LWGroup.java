@@ -148,6 +148,7 @@ public final class LWGroup extends LWContainer
     static LWGroup createTemporary(java.util.ArrayList selection)
     {
         LWGroup group = new LWGroup();
+        if (DEBUG.Enabled) group.setLabel("<=SELECTION=>");
         group.children = (java.util.ArrayList) selection.clone();
         group.setSizeFromChildren();
         if (DEBUG.CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
@@ -218,7 +219,7 @@ public final class LWGroup extends LWContainer
     */
 
     /** groups are transparent -- defer to parent for background fill color */
-    public java.awt.Color getFillColor()
+    public java.awt.Color X_getFillColor()
     {
         return getParent() == null ? null : getParent().getFillColor();
     }
@@ -247,12 +248,17 @@ public final class LWGroup extends LWContainer
             // don't move it -- only it's real parent group should reposition it.
             // (The only way we could be here without "this" being the parent is
             // if we're in the MapViewer special use draggedSelectionGroup)
-            if (inGroup && c.getParent() != this)
-                continue;
+            //if (inGroup && c.getParent() != this)
+            //continue;
+            // allowed for new "page" style groups
 
             c.translate(dx, dy);
         }
+        // this setLocation I think never has any effect, as our
+        // bounds dynamically change with with content, quietly
+        // updating x & y, so it never appears we've moved!
         super.setLocation(x, y);
+        updateConnectedLinks();
 
         // todo: possibly redesign rendering to happen node-local
         // so don't have to do all this
@@ -280,7 +286,10 @@ public final class LWGroup extends LWContainer
         }
         setSizeFromChildren();
     }
-    public boolean contains(float x, float y)
+
+    /* enable this to make groups ghost components, that are never found
+       except by their child components */
+    public boolean X_contains(float x, float y)
     {
         // TODO PERF: track and check group bounds here instead of every component!
         // Right now we're calling contains twice on everything in a group
@@ -306,15 +315,15 @@ public final class LWGroup extends LWContainer
         return false;
     }
     
+    /** @return the group itself */
     protected LWComponent defaultHitComponent()
     {
-        return null;
+        return this;
     }
     
     /**
      * A hit on any component in the group finds the whole group,
-     * not that component.  A hit within the bounds of the entire
-     * group but not on any component hits <b>nothing</b>
+     * not that component. 
      */
     public LWComponent findChildAt(float mapX, float mapY)
     {
@@ -330,7 +339,7 @@ public final class LWGroup extends LWContainer
             if (c.contains(mapX, mapY))
                 return this;
         }
-        return null;
+        return defaultHitComponent();
     }
     
     /*
@@ -341,19 +350,23 @@ public final class LWGroup extends LWContainer
         return c == this ? null : c;
         }*/
     
-    /** The group itself can never serve as a general target
-     * (e.g., for linking to)
-     */
+    /** use the raw bounds: don't add a target swath */
     public boolean targetContains(float x, float y)
     {
-        return false;
+        return contains(x, y);
     }
 
+    void broadcastChildEvent(LWCEvent e) {
+        if (e.getKey() == LWKey.Location || e.getKey() == LWKey.Size)
+            updateConnectedLinks();
+        super.broadcastChildEvent(e);
+    }
+    
     private static final Rectangle2D EmptyBounds = new Rectangle2D.Float();
 
     public Rectangle2D getBounds()
     {
-        Rectangle2D bounds = null;
+        Rectangle2D.Float bounds = null;
         Iterator i = getChildIterator();
         if (i.hasNext()) {
             bounds = new Rectangle2D.Float();
@@ -366,6 +379,13 @@ public final class LWGroup extends LWContainer
         while (i.hasNext())
             bounds.add(((LWComponent)i.next()).getBounds());
         //System.out.println(this + " getBounds: " + bounds);
+
+        // how safe is this?
+        // [ todo: not entirely: setLocation needs special updateConnectedLinks call because of this ]
+        setX(bounds.x);
+        setY(bounds.y);
+        setAbsoluteWidth(bounds.width);
+        setAbsoluteHeight(bounds.height);
         return bounds;
     }
 
@@ -384,30 +404,50 @@ public final class LWGroup extends LWContainer
             System.err.println("hiding " + this);
             return;
         }
+
+        drawSelectionDecorations(dc);
+        
+        if (getFillColor() != null) {
+            dc.g.setColor(getFillColor());
+            dc.g.fill(getShape());
+        }
+        /*
         if (isSelected()) {
             dc.g.setColor(COLOR_HIGHLIGHT);
             dc.g.setStroke(new java.awt.BasicStroke(SelectionStrokeWidth));
             dc.g.draw(getBounds());
         }
+        */
+
+        // draw children, etc.
         super.draw(dc);
+        
+        if (getStrokeWidth() > 0) {
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
+            dc.g.draw(getShape());
+            //dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        }
+        
+        /*
         if (isIndicated()) {
             // this should never happen, but just in case...
             dc.g.setColor(COLOR_INDICATION);
             dc.g.setStroke(STROKE_INDICATION);
             dc.g.draw(getBounds());
         }
-
+        */
         
 
         if (DEBUG.CONTAINMENT) {
             if (isRollover())
                 dc.g.setColor(java.awt.Color.green);
             else
-                dc.g.setColor(java.awt.Color.red);
-            if (isIndicated())
-                dc.g.setStroke(STROKE_INDICATION);
-            else
-                dc.g.setStroke(STROKE_TWO);
+                dc.g.setColor(java.awt.Color.blue);
+            //if (isIndicated())
+            //    dc.g.setStroke(STROKE_INDICATION);
+            //else
+            dc.g.setStroke(STROKE_TWO);
             dc.g.draw(getBounds());
         }
     }

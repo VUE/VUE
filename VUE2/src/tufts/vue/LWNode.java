@@ -645,7 +645,7 @@ public class LWNode extends LWContainer
         // todo perf: allow for skipping of searching for minimum size
         // if current size already big enough for content
 
-        if (growShapeUntilContainsContent(nodeShape, content)) {
+        if (hasChildren() && growShapeUntilContainsContent(nodeShape, content)) {
             // content x/y is now at the center location of our MINUMUM size,
             // even tho our current size may be bigger and require moving it..
             minSize.fit(nodeShape);
@@ -1339,10 +1339,6 @@ public class LWNode extends LWContainer
             }
         }
 
-        //-------------------------------------------------------
-        // Draw the indicated border if any
-        //-------------------------------------------------------
-
         /*
         if (!isAutoSized()) { // debug
             g.setColor(Color.green);
@@ -1357,17 +1353,7 @@ public class LWNode extends LWContainer
         }
         else*/
         
-        if (isIndicated() && !dc.isPrinting()) {
-            // todo: okay, it is GROSS to handle the indication here --
-            // do it all in the viewer!
-            g.setColor(COLOR_INDICATION);
-            if (STROKE_INDICATION.getLineWidth() > getStrokeWidth())
-                g.setStroke(STROKE_INDICATION);
-            else
-                g.setStroke(this.stroke);
-            g.draw(drawnShape);
-        }
-        else if (getStrokeWidth() > 0) {
+        if (getStrokeWidth() > 0) {
             //if (LWSelection.DEBUG_SELECTION && isSelected())
             //if (isSelected())
             //g.setColor(COLOR_SELECTION);
@@ -1490,21 +1476,24 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
 
         if (iconShowing()) {
-            final Color renderFill = getRenderFillColor();
-            final Color marginColor;
-            if (renderFill != null) {
-                if (renderFill.equals(Color.black))
-                    marginColor = Color.darkGray;
-                else
-                    marginColor = renderFill.darker();
-            } else {
-                // transparent fill: base on stroke color
-                marginColor = getStrokeColor().brighter();
-            }
-            g.setColor(marginColor);
-            g.setStroke(STROKE_ONE);
-            g.draw(mIconDivider);
             mIconBlock.draw(dc);
+            // draw divider if there's a label
+            if (hasLabel()) {
+                final Color renderFill = getRenderFillColor();
+                final Color marginColor;
+                if (renderFill != null) {
+                    if (renderFill.equals(Color.black))
+                        marginColor = Color.darkGray;
+                    else
+                        marginColor = renderFill.darker();
+                } else {
+                    // transparent fill: base on stroke color
+                    marginColor = getStrokeColor().brighter();
+                }
+                g.setColor(marginColor);
+                g.setStroke(STROKE_ONE);
+                g.draw(mIconDivider);
+            }
         }
     }
 

@@ -58,6 +58,9 @@ public class VueButton extends JButton
 
     public VueButton(Action a) {
         setAction(a);
+        Icon largeIcon = (Icon) a.getValue(tufts.vue.VueAction.LARGE_ICON);
+        if (largeIcon != null)
+            setIcon(largeIcon);
         init((String) a.getValue(Action.ACTION_COMMAND_KEY));
     }
 

@@ -51,8 +51,6 @@ import net.roydesign.event.ApplicationEvent;
 public class VUE
     implements VueConstants
 {
-    private static ToolWindow pannerTool;//debug
-    
     /** The currently active viewer (e.g., is visible
      * and has focus).  Actions (@see Actions.java) are performed on
      * the active model (sometimes querying the active viewer). */
@@ -88,6 +86,7 @@ public class VUE
     //public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
     public static boolean  dropIsLocal = false;
+    private static boolean isStartupUnderway = true;
     
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
@@ -133,17 +132,47 @@ public class VUE
         
         VueFrame() {
             super("VUE: Visual Understanding Environment");
-            //System.out.println("LOADING IMAGE"+Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon16x16")));
-            //setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
-            // On the PC, this is bombing out for me and halting the whole vue application -- doesn't
-            // look like the case in the filename matches -- SMF
-            addWindowListener(new WindowAdapter() {
-                    public void windowActivated(WindowEvent e) {
-                        out("VueFrame: activated " + e);
-                        //pannerTool.toFront();
-                        //toolParent.toFront();
-                    }
-                });
+            setIconImage(VueResources.getImageIcon("vueIcon32x32").getImage());
+        }
+
+        protected void processEvent(AWTEvent e) {
+            if (e instanceof MouseEvent) {
+                super.processEvent(e);
+                return;
+            }
+        
+            if (DEBUG.Enabled) out("VueFrame: processEvent " + e);
+            // todo: if frame is getting key events, handle them
+            // and/or pass off to MapViewer (e.g., tool switch events!)
+            // or: put tool's w/action events in vue menu
+            if (e instanceof WindowEvent) {
+                switch (e.getID()) {
+                case WindowEvent.WINDOW_CLOSING:
+                case WindowEvent.WINDOW_CLOSED:
+                case WindowEvent.WINDOW_ICONIFIED:
+                    //case WindowEvent.WINDOW_DEACTIVATED:
+                    super.processEvent(e);
+                    return;
+                    /*
+                case WindowEvent.WINDOW_ACTIVATED:
+                    tufts.macosx.Screen.dumpWindows();
+                case WindowEvent.WINDOW_OPENED:
+                case WindowEvent.WINDOW_DEICONIFIED:
+                case WindowEvent.WINDOW_GAINED_FOCUS:
+                    if (VUE.getRootWindow() != VUE.getMainWindow())
+                        VUE.getRootWindow().toFront();
+                    */
+                }
+            }
+            if (VUE.getRootWindow() != VUE.getMainWindow()) {
+                VUE.getRootWindow().setVisible(true);
+                VUE.getRootWindow().toFront();
+            }
+            super.processEvent(e);
+        }
+
+        public void addComp(Component c, String constraints) {
+            getContentPane().add(c, constraints);
         }
 
         /*
@@ -159,13 +188,6 @@ public class VUE
             super.toFront();
         }
         */
-        
-        /*
-        public Component add(Component c) {
-            return getContentPane().add(c);
-        }
-        */
-
         /*
           once it's displayable (peers created), you can't undo decoration...
         public void setFullScreen(boolean fullscreen) {
@@ -180,14 +202,15 @@ public class VUE
         */
         /** never let the frame be hidden -- always ignored */
         public void setVisible(boolean tv) {
-            System.out.println("VueFrame setVisible " + tv);
+            //System.out.println("VueFrame setVisible " + tv + " OVERRIDE");
             
             // The frame should never be "hidden" -- iconification
             // doesn't trigger that (nor Mac os "hide") -- so if we're
             // here the OS window manager is attempting to hide us
             // (the 'x' button on the window frame).
             
-            super.setVisible(true);
+            //super.setVisible(true);
+            super.setVisible(tv);
         }
         public void mapViewerEventRaised(MapViewerEvent e) {
             if ((e.getID() & TitleChangeMask) != 0)
@@ -219,47 +242,34 @@ public class VUE
         }
     }
     
-    
-    static {
-        if (false && VueUtil.isMacPlatform()) {
-            final String usmbProp = "apple.laf.useScreenMenuBar";
-            if (System.getProperty(usmbProp) == null)
-                System.setProperty(usmbProp, "true");
-            /*
-            final String appNameProp = "com.apple.mrj.application.apple.menu.about.name";
-            // setting appNameProp here doesn't do anything anything since VM
-            // has already made use of this property...
-            System.setProperty(appNameProp, "VUE");
-             */
-        }
-    }
-    
     public static LWSelection getSelection() {
         return ModelSelection;
+    }
+
+    public static boolean isStartupUnderway() {
+        return isStartupUnderway;
     }
     
     private static Cursor oldCursor;
     public static synchronized void activateWaitCursor() {
-        /*
         JRootPane rp = SwingUtilities.getRootPane(VUE.frame);
         if (oldCursor != null)
             System.out.println("multiple wait-cursors");
-        else if (getActiveViewer() != null)
+        else if (getActiveViewer() != null) {
             oldCursor = getActiveViewer().getCursor();
+            getActiveViewer().setCursor(CURSOR_WAIT);
+        }
         //oldCursor = rp.getCursor();
         // okay -- need to get this from the MapViewer..
         System.out.println("GOT OLD CURSOR " + oldCursor);
         rp.setCursor(CURSOR_WAIT);
-         */
     }
     public static synchronized void clearWaitCursor() {
-        /*
         if (getActiveViewer() != null)
             getActiveViewer().setCursor(oldCursor);
         SwingUtilities.getRootPane(VUE.frame).setCursor(oldCursor);
         System.out.println("USED OLD CURSOR " + oldCursor);
         oldCursor = null;
-         */
     }
     
     
@@ -360,18 +370,14 @@ public class VUE
                 useMacLAF = true;
             else if (args[i].equals("-debug_init"))
                 DEBUG.INIT = true;
+            else if (args[i].equals("-debug_focus"))
+                DEBUG.FOCUS = true;
             else if (args[i].equals("-debug_dr"))
                 DEBUG.DR = true;
         }
         out("parsed args " + allArgs);
     }
 
-    //static JFrame toolParent = new JFrame();
-    public static ToolWindow createToolWindow(String title) {
-        //return new ToolWindow(title, toolParent);
-        return new ToolWindow(title, VUE.frame);
-    }
-    
     
     private static JPanel toolPanel;
     private static boolean themeSet = false;
@@ -441,6 +447,8 @@ public class VUE
             //displayMap(map1);
             displayMap(map2);
         }
+
+        if (DEBUG.INIT) out("map loaded");
         
         JSplitPane splitPane = new JSplitPane();
         //splitPane.setResizeWeight(0.40); // 25% space to the left component
@@ -501,19 +509,26 @@ public class VUE
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
 
+        if (DEBUG.INIT) out("creating VueFrame...");
+
         VUE.frame = new VueFrame();
+
+        if (DEBUG.INIT) out("created VueFrame");
         
         // Create the tool windows
-        //ToolWindow pannerTool = createToolWindow("Panner", frame);
-        pannerTool = createToolWindow("Panner");
+        ToolWindow pannerTool = createToolWindow("Panner");
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner());
+
+        if (DEBUG.INIT) out("created PannerTool");
         
         ToolWindow inspectorTool = null;
+        /*
         if (nodr) {
             inspectorTool = createToolWindow("Inspector");
             inspectorTool.addTool(new LWCInspector());
         }
+        */
         
         ToolWindow drBrowserTool = null;
         //DataSourceViewer currently breaks if more than one DRBrowser
@@ -541,9 +556,10 @@ public class VUE
         toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
         //toolBarPanel.add(tbc.getToolbar());
         //toolBarPanel.add(new VueToolBar());
-        frame.getContentPane().add(toolBarPanel, BorderLayout.NORTH);
+        frame.addComp(toolBarPanel, BorderLayout.NORTH);
         //frame.getContentPane().add(new VueToolBar(), BorderLayout.NORTH);
 
+        if (DEBUG.INIT) out("created VueToolBar");
         // Map Inspector
         
         // get the proper scree/main frame size
@@ -567,14 +583,9 @@ public class VUE
             testFrame.show();
         }
         
-        /*
-        ToolWindow htWindow = createToolWindow("Hierarchy Tree", frame);
-        hierarchyTree = new LWHierarchyTree();
-        htWindow.addTool(hierarchyTree);
-         */
-        
-        outlineView = new LWOutlineView(frame);
-        //end of addition
+        if (DEBUG.INIT) out("creating LWOutlineView...");
+        outlineView = new LWOutlineView(getRootFrame());
+        //outlineView = new LWOutlineView(VUE.frame);
         
         VUE.ToolWindows = new Window[] {
             objectInspector,
@@ -591,7 +602,9 @@ public class VUE
         //buildWindowDisplayActions(toolWindows);
         
         // adding the menus and toolbars
+        if (DEBUG.INIT) out("setting JMenuBar...");
         frame.setJMenuBar(new VueMenuBar(ToolWindows));
+        
         // Attempts to get all the windows to keep the same menu at the top
         // of a mac application are failing... what a bug!
         if (useMacLAF && VueUtil.isMacPlatform()) {
@@ -599,31 +612,24 @@ public class VUE
                 Window w = ToolWindows[i];
                 if (w == null)
                     continue;
-                if (false&&w instanceof JFrame)
+                if (w instanceof JFrame)
                     ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
-                /*
-                else if (w instanceof JDialog) {
-                    ((JDialog)w).setJMenuBar(new VueMenuBar(ToolWindows)); // doesn't work for dialogs: it goes in-window!!!
-                    ((JDialog)w).getJMenuBar().hide();
-                }
-                */
-                //else if (w instanceof JDialog)
-                    //((JDialog)w).setJMenuBar(null);
             }
         }
         out("menu toolbars set.");
-        frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
+        frame.addComp(vuePanel,BorderLayout.CENTER);
         //frame.getContentPane().setBackground(Color.red);
         //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
         //frame.setBackground(Color.white);
-        frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
         frame.pack();
         if (nodr)
-            frame.setSize(750,350);
+            frame.setSize(750,450);
         else
             frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
+        out("validating frame...");
         frame.validate();
+        out("frame validated");
         
         VueUtil.centerOnScreen(frame);
         
@@ -663,6 +669,8 @@ public class VUE
                 System.out.println(e);
             }
         });
+
+        VUE.isStartupUnderway = false;
         
         if (!nodr) {
             try {
@@ -683,6 +691,7 @@ public class VUE
             //pannerTool.setVisible(true);
         }
 
+        out("showing frame...");
         frame.show();
         out("frame visible");
         
@@ -719,7 +728,36 @@ public class VUE
 
         if (VueUtil.isMacPlatform())
             installMacOSXApplicationEventHandlers();
+
+        // MAC v.s. PC WINDOW PARENTAGE & FOCUS BEHAVIOUR:
+        //
+        // Window's that are shown before their parent's are shown do
+        // NOT adopt a stay-on-top-of-parent behaviour! (at least on
+        // mac).  FURTHERMORE: if you iconfiy the parent and
+        // de-iconify it, the keep-on-top is also lost permanently!
+        // (Even if you hide/show the child window after that) None of
+        // this happens on the PC, only Mac OS X.  Iconifying also
+        // hides the child windows on the PC, but not on Mac.  On the
+        // PC, there's also no automatic way to install the action
+        // behaviours to take effect (the ones in the menu bar) when a
+        // tool window has focus.  Actually, mac appears to do
+        // something smart also: if parent get's MAXIMIZED, it
+        // will return to the keep on top behaviour, but you
+        // have to manually hide/show it to get it back on top.
+        //
+        // Also: for some odd reason, if we use an intermediate
+        // root window as the master parent, the MapPanner display
+        // doesn't repaint itself when dragging it or it's map!
         
+        getRootWindow().show();
+
+        out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
+        //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
+        //out("\n\nACTIONTMAP " + java.util.Arrays.asList(frame.getActionMap().allKeys()));
+        //out("ACTIONTMAP " + Arrays.asList(VUE.getActiveViewer().getActionMap().allKeys()));
+        //out("INPUTMAP " + Arrays.asList(VUE.getActiveViewer().getInputMap().keys()));
+        //out("INPUTMAP " + Arrays.asList(getInputMap().keys()));
+
         out("main completed.");
     }
 
@@ -875,9 +913,17 @@ public class VUE
     }
     
     public static JTabbedPane getTabbedPane() {
-        return mMapTabsLeft;
+        return getLeftTabbedPane();
     }
     
+    public static MapTabbedPane getLeftTabbedPane() {
+        return mMapTabsLeft;
+    }
+
+    public static MapTabbedPane getRightTabbedPane() {
+        return mMapTabsRight;
+    }
+
     public static LWMap getActiveMap() {
         if (getActiveViewer() != null)
             return getActiveViewer().getMap();
@@ -885,25 +931,6 @@ public class VUE
             return null;
     }
 
-    /**
-     * deprecated - use getRootParent, getRootWindow or getRootFrame
-     */
-    public static JFrame getInstance() {
-        return frame;
-    }
-
-    /** return the root VUE component used for parenting */
-    public static Component getRootParent() {
-        return frame;
-    }
-    /** return the root VUE window, mainly for those who'd like it to be their parent */
-    public static Window getRootWindow() {
-        return frame;
-    }
-    /** return the root VUE frame, mainly for those who'd like it to be their parent */
-    public static Frame getRootFrame() {
-        return frame;
-    }
     
     public static UndoManager getUndoManager() {
         LWMap map = getActiveMap();
@@ -938,7 +965,7 @@ public class VUE
             return true;
         
         int response = JOptionPane.showOptionDialog
-        (VUE.frame,
+        (VUE.getRootParent(),
         
         "Do you want to save the changes you made to \n"
         + "'" + map.getLabel() + "'?"
@@ -1000,7 +1027,7 @@ public class VUE
     /**
      * Create a new viewer and display the given map in it.
      */
-    public static void displayMap(LWMap pMap) {
+    public static MapViewer displayMap(LWMap pMap) {
         out("displayMap " + pMap);
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
@@ -1030,8 +1057,80 @@ public class VUE
         }
         
         mMapTabsLeft.setSelectedComponent(leftViewer);
+
+        return leftViewer;
     }
 
+    /**
+     * deprecated - use getRootParent, getRootWindow or getRootFrame
+     */
+    public static Frame getInstance() {
+        return getRootFrame();
+    }
+
+    /** return the root VUE component used for parenting */
+    public static Component getRootParent() {
+        return getRootWindow();
+    }
+
+    private static Window rootWindow;
+    /** return the root VUE window, mainly for those who'd like it to be their parent */
+    public static Window getRootWindow() {
+        if (true) {
+            return VUE.frame;
+        } else {
+            if (rootWindow == null) {
+                //rootWindow = makeRootFrame();
+                rootWindow = makeRootWindow();
+            }
+            return rootWindow;
+        }
+    }
+
+    /** Return the main VUE window.  Usually == getRoowWindow, unless we're
+     * using a special root window for parenting the tool windows.
+     */
+    static Window getMainWindow() {
+        return VUE.frame;
+    }
+
+    private static Window makeRootWindow() {
+        if (true||DEBUG.INIT) out("making the ROOT WINDOW with parent " + VUE.frame);
+        Window w = new ToolWindow("Vue Root", VUE.frame);
+        //w.show();
+        return w;
+    }
+    
+    private static boolean makingRootFrame = false;
+    private static Frame makeRootFrame() {
+        if (makingRootFrame) {
+            new Throwable("RECURSIVE MAKE ROOT WINDOW CALL").printStackTrace();
+            return null;
+        }
+        makingRootFrame = true;
+        JFrame f = null;
+        try {
+            if (DEBUG.INIT) out("creating the ROOT WINDOW");
+            f = new JFrame("Vue Root");
+            if (VueUtil.isMacPlatform() && useMacLAF) {
+                JMenuBar menu = new VUE.VueMenuBar();
+                f.setJMenuBar(menu);
+            }
+            f.show();
+            //rootFrame = createFrame();
+        } finally {
+            makingRootFrame = false;
+        }
+        return f;
+    }
+    /** return the root VUE frame, mainly for those who'd like it to be their parent */
+    public static Frame getRootFrame() {
+        if (getRootWindow() instanceof Frame)
+            return (Frame) getRootWindow();
+        else
+            return VUE.frame;
+    }
+    
     /**
      * Factory method for creating frames in VUE.  On PC, this
      * is same as new new JFrame().  In Mac Look & Feel it adds a duplicate
@@ -1040,13 +1139,69 @@ public class VUE
      */
     public static JFrame createFrame()
     {
-        JFrame frame = new JFrame();
+        return createFrame(null);
+    }
+    
+    public static JFrame createFrame(String title)
+    {
+        JFrame frame = new JFrame(title);
         if (VueUtil.isMacPlatform() && useMacLAF) {
-            frame.setJMenuBar(new VUE.VueMenuBar());
+            JMenuBar menu = new VUE.VueMenuBar();
+            frame.setJMenuBar(menu);
         }
         return frame;
     }
 
+    /** @return a new JWindow, parented to the root VUE window */
+    public static JWindow createWindow()
+    {
+        return new JWindow(getRootWindow());
+    }
+
+    /** @return a new ToolWindow, parented to getRootWindow() */
+    public static ToolWindow createToolWindow(String title) {
+        //Window parent = getRootFrame();
+        Window parent = getRootWindow();
+        out("creating ToolWindow " + title + " with parent " + parent);
+        ToolWindow w = new ToolWindow(title, parent);
+        /*
+          // ToolWindows not set yet...
+        if (VueUtil.isMacPlatform() && useMacLAF && w instanceof JFrame)
+            ((JFrame)w).setJMenuBar(new VUE.VueMenuBar());
+        */
+        return w;
+    }
+
+    /** call the given runnable after all pending AWT events are completed */
+    static void invokeAfterAWT(Runnable runnable) {
+        java.awt.Toolkit.getDefaultToolkit().getSystemEventQueue().invokeLater(runnable);
+    }
+
+    static void ensureToolWindowVisibility() {
+        ensureToolWindowVisibility(null);
+    }
+    static void ensureToolWindowVisibility(final String title) {
+        if (VueUtil.isMacPlatform() && !inNativeFullScreen()) {
+            //new Throwable("ENSURETOOLWINDOWVISIBILITY").printStackTrace();
+            VUE.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        try {
+                            tufts.macosx.Screen.keepWindowsOnTop(title, inFullScreen());
+                        } catch (NoSuchMethodError e) {
+                            // If tufts.macosx.Screen get's out of date, or
+                            // it's library is not included in the build, we'll
+                            // get this exception.
+                            System.err.println(e);
+                        } catch (NoClassDefFoundError e) {
+                            // We'll get this is /System/Library/Java isn't in the classpath
+                            System.err.println(e);
+                        }
+                    }
+                });
+        }
+    }
+    
+    
     static class VueToolBar extends JToolBar
     {
         public VueToolBar()
@@ -1059,9 +1214,12 @@ public class VUE
             //addSeparator(); // not doing much
             add(Actions.Undo);
             add(Actions.Redo);
-            add(Actions.ZoomFit);
+            add(Actions.Group);
+            add(Actions.Ungroup);
             add(Actions.ZoomIn);
             add(Actions.ZoomOut);
+            add(Actions.ZoomFit);
+            add(Actions.Delete);
 
             setRollover(true);
             setMargin(new Insets(0,0,0,0));
@@ -1119,7 +1277,7 @@ public class VUE
             SaveAction saveAsAction = new SaveAction("Save As...");
             OpenAction openAction = new OpenAction("Open Map...");
             ExitAction exitAction = new ExitAction("Quit");
-            Publish publishAction = new Publish(frame,"Export");
+            Publish publishAction = new Publish("Export");
         
             // Actions added by the power team
             PrintAction printAction = PrintAction.getPrintAction();
@@ -1242,6 +1400,7 @@ public class VUE
             helpMenu.add(new ShowURLAction("VUE Online", "http://vue.tccs.tufts.edu/"));
             helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
             helpMenu.add(new AboutAction());
+            helpMenu.add(new ShortcutsAction());
         }
 
         public void setVisible(boolean b) {
@@ -1254,6 +1413,63 @@ public class VUE
         public void focusLost(FocusEvent e) {
             out("VMB: focusLost to " + e.getOppositeComponent());
         }
+    }
+
+    private static class ShortcutsAction extends VueAction {
+        private static Window window;
+        ShortcutsAction() {
+            super("Short Cuts");
+        }
+
+        void act() {
+            if (window == null)
+                window = createWindow();
+            window.show();
+        }
+        private Window createWindow() {
+            ToolWindow w = createToolWindow("VUE Short-Cut Keys");
+            w.addTool(createShortcutsList());
+            return w;
+        }
+
+        private JComponent createShortcutsList() {
+            String text = new String();
+            
+            // get tool short-cuts
+            VueTool[] tools =  VueToolbarController.getController().getTools();
+            for (int i = 0; i < tools.length; i++) {
+                VueTool tool = tools[i];
+                if (tool.getShortcutKey() != 0)
+                    text += " " + tool.getShortcutKey() + " - " + tool.getToolName() + "\n";
+            }
+            text += "\n";
+            // get action short-cuts
+            Iterator i = getAllActions().iterator();
+            while (i.hasNext()) {
+                VueAction a = (VueAction) i.next();
+                KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
+                if (k != null) {
+                    String keyName = " "
+                        + KeyEvent.getKeyModifiersText(k.getModifiers())
+                        + " "
+                        + KeyEvent.getKeyText(k.getKeyCode());
+                    if (keyName.length() < 10)
+                        keyName += ": \t\t";
+                    else
+                        keyName += ": \t";
+                    text += keyName + a.getActionName();
+                    text += "\n";
+                }
+            }
+            JTextArea t = new JTextArea();
+            t.setFont(FONT_SMALL);
+            t.setEditable(false);
+            t.setFocusable(false);
+            t.setText(text);
+            t.setOpaque(false);
+            return t;
+        }
+        
     }
     
 
@@ -1291,9 +1507,20 @@ public class VUE
             updateTitle(true);
             mWindow = w;
             mWindow.addComponentListener(new ComponentAdapter() {
-                    public void componentShown(ComponentEvent e) { setButtonState(true); updateTitle(false); }
-                    public void componentHidden(ComponentEvent e) { setButtonState(false); updateTitle(false); }
+                    public void componentShown(ComponentEvent e) { handleShown(); }
+                    public void componentHidden(ComponentEvent e) { handleHidden(); }
             });
+        }
+
+        private void handleShown() {
+            //out("handleShown " + title);
+            setButtonState(true);
+            updateTitle(false);
+        }
+        
+        private void handleHidden() {
+            setButtonState(false);
+            updateTitle(false);
         }
         private void updateTitle(boolean firstTime) {
             if (!firstTime && !showActionLabel)
@@ -1321,9 +1548,226 @@ public class VUE
                 mWindow.setLocation(20,20);
             }
             firstDisplay = false;
-            mWindow.setVisible(mLinkedButton.isSelected());
+            if (mLinkedButton.isSelected()) {
+                mWindow.setVisible(true);
+                mWindow.toFront();
+                VUE.ensureToolWindowVisibility(title);
+            } else {
+                mWindow.setVisible(false);
+            }
+            
         }
     }
+
+
+    // Full-screen handling code
+    
+    private static boolean fullScreenMode = false;
+    private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
+    private static Window fullScreenWindow = null;
+    private static Container fullScreenOldParent = null;
+    private static Point fullScreenOldVUELocation;
+    private static Dimension fullScreenOldVUESize;
+
+    private static Frame cachedFSW = null;
+    private static Frame cachedFSWnative = null;
+
+    static boolean inFullScreen() {
+        return fullScreenMode;
+    }
+    static boolean inNativeFullScreen() {
+        return fullScreenNative;
+    }
+
+    static void toggleFullScreen() {
+        toggleFullScreen(false);
+    }
+    
+    static void toggleFullScreen(final boolean goNative)
+    {
+        // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
+                
+        // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
+        // z-order, with the last being on top -- this INCLUDES the full-screen window, so when it get's
+        // shown, all the tool windows will always go below it, (including the main VUE frame) so we have
+        // have to hide/show all the tool windows each time so they come back to the front.
+
+        // If the tool window was open when fs popped, you can get it back by hitting it's shortcuut
+        // twice, hiding it then bringing it back, tho it appeared on mac that this didn't always work.
+
+        // More Mac Problems: We need the FSW (full screen window) to be a frame so we can set a
+        // jmenu-bar for the top (MRJAdapter non-active jmenu bar won't help: it's for only for when
+        // there's NO window active).  But then as a sibling frame, to VUE.frame instead ofa child to it,
+        // VUE.frame can appear on top of you Option-~.  Trying to move VUE.frame off screen doesn't
+        // appear to be working -- maybe we could set it to zero size?  Furthermore, all the tool
+        // Windows, which are children to VUE.frame, won't stay on top of the FSW after it takes focus.
+        // We need to see what happens if they're frames, as they're going to need to be anyway.  (There
+        // is the nice ability to Option-~ them all front/back at once, as children of the VUE.frame, if
+        // they're windows tho...)
+
+        // What about using a JDialog instead of a JFrame?  JDialog's can have
+        // a parent frame AND a JMenuBar...
+
+        boolean doBlack = (goNative || inNativeFullScreen());
+        if (doBlack)
+            tufts.Util.screenToBlack();
+
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice device = ge.getDefaultScreenDevice();
+        out("toggle full screen: native=" + goNative + " device=" + device);
+        MapViewer viewer = VUE.getActiveViewer();
+        VueTool activeTool = VueToolbarController.getActiveTool();
+                    
+        if (fullScreenMode) {
+            out("Exiting full screen mode");
+            if (device.getFullScreenWindow() != null) {
+                // this will take us out of true full screen mode
+                out("clearning native full screen window " + device.getFullScreenWindow());
+                device.setFullScreenWindow(null);
+                // note that when coming out of full screen, the java impl
+                // first restores the given  window to it's state before
+                // we made it the FSW, which is annoying on the mac cause
+                // it flashes a small window briefly in the upper left.
+            }
+            fullScreenWindow.setVisible(false);
+            fullScreenMode = false;
+            fullScreenNative = false;
+            if (fullScreenWindow != VUE.getMainWindow()) {
+                fullScreenOldParent.add(viewer);
+            }
+            if (VUE.getMainWindow() != null) {
+                VUE.getMainWindow().setLocation(fullScreenOldVUELocation); // mac window manger not allowing
+                VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
+                //VUE.getMainWindow.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
+                VUE.getMainWindow().setVisible(true);
+            }
+            activeTool.handleFullScreen(false);
+        } else {
+            //out("Native full screen support available: " + device.isFullScreenSupported());
+            //  setFullScreenWindow(SwingUtilities.getWindowAncestor(this));
+            //VUE.frame.setVisible(false); // this also hids all children of the frame, including the new fs window.
+            // mac bug: if don't create window every time, subsequent full-screen
+            // modes won't extend to the the bottom of the screen (probably related to mac dock being there)
+            // Very odd even if not running as a native window...  The window reports proper location, but it
+            // show's up placed at a negative y.
+
+            // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
+
+            if (goNative) {
+                if (VueUtil.isMacPlatform() || cachedFSWnative == null) {
+                    // have to create full screen native win on mac every time or it comes
+                    // back trying to avoid the dock??
+                    if (cachedFSWnative != null)
+                        cachedFSWnative.setTitle("OLD-full-native"); // important for tufts.macosx hacks
+                    cachedFSWnative = VUE.createFrame("VUE-FULL-NATIVE");
+                    cachedFSWnative.setUndecorated(true);
+                    cachedFSWnative.setLocation(0,0);
+                }
+                fullScreenWindow = cachedFSWnative;
+            } else {
+                if (cachedFSW == null) {
+                    cachedFSW = VUE.createFrame("VUE-FULL-WORKING");
+                    cachedFSW.setUndecorated(true);
+                }
+                fullScreenWindow = cachedFSW;
+            }
+            
+            /*
+            if (false) {
+                fullScreenWindow = VUE.getMainWindow();
+            } else if (VueUtil.isMacPlatform() || fullScreenWindow == null) {
+                //} else if (fullScreenWindow == null) {
+                // Terribly wasteful to have to re-create this on the mac all the time..
+                if (false) {
+                    fullScreenWindow = VUE.createWindow(); // if VUE.frame is parent, it will stay on top of it
+                } else {
+                    if (fullScreenWindow != null)
+                        ((Frame)fullScreenWindow).setTitle("OLD-FULL-FRAME");
+                    fullScreenWindow = VUE.createFrame("VUE-FULL-FRAME");
+                    // but we need a Frame in order to have the menu-bar on the mac!
+                    ((Frame)fullScreenWindow).setUndecorated(true);
+                }
+                //fullScreenWindow.setName("VUE-FULL-SCREEN");
+                //fullScreenWindow.setBackground(Color.RED);
+            }
+            */
+
+                
+            if (fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
+                Component fullScreenContent = viewer;
+                //fullScreenContent = new JLabel("TEST");
+                fullScreenOldParent = viewer.getParent();
+                if (fullScreenWindow instanceof JFrame)
+                    ((JFrame)fullScreenWindow).getContentPane().add(fullScreenContent);
+                else
+                    ((JWindow)fullScreenWindow).getContentPane().add(fullScreenContent);
+                //getMap().setFillColor(Color.BLACK);
+                //fullScreenWindow.getContentPane().add(MapViewer.this.getParent().getParent()); // add with scroll bars
+            }
+                
+            fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
+            fullScreenNative = goNative;
+            if (VUE.getMainWindow() != null) {
+                fullScreenOldVUELocation = VUE.getMainWindow().getLocation();
+                fullScreenOldVUESize = VUE.getMainWindow().getSize();
+            }
+
+            if (goNative) {
+
+                // On Mac, must use native full-screen to get the window over
+                // the mac menu bar.
+                    
+                //tufts.macosx.Screen.goBlack();
+                device.setFullScreenWindow(fullScreenWindow);
+                /*
+                
+                if (VueUtil.isMacPlatform()) {
+                    try {
+                        tufts.macosx.Screen.makeMainInvisible();
+                    } catch (Exception e) {
+                        System.err.println(e);
+                    }
+                }
+                */
+                if (DEBUG.Enabled) out("fsw=" + fullScreenWindow.getPeer().getClass());
+                    
+                //fullScreenWindow.addKeyListener(inputHandler);
+                //w.enableInputMethods(true);
+                //enableInputMethods(true);
+                            
+                // We run into a serious problem using the special java full-screen mode on the mac: if
+                // you right-click, it attemps to pop-up a menu over the full screen window, which is not
+                // allowed in mac full-screen, and it apparently auto-switches context somehow for you,
+                // but just leaves you at a fully blank screen that you can sometimes never recover from
+                // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
+                            
+            } else {
+                tufts.Util.setFullScreen(fullScreenWindow);
+                fullScreenWindow.setVisible(true);
+            }
+                
+            activeTool.handleFullScreen(true);
+                    
+            if (fullScreenWindow != VUE.getMainWindow() && VUE.getMainWindow() != null) {
+                VUE.getMainWindow().setVisible(false);
+                VUE.getMainWindow().setSize(0,0);
+                tufts.Util.setOffScreen(VUE.getMainWindow());
+                //VUE.getMainWindow().setLocation(0,0);
+                //VUE.getMainWindow().setLocation(3072,2048);
+                //VUE.getMainWindow().setExtendedState(Frame.ICONIFIED);
+            }
+        }
+        viewer.requestFocus();
+
+        //tufts.macosx.Screen.goClear();
+        VUE.ensureToolWindowVisibility();
+
+        if (doBlack)
+            VUE.invokeAfterAWT(new Runnable() {
+                    public void run() { tufts.Util.screenFadeFromBlack();}
+                });
+    }
+    
     
     static void installExampleNodes(LWMap map) {
         map.setFillColor(new Color(255,255,220));

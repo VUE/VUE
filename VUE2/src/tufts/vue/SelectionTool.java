@@ -25,22 +25,24 @@ import java.awt.*;
 
 public class SelectionTool extends VueTool {
 
-	
     public SelectionTool() {
         super();
     }
+
     public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
         return false;
     }
 	
-    public void handleSelection() {
-        
-    }
-    
     public JPanel getContextualPanel() {
         return VueToolbarController.getController().getSuggestedContextualPanel();
     }
 
     public boolean supportsSelection() { return true; }
+
+    static class Direct extends SelectionTool {
+        public LWComponent findComponentAt(LWMap map, float mapX, float mapY) {
+            return map.findDeepestChildAt(mapX, mapY);
+        }
+    }
     
 }

@@ -62,6 +62,8 @@ public class LinkTool extends VueTool
         return sLinkContextualPanel;
     }
 
+    public Class getSelectionType() { return LWLink.class; }
+
     /** LWPropertyProducer impl:
         @return LWKey.LinkCurves */
     final public Object getPropertyKey() { return LWKey.LinkCurves; }
@@ -105,6 +107,7 @@ public class LinkTool extends VueTool
     
     public boolean supportsSelection() { return true; }
 
+    // redo as handleComponentPressed
     public boolean handleMousePressed(MapMouseEvent e)
     {
         //System.out.println(this + " handleMousePressed " + e);
@@ -121,6 +124,10 @@ public class LinkTool extends VueTool
             if (state != null) {
             	state.applyState(creationLink);
             }
+            // never let drawn creator link get less than 1 pixel wide on-screen
+            float minStrokeWidth = (float) (1 / e.getViewer().getZoomFactor());
+            if (creationLink.getStrokeWidth() < minStrokeWidth)
+                creationLink.setStrokeWidth(minStrokeWidth);
             invisibleLinkEndpoint.setLocation(e.getMapPoint());
             e.setDragRequest(invisibleLinkEndpoint);
             // using a LINK as the dragComponent is a mess because geting the
@@ -158,6 +165,8 @@ public class LinkTool extends VueTool
         }
         if (over != null && isValidLinkTarget(linkSource, over)) {
             e.getViewer().setIndicated(over);
+            // todo: change drawing of indication to be handled here or by viewer
+            // instead of in each component's draw...
             //repaintRegion.add(over.getBounds());
         }
     }
@@ -170,11 +179,12 @@ public class LinkTool extends VueTool
 
         //System.out.println("dx,dy=" + e.getDeltaPressX() + "," + e.getDeltaPressY());
         if (Math.abs(e.getDeltaPressX()) > 10 ||
-            Math.abs(e.getDeltaPressY()) > 10) { // todo: config
+            Math.abs(e.getDeltaPressY()) > 10)  // todo: config min dragout distance
+        {
             //repaintMapRegionAdjusted(creationLink.getBounds());
             LWComponent linkDest = e.getViewer().getIndication();
             if (linkDest != linkSource)
-                makeLink(e, linkSource, linkDest);
+                makeLink(e, linkSource, linkDest, !e.isShiftDown());
         }
         this.linkSource = null;
         return true;
@@ -185,8 +195,8 @@ public class LinkTool extends VueTool
         this.linkSource = null;
     }
 
-    public void handlePaint(DrawContext dc)
-    {
+    public void handleDraw(DrawContext dc, LWMap map) {
+        super.handleDraw(dc, map);
         if (linkSource != null)
             creationLink.draw(dc);
     }
@@ -255,8 +265,10 @@ public class LinkTool extends VueTool
         super.drawSelector(g, r);
     }
 
-    //public static void makeLink(LWMap pMap, Point2D pDropLocation, LWComponent pLinkSource, LWComponent pLinkDest)
-    private void makeLink(MapMouseEvent e, LWComponent pLinkSource, LWComponent pLinkDest)
+    private void makeLink(MapMouseEvent e,
+                          LWComponent pLinkSource,
+                          LWComponent pLinkDest,
+                          boolean pMakeConnection)
     {
         LWLink existingLink = null;
         if (pLinkDest != null)
@@ -274,15 +286,20 @@ public class LinkTool extends VueTool
                 commonParent = pLinkSource.getParent();
             }
             boolean createdNode = false;
-            if (pLinkDest == null) {
-                // // some compiler bug is requiring that we fully qualify NodeTool here!
+            if (pLinkDest == null && pMakeConnection) {
                 pLinkDest = NodeTool.createNewNode();
                 pLinkDest.setCenterAt(e.getMapPoint());
                 commonParent.addChild(pLinkDest);
                 createdNode = true;
             }
 
-            LWLink link = new LWLink(pLinkSource, pLinkDest);
+            LWLink link;
+            if (pMakeConnection) {
+                link = new LWLink(pLinkSource, pLinkDest);
+            } else {
+                link = new LWLink(pLinkSource, null);
+                link.setEndPoint(e.getMapPoint()); // set to drop location
+            }
 
             // init link based on user defined state
             VueBeanState state = getLinkToolPanel().getCurrentState();
@@ -308,7 +325,8 @@ public class LinkTool extends VueTool
             if (pLinkDest instanceof LWLink)
                 commonParent.ensurePaintSequence(link, pLinkDest);
             VUE.getSelection().setTo(link);
-            e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
+            if (pMakeConnection)
+                e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
         }
     }
 

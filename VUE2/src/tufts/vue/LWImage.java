@@ -21,6 +21,7 @@ package tufts.vue;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Color;
+import java.awt.Shape;
 import java.awt.BasicStroke;
 import java.awt.geom.*;
 import java.awt.AlphaComposite;
@@ -37,6 +38,7 @@ public class LWImage extends LWComponent
     
     protected ImageIcon imageIcon;
     private Point2D.Float offset = new Point2D.Float(); // x & y always <= 0
+    private double rotation = 0;
     
     //private LWIcon.Resource resourceIcon = new LWIcon.Resource(this);
     private transient LWIcon.Block mIconBlock =
@@ -56,6 +58,7 @@ public class LWImage extends LWComponent
         // could handle all the duplicate code.
         LWImage i = (LWImage) super.duplicate();
         i.setOffset(this.offset);
+        i.setRotation(this.rotation);
         return i;
     }
     
@@ -66,8 +69,15 @@ public class LWImage extends LWComponent
         return true;
     }
 
-    //public void setScale(float scale) {
-    //}
+    private static final float ChildImageScale = 0.2f;
+    public void setScale(float scale) {
+        if (scale == 1f)
+            super.setScale(1f);
+        else {
+            float adjustment = ChildImageScale / LWNode.ChildScale;
+            super.setScale(scale * adjustment); // produce ChildImageScale at top level child
+        }
+    }
     
     public void setResource(Resource r) {
         super.setResource(r);
@@ -226,12 +236,11 @@ public class LWImage extends LWComponent
         dc.g.translate(-getX(), -getY());
     }
 
-    public static final Key KEY_Rotation = new Key("image.rotation") {
+    public static final Key KEY_Rotation = new Key("image.rotation") { // rotation in radians
             public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
             public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
         };
     
-    double rotation = 0;
     public void setRotation(double rad) {
         Object old = new Double(rotation);
         this.rotation = rad;
@@ -246,7 +255,7 @@ public class LWImage extends LWComponent
     protected void drawImage(DrawContext dc)
     {
         AffineTransform transform = AffineTransform.getTranslateInstance(offset.x, offset.y);
-        if (rotation != 0)
+        if (rotation != 0 && rotation != 360)
             transform.rotate(rotation, getImageWidth() / 2, getImageHeight() / 2);
         
         if (isSelected() && !dc.isPrinting() && dc.getActiveTool() instanceof ImageTool) {
@@ -254,10 +263,11 @@ public class LWImage extends LWComponent
             dc.g.drawImage(imageIcon.getImage(), transform, null);
             dc.g.setComposite(AlphaComposite.Src);
         }
-        dc.g.setClip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        Shape oldClip = dc.g.getClip();
+        dc.g.clip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
         //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
         dc.g.drawImage(imageIcon.getImage(), transform, null);
-        dc.g.setClip(null);
+        dc.g.setClip(oldClip);
     }
 
     public void mouseOver(MapMouseEvent e)

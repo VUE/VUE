@@ -284,18 +284,24 @@ public abstract class VueTool extends AbstractAction
         return mShortcutKey;
     }
 
+    /** if this returns non-null, only objects of the given type will be selected
+     * by the dragged selector */
+    public Class getSelectionType() { return null; }
+
     public void setLinkedButton(AbstractButton b) {
         mLinkedButton = b;
     }
 
-    // rename supportsClickSelection?
-    public boolean supportsSelection() { return false; }
-    //public boolean supportsClick() { return false; }
+    /** supports the click-selection of objects */
+    public boolean supportsSelection() { return true; }
 
-    /** does tool make use of a dragged box for selecting objects? */
+    /** does tool make use of a dragged box for selecting objects or regions of the map? */
     public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
-    /** does tool make use of the resize controls? */
-    public boolean supportsResizeControls() { return true; }
+    
+    /** does tool make use of the resize controls? If false, They will still be drawn, but
+     * will not respond to mouse drags.*/
+    public boolean supportsResizeControls() { return supportsSelection(); }
+    
     /** does tool make use of right click -- meaning the
      * viewer shouldn't pop a context menu on right-clicks */
     public boolean usesRightClick() { return false; }
@@ -304,13 +310,20 @@ public abstract class VueTool extends AbstractAction
     public boolean hasDecorations() { return false; }
 
     public final boolean supportsXORSelectorDrawing() {
-        return true;
+        return false;
     }
 
-    //public abstract void handleSelection( );
-    public void handleSelection() {}
+    /** what to do, if anything, when the tool is selected */
+    public void handleToolSelection() {}
 
-    public void handlePaint(DrawContext dc) {}
+    public void handleDraw(DrawContext dc, LWMap map) {
+        dc.g.setColor(map.getFillColor());
+        dc.g.fill(dc.g.getClipBounds());
+        map.draw(dc);
+    }
+    
+    public void handleFullScreen(boolean fullScreen) {}
+    
     public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
     {
         //g.fill(r);//if mac?
@@ -340,6 +353,25 @@ public abstract class VueTool extends AbstractAction
         if (DEBUG.TOOL) System.out.println(this + " handleSelectorRelease " + e);
         return false;
     }
+
+    //public void handleSelectionChange(LWSelection s) {}
+    // temporary: give this to everyone
+    public void handleSelectionChange(LWSelection s) {
+        if (//s.size() == 1 &&
+            VUE.multipleMapsVisible() &&
+            VUE.getLeftTabbedPane().getSelectedViewer() == VUE.getActiveViewer() &&
+            VUE.getRightTabbedPane().getSelectedViewer().getMap() == VUE.getActiveMap()
+            )
+        {
+            MapViewer viewer = VUE.getRightTabbedPane().getSelectedViewer();
+            ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16);
+        }
+    }
+
+    public LWComponent findComponentAt(LWMap map, float mapX, float mapY) {
+        return map.findChildAt(mapX, mapY);
+    }
+
 	
     /**
      * setParentTool
@@ -566,10 +598,10 @@ public abstract class VueTool extends AbstractAction
         if (parent != null)
             parent.setSelectedSubTool(this);
 
-        this.handleSelection();
+        this.handleToolSelection();
 		
         if (parent != null)
-            parent.handleSelection();
+            parent.handleToolSelection();
 
         VueToolbarController.getController().handleToolSelection(this);
     }

@@ -42,8 +42,9 @@ import javax.swing.border.*;
  */
 
 //public class ToolWindow extends JDialog
-public class ToolWindow extends JWindow // generic version for PC
-//public class ToolWindow extends JFrame // no good: can't stay on top of VUE main frame
+//public class ToolWindow extends JWindow // generic version for PC
+public class ToolWindow extends JFrame // no good: can't stay on top of VUE main frame
+//public class ToolWindow
     implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
@@ -62,20 +63,24 @@ public class ToolWindow extends JWindow // generic version for PC
 
     private final boolean managedTitleBar;
 
+    private static int CollapsedHeight = 0;
     //private JFrame parentFrame;
 
-    public ToolWindow(String title, Frame owner)
+    public ToolWindow(String title, Window owner)
     {
-        super(owner);
+        //super(owner);
         //this.parentFrame = owner;
         managedTitleBar = true;
-        //setUndecorated(managedTitleBar);
+        setUndecorated(managedTitleBar);
+        setResizable(true);
         //if (((Object)this) instanceof JWindow)
         //managedTitleBar = true;
         //if (owner instanceof JFrame) setRootPane(((JFrame)owner).getRootPane()); // no help getting menu bars shared on mac
 
+        //title = " " + title + " ";
         this.mTitle = title;
         setName(title);
+        //setName("_" + title + "_");
         if (managedTitleBar) {
             addMouseListener(this);
             addMouseMotionListener(this);
@@ -97,6 +102,7 @@ public class ToolWindow extends JWindow // generic version for PC
         gp.setVisible(true);
 
         pack();
+        
         if (DEBUG.Enabled) out("constructed.");
         
         //setLocationRelativeTo(owner);
@@ -119,7 +125,22 @@ public class ToolWindow extends JWindow // generic version for PC
                 }
             });
         */
+
+        if (CollapsedHeight == 0) {
+            CollapsedHeight = TitleHeight;
+            if (!VueUtil.isMacAquaLookAndFeel())
+                CollapsedHeight += 4;;
+        }
+        
     }
+
+
+    protected void processEvent(AWTEvent e) {
+        if (DEBUG.TOOL && (e instanceof MouseEvent == false || DEBUG.META))
+            out("processEvent " + e);
+        super.processEvent(e);
+    }
+    
     /*
     public JMenuBar getJMenuBar() { 
         return parentFrame.getJMenuBar(); 
@@ -153,6 +174,15 @@ public class ToolWindow extends JWindow // generic version for PC
         Actions.CloseMap.setEnabled(false); // hack
     }
     public void setVisible(boolean show) {
+        /*
+        java.awt.peer.ComponentPeer peer = getPeer();
+        out("PEER=" +peer.getClass() + " " + peer);
+        if (peer instanceof apple.awt.CWindow) {
+            apple.awt.CWindow cWindow = (apple.awt.CWindow)peer;
+            cWindow.setAlpha(0.5f);
+        }
+        */
+
         if (DEBUG.FOCUS) out("setVisible " + show);
         if (show && isRolledUp())
             setRolledUp(false);
@@ -197,7 +227,7 @@ public class ToolWindow extends JWindow // generic version for PC
         MouseListener[] ml = c.getMouseListeners();
         if (DEBUG.Enabled) out("added " + c + " mouseListeners=" + ml.length);
         if (addBorder || ml.length > 0) {
-            if (DEBUG.Enabled)
+            if (DEBUG.TOOL)
                 getContentPanel().setBorder(new LineBorder(Color.lightGray, 5));
             else
                 getContentPanel().setBorder(new EmptyBorder(5,5,5,5));
@@ -250,8 +280,20 @@ public class ToolWindow extends JWindow // generic version for PC
         //System.out.println("setSize " + width + "x" + height);
         if (width < ResizeCornerSize * 3)
             width = ResizeCornerSize * 3;
-        if (height < TitleHeight + ResizeCornerSize)
-            height = TitleHeight + ResizeCornerSize;
+        if (isRolledUp()) {
+            if (height < CollapsedHeight)
+                height = CollapsedHeight;
+        } else {
+            if (height < TitleHeight + ResizeCornerSize)
+                height = TitleHeight + ResizeCornerSize;
+        }
+        /*
+        Dimension min = getMinimumSize();
+        if (width < min.width)
+            width = min.width;
+        if (height < min.height)
+            height = min.height;
+        */
         super.setSize(width, height);
         validate();
     }
@@ -605,8 +647,10 @@ public class ToolWindow extends JWindow // generic version for PC
 
         private void paintResizeCorner(Graphics2D g)
         {
-            int w = getWidth();
-            int h = getHeight();
+            //int w = getWidth();
+            //int h = getHeight();
+            int w = ToolWindow.this.getWidth();
+            int h = ToolWindow.this.getHeight();
             int right = w - 1;
             int bottom = h - 1;
             int x = w - ResizeCornerSize;
@@ -672,8 +716,8 @@ public class ToolWindow extends JWindow // generic version for PC
         tw.setFocusable(true);
         p.setFocusable(true);
         tf.setFocusable(true);
-        
     }
+
     
     
 }

@@ -265,6 +265,12 @@ public abstract class LWContainer extends LWComponent
         }
     }
 
+    /** called by LWChangeSupport, available here for override by parent classes that want to
+     * monitor what's going on with their children */
+    void broadcastChildEvent(LWCEvent e) {
+        notifyLWCListeners(e);
+    }
+
     /**
      * @param possibleChildren should contain at least one child of this container
      * to be reparented.  Children not in this container are ignored.
@@ -356,7 +362,7 @@ public abstract class LWContainer extends LWComponent
         c.setParent(this);
         ensureID(c);
     }
-    
+
     protected void removeChildInternal(LWComponent c)
     {
         if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
@@ -665,14 +671,35 @@ public abstract class LWContainer extends LWComponent
      * above code due to recursive usage.
      */
 
-    /*
-     * Find deepest child at mapX, mapY -- may actually return this component also.
+    /**
+     * Find deepest child at mapX, mapY.  May return this component.
      */
     public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
     {
-        if (DEBUG.CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
-        if (DEBUG.CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
+        if (DEBUG.CONTAINMENT) {
+            System.out.print("LWContainer.findDeepestChildAt[" + toName() + "]");
+            if (excluded  != null)
+                System.out.print("<exclude:" + excluded.toName() + ">");
+            System.out.print(" -> ");
+            if (focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
+        }
 
+        LWComponent found = _findDeepestChildAt(mapX, mapY, excluded);
+
+        if (DEBUG.CONTAINMENT) {
+            if (found == this)
+                System.out.println("ITSELF");
+            else if (found == null)
+                System.out.println("null");
+            else
+                System.out.println(found.toName());
+        }
+
+        return found;
+    }
+    
+    private LWComponent _findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
+    {
         // TODO: change this gross focusComponent hack to a cleaner special case:
         // have the entire LWMap maintain a list of all the current focus components,
         // (the deepest + all it's parents) and always check that first & no matter what
@@ -1028,12 +1055,14 @@ public abstract class LWContainer extends LWComponent
     public void draw(DrawContext dc)
     {
         drawChildren(dc);
+        super.draw(dc); // draw any pathway decorations
     }
 
     public void drawChildren(DrawContext dc)
     {
         int nodes = 0;
         int links = 0;
+        int images = 0;
         
         if (this.children.size() > 0) {
 
@@ -1076,8 +1105,9 @@ public abstract class LWContainer extends LWComponent
                 if (c.isVisible() && (!c.isFiltered() || c.hasChildren()) && c.intersects(clipBounds)) {
                     _drawChild(dc, c);
                     if (DEBUG.PAINT) {
-                        if (c instanceof LWLink) links++;
+                             if (c instanceof LWLink) links++;
                         else if (c instanceof LWNode) nodes++;
+                        else if (c instanceof LWImage) images++;
                     }
                 }
             }
@@ -1089,7 +1119,7 @@ public abstract class LWContainer extends LWComponent
                 setFocusComponent(null);
                 
             if (DEBUG.PAINT) 
-                out(this + " painted " + links + " links, " + nodes + " nodes");
+                out(this + " painted " + links + " links, " + nodes + " nodes, " + images + " images");
         }
         /*
         if (DEBUG.CONTAINMENT) {
@@ -1103,6 +1133,8 @@ public abstract class LWContainer extends LWComponent
     private void _drawChild(DrawContext _dc, LWComponent c)
     {
         // todo opt: don't create all these GC's?
+        // todo: if selection going to draw in map, consolodate it here!
+        // todo: same goes for pathway decorations!
         DrawContext dc = _dc.create();
         try {
             if (c.doesRelativeDrawing())

@@ -387,6 +387,14 @@ class TextBox extends JTextPane
         setSize(getPreferredSize());
     }
 
+    private void setDocumentColor(Color c)
+    {
+        StyleConstants.setForeground(attributeSet, c);
+        StyledDocument doc = getStyledDocument();
+        doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), attributeSet, true);
+    }
+
+
     private void setFontAttributes(MutableAttributeSet a, Font f)
     {
         StyleConstants.setFontFamily(a, f.getFamily());
@@ -396,6 +404,7 @@ class TextBox extends JTextPane
     }
 
     
+    private MutableAttributeSet attributeSet;
     void copyStyle(LWComponent c)
     {
         SimpleAttributeSet a = new SimpleAttributeSet();
@@ -407,10 +416,10 @@ class TextBox extends JTextPane
         setFontAttributes(a, c.getFont());
         StyledDocument doc = getStyledDocument();
         doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
+        this.attributeSet = a;
         setSize(getPreferredSize());
         setSize(getPreferredSize());
     }
-
 
     public void setPreferredSize(Dimension preferredSize) {
         if (debug) System.out.println("MTP setPreferred " + preferredSize);
@@ -516,6 +525,12 @@ class TextBox extends JTextPane
 
     private static final BasicStroke MinStroke = new BasicStroke(1/8f);
     private static final BasicStroke MinStroke2 = new BasicStroke(1/24f);
+
+    /** @return true if hue value of Color is black, ignoring any alpha */
+    private boolean isBlack(Color c) {
+        return (c.getRGB() & 0xFFFFFF) == 0;
+    }
+    
     public void draw(DrawContext dc)
     {
         if (getParent() != null)
@@ -536,9 +551,22 @@ class TextBox extends JTextPane
             }
         }
 
+        boolean inverted;
+        if (dc.isBlackWhiteReversed() &&
+            (lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
+            isBlack(lwc.getTextColor())) {
+            //System.out.println("reversing color to white for " + this);
+            setDocumentColor(Color.white);
+            inverted = true;
+        } else
+            inverted = false;
+        
         //super.paintBorder(g);
         super.paintComponent(dc.g);
         //super.paint(g);
+
+        if (inverted)
+            setDocumentColor(Color.black);
 
         // draw a border for links -- why?
         // and even if, better to handle in LWLink

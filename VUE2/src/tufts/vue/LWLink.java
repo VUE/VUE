@@ -116,8 +116,7 @@ public class LWLink extends LWComponent
      */
     public LWLink(LWComponent ep1, LWComponent ep2)
     {
-        if (ep1 == null || ep2 == null)
-            throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
+        //if (ep1 == null || ep2 == null) throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
         setDefaults(this);
         setComponent1(ep1);
         setComponent2(ep2);
@@ -226,50 +225,29 @@ public class LWLink extends LWComponent
         return mIconBlock.handleDoubleClick(e);
     }
 
-    private void setStartPoint(Point2D p) {
+    public void setStartPoint(Point2D p) {
         setStartPoint((float)p.getX(), (float)p.getY());
     }
 
-    private void setStartPoint(float x, float y) {
+    public void setStartPoint(float x, float y) {
+        if (ep1 != null) throw new IllegalStateException("Can't set pixel start point for connected link");
         Object old = new Point2D.Float(startX, startY);
         startX = x;
         startY = y;
         endpointMoved = true;
         notify(Key_LinkStartPoint, old);
     }
-    private void setEndPoint(Point2D p) {
+    public void setEndPoint(Point2D p) {
         setEndPoint((float)p.getX(), (float)p.getY());
     }
-    private void setEndPoint(float x, float y) {
+    public void setEndPoint(float x, float y) {
+        if (ep2 != null) throw new IllegalStateException("Can't set pixel end point for connected link");
         Object old = new Point2D.Float(endX, endY);
         endX = x;
         endY = y;
         endpointMoved = true;
         notify(Key_LinkEndPoint, old);
     }
-    /** for persistance/init ONLY */
-    public void setPoint1(Point2D p)
-    {
-        startX = (float) p.getX();
-        startY = (float) p.getY();
-    }
-    /** for persistance/init ONLY */
-    public void setPoint2(Point2D p)
-    {
-        endX = (float) p.getX();
-        endY = (float) p.getY();
-    }
-    /** for persistance */
-    public Point2D.Float getPoint1()
-    {
-        return new Point2D.Float(startX, startY);
-    }
-    /** for persistance */
-    public Point2D.Float getPoint2()
-    {
-        return new Point2D.Float(endX, endY);
-    }
-
     
     /** interface ControlListener handler */
     public void controlPointPressed(int index, MapMouseEvent e) { }
@@ -308,7 +286,7 @@ public class LWLink extends LWComponent
         LWComponent dropTarget = e.getViewer().getIndication();
         // TODO BUG: above doesn't work if everything is selected
         if (DEBUG.MOUSE) System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
-        if (dropTarget != null) {
+        if (dropTarget != null && !e.isShiftDown()) {
             if (index == 0 && ep1 == null && ep2 != dropTarget)
                 setComponent1(dropTarget);
             else if (index == 1 && ep2 == null && ep1 != dropTarget)
@@ -524,6 +502,16 @@ public class LWLink extends LWComponent
         if (ep1 == null || ep2 == null)
             return false;
         return ep1.getParent() == ep2 || ep2.getParent() == ep1;
+    }
+
+    public LWComponent getFarTarget(LWComponent source)
+    {
+        if (getComponent1() == source)
+            return getComponent2();
+        else if (getComponent2() == source)
+            return getComponent1();
+        else
+            throw new IllegalArgumentException("bad farpoint: " + source + " not connected to " + this);
     }
 
     /**
@@ -1253,13 +1241,15 @@ public class LWLink extends LWComponent
         // Draw the stroke
         //-------------------------------------------------------
 
+        /*
         if (isIndicated() && !dc.isPrinting())
             g.setColor(COLOR_INDICATION);
         //else if (isSelected())
         //  g.setColor(COLOR_SELECTION);
         else
-            g.setColor(getStrokeColor());
+        */
 
+        g.setColor(getStrokeColor());
         g.setStroke(stroke);
         
         if (this.curve != null) {
@@ -1343,7 +1333,8 @@ public class LWLink extends LWComponent
             fillColor = null;
         } else {
             if (dc.isPrinting() || !isSelected())
-                fillColor = getFillColor();
+                fillColor = null;
+              //fillColor = getFillColor();
             else
                 fillColor = COLOR_HIGHLIGHT;
             if (fillColor == null && getParent() != null)
@@ -1644,6 +1635,29 @@ public class LWLink extends LWComponent
         else if (getControlCount() == 2)
             s += " cc2"; // cubic
         return s;
+    }
+
+    /** @deprecated for persistance/init ONLY */
+    public void setPoint1(Point2D p)
+    {
+        startX = (float) p.getX();
+        startY = (float) p.getY();
+    }
+    /** @deprecated for persistance/init ONLY */
+    public void setPoint2(Point2D p)
+    {
+        endX = (float) p.getX();
+        endY = (float) p.getY();
+    }
+    /** for persistance */
+    public Point2D.Float getPoint1()
+    {
+        return new Point2D.Float(startX, startY);
+    }
+    /** for persistance */
+    public Point2D.Float getPoint2()
+    {
+        return new Point2D.Float(endX, endY);
     }
 
     // these two to support a special dynamic link

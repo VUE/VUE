@@ -61,6 +61,7 @@ public interface LWKey {
     public String LinkRemoved = "lwc.link.removed"; // a link has been removed from this component
     
     public String Repaint = "repaint"; // general: visual change but no permanent data change
+    public String RepaintComponent = "repaint.component"; // general: repaint just the component
 
     /** link arrow state: 0=none, 1=start arrow, 2=end arrow, 3=both arrows */
     public String LinkArrows = "link.arrows";

@@ -34,14 +34,17 @@ package tufts.vue;
  */
 
 public interface LWPropertyProducer {
+    // rename LWPropertyHolder
 
     /** @return the property key (LWKey) for the property we hold */
     public Object getPropertyKey();
     
     /** @return the current property value */
+    // rename produceValue?
     public Object getPropertyValue();
     
     /** set the current property value (e.g.: gui component changes it's representation)
      * @param propertyValue must be of type expected for the given key */
+    // rename takeValue?
     public void setPropertyValue(Object propertyValue);
 }

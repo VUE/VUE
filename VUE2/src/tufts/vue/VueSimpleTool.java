@@ -32,12 +32,9 @@ public class VueSimpleTool extends VueTool
         return false;
     }
     
-    public void handleSelection() {
+    public void handleToolSelection() {
         // getMapViewer().setCurrentTool( this);
     }
-    
-    public JPanel getContextualPanel() {
-        return null;
-    }
+
 
 }

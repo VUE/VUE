@@ -79,6 +79,13 @@ public class VueToolbarController
         return sController;
     }
 
+    static public VueTool getActiveTool() {
+        if (sController == null)
+            return null;
+        else
+            return sController.getSelectedTool();
+    }
+
 	
     /**
      * Load the tools as defined in the resource properties file, and
@@ -352,13 +359,17 @@ public class VueToolbarController
         if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
             LWComponent c = (LWComponent) selection.get(0);
             if (c instanceof LWNode) {
-                if (((LWNode)c).isTextNode())
-                    tool = controller.getTool( "textTool");
+                if ( false && ((LWNode)c).isTextNode())
+                    tool = controller.getTool("textTool");
                 else
-                    tool = controller.getTool( "nodeTool" );
+                    tool = controller.getTool("nodeTool" );
+            } else if (c instanceof LWLink) {
+                tool = controller.getTool("linkTool");
+            } else if (c instanceof LWImage) {
+                tool = controller.getTool("imageTool");
             } else
-                if (c instanceof LWLink)
-                    tool = controller.getTool( "linkTool");
+                tool = controller.getTool("nodeTool" ); // make node tool the default for now
+                
         }
         if (tool != null)
             panel = tool.getContextualPanel();
@@ -375,7 +386,7 @@ public class VueToolbarController
         if (selection.size() > 0 && selection.allOfSameType()) {
             LWComponent c = selection.first();
             if (c instanceof LWNode) {
-                if( ((LWNode) c).isTextNode())
+                if ( false && ((LWNode) c).isTextNode())
                     panel = TextTool.getTextToolPanel();
                 else
                     panel = NodeTool.getNodeToolPanel();
@@ -512,42 +523,4 @@ public class VueToolbarController
         VueUtil.centerOnScreen(frame);
         frame.show();
     }
-
-     
-    /*
-    public void handleMapEvent( Event pEvent) {
-        // FIX: This handles selection events...
-    }
-    */
- 	
-    /*  updateToolbar
-     *  This method will update teh existing toolbar of a Map.
-     * You should callt his if the prefs or set of tools changes for a map
-     *
-     * @param Map the Map object
-    public void setEnabledToolsFromMap( LWMap pMap) {
-	 		 	
-        // FIX
-        //  update to just remove/disable
-	 	
-    }
-     **/
-	 
-    /*
-    public JPanel getContextualPanel() { 
-        return mContextualPanel;
-    }
-    public void setContextualPanel( JPanel pPanel) {
-        mContextualPanel = pPanel;
-    }
-    */
-    /*
-    static ToolWindow sToolWindow = null;
-    public ToolWindow getToolWindow() {
-        return sToolWindow;
-    }
-    public void setToolWindow( ToolWindow pWindow ) {
-        sToolWindow = pWindow;
-    }
-    */
 }

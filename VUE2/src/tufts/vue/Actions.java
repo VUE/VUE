@@ -365,7 +365,7 @@ implements VueConstants {
     };
     
     static final LWCAction Delete =
-    new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE)) {
+    new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
         // hierarchicalAction is true: if parent being deleted,
         // let it handle deleting the children (ignore any
         // children in selection who's parent is also in selection)
@@ -407,7 +407,7 @@ implements VueConstants {
     //-------------------------------------------------------
     
     static final Action Group =
-    new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND)) {
+        new LWCAction("Group", keyStroke(KeyEvent.VK_G, COMMAND), "/tufts/vue/images/Group.gif") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
             // enable only when two or more objects in selection,
@@ -416,18 +416,34 @@ implements VueConstants {
             // below condition doesn't allow explicit grouping of links, which cause's trouble somewhere...
             //return (s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent();
         }
-        void act(LWSelection selection) {
-            LWContainer parent = selection.first().getParent(); // all have same parent
-            LWGroup group = LWGroup.create(selection);
-            parent.addChild(group);
-            VUE.getSelection().setTo(group);
-            // setting selection here is slightly sketchy in that it's
-            // really a UI policy that belongs to the viewer
-            // todo: could handle in viewer via "created" LWCEvent
+        void act(LWSelection s) {
+            if (s.size() == 2 && s.countTypes(LWGroup.class) == 1) {
+                // special case: join the group (really need another action for this)
+                LWGroup toJoin;
+                LWComponent toAdd;
+                if (s.first() instanceof LWGroup) {
+                    toJoin = (LWGroup) s.first();
+                    toAdd = s.last();
+                } else {
+                    toJoin = (LWGroup) s.last();
+                    toAdd = s.first();
+                }
+                toJoin.addChild(toAdd);
+            } else {
+                LWContainer parent = s.first().getParent(); // all have same parent
+                LWGroup group = LWGroup.create(s);
+                parent.addChild(group);
+                VUE.getSelection().setTo(group);
+                // setting selection here is slightly sketchy in that it's
+                // really a UI policy that belongs to the viewer
+                // todo: could handle in viewer via "created" LWCEvent
+            }
         }
     };
     static final Action Ungroup =
-    new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT)) {
+        //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupGC.png") {
+        //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupUnGC.png") {
+        new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/Ungroup.png") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
             return s.countTypes(LWGroup.class) > 0;
@@ -860,7 +876,7 @@ implements VueConstants {
             ZoomTool.setZoomSmaller(null);
         }
     };
-    static final Action ZoomFit =
+    static final VueAction ZoomFit =
         new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
         void act() {
             ZoomTool.setZoomFit();
@@ -878,10 +894,8 @@ implements VueConstants {
         new VueAction("Full Screen", VueUtil.isMacPlatform() ?
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
-        // no way to listen for zoom change events to keep this current
-        //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         void act() {
-            VUE.getActiveViewer().toggleFullScreen();
+            VUE.toggleFullScreen();
         }
     };
     
@@ -930,19 +944,21 @@ implements VueConstants {
             init();
         }
         LWCAction(String name, String shortDescription, KeyStroke keyStroke) {
-            this(name, shortDescription, keyStroke, null);
+            this(name, shortDescription, keyStroke, (Icon) null);
         }
         LWCAction(String name) {
-            this(name, null, null, null);
+            this(name, null, null, (Icon) null);
         }
         LWCAction(String name, Icon icon) {
             this(name, null, null, icon);
         }
         LWCAction(String name, KeyStroke keyStroke) {
-            this(name, null, keyStroke, null);
+            this(name, null, keyStroke, (Icon) null);
         }
-        LWCAction(String name, KeyStroke keyStroke, Icon icon) {
-            this(name, null, keyStroke, icon);
+        LWCAction(String name, KeyStroke keyStroke, String iconName) {
+            super(name, keyStroke, iconName);
+            VUE.getSelection().addListener(this);
+            init();
         }
         void act() {
             LWSelection selection = VUE.getSelection();

@@ -19,7 +19,10 @@
 
 package tufts.vue;
 
+import java.util.List;
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
@@ -31,6 +34,10 @@ import javax.swing.Icon;
  */
 public class VueAction extends javax.swing.AbstractAction
 {
+    public static final String LARGE_ICON = "LargeIcon";
+
+    private static List AllActionList = new ArrayList();
+
     private static boolean allIgnored = false;
     /** Set's all action events to be temporarily ignored.
         E.g., used while a TextBox edit is active */
@@ -54,18 +61,34 @@ public class VueAction extends javax.swing.AbstractAction
         if (icon != null)
             putValue(SMALL_ICON, icon);
         //if (DEBUG.Enabled) System.out.println("Constructed: " + this);
+        AllActionList.add(this);
     }
-    public VueAction(String name, KeyStroke keyStroke, String icon) {
-        this(name, null, keyStroke, icon == null ? null :
-             (icon.startsWith(":")
-              ? VueResources.getImageIconResource("/toolbarButtonGraphics/" + icon.substring(1) + "24.gif")
-              : VueResources.getImageIconResource(icon)));
+    public VueAction(String name, KeyStroke keyStroke, String iconSpec) {
+        this(name, null, keyStroke, null);
+        setIcon(iconSpec);
     }
     public VueAction(String name, KeyStroke keyStroke) {
         this(name, null, keyStroke, null);
     }
     public VueAction(String name) {
         this(name, null, null, null);
+    }
+
+    public List getAllActions() {
+        return Collections.unmodifiableList(AllActionList);
+    }
+
+    private void setIcon(String iconSpec) {
+        Icon icon = null;
+        if (iconSpec.startsWith(":")) {
+            icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "16.gif");
+            putValue(SMALL_ICON, icon);
+            icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "24.gif");
+            putValue(LARGE_ICON, icon);
+        } else {
+            icon = VueResources.getImageIconResource(iconSpec);
+            putValue(SMALL_ICON, icon);
+        }
     }
 
 

@@ -334,7 +334,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_MAP,tufts.vue.VUE.getActiveMap());
             this.dispose();
         } catch (Exception ex) {
-            alert(VUE.getInstance(),  "Export Not Supported:"+ex.getMessage(), "Export Error");
+            alert(VUE.getRootParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
     }
@@ -343,7 +343,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         try {
             publishMap((LWMap)VUE.getActiveMap().clone());
         } catch (Exception ex) {
-            alert(VUE.getInstance(),  "Export Not Supported:"+ex.getMessage(), "Export Error");
+            alert(VUE.getRootParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
             ex.printStackTrace();
         }
         
@@ -459,8 +459,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
 
     
-    private void alert(javax.swing.JFrame frame,String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(frame,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);
+    private void alert(Component parentComponent,String message,String title) {
+        javax.swing.JOptionPane.showMessageDialog(parentComponent,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);
     }
     
     

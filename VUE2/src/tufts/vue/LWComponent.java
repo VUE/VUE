@@ -84,7 +84,7 @@ public class LWComponent
     protected transient BasicStroke stroke = STROKE_ZERO;
     protected transient boolean hidden = false;
     protected transient boolean selected = false;
-    protected transient boolean indicated = false;
+    //protected transient boolean indicated = false;
     protected transient boolean rollover = false;
     protected transient boolean isZoomedFocus = false;
 
@@ -148,7 +148,7 @@ public class LWComponent
         if (key == LWKey.Size)          return new Size(this.width, this.height);
         if (key == LWKey.Hidden)        return new Boolean(isHidden());
              
-        if (DEBUG.Enabled) out("note: getPropertyValue; unsupported property [" + key + "] (returning null)");
+        if (DEBUG.TOOL) out("note: getPropertyValue; unsupported property [" + key + "] (returning null)");
         //return UnsupportedPropertyValue;
         return null;
         //throw new RuntimeException("Unknown property key[" + key + "]");
@@ -302,6 +302,12 @@ public class LWComponent
     	return mIsFiltered;
     }
 
+    /**
+     * Called during restore from presistance, or when newly added to a container.
+     * Must be called at some point before any attempt to persist, with a unique
+     * identifier within the entire LWMap.  This is how components are referenced
+     * in the persisted data.
+     */
     public void setID(String ID)
     {
         if (this.ID != null)
@@ -451,6 +457,13 @@ public class LWComponent
         else if (name.startsWith("tufts.vue."))
             name = name.substring(10);
         return name;
+    }
+
+    String toName() {
+        if (getLabel() == null)
+            return getDisplayLabel();
+        else
+            return getComponentTypeLabel() + "[" + getLabel() + "]";
     }
     
     public void setNodeFilter(NodeFilter nodeFilter) {
@@ -668,6 +681,12 @@ public class LWComponent
     {
         return this.fillColor;
     }
+    
+    public boolean isTransparent()
+    {
+        return fillColor == null || fillColor.getAlpha() == 0;
+    }
+    
     /** Color to use at draw time.
         LWNode overrides to provide darkening of children. */
     public Color getRenderFillColor()
@@ -744,11 +763,28 @@ public class LWComponent
     }
     static String ColorToString(Color c)
     {
+        // if null, or no hue and no alpha, return null
+        if (c == null || ((c.getRGB() & 0xFFFFFF) == 0 && c.getAlpha() == 255))
+            return null;
+        
+        // todo: I still think this can put out non zero-filled strings
+        if (c.getAlpha() == 255) // opaque: only bother to save hue info
+            return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
+        else if (c.getAlpha() == 0) // totally transparent, be sure alpha still indicated!
+            return "#00" + Integer.toHexString(c.getRGB());
+        else
+            return "#" + Integer.toHexString(c.getRGB());
+    }
+    /*
+    static String ColorToString(Color c)
+    {
         if (c == null || (c.getRGB() & 0xFFFFFF) == 0)
             return null;
+        
         //return "#" + Long.toHexString(c.getRGB() & 0xFFFFFFFF);
         return "#" + Integer.toHexString(c.getRGB() & 0xFFFFFF);
     }
+    */
     static Color StringToColor(String xml)
     {
         if (xml.trim().length() < 1)
@@ -756,10 +792,11 @@ public class LWComponent
         
 	Color c = null;
         try {
-            Integer intval = Integer.decode(xml);
+            c = VueResources.makeColor(xml);
+            //Integer intval = Integer.decode(xml);
             //Long longval = Long.decode(xml); // transparency test -- works,just need gui
             //c = new Color(longval.intValue(), true);
-            c = new Color(intval.intValue());
+            //c = new Color(intval.intValue());
         } catch (NumberFormatException e) {
             System.err.println("LWComponent.StringToColor[" + xml + "] " + e);
         }
@@ -963,8 +1000,8 @@ public class LWComponent
     /** include all links and far endpoints of links connected to this component */
     public java.util.List getAllConnectedComponents()
     {
-        java.util.List list = new java.util.ArrayList(this.links.size());
-        java.util.Iterator i = this.links.iterator();
+        List list = new java.util.ArrayList(this.links.size());
+        Iterator i = this.links.iterator();
         while (i.hasNext()) {
             LWLink l = (LWLink) i.next();
             list.add(l);
@@ -974,6 +1011,26 @@ public class LWComponent
                 list.add(l.getComponent2());
             else
                 // todo: actually, I think we want to support these
+                throw new IllegalStateException("link to self on " + this);
+            
+        }
+        return list;
+    }
+    
+    /** include all non-null far endpoints of links connected to this component */
+    public java.util.List getLinkedComponents()
+    {
+        List list = new java.util.ArrayList(getLinks().size());
+        Iterator i = getLinks().iterator();
+        while (i.hasNext()) {
+            LWLink link = (LWLink) i.next();
+            LWComponent c1 = link.getComponent1();
+            LWComponent c2 = link.getComponent2();
+            if (c1 != this) {
+                if (c1 != null) list.add(c1);
+            } else if (c2 != this) {
+                if (c2 != null) list.add(c2);
+            } else
                 throw new IllegalStateException("link to self on " + this);
             
         }
@@ -1009,7 +1066,7 @@ public class LWComponent
         }
         return null;
     }
-
+    
     public boolean hasLinkTo(LWComponent c)
     {
         return getLinkTo(c) != null;
@@ -1048,6 +1105,8 @@ public class LWComponent
      */
     protected void updateConnectedLinks()
     {
+        if (getLinkRefs().size() == 0)
+            return;
         java.util.Iterator i = getLinkRefs().iterator();
         while (i.hasNext()) {
             LWLink l = (LWLink) i.next();
@@ -1055,12 +1114,6 @@ public class LWComponent
         }
     }
     
-    public void translate(float dx, float dy)
-    {
-        setLocation(this.x + dx,
-                    this.y + dy);
-    }
-
     public void setFrame(Rectangle2D r)
     {
         setFrame((float)r.getX(), (float)r.getY(),
@@ -1082,8 +1135,8 @@ public class LWComponent
 
         /*
         Object old = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
-        setLocation0(x, y);
-        setSize0(w, h);
+        takeLocation(x, y);
+        takeSize(w, h);
         updateConnectedLinks();
         notify(LWKey.Frame, old);
         */
@@ -1096,7 +1149,7 @@ public class LWComponent
         
 
     private boolean linkNotificationDisabled = false;
-    protected void setLocation0(float x, float y) {
+    protected void takeLocation(float x, float y) {
         this.x = x;
         this.y = y;
     }
@@ -1106,7 +1159,7 @@ public class LWComponent
         if (this.x == x && this.y == y)
             return;
         Object old = new Point2D.Float(this.x, this.y);
-        setLocation0(x, y);
+        takeLocation(x, y);
         if (!linkNotificationDisabled)
             updateConnectedLinks();
         notify(LWKey.Location, old); // todo perf: does anyone need this except for undo?  lots of these during drags...
@@ -1124,6 +1177,11 @@ public class LWComponent
         setLocation(x, y);
     }
     
+    public void translate(float dx, float dy) {
+        setLocation(this.x + dx,
+                    this.y + dy);
+    }
+
     public void setCenterAt(Point2D p) {
         setLocation((float) p.getX() - getWidth()/2,
                     (float) p.getY() - getHeight()/2);
@@ -1146,12 +1204,12 @@ public class LWComponent
         return new Point2D.Float(getCenterX(), getCenterY());
     }
     
-    /** set component to this many pixels in size */
-    protected void setSize0(float w, float h)
+    /** set component to this many pixels in size, quietly, with no event notification */
+    protected void takeSize(float w, float h)
     {
-        if (this.width == w && this.height == h)
-            return;
-        if (DEBUG.LAYOUT) out("*** setSize0 (LWC)  " + w + "x" + h);
+        //if (this.width == w && this.height == h)
+        //return;
+        if (DEBUG.LAYOUT) out("*** takeSize (LWC)  " + w + "x" + h);
         this.width = w;
         this.height = h;
     }
@@ -1159,11 +1217,11 @@ public class LWComponent
     /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
-        if (width == w && height == h)
+        if (this.width == w && this.height == h)
             return;
-        if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setSize   (LWC)  " + w + "x" + h);
         Size old = new Size(width, height);
-        setSize0(w, h);
+        takeSize(w, h);
         if (getParent() != null && !(getParent() instanceof LWMap))
             getParent().layout();
         updateConnectedLinks();
@@ -1596,12 +1654,6 @@ public class LWComponent
     public boolean isDrawn() {
         return !hidden && !mIsFiltered;
     }
-    public void setIndicated(boolean indicated)
-    {
-        if (this.indicated != indicated) {
-            this.indicated = indicated;
-        }
-    }
     public void setRollover(boolean tv)
     {
         if (this.rollover != tv) {
@@ -1623,10 +1675,16 @@ public class LWComponent
         return isZoomedFocus;
     }
     
-    public boolean isIndicated()
+    /*
+    public void setIndicated(boolean indicated)
     {
-        return this.indicated;
+        if (this.indicated != indicated) {
+            this.indicated = indicated;
+        }
     }
+    public boolean isIndicated() { return this.indicated; }
+    */
+    
     public boolean isRollover()
     {
         return this.rollover;

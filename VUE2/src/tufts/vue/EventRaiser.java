@@ -21,6 +21,7 @@ package tufts.vue;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
+import java.awt.Frame;
 
 /**
  * Generic awt containment event raiser.
@@ -48,6 +49,7 @@ public abstract class EventRaiser
         // get the root parent -- todo: only
         // need to do this once / listen to AWT hierarcy events
         // really: move to a registration system
+        /*
         Component parent = source;
         while (parent.getParent() != null)
             parent = parent.getParent();
@@ -57,6 +59,19 @@ public abstract class EventRaiser
             //System.err.println(java.util.Arrays.asList(owned);
             for (int i = 0; i < owned.length; i++) {
                 deliverToChildren(owned[i]);
+            }
+        }
+        */
+        Frame frames[] = Frame.getFrames();
+        for (int fi = 0; fi < frames.length; fi++) {
+            Frame frame = frames[fi];
+            deliverToChildren((Container)frame);
+            if (frame instanceof Window) {
+                Window[] owned = ((Window)frame).getOwnedWindows();
+                //System.err.println(java.util.Arrays.asList(owned);
+                for (int i = 0; i < owned.length; i++) {
+                    deliverToChildren(owned[i]);
+                }
             }
         }
     }

@@ -48,6 +48,10 @@ public class PathwayTool extends VueSimpleTool
         super();
     }
     
+    public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
+        return false;
+    }
+    
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
         if (DEBUG.TOOL) System.out.println("PATHWAYTOOL " + e);

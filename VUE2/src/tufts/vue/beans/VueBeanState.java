@@ -63,8 +63,12 @@ public class VueBeanState implements VueBeanInfo
      */
     public void initializeFrom(Object pObject)  {
 	
-        mInfo = VueBeans.getBeanInfo( pObject);
+        mInfo = VueBeans.getBeanInfo(pObject);
         mProperties.clear();
+        if (mInfo == null) {
+            System.err.println(this + " couldn't initialize, no beaninfo from " + pObject);
+            return;
+        }
 
         String[] propertyNames = mInfo.getPropertyNames();
         for (int i = 0; propertyNames != null && i < propertyNames.length; i++)  {

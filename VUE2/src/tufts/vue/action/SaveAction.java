@@ -107,7 +107,7 @@ public class SaveAction extends VueAction
             return false;
         
         try {
-
+            VUE.activateWaitCursor();
             String name = file.getName().toLowerCase();
 
             if (name.endsWith(".xml") || name.endsWith(".vue"))
@@ -144,6 +144,8 @@ public class SaveAction extends VueAction
             }
             System.err.println("Exception attempting to save file " + file);
             VueUtil.alert(null, "Save failed: " + originalException, "Save error");
+        } finally {
+            VUE.clearWaitCursor();
         }
 
         return false;

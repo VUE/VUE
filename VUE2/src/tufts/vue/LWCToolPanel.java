@@ -27,6 +27,7 @@ import java.util.*;
 import java.io.*;
 import java.beans.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 
 
@@ -71,7 +72,7 @@ remember it).
 // caching code, and the handling of multi-selection code (uh, that TDB).
 
 public class LWCToolPanel extends JPanel
-    implements ActionListener, PropertyChangeListener, LWComponent.Listener
+    implements ActionListener, PropertyChangeListener, ChangeListener, LWComponent.Listener
 {
     /** fill button **/
     protected ColorMenuButton mFillColorButton;
@@ -368,9 +369,9 @@ public class LWCToolPanel extends JPanel
         Iterator i = mPropertyProducers.iterator();
         while (i.hasNext()) {
             LWPropertyProducer propertyProducer = (LWPropertyProducer) i.next();
-            if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
+            //if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyProducer);
             if (propertyProducer.getPropertyKey() == propertyKey) {
-                if (DEBUG.TOOL) out("matched key [" + propertyKey + "] to " + propertyProducer);
+                if (DEBUG.TOOL) out("loadToolValue: found producer for key [" + propertyKey + "]: " + propertyProducer.getClass());
                 Object value = src.getPropertyValue(propertyKey);
                 propertyProducer.setPropertyValue(value);
                 mState.setPropertyValue(propertyKey.toString(), value);
@@ -391,14 +392,19 @@ public class LWCToolPanel extends JPanel
         mIgnoreEvents = t;
     }
 
-
+    // need to add functionaltiyh for rapidly changing values (e.g., slider's
+    // active color chooser, etc) -- in which case we'd ignore change events
+    // coming from the component until the end -- can we have the component
+    // issue events marked as rapid changers?  Or should subclasses of
+    // LWCToolPanel just handle it?
+    
     private boolean mIgnoreLWCEvents = false;
     public void LWCChanged(LWCEvent e) {
         // if we don't handle this property, loadToolValue will ignore this event
         if (mIgnoreLWCEvents) {
             if (DEBUG.TOOL) out("ignoring during propertyChange: " + e);
         } else {
-            loadToolValue(e.getWhat(), e.getComponent());
+            loadToolValue(e.getKey(), e.getComponent());
         }
     }
  	
@@ -449,10 +455,29 @@ public class LWCToolPanel extends JPanel
 
         } else {
             // We're not interested in "ancestor" events, icon change events, etc.
-            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: " + e + " name=" + e.getPropertyName());
+            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
         }
 
     }
+
+    /** if we get a state changed, check to see if the source is one of our LWPropertyProducers,
+     * and if so, simulate a propertyChange event
+     * (e.g., a JSlider doesn't issue PropertyChangeEvents, only ChangeEvents, although
+     * we don't want to invoke the undo-manager for the real-time update of the slider) */
+
+    public void stateChanged(ChangeEvent e) {
+        Object source = e.getSource();
+        Iterator i = mPropertyProducers.iterator();
+        while (i.hasNext()) {
+            LWPropertyProducer producer = (LWPropertyProducer) i.next();
+            if (source == producer) {
+                if (DEBUG.TOOL) out("matched ChangeEvent source to propertyProducer " + producer.getClass());
+                propertyChange(new LWPropertyChangeEvent(producer, producer.getPropertyKey().toString(), null, producer.getPropertyValue()));
+                // propertyChange could detect that source is instanceof a producer, and pull value from that.
+            }
+        }
+    }
+    
  	
     public void actionPerformed(ActionEvent pEvent) {
         out("UNHANDLED: " + pEvent);

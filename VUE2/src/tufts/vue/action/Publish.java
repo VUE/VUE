@@ -49,20 +49,25 @@ public class Publish   extends AbstractAction  {
     String fileName;
     String tempMETSfileName;
     File activeMapFile;
-    Frame owner;
+    //Frame owner;
     String label;
     public Publish() {
     }
-    
+    public Publish(String label) {
+        super(label);
+        this.label  = label;
+    }
+    /*
     public Publish(Frame owner,String label) {
         super(label);
         this.owner = owner;
         this.label  = label;
     }
+    */
     public void actionPerformed(java.awt.event.ActionEvent e) {
         try {
-            Publisher publisher = new Publisher(owner,label);
-      
+            Publisher publisher = new Publisher(VUE.getRootFrame(), label);
+            //Publisher publisher = new Publisher(owner,label);
         } catch(Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
            ex.printStackTrace();

@@ -258,7 +258,9 @@ public class UndoManager
             } else {
                 if (DEBUG.Enabled) {
                     try {
-                        undoAnimated();
+                        Object curValue = component.getPropertyValue(propKey);
+                        if (curValue != null)
+                            undoAnimated();
                     } catch (Exception e) {
                         System.err.println("Exception during animated undo of [" + propKey + "] on " + component);
                         if (oldValue != null)
@@ -284,6 +286,7 @@ public class UndoManager
                     
             // experimental for animated presentation
             //component.getChangeSupport().setEventsSuspended();
+            
             if (oldValue instanceof Point)
                 animatedChange((Point)oldValue);
             else if (oldValue instanceof Point2D)

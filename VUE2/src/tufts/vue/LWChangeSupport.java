@@ -243,7 +243,7 @@ public class LWChangeSupport
             if (DEBUG.EVENTS && DEBUG.META) {
                 eoutln(e + " " + client.getParent() + " ** PARENT UP-NOTIFICATION");
             }
-            client.getParent().notifyLWCListeners(e);
+            client.getParent().broadcastChildEvent(e);
         } else if (client.isOrphan()) {
             if (listeners != null && listeners.size() > 0) {
                 System.out.println("*** ORPHAN NODE w/LISTENERS DELIVERED EVENTS:"

@@ -51,6 +51,7 @@ public class MapPanner extends javax.swing.JPanel
     // Enable this to keep viewport always visible in panner: (it causes while-you-drag
     // zoom adjusting tho, which can be a bit disorienting)
     private static final boolean ViewerAlwaysVisible = true;
+    private static final boolean ShowFullCanvas = true;
     private static final int MapMargin = 0;
     //private static final int MapMargin = ViewerAlwaysVisible ? 5 : 50;
     
@@ -210,7 +211,6 @@ public class MapPanner extends javax.swing.JPanel
 
     }
     
-    private boolean ShowFullCanvas = true;
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
@@ -234,7 +234,7 @@ public class MapPanner extends javax.swing.JPanel
         final Rectangle2D viewerRect = mapViewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
 
-        if (ViewerAlwaysVisible || DEBUG.Enabled) {
+        if (ViewerAlwaysVisible) {
             if (ShowFullCanvas)
                 // the fudgey margins go away with show full canvas -- which indicates
                 // the problem w/out the canvas is obviously because we can *drag* to
@@ -286,7 +286,7 @@ public class MapPanner extends javax.swing.JPanel
         /*
          * Show where the edge of the visible viewer region overlaps the map
          */
-        if (VueUtil.isMacPlatform()) {
+        if (false&&VueUtil.isMacPlatform()) {
             // this still relvant for mac? 
             dc.setAbsoluteStroke(1);
         } else {

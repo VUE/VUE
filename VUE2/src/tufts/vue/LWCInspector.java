@@ -307,7 +307,7 @@ class LWCInspector extends javax.swing.JPanel
             id += " [PARENT IS NULL]";
         else {
             id += ", #" + c.getParent().getLayer(c);
-            id += " in <" + c.getParent().getLabel() + ">";
+            id += " in <" + c.getParent().toName() + ">";
             id += " links:" + c.getLinkRefs().size();
             if (c instanceof LWContainer && c.hasChildren())
                 id += " children:" + ((LWContainer)c).getChildList().size();
@@ -477,7 +477,7 @@ class LWCInspector extends javax.swing.JPanel
 
     public void actionPerformed(ActionEvent e)
     {
-        //if (this.lwcomponent == null)
+        //tufts.macosx.Screen.dumpMainMenu();
         if (this.lwc == null)
             return;
         String text = e.getActionCommand();

@@ -18,45 +18,124 @@
 
 package tufts.vue;
 
-import java.lang.*;
-import java.util.*;
+import java.awt.Dimension;
 import javax.swing.*;
 import javax.swing.event.*;
 
 public class ImageTool extends VueTool
-    implements ChangeListener
 {
     public ImageTool() {
         super();
-    }
-
-    public JPanel createToolPanel() {
-        JPanel p = new JPanel();
-        //JSlider slider = new JSlider(0,359);
-        JSlider slider = new JSlider(-180,180);
-        //slider.setLabelTable(slider.createStandardLabels(45));
-        slider.setMajorTickSpacing(45);
-        slider.setMinorTickSpacing(15);
-        //slider.setPaintLabels(true);
-        slider.setPaintTicks(true);
-        slider.setSnapToTicks(true);
-        slider.setBackground(VueTheme.getToolbarColor());
-        slider.addChangeListener(this);
-        p.add(slider);
-        p.add(new JLabel("IMAGE TOOL"));
-        return p;
-    }
-
-    public void stateChanged(ChangeEvent e) {
-        JSlider slider = (JSlider) e.getSource();
-        //if (!slider.getValueIsAdjusting())
-        double radians = Math.toRadians(slider.getValue());
-        if (VUE.getSelection().first() instanceof LWImage)
-            ((LWImage)VUE.getSelection().first()).setRotation(radians);
     }
     
     public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
     public boolean supportsSelection() { return true; }
     public boolean hasDecorations() { return true; }
-    
+    public Class getSelectionType() { return LWImage.class; }
+
+
+    public JPanel createToolPanel() {
+        return
+            new LWCToolPanel() {
+                protected void buildBox() {
+                    addComponent(mStrokeColorButton);
+                    addComponent(mStrokeButton);
+                    JSlider slider = new RotationSlider();
+                    addComponent(slider);
+                    slider.addPropertyChangeListener(this);
+                    //slider.getModel().addPropertyChangeListener(this);
+                    //addComponent(new RotationSlider());
+                    //addComponent(ImageTool.mSlider);
+                }
+            };
+    }
+
+    private static class RotationSlider extends JSlider
+        implements /*LWPropertyProducer,*/ ChangeListener
+
+    {
+        private final int SnapIncrement = 5;
+        
+        public RotationSlider() {
+            super(0,360,0);
+            //setLabelTable(slider.createStandardLabels(45));
+            setMajorTickSpacing(45);
+            //setMinorTickSpacing(15);
+            setMinorTickSpacing(SnapIncrement);
+            //setPaintLabels(true);
+            //setPaintTicks(true);
+            setSnapToTicks(true);
+            setBackground(VueTheme.getToolbarColor());
+            // listen to the model or we only *sometimes* get
+            // multiple final values while snap is being
+            // sorted out
+            getModel().addChangeListener(this);
+            //Dimension d = getPreferredSize();
+            //setMaximumSize(new Dimension(d.width,12));
+            setFocusable(true);
+        }
+
+        public void XsetValue(int n) {
+            super.setValue(n);
+            System.out.println("SETVALUE " + n);
+        }
+        
+
+        // we can't make this a property producer until it can communicate
+        // to LWCToolPanel about rapidly changing values, or have it
+        // handle them itself (we're changing the property value directly
+        // here, whereas LWCToolPanel expects to be doing that).  Not
+        // being a producer means for now the slider won't take on the rotation
+        // value of the selected item.  
+        public Object getPropertyKey() { return LWImage.KEY_Rotation; }
+        public Object getPropertyValue() { return new Double(Math.toRadians(getValue())); }
+        public void setPropertyValue(Object value) {
+            setValue((int) (Math.toDegrees(((Double)value).doubleValue()) + 0.5));
+        }
+
+        private boolean isSnappedValue(int value) {
+            return value % SnapIncrement == 0;
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            if (DEBUG.TOOL) System.out.println("RotationSlider: stateChanged: " + e.getSource().getClass()
+                               + " value is " + getValue()
+                               + " ok2snap " + isSnappedValue(getValue()));
+
+            boolean isFinalValue = false;
+            if (getValueIsAdjusting() == false) {
+                // if snap-to-ticks is on, and we're not at a snapped value,
+                // we'll get TWO change events claiming no values adjusting,
+                // so ignore the first.
+                if (!getSnapToTicks() || isSnappedValue(getValue()))
+                    isFinalValue = true;
+            }
+
+            // todo: snap the value here so image only rotates to snapped values
+            
+            if (VUE.getSelection().first() instanceof LWImage) {
+                double radians = Math.toRadians(getValue());
+                LWImage image = (LWImage) VUE.getSelection().first();
+                //if (!isFinalValue) image.getChangeSupport().setEventsSuspended();
+                try {
+                    image.setRotation(radians);
+                } finally {
+                    if (false && !isFinalValue) {
+                        image.getChangeSupport().setEventsResumed();
+                        image.notify(LWKey.RepaintComponent);
+                    }
+                }
+            }
+
+            if (isFinalValue) {
+                if (DEBUG.TOOL) System.out.println("DONE: marking");
+                //new Throwable("MARKING").printStackTrace();
+                VUE.getUndoManager().mark();
+            }
+            
+            setToolTipText(getValue() + " degrees");
+        }
+        
+    }
+
 }

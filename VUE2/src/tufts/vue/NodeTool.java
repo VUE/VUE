@@ -125,6 +125,8 @@ public class NodeTool extends VueTool
         return (SubTool) getTool().getSelectedSubTool();
     }
 
+    public Class getSelectionType() { return LWNode.class; }
+    
     public boolean supportsSelection() { return true; }
     
     //private java.awt.geom.RectangularShape currentShape = new tufts.vue.shape.RectangularPoly2D(4);
@@ -240,6 +242,15 @@ public class NodeTool extends VueTool
         VueBeanState state = TextTool.getTextToolPanel().getCurrentState();
         if (state != null)
             state.applyState(node);
+        if (VUE.getActiveViewer() != null) {
+            // Okay, for now this completely overrides the font size from the text toolbar...
+            final Font font = node.getFont();
+            final float curZoom = (float) VUE.getActiveViewer().getZoomFactor();
+            final int minSize = LWNode.DEFAULT_TEXT_FONT.getSize();
+            //if (curZoom * font.getSize() < minSize)
+                node.setFont(font.deriveFont(minSize / curZoom));
+        }
+            
         return node;
     }
     

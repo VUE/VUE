@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -26,11 +27,12 @@ public class DrawContext
 {
     // consider getting rid of all the methods and make all the members final.
     public final Graphics2D g;
-    private double zoom = 1.0;
+    public final double zoom;
     private int index;
     private boolean disableAntiAlias = false;
     private boolean isPrinting = false;
     private boolean isDraftQuality = false;
+    private boolean isBlackWhiteReversed = false;
 
     private VueTool activeTool;
     // tracking the active tool for conditional drawing would probably be
@@ -74,6 +76,14 @@ public class DrawContext
         return isPrinting;
     }
 
+    public boolean isBlackWhiteReversed() {
+        return isBlackWhiteReversed;
+    }
+
+    public void setBlackWhiteReversed(boolean t) {
+        isBlackWhiteReversed = t;
+    }
+
     public void setDraftQuality(boolean t) {
         isDraftQuality = t;
     }
@@ -87,6 +97,11 @@ public class DrawContext
         this.disableAntiAlias = tv;
         if (tv)
             setAntiAlias(false);
+    }
+
+    /** passthru to Graphcs.setColor.  This method available for override */
+    public void setColor(Color c) {
+        g.setColor(c);
     }
         
     public void setAntiAlias(boolean on)
@@ -154,6 +169,7 @@ public class DrawContext
         this.index = dc.index;
         this.isPrinting = dc.isPrinting;
         this.isDraftQuality = dc.isDraftQuality;
+        this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.activeTool = dc.activeTool;
     }
 

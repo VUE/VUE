@@ -374,7 +374,16 @@ public class Util
             window.setLocation(0, 0);
             window.setSize(screen.width, screen.height);
         }
+        out("setFullScreen: set to " + window);
     }
+
+    /** set window to be as off screen as possible */
+    public static void setOffScreen(java.awt.Window window)
+    {
+        java.awt.Dimension screen = window.getToolkit().getScreenSize();
+        window.setLocation(screen.width - 1, screen.height - 1);
+    }
+    
 
     /** a JPanel that anti-aliases text */
     public static class JPanel_aa extends javax.swing.JPanel {
@@ -477,8 +486,44 @@ public class Util
         
         return colorChosen ? colorChooser.getColor() : null;
     }
+
+    public static void screenToBlack() {
+        if (!isMacPlatform())
+            return;
+
+        try {
+            tufts.macosx.Screen.goBlack();    
+        } catch (NoSuchMethodError e) {
+            eout(e);
+        } catch (NoClassDefFoundError e) {
+            eout(e);
+        }
+    }
     
-   
+    public static void screenFadeFromBlack() {
+        if (!isMacPlatform())
+            return;
+
+        try {
+            tufts.macosx.Screen.fadeFromBlack();
+        } catch (NoSuchMethodError e) {
+            eout(e);
+        } catch (NoClassDefFoundError e) {
+            eout(e);
+        }
+    }
+
+    private static void eout(NoSuchMethodError e) {
+        // If tufts.macosx.Screen get's out of date, or
+        // it's library is not included in the build, we'll
+        // get a NoSuchMethodError
+        System.err.println(e + " tufts.macosx.Screen needs rebuild or VUE-MacOSX.jar library not in classpath");
+    }
+    private static void eout(NoClassDefFoundError e) {
+        // We'll get this is /System/Library/Java isn't in the classpath
+        System.err.println(e + " Not Mac OS X Platform and/or /System/Library/Java not in classpath");
+    }
+
     public static void out(Object o) {
         System.out.println((o==null?"null":o.toString()));
     }

@@ -54,7 +54,7 @@ public class NodeToolPanel extends LWCToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    private static class ShapeMenuButton extends VuePopupMenu
+    static class ShapeMenuButton extends VuePopupMenu
     {
         protected RectangularShape mShape; // an instance of the currently selected shape
 

@@ -34,7 +34,7 @@ public class ZoomTool extends VueTool
 {
     static private final int ZOOM_MANUAL = -1;
     static private final double[] ZoomDefaults = {
-        1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
+        1.0/64, 1.0/48, 1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
         1.0,
         1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
         //, 96, 128, 256, 384, 512
@@ -149,23 +149,21 @@ public class ZoomTool extends VueTool
     
     public static void setZoom(double zoomFactor)
     {
-        setZoom(zoomFactor, true, CENTER_FOCUS, false);
+        setZoom(VUE.getActiveViewer(), zoomFactor, true, CENTER_FOCUS, false);
     }
     public static void setZoom(double zoomFactor, Point2D focus)
     {
-        setZoom(zoomFactor, true, focus, false);
+        setZoom(VUE.getActiveViewer(), zoomFactor, true, focus, false);
     }
 
     /**
      * @param focus - map location to anchor the zoom at (keep at same screen location)
      */
-    private static void setZoom(double newZoomFactor, boolean adjustViewport, Point2D focus, boolean reset)
+    private static void setZoom(MapViewer viewer, double newZoomFactor, boolean adjustViewport, Point2D focus, boolean reset)
     {
         // this is much simpler as the viewer now handles adjusting for the focal point
-        MapViewer viewer = VUE.getActiveViewer();
-        if (focus == DONT_FOCUS) {
+        if (focus == DONT_FOCUS)
             focus = null;
-        }
         //else if (focus instanceof Point) {
             // if a Point and not just a Point2D, it was a screen coordinate from setZoomBigger/Smaller
             //focus = viewer.screenToMapPoint((Point)focus);
@@ -188,7 +186,15 @@ public class ZoomTool extends VueTool
     
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
-        MapViewer viewer = VUE.getActiveViewer();
+        setZoomFitRegion(VUE.getActiveViewer(), mapRegion, edgePadding);
+    }
+    
+    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, int edgePadding)
+    {
+        if (mapRegion == null) {
+            new Throwable("setZoomFitRegion: mapRegion is null for " + viewer).printStackTrace();
+            return;
+        }
         Point2D.Double offset = new Point2D.Double();
         double newZoom = computeZoomFit(viewer.getVisibleSize(),
                                         edgePadding,
@@ -204,7 +210,7 @@ public class ZoomTool extends VueTool
             
         } else {
             if (newZoom > MaxZoom) {
-                setZoom(MaxZoom, true, CENTER_FOCUS, true);
+                setZoom(viewer, MaxZoom, true, CENTER_FOCUS, true);
                 Point2D mapAnchor = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
                 Point focus = new Point(viewer.getVisibleWidth()/2, viewer.getVisibleHeight()/2);
                 double offsetX = (mapAnchor.getX() * MaxZoom) - focus.getX();
@@ -212,7 +218,7 @@ public class ZoomTool extends VueTool
                 viewer.setMapOriginOffset(offsetX, offsetY);
                 //viewer.resetScrollRegion();
             } else {
-                setZoom(newZoom, false, DONT_FOCUS, true);
+                setZoom(viewer, newZoom, false, DONT_FOCUS, true);
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
             }
         }
@@ -221,10 +227,16 @@ public class ZoomTool extends VueTool
     /** fit everything in the current map into the current viewport */
     public static void setZoomFit()
     {
+        setZoomFit(VUE.getActiveViewer());
+    }
+    
+    /** fit all of the map contents for the given viewer to be visible */
+    public static void setZoomFit(MapViewer viewer)
+    {
         // if don't want this to vertically center map in viewport, will need
         // to tell setZoomFitRegion above to compute center using mapRegion.getY()
         // instead of mapRegion.getCenterY()
-        setZoomFitRegion(VUE.getActiveMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD);
+        setZoomFitRegion(viewer, viewer.getMap().getBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD);
         // while it would be nice to call getActiveViewer().getContentBounds()
         // as a way to get bounds with max selection edges, etc, it computes some
         // of it's size based on current zoom, which we're about to change, so

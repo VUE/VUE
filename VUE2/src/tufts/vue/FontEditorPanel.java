@@ -38,7 +38,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 public class FontEditorPanel extends Box
     implements ActionListener, LWPropertyProducer, VueConstants
 {
-    private static String [] sFontSizes = { "8","9","10","12","14","18","24","36","48"};
+    private static String[] sFontSizes;
     
     /** the font list **/
     static String[] sFontNames = null;
@@ -99,6 +99,8 @@ public class FontEditorPanel extends Box
 
         //mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
         
+        if (sFontSizes == null)
+            sFontSizes = VueResources.getStringArray("fontSizes");
         mSizeField = new JComboBox(sFontSizes);
         mSizeField.setEditable(true);
         

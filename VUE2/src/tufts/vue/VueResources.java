@@ -72,12 +72,13 @@ public class VueResources
         return icon;
     }
     
-    public static ImageIcon getImageIconResource(String key)  {
-        if (Cache.containsKey(key))
-            return (ImageIcon) Cache.get(key);
+    /** @return an image icon loaded from the given resource path */
+    public static ImageIcon getImageIconResource(String path)  {
+        if (Cache.containsKey(path))
+            return (ImageIcon) Cache.get(path);
         
-        ImageIcon icon = loadImageIcon(key);
-        Cache.put(key, icon);
+        ImageIcon icon = loadImageIcon(path);
+        Cache.put(path, icon);
         return icon;
     }
     
@@ -425,7 +426,7 @@ public class VueResources
      * @param key the string lookupkey in the properties file
      * @return Color the color, or null if missing
      **/
-    static public Color getColor( String key) {
+    static public Color getColor(String key) {
         if (Cache.containsKey(key))
             return (Color) Cache.get(key);
 		
@@ -434,11 +435,12 @@ public class VueResources
         try {
             String s = sResourceBundle.getString(key);
             if (s != null) {
+                s.trim();
                 if (s.indexOf(',') > 0) {
                     int[] rgb = _getIntArray(key, 3);
                     value = new Color(rgb[0], rgb[1], rgb[2]);
                 } else {
-                    value = new Color(Integer.valueOf(s, 16).intValue());
+                    value = makeColor(s);
                 }
             }
         } catch (Exception e) {
@@ -446,6 +448,16 @@ public class VueResources
         }
         Cache.put(key, value);
         return value;
+    }
+
+    static Color makeColor(String hex) {
+        if (hex.startsWith("#"))
+            hex = hex.substring(1);
+        boolean hasAlpha = hex.length() > 6;
+        int bits = Long.valueOf(hex, 16).intValue();
+        Color c = new Color(bits, hasAlpha);
+        //System.out.println("From " + hex + " made " + c + " alpha=" + c.getAlpha());
+        return c;
     }
 
 
@@ -468,11 +480,9 @@ public class VueResources
             String[] strs = _getStringArray(key);
             if( strs != null) {
                 int len = strs.length;
-                value = new Color [ len];
-				
-                for( int i=0; i< len; i++) {
-                    Integer intVal =  Integer.valueOf(strs[i], 16);
-                    value[i] = new Color( intVal.intValue() );
+                value = new Color[len];
+                for (int i=0; i< len; i++) {
+                    value[i] = makeColor(strs[i]);
                 }
             }
         } catch (Exception e) {
