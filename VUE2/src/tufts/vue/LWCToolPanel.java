@@ -41,7 +41,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     
     public LWCToolPanel()
     {
-        out("CONSTRUCTED.");
+        out("Constructing...");
         if (DEBUG.INIT&&DEBUG.META) new Throwable(toString()).printStackTrace();
         
          setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -180,6 +180,8 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          add(box);
  		
          initDefaultState();
+
+         out("CONSTRUCTED.");
     }
 
 

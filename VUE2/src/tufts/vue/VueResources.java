@@ -20,6 +20,7 @@ public class VueResources
 {
     /** Resource Bundle **/
     protected static ResourceBundle sResourceBundle =  ResourceBundle.getBundle("tufts.vue.VueResources");
+    protected static Map Cache = new HashMap();
 
 	
     /**
@@ -42,13 +43,15 @@ public class VueResources
      * @param pLookupKey - the key in the properties file
      *  @returns ImageIcon referenced by the resource bundle's lookupkey balue
      **/
-    public static ImageIcon getImageIcon(String pLookupKey)  {
-        ImageIcon icon = null;   // (ImageIcon) sIconDict. getString(pLookupKey);
-        String  str = null;
-		
-        str = getString(pLookupKey);
+    public static ImageIcon getImageIcon(String key)  {
+        if (Cache.containsKey(key))
+            return (ImageIcon) Cache.get(key);            
+
+        ImageIcon icon = null;
+        String str = getString(key);
         if (str != null)
             icon = loadImageIcon(str);
+        Cache.put(key, icon);
         return icon;
     }
 
@@ -83,9 +86,9 @@ public class VueResources
         return d;
     }
         
-    public static Cursor getCursor(String pLookupKey)
+    public static Cursor getCursor(String key)
     {
-        String[] data = VueResources.getStringArray(pLookupKey);
+        String[] data = VueResources.getStringArray(key);
         if (data == null)
             return null;
         ImageIcon icon = loadImageIcon(data[0]);
@@ -97,8 +100,8 @@ public class VueResources
                 hot.y = parseInt(data[2]);
             }
             //System.out.println("Creating cursor for " + icon);
-            //System.out.println("Creating cursor " + pLookupKey + " " + Arrays.asList(data) + " with hotspot " + hot);
-            cursor = Toolkit.getDefaultToolkit().createCustomCursor(icon.getImage(), hot, pLookupKey+":"+icon.toString());
+            //System.out.println("Creating cursor " + key + " " + Arrays.asList(data) + " with hotspot " + hot);
+            cursor = Toolkit.getDefaultToolkit().createCustomCursor(icon.getImage(), hot, key+":"+icon.toString());
         }
         return cursor;
     }
@@ -181,12 +184,15 @@ public class VueResources
      * @param pLookupKey - the key in the properties file
      * @return String [] the array
      **/
-    public static String [] getStringArray(String pLookupKey) {
-        String[] retValue = null;
-        String s = getString(pLookupKey);
+    public static String [] getStringArray(String key) {
+        if (Cache.containsKey(key))
+            return (String[]) Cache.get(key);            
+        String[] value = null;
+        String s = getString(key);
         if (s != null)
-            retValue = s.split(",\\s*");
-        return retValue;
+            value = s.split(",\\s*");
+        Cache.put(key, value);
+        return value;
     }
 	
     /**
@@ -359,26 +365,27 @@ public class VueResources
      * @param pLookupKey the string lookupkey in the properties file
      * @return Color[]  the colors, or null if missing
      **/
-    static public Color [] getColorArray( String pLookupKey) {
+    static public Color[] getColorArray(String key) {
+        if (Cache.containsKey(key))
+            return (Color[]) Cache.get(key);            
 		
         Color [] retValue = null;
-		
         try {
-            String []  strs = getStringArray( pLookupKey);
+            String []  strs = getStringArray( key);
             if( strs != null) {
                 int len = strs.length;
                 retValue = new Color [ len];
 				
                 for( int i=0; i< len; i++) {
                     Integer intVal =  Integer.valueOf(strs[i], 16);
-				 
                     retValue[i] = new Color( intVal.intValue() );
                 }
             }
         } catch (Exception e) {
-            alert("Missing Color resource: "+pLookupKey);
+            alert("Missing Color resource: "+key);
             retValue = null;
         }
+        Cache.put(key, retValue);
         return retValue;
     }
 

@@ -101,7 +101,7 @@ public class VueButton extends JButton
 
         if (b.getIcon() != null) {
             Dimension imageSize = new Dimension(b.getIcon().getIconWidth(), b.getIcon().getIconHeight());
-            System.out.println(b + " icon size is " + VueUtil.out(imageSize));
+            //System.out.println(b + " icon size is " + VueUtil.out(imageSize));
             b.setPreferredSize(imageSize);
         } else {
             //if (DEBUG.Enabled) System.out.println(b + " init");
@@ -109,7 +109,8 @@ public class VueButton extends JButton
 
         //setBackground(Color.white);
         //setBackground(Color.red);
-        if (DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
+        System.out.println("Created new " + b);
+        //if (true||DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
     }
 
 
