@@ -82,6 +82,7 @@ public class DR implements osid.dr.DigitalRepository {
         throws osid.dr.DigitalRepositoryException, osid.shared.SharedException
     {
         System.out.println("DR CONSTRUCTING["
+                           + conf + ", "
                            + id + ", "
                            + displayName + ", "
                            + description + ", "
