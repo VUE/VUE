@@ -20,7 +20,7 @@ import javax.swing.border.EmptyBorder;
 public class LWOutlineView extends InspectorWindow 
 {
     private OutlineViewTree tree = null;
-    private JLabel outlineLabel = null;
+    //private JLabel outlineLabel = null;
     
     /** Creates a new instance of LWOutlineView */
     public LWOutlineView(JFrame parent) 
@@ -32,17 +32,17 @@ public class LWOutlineView extends InspectorWindow
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setBorder(new EmptyBorder(0,0,0,0));
         
-        outlineLabel = new JLabel();
+        //outlineLabel = new JLabel();
         
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(scrollPane, BorderLayout.CENTER);
-        getContentPane().add(outlineLabel, BorderLayout.NORTH);
+        //getContentPane().add(outlineLabel, BorderLayout.NORTH);
         getContentPane().setBackground(Color.white);
     }
  
     public void switchMap(LWMap map)
     {
         tree.switchContainer(map);
-        outlineLabel.setText("Map: " + map.getLabel());
+        //outlineLabel.setText("Map: " + map.getLabel());
     }
 }

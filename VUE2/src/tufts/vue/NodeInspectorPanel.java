@@ -203,7 +203,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                 OutlineViewTree tree = null;
                 
                 /** the header of the panel**/
-                JLabel panelLabel = null;
+                //JLabel panelLabel = null;
                 
 		/**
 		 * TreePanel
@@ -217,7 +217,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                         
                         
                         tree = new OutlineViewTree();
-                        panelLabel = new JLabel();
+                        //panelLabel = new JLabel();
                         
 			mTreeScrollPane = new JScrollPane(tree);
 			mTreeScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -225,7 +225,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 			mTreeScrollPane.setLocation(new Point(8, 9));
 			mTreeScrollPane.setVisible(true);
 		
-                        add(panelLabel, BorderLayout.NORTH);
+                        //add(panelLabel, BorderLayout.NORTH);
                         add(mTreeScrollPane, BorderLayout.CENTER);
 			//add( mTreeScrollPane );
 		}
@@ -252,7 +252,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                     //then it switches the model of the tree using the given node
                     if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pNode))
                     {
-                        panelLabel.setText("Node: " + pNode.getLabel());
+                        //panelLabel.setText("Node: " + pNode.getLabel());
                         tree.switchContainer(pNode);
                     }
                     

@@ -13,6 +13,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeModelEvent;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -25,7 +26,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
-
+     
+    private ImageIcon mapIcon = null, nodeIcon = null, linkIcon = null, selectedIcon = null;
+    
     /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
     {
@@ -33,7 +36,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
-         setRootVisible(false);
+         //setRootVisible(false);
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -52,7 +55,16 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                         //retrieves the LWComponent associated with the selected tree node
                         selectedNode = (tufts.oki.hierarchy.HierarchyNode)treeNode.getUserObject();
                         LWComponent selectedComponent = selectedNode.getLWComponent();
+     
+                        if (selectedComponent instanceof LWMap)
+                          selectedIcon = mapIcon;
                         
+                        else if (selectedComponent instanceof LWNode)
+                          selectedIcon = nodeIcon;
+                        
+                        else if (selectedComponent instanceof LWLink)
+                          selectedIcon = linkIcon;  
+                            
                         //if the selected node is not an instance of LWMap
                         if(!(selectedComponent instanceof LWMap))
                           VUE.ModelSelection.setTo(selectedComponent);
@@ -173,14 +185,15 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     
     /**A class that specifies the rendering method of the outline view tree*/
     private class OutlineViewTreeRenderer extends DefaultTreeCellRenderer
-    {
-        private javax.swing.ImageIcon nodeIcon = null, linkIcon = null;
+    { 
+        //private ImageIcon nodeIcon = null, linkIcon = null, mapIcon = null;
         
         public OutlineViewTreeRenderer()
         {
             //retrieves the icons for nodes and links
             nodeIcon = VueResources.getImageIcon("outlineIcon.node");
             linkIcon = VueResources.getImageIcon("outlineIcon.link");
+            mapIcon = VueResources.getImageIcon("outlineIcon.map");
         }
         
         public Component getTreeCellRendererComponent(
@@ -198,12 +211,22 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             {
                 tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
                 LWComponent component = hierarchyNode.getLWComponent();
-            
-                if (component instanceof LWNode)
+                
+                if (((DefaultMutableTreeNode)getModel().getRoot()).getUserObject().equals(hierarchyNode) || component instanceof LWMap)
+                  setIcon(mapIcon);
+                
+                else if (component instanceof LWNode)
                   setIcon(nodeIcon);
             
                 else if (component instanceof LWLink)
                   setIcon(linkIcon);
+            }
+            
+            else
+            {
+              System.out.println("setting the icon of strings");
+              if (selectedIcon == null ) System.out.println("not working sucka");
+              setIcon(selectedIcon);
             }
             
             return this;
