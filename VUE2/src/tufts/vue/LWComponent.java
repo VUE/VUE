@@ -60,8 +60,11 @@ public class LWComponent
 
     TextBox getLabelBox()
     {
-        if (this.labelBox == null)
+        if (this.labelBox == null) {
             this.labelBox = new TextBox(this, this.label);
+            // hack for LWLink label box hit detection:
+            this.labelBox.setMapLocation(getCenterX(), getCenterY());
+        }
         return this.labelBox;
     }
     
@@ -136,11 +139,23 @@ public class LWComponent
     }
     public boolean hasNotes()
     {
-        return notes != null && notes.length() > 0;
+        return this.notes != null && this.notes.length() > 0;
+    }
+    public boolean hasResource()
+    {
+        return this.resource != null;
     }
     public String getMetaData()
     {
         return this.metaData;
+    }
+    public boolean hasMetaData()
+    {
+        return this.metaData != null;
+    }
+    public boolean inPathway()
+    {
+        return false;
     }
 
     /** for persistance */
