@@ -12,6 +12,8 @@ import java.io.*;
 
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
@@ -67,20 +69,18 @@ public class SaveAction extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
-        try {
-            fileName ="";
-            if (isSaveAs()){
-                selectFile();
-            }
-            //FileWriter writer = new FileWriter(getFileName(), false);
-            marshaller = getMarshaller();
-            marshaller.marshal(tufts.vue.VUE.getActiveMap());
-            //writer.close();
-            System.out.println("Saved " + getFileName());
-        }catch(Exception ex) {
-            System.out.println("problem with marshalling process: "+ex);
+        if (isSaveAs()){
+            selectFile();            
         }
-        
+        marshaller = getMarshaller();
+        try { 
+             marshaller.marshal(tufts.vue.VUE.getActiveMap());
+        }catch(MarshalException ex) {
+            System.out.println("problem with marshalling: "+ex);
+        }catch(ValidationException ve){
+            System.out.println("problem with validating: "+ve);
+        }
+        System.out.println("Saved " + getFileName());
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
     
