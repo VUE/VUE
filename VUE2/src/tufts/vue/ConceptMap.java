@@ -133,6 +133,8 @@ public class ConceptMap extends MapItem
         return pathwayList.iterator();
     }
 
-
+    public java.util.Vector getNodeList() {
+        return (java.util.Vector)nodeList;
+    }
     
 }
