@@ -11,6 +11,9 @@ public class DrawContext
     int index;
     private boolean disableAntiAlias = false;
     private boolean isPrinting = false;
+    // todo: consider including a Conatiner arg in here, for
+    // MapViewer, etc.  And replace zoom with a getZoom
+    // that grabs transform scale value.
     
     public DrawContext(Graphics2D g, double zoom)
     {
@@ -82,7 +85,7 @@ public class DrawContext
                                 : RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
     }
 
-    /** set a stroke with that stays constant on-screen at given
+    /** set a stroke width that stays constant on-screen at given
      * width independent of any current scaling (presuming
      * scaling is same in X/Y direction's -- only tracks X scale factor).
      */

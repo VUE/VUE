@@ -1418,7 +1418,7 @@ public class LWComponent
         // parent changed)
         
         if (parent != null) {
-            if (DEBUG.EVENTS) {
+            if (DEBUG.EVENTS && DEBUG.META) {
                 for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
                 System.out.println(e + " " + parent + " ** PARENT UP-NOTIFICATION");
             }
@@ -1491,7 +1491,7 @@ public class LWComponent
             if (DEBUG.EVENTS && !DEBUG.META) {
                 for (int x = 0; x < sEventDepth; x++) System.out.print("    ");
                 if (e.getSource() != source)
-                    System.out.print(e + " " + source + " -> ");
+                    System.out.print(e + " => " + source + " -> ");
                 else
                     System.out.print(e + " -> ");
             }

@@ -398,19 +398,11 @@ public class MapViewer extends javax.swing.JComponent
         adjustScrollRegion(false, false);
     }
     
-    private String out(Point2D p) { return (float)p.getX() + "," + (float)p.getY(); }
-    private String out(Rectangle2D r) { return ""
-            + (float)r.getX() + "," + (float)r.getY()
-            + " "
-            + (float)r.getWidth() + "x" + (float)r.getHeight()
-            ;
-    }
-    private String out(Dimension d) { return d.width + "x" + d.height; }
     
     /**
      * This is scary complicated to deal with the fact that
      * we operate on an infinite canvas and need to guess
-     * at something reasonable to do it a bunch of different cases,
+     * at something reasonable to do in a bunch of different cases,
      * and because JScrollPane's/JViewport weren't designed
      * to handle components that may grow up/left as opposed
      * to just down/right.
@@ -458,7 +450,7 @@ public class MapViewer extends javax.swing.JComponent
         //------------------------------------------------------------------
         
         Rectangle2D mapBounds = map.getBounds();
-        if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds));
+        if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds) + " reset="+reset + " panning="+panning);
 
         Rectangle2D.Float mapExtent = getAllComponentBounds();
         if (DEBUG.SCROLL) out("   map extent: " + out(mapExtent));
@@ -511,7 +503,7 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.SCROLL) out(" pixel extent: " + out(extent));
         //Rectangle vb = mapToScreenRect(mapExtent);
 
-        if (!reset && lastExtent.equals(extent) && !lastMapLocationAtExtentOrigin.equals(mapLocationAtExtentOrigin))
+        if (!reset && lastExtent.equals(extent) && lastMapLocationAtExtentOrigin.equals(mapLocationAtExtentOrigin))
             return;
         lastExtent = extent;
         lastMapLocationAtExtentOrigin = mapLocationAtExtentOrigin;
@@ -563,9 +555,19 @@ public class MapViewer extends javax.swing.JComponent
         //if (reset)
         //if (DEBUG.SCROLL) out(" setting size: " + out(newSize));
         //setSize(newSize); // does this tract preferred size at all?  -- is called thru the revalidate.
+
+        if (curSize.equals(newSize))
+            return;
+
+        if (DEBUG.SCROLL) {
+            out("cur pref size: " + out(curSize));
+            out("new pref size: " + out(newSize));
+            out("   panel size: " + out(getSize()));
+            out("   vport size: " + out(mViewport.getSize()) + " (calling revalidate)");
+        }
+        
         setPreferredSize(newSize);
-        if (DEBUG.SCROLL) out("   panel size: " + out(getSize()));
-        if (DEBUG.SCROLL) out("   vport size: " + out(mViewport.getSize()) + " (calling revalidate)");
+        
         revalidate();
         //setMapOriginOffset(extent.x, extent.y);
         //((JViewport)getParent()).setExtentSize(d);
@@ -680,11 +682,11 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     public void setPreferredSize(Dimension d) {
-        if (DEBUG.SCROLL) System.out.println(" setPreferred: " + out(d));
+        if (DEBUG.SCROLL) out(" setPreferred: " + out(d));
         super.setPreferredSize(d);
     }
     public void setSize(Dimension d) {
-        if (DEBUG.SCROLL) System.out.println("      setSize: " + out(d));
+        if (DEBUG.SCROLL) out("      setSize: " + out(d));
         super.setSize(d);
     }
     
@@ -751,14 +753,14 @@ public class MapViewer extends javax.swing.JComponent
      */
     void placeMapLocationAtExtentOrigin(float mapX, float mapY) {
         setMapOriginOffset((float) (mapX * mZoomFactor),
-        (float) (mapY * mZoomFactor),
-        false);
+                           (float) (mapY * mZoomFactor),
+                           false);
     }
     
     Point2D.Float getMapLocationAtExtentOrigin() {
         return new Point2D.Float
-        ((float) (mOffset.x * mZoomInverse),
-        (float) (mOffset.y * mZoomInverse));
+            ((float) (mOffset.x * mZoomInverse),
+             (float) (mOffset.y * mZoomInverse));
     }
     
     public Point2D.Float getOriginLocation() {
@@ -1001,16 +1003,16 @@ public class MapViewer extends javax.swing.JComponent
     //private Point mLastCorner;
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
-        getX() == x &&
-        getY() == y &&
-        getWidth() == w &&
-        getHeight() == h;
+            getX() == x &&
+            getY() == y &&
+            getWidth() == w &&
+            getHeight() == h;
         //activeTextEdit == null;
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
         if (DEBUG.SCROLL||DEBUG_PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
-            out("     reshape: "
+            out("      reshape: "
                 + w + "x" + h
                 + " "
                 + x + "," + y
@@ -1201,6 +1203,21 @@ public class MapViewer extends javax.swing.JComponent
     
     private static final String ViewerInteractiveDragEvent = "viewer.drag.interactive";
     private static final String ViewerEndDragEvent = "viewer.drag.completed";
+
+    private boolean isBoundsEvent(String k) {
+        return k == LWKey.Size
+            || k == LWKey.Location
+            || k == LWKey.Frame
+            || k == LWKey.Scale
+            || k == LWKey.Hidden
+            || k == LWKey.Created
+            || k == LWKey.StrokeWidth  // because size events special off for this!
+            || k == LWKey.Font // because size events special off for this!
+            || k == LWKey.Label // because size events special off for this!
+            || k == LWKey.Deleted // not currently being issued!
+            //|| k == LWKey.Filtered // no such event yet
+            ;
+    }
     
     /**
      * Handle events coming off the LWMap we're displaying.
@@ -1221,7 +1238,9 @@ public class MapViewer extends javax.swing.JComponent
         //if (key == ViewerInteractiveDragEvent)
         //            return;
         
-        adjustScrollRegion();
+        //if (isBoundsEvent(key))
+            adjustScrollRegion();
+        
         // TODO: OPTIMIZE -- we get tons of location events
         // when dragging, esp if there are children if
         // we have those events turned in...
@@ -4386,8 +4405,17 @@ public class MapViewer extends javax.swing.JComponent
     //-------------------------------------------------------
     
     private void out(String s) {
-        System.out.println(this + " " + s);
+        if (VUE.getActiveViewer() == this && !DEBUG.META) // for now
+            System.out.println(this + " " + s);
     }
+    private String out(Point2D p) { return (float)p.getX() + "," + (float)p.getY(); }
+    private String out(Rectangle2D r) { return ""
+            + (float)r.getX() + "," + (float)r.getY()
+            + " "
+            + (float)r.getWidth() + "x" + (float)r.getHeight()
+            ;
+    }
+    private String out(Dimension d) { return d.width + " x " + d.height; }
     
     private boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
     //private boolean DEBUG.MOUSE = true;
