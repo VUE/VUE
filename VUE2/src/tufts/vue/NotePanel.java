@@ -115,7 +115,11 @@ public class NotePanel extends JPanel {
 			saveNotes();
 			mObject = pObj;
 			if( pObj != null) {
-				mTextPane.setText( pObj.getNotes() );
+				String text = pObj.getNotes();
+				if( text == null) {
+					text = "";
+					}
+				mTextPane.setText(  text );
 				}
 			}
 	}
@@ -142,7 +146,7 @@ public class NotePanel extends JPanel {
 		
 	}
 
-	static private boolean  sDebug = true;
+	static private boolean  sDebug = false;
 	private void debug( String str) {
 		if( sDebug) {
 			System.out.println( str + " [NotePanel]");
