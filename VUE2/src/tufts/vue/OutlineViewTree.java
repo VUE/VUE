@@ -89,7 +89,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     
                     //if there is no selected nodes
                     if (paths == null)
-                    {   
+                    {
                         selectedNode = null;    
                         valueChangedState = false;
                         selectionFromVUE = false;
@@ -235,7 +235,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         catch (NullPointerException exc) {}
        
         //might want to come up with an exception
-        if(treeNode != (DefaultMutableTreeNode)getModel().getRoot())
+        if(treeNode != (DefaultMutableTreeNode)getModel().getRoot() && selectedNode != null)
         {
             //changes the node's label and sets it as a new object of the tree node
             try
@@ -269,7 +269,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         hierarchyModel.updateHierarchyNodeLabel(e.getComponent().getLabel(), e.getComponent().getID());
             
         //repaints the entire tree
-        revalidate();
         repaint();       
     }
     
@@ -277,7 +276,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     public void selectionChanged(LWSelection selection)
     {  
         if (!valueChangedState)
-        {
+        {   
             selectionFromVUE = true;
         
             if (!selection.isEmpty())
@@ -286,6 +285,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             //else deselect
             else 
               super.setSelectionPath(null);
+            
+            //hacking
+            selectionFromVUE = false;
         }
     }
     
@@ -337,7 +339,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);   
             setText(label);
             
-            //recalculateSize();
             return this;
         }
     }
@@ -367,8 +368,17 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             String label = tree.convertValueToText(value, isSelected, expanded, leaf, row, true);
             editorElement.setText(label);
             
-            //default icon for now
-            editorElement.setIcon(mapIcon);
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+            LWComponent selectedLWComponent = ((tufts.oki.hierarchy.HierarchyNode)node.getUserObject()).getLWComponent();
+            
+            if (selectedLWComponent instanceof LWNode)
+              editorElement.setIcon(nodeIcon);
+            
+            else if (selectedLWComponent instanceof LWLink)
+              editorElement.setIcon(linkIcon);
+            
+            else
+              editorElement.setIcon(mapIcon);
             
             // Return the configured component
             return editorElement;
@@ -383,7 +393,14 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         
         public void keyReleased(KeyEvent e) 
         {
-            if (e.getKeyCode() == KeyEvent.VK_CONTROL)
+            // if we hit return key either on numpad ("enter" key), or
+            // with any modifier down except a shift alone (in case of
+            // caps lock) complete the edit.
+            if ( e.getKeyCode() == KeyEvent.VK_ENTER &&
+                 ( e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
+                   || (e.getModifiersEx() != 0 && !e.isShiftDown())
+                 )
+               )
               this.stopCellEditing();
         }
         
@@ -397,7 +414,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public boolean isCellEditable(java.util.EventObject anEvent) 
         { 
             if (anEvent instanceof java.awt.event.MouseEvent) 
-            { 
+            {
 		return ((java.awt.event.MouseEvent)anEvent).getClickCount() >= clickToStartEditing;
 	    }
             
@@ -452,12 +469,11 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         
         public OutlineViewRenderElement()
         {   
-            setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
             setBackground(Color.white);
             
             label = new JTextArea();
             label.setEditable(false);
-            //label.setLineWrap(true);
             
             iconPanel = new IconPanel();
             
@@ -502,18 +518,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public void setIcon(ImageIcon icon)
         {
             iconPanel.setIcon(icon);
-        }
-        
-        public void recalculateSize()
-        {
-            System.out.println("recalculating");
-          
-            Dimension labelSize = label.getPreferredSize();
-            int newWidth = iconPanel.getPreferredSize().width + labelSize.width + 20;
-            int newHeight = labelSize.height + 15;
-            
-            Dimension size = new Dimension(newWidth, newHeight);
-            super.setPreferredSize(size);
         }
     }
     
