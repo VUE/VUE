@@ -64,8 +64,7 @@ public class LWHierarchyMap extends LWMap
         Vector nodesVector = new Vector();
         
         //initial set up for the computation for the shortest path
-        nodesVector.add(rootNode);
-        
+        nodesVector.add(rootNode); 
         originalNodes.add(rootNode);
         LWNode copy = (LWNode)rootNode.duplicate();
         addNode(copy);
@@ -166,7 +165,7 @@ public class LWHierarchyMap extends LWMap
     }
     
     /**organizes the nodes in a hierarchical manner*/
-    public void layout(LWNode currentNode)
+    public void layout(LWNode currentNode, int number, int total)
     {   
         System.out.println("calling layout() on " + currentNode.toString());
         originalNodes.add(currentNode);
@@ -181,8 +180,13 @@ public class LWHierarchyMap extends LWMap
             float x = (float)point.getX();
             float y = (float)point.getY();
             
-            x += 10;
-            y += 30;
+            //location for the node
+            int xIncrement = 50 / total;
+            int xOffSet = number * xIncrement;
+            
+            x = x - 10;
+            
+            y += 60;
             
             copyNode.setLocation(x, y);
           }
@@ -193,6 +197,9 @@ public class LWHierarchyMap extends LWMap
             copyNode.setLocation(200f, 0f);
           }
             
+        int nextNumber = 0;
+        int nextTotal = currentNode.getLinks().size() - 1; //taking out the parent node
+        
         for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
         {
             //links to nodes
@@ -203,7 +210,10 @@ public class LWHierarchyMap extends LWMap
               nextNode = (LWNode)link.getComponent2();
             
             if(!originalNodes.contains(nextNode))
-              layout(nextNode);
+            {
+              layout(nextNode, nextNumber, nextTotal);
+              nextNumber++;
+            }
         }
     }
     
@@ -214,6 +224,6 @@ public class LWHierarchyMap extends LWMap
         createMap();
         
         originalNodes.clear();
-        layout(rootNode);
+        layout(rootNode, 0, 0);
     }
 }
