@@ -38,15 +38,18 @@ public class ToolWindow
     private AbstractButton mDisplayButton = null;
 
     private boolean isRolledUp = false;
+    private Dimension savedSize;
 
     private void setRolledUp(boolean t) {
         if (isRolledUp == t)
             return;
         isRolledUp = t;
         if (isRolledUp) {
+            savedSize = getSize();
             setSize(getWidth(), 0);
         } else {
-            setSize(getPreferredSize());
+            setSize(savedSize);
+            //setSize(getPreferredSize());
         }
     }
 
@@ -421,7 +424,7 @@ public class ToolWindow
         // mouse events (and then redispatch)
         if (closeCornerHit(e))
             hide();
-        else if (resizeCornerHit(e))
+        else if (!isRolledUp() && resizeCornerHit(e))
             dragSizeStart = getSize();
     }
     public void mouseReleased(MouseEvent e)
