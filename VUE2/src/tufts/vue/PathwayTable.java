@@ -23,6 +23,10 @@ import java.awt.*;
 public class PathwayTable extends JTable{
         
     
+    private final ImageIcon close = new ImageIcon("ZoomIn16.gif");
+    private final ImageIcon open = new ImageIcon("ZoomOut16.gif");
+    private final ImageIcon notes = new ImageIcon("Zoom16.gif");
+    
     JCheckBox box = null;
     JTextField field = null;
     
@@ -35,10 +39,6 @@ public class PathwayTable extends JTable{
     private final MatteBorder leftSelectedBorder = new MatteBorder(3,3,3,0,selected);    
     private final MatteBorder rightBorder = new MatteBorder(3,0,3,3,notSelected);
     private final MatteBorder rightSelectedBorder = new MatteBorder(3,0,3,3,selected);  
-    
-    private final ImageIcon close = new ImageIcon("/Users/jay/VUE/VUEDevelopment/src/tufts/vue/images/ZoomIn16.gif");
-    private final ImageIcon open = new ImageIcon("/Users/jay/VUE/VUEDevelopment/src/tufts/vue/images/ZoomOut16.gif");
-    private final ImageIcon notes = new ImageIcon("/Users/jay/VUE/VUEDevelopment/src/tufts/vue/images/Zoom16.gif");
     
     //sets whether or not table column headers are shown
     boolean showHeaders = true;
