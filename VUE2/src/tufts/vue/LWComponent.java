@@ -253,8 +253,9 @@ public class LWComponent
         //System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
     }
 
-    /** Create a component with a duplicate style.
-     * Does not duplicate any links to this component
+    /** Create a component with duplicate content & style.
+     * Does not duplicate any links to this component,
+     * and leaves it an unparented orphan.
      */
     public LWComponent duplicate()
     {
@@ -645,6 +646,10 @@ public class LWComponent
     {
         return new Point2D.Float(this.x, this.y);
     }
+    public Point2D getCenterPoint()
+    {
+        return new Point2D.Float(getCenterX(), getCenterY());
+    }
     
     public void setSize(float w, float h)
     {
@@ -929,24 +934,11 @@ public class LWComponent
     {
         removeAllLWCListeners();
         disconnectFromLinks();
-        //removeConnectedLinks(); links can stand on their own now
         // help gc
         this.links.clear();
         this.links = null;
     }
 
-    private void X_removeConnectedLinks()
-    {
-        // todo: more sophisticated?
-        // for now, delete all links to a node we're deleting
-        Object[] links = this.links.toArray(); // may be modified concurrently
-        for (int i = 0; i < links.length; i++) {
-            LWLink l = (LWLink) links[i];
-            if (l.getParent() != null) // it's already been deleted
-                l.getParent().deleteChild(l);
-        }
-    }
-    
     private void disconnectFromLinks()
     {
         Object[] links = this.links.toArray(); // may be modified concurrently
@@ -985,6 +977,8 @@ public class LWComponent
         if (this.rollover != rollover) {
             this.rollover = rollover;
         }
+        //if (getParent() != null)
+        //    getParent().setRollover(rollover);
     }
     
     public boolean isIndicated()
