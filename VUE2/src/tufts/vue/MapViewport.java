@@ -318,6 +318,28 @@ class MapViewport extends JViewport
         }
     }
 
+    public void reshape(int x, int y, int w, int h) {
+        boolean ignore =
+            getX() == x &&
+            getY() == y &&
+            getWidth() == w &&
+            getHeight() == h;
+        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
+            out("reshape: "
+                + w + " x " + h
+                + " "
+                + x + "," + y
+                + (ignore?" (no change)":""));
+        super.reshape(x, y, w, h);
+        // This is a workaround for repaint bugs in TextBox/JTextPane when it get's taller
+        // (when you insert newlines).  Why we get reshapes on the parent (ignoreable ones)
+        // every time you type a key (or is it when the TextBox resizes?) I don't know,
+        // or why we *must* do the repaint here -- e.g., detecting "enter" keypress
+        // and repainting doesn't help in textbox.  Maybe resize/reshape override there would?
+        if (viewer.isEditingLabel())
+            repaint();
+    }
+    
         // If canvas
         //if (expand) {
         

@@ -1770,6 +1770,10 @@ public class MapViewer extends javax.swing.JComponent
             remove(activeTextEdit);
     }
     
+    boolean isEditingLabel() {
+        return activeTextEdit != null;
+    }
+    
     /**
      * Enable an interactive label edit box (TextBox) for the given LWC.
      * Only one of these should be active at a time.
