@@ -64,7 +64,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int STATUS_COL = 3;// the column that displays the status of objects that will be ingested.
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
-    public static final int WIDTH = 600;
+    public static final int WIDTH = 500;
     public static final int HEIGHT = 250;
     public static final String[] PUBLISH_INFORMATION = {" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     " “Export Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
@@ -113,8 +113,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         nextButton.addActionListener(this);
         backButton.addActionListener(this);
         setUpModeSelectionPanel();
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(BorderLayout.NORTH,modeSelectionPanel);
+        getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT));
+        getContentPane().add(modeSelectionPanel);
         
         stage = 1;
         setLocation(X_LOCATION,Y_LOCATION);
@@ -136,6 +136,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JLabel topLabel = new JLabel("Location");
         JLabel modeLabel = new JLabel("Mode");
         
+         PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
+         lineIcon.setIconWidth(WIDTH-40);
+         lineIcon.setIconHeight(1);
+         JLabel lineLabel = new JLabel(lineIcon);
         //area for displaying information about publishing mode
         informationArea = new JTextArea(" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.");
         informationArea.setEditable(false);
@@ -148,8 +152,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JLabel dsLabel = new JLabel("Where would you like to save the map:");
         dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
         dataSourceComboBox.setToolTipText("Select export location.");
-        
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        dataSourceComboBox.addActionListener(this);
+        JPanel buttonPanel = new JPanel();
+        BoxLayout buttonLayout = new BoxLayout(buttonPanel, BoxLayout.Y_AXIS);
+        buttonPanel.setLayout(buttonLayout);
         publishMapRButton = new JRadioButton("Export Map");
         publishCMapRButton = new JRadioButton("Export IMSCP Map");
         publishAllRButton = new JRadioButton("Export All");
@@ -162,7 +168,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         modeSelectionGroup.add(publishMapRButton);
         modeSelectionGroup.add(publishCMapRButton);
         modeSelectionGroup.add(publishAllRButton);
-        buttonPanel.add(modeLabel);
+        //buttonPanel.add(modeLabel);
         buttonPanel.add(publishMapRButton);
         buttonPanel.add(publishCMapRButton);
         buttonPanel.add(publishAllRButton);
@@ -181,41 +187,43 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         c.weightx = 0;
         c.gridwidth = GridBagConstraints.RELATIVE;
         c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(40,5,10, 2);;
+        c.insets = new Insets(20,5,5, 2);;
         gridbag.setConstraints(topLabel, c);
         modeSelectionPanel.add(topLabel);
         
         c.gridwidth = GridBagConstraints.REMAINDER;
-        c.insets = new Insets(40,30,10, 2);;
         gridbag.setConstraints(dataSourceComboBox,c);
         modeSelectionPanel.add(dataSourceComboBox);
         
+        
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.insets = new Insets(5,5,5, 2);
+        gridbag.setConstraints(modeLabel,c);
+        modeSelectionPanel.add(modeLabel,c);
+        
+        
         c.gridwidth = GridBagConstraints.REMAINDER;
-        c.insets = new Insets(10,0,10, 2);
-        c.fill = GridBagConstraints.HORIZONTAL;
+        //c.insets = new Insets(10,0,10, 2);
+        //c.fill = GridBagConstraints.HORIZONTAL;
         gridbag.setConstraints(buttonPanel, c);
         modeSelectionPanel.add(buttonPanel);
         
-        /**
-         * c.gridy = 2;
-         * c.gridwidth = 6;
-         * c.insets = defaultInsets;
-         * gridbag.setConstraints(informationArea, c);
-         * modeSelectionPanel.add(informationArea);
-         *
-         * c.gridy = 3;
-         * c.gridwidth =2;
-         * c.insets = new Insets(10,9,2, 2);
-         * gridbag.setConstraints(dsLabel,c);
-         * modeSelectionPanel.add(dsLabel);
-         **/
-        
-        c.fill = GridBagConstraints.NONE;
+        c.weightx = 1;
         c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets = new Insets(20,0,0, 2);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        gridbag.setConstraints(lineLabel, c);
+        modeSelectionPanel.add(lineLabel);
+        
+        
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        c.fill = GridBagConstraints.NONE;       
         c.anchor = GridBagConstraints.EAST;
         c.insets = new Insets(10,0,10, 2);
         gridbag.setConstraints(bottomPanel, c);
         modeSelectionPanel.add(bottomPanel);
+        
     }
     
     private void  setUpResourceSelectionPanel() {
@@ -279,14 +287,14 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         int cellWidth;
         TableCellRenderer headerRenderer = resourceTable.getTableHeader().getDefaultRenderer();
         resourceTable.getColumnModel().getColumn(0).setPreferredWidth(12);
-        for (int i = 1; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             column = resourceTable.getColumnModel().getColumn(i);
             comp = headerRenderer.getTableCellRendererComponent(null, column.getHeaderValue(),false, false, 0, 0);
             headerWidth = comp.getPreferredSize().width;
             cellWidth = resourceTableModel.longValues[i].length();
             column.setPreferredWidth(Math.max(headerWidth, cellWidth));
         }
-        resourceTable.setPreferredScrollableViewportSize(new Dimension(500,100));
+        resourceTable.setPreferredScrollableViewportSize(new Dimension(450,110));
         return new JScrollPane(resourceTable);
     }
     
@@ -425,6 +433,22 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             publishMode = PUBLISH_ALL;
             updatePublishPanel();
         }
+        if(e.getSource() == dataSourceComboBox) {
+            Publishable p = (Publishable)dataSourceComboBox.getSelectedItem();
+            if(p.supportsMode(Publishable.PUBLISH_MAP))
+                publishMapRButton.setEnabled(true);
+            else 
+                publishMapRButton.setEnabled(false);
+            if(p.supportsMode(Publishable.PUBLISH_CMAP))
+                publishCMapRButton.setEnabled(true);
+            else 
+                publishCMapRButton.setEnabled(false);
+            if(p.supportsMode(Publishable.PUBLISH_ALL))
+                publishAllRButton.setEnabled(true);
+            else 
+                publishAllRButton.setEnabled(false);
+            
+        }
         
     }
     
@@ -444,7 +468,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public class ResourceTableModel  extends AbstractTableModel {
         
-        public final String[] longValues = {"Selection", "123456789012345678901234567890","12356789","Processing...."};
+        public final String[] longValues = {"Selection", "12345678901234567890123456789012345678901234567890","12356789","Processing...."};
         Vector data;
         Vector columnNames;
         

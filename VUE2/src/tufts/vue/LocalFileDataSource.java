@@ -115,10 +115,16 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     }
     
     public int[] getPublishableModes() {
-        int modes[] = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP,Publishable.PUBLISH_ALL};
+        int modes[] = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP};
         return modes;
     }
     
+    public boolean supportsMode(int mode) {
+        if(mode == Publishable.PUBLISH_ALL)
+            return false;
+        else 
+            return true;
+    }
     public void publish(int mode,LWMap map) throws IOException{
         if(mode == Publishable.PUBLISH_MAP)
             publishMap(map);

@@ -97,6 +97,10 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
         return modes;
     }
     
+     public boolean supportsMode(int mode) {
+       return true;
+    }
+     
     public void publish(int mode,LWMap map) throws IOException{
         if(mode == Publishable.PUBLISH_MAP)
             publishMap(map);

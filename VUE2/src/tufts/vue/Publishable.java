@@ -44,6 +44,7 @@ public interface Publishable {
      */
     public int[] getPublishableModes();
     
+    public boolean supportsMode(int mode);
     public void publish(int mode,LWMap map) throws IOException;
         
     
