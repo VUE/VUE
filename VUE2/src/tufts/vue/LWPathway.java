@@ -475,6 +475,7 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.removePathwayRef(this);
+            c.removeLWCListener(this);
        }
     }
 
@@ -485,6 +486,7 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.addPathwayRef(this);
+            c.addLWCListener(this);
        }
     }
     

@@ -159,12 +159,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                         getSelectedPathway().setCurrentElement(s.first());
                         updateTextAreas();
                         // todo: changes to map selection are never updating
-                        // the text areas, tho clicking in the PathwayTable
-                        // works, EXCEPT for restored pathways (or the default
-                        // one created internally), where selecting on map
-                        // even stops the current item selected on pathway
-                        // from working!  Think this has something to do
-                        // with pathwaytablemodel adding right listeners.
+                        // the text areas
                         // (btw: should not need updateTextAreas() call above,
                         // and it doesn't appear to be helping anyway)
                     }

@@ -48,6 +48,7 @@ public class LWPathwayList implements LWComponent.Listener
         while (i.hasNext()) {
             LWPathway p = (LWPathway) i.next();
             p.completeXMLRestore(getMap());
+            p.addLWCListener(this);
         }
     }
 
@@ -105,6 +106,8 @@ public class LWPathwayList implements LWComponent.Listener
         p.setMap(getMap());
         mElements.add(p);
         setActivePathway(p);
+        // we don't need to worry about calling removeFromModel on remove, as a created pathway will always
+        // be empty by the time we get to undo it's create (because we'll have undone any child add's first).
         LWCEvent e = new LWCEvent(this, p, "pathway.create", new Undoable(p) { void undo() { remove((LWPathway)old); }} );
         // dispatch the event to map for it's listeners, particularly an undo manager if present
         getMap().notifyProxy(e);
@@ -120,14 +123,20 @@ public class LWPathwayList implements LWComponent.Listener
 
     public void remove(LWPathway p)
     {
-        // p.removeLWCListener(this); // happens auto in removeFromModel
         p.removeFromModel();
         if (!mElements.remove(p))
             throw new IllegalStateException(this + " didn't contain " + p + " for removal");
         if (mActive == p)
             setActivePathway(getFirst());
 
-        LWCEvent e = new LWCEvent(this, p, "pathway.delete", new Undoable(p) { void undo() { add((LWPathway)old); }} );
+        LWCEvent e = new LWCEvent(this, p, "pathway.delete",
+                                  new Undoable(p) {
+                                      void undo() {
+                                          LWPathway p = (LWPathway) old;
+                                          p.restoreToModel();
+                                          add(p);
+                                      }
+                                  });
         getMap().notifyProxy(e);
         LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
