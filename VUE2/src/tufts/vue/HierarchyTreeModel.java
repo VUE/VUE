@@ -36,9 +36,14 @@ public class HierarchyTreeModel implements TreeModelListener
     {
         DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(node);
         
-        for(Iterator i = node.getNodeIterator(); i.hasNext();)
+        for (Iterator i = node.getLinks().iterator(); i.hasNext();)
         {
-            LWNode nextNode = (LWNode)i.next();
+            LWLink link = (LWLink)i.next();
+            LWNode nextNode = null;
+            
+            if ((nextNode = (LWNode)link.getComponent1()) == node)
+              nextNode = (LWNode)link.getComponent2();
+            
             treeNode.add(setUpHierarchy(nextNode));
         }
         
