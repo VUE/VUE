@@ -1,7 +1,9 @@
-VUE README 2003-03-17 Scott Fraize
+VUE README 2003-03-19 Scott Fraize
 
-VUE is currently built in Java 1.4, tho should run on Java 1.3.
-It will currently work on either a Windows or a Macintosh OS.
+VUE is currently built in Java 1.4, and should run on Java 1.3, tho
+the Mac version is having rendering problems at the moment.
+Generally, it currently should work on either a Windows or a Macintosh
+OS, and has been tested on Windows 2000 and Mac OSX 10.2.4.
 
 To run the application:
 
@@ -19,13 +21,12 @@ A few GUI tips:
 
   - Ctrl-Drag from a node creates a new link
   - Ctrl-Drag with the spacebar down moves the whole map around
-  
-  - Ctrl 0 does zoom to fit, mostly
+  - Ctrl 0 does zoom to fit
   - Ctrl 1 zooms to 100%
   - Ctrl + zooms bigger
   - Ctrl - zooms smaller
-  (Zooming is incomplete: dragging the whole map
-  while zoomed doesn't work yet)
+  -      z zooms in at point
+  - Ctrl z zooms out at point
 
   - Right-click pops a test context menu, but they
     don't do anything yet.
