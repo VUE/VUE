@@ -22,10 +22,11 @@ public class LWCEvent
     public static final String Added = "added"; // a child components add-notify
     public static final String ChildAdded = "childAdded";// the parent component's add-notify
     public static final String ChildrenAdded = "childrenAdded";// the parent component's group add-notify
-    public static final String ChildRemoved = "childRemoved";// the parent component's remov-notify
+    public static final String ChildRemoved = "childRemoved";// the parent component's remove-notify
     public static final String ChildrenRemoved = "childrenRemoved";// the parent component's group remove-notify
 
-    public static final String Deleting = "deleting";// the component's just-before-delete notify
+    public static final String Deleting = ":deleting"; // the component's just-before-delete notify
+    public static final String Deleted = "deleted"; // the component's after-delete notify
 
     public static final String Repaint = "repaint"; // general: visual change but no permanent data change
 

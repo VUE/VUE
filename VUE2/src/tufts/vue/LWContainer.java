@@ -412,6 +412,7 @@ public abstract class LWContainer extends LWComponent
         c.notify(LWCEvent.Deleting);
         removeChild(c);
         c.removeFromModel();
+        //c.notify(LWCEvent.Deleted);
     }
 
     protected void removeChildrenFromModel()
@@ -424,6 +425,7 @@ public abstract class LWContainer extends LWComponent
             LWComponent c = (LWComponent) i.next();
             c.notify(LWCEvent.Deleting);
             c.removeFromModel();
+            //c.notify(LWCEvent.Deleted);
         }
     }
     

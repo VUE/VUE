@@ -84,20 +84,6 @@ public class LWPathway extends LWContainer
         return mCurrentIndex = i;
     }
 
-    /*
-    protected void notifyLWCListeners(LWCEvent e)
-    {
-        // notify our explicit listeners
-        super.notifyLWCListeners(e);
-        // simulate being parented to our map -- this
-        // is how the map knows to redraw itself if
-        // something is added/removed to the pathway
-        // [already done as we've setParent to the map]
-        if (getMap() != null)
-            getMap().notifyLWCListeners(e);
-    }
-    */
-
     /**
      * Overrides LWContainer addChild.  Pathways aren't true
      * parents, so all we want to do is add a reference to them.
@@ -142,6 +128,7 @@ public class LWPathway extends LWContainer
     */
     public void LWCChanged(LWCEvent e)
     {
+        //if (e.getWhat() == LWCEvent.Deleted)
         if (e.getWhat() == LWCEvent.Deleting)
             remove(e.getComponent());
     }

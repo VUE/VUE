@@ -1116,7 +1116,7 @@ public class LWComponent
         if (listeners.contains(listener))
             new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
         else {
-            if (DEBUG.EVENTS) System.out.println(this + " ADDING LISTENER " + listener);
+            if (DEBUG.EVENTS) System.out.println(this + " ***        ADDING LISTENER " + listener);
             listeners.add(listener);
         }
     }
@@ -1124,13 +1124,15 @@ public class LWComponent
     {
         if (listeners == null)
             return;
-        if (DEBUG.EVENTS) System.out.println(this + " REMOVING LISTENER " + listener);
+            if (DEBUG.EVENTS) System.out.println(this + " ***      REMOVING LISTENER " + listener);
         listeners.remove(listener);
     }
     public synchronized void removeAllLWCListeners()
     {
-        if (listeners != null)
+        if (listeners != null) {
+            if (DEBUG.EVENTS) System.out.println(this + " *** CLEARING ALL LISTENERS " + listeners);
             listeners.clear();
+        }
     }
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
@@ -1142,8 +1144,9 @@ public class LWComponent
         if (listeners != null && listeners.size() > 0) {
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext()) {
+                if (DEBUG.EVENTS) System.out.print(e + " -> ");
                 Listener l = (Listener) i.next();
-                if (DEBUG.EVENTS) System.out.println(e + " -> " + l);
+                if (DEBUG.EVENTS) System.out.println(l);
                 //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
                 try {
                     l.LWCChanged(e);
