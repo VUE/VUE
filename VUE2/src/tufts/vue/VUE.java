@@ -20,11 +20,14 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
  */
 
 public class VUE
-implements VueConstants {
+    implements VueConstants
+{
+    //public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = VueResources.getURL("mapping.lw");
+
     //public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
-    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = VueResources.getURL("mapping.lw");
     //    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = ClassLoader.getSystemResource("lw_mapping.xml");
     //public final java.net.URL CASTOR_XML_MAPPING_RESOURCE = getClass().getResource("lw_mapping.xml");
+    
     public static final String VUE_CONF = "vue.conf";
     
     // preferences for the application
@@ -236,7 +239,6 @@ implements VueConstants {
     }
     
     static void initUI(boolean debug) {
-        MetalLookAndFeel.setCurrentTheme(new VueTheme());
         
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
@@ -267,14 +269,16 @@ implements VueConstants {
     public static void main(String[] args) {
         System.out.println("VUE:main");
 
-        // Must call initUI before any other GUI code or our VueTheme gets ignored
-        initUI();
+        // Must install theme before any other GUI code or our VueTheme gets ignored
+        MetalLookAndFeel.setCurrentTheme(new VueTheme());
 
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         Window splashScreen = null;
 
         if (!nodr)
             splashScreen = new SplashScreen();
+        
+        initUI();
         
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
@@ -477,10 +481,8 @@ implements VueConstants {
             });
          
          */
+
         frame.show();
-        if (splashScreen != null)
-            splashScreen.toFront(); // this not working...
-        
         System.out.println("after showing frame...");
         if (args.length > 0) {
             try {
