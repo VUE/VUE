@@ -324,12 +324,14 @@ public class VUE
         frame.show();
         System.out.println("after showing frame...");
         if (args.length > 0) {
-            VUE.activateWaitCursor();
             try {
-                OpenAction oa = new OpenAction();
+                OpenAction oa = null;
                 for (int i = 0; i < args.length; i++) {
                     if (args[i].charAt(0) == '-')
                         continue;
+                    if (oa == null)
+                        oa = new OpenAction();
+                    VUE.activateWaitCursor();
                     LWMap map = oa.loadMap(args[i]);
                     if (map != null)
                         displayMap(map);
@@ -339,6 +341,7 @@ public class VUE
             }
         }
         //setViewerScrollbarsDisplayed(true);
+        System.out.println("VUE.main completed.");
     }
 
     public static void setViewerScrollbarsDisplayed(boolean add)
@@ -643,8 +646,14 @@ public class VUE
         map.addLWC(new LWNode("Square", 2)).setFillColor(Color.orange);
         map.addLWC(new LWNode("Rectangle", 3)).setFillColor(Color.blue);
         map.addLWC(new LWNode("Rounded Rectangle", 4)).setFillColor(Color.yellow);
+        
+        LWNode triangle = new LWNode("Triangle", 5);
+        triangle.setAutoSized(false);
+        triangle.setSize(60,60);
+        triangle.setFillColor(Color.orange);
+        map.addLWC(triangle);
         //map.addLWC(new LWNode("Triangle", 5)).setFillColor(Color.orange);
-        //map.addLWC(new LWNode("Diamond", 6)).setFillColor(Color.yellow);
+        map.addLWC(new LWNode("Diamond", 6)).setFillColor(Color.yellow);
         
         map.addNode(new LWNode("One"));
         map.addNode(new LWNode("Two"));
