@@ -183,7 +183,9 @@ public class ActionUtil {
             JOptionPane.showMessageDialog(null, "Error in mapping file, closing the application", 
               "LW_Mapping Exception", JOptionPane.PLAIN_MESSAGE);
                 
-            System.exit(0);
+            // besides being very unfriendly, this could really hamper
+            // debbugging!
+            //System.exit(0);
         }
         
         catch (Exception e) 
