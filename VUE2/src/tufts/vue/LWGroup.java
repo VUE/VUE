@@ -32,10 +32,14 @@ public final class LWGroup extends LWContainer
     void useSelection(LWSelection selection)
     {
         Rectangle2D bounds = selection.getBounds();
-        super.setSize((float)bounds.getWidth(),
-                      (float)bounds.getHeight());
-        super.setLocation((float)bounds.getX(),
-                          (float)bounds.getY());
+        if (bounds != null) {
+            super.setSize((float)bounds.getWidth(),
+                          (float)bounds.getHeight());
+            super.setLocation((float)bounds.getX(),
+                              (float)bounds.getY());
+        }  else {
+            System.err.println("null bounds in LWGroup.useSelection");
+        }
         super.children = selection;
     }
 
@@ -47,10 +51,10 @@ public final class LWGroup extends LWContainer
     {
         LWGroup group = new LWGroup();
 
+        /*
         // Track what links are explicitly in the selection so we
         // don't "grab" them later even if both endpoints are in the
         // selection.
-        
         HashSet linksInSelection = new HashSet();
         Iterator i = selection.iterator();
         while (i.hasNext()) {
@@ -58,16 +62,26 @@ public final class LWGroup extends LWContainer
             if (c instanceof LWLink)
                 linksInSelection.add(c);
         }
+        */
 
         // "Grab" links -- automatically add links
         // to this group who's endpoints are BOTH
         // also being added to the group.
+
+        // todo: odd case -- create a link tween 2 grouped items,
+        // and the new link will NOT be in the group -- how
+        // concerned to we need to be? "problem" arises if you
+        // then dropped the grouped 2+ nodes into a parent, and
+        // the parent was on a higher layer than the link -- the
+        // link would "dissapear" behind the parent.
         
         HashSet linkSet = new HashSet();
         List moveList = new java.util.ArrayList();
-        i = selection.iterator();
+        Iterator i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWLink) // the only links allowed are ones we grab
+                continue;
             moveList.add(c);
             //-------------------------------------------------------
             // If both ends of any link are in the selection,
@@ -78,8 +92,8 @@ public final class LWGroup extends LWContainer
             //todo: need to recursively check children for link refs also
             while (li.hasNext()) {
                 LWLink l = (LWLink) li.next();
-                if (linksInSelection.contains(l))
-                    continue;
+                //if (linksInSelection.contains(l))
+                //continue;
                 if (!linkSet.add(l)) {
                     if (DEBUG_PARENTING) System.out.println("["+group.getLabel() + "] GRABBING " + c + " (both ends in group)");
                     moveList.add(l);
