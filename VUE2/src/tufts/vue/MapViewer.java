@@ -724,8 +724,10 @@ public class MapViewer extends javax.swing.JPanel
             //System.out.println("task run " + this);
             float mapX = screenToMapX(lastMouseX);
             float mapY = screenToMapY(lastMouseY);
-            LWComponent hit = getMap().findLWComponentAt(mapX, mapY);
-            if (hit != null && !hit.isSelected())
+            LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
+            System.out.println("RolloverTask: hit=" + hit);
+            //if (hit != null && !hit.isSelected())
+            if (hit != null)
                 setRollover(hit);
             else
                 clearRollover();
@@ -738,7 +740,9 @@ public class MapViewer extends javax.swing.JPanel
     private Point2D oldLoc;
     void setRollover(LWComponent c)
     {
-        if (rollover != c && c instanceof LWNode) {
+        //if (rollover != c && (c instanceof LWNode || c instanceof LWLink)) {
+        // link labels need more work to be zoomable
+        if (rollover != c && (c instanceof LWNode)) {
             clearRollover();
             // for moment rollover is really setTemporaryZoom
             //rollover = c;
@@ -757,10 +761,15 @@ public class MapViewer extends javax.swing.JPanel
                 //c.setScale(1f);
                 rollover = c;
                 c.setRollover(true);
-                oldLoc = c.getLocation();
-                Point2D oldCenter = c.getCenterPoint();
-                c.setScale((float)newScale);
-                c.setCenterAt(oldCenter);
+                c.setZoomedFocus(true);
+                if (c instanceof LWNode) {
+                    oldLoc = c.getLocation();
+                    Point2D oldCenter = c.getCenterPoint();
+                    c.setScale((float)newScale);
+                    c.setCenterAtQuietly(oldCenter);
+                } else
+                    c.setScale((float)newScale);
+                    
                 repaintMapRegion(rollover.getBounds());
             }
         }
@@ -774,12 +783,19 @@ public class MapViewer extends javax.swing.JPanel
             }
             Rectangle2D bigBounds = rollover.getBounds();
             rollover.setRollover(false);
+            rollover.setZoomedFocus(false);
             if (true||oldScale != 1f) {
                 rollover.setScale(oldScale);
                 //if (rollover.getParent() instanceof LWNode)
                     // have the parent put it back in place
                     //rollover.getParent().layoutChildren();
                 //else
+
+                // todo: also need to do this setLocation quietly: if they
+                // move mouse back and forth tween two link endpoints
+                // when no delay is on (easier to see in big curved link)
+                // we're seeing the connection point change
+                if (rollover instanceof LWNode)
                     rollover.setLocation(oldLoc);
 
             }
@@ -950,15 +966,9 @@ public class MapViewer extends javax.swing.JPanel
         //-------------------------------------------------------
         activeTool.handlePaint(g2);
 
-        // render the current indication on top
-        //if (indication != null) indication.draw(g2);
-
-        // render the current rollover
-        //if (rollover != null) rollover.draw(g2);
-
         /*
         if (dragComponent != null) {
-            g2.setComposite(java.awt.AlphaComposite.SrcOver);
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
             dragComponent.draw(g2);
         }
         */
@@ -985,7 +995,7 @@ public class MapViewer extends javax.swing.JPanel
         //-------------------------------------------------------
         
         if (VueSelection != null && !VueSelection.isEmpty())
-            drawSelection(g2);
+            drawSelection(dc);
 
         //-------------------------------------------------------
         // draw the dragged selector box
@@ -1221,8 +1231,9 @@ public class MapViewer extends javax.swing.JPanel
             
     
     // todo: move all this code to LWSelection?
-    private void drawSelection(Graphics2D g2)
+    private void drawSelection(DrawContext dc)
     {
+        Graphics2D g2 = dc.g;
         g2.setColor(COLOR_SELECTION);
         g2.setStroke(STROKE_SELECTION);
         java.util.Iterator it;
@@ -1249,9 +1260,14 @@ public class MapViewer extends javax.swing.JPanel
             g2.draw(c.getShape());
         }
         if (indication != null) {
-            g2.setColor(COLOR_INDICATION);
-            g2.draw(indication.getShape());
-            g2.setColor(COLOR_SELECTION);
+            DrawContext dc2 = dc;//dc.create();
+            dc2.g.setColor(COLOR_INDICATION);
+            dc2.g.draw(indication.getShape());
+            dc2.g.setColor(COLOR_SELECTION);
+            // really, only the dragComponent should be transparent...
+            //dc2.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
+            //indication.draw(dc2);
+            //g2.setComposite(AlphaComposite.Src);
         }
         
         if (zoomFactor != 1) g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
@@ -1624,7 +1640,7 @@ public class MapViewer extends javax.swing.JPanel
     class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener
     {
-        LWComponent dragComponent;
+        LWComponent dragComponent;//todo: RENAME dragGroup -- make a ControlListener??
         LWSelection.ControlListener dragControl;
         //boolean isDraggingControlHandle = false;
         int dragControlIndex;
@@ -1897,7 +1913,7 @@ public class MapViewer extends javax.swing.JPanel
             //if (activeTool.supportsSelection() || activeTool.supportsClick()) {
             // Change to supportsComponentSelection?
             if (activeTool.supportsSelection()) {
-                hitComponent = getMap().findLWComponentAt(mapX, mapY);
+                hitComponent = getMap().findChildAt(mapX, mapY);
                 if (DEBUG_MOUSE && hitComponent != null)
                     System.out.println("\t    on " + hitComponent + "\n" + 
                                        "\tparent " + hitComponent.getParent());
@@ -1941,7 +1957,7 @@ public class MapViewer extends javax.swing.JPanel
                 activeTool.handleMousePressed(mme);
                 
                 if (mme.getDragRequest() != null) {
-                    dragComponent = mme.getDragRequest();
+                    dragComponent = mme.getDragRequest(); // TODO: okay, at least HERE, dragComponent CAN be a real component...
                     //dragOffset.setLocation(0,0); // todo: want this? control poins also need dragOffset
                 }
                 else if (e.isShiftDown()) {
@@ -2185,6 +2201,7 @@ public class MapViewer extends javax.swing.JPanel
         }
         */
 
+        //private LWComponent mouseOver;
         public void mouseMoved(MouseEvent e)
         {
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
@@ -2198,12 +2215,12 @@ public class MapViewer extends javax.swing.JPanel
             }
             // Workaround for known Apple Mac OSX Java 1.4.1 bug:
             // Radar #3164718 "Control-drag generates mouseMoved, not mouseDragged"
-            if (dragComponent != null && VueUtil.isMacPlatform()) {
-                if (DEBUG_MOUSE_MOTION) System.out.println("manually invoking mouseDragged");
-                mouseDragged(e);
-            }
+            //if (dragComponent != null && VueUtil.isMacPlatform()) {
+            //    if (DEBUG_MOUSE_MOTION) System.out.println("manually invoking mouseDragged");
+            //    mouseDragged(e);
+            //}
 
-            if (DEBUG_TIMER_ROLLOVER && !inDrag) {
+            if (DEBUG_TIMER_ROLLOVER && !inDrag && !(activeTextEdit != null)) {
                 if (true) {
                     if (rolloverTask != null)
                         rolloverTask.cancel();
@@ -2264,7 +2281,7 @@ public class MapViewer extends javax.swing.JPanel
                     screenY = getHeight()-1;
             }
 
-            if (!activeTool.supportsDraggedSelector(e))
+            if (!activeTool.supportsDraggedSelector(e)) // todo: dragControls could be skipped!
                 return;
             
             if (dragComponent == null && isDraggingSelectorBox) {
@@ -2300,6 +2317,9 @@ public class MapViewer extends javax.swing.JPanel
                 //-------------------------------------------------------
                 // Compute repaint region based on what's being dragged
                 //-------------------------------------------------------
+
+                // todo: the LWGroup drawgComponent is NOT updating its bounds based on what's in it...
+
                 if (OPTIMIZED_REPAINT) repaintRegion.setRect(dragComponent.getBounds());
                 //System.out.println("Starting " + repaintRegion);
 
@@ -2308,15 +2328,16 @@ public class MapViewer extends javax.swing.JPanel
                 //    repaintRegion = new Rectangle2D.Float();
                 //}
 
+                /*
+                  // this should now be handled by above
                 if (OPTIMIZED_REPAINT && dragComponent instanceof LWLink) {
-                    // todo: not currently used as link dragging disabled
-                    // todo: fix with new dragComponent being link as control point
                     LWLink lwl = (LWLink) dragComponent;
                     LWComponent c = lwl.getComponent1();
                     if (c != null) repaintRegion.add(c.getBounds());
                     c = lwl.getComponent2();
                     if (c != null) repaintRegion.add(c.getBounds());
                 }
+                */
 
                 //-------------------------------------------------------
                 // Reposition the component due to mouse drag
@@ -2381,6 +2402,7 @@ public class MapViewer extends javax.swing.JPanel
                 repaint();
 
             } else {
+                //if (DEBUG_PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);                
                 //-------------------------------------------------------
                 //
                 // Do Repaint optimzation: This makes a HUGE
@@ -2400,34 +2422,62 @@ public class MapViewer extends javax.swing.JPanel
                 // Will also need to grow by stroke width of a dragged link
                 // as it's corners are beyond bounds point with very wide strokes.
 
+                LWComponent movingComponent = dragComponent;
+                if (dragControl != null)
+                    movingComponent = (LWComponent) dragControl;
+
                 java.util.Iterator i = null;
-                if (dragComponent instanceof LWLink) {
-                    // todo: not in use as moment as Link dragging disabled...
-                    LWLink l = (LWLink) dragComponent;
+                if (movingComponent instanceof LWLink) { // only happens thru a dragControl
+                    LWLink l = (LWLink) movingComponent;
                     // todo bug: will fail with new chance of null link endpoint
-                    i = new VueUtil.GroupIterator(l.getLinkEndpointsIterator(),
-                                                  l.getComponent1().getLinkEndpointsIterator(),
-                                                  l.getComponent2().getLinkEndpointsIterator());
+                    //if (l.getControlCount() > 0)//add link bounds
+                    
+                    repaintRegion.add(l.getBounds());
+                    
+                    //i = new VueUtil.GroupIterator(l.getLinkEndpointsIterator(),
+                    //                            l.getComponent1().getLinkEndpointsIterator(),
+                    //                            l.getComponent2().getLinkEndpointsIterator());
                                                       
                 } else {
                     // TODO OPT: compute this once when we start the drag!
-                    // TODO BUG: sometimes dragComponent can be null when dragging control point??
+                    // TODO BUG: sometimes movingComponent can be null when dragging control point??
                     // should even be here if dragging control point (happens when all selected??)
-                    i = dragComponent.getAllConnectedNodes().iterator();
+                    //i = movingComponent.getAllConnectedNodes().iterator();
+                    // need to add links themselves because could be curved and have way-out control points
+                    //i = new VueUtil.GroupIterator(movingComponent.getAllConnectedNodes(),
+                    //movingComponent.getLinks());//won't work! dragComponent is always an LWGroup
+
+                    //i = movingComponent.getAllConnectedComponents().iterator();
+                    i = movingComponent.getAllLinks().iterator();
+                    // actually, we probably do NOT need to add the nodes at the other
+                    // ends of the links anymore sinde the link always connects at the
+                    // edge of the node...
+
+
+                    // perhaps handle this whole thing thru event flow
+                    // where somehow whenever a link or node moves/resizes it can add itself
+                    // to the paint region...
                 }
-                while (i.hasNext()) {
+                while (i != null && i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
+                    //if (DEBUG_PAINT) System.out.println("RR adding: " + c);
                     repaintRegion.add(c.getBounds());
                 }
                 //if (linkSource != null) repaintRegion.add(linkSource.getBounds());
 
+                // TODO BUG: something extra is getting added into repaint region making
+                // (between top diagnostic and here) that's make it way bigger than needed,
+                // and controlPoints are causing 0,0 to be added to the repaint region.
+                // create a RepaintRegion rectangle object that understands the idea
+                // of an empty region (not just 0,0), and an unintialized RR that has no location or size.
+                //if (DEBUG_PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);
                 Rectangle rr = mapToScreenRect(repaintRegion);
                 growForSelection(rr);
 
                 /*
                 boolean draggingChild = false;
-                if (!(dragComponent.getParent() instanceof LWMap)) {
-                    dragComponent.setDisplayed(false);
+                if (!(movingComponent.getParent() instanceof LWMap)) {
+                    movingComponent.setDisplayed(false);
                     draggingChild = true;
                     }*/
 
