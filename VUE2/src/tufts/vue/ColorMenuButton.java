@@ -18,7 +18,7 @@ import javax.swing.Icon;
 public class ColorMenuButton extends MenuButton
 {
     //private static BlobIcon  sIcon = new BlobIcon( 16,16, new Color(1,1,244) );
-    private BlobIcon  sIcon = new BlobIcon(20,16, true);
+    //private BlobIcon  sIcon = new BlobIcon(20,16, true);
 
     /** The currently selected Color item--if any **/
     protected Color mCurColor = new Color(0,0,0);
@@ -34,25 +34,27 @@ public class ColorMenuButton extends MenuButton
      *
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
-    public ColorMenuButton(Color [] pColors, String [] pMenuNames, boolean pHasCustom) {
-        setButtonIcon(sIcon);
+    public ColorMenuButton(Color[] pColors, String[] pMenuNames, boolean pHasCustom) {
+        setButtonIcon(new BlobIcon(20,16, true));
         buildMenu(pColors, pMenuNames, pHasCustom);
     }
 	
-    public ColorMenuButton(Color [] pColors, String  [] pMenuNames) {
-        this( pColors, pMenuNames, false);
+    public ColorMenuButton(Color[] pColors, String [] pMenuNames) {
+        this(pColors, pMenuNames, false);
     }
 	
-    public ColorMenuButton( Color [] pColors) {
-        this( pColors, null, false);
+    public ColorMenuButton(Color[] pColors) {
+        this(pColors, null, false);
     }
 	
     /**
      * Sets a the current color.
      */
-    public void setColor(Color pColor) {
-        mCurColor = pColor;
-        if (pColor == null)
+    public void setColor(Color c) {
+        mCurColor = c;
+        if (mButtonIcon instanceof BlobIcon)
+            ((BlobIcon)mButtonIcon).setColor(c);
+        if (c == null)
             mPopup.setSelected(super.mEmptySelection);
     }
 	 

@@ -1,6 +1,5 @@
 package tufts.vue;
 
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -12,20 +11,13 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 import tufts.vue.beans.VueLWCPropertyMapper;
 
 
-
 /**
  * FontEditorPanel
  * This creates a font editor panel for editing fonts in the UI
  *
  **/
- 
 public class FontEditorPanel extends Box implements ActionListener, VueConstants
 {
- 
-    ////////////
-    // Statics
-    /////////////
-    
     static Icon sItalicOn = VueResources.getImageIcon("italicOnIcon");
     static Icon sItalicOff = VueResources.getImageIcon("italicOffIcon");
     static Icon sBoldOn = VueResources.getImageIcon("boldOnIcon");
@@ -35,46 +27,46 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     private static String [] sFontSizes = { "8","9","10","12","14","18","24","36","48"};
     
     
-	///////////
-	// Fields 
-	////////////
+    ///////////
+    // Fields 
+    ////////////
 	
- 	/** the font list **/
+    /** the font list **/
     static String[] sFontNames = null;
  
  	
- 	/** Text color editor button **/
- 	ColorMenuButton mColorButton = null;
+    /** Text color editor button **/
+    ColorMenuButton mColorButton = null;
  	
- 	/** the Font selection combo box **/
- 	JComboBox mFontCombo = null;
+    /** the Font selection combo box **/
+    JComboBox mFontCombo = null;
  	
- 	/** the size edit area **/
- 	//NumericField mSizeField = null;
- 	JComboBox mSizeField = null;
+    /** the size edit area **/
+    //NumericField mSizeField = null;
+    JComboBox mSizeField = null;
  	
- 	/** bold botton **/
- 	JToggleButton mBoldButton = null;
+    /** bold botton **/
+    JToggleButton mBoldButton = null;
  	
- 	/** italic button **/
- 	JToggleButton mItalicButton = null;
+    /** italic button **/
+    JToggleButton mItalicButton = null;
  	
- 	/** the size **/
- 	int mSize = 14;
+    /** the size **/
+    int mSize = 14;
  	
- 	/** Text color menu editor **/
- 	//ColorMenuButton mTextColorButton = null;
+    /** Text color menu editor **/
+    //ColorMenuButton mTextColorButton = null;
     
- 	/** the property name **/
- 	String mPropertyName = LWKey.Font;
+    /** the property name **/
+    String mPropertyName = LWKey.Font;
  	
- 	/** the font **/
- 	Font mFont = null;
+    /** the font **/
+    Font mFont = null;
  	
  	
- 	/////////////
- 	// Constructors
- 	//////////////////
+    /////////////
+    // Constructors
+    //////////////////
  	
     private static final boolean debug = false;
     private static final Insets NoInsets = new Insets(0,0,0,0);
@@ -96,9 +88,9 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         // way to constrain the combo-box.
 
         if (debug)
-            setBorder(new javax.swing.border.LineBorder(Color.pink, VertSqueeze));
+        setBorder(new javax.swing.border.LineBorder(Color.pink, VertSqueeze));
         else
-            setBorder(new javax.swing.border.EmptyBorder(VertSqueeze,1,VertSqueeze,1));//t,l,b,r
+        setBorder(new javax.swing.border.EmptyBorder(VertSqueeze,1,VertSqueeze,1));//t,l,b,r
         */
 
         mFontCombo = new JComboBox(getFontNames());
@@ -164,18 +156,18 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         mItalicButton.setMargin(ButtonInsets);
  		
         /*
-        Color [] textColors = VueResources.getColorArray("textColorValues");
-        String [] textColorNames = VueResources.getStringArray("textColorNames");
-        mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
-        //mTextColorButton.setBackground( bakColor);
-        ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-        BlobIcon textBlob = new BlobIcon();
-        textBlob.setOverlay( textIcon );
-        mTextColorButton.setIcon(textBlob);
-        mTextColorButton.setPropertyName( LWKey.TextColor);
-        mTextColorButton.setBorderPainted(false);
-        mTextColorButton.setMargin(ButtonInsets);
-        mTextColorButton.addActionListener(this);
+          Color [] textColors = VueResources.getColorArray("textColorValues");
+          String [] textColorNames = VueResources.getStringArray("textColorNames");
+          mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
+          //mTextColorButton.setBackground( bakColor);
+          ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
+          BlobIcon textBlob = new BlobIcon();
+          textBlob.setOverlay( textIcon );
+          mTextColorButton.setIcon(textBlob);
+          mTextColorButton.setPropertyName( LWKey.TextColor);
+          mTextColorButton.setBorderPainted(false);
+          mTextColorButton.setMargin(ButtonInsets);
+          mTextColorButton.addActionListener(this);
         */
          
         JLabel label = new JLabel("   Text:");
@@ -213,43 +205,43 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
     }
  	
  	
- 	////////////////
- 	// Methods
- 	/////////////////
+    ////////////////
+    // Methods
+    /////////////////
  	
  	
  	
- 	public void setPropertyName( String pName) {
- 		mPropertyName = pName;
- 	}
+    public void setPropertyName( String pName) {
+        mPropertyName = pName;
+    }
  	
- 	public String getPropertyName() {
- 		return mPropertyName;
- 	}
+    public String getPropertyName() {
+        return mPropertyName;
+    }
  	
- 	/**
- 	 * getFontValue()
- 	 **/
- 	public Font getFontValue() {
- 		return mFont;
- 	}
+    /**
+     * getFontValue()
+     **/
+    public Font getFontValue() {
+        return mFont;
+    }
  	
- 	/**
- 	 * setFontValue()
- 	 **/
- 	public void setFontValue( Font pFont) {
- 		setValue( pFont);
+    /**
+     * setFontValue()
+     **/
+    public void setFontValue( Font pFont) {
+        setValue( pFont);
  	
- 	}
+    }
  	
  	
- 	/**
- 	 * setValue
- 	 * Generic property editor access
- 	 **/
+    /**
+     * setValue
+     * Generic property editor access
+     **/
     public void setValue( Object pValue) {
-        //new Throwable("FEP SETVALUE").printStackTrace();
-        //System.out.println("FEP: setValue " + pValue);
+        if (DEBUG.SELECTION) System.out.println(this + " setValue " + pValue);
+        //new Throwable().printStackTrace();
  		
         if( pValue instanceof Font) {
             Font font = (Font) pValue;
@@ -265,7 +257,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
  	
     }
  	
-    public void initColors( Color pColor) {
+    private void initColors( Color pColor) {
         //mFontCombo.setBackground( pColor);
         mBoldButton.setBackground( pColor);
         mItalicButton.setBackground( pColor);
@@ -317,19 +309,19 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         return font;
     }
  	
- 	private int findFontName( String name) {
+    private int findFontName( String name) {
  		
- 		//System.out.println("!!! Searching for font: "+name);
- 		for( int i=0; i< sFontNames.length; i++) {
- 			if( name.equals(  sFontNames[i]) ) {
- 				//System.out.println("  FOUND: "+name+" at "+i);
- 				return i;
- 				}
- 			}
- 		return -1;
- 	}
+        //System.out.println("!!! Searching for font: "+name);
+        for( int i=0; i< sFontNames.length; i++) {
+            if( name.equals(  sFontNames[i]) ) {
+                //System.out.println("  FOUND: "+name+" at "+i);
+                return i;
+            }
+        }
+        return -1;
+    }
 
-     public static void main(String[] args) {
+    public static void main(String[] args) {
         System.out.println("FontEditorPanel:main");
         VUE.initUI(true);
         
@@ -338,4 +330,4 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         VueUtil.displayComponent(new FontEditorPanel());
     }
      
- }
+}

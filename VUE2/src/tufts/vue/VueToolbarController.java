@@ -425,7 +425,7 @@ public class VueToolbarController
         if (panel == null)
             panel = getContextualPanelForSelection();
 
-        if (false&&panel != null)
+        if (panel != null)
             initContextualPanelFromSelection(panel);
         
         getToolbar().setContextualToolPanel(panel);

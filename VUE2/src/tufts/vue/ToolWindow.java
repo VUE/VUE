@@ -257,7 +257,7 @@ public class ToolWindow
         addMouseMotionListener(this);
         setBackground(SystemColor.control);
         this.mTitle = title;
-        System.out.println(this + " cp=" + getContentPane());
+        if (false) System.out.println(this + " cp=" + getContentPane());
         toolPanel = new ToolPanel(mTitle);
         getContentPane().add(toolPanel);
         //setContentPane(toolPanel);
@@ -284,7 +284,12 @@ public class ToolWindow
                 }
             });
         */
-        
+
+        System.out.println(this + " created.");
+    }
+
+    public String toString() {
+        return "ToolWindow[" + mTitle + "]";
     }
 
     public ToolWindow(Frame owner, String title) {

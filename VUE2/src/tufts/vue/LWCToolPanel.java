@@ -224,11 +224,14 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         
         setIgnorePropertyChangeEvents(true);
         
-                mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
+        mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
+        mTextColorButton.loadPropertyValue(state); // until is a MenuButton, might as will pick up property
+
+        if (false) {
           mFillColorButton.loadPropertyValue(state);
         mStrokeColorButton.loadPropertyValue(state);
-          mTextColorButton.loadPropertyValue(state);
              mStrokeButton.loadPropertyValue(state);
+        }
 
         setIgnorePropertyChangeEvents(false);
     }
