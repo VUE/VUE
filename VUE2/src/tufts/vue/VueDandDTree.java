@@ -270,9 +270,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                             int row,
                             boolean hasFocus) {
                                 
-                     Icon leafIcon = new ImageIcon("icon_document.gif");
-                     Icon inactiveIcon = new ImageIcon("icon_folder_inactive.gif");
-                     Icon activeIcon = new ImageIcon("icon_folder_active.gif");
+                     Icon leafIcon = new ImageIcon("tufts/vue/images/icon_document.gif");
+                     Icon inactiveIcon = new ImageIcon("tufts/vue/images/icon_folder_inactive.gif");
+                     Icon activeIcon = new ImageIcon("tufts/vue/images/icon_folder_active.gif");
 
             super.getTreeCellRendererComponent(
                             tree, value, sel,
@@ -284,7 +284,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                      
                        if (value instanceof FavoritesNode)
                       {
-                          System.out.println("Value--fav " + value);
+                          
                         if ( ((FavoritesNode)value).getChildCount() >0 )
                         {
                           setIcon(activeIcon);
@@ -294,23 +294,13 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                             setIcon(inactiveIcon);
                         }
                        
-                          System.out.println("Value--faaav " + value);
-                      }
-                       else{
+                          
+                        }
+                       else if (leaf){ setIcon(leafIcon);}
+                       else {}
                            
-                           if (leaf){
-                               if (value instanceof FavoritesNode){
-                                    System.out.println("Value--fav in leaf" + value);
-                               }
-                               else{
-                                   
-                                 System.out.println("Value--leaf" + value); 
-                              setIcon(leafIcon);
-                             System.out.println("Value--leaaaf" + value);  
-                               }
-                           }
                            
-                       }
+                       
                      
 
             return this;
