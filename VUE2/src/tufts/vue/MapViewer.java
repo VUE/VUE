@@ -348,11 +348,14 @@ public class MapViewer extends javax.swing.JPanel
     }
     
     /**
-     * Add all nodes hit by this box to a list for doing selection.
+     * By default, add all nodes hit by this box to a list for doing selection.
      * If NO nodes are in the list, search for links within the region
-     * instead.
+     * instead.  Of @param onlyLinks is true, only search for links.
      */
-    private java.util.List computeSelection(Rectangle2D mapRect)
+    private int SELECT_DEFAULT = 1; // nodes if any, links otherwise
+    private int SELECT_LINKS = 2; // only select links
+    private int SELECT_ALL = 3; // nodes & links (everything)
+    private java.util.List computeSelection(Rectangle2D mapRect, boolean onlyLinks)
     {
         java.util.List hits = new java.util.ArrayList();
         java.util.Iterator i = getMap().getChildIterator();
@@ -360,11 +363,18 @@ public class MapViewer extends javax.swing.JPanel
 
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWLink)
+            boolean isLink = c instanceof LWLink;
+            if (!onlyLinks && isLink)
+                continue;
+            if (onlyLinks && !isLink)
                 continue;
             if (c.intersects(mapRect))
                 hits.add(c);
         }
+        if (onlyLinks)
+            return hits;
+
+        // if found nothing but links, now grab the links
         if (hits.size() == 0) {
             i = getMap().getChildIterator();
             while (i.hasNext()) {
@@ -845,6 +855,11 @@ public class MapViewer extends javax.swing.JPanel
             // todo opt: would this be any faster done on a glass pane?
             
             //-------------------------------------------------------
+            //
+            // *** Okay -- all this only happens when repaint optimization is on
+            // -- a bug in repainting with clip region?  might try
+            // manually setting the region instead of using repaint(region)
+            //
             // TODO BUG: pixels seems to subtly shift for SOME nodes as they
             // pass in and out of the drag region on PC JVM 1.4 -- doesn't
             // depend on region on screen -- actually the node!!
@@ -1432,10 +1447,14 @@ public class MapViewer extends javax.swing.JPanel
                                              Math.abs(dragStart.x - screenX),
                                              Math.abs(dragStart.y - screenY));
 
-                // Now add to repaint-rect the new selection
-                repaintRect.add(draggedSelectionBox);
-                repaintRect.grow(1,1);
-                repaint(repaintRect);
+                if (!DEBUG_REPAINT_OPTIMIZE_OFF) {
+                    // Now add to repaint-rect the new selection
+                    repaintRect.add(draggedSelectionBox);
+                    repaintRect.grow(1,1);
+                    repaint(repaintRect);
+                } else {
+                    repaint();
+                }
                 return;
             } else
                 draggedSelectionBox = null;
@@ -1698,7 +1717,7 @@ public class MapViewer extends javax.swing.JPanel
                 //System.out.println("dragged " + draggedSelectionBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectionBox);
                 //System.out.println("map " + hitRect);
-                java.util.List list = computeSelection(hitRect);
+                java.util.List list = computeSelection(hitRect, e.isControlDown());
                 if (e.isShiftDown())
                     selectionToggle(list.iterator());
                 else
