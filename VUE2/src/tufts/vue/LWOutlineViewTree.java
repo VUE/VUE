@@ -352,14 +352,20 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
         //when a child is removed from the map
         else if (message.equals("childRemoved"))
           deleteLWTreeNode((LWContainer)e.getSource(), e.getComponent());
-        
+
+        //when children added to the map
+        else if (message.equals("childrenAdded"))
+        {
+            ArrayList childrenList = e.getComponents();
+            for (Iterator i = childrenList.iterator(); i.hasNext();)
+                addLWTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
+        }
         //when children are removed from the map
         else if (message.equals("childrenRemoved"))
         {
             ArrayList childrenList = e.getComponents();
-            
             for (Iterator i = childrenList.iterator(); i.hasNext();)
-              deleteLWTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
+                deleteLWTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
         }
         
         //when a label on a node was changed
