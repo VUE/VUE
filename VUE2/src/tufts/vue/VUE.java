@@ -180,8 +180,19 @@ public class VUE
         vuePanel.add(splitPane, BorderLayout.CENTER);
         //vuePanel.add(splitPane);
 
+        // Create the tool windows
+        ToolWindow pannerTool = new ToolWindow("Panner", frame);
+        pannerTool.setSize(120,120);
+        pannerTool.addTool(new MapPanner(mapViewer1));
+
+        ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
+        inspectorTool.addTool(new MapItemInspector());
+
+        Action[] windowActions = { pannerTool.getDisplayAction(),
+                                   inspectorTool.getDisplayAction() };
+
         // adding the menus and toolbars
-        setMenuToolbars(frame);
+        setMenuToolbars(frame, windowActions);
         
         frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
         //frame.setContentPane(vuePanel);
@@ -196,14 +207,7 @@ public class VUE
         
         frame.show();
         
-        ToolWindow pannerTool = new ToolWindow("Panner", frame);
-        pannerTool.setSize(120,120);
-        pannerTool.addTool(new MapPanner(mapViewer1));
-        pannerTool.show();
 
-        ToolWindow inspectorTool = new ToolWindow("", frame);
-        inspectorTool.addTool(new MapItemInspector());
-        inspectorTool.show();
     }
 
 
@@ -246,12 +250,13 @@ public class VUE
         tabbedPane.setSelectedComponent(mapViewer);
     }
     
-    private static void  setMenuToolbars(JFrame frame) {
+    private static void  setMenuToolbars(JFrame frame, Action[] windowActions) {
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         JMenu editMenu = new JMenu("Edit");
         JMenu viewMenu = new JMenu("View");
         JMenu formatMenu = new JMenu("Format");
+        JMenu windowMenu = new JMenu("Window");
         JMenu optionsMenu = new JMenu("Options");
         JMenu helpMenu = new JMenu("Help");
         
@@ -259,6 +264,7 @@ public class VUE
         menuBar.add(editMenu);
         menuBar.add(viewMenu);
         menuBar.add(formatMenu);
+        menuBar.add(windowMenu);
         menuBar.add(optionsMenu);
         menuBar.add(helpMenu);
         //adding actions
@@ -284,6 +290,8 @@ public class VUE
         
         viewMenu.add(new JMenuItem("Zoom In"));
         viewMenu.add(new JMenuItem("Zoom Out"));
+        viewMenu.add(new JMenuItem("Zoom Fit"));
+        viewMenu.add(new JMenuItem("Zoom 100%"));
         viewMenu.addSeparator();
         viewMenu.add(new JMenuItem("Resources"));
         viewMenu.add(new JMenuItem("Collection"));
@@ -295,11 +303,16 @@ public class VUE
         formatMenu.add(new JMenuItem("Font"));
         formatMenu.add(new JMenuItem("Size"));
         formatMenu.add(new JMenuItem("Style"));
-        formatMenu.add(new JMenuItem("Juspify"));
+        formatMenu.add(new JMenuItem("Justify"));
         formatMenu.add(new JMenuItem("Align"));
         formatMenu.add(new JMenuItem("Group"));
         formatMenu.add(new JMenuItem("UnGroup"));
         
+        for (int i = 0; i < windowActions.length; i++) {
+            System.out.println("adding " + windowActions[i]);
+            windowMenu.add(new JCheckBoxMenuItem(windowActions[i]));
+        }
+
         optionsMenu.add(new JMenuItem("Node Types..."));
         optionsMenu.add(new JMenuItem("Map Preference..."));
         optionsMenu.add(new JMenuItem("Preferences..."));
