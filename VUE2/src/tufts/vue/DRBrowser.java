@@ -1,40 +1,49 @@
 package tufts.vue;
 
-import javax.swing.border.TitledBorder;
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-
-import osid.dr.*;
-import osid.OsidException;
-import tufts.oki.dr.fedora.*;
-import java.util.Vector;
-import java.util.ArrayList;
-import java.io.*;
-
-
-
-
-import fedora.server.types.gen.*;
-import fedora.server.utilities.DateUtility;
+import javax.swing.*;
+import javax.swing.border.*;
 
 /**
- * Digital Repositor Browser
+ * Digital Repository Browser
  */
 class DRBrowser extends JPanel {
-   public static DataSourceViewer dsViewer = null;
-   
+    public static DataSourceViewer dsViewer = null;
 
+    private static final int DRBrowserWidth = 329;
    
     public DRBrowser()
     {
-       
         setLayout(new BorderLayout());
-        
-        dsViewer = new DataSourceViewer(this);
-        dsViewer.setName("Data Source Viewer"); 
-        tufts.vue.VUE.dataSourceViewer = this.dsViewer;
-        add(tufts.vue.VUE.dataSourceViewer,BorderLayout.NORTH);
+        loadDataSourceViewer();
+    }
+    public DRBrowser(boolean delayed)
+    {
+        setLayout(new BorderLayout());
+        if (delayed) {
+            setMinimumSize(new Dimension(DRBrowserWidth,100));
+            JLabel label = new JLabel("Loading data sources...");
+            label.setBorder(new EmptyBorder(22,22,0,0));
+            add(label, BorderLayout.NORTH);
+        } else {
+            loadDataSourceViewer();
+        }
+    }
+    
+    public void loadDataSourceViewer()
+    {
+        DataSourceViewer dsv = new DataSourceViewer(this);
+        dsv.setName("Data Source Viewer"); 
+        if (dsViewer != null) {
+            // set the statics to the first initialized DRBrowser only
+            this.dsViewer = dsv;
+            //tufts.vue.VUE.dataSourceViewer = dsv;
+        }
+        if (getComponentCount() > 0)
+            remove(getComponent(0)); // remove loading message
+        setMinimumSize(null);
+        add(dsv, BorderLayout.NORTH);
+        validate();
     }
 
 

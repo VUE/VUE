@@ -22,12 +22,6 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 public class VUE
     implements VueConstants
 {
-    //public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = VueResources.getURL("mapping.lw");
-
-    //public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
-    //    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = ClassLoader.getSystemResource("lw_mapping.xml");
-    //public final java.net.URL CASTOR_XML_MAPPING_RESOURCE = getClass().getResource("lw_mapping.xml");
-    
     public static final String VUE_CONF = "vue.conf";
     
     // preferences for the application
@@ -61,7 +55,7 @@ public class VUE
     //overview tree window component
     public static LWOutlineView outlineView;
     
-    public static DataSourceViewer dataSourceViewer;
+    //public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
     
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
@@ -265,7 +259,8 @@ public class VUE
         
     }
     
-    static JPanel toolPanel;//todo: tmp hack
+    
+    private static JPanel toolPanel;
     public static void main(String[] args) {
         System.out.println("VUE:main");
         
@@ -299,9 +294,13 @@ public class VUE
         //-------------------------------------------------------
         
         toolPanel = new JPanel();
+        //toolPanel.setMinimumSize(new Dimension(329,1)); // until DRBrowser loaded
         toolPanel.setLayout(new BorderLayout());
         DRBrowser drBrowser = null;
         if (!nodr)  {
+            drBrowser = new DRBrowser(true);
+            toolPanel.add(drBrowser, BorderLayout.CENTER);
+            /*
             try {
                 drBrowser = new DRBrowser();
                 toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
@@ -309,6 +308,7 @@ public class VUE
                 e.printStackTrace();
                 System.err.println("DR browser blowing up -- try another day.");
             }
+            */
         } else {
             //-------------------------------------------------------
             // create example map(s)
@@ -362,9 +362,8 @@ public class VUE
             inspectorTool.addTool(new LWCInspector());
         }
         
-        ToolWindow drBrowserTool  = new ToolWindow("Data Sources", frame);
-        if (drBrowser != null)
-            drBrowserTool.addTool(drBrowser);
+        ToolWindow drBrowserTool = new ToolWindow("Data Sources", frame);
+        //if (drBrowser != null) drBrowserTool.addTool(drBrowser);
         
         // The real tool palette window withtools and contextual tools
         ToolWindow toolbarWindow = null;
@@ -396,7 +395,7 @@ public class VUE
         
         if (false) {
             JFrame testFrame = new JFrame("Debug");
-            testFrame.setSize( 300,300);
+            testFrame.setSize(300,300);
             //testFrame.getContentPane().add( new NodeInspectorPanel() );
             testFrame.getContentPane().add(objectInspectorPanel);
             testFrame.show();
@@ -484,8 +483,26 @@ public class VUE
          
          */
 
+        if (!nodr) {
+            try {
+                File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
+                LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
+                startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
+                startupMap.setLabel("Welcome");
+                startupMap.markAsSaved();
+                displayMap(startupMap);
+            } catch(Exception ex) {
+                VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
+                ex.printStackTrace();
+            }
+        }
+
         frame.show();
-        System.out.println("after showing frame...");
+        System.out.println("VUE: frame visible");
+        
+        if (splashScreen != null)
+            splashScreen.setVisible(false);
+
         if (args.length > 0) {
             try {
                 for (int i = 0; i < args.length; i++) {
@@ -501,26 +518,17 @@ public class VUE
             }
         }
         
-        if (!nodr) {
-            try {
-                File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
-                LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
-                startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
-                startupMap.setLabel("Welcome");
-                startupMap.markAsSaved();
-                displayMap(startupMap);
-            } catch(Exception ex) {
-                VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
-                ex.printStackTrace();
-            }
+        if (drBrowser != null) {
+            drBrowser.loadDataSourceViewer();
+            splitPane.resetToPreferredSizes();
         }
 
-        if (splashScreen != null)
-            splashScreen.setVisible(false);
-        
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
+
+        if (drBrowser != null && drBrowserTool != null)
+            drBrowserTool.addTool(new DRBrowser());
     }
     
     
@@ -833,7 +841,7 @@ public class VUE
             windowMenu.add(checkBox);
         }
         
-        windowMenu.add(new UserDataAction());
+        //windowMenu.add(new UserDataAction());
         /*
         optionsMenu.add(new UserDataAction());
         optionsMenu.add(new JMenuItem("Map Preference..."));
