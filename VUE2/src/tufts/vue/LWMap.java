@@ -18,6 +18,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Graphics2D;
 import java.io.File;
+import tufts.vue.beans.*;
 
 public class LWMap extends LWContainer
     implements ConceptMap
@@ -30,11 +31,28 @@ public class LWMap extends LWContainer
     
     private LWPathwayManager mPathwayManager = null;
     
+    /** user map types **/
+    private UserMapType [] mUserTypes = null;
+    
+    /** the author of the map **/
+    private String mAuthor = null;
+    
+    /** the date **/
+    private String mDate = null;
+    
+    /** the current Map Filter **/
+    LWCFilter mLWCFilter = new LWCFilter();
+    
     // only to be used during a restore from persisted
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
         mPathwayManager = new LWPathwayManager(this);
+    	long time = System.currentTimeMillis();
+    	java.util.Date date = new java.util.Date( time);
+    	java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
+    	String dateStr = df.format( date);
+    	setDate( dateStr);
     }
 
     public LWMap(String label)
@@ -46,6 +64,13 @@ public class LWMap extends LWContainer
         setFont(FONT_DEFAULT);
         setLabel(label);
         mPathwayManager = new LWPathwayManager(this);
+    	long time = System.currentTimeMillis();
+    	java.util.Date date = new java.util.Date( time);
+    	java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
+    	String dateStr = df.format( date);
+    	setDate( dateStr);
+
+
     }
 
     public void setFile(File file)
@@ -59,6 +84,85 @@ public class LWMap extends LWContainer
         return this.file;
     }
     
+    
+    /**
+     * getLWCFilter()
+     * This gets the current LWC filter
+     **/
+    public LWCFilter getLWCFilter() {
+    	return mLWCFilter;
+    }
+    
+    /**
+     * setLWCFilter
+     * This sets the LWC Filter to filter out node and link componenets.
+     * @param LWCFilter - the filter
+     **/
+    public void setLWCFilter( LWCFilter pFilter) {
+    	mLWCFilter = pFilter;
+    }
+    
+    /**
+     * getUserMapTypes
+     * This returns an array of available map types for this
+     * map.
+     * @return UserMapType [] the array of map types
+     **/
+    public UserMapType [] getUserMapTypes() {
+     	return mUserTypes;
+     }
+     
+    /**
+     * \Types
+     * This sets the array of UserMapTypes for teh map
+     *  @param pTypes - uthe array of UserMapTypes
+     **/
+    public void setUserMapTypes( UserMapType [] pTypes) {
+    	mUserTypes = pTypes;
+    	validateUserMapTypes();
+    }
+    
+    /**
+     * validateUserMapTypes
+     * Searches the list of LW Compone
+     **/
+    private void validateUserMapTypes() {
+
+
+
+        java.util.List list = getAllDescendents();
+
+		Iterator it = list.iterator();
+		while (it.hasNext()) {
+			LWComponent c = (LWComponent) it.next();
+			if ( c.getUserMapType() != null)  {
+				// Check that type still exists...
+				
+				}
+			}
+ 	}
+ 	
+    /**
+     * getAuthor
+     * 
+     **/
+    public String getAuthor() {
+    	return mAuthor;
+    }
+    
+    public void setAuthor( String pName) {
+    	mAuthor = pName;
+    }
+    
+    public String getDate() {
+    	return mDate;
+   }
+   public void setDate( String pDate) {
+   	mDate = pDate;
+   }
+    
+     
+     
     public LWPathwayManager getPathwayManager(){ 
         return mPathwayManager;
     }
