@@ -160,7 +160,41 @@ public class VueResources
 			}
 	return retValue;
 	}
+
 	
+    /**
+     * getInt
+     * Returns an int value if one is found for the given key,
+     * otherwise the default value.
+     * @param pLookupKey - the lookup key
+     * @param pDefault - value to return if none found under key
+     * @return int - value found or default
+     */
+    static public int getInt(String pLookupKey, int pDefault)
+    {
+        int retValue = pDefault;
+        String s = getString(pLookupKey);
+        if (s != null) {
+            Integer i = new Integer(s);
+            retValue = i.intValue();
+        }
+	return retValue;
+    }
+
+    /**
+     * getChar
+     * Gets a char value for the given key.
+     * @param pLookupKey - the lookup key
+     * @return char - value found or 0 if key not found
+     */
+    static public char getChar(String pLookupKey)
+    {
+        char retValue = 0;
+        String s = getString(pLookupKey);
+        if (s != null)
+            retValue = s.charAt(0);
+	return retValue;
+    }
 
 
 	/**

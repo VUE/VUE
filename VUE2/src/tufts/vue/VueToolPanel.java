@@ -94,7 +94,7 @@ public class VueToolPanel extends JPanel
 		mButtonGroup.add( pButton);
 		if( mButtonGroup.getButtonCount() == 1) {
 			pButton.setSelected( true);
-			}
+                }
 	}
 	
 	
@@ -126,6 +126,9 @@ public class VueToolPanel extends JPanel
 			}
 		mTools.add( pTool);
 		PaletteButton button = createPaletteButton( pTool);
+                // todo: setting this mnemonic doesn't appear to work
+                //if (pTool.getShortcutKey() != 0)
+                //button.setMnemonic(pTool.getShortcutKey());
 		addToolButton( button);
 		
 	}

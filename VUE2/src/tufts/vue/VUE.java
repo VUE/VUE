@@ -417,6 +417,8 @@ public class VUE
 
     public static boolean multipleMapsVisible()
     {
+        if (viewerSplit == null)
+            return false;
         int dl = viewerSplit.getDividerLocation();
         return dl >= viewerSplit.getMinimumDividerLocation()
             && dl <= viewerSplit.getMaximumDividerLocation();
@@ -425,6 +427,7 @@ public class VUE
     
     public static MapViewer getActiveViewer()
     {
+        /*   
         Object c = tabbedPane.getSelectedComponent();
         if(c instanceof JScrollPane){
             
@@ -436,7 +439,7 @@ public class VUE
                 }
             }
         } 
-        
+        */
         // don't know how this will impact the pathway stuff, but we're (?)
         // ActiveViewer now has to be maintained seperately, so we
         // can't query the tabbed panes.

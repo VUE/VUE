@@ -79,6 +79,7 @@ public class Resource
 
     public void displayContent()
     {
+        System.out.println("displayContent for " + this);
         try {
             this.accessAttempted = System.currentTimeMillis();
             VueUtil.openURL(toURLString());
@@ -125,6 +126,31 @@ public class Resource
     
     public String getSpec() {
        return this.spec;
+    }
+
+    public boolean isLocalFile()
+    {
+        String s = spec.toLowerCase();
+        return s.startsWith("file:") || s.indexOf(':') < 0;
+    }
+
+    public String getExtension()
+    {
+        String ext = "xxx";
+        if (spec.startsWith("http"))
+            ext = "www";
+        else if (spec.startsWith("file"))
+            ext = "file";
+        else
+            ext = spec.substring(0, Math.min(spec.length(), 3));
+
+        if (!spec.endsWith("/")) {
+            int i = spec.lastIndexOf('.');
+            if (i > 0 && i < spec.length()-1)
+                ext  = spec.substring(i+1);
+        }
+
+        return ext;
     }
 
     public String toString()

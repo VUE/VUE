@@ -57,7 +57,7 @@ public class MapViewer extends javax.swing.JPanel
     /** the last selector box drawn -- for repaint optimization */
     protected Rectangle lastPaintedSelectorBox;
     /** are we currently dragging a selection box? */
-    protected boolean draggingSelectorBox;
+    protected boolean isDraggingSelectorBox;
     /** are we currently in a drag of any kind? (mouseDragged being called) */
     protected boolean inDrag;                  
 
@@ -208,7 +208,7 @@ public class MapViewer extends javax.swing.JPanel
     
     
     /** The currently selected tool **/
-    private VueTool mActiveTool = new VueSimpleTool();
+    private VueTool activeTool = ArrowTool;
     // todo: just so is not null -- need to start with arrow tool as default
     //java.util.List tools = new java.util.ArrayList();
 
@@ -219,14 +219,10 @@ public class MapViewer extends javax.swing.JPanel
      * @return the slected VueTool
      **/
     public VueTool getCurrentTool() {
-    	return mActiveTool;
+    	return activeTool;
     }
-    
-    /**
-     * Sets the current VueTool for the map viewer.
-     * Updates any selection or state issues pased on the tool
-     * @param pTool - the new tool
-     **/
+
+    /*
     static final String ID_ArrowTool = "arrowTool";
     static final String ID_HandTool = "handTool";
     static final String ID_ZoomTool = "zoomTool";
@@ -234,16 +230,24 @@ public class MapViewer extends javax.swing.JPanel
     static final String ID_LinkTool = "linkTool";
     static final String ID_TextTool = "textTool";
     static final String ID_PathwayTool = "pathwayTool";
+    */
 
     // This is a bit of a hack for now -- move to VueTool?
-    VueTool ArrowTool = mActiveTool; // hack to set this as default
-    static VueTool HandTool;
-    static VueTool ZoomTool;
-    static VueTool NodeTool;
-    static VueTool LinkTool;
-    static VueTool TextTool;
-    static VueTool PathwayTool;
+    //    VueTool ArrowTool = activeTool; // hack to set this as default
+
+    static final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
+    static final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
+    static final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
+    static final VueTool NodeTool = VueToolbarController.getController().getTool("nodeTool");
+    static final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
+    static final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
+    static final VueTool PathwayTool = VueToolbarController.getController().getTool("textTool");
     
+    /**
+     * Sets the current VueTool for the map viewer.
+     * Updates any selection or state issues pased on the tool
+     * @param pTool - the new tool
+     **/
     public void toolSelected(VueTool pTool)
     {
         if (pTool == null) {
@@ -254,39 +258,14 @@ public class MapViewer extends javax.swing.JPanel
             System.err.println("*** MapViewer.toolSelected: NULL ID IN TOOL!");
             return;
         }
-        mActiveTool = pTool;
+        activeTool = pTool;
     	System.out.println("MapViewer.toolSelected: " + pTool.getID());
             
+        //System.out.println("Setting cursor to " + activeTool.getCursor());
+        setMapCursor(activeTool.getCursor());
 
-        if (pTool.getID().equals(ID_ArrowTool)) {
-            ArrowTool = pTool;
-            setMapCursor(CURSOR_ARROW);
-            
-        } else if (pTool.getID().equals(ID_HandTool)) {
-            HandTool = pTool;
-            setMapCursor(CURSOR_PAN);
-
-        } else if (pTool.getID().equals(ID_ZoomTool)) {
-            ZoomTool = pTool;
-            setMapCursor(VUE.CURSOR_ZOOM_IN);
-
-        } else if (pTool.getID().equals(ID_NodeTool)) {
-            NodeTool = pTool;
-            setMapCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-
-        } else if (pTool.getID().equals(ID_LinkTool)) {
-            LinkTool = pTool;
-            setMapCursor(CURSOR_CROSSHAIR);
-
-        } else if (pTool.getID().equals(ID_TextTool)) {
-            TextTool = pTool;
-            setMapCursor(CURSOR_TEXT);
-
-        } else if (pTool.getID().equals(ID_PathwayTool)) {
-            PathwayTool = pTool;
-            setMapCursor(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR));
-        }
-
+        if (isDraggingSelectorBox) // in case we change tool vie kbd shortcut in the middle of a drag
+            repaint();
     }
 
     private void setMapCursor(Cursor cursor)
@@ -347,10 +326,10 @@ public class MapViewer extends javax.swing.JPanel
     float screenToMapDim(int dim) {
         return (float) (dim / zoomFactor);
     }
-    Point2D screenToMapPoint(Point p) {
+    Point2D.Float screenToMapPoint(Point p) {
         return screenToMapPoint(p.x, p.y);
     }
-    Point2D screenToMapPoint(int x, int y) {
+    Point2D.Float screenToMapPoint(int x, int y) {
         return new Point2D.Float(screenToMapX(x), screenToMapY(y));
     }
     int mapToScreenX(double x) {
@@ -537,8 +516,8 @@ public class MapViewer extends javax.swing.JPanel
                 this.zoomPoint = null;
             }
 
-            // todo: don't re-center on zoompoint -- make sure zoom point stays
-            //.centered under cursor AFTER zoom!
+            // todo: keep zoomed point at same location in viewport after zoom
+            // as opposed to in the center?
             float offsetX = (float) (zoomMapCenter.getX() * newZoomFactor) - c.getWidth() / 2;
             float offsetY = (float) (zoomMapCenter.getY() * newZoomFactor) - c.getHeight() / 2;
 
@@ -745,8 +724,8 @@ public class MapViewer extends javax.swing.JPanel
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             boolean isLink = c instanceof LWLink;
-            if (!onlyLinks && isLink)
-                continue;
+            //if (!onlyLinks && isLink) // DISABLED IGNORING OF LINKS FOR NOW
+            //  continue;
             if (onlyLinks && !isLink)
                 continue;
             if (c.intersects(mapRect))
@@ -1172,26 +1151,32 @@ public class MapViewer extends javax.swing.JPanel
     private void redrawSelectorBox(Graphics2D g2)
     {
         //if (DEBUG_PAINT) System.out.println(g2);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
-        g2.setXORMode(COLOR_SELECTION_DRAG);
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
-        // first, erase last selector box if it was there (XOR redraw = undo)
-        if (lastPaintedSelectorBox != null)
-            g2.draw(lastPaintedSelectorBox);
+
+        if (activeTool.supportsXORSelectorDrawing()) {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+            g2.setXORMode(COLOR_SELECTION_DRAG);
+            // In XOR mode, first erase last selector box if it was there (XOR redraw over same == undo)
+            if (lastPaintedSelectorBox != null)
+                activeTool.drawSelectorBox(g2, lastPaintedSelectorBox);
+        }
+        
         // now, draw the new selector box
         if (draggedSelectorBox == null)
             throw new IllegalStateException("null selectorBox!");
-        g2.draw(draggedSelectorBox);
-        lastPaintedSelectorBox = new Rectangle(draggedSelectorBox);
+        activeTool.drawSelectorBox(g2, draggedSelectorBox);
+        lastPaintedSelectorBox = new Rectangle(draggedSelectorBox); // for XOR mode
     }
     
     private void drawSelectorBox(Graphics2D g2, Rectangle r)
     {
         // todo opt: would this be any faster done on a glass pane?
-        //g2.setColor(COLOR_SELECTION_DRAG);
-        g2.setXORMode(COLOR_SELECTION_DRAG);// using XOR may be working around below clip-edge bug
         g2.setStroke(STROKE_SELECTION_DYNAMIC);
-        g2.draw(r);
+        if (activeTool.supportsXORSelectorDrawing())
+            g2.setXORMode(COLOR_SELECTION_DRAG);// using XOR may also be working around below clip-edge bug
+        else
+            g2.setColor(COLOR_SELECTION_DRAG);
+        activeTool.drawSelectorBox(g2, r);
     }
 
     /* Java/JVM 1.4.1 PC (Win32) Graphics Bugs
@@ -1241,15 +1226,34 @@ public class MapViewer extends javax.swing.JPanel
     {
         g2.setColor(COLOR_SELECTION);
         g2.setStroke(STROKE_SELECTION);
+        java.util.Iterator it;
         
-        java.util.Iterator it = VueSelection.iterator();
+        // draw bounding boxes -- still want to bother with this?
+        /*
+        it = VueSelection.iterator();
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
             if (!(c instanceof LWLink))
                 drawComponentSelectionBox(g2, c);
         }
+        */
+
+        //-------------------------------------------------------
+        // draw ghost shapes
+        //-------------------------------------------------------
+        g2.translate(-getOriginX(), -getOriginY());
+        if (zoomFactor != 1) g2.scale(zoomFactor, zoomFactor);
+        it = VueSelection.iterator();
+        g2.setStroke(new BasicStroke((float) (STROKE_SELECTION.getLineWidth() / zoomFactor)));
+        while (it.hasNext()) {
+            LWComponent c = (LWComponent) it.next();
+            g2.draw(c.getShape());
+        }
+        if (zoomFactor != 1) g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
+        g2.translate(getOriginX(), getOriginY());
+        g2.setStroke(STROKE_SELECTION);
             
-        //if (!VueSelection.isEmpty() && (!inDrag || draggingSelectorBox)) {
+        //if (!VueSelection.isEmpty() && (!inDrag || isDraggingSelectorBox)) {
 
         // todo opt: don't recompute bounds here every paint ---
         // can cache in draggedSelectionGroup
@@ -1268,9 +1272,15 @@ public class MapViewer extends javax.swing.JPanel
         //System.out.println("screenSelectionBounds="+sb);
 
         if (VueSelection.allOfType(LWLink.class))
-            ;//g2.draw(sb);
-        else
-            drawSelectionBox(g2, sb);
+            g2.draw(sb);
+        else {
+            g2.draw(sb);
+            //if (!inDrag)
+                drawSelectionBoxHandles(g2, sb);
+        }
+
+        //if (inDrag)
+        //  return;
         
         //-------------------------------------------------------
         // draw LWComponent requested control points
@@ -1326,9 +1336,8 @@ public class MapViewer extends javax.swing.JPanel
         g.setColor(COLOR_SELECTION);
         g.draw(SelectionHandle);
     }
-    void drawSelectionBox(Graphics2D g, Rectangle2D.Float r)
+    private void drawSelectionBoxHandles(Graphics2D g, Rectangle2D.Float r)
     {
-        g.draw(r);
         r.x -= SelectionHandleSize/2;
         r.y -= SelectionHandleSize/2;
 
@@ -1554,6 +1563,7 @@ public class MapViewer extends javax.swing.JPanel
             // e.g., dispatchToolKeyPress(e);
             
             int key = e.getKeyCode();
+            char keyChar = e.getKeyChar();
 
             /*
             if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {//todo: handle via action only
@@ -1577,6 +1587,14 @@ public class MapViewer extends javax.swing.JPanel
                     mouseWasDragged = false;
                     clearIndicated(); // incase dragging new link
                     repaint();
+                    return;
+                }
+                if (draggedSelectorBox != null) {
+                    // cancel any drags
+                    draggedSelectorBox = null;
+                    isDraggingSelectorBox = false;
+                    repaint();
+                    return;
                 }
                 //removeLabelEdit();
             }
@@ -1591,6 +1609,18 @@ public class MapViewer extends javax.swing.JPanel
                 return;
                 }*/
 
+            VueTool[] tools =  VueToolbarController.getController().getTools();
+            for (int i = 0; i < tools.length; i++) {
+                VueTool tool = tools[i];
+                if (tool.getShortcutKey() == keyChar) {
+                    System.out.println("key-activation of " + tool); 
+                    //VueToolbarController.getController().setSelectedTool(tool);
+                    // todo: need to actually activate the radio button
+                    VueToolbarController.getController().handleToolSelection(tool);
+                    return;
+                }
+            }
+
             if (toolKeyDown == 0) {
                 switch (key) {
                 case KEY_TOOL_PAN:
@@ -1601,6 +1631,7 @@ public class MapViewer extends javax.swing.JPanel
                         setMapCursor(CURSOR_PAN);
                     }
                     break;
+                    /*
                 case KEY_TOOL_ZOOM:
                     toolKeyDown = key;
                     setMapCursor(e.isShiftDown() ? VUE.CURSOR_ZOOM_OUT : VUE.CURSOR_ZOOM_IN);
@@ -1609,6 +1640,7 @@ public class MapViewer extends javax.swing.JPanel
                     toolKeyDown = key;
                     setMapCursor(CURSOR_ARROW);
                     break;
+                    */
                 }
                 if (toolKeyDown != 0)
                     toolKeyEvent = e;
@@ -1663,7 +1695,7 @@ public class MapViewer extends javax.swing.JPanel
                 /*if (! (VueUtil.isMacPlatform() && toolKeyDown == KEY_TOOL_PAN)) {*/
                     toolKeyDown = 0;
                     toolKeyEvent = null;
-                    toolSelected(mActiveTool); // restore prior cursor
+                    toolSelected(activeTool); // restore prior cursor
                     //}
             }
         }
@@ -1695,14 +1727,16 @@ public class MapViewer extends javax.swing.JPanel
             // operations and return (e.g., spacebar down for map drag)
             //-------------------------------------------------------
 
-            if (mActiveTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
+            if (activeTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
                 originAtDragStart = getOriginLocation();
                 if (getParent() instanceof JViewport)
                     viewportAtDragStart = ((JViewport)getParent()).getViewPosition();
                 else
                     viewportAtDragStart = null;
                 return;
-            } else if (mActiveTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
+            }
+            /*
+            else if (activeTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
                 // FIX: zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
                 setZoomPoint(screenToMapPoint(e.getPoint()));
                 if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
@@ -1712,11 +1746,10 @@ public class MapViewer extends javax.swing.JPanel
                     setZoomBigger();
                 return;
             }
+            */
             
-            if (mActiveTool != ArrowTool && mActiveTool != LinkTool)
-                return;
-
             setLastMousePressPoint(e.getX(), e.getY());
+
             dragComponent = null;
 
             //-------------------------------------------------------
@@ -1751,24 +1784,41 @@ public class MapViewer extends javax.swing.JPanel
                     }
                 }
             }
-            //isDraggingControlHandle = false;
+
+            //if (!activeTool.supportsSelectorBox())
+            //return;
+            //if (activeTool != ArrowTool)
+            //                return;
+
+            /*
+            if (activeTool != ArrowTool
+                && activeTool != LinkTool
+                && activeTool != NodeTool
+                && activeTool != TextTool
+                )
+                return;
+            */
 
             
             //-------------------------------------------------------
             // Check for hits on map LWComponents
             //-------------------------------------------------------
                 
-            hitComponent = getMap().findLWComponentAt(mapX, mapY);
-            if (DEBUG_MOUSE && hitComponent != null)
-                System.out.println("\t    on " + hitComponent + "\n" + 
-                                   "\tparent " + hitComponent.getParent());
+            if (activeTool.supportsSelection()) {
+                hitComponent = getMap().findLWComponentAt(mapX, mapY);
+                if (DEBUG_MOUSE && hitComponent != null)
+                    System.out.println("\t    on " + hitComponent + "\n" + 
+                                       "\tparent " + hitComponent.getParent());
+            } else {
+                hitComponent = null;
+            }
             
             int mods = e.getModifiers();
             //e.isPopupTrigger()
             // java 1.4.0 bug on PC(w2k): isPopupTrigger isn't true for right-click!
             //if ((mods & RIGHT_BUTTON_MASK) != 0 && (mods & java.awt.Event.CTRL_MASK) == 0)
             
-            if ((mods & RIGHT_BUTTON_MASK) != 0 && !e.isControlDown())
+            if ((mods & RIGHT_BUTTON_MASK) != 0 && !e.isControlDown() && !activeTool.usesRightClick())
             {
                 //-------------------------------------------------------
                 // MOUSE: We've pressed the right button down, so pop
@@ -1809,7 +1859,7 @@ public class MapViewer extends javax.swing.JPanel
                 // MOUSE: We've pressed the left (normal) mouse on SOME LWComponent
                 //-------------------------------------------------------
                 
-                if (mActiveTool == LinkTool || e.isControlDown() || e.isAltDown()) {
+                if (activeTool == LinkTool || e.isControlDown() || e.isAltDown()) {
                     //-------------------------------------------------------
                     // Mod-drag off a component: NEW LINK CREATION
                     //-------------------------------------------------------
@@ -1885,7 +1935,7 @@ public class MapViewer extends javax.swing.JPanel
                     //-------------------------------------------------------
                     selectionClear();
                 }
-                draggingSelectorBox = true;
+                isDraggingSelectorBox = true;
             }
 
             if (dragComponent != null)
@@ -2061,7 +2111,7 @@ public class MapViewer extends javax.swing.JPanel
             int screenY = e.getY();
             Point currentMousePosition = e.getPoint();
             
-            if (mActiveTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
+            if (activeTool == HandTool || toolKeyDown == KEY_TOOL_PAN) {
                 // drag the entire map
                 if (originAtDragStart != null) {
                     dragRepositionViewport(currentMousePosition);
@@ -2072,7 +2122,7 @@ public class MapViewer extends javax.swing.JPanel
             }
             
             //-------------------------------------------------------
-            // Stop component dragging if the mouse leaves our component
+            // Stop component dragging if the mouse leaves our component (the viewer)
             // todo: auto-pan as we get close to edge
             //-------------------------------------------------------
 
@@ -2088,10 +2138,12 @@ public class MapViewer extends javax.swing.JPanel
                     screenY = getHeight()-1;
             }
 
-            if (mActiveTool != ArrowTool && mActiveTool != LinkTool)
+            //if (activeTool != ArrowTool && activeTool != LinkTool && activeTool != NodeTool)
+            //                return;
+            if (!activeTool.supportsSelectorBox())
                 return;
             
-            if (dragComponent == null && draggingSelectorBox) {
+            if (dragComponent == null && isDraggingSelectorBox) {
                 //-------------------------------------------------------
                 // We're doing a drag select-in-region.
                 // Update the dragged selection box.
@@ -2294,6 +2346,16 @@ public class MapViewer extends javax.swing.JPanel
 
             setLastMousePoint(e.getX(), e.getY());
             
+            if (activeTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
+                //setZoomPoint(screenToMapPoint(e.getPoint()));
+                if (draggedSelectorBox != null)
+                    setZoomPoint(screenToMapPoint(draggedSelectorBox.getLocation()));
+                if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
+                    || toolKeyEvent != null && toolKeyEvent.isShiftDown())
+                    setZoomSmaller();
+                else
+                    setZoomBigger();
+            }else
             if (linkSource != null) {
                 repaintMapRegionAdjusted(creationLink.getBounds());
                 creationLink.setDisplayed(false);
@@ -2406,23 +2468,46 @@ public class MapViewer extends javax.swing.JPanel
 
             dragControl = null;
             dragComponent = null;
-            draggingSelectorBox = false;
+            isDraggingSelectorBox = false;
             mouseWasDragged = false;
 
             if (indication != null)
                 clearIndicated();
             
             if (draggedSelectorBox != null) {
+
                 //System.out.println("dragged " + draggedSelectorBox);
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
                 //System.out.println("map " + hitRect);
-                java.util.List list = computeSelection(hitRect,
-                                                       e.isControlDown()
-                                                       || mActiveTool == LinkTool);
-                if (e.isShiftDown())
-                    selectionToggle(list.iterator());
-                else
-                    selectionAdd(list.iterator());
+                
+                if (activeTool == NodeTool) {
+                    // NodeTool.createNode(hitRect);
+                    LWNode node = new LWNode("new node");
+                    node.setLocation(hitRect.x, hitRect.y);
+                    node.setAutoSized(false);
+                    node.setSize(hitRect.width, hitRect.height);
+                    VUE.getActiveMap().addNode(node);
+                    VUE.ModelSelection.setTo(node);
+                    
+                    // create new node
+                    // make this a tool event: selector box released
+                    // arrow tool selects
+                    // node/text tool creates,
+                    // zoom tool zooms to that region
+                    // link tool selects links? link tool disables this?
+                    // handtool never gets to this
+                    // pathway tool?
+                } else if (activeTool.supportsSelection()) {
+                    // todo: e.isControlDown always false? only on mac? on the laptop?
+                    java.util.List list = computeSelection(hitRect,
+                                                           e.isControlDown()
+                                                           || activeTool == LinkTool);
+                    if (e.isShiftDown())
+                        selectionToggle(list.iterator());
+                    else
+                        selectionAdd(list.iterator());
+                    
+                }
 
                 draggedSelectorBox.width++;
                 draggedSelectorBox.height++;
@@ -2442,6 +2527,11 @@ public class MapViewer extends javax.swing.JPanel
 
             if (getParent() instanceof JViewport)
                 setPreferredSize(mapToScreenDim(getMap().getBounds()));
+
+            // todo opt: only need to do this if we don't draw selection
+            // handles while dragging (this is to put them back if we werent)
+            // use selection repaint region?
+            //repaint();
 
         }
             
@@ -2469,20 +2559,50 @@ public class MapViewer extends javax.swing.JPanel
         {
             if (DEBUG_MOUSE) System.out.println("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "]");
 
-            if (mActiveTool != ArrowTool)
+            if (activeTool != ArrowTool && activeTool != TextTool)
                 return;
 
             if (!hitOnSelectionHandle) {
                 
             if (isSingleClickEvent(e)) {
                 if (DEBUG_MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
+
+
+
+                /*if (activeTool == ZoomTool || toolKeyDown == KEY_TOOL_ZOOM) {
+                setZoomPoint(screenToMapPoint(e.getPoint()));
+                if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
+                    || toolKeyEvent != null && toolKeyEvent.isShiftDown())
+                    setZoomSmaller();
+                else
+                    setZoomBigger();
+                return;
+                }else*/
+                
                 if (hitComponent != null && !(hitComponent instanceof LWGroup)) {
-                    if (hitComponent.isSelected() && hitComponent != justSelected)
+                    if (activeTool == TextTool ||
+                        hitComponent.isSelected()
+                        && hitComponent != justSelected
+                        //&& !(hitComponent instanceof ClickHandler)
+                        // activate label edits in a handleSingleClick?
+                        // or hit-test on the actual label?
+                        )
                         activateLabelEdit(hitComponent);
                 }
             } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
                 if (DEBUG_MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
-                if (hitComponent instanceof LWNode) {
+                if (activeTool == TextTool && hitComponent != null) {
+                    activateLabelEdit(hitComponent);
+                } if (hitComponent instanceof ClickHandler) {
+                    // TODO: we're getting singleClick event before double-click
+                    // event, which is activating label edit...
+                    
+                    Point2D.Float p = screenToMapPoint(e.getPoint());
+                    // Make point relative to the component
+                    p.x -= hitComponent.getX();
+                    p.y -= hitComponent.getY();
+                    ((ClickHandler)hitComponent).handleDoubleClick(p);
+                } else if (hitComponent instanceof LWNode) {
                     Resource resource = hitComponent.getResource();
                     if (resource != null) {
                         // todo: some kind of animation or something to show
@@ -2602,10 +2722,13 @@ public class MapViewer extends javax.swing.JPanel
                 //added by Daisuke Fujiwara
                 //accomodates pathway manager swapping when the displayed map is changed
                 //can this be moved to setActiveViewer method????
+                // todo: cleanup -- this conditional makes no sense as we've just set the active viewer to us...
                 if (this == VUE.getActiveViewer())
                 {
-                    VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
-                    VUE.getOutlineViewTree().switchMap(this.map);
+                    if (VUE.getPathwayControl() != null) {
+                        VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
+                        VUE.getOutlineViewTree().switchMap(this.map);
+                    }
                 }
                 //end of addition
                 

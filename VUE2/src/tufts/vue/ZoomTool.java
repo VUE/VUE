@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -30,22 +31,34 @@ public class ZoomTool extends VueTool
     private static final int ZOOM_FIT_PAD = 16;
 
     
-    
-    
     public ZoomTool() {
-		super();
-	}
+        super();
+    }
 	
 	
-	public void handleSelection() {
+    public void handleSelection() {
+    }
 	
-	}
-	
-	public JPanel getContextualPanel() {
-		return null;
-	}
+    public JPanel getContextualPanel() {
+        return null;
+    }
 
+    private static final Color SelectorColor = Color.red;
+    private static final Color SelectorColorInverted = new Color(0,255,255); // inverse of red
+    public void drawSelectorBox(java.awt.Graphics2D g, java.awt.Rectangle r)
+    {
+        if (VueUtil.isMacPlatform())
+            g.setXORMode(SelectorColorInverted);
+        else
+            g.setXORMode(SelectorColor);
+        super.drawSelectorBox(g, r);
+    }
 
+    public boolean usesRightClick()
+    {
+        return true;
+    }
+    
     public boolean handleKeyPressed(KeyEvent e){return false;}
     
     /*

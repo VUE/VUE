@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-//todo: make this an interface
+//todo: make this an interface?
 public abstract class VueTool extends AbstractAction
 {
 	
@@ -63,6 +63,9 @@ public abstract class VueTool extends AbstractAction
     
     /** the icon to overlay if there are any sub items **/
     protected Icon mOverlayDownIcon = null;
+
+    protected char mShortcutKey = 0;
+    protected java.awt.Cursor mCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     
     /** thedeafult  property bean state of any tool subproperties **/
   	protected Object mBeanState = null;
@@ -70,7 +73,7 @@ public abstract class VueTool extends AbstractAction
     /** is the tool currently enabled **/
     protected boolean mEnabled = true;
     
-    
+    //private VueTool singleton = null;
     
 
 //////////////////
@@ -79,6 +82,8 @@ public abstract class VueTool extends AbstractAction
     
 	public VueTool() {
 		super();
+                //if (singleton != null)System.err.println(this + " singleton=" + singleton);
+                //singleton = this;
 	}
 	
 	
@@ -87,6 +92,12 @@ public abstract class VueTool extends AbstractAction
 /////////////////////
 // Methods
 ////////////////////
+
+    /** Only makes sense for subclasses to use
+    public static VueTool getTool()
+    {
+        return singleton;
+        }*/
 	
 	
 	/**
@@ -158,6 +169,71 @@ public abstract class VueTool extends AbstractAction
 	public void setToolTipText( String pText ) {
 		mToolTipText = pText;
 	}
+
+    /**
+     * setCursorByID
+     * Gets the cursor for the tool based on the cursor ID
+     * @param id a cursor constant from java.awt.Cursor in the range 0-13 (as of java 1.4.1)
+     **/
+    public void setCursorByID(int id) {
+        if (id < 0 || id > 13)
+            throw new IllegalArgumentException("cursor id outside range 0-13: " + id);
+        setCursor(Cursor.getPredefinedCursor(id));
+    }
+
+    /**
+     * setCursor
+     * Gets the cursor for the tool based on the cursor ID
+     * @param pCursor a java.awt.Cursor object
+     **/
+    public void setCursor(Cursor pCursor) {
+        mCursor = pCursor;
+    }
+    
+    /**
+     * getCursor
+     * Gets the cursor for the tool
+     * @return an instance of java.awt.Cursor
+     **/
+    public Cursor getCursor() {
+        return mCursor;
+    }
+
+    public void setShortcutKey(char pChar)
+    {
+        mShortcutKey = pChar;
+    }
+    public char getShortcutKey()
+    {
+        return mShortcutKey;
+    }
+
+    public boolean supportsSelection()
+    {
+        return false;
+    }
+    
+    public boolean supportsSelectorBox()
+    {
+        return true;
+    }
+
+    public boolean supportsXORSelectorDrawing()
+    {
+        return true;
+    }
+
+    /** does tool make use of right click -- meaning the
+     * viewer shouldn't pop a context menu on right-clicks */
+    public boolean usesRightClick()
+    {
+        return false;
+    }
+
+    public void drawSelectorBox(java.awt.Graphics2D g, java.awt.Rectangle r)
+    {
+        g.draw(r);
+    }
 	
 	/**
 	 * setParentTool

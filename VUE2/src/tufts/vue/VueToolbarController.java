@@ -84,6 +84,11 @@ public class VueToolbarController
 	////////////////
 	//  Methods
 	////////////////
+
+     public VueTool[] getTools()
+     {
+         return mVueTools;
+     }
 	
 	
 	/**
@@ -130,6 +135,19 @@ public class VueToolbarController
 			tool.setRolloverIcon( VueResources.getImageIcon( pName+".rollover"));
 			tool.setMenuItemIcon( VueResources.getImageIcon( pName+".menu"));
 			tool.setMenuItemSelectedIcon( VueResources.getImageIcon( pName+".menuselected"));
+			tool.setShortcutKey(VueResources.getChar( pName+".shortcutKey"));
+
+                        int cursorID = VueResources.getInt(pName+".cursorID", -1);
+                        if (cursorID >= 0) {
+                            tool.setCursorByID(cursorID);
+                        } else {
+                            ImageIcon icon = VueResources.getImageIcon( pName+".cursor");
+                            if (icon != null) {
+                                Toolkit toolkit = Toolkit.getDefaultToolkit();
+                                System.out.println("Creating cursor for " + icon);
+                                tool.setCursor(toolkit.createCustomCursor(icon.getImage(), new Point(0,0), pName));
+                            }
+                        }
 			
 			String subtools[];
 			String defaultTool = null;

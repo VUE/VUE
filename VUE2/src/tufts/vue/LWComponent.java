@@ -83,6 +83,7 @@ public class LWComponent
     public void setResource(Resource resource)
     {
         this.resource = resource;
+        layout();
         notify("resource");
     }
     public void setResource(String urn)
@@ -106,6 +107,7 @@ public class LWComponent
     }
     public String getLabel()
     {
+        //if (label!=null)label=label.replace('\n', '%');
         return this.label;
     }
     public String getNotes()
@@ -203,6 +205,10 @@ public class LWComponent
         c.font = this.font;
         c.scale = this.scale;
         c.setLabel(this.label); // use setLabel so new TextBox will be created
+        c.x = this.x;
+        c.y = this.y;
+        c.width = this.width;
+        c.height = this.height;
         
         c.setResource(getResource());
         
@@ -591,7 +597,7 @@ public class LWComponent
     /** return border shape of this object */
     public Shape getShape()
     {
-        return null;
+        return getBounds();
     }
     public void setShape(Shape shape)
     {
@@ -898,6 +904,8 @@ public class LWComponent
         if (getScale() != 1f)
             s += " z" + getScale();
         s += paramString();
+        if (getResource() != null)
+            s += " <" + getResource() + ">";
         s += "]";
         return s;
     }

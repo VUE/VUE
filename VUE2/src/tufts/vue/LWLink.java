@@ -305,8 +305,8 @@ public class LWLink extends LWComponent
     protected void removeFromModel()
     {
         super.removeFromModel();
-        ep1.removeLinkRef(this);
-        ep2.removeLinkRef(this);
+        if (ep1 != null) ep1.removeLinkRef(this);
+        if (ep2 != null) ep2.removeLinkRef(this);
     }
 
     /** Is this link between a parent and a child? */
@@ -1201,6 +1201,29 @@ public class LWLink extends LWComponent
         }
     }
 
+    /** Create a duplicate LWLink.  The new link will
+     * not be connected to any endpoints */
+    public LWComponent duplicate()
+    {
+        //todo: make sure we've got everything (styles, etc)
+        LWLink link = (LWLink) super.duplicate();
+        link.startX = startX;
+        link.startY = startY;
+        link.endX = endX;
+        link.endY = endY;
+        link.centerX = centerX;
+        link.centerY = centerY;
+        link.ordered = ordered;
+        link.isCubicCurve = isCubicCurve;
+        link.setCurved(isCurved);
+        if (isCurved) {
+            link.setCtrlPoint0(getCtrlPoint0());
+            if (isCubicCurve)
+                link.setCtrlPoint1(getCtrlPoint1());
+        }
+        return link;
+    }
+    
     public String paramString()
     {
         return " " + startX+","+startY

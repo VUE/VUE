@@ -27,6 +27,11 @@ public class RectangularPoly2D extends RectangularShape
         setFrame(x, y, width, height);
     }
 
+    public RectangularPoly2D(int sides)
+    {
+        setSides(sides);
+    }
+
     /** For persistance */
     public RectangularPoly2D() {}
 

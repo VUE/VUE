@@ -191,7 +191,8 @@ class Actions {
             // boolean mayModifySelection() { return true; } // only matters if CONCURRENTLY: todo rename
             boolean enabledFor(LWSelection s)
             {
-                return s.size() > 0 && !s.allOfType(LWLink.class);
+                //return s.size() > 0 && !s.allOfType(LWLink.class);
+                return s.size() > 0;
             }
             void act(Iterator i) {
                 newCopies.clear();
@@ -201,7 +202,7 @@ class Actions {
             void act(LWComponent c) {
                 // doesn't currently make sense to duplicate links seperately
                 // -- will need to handle via LWContainer duplicate
-                if (c instanceof LWLink) {
+                if (false&&c instanceof LWLink) {
                     //todo: implement cut/copy/paste before making this
                     // more sophisitcated -- will have to work out
                     // separte code to compute what links to add to
@@ -216,8 +217,9 @@ class Actions {
                     return;
                 }
                 LWComponent copy = c.duplicate();
-                copy.setLocation(c.getX()+10, c.getY()+10);
+                copy.setLocation(c.getX()+10, c.getY()+10); // todo: offset in resources
                 c.getParent().addChild(copy);
+                System.out.println("duplicated:\n\t" + c + "\n\t" + copy);
                 newCopies.add(copy);
             }
         };
@@ -622,8 +624,9 @@ class Actions {
         {
             LWComponent createNewItem(Point2D newLocation)
             {
-                VueTool nodeTool = VueToolbarController.getController().getTool("nodeTool");
-                System.out.println("got nodetool " + nodeTool);
+                //VueTool nodeTool = VueToolbarController.getController().getTool("nodeTool");
+                //System.out.println("got nodetool " + VUE.nodeTool);
+                //System.out.println("got nodetool " + NodeTool.getTool());
                 //nodeTool.getSubSelected
                 
                 // todo: this is where we'll get the active NodeTool

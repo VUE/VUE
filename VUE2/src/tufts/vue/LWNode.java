@@ -28,7 +28,7 @@ import java.util.ArrayList;
  * @version 3/10/03
  */
 public class LWNode extends LWContainer
-    implements Node
+    implements Node, ClickHandler
 {
     //------------------------------------------------------------------
     // Constants affecting the internal layout of nodes & any children
@@ -54,12 +54,27 @@ public class LWNode extends LWContainer
     private float fontHeight;
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
+
+    private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, 20,15, 10,10);
     
     public LWNode(String label)
     {
         this(label, 0, 0);
     }
-        
+
+    /*
+    public LWNode(String label, String shapeName, float x, float y)
+    {
+        super.label = label; // todo: this for debugging
+        setFillColor(COLOR_NODE_DEFAULT);
+        setNodeShape(getNamedNodeShape(shapeName));
+        setStrokeWidth(2f);//todo config: default node stroke
+        setLocation(x, y);
+        //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
+        setSize(10,10);
+        setLabel(label);
+    }
+    */
     // internal convenience
     LWNode(String label, float x, float y)
     {
@@ -102,6 +117,31 @@ public class LWNode extends LWContainer
         //todo: remove this setShape eventually (or change to plain rectangle)
         // this is only here for temporary backward compat
         // with saved map files that have no shape information
+    }
+    
+    public void X_setResource(Resource resource)
+    {
+        if (resource != null) {
+            if (resource.isLocalFile())
+                genIcon = new Rectangle2D.Float(0,0, 20,15);
+            else
+                genIcon = new RoundRectangle2D.Float(0,0, 20,15, 10,10);
+        }
+        // need to call this last because it calls layout, which checks getResource
+        // and references genIcon
+        super.setResource(resource);
+    }
+
+    public boolean handleDoubleClick(Point2D p)
+    {
+        System.out.println("handleDoubleClick " + p + " " + this);
+        if (getResource() != null) {
+            if (genIcon.contains(p)) {
+                getResource().displayContent();
+                return true;
+            }
+        }
+        return false;
     }
 
     static LWNode createTextNode(String text)
@@ -291,13 +331,16 @@ public class LWNode extends LWContainer
         //this.boundsShape.setFrame(x, y, this.width, this.height);
         adjustDrawnShape();
         layoutChildren();
+        // todo BUG: if parent and some child both in selection and you
+        // drag, the selection and the parent fight to control the location
+        // of the child.
     }
     
     protected void layout()
     {
         if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
-        if (isAutoSized())
-            setPreferredSize();
+        //if (isAutoSized())
+            setPreferredSize(!isAutoSized());
         layoutChildren();
         
         // could set size from label first, then layout children and
@@ -310,18 +353,8 @@ public class LWNode extends LWContainer
             getParent().layout();
     }
       
-    /*
-    private String lastLabel;
-    private Graphics graphics;
-    private FontMetrics getFontMetrics()
-    {
-        if (this.graphics == null)
-            return null;
-        return this.graphics.getFontMetrics(getFont());
-    }
-    */
     
-    private void setPreferredSize()
+    private void setPreferredSize(boolean growOnly)
     {
         Dimension s = getLabelBox().getPreferredSize();
         float width = s.width + PadX;
@@ -335,48 +368,26 @@ public class LWNode extends LWContainer
             if (width < childBounds.getWidth() + PadX*2)
                 width = (float) childBounds.getWidth() + PadX*2;
         }
-        
-        setSizeNoLayout(width, height);
+        if (getResource() != null)
+            width += PadX*1.5 + genIcon.getWidth();
+
+        if (growOnly) {
+            if (this.width > width)
+                width = this.width;
+            if (this.height > height)
+                height = this.height;
+            if (width > this.width || height > this.height)
+                setSizeNoLayout(width, height);
+        } else
+            setSizeNoLayout(width, height);
     }
 
-    /*
-    private void OLDsetPreferredSize()
-    {
-        FontMetrics fm = getFontMetrics();
-        if (fm == null) {
-            // Happens first time, or in another view that hasn't  painted yet
-            return;
-        }
-        
-        String label = getLabel();
-        //System.out.println("setPreferredSize " + label);
-
-        float oldWidth = getWidth();
-        this.fontHeight = fm.getAscent() - fm.getDescent() / 1;
-        //this.fontHeight = fm.getAscent() + fm.getDescent();
-        this.fontStringWidth = fm.stringWidth(label);
-        float width = this.fontStringWidth + (PadX*2) + borderWidth;
-        float height = this.fontHeight + (PadY*2) + borderWidth;
-        
-        if (hasChildren()) {
-            // resize to inclued size of children
-            height += PadY;
-            Rectangle2D childBounds = getAllChildrenBounds();
-            height += childBounds.getHeight();
-            if (width < childBounds.getWidth() + PadX*2)
-                width = (float) childBounds.getWidth() + PadX*2;
-        }
-        
-        setSizeNoLayout(width, height);
-        
-        if (this.width != oldWidth && lastLabel != null &&
+    /*        if (this.width != oldWidth && lastLabel != null &&
             !(getParent() instanceof LWNode)) // todo: this last test really depends on if parent is laying us out
         {
             // on resize, keep the node's center the same
             setLocation(getX() + (oldWidth - this.width) / 2, getY());
-        }
-    }
-    */
+            }*/
 
     private Rectangle2D getAllChildrenBounds()
     {
@@ -443,10 +454,14 @@ public class LWNode extends LWContainer
 
     private float relativeLabelX()
     {
-        int w = getLabelBox().getPreferredSize().width;
-        return (this.width - w) / 2;
-        //return (this.width - this.fontStringWidth) / 2;
-        //return PadX;
+        float offset;
+        if (getResource() != null) {
+            offset = (float) (PadX*1.5 + genIcon.getWidth());
+        } else {
+            int w = getLabelBox().getPreferredSize().width;
+            offset = (this.width - w) / 2;
+        }
+        return offset;
     }
     private float relativeLabelY()
     {
@@ -510,20 +525,21 @@ public class LWNode extends LWContainer
                 g.setStroke(this.stroke);
             g.draw(drawnShape);
         } else if (getStrokeWidth() > 0) {
-            if (LWSelection.DEBUG_SELECTION && isSelected())
+            //if (LWSelection.DEBUG_SELECTION && isSelected())
+            if (isSelected())
                 g.setColor(COLOR_SELECTION);
             else
                 g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
             g.draw(drawnShape);
-        } else if (isSelected() && getFillColor() == null) {
+        //} else if (isSelected() && getFillColor() == null) {
             // If stroke is zero & there's no fill color then there's
             // no way to see what the shape is. So if we're selected,
             // we draw a faint one anyway so you can see what shape
-            // this object is.
-            g.setColor(COLOR_SELECTION);
-            g.setStroke(STROKE_HALF);
-            g.draw(drawnShape);
+            // this object is. [ now handled in mapviewer with ghost I images ]
+            //g.setStroke(STROKE_ONE);
+            //g.setColor(COLOR_SELECTION);
+            //g.draw(drawnShape);
         }
         // todo: would be nice if this shape has no border and isn't rectangular
         // (e.g., a circle or a triangle) to draw a selection border around it's
@@ -543,6 +559,100 @@ public class LWNode extends LWContainer
         }
         */
 
+
+        //-------------------------------------------------------
+        // Draw the generated icon
+        //-------------------------------------------------------
+
+        // OKAY, create that DrawContext, which can have
+        // the zoom factor in there (as well as handle anti-alias,
+        // and allow for paint requests back to the parent)
+
+        // Here we'll check the zoom level, and if iit's say,
+        // over 800%, we could draw the resource string in a tiny
+        // font right in the icon.
+        
+
+        if (getResource() != null) {
+            //double iy = relativeLabelY() + genIcon.getHeight() / 2;
+            float iconHeight = (float) genIcon.getHeight();
+            float iconWidth = (float) genIcon.getWidth();
+            double iy = (getHeight() - iconHeight) / 2;
+            double ix = PadX;
+            genIcon.setFrame(ix, iy, genIcon.getWidth(), genIcon.getHeight());
+            g.setColor(Color.white);
+            g.fill(genIcon);
+            g.setStroke(STROKE_HALF);
+            g.setColor(Color.black);
+            g.draw(genIcon);
+            g.setFont(FONT_ICON);
+            String extension = getResource().getExtension();
+            TextLayout row = new TextLayout(extension, g.getFont(), g.getFontRenderContext());            
+            //g.drawString(extension, 0, (int)(genIcon.getHeight()/1.66));
+            Rectangle2D.Float tb = (Rectangle2D.Float) row.getBounds();
+
+            if (DEBUG_LAYOUT) System.out.println("[" + extension + "] bounds="+tb);
+
+            // Mac & PC 1.4.1 implementations haved reversed baselines
+            // and differ in how descents are factored into bounds offsets
+            g.translate(ix, iy);
+            float xoff = (iconWidth - tb.width) / 2;
+            float yoff = (iconHeight - tb.height) / 2;
+            if (VueUtil.isMacPlatform()) {
+                yoff += tb.height;
+                yoff += tb.y;
+                xoff += tb.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
+                row.draw(g, xoff, yoff);
+
+                if (DEBUG_LAYOUT) {
+                    // draw a red bounding box for testing
+                    tb.x += xoff;
+                    tb.y = -tb.y; // if any descent below baseline, will be non-zero
+                    tb.y += yoff;
+                    tb.y -= tb.height;
+                    g.setStroke(new java.awt.BasicStroke(0.1f));
+                    g.setColor(Color.red);
+                    g.draw(tb);
+                }
+                
+            } else {
+                // This is cleaner, thus I'm assuming the PC
+                // implementation is also cleaner, and worthy of being
+                // the default case.
+                
+                row.draw(g, -tb.x + xoff, -tb.y + yoff);
+
+                if (DEBUG_LAYOUT) {
+                    // draw a red bounding box for testing
+                    tb.x = xoff;
+                    tb.y = yoff;
+                    g.setStroke(new java.awt.BasicStroke(0.1f));
+                    g.setColor(Color.red);
+                    g.draw(tb);
+                }
+                
+            }
+                
+
+            
+                
+            /*
+            ix += tb.x;
+            iy += tb.y + tb.height;
+            g.translate(tb.x, tb.y + tb.height);
+            // get's actual shape outline of letters, but spacing isn't right
+            Shape outline = row.getOutline(null);
+            g.setColor(Color.green);
+            g.draw(outline);
+            */
+
+            g.translate(-ix, -iy);
+        }
+
+        // todo: create drawLabel, drawBorder & drawBody
+        // LWComponent methods so can automatically turn
+        // this off in MapViewer, adjust stroke color for
+        // selection, etc.
         if (this.labelBox != null && this.labelBox.getParent() == null) {
             // if parent is not null, this box is an active edit on the map
             // and we don't want to paint it here as AWT/Swing is handling
@@ -611,10 +721,15 @@ public class LWNode extends LWContainer
             return (RectangularShape) shape.clone();
         }
     }
-    
+
+    // load these from some kind of resource definition?
     static final NodeShape StandardShapes[] = {
         //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
         new NodeShape("Oval", new Ellipse2D.Float(0,0,10,10)),
+        // todo: convert square & circle do ellipse & rectangle and
+        // then set a "locked aspect ratio" bit on the LWComponent,
+        // that setSize can attend to (and then LWComponent can
+        // store an aspect ration, which will get initialized to 1 in this case).
         new NodeShape("Circle", new Ellipse2D.Float(0,0,10,10), true),
         new NodeShape("Square", new Rectangle2D.Float(0,0,10,10), true),
         new NodeShape("Rectangle", new Rectangle2D.Float(0,0,10,10)),
