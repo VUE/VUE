@@ -47,8 +47,25 @@ public class VueResources
     static {
 
         final String featureSet = System.getProperty("tufts.vue.features");
+        final String classPath = System.getProperty("java.class.path");
+        boolean NarraVision = false;
             
-        if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")) {
+        System.out.println("CLASSPATH: " + classPath);
+        
+        if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")
+            || classPath != null && classPath.toLowerCase().indexOf("narravision") >= 0) {
+            // If running as a mac app, or explicitly from command line with -Dtufts.vue.featres=NarraVision,
+            // we know to run as NarraVision.  However, if running just from a jar file on the PC,
+            // we guess from classpath -- if "NarraVision" appears anywhere in it, run
+            // as MIT NarraVision.  (e.g.: "MIT-NarraVision-2005-03-20.jar") will still work.
+            NarraVision = true;
+        }
+
+
+        if (NarraVision) {
+            // This will load VueResources.properties as the parent,
+            // and then VueResources___NV.properties as the child, who's
+            // properties will override any duplicate settings the parent.
             sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", "NV"));
         } else {
             sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
