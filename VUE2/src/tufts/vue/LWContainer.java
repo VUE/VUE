@@ -740,7 +740,7 @@ public abstract class LWContainer extends LWComponent
 
     protected LWComponent defaultHitComponent()
     {
-        return (isHidden() || isFiltered()) ? null : this;
+        return isDrawn() ? null : this;
     }
 
     public LWComponent findDeepestChildAt(float mapX, float mapY)
@@ -764,7 +764,7 @@ public abstract class LWContainer extends LWComponent
             java.util.ListIterator i = children.listIterator(children.size());
             while (i.hasPrevious()) {
                 LWComponent c = (LWComponent) i.previous();
-                if (c.isHidden() || c.isFiltered())
+                if (!c.isDrawn())
                     continue;
                 if (!(c instanceof LWNode))
                     continue;

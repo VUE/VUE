@@ -57,7 +57,7 @@ public class LWMap extends LWContainer
     MapFilterModel  mapFilterModel = new MapFilterModel();
     
     private long mChanges = 0;
-    private boolean mCachedBoundsOld = true;
+    private Rectangle2D mCachedBounds = null;
     
     
     
@@ -316,7 +316,7 @@ public class LWMap extends LWContainer
         int pathIndex = 0;
         while (i.hasNext()) {
             LWPathway path = (LWPathway) i.next();
-            if (path.isVisible() && !path.isFiltered() && path.hasChildren()) {
+            if (path.isDrawn() && path.hasChildren()) {
                 dc.setIndex(pathIndex++);
                 path.drawPathway(dc.create());
             }
@@ -453,7 +453,9 @@ public class LWMap extends LWContainer
             if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
             return;
         }
-        mCachedBoundsOld = true; // consider flushing bounds if layout() called also (any child layout bubbles up to us)
+        mCachedBounds = null;
+        // consider flushing bounds if layout() called also (any child layout bubbles up to us)
+        // todo pref: should be safe to only do this if a size, location or scale event 
         String what = e.getWhat();
         if (what != LWKey.Repaint && what != LWKey.Scale) {
             // repaint is for non-permanent changes.
@@ -461,17 +463,19 @@ public class LWMap extends LWContainer
             // happen do to rollover -- any time a scale happens
             // otherwise will be in conjunction with a reparenting
             // event, and so we'll detect the change that way.
-            if (DEBUG.EVENTS && mChanges == 0)
-                new Throwable("FYI: FIRST MODIFICATION HAPPENING HERE; " + e).printStackTrace();
+            if (DEBUG.EVENTS && mChanges == 0) {
+                out(this + " First Modification Happening on " + e);
+                if (DEBUG.META)
+                    new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
+            }
             mChanges++;
         }
         super.notifyLWCListeners(e);
     }
     
-    private Rectangle2D mCachedBounds = null;
     public java.awt.geom.Rectangle2D getBounds()
     {
-        if (mCachedBoundsOld) {
+        if (mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator());
             try {
                 setEventsSuspended();
@@ -480,8 +484,8 @@ public class LWMap extends LWContainer
                 setEventsResumed();
             }
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
-            if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
-                mCachedBoundsOld = false;
+            //if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
+            //mCachedBoundsOld = false;
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
         return mCachedBounds;
@@ -503,6 +507,7 @@ public class LWMap extends LWContainer
         Rectangle2D rect = new Rectangle2D.Float();
 
         if (i.hasNext()) {
+            
             rect.setRect(((LWComponent)i.next()).getBounds());
             while (i.hasNext())
                 rect.add(((LWComponent)i.next()).getBounds());

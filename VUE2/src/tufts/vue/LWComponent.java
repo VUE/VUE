@@ -1226,7 +1226,7 @@ public class LWComponent
         Iterator i = pathwayRefs.iterator();
         while (i.hasNext()) {
             LWPathway path = (LWPathway) i.next();
-            if (path.isVisible() && !path.isFiltered())
+            if (path.isDrawn())
                 path.drawComponentDecorations(dc, this);
         }
         
@@ -1654,7 +1654,9 @@ public class LWComponent
     {
         return !isHidden();
     }
-
+    public boolean isDrawn() {
+        return !hidden && !mIsFiltered;
+    }
     public void setIndicated(boolean indicated)
     {
         if (this.indicated != indicated) {

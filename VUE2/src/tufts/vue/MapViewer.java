@@ -1312,7 +1312,7 @@ public class MapViewer extends javax.swing.JComponent
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
 
-            if (c.isHidden() || c.isFiltered())
+            if (!c.isDrawn())
                 continue;
 
             boolean isLink = c instanceof LWLink;
@@ -1359,7 +1359,7 @@ public class MapViewer extends javax.swing.JComponent
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
 
-            if (c.isHidden() || c.isFiltered())
+            if (!c.isDrawn())
                 continue;
             
             if (selectionType != null && !selectionType.isInstance(c))
