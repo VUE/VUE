@@ -1098,8 +1098,7 @@ public class VUE
         }*/
     }
 
-    private static void out(String s) {
-        System.out.println("VUE: " + s);
+    static protected void out(Object o) {
+        System.out.println((o==null?"null":o.toString()));
     }
-    
 }
