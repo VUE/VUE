@@ -392,10 +392,6 @@ public class LWLink extends LWComponent
     {
         if (endpointMoved)
             computeLinkEndpoints();
-        if (VueUtil.StrokeBug05) {
-            x -= 0.5f;
-            y -= 0.5f;
-        }
         float maxDist = getStrokeWidth() / 2;
         if (isCurved) {
             // QuadCurve2D actually checks the entire concave region for containment
@@ -1203,6 +1199,11 @@ public class LWLink extends LWComponent
                 // only draw if we're not an active edit on the map
                 float lx = getLabelX();
                 float ly = getLabelY();
+
+                // since links don't have a sensible "location" in terms of an
+                // upper left hand corner, the textbox needs to have an absolute
+                // map location we can check later for hits -- we set it here
+                // everytime we paint -- its a hack.
                 textBox.setMapLocation(lx, ly);
 
                 // We force a fill color on link labels to make sure we create

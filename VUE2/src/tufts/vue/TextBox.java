@@ -426,6 +426,9 @@ class TextBox extends JTextPane
     {
         return rect.intersects(mapX, mapY, mapWidth, mapHeight);
     }
+
+    // todo: this doesn't account for scaling if laid
+    // out in a child...
     public boolean containsMapLocation(float x, float y)
     {
         return
