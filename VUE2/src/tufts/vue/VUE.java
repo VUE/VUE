@@ -511,11 +511,8 @@ implements VueConstants {
             }
         }
 
-        if (splashScreen != null) {
+        if (splashScreen != null)
             splashScreen.setVisible(false);
-            splashScreen.dispose();
-            splashScreen = null; // so can be garbage collected
-        }
         
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
