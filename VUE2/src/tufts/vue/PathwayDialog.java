@@ -67,11 +67,11 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         if (e.getSource() == okButton)
         {
             String pathLabel = textField.getText();
-            if(pathPanel.getTableModel().containsPathwayNamed(pathLabel)){
+            if (pathPanel.getTableModel().containsPathwayNamed(pathLabel)) {
                 JOptionPane option = new JOptionPane(
                     "Please rename this pathway.",
                     JOptionPane.INFORMATION_MESSAGE);
-                JDialog dialog = option.createDialog(okButton, "Pathway Name Already Exists");
+                JDialog dialog = option.createDialog(okButton, "Pathway Name Exists");
                 dialog.show();
             }
             else{

@@ -566,6 +566,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     }
     
     //sets the table's pathway to the given pathway
+    /*
     public void setPathway(LWPathway pathway)
     {
         //((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
@@ -579,6 +580,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         else if (!VUE.ModelSelection.isEmpty())
           addElement.setEnabled(true);
     }
+    */
     
     /**Gets the current pathway associated with the pathway table*/
     /*public LWPathway getPathway()
@@ -661,28 +663,13 @@ public class PathwayPanel extends JPanel implements   ActionListener,
                 System.out.println("Error trying to remove pathway element: selected object not found.");
             }
         }            
-        else if (btn == addElement) {
-            getSelectedPathway().add(VUE.ModelSelection.iterator());            
-        }
-        else if (btn == firstButton) {
-            getSelectedPathway().getFirst();
-        }
-        else if (btn == lastButton) {
-            getSelectedPathway().getLast();
-        }
-        else if (btn == forwardButton) {
-            getSelectedPathway().getNext();
-        }
-        else if (btn == backButton) {
-            getSelectedPathway().getPrevious();
-        }
-        else if (btn == removeButton) {
-            removePathway(getSelectedPathway());
-        }
-        else if (btn == createButton) {
-            PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
-            dialog.show();
-        }
+        else if (btn == addElement)     { getSelectedPathway().add(VUE.ModelSelection.iterator()); }
+        else if (btn == firstButton)    { getSelectedPathway().getFirst(); }
+        else if (btn == lastButton)     { getSelectedPathway().getLast(); }
+        else if (btn == forwardButton)  { getSelectedPathway().getNext(); }
+        else if (btn == backButton)     { getSelectedPathway().getPrevious(); }
+        else if (btn == removeButton)   { removePathway(getSelectedPathway()); }
+        else if (btn == createButton)   { new PathwayDialog(this, getLocationOnScreen()).show(); }
         else if (btn == lockButton) {
             if(getTableModel().getCurrentPathway() != null){
                 //int currentRow = getTableModel().getManager().getPathwayIndex(getTableModel().getCurrentPathway());
@@ -694,7 +681,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         
         getTableModel().fireTableDataChanged();
         updateControlPanel();
-        //VUE.getActiveMap().notify(this, LWCEvent.Repaint);
+        VUE.getActiveMap().notify(this, LWCEvent.Repaint);//todo: remove
     }
    
     /**document listener's methods*/
