@@ -22,9 +22,9 @@ public class Key {
     public Key(String key,Type type) {
         this.type = type;
         this.key = key;
-        if(type.getDisplayName().equals("integer"))
+        if(type.getDisplayName().equals(Type.INTEGER_TYPE))
             defaultValue = new Integer(0);
-        else if(type.getDisplayName().equals("boolean"))
+        else if(type.getDisplayName().equals(Type.BOOLEAN_TYPE))
             defaultValue = new Boolean(true);
         else 
             defaultValue = new String("");

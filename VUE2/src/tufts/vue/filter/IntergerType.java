@@ -42,19 +42,19 @@ public class IntergerType extends DefaultType {
              }
         } else if(s1.getOperator().getDisplayName().equals(OP_GREATER)) {
              if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {
-                 return v1 < v2;
+                 return v1 > v2;
              } else if(s2.getOperator().getDisplayName().equals(OP_GREATER)) {
-                 return v1 <= v2;
+                 return v1 >= v2;
              } else if(s2.getOperator().getDisplayName().equals(OP_SMALLER)) {
                  return false;
              }
         }else if(s1.getOperator().getDisplayName().equals(OP_SMALLER)) {
              if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {
-                 return v1 > v2;
+                 return v1 < v2;
              } else if(s2.getOperator().getDisplayName().equals(OP_GREATER)) {
                  return false;
              } else if(s2.getOperator().getDisplayName().equals(OP_SMALLER)) {
-                 return v1 >=v2;
+                 return v1 <=v2;
              }
         }
         throw new RuntimeException("Not Implemented");
