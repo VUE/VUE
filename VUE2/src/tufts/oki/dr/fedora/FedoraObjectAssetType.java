@@ -6,56 +6,87 @@
 
 package tufts.oki.dr.fedora;
 
+import java.io.*;
+import java.util.*;
+import java.util.prefs.Preferences;
+
 /**
  *
  * @author  akumar03
  */
 
-import java.io.*;
-
 public class FedoraObjectAssetType extends osid.shared.Type {   
-    private java.util.Vector infoStructures = new java.util.Vector();
+    private Vector infoStructures;
     private DR dr;
     private String id;
     private String type ="TUFTS_STD_IMAGE";
+
     /** Creates a new instance of FedoraObjectAssetType */
     public FedoraObjectAssetType(DR dr,String type) throws osid.dr.DigitalRepositoryException {
         super("Fedora_Asset","tufts.edu",type);
         this.dr = dr;
         this.type = type;
-        id = type;
-        loadInfoStructures();
+        this.id = type;
+        //out("CONSTRUCTED with dr " + dr + " " + dr.getDisplayName());;
+        this.infoStructures = loadInfoStructures(dr);
     }
     
     public String getType() {
         return this.type;
     }
     
-    public osid.dr.InfoStructureIterator getInfoStructures() throws osid.dr.DigitalRepositoryException{
-            return (osid.dr.InfoStructureIterator)new InfoStructureIterator(infoStructures);
+    public osid.dr.InfoStructureIterator getInfoStructures()
+        throws osid.dr.DigitalRepositoryException
+    {
+        return (osid.dr.InfoStructureIterator) new InfoStructureIterator(infoStructures);
+    }
+    
+    private Vector loadInfoStructures(DR dr)
+        throws osid.dr.DigitalRepositoryException
+    {
+        Vector infoStructures = new Vector();
+        try {
+            Preferences prefs = loadPreferences(dr);
+            String infoStructureString = prefs.get(type,"fedora-system:3");
+            Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);
+            Iterator i = infoStructureVector.iterator();
+            while (i.hasNext()) {
+                String strBehaviorInfoStructure = (String)i.next();
+                Vector infoPartVector = FedoraUtils.stringToVector(prefs.get(strBehaviorInfoStructure,""));
+                out("infoStructure " + strBehaviorInfoStructure
+                    + " infoPartString " + prefs.get(strBehaviorInfoStructure,"")
+                    + " count=" + infoPartVector.capacity());
+                infoStructures.add(new BehaviorInfoStructure(dr,strBehaviorInfoStructure,infoPartVector.iterator()));
+            }
+        } catch (Exception ex) {
+            throw new osid.dr.DigitalRepositoryException("DR.loadInfoStructure  "+ex);
+        }
+        return infoStructures;
+    }
+
+    private static Map prefsCache = new HashMap();
+    private static Preferences loadPreferences(DR dr)
+        throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException
+    {
+        String filename = dr.getConfiguration().getFile().replaceAll("%20"," ");
+        Preferences prefs = (Preferences) prefsCache.get(filename);
+        if (prefs != null)
+            return prefs;
+        prefs = Preferences.userRoot().node("/");
+        System.out.println("*** FedoraObjectAssetType: loading & caching prefs from \"" + filename + "\"");
+        prefs.importPreferences(new BufferedInputStream(new FileInputStream(filename)));
+        prefsCache.put(filename, prefs);
+        return prefs;
+    }
+
+    private void out(String s)
+        throws osid.dr.DigitalRepositoryException
+    {
+        System.out.println("FOAT[" + dr.getDisplayName() + ", " + type + "] " + s);
     }
     
     public String toString() {
         return getClass().getName()+" id:"+id;
     }
-    
-    private void loadInfoStructures() throws  osid.dr.DigitalRepositoryException {
-        java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
-        try {
-            FileInputStream fis = new FileInputStream(dr.getConfiguration().getFile().replaceAll("%20"," "));
-            prefs.importPreferences(fis);
-            String infoStructureString = prefs.get(type,"fedora-system:3");
-            java.util.Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);
-            java.util.Iterator i = infoStructureVector.iterator();
-            while(i.hasNext()) {
-                String strBehaviorInfoStructure = (String)i.next();
-                java.util.Vector infoPartVector = FedoraUtils.stringToVector(prefs.get(strBehaviorInfoStructure,""));
-                System.out.println("loadInfoStructures : Type = "+type+" infoStructure "+strBehaviorInfoStructure+ " infoPartString "+prefs.get(strBehaviorInfoStructure,"")+ " count ="+infoPartVector.capacity());
-                infoStructures.add(new BehaviorInfoStructure(dr,strBehaviorInfoStructure,infoPartVector.iterator()));
-            }
-        }catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("DR.loadInfoStructure  "+ex);
-        }
-    }
-    
+        
 }

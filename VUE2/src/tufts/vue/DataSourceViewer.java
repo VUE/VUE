@@ -1122,74 +1122,58 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
             
         
             
-    private void loadDataSources()  {
-        
-        
+    private void loadDataSources()
+    {
         //--Marshalling etc
-          favorites = 0;fedora=0;google=0;filingremote = 0;
-          boolean  problemloadingfromfile = true;
+        favorites = 0;fedora=0;google=0;filingremote = 0;
+        boolean  problemloadingfromfile = true;
           
-            boolean debug = false;
-            File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
+        boolean debug = false;
+        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
-            if(f.exists() && !debug){
-                loadingFromFile = true;
-                SaveDataSourceViewer rViewer = unMarshallMap(f);
-                if (rViewer == null){
+        if (f.exists() && !debug){
+            loadingFromFile = true;
+            SaveDataSourceViewer rViewer = unMarshallMap(f);
+            if (rViewer == null) {
               
-                  problemloadingfromfile = true;
+                problemloadingfromfile = true;
+                System.out.println("There was a problem loading previously saved DataSources. Using default Data Sources");
                 
-                 System.out.println("There was a problem loading previously saved DataSources. Using default Data Sources");
-                }
-                  
-            else{
-          Vector rsources = rViewer.getSaveDataSources();
-          while (!(rsources.isEmpty())){
-               DataSource ds = (DataSource)rsources.remove(0);
-               System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
-               try {
-                addNewDataSource(ds.getDisplayName(),
+            } else {
+                Vector rsources = rViewer.getSaveDataSources();
+                while (!(rsources.isEmpty())){
+                    DataSource ds = (DataSource)rsources.remove(0);
+                    System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
+                    try {
+                        addNewDataSource(ds.getDisplayName(),
                                          ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
                                          ds.getPassword(), ds.getType(),ds.isActiveDataSource());
-                                 }
-          catch(Exception ex) {problemloadingfromfile = true;}
-          }
-           
+                    }
+                    catch(Exception ex) {problemloadingfromfile = true;}
+                }
                 problemloadingfromfile = false;    
-            
             }
+        }
             
-            }
-            
-            if (problemloadingfromfile){
+        if (problemloadingfromfile) {
                 
-        // this should be created automatically from a config file. That will be done in future.
+            // this should be created automatically from a config file. That will be done in future.
                
-                    loadingFromFile = false;
-                 System.out.println("this is load " + DataSource.FILING_LOCAL+"rem" +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
-                    
-                  try{
-                      
-                       addNewDataSource("My Computer", "My Computer", "", "", "", "", DataSource.FILING_LOCAL,true);
-                        
-                        
-                     addNewDataSource("My Favorties", "My Favorties", "", "", "", "", DataSource.FAVORITES,true);
-                  
-                      addNewDataSource("Tufts Digital Library", "Fedora", "", "130.64.77.144", "test", "test", DataSource.DR_FEDORA,true);
-                     
-                      addNewDataSource("UVA Finding Aids", "uva:fedora", "", "dl.lib.virginia.edu", "test", "test", DataSource.DR_FEDORA, false);
-                      addNewDataSource("Tufts Web","google",VueResources.getString("url.google"), "","", "", DataSource.GOOGLE,false);
-                      addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
+            loadingFromFile = false;
+            System.out.println("this is load " + DataSource.FILING_LOCAL+"rem"
+                               +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);                    
+            try {
+                addNewDataSource("My Computer", "My Computer", "", "", "", "", DataSource.FILING_LOCAL,true);
+                addNewDataSource("My Favorties", "My Favorties", "", "", "", "", DataSource.FAVORITES,true);
+                addNewDataSource("Tufts Digital Library", "Fedora", "", "130.64.77.144", "test", "test", DataSource.DR_FEDORA,true);
+                addNewDataSource("UVA Finding Aids", "uva:fedora", "", "dl.lib.virginia.edu", "test", "test", DataSource.DR_FEDORA, false);
+                addNewDataSource("Tufts Web","google",VueResources.getString("url.google"), "","", "", DataSource.GOOGLE,false);
+                addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
                    
-                    
-                  }catch (Exception ex){System.out.println(" oops problem");}
-                 
-
-                   
-                
-      
+            } catch (Exception ex) {
+                System.out.println(this + " oops problem "+ ex);
             }
-            
+        }
     }
     
         
