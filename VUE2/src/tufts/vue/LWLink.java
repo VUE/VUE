@@ -26,7 +26,7 @@ public class LWLink extends LWComponent
     private LWComponent ep1;
     private LWComponent ep2;
     private Line2D.Float line = new Line2D.Float();
-
+    
     private float centerX;
     private float centerY;
     
@@ -36,6 +36,8 @@ public class LWLink extends LWComponent
     private boolean ordered = false; // not doing anything with this yet
     private int endPoint1Style = 0;
     private int endPoint2Style = 0;
+    
+    public Area clip = null;
     
     /**
      * Used only for restore -- must be public
@@ -362,9 +364,10 @@ public class LWLink extends LWComponent
         //if ((ep1.getShape() != null && !ep1.isChild())
         //|| (ep2.getShape() != null && !ep2.isChild())) {
         //if (ep1.getShape() != null || ep2.getShape() != null) {
+        Area clipArea = null;
         if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
             && !(ep1.getShape() == null && ep2.getShape() == null)) {
-            Area clipArea = new Area(g.getClipBounds());
+            clipArea = new Area(g.getClipBounds());
             if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
                 clipArea.subtract(new Area(ep1.getShape()));
             if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
@@ -372,6 +375,7 @@ public class LWLink extends LWComponent
             g.clip(clipArea);
         }
 
+        clip = clipArea;
         
         /*
         // temporary: draw hit box
@@ -454,6 +458,8 @@ public class LWLink extends LWComponent
         //int h = getHeight() - clearBorder * 2;
         //g.fillRect(clearBorder, clearBorder, w, h);
         
+        LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
+        if(path != null) path.drawAgain(g);
     }
 
 

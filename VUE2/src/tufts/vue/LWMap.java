@@ -19,7 +19,7 @@ public class LWMap extends LWContainer
     implements ConceptMap
 {
     public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
-    
+     
     // these for persistance use only
     private float userOriginX;
     private float userOriginY;

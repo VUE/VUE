@@ -555,6 +555,10 @@ public class LWNode extends LWContainer
         // Draw any children
         //-------------------------------------------------------
         super.draw(g);
+        
+        LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
+        
+        if(path != null) path.drawAgain(g);
     }
 
     public static class NodeShape {

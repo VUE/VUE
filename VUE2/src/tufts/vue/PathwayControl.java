@@ -191,7 +191,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         updateControlPanel();
         
         //update the inspector here
-        //VUE.getPathwayInspector().setPathway(currentPathway);
+        VUE.getPathwayInspector().setPathway(currentPathway);
         //LWPathwayInspector.setPathway(pathway);
     }
     

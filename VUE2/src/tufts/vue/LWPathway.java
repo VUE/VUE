@@ -14,13 +14,15 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.BasicStroke;
+import java.awt.geom.Area;
 
 /**
  *
  * @author  Jay Briedis
  */
 public class LWPathway extends tufts.vue.LWComponent 
-    implements Pathway{
+    implements Pathway//, LWComponent.Listener
+{
         
     private LinkedList elementList = null;
     private LWComponent current = null;
@@ -28,7 +30,6 @@ public class LWPathway extends tufts.vue.LWComponent
     private String comment = "";
     private boolean ordered = false;
     private Color borderColor = Color.blue;
-    //private LWPathwayManager manager = null;
     
     /**default constructor used for marshalling*/
     public LWPathway() {
@@ -40,11 +41,9 @@ public class LWPathway extends tufts.vue.LWComponent
     public LWPathway(String label) {
         super.setLabel(label);
         elementList = new LinkedList();
-        //manager = LWPathwayManager.getInstance(); 
-        //manager.addPathway(this);
         
     }
-    
+     
     /** adds an element to the 'end' of the pathway */
     public void addElement(LWComponent element) {
         elementList.add(element);
@@ -78,9 +77,9 @@ public class LWPathway extends tufts.vue.LWComponent
         }
     }
     
-    public void draw(Graphics2D g)
+    public void drawAgain(Graphics2D g)
     {
-        //grab locations of nodes and links
+        
         Iterator iter = this.getElementIterator();
         while(iter.hasNext()){
             LWComponent comp = (LWComponent)iter.next();
@@ -89,9 +88,21 @@ public class LWPathway extends tufts.vue.LWComponent
                 g.setColor(this.getBorderColor());
                 g.setStroke(new BasicStroke(5/8f));
                 g.draw(s);
+            } else if(comp instanceof LWLink){
+                LWLink link = (LWLink)comp;
+                Shape s = comp.getShape();
+                Area clipArea = link.clip;
+                if(clipArea != null) g.clip(clipArea);
+                g.setColor(this.getBorderColor());
+                g.setStroke(new BasicStroke(5/8f));
+                g.draw(s);
+                //System.out.println("LWLink in pathway...");
             }
         }
+        //System.out.println("Done with iteration...");
     }
+    
+    public void draw(Graphics2D g){}
     
     public boolean contains(LWComponent element){
         return elementList.contains(element);

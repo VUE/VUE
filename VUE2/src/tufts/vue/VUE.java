@@ -270,7 +270,6 @@ public class VUE
     public static MapViewer getActiveViewer()
     {
         Object c = tabbedPane.getSelectedComponent();
-        System.out.println("getting active viewer...");
         if(c instanceof JScrollPane){
             
             String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
@@ -520,9 +519,10 @@ public class VUE
         map.addNode(n4);
         LWLink k1 = new LWLink(n1, n2);
         LWLink k2 = new LWLink(n2, n3);
+        LWLink k3 = new LWLink(n2, n4);
         map.addLink(k1);
         map.addLink(k2);
-        map.addLink(new LWLink(n2, n4));
+        map.addLink(k3);
         System.out.println("map label::"+map.getLabel());
         //creating test pathways
         if(map.getLabel().equals("Three")){
@@ -541,8 +541,10 @@ public class VUE
             anotherList.add(n4);
             anotherList.add(n2);
             anotherList.add(k2);
+            anotherList.add(k3);
             p2.setElementList(anotherList);
-            map.addPathway(p2);         
+            map.addPathway(p2);
+            
         }
     }
 }
