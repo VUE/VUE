@@ -8,8 +8,7 @@ public interface VueConstants
 {
     // todo: move most of this stuff to prefs
 
-    static String installDir = "C:\\anoop\\euclid\\VUEDevelopment\\src\\";
-    
+   
     //static Font DefaultFont = new Font("SansSerif", Font.PLAIN, 18);
     static Font FixedFont = new Font("Courier", Font.BOLD, 12);
     static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
@@ -59,7 +58,7 @@ public interface VueConstants
     static Cursor CURSOR_DEFAULT  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     
     // tool cursor types
-    //static Cursor CURSOR_ZOOM_IN  = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+    //static Cursor CURSOR_ZOOM_IN saveMap.  = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
     //static Cursor CURSOR_ZOOM_OUT = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
     //static Cursor CURSOR_PAN      = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     //static Cursor CURSOR_ARROW    = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
