@@ -3988,10 +3988,6 @@ public class MapViewer extends javax.swing.JComponent
                 getMap().getChangeSupport().setPriorityListener(this);
                 // TODO: VUE.getSelection().setPriorityListener(this);
                 
-                // outline view switching: TODO: make an active map listener instead of this
-                if (VUE.getOutlineViewTree() != null) // in case just running MapViewer w/out VUE app
-                    VUE.getOutlineViewTree().switchMap(getMap());
-                
                 // hierarchy view switching: TODO: make an active map listener instead of this(?)
                 if (VUE.getHierarchyTree() != null) {
                     if (this.map instanceof LWHierarchyMap)
