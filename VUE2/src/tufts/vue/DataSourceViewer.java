@@ -111,7 +111,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             public void valueChanged(ListSelectionEvent e) {
                 
                 if ((DataSource)((JList)e.getSource()).getSelectedValue()!=null){
-                    System.out.print("do I get here?");
                     DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
                     
                     
@@ -236,9 +235,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
         else type = 6;
-        
-        Vector dataSourceVector = (Vector)allDataSources.get(type);
-        dataSourceVector.removeElement(ds);
+        if(JOptionPane.showConfirmDialog(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation",JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {   
+            Vector dataSourceVector = (Vector)allDataSources.get(type);
+            dataSourceVector.removeElement(ds);
+        }
         
         
     }

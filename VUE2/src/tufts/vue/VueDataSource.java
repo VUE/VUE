@@ -35,14 +35,14 @@ import javax.swing.JPanel;
 
 public class VueDataSource implements DataSource{
   
-    private String displayName;
-    private String address;
-    private String Id;
-    private boolean isAutoConnect;
-    private int publishMode;
-    private JPanel resourceViewer; 
-    private JPanel addDataSourcePanel;
-    private JPanel editDataSourcePanel;
+    String displayName;
+    String address;
+    String Id;
+    boolean isAutoConnect;
+    int publishMode;
+    JPanel resourceViewer; 
+    JPanel addDataSourcePanel;
+    JPanel editDataSourcePanel;
     
     
     public VueDataSource(){

@@ -483,29 +483,40 @@ public class EditDataSourcePanel extends JPanel{
     
     class GoogleDataSourcePanel extends JPanel {
         JTextField dsNameField;
-        JTextField addressField ;
+        JTextField addressField;
+        JTextField siteField;
+        JTextField clientField;
         GoogleDataSource dataSource;
         String cDsNameField; //cached field to be used for reset.
         String cAddressField; // cached path to be used on reset.
+        String cSiteField;
+        String cClientField;
         public GoogleDataSourcePanel(GoogleDataSource dataSource) {
             this.dataSource = dataSource;
             cDsNameField = dataSource.getDisplayName();
-            cAddressField = dataSource.getAddress();
+            cAddressField = dataSource.getUrl();
+            cSiteField  = dataSource.getSite();
+            cClientField = dataSource.getClient();
             GridBagLayout gridbag = new GridBagLayout();
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel addressLabel = new JLabel("Address:");
+            JLabel siteLabel = new JLabel("Site:");
+            JLabel clientLabel = new JLabel("Client:");
             dsNameField = new JTextField();
             addressField = new JTextField();
-            
+            siteField = new JTextField();
+            clientField = new JTextField();
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton submitButton = new JButton("Submit");
             submitButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
                         GoogleDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        GoogleDataSourcePanel.this.dataSource.setAddress(addressField.getText());
+                        GoogleDataSourcePanel.this.dataSource.setUrl(addressField.getText());
+                        GoogleDataSourcePanel.this.dataSource.setClient(clientField.getText());
+                        GoogleDataSourcePanel.this.dataSource.setSite(siteField.getText());
                         dialog.hide();
                         dialog.dispose();
                     }
@@ -545,6 +556,30 @@ public class EditDataSourcePanel extends JPanel{
             gridbag.setConstraints(addressField,c);
             this.add(addressField);
             
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(siteLabel,c);
+            this.add(siteLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(siteField,c);
+            this.add(siteField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(clientLabel,c);
+            this.add(clientLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(clientField,c);
+            this.add(clientField);
+            
             c.anchor = GridBagConstraints.EAST;
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.weightx = 1.0;
@@ -557,6 +592,8 @@ public class EditDataSourcePanel extends JPanel{
         private void resetPanel() {
             dsNameField.setText(cDsNameField);
             addressField.setText(cAddressField);
+            siteField.setText(cSiteField);
+            clientField.setText(cClientField);
         }
         
         private boolean validateFields(){
