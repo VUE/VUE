@@ -567,7 +567,13 @@ class Actions
         };
 
     //-------------------------------------------------------
-    // Align actions
+    // Arrange actions
+    //
+    // todo bug: if items have a stroke width, there is an
+    // error in adjustment such that repeated adjustments
+    // nudge all the nodes by what looks like half the stroke width!
+    // (error occurs even in first adjustment, but easier to notice
+    // in follow-ons)
     //-------------------------------------------------------
     abstract static class ArrangeAction extends MapAction
     {
@@ -606,7 +612,7 @@ class Actions
                 }
             }
     
-            Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
+            Rectangle2D.Float r = (Rectangle2D.Float) selection.getBounds();
             minX = r.x;
             minY = r.y;
             maxX = r.x + r.width;

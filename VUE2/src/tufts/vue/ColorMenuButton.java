@@ -70,6 +70,7 @@ public class ColorMenuButton extends JButton implements ActionListener
     /** the popup menu **/
     protected JPopupMenu mPopup = null;
 
+    private JMenuItem mNoneSelected = new ColorMenuItem(Color.black);
 	
     /**
      * Constructor
@@ -130,11 +131,12 @@ public class ColorMenuButton extends JButton implements ActionListener
      * setContext
      * Sets a the current color.
      **/
-    public void setColor( Color pColor) {
+    public void setColor(Color pColor) {
         mCurColor = pColor;
-        if( mBlobIcon != null) {
-            mBlobIcon.setColor( pColor);
-        }
+        if (mBlobIcon != null)
+            mBlobIcon.setColor(pColor);
+        if (pColor == null)
+            mPopup.setSelected(mNoneSelected);
     }
 	 
     /**
@@ -166,6 +168,9 @@ public class ColorMenuButton extends JButton implements ActionListener
 			
         if (pColors != null)
             addColors( pColors, pNames);
+
+        mNoneSelected.setVisible(false);
+        mPopup.add(mNoneSelected);
 
         if( pHasCustom ) {
             // add the last custom color editor

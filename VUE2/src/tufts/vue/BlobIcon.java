@@ -168,8 +168,15 @@ public class BlobIcon implements Icon
 
         g.setColor(color);
         g.fillRect(x,y, mWidth, mHeight);
-        g.setColor(Color.darkGray);
-        g.drawRect(x,y, mWidth, mHeight);
+        if (mColor != null) {
+            // todo: need to know if we really want this border --
+            // if for a color swatch, yes, if for one of the toolbar menu
+            // item icons, no (the mColor check helps but doesn't fix
+            // whole problem -- sometimes getting right edge flashes
+            // when pop-up menus are up).
+            g.setColor(color.darker());
+            g.drawRect(x,y, mWidth, mHeight);
+        }
         if( mOverlay != null) {
             mOverlay.paintIcon( c, g, x, y);
             //g.drawImage( mOverlay.getImage(), x, y, null);

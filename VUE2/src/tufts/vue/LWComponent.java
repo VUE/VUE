@@ -963,6 +963,20 @@ public class LWComponent
         return new Point2D.Float(getCenterX(), getCenterY());
     }
     
+    // todo: add a setUserSize which does the event notification --
+    // (for use in user drag resize -- and maybe fill-height &
+    // fill-width) special case regular set-size not to do so as so
+    // many actions will end up effecting the size of auto-sized
+    // nodes, and undo actions will be able to guess better about what
+    // important has changed without all those size events to look at
+    // (and they're redundant size events when nodes are auto-sized
+    // anyway, as when reversed the root action (e.g., something that
+    // adds an icon to node an makes bigger) is undo, it will also
+    // re-layout and redo the size.
+    //
+    // OR, we could check auto-sized, tho then will need that property
+    // on LWComponent...
+    
     /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
