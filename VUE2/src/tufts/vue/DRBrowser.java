@@ -44,7 +44,7 @@ class DRBrowser extends JPanel {
             }
             if (loadingLabel != null)
                 remove(loadingLabel);
-            setMinimumSize(null);
+            //setMinimumSize(null); some data-sources smaller: don't allow shrinkage
             add(dsv, BorderLayout.NORTH);
             validate();
         } catch (Exception e) {

@@ -51,7 +51,7 @@ public abstract class EventRaiser
         dispatch(target);
     }
 
-    private void deliverToChildren(Container parent)
+    protected void deliverToChildren(Container parent)
     {
         Class clazz = getListenerClass();
         if (clazz.isInstance(parent))

@@ -79,6 +79,22 @@ public class ToolWindow extends JWindow
 
     }
 
+    /** look for a tabbed pane within us with the given title, and select it */
+    public void showTab(final String name) {
+
+        EventRaiser e = new EventRaiser(this) {
+                public Class getListenerClass() { return JTabbedPane.class; }
+                void dispatch(Object pTabbedPane) {
+                    JTabbedPane tabbedPane = (JTabbedPane) pTabbedPane;
+                    int i = tabbedPane.indexOfTab(name);
+                    if (i >= 0)
+                        tabbedPane.setSelectedIndex(i);
+                }
+            };
+        e.deliverToChildren(this);
+        setVisible(true);
+    }
+
     public void addTool(JComponent c)
     {
         // todo: make it so can add more than one tool
