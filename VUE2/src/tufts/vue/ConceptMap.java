@@ -13,9 +13,43 @@ package tufts.vue;
 import java.util.Vector;
 public class ConceptMap extends MapItem
 {
-    private java.util.List nodeList = new java.util.Vector();
-    private java.util.List linkList = new java.util.Vector();
-    private java.util.List pathwayList = new java.util.Vector();
+    private long nextID = 1;
+    
+    class CVector extends java.util.Vector {
+        // Used to set parent refs & ID's on child nodes.
+        // During restore operations, the ID
+        // should already be set, and we're just
+        // checking it to make sure nextID will
+        // skip over any existing values
+        public boolean add(Object obj) {
+            super.addElement(obj);
+            MapItem mi = (MapItem) obj;
+            mi.setParent(ConceptMap.this);
+            if (mi.getID() == null) {
+                mi.setID(""+nextID);
+                nextID++;
+            } else {
+                long id = -1;
+                try {
+                    id = Integer.parseInt(mi.getID());
+                    if (id >= nextID)
+                        nextID = id + 1;
+                } catch (Exception e) {
+                    System.err.println(e);
+                }
+            }
+            System.out.println("added " + obj);
+            return true;
+        }
+        public void addElement(Object obj)
+        {
+            add(obj);
+        }
+    }
+    
+    private java.util.List nodeList = new CVector();
+    private java.util.List linkList = new CVector();
+    private java.util.List pathwayList = new CVector();
     
     private java.util.List listeners = new java.util.Vector();
 
@@ -24,11 +58,38 @@ public class ConceptMap extends MapItem
     
     public ConceptMap() {   
         super("Map");
+        setID("0");
     }
 
     public ConceptMap(String label)
     {
         super(label);
+    }
+
+    /**
+     * To be called once after a persisted map
+     * is restored.
+     */
+    public void resolvePersistedLinks()
+    {
+        java.util.Iterator i = getLinkIterator();
+        while (i.hasNext()) {
+            Link l = (Link) i.next();
+            l.setItem1(findItemByID(l.getItem1_ID()));
+            l.setItem2(findItemByID(l.getItem2_ID()));
+        }
+    }
+
+    private MapItem findItemByID(String ID)
+    {
+        java.util.Iterator i = new VueUtil.GroupIterator(nodeList, linkList, pathwayList);
+        while (i.hasNext()) {
+            MapItem mi = (MapItem) i.next();
+            if (mi.getID().equals(ID))
+                return mi;
+        }
+        System.out.println("failed to locate a MapItem with id [" + ID + "] in " + this);
+        return null;
     }
 
     public void setOrigin(float x, float y)

@@ -31,11 +31,6 @@ public class Resource
         return null;
     }
     
-    public String toString()
-    {
-        return spec;
-    }
-    
     public String toURLString()
     {
         String txt;
@@ -107,4 +102,11 @@ public class Resource
     public String getSpec() {
        return this.spec;
     }
+
+    public String toString()
+    {
+        return getSpec();
+    }
+    
+
 }

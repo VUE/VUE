@@ -85,6 +85,7 @@ public class MapViewer extends javax.swing.JPanel
         MapDropTarget mapDropTarget = new MapDropTarget(this, map);
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
+        // todo: tab to show/hide all tool windows
         addTool(this.zoomTool = new ZoomTool(this));
         
         /*
@@ -149,7 +150,7 @@ public class MapViewer extends javax.swing.JPanel
         this.mapOriginX = screenX;
         this.mapOriginY = screenY;
         this.map.setOrigin(mapOriginX, mapOriginY);
-        new MapViewerEvent(this, MapViewerEvent.PANZOOM).raise();
+        new MapViewerEvent(this, MapViewerEvent.PAN).raise();
     }
     public void setMapOriginOffset(double screenX, double screenY) {
         setMapOriginOffset((float) screenX, (float) screenY);
@@ -234,7 +235,7 @@ public class MapViewer extends javax.swing.JPanel
     public void setZoomFactor(double zoomFactor)
     {
         this.zoomFactor = zoomFactor;
-        new MapViewerEvent(this, MapViewerEvent.PANZOOM).raise();
+        new MapViewerEvent(this, MapViewerEvent.ZOOM).raise();
         repaint();
     }
                     
@@ -255,7 +256,7 @@ public class MapViewer extends javax.swing.JPanel
         // todo: do viewport zoom
         repaint(250);
         requestFocus();
-        new MapViewerEvent(this, MapViewerEvent.PANZOOM).raise();
+        new MapViewerEvent(this, MapViewerEvent.ZOOM).raise();
         
     }
 
@@ -276,16 +277,18 @@ public class MapViewer extends javax.swing.JPanel
         i = map.getNodeIterator();
         while (i.hasNext()) {
             Node node = (Node) i.next();
-            System.out.println("loaded " + node + " " + node.getPosition());
+            System.out.println("loaded " + node);
             addNode(new LWNode(node));
         }
+
         i = map.getLinkIterator();        
         while (i.hasNext()) {
-            Link l = (Link) i.next();
-            System.out.println("loaded " + l + " "+findLWComponent(l.getItem1())+" "+l.getItem2());
-            LWComponent c1 = findLWComponent(l.getItem1());
-            LWComponent c2 = findLWComponent(l.getItem2());
-            addLink(new LWLink(l, c1, c2));
+            Link link = (Link) i.next();
+            //System.out.println("loaded " + l + " "+findLWComponent(l.getItem1())+" "+l.getItem2());
+            System.out.println("loaded " + link);
+            LWComponent c1 = findLWComponent(link.getItem1());
+            LWComponent c2 = findLWComponent(link.getItem2());
+            addLink(new LWLink(link, c1, c2));
         }
         this.map.addMapListener(this);
     }

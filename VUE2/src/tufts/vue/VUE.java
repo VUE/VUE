@@ -11,6 +11,7 @@ import tufts.vue.action.*;
  * we want to see there (including menus, toolbars, etc).
  */
 public class VUE
+    implements VueConstants
 {
     public static Cursor CURSOR_ZOOM_IN;
     public static Cursor CURSOR_ZOOM_OUT;
@@ -43,13 +44,15 @@ public class VUE
     static class VueFrame extends JFrame
         implements MapViewerListener
     {
+        final int TitleChangeMask = MapViewerEvent.DISPLAYED | MapViewerEvent.ZOOM;
+        
         VueFrame()
         {
             super("VUE: Tufts Concept Map Tool");
         }
         public void mapViewerEventRaised(MapViewerEvent e)
         {
-            if (e.getID() == MapViewerEvent.DISPLAYED)
+            if ((e.getID() & TitleChangeMask) != 0)
                 setTitleFromViewer(e.getMapViewer());
         }
 
@@ -96,6 +99,17 @@ public class VUE
             System.setProperty(appNameProp, "VUE");
         }
     }
+
+    public static void activateWaitCursor()
+    {
+        // todo: save current cursor and pop off stack when we clear
+        SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_WAIT);
+    }
+    public static void clearWaitCursor()
+    {
+        SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_DEFAULT);
+    }
+
 
     public static void main(String[] args)
     {
@@ -236,5 +250,6 @@ public class VUE
         }
         MapViewer mapViewer = new tufts.vue.MapViewer(map);
         tabbedPane.addTab(map.getLabel(), mapViewer);
+        tabbedPane.setSelectedComponent(mapViewer);
     }
 }

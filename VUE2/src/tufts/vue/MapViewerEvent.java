@@ -5,7 +5,8 @@ public class MapViewerEvent
 {
     public static final int DISPLAYED = 1;
     public static final int HIDDEN = 2;
-    public static final int PANZOOM = 3;
+    public static final int PAN = 4;
+    public static final int ZOOM = 8;
     
     private int id;
     

@@ -11,6 +11,8 @@ package tufts.vue;
 public abstract class MapItem
 {
     private static final String EMPTY = "";
+
+    private MapItem parent = null;
     
     private String ID = null;
     private String label = null;
@@ -24,12 +26,20 @@ public abstract class MapItem
 
     public MapItem()
     {
-        this.ID = super.toString();
     }
     public MapItem(String label)
     {
-        this();
         setLabel(label);
+    }
+
+    void setParent(MapItem parent)
+    {
+        this.parent = parent;
+    }
+
+    public MapItem getParent()
+    {
+        return this.parent;
     }
 
     private java.util.List listeners;
@@ -100,14 +110,15 @@ public abstract class MapItem
         this.y = y;
         notify("position");
     }
-    /* 
+
     public void setID(String ID)
     {
-        if (this.inNotify) return;
+        if (this.ID != null)
+            throw new IllegalStateException("Can't set ID to [" + ID + "], already set on " + this);
+        //System.out.println("setID [" + ID + "] on " + this);
         this.ID = ID;
-        notify("ID");
-        }*/
-
+    }
+    
     public void setLabel(String label)
     {
         if (this.inNotify) return;
@@ -162,8 +173,9 @@ public abstract class MapItem
     
     public String getID()
     {
+        //if (this.ID == null)
+        //this.ID = super.toString();
         return this.ID;
-        //return this.ID + " ("+x+","+y+")";
     }
 
     public String getLabel()
@@ -183,7 +195,11 @@ public abstract class MapItem
 
     public String toString()
     {
-        return getClass().getName() + "[id=" + getID() + " " + getLabel() + "]";
+        String s = getClass().getName() + "[id=" + getID();
+        if (getLabel() != null)
+            s += " \"" + getLabel() + "\"";
+        s += "]";
+        return s;
     }
     
     

@@ -22,8 +22,9 @@ import tufts.vue.*;
  *
  * @author  akumar03
  */
-public class SaveAction extends AbstractAction {
-  
+public class SaveAction extends AbstractAction
+{
+    final String XML_MAPPING = "concept_map.xml";
     
     /** Creates a new instance of SaveAction */
     
@@ -50,7 +51,7 @@ public class SaveAction extends AbstractAction {
         }
         marshaller = new Marshaller(new FileWriter(fileName));
         mapping =  new Mapping();
-        mapping.loadMapping( "mapping.xml" );
+        mapping.loadMapping(XML_MAPPING);
         marshaller.setMapping(mapping);
         marshaller.marshal(tufts.vue.VUE.getActiveMap());
         

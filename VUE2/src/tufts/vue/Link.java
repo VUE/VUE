@@ -8,9 +8,14 @@ public class Link extends MapItem
     private boolean ordered = true;
     private boolean fixed = false;
 
-    public Link() {
-        
-    }
+    // these used only during restore
+    private String item1_ID;
+    private String item2_ID;
+    
+    /**
+     * null constructor to support restore only
+     */
+    public Link() {}
     
     public Link(MapItem i1, MapItem i2)
     {
@@ -35,8 +40,35 @@ public class Link extends MapItem
     {
         return this.item2;
     }
-    
 
+    public String getItem1_ID()
+    {
+        //System.err.println("getItem1_ID called for " + this);
+        if (getItem1() == null) {
+            return item1_ID;
+        } else
+            return getItem1().getID();
+    }
+    public String getItem2_ID()
+    {
+        //System.err.println("getItem2_ID called for " + this);
+        if (getItem2() == null) {
+            return item2_ID;
+        } else
+            return getItem2().getID();
+    }
+
+    // used only during restore
+    public void setItem1_ID(String s)
+    {
+        this.item1_ID = s;
+    }
+    // used only during restore
+    public void setItem2_ID(String s)
+    {
+        this.item2_ID = s;
+    }
+    
     public void setWeight(int weight)
     {
         this.weight = weight;
