@@ -23,7 +23,7 @@ import javax.swing.ImageIcon;
  */
 
 /**A class that represents a tree structure which holds the outline view model*/
-public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener
+public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener
 { 
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
@@ -40,7 +40,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
-         //setRootVisible(false);
+        
+         VUE.getSelection().addListener(this);
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -116,11 +117,15 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     
     /**A method that sets the current tree path to the one designated by the given LWComponent*/
     public void setSelectionPath(LWComponent component)
-    {
-        TreePath path = hierarchyModel.getTreePath(component);
-        super.setSelectionPath(path);
-        super.expandPath(path);
-        super.scrollPathToVisible(path);
+    {     
+        //in case the node inspector's outline tree is not initalized
+        if (hierarchyModel != null)
+        {
+            TreePath path = hierarchyModel.getTreePath(component);
+            super.setSelectionPath(path);
+            super.expandPath(path);
+            super.scrollPathToVisible(path);
+        }
     }
     
     /**A wrapper method which determines whether the underlying model contains a node with the given component*/
@@ -181,9 +186,23 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     public void LWCChanged(LWCEvent e)
     {
         //when a label on a node was changed
-        //if (message.equals("label"))
-        // Already label filtered.
-        repaint();      
+        //Already label filtered. ???
+        //hierarchyModel.updateNodeDisplayName(e.getComponent());
+            
+        //repaints the entire tree
+        repaint();       
+    }
+    
+    /** A method for handling LWSelection event **/
+    public void selectionChanged(LWSelection selection)
+    {
+        //if it is not an empty selection, select the first element in the selection
+        if (!selection.isEmpty())
+          setSelectionPath(selection.first());
+        
+        //else deselect
+        else 
+          super.setSelectionPath(null);
     }
     
     /**A class that specifies the rendering method of the outline view tree*/

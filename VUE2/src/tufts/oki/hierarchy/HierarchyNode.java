@@ -51,8 +51,10 @@ public class HierarchyNode implements osid.hierarchy.Node
         
         for (Enumeration e = treeNode.children(); e.hasMoreElements();)
         {
+            Object nextElement = e.nextElement();
             //for each child node, retrieves the hierarchy node associated with it and adds to the node vector
-            DefaultMutableTreeNode childTreeNode = (DefaultMutableTreeNode) e.nextElement();
+            //System.out.println("the class is " + nextElement.getClass().getName());
+            DefaultMutableTreeNode childTreeNode = (DefaultMutableTreeNode) nextElement;
             children.addElement((osid.hierarchy.Node) (childTreeNode.getUserObject()));
         }
 
@@ -188,6 +190,9 @@ public class HierarchyNode implements osid.hierarchy.Node
     /**A method that returns the string representation of the node*/
     public String toString()
     {
+        if (name != component.getLabel())
+          name = component.getLabel();
+        
         return name;
     }
 }

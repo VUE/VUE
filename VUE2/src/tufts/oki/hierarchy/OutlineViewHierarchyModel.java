@@ -104,7 +104,11 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
     {   
         HierarchyNode foundNode = null;
         
-        //check for NULL problems when getting nodes and stuff
+        if (component == null)
+        {
+            System.err.println("the component is null in findHierarchyNode method");
+            return null;
+        }
         
         try
         {
@@ -473,9 +477,52 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         
         catch (osid.hierarchy.HierarchyException he)
         {
-            System.err.println("Exception doing the tree path method");
+            System.err.println("Hierarchy exception in the tree path method");
+        }
+        
+        catch (Exception e)
+        {
+            System.err.println("Exception in the tree path method: " + e.getMessage());
+            path = null;
         }
         
         return path;
+    }
+    
+    /**A method which gets called when a component on a map changed its label so the update is reflected
+       to the hierarchy node associated with the component*/
+    public void updateNodeDisplayName(LWComponent component)
+    {   
+        System.out.println("the component to update is " + component);
+        
+        try
+        {
+            if (component == null)
+              return;
+            
+            //find the hierarchy node
+            HierarchyNode node = findHierarchyNode(getRootNode(), component, true);
+        
+            //switch to the new name
+            if (node != null)
+            {
+              node.updateDisplayName(component.getLabel());
+              System.out.println("update completed");
+            }
+            
+            else
+              System.err.println("node was not found in updateNodeDisplayName");
+        }
+        
+        catch (osid.hierarchy.HierarchyException he)
+        {
+            System.err.println("Hierarchy exception doing the updateNodeDisplayName method");
+        }
+        
+        catch (Exception e)
+        {
+            System.err.println("General exception doing the updateNodeDisplayName method");
+            e.printStackTrace();
+        }
     }
 }
