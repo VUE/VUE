@@ -220,24 +220,24 @@ public class ZoomTool extends VueTool
                                         edgePadding,
                                         mapRegion,
                                         offset);
-        if (newZoom > MaxZoom) {
-            setZoom(MaxZoom, true, CENTER_FOCUS, true);
-            Point2D mapAnchor = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
-            Point focus = new Point(viewer.getVisibleWidth()/2, viewer.getVisibleHeight()/2);
-            double offsetX = (mapAnchor.getX() * MaxZoom) - focus.getX();
-            double offsetY = (mapAnchor.getY() * MaxZoom) - focus.getY();
-            viewer.setMapOriginOffset(offsetX, offsetY);
-            viewer.resetScrollRegion();
+        if (viewer.inScrollPane()) {
+            Point2D center = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
+            if (newZoom > MaxZoom)
+                newZoom = MaxZoom;
+            setZoom(newZoom, false, center, false);
         } else {
-            if (viewer.inScrollPane()) {
-                Point2D center = new Point2D.Double(mapRegion.getX() + mapRegion.getWidth() / 2,
-                                                    mapRegion.getY() + mapRegion.getHeight() / 2);
-                setZoom(newZoom, false, center, false);
+            if (newZoom > MaxZoom) {
+                setZoom(MaxZoom, true, CENTER_FOCUS, true);
+                Point2D mapAnchor = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
+                Point focus = new Point(viewer.getVisibleWidth()/2, viewer.getVisibleHeight()/2);
+                double offsetX = (mapAnchor.getX() * MaxZoom) - focus.getX();
+                double offsetY = (mapAnchor.getY() * MaxZoom) - focus.getY();
+                viewer.setMapOriginOffset(offsetX, offsetY);
+                //viewer.resetScrollRegion();
             } else {
                 setZoom(newZoom, false, DONT_FOCUS, true);
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
             }
-            
         }
     }
     
