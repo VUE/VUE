@@ -60,10 +60,8 @@ public class VueButtonIcon implements Icon
         if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
         if (s == null)
             s = new Dimension(0,0);
-        if (tufts.vue.VueUtil.isMacAquaLookAndFeel()) {
+        if (tufts.vue.VueUtil.isMacAquaLookAndFeel() && b instanceof MenuButton) {
             b.setIcon(raw);
-            //b.setContentAreaFilled(false);
-            //b.setRolloverEnabled(true);
         } else {
             b.setIcon(new VueButtonIcon(raw, UP, s));
             b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
