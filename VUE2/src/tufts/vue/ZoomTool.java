@@ -166,6 +166,9 @@ public class ZoomTool extends VueTool
                                         offset);
         
         if (viewer.inScrollPane()) {
+            // todo: will need original canvas focus point if want to re-implement
+            // anchoring to arbitrary points for scroll regions.  Note: if do this,
+            // only do it for zoom out: leave zoom in as center focus.
             Point2D center = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
             if (newZoom > MaxZoom)
                 newZoom = MaxZoom;

@@ -170,7 +170,7 @@ public class MapViewer extends javax.swing.JComponent
     }
 
     private JComponent mIndicator = new JPanel();
-    private InputHandler inputHandler = new InputHandler();
+    private InputHandler inputHandler = new InputHandler(this);
     private boolean mAddNotifyUnderway = false;
     
     public void addNotify()
@@ -2478,6 +2478,8 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
+    // todo: if java ever supports moving an inner class to another file,
+    // move the InputHandler out: this file has gotten too big.
     private class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener
     {
@@ -2489,7 +2491,10 @@ public class MapViewer extends javax.swing.JComponent
         LWComponent justSelected;    // for between mouse press & click
         boolean hitOnSelectionHandle = false; // we moused-down on a selection handle
 
-        MapViewer viewer = MapViewer.this;
+        MapViewer viewer; // getting ready to move this to another file.
+        InputHandler(MapViewer viewer) {
+            this.viewer = viewer;
+        }
         
         /**
          * dragStart: screen location (within this java.awt.Container)
@@ -2505,9 +2510,9 @@ public class MapViewer extends javax.swing.JComponent
         private int kk = 0;
         private ToolWindow debugInspector;
         public void keyPressed(KeyEvent e) {
-            if (DEBUG_KEYS) out("[" + e.paramString() + "]");
+            if (DEBUG.KEYS) out("[" + e.paramString() + "]");
             
-            clearTip();
+            viewer.clearTip();
             
             // FYI, Java 1.4.1 sends repeat key press events for
             // non-modal keys that are being held down (e.g. not for
@@ -2535,11 +2540,11 @@ public class MapViewer extends javax.swing.JComponent
             
             if (key == KeyEvent.VK_DELETE) {
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                Actions.Delete.fire(MapViewer.this);
+                Actions.Delete.fire(this);
             } else if (key == KEY_ABORT_ACTION) {
                 if (dragComponent != null) {
-                    double oldX = screenToMapX(dragStart.x) + dragOffset.x;
-                    double oldY = screenToMapY(dragStart.y) + dragOffset.y;
+                    double oldX = viewer.screenToMapX(dragStart.x) + dragOffset.x;
+                    double oldY = viewer.screenToMapY(dragStart.y) + dragOffset.y;
                     dragComponent.setLocation(oldX, oldY);
                     //dragPosition.setLocation(oldX, oldY);
                     dragComponent = null;
@@ -2557,10 +2562,10 @@ public class MapViewer extends javax.swing.JComponent
                 }
             } else if (e.isShiftDown() && VueSelection.isEmpty()) {
                 // this is mainly for debug.
-                     if (key == KeyEvent.VK_UP)    panScrollRegion( 0,-1);
-                else if (key == KeyEvent.VK_DOWN)  panScrollRegion( 0, 1);
-                else if (key == KeyEvent.VK_LEFT)  panScrollRegion(-1, 0);
-                else if (key == KeyEvent.VK_RIGHT) panScrollRegion( 1, 0);
+                     if (key == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
+                else if (key == KeyEvent.VK_DOWN)  viewer.panScrollRegion( 0, 1);
+                else if (key == KeyEvent.VK_LEFT)  viewer.panScrollRegion(-1, 0);
+                else if (key == KeyEvent.VK_RIGHT) viewer.panScrollRegion( 1, 0);
                 else
                     handled = false;
             } else
@@ -2659,7 +2664,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'F') { DEBUG.FOCUS = !DEBUG.FOCUS; }
                 //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
-                else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
+                else if (c == 'K') { DEBUG.KEYS = !DEBUG.KEYS; }
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
                 else if (c == 'm') { DEBUG.MARGINS = !DEBUG.MARGINS; }
@@ -2682,7 +2687,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
-                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(MapViewer.this); }
+                else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
                 else if (c == '!') {
                     if (debugInspector == null) {
                         debugInspector = new ToolWindow("Inspector", VUE.frame == null ? debugFrame : VUE.frame);
@@ -2692,14 +2697,14 @@ public class MapViewer extends javax.swing.JComponent
                 } else
                     did = false;
                 if (did) {
-                    System.err.println("*** diagnostic '" + c + "' toggled (input=" + MapViewer.this + ")");
+                    System.err.println("*** diagnostic '" + c + "' toggled (input=" + viewer + ")");
                     repaint();
                 }
             }
         }
         
         public void keyReleased(KeyEvent e) {
-            if (DEBUG_KEYS) out("[" + e.paramString() + "]");
+            if (DEBUG.KEYS) out("[" + e.paramString() + "]");
             
             if (toolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
@@ -2796,7 +2801,7 @@ public class MapViewer extends javax.swing.JComponent
             if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
-            clearTip();
+            viewer.clearTip();
             grabVueApplicationFocus("mousePressed");
             requestFocus();
             
@@ -2929,9 +2934,10 @@ public class MapViewer extends javax.swing.JComponent
                 
                 // SPECIAL CASE for dragging the entire selection
                 if (activeTool.supportsSelection()
-                && noModifierKeysDown(e)
-                //&& VueSelection.size() > 1
-                && VueSelection.contains(mapX, mapY)) {
+                    && noModifierKeysDown(e)
+                    //&& VueSelection.size() > 1
+                    && VueSelection.contains(mapX, mapY))
+                {
                     //-------------------------------------------------------
                     // PICK UP A GROUP SELECTION FOR DRAGGING
                     //
@@ -3098,7 +3104,7 @@ public class MapViewer extends javax.swing.JComponent
             
             if (hit != sMouseOver) {
                 if (sMouseOver != null) {
-                    clearTip(); // in case it had a tip displayed
+                    viewer.clearTip(); // in case it had a tip displayed
                     if (sMouseOver == rollover)
                         clearRollover();
                     MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
@@ -3112,7 +3118,7 @@ public class MapViewer extends javax.swing.JComponent
                 else
                     hit.mouseEntered(mme);
             } else
-                clearTip(); // if over nothing, always make sure no tip displayed
+                viewer.clearTip(); // if over nothing, always make sure no tip displayed
             
             sMouseOver = hit;
             
@@ -3186,7 +3192,7 @@ public class MapViewer extends javax.swing.JComponent
             // pains in placing the tip window to never overlap the
             // trigger region. (see setTip)
             
-            clearTip();
+            viewer.clearTip();
             
             // Is still nice to do this tho because we get a mouse
             // exited when you rollover the tip-window itself, and if
@@ -3202,7 +3208,13 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         private void scrollToVisible(LWComponent c, int pad) {
-            Rectangle r = growForSelection(mapToScreenRect(c.getBounds()), pad);
+            //Rectangle r = growForSelection(mapToScreenRect(c.getBounds()), pad);
+            // turned off growth: don't scroll till really at edge:
+            // todo: follow-on adjustscrollregion is adjusting to content-bounds
+            // of map, which is still giving us a big margin when against edge
+            // of canvas, as opposed to when against edge of viewport on bigger
+            // canvas.
+            Rectangle r = mapToScreenRect(c.getBounds());
 
             // TODO: if component was off screen or is bigger than
             // screen, need to know what direction we're dragging
@@ -3847,7 +3859,6 @@ public class MapViewer extends javax.swing.JComponent
                 return false;
             return true;
         }
-        
     }
     
     /*
@@ -4123,8 +4134,6 @@ public class MapViewer extends javax.swing.JComponent
     }
     private String out(Dimension d) { return d.width + " x " + d.height; }
     
-    private static boolean DEBUG_KEYS = VueResources.getBool("mapViewer.debug.keys");
-    //private boolean DEBUG.MOUSE = true;
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");
     
     private boolean DEBUG_SHOW_ORIGIN = false;
@@ -4166,7 +4175,7 @@ public class MapViewer extends javax.swing.JComponent
 
             MapViewer viewer = new MapViewer(map);
             viewer.DEBUG_SHOW_ORIGIN = true;
-            viewer.DEBUG_KEYS = true;
+            DEBUG.KEYS = true;
             viewer.setPreferredSize(new Dimension(500,300));
             JFrame frame;
             if (args.length != 2) {
