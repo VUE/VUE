@@ -21,7 +21,6 @@ import javax.swing.JTree;
 import javax.swing.tree.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-
 /**
  *
  * @author  Daisuke Fujiwara
