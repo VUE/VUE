@@ -270,17 +270,19 @@ public class MapResource implements Resource {
             }
             byte[] buf = new byte[bytes];
             //int len = in.read(buf);
+            int total = 0;
             int len = 0;
             // BufferedInputStream still won't read thru a block, so we need to allow
             // a few reads here to get thru a couple of blocks, so we can get up to
             // our maxbytes (e.g., a common return chunk count is 1448 bytes, presumably related to the MTU)
             do {
-                len = in.read(buf);            
+                len = in.read(buf);
                 System.out.println("read " + len);
-            } while (len > 0);
+                if (len > 0) total += len;
+            } while (len > 0 && total < bytes);
             in.close();
-            String str = new String(buf, 0, len);
-            System.out.println("*** Got string of length " + len);
+            String str = new String(buf, 0, total);
+            System.out.println("*** Got total bytes: " + total);
             //System.out.println("*** String[" + str + "]");
             Matcher m = regex.matcher(str);
             if (DEBUG.DND) System.err.println("*** got Matcher " + m);
@@ -474,12 +476,29 @@ public class MapResource implements Resource {
         
     }
 
-    
+    //todo: move to Resource spec & a new AbstractResource class
+    public static boolean isImage(Resource r) {
+        String s = r.getSpec();
+        // will need java advanced imageio for bmp & tiff
+        return s.endsWith(".gif")
+            || s.endsWith(".jpg")
+            || s.endsWith(".jpeg")
+            //|| s.endsWith(".bmp")
+            || s.endsWith(".png")
+            //|| s.endsWith(".tif")
+            //|| s.endsWith(".tiff")
+            ;
+    }
+
+    public boolean isImage() {
+        return isImage(this);
+    }
+
     public JComponent getPreview() {
         
         preview = new JPanel();
         try {
-            URL location = new URL(spec);
+            URL location = toURL();
             if(location.openConnection().getContentType().indexOf("text")>=0) {
                 /**
                 JEditorPane editorPane = new JEditorPane(location);
