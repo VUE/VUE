@@ -115,7 +115,7 @@ public class PathwayTool extends VueSimpleTool
         }
 
         public void setSelectedItem(Object o) {
-            System.out.println(this + " setSelectedItem " + o);
+            if (DEBUG.PATHWAY) System.out.println(this + " setSelectedItem " + o);
             super.setSelectedItem(o);
             if (mPathwayList != null)
                 mPathwayList.setCurrentIndex(getIndexOf(o));
