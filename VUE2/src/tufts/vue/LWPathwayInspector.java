@@ -78,23 +78,21 @@ public class LWPathwayInspector extends InspectorWindow
     private AbstractButton aButton = null;
     
     public InfoTableModel model = null;
+    private PathwayTab path = null;
     
     public LWPathwayInspector(JFrame owner, LWPathway pathway){
         this(owner);
         this.pathway = pathway;
         path.setPathway(pathway);
     }
-
-    private PathwayTab path = null;
-    
-
+ 
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
         
         /**three components to be added to the tabbed pane*/
         InfoTable table = new InfoTable();
         //JPanel path = getPath();
-        JPanel notes = getNotes();
+        //JPanel notes = getNotes();
         
         path = new PathwayTab();
         
@@ -105,7 +103,9 @@ public class LWPathwayInspector extends InspectorWindow
         pane = new JTabbedPane();
         pane.addTab("General Info", null, new JScrollPane(table), "Info Panel");
         pane.addTab("Node Info", null, path, "Path Panel");
-        pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
+        //pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
+        
+        pane.addTab("Notes", null, new JScrollPane(new JPanel()), "Notes Panel");
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
@@ -151,6 +151,7 @@ public class LWPathwayInspector extends InspectorWindow
     private JPanel getNotes(){
         
         area = new JTextArea();
+        
         if(pathway != null) {
             area.setText(pathway.getComment());
             area.setWrapStyleWord(true);

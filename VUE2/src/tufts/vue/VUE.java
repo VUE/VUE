@@ -29,6 +29,9 @@ public class VUE
     
     public static LWPathwayInspector pathwayInspector;
     
+    //added by Daisuke Fujiwara
+    public static PathwayControl control;
+    
     static {
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
@@ -203,14 +206,21 @@ public class VUE
         inspectorTool.addTool(new LWCInspector());
         //inspectorTool.addTool(new MapItemInspector());
         
+        LWPathwayManager manager = getActiveMap().getPathwayManager();
         //LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
+
         pathwayInspector = new LWPathwayInspector(frame);
+
+        //inspector = new LWPathwayInspector(frame, manager.getCurrentPathway());
         
-        Action[] windowActions = {
-            pannerTool.getDisplayAction(),
-            inspectorTool.getDisplayAction(),
-            pathwayInspector.getDisplayAction()
-        };
+        //added by Daisuke Fujiwara
+        control = new PathwayControl(frame, manager);
+        
+        Action[] windowActions = { pannerTool.getDisplayAction(),
+                                   inspectorTool.getDisplayAction(),
+                                   pathwayInspector.getDisplayAction(),
+                                   control.getDisplayAction()
+                                 };
 
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);

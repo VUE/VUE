@@ -23,12 +23,12 @@ class DRBrowser extends javax.swing.JTabbedPane
         DigitalRepository dr = new DR();
         
         FedoraTree  fedoraTree = null;
-        try {
-            fedoraTree = new FedoraTree(dr);
-        } catch(OsidException e) {
-            JOptionPane.showMessageDialog(this,"Cannot connect to FEDORA Server.","FEDORA Alert", JOptionPane.ERROR_MESSAGE);
+        //try {
+            //fedoraTree = new FedoraTree(dr);
+        //} catch(OsidException e) {
+            //JOptionPane.showMessageDialog(this,"Cannot connect to FEDORA Server.","FEDORA Alert", JOptionPane.ERROR_MESSAGE);
           //  System.out.println(e);
-        }
+        //}
         if(fedoraTree != null) {
             JScrollPane jspFedora  = new JScrollPane(fedoraTree);
             add("FEDORA",jspFedora);

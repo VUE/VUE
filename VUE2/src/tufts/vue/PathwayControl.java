@@ -40,7 +40,7 @@ import java.awt.event.WindowEvent;
  */
 
 /**A class that displays the control of pathways*/
-public class PathwayControl extends JPanel implements ActionListener, ItemListener
+public class PathwayControl extends InspectorWindow implements ActionListener, ItemListener
 {
     /**Necessary widgets to control pathways*/
     private JButton firstButton, lastButton, forwardButton, backButton;
@@ -59,15 +59,16 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     private DisplayAction displayAction = null;
     
     /** Creates a new instance of PathwayControl */
-    public PathwayControl() 
+    public PathwayControl(JFrame parent) 
     {   
+        super(parent, "Pathway Control");
         currentPathway = null;
         pathwayManager = null;
         pathwayList = new JComboBox();
         
-        setLayout(new BorderLayout());
-        setBackground(Color.white);
-        setBorder(new LineBorder(Color.black));
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().setBackground(Color.white);
+        //getContentPane().setBorder(new LineBorder(Color.black));
         
         firstButton = new JButton("<<");
         lastButton = new JButton(">>");
@@ -116,10 +117,9 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         bottomPanel.add(pathwayList);
         bottomPanel.add(buttonPanel);
         
-        add(bottomPanel, BorderLayout.SOUTH);
-        add(descriptionPanel, BorderLayout.CENTER);
+        getContentPane().add(bottomPanel, BorderLayout.SOUTH);
+        getContentPane().add(descriptionPanel, BorderLayout.CENTER);
         
-        /*
         super.addWindowListener(new WindowAdapter()
             {
                 public void windowClosing(WindowEvent e) 
@@ -128,7 +128,6 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 }
             }
         );
-         */
     }
     
     /* not used at this point
@@ -141,9 +140,9 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     */
     
     /**A constructor with a pathway manager as an argument*/
-    public PathwayControl(LWPathwayManager pathwayManager)
+    public PathwayControl(JFrame parent, LWPathwayManager pathwayManager)
     {
-        this();
+        this(parent);
         setPathwayManager(pathwayManager);
     }
     
@@ -183,7 +182,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         updateControlPanel();
         
         //update the inspector here
-        //VUE.getInspector().setPathway(currentPathway);
+        //VUE.getPathwayInspector().setPathway(currentPathway);
         //LWPathwayInspector.setPathway(pathway);
     }
     
@@ -198,19 +197,8 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
      */
     public static void main(String[] args) {
         //PathwayControl control = new PathwayControl(LWPathwayManager.getInstance());
-        PathwayControl control = new PathwayControl();
-  
-        /*
-        //setting up pathway control in a tool window
-        ToolWindow window = new ToolWindow("Pathway Control", null);
-        window.addTool(control);
-        window.setSize(400, 300);
-        window.setVisible(true);
-        */
-        
-       InspectorWindow window = new InspectorWindow(null, "test");
-       window.getContentPane().add(control);
-       window.show();
+        PathwayControl control = new PathwayControl(null);
+        control.show();
     }
     
     /**A method which updates the widgets accordingly*/
@@ -219,19 +207,19 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         //if there is a pathway currently selected
         if (currentPathway != null)
         {
-            Node currentNode = (LWNode)currentPathway.getCurrent();
+            LWComponent currentElement = currentPathway.getCurrent();
             
             //temporarily here 
             removeButton.setEnabled(true);
             
             //if there is a node in the pathway
-            if(currentNode != null)
+            if(currentElement != null)
             {
                 //sets the label to the current node's label
-                nodeLabel.setText(currentNode.getLabel());
+                nodeLabel.setText(currentElement.getLabel());
           
                 //if it is the first node in the pathway, then disables first and back buttons
-                if (currentPathway.isFirst((LWComponent)currentNode))
+                if (currentPathway.isFirst(currentElement))
                 {
                     backButton.setEnabled(false);
                     firstButton.setEnabled(false);
@@ -244,7 +232,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 }
           
                 //if it is the last node in the pathway, then disables last and forward buttons
-                if (currentPathway.isLast((LWComponent)currentNode))
+                if (currentPathway.isLast(currentElement))
                 {
                     forwardButton.setEnabled(false);
                     lastButton.setEnabled(false);
@@ -286,9 +274,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     public void addPathway(LWPathway newPathway)
     {
         pathwayList.addItem(newPathway);
-       
-        //currently not necessary
-        //pathwayManager.addPathway(newPathway);
+        pathwayManager.addPathway(newPathway);
     }
     
     /**Removes the given pathway from the combo box list and the pathway manager*/
@@ -357,7 +343,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             {
                 System.out.println("adding a new pathway");
                 
-                PathwayDialog dialog = new PathwayDialog(null);
+                PathwayDialog dialog = new PathwayDialog(this);
                 dialog.show();
                 
                 pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);
@@ -418,9 +404,9 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         JButton okButton, cancelButton;
         JTextField textField;
         
-        public PathwayDialog(JFrame frame)
+        public PathwayDialog(JDialog dialog)
         {
-            super(frame, "New Pathway Name", true);
+            super(dialog, "New Pathway Name", true);
             setSize(200, 200);
             setUpUI();
         }

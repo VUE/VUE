@@ -43,7 +43,7 @@ public class LWMap extends LWContainer
         setFont(FONT_DEFAULT);
         manager = new LWPathwayManager();
     }
-
+    
     public LWPathwayManager getPathwayManager(){       
         return manager;
     }

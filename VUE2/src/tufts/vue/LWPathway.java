@@ -30,7 +30,10 @@ public class LWPathway extends tufts.vue.LWComponent
     //private LWPathwayManager manager = null;
     
     /**default constructor used for marshalling*/
-    public LWPathway() {}
+    public LWPathway() {
+        //added by Daisuke
+        elementList = new LinkedList();
+    }
     
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(String label) {
