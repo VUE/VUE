@@ -114,14 +114,11 @@ public class VueResources
 	 * @return String [] the array
 	 **/
 	public static String [] getStringArray(String pLookupKey) {
-		
-		String [] retValue = null;
-		String s = getString( pLookupKey);
-		if( s != null) {
-			retValue = s.split(",");
-			}
-
-		return retValue;
+            String[] retValue = null;
+            String s = getString(pLookupKey);
+            if (s != null)
+                retValue = s.split(",\\s*");
+            return retValue;
 	}
 	
 	/**
