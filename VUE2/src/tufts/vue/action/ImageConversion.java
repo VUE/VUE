@@ -71,44 +71,10 @@ public class ImageConversion extends AbstractAction {
         
         try 
         {
-            /*
-            boolean proceed = true;
-            
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Save JPEG File");
-            //chooser.setFileFilter(new VueFileFilter());
-            
-            if(VueUtil.isCurrentDirectoryPathSet()) 
-                chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        
-            int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-        
-            if (option == JFileChooser.APPROVE_OPTION) {
-                
-                if (chooser.getSelectedFile().exists())
-                {
-                  int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 
-                          "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                  
-                  if (n == JOptionPane.NO_OPTION)
-                      proceed = false;
-                } 
-              */  
-           File selectedFile = ActionUtil.selectFile("jpeg");
+           File selectedFile = ActionUtil.selectFile("Saving JPEG", "jpeg");
            
            if (selectedFile != null)
              {
-                //String fileName = chooser.getSelectedFile().getAbsolutePath();
-                
-                //if it isn't a file name with the right extention 
-                //if (!(fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")))
-                  //fileName += ".jpeg";
-                
-                // if they choose nothing, fileName will be null -- detect & abort
-                
-                //VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-        
-                //up to this point
                 //retrives the current map and gets its size
                 MapViewer currentMap = VUE.getActiveViewer();
                 Dimension size = currentMap.getSize();

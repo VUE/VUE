@@ -50,6 +50,8 @@ public class OpenAction extends AbstractAction
         if (option == JFileChooser.APPROVE_OPTION) {
             fileName = chooser.getSelectedFile().getAbsolutePath();
             VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+            
+            
             VUE.activateWaitCursor();
             try {
                 Vue2DMap loadedMap = loadMap(fileName);

@@ -35,13 +35,13 @@ public class ActionUtil {
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
        It returns the selected file or null if the process didn't */
-    public static File selectFile(String extension)
+    public static File selectFile(String title, String extension)
     {
         File file = null;
         boolean proceed = true;
         
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Selecting a file");
+        chooser.setDialogTitle(title);
         //chooser.setFileFilter(new VueFileFilter());
             
         if(VueUtil.isCurrentDirectoryPathSet()) 

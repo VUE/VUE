@@ -38,7 +38,7 @@ public class SVGConversion extends AbstractAction {
     
     /**A method which converts the given Java graphics into the SVG form and writes the output
        to a given file*/
-    public void createSVG(MapViewer map, String location)
+    public void createSVG(MapViewer map, File location)
     {
         //sets up the document object model
         Document document = new DocumentImpl();
@@ -72,11 +72,10 @@ public class SVGConversion extends AbstractAction {
     }
     
     /**A class which replaces the encoding of the xml to be utf - 8*/
-    public void replaceHeader(String location)
+    public void replaceHeader(File file)
     {
         try
         {
-            File file = new File(location);
             BufferedReader reader = new BufferedReader(new FileReader(file));
                         
             String line, content = null;
@@ -111,46 +110,16 @@ public class SVGConversion extends AbstractAction {
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
         
-        //displays the file chooser so that the user can select the file to save the SVG image into
-        try 
-        {
-            boolean proceed = true; 
-            
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Save SVG File");
-            //chooser.setFileFilter(new VueFileFilter());
-            
-            if(VueUtil.isCurrentDirectoryPathSet()) 
-                chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        
-            int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-        
-            if (option == JFileChooser.APPROVE_OPTION) {
-                
-                if (chooser.getSelectedFile().exists())
-                {
-                  int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 
-                          "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                  
-                  if (n == JOptionPane.NO_OPTION)
-                      proceed = false;
-                } 
-                
-                if (proceed)
-                {
-                    String fileName = chooser.getSelectedFile().getAbsolutePath();
-                    // if they choose nothing, fileName will be null -- detect & abort
-                
-                    //if the file name doesn't have the right extension
-                    if (!fileName.endsWith(".svg"))
-                        fileName += ".svg";
-                
-                     VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-                
-                    //gets the currently selected map
-                    MapViewer currentMap = VUE.getActiveViewer();
-                    createSVG(currentMap, fileName);
-                }
+       //displays the file chooser so that the user can select the file to save the SVG image into
+       try 
+       {
+          File selectedFile = ActionUtil.selectFile("Saving SVG", "svg");
+          
+          if (selectedFile != null)
+            {
+                //gets the currently selected map
+                MapViewer currentMap = VUE.getActiveViewer();
+                createSVG(currentMap, selectedFile);
             }
        }
         
