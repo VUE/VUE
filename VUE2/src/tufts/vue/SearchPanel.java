@@ -79,8 +79,8 @@ public class SearchPanel extends JInternalFrame{
                         
                 
                if (!searchString.equals("")){
-                //resultPanel.invalidate();
-                
+              
+                  //resultPanel.invalidate();
                 VueDragTree tree = new VueDragTree("Google Search Results",searchString);
                 tree.setEditable(true);
                 tree.setRootVisible(false);
@@ -91,8 +91,8 @@ public class SearchPanel extends JInternalFrame{
                 resultPanel.add(ja,BorderLayout.NORTH);
                 resultPanel.add(jsp,BorderLayout.CENTER); 
                     
-                //resultPanel.validate();
-                resultPanel.repaint();
+                resultPanel.revalidate();
+                //resultPanel.repaint();
                 }
                 
             
