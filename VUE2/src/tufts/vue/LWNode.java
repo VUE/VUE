@@ -34,16 +34,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * LWNode.java
  *
- * Draws a view of a Node on a java.awt.Graphics context,
- * and offers code for user interaction.
+ * This is the core graphical object in VUE.
+ * Code needs cleanup: particularly the internal layout of the node.
  *
  * @author Scott Fraize
- * @version 3/10/03
+ * @version 6/16/04
  */
 public class LWNode extends LWContainer
-    implements Node
 {
     public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
     public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
@@ -51,66 +49,8 @@ public class LWNode extends LWContainer
     public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
     public static final Font  DEFAULT_TEXT_FONT = VueResources.getFont("text.font");
     
-    //------------------------------------------------------------------
-    // Constants affecting the internal layout of nodes & any children
-    //------------------------------------------------------------------
+    /** how much smaller children are than their immediately enclosing parent (is cumulative) */
     static final float ChildScale = VueResources.getInt("node.child.scale", 75) / 100f;
-
-    private static final boolean AlwaysShowIcon = false;
-        
-    private static final int EdgePadY = 3;
-    private static final int PadTop = EdgePadY;
-
-    private static final int IconGutterWidth = 26;
-
-    private static final int IconPadLeft = 2;
-    private static final int IconPadRight = 0;
-    private static final int IconWidth = IconGutterWidth - IconPadLeft; // 22 is min width that will fit "www" in our icon font
-    private static final int IconHeight = 12;
-    
-    //private static final int IconPadRight = 4;
-    private static final int IconMargin = IconPadLeft + IconWidth + IconPadRight;
-    /** this is the descent of the closed icon down below the divider line */
-    private static final float IconDescent = IconHeight / 3f;
-    /** this is the rise of the closed icon above the divider line */
-    private static final float IconAscent = IconHeight - IconDescent;
-    private static final int IconPadBottom = (int) IconAscent;
-    private static final int IconMinY = IconPadLeft;
-
-    private static final int LabelPadLeft = 6; // distance to right of iconMargin dividerLine
-    private static final int LabelPadX = LabelPadLeft;
-    private static final int LabelPadY = EdgePadY;
-    private static final int LabelPositionXWhenIconShowing = IconMargin + LabelPadLeft;
-
-    // TODO: need to multiply all these by ChildScale (huh?)
-    
-    private static final int ChildOffsetX = IconMargin + LabelPadLeft; // X offset of children when icon showing
-    private static final int ChildOffsetY = 4; // how far children down from bottom of label divider line
-    private static final int ChildPadY = ChildOffsetY;
-    private static final int ChildPadX = 5; // min space at left/right of children
-    private static final int ChildVerticalGap = 3; // vertical space between children
-    private static final int ChildHorizontalGap = 3; // horizontal space between children
-    private static final int ChildrenPadBottom = ChildPadX - ChildVerticalGap; // make same as space at right
-    //    private static final int ChildrenPadBottom = 3; // space at bottom after all children
-    
-    
-    private static final float DividerStubAscent = IconDescent;
-    
-    // at some zooms (some of the more "irregular" ones), we get huge
-    // understatement errors from java in computing the width of some
-    // font strings, so this pad needs to be big enough to compensate
-    // for the error in the worst case, which we're guessing at here
-    // based on a small set of random test cases.
-    //private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
-    private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
-    // put back to constant??  Also TODO: Text nodes left-aligned, not centered, and for real disallow BG color.
-    //private static final float TextWidthFudgeFactor = 1;
-    //private static final int DividerStubPadX = TextWidthFudgeAmount;
-
-    private static final int MarginLinePadY = 5;
-    private static final int IconPillarPadY = MarginLinePadY;
-    private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
-    
 
     
     //------------------------------------------------------------------
@@ -119,25 +59,20 @@ public class LWNode extends LWContainer
     
     protected RectangularShape drawnShape; // 0 based, not scaled
     protected RectangularShape boundsShape; // map based, scaled, used for computing hits
-    //protected NodeShape nodeShape;
-    //protected boolean equalAspect = false;
-    //todo: could collapse all of the above into NodeShape if we want to resurrect it
-    
-    private ImageIcon imageIcon = null;
-    private boolean autoSized = true; // compute size from label & children
+    protected boolean autoSized = true; // compute size from label & children
 
-    //private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, IconWidth,IconHeight, 12,12);
-    //private RectangularShape genIcon = new Rectangle2D.Float(0,0, IconWidth,IconHeight);
-    private Line2D dividerUnderline = new Line2D.Float();
-    private Line2D dividerStub = new Line2D.Float();
+    //-----------------------------------------------------------------------------
+    // consider moving all the below stuff into a layout object
+
+    private transient Line2D dividerUnderline = new Line2D.Float();
+    private transient Line2D dividerStub = new Line2D.Float();
 
     private transient boolean mIsRectShape = true;
     //private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
 
-    private Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
-    
-    private Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
-    private Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
+    private transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
+    private transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
+    private transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
 
 
     private transient LWIcon.Block mIconBlock =
@@ -337,8 +272,8 @@ public class LWNode extends LWContainer
         return true;
     }
 
-    public void setIcon(javax.swing.ImageIcon icon) {}
-    public javax.swing.ImageIcon getIcon() { return null; }
+    //public void setIcon(javax.swing.ImageIcon icon) {}
+    //public javax.swing.ImageIcon getIcon() { return null; }
     
     
     public void setIsTextNode(boolean asText) {
@@ -536,15 +471,7 @@ public class LWNode extends LWContainer
         // the center of the object, which wouldn't be perfect
         // but would be reasonable.
     }
-    
-    void setImage(Image image)
-    {
-        // experimental
-        imageIcon = new ImageIcon(image, "Image Description");
-        setAutoSized(false);
-        setShape(new Rectangle2D.Float());
-        setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-    }
+
 
     public void addChildren(Iterator i)
     {
@@ -1632,10 +1559,6 @@ public class LWNode extends LWContainer
     private void drawNodeDecorations(DrawContext dc)
     {
         Graphics2D g = dc.g;
-        //float iconWidth = IconWidth;
-        //float iconHeight = IconHeight;
-        //float iconX = iconPillarX;
-        //float iconY = iconPillarY;
 
         if (DEBUG.BOXES && mIsRectShape) {
             //-------------------------------------------------------
@@ -1652,8 +1575,8 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
 
         if (iconShowing()) {
-            Color renderFill = getRenderFillColor();
-            Color marginColor;
+            final Color renderFill = getRenderFillColor();
+            final Color marginColor;
             if (renderFill != null) {
                 if (renderFill.equals(Color.black))
                     marginColor = Color.darkGray;
@@ -1669,197 +1592,78 @@ public class LWNode extends LWContainer
             mIconBlock.draw(dc);
         }
     }
+
+
+    // experimental
+    private transient ImageIcon imageIcon = null;
+    // experimental
+    void setImage(Image image)
+    {
+        imageIcon = new ImageIcon(image, "Image Description");
+        setAutoSized(false);
+        setShape(new Rectangle2D.Float());
+        setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
+    }
+
+    //------------------------------------------------------------------
+    // Constants for layout of the visible objects in a node
+    // (label, icons & children, etc)
+    //------------------------------------------------------------------
+
+    private static final boolean AlwaysShowIcon = false;
+        
+    private static final int EdgePadY = 3;
+    private static final int PadTop = EdgePadY;
+
+    private static final int IconGutterWidth = 26;
+
+    private static final int IconPadLeft = 2;
+    private static final int IconPadRight = 0;
+    private static final int IconWidth = IconGutterWidth - IconPadLeft; // 22 is min width that will fit "www" in our icon font
+    private static final int IconHeight = 12;
+    
+    //private static final int IconPadRight = 4;
+    private static final int IconMargin = IconPadLeft + IconWidth + IconPadRight;
+    /** this is the descent of the closed icon down below the divider line */
+    private static final float IconDescent = IconHeight / 3f;
+    /** this is the rise of the closed icon above the divider line */
+    private static final float IconAscent = IconHeight - IconDescent;
+    private static final int IconPadBottom = (int) IconAscent;
+    private static final int IconMinY = IconPadLeft;
+
+    private static final int LabelPadLeft = 6; // distance to right of iconMargin dividerLine
+    private static final int LabelPadX = LabelPadLeft;
+    private static final int LabelPadY = EdgePadY;
+    private static final int LabelPositionXWhenIconShowing = IconMargin + LabelPadLeft;
+
+    // TODO: need to multiply all these by ChildScale (huh?)
+    
+    private static final int ChildOffsetX = IconMargin + LabelPadLeft; // X offset of children when icon showing
+    private static final int ChildOffsetY = 4; // how far children down from bottom of label divider line
+    private static final int ChildPadY = ChildOffsetY;
+    private static final int ChildPadX = 5; // min space at left/right of children
+    private static final int ChildVerticalGap = 3; // vertical space between children
+    private static final int ChildHorizontalGap = 3; // horizontal space between children
+    private static final int ChildrenPadBottom = ChildPadX - ChildVerticalGap; // make same as space at right
+    //    private static final int ChildrenPadBottom = 3; // space at bottom after all children
+    
+    
+    private static final float DividerStubAscent = IconDescent;
+    
+    // at some zooms (some of the more "irregular" ones), we get huge
+    // understatement errors from java in computing the width of some
+    // font strings, so this pad needs to be big enough to compensate
+    // for the error in the worst case, which we're guessing at here
+    // based on a small set of random test cases.
+    //private static final float TextWidthFudgeFactor = 1 + 0.1f; // 10% fudge
+    private static final float TextWidthFudgeFactor = 1; // off for debugging (Almost uneeded in new Mac JVM's)
+    // put back to constant??  Also TODO: Text nodes left-aligned, not centered, and for real disallow BG color.
+    //private static final float TextWidthFudgeFactor = 1;
+    //private static final int DividerStubPadX = TextWidthFudgeAmount;
+
+    private static final int MarginLinePadY = 5;
+    private static final int IconPillarPadY = MarginLinePadY;
+    private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
+    
 }
 
-
-
-    
-
-    /*
-    public NodeShape getNodeShape()
-    {
-        //System.err.println("*** Warning: deprecated use of LWNode.getNodeShape in " + this);
-        //return this.nodeShape;
-        return null;
-    }
-    public void setNodeShape(NodeShape nodeShape)
-    {
-        //System.err.println("*** Warning: deprecated use of LWNode.setNodeShape on " + this);
-        this.nodeShape = nodeShape;
-        this.equalAspect = nodeShape.equalAspect;
-        setShape(nodeShape.getShapeInstance());
-        // todo perf: getShapeInstance is redundant during restores --
-        // a new object was already allocated for us.
-    }
-
-    // TODO: NodeShape is only here at the moment for backward compatability
-    // with old save files.
-    public static class NodeShape {
-        String name;
-        RectangularShape shape;
-        boolean equalAspect;
-
-        private NodeShape(String name, RectangularShape shape, boolean equalAspect)
-        {
-            this.name = name;
-            this.shape = shape;
-            this.equalAspect = equalAspect;
-        }
-        private NodeShape(String name, RectangularShape shape)
-        {
-            this(name, shape, false);
-        }
-
-        // for XML persistance
-        public NodeShape() {}
-
-        public RectangularShape getShape()
-        {
-            return shape;
-        }
-        // for XML persistance 
-        public void setShape(RectangularShape s)
-        {
-            shape = s;
-        }
-        // for XML persistance 
-        public boolean isEqualAspect()
-        {
-            return equalAspect;
-        }
-        // for XML persistance 
-        public void setEqualAspect(boolean tv)
-        {
-            equalAspect = tv;
-        }
-        RectangularShape getShapeInstance()
-        {
-            return (RectangularShape) shape.clone();
-        }
-    }
-
-    // @remove this -- only here for ancient backward compat
-    static final NodeShape StandardShapes[] = {
-        //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
-        new NodeShape("Oval", new Ellipse2D.Float(0,0,10,10)),
-        // todo: convert square & circle do ellipse & rectangle and
-        // then set a "locked aspect ratio" bit on the LWComponent,
-        // that setSize can attend to (and then LWComponent can
-        // store an aspect ration, which will get initialized to 1 in this case).
-        new NodeShape("Circle", new Ellipse2D.Float(0,0,10,10), true),
-        new NodeShape("Square", new Rectangle2D.Float(0,0,10,10), true),
-        new NodeShape("Rectangle", new Rectangle2D.Float(0,0,10,10)),
-        new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 10,10, 20,20)),
-        //new NodeShape("Triangle", new tufts.vue.shape.Triangle2D(0,0, 60,120)),
-        //new NodeShape("Diamond", new tufts.vue.shape.Diamond2D(0,0, 60,60)),
-        new NodeShape("Triangle", new tufts.vue.shape.RectangularPoly2D(3, 0,0, 60,120)),
-        new NodeShape("Diamond", new tufts.vue.shape.RectangularPoly2D(4, 0,0, 120,120)),
-        new NodeShape("Hexagon", new tufts.vue.shape.RectangularPoly2D(5, 0,0, 120,120)),
-        new NodeShape("Pentagon", new tufts.vue.shape.RectangularPoly2D(6, 0,0, 120,120)),
-        new NodeShape("Octagon", new tufts.vue.shape.RectangularPoly2D(8, 0,0, 120,120)),
-
-        // Polygon class not a RectangularShape...
-        //new NodeShape("Poly3", new Polygon(new int[] {0, 10, 20}, new int[] {0, 20, 0}, 3)),
-        //new NodeShape("Parallelogram", null),
-    };
-
-    //private final boolean debug = true;
-    */
-
-
-
-
-
-
-    /*
-    protected void OLD_layoutChildren()
-    {
-        if (!hasChildren())
-            return;
-        //System.out.println("layoutChildren " + this);
-        java.util.Iterator i = getChildIterator();
-        //float y = (relativeLabelY() + PadY) * getScale();
-        // relaveLabelY used to be the BASELINE for the text -- now it's the UL of the label object
-        //float y = (relativeLabelY() + getLabelBox().getHeight() + PadY/2) * getScale();
-        float y = relativeLabelY() + getLabelBox().getHeight();
-        if (genIcon != null)
-            y += genIcon.getHeight() / 2f;
-        y *= getScale();
-        float childX = relativeLabelX() * getScale();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setLocation(getX() + childX, getY() + y);
-            y += c.getHeight();
-            y += ChildVerticalGap * getScale();
-        }
-    }
-    */
-      
-    /*
-    private void setPreferredSize(boolean growOnly)
-    {
-        Dimension s = getLabelBox().getPreferredSize();
-        float width = s.width + PadX;
-        float height = s.height + PadY;
-        
-        if (hasChildren()) {
-            // resize to inclued size of children
-            height += PadY;
-            Rectangle2D childBounds = getAllChildrenBounds();
-            height += childBounds.getHeight();
-            if (width < childBounds.getWidth() + PadX*2)
-                width = (float) childBounds.getWidth() + PadX*2;
-        }
-        if (hasResource) {
-            width += PadX*1.5 + genIcon.getWidth();
-            //height += genIcon.getHeight(); // better match to spec
-            height += genIcon.getHeight() * (2f/3f); //crude for now
-        }
-
-        if (growOnly) {
-            if (this.width > width)
-                width = this.width;
-            if (this.height > height)
-                height = this.height;
-            if (width > this.width || height > this.height)
-                setSizeNoLayout(width, height);
-        } else
-            setSizeNoLayout(width, height);
-    }
-    */
-
-    /*        if (this.width != oldWidth && lastLabel != null &&
-            !(getParent() instanceof LWNode)) // todo: this last test really depends on if parent is laying us out
-        {
-            // on resize, keep the node's center the same
-            setLocation(getX() + (oldWidth - this.width) / 2, getY());
-            }*/
-
-    /*
-    private Rectangle2D getAllChildrenBounds()
-    {
-        // compute bounds based on a vertical stacking layout
-        java.util.Iterator i = getChildIterator();
-        float height = 0;
-        float maxWidth = 0;
-        float width;
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            height += c.getBoundsHeight() + ChildVerticalGap;
-            width = c.getBoundsWidth();
-            //height += c.height + ChildVerticalGap;
-            //width = c.width;
-            if (width > maxWidth)
-                maxWidth = width;
-            
-        }
-        // If WE'RE already scaled, these totals will be off
-        // This is way confusing -- I hope we can
-        // can get rid of this feature soon.
-        height /= getScale();
-        maxWidth /= getScale();
-        return new Rectangle2D.Float(0f, 0f, maxWidth, height);
-    }
-    
-    
-    */
