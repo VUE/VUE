@@ -142,16 +142,7 @@
                 </field>
 	</class>
 
-        <!--
-	<class name="java.awt.PColor">
-		<map-to xml="color"/>
-		<field name="rgb" type="string">
-			<bind-xml name="stringValue" node="attribute"/>
-		</field>
-	</class>
-        -->
 	<!-- FEDORA OBJECTS -->
-        <!--
 	<class name="tufts.dr.fedora.FedoraObject">
 		<map-to xml="object"/>
 		<field name="ID" type="java.lang.String">
@@ -183,5 +174,4 @@
 			<bind-xml matches="*" />
 		</field>
 	</class>
-        -->
 </mapping>
