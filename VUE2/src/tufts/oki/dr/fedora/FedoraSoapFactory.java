@@ -163,6 +163,7 @@ public class FedoraSoapFactory {
                    
             if (methodDefs != null &&  methodDefs.getResultList().length > 0 ){
                     ObjectFields[] fields= methodDefs.getResultList(); 
+                    lSearchCriteria.setResults(fields.length);
                     for(int i=0;i<fields.length;i++) {
                             String title = "No Title";
                             if(fields[i].getTitle() != null) 
@@ -205,6 +206,7 @@ public class FedoraSoapFactory {
             FieldSearchResult methodDefs =    (FieldSearchResult) call.invoke(new Object[] {resField,maxRes,query} );
             if (methodDefs != null){
                     ObjectFields[] fields= methodDefs.getResultList(); 
+                    lSearchCriteria.setResults(fields.length);
                     for(int i=0;i<fields.length;i++) {
                         resultObjects.add(new FedoraObject(dr,fields[i].getPid(),fields[i].getTitle()[0],dr.getAssetType(fields[i].getCModel())));
                     }

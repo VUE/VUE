@@ -33,11 +33,13 @@ import java.util.ArrayList;
 public class DRViewer extends JPanel implements ActionListener,KeyListener {
     
     public static String  FEDORA_MESG = "Problem accessing FEDORA Server.Please redo search";
+    public int countError = 0;
     ConditionsTableModel m_model;
     JTabbedPane tabbedPane;
     JPanel DRSearchResults;
     JPanel DRSearch;
     JPanel DRAdvancedSearch;
+    osid.dr.AssetIterator resultObjectsIterator;
    
     
 
@@ -54,6 +56,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     JButton advancedSearchButton = new JButton();
     JButton nextButton;
     JButton previousButton;
+    JLabel noResultsLabel;
     int count = 0;
     String[] maxReturnItems = { 
             "5",
@@ -257,10 +260,17 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
       */
      
      private void setSearchResultsPanel(JScrollPane jsp) {
+         //noResultsLabel = new JLabel("Search Returned no Results");
+         //noResultsLabel.setFont(VueConstants.MediumFont);
+         //noResultsLabel.setBackground(Color.WHITE);
          nextButton = new JButton("more");
          nextButton.addActionListener(this);
          DRSearchResults.setLayout(new BorderLayout());
          DRSearchResults.add(jsp,BorderLayout.CENTER,0);
+         /**
+         if(searchCriteria.getResults() == 0) 
+            DRSearchResults.add(this.noResultsLabel,BorderLayout.NORTH,0);
+          */
          if(searchCriteria.getToken() != null)
             DRSearchResults.add(nextButton,BorderLayout.SOUTH,0);
          DRSearchResults.validate();
@@ -269,45 +279,56 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
    
      
     private void performSearch() {
-        osid.dr.AssetIterator resultObjectsIterator;
+
         try {
             searchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
             searchCriteria.setKeywords(keywords.getText());
             searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString()); 
+            searchCriteria.setResults(0);
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
             JScrollPane jsp = new JScrollPane(tree);
             setSearchResultsPanel(jsp);
+            countError = 0;
         } catch (Exception ex) {
-            VueUtil.alert(this, FEDORA_MESG,"Search Error");
+            if(countError >5)
+                VueUtil.alert(this, FEDORA_MESG,"Search Error");
+            else {
+                searchButton.doClick();
+                countError++;
+            }
              System.out.println("DRViewer.performSearch :"+ex);
         }
     }
     
     private void performAdvancedSearch() {
-        osid.dr.AssetIterator resultObjectsIterator;
         try {
            
             searchCriteria.setConditions((fedora.server.types.gen.Condition[])m_model.getConditions().toArray(new Condition[0]));
             searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+            searchCriteria.setResults(0);
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); 
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);
             JScrollPane jsp = new JScrollPane(tree);
             setSearchResultsPanel(jsp);
+            countError = 0;
         } catch (Exception ex) {
-            VueUtil.alert(this,FEDORA_MESG,"Search Error");
-            ex.printStackTrace();
+            if(countError > 5)
+                VueUtil.alert(this, FEDORA_MESG,"Search Error");
+            else {
+                searchButton.doClick();
+                countError++;
+            }ex.printStackTrace();
                        
         }
     }
     
     private void performMoreSearch() {
-        osid.dr.AssetIterator resultObjectsIterator;
         try {
             searchCriteria.setSearchOperation(SearchCriteria.RESUME_FIND_OBJECTS);
-
+             searchCriteria.setResults(0);
             resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType);
             VueDragTree tree = new VueDragTree(getAssetResourceIterator(resultObjectsIterator),"Fedora Search Results");
             tree.setRootVisible(false);

@@ -396,7 +396,7 @@ public class MapResource implements Resource {
     }
     
     public Vector getPropertyList() {
-        propertyList = new Vector();
+       propertyList = new Vector();
         Iterator i = mProperties.keySet().iterator();
         while(i.hasNext()) {
             Object object = i.next();
@@ -405,6 +405,7 @@ public class MapResource implements Resource {
             entry.setEntryValue(mProperties.get(object));
             propertyList.add(entry);
         }
+        System.out.println("Property = "+propertyList.size());       
         return propertyList;
     }
     

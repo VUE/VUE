@@ -21,6 +21,7 @@ public class SearchCriteria implements java.io.Serializable {
     private Condition[]  conditions = null;
     private String searchOperation = null; // field to browse through results
     private String token = null; // field to track session(its session id)
+    private int results = 0;
     
     /** Creates a new instance of SearchCriteria */
     public SearchCriteria() {
@@ -63,6 +64,12 @@ public class SearchCriteria implements java.io.Serializable {
     public Condition[] getConditions() {
         return this.conditions;
     }
+    public void setResults(int results) {
+        this.results = results;
+    }
     
+    public int getResults() {
+        return this.results;
+    }
     
 }
