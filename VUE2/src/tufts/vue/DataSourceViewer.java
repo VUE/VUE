@@ -462,6 +462,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             addDataSource(ds3);
             DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
             addDataSource(ds4);
+            DataSource ds5 = new tufts.artifact.DataSource("Artifact");
+            addDataSource(ds5);
             saveDataSourceViewer();
             setActiveDataSource(ds1);
         } catch(Exception ex) {

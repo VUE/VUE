@@ -48,7 +48,7 @@ public class EditDataSourcePanel extends JPanel{
         if (DEBUG.DR) System.out.println("EditDataSourcePanel: setDataSource");
         setDataSource(DataSourceViewer.getActiveDataSource());
         if (DEBUG.DR) System.out.println("EditDataSourcePanel: save data sources?????");
-       // DataSourceViewer.saveDataSourceViewer();
+        DataSourceViewer.saveDataSourceViewer();
     }
     
     public void setDataSource(DataSource dataSource) {
