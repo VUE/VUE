@@ -21,8 +21,9 @@ public class LWPathway extends tufts.vue.LWComponent
     LinkedList nodeList = null;
     private Node currentNode = null;
     int weight = 1;
+    String comment;
     boolean ordered = false;
-    Color borderColor = Color.green;
+    Color borderColor = Color.blue;
     
     public LWPathway() {
         super.setLabel("DEFAULT PATHWAY");
@@ -58,6 +59,9 @@ public class LWPathway extends tufts.vue.LWComponent
             this.addNode(node2);
             this.addNode(node3);
             this.addNode(node4);
+            
+            this.setComment("Testing new notes section with a long string." +
+                "This string needs to be much longer than this.");
         }
     }
    
@@ -218,5 +222,17 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setWeight(int weight) {
         this.weight = weight;
+    }
+    
+    public String getComment(){
+        return comment;
+    }
+    
+    public void setComment(String comment){
+        this.comment = comment;
+    }
+    
+    public void appendComment(String comment){
+        this.comment += comment;
     }
 }
