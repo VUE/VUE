@@ -694,18 +694,9 @@ public class VUE
     private static boolean askSaveIfModified(LWMap map)
     {
         final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
-        // oddly, mac is reversing order of these buttons
-        final Object[] macOrderButtons = { "Cancel", "Don't Save", "Save" };
+        // oddly, mac aqua is reversing order of these buttons
+        final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
         
-        /*
-          int response = JOptionPane.showConfirmDialog(VUE.frame,
-          "'" + map.getLabel() + "' "
-          + "has been modified.  \nSave changes before closing?"
-          + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
-          " Save changes?",
-          JOptionPane.YES_NO_CANCEL_OPTION);
-        */
-
         if (!map.isModified())
             return true;
         
@@ -720,12 +711,12 @@ public class VUE
              JOptionPane.YES_NO_CANCEL_OPTION,
              JOptionPane.QUESTION_MESSAGE,
              null,
-             VueUtil.isMacPlatform() ? macOrderButtons : defaultOrderButtons,
+             VueUtil.isMacAquaLookAndFeel() ? macAquaOrderButtons : defaultOrderButtons,
              "Save"
              );
 
-        if (VueUtil.isMacPlatform())
-            response = (macOrderButtons.length-1) - response;
+        if (VueUtil.isMacAquaLookAndFeel())
+            response = (macAquaOrderButtons.length-1) - response;
 
         if (response == JOptionPane.YES_OPTION) { // Save
             return SaveAction.saveMap(map);
