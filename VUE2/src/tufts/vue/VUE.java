@@ -237,8 +237,7 @@ public class VUE
         String laf = null;
         //laf = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         //laf = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
-        if (debug)
-            laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        //if (debug) laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         try {
             if (laf != null)
                 javax.swing.UIManager.setLookAndFeel(laf);
@@ -306,13 +305,15 @@ public class VUE
 
             //UIManager.getLookAndFeelDefaults().put("ComboBox.foreground", Color.red);
 
-            // this doesn't do anything I can see:
-            if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonBackground", Color.yellow);
+            // this doesn't do anything I can see (it does in windows L&F, but not Metal)
+            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonBackground", Color.yellow);
             // Okay: this works to change selected bg -- the one thing we didn't want to change.
             //UIManager.getLookAndFeelDefaults().put("ComboBox.selectionBackground", Color.white);
 
-            if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonShadow", Color.green);
-            if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonDarkShadow", Color.red);
+            // Effect in Windows L&F, but not metal:
+            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonShadow", Color.green); 
+            // Effect in Windows L&F, but not metal:
+            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonDarkShadow", Color.red);
             
                 
             // Affects tabs but not tab contents background, so looks broken:
@@ -578,6 +579,7 @@ public class VUE
                 LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
                 startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
                 startupMap.setLabel("Welcome");
+                startupMap.markAsSaved();
                 displayMap(startupMap);
             } catch(Exception ex) {
                 VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
@@ -674,12 +676,12 @@ public class VUE
         if (VueUtil.isMacPlatform())
             response = (macOrderButtons.length-1) - response;
 
-        if (response == JOptionPane.YES_OPTION) {
+        if (response == JOptionPane.YES_OPTION) { // Save
             return SaveAction.saveMap(map);
-        } else if (response == JOptionPane.NO_OPTION) {
+        } else if (response == JOptionPane.NO_OPTION) { // Don't Save
             // don't save -- just close
             return true;
-        } else // anything else
+        } else // anything else (Cancel or dialog window closed)
             return false;
     }
     
