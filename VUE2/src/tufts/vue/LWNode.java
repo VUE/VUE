@@ -28,6 +28,8 @@ public class LWNode extends LWContainer
     static final float ChildScale = 0.75f;   // % scale-down of children
     static final float NODE_DEFAULT_STROKE_WIDTH = 1f;
     static final Color NODE_DEFAULT_STROKE_COLOR = Color.darkGray;
+
+    private static final int SelectionStrokeWidth = 8;
     
     private static final boolean AlwaysShowIcon = false;
         
@@ -115,6 +117,13 @@ public class LWNode extends LWContainer
         this(label, 0, 0, shape);
     }
 
+    public boolean supportsUserLabel() {
+        return true;
+    }
+    public boolean supportsUserResize() {
+        return true;
+    }
+    
     /*
     public LWNode(String label, String shapeName, float x, float y)
     {
@@ -350,21 +359,24 @@ public class LWNode extends LWContainer
     public boolean intersects(Rectangle2D rect)
     {
         final float strokeWidth = getStrokeWidth();
-        if (strokeWidth > 0) {
+        if (strokeWidth > 0 || isSelected()) {
             // todo opt: cache this
             final Rectangle2D.Float r = new Rectangle2D.Float();
             r.setRect(rect);
             
-            // todo: this is a hack -- expanding the test rectangle to
-            // compensate for the border width, but it works
-            // mostly -- only a little off on non-rectangular sides
-            // of shapes.
+            // this isn't so pretty -- expanding the test rectangle to
+            // compensate for the border width, but it works mostly --
+            // only a little off on non-rectangular sides of shapes.
+            // (todo: sharp points are problem too -- e.g, a flat diamond)
             
-            final float adj = strokeWidth / 2;
+            float totalStroke = strokeWidth;
+            if (isSelected())
+                totalStroke += SelectionStrokeWidth;
+            final float adj = totalStroke / 2;
             r.x -= adj;
             r.y -= adj;
-            r.width += strokeWidth;
-            r.height += strokeWidth;
+            r.width += totalStroke;
+            r.height += totalStroke;
             return boundsShape.intersects(r);
         } else
             return boundsShape.intersects(rect);
@@ -645,7 +657,7 @@ public class LWNode extends LWContainer
 
         // todo: handle thru event?
         //if (getParent() != null && (givenWidth != getWidth() || givenHeight != getHeight())) {
-        if (getParent() != null && getParent() instanceof LWNode) {
+        if (getParent() != null && !(getParent() instanceof LWMap)) {
             //new Throwable("LAYING OUT PARENT " + this).printStackTrace();
             getParent().layout();
         }
@@ -889,7 +901,8 @@ public class LWNode extends LWContainer
         
         if (isSelected()) {
             g.setColor(COLOR_HIGHLIGHT);
-            g.setStroke(new BasicStroke(stroke.getLineWidth() + 8));//todo:config
+            g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+            //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
             g.draw(drawnShape);
         }
         
@@ -1245,7 +1258,7 @@ public class LWNode extends LWContainer
 
     public String paramString()
     {
-        return isAutoSized() ? " autoSized" : "";
+        return isAutoSized() ? "" : " userSize";
     }
     
     
