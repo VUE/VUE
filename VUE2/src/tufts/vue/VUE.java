@@ -705,6 +705,7 @@ public class VUE
         LWLink k1 = new LWLink(n1, n2);
         LWLink k2 = new LWLink(n2, n3);
         LWLink k3 = new LWLink(n2, n4);
+        k3.setCurved(true);
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
