@@ -41,7 +41,7 @@ public class LWOutlineView extends ToolWindow implements VUE.ActiveMapListener
     /** Creates a new instance of LWOutlineView */
     public LWOutlineView(JFrame parent) 
     {
-        super("Outline View", parent);
+        super("Outline", parent);
         
         tree = new OutlineViewTree();
         VUE.getSelection().addListener(tree);
