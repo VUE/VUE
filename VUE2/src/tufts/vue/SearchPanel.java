@@ -32,9 +32,9 @@ import org.xml.sax.InputSource;
  */
 public class SearchPanel extends JPanel{
   
-   private static final String searchURL = "http://googlesearch.tufts.edu/search?submit.y=5&site=tufts01&submit.x=11&output=xml_no_dtd&client=tufts01&q=";
-    
-    private static final String  XML_MAPPING = "google.xml";
+   private static  String searchURL;
+    private static java.util.prefs.Preferences prefs;
+    private static String  XML_MAPPING;
     private static String query;
     
     private static int NResults = 10;
@@ -44,32 +44,22 @@ public class SearchPanel extends JPanel{
     private static URL url;
     
     public SearchPanel() {
-      
-        
+        prefs = tufts.vue.VUE.prefs;
+        try {
+            searchURL = prefs.get("url.google","");
+            XML_MAPPING = prefs.get("mapping.google","");
+        }catch(Exception e) { System.out.println("SearchPanel :"+e);}
         this.setLayout(new BorderLayout());
        //Create the query panel and result panel//      
-  
         JPanel queryPanel =  new JPanel();        
-     
-        
         final JPanel resultPanel = new JPanel();
-        
         resultPanel.setLayout(new BorderLayout());
         queryPanel.setLayout(new BorderLayout()); 
-      
-        
         final JTextField queryBox = new JTextField();
-       
-       
         queryPanel.add(queryBox,BorderLayout.NORTH);
- 
-        JButton searchButton = new JButton("Search"); 
-       
-        searchButton.setPreferredSize(new Dimension(100,30));
-        
+        JButton searchButton = new JButton("Search");     
+        searchButton.setPreferredSize(new Dimension(100,30));      
         queryPanel.add(searchButton,BorderLayout.SOUTH);
-       
-       
         this.add(queryPanel,BorderLayout.NORTH);
         this.add(resultPanel,BorderLayout.CENTER);
 
@@ -124,9 +114,7 @@ public class SearchPanel extends JPanel{
                     
                 resultPanel.revalidate();  
         } catch (Exception ex) {}
-        
-           
-              
+ 
                 }
                 
             
@@ -138,11 +126,10 @@ public class SearchPanel extends JPanel{
         
     }
     
-   private static GSP loadGSP(String filename)
-    {
-       
+   private static GSP loadGSP(String filename) {
+  
         try {
-            Unmarshaller unmarshaller = getUnmarshaller();
+           Unmarshaller unmarshaller = getUnmarshaller();
            unmarshaller.setValidation(false);
            GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource(new FileReader(filename)));
             return gsp;
@@ -184,8 +171,8 @@ public class SearchPanel extends JPanel{
                 mapping.loadMapping(XML_MAPPING);
                 unmarshaller.setMapping(mapping);
             } catch (Exception e) {
-                System.err.println("getUnmarshaller: " + e);
-            }
+                System.out.println("getUnmarshaller: " + XML_MAPPING+e);
+           }
         }
         return unmarshaller;
     }
