@@ -659,10 +659,12 @@ public class LWPathway extends LWContainer
     private static float dash_length = 4;
     private static float dash_phase = 0;
 
+    public static final int PathwayStrokeWidth = 8; // technically, this is half the stroke, but it's the visible stroke
+
     /** for drawing just before the component draw's itself -- this is a draw-under */
     public void drawComponentDecorations(DrawContext dc, LWComponent c)
     {
-        int strokeWidth = 4;
+        int strokeWidth = PathwayStrokeWidth;
         boolean selected = (getCurrent() == c && VUE.getActivePathway() == this);
 
         // because we're drawing under the object, only half of the
@@ -672,9 +674,7 @@ public class LWPathway extends LWContainer
         // them.
         
         if (c instanceof LWLink)
-            ;//strokeWidth -= 2;
-        else
-            strokeWidth *= 2;
+            strokeWidth /= 2;
         
         if (selected)
             dc.g.setComposite(PathSelectedTranslucence);

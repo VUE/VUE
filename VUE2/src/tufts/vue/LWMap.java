@@ -455,7 +455,7 @@ public class LWMap extends LWContainer
         }
         mCachedBounds = null;
         // consider flushing bounds if layout() called also (any child layout bubbles up to us)
-        // todo pref: should be safe to only do this if a size, location or scale event 
+        // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
         String what = e.getWhat();
         if (what != LWKey.Repaint && what != LWKey.Scale) {
             // repaint is for non-permanent changes.
@@ -504,15 +504,19 @@ public class LWMap extends LWContainer
      */
     public static Rectangle2D getBounds(java.util.Iterator i)
     {
-        Rectangle2D rect = new Rectangle2D.Float();
+        Rectangle2D rect = null;
 
-        if (i.hasNext()) {
-            
-            rect.setRect(((LWComponent)i.next()).getBounds());
-            while (i.hasNext())
-                rect.add(((LWComponent)i.next()).getBounds());
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.isDrawn()) {
+                if (rect == null) {
+                    rect = new Rectangle2D.Float();
+                    rect.setRect(c.getBounds());
+                } else
+                    rect.add(c.getBounds());
+            }
         }
-        return rect;
+        return rect == null ? new Rectangle2D.Float() : rect;
     }
     
     /**

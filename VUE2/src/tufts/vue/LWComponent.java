@@ -295,6 +295,16 @@ public class LWComponent
         }
         return false;
     }
+    public boolean inVisiblePathway()
+    {
+        if (pathwayRefs == null)
+            return false;
+        Iterator i = pathwayRefs.iterator();
+        while (i.hasNext())
+            if (((LWPathway)i.next()).isVisible())
+                return true;
+        return false;
+    }
     
     void addPathwayRef(LWPathway p)
     {
@@ -1071,13 +1081,16 @@ public class LWComponent
     {
         // todo opt: cache this object?
         final Rectangle2D.Float b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
-        final float strokeWidth = getStrokeWidth();
+        float strokeWidth = getStrokeWidth();
 
         // we need this adjustment for repaint optimzation to
         // work properly -- would be a bit cleaner to compensate
         // for this in the viewer
         //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
         //    strokeWidth = STROKE_INDICATION.getLineWidth();
+
+        if (inVisiblePathway())
+            strokeWidth += LWPathway.PathwayStrokeWidth;
 
         if (strokeWidth > 0) {
             final float adj = strokeWidth / 2;
