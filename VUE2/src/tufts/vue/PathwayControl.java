@@ -28,6 +28,11 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.util.Iterator;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  *
@@ -50,6 +55,8 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     private final String noPathway = "";
     private final String addPathway = "add a new pathway";
     private final String emptyLabel = "empty";
+    
+    private DisplayAction displayAction = null;
     
     /** Creates a new instance of PathwayControl */
     public PathwayControl() 
@@ -111,6 +118,17 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         
         add(bottomPanel, BorderLayout.SOUTH);
         add(descriptionPanel, BorderLayout.CENTER);
+        
+        /*
+        super.addWindowListener(new WindowAdapter()
+            {
+                public void windowClosing(WindowEvent e) 
+                {
+                    displayAction.setButton(false);
+                }
+            }
+        );
+         */
     }
     
     /* not used at this point
@@ -346,6 +364,14 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             }
         } 
     }
+     
+    public Action getDisplayAction()
+    {
+        if (displayAction == null)
+            displayAction = new DisplayAction("Pathway Control");
+        
+        return (Action)displayAction;
+    }
     
     /**A private class which defines how the combo box should be rendered*/
     private class pathwayRenderer extends BasicComboBoxRenderer 
@@ -440,6 +466,27 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
                 System.out.println("cancel button");
                 dispose();
             }
+        }
+    }
+    
+    private class DisplayAction extends AbstractAction
+    {
+        private AbstractButton aButton;
+        
+        public DisplayAction(String label)
+        {
+            super(label);
+        }
+        
+        public void actionPerformed(ActionEvent e)
+        {
+            aButton = (AbstractButton) e.getSource();
+            setVisible(aButton.isSelected());
+        }
+        
+        public void setButton(boolean state)
+        {
+            aButton.setSelected(state);
         }
     }
 }
