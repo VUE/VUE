@@ -30,7 +30,7 @@ import org.xml.sax.InputSource;
 /** A class which defines utility methods for any of the action class
  */
 public class ActionUtil {
-    final static java.net.URL XML_MAPPING = VUE.CASTOR_XML_MAPPING_RESOURCE;
+    final static java.net.URL XML_MAPPING = tufts.vue.VueResources.getURL("mapping.lw");
     //private static final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     
     /** Creates a new instance of Class */
@@ -210,6 +210,7 @@ public class ActionUtil {
         
         catch (Exception e) 
         {
+            System.err.println("XML_MAPPING ="+XML_MAPPING.getFile());
             System.err.println("ActionUtil.unmarshallMap: " + e);
             e.printStackTrace();
             map = null;
