@@ -139,7 +139,7 @@ public class VueToolbarController
             //if (DEBUG.Enabled) System.out.println("Loading tool class " + className);
             Class toolClass = getClass().getClassLoader().loadClass(className);
 
-            if (DEBUG.Enabled) System.out.println("Loading tool " + pName + " " + toolClass);
+            if (DEBUG.INIT) System.out.println("Loading tool " + pName + " " + toolClass);
             tool = (VueTool) toolClass.newInstance();
 
             // set the tool's properties...
