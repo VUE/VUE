@@ -20,9 +20,8 @@ import java.util.Iterator;
 import java.io.*;
 import java.io.IOException;
 
-import javax.swing.JList;
-import javax.swing.DefaultListModel;
-import javax.swing.DefaultListSelectionModel;
+import javax.swing.*;
+
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -32,28 +31,41 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class DataSourceList extends JList implements DropTargetListener{
 
- DropTarget dropTarget = null;
- static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
-    // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
-    // this existed in 1.3, but apparently went away in 1.4.
-    static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
-    
-    private final int ACCEPTABLE_DROP_TYPES =
+     DropTarget dropTarget = null;
+     static final String MIME_TYPE_MAC_URLN = "application/x-mac-ostype-75726c6e";
+        // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
+        // this existed in 1.3, but apparently went away in 1.4.
+     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+
+     private final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY |
         DnDConstants.ACTION_LINK |
         DnDConstants.ACTION_MOVE;
      private final boolean debug = true;
+     
 
- public DataSourceList(Vector datasources) {
-    super(datasources);
-    
-    this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-    
-    dropTarget = new DropTarget (this,  ACCEPTABLE_DROP_TYPES, this);
-    
-  }
+     public DataSourceList() {
+        super(new DefaultListModel());
+        
 
-  
+        this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+
+        dropTarget = new DropTarget (this,  ACCEPTABLE_DROP_TYPES, this);
+
+    
+         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
+            public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
+                super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
+                setIcon(new PolygonIcon(((DataSource)value).getDisplayColor()));
+                return this;
+            }
+        };
+        this.setCellRenderer(renderer);      
+      }
+     
+     public DefaultListModel getContents() {
+        return (DefaultListModel)getModel();
+     }
 
   public void dragEnter (DropTargetDragEvent e) { }
 

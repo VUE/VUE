@@ -35,38 +35,65 @@ public class DataSource {
     private boolean autoConnect = false;
     
     /** Creates a new instance of DataSource */
+  
     public DataSource() {
     }
     
+    /**  Creates a DataSource given an id, display name, and name. */
     public DataSource(String id,String displayName,String name) {
         this.id = id;
         this.displayName = displayName;
         this.name = name;
         resourceViewer = new JLabel(displayName+" : No Viewer Available");
+        this.displayColor = Color.GRAY;
     }
     
+    /**  Creates a DataSource given an id, display name, name, and type. */
     public DataSource(String id,String displayName,String name,int type){
         this.id = id;
         this.displayName = displayName;
         this.name = name;
+        this.type=type;
+        setViewer();
+    }
+    
+    /**  Creates a DataSource given an id, display name, name, address, user name, password and type. */
+    public DataSource (String id, String displayName, String name, String address, String user, String password, int type) {
+        this(id, displayName, name, type);
+        this.address = address;
+        this.userName = user;
+        this.password = password;
+    }
+    
+    /**
+     *  Intializes resource viewer and colors based on data source type.
+     */
+    private void setViewer () {
         if(type == FAVORITES) {
-            setResourceViewer(new FavoritesWindow(displayName));
-        }else if(type == FILING_LOCAL) {
+            this.resourceViewer = new FavoritesWindow(displayName);
+            this.displayColor = Color.BLUE;
+        }
+        else if(type == FILING_LOCAL) {
             Vector fileVector  = new Vector();
             fileVector.add(new File("C:\\"));
             VueDragTree fileTree = new VueDragTree(fileVector.iterator(),displayName);
             JScrollPane jSP = new JScrollPane(fileTree);   
-            setResourceViewer(jSP);
-        }else if(type== DR_FEDORA) {
-            setResourceViewer(new DRViewer("fedora.conf", id,displayName,displayName));
-        } 
-         else if(type == GOOGLE) {
-             TuftsGoogle jSP = new TuftsGoogle();
-             System.out.println("I am in Google");
-            setResourceViewer(jSP);
+            this.resourceViewer = jSP;
+            this.displayColor = Color.BLACK;
         }
-        else {
-            setResourceViewer(new JLabel(displayName+" : No Viewer Available"));
+        else if (type == FILING_REMOTE) {
+            
+        }
+        else if(type== DR_FEDORA) {
+            this.resourceViewer = new DRViewer("fedora.conf", id,displayName,displayName);
+            this.displayColor = Color.RED;
+        } 
+        else  if (type== GOOGLE) {
+            this.resourceViewer = new TuftsGoogle();
+            this.displayColor = Color.GREEN;
+        } else {
+            this.resourceViewer = new JLabel(displayName+" : No Viewer Available");
+            this.displayColor = Color.GRAY;
         }
     }
     
@@ -75,6 +102,32 @@ public class DataSource {
     }
     public String getDisplayName() {
         return displayName;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    public String getAddress() {
+        return address;
+    }
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+    public String getUserName() {
+        return userName;
+    }
+    public void setPassword(String password)  {
+        this.password = password;
+    }
+    public String getPasword() {
+        return password;
     }
     public void setDisplayColor(Color color) {
         this.displayColor = color;
