@@ -19,6 +19,9 @@ import javax.swing.AbstractButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+
 /**
  *
  * @author  Daisuke Fujiwara
@@ -27,15 +30,18 @@ public class LWHierarchyTree extends InspectorWindow
 {
     private DisplayAction displayAction = null;
     private JTree tree;
+    private HierarchyTreeModel treeModel;
     
     /** Creates a new instance of HierarchyTreeWindow */
     public LWHierarchyTree(JFrame parent) 
     {
         super(parent, "Hierarchy Tree");
-        setSize(500, 100);
+        setSize(500, 300);
         
         tree = new JTree();
+        tree.setModel(null);
         tree.setEditable(true);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addMouseListener
         (
             new MouseAdapter()
@@ -57,7 +63,22 @@ public class LWHierarchyTree extends InspectorWindow
                 }
             }
         );
+        tree.addTreeSelectionListener(
+            new TreeSelectionListener() 
+            {
+                public void valueChanged(TreeSelectionEvent e) 
+                {
+                    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
         
+                    if (treeNode == null) 
+                      return;
+
+                    else
+                      treeModel.setSelectedNode((LWNode)treeNode.getUserObject());
+                }
+            }
+        );
+
         JScrollPane scrollPane = new JScrollPane(tree);
         
         getContentPane().add(scrollPane);
@@ -73,10 +94,10 @@ public class LWHierarchyTree extends InspectorWindow
         );
     }
     
-    public void setTree(DefaultTreeModel model)
+    public void setTree(HierarchyTreeModel treeModel)
     {
-        tree.setModel(model);
-        //fire an event?
+        this.treeModel = treeModel;
+        tree.setModel(treeModel.getModel());
     }
     
     public Action getDisplayAction()

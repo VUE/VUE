@@ -19,6 +19,7 @@ import javax.swing.event.TreeModelEvent;
 public class HierarchyTreeModel implements TreeModelListener
 {
     private DefaultTreeModel model;
+    private LWNode selectedNode = null;
     
     /** Creates a new instance of HierarchyTree */
     public HierarchyTreeModel(LWNode rootNode) 
@@ -30,6 +31,11 @@ public class HierarchyTreeModel implements TreeModelListener
     public DefaultTreeModel getModel()
     {   
         return model;  
+    }
+    
+    public void setSelectedNode(LWNode node)
+    {
+        selectedNode = node;
     }
     
     public DefaultMutableTreeNode setUpHierarchy(LWNode node, LWNode parentNode)
@@ -53,8 +59,6 @@ public class HierarchyTreeModel implements TreeModelListener
     
     public void treeNodesChanged(TreeModelEvent e) 
     {
-        //verify this part
-        
         DefaultMutableTreeNode treeNode;
         treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
         
@@ -65,12 +69,14 @@ public class HierarchyTreeModel implements TreeModelListener
         } 
         
         catch (NullPointerException exc) {}
-
-        //not working
-        LWNode node = (LWNode)treeNode.getUserObject();
-        node.setLabel(treeNode.toString());
         
-        System.out.println("changed to " + node.toString());
+        System.out.println("before " + selectedNode.toString());
+        
+        selectedNode.setLabel(treeNode.getUserObject().toString());
+        
+        System.out.println("changed to " + selectedNode.toString());
+        
+        treeNode.setUserObject(selectedNode);
     }
     
     /**non used portion of the interface*/

@@ -219,7 +219,7 @@ public class LWHierarchyMap extends LWMap
         LWNode newRootNode = (LWNode)nodeHash.get(rootNode);
         
         layout(newRootNode, null);
-        VUE.getHierarchyTree().setTree((new HierarchyTreeModel(newRootNode)).getModel());
+        VUE.getHierarchyTree().setTree(new HierarchyTreeModel(newRootNode));
     }
     
     private class HierarchyData
