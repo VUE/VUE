@@ -254,7 +254,7 @@ public class VueResources
 		System.out.println(pMsg);
 	}
 	
-	static private boolean sDebug = true;
+	static private boolean sDebug = false;
 	
 	static protected void debug( String pStr) {
 		if( sDebug) alert( pStr);
