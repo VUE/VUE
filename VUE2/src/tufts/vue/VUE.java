@@ -373,10 +373,13 @@ public class VUE
                         rightViewer = mMapTabsRight.getSelectedViewer();
 
                     if (multipleMapsVisible()) {
+                        /*
+                          // should be handled by MapVewer.reshape
                         if (leftViewer != null)
                             leftViewer.fireViewerEvent(MapViewerEvent.PAN);
                         if (rightViewer != null)
                             rightViewer.fireViewerEvent(MapViewerEvent.PAN);
+                        */
                     } else {
                         if (leftViewer != null && leftViewer != getActiveViewer()) {
                             if (DEBUG.FOCUS) out("viewerSplit: default focus to " + leftViewer);

@@ -254,7 +254,7 @@ public class PrintAction extends tufts.vue.VueAction
         }
 
         private void out(String s) {
-            System.out.println("PringJob[" + jobName + "] " + s);
+            System.out.println("PrintJob@" + Integer.toHexString(hashCode()) + "[" + jobName + "] " + s);
         }
     }
 
