@@ -240,7 +240,11 @@ public class LWLink extends LWComponent
         list.add(getComponent2());
         return list;
     }
+    
+    /** a links location is always a computed value -- ignore setLocation calls */
+    public void setLocation(float x, float y) {}
 
+    
     /*
     public void X_setLocation(float x, float y)
     {
@@ -271,11 +275,10 @@ public class LWLink extends LWComponent
 
     private void computeShape()
     {
-        float startX, startY, endX, endY, locX, locY;
-        startX = ep1.getCenterX();
-        startY = ep1.getCenterY();
-        endX = ep2.getCenterX();
-        endY = ep2.getCenterY();
+        float startX = ep1.getCenterX();
+        float startY = ep1.getCenterY();
+        float endX = ep2.getCenterX();
+        float endY = ep2.getCenterY();
 
         /*
           // a different way of computing connection
@@ -364,18 +367,19 @@ public class LWLink extends LWComponent
         //if ((ep1.getShape() != null && !ep1.isChild())
         //|| (ep2.getShape() != null && !ep2.isChild())) {
         //if (ep1.getShape() != null || ep2.getShape() != null) {
-        Area clipArea = null;
+
+        if (!viewerCreationLink) {
         if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
             && !(ep1.getShape() == null && ep2.getShape() == null)) {
-            clipArea = new Area(g.getClipBounds());
+            Area clipArea = new Area(g.getClipBounds());
             if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
                 clipArea.subtract(new Area(ep1.getShape()));
             if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
                 clipArea.subtract(new Area(ep2.getShape()));
             g.clip(clipArea);
         }
+        }
 
-        clip = clipArea;
         
         /*
         // temporary: draw hit box
@@ -465,8 +469,12 @@ public class LWLink extends LWComponent
 
     // these two to support a special dynamic link
     // which we use while creating a new link
+    boolean viewerCreationLink = false;
+    // todo: this boolean a hack until we no longer need to use
+    // clip-regions to draw the links
     LWLink(LWComponent ep2)
     {
+        viewerCreationLink = true;
         this.ep2 = ep2;
         setStrokeWidth(2f); //todo config: default link width
     }
