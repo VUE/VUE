@@ -161,17 +161,6 @@ public class LWNode extends LWContainer
         return newNode;
     }
     
-    /** for castor restore only */
-    public LWNode()
-    {
-        setShape(new java.awt.geom.Rectangle2D.Float());
-        //setNodeShape(StandardShapes[3]);
-        setAutoSized(false);
-        //todo: remove this setShape eventually (or change to plain rectangle)
-        // this is only here for temporary backward compat
-        // with saved map files that have no shape information
-    }
-    
     public boolean supportsUserLabel() {
         return true;
     }
@@ -1422,7 +1411,7 @@ public class LWNode extends LWContainer
             float lx = relativeLabelX();
             float ly = relativeLabelY();
             g.translate(lx, ly);
-            if (DEBUG.LAYOUT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
+            //if (DEBUG.LAYOUT) System.out.println("*** " + this + " drawing label at " + lx + "," + ly);
             this.labelBox.draw(dc);
             g.translate(-lx, -ly);
 
@@ -1663,6 +1652,16 @@ public class LWNode extends LWContainer
     private static final int MarginLinePadY = 5;
     private static final int IconPillarPadY = MarginLinePadY;
     private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
+
+
+
+    /** @deprecated - for castor restore only */
+    public LWNode()
+    {
+        setShape(new java.awt.geom.Rectangle2D.Float());
+        setAutoSized(false);
+    }
+    
     
 }
 

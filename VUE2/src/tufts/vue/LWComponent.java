@@ -208,12 +208,13 @@ public class LWComponent
         c.height = this.height;
         c.font = this.font;
         c.scale = this.scale;
+        c.strokeWidth = this.strokeWidth;
+        c.stroke = this.stroke; // cached info only
 
         c.setAutoSized(isAutoSized());
         c.setFillColor(getFillColor());
         c.setTextColor(getTextColor());
         c.setStrokeColor(getStrokeColor());
-        c.setStrokeWidth(getStrokeWidth());
         c.setLabel(this.label); // use setLabel so new TextBox will be created
         
         if (hasResource())
@@ -1065,13 +1066,19 @@ public class LWComponent
         setFrame((float)r.getX(), (float)r.getY(),
                  (float)r.getWidth(), (float)r.getHeight());
     }
-    
+
+
+    /**
+     * Default impl just call's setSize, then setLocation.  You
+     * may want to override if want to constrain in some way,
+     * such as to underlying content (e.g., an image).
+     */
     public void setFrame(float x, float y, float w, float h)
     {
         if (DEBUG.LAYOUT) System.out.println("*** setFrame " + x+","+y + " " + w+"x"+h + " " + this);
 
-        setLocation(x, y);
         setSize(w, h);
+        setLocation(x, y);
 
         /*
         Object old = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
@@ -1081,6 +1088,12 @@ public class LWComponent
         notify(LWKey.Frame, old);
         */
     }
+
+    /** default calls setFrame -- override to provide constraints */
+    public void userSetFrame(float x, float y, float w, float h) {
+        setFrame(x, y, w, h);
+    }
+        
 
     private boolean linkNotificationDisabled = false;
     protected void setLocation0(float x, float y) {
@@ -1105,6 +1118,11 @@ public class LWComponent
     public void setLocation(Point2D p) {
         setLocation((float) p.getX(), (float) p.getY());
     }
+
+    /** default calls setLocation -- override to provide constraints */
+    public void userSetLocation(float x, float y) {
+        setLocation(x, y);
+    }
     
     public void setCenterAt(Point2D p) {
         setLocation((float) p.getX() - getWidth()/2,
@@ -1128,26 +1146,12 @@ public class LWComponent
         return new Point2D.Float(getCenterX(), getCenterY());
     }
     
-    // todo perf: add a setUserSize which does the event notification --
-    // (for use in user drag resize -- and maybe fill-height &
-    // fill-width) special case regular set-size not to do so as so
-    // many actions will end up effecting the size of auto-sized
-    // nodes, and undo actions will be able to guess better about what
-    // important has changed without all those size events to look at
-    // (and they're redundant size events when nodes are auto-sized
-    // anyway, as when reversed the root action (e.g., something that
-    // adds an icon to node an makes bigger) is undo, it will also
-    // re-layout and redo the size.
-    //
-    // OR, we could check auto-sized, tho then will need that property
-    // on LWComponent...
-    
     /** set component to this many pixels in size */
     protected void setSize0(float w, float h)
     {
-        if (this.width == w && this.width == h)
+        if (this.width == w && this.height == h)
             return;
-        if (DEBUG.LAYOUT) out("*** " + this + " setSize0 (LWC)  " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setSize0 (LWC)  " + w + "x" + h);
         this.width = w;
         this.height = h;
     }
@@ -1157,16 +1161,22 @@ public class LWComponent
     {
         if (width == w && height == h)
             return;
-        if (DEBUG.LAYOUT) out("*** " + this + " setSize  (LWC)  " + w + "x" + h);
+        if (DEBUG.LAYOUT) out("*** setSize  (LWC)  " + w + "x" + h);
         Size old = new Size(width, height);
         setSize0(w, h);
-        //if (width == old.width && height == old.height)
-        //    return;
+        if (getParent() != null && !(getParent() instanceof LWMap))
+            getParent().layout();
         updateConnectedLinks();
         if (!isAutoSized())
             notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
+    
+    /** default calls setSize -- override to provide constraints */
+    public void userSetSize(float w, float h) {
+        setSize(w, h);
+    }
+        
     /** set on screen visible component size to this many pixels in size -- used for user set size from
      * GUI interaction -- takes into account any current scale factor
      */
@@ -1199,10 +1209,10 @@ public class LWComponent
     /** for persistance ONLY */
     public void setAbsoluteHeight(float h) { this.height = h; }
     
-    /** return border shape of this object */
+    /** return border shape of this object, with it's location in map coordinates  */
     public Shape getShape()
     {
-        return getBounds();
+        return getShapeBounds();
     }
     /*
     public void setShape(Shape shape)
@@ -1384,6 +1394,26 @@ public class LWComponent
                 path.drawComponentDecorations(dc, this);
         }
         
+    }
+
+    /** if this component is selected and we're not printing, draw a selection indicator */
+    // todo: drawing of selection should be handled by the MapViewer and/or the currently
+    // active tool -- not in the component code
+    protected void drawSelectionDecorations(DrawContext dc) {
+        if (isSelected() && !dc.isPrinting()) {
+            LWPathway p = VUE.getActivePathway();
+            if (p != null && p.isVisible() && p.getCurrent() == this) {
+                // SPECIAL CASE:
+                // as the current element on the current pathway draws a huge
+                // semi-transparent stroke around it, skip drawing our fat 
+                // transparent selection stroke on this node.  So we just
+                // do nothing here.
+            } else {
+                dc.g.setColor(COLOR_HIGHLIGHT);
+                dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+                dc.g.draw(getShape());
+            }
+        }
     }
 
     public void draw(DrawContext dc)

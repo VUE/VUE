@@ -2585,6 +2585,8 @@ public class MapViewer extends javax.swing.JComponent
                 }
             }
             */
+
+            // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
                 
             // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
             // z-order, with the last being on top -- this INCLUDES the full-screen window, so when it get's
@@ -2851,6 +2853,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'F') { DEBUG.FOCUS = !DEBUG.FOCUS; }
                 //else if (c == 'F') { DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF; }
+                else if (c == 'I') { DEBUG.IMAGE = !DEBUG.IMAGE; }
                 else if (c == 'K') { DEBUG.KEYS = !DEBUG.KEYS; }
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
@@ -2968,9 +2971,10 @@ public class MapViewer extends javax.swing.JComponent
                     y = cp.y - SelectionHandleSize/2;
                 }
                 if (screenX >= x-slop &&
-                screenY >= y-slop &&
-                screenX <= x + SelectionHandleSize+slop &&
-                screenY <= y + SelectionHandleSize+slop) {
+                    screenY >= y-slop &&
+                    screenX <= x + SelectionHandleSize+slop &&
+                    screenY <= y + SelectionHandleSize+slop)
+                {
                     clearRollover(); // must do now to make sure bounds are set back to small
                     // TODO URGENT: need to translate map mouse event to location of
                     // control point on shrunken back (regular scale) node -- WHAT A HACK! UGH!

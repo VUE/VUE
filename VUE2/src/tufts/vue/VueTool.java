@@ -101,6 +101,8 @@ public abstract class VueTool extends AbstractAction
     protected HashMap mResourceMap = new HashMap();
 
     protected AbstractButton mLinkedButton;
+
+    private JPanel mToolPanel;
     
     public VueTool() {
         super();
@@ -572,5 +574,16 @@ public abstract class VueTool extends AbstractAction
         VueToolbarController.getController().handleToolSelection(this);
     }
 	
-    public abstract JPanel getContextualPanel();
+    
+    public JPanel getContextualPanel() {
+        if (mToolPanel == null)
+            mToolPanel = createToolPanel();
+        return mToolPanel;
+    }
+    
+    public JPanel createToolPanel() {
+        JPanel p = new JPanel();
+        p.add(new JLabel(getToolName()));
+        return p;
+    }
 }

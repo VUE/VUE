@@ -30,7 +30,7 @@ import java.util.*;
  * as the PathwayTableModel.
  *
  * @author Scott Fraize
- * @version February 20
+ * @version 11/16/04
  *
  */
 
@@ -39,16 +39,43 @@ public class LWPathwayList implements LWComponent.Listener
     private List mPathways = new java.util.ArrayList();
     private LWMap mMap = null;
     private LWPathway mActive = null;
-    //private List mListeners = new java.util.ArrayList();
+    private LWPathway mRevealer = null; // currently active "revealer" pathway, if any
     private LWChangeSupport mChangeSupport = new LWChangeSupport(this);
 
-    /** persistance constructor only */
-    public LWPathwayList() {}
-    
     public LWPathwayList(LWMap map) {
         setMap(map);
         // Always include an untitled example pathway for new maps
         add(new LWPathway(map, "Untitled Pathway"));
+    }
+
+    public LWPathway getRevealer() {
+        return mRevealer;
+    }
+
+    public void setRevealer(LWPathway newRevealer) {
+        if (mRevealer == newRevealer)
+            return;
+        Object old = mRevealer;
+        if (mRevealer != null)
+            mRevealer.setRevealer(false);
+        mRevealer = newRevealer;
+        if (newRevealer != null)
+            newRevealer.setRevealer(true);
+        notify(newRevealer, "pathway.revealer", new Undoable(old) { void undo() { setRevealer((LWPathway)old); }});
+    }
+    
+    public int getRevealerIndex() {
+        return mRevealer == null ? -1 : indexOf(mRevealer);
+    }
+    public void setRevealerIndex(int i) {
+        if (mInRestore)
+            mRevealerIndex = i;
+        else {
+            if (i >= 0 && i < size())
+                mRevealer = (LWPathway) get(i);
+            else
+                mRevealer = null;
+        }
     }
     
     public void setMap(LWMap map){
@@ -71,6 +98,8 @@ public class LWPathwayList implements LWComponent.Listener
         }
         if (mActive == null && mPathways.size() > 0)
             setActivePathway(getFirst());
+        mInRestore = false;
+        setRevealerIndex(mRevealerIndex);
     }
 
     /**
@@ -85,6 +114,15 @@ public class LWPathwayList implements LWComponent.Listener
     public void removeListener(LWComponent.Listener l) {
         mChangeSupport.removeListener(l);
         //mListeners.remove(l);
+    }
+
+    private void notify(LWPathway changingPathway, String propertyKeyName, Object oldValue) {
+        LWCEvent e = new LWCEvent(this, changingPathway, propertyKeyName, oldValue);
+        // dispatch the event to map for it's listeners, particularly an undo manager if present
+        getMap().notifyProxy(e);
+        // dispatch the event to any direct listeners of this LWPathwayList
+        // (such as the Pathway gui code in PathwayTableModel)
+        mChangeSupport.dispatchEvent(e);
     }
 
     public Collection getElementList() {
@@ -102,10 +140,7 @@ public class LWPathwayList implements LWComponent.Listener
     public void setActivePathway(LWPathway pathway) {
         if (mActive != pathway) {
             mActive = pathway;
-            //getMap().notify(this, "pathway.list.active");
-            LWCEvent e = new LWCEvent(this, pathway, "pathway.list.active");
-            getMap().notifyProxy(e);
-            mChangeSupport.dispatchEvent(e);
+            notify(pathway, "pathway.list.active", LWCEvent.NO_OLD_VALUE);
         }
     }
 
@@ -134,13 +169,7 @@ public class LWPathwayList implements LWComponent.Listener
         setActivePathway(p);
         // we don't need to worry about calling removeFromModel on remove, as a created pathway will always
         // be empty by the time we get to undo it's create (because we'll have undone any child add's first).
-        LWCEvent e = new LWCEvent(this, p, "pathway.create", new Undoable(p) { void undo() { remove((LWPathway)old); }} );
-        // dispatch the event to map for it's listeners, particularly an undo manager if present
-        getMap().notifyProxy(e);
-        // dispatch the event to any direct listeners of this LWPathwayList
-        // (such as the Pathway gui code)
-        mChangeSupport.dispatchEvent(e);
-        //LWComponent.dispatchLWCEvent(this, mListeners, e);
+        notify(p, "pathway.create", new Undoable(p) { void undo() { remove((LWPathway)old); }});
         p.addLWCListener(this);
     }
     
@@ -155,24 +184,22 @@ public class LWPathwayList implements LWComponent.Listener
             throw new IllegalStateException(this + " didn't contain " + p + " for removal");
         if (mActive == p)
             setActivePathway(getFirst());
+        if (mRevealer == p)
+            setRevealer(null);
 
-        LWCEvent e = new LWCEvent(this, p, "pathway.delete",
-                                  new Undoable(p) {
-                                      void undo() {
-                                          LWPathway p = (LWPathway) old;
-                                          p.restoreToModel();
-                                          add(p);
-                                      }
-                                  });
-        getMap().notifyProxy(e);
-        mChangeSupport.dispatchEvent(e);
-        //LWComponent.dispatchLWCEvent(this, mListeners, e);
+        notify(p, "pathway.delete",
+               new Undoable(p) {
+                   void undo() {
+                       LWPathway p = (LWPathway) old;
+                       p.restoreToModel();
+                       add(p);
+                   }
+               });
     }
 
     public void LWCChanged(LWCEvent e) {
         //if (DEBUG.PATHWAY) System.out.println(this + " " + e + " REBROADCASTING");
         mChangeSupport.dispatchEvent(e);
-        //LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
     
     public int getCurrentIndex() {
@@ -194,4 +221,13 @@ public class LWPathwayList implements LWComponent.Listener
             + " map=" + (getMap()==null?"null":getMap().getLabel())
             + "]";
     }
+
+    /** @deprecated - persistance constructor only */
+    private transient boolean mInRestore;
+    private transient int mRevealerIndex = -1;
+    public LWPathwayList() {
+        mInRestore = true;
+    }
+    
+    
 }

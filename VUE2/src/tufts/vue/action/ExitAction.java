@@ -86,6 +86,10 @@ public class ExitAction extends AbstractAction {
     private static void saveDataSourceInfo() {
         tufts.vue.DataSourceViewer.saveDataSourceViewer();
         DataSource ds;
+        if (tufts.vue.DataSourceViewer.dataSourceList == null) {
+            System.err.println("ExitAction: saveDataSourceInfo: no dataSourceList");
+            return;
+        }
         ListModel model = tufts.vue.DataSourceViewer.dataSourceList.getModel();
         int i;
         for (i =0 ; i< model.getSize(); i++){

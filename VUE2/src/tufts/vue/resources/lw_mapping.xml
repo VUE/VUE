@@ -219,6 +219,9 @@
 		<field name="currentIndex" type="integer">
 			<bind-xml name="currentPathway" node="attribute" />
 		</field>
+		<field name="revealerIndex" type="integer">
+			<bind-xml name="revealerIndex" node="attribute" />
+		</field>
 		<field name="elementList" collection="collection">
 			<bind-xml name="pathway" />
 		</field>

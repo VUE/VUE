@@ -1307,9 +1307,13 @@ public class VUE
     }
     
     public static void installExampleMap(LWMap map) {
+
         /*
          * create some test nodes & links
          */
+
+        map.addLWC(new LWImage(new MapResource("/Users/sfraize/Desktop/Test Image.jpg"))).setLocation(350, 90);
+        
         LWNode n1 = new LWNode("Google", new MapResource("http://www.google.com/"));
         LWNode n2 = new LWNode("Program Files", new MapResource("C:\\Program Files"));
         LWNode n3 = new LWNode("readme.txt", new MapResource("readme.txt"));
@@ -1333,6 +1337,7 @@ public class VUE
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
+
         // create test pathways
         if (false) {
             // FYI: I dno't think PathwayTableModel will
@@ -1344,7 +1349,6 @@ public class VUE
             p.add(n3);
             map.addPathway(p);
         }
-        
         map.markAsSaved();
         
         /*else if(map.getLabel().equals("Test Nodes")){

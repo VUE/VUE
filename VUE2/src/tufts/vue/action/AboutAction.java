@@ -3,6 +3,7 @@ package tufts.vue.action;
 import tufts.vue.VUE;
 import tufts.vue.VueUtil;
 import tufts.vue.VueResources;
+import tufts.vue.Version;
 
 import java.awt.Window;
 import java.awt.BorderLayout;
@@ -50,7 +51,24 @@ public class AboutAction extends AbstractAction
         JPanel aboutusPanel = new JPanel();
         JLabel spLabel = new JLabel(VueResources.getImageIcon("aboutVue"));
         
-        JLabel jtf = new JLabel("<html> <font color = \"#20316A\"> <br><br>&nbsp;&nbsp;&nbsp;Developed by  Academic Technology <br> &nbsp;&nbsp;&nbsp;Copyright &copy; 2004 Tufts University<br>&nbsp; &nbsp;&nbsp;All Rights Reserved <br><br> &nbsp;&nbsp;&nbsp;Version 0.9+ <br><br>&nbsp;&nbsp;&nbsp;<u> http://vue.tccs.tufts.edu</u><br></font></html>");
+        String debugInfo = "";
+        if (tufts.vue.DEBUG.Enabled)
+            debugInfo = "<br>&nbsp;&nbsp;&nbsp;"
+                + Version.BuildTime + "/"
+                + Version.BuildUser + "/"
+                + Version.BuildPlatform;
+        
+        JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
+                                + "&nbsp;&nbsp;&nbsp;Developed by Tufts Academic Technology<br>"
+                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004 Tufts University<br>"
+                                + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004 MIT University<br>"
+                                + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
+                                + "&nbsp;&nbsp;&nbsp;Version 0.9+ <br>"
+                                + "&nbsp;&nbsp;&nbsp;Built " + Version.BuildDay
+                                + debugInfo
+                                + "<br><br>"
+                                + "&nbsp;&nbsp;&nbsp;<u>http://vue.tccs.tufts.edu</u><br>"
+                                + "</font></html>");
   
         JPanel labelPanel = new JPanel();
         labelPanel.setLayout(new BorderLayout());

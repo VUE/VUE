@@ -24,8 +24,23 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * This class handles the resizing and/or reposition of both single
+ * objects, and selected groups of objects.  If more than one object is selected,
+ * the default is to reposition all the objects in the group as the
+ * the total bounding box of the group is resized, maintaining the relative
+ * spatial relationship of all the objects in the bounding box.
+ * As the box is dragged, this is partially an ad-hoc algorithm, as
+ * the control point being moved is not guarnteed to stay exactly under
+ * the mouse.
+ */
 class ResizeControl implements LWSelection.ControlListener, VueConstants
 {
+    // Note: this code is written with handling groups of objects
+    // together, although it works for single objects.  I say this
+    // because it looks awfully complicated if you're trying to
+    // see how it handles just the single object case.
+ 
     // todo: consider implementing as or optionally as (perhaps
     // depending on shape) a point-transforming resize that instead
     // of setting the bounding box & letting shape handle it,
@@ -155,12 +170,18 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         dragResizeReshape(i,
                           VUE.getSelection().iterator(),
                           scaleX, scaleY,
-                          VUE.getSelection().size() == 1 || e.isAltDown());
+                          VUE.getSelection().size() == 1 || e.isAltDown()); // resize if 1 object selected, or ALT is down, otherwise reposition only
     }
         
+    // Todo: make static methods that can operate on any
+    // collection of lw components (not just selection) so
+    // could generically use this for LWGroup resize also.
+    // (or, if groups really just put everything in the
+    // selection, it would automatically work).
+                    
     /** @param cpi - control point index (which ctrl point is being moved) */
     // todo: consider moving this code to LWGroup so that they can resize
-    private void dragResizeReshape(int cpi, Iterator i, double dScaleX, double dScaleY, boolean reshapeObjects) {
+    private void dragResizeReshape(final int cpi, final Iterator i, final double dScaleX, final double dScaleY, final boolean reshapeObjects) {
         int idx = 0;
         //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
         while (i.hasNext()) {
@@ -170,25 +191,28 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (c.getParent().isSelected()) // skip if our parent also being resized -- race conditions possible
                 continue;
             Rectangle2D.Float c_original_bounds = original_lwc_bounds[idx++];
-            //Rectangle2D.Float c_new_bounds = new Rectangle2D.Float();
-                
+
+            boolean resized = false;
+            boolean repositioned = false;
+            float c_new_width = 0;
+            float c_new_height = 0;
+            float c_new_x = 0;
+            float c_new_y = 0;
+            
             if (c.supportsUserResize() && reshapeObjects) {
                 //-------------------------------------------------------
-                // Resize
+                // Resize -- must be done before any repositioning
                 //-------------------------------------------------------
-                if (DEBUG.LAYOUT) System.out.println("ScaleX=" + dScaleX);
-                if (DEBUG.LAYOUT) System.out.println("ScaleY=" + dScaleY);
-                float c_new_width = (float) (c_original_bounds.width * dScaleX);
-                float c_new_height = (float) (c_original_bounds.height * dScaleY);
-                    
-                c.setAbsoluteSize(c_new_width, c_new_height);
+                if (DEBUG.LAYOUT) System.out.println("dScaleX=" + dScaleX);
+                if (DEBUG.LAYOUT) System.out.println("dScaleY=" + dScaleY);
+                c_new_width = (float) (c_original_bounds.width * dScaleX);
+                c_new_height = (float) (c_original_bounds.height * dScaleY);
+                resized = true;
             }
                 
-            float scaleX = (float) dScaleX;
-            float scaleY = (float) dScaleY;
-                
+            
             //-------------------------------------------------------
-            // Don't try to reposition child nodes -- they're parents
+            // Don't try to reposition child nodes -- their parents
             // handle they're layout.
             //-------------------------------------------------------
             if ((c.getParent() instanceof LWNode) == false) {
@@ -196,84 +220,49 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 // Reposition (todo: needs work in the case of not resizing)
                 //-------------------------------------------------------
                     
-                // Todo: move this class to own file, and make
-                // static methods that can operate on any collection
-                // of lw components (not just selection) so could
-                // generically use this for LWGroup resize also.
-                // (or, if groups really just put everything in
-                // the selection, it would automatically work).
+                float scaleX = (float) dScaleX;
+                float scaleY = (float) dScaleY;
                     
-                    
-                float c_new_x;
-                float c_new_y;
-                    
-                if (reshapeObjects){
-                    // when reshaping, we can adjust the component origin smoothly with the scale
+                if (reshapeObjects) {
+                    // Note: if we're handling a single selected object, reshapeObjects is always true.
+                    // When reshaping, we can adjust the component origin smoothly with the scale
                     // because their lower right edge is also growing with the scale.
                     c_new_x = mNewDraggedBounds.x + (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
                     c_new_y = mNewDraggedBounds.y + (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
                 } else {
                     // when just repositioning, we have to compute the new component positions
                     // based on their lower right corner.
-                    float c_original_lrx = c_original_bounds.x + c_original_bounds.width;
-                    float c_original_lry = c_original_bounds.y + c_original_bounds.height;
-                    float c_new_lrx;
-                    float c_new_lry;
-                    float c_delta_x;
-                    float c_delta_y;
+                    float c_delta_x = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
+                    float c_delta_y = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
                         
-                    if (false&&isRightCtrl(cpi)) {
-                        c_delta_x = (mOriginalGroupLRC_bounds.x - c_original_bounds.x) * scaleX;
-                        c_delta_y = (mOriginalGroupLRC_bounds.y - c_original_bounds.y) * scaleY;
-                        //c_delta_x = (c_original_bounds.x - mOriginalGroupLRC_bounds.x) * scaleX;
-                        //c_delta_y = (c_original_bounds.y - mOriginalGroupLRC_bounds.y) * scaleY;
-                    } else {
-                        c_delta_x = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
-                        c_delta_y = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
-                    }
-                        
-                    //c_delta_x = (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
-                    //c_delta_y = (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
-                        
-                    if (false) {
-                        // this was crap
-                        c_new_lrx = c_original_lrx + c_delta_x;
-                        c_new_lry = c_original_lry + c_delta_y;
-                        //c_new_lrx = mNewDraggedBounds.x + (c_original_lrx - mOriginalGroup_bounds.x) * scaleX;
-                        //c_new_lry = mNewDraggedBounds.y + (c_original_lry - mOriginalGroup_bounds.y) * scaleY;
-                        c_new_x = c_new_lrx - c_original_bounds.width;
-                        c_new_y = c_new_lry - c_original_bounds.height;
-                            
-                        // put back into drag region
-                        c_new_x += mNewDraggedBounds.x;
-                        c_new_y += mNewDraggedBounds.y;
-                    } else {
-                        c_new_x = mNewDraggedBounds.x + c_delta_x;
-                        c_new_y = mNewDraggedBounds.y + c_delta_y;
-                    }
-                        
-                        
-                        
-                    //c_new_x = mNewDraggedBounds.x + (c_original_bounds.x - mOriginalGroup_bounds.x) * scaleX;
-                    //c_new_y = mNewDraggedBounds.y + (c_original_bounds.y - mOriginalGroup_bounds.y) * scaleY;
-                        
-                    // this moves everything as per regular selection drag -- don't think we'll need that here
-                    //c_new_x = c_original_bounds.x + ((float)mapMouseDown.getX() - resize_box.lr.x);
-                    //c_new_y = c_original_bounds.y + ((float)mapMouseDown.getY() - resize_box.lr.y);
+                    c_new_x = mNewDraggedBounds.x + c_delta_x;
+                    c_new_y = mNewDraggedBounds.y + c_delta_y;
                 }
                     
                 if (reshapeObjects){
                     if (isLeftCtrl(cpi)) {
-                        if (c_new_x + c.getWidth() > resize_box.lr.x)
-                            c_new_x = (float) resize_box.lr.x - c.getWidth();
+                        float c_width = resized ? c_new_width * c.getScale() : c.getWidth();
+                        if (c_new_x + c_width > resize_box.lr.x)
+                            c_new_x = (float) resize_box.lr.x - c_width;
                     }
                     if (isTopCtrl(cpi)) {
-                        if (c_new_y + c.getHeight() > resize_box.lr.y)
-                            c_new_y = (float) resize_box.lr.y - c.getHeight();
+                        float c_height = resized ? c_new_height * c.getScale() : c.getHeight();
+                        if (c_new_y + c_height > resize_box.lr.y)
+                            c_new_y = (float) resize_box.lr.y - c_height;
                     }
                 }
-                c.setLocation(c_new_x, c_new_y);
+                repositioned = true;
             }
+
+            if (resized && repositioned)
+                c.userSetFrame(c_new_x, c_new_y, c_new_width / c.getScale(), c_new_height / c.getScale());
+            else if (resized)
+                c.userSetSize(c_new_width / c.getScale(), c_new_height / c.getScale());
+            else if (repositioned)
+                c.userSetLocation(c_new_x, c_new_y);
+            else
+                throw new IllegalStateException("Unhandled dragResizeReshape");
+
         }
     }
         

@@ -21,42 +21,42 @@ package tufts.vue;
 import java.lang.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.event.*;
 
 public class ImageTool extends VueTool
+    implements ChangeListener
 {
     public ImageTool() {
         super();
     }
 
-    public JPanel getContextualPanel() {
+    public JPanel createToolPanel() {
         JPanel p = new JPanel();
+        //JSlider slider = new JSlider(0,359);
+        JSlider slider = new JSlider(-180,180);
+        //slider.setLabelTable(slider.createStandardLabels(45));
+        slider.setMajorTickSpacing(45);
+        slider.setMinorTickSpacing(15);
+        //slider.setPaintLabels(true);
+        slider.setPaintTicks(true);
+        slider.setSnapToTicks(true);
+        slider.setBackground(VueTheme.getToolbarColor());
+        slider.addChangeListener(this);
+        p.add(slider);
         p.add(new JLabel("IMAGE TOOL"));
         return p;
+    }
+
+    public void stateChanged(ChangeEvent e) {
+        JSlider slider = (JSlider) e.getSource();
+        //if (!slider.getValueIsAdjusting())
+        double radians = Math.toRadians(slider.getValue());
+        if (VUE.getSelection().first() instanceof LWImage)
+            ((LWImage)VUE.getSelection().first()).setRotation(radians);
     }
     
     public boolean supportsDraggedSelector(java.awt.event.MouseEvent e) { return true; }
     public boolean supportsSelection() { return true; }
     public boolean hasDecorations() { return true; }
-    
-    /*
-    public boolean handleKeyPressed(java.awt.event.KeyEvent e)  {
-        return false;
-    }
-    
-    public void handleSelection() {
-        
-    }
-
-    private static TextToolPanel sTextToolPanel;
-	
-    static TextToolPanel getTextToolPanel()
-    {
-        if (sTextToolPanel == null)
-            sTextToolPanel = new TextToolPanel();
-        return sTextToolPanel;
-    }
-    
-    
-    */
     
 }

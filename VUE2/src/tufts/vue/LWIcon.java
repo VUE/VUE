@@ -410,7 +410,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             mTextRow.draw(dc.g, xoff, yoff);
 
             // an experiment in semantic zoom
-            if (mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
+            // SansSerif point size 1 MinisculeFont get's garbled on mac
+            if (!VueUtil.isMacPlatform() && mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
                 dc.g.setFont(MinisculeFont);
                 dc.g.setColor(Color.gray);
                 dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));

@@ -296,6 +296,8 @@ public class UndoManager
                 animatedChange((Integer)oldValue);
             else if (oldValue instanceof Float)
                 animatedChange((Float)oldValue);
+            else if (oldValue instanceof Double)
+                animatedChange((Double)oldValue);
             //component.getChangeSupport().setEventsResumed();
         }
 
@@ -327,6 +329,17 @@ public class UndoManager
             
             for (int i = 1; i < segments+1; i++) {
                 value = new Float(curValue.intValue() + inc * i);
+                component.setProperty(propKey, value);
+                repaint();
+            }
+        }
+        private void animatedChange(Double endValue) {
+            Double curValue = (Double) component.getPropertyValue(propKey);
+            final double inc = (endValue.doubleValue() - curValue.doubleValue()) / segments;
+            Double value;
+            
+            for (int i = 1; i < segments+1; i++) {
+                value = new Double(curValue.intValue() + inc * i);
                 component.setProperty(propKey, value);
                 repaint();
             }

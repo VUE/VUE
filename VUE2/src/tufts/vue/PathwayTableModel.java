@@ -45,6 +45,16 @@ public class PathwayTableModel extends DefaultTableModel
     implements VUE.ActiveMapListener, LWComponent.Listener
 {
     private LWMap mMap;
+
+    final static String[] ColumnNames = {"A", "B", "C", "D", "E", "F", "G"};
+
+    public static final int COL_VISIBLE = 0;
+    public static final int COL_COLOR = 1;
+    public static final int COL_OPEN = 2;
+    public static final int COL_LABEL = 3; // Applies to pathway's and pathway members
+    public static final int COL_NOTES = 4; // Applies to pathway's and pathway members
+    public static final int COL_LOCKED = 5;
+    public static final int COL_REVEALER = 6;
     
     public PathwayTableModel()
     {
@@ -72,7 +82,7 @@ public class PathwayTableModel extends DefaultTableModel
             // although if anything in the pathway changes, fire a change event just in case.
             if (DEBUG.PATHWAY) System.out.println(this + " pathway event " + e);
             fireTableDataChanged();
-        } else if (e.getWhat() == LWKey.Label || e.getWhat().startsWith("pathway.")) {
+        } else if (e.getKey() == LWKey.Label || e.getKeyName().startsWith("pathway.")) {
             if (DEBUG.PATHWAY) System.out.println(this + " pathway child event " + e);
             // This means one of the LWComponents in the pathway has changed.
             // We only care about label changes as that's all that's displayed
@@ -94,7 +104,7 @@ public class PathwayTableModel extends DefaultTableModel
         setMap(map);
     }
 
-    private LWPathwayList getPathwayList() {
+    LWPathwayList getPathwayList() {
         return mMap == null ? null : mMap.getPathwayList();
     }
     Iterator getPathwayIterator() {
@@ -213,28 +223,23 @@ public class PathwayTableModel extends DefaultTableModel
     }
 
     public int getColumnCount() {
-        return 6;
+        return ColumnNames.length;
     }
     
     public String getColumnName(int col){
-        switch(col){
-        case 0: return "A";
-        case 1: return "B";
-        case 2: return "C";
-        case 3: return "D";
-        case 4: return "E";
-        case 5: return "F";
-        }
-        return "";
+        return ColumnNames[col];
     }
 
     public Class getColumnClass(int col){
-        if(col == 1)
+        if (col == COL_COLOR)
             return Color.class;
-        else if(col == 0 || col == 2 || col == 4 || col == 5)
+        else if (col == COL_VISIBLE || col == COL_OPEN || col == COL_NOTES || col == COL_LOCKED)
             return ImageIcon.class;
-        else if(col == 3)
+        else if (col == COL_LABEL)
             return Object.class;
+        else if (col == COL_REVEALER)
+            return Boolean.class;
+        //return javax.swing.JLabel.class;
         else
             return null;
     }
@@ -252,7 +257,7 @@ public class PathwayTableModel extends DefaultTableModel
             // away any newlines in the label.
 
             if (getElement(row) instanceof LWPathway)
-                return col == 1 || col == 3;  // if pathway, color & label editable
+                return col == COL_COLOR || col == COL_LABEL || col == COL_REVEALER;
         }
         return false;
     }
@@ -273,13 +278,15 @@ public class PathwayTableModel extends DefaultTableModel
         if (c instanceof LWPathway) {
             LWPathway p = (LWPathway) c;
             try{
-                switch (col){
-                case 0: return new Boolean(p.isVisible());
-                case 1: return p.getStrokeColor();
-                case 2: return new Boolean(p.isOpen());
-                case 3: return p.getDisplayLabel();
-                case 4: return new Boolean(p.hasNotes());
-                case 5: return new Boolean(p.isLocked());
+                switch (col) {
+                case COL_VISIBLE: return new Boolean(p.isVisible());
+                case COL_COLOR: return p.getStrokeColor();
+                case COL_OPEN: return new Boolean(p.isOpen());
+                case COL_LABEL: return p.getDisplayLabel();
+                case COL_NOTES: return new Boolean(p.hasNotes());
+                case COL_LOCKED: return new Boolean(p.isLocked());
+                case COL_REVEALER: return new Boolean(getPathwayList().getRevealer() == p);
+                //case COL_REVEALER: return new Boolean(p.isRevealer());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -301,16 +308,33 @@ public class PathwayTableModel extends DefaultTableModel
         LWComponent c = getElement(row);
         if (c instanceof LWPathway) {
             LWPathway p = (LWPathway) c;
+            boolean bool = false;
+            if (aValue instanceof Boolean)
+                bool = ((Boolean)aValue).booleanValue();
 
-                 if (col == 0) { p.setVisible(!p.isVisible()); }      // not proper
-            else if (col == 1) { p.setStrokeColor((Color)aValue); }     // proper
-            else if (col == 2) { p.setOpen(!p.isOpen()); }              // not proper
-            else if (col == 3) { p.setLabel((String)aValue); }          // proper
-            else if (col == 5) { p.setLocked(!p.isLocked());             // not proper
-                //p.setLocked(((Boolean)aValue).getBooleanValue());     // e.g.: proper
+                 if (col == COL_VISIBLE) { p.setVisible(!p.isVisible()); }        // not proper (must use aValue to be proper)
+            else if (col == COL_COLOR)   { p.setStrokeColor((Color)aValue); }     // proper
+            else if (col == COL_OPEN)    { p.setOpen(!p.isOpen()); }              // not proper
+            else if (col == COL_LABEL)   { p.setLabel((String)aValue); }          // proper
+            else if (col == COL_LOCKED)  { p.setLocked(!p.isLocked()); }          // not proper
+            else if (col == COL_REVEALER) {
+                if (bool)
+                    getPathwayList().setRevealer(p);
+                else
+                    getPathwayList().setRevealer(null);
             }
+
+            /*
+            if (col == COL_VISIBLE) { p.setVisible(!bool); }
+            else if (col == COL_COLOR)   { p.setStrokeColor((Color)aValue); }
+            else if (col == COL_OPEN)    { p.setOpen(!bool); }
+            else if (col == COL_LABEL)   { p.setLabel((String)aValue); }
+            else if (col == COL_LOCKED)  { p.setLocked(!bool); }
+            else if (col == COL_REVEALER){ p.setRevealer(bool); }
+            */
+                 
         } else if (c != null) {
-            if (col == 3) c.setLabel((String)aValue);
+            if (col == COL_LABEL) c.setLabel((String)aValue);
         }
         VUE.getUndoManager().mark();
         // all the above sets will trigger LWCEvents, listeneted to by the

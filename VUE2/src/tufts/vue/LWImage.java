@@ -20,26 +20,43 @@ package tufts.vue;
 
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.geom.Point2D;
+import java.awt.Color;
+import java.awt.BasicStroke;
+import java.awt.geom.*;
 import java.awt.AlphaComposite;
 import javax.swing.ImageIcon;
 
+/**
+ * Handle the presentation of an image resource, allowing cropping.
+ */
 public class LWImage extends LWComponent
     implements LWSelection.ControlListener
 {
-    protected ImageIcon imageIcon;
-    protected LWIcon rollover = new LWIcon.Resource(this);
-    private Point offset = new Point();
+    private final static int MinWidth = 10;
+    private final static int MinHeight = 10;
     
+    protected ImageIcon imageIcon;
+    private Point2D.Float offset = new Point2D.Float(); // x & y always <= 0
+    
+    //private LWIcon.Resource resourceIcon = new LWIcon.Resource(this);
+    private transient LWIcon.Block mIconBlock =
+        new LWIcon.Block(this,
+                         20, 12,
+                         null,
+                         LWIcon.Block.VERTICAL,
+                         LWIcon.Block.COORDINATES_COMPONENT);
+
     public LWImage(Resource r) {
         setResource(r);
     }
 
     public LWComponent duplicate()
     {
-        LWImage lwi = (LWImage) super.duplicate();
-        lwi.setOffset(this.offset);
-        return lwi;
+        // todo: if had list of property keys in object, LWComponent
+        // could handle all the duplicate code.
+        LWImage i = (LWImage) super.duplicate();
+        i.setOffset(this.offset);
+        return i;
     }
     
     public boolean isAutoSized() { return false; }
@@ -68,78 +85,93 @@ public class LWImage extends LWComponent
             if (this.width < 10 && this.height < 10) 
                 setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
         }
+        //resourceIcon.layout();
+        mIconBlock.layout();
+    }
+
+    public void layout() {
+        mIconBlock.layout();
     }
 
 
     /**
-     * Keep image size to integer values as we can't clip throught the middle of a pixel.
+     * Don't let us get bigger than the size of our image, or
+     * smaller than MinWidth/MinHeight.
      */
-    public void setSize(float w, float h) {
-        int width = (int) w;
-        int height = (int) h;
-        if (imageIcon.getIconWidth() < width)
-            width = imageIcon.getIconWidth();
-        if (imageIcon.getIconHeight() < height)
-            height = imageIcon.getIconHeight();
-        if (width < 10)
-            width = 10;
-        if (height < 10)
-            height = 10;
+    public void userSetSize(float width, float height) {
+        if (DEBUG.IMAGE) out("userSetSize0 " + width + "x" + height);
+        if (imageIcon.getIconWidth() + offset.x < width)
+            width = imageIcon.getIconWidth() + offset.x;
+        if (imageIcon.getIconHeight() + offset.y < height)
+            height = imageIcon.getIconHeight() + offset.y;
+        if (width < MinWidth)
+            width = MinWidth;
+        if (height < MinHeight)
+            height = MinHeight;
+        if (DEBUG.IMAGE) out("userSetSize1 " + width + "x" + height);
         super.setSize(width, height);
     }
 
-    /** for castor restore only */
-    public LWImage() {}
+    /* @param r - requested LWImage frame in map coordinates */
+    //private void constrainFrameToImage(Rectangle2D.Float r) {}
 
-    private final String Key_ImageOffset = "image.pan";
-
-    public void setProperty(final Object key, Object val)
+    /**
+     * When user changes a frame on the image, if the location changes,
+     * attempt to keep our content image in the same place (e.g., make
+     * it look like we're just moving a the clip-region, if the LWImage
+     * is smaller than the size of the underlying image).
+     */
+    public void userSetFrame(float x, float y, float w, float h)
     {
-        if (key == Key_ImageOffset)
-            setOffset((Point) val);
-        else
-            super.setProperty(key, val);
+        if (DEBUG.IMAGE) out("userSetFrame0 " + VueUtil.out(new Rectangle2D.Float(x, y, w, h)));
+        if (w < MinWidth) {
+            if (x > getX()) // dragging left edge right: hold it back
+                x -= MinWidth - w;
+            w = MinWidth;
+        }
+        if (h < MinHeight) {
+            if (y > getY()) // dragging top edge down: hold it back
+                y -= MinHeight - h;
+            h = MinHeight;
+        }
+        Point2D.Float off = new Point2D.Float(offset.x, offset.y);
+        off.x += getX() - x;
+        off.y += getY() - y;
+        //if (DEBUG.IMAGE) out("tmpoff " + VueUtil.out(off));
+        if (off.x > 0) {
+            x += off.x;
+            w -= off.x;
+            off.x = 0;
+        }
+        if (off.y > 0) {
+            y += off.y;
+            h -= off.y;
+            off.y = 0;
+        }
+        setOffset(off);
+        if (DEBUG.IMAGE) out("userSetFrame1 " + VueUtil.out(new Rectangle2D.Float(x, y, w, h)));
+        userSetSize(w, h);
+        setLocation(x, y);
     }
 
-    public Object getPropertyValue(final Object key)
-    {
-        if (key == Key_ImageOffset)
-            return getOffset();
-        else
-            return super.getPropertyValue(key);
-    }
-    
-    public void setOffset(Point p) {
-        if (p.x == offset.x && p.y == offset.y)
+    public static final Key Key_ImageOffset = new Key("image.pan") {
+            public void setValue(LWComponent c, Object val) { ((LWImage)c).setOffset((Point2D)val); }
+            public Object getValue(LWComponent c) { return ((LWImage)c).getOffset(); }
+        };
+
+    public void setOffset(Point2D p) {
+        if (p.getX() == offset.x && p.getY() == offset.y)
             return;
-        Object oldValue = new Point(offset);
-        this.offset.move(p.x, p.y);
+        Object oldValue = new Point2D.Float(offset.x, offset.y);
+        if (DEBUG.IMAGE) out("LWImage setOffset " + VueUtil.out(p));
+        this.offset.setLocation(p.getX(), p.getY());
         notify(Key_ImageOffset, oldValue);
     }
 
-    public Point getOffset() {
-        return new Point(this.offset);
+    public Point2D getOffset() {
+        return new Point2D.Float(offset.x, offset.y);
     }
     
-    static LWImage testImage() {
-        LWImage i = new LWImage();
-        i.imageIcon = VueResources.getImageIcon("vueIcon32x32");
-        i.setSize(i.imageIcon.getIconWidth(), i.imageIcon.getIconHeight());
-        return i;
-    }
-
-    public void draw(DrawContext dc)
-    {
-        dc.g.translate(getX(), getY());
-        float scale = getScale();
-        if (scale != 1f) dc.g.scale(scale, scale);
-
-        drawImage(dc);
-
-        if (scale != 1f) dc.g.scale(1/scale, 1/scale);
-        dc.g.translate(-getX(), -getY());
-    }
-
     public int getImageWidth() {
         return imageIcon.getIconWidth();
     }
@@ -147,84 +179,199 @@ public class LWImage extends LWComponent
         return imageIcon.getIconHeight();
     }
 
+    static LWImage testImage() {
+        LWImage i = new LWImage();
+        i.imageIcon = VueResources.getImageIcon("vueIcon32x32");
+        i.setSize(i.imageIcon.getIconWidth(), i.imageIcon.getIconHeight());
+        return i;
+    }
+
+    private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
+    public void draw(DrawContext dc)
+    {
+        drawPathwayDecorations(dc);
+        drawSelectionDecorations(dc);
+        
+        dc.g.translate(getX(), getY());
+        float scale = getScale();
+
+        if (scale != 1f) dc.g.scale(scale, scale);
+
+        /*
+        if (getStrokeWidth() > 0) {
+            dc.g.setStroke(new BasicStroke(getStrokeWidth() * 2));
+            dc.g.setColor(getStrokeColor());
+            dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        }
+        */
+
+        drawImage(dc);
+
+        if (getStrokeWidth() > 0) {
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
+            dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        }
+        
+        //resourceIcon.draw(dc);
+        if (isSelected() && !dc.isPrinting()) {
+            dc.g.setComposite(HudTransparency);
+            dc.g.setColor(Color.WHITE);
+            dc.g.fill(mIconBlock);
+            dc.g.setComposite(AlphaComposite.Src);
+            mIconBlock.draw(dc);
+        }
+
+        if (scale != 1f) dc.g.scale(1/scale, 1/scale);
+        dc.g.translate(-getX(), -getY());
+    }
+
+    public static final Key KEY_Rotation = new Key("image.rotation") {
+            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
+            public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
+        };
+    
+    double rotation = 0;
+    public void setRotation(double rad) {
+        Object old = new Double(rotation);
+        this.rotation = rad;
+        notify(KEY_Rotation, old);
+    }
+    public double getRotation() {
+        return rotation;
+    }
+
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
 
-    protected void drawImage(DrawContext dc) {
-        //System.out.println("\tsize " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
-        //setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-
-        //if (isSelected() && !dc.isPrinting()) {
+    protected void drawImage(DrawContext dc)
+    {
+        AffineTransform transform = AffineTransform.getTranslateInstance(offset.x, offset.y);
+        if (rotation != 0)
+            transform.rotate(rotation, getImageWidth() / 2, getImageHeight() / 2);
+        
         if (isSelected() && !dc.isPrinting() && dc.getActiveTool() instanceof ImageTool) {
             dc.g.setComposite(MatteTransparency);
-            imageIcon.paintIcon(null, dc.g, offset.x, offset.y);
+            dc.g.drawImage(imageIcon.getImage(), transform, null);
             dc.g.setComposite(AlphaComposite.Src);
         }
-        dc.g.clipRect(0, 0, (int)getAbsoluteWidth(), (int)getAbsoluteHeight());
-        imageIcon.paintIcon(null, dc.g, offset.x, offset.y);
+        dc.g.setClip(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        //dc.g.clip(new Ellipse2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+        dc.g.drawImage(imageIcon.getImage(), transform, null);
+        dc.g.setClip(null);
     }
 
     public void mouseOver(MapMouseEvent e)
     {
-        //mIconBlock.checkAndHandleMouseOver(e);
+        Rectangle2D tipRegion = getBounds();
+        //e.getViewer().setTip(resourceIcon.getToolTipComponent(), tipRegion, tipRegion);
+        //e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
+        mIconBlock.checkAndHandleMouseOver(e);
     }
 
 
-    private Point offsetStart;
-    private Point2D dragStart;
+    private transient Point2D.Float dragStart;
+    private transient Point2D.Float offsetStart;
+    private transient Point2D.Float imageStart; // absolute map location of 0,0 in the image
+    private transient Point2D.Float locationStart;
     
     /** interface ControlListener handler */
     public void controlPointPressed(int index, MapMouseEvent e)
     {
         //out("control point " + index + " pressed");
-        offsetStart = new Point(offset);
+        offsetStart = new Point2D.Float(offset.x, offset.y);
+        locationStart = new Point2D.Float(getX(), getY());
         dragStart = e.getMapPoint();
+        imageStart = new Point2D.Float(getX() + offset.x, getY() + offset.y);
     }
     
     /** interface ControlListener handler */
     public void controlPointMoved(int index, MapMouseEvent e)
     {
-        //out("control point " + index + " moved");
         if (index == 0) {
-            // todo: isn't handling scaling and/or cume roundoff errors
-            Point off = new Point();
-            off.x = offsetStart.x - (int) (dragStart.getX() - e.getMapX());
-            off.y = offsetStart.y - (int) (dragStart.getY() - e.getMapY());
-            constrainOffset(off);
-            setOffset(off);
+            float deltaX = dragStart.x - e.getMapX();
+            float deltaY = dragStart.y - e.getMapY();
+            Point2D.Float off = new Point2D.Float();
+            if (e.isShiftDown()) {
+                // drag frame around on underlying image
+                // we need to constantly adjust offset to keep
+                // it fixed in absolute map coordinates.
+                Point2D.Float loc = new  Point2D.Float();
+                loc.x = locationStart.x - deltaX;
+                loc.y = locationStart.y - deltaY;
+                off.x = offsetStart.x + deltaX;
+                off.y = offsetStart.y + deltaY;
+                constrainLocationToImage(loc, off);
+                setOffset(off);
+                setLocation(loc);
+            } else {
+                // drag underlying image around within frame
+                off.x = offsetStart.x - deltaX;
+                off.y = offsetStart.y - deltaY;
+                constrainOffset(off);
+                setOffset(off);
+            }
         } else
             throw new IllegalArgumentException(this + " no such control point");
 
     }
 
-    /** keep LWImage filled with image bits (never display "area" outside of the image) */
-    private void constrainOffset(Point p)
+    /** Keep LWImage filled with image bits (never display "area" outside of the image) */
+    private void constrainOffset(Point2D.Float off)
     {
-        if (p.x > 0)
-            p.x = 0;
-        if (p.y > 0)
-            p.y = 0;
-        if (p.x + getImageWidth() < getAbsoluteWidth())
-            p.x = (int) getAbsoluteWidth() - getImageWidth();
-        if (p.y + getImageHeight() < getAbsoluteHeight())
-            p.y = (int) getAbsoluteHeight() - getImageHeight();
+        if (off.x > 0)
+            off.x = 0;
+        if (off.y > 0)
+            off.y = 0;
+        if (off.x + getImageWidth() < getAbsoluteWidth())
+            off.x = getAbsoluteWidth() - getImageWidth();
+        if (off.y + getImageHeight() < getAbsoluteHeight())
+            off.y = getAbsoluteHeight() - getImageHeight();
+    }
+    
+    /** Keep LWImage filled with image bits (never display "area" outside of the image)
+     * Used for constraining the clipped region to the underlying image, which we keep
+     * fixed at an absolute map location in this constraint. */
+    private void constrainLocationToImage(Point2D.Float loc, Point2D.Float off)
+    {
+        if (off.x > 0) {
+            loc.x += offset.x;
+            off.x = 0;
+        }
+        if (off.y > 0) {
+            loc.y += offset.y;
+            off.y = 0;
+        }
+        // absolute image image location should never change from imageStart
+        // Keep us from panning beyond top or left
+        Point2D.Float image = new Point2D.Float(loc.x + off.x, loc.y + off.y);
+        if (image.x < imageStart.x) {
+            //System.out.println("home left");
+            loc.x = imageStart.x;
+            off.x = 0;
+        }
+        if (image.y < imageStart.y) {
+            //System.out.println("home top");
+            loc.y = imageStart.y;
+            off.y = 0;
+        }
+        // Keep us from panning beyond right or bottom
+        if (getImageWidth() + off.x < getAbsoluteWidth()) {
+            //System.out.println("out right");
+            loc.x = (imageStart.x + getImageWidth()) - getAbsoluteWidth();
+            off.x = getAbsoluteWidth() - getImageWidth();
+        }
+        if (getImageHeight() + off.y < getAbsoluteHeight()) {
+            //System.out.println("out bot");
+            loc.y = (imageStart.y + getImageHeight()) - getAbsoluteHeight();
+            off.y = getAbsoluteHeight() - getImageHeight();
+        }
+
     }
 
     /** interface ControlListener handler */
     public void controlPointDropped(int index, MapMouseEvent e)
     {
-        out("control point " + index + " dropped");
-        /*
-        LWComponent dropTarget = e.getViewer().getIndication();
-        // TODO BUG: above doesn't work if everything is selected
-        if (DEBUG.MOUSE) System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
-        if (dropTarget != null) {
-            if (index == 0 && ep1 == null && ep2 != dropTarget)
-                setComponent1(dropTarget);
-            else if (index == 1 && ep2 == null && ep1 != dropTarget)
-                setComponent2(dropTarget);
-            // todo: ensure paint sequence same as LinkTool.makeLink
-        }
-            */
+        if (DEBUG.IMAGE) out("control point " + index + " dropped");
     }
 
 
@@ -236,4 +383,8 @@ public class LWImage extends LWComponent
         controlPoints[0].setColor(null); // no fill (transparent)
         return controlPoints;
     }
+
+
+    /** @deprecated - for castor restore only */
+    public LWImage() {}
 }

@@ -58,6 +58,7 @@ public class VuePropertyManager extends PropertyEditorManager  {
 		mMappers.put("tufts.vue.LWNode", lwcMapper);
 		mMappers.put("tufts.vue.LWLink", lwcMapper);
 		mMappers.put("tufts.vue.LWComponent", lwcMapper);
+		mMappers.put("tufts.vue.LWImage", lwcMapper);
 	}
 	
 	static public VuePropertyManager getManager() {

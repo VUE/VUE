@@ -29,7 +29,7 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.15 $ / $Date: 2004-11-13 02:34:20 $ -->
+<!-- $Revision: 1.16 $ / $Date: 2004-11-17 20:22:14 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -298,7 +298,7 @@
 
 <!-- ==================== compile Task ================================ -->
 
-  <target name="compile" depends="prepare"
+  <target name="compile" depends="prepare,version"
     description="Compile Java sources using default javac">
     <mkdir dir="${build.class}"/>
     <!-- echo message="lib.home is ${lib.home}"/ -->
@@ -366,6 +366,8 @@
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/vue/**/*.java"/>
       <exclude name="tufts/vue/OsidAsset*.java"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/old/**"/>
     </javac>
 
     </target>
@@ -520,14 +522,35 @@
     </target>
 
     <target name="version">
+      <tstamp/>
+      <echo file="${build.home}/Version.java">
+package tufts.vue;
+public class Version {
+        public static final String BuildDay = "${TODAY}";
+        public static final String BuildTime = "${TSTAMP}";
+        public static final String BuildUser = "${user.name}";
+        public static final String BuildPlatform = "${os.name} ${os.version} ${os.arch}";
+}
+</echo>
+    <javac srcdir="${build.home}" 
+           destdir="${build.class}"
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
+      <include name="Version.java"/>
+    </javac>
+      
+    </target>
+    
+    <target name="versionOld">
       <exec outputproperty="datestr" executable="date">
         <arg value="+%B %e, %Y"/></exec>
       <buildnumber/>
       <echo file="version.java">
 package tufts.vue;
 class Version {
-        static final String version="0.2";
         static final String buildDay = "${datestr}";
+        static final String buildTime = "${datestr}";
         static final String buildNumber = "${build.number}";
 }
       </echo>

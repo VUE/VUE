@@ -498,9 +498,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     }
     
     public static void saveDataSourceViewer() {
+        if (dataSourceList == null) {
+            System.err.println("DataSourceViewer: No dataSourceList to save.");
+            return;
+        }
+        int size = dataSourceList.getModel().getSize();
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         Vector sDataSources = new Vector();
-        int size = dataSourceList.getModel().getSize();
         for (int i = 0; i< size; i++) {
             Object item = dataSourceList.getModel().getElementAt(i);
             if (DEBUG.DR) System.out.println("saveDataSourceViewer: item " + i + " is " + item.getClass().getName() + "[" + item + "]");

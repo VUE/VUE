@@ -67,10 +67,10 @@ public class PathwayTable extends JTable
     private boolean inTableSelection;
 
     private final boolean showHeaders = true; // sets whether or not table column headers are shown
-    private final int[] colWidths = {20,20,13,100,20,20};
+    private final int[] colWidths = {20,20,13,100,20,20,20};
 
     private final Color selectedColor = VueTheme.getTheme().getTextHighlightColor();
-    
+
     public PathwayTable(PathwayTableModel model) {
         super(model);
 
@@ -104,22 +104,34 @@ public class PathwayTable extends JTable
         this.setDefaultRenderer(Color.class, new ColorRenderer());
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer());
         this.setDefaultRenderer(Object.class, new LabelRenderer());
+        this.setDefaultRenderer(Boolean.class, new BooleanRenderer());
         this.setDefaultEditor(Color.class, new ColorEditor());
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        final String[] colNames = {"A", "B", "C", "D", "E", "F"};
         for (int i = 0; i < colWidths.length; i++){
-            TableColumn col = getColumn(colNames[i]);
-            if (i == 2) col.setMinWidth(colWidths[i]);
-            if (i != 3) col.setMaxWidth(colWidths[i]);
+            TableColumn col = getColumn(PathwayTableModel.ColumnNames[i]);
+            if (i == PathwayTableModel.COL_OPEN)
+                col.setMinWidth(colWidths[i]);
+            if (i != PathwayTableModel.COL_LABEL)
+                col.setMaxWidth(colWidths[i]);
         }
 
         this.getSelectionModel().addListSelectionListener
             (new ListSelectionListener() {
                 public void valueChanged(ListSelectionEvent le) {
                     // this usually happens via mouse click, but also possible via arrow key's moving selected item
-                    ListSelectionModel lsm = (ListSelectionModel)le.getSource();
-                    if (lsm.isSelectionEmpty())
+                    // Note that dragging the mouse over an image icon sends us continuous value change events,
+                    // so ignore events where the model says the value is adjusting, so we only change on the
+                    // final event.  This does have an odd side effect tho: if you click down over one image
+                    // icon, then release over another, only the released over icon get's the change request.
+
+                    if (DEBUG.PATHWAY) {
+                        System.out.println("PathwayTable: valueChanged: " + le);
+                        if (DEBUG.META) new Throwable("PATHWAYVALUECHANGED").printStackTrace();
+                    }
+
+                    ListSelectionModel lsm = (ListSelectionModel) le.getSource();
+                    if (lsm.isSelectionEmpty() || le.getValueIsAdjusting())
                         return;
                 
                     PathwayTableModel tableModel = getTableModel();
@@ -127,7 +139,7 @@ public class PathwayTable extends JTable
                     
                     lastSelectedRow = row;
                     int col = getSelectedColumn();
-                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: selected row "+row+", col "+col);    
+                    if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
                     
                     PathwayTable.this.inTableSelection = true;
                     
@@ -141,15 +153,19 @@ public class PathwayTable extends JTable
                     tableModel.setCurrentPathway(pathway);
                     
                     if (c instanceof LWPathway) {
-                        if (col == 0 || col == 2 || col == 5)
-                            setValueAt(pathway, row, col); // toggle pathway bits: visible, open or locked
+                        if (col == PathwayTableModel.COL_VISIBLE ||
+                            col == PathwayTableModel.COL_OPEN ||
+                            col == PathwayTableModel.COL_LOCKED)
+                        {
+                            // setValue forces a value toggle in these cases
+                            setValueAt(pathway, row, col);
+                        }
                         //pathway.setCurrentIndex(-1);
                     } else {
                         pathway.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
                     }
 
                     PathwayTable.this.inTableSelection = false;
-
                     VUE.getUndoManager().mark();
                 }
                 });
@@ -172,6 +188,19 @@ public class PathwayTable extends JTable
         
         // end of PathwayTable constructor
     }
+
+
+    /*
+    public void changeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
+        System.out.println("Change selection, toggle=" + toggle + " extend=" + extend);
+        try {
+            selectionExtending = extend;
+            super.changeSelection(rowIndex, columnIndex, toggle, extend);
+        } finally {
+            selectionExtending = false;
+        }
+    }
+    */
 
     boolean inTableSelection() {
         return inTableSelection;
@@ -251,6 +280,29 @@ public class PathwayTable extends JTable
                 return null;
         }  
     }
+    private class BooleanRenderer extends JCheckBox implements TableCellRenderer {
+        public BooleanRenderer() {
+            setFocusable(false);
+            setToolTipText("Set as the Revealer");
+        }
+        public java.awt.Component getTableCellRendererComponent(
+                                    JTable table, Object color, 
+                                    boolean isSelected, boolean hasFocus, 
+                                    int row, int col)
+        {
+            LWComponent c = getTableModel().getElement(row);
+            if (c instanceof LWPathway) {
+                LWPathway p = (LWPathway) c;
+                if (p == VUE.getActivePathway())
+                    setBackground(selectedColor);
+                else
+                    setBackground(bgColor);
+                setSelected(getTableModel().getPathwayList().getRevealer() == p);
+                return this;
+            } else
+                return null;
+        }  
+    }
     
     private class LabelRenderer extends DefaultTableCellRenderer {
         
@@ -322,30 +374,36 @@ public class PathwayTable extends JTable
                 if (obj instanceof Boolean)
                     bool = ((Boolean)obj).booleanValue();
                 
-                if (col == 0) {
+                if (col == PathwayTableModel.COL_VISIBLE) {
                     setIcon(bool ? eyeOpen : eyeClosed);
                     setBorder(iconBorder);
-                    setToolTipText("Show/Hide Pathway");
+                    setToolTipText("Show/hide pathway");
                 }
-                else if (col == 2) {
+                else if (col == PathwayTableModel.COL_OPEN) {
                     setIcon(bool ? open : close);
+                    if (bool)
+                        setToolTipText("Hide members");
+                    else
+                        setToolTipText("Show members");
                 }
-                else if (col == 4) {
+                else if (col == PathwayTableModel.COL_NOTES) {
                     setIcon(bool ? notes : null);
                     if (p == VUE.getActivePathway())
                         setBackground(selectedColor);
                     else
                         setBackground(bgColor);
+                    setToolTipText("Has notes");
                 }
-                else if (col == 5) {
+                else if (col == PathwayTableModel.COL_LOCKED) {
                     setIcon(bool ? lock : null);
                     if (p == VUE.getActivePathway())
                         setBackground(selectedColor);
                     else
                         setBackground(bgColor);
+                    setToolTipText("Is locked");
                 }
             } else {
-                if (col == 4 && getTableModel().getPathwayForElementAt(row).getElementNotes(c) != null)
+                if (col == PathwayTableModel.COL_NOTES && getTableModel().getPathwayForElementAt(row).getElementNotes(c) != null)
                     setIcon(notes);
                 else
                     return null;

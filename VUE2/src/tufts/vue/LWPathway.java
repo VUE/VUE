@@ -54,6 +54,7 @@ public class LWPathway extends LWContainer
     private boolean ordered = false;
     private int mCurrentIndex = -1;
     private boolean locked = false;
+    private boolean reveal = false;
     private ArrayList elementPropertyList = new ArrayList();
 
     private transient boolean open = true;
@@ -68,11 +69,6 @@ public class LWPathway extends LWContainer
         new Color(51, 102, 204),
     };
     private static int sColorIndex = 0;
-    
-    /**default constructor used for marshalling*/
-    public LWPathway() {
-        mXMLRestoreUnderway = true;
-    }
 
     LWPathway(String label) {
         this(null, label);
@@ -85,12 +81,19 @@ public class LWPathway extends LWContainer
         setStrokeColor(getNextColor());
     }
 
-    /** is this a "reveal"-way?  Members start hidden and are made visible as you move
-        through the pathway */
-    public boolean isRevealer() {
-        return true;
+    /**
+     * Is this a "reveal"-way?  Members start hidden and are made visible as you move
+     * through the pathway.  This value managed by LWPathwayList, as only one Pathway
+     * per map is allowed to be an revealer at a time.
+     */
+    boolean isRevealer() {
+        return this.reveal;
     }
-
+    void setRevealer(boolean t) {
+        this.reveal = t;
+        updateMemberVisibility();
+    }
+    
     public boolean isDrawn() {
         return !isRevealer() && super.isDrawn();
     }
@@ -122,11 +125,15 @@ public class LWPathway extends LWContainer
         Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (index > mCurrentIndex)
-                c.setVisible(false);
-            else
+            if (isRevealer()) {
+                if (index > mCurrentIndex)
+                    c.setVisible(false);
+                else
+                    c.setVisible(true);
+                index++;
+            } else {
                 c.setVisible(true);
-            index++;
+            }
         }
     }
 
@@ -210,7 +217,7 @@ public class LWPathway extends LWContainer
         if (i >= 0 && VUE.getActivePathway() == this)
             VUE.getSelection().setTo(getElement(i));
         mCurrentIndex = i;
-        if (isRevealer())
+        if (isRevealer() && isVisible())
             updateMemberVisibility();
         notify("pathway.index");
         // Although this property is actually saved, it doesn't seem worthy of having
@@ -803,7 +810,7 @@ public class LWPathway extends LWContainer
         LWComponent last = null;
         Iterator i = this.getElementIterator();
         while (i.hasNext()) {
-            LWComponent c = (LWComponent)i.next();
+            LWComponent c = (LWComponent) i.next();
             if (last != null) {
                 dc.g.setComposite(PathTranslucence);
                 //connector.setLine(last.getCenterPoint(), c.getCenterPoint());
@@ -836,5 +843,12 @@ public class LWPathway extends LWContainer
             + " " + (getMap()==null?"null":getMap().getLabel())
             + "]";
     }
+
+    
+    /** @deprecated - default constructor used for marshalling ONLY */
+    public LWPathway() {
+        mXMLRestoreUnderway = true;
+    }
+
 
 }
