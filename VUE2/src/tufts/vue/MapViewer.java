@@ -4090,26 +4090,33 @@ public class MapViewer extends javax.swing.JComponent
 
     static void installTestMap(LWMap map) {
         // for print testing & scroll testing
-        LWNode origin = new LWNode("ORIGIN", 0,0);
-        origin.setShape(new Rectangle2D.Float());
-        origin.setStrokeWidth(0);
-        origin.setFillColor(Color.darkGray);
-        origin.setTextColor(Color.lightGray);
-        Actions.FontBold.actOn(origin);
-        map.addNode(origin);
-
-
-        LWNode n = new LWNode("LT");
+        LWNode n = new LWNode("+origin");
+        n.setAutoSized(false);
         n.setShape(new Rectangle2D.Float());
         n.setStrokeWidth(0);
-        n.setAutoSized(false);
-        n.setFrame(200,125, 50,50);
+        n.setFrame(0,0, 100,25);
+        n.setFillColor(Color.darkGray);
+        n.setTextColor(Color.lightGray);
+        Actions.FontBold.actOn(n);
+        map.addNode(n);
+
+        /*
+        n = (LWNode) n.duplicate();
+        n.setLabel("-origin");
+        n.setFrame(-100,-25, 100,25);
+        map.addNode(n);
+        */
+
+        n = (LWNode) n.duplicate();
         n.setFillColor(Color.gray);
+        n.setTextColor(Color.black);
+        n.setLabel("UL");
+        n.setFrame(150,100, 50,50);
         map.addNode(n);
 
         n = (LWNode) n.duplicate();
-        n.setLabel("RT");
-        n.setLocation(251,125);
+        n.setLabel("LR");
+        n.setLocation(200,150);
         map.addNode(n);
 
         /*

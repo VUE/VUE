@@ -151,6 +151,7 @@ public class ZoomTool extends VueTool
             // If no user selected zoom focus point, zoom in to
             // towards the map location at the center of the
             // viewport.
+            if (DEBUG.SCROLL) System.out.println("VISIBLE CENTER " + viewer.getVisibleCenter());
             focus = viewer.screenToMapPoint(viewer.getVisibleCenter());
         }
         viewer.setZoomFactor(newZoomFactor, reset, focus);

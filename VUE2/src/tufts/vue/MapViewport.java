@@ -93,6 +93,7 @@ class MapViewport extends JViewport
     }
 
     private void setCanvasSize(Dimension d) {
+        if (DEBUG.SCROLL) out("   setCanvasSize " + out(d));
         setViewSize(d);
         viewer.setPreferredSize(d);
         //viewer.setSize(d);
@@ -108,10 +109,12 @@ class MapViewport extends JViewport
         super.setViewPosition(p);
     }
 
+    /*
     public void setViewPosition(Point2D p) {
         setViewPosition(new Point((int) Math.floor(p.getX() + 0.5),
                                   (int) Math.floor(p.getY() + 0.5)));
     }
+    */
 
     public void setVisibleCanvasCorner(Point2D p) {
         setCanvasPosition(new Point2D.Double(-p.getX(), -p.getY()));
@@ -195,6 +198,7 @@ class MapViewport extends JViewport
                               + " trimNorthWest="+trimNorthWest
                               + " trimSouthEast="+trimSouthEast
                               + " validate="+validate
+                              + " intermediate="+intermediate
                               );
         if (DEBUG.SCROLL) out("  view position: " + out(getViewPosition()));
 
@@ -293,7 +297,7 @@ class MapViewport extends JViewport
             out(" minimum canvas: " + out(minCanvas));
             out("     new canvas: " + out(newCanvas));
         }
-        
+
         setCanvasSize(newCanvas);
         if (validate) {
             // until call validate, calls to setLocation were triggering reshape with old size
@@ -344,10 +348,7 @@ class MapViewport extends JViewport
         }
         */
         
-        if (DEBUG.SCROLL) {
-            out("PAN: setViewPosition " + out(location));
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
+        if (DEBUG.SCROLL) out("PAN: setViewPosition " + out(location));
         
         setCanvasPosition(location, allowGrowth);
         revalidate();
@@ -360,11 +361,8 @@ class MapViewport extends JViewport
     }
     
     private void setCanvasPosition(Point2D p, boolean allowGrowth) {
-        if (DEBUG.SCROLL) {
-            out("setCanvasPosition " + out(p));
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
-
+        if (DEBUG.SCROLL) out("setCanvasPosition " + out(p) + " allowGrowth=" + allowGrowth);
+        
         Dimension canvas = getCanvasSize();
         Dimension view = getSize();
 
@@ -410,6 +408,21 @@ class MapViewport extends JViewport
             grew = true;
         }
 
+        //  this isn't helping.  Why does it work perfectly in our MapViewer:main test,
+        //  but not otherwise?
+        double px = p.getX();
+        double py = p.getY();
+        Point2D.Double decimal = new Point2D.Double();
+        decimal.x = px - (int) px;
+        decimal.y = py - (int) py;
+        if (DEBUG.SCROLL) out("decimal " + decimal);
+        if (decimal.x != 0 || decimal.y != 0) {
+            if (DEBUG.Enabled) out("compensate " + out(decimal));
+            //ox -= decimal.x;
+            //oy -= decimal.y;
+            //moved = true;
+        }
+
         if (allowGrowth) {
             if (grew)
                 setCanvasSize(canvas);
@@ -417,8 +430,11 @@ class MapViewport extends JViewport
                 viewer.setMapOriginOffset(ox, oy);
         }
             
-        p.setLocation(-p.getX(), -p.getY());
-        setViewPosition(p);
+        //p.setLocation(-p.getX(), -p.getY());
+        // todo: as the view position is integer based, this is where we're losing
+        // precision on zoom-outs: will need to compensate for the decimal value
+        // via setMapOriginOffset instead of just truncating it in view position.
+        setViewPosition(new Point(-((int)p.getX()), -((int)p.getY())));
         
         if (DEBUG.SCROLL) out("setCanvasPosition completed");
     }
