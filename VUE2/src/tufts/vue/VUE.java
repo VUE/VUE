@@ -235,7 +235,9 @@ public class VUE
     public static MapViewer getActiveViewer()
     {
         Object c = tabbedPane.getSelectedComponent();
+        
         if(c instanceof JScrollPane){
+            
             String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
             title = title.substring(0, title.length()-4);
             System.out.println("title: " + title);
@@ -244,10 +246,11 @@ public class VUE
                     return (MapViewer) tabbedPane.getComponentAt(i);
                 }
             }
-            JTextPane pane = (JTextPane) c;
-        }//else if(c instanceof MapViewer){
-            return (MapViewer) c;
-        //}
+            
+        }
+        
+        return (MapViewer) c;
+        
     }
     
     public static LWMap getActiveMap()

@@ -460,6 +460,25 @@ public class LWNode extends LWContainer
         // Draw the border if any
         //-------------------------------------------------------
         
+        //get current pathway
+        /*
+        if () {
+            g.setColor(COLOR_INDICATION);
+            if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
+                g.setStroke(STROKE_INDICATION);
+            else
+                g.setStroke(this.stroke);
+            g.draw(drawnShape);
+        } else if (getStrokeWidth() > 0) {
+            g.setColor(getStrokeColor());
+            g.setStroke(this.stroke);
+            g.draw(drawnShape);
+        }*/
+        
+        //-------------------------------------------------------
+        // Draw the indicated border if any, after the pathways border
+        //-------------------------------------------------------
+        
         if (isIndicated()) {
             g.setColor(COLOR_INDICATION);
             if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
