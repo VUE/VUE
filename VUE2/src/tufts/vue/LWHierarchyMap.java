@@ -184,8 +184,7 @@ public class LWHierarchyMap extends LWMap
             int xIncrement = 50 / total;
             int xOffSet = number * xIncrement;
             
-            x = x - 10;
-            
+            x = x - 25 + xOffSet;
             y += 60;
             
             copyNode.setLocation(x, y);
