@@ -91,7 +91,7 @@ public class LWLink extends LWComponent
         setTextColor(COLOR_LINK_LABEL);
         setComponent1(ep1);
         setComponent2(ep2);
-        setStrokeWidth(2f); //todo config: default link width / query LinkTool
+        setStrokeWidth(1f); //todo config: default link width / query LinkTool
         computeLinkEndpoints();
     }
 
@@ -928,17 +928,6 @@ public class LWLink extends LWComponent
         this.centerX = startX - (startX - endX) / 2;
         this.centerY = startY - (startY - endY) / 2;
         
-        // Set our location to the midpoint between
-        // the nodes we're connecting.
-        // todo: as this happens every paint for every link,
-        // make sure we don't raise locations events
-        // (override if we decide we LWComponent's normally
-        // sending location events, which we don't now).
-        //super.setLocation(locX - getWidth()/2,
-        //                locY - getHeight()/2);
-        //todo: eventually have LWComponent setLocation
-        // tell all connected links to recompute themselves...
-
         // We only set the size & location here so LWComponent.getBounds
         // can do something reasonable with us for computing/drawing
         // a selection box, and for LWMap.getBounds in computing entire
@@ -1128,7 +1117,7 @@ public class LWLink extends LWComponent
     }
 
     
-    public void draw(Graphics2D g)
+    public void draw(DrawContext dc)
     {
         if (endpointMoved)
             computeLinkEndpoints();
@@ -1178,6 +1167,8 @@ public class LWLink extends LWComponent
         // Draw the stroke
         //-------------------------------------------------------
 
+        Graphics2D g = dc.g;
+        
         if (isIndicated())
             g.setColor(COLOR_INDICATION);
         else if (isSelected())
@@ -1272,7 +1263,7 @@ public class LWLink extends LWComponent
                 //if (isZoomedFocus()) g.scale(getScale(), getScale());
                 // todo: need to re-center label when this component relative to scale,
                 // and patch contains to understand a scaled label box...
-                textBox.draw(g);
+                textBox.draw(dc);
                 if (isSelected()) {
                     Dimension s = textBox.getSize();
                     g.setColor(COLOR_SELECTION);
