@@ -106,25 +106,42 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             }
         });
 
+        
+           // GRID: addConditionButton
+        JButton refreshButton=new VueButton("refresh");
+        refreshButton.setBackground(this.getBackground());
+        
+        refreshButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+               
+                refreshDataSourceViewer();
+            }
+        });
+        
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));
-        questionLabel.setToolTipText("Add or Delete a Data Source");
+        questionLabel.setToolTipText("Add/Delete/Refresh a Data Source");
         
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
+       
+        
         topPanel.add(addButton);
         //topPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 0);
 
-        topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,0));
+       // topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,0));
         topPanel.add(deleteButton);
+        topPanel.add(refreshButton);
         topPanel.add(questionLabel);
-        topPanel.setMaximumSize(new Dimension(700,15));
+     
         
+       
         JPanel  dataSourcePanel = new JPanel();
         
         dataSourcePanel.setLayout(new BorderLayout());
         dataSourcePanel.add(topPanel,BorderLayout.NORTH);
+        //dataSourcePanel.setMaximumSize(new Dimension(300, 400));
         
-        
+       // System.out.println("size =--" + topPanel.getMaximumSize() + "data" + dataSourcePanel.getMaximumSize() + "res" + resourcesPanel.getMaximumSize());        
 
         JScrollPane jSP = new JScrollPane(dataSourceList);
 
@@ -263,20 +280,20 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         DataSource ds;
         int insertAt = 0,postBreakSpot = 0, preBreakSpot = 0;
         int preExists = 0, postExists = 0;
-        System.out.println("This is stuff"+"fav" + favorites + "rem" + filingremote+"beg" + begIndex);
+        //System.out.println("This is stuff"+"fav" + favorites + "rem" + filingremote+"beg" + begIndex);
         
         try{
             ds = new DataSource("id", displayName, name, searchURL,address, user, password, type);
         }catch (Exception ex){
             
             //VueUtil.alert(VUE.getInstance(),"There was a problem adding this Data Source","DataSource not added");
-            System.out.println("There was a problem adding this Data Source");
+          //  System.out.println("There was a problem adding this Data Source");
             return;
         }
         
         dataSourceChanged = true;
         if (type == DataSource.GOOGLE){
-            System.out.println("I am Search URL " + type +searchURL);
+            //System.out.println("I am Search URL " + type +searchURL);
         }
         
         if (dataSourceList.getModel().getSize() == 0){//only element in the list
@@ -481,7 +498,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
         }
         
-        System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
+        //System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
         
         if (preBreakSpot > 0){
             
@@ -515,7 +532,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         }catch (Exception ex){setActiveDataSource((DataSource)dataSourceList.getContents().getElementAt(0));}
         
         
-        System.out.println("This is stuff at end"+"fav" + favorites + "rem" + filingremote+"fed" +fedora+"goo" + google + "beg"+begIndex);
+       // System.out.println("This is stuff at end"+"fav" + favorites + "rem" + filingremote+"fed" +fedora+"goo" + google + "beg"+begIndex);
         
         
         drBrowser.repaint();
@@ -1066,7 +1083,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JButton okBut = new JButton("Submit");
         okBut.setName("Submit Button");
         //JButton canBut = new JButton ("Cancel");
-        adrField.setEditable(false); // this feature cannot be supported yet.  Once  DR is created it is difficult to change IP and be OKI compliant
+       adrField.setEditable(false); // this feature cannot be supported yet.  Once  DR is created it is difficult to change IP and be OKI compliant
         
         //  Add the gadgets to the Add Panel.
         editPanel.add(dsNameLabel);      //  1:  data source name label.
@@ -1086,7 +1103,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         editPanel.add(blank);            //  13:  blank label.
         editPanel.add(okBut);            //  14:  submit button.
         
-        
+        // System.out.println("This is component 3 " + panel.getComponent(3).getClass()+"---"+panel.getComponent(3)+"===");
+          //       System.out.println("This is component 4 " + panel.getComponent(4).getClass()+"---"+panel.getComponent(4)+"===");
         
         //editPanel.add(canBut);         //  15:  cancel button.
         okBut.addActionListener(new ActionListener() {
@@ -1098,6 +1116,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 
                 
                 JTextField dsNameField = (JTextField) panel.getComponent(1);
+               // JTextField adrField = (JTextField) panel.getComponent(3);
+               
                 JTextField adrField = (JTextField) panel.getComponent(3);
                 JTextField userField = (JTextField) panel.getComponent(5);
                 JTextField pwField = (JTextField) panel.getComponent(7);

@@ -145,7 +145,18 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
         
-      
+        
+      //adding the words Keywords  
+        /*
+          c.gridx = 0;
+          c.gridy = 0;
+          c.gridwidth = 2;
+          c.insets = new Insets(5, 2,2,2);
+          JLabel keyLabel = new JLabel("Enter Keywords");
+          keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+          gridbag.setConstraints(keyLabel,c);
+          DRSearchPanel.add(keyLabel);
+         
     //adding the search box 
         c.gridx=0;
         c.gridy=1;
@@ -156,7 +167,32 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         gridbag.setConstraints(keywords, c);
         DRSearchPanel.add(keywords);
         
+        */
         
+      
+        
+        
+         //adding the label Keywords
+        c.gridx = 0;
+        c.gridy = 1;
+        
+        c.insets = new Insets(10,2,2, 2);
+        JLabel keyLabel = new JLabel("Keywords..");
+        keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        gridbag.setConstraints(keyLabel, c);
+        DRSearchPanel.add(keyLabel);
+        
+        //adding the serch box
+        c.gridx=1;
+        c.gridy=1;
+        c.gridwidth= 2;
+        c.insets = new Insets(10, 2,2, 2);
+        //keywords.setPreferredSize(new Dimension(120,20));
+        keywords.addKeyListener(this);
+        gridbag.setConstraints(keywords, c);
+        DRSearchPanel.add(keywords);
+        
+       
         
       // adding the number of search results tab.
         c.gridx=0;

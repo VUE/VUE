@@ -48,9 +48,9 @@ public class DataSourceList extends JList implements DropTargetListener{
     DnDConstants.ACTION_LINK |
     DnDConstants.ACTION_MOVE;
     private final boolean debug = true;
-    private final Icon myComputerIcon = new ImageIcon("tufts/vue/images/datasourceMyComputer.gif");
-    private final Icon myFavoritesIcon = new ImageIcon("tufts/vue/images/datasourceMyFavorites.gif");
-    private final Icon remoteIcon = new ImageIcon("tufts/vue/images/datasourceRemote.gif");
+    private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
+    private final Icon myFavoritesIcon = VueResources.getImageIcon("dataSourceMyFavorites");
+    private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
     
     
@@ -75,6 +75,7 @@ public class DataSourceList extends JList implements DropTargetListener{
                     this.setPreferredSize(new Dimension(200,20));
                 }
                 else if (((DataSource)value).getType() == DataSource.FILING_LOCAL){
+                    
                     setIcon(myComputerIcon);
                     this.setPreferredSize(new Dimension(200,20));
                 }
@@ -215,9 +216,12 @@ public class DataSourceList extends JList implements DropTargetListener{
                                 
                                 cabNode = new CabinetNode(res, CabinetNode.LOCAL);
                             
+                            System.out.println(" I am in cab node ---- Datasourcelist");
                             
-                            
-                            if (file.isDirectory())cabNode.explore();
+                           if (file.isDirectory()){cabNode.explore();
+                                             System.out.println(" I am also here");
+                                             
+                           }
                             
                             
                             model.insertNodeInto(cabNode, rootNode, 0);
@@ -266,6 +270,7 @@ public class DataSourceList extends JList implements DropTargetListener{
             
             e.dropComplete(success);
             
+            favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
             this.setSelectedIndex(current);

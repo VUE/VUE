@@ -123,55 +123,62 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         JPanel queryPanel =  new JPanel();
         
         
+        
+       
+        
+      
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         queryPanel.setLayout(gridbag);
         Insets defaultInsets = new Insets(2,2,2,2);
-        c.fill = GridBagConstraints.HORIZONTAL;
+       // c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.WEST;
         
-        //adding the top label
-        c.weightx = 1.0;
-        c.gridx=0;
+       //adding the label Keywords
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 1;
+        c.insets = new Insets(10,2,2, 2);
+        JLabel keyLabel = new JLabel("Keywords..");
+        keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
+        gridbag.setConstraints(keyLabel,c);
+        queryPanel.add(keyLabel);
+          
+     
+        //adding the search box 
+        c.gridx=1;
         c.gridy=0;
-        c.gridwidth=3;
-        c.ipady = 10;
-        c.insets = defaultInsets;
-        c.anchor = GridBagConstraints.NORTH;
-        JLabel topLabel = new JLabel("");
-        gridbag.setConstraints(topLabel, c);
-        queryPanel.add(topLabel);
-        
-        
-        //adding the search box and the button
-        c.gridx=0;
-        c.gridy=1;
-        c.gridwidth=2;
-        c.ipady=0;
+        c.gridwidth = 2;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.insets = new Insets(10, 2,2, 2);
         keywords = new JTextField();
         keywords.setPreferredSize(new Dimension(200,20));
         keywords.addKeyListener(this);
-        
         gridbag.setConstraints(keywords, c);
-        queryPanel.add(keywords);
+         queryPanel.add(keywords);
         
+        
+        
+    
+      // adding the number of search results tab.
+       
         c.gridx=2;
         c.gridy=1;
-        c.gridwidth=1;
+       //c.gridwidth = 1;
+       c.fill = GridBagConstraints.NONE;
+       c.anchor = GridBagConstraints.EAST;
+        c.insets = new Insets(10, 2,2,2);
         JButton searchButton = new JButton("Search");
-        searchButton.setPreferredSize(new Dimension(80,20));
+        searchButton.setMaximumSize(new Dimension(80,20));
         searchButton.addActionListener(this);
-        
         gridbag.setConstraints(searchButton,c);
         queryPanel.add(searchButton);
         
-        
-        
-        
-        JPanel qp = new JPanel(new BorderLayout());
-        
-        qp.add(queryPanel,BorderLayout.NORTH);
+      
+          
+       
         FavSearchPanel.setMinimumSize(new Dimension(300, 50));
-        FavSearchPanel.add(queryPanel,BorderLayout.CENTER);
+        FavSearchPanel.add(queryPanel,BorderLayout.NORTH);
         
         
         return FavSearchPanel;
