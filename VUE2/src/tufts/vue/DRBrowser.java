@@ -43,8 +43,8 @@ class DRBrowser extends javax.swing.JTabbedPane
             add("FEDORA",jspFedora);
         }
         
-       //Search
-        SearchPanel searchPanel = new SearchPanel(400,600);
+        //Search
+        SearchPanel searchPanel = new SearchPanel();
   
         add("Search", searchPanel);
       
