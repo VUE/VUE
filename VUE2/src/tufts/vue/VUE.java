@@ -38,8 +38,8 @@ import java.beans.PropertyChangeListener;
 
 import net.roydesign.mac.MRJAdapter;
 import net.roydesign.event.ApplicationEvent;
-
 //import com.apple.mrj.*;
+
 
 /**
  * Vue application class.
@@ -394,23 +394,6 @@ public class VUE
         else
             splashScreen = new SplashScreen();
 
-        if (VueUtil.isMacPlatform()) {
-            MRJAdapter.addQuitApplicationListener(new ExitAction());
-            MRJAdapter.addAboutListener(new AboutAction());
-            MRJAdapter.addOpenApplicationListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("VUE: OpenApplication " + e);
-                    }
-                });
-            MRJAdapter.addOpenDocumentListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("VUE: OpenDocument " + e);
-                        ApplicationEvent ae = (ApplicationEvent) e;
-                        VUE.displayMap(ae.getFile());
-                    }
-                });
-        }
-        
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
@@ -725,16 +708,8 @@ public class VUE
         if (drBrowser != null && drBrowserTool != null)
             drBrowserTool.addTool(new DRBrowser());
 
-            /*
-              // this was working for double-click launch AND open of a .vue file --
-              // above MRJAdapater callbacks aren't getting the open call after launch...
-            MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
-            public void handleOpenFile(File file) {
-            System.err.println("MRJOpenDocumentHandler: " + file);
-            VUE.displayMap(file);
-            }
-            });
-            */
+        if (VueUtil.isMacPlatform())
+            installMacOSXApplicationEventHandlers();
         
         // An attempt to get the mac metal look picked up by something other than a frame
         // & other window experiments.
@@ -774,6 +749,49 @@ public class VUE
         out("main completed.");
     }
 
+    private static void installMacOSXApplicationEventHandlers()
+    {
+        if (!VueUtil.isMacPlatform())
+            throw new RuntimeException("can only install OSX event handlers on Mac OS X");
+        
+        
+        MRJAdapter.addQuitApplicationListener(new ExitAction());
+        MRJAdapter.addAboutListener(new AboutAction());
+        MRJAdapter.addOpenApplicationListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("VUE: OpenApplication " + e);
+                }
+            });
+        MRJAdapter.addOpenDocumentListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("VUE: OpenDocument " + e);
+                    ApplicationEvent ae = (ApplicationEvent) e;
+                    VUE.displayMap(ae.getFile());
+                }
+            });
+        
+        // this was working for double-click launch AND open of a .vue file --
+        // above MRJAdapater callbacks aren't getting the open call after launch...
+        // from com.apple.mrj.* -- deprecated old api.  Consider using an
+        // OSXAdapter styled impl instead of net.roydesign stuff, due to the above failure
+        // with opening the app on double-click.  (Create our own pass-thru class
+        // that get's compiled only the on the mac, and bundled as a lib for the main
+        // build for other platforms).
+        //
+        // Note that attempting to combine the below with the above forces one of them to always break.
+        
+        /*
+        MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
+                public void handleOpenFile(File file) {
+                    System.out.println("VUE: MRJOpenDocumentHandler: " + file);
+                    VUE.displayMap(file);
+                }
+            });
+        */
+        
+    
+    }
+            
     static class TestWindow extends Window {
         TestWindow(Window parent) {
             super(parent);
