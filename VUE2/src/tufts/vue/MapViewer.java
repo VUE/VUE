@@ -1247,8 +1247,10 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.addSeparator();
             cPopup.add(Actions.Delete);
             
+            cPopup.addSeparator();
             //added by Daisuke
             cPopup.add(Actions.AddPathwayNode);
+            cPopup.add(Actions.DeletePathwayNode);
             
             // todo: special add-to selection action that adds
             // hitComponent to selection so have way other
@@ -1516,6 +1518,19 @@ public class MapViewer extends javax.swing.JPanel
                     getMapPopup().show(e.getComponent(), e.getX(), e.getY());
                 } else {
                     getComponentPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
+                    
+                    if(getMap().getPathwayManager().getCurrentPathway()!=null){
+                        if(getMap().getPathwayManager().getCurrentPathway().contains(hitComponent)){
+                            Actions.AddPathwayNode.setEnabled(false);
+                            Actions.DeletePathwayNode.setEnabled(true);
+                        }else{
+                            Actions.AddPathwayNode.setEnabled(true);
+                            Actions.DeletePathwayNode.setEnabled(false);
+                        }   
+                    }else{
+                        Actions.AddPathwayNode.setEnabled(false);
+                        Actions.DeletePathwayNode.setEnabled(false);
+                    }
                 }
             }
             else if (hitComponent != null)

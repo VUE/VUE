@@ -162,10 +162,10 @@ public class LWPathway //extends tufts.vue.LWComponent
         return elementList.iterator();
     }
     
-    public void removeElement(int index) {       
+    public void removeElement(int index) {
+        System.out.println("this remove element is called...");
         if (index == currentIndex)
         {
-            //gotta fix this
             if (!isFirst()){
               getPrevious();
               System.out.println("moved back to " + currentIndex);
@@ -178,6 +178,17 @@ public class LWPathway //extends tufts.vue.LWComponent
         
         if(element == null)
             System.err.println("LWPathway.removeElement: element does not exist in pathway");
+    }
+       
+    public void removeElement(LWComponent element) {
+       //Iterator iter = elementList.iterator();
+       for(int i = 0; i < elementList.size(); i++){
+            LWComponent comp = (LWComponent)elementList.get(i);
+            if(comp.equals(element)){
+                this.removeElement(i);
+                break;
+            }
+       }
     }
    
     public void moveElement(int oldIndex, int newIndex) {
@@ -304,27 +315,7 @@ public class LWPathway //extends tufts.vue.LWComponent
         }else{
             System.out.println("LWPathway.addElement(element,adj1,adj2), index out of bounds");
         }
-    }
-    
-        
-    
-    public void removeElement(LWComponent element) {
-       /* 
-        if (element.equals(getCurrent()))
-        {
-            if (isFirst(element))
-                setCurrent(getNext(element));
-            
-            else
-                setCurrent(getPrevious(element));
-        }
-        
-        boolean success = elementList.remove(element);
-        if(!success)
-            System.err.println("LWPathway.removeElement: element does not exist in pathway");
-   */ }
-    
-    
+    }        
     
     public LWComponent getNext(LWComponent current) {
         int index = elementList.indexOf(current);
@@ -337,8 +328,6 @@ public class LWPathway //extends tufts.vue.LWComponent
         else
           return null;
     }
-   
-    
     
     public LWComponent getPrevious(LWComponent current) {
         int index = elementList.indexOf(current);

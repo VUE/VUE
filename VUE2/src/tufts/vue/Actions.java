@@ -85,6 +85,38 @@ class Actions {
         };
         
     /**End of Addition by Daisuke Fujiwara*/
+       
+    /** Added by Jay Briedis */
+        
+    static final Action DeletePathwayNode = 
+        new MapAction("Delete from the Pathway")
+        {
+            public void act()
+            {
+                LWComponent[] array = VUE.ModelSelection.getArray();
+                System.out.println("deleting the current node for the pathway...");
+                //adds the elements to the current pathway associated with the map
+                for (int i = 0; i < array.length; i++)
+                    VUE.getPathwayInspector().getPathway().removeElement(array[i]);
+
+                //updates the inspector's pathwayTab
+                VUE.getPathwayInspector().notifyPathwayTab();
+
+                //updates the control panel
+                VUE.getPathwayControl().updateControlPanel();
+            }
+
+            public boolean enabled()
+            {
+              if (VUE.getPathwayInspector().getPathway() == null)
+                  return false;
+
+              else
+                  return true;
+            }
+    }; 
+    
+    /** End of Jay's Addition*/
         
     //-------------------------------------------------------
     // Edit actions
@@ -209,6 +241,19 @@ class Actions {
             boolean mayModifySelection() { return true; }
             void act(LWComponent c) {
                 c.getParent().deleteChild(c);
+                //have to update pathways - jay briedis
+                Iterator iter = VUE.getActiveViewer()
+                    .getMap()
+                    .getPathwayManager()
+                    .getPathwayIterator();
+                while(iter.hasNext()){
+                    LWPathway pathway = (LWPathway)iter.next();
+                    if(pathway.contains(c)) pathway.removeElement(c);
+                    if(c instanceof LWNode){
+                        LWNode node = (LWNode)c;
+                        //in progress
+                    }
+                }
             }
         };
     

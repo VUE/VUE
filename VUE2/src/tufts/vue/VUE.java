@@ -14,6 +14,7 @@ import java.util.LinkedList;
  * we want to see there (including menus, toolbars, etc).
  *
  */
+
 public class VUE
     implements VueConstants
 {
