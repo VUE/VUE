@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.27 $ / $Date: 2004-12-16 16:03:12 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.27 2004-12-16 16:03:12 sfraize Exp $ -->
+<!-- $Revision: 1.28 $ / $Date: 2004-12-23 21:05:20 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.28 2004-12-23 21:05:20 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -110,6 +110,7 @@
                    activation_unsigned.jar
                    an_az.jar
                    apache-commons.jar
+                   apple-laf.jar
                    avalon-framework-cvs-20020806.jar
                    axis-ant.jar
                    axis-fedora.jar
