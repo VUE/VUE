@@ -15,6 +15,7 @@ public class DEBUG
     public static boolean FOCUS = false;
     public static boolean UNDO = false;
     public static boolean PATHWAY = false;
+    public static boolean OLDPW = false;
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
 

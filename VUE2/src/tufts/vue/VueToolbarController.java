@@ -455,7 +455,7 @@ public class VueToolbarController
          }
          if (tool != null)
              panel = tool.getContextualPanel();
-         System.out.println("getSuggestedContextualPanel returning " + panel);
+         if (DEBUG.SELECTION) System.out.println("getSuggestedContextualPanel returning " + panel);
          return panel;
      }
 	 
@@ -476,7 +476,7 @@ public class VueToolbarController
          } else {
              panel = getLWCToolPanel();
          }
-         System.out.println("getContextualPanelForSelection returning " + panel);
+         if (DEBUG.SELECTION) System.out.println("getContextualPanelForSelection returning " + panel);
          return panel;
      }
 	 
