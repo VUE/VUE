@@ -42,7 +42,7 @@ public class PathwayTable extends JTable
     private final Color currentNodeColor = Color.red;
     
     private final LineBorder normalBorder = null;//new LineBorder(regular, 2);
-    private final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
+    //private final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
     
     private int lastSelectedRow = -1;
     private static final boolean showHeaders = true;    //sets whether or not table column headers are shown(?)
@@ -308,11 +308,13 @@ public class PathwayTable extends JTable
                 if (obj instanceof Boolean)
                     bool = ((Boolean)obj).booleanValue();
                 
-                if (p.isOpen())
-                    setBorder(selectedBorder);
-                
-                     if (col == 0) { setIcon(bool ? eyeOpen : eyeClosed); }
-                else if (col == 2) { setIcon(bool ? open : close); }
+                if (col == 0) {
+                    setIcon(bool ? eyeOpen : eyeClosed);
+                    setBorder(new EmptyBorder(0,3,0,0));
+                }
+                else if (col == 2) {
+                    setIcon(bool ? open : close);
+                }
                 else if (col == 4) {
                     setIcon(bool ? notes : null);
                     if (p == VUE.getActivePathway())
@@ -328,7 +330,6 @@ public class PathwayTable extends JTable
                         setBackground(bgColor);
                 }
             } else {
-                setBorder(selectedBorder);
                 switch (col) {
                 case 0:
                 case 2:
