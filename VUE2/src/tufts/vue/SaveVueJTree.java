@@ -45,10 +45,14 @@ public class SaveVueJTree {
    }
    
     public VueDandDTree restoreTree(){
+        
+        
       VueDandDTree vueTree;
        FavoritesNode rootNode;
+       
+       
         SaveNode rootSNode = this.getSaveTreeRoot();
-          
+       
         
         String s = rootSNode.getNodeType();
         
@@ -71,8 +75,10 @@ public class SaveVueJTree {
       }
       
       vueTree = new VueDandDTree(rootNode);
+  
       DefaultTreeModel model = (DefaultTreeModel)vueTree.getModel();
       restoreModel(model,rootNode,rootSNode);
+          vueTree.expandRow(0);
      
       return vueTree;
            
@@ -88,7 +94,7 @@ public class SaveVueJTree {
                 
                 Vector v = rootSNode.getChildren();
                 
-                System.out.println("Thi s is v" + v);
+                //System.out.println("Thi s is v" + v);
                 
                 
                 if (v != null){
