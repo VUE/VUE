@@ -153,19 +153,6 @@ implements VueConstants {
         }
     }
     
-    private static class AAPanel extends JPanel {
-        public void paint(Graphics g) {
-            // only works when, of course, the panel is asked
-            // to redraw -- but if you mess with subcomponents
-            // and just they repaint, we lose this.
-            // todo: There must be a way to stick this in a global
-            // property somewhere.
-            ((Graphics2D)g).setRenderingHint
-                (RenderingHints.KEY_TEXT_ANTIALIASING,
-                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            super.paint(g);
-        }
-    }
     
     static {
         if (false && VueUtil.isMacPlatform()) {
