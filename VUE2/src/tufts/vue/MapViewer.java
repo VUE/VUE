@@ -266,6 +266,8 @@ public class MapViewer extends javax.swing.JPanel
 
     void loadMap(ConceptMap map)
     {
+        if (map == null)
+            return;
         if (this.map != null)
             unloadMap();
         this.map = map;
@@ -524,10 +526,13 @@ public class MapViewer extends javax.swing.JPanel
             g2.scale(zoomFactor, zoomFactor);
         
         if (DEBUG_SHOW_ORIGIN) {
-            if (VueUtil.isMacPlatform())
-                g2.setStroke(new java.awt.BasicStroke(1.0001f)); // java bug: Mac 1.0 stroke width hardly scales...
-            else
-                g2.setStroke(new java.awt.BasicStroke(1f));
+            if (VueUtil.isMacPlatform()) {
+                //g2.setStroke(new java.awt.BasicStroke(1.0001f)); // java bug: Mac 1.0 stroke width hardly scales...
+                g2.setStroke(STROKE_TWO);
+                // Using a stroke of 2 display's effect of VueUtil.StrokeBug05
+            } else {
+                g2.setStroke(STROKE_ONE);
+            }
             g2.setColor(Color.lightGray);
             g2.draw(Xaxis);
             g2.draw(Yaxis);

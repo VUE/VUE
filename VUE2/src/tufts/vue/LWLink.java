@@ -46,6 +46,10 @@ class LWLink extends LWComponent
     {
         if (super.contains(x, y))
             return true;
+        if (VueUtil.StrokeBug05) {
+            x -= 0.5f;
+            y -= 0.5f;
+        }
         float maxDist = (link.getWeight() * WEIGHT_RENDER_RATIO) / 2;
         return line.ptSegDistSq(x, y) <= (maxDist * maxDist);
     }
@@ -133,7 +137,7 @@ class LWLink extends LWComponent
         }
         this.line.setLine(sx, sy, ex, ey);
         g.draw(this.line);
-        
+
         MapItem mi = getMapItem();
         if (mi != null) {
             String label = mi.getLabel();

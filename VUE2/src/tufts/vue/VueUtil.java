@@ -218,6 +218,18 @@ public class VueUtil
             return false;
         else
             return true;
-    }    
+    }
+
+
+    // Mac OSX Java 1.4.1 has a bug where stroke's are exactly 0.5
+    // units off center (down/right from proper center).  You need to
+    // draw a minumim stroke on top of a stroke of more than 1 to see
+    // this, because at stroke width 1, this looks appears as a policy
+    // of drawing strokes down/right to the line. Note that there are
+    // other problems with Mac strokes -- a stroke width of 1.0
+    // doesn't appear to scale with the graphics context, but any
+    // value just over 1.0 will.
+    
+    public static final boolean StrokeBug05 = isMacPlatform();
    
 }
