@@ -804,7 +804,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         private String ttBehaviorHtml;
         public JComponent getToolTipComponent()
         {
-            String html = "<html>Behavior from: " + mLWC.getResource().getToolTipInformation();
+            //String html = "<html>Behavior info: " + mLWC.getResource().getToolTipInformation();
+            final String html = "Right click on node to see disseminations.";
             if (ttBehaviorHtml == null || !ttBehaviorHtml.equals(html)) {
                 ttBehavior = new AALabel(html);
                 ttBehavior.setFont(FONT_SMALL);
