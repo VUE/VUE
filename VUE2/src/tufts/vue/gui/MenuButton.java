@@ -49,7 +49,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     protected String mPropertyName;
     protected JPopupMenu mPopup;
     protected JMenuItem mEmptySelection;
-    protected Icon mButtonIcon;
+    private Icon mButtonIcon;
 
     protected static final String ArrowText = "v ";
     private static boolean isButtonActionable = false;
@@ -91,7 +91,7 @@ public abstract class MenuButton extends JButton implements ActionListener
                         actionAreaClicked = true;
                     } else {
                         actionAreaClicked = false;
-                        Component c = e.getComponent(); 	
+                        Component c = e.getComponent();
                         getPopupMenu().show(c, 0, (int) c.getBounds().getHeight());
                     }
                 }
@@ -104,18 +104,38 @@ public abstract class MenuButton extends JButton implements ActionListener
             firePropertySetter();
     }
 
-    /** set the raw icon used for displaying as a button (may be additionally decorated) */
+    /**
+     * Set the raw icon used for displaying as a button (may be additionally decorated).
+     * Intended for use during initialization.
+     **/
     public void setButtonIcon(Icon i) {
-        mButtonIcon = i;
         System.out.println("MenuButton " + this + " setButtonIcon " + i);
-        _setIcon(i);
+        if (DEBUG.Enabled) new Throwable().printStackTrace();
+        _setIcon(mButtonIcon = i);
     }
+    
+    /*Intended for use during initialization OR then later for value changes.
+    public void setOrResetButtonIcon(Icon i) {
+        System.out.println("MenuButton " + this + " setButtonIcon " + i);
+        new Throwable().printStackTrace();
+        if (mButtonIcon == null && i != null) {
+            _setIcon(mButtonIcon = i);
+        } if (i instanceof BlobIcon && mButtonIcon instanceof BlobIcon) {
+            // in this case, just transfer color from the given icon to
+            // our already existing color.
+            ((BlobIcon)mButtonIcon).setColor(((BlobIcon)i).getColor());
+        } else {
+            System.out.println("MenuButton " + this + " setButtonIcon: INITIALIZED");
+            mButtonIcon = i;
+        }
+    }
+    */
     
     protected Icon getButtonIcon() {
         return mButtonIcon;
     }
 
-    /** override of JButton so can catch blob-icon */
+    /* override of JButton so can catch blob-icon 
     public void XsetIcon(Icon i) {
         if (mButtonIcon != null) {
             if (i instanceof BlobIcon && mButtonIcon instanceof BlobIcon)
@@ -125,12 +145,7 @@ public abstract class MenuButton extends JButton implements ActionListener
             _setIcon(i);
         }
     }
-
-    public void setIcon(Icon i) {
-        System.out.println("MENUBUTTON " + this + " setIcon " + i);
-        //new Throwable("ICON SET").printStackTrace();
-        super.setIcon(i);
-    }
+    */
     
     private void _setIcon(Icon i) {
         if (false) {
@@ -141,7 +156,7 @@ public abstract class MenuButton extends JButton implements ActionListener
             //Dimension d = new Dimension(i.getIconWidth()+pad, i.getIconHeight()+pad);
             Dimension d = new Dimension(21,21);
             VueButtonIcon.installGenerated(this, i, d);
-            System.out.println("MenuButton " + this + " setPreferredSize " + d);
+            System.out.println("MenuButton " + this + " *** installed generated, setPreferredSize " + d);
             setPreferredSize(d);
         }
     }
@@ -237,9 +252,16 @@ public abstract class MenuButton extends JButton implements ActionListener
     }
 		
     protected void handleMenuSelection(ActionEvent e) {
-        Icon i = ((AbstractButton)e.getSource()).getIcon();
-        if (i != null)
-            setIcon(i);
+        if (false) {
+            // this allows for generically copying the sub-menu icon up to the
+            // button icon: for now we're only allow cases that use a named
+            // property key, and the button icon get's updated via the property
+            // change.
+            // BUT: if a shape icon, will need this every time! How gross...
+            Icon i = ((AbstractButton)e.getSource()).getIcon();
+            if (i != null)
+                setButtonIcon(i);
+        }
         handleValueSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
     }
     

@@ -55,7 +55,8 @@ public class ColorMenuButton extends MenuButton
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
     public ColorMenuButton(Color[] pColors, String[] pMenuNames, boolean pHasCustom) {
-        setButtonIcon(new BlobIcon(10,10, true));
+        // create default color swatch icon: override with setButtonIcon if want different
+        setButtonIcon(new BlobIcon(10,10, true)); // can we live with no default? clean up init style...
         buildMenu(pColors, pMenuNames, pHasCustom);
     }
 	
@@ -73,8 +74,9 @@ public class ColorMenuButton extends MenuButton
     public void setColor(Color c) {
         if (DEBUG.TOOL) System.out.println(this + " setColor " + c);
         mCurColor = c;
-        if (mButtonIcon instanceof BlobIcon)
-            ((BlobIcon)mButtonIcon).setColor(c);
+        Icon i = getButtonIcon();
+        if (i instanceof BlobIcon)
+            ((BlobIcon)i).setColor(c);
         if (c == null)
             mPopup.setSelected(super.mEmptySelection);
         repaint();

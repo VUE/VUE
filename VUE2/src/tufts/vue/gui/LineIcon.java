@@ -118,4 +118,9 @@ public class LineIcon extends BlobIcon
             //g.drawImage( getOverlay().getImage(), x, y, null);
         }
     }
+
+    public String toString() {
+        return "LineIcon[" + (mColor==null?"":(mColor + ", ")) + mWeight + "]";
+    }
+    
 }

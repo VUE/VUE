@@ -31,6 +31,7 @@ import javax.swing.*;
  * custom colors where you require an icon in a UI widget.
  *
  **/
+//todo: rename ColorIcon
 public class BlobIcon implements Icon
 {
     /** the icon height **/
@@ -194,5 +195,9 @@ public class BlobIcon implements Icon
             //g.drawImage( mOverlay.getImage(), x, y, null);
         }
         g.setColor(oldColor);
+    }
+
+    public String toString() {
+        return "BlobIcon[" + mColor + "]";
     }
 }

@@ -69,8 +69,10 @@ public class VueButtonIcon implements Icon
     private static final Color sButtonColor = new Color(222,222,222);
     private static final Color sOverColor = Color.gray;
     private static final Color sDownColor = sOverColor;
-    private static final AbstractBorder sEtchedBorder = new EtchedBorder();
-    //private static final AbstractBorder sEtchedBorder = new SoftBevelBorder(BevelBorder.LOWERED);
+    private static final AbstractBorder sRolloverBorder = new EtchedBorder();
+    //private static final AbstractBorder sRolloverBorder = new EtchedBorder(EtchedBorder.RAISED);
+    //private static final AbstractBorder sRolloverBorder = new BevelBorder(BevelBorder.LOWERED);
+    //private static final AbstractBorder sRolloverBorder = new SoftBevelBorder(BevelBorder.LOWERED);
     private static final AlphaComposite DisabledAlpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
     
     protected final int width;
@@ -170,11 +172,11 @@ public class VueButtonIcon implements Icon
             // Draw an etched rollover border:
 
             if (true) {
-                sEtchedBorder.paintBorder(c, g, 0, 0, w, h);
+                sRolloverBorder.paintBorder(c, g, 0, 0, w, h);
             } else {
                 // experiment in separate border for drop-down portions
-                sEtchedBorder.paintBorder(c, g, 0, 0, w-8, h);
-                sEtchedBorder.paintBorder(c, g, w-7, 0, 7, h);
+                sRolloverBorder.paintBorder(c, g, 0, 0, w-8, h);
+                sRolloverBorder.paintBorder(c, g, w-7, 0, 7, h);
             }
             
             // this make it look like button-pressed:
