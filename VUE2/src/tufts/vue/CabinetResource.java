@@ -21,14 +21,14 @@ import tufts.oki.localFiling.*;
  */
 public class CabinetResource extends MapResource{
     //  Filing metadata property keywords.
-    public static final String MD_NAME = "md.filing.name";
-    public static final String MD_TIME = "md.filing.time";
-    public static final String MD_OWNER = "md.filing.owner";
-    public static final String MD_READ = "md.filing.read";
-    public static final String MD_WRITE = "md.filing.write";
-    public static final String MD_APPEND = "md.filing.append";
-    public static final String MD_LENGTH = "md.filing.length";
-    public static final String MD_MIME = "md.filing.mime";
+    public static final String MD_NAME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TITLE];
+    //public static final String MD_TIME = "md.filing.time";
+    public static final String MD_OWNER = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_CREATOR];
+    //public static final String MD_READ = "md.filing.read";
+    //public static final String MD_WRITE = "md.filing.write";
+    //public static final String MD_APPEND = "md.filing.append";
+    //public static final String MD_LENGTH = "md.filing.length";
+    public static final String MD_MIME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TYPE];
     
     private osid.filing.CabinetEntry entry = null;  //  This is not marshalled.
     
@@ -145,8 +145,9 @@ public class CabinetResource extends MapResource{
                 if (this.entry instanceof RemoteByteStore) {
                     RemoteByteStore bs = (RemoteByteStore) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
-                    props.setProperty(CabinetResource.MD_TIME,Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
+                   // props.setProperty(CabinetResource.MD_TIME,Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
                     props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
+                    /**
                     if (bs.isReadable())
                         props.setProperty(CabinetResource.MD_READ, "true");
                     else
@@ -156,21 +157,22 @@ public class CabinetResource extends MapResource{
                     else
                         props.setProperty(CabinetResource.MD_WRITE, "false");
                     props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
+                     */
                     //props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
 
                 }
                 else if (this.entry instanceof RemoteCabinet) {
                     RemoteCabinet cab = (RemoteCabinet) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, cab.getDisplayName());
-                    props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
+                   // props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
                 }
                 else if (this.entry instanceof LocalByteStore) {
       
                     LocalByteStore bs = (LocalByteStore) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
-                    props.setProperty(CabinetResource.MD_TIME, Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
+                    //props.setProperty(CabinetResource.MD_TIME, Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
                     props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
-                    
+                    /**
                     if (bs.isReadable())
                         props.setProperty(CabinetResource.MD_READ, "true");
                     else
@@ -181,13 +183,14 @@ public class CabinetResource extends MapResource{
                         props.setProperty(CabinetResource.MD_WRITE, "false");
                      
                     props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
+                     */
                    // props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
                      
                 }
                 else if (this.entry instanceof LocalCabinet) {
                     LocalCabinet cab = (LocalCabinet) this.entry;
                     props.setProperty(CabinetResource.MD_NAME, cab.getDisplayName());
-                    props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
+                    //props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
                 }
             }
             catch (osid.filing.FilingException ex1) {
