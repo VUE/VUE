@@ -115,7 +115,7 @@ public class VUE
         {
             String label = viewer.getMap().getLabel();
             if (viewer.getMap().getFile() != null)
-                label = viewer.getMap().getFile().getPath();
+                label = viewer.getMap().getFile().getName();
             String title = "VUE: " + label;
             
             int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
@@ -247,9 +247,12 @@ public class VUE
         String lafName = UIManager.getLookAndFeel().getName();
         System.out.println("LookAndFeel: \"" + lafName + "\" " + UIManager.getLookAndFeel());
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
-            //UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
-            UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
+
+            // Affects tabs but not tab contents background, so looks broken:
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
+
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
             // Why, in metal, is the default window "gray" background color neither lightGray
             // nor equal to the SystemColor.control???
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.blue);
@@ -270,11 +273,11 @@ public class VUE
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
 
-        mMapTabsLeft = new MapTabbedPane();
+        mMapTabsLeft = new MapTabbedPane("*left");
         mMapTabsLeft.setTabPlacement(SwingConstants.BOTTOM);
         mMapTabsLeft.setPreferredSize(new Dimension(300,400));
         
-        mMapTabsRight = new MapTabbedPane();
+        mMapTabsRight = new MapTabbedPane("right");
         mMapTabsRight.setTabPlacement(SwingConstants.BOTTOM);
         mMapTabsRight.setPreferredSize(new Dimension(300,400));
 
@@ -527,6 +530,12 @@ public class VUE
     {
         private static final Color BgColor = VueResources.getColor("toolbar.background");
 
+        private String name;
+        MapTabbedPane(String name)
+        {
+            this.name = name;
+        }
+
         private int mWasSelected = -1;
         protected void fireStateChanged() {
             super.fireStateChanged();
@@ -534,11 +543,10 @@ public class VUE
                 int selected = getModel().getSelectedIndex();
                 if (mWasSelected >= 0) {
                     setForegroundAt(mWasSelected, Color.darkGray);
-                    //setBackgroundAt(mWasSelected, BgColor);
                 }
                 if (selected >= 0) {
                     setForegroundAt(selected, Color.black);
-                    //setBackgroundAt(selected, Color.white);// no effect
+                    setBackgroundAt(selected, BgColor);
                 }
                 mWasSelected = selected;
             }
@@ -564,6 +572,7 @@ public class VUE
         {
             //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             //super.addTab(pMap.getLabel(), c instanceof JScrollPane ? c : new JScrollPane(c));
+            //super.addTab(pMap.getLabel() + " - 100%", c);
             super.addTab(pMap.getLabel(), c);
             pMap.addLWCListener(this);
             // todo perf: we should be able to ask to listen only
@@ -572,8 +581,8 @@ public class VUE
             // we'd only like to see, e.g., LABEL events.
             // -- create bit masks in LWCEvent
 
-            //setBackgroundAt(0, Color.blue);
-            //setToolTipTextAt(0, map.getFile().toString());
+            if (pMap.getFile() != null)
+                setToolTipTextAt(indexOfComponent(c), pMap.getFile().toString());
         }
 
         public void LWCChanged(LWCEvent e)
@@ -581,9 +590,13 @@ public class VUE
             LWComponent c = e.getComponent();
             if (c instanceof LWMap && e.getWhat().equals("label")) {
                 //System.out.println("MapTabbedPane " + e);
-                int i = findTabWithMap((LWMap)c);
-                if (i >= 0)
+                LWMap map = (LWMap) c;
+                int i = findTabWithMap(map);
+                if (i >= 0) {
                     setTitleAt(i, c.getLabel());
+                    if (map.getFile() != null)
+                        setToolTipTextAt(i, map.getFile().toString());
+                }
             }
         }
 
@@ -642,6 +655,11 @@ public class VUE
             ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
                                              java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
             super.paintComponent(g);
+        }
+
+        public String toString()
+        {
+            return "MapTabbedPane<"+name+">";
         }
         
     }
