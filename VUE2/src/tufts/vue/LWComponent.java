@@ -1451,7 +1451,7 @@ public class LWComponent
         return this.scale == -1;
     }
     
-    void setDeleted(boolean deleted) {
+    private void setDeleted(boolean deleted) {
         if (deleted) {
             this.scale = -1;
             if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS) {
