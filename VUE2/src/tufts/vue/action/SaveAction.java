@@ -45,7 +45,7 @@ public class SaveAction extends VueAction
     }
     
     public SaveAction(String label) {
-        this(label, false);
+        this(label, true);
     }
     
     public SaveAction() {
