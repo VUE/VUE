@@ -62,6 +62,7 @@ public class DR implements osid.dr.DigitalRepository {
     private URL address;
     private String userName;
     private String password;
+    private String conf;
     private java.util.Vector infoStructures = new java.util.Vector();
     private java.util.Vector assetTypes = new java.util.Vector();
     private java.util.Vector searchTypes = new java.util.Vector();
@@ -78,6 +79,7 @@ public class DR implements osid.dr.DigitalRepository {
         this.address = address;
         this.userName = userName;
         this.password = password;
+        this.conf = conf;
         this.configuration = getResource(conf);
         
         setFedoraProperties(configuration);
@@ -490,7 +492,12 @@ public class DR implements osid.dr.DigitalRepository {
     public void setPassword() {
         this.password = password;
     }
-
+     public String getConf() {
+        return this.conf;
+    }
+    public void setConf(String conf) {
+        this.conf = conf;
+    }
    
 }
 

@@ -21,6 +21,7 @@ public class CastorDR {
     String address;
     String userName;
     String password;
+    String conf;
     
     public CastorDR() {
     }
@@ -33,13 +34,14 @@ public class CastorDR {
             this.address = dr.getAddress();
             this.userName = dr.getUserName();
             this.password  = dr.getPassword();
+            this.conf = dr.getConf();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }
     }
     public DR getDR() {
         try {
-            dr = new DR(id, displayName, description,new URL("http",address,8080,"fedora/"),userName,password);
+            dr = new DR(conf,id, displayName, description,new URL("http",address,8080,"fedora/"),userName,password);
             return dr;
         } catch(Exception ex) {
             throw new RuntimeException(ex);
@@ -82,5 +84,11 @@ public class CastorDR {
     }
     public void setPassword() {
         this.password = password;
+    }
+    public String getConf() {
+        return this.conf;
+    }
+    public void setConf(String conf) {
+        this.conf = conf;
     }
 }
