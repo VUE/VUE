@@ -58,6 +58,10 @@ public class LWHierarchyMap extends LWMap {
             for(Iterator i = currentNode.getLinkIterator(); i.hasNext();)
             {
                 LWLink connectedLink = (LWLink)i.next();
+                LWNode otherNode = null;
+                
+                if ((otherNode = (LWNode)connectedLink.getComponent1()) == currentNode)
+                    otherNode = (LWNode)connectedLink.getComponent2();
                 
                 
             }
