@@ -83,7 +83,6 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
         
         try{
             this.resourceViewer = new DRViewer("fedora.conf",this.getDisplayName(),this.getDisplayName(),this.getDisplayName(),new URL("http",this.getAddress(),8080,"fedora/"),this.getUserName(),this.getPassword());
-            
         }catch (Exception ex){
             throw new DataSourceException("FedoraDataSource.setResourceViewer "+ex);
         }
