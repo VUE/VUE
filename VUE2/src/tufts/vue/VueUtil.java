@@ -32,9 +32,6 @@ import javax.swing.border.*;
 
 public class VueUtil
 {
-    
-    
-    
     private static boolean WindowsPlatform = false;
     private static boolean MacPlatform = false;
     private static boolean UnixPlatform = false;
@@ -98,8 +95,8 @@ public class VueUtil
         
         if (args.length > 0)
             openURL(args[0]);
-        else
-            test_OpenURL();
+        //else
+            //test_OpenURL();
         System.exit(0);
     }
 
@@ -466,7 +463,8 @@ public class VueUtil
         File userHome = new File(System.getProperty("user.home"));
         if(userHome == null) 
             userHome = new File(System.getProperty("java.io.tmpdir"));
-        File userFolder = new File(userHome.getPath()+File.separatorChar+"vue");
+        final String vueUserDir = isMacPlatform() ? ".vue" : "vue";
+        File userFolder = new File(userHome.getPath() + File.separatorChar + vueUserDir);
         if(userFolder.isDirectory())
             return userFolder;
         if(!userFolder.mkdir())
