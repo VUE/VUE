@@ -325,14 +325,14 @@ public class MapViewer extends javax.swing.JComponent
 
     public void toolSelected(VueTool pTool)
     {
-        System.out.println("tool selected in map viewer:" + pTool.getID());
+        if (DEBUG.FOCUS) System.out.println(this + " tool selected: " + pTool.getID());
         
         if (pTool == null) {
-            System.err.println("*** MapViewer.toolSelected: NULL TOOL");
+            System.err.println(this + " *** toolSelected: NULL TOOL");
             return;
         }
         if (pTool.getID() == null) {
-            System.err.println("*** MapViewer.toolSelected: NULL ID IN TOOL!");
+            System.err.println(this + " *** toolSelected: NULL ID IN TOOL!");
             return;
         }
        
