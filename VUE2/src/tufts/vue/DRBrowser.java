@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.io.*;
 
 
+
+
 import fedora.server.types.gen.*;
 import fedora.server.utilities.DateUtility;
 
@@ -28,47 +30,19 @@ class DRBrowser extends JPanel {
     osid.shared.Type assetType;
     public static DataSourceViewer dsViewer = null;
    
+
+   
     public DRBrowser()
     {
-        //super(JSplitPane.VERTICAL_SPLIT);
-        //setOneTouchExpandable(true);
-        //setContinuousLayout(false);
-        //setResizeWeight(0.25);
+       
         setLayout(new BorderLayout());
         dsViewer = new DataSourceViewer(this);
-        dsViewer.setName("Data Source Viewer");
-        add(dsViewer,BorderLayout.NORTH);
-        //setTopComponent(panel);
-       // JDesktopPane jDP = new JDesktopPane();
-       // jDP.add(dsViewer);
-        //add("Test", dsViewer);
-        //setLeftComponent(dsViewer);
-      /*** OLD CODE - to be removed 
-       // setBorder(new TitledBorder("DR Browser"));
-               
-         //File System
-         //Possible Oki Filing implementation - Later
-              Vector fileVector  = new Vector();
-         fileVector.add(new File("C:\\"));
-      //   fileVector.add(new File("D:\\"));
-          VueDragTree fileTree = new VueDragTree(fileVector.iterator(),"File System");
-          JScrollPane jSP = new JScrollPane(fileTree);
-           add("File", jSP);  
-        
-       //Fedora 
-       // add fedora pane
-         add("FEDORA",getFedoraPane());
-       
-        //Search
-        SearchPanel searchPanel = new SearchPanel();
-        add("Search", searchPanel);
-        add("test",new DataSourceViewer());
-       */
+        dsViewer.setName("Data Source Viewer"); 
+          
+          add(dsViewer,BorderLayout.NORTH);
     }
-    /**
-     *@return JTabbedPane fedoraPane
-     */
-    
-    
+
+
+       
     
 }
