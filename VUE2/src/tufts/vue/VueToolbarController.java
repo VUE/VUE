@@ -500,7 +500,8 @@ public class VueToolbarController
         if (panel instanceof LWCToolPanel)
             ((LWCToolPanel)panel).loadValues(VUE.getSelection());
         else {
-            System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
+            if (DEBUG.Enabled)
+                System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
         }
     }
 	 
