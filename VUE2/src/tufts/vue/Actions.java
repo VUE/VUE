@@ -237,6 +237,15 @@ class Actions
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+            if (c.getParent() != null && c.getParent().isSelected()) {
+                // Duplicate is hierarchical action: don't dupe if
+                // parent is going to do it for us.  Note that when we
+                // call this on paste, c.getParent() will always be
+                // null as these are orphans in the cut buffer, but we
+                // culled them here when we put them in, so we're all
+                // set.
+                continue;
+            }
             LWComponent copy = c.duplicate();
             sCopies.put(c, copy);
             sOriginals.put(copy, c);
