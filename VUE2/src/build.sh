@@ -1,3 +1,5 @@
+echo No longer used -- build with Apache Ant.
+exit
 set -x
 javac -d /VUE/classes tufts/google/*.java
 javac -d /VUE/classes tufts/oki/shared/*.java
