@@ -17,12 +17,13 @@ import javax.swing.*;
 public class SplashScreen extends JWindow {
     
     /** Creates a new instance of SpashScreen */
-    public final int width = 430;
-    public final int height = 300;
+    public final int width = 424;
+    public final int height = 291;
     public final long sleepTime = 5000;
     public SplashScreen() {
         super();
         createSplash();
+        getContentPane().setBackground(Color.BLACK);
     }
     
     private void createSplash() {
