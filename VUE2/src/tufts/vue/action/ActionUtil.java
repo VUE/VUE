@@ -140,7 +140,10 @@ public class ActionUtil {
         
         if (option == JFileChooser.APPROVE_OPTION) 
         {
-            String fileName = chooser.getSelectedFile().getAbsolutePath();
+            File chooserFile = chooser.getSelectedFile();
+            if (chooserFile == null)
+                return null;
+            String fileName = chooserFile.getAbsolutePath();
             
             // if they type a file name w/out an extension
             if (fileName.indexOf('.') < 0)
