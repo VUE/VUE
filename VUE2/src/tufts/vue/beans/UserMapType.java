@@ -220,9 +220,10 @@ public class UserMapType {
 	}
 	
 	static public UserMapType findUserMapType( LWMap pMap, String pID) {
-
-            return null;
-		//return findUserMapType( pMap.getUserMapTypes(), pID);
+		if( pMap == null)
+			return null;
+			
+		return findUserMapType( pMap.getUserMapTypes(), pID);
 	}
 	
 	static public UserMapType findUserMapType( UserMapType [] pTypes, String pID) {
@@ -238,8 +239,31 @@ public class UserMapType {
 		return null;
 	}
 	
+	/**
+	 * getAsHTML
+	 * Returns a string formated in HTML format of the meta data
+	 * @return an HTML body string 
+	 *
+	 * NOTE:  FIX: needs work
+	 *
+	 */
+	public String getAsHTML( Map pValues) {
+		String str = "Metadata: <p>" ;
+		
+		Iterator it = pValues.keySet().iterator();
+		while( it.hasNext() ) {
+			Object key = it.next();
+			Object value = pValues.get( key);
+			if( value != null) {
+				str = str + " <br> "+key.toString()+" - "+value.toString() ;
+				}
+			}
+		return str;
+	}
+	
 	public String toString() {
 		String str = getDisplayName();
+		
 		if( str == null) {
 			str = super.toString();
 			}
