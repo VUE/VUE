@@ -18,7 +18,6 @@ import tufts.vue.*;
  */
 public class SaveAction extends AbstractAction
 {
-    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private static File file = null;
     private boolean saveAs = true;
    
@@ -61,7 +60,7 @@ public class SaveAction extends AbstractAction
         
         if (isSaveAs() || file == null)
         {
-          file = ActionUtil.selectFile("Save Map", null);
+          file = ActionUtil.selectFile("Save Map", "xml");
           
           if (file == null)
               saveCondition = false;

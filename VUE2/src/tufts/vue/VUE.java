@@ -570,8 +570,23 @@ public class VUE
         ExitAction exitAction = new ExitAction("Quit");
         
         /**Actions added by the power team*/
+        JMenu exportMenu = new JMenu("Export");
+        
+        PDFTransform pdfAction = new PDFTransform("PDF");
+        HTMLConversion htmlAction = new HTMLConversion("HTML");
+        ImageConversion imageAction = new ImageConversion("JPEG");
+        ImageMap imageMap = new ImageMap("IMAP");
+        SVGConversion svgAction = new SVGConversion("SVG");
         PrintAction printAction = new PrintAction("Print");
         XMLView xmlAction = new XMLView("XML View");
+        
+        exportMenu.add(htmlAction);
+        exportMenu.add(pdfAction);
+        exportMenu.add(imageAction);
+        exportMenu.add(svgAction);
+        exportMenu.add(printAction);
+        exportMenu.add(xmlAction);
+        exportMenu.add(imageMap);
         /**End of addition*/
         
         fileMenu.add(Actions.NewMap);
@@ -579,10 +594,7 @@ public class VUE
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction);
         fileMenu.add(Actions.CloseMap);
-        //fileMenu.add(htmlAction);
-        fileMenu.add(new JMenuItem("Export ..."));
-        fileMenu.add(printAction);
-        fileMenu.add(xmlAction);
+        fileMenu.add(exportMenu);
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
         
@@ -675,14 +687,6 @@ public class VUE
         optionsMenu.add(new JMenuItem("Preferences..."));
         
         helpMenu.add(new JMenuItem("Help"));
-        
-
-        //extra additions by the power team members
-        PDFTransform pdfAction = new PDFTransform("PDF");
-        HTMLConversion htmlAction = new HTMLConversion("HTML");
-        ImageConversion imageAction = new ImageConversion("JPEG");
-        ImageMap imageMap = new ImageMap("IMAP");
-        SVGConversion svgAction = new SVGConversion("SVG");
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(Actions.NewMap);
