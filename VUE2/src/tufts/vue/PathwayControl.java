@@ -441,6 +441,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
             okButton.addActionListener(this);
             okButton.addKeyListener(this);
             cancelButton.addActionListener(this);
+            cancelButton.addKeyListener(this);
             
             textField = new JTextField("default", 18);
             textField.addKeyListener(this);
@@ -486,18 +487,17 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         public void keyTyped(KeyEvent e) 
         {
             //when enter is pressed
-            if(e.getKeyChar()==KeyEvent.VK_ENTER)
+            if(e.getKeyChar()== KeyEvent.VK_ENTER)
             {
                 //if the ok button or the text field has the focus, add a designated new pathway
-                if(e.getSource().equals(okButton) || e.getSource().equals(textField))
+                if (okButton.isFocusOwner() || textField.isFocusOwner())
                 {    
                     addPathway(new LWPathway(textField.getText()));
                     dispose();                  
                 }
                 
                 //else if the cancel button has the focus, just aborts it
-                else
-                //if(e.getSource().equals(cancelButton))
+                else if (cancelButton.isFocusOwner())
                 {
                     //selects empty pathway if the cancel button was pressed
                     pathwayList.setSelectedItem(noPathway);
