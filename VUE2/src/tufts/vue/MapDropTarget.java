@@ -78,7 +78,7 @@ class MapDropTarget
 
     public void dropActionChanged(DropTargetDragEvent e)
     {
-        if (debug) System.out.println("MapDropTarget: dropActionChanged " + e);
+        if (debug) System.out.println("MapDropTarget: dropActionChanged " + e + " dropAction=" + e.getDropAction());
 
     }
     
@@ -146,13 +146,16 @@ class MapDropTarget
             dropLocation = e.getLocation();
             dropAction = e.getDropAction();
 
-            // ACTION_MOVE action is default action, so if not that,
-            // assume a modifier key was being held down to change the
-            // from the default OS drag action.  We have no way of
-            // knowing anything about actual keyboard state that
-            // initiated the drag.
+            // ACTION_MOVE action is default action on PC, COPY on the
+            // Mac, so if not that, assume a modifier key was being
+            // held down to change the from the default OS drag
+            // action.  We have no way of knowing anything about
+            // actual keyboard state that initiated the drag.
 
-            modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
+            if (VueUtil.isMacPlatform())
+                modifierKeyWasDown = (dropAction != DnDConstants.ACTION_COPY);
+            else
+                modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
 
             // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
             // changes to dropAction that happen when the drag was
@@ -160,7 +163,9 @@ class MapDropTarget
             // if you press ctrl down AFTER the drop starts, sourceAction
             // & dropAction will be set to some rediculous number -- so at
             // least we can detect that by making modifer down the default
-            // if drop action anything other than the default.
+            // if drop action anything other than the default.  ALSO:
+            // somtimes we get ACTION_NONE, which is 0, which will always
+            // fail our acceptable drop types test.
         }
 
         LWComponent hitComponent = null;

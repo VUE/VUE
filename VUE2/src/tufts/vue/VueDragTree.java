@@ -171,7 +171,9 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     public void dragEnter(DragSourceDragEvent e) { }
     public void dragExit(DragSourceEvent e) {}
     public void dragOver(DragSourceDragEvent e) {}
-    public void dropActionChanged(DragSourceDragEvent e) {}
+    public void dropActionChanged(DragSourceDragEvent e) {
+        System.out.println(this + " dropActionChanged " + e);
+    }
     
     
     public Object getObject() {
@@ -582,7 +584,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
         if (flavor == null)
             return false;
         boolean b  = false;
-        b |=flavor.equals(flavors[RESOURCE]);
+        b |= flavor.equals(flavors[RESOURCE]);
         b |= flavor.equals(flavors[STRING]);
         // b |= flavor.equals(flavors[PLAIN]);
         return (b);
@@ -594,8 +596,11 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
         
         if (flavor.equals(flavors[STRING])) {
-            
-            throw new UnsupportedFlavorException(flavors[STRING]);
+            //throw new UnsupportedFlavorException(flavors[STRING]);
+            // Always support something for the string flavor, or
+            // we get an exception thrown (even tho I think that
+            // may be against the published API).
+            return get(0).toString();
         } else if (flavor.equals(flavors[PLAIN])) {
             System.out.println("I am plain"+this.elementAt(0));
             return new StringReader(displayName);
