@@ -31,7 +31,6 @@ import java.util.Vector;
 
 public class ExitAction extends AbstractAction {
     
-    final static String XML_MAPPING = "lw_mapping.xml";
     private static java.util.prefs.Preferences prefs = tufts.vue.VUE.prefs;
     private static String  FAVORITES_MAPPING;
     private static String  DATASOURCES_MAPPING;
