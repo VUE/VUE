@@ -76,7 +76,15 @@ public class DataSource {
         }
         else if(type == FILING_LOCAL) {
             Vector fileVector  = new Vector();
-            fileVector.add(new File("C:\\"));
+            if (VueUtil.isWindowsPlatform()) {
+                fileVector.add(new File("C:\\"));
+            } else if (VueUtil.isMacPlatform()) {
+                // todo: if OSX, add dirs in /Volumes (other mounted disks)
+                // Also would be nice if we could label "/" as "Macintosh HD",
+                // or even find out from the OS what the user has it labeled.
+                fileVector.add(new File("/"));
+            } else
+                fileVector.add(new File("/"));
             VueDragTree fileTree = new VueDragTree(fileVector.iterator(),displayName);
             JScrollPane jSP = new JScrollPane(fileTree);   
             this.resourceViewer = jSP;
