@@ -9,17 +9,8 @@ package tufts.vue.action;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
-
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import java.io.OutputStreamWriter;
-
 import tufts.vue.*;
+
 /**
  *
  * @author  akumar03
@@ -28,9 +19,7 @@ import tufts.vue.*;
 public class SaveAction extends AbstractAction
 {
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
-    //private static String fileName = "";
     private static File file = null;
-    private Marshaller marshaller = null;
     private boolean saveAs = true;
    
     public SaveAction() {
@@ -64,7 +53,6 @@ public class SaveAction extends AbstractAction
         return file.getAbsolutePath();
     }
     
-    
     public void actionPerformed(ActionEvent e)
     {
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
@@ -84,69 +72,9 @@ public class SaveAction extends AbstractAction
           ActionUtil.marshallMap(file);
           System.out.println("Saved " + getFileName());
         }
-        
-        /**
-        marshaller = getMarshaller();
-        
-        try 
-        { 
-             marshaller.marshal(tufts.vue.VUE.getActiveMap());
-        }
-        catch(MarshalException ex) 
-        {
-            System.out.println("problem with marshalling: "+ex);
-        }
-        catch(ValidationException ve)
-        {
-            System.out.println("problem with validating: "+ve);
-        }
-        
-         */
-       
+            
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
-     
-    /**  currently not being used (all of these moved to ActionUtil.java)
-    private void selectFile()
-    {
-        try {  
-          
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Save Map");
-        chooser.setFileFilter(new VueFileFilter());
-        if(VueUtil.isCurrentDirectoryPathSet()) 
-            chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        int option = chooser.showDialog(tufts.vue.VUE.frame, "Save");
-        if (option == JFileChooser.APPROVE_OPTION
-                && chooser.getSelectedFile()!=null) {
-            fileName = chooser.getSelectedFile().getAbsolutePath();
-            if(!fileName.endsWith(".xml")) fileName += ".xml";
-            // if they choose nothing, fileName will be null -- detect & abort
-            VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-        }
-       }catch(Exception ex) {System.out.println(ex);}   
-    }
- 
-    private Marshaller getMarshaller()
-    {
-        //this.marshaller = null; // SF temporary debug -- always reload     
-        //fileWriter needs to be reloaded to save to a given file a second time
-        //if (this.marshaller == null) {
-            Mapping mapping = new Mapping();
-            try {                
-                System.out.println("Creating marshaller with output file=\"" + getFileName() + "\"");
-                this.marshaller = new Marshaller(new FileWriter(getFileName()));
-                System.out.println("Loading mapping for marshaller: " + XML_MAPPING);
-                mapping.loadMapping(XML_MAPPING);
-                this.marshaller.setMapping(mapping);
-                System.out.println("Marshaller mapping has been set to: " + XML_MAPPING);
-            } catch (Exception e) {
-                System.err.println("SaveAction.getMarshaller: " + e + " file=\"" + getFileName() + "\"");
-            }
-        //}
-        return this.marshaller;
-    }
-     */
 }
 
 

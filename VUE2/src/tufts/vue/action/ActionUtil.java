@@ -10,6 +10,8 @@ import javax.swing.*;
 import java.io.*;
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
+import tufts.vue.LWMap;
+import tufts.vue.VueFileFilter;
 
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -19,6 +21,7 @@ import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 
+import org.xml.sax.InputSource;
 /**
  *
  * @author  Daisuke Fujiwara
@@ -34,7 +37,7 @@ public class ActionUtil {
     }
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
-       It returns the selected file or null if the process didn't */
+       It returns the selected file or null if the process didn't complete*/
     public static File selectFile(String title, String extension)
     {
         File file = null;
@@ -80,6 +83,46 @@ public class ActionUtil {
         return file;
     }
     
+    /**A static method which displays a file chooser for the user to choose which file to open.
+       It returns the selected file or null if the process didn't complete */
+    public static File openFile(String title, String extension)
+    {
+        File file = null;
+        
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle(title);
+        chooser.setFileFilter(new VueFileFilter());
+        
+        if (VueUtil.isCurrentDirectoryPathSet()) 
+            chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
+        
+        int option = chooser.showDialog(tufts.vue.VUE.frame, "Open");
+        
+        if (option == JFileChooser.APPROVE_OPTION) 
+        {
+            String fileName = chooser.getSelectedFile().getAbsolutePath();
+            
+            //if it isn't a file name with the right extention 
+            if (!fileName.endsWith("." + extension))
+              fileName += "." + extension;
+            
+            //if the file with the given name exists
+            if ((file = new File(fileName)).exists())
+            {
+                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+            }
+            
+            else
+            {
+                //what to do here?
+                System.err.println("the file doesn't exist");
+                file = null;
+            }
+        }
+        
+        return file;
+    }
+    
     /**A static method which creates an appropriate marshaller and marshal the active map*/
     public static void marshallMap(File file)
     {
@@ -89,17 +132,20 @@ public class ActionUtil {
         Mapping mapping = new Mapping();
             
         try 
-        {
+        {  
             FileWriter writer = new FileWriter(file);
             
             marshaller = new Marshaller(writer);
             mapping.loadMapping(XML_MAPPING);
             marshaller.setMapping(mapping);
             
+            System.out.println("start of marshall");
             marshaller.marshal(tufts.vue.VUE.getActiveMap());
+            System.out.println("end of marshall");
             
             writer.flush();
             writer.close();
+            
         } 
         catch (Exception e) 
         {
@@ -108,10 +154,11 @@ public class ActionUtil {
         //}
     }
     
-    /**possible to change? */
-    public static Unmarshaller getUnmarshaller()
+    /**A static method which creates an appropriate unmarshaller and unmarshal the given concept map*/
+    public static LWMap unmarshallMap(File file)
     {
         Unmarshaller unmarshaller = null;
+        LWMap map = null;
         
         //if (this.unmarshaller == null) {   
         Mapping mapping = new Mapping();
@@ -121,12 +168,22 @@ public class ActionUtil {
             unmarshaller = new Unmarshaller();
             mapping.loadMapping(XML_MAPPING);    
             unmarshaller.setMapping(mapping);  
+            
+            FileReader reader = new FileReader(file);
+            
+            map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
+            map.completeXMLRestore();
+            
+            reader.close();
         } 
         catch (Exception e) 
         {
-            System.err.println("ActionUtil.getUnmarshaller: " + e);
+            System.err.println("ActionUtil.unmarshallMap: " + e);
+            e.printStackTrace();
+            map = null;
         }
         //}
-        return unmarshaller;
+        
+        return map;
     }
 }

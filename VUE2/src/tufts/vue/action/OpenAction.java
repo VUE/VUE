@@ -13,22 +13,12 @@ package tufts.vue.action;
 import java.io.*;
 import java.awt.event.*;
 import javax.swing.*;
-
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import java.io.OutputStreamWriter;
-
-import org.xml.sax.InputSource;
 import tufts.vue.*;
-
 
 public class OpenAction extends AbstractAction
 {
     final static String XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
-
+    
     /** Creates a new instance of OpenAction */
     public OpenAction() {
     }
@@ -41,6 +31,7 @@ public class OpenAction extends AbstractAction
 
     public void actionPerformed(ActionEvent e)
     {
+        /*
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Open Map");
         chooser.setFileFilter(new VueFileFilter());
@@ -50,37 +41,55 @@ public class OpenAction extends AbstractAction
         String fileName = "test.xml";
         if (option == JFileChooser.APPROVE_OPTION) {
             fileName = chooser.getSelectedFile().getAbsolutePath();
-            VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-            
-            
+            VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getP //if it isn't a file name with the right extention 
+                if (!fileName.endsWith("." + extension))
+                fileName += "." + extension;arent());
+         */
+           
+        File file = ActionUtil.openFile("Open Map", "xml");
+        
+        if (file != null)
+        {
+         
             VUE.activateWaitCursor();
-            try {
-                LWMap loadedMap = loadMap(fileName);
+            try 
+            {
+                //LWMap loadedMap = loadMap(fileName);
+                LWMap loadedMap = loadMap(file.getAbsolutePath());
                 VUE.displayMap(loadedMap);
-            } finally {
+            } 
+            finally 
+            {
                 VUE.clearWaitCursor();
             }
         }
+        
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
 
     public static LWMap loadMap(String filename)
     {
-        try {
-            Unmarshaller unmarshaller = getUnmarshaller();
+        try 
+        {
+            
+            //Unmarshaller unmarshaller = ActionUtil.getUnmarshaller();
             if (debug) System.err.println("Unmarshalling from " + filename);
-            LWMap map = (LWMap) unmarshaller
-                .unmarshal(new InputSource(new FileReader(filename)));
-            map.completeXMLRestore();
-            return map;
-        } catch (Exception e) {
+            
+            //LWMap map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
+            //map.completeXMLRestore();
+            //return map;
+            
+            return (ActionUtil.unmarshallMap(new File(filename)));
+        } 
+        catch (Exception e) 
+        {
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
             e.printStackTrace();
             return null;
         }
     }
     
-
+    /*
     private static Unmarshaller unmarshaller = null;
     private static Unmarshaller getUnmarshaller()
     {
@@ -107,6 +116,7 @@ public class OpenAction extends AbstractAction
         new OpenAction().loadMap(args[0]);
     }
 
+     */
     private static boolean debug = true;
-
+    
 }
