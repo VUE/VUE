@@ -245,15 +245,15 @@ public class VUE
             //-------------------------------------------------------
             //LWMap map1 = new LWMap("Test Nodes");
             //LWMap map2 = new LWMap("Example Map");
-            LWMap map1 = new LWMap("Map 1");
+            //LWMap map1 = new LWMap("Map 1");
             LWMap map2 = new LWMap("Map 2");
 
-            installExampleNodes(map1);
+            //installExampleNodes(map1);
             installExampleMap(map2);
 
             //map1.setFillColor(new Color(255, 255, 192));
             
-            displayMap(map1);
+            //displayMap(map1);
             displayMap(map2);
             
         }
@@ -835,6 +835,7 @@ public class VUE
         n2.setLocation(100, 100);
         n3.setLocation(50, 180);
         n4.setLocation(200, 180);
+        n4.setNotes("I am a note.");
         map.addNode(n1);
         map.addNode(n2);
         map.addNode(n3);
