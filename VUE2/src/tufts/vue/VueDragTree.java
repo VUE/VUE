@@ -35,18 +35,24 @@ public class VueDragTree extends JTree implements DragGestureListener,
         //create the treemodel
        
         if (obj instanceof FavoritesNode){
-            System.out.println("I am in fav node");
+         
           
                setModel(new DefaultTreeModel((FavoritesNode)obj));
                   this.setShowsRootHandles(true);
+                   this.expandRow(0);
               
           
         }
         else{
           
              setModel(createTreeModel(obj, treeName));
-        }
+              this.expandRow(0);
+              this.expandRow(1);
        
+        }
+        
+       
+                              
         implementDrag(this);
         
       
