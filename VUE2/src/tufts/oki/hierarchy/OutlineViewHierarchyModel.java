@@ -381,6 +381,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                   LWLink link = (LWLink)component;
                   String connectedNodeLabel;
                   
+                  //gets the name of the component that the link connects to
                   if ((connectedNodeLabel = link.getComponent1().getLabel()).equals(parentNode.getDisplayName()))
                     connectedNodeLabel = link.getComponent2().getLabel();
                   
@@ -430,7 +431,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
               
         catch(osid.hierarchy.HierarchyException he)
         {
-            System.out.println("deleting node bug");  
+            System.err.println("deleting node bug");  
         }
         
         catch(Exception e)

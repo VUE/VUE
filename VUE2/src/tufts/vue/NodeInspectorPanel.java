@@ -250,7 +250,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                     
                     //if the tree is not intiliazed, hidden, or doesn't contain the given node, 
                     //then it switches the model of the tree using the given node
-                    if (!tree.isInitialized() || !isVisible() || !tree.contains(pNode))
+                    if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pNode))
                     {
                         panelLabel.setText("Node: " + pNode.getLabel());
                         tree.switchContainer(pNode);
