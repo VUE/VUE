@@ -1156,7 +1156,7 @@ public class LWLink extends LWComponent
         }
 
         // todo: conditional
-        drawArrows(g);
+        //drawArrows(g);
 
         //-------------------------------------------------------
         // Paint label if there is one
