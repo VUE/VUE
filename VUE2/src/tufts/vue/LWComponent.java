@@ -636,8 +636,7 @@ public class LWComponent
         return this.parent;
     }
 
-    public boolean hasChildren()// todo: can we get rid of this?
-    {
+    public boolean hasChildren() {
         return false;
     }
 
@@ -1111,7 +1110,7 @@ public class LWComponent
         if (listeners != null)
             listeners.clear();
     }
-    public void notifyLWCListeners(LWCEvent e)
+    protected void notifyLWCListeners(LWCEvent e)
     {
         if (isDeleted())
             throw new IllegalStateException("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
@@ -1149,7 +1148,10 @@ public class LWComponent
             parent.notifyLWCListeners(e);
     }
     
-    
+    /**
+     * A third party can ask this object to raise an event
+     * on behalf of the source.
+     */
     void notify(Object source, String what)
     {
         notifyLWCListeners(new LWCEvent(source, this, what));
