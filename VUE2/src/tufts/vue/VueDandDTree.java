@@ -21,7 +21,7 @@ import osid.dr.*;
 
 
 import java.awt.geom.Point2D;
-import javax.swing.tree.*;
+
 import java.util.Iterator;
 /**
  *
@@ -32,6 +32,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
     // 75726c6e="URLN" -- mac uses this type for a flavor containing the title of a web document
     // this existed in 1.3, but apparently went away in 1.4.
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+    //todo make only a favoritesnode  droppable//
     
     private final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY |
@@ -60,13 +61,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
  public void drop(DropTargetDropEvent e ) {
              
       
-                              if (e.isLocalTransfer()) {
-                                         
-                                           e.acceptDrop(DnDConstants.ACTION_MOVE);
-                                      }
-                                      else {
-                                    e.acceptDrop(DnDConstants.ACTION_COPY);
-                                      }
+                             
                             
                             
                 java.awt.Point dropLocation = e.getLocation();
@@ -74,6 +69,13 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
         
                   if (isvalidDropNode(treePath)){
+                       if (e.isLocalTransfer()) {
+                                         
+                                           e.acceptDrop(DnDConstants.ACTION_MOVE);
+                                      }
+                                      else {
+                                    e.acceptDrop(DnDConstants.ACTION_COPY);
+                                      }
            
                       boolean success = false;
                      Transferable transfer = e.getTransferable();
@@ -115,6 +117,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                        DefaultMutableTreeNode node = (DefaultMutableTreeNode)treePath.getLastPathComponent();
 
                        FileNode newNode = new FileNode(file);
+                       
                        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
                        model.insertNodeInto(newNode, node, 0);    
                       
@@ -191,8 +194,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
  
  public boolean isvalidDropNode(TreePath  treePath){
                     
+     
+                     
                     if (treePath.getLastPathComponent() instanceof FavoritesNode){
-                        
+                      System.out.println("Are we here now?");   
                       return true;
                   
                        }
