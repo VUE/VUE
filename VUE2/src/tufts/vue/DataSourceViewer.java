@@ -67,8 +67,6 @@ public class DataSourceViewer  extends JPanel{
         JScrollPane jSP = new JScrollPane(dataSourceList);
         add(jSP,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
-        //setSize(jSP.getPreferredSize());
-        
     }
     
     public DataSource getActiveDataSource() {
@@ -124,25 +122,16 @@ public class DataSourceViewer  extends JPanel{
             
     private void loadDataSources() {
          // this should be created automatically from a config file. That will be done in future.
-        DataSource dsMyComputer = new DataSource("ds1", "My Computer", "My Computer");
-        DataSource dsTuftsDL = new DataSource("ds2", "Tufts Digital Library","fedora");
-        DataSource dsMyFavorites = new DataSource("ds3", "My Favorites","favorites");
-        DataSource ds4 = new DataSource("ds4", "Local FileSystem","favorites");
-        dsTuftsDL.setDisplayColor(Color.RED);
-        dsTuftsDL.setResourceViewer(new DRViewer("fedora.conf", "Fedora:1","DR@Tufts","Tufts Fedora Repository"));
-        dsMyFavorites.setResourceViewer(new FavoritesWindow("My Favorites"));
-        dsMyFavorites.setDisplayColor(Color.BLUE);
-        Vector fileVector  = new Vector();
-        fileVector.add(new File("C:\\"));
-        VueDragTree fileTree = new VueDragTree(fileVector.iterator(),"File System");
-        JScrollPane jSP = new JScrollPane(fileTree);   
-        dsMyComputer.setResourceViewer(jSP);
-        //ds4.setResourceViewer(jSP);
-        dataSources.add(dsMyComputer);
-        dataSources.add(dsTuftsDL);
-        dataSources.add(dsMyFavorites);
-        //dataSources.add(ds4);
-        setActiveDataSource(dsTuftsDL);
+  
+        DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
+        dataSources.add(ds1);
+        DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora",DataSource.DR_FEDORA);
+        dataSources.add(ds2);
+        setActiveDataSource(ds2);
+        DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
+        dataSources.add(ds3);
+       
+      
         //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.CENTER);
         //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.SOUTH);
     }
