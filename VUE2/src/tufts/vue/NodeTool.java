@@ -73,7 +73,6 @@ public class NodeTool extends VueTool
     }
     
     public void setSelectedSubTool(VueTool tool) {
-        if (DEBUG.TOOL) out("setSelectedSubTool: " + tool);
         super.setSelectedSubTool(tool);
         if (VUE.getSelection().size() > 0) {
             SubTool shapeTool = (SubTool) tool;

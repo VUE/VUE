@@ -57,7 +57,6 @@ public class LinkTool extends VueTool
     }
 
     public void setSelectedSubTool(VueTool tool) {
-        if (DEBUG.TOOL) out("setSelectedSubTool: " + tool);
         super.setSelectedSubTool(tool);
         if (VUE.getSelection().size() > 0) {
             SubTool subTool = (SubTool) tool;

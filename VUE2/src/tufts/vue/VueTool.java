@@ -300,6 +300,7 @@ public abstract class VueTool extends AbstractAction
      * @param pTool - the selected subtool
      **/
     public void setSelectedSubTool( VueTool pTool) {
+        if (DEBUG.TOOL) out("setSelectedSubTool: " + pTool);
         mSelectedSubTool = pTool;
     }
 	

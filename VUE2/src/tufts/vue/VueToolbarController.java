@@ -403,20 +403,22 @@ public class VueToolbarController
         if (pTool.getParentTool() != null)
             rootTool = pTool.getParentTool();
 		
-        // check to see if it is the same selection...
         String selectionID = pTool.getSelectionID();
+        
+        /*
+        // check to see if it is the same selection...
         if (mCurSelectionID.equals(selectionID)) {
             if (DEBUG.TOOL) out("same selection: noop");
             return;
         }
-
         if (rootTool == mSelectedTool) {
             if (DEBUG.TOOL) out("same root tool: noop");
             return;
         }
-			
-        // new tool selection...
-        //debug(">>> new tool selection from: "+mCurSelectionID+ " to: "+selectionID );
+        */
+        // allow re-selection of existing tool: handy for use as "apply" to a current selection
+        // if the changing the active sub-tool can have an effect on selected objects
+        
 
         mCurSelectionID = selectionID;	  	
 

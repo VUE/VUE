@@ -231,7 +231,7 @@ public class LWLink extends LWComponent
     {
         LWComponent dropTarget = e.getViewer().getIndication();
         // TODO BUG: above doesn't work if everything is selected
-        System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
+        if (DEBUG.MOUSE) System.out.println("LWLink: control point " + index + " dropped on " + dropTarget);
         if (dropTarget != null) {
             if (index == 0 && ep1 == null && ep2 != dropTarget)
                 setComponent1(dropTarget);
