@@ -2319,7 +2319,8 @@ public class MapViewer extends javax.swing.JPanel
                 //end of addition
                 
                 if (oldActiveMap != this.map)
-                    VUE.ModelSelection.clear();
+                	// clear and notify since the selected map changed.
+                    VUE.ModelSelection.clearAndNotify();
             }
         } 
         VueSelection = VUE.ModelSelection;
