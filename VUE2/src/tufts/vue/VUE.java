@@ -563,6 +563,12 @@ public class VUE
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open");
         ExitAction exitAction = new ExitAction("Quit");
+        
+        /**Actions added by the power team*/
+        PrintAction printAction = new PrintAction("Print");
+        XMLView xmlAction = new XMLView("XML View");
+        /**End of addition*/
+        
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
@@ -570,6 +576,8 @@ public class VUE
         fileMenu.add(Actions.CloseMap);
         //fileMenu.add(htmlAction);
         fileMenu.add(new JMenuItem("Export ..."));
+        fileMenu.add(printAction);
+        fileMenu.add(xmlAction);
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
         
@@ -667,11 +675,9 @@ public class VUE
         //extra additions by the power team members
         PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("HTML");
-        XMLView xmlAction = new XMLView("XML");
         ImageConversion imageAction = new ImageConversion("JPEG");
         ImageMap imageMap = new ImageMap("IMAP");
         SVGConversion svgAction = new SVGConversion("SVG");
-        PrintAction printAction = new PrintAction("Print");
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(Actions.NewMap);

@@ -38,13 +38,27 @@ public class ActionUtil {
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
        It returns the selected file or null if the process didn't complete*/
-    public static File selectFile(String title, String extension)
+    public static File selectFile(String title, String fileType)
     {
         File file = null;
         
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
-        //chooser.setFileFilter(new VueFileFilter());
+        
+        chooser.setAcceptAllFileFilterUsed(false);
+        
+        if (fileType != null)
+         chooser.setFileFilter(new VueFileFilter(fileType)); 
+        
+        else
+        {
+            //chooser.addChoosableFileFilter(new VueFileFilter("xml"));  
+            chooser.setFileFilter(new VueFileFilter("xml")); 
+            chooser.addChoosableFileFilter(new VueFileFilter("jpeg"));  
+            chooser.addChoosableFileFilter(new VueFileFilter("svg"));
+            chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
+            chooser.addChoosableFileFilter(new VueFileFilter("html"));
+        }
             
         if(VueUtil.isCurrentDirectoryPathSet()) 
           chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
@@ -69,6 +83,8 @@ public class ActionUtil {
               {
                 String fileName = chooser.getSelectedFile().getAbsolutePath();
                   
+                String extension = chooser.getFileFilter().getDescription();
+                
                 //if it isn't a file name with the right extention 
                 if (!fileName.endsWith("." + extension))
                 fileName += "." + extension;
@@ -91,7 +107,7 @@ public class ActionUtil {
         
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
-        chooser.setFileFilter(new VueFileFilter());
+        chooser.setFileFilter(new VueFileFilter(extension));
         
         if (VueUtil.isCurrentDirectoryPathSet()) 
             chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  

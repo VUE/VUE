@@ -61,7 +61,7 @@ public class SaveAction extends AbstractAction
         
         if (isSaveAs() || file == null)
         {
-          file = (ActionUtil.selectFile("Save Map", "xml"));
+          file = ActionUtil.selectFile("Save Map", null);
           
           if (file == null)
               saveCondition = false;
@@ -69,7 +69,21 @@ public class SaveAction extends AbstractAction
         
         if (saveCondition == true)
         {
-          ActionUtil.marshallMap(file);
+          if (file.getName().endsWith(".xml"))
+            ActionUtil.marshallMap(file);
+          
+          else if (file.getName().endsWith(".jpeg"))
+            new ImageConversion().createJpeg(file);
+          
+          else if (file.getName().endsWith(".svg"))
+            new SVGConversion().createSVG(file);
+          
+          else if (file.getName().endsWith(".pdf"))
+            new PDFTransform().convert(file);
+          
+          else if (file.getName().endsWith(".html"))
+            new HTMLConversion().convert(file);
+          
           System.out.println("Saved " + getFileName());
         }
             

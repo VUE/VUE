@@ -57,7 +57,7 @@ public class HTMLConversion extends AbstractAction
     public void actionPerformed(ActionEvent ae) {
         System.out.println("Performing HTML Conversion:" + ae.getActionCommand());
         
-        ActionUtil.marshallMap(new File(xmlFileName));
+        //ActionUtil.marshallMap(new File(xmlFileName));
         
         File result = ActionUtil.selectFile("Save As HTML", "html");
         if(!result.equals(null)) convert(result);
@@ -65,6 +65,8 @@ public class HTMLConversion extends AbstractAction
     
     public void convert(File result){
         System.out.println("in convert..................");
+        
+        ActionUtil.marshallMap(new File(xmlFileName));
         TransformerFactory tfactory = TransformerFactory.newInstance();
         
         try

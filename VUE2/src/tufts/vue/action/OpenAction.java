@@ -52,7 +52,7 @@ public class OpenAction extends AbstractAction
            
         File file = ActionUtil.openFile("Open Map", "xml");
         
-        if (file != null)
+        if (file != null && file.getName().endsWith(".xml"))
         {
          
             VUE.activateWaitCursor();

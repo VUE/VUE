@@ -48,58 +48,42 @@ public class ImageConversion extends AbstractAction {
         }
     }
     
-    /**A default draw function for the testing purpose */
-    private void drawImage(Graphics2D g2, Dimension size)
+    /**A method which sets up for converting the active viewer to a Jpeg file*/
+    public void createJpeg(File location)
     {
-        g2.setColor(Color.white);
-        g2.fill(new Rectangle(0, 0, size.width - 1, size.height - 1));
-        g2.setColor(Color.red);
-        g2.draw(new Rectangle(0, 0, size.width - 1, size.height - 1));
+         //retrives the current map and gets its size
+         MapViewer currentMap = VUE.getActiveViewer();
+                
+         Rectangle2D bounds = currentMap.getAllComponentBounds();
+         int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
+         Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
         
-    }
-    
-    /** A main function for the testing purpose */
-    public static void main (String[] args)
-    {
-        BufferedImage defaultImage = new BufferedImage(300, 400, BufferedImage.TYPE_INT_RGB);       
-        ImageConversion test = new ImageConversion();
+         //creates an image object and sets up the graphics object of the image
+         BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
+         Graphics g = mapImage.getGraphics();
+                
+         g.setClip(0, 0, size.width, size.height);
         
-        test.drawImage((Graphics2D)defaultImage.getGraphics(), new Dimension(300, 400));
-        test.convert(defaultImage, new File("c:\\test.jpeg"), "jpeg");
+         //let the map draws to the image object's graphic object
+         currentMap.paintComponent(g);
+                
+         //outlining the returned image
+         //g.setColor(Color.black);
+         //g.drawRect(0, 0, size.width - 1, size.height - 1);
+        
+         //begins the conversion to the file
+         convert(mapImage, location, "jpeg");
     }
     
     /**A method defined in the interface */
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
         
-        try 
-        {
+       try 
+       {
            File selectedFile = ActionUtil.selectFile("Saving JPEG", "jpeg");
            
            if (selectedFile != null)
-             {
-                //retrives the current map and gets its size
-                MapViewer currentMap = VUE.getActiveViewer();
-                
-                Rectangle2D bounds = currentMap.getAllComponentBounds();
-                int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
-                Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
-        
-                //creates an image object and sets up the graphics object of the image
-                BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-                Graphics g = mapImage.getGraphics();
-                
-                g.setClip(0, 0, size.width, size.height);
-        
-                //let the map draws to the image object's graphic object
-                currentMap.paintComponent(g);
-                
-                //outlining the returned image
-                //g.setColor(Color.black);
-                //g.drawRect(0, 0, size.width - 1, size.height - 1);
-        
-                //begins the conversion to the file
-                convert(mapImage, selectedFile, "jpeg");
-            }
+             createJpeg(selectedFile);
        }
         
        catch(Exception ex) 

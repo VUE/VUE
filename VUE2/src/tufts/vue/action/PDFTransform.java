@@ -63,7 +63,7 @@ public class PDFTransform extends AbstractAction {
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
         System.out.println("Performing PDF Conversion:" + actionEvent.getActionCommand());
         
-        ActionUtil.marshallMap(new File(xmlFileName));
+        //ActionUtil.marshallMap(new File(xmlFileName));
         
         File pdfFile = ActionUtil.selectFile("Save As PDF", "pdf");
         if(!pdfFile.equals(null)) convert(pdfFile);
@@ -71,6 +71,7 @@ public class PDFTransform extends AbstractAction {
     
     public void convert(File pdfFile){
         
+        ActionUtil.marshallMap(new File(xmlFileName));
         //create new instance of transformer factory
         TransformerFactory factory =
             TransformerFactory.newInstance();
