@@ -72,19 +72,19 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         JPanel propertiesPanel=new JPanel();
         propertiesPanel.setLayout(new BorderLayout());
         propertiesPanel.add(conditionsScrollPane, BorderLayout.CENTER);
-        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        propertiesPanel.setBorder(BorderFactory.createEmptyBorder(3,0,3,3));
         
         
         // setting the properties editor for fields
         
         
-        JPanel labelPanel=new JPanel(new FlowLayout(FlowLayout.LEFT,2,0));
-        labelPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
-        JLabel label = new JLabel("Resource Metadata");
+        JPanel labelPanel=new JPanel(new BorderLayout());
+        //labelPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        JLabel label = new JLabel("Metadata");
         label.setAlignmentX(Label.LEFT_ALIGNMENT);
-        labelPanel.add(label);
+        labelPanel.add(label,BorderLayout.WEST);
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        //topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         
         //disable buttons if not editable
@@ -101,7 +101,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
             
         }
-        
+        labelPanel.add(topPanel,BorderLayout.EAST);
         // setting the panel for top buttons
         
         
@@ -111,9 +111,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         
         
-        //innerPanel.add(labelPanel);
+        innerPanel.add(labelPanel);
         innerPanel.add(propertiesPanel);
-        innerPanel.add(topPanel);
+        //innerPanel.add(topPanel);
         
         add(innerPanel);
         //setSize(300, 300);
