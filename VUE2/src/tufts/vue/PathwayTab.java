@@ -120,6 +120,12 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     public void setPathway(LWPathway pathway)
     {
         ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
+        
+        if (pathway == null)
+          add.setEnabled(false);
+        
+        else if (!VUE.ModelSelection.isEmpty())
+          add.setEnabled(true);
     }
     
     public LWPathway getPathway()

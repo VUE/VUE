@@ -2274,7 +2274,6 @@ public class MapViewer extends javax.swing.JPanel
                 
                 if (this == VUE.getActiveViewer())
                 {
-                    VUE.getPathwayControl().saveCurrentPathway();
                     System.out.println("setting the pathway manager: " + this.map.getLabel());
                     VUE.getPathwayControl().setPathwayManager(this.map.getPathwayManager());
                 }

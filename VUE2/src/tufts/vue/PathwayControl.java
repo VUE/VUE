@@ -137,6 +137,8 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     /**Sets the pathway manager to the given pathway manager*/
     public void setPathwayManager(LWPathwayManager pathwayManager)
     {
+        saveCurrentPathway();
+        
         this.pathwayManager = pathwayManager;
         
         //clears the combo box list 
