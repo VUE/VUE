@@ -7,7 +7,7 @@ To run the application:
 
         java tufts.vue.VUE
 
-To test the map viewer:
+To test just map viewer:
 
         java tufts.vue.MapViewer
 
@@ -27,9 +27,12 @@ A few GUI tips:
   (Zooming is incomplete: dragging the whole map
   while zoomed doesn't work yet)
 
-  As an integration experiment, you can also drag a piece
-  of artwork from Adobe Illustrator, and it will create
-  an image node for it.
+  - Right-click pops a test context menu, but they
+    don't do anything yet.
+
+  - As an integration experiment, you can also drag a piece
+    of artwork from Adobe Illustrator, and it will create
+    an image node for it.
 
 Cheers,
 Scott
