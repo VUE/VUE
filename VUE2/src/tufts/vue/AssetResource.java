@@ -127,6 +127,7 @@ public class AssetResource extends MapResource{
         this.asset = this.castorFedoraObject.getFedoraObject();
         setSpec(asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString());
         setType(Resource.ASSET_FEDORA);
+        setPropertiesByAsset();
     }
     
     public CastorFedoraObject getCastorFedoraObject() {
