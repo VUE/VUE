@@ -151,7 +151,7 @@ class MapDropTarget
     {
         Point dropLocation = null;
         int dropAction = DnDConstants.ACTION_MOVE; // default action
-        boolean modifierKeyWasDown = false;
+        final boolean modifierKeyWasDown = false;
         
         if (e != null) {
             dropLocation = e.getLocation();
@@ -163,10 +163,15 @@ class MapDropTarget
             // action.  We have no way of knowing anything about
             // actual keyboard state that initiated the drag.
 
-            if (VueUtil.isMacPlatform())
-                modifierKeyWasDown = (dropAction != DnDConstants.ACTION_COPY);
-            else
-                modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
+            //if (VueUtil.isMacPlatform())
+            //    modifierKeyWasDown = (dropAction != DnDConstants.ACTION_COPY);
+            //else
+            //    modifierKeyWasDown = (dropAction != DnDConstants.ACTION_MOVE);
+
+            // Okay, can't reliably determine if modifier key was down
+            // on all platforms and drag operations: e.g.: on Windows XP,
+            // default action is different in drag from windows file explorer
+            // than on drag from Mozilla (or maybe web browsers in general)
 
             // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
             // changes to dropAction that happen when the drag was
@@ -321,15 +326,26 @@ class MapDropTarget
             // in middle of string, don't do this, or possibly attempt
             // to split into list of multiple URL's (tho only if *every*
             // line succeeds as a URL -- prob too hairy to bother)
+
+            String[] rows = droppedText.split("\n");
             URL url = null;
-            try {
-                url = new URL(droppedText);
-            } catch (MalformedURLException ex) {}
+            String resourceTitle = null;
+
+            if (rows.length < 3) {
+                try {
+                    url = new URL(rows[0]);
+                } catch (MalformedURLException ex) {}
+                if (rows.length > 1) {
+                    // Current version of Mozilla (at least on Windows XP, as of 2004-02-22)
+                    // includes the HTML <title> as second row of text.
+                    resourceTitle = rows[1];
+                }
+            }
 
             if (url != null) {
                 if (hitComponent != null) {
                     if (createAsChildren)
-                        ((LWNode)hitComponent).addChild(createNewNode(url.toString(), null, dropLocation));
+                        ((LWNode)hitComponent).addChild(createNewNode(url.toString(), resourceTitle, dropLocation));
                     else
                         hitComponent.setResource(url.toString());
                 } else {
