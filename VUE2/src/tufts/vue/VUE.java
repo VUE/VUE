@@ -259,11 +259,12 @@ public class VUE
         toolPanel = new JPanel();
         //JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-       DRBrowser drBrowser = new DRBrowser();
-        //DRBrowser drBrowser = null;
+        //DRBrowser drBrowser = new DRBrowser();
+        DRBrowser drBrowser = null;
         if (args.length < 1 || !args[0].equals("-nodr"))  {
-            toolPanel.add( new DRBrowser(), BorderLayout.CENTER);
-			}
+            drBrowser = new DRBrowser();
+            toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        }
 			        
         // DEMO FIX:
         // no lwinspector in left
