@@ -62,19 +62,6 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         return treeModel;
     }
     
-    /**A method that reloads the tree model at the given tree node*/
-    public void reloadTreeModel(HierarchyNode node)
-    {
-        if (treeModel != null)
-        {
-            if (node != null)
-              treeModel.reload(node.getTreeNode());
-            
-            else
-              treeModel.reload();
-        }
-    }
-    
     /**A method that fires the tree value changed event */
     public void revalidateTree(HierarchyNode node)
     {
@@ -211,8 +198,12 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
             DefaultMutableTreeNode parentTreeNode = parentNode.getTreeNode(); 
         
             if (parentTreeNode != null)
-              parentTreeNode.add(treeNode);
-        
+            {
+                parentTreeNode.add(treeNode);
+                int[] childIndices = {parentTreeNode.getIndex(treeNode)};
+                treeModel.nodesWereInserted(parentTreeNode, childIndices);
+            }
+            
             else
               throw new osid.hierarchy.HierarchyException("the parent node is null");
             

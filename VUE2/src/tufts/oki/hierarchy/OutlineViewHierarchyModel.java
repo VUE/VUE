@@ -53,7 +53,7 @@ import tufts.vue.LWKey;
  * @author  Daisuke Fujiwara
  */
 
-public class OutlineViewHierarchyModel extends HierarchyModel implements LWComponent.Listener 
+public class OutlineViewHierarchyModel extends HierarchyModel implements LWComponent.Listener
 {    
     /** Creates a new instance of OutlineViewHierarchyModel */
     public OutlineViewHierarchyModel(LWContainer container) 
@@ -285,9 +285,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 if (child instanceof LWContainer)
                   addHierarchyTreeNode((LWContainer)addedChild, (LWContainer)child);
             }
-            
-            //updates the tree
-            reloadTreeModel(parentNode);
         }
              
         //if it is a LWLink
@@ -331,7 +328,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             if (deletedChildNode != null)
             {
                 deleteHierarchyNode(deletedChildNode);
-                reloadTreeModel(parentNode);
             }
         }
         // if it is a LWLink
@@ -363,7 +359,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             if (hierLink != null) 
             {
                 deleteHierarchyNode(hierLink);
-                reloadTreeModel(hierParent);
             }
         }
     }
@@ -376,7 +371,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         HierarchyNode hierParent = findHierarchyNode(getRootNode(), linkEndpoint, true);
         if (hierParent != null) {
             HierarchyNode hierLink = createHierarchyNode(hierParent, link);
-            reloadTreeModel(hierParent);
         }
     }
     
@@ -467,7 +461,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         }
     }
     
-    
     /*
     public void validateHierarchyNodeLinkLabels() throws osid.hierarchy.HierarchyException
     {
@@ -557,6 +550,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         }
     }
     
+    /**A method which searches the tree model for a hierarchy node which represents the given LWComponent*/
     public boolean contains(LWComponent component)
     {
         boolean result = false;
@@ -599,6 +593,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         return path;
     }
     
+    /**A method which returns the appropriate node label for the hierarchy node of the given LWComponent*/
     public String getNodeLabel(LWComponent component)
     {
         String label;
@@ -613,6 +608,9 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
               
                 else if (component instanceof LWNode)   
                   label = new String("Node-ID# " + component.getID());
+                
+                else
+                  label = "no label";
             }
         }
             

@@ -46,6 +46,7 @@ public class HierarchyNode implements osid.hierarchy.Node
     private String name;
     private String description;
     private DefaultMutableTreeNode treeNode;
+    
     private LWComponent component;
     
     /** Creates a new instance of HierarchyNode */
