@@ -348,8 +348,8 @@ public abstract class MenuButton extends JButton implements ActionListener
             (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
              java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         super.paint(g);
-        if (true) setToolTipText(null);//tmp debug
         /*
+        if (true) setToolTipText(null);//tmp debug
         int w = getWidth();
         int h = getHeight();
         g.setColor(Color.black);
