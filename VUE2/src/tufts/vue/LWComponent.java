@@ -251,12 +251,12 @@ public class LWComponent
     }
     static Color StringToColor(String xml)
     {
-	Color c = COLOR_DEFAULT;
+	Color c = null;
         try {
             Integer intval = Integer.decode(xml);
             c = new Color(intval.intValue());
         } catch (NumberFormatException e) {
-            System.err.println("[" + xml + "] " + e);
+            System.err.println("LWComponent.StringToColor[" + xml + "] " + e);
         }
         return c;
     }
