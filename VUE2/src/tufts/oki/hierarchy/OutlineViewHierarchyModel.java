@@ -385,14 +385,22 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             else if (message == LWKey.ChildrenAdded)
             {
                 ArrayList childrenList = e.getComponents();
-                for (Iterator i = childrenList.iterator(); i.hasNext();)
-                  addHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
+                for (Iterator i = childrenList.iterator(); i.hasNext();) {
+                    LWComponent c = (LWComponent) i.next();
+                    if (c instanceof LWLink)
+                        continue; // will be handled by a LinkAdded event
+                    addHierarchyTreeNode((LWContainer)e.getSource(), c);
+                }
             }
             else if (message == LWKey.ChildrenRemoved)
             {
                 ArrayList childrenList = e.getComponents();
-                for (Iterator i = childrenList.iterator(); i.hasNext();)
-                  deleteHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
+                for (Iterator i = childrenList.iterator(); i.hasNext();) {
+                    LWComponent c = (LWComponent) i.next();
+                     if (c instanceof LWLink)
+                        continue; // will be handled by a LinkRemoved event
+                     deleteHierarchyTreeNode((LWContainer)e.getSource(), c);
+                }
             }
             /*
             else if (message == LWKey.HierarchyChanged)
