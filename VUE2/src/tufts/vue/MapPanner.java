@@ -88,15 +88,10 @@ public class MapPanner extends javax.swing.JPanel
         Graphics2D g2 = (Graphics2D) g;
         Point2D offset = new Point2D.Double();
         
-        zoomFactor = 1;
-        /** csb zoom tool gone
-        zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
+        zoomFactor = VueUtil.computeZoomFit(pannerViewportSize,
                                              0,
                                              pannerRect,
                                              offset);
-                                             
-		**********/
-                                            
                                             
 
         g2.translate(-offset.getX(), -offset.getY());
