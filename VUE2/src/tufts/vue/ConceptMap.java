@@ -13,7 +13,7 @@ public interface ConceptMap extends MapItem
 {
     public java.util.Iterator getNodeIterator();
     public java.util.Iterator getLinkIterator();
-    public java.util.Iterator getPathwayIterator();
+    //public java.util.Iterator getPathwayIterator();
     
     /*
     public java.util.List getNodeList();

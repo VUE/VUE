@@ -139,10 +139,11 @@ public abstract class LWContainer extends LWComponent
     {
         return getLinkList().iterator();
     }
+    /*
     public Iterator getPathwayIterator()
     {
         return getPathwayList().iterator();
-    }
+    }*/
     
     // todo: temporary for html? 
     private List getNodeList()
@@ -168,7 +169,7 @@ public abstract class LWContainer extends LWComponent
         }
         return list;
     }
-    
+    /* -- pathways are no longer added as children to the map --
     private List getPathwayList()
     {
         ArrayList list = new ArrayList();
@@ -179,7 +180,7 @@ public abstract class LWContainer extends LWComponent
                 list.add(c);
         }
         return list;
-    }
+    }*/
 
     protected void addChildInternal(LWComponent c)
     {
