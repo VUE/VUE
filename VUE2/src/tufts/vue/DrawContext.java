@@ -6,9 +6,9 @@ import java.awt.RenderingHints;
 
 public class DrawContext
 {
-    Graphics2D g;
-    double zoom = 1.0;
-    int index;
+    public final Graphics2D g;
+    private double zoom = 1.0;
+    private int index;
     private boolean disableAntiAlias = false;
     private boolean isPrinting = false;
     private boolean isDraftQuality = false;
@@ -26,15 +26,6 @@ public class DrawContext
         this(g, 1.0);
     }
     
-    public DrawContext(DrawContext dc)
-    {
-        this.g = dc.g;
-        this.zoom = dc.zoom;
-        this.disableAntiAlias = dc.disableAntiAlias;
-        this.index = dc.index;
-        this.isPrinting = dc.isPrinting;
-    }
-
     /**
      * Mark us rendering for printing.  Note that
      * rendering any transparency whatsoever during
@@ -118,11 +109,19 @@ public class DrawContext
 
     public DrawContext create()
     {
-        DrawContext dc = new DrawContext(this);
-        dc.g = (Graphics2D) this.g.create();
-        return dc;
+        return new DrawContext(this);
     }
     
+    public DrawContext(DrawContext dc)
+    {
+        this.g = (Graphics2D) dc.g.create();
+        this.zoom = dc.zoom;
+        this.disableAntiAlias = dc.disableAntiAlias;
+        this.index = dc.index;
+        this.isPrinting = dc.isPrinting;
+        this.isDraftQuality = dc.isDraftQuality;
+    }
+
 
     /*
     public DrawContext createScaled(float scale)

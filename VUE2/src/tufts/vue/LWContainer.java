@@ -1091,28 +1091,25 @@ public abstract class LWContainer extends LWComponent
         }
     }
 
-    private void _drawChild(DrawContext dc, LWComponent c)
+    private void _drawChild(DrawContext _dc, LWComponent c)
     {
         // todo opt: don't create all these GC's?
-        Graphics2D g = dc.g;
-        Graphics2D gg = (Graphics2D) dc.g.create();
+        DrawContext dc = _dc.create();
         try {
             if (c.doesRelativeDrawing())
-                gg.translate(c.getX(), c.getY());
-            dc.g = gg;
+                dc.g.translate(c.getX(), c.getY());
             drawChild(c, dc);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("*** Exception drawing: " + c);
             System.err.println("***         In parent: " + this);
-            System.err.println("***    Graphics-start: " + g);
-            System.err.println("***      Graphics-end: " + gg);
-            System.err.println("***   Transform-start: " + g.getTransform());
-            System.err.println("***     Transform-end: " + gg.getTransform());
+            System.err.println("***    Graphics-start: " + _dc.g);
+            System.err.println("***      Graphics-end: " + dc.g);
+            System.err.println("***   Transform-start: " + _dc.g.getTransform());
+            System.err.println("***     Transform-end: " + dc.g.getTransform());
         } finally {
-            gg.dispose();
+            dc.g.dispose();
         }
-        dc.g = g;
     }
 
     

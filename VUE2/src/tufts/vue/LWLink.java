@@ -1180,9 +1180,7 @@ public class LWLink extends LWComponent
                 //-------------------------------------------------------
                 g.setColor(COLOR_SELECTION);
                 //g.setColor(Color.red);
-                //g.setStroke(new BasicStroke(0.5f / (float) g.getTransform().getScaleX()));
-                g.setStroke(new BasicStroke(0.5f / (float) dc.zoom));
-                // todo opt: less object allocation (put constant screen strokes in the DrawContext)
+                dc.setAbsoluteStrokeWidth(0.5f);
                 if (curveControls == 2) {
                     Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
                     g.draw(ctrlLine);
