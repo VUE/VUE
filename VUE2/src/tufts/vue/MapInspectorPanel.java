@@ -51,7 +51,7 @@ public class MapInspectorPanel  extends JPanel
 	InfoPanel mInfoPanel = null;
 	
 	/** pathways panel **/
-	PathwayPanel mPathPanel = null;
+	PathwayPane mPathPanel = null;
 	
 	/** filter panel **/
 	FilterPanel mFilterPanel = null;
@@ -71,7 +71,7 @@ public class MapInspectorPanel  extends JPanel
 		
 		
 		mInfoPanel = new InfoPanel();
-		mPathPanel = new PathwayPanel();
+		mPathPanel = new PathwayPane();
 		mFilterPanel = new FilterPanel();
 		
 		mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
@@ -271,7 +271,7 @@ public class MapInspectorPanel  extends JPanel
 	 * This is the Pathway Panel for the Map Inspector
 	 *
 	 **/
-	public class PathwayPanel extends JPanel {
+	public class PathwayPane extends JPanel {
 		
 		/** the path scroll pane **/
 		JScrollPane mPathScrollPane = null;
@@ -282,10 +282,10 @@ public class MapInspectorPanel  extends JPanel
 		PathwayTab mPathDisplay = null;
 		
 		/**
-		 * PathwayPanel
+		 * PathwayPane
 		 * Constructs a pathway panel
 		 **/
-		public PathwayPanel() {
+		public PathwayPane() {
 			
                         setLayout(new BorderLayout());
 			//mPathDisplay = new JPanel();
