@@ -140,9 +140,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
             pathwayList.addItem((LWPathway)i.next());           
         }
         
-        //sets the current pathway to the first pathway 
-        if (this.pathwayManager.length() != 0)
-          setCurrentPathway(this.pathwayManager.getPathway(0));
+        //sets the current pathway to the current pathway 
+        LWPathway pathway;
+        if ((pathway = this.pathwayManager.getCurrentPathway()) != null)
+          setCurrentPathway(pathway);
         
     }
     
@@ -162,6 +163,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         pathwayList.setSelectedItem(pathway);
         
         updateControlPanel();
+        
+        //update the inspector here
+        //VUE.getInspector().setPathway(currentPathway);
+        //LWPathwayInspector.setPathway(pathway);
     }
     
     /**Returns the currently selected pathway*/

@@ -245,13 +245,14 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
          
         public PathwayTableModel()
         {
-           
+           LWPathway pathway = null;
         }
         
         //sets the pathway to the given pathway
         public synchronized void setPathway(LWPathway pathway)
         {
             this.pathway = pathway;
+            fireTableDataChanged();
         }
         
         //returns the current pathway

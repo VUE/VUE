@@ -134,6 +134,7 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setPathway(LWPathway pathway){
         this.pathway = pathway;
+        path.setPathway(pathway);
         model.fireTableDataChanged();
     }
     
