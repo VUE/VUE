@@ -222,7 +222,7 @@ public class NodeTool extends VueTool
     
     static LWNode initTextNode(LWNode node)
     {
-        node.setIsTextNode( true);
+        node.setIsTextNode(true);
         node.setAutoSized(true);
         node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
@@ -236,6 +236,7 @@ public class NodeTool extends VueTool
     {
         LWNode node = new LWNode();
         initTextNode(node);
+        node.setLabel(text);
         VueBeanState state = TextTool.getTextToolPanel().getCurrentState();
         if (state != null)
             state.applyState(node);
