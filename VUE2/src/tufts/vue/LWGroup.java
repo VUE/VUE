@@ -199,6 +199,18 @@ public final class LWGroup extends LWContainer
         Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
+
+            // If parent and some child both in selection and you
+            // drag, the selection (an LWGroup) and the parent fight
+            // to control the location of the child.  There may be a
+            // cleaner way to handle this, but checking it here works.
+            // TODO BUG: when we drop in above case, the children
+            // think they've been seperatly dragged, and thus get
+            // "dropped" out of the parent!
+            
+            if (c.isSelected() && c.getParent().isSelected())
+                continue;
+            
             c.translate(dx, dy);
         }
         super.setLocation(x, y);
