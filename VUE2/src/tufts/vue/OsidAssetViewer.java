@@ -67,6 +67,8 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
     JComboBox maxReturns;
     JComboBox searchTypesComboBox;
     JPanel searchTypesPanel;
+    JComboBox endusersComboBox;
+    CellEditor defaultCellEditor;
     
     osid.dr.DigitalRepository digitalRepository = null; // Repository connected to.
     osid.repository.Repository repository = null; // Repository connected to.
@@ -367,16 +369,23 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         
         // setting editors for columns
         // field column.
-/*
         try {
-            JComboBox comboBox = new JComboBox(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr));
-            conditionsTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
-            comboBox = new JComboBox(FedoraUtils.getAdvancedSearchOperators((tufts.oki.dr.fedora.DR)dr));
-            conditionsTable.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(comboBox));
+            String fields[] = { "identifier","title","language","description","end user", "age range" };
+            String endusers[] = { "author","counsellor","learner","manager","parent","teacher","other" };
+            String operators[] = { "eq","lt","lte","gt","gte" };
+            
+            JComboBox fieldsComboBox = new JComboBox(fields);
+            fieldsComboBox.addActionListener(this);
+            this.endusersComboBox = new JComboBox(endusers);
+            JComboBox operatorsComboBox = new JComboBox(operators);
+            
+            conditionsTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(fieldsComboBox));
+            conditionsTable.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(operatorsComboBox));
+            this.defaultCellEditor = conditionsTable.getColumnModel().getColumn(2).getCellEditor();
         } catch(Exception ex) {
             System.out.println("Can't set the editors"+ex);
         }
-*/
+        
         ConditionSelectionListener sListener= new ConditionSelectionListener(deleteConditionButton, -1);
         conditionsTable.getSelectionModel().addListSelectionListener(sListener);
         // ..and add listeners to the buttons
@@ -399,8 +408,6 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         bottomPanel.add(advancedSearchButton);
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,0));
-        
-        
         
         JPanel advancedSearchPanel=new JPanel();
         advancedSearchPanel.setLayout(new BoxLayout(advancedSearchPanel, BoxLayout.Y_AXIS));
@@ -459,7 +466,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         String authority = "";
         String keyword = "";
         
-        java.util.StringTokenizer st = new java.util.StringTokenizer(",");
+        java.util.StringTokenizer st = new java.util.StringTokenizer(typeString,",");
         int tokenCount = 0;
         while (st.hasMoreTokens())
         {
@@ -621,10 +628,19 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
             };
             t.start();
         }
-        
+    
+/*
+        String selection = (String)(((JComboBox)e.getSource()).getSelectedItem());
+        if (selection.equals("end user"))
+        {
+            this.conditionsTable.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(this.endusersComboBox));
+        }
+        else
+        {
+            this.conditionsTable.getColumnModel().getColumn(2).setCellEditor(this.defaultCellEditor);
+        }
+*/
     }
-    
-    
     
     public void keyPressed(KeyEvent e) {
     }
@@ -654,8 +670,8 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         public ConditionsTableModel() {
             m_conditions=new ArrayList();
             Condition cond = new Condition();
-            cond.setProperty("label");
-            cond.setOperator(ComparisonOperator.has);
+            cond.setProperty("");
+            cond.setOperator(ComparisonOperator.eq);
             cond.setValue("");
             m_conditions.add(cond);
         }
@@ -672,9 +688,9 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
             if (col==0) {
                 return "Field";
             } else if (col==1) {
-                return "Criteria";
+                return "Operator";
             } else {
-                return "Search";
+                return "Value";
             }
         }
         
@@ -741,11 +757,11 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         
         private String getNiceName(String operString) {
             if (operString.equals("has")) return "contains";
-            if (operString.equals("eq")) return "equals";
-            if (operString.equals("lt")) return "is less than";
-            if (operString.equals("le")) return "is less than or equal to";
-            if (operString.equals("gt")) return "is greater than";
-            return "is greater than or equal to";
+            if (operString.equals("eq")) return "eq";
+            if (operString.equals("lt")) return "lt";
+            if (operString.equals("lte")) return "lte";
+            if (operString.equals("gt")) return "gt";
+            return "gte";
         }
         
     }
@@ -836,7 +852,4 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
             m_model.fireTableRowsDeleted(r,r);
         }
     }
-    
-    
-    
 }
