@@ -41,6 +41,14 @@ public class ToolWindow
         
         ToolPanel(String title)
         {
+            // todo -- need to have at least title click-able
+            // without this window grabbing focus so you can
+            // at least drag these windows without main
+            // losing focus.  Also, should be able to make
+            // it so you can get focus and not have the parent
+            // window go inactiveat all, which is happening
+            // on OSX.
+
             setLayout(new BorderLayout());
             titlePanel.setPreferredSize(new Dimension(0, TitleHeight));
             contentPanel.setLayout(new BorderLayout());
@@ -104,6 +112,8 @@ public class ToolWindow
         setBackground(SystemColor.control);
         setContentPane(toolPanel = new ToolPanel(title));
         pack();
+        //setLocationRelativeTo(owner);
+        //setFocusableWindowState(false); // nothing can get input
     }
 
     public void addTool(Component c)
@@ -121,6 +131,11 @@ public class ToolWindow
 
     public void paint(Graphics g)
     {
+        // todo: better to actually NOT paint the title
+        // as a jcomponent, in case our content panel
+        // has an exception during rendering, we can
+        // catch it here (around super.paint()) and
+        // then still decorate the window.
         super.paint(g);
         int bottom = getHeight() - 1;
         int right = getWidth() - 1;
@@ -132,6 +147,7 @@ public class ToolWindow
             x += 2;
             y += 2;
         }
+        g.setColor(SystemColor.control);
     }
 
     public void setSize(int width, int height)
