@@ -843,7 +843,10 @@ public class LWComponent
     {
         if (listeners == null)
             listeners = new java.util.ArrayList();
-        listeners.add(listener);
+        if (listeners.contains(listener))
+            new Throwable("already listening to us:" + listener + " " + this).printStackTrace();
+        else
+            listeners.add(listener);
     }
     public void removeLWCListener(LWComponent.Listener listener)
     {

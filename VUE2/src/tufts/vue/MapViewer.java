@@ -2812,8 +2812,8 @@ public class MapViewer extends javax.swing.JPanel
 
     public String toString()
     {
-        return "MapViewer[" + (isRightSide ? "right" : "left") + "] "
-            + "(" + getMap().getLabel() + ")"
+        return "MapViewer<" + (isRightSide ? "right" : "left") + "> "
+            + "\'" + getMap().getLabel() + "\' "
             + Integer.toHexString(hashCode());
     }
   
