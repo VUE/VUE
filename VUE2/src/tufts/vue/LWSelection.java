@@ -118,6 +118,17 @@ public class LWSelection extends java.util.ArrayList
             throw new RuntimeException("LWSelection remove: list doesn't contain " + c);
     }
     
+    /**
+     * clearAndNotify
+     * This emthod clears teh selection and always notifies
+     * listeners of a change.
+     *
+     **/
+    public void clearAndNotify() {
+    	clear0();
+    	notifyListeners();
+    }
+    
     public void clear()
     {
         if (clear0())
