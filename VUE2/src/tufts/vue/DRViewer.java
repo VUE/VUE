@@ -27,6 +27,10 @@ package tufts.vue;
 /**
  *
  * @author  akumar03
+ *
+ * This is the Viewer for Fedora based digital reposiories.  This provides panels for 
+ * performing simple and advanced search as defined by Fedora.  Search results are 
+ * displayed in result panel.
  */
 
 
@@ -65,14 +69,9 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     JPanel DRSearch;
     JPanel DRAdvancedSearch;
     osid.dr.AssetIterator resultObjectsIterator;
-    
-    
-    
     JTextField keywords;
     JComboBox maxReturns;
-    
-    osid.dr.DigitalRepository dr; // Digital Repository connected to.
-    
+    osid.dr.DigitalRepository dr; // Digital Repository connected to. 
     osid.dr.AssetIterator assetIterator;
     SearchCriteria searchCriteria;
     SearchType searchType;
@@ -91,6 +90,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     String[] maxReturnItems = {
         "10",
         "20",
+        "30"
     };
     
     
@@ -103,7 +103,6 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         setLayout(new BorderLayout());
         DRSearchResults = new JPanel();
         tabbedPane = new JTabbedPane();
-        
         returnLabel = new JLabel("Maximum number of returns?");
         returnLabel.setFont(new Font("Arial",Font.PLAIN, 12));
         
@@ -123,9 +122,6 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         searchCriteria  = new SearchCriteria();
         searchType = new SearchType("Search");
         advancedSearchType = new SearchType("Advanced Search");
-        
-        
-        
         try {
             dr = new DR(conf,id,displayName,description,address,userName,password);
         } catch(osid.OsidException ex) {
@@ -140,21 +136,12 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         tabbedPane.addTab("Search" , DRSearch);
         tabbedPane.addTab("Advanced Search",DRAdvancedSearch);
         tabbedPane.addTab("Results",DRSearchResults);
-        tabbedPane.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                /**
-                 * if(((JTabbedPane)e.getSource()).getSelectedComponent() == DRViewer.this.DRSearch) {
-                 * DRViewer.this.DRSearchResults.removeAll();
-                 * }
-                 */
-            }
-        });
         add(tabbedPane,BorderLayout.CENTER);
     }
     
     
     /**
-     * @Setup  searchPanel
+     * @Setup  Search Panel
      */
     
     
@@ -169,11 +156,6 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         Insets defaultInsets = new Insets(2,2,2,2);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
-        
-        
-        
-        
-        //adding the label Keywords
         c.gridwidth = GridBagConstraints.RELATIVE;
         c.anchor = GridBagConstraints.EAST;
         c.weightx = 0;
@@ -193,23 +175,9 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
         DRSearchPanel.add(keywords);
-        
-        
-        
-        // adding the number of search results tab.
-        /**
-        c.gridx=0;
-        c.gridy=2;
-        c.gridwidth=2;
-        c.insets = defaultInsets;
-        
-        gridbag.setConstraints(returnLabel, c);
-        DRSearchPanel.add(returnLabel);
-        **/
-  
         c.weightx = 0;
         c.fill = GridBagConstraints.NONE;
-        // maxReturns.setPreferredSize(new Dimension(40,20));
+        maxReturns.setPreferredSize(new Dimension(100,20));
         gridbag.setConstraints(maxReturns,c);
         DRSearchPanel.add(maxReturns);
         
@@ -218,12 +186,17 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         //searchButton.setPreferredSize(new Dimension(40,20));
         searchButton.addActionListener(this);
         gridbag.setConstraints(searchButton,c);
-        DRSearchPanel.add(searchButton);
-        
+        DRSearchPanel.add(searchButton);  
         DRSearch.add(DRSearchPanel,BorderLayout.NORTH);
         DRSearch.validate();
         
     }
+    
+     /**
+     * @Setup  Advanced Search Panel
+     */
+    
+    
     
     private void setAdvancedSearchPanel() {
         DRAdvancedSearch= new JPanel(new BorderLayout());
@@ -246,11 +219,9 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         innerConditionsPanel.setLayout(new BorderLayout());
         innerConditionsPanel.add(conditionsScrollPane, BorderLayout.CENTER);
         
-        // GRID: addConditionButton
         JButton addConditionButton=new VueButton("add");
         addConditionButton.setBackground(this.getBackground());
         addConditionButton.setToolTipText("Add Condition");
-        // GRID: deleteConditionButton
         JButton deleteConditionButton=new VueButton("delete");
         deleteConditionButton.setBackground(this.getBackground());
         deleteConditionButton.setToolTipText("Delete Condition");
@@ -260,12 +231,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         advancedSearchButton = new JButton("Search");
         advancedSearchButton.setSize(new Dimension(100,20));
         advancedSearchButton.addActionListener(this);
-        // Now that buttons are available, register the
-        // list selection listener that sets their enabled state.
         conditionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        // setting editors for columns
-        // field column.
         try {
             JComboBox comboBox = new JComboBox(FedoraUtils.getAdvancedSearchFields((tufts.oki.dr.fedora.DR)dr));
             conditionsTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
@@ -292,15 +258,12 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         JPanel returnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
         returnPanel.setBorder(BorderFactory.createEmptyBorder(4,6,6,0));
-        //returnPanel.add(returnLabelAdvancedSearch);
+        maxReturnsAdvancedSearch.setPreferredSize(new Dimension(100,20));
         returnPanel.add(maxReturnsAdvancedSearch);
         
         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         bottomPanel.add(advancedSearchButton);
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,0));
-        
-        
-        
         JPanel advancedSearchPanel=new JPanel();
         advancedSearchPanel.setLayout(new BoxLayout(advancedSearchPanel, BoxLayout.Y_AXIS));
         advancedSearchPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
@@ -341,10 +304,6 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         
         
         DRSearchResults.add(jsp,BorderLayout.CENTER,0);
-        /**
-         * if(searchCriteria.getResults() == 0)
-         * DRSearchResults.add(this.noResultsLabel,BorderLayout.NORTH,0);
-         */
         if(searchCriteria.getToken() != null)
             DRSearchResults.add(nextButtonPanel,BorderLayout.SOUTH,0);
         DRSearchResults.validate();
