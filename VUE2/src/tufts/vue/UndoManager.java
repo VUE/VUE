@@ -226,6 +226,13 @@ public class UndoManager
     {
         if (e.getWhat().startsWith("hier.")) {
             recordHierarchyChangeEvent(e);
+        } else if (e.hasOldValue()) {
+            recordUndoablePropertyChangeEvent(e);
+        } else {
+            if (DEBUG.UNDO) {
+                System.out.println(" (ignored: no old value)");
+                if (DEBUG.META) new Throwable().printStackTrace();
+            }
         }
     }
 
@@ -233,7 +240,9 @@ public class UndoManager
     {
         String propName = e.getWhat();
         Object parent = e.getSource();
-        boolean compressed = false; // already had one of these props: can ignore all subsequent
+        boolean compressed = false; // already had one of these: can ignore all subsequent
+
+        if (DEBUG.UNDO) System.out.println(" (HIERARCHY)");
         
     }
     
