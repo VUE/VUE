@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.32 $ / $Date: 2005-01-26 21:39:17 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.32 2005-01-26 21:39:17 jeff Exp $ -->
+<!-- $Revision: 1.33 $ / $Date: 2005-03-11 04:01:22 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.33 2005-03-11 04:01:22 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -153,7 +153,7 @@
                    okiReversi.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
-                   okiOSID-2.0.jar
+                   okiOSID_v2.jar
                    postgresql.jar
                    saaj.jar
                    saxon6.5.jar
@@ -196,7 +196,7 @@
                    jaxrpc.jar
                    MRJAdapter.jar
                    okiSID_rc6_1.jar
-                   okiOSID-2.0.jar
+                   okiOSID_v2.jar
                    saaj.jar
                    xercesImpl.jar
                    "/>
@@ -234,7 +234,7 @@
   <path id="compile.classpath.oki">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -243,7 +243,7 @@
 
   <path id="compile.classpath.oki2">
     <path refid="compile.classpath.common"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -253,7 +253,7 @@
   <path id="compile.classpath.oki1and2">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -263,7 +263,7 @@
   <path id="compile.classpath.vue">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
+    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -318,6 +318,9 @@
            >
       <!--classpath refid="compile.classpath.vue"/-->
       <include name="tufts/*.java"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
+      <exclude name="**/old/**"/>
     </javac>
 
     <javac srcdir="${basedir}"
@@ -329,6 +332,9 @@
            >
       <classpath refid="compile.classpath.oki1and2"/>
       <include name="tufts/vue/OsidAsset*.java"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
+      <exclude name="**/old/**"/>
     </javac>
     
     <javac srcdir="${basedir}" 
@@ -338,6 +344,9 @@
            optimize="${compile.optimize}">
       <classpath refid="compile.classpath.google"/>
       <include name="tufts/google/*.java"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
+      <exclude name="**/old/**"/>
     </javac>
 
     <javac srcdir="${basedir}" 
@@ -349,6 +358,8 @@
            >
       <classpath refid="compile.classpath.oki"/>
       <include name="tufts/oki/**/*.java"/>
+      <!-- id is pure 2.0 code (org.osid) we can't use yet -->
+      <exclude name="tufts/oki/id/**"/>
       <exclude name="tufts/oki/repository/fedora/*.java"/>
     </javac>
 
@@ -361,6 +372,9 @@
            >
       <classpath refid="compile.classpath.oki2"/>
       <include name="tufts/oki/repository/fedora/*.java"/>
+      <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
+      <exclude name="**/old/**"/>
     </javac>
 
     <javac srcdir="${basedir}" 
@@ -376,6 +390,7 @@
       <exclude name="tufts/vue/OsidAsset*.java"/>
       <exclude name="**/macosx/**"/>
       <exclude name="**/tmp/**"/>
+      <exclude name="**/bak/**"/>
       <exclude name="**/old/**"/>
     </javac>
 
