@@ -15,8 +15,10 @@ public class DEBUG
     public static boolean FOCUS = false;
     public static boolean UNDO = false;
     public static boolean PATHWAY = false;
-    public static boolean PROPERTIES = true;
+    public static boolean DND = false; // drag & drop
 
+    //public static boolean PROPERTIES = true;
+    
     public static boolean META = false; // generic toggle to use in combination with other flags
 
     //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }

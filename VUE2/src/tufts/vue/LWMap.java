@@ -90,6 +90,8 @@ public class LWMap extends LWContainer
     }
     public void setUndoManager(UndoManager um)
     {
+        if (mUndoManager != null)
+            throw new IllegalStateException(this + " already has undo manager " + mUndoManager);
         mUndoManager = um;
     }
 

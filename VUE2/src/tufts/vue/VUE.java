@@ -656,9 +656,6 @@ implements VueConstants {
         return mMapTabsLeft;
     }
     
-    public static JFrame getInstance() {
-        return frame;
-    }
     public static LWMap getActiveMap() {
         if (getActiveViewer() != null)
             return getActiveViewer().getMap();
@@ -668,12 +665,12 @@ implements VueConstants {
 
     /*
      * Returns instance of frame. used by orpahan dialogs
+     * (what calls this?  I see no reference to it in any
+     * VUE source -- does something using reflection call it?? --SMF)
      */
-    /*
     public static JFrame getInstance() {
         return frame;
     }
-    */
 
     public static UndoManager getUndoManager() {
         LWMap map = getActiveMap();

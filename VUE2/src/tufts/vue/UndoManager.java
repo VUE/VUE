@@ -82,7 +82,7 @@ public class UndoManager
 
         private void undoHierarchyChange(LWComponent c, Object oldValue)
         {
-            if (DEBUG.UNDO) System.out.println("UNDO: restoring children of " + c + " to " + oldValue);
+            if (DEBUG.UNDO) System.out.println(this + " restoring children of " + c + " to " + oldValue);
             LWContainer parent = (LWContainer) c;
             parent.children = (List) oldValue;
             Iterator ci = parent.children.iterator();
@@ -110,6 +110,7 @@ public class UndoManager
         map.addLWCListener(this);
         VUE.addActiveMapListener(this);
         setUndoActionLabel(null); // disable undo action at start
+        new Throwable("UNDOMANAGERE)*FU)UF)*EFJW)*F").printStackTrace();
     }
 
     public void activeMapChanged(LWMap map)
@@ -172,7 +173,7 @@ public class UndoManager
         checkAndHandleUnmarkedChanges();
         
         UndoAction undoAction = pop();
-        if (DEBUG.UNDO) System.out.println("UNDO: undoing " + undoAction);
+        if (DEBUG.UNDO) System.out.println(this + " undoing " + undoAction);
         if (undoAction != null) {
             try {
                 sInUndo = true;
@@ -205,7 +206,7 @@ public class UndoManager
         } else {
             Actions.Undo.setEnabled(false);
         }
-        if (DEBUG.UNDO) System.out.println("UNDO: new UndoAction '" +  name + "'");
+        if (DEBUG.UNDO) System.out.println(this + " new UndoAction '" +  name + "'");
         Actions.Undo.putValue(Action.NAME, name);
     }
     
@@ -244,7 +245,7 @@ public class UndoManager
     private synchronized UndoAction collectChangesAsUndoAction(String name)
     {
         UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mChangeCount);
-        if (DEBUG.UNDO) System.out.println("UNDO: marked " + mChangeCount + " property changes under '" + name + "'");
+        if (DEBUG.UNDO) System.out.println(this + " marked " + mChangeCount + " property changes under '" + name + "'");
         mPropertyChanges = new HashMap();
         mLastEvent = null;
         mChangeCount = 0;
@@ -268,7 +269,7 @@ if (true)return;
             mRedoCaptured = true;
             if (DEBUG.UNDO) System.out.print("\tredo: " + e);
         } else {
-            if (DEBUG.UNDO) System.out.print("UNDO: " + e);
+            if (DEBUG.UNDO) System.out.print(this + " " + e);
         }
         processEvent(e);
     }
@@ -341,7 +342,12 @@ if (true)return;
 
     public String toString()
     {
-        return "UndoManager[" + mChangeCount + "]";
+        return "UNDO[" + mMap.getLabel() + " "
+            + (mChangeCount<10?" ":"")
+            + mChangeCount
+            + "]"
+            //+ hashCode()
+            ;
     }
     
 }

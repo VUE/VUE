@@ -1126,11 +1126,15 @@ public class MapViewer extends javax.swing.JComponent
             throw new IllegalArgumentException("loadMap: null LWMap");
         if (this.map != null)
             unloadMap();
-        if (map.isModified())
-            VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
         this.map = map;
         this.map.addLWCListener(this);
-        this.map.setUndoManager(new UndoManager(this.map));
+        if (this.map.getUndoManager() == null) {
+            if (map.isModified()) {
+                System.out.println(this + " Note: this map has modifications undo will not see");
+                //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
+            }
+            this.map.setUndoManager(new UndoManager(this.map));
+        }
         repaint();
     }
  
@@ -2877,11 +2881,12 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
-                else if (c == 'C') { DEBUG.SCROLL = !DEBUG.SCROLL; }
+                else if (c == '?') { DEBUG.SCROLL = !DEBUG.SCROLL; }
                 else if (c == 'B') { DEBUG.BOXES = !DEBUG.BOXES; }
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
                 else if (c == '}') { DEBUG.PARENTING = !DEBUG.PARENTING; }
+                else if (c == '>') { DEBUG.DND = !DEBUG.DND; }
                 else
                     did = false;
                 if (did) {

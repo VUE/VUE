@@ -33,7 +33,8 @@ class MapDropTarget
 
     private final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY |
-        DnDConstants.ACTION_LINK;
+        DnDConstants.ACTION_LINK |
+        0xFFFFFF;
         //DnDConstants.ACTION_MOVE;
         // Do NOT include MOVE, or dragging a URL from the IE address bar becomes
         // a denied drag option!  Even dragged text from IE becomes disabled.
@@ -54,7 +55,7 @@ class MapDropTarget
 
     public void dragEnter(DropTargetDragEvent e)
     {
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+        //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
         if (debug) System.out.println("MapDropTarget: dragEnter " + e);
     }
 
@@ -68,7 +69,7 @@ class MapDropTarget
             viewer.setIndicated(over);
         else
             viewer.clearIndicated();
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+        //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
     }
 
     public void dragExit(DropTargetEvent e)
@@ -84,6 +85,7 @@ class MapDropTarget
     
     public void drop(DropTargetDropEvent e)
     {
+        System.out.println("caps state="+VUE.getActiveViewer().getToolkit().getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
         if (debug) System.out.println("MapDropTarget: DROP " + e
                                       + "\n\tsourceActions=" + e.getSourceActions()
                                       + "\n\tdropAction=" + e.getDropAction()
@@ -91,14 +93,23 @@ class MapDropTarget
                                       );
 
         //if ((e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
-        if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
-            //e.acceptDrop(e.getDropAction());
+        if (false&&(e.getSourceActions() & DnDConstants.ACTION_LINK) != 0) {
+            e.acceptDrop(DnDConstants.ACTION_LINK);
+        } else if (false&&(e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
             e.acceptDrop(DnDConstants.ACTION_COPY);
+            //} else if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
         } else {
+            e.acceptDrop(e.getDropAction());
+            //e.acceptDrop(DnDConstants.ACTION_COPY);
+            //e.acceptDrop(DnDConstants.ACTION_LINK);
+        }
+        /*
+        else {
             if (debug) System.out.println("MapDropTarget: rejecting drop");
             e.rejectDrop();
             return;
         }
+        */
 
         // Scan thru the data-flavors, looking for a useful mime-type
 
@@ -192,7 +203,7 @@ class MapDropTarget
 
         DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
         if (debug) System.out.println("TRANSFER: found " + dataFlavors.length + " dataFlavors");
-        //dumpFlavors(transfer);
+        if (DEBUG.DND) dumpFlavors(transfer);
 
         try {
             if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.resourceFlavor)) {
@@ -329,6 +340,9 @@ class MapDropTarget
             }
             success = true;
         }
+
+        if (success)
+            VUE.getUndoManager().mark("Drop");
 
         return success;
     }
