@@ -83,22 +83,22 @@ public class PathwayPanel extends JPanel implements ActionListener
         
         JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         editPathwaysPanel.setBackground(bgColor);
-        
-        JLabel lab = new JLabel("Pathways");
-        lab.setBackground(bgColor);
+
+        Border matteBorder = BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor);
+        JLabel lab = new JLabel("Pathways:");
         lab.setFont(defaultFont);
-        lab.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
+        lab.setBorder(matteBorder);
         
-        JPanel groupPanel = new JPanel(new GridLayout(1, 3, 0, 0));
-        //groupPanel.setPreferredSize(new Dimension(57, 24));
-        groupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
-        groupPanel.setBackground(bgColor);
-        groupPanel.add(btnPathwayCreate);
-        groupPanel.add(btnPathwayDelete);
-        groupPanel.add(btnPathwayLock);
+        JPanel pathwayMaster = new JPanel();
+        pathwayMaster.setLayout(new BoxLayout(pathwayMaster, BoxLayout.X_AXIS));
+        pathwayMaster.setBorder(matteBorder);
+        pathwayMaster.setBackground(bgColor);
+        pathwayMaster.add(btnPathwayCreate);
+        pathwayMaster.add(btnPathwayDelete);
+        pathwayMaster.add(btnPathwayLock);
         
         editPathwaysPanel.add(lab);
-        editPathwaysPanel.add(groupPanel);
+        editPathwaysPanel.add(pathwayMaster);
         
         /*
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
