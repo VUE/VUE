@@ -409,31 +409,28 @@
 		</field>
 	</class>
    
-         <!--saving DataSourceViewer-->
-<!--
+      
+
+    <!--saving DataSourceViewer-->
+
 <class name = "tufts.vue.SaveDataSourceViewer">
 		<map-to xml ="SaveDataSourceViewer"/>
 		
 		<field name = "SaveDataSources" type = "tufts.vue.DataSource" collection = "vector">
 			<bind-xml name ="dataSource" />
 		</field>
+		
 </class>
-
-<class name = "tufts.vue.DataSource">
-       <map-to xml ="DataSource"/>
+<class name = "tufts.vue.VueDataSource">
+       
        <field name = "id" type = "string">
             <bind-xml name ="id" node = "element" />
        </field>     
-       <field name = "name" type = "string">
-            <bind-xml name ="name" node = "element" />
-       </field>
+       
        <field name = "displayName" type = "string">
             <bind-xml name ="displayName" node = "element" />
        </field>
-       <field name = "type" type = "integer">
-            <bind-xml name ="name" node = "attribute" />
-       </field>
-       
+        
        <field name = "autoConnect" type = "boolean">
             <bind-xml name ="autoConnect" node = "attribute" />
        </field>
@@ -441,21 +438,41 @@
        <field name = "address" type = "string">
             <bind-xml name ="address" node = "element" />
        </field>
-       <field name = "userName" type = "string">
-            <bind-xml name ="userName" node = "attribute" />
+       
+       
+ </class>
+ <class name="tufts.vue.GoogleDataSource" extends="tufts.vue.VueDataSource">
+  <field name = "client" type = "string">
+          <bind-xml name = "client" node = "element" />
        </field>
-        <field name = "searchURL" type = "string">
-            <bind-xml name ="searchURL" node = "element" />
+       <field name = "site" type = "string">
+          <bind-xml name = "site" node = "element" />
        </field>
-       <field name = "activeDataSource" type = "boolean">
-            <bind-xml name ="activeDataSource" node = "attribute" />
+       <field name = "url" type = "string">
+          <bind-xml name = "url" node = "element" />
+       </field>  
+	</class>
+ <class name="tufts.vue.LocalFileDataSource" extends="tufts.vue.VueDataSource">
+	</class>
+ <class name="tufts.vue.FavoritesDataSource" extends="tufts.vue.VueDataSource">
+	</class>
+<class name="tufts.vue.RemoteFileDataSource" extends="tufts.vue.VueDataSource">
+      <field name = "UserName" type = "string">
+          <bind-xml name = "UserName" node = "element" />
        </field>
        <field name = "password" type = "string">
-            <bind-xml name ="password" node = "attribute" />
+          <bind-xml name = "password" node = "element" />
        </field>
- 
- </class>
 
--->
+	</class>
+	<class name="tufts.vue.FedoraDataSource" extends="tufts.vue.VueDataSource">
+      <field name = "UserName" type = "string">
+          <bind-xml name = "UserName" node = "element" />
+       </field>
+       <field name = "password" type = "string">
+          <bind-xml name = "password" node = "element" />
+       </field>
+
+	</class>
   
 </mapping>
