@@ -190,9 +190,6 @@ public class HierarchyNode implements osid.hierarchy.Node
     /**A method that returns the string representation of the node*/
     public String toString()
     {
-        if (name != component.getLabel())
-          name = component.getLabel();
-        
         return name;
     }
 }
