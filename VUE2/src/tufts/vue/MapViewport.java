@@ -108,31 +108,39 @@ class MapViewport extends JViewport
         super.setViewPosition(p);
     }
 
-    public void placeMapLocationAtViewCenter(Point2D.Float mapAnchor)
-    {
-        // this normally only happens after a zoom
-        //adjustCanvasSize(true, false, false, false);
-        adjustCanvasSize(false, true, true, false);
-        Point canvasAnchor = viewer.mapToScreenPoint(mapAnchor);
-        if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS ANCHOR: " + out(canvasAnchor));
-        Point canvasOffset = new Point(canvasAnchor);
-        canvasOffset.x -= getWidth() / 2;
-        canvasOffset.y -= getHeight() / 2;
-        if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS OFFSET: " + out(canvasOffset));
-        
-        setVisibleCanvasCorner(canvasOffset);
-        //setCanvasPosition(canvasOffset);
-        
-        //mViewport.setViewPosition(canvasOffset);
-        //setLocation(-canvasOffset.x, -canvasOffset.y);
-        //adjustCanvas(false, false);
+    public void setViewPosition(Point2D p) {
+        setViewPosition(new Point((int) Math.floor(p.getX() + 0.5),
+                                  (int) Math.floor(p.getY() + 0.5)));
     }
-    
-    public void setVisibleCanvasCorner(Point p) {
-        setCanvasPosition(new Point(-p.x, -p.y));
-    }
-    
 
+    public void setVisibleCanvasCorner(Point2D p) {
+        setCanvasPosition(new Point2D.Double(-p.getX(), -p.getY()));
+    }
+    
+    public void zoomAdjust(Point2D mapAnchor)
+    {
+        adjustCanvasSize(false, true, true, false, true);
+        placeMapLocationAtViewCenter(mapAnchor);
+    }
+
+    public void placeMapLocationAtViewCenter(Point2D mapAnchor)
+    {
+        Point2D canvasAnchor = viewer.mapToScreenPoint2D(mapAnchor);
+        if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS ANCHOR: " + out(canvasAnchor));
+        Point2D.Double canvasOffset = new Point2D.Double();
+        canvasOffset.x = canvasAnchor.getX() - getWidth() / 2.0;
+        canvasOffset.y = canvasAnchor.getY() - getHeight() / 2.0;
+        if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS OFFSET: " + out(canvasOffset));
+        setVisibleCanvasCorner(canvasOffset);
+    }
+    
+    void adjustSize() {
+        adjustCanvasSize(false, true, true, true, false);
+    }
+    void adjustSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast) {
+        adjustCanvasSize(expand, trimNorthWest, trimSouthEast, true, false);
+    }
+    
     /**
      * adjustSize -- adjust the size of the MapViewer canvas - the viewport view
      *
@@ -155,18 +163,20 @@ class MapViewport extends JViewport
      * @param expand -- automatically expand the canvas to cover the current map origin offset (mOffset) & viewport size
      * @param trimNorthWest -- trim north west corner of canvas to map bounds, and place map at upper left of display
      * @param trimSouthEst -- trim south west corner of canvas to the current on-screen viewport display size
+     * @param validate - call validate at end (e.g., for intermediate adjustments)
+     * @param intermediate - this is an intermediate adjustment, and thus we don't
+     * need to ensure that the canvas isn't smaller than the view (e.g., we're about
+     * to call setCanvasPosition, which will then adjust our minimum size).
      *
      * todo: Expand is incompatable with the trims -- reorganize arguments.
+     * todo: expand not used
      */
     
-    void adjustSize() {
-        adjustCanvasSize(false, true, true, true);
-    }
-    void adjustSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast) {
-        adjustCanvasSize(expand, trimNorthWest, trimSouthEast, true);
-    }
-
-    private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast, boolean validate)
+    private void adjustCanvasSize(boolean expand,
+                                  boolean trimNorthWest,
+                                  boolean trimSouthEast,
+                                  boolean validate,
+                                  boolean intermediate)
     {
         if (DEBUG.SCROLL && DEBUG.META) new Throwable("adjustSize").printStackTrace();
         
@@ -218,58 +228,24 @@ class MapViewport extends JViewport
             if (DEBUG.SCROLL) out("    +plusOrigin: " + out(mapCanvas));
         }
 
-        // If canvas
-        //if (expand) {
-        
-        //Point vPos = viewport.getViewPosition();
-        /*
-        if (panning) {
-            Point vPos = viewport.getViewPosition();
-            System.out.println("SCROLL: vp="+vPos);
-            //canvas.add(vPos.x, vPos.y);
-            //System.out.println(getMap().getLabel() + "plusViewerPos: " + canvas);
-            canvas.add(vPos.x + viewport.getWidth(),
-                       vPos.y + viewport.getHeight());
-            System.out.println(getMap().getLabel() + "   plusCorner: " + canvas);
-        }
-         */
-        
-        
         // okay to call this mapToScreen while adjusting origin as we're
         // only interested in the zoom conversion for the size.
+        Dimension minCanvas = viewer.mapToScreenDim(mapCanvas);
         Dimension curCanvas = getCanvasSize();
-        Dimension canvas = viewer.mapToScreenDim(mapCanvas);
-        //Rectangle vb = mapToScreenRect(mapCanvas);
-
-        //Dimension curView = viewer.getPreferredSize(); // get CURRENT size of the canvas
+        Dimension newCanvas = new Dimension(minCanvas);
         Dimension curView = getSize(); // current view size
-        //int newWidth = curView.width;
-        //int newHeight = curView.height;
-        int newWidth = canvas.width;
-        int newHeight = canvas.height;
-        
+
         //if (!trimNorthWest && lastCanvas.equals(canvas) && lastMapLocationAtCanvasOrigin.equals(mapLocationAtCanvasOrigin))
         //    return;
         
-        lastCanvas = canvas;
+        lastCanvas = minCanvas;
         lastMapLocationAtCanvasOrigin = mapLocationAtCanvasOrigin;
-        /*
-        if (canvas.width > newWidth)
-            newWidth = canvas.width;
-        if (canvas.height > newHeight)
-            newHeight = canvas.height;
-        */
-        Dimension newSize = new Dimension(newWidth, newHeight);
-        
-        
-        //------------------------------------------------------------------
-        // If canvas is outside the the current map origin (that is,
-        // something's been dragged off the left or top of the screen),
-        // reset the origin to include the region where the components
-        // were moved to.
-        //------------------------------------------------------------------
         
         if (!trimNorthWest) {
+            // If canvas is outside the the current map origin (that is,
+            // something's been dragged off the left or top of the screen),
+            // reset the origin to include the region where the components
+            // were moved to.
             boolean originGrew = false;
             // mOffset is what?
             //float ox = mOffset.x;
@@ -288,21 +264,22 @@ class MapViewport extends JViewport
                 placeMapLocationAtCanvasOrigin(ox, oy);
         }
         
-        //if (curView.equals(newSize))
-        //return;
+        //if (curView.equals(newCanvas)) return;
 
-            // never let new size be less than current view
-            if (newSize.width < curView.width)
-                newSize.width = curView.width;
-            if (newSize.height < curView.height)
-                newSize.height = curView.height;
+        // unless this is an intermediate adjustment, never let new size be less than current view
+        if (!intermediate) {
+            if (newCanvas.width < curView.width)
+                newCanvas.width = curView.width;
+            if (newCanvas.height < curView.height)
+                newCanvas.height = curView.height;
+        }
             
         if (!trimSouthEast) {
             // don't let new size be less than current canvas
-            if (newSize.width < curCanvas.width)
-                newSize.width = curCanvas.width;
-            if (newSize.height < curCanvas.height)
-                newSize.height = curCanvas.height;
+            if (newCanvas.width < curCanvas.width)
+                newCanvas.width = curCanvas.width;
+            if (newCanvas.height < curCanvas.height)
+                newCanvas.height = curCanvas.height;
         }
         
         if (DEBUG.SCROLL) {
@@ -313,26 +290,50 @@ class MapViewport extends JViewport
             out(" current canvas: " + out(curCanvas));
             if (!curCanvas.equals(viewer.getSize()))
             out("!!!!actual size: " + out(viewer.getSize())); // same as above
-            out("computed canvas: " + out(canvas));
-            out("     new canvas: " + out(newSize));
+            out(" minimum canvas: " + out(minCanvas));
+            out("     new canvas: " + out(newCanvas));
         }
         
-        setCanvasSize(newSize);
-        if (true||validate) { // until call validate, calls to setLocation are triggering reshape with old size! (ok, we call setViewSize manually also now)
+        setCanvasSize(newCanvas);
+        if (validate) {
+            // until call validate, calls to setLocation were triggering reshape with old size
+            // but now we call setViewSize manually in setCanvasSize, which get's it set
+            // in JViewport w/out the revalidate.
             if (DEBUG.SCROLL) out("calling revalidate");
             revalidate();
         }
     }
 
+        // If canvas
+        //if (expand) {
+        
+        //Point vPos = viewport.getViewPosition();
+        /*
+        if (panning) {
+            Point vPos = viewport.getViewPosition();
+            System.out.println("SCROLL: vp="+vPos);
+            //canvas.add(vPos.x, vPos.y);
+            //System.out.println(getMap().getLabel() + "plusViewerPos: " + canvas);
+            canvas.add(vPos.x + viewport.getWidth(),
+                       vPos.y + viewport.getHeight());
+            System.out.println(getMap().getLabel() + "   plusCorner: " + canvas);
+        }
+         */
+        
+        
     void pan(int dx, int dy, boolean allowGrowth)
     {
         //Point location = viewport.getViewPosition();
         Point location = viewer.getLocation(); // both x/y should always be <= 0
-        if (DEBUG.SCROLL) out("PAN: dx=" + dx + ", dy=" + dy + " allowGrowth="+allowGrowth);
-        if (DEBUG.SCROLL) out("PAN: viewport start: " + out(location));
+        if (DEBUG.SCROLL) {
+            out("-----------------------------------------------------------------------------");
+            out("PAN: dx=" + dx + ", dy=" + dy + " allowGrowth="+allowGrowth);
+            out("PAN: viewport start: " + out(location));
+        }
         location.translate(-dx, -dy);
         if (DEBUG.SCROLL) out("PAN: viewport   end: " + out(location));
 
+        /*
         if (!allowGrowth) {
             // If drag would take us beyond width or height of existing canvas,
             // clip to existing canvas.
@@ -341,6 +342,7 @@ class MapViewport extends JViewport
             if (location.y + getHeight() > getCanvasHeight())
                 location.y = getCanvasHeight() - getHeight();
         }
+        */
         
         if (DEBUG.SCROLL) {
             out("PAN: setViewPosition " + out(location));
@@ -348,46 +350,16 @@ class MapViewport extends JViewport
         }
         
         setCanvasPosition(location, allowGrowth);
+        revalidate();
         viewer.fireViewerEvent(MapViewerEvent.PAN);
-        
-        /*
-        if (false) {
-            Rectangle2D.Float canvas = viewer.getContentBounds();
-            //Point vPos = viewport.getViewPosition();
-            Point vPos = location;
-            Rectangle2D.union(canvas, viewer.getVisibleMapBounds(), canvas);
-            if (DEBUG.SCROLL) System.out.println(getMap().getLabel() + "   plusVISMAP: " + canvas);
-            //canvas.add(mOffset);
-            //System.out.println(getMap().getLabel() + "   plusOrigin: " + canvas);
-            //System.out.println("SCROLL: vp="+vPos);
-            // NOTE: Canvas is current a bunch of map coords...
-            //canvas.add(vPos.x, vPos.y);
-            //System.out.println(getMap().getLabel() + "plusViewerPos: " + canvas);
-            //canvas.add(vPos.x + viewport.getWidth(), vPos.y + viewport.getHeight());
-            //System.out.println(getMap().getLabel() + "   plusCorner: " + canvas);
-              Dimension curSize = getSize();
-              int newWidth = curSize.width;
-              int newHeight = curSize.height;
-              Rectangle canvasSize = mapToScreenRect(canvas);
-              if (canvasSize.width > newWidth)
-              newWidth = canvasSize.width;
-              if (canvasSize.height > newHeight)
-              newHeight = canvasSize.height;
-              Dimension newSize = new Dimension(newWidth, newHeight);
-              System.out.println("PAN: size to " + newSize);
-              setPreferredSize(newSize);
-            viewer.setPreferredSize(viewer.mapToScreenDim(canvas));
-            revalidate();
-        }
-        */
     }
     
     
-    void setCanvasPosition(Point p) {
+    private void setCanvasPosition(Point2D p) {
         setCanvasPosition(p, true);
     }
     
-    void setCanvasPosition(Point p, boolean allowGrowth) {
+    private void setCanvasPosition(Point2D p, boolean allowGrowth) {
         if (DEBUG.SCROLL) {
             out("setCanvasPosition " + out(p));
             if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
@@ -401,47 +373,38 @@ class MapViewport extends JViewport
             out("setCanvasPosition   view: " + out(view));
         }
         
-        /*
-        if (p.x > 0 || p.y > 0) {
-            out("GROW ORIGIN");
-            //placeMapLocationAtCanvasOrigin(mapCanvas.x, mapCanvas.y);
-            //viewport.setViewPosition(p);
-            //panScrollRegion(-p.x, -p.y, true);
-        }
-
-        */
-
         boolean grew = false;
         boolean moved = false;
-        float ox = viewer.mOffset.x;
-        float oy = viewer.mOffset.y;
+        double ox = viewer.mOffset.x;
+        double oy = viewer.mOffset.y;
+        double grow;
 
-        if (p.x > 0) {
-            int grow = p.x;
+        if (p.getX() > 0) {
+            grow = p.getX();
             if (DEBUG.SCROLL) out("GROW LEFT " + grow);
-            p.x = 0;
+            p.setLocation(0, p.getY());
             ox -= grow;
             moved = true;
             canvas.width += grow;
             grew = true;
         }
-        if (p.y > 0) {
-            int grow = p.y;
+        if (p.getY() > 0) {
+            grow = p.getY();
             if (DEBUG.SCROLL) out("GROW UP " + grow);
-            p.y = 0;
+            p.setLocation(p.getX(), 0);
             oy -= grow;
             moved = true;
             canvas.height += grow;
             grew = true;
         }
-        if (canvas.width + p.x < view.width) {
-            int grow = view.width - (canvas.width + p.x);
+        if (canvas.width + p.getX() < view.width) {
+            grow = view.width - (canvas.width + p.getX());
             if (DEBUG.SCROLL) out("GROW RIGHT " + grow);
             canvas.width += grow;
             grew = true;
         }
-        if (canvas.height + p.y < view.height) {
-            int grow = view.height - (canvas.height + p.y);
+        if (canvas.height + p.getY() < view.height) {
+            grow = view.height - (canvas.height + p.getY());
             if (DEBUG.SCROLL) out("GROW DOWN " + grow);
             canvas.height += grow;
             grew = true;
@@ -454,16 +417,23 @@ class MapViewport extends JViewport
                 viewer.setMapOriginOffset(ox, oy);
         }
             
-        p.x = -p.x;
-        p.y = -p.y;
+        p.setLocation(-p.getX(), -p.getY());
         setViewPosition(p);
         
-        if (DEBUG.SCROLL) {
-            out("setCanvasPosition, setViewPosition completed");
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
+        if (DEBUG.SCROLL) out("setCanvasPosition completed");
     }
+
     
+        /*
+        if (p.x > 0 || p.y > 0) {
+            out("GROW ORIGIN");
+            //placeMapLocationAtCanvasOrigin(mapCanvas.x, mapCanvas.y);
+            //viewport.setViewPosition(p);
+            //panScrollRegion(-p.x, -p.y, true);
+        }
+
+        */
+
     /*
         if (location.x < 0) {
             if (allowGrowth) {
@@ -500,6 +470,37 @@ class MapViewport extends JViewport
         try { Thread.sleep(1000); } catch (Exception e) {}
         adjustCanvas(false, false);
     */
+        
+        /* from from bottom of old pan:
+        if (false) {
+            Rectangle2D.Float canvas = viewer.getContentBounds();
+            //Point vPos = viewport.getViewPosition();
+            Point vPos = location;
+            Rectangle2D.union(canvas, viewer.getVisibleMapBounds(), canvas);
+            if (DEBUG.SCROLL) System.out.println(getMap().getLabel() + "   plusVISMAP: " + canvas);
+            //canvas.add(mOffset);
+            //System.out.println(getMap().getLabel() + "   plusOrigin: " + canvas);
+            //System.out.println("SCROLL: vp="+vPos);
+            // NOTE: Canvas is current a bunch of map coords...
+            //canvas.add(vPos.x, vPos.y);
+            //System.out.println(getMap().getLabel() + "plusViewerPos: " + canvas);
+            //canvas.add(vPos.x + viewport.getWidth(), vPos.y + viewport.getHeight());
+            //System.out.println(getMap().getLabel() + "   plusCorner: " + canvas);
+              Dimension curSize = getSize();
+              int newWidth = curSize.width;
+              int newHeight = curSize.height;
+              Rectangle canvasSize = mapToScreenRect(canvas);
+              if (canvasSize.width > newWidth)
+              newWidth = canvasSize.width;
+              if (canvasSize.height > newHeight)
+              newHeight = canvasSize.height;
+              Dimension newSize = new Dimension(newWidth, newHeight);
+              System.out.println("PAN: size to " + newSize);
+              setPreferredSize(newSize);
+            viewer.setPreferredSize(viewer.mapToScreenDim(canvas));
+            revalidate();
+        }
+        */
     /*
     public void paint(Graphics g) {
         super.paint(g);

@@ -157,7 +157,7 @@ public class MapPanner extends javax.swing.JPanel
             
             if (DEBUG.SCROLL) out("dx="+dx + " dy="+dy);
             
-            mapViewer.panScrollRegion(dx, dy);
+            mapViewer.panScrollRegion(dx, dy, false);
             lastDrag = e.getPoint();
             
         } else {
@@ -185,7 +185,7 @@ public class MapPanner extends javax.swing.JPanel
 
     }
     
-    private boolean ShowFullExtent = true;
+    private boolean ShowFullCanvas = true;
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
@@ -205,17 +205,17 @@ public class MapPanner extends javax.swing.JPanel
 
         //final Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
         final Rectangle2D allComponentBounds = mapViewer.getMap().getBounds();
-        final Rectangle2D extentRect = mapViewer.getExtentMapBounds();
+        final Rectangle2D canvasRect = mapViewer.getCanvasMapBounds();
         final Rectangle2D viewerRect = mapViewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
 
         if (ViewerAlwaysVisible || DEBUG.Enabled) {
-            if (ShowFullExtent)
-                // the fudgey margins go away with show full extent -- which indicates
-                // the problem w/out the extent is obviously because we can *drag* to
-                // edge of full extent, but if not computing zoom with it, we'll
-                // get zoomed out when we go off edge of map bounds to edge of extent bounds.
-                pannerRect = extentRect.createUnion(allComponentBounds);
+            if (ShowFullCanvas)
+                // the fudgey margins go away with show full canvas -- which indicates
+                // the problem w/out the canvas is obviously because we can *drag* to
+                // edge of full canvas, but if not computing zoom with it, we'll
+                // get zoomed out when we go off edge of map bounds to edge of canvas bounds.
+                pannerRect = canvasRect.createUnion(allComponentBounds);
             else
                 pannerRect = viewerRect.createUnion(allComponentBounds);
         } else
@@ -237,7 +237,7 @@ public class MapPanner extends javax.swing.JPanel
         g2.setColor(mapViewer.getBackground());
         g2.translate(-offset.getX(), -offset.getY());
         g2.scale(zoomFactor, zoomFactor);
-        g2.fill(mapViewer.getExtentMapBounds());
+        g2.fill(mapViewer.getCanvasMapBounds());
         //g2.fill(viewerRect);
 
         /*

@@ -262,7 +262,7 @@ public class MapViewer extends javax.swing.JComponent
         
         if (scrollerCoords) {
             // Do this is you want mouse events to
-            // come to us in view as opposed to extent
+            // come to us in view as opposed to canvas
             // coordinates when in scroll pane.
             mViewport.addMouseListener(inputHandler);
             mViewport.addMouseMotionListener(inputHandler);
@@ -400,6 +400,8 @@ public class MapViewer extends javax.swing.JComponent
                 setMapOriginOffset(offset.x, offset.y, false);
         }
         
+        boolean zoomOut = pZoomFactor < mZoomFactor;
+
         //------------------------------------------------------------------
         // Set the new zoom factor: everything immediately "moves"
         // it's on screen position when you do this as all the the
@@ -421,7 +423,7 @@ public class MapViewer extends javax.swing.JComponent
         
         if (inScrollPane) {
             if (mapAnchor != null && !pReset) {
-                mViewport.placeMapLocationAtViewCenter(mapAnchor);
+                mViewport.zoomAdjust(mapAnchor);
             } else {
                 adjustCanvasSize(false, true, true);
             }
@@ -450,7 +452,7 @@ public class MapViewer extends javax.swing.JComponent
         panScrollRegion(dx, dy, true);
     }
     
-    private void panScrollRegion(int dx, int dy, boolean allowGrowth) {
+    void panScrollRegion(int dx, int dy, boolean allowGrowth) {
         if (inScrollPane) {
             mViewport.pan(dx, dy, allowGrowth);
         } else {
@@ -528,20 +530,26 @@ public class MapViewer extends javax.swing.JComponent
     // The core conversion routines
     //------------------------------------------------------------------
     float screenToMapX(float x) {
-        if (scrollerCoords) return (float) ((x + getOriginX()) * mZoomInverse) + getX();
+        //if (scrollerCoords) return (float) ((x + getOriginX()) * mZoomInverse) + getX();
         return (float) ((x + getOriginX()) * mZoomInverse);
     }
     float screenToMapY(float y) {
-        if (scrollerCoords) return (float) ((y + getOriginX()) * mZoomInverse) + getY();
+        //if (scrollerCoords) return (float) ((y + getOriginX()) * mZoomInverse) + getY();
         return (float) ((y + getOriginY()) * mZoomInverse);
     }
     int mapToScreenX(double x) {
-        if (scrollerCoords) return (int) (0.5 + ((x * mZoomFactor) - getOriginX())) - getX();
+        //if (scrollerCoords) return (int) (0.5 + ((x * mZoomFactor) - getOriginX())) - getX();
         return (int) (0.5 + ((x * mZoomFactor) - getOriginX()));
     }
     int mapToScreenY(double y) {
-        if (scrollerCoords) return (int) (0.5 + ((y * mZoomFactor) - getOriginY())) - getY();
+        //if (scrollerCoords) return (int) (0.5 + ((y * mZoomFactor) - getOriginY())) - getY();
         return (int) (0.5 + ((y * mZoomFactor) - getOriginY()));
+    }
+    double mapToScreenX2D(double x) {
+        return x * mZoomFactor - getOriginX();
+    }
+    double mapToScreenY2D(double y) {
+        return y * mZoomFactor - getOriginY();
     }
     
     //------------------------------------------------------------------
@@ -567,6 +575,9 @@ public class MapViewer extends javax.swing.JComponent
     
     Point mapToScreenPoint(Point2D p) {
         return new Point(mapToScreenX(p.getX()), mapToScreenY(p.getY()));
+    }
+    Point2D mapToScreenPoint2D(Point2D p) {
+        return new Point2D.Double(mapToScreenX2D(p.getX()), mapToScreenY2D(p.getY()));
     }
     int mapToScreenDim(double dim) {
         if (dim > 0)
@@ -684,7 +695,16 @@ public class MapViewer extends javax.swing.JComponent
         return screenToMapRect(getVisibleBounds());
     }
     
-    public Rectangle2D getExtentMapBounds() {
+    /**
+     * @return in map coordinate space, the bounds represented by the
+     * size of the total canvas.  When not in a JScrollPane, this is
+     * the same as getVisibleMapBounds.  When in a scroll pane (a
+     * JViewport) The size of the canvas may be arbitrarily large
+     * depending on where the user has panned or dragged out to --
+     * e.g., it may be much bigger than the bounds of the map
+     * components.
+     */
+    public Rectangle2D getCanvasMapBounds() {
         return screenToMapRect(new Rectangle(0,0, getWidth(), getHeight()));
     }
 
@@ -784,7 +804,7 @@ public class MapViewer extends javax.swing.JComponent
     
     private void loadMap(LWMap map) {
         if (map == null)
-            throw new IllegalArgumentException("loadMap: null LWMap");
+            throw new IllegalArgumentException(this + " loadMap: null LWMap");
         if (this.map != null)
             unloadMap();
         this.map = map;
@@ -923,10 +943,6 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
-    
-    //private static final String ViewerInteractiveDragEvent = "viewer.drag.interactive";
-    //private static final String ViewerEndDragEvent = "viewer.drag.completed";
-
     private boolean isBoundsEvent(String k) {
         return k == LWKey.Size
             || k == LWKey.Location
@@ -950,11 +966,9 @@ public class MapViewer extends javax.swing.JComponent
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.EVENTS && DEBUG.META) out("got " + e);
         
-        // comment this out if want other viewers to interactively see drag events (is slower)
-
         final String key = e.getWhat();
 
-        if (DEBUG.DYNAMIC_UPDATE != true) {
+        if (DEBUG.DYNAMIC_UPDATE == false) {
             // this prevents other viewers of same map from updating until an
             // action is completed in the active viewer.
             if (VUE.getActiveViewer() != this) {
@@ -968,28 +982,12 @@ public class MapViewer extends javax.swing.JComponent
         
         // ignore size & location events during drag as performance enhancement
         //if (sDragUnderway && (key == LWKey.Size || key == LWKey.Location))
-        //if (key == ViewerInteractiveDragEvent)
-        //            return;
-        
-        //if (isBoundsEvent(key))
-            adjustCanvasSize();
-        
         // TODO: OPTIMIZE -- we get tons of location events
         // when dragging, esp if there are children if
         // we have those events turned in...
         
-        // ignore as handled in drag (todo: something cleaner: need these is prop change not from map)
-        //if (key == LWKey.Location || key == LWKey.Size)
-        //return;
-        
-        /*
-        if (key.startsWith("hier.")) { // todo perf: figure out cases we can ignore
-            // childAdded would clip if added outside edge
-            // of any existing components! (huh?)
-            repaint();
-            return;
-        }
-         */
+        //if (isBoundsEvent(key))
+            adjustCanvasSize();
         
         if (key == LWKey.Deleting) {
             if (rollover == e.getComponent())
@@ -997,12 +995,6 @@ public class MapViewer extends javax.swing.JComponent
         } else if (key == LWKey.FillColor && e.getComponent() == this.map) {
             setBackground(this.map.getFillColor());
         }
-        
-        // ignore events from ourself: they're there only
-        // to notify any other map viewers listenting to this map.
-        //if (e.getSource() == this || e.getSource() == this.inputHandler) -- this already filtered by LWCEvent dispatch
-        if (e.getSource() == this.inputHandler)
-            return;
         
         if (OPTIMIZED_REPAINT == false) {
             repaint();
@@ -1624,10 +1616,10 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.VIEWER) {
             g2.setColor(Color.red);
             g2.setStroke(new java.awt.BasicStroke(1f));
-            g2.drawLine(mouse.x,mouse.y, mouse.x,mouse.y);
+            g2.drawLine(_mouse.x,_mouse.y, _mouse.x,_mouse.y);
             
-            int iX = (int) (screenToMapX(mouse.x) * 100);
-            int iY = (int) (screenToMapY(mouse.y) * 100);
+            int iX = (int) (screenToMapX(_mouse.x) * 100);
+            int iY = (int) (screenToMapY(_mouse.y) * 100);
             float mapX = iX / 100f;
             float mapY = iY / 100f;
 
@@ -1639,7 +1631,7 @@ public class MapViewer extends javax.swing.JComponent
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
                 g2.drawString("     origin at: " + out(getOriginLocation()), x, y+=15);
-                g2.drawString("  canvas mouse: " + out(mouse), x, y+=15);
+                g2.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
                 g2.drawString("     map mouse: " + out(mapCoords), x, y+=15);
                 /*if (inScrollPane){
                 Point extent = viewportToCanvasPoint(mouse);
@@ -2493,6 +2485,8 @@ public class MapViewer extends javax.swing.JComponent
         boolean mouseWasDragged = false;
         LWComponent justSelected;    // for between mouse press & click
         boolean hitOnSelectionHandle = false; // we moused-down on a selection handle
+
+        MapViewer viewer = MapViewer.this;
         
         /**
          * dragStart: screen location (within this java.awt.Container)
@@ -2538,7 +2532,7 @@ public class MapViewer extends javax.swing.JComponent
             
             if (key == KeyEvent.VK_DELETE) {
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                Actions.Delete.fire(this);
+                Actions.Delete.fire(MapViewer.this);
             } else if (key == KEY_ABORT_ACTION) {
                 if (dragComponent != null) {
                     double oldX = screenToMapX(dragStart.x) + dragOffset.x;
@@ -2559,6 +2553,7 @@ public class MapViewer extends javax.swing.JComponent
                     repaint();
                 }
             } else if (e.isShiftDown() && VueSelection.isEmpty()) {
+                // this is mainly for debug.
                      if (key == KeyEvent.VK_UP)    panScrollRegion( 0,-1);
                 else if (key == KeyEvent.VK_DOWN)  panScrollRegion( 0, 1);
                 else if (key == KeyEvent.VK_LEFT)  panScrollRegion(-1, 0);
@@ -2976,16 +2971,16 @@ public class MapViewer extends javax.swing.JComponent
         private Point lastDrag = new Point();
         private void dragRepositionViewport(Point mouse) {
             if (DEBUG.MOUSE) {
-                System.out.println("lastDragLoc " + lastDrag);
-                System.out.println("lastMouseLoc " + mouse);
+                System.out.println(" lastDragLoc " + out(lastDrag));
+                System.out.println(" newMouseLoc " + out(mouse));
             }
-            int dx = lastDrag.x - mouse.x;
-            int dy = lastDrag.y - mouse.y;
             if (inScrollPane) {
-                panScrollRegion(dx, dy, false);
-                // if allow growth during drag, mouse location will keep changing it's base offset
-                // during drags towards southeast! (as origin moves)
+                int dx = lastDrag.x - mouse.x;
+                int dy = lastDrag.y - mouse.y;
+                panScrollRegion(dx, dy);
             } else {
+                int dx = dragStart.x - mouse.x;
+                int dy = dragStart.y - mouse.y;
                 setMapOriginOffset(originAtDragStart.getX() + dx,
                                    originAtDragStart.getY() + dy);
             }
@@ -3119,8 +3114,8 @@ public class MapViewer extends javax.swing.JComponent
             sMouseOver = hit;
             
             if (DEBUG.VIEWER) {
-                mouse.x = lastMouseX;
-                mouse.y = lastMouseY;
+                _mouse.x = lastMouseX;
+                _mouse.y = lastMouseY;
                 repaint();
             }
             
@@ -3234,12 +3229,19 @@ public class MapViewer extends javax.swing.JComponent
             if (mouseWasDragged == false) {
                 // dragStart
                 // we're just starting this drag
-                if (dragComponent != null || dragControl != null)
-                    mouseWasDragged = true;
+                //if (inScrollPane || dragComponent != null || dragControl != null) always set mousewasdragged
+                if (dragComponent == null && dragControl == null)
+                    viewer.setAutoscrolls(false);
+                mouseWasDragged = true;
                 lastDrag.setLocation(dragStart);
+                if (DEBUG.MOUSE)
+                    System.out.println(" lastDragSet " + out(lastDrag));
+                // if we pan, our canvas location might change, offsetting mouse coord each time
+                if (inScrollPane)
+                    lastDrag = SwingUtilities.convertPoint(MapViewer.this, lastDrag, getParent());
             }
             
-            if (DEBUG.VIEWER) mouse = e.getPoint();
+            if (DEBUG.VIEWER) _mouse = e.getPoint();
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             
             int screenX = e.getX();
@@ -3249,6 +3251,9 @@ public class MapViewer extends javax.swing.JComponent
             if (activeTool == HandTool) {
                 // drag the entire map
                 if (originAtDragStart != null) {
+                    // if we pan, our canvas location might change, offsetting mouse coord each time
+                    if (inScrollPane)
+                        currentMousePosition = SwingUtilities.convertPoint(MapViewer.this, currentMousePosition, getParent());
                     dragRepositionViewport(currentMousePosition);
                     lastDrag.setLocation(currentMousePosition);
                 } else
@@ -3392,9 +3397,6 @@ public class MapViewer extends javax.swing.JComponent
             if (dragComponent == null && dragControl == null)
                 return;
             
-            // enable if we decide to turn off Size & Location events as performance enhancement
-            //getMap().notify(MapViewer.this, ViewerInteractiveDragEvent);
-            
             if (!OPTIMIZED_REPAINT) {
                 
                 repaint();
@@ -3510,6 +3512,7 @@ public class MapViewer extends javax.swing.JComponent
             sDragUnderway = false;
             if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "]");
             
+            viewer.setAutoscrolls(true); // in case had been cleared for panning
             setLastMousePoint(e.getX(), e.getY());
             
             MapMouseEvent mme = new MapMouseEvent(e, draggedSelectorBox);
@@ -3529,12 +3532,8 @@ public class MapViewer extends javax.swing.JComponent
             // of this map that may now need to repaint (LWComponents currently
             // don't sent event notifications for location & size changes
             // for performance)
-            if (mouseWasDragged) {
+            if (mouseWasDragged)
                 VUE.getUndoManager().mark("Drag");
-                // this is an to ensure any map modifications are noticed 
-                // by other viewers, as other viewers ignore events during drags
-                //getMap().notify(MapViewer.this, ViewerEndDragEvent);
-            }
             
             if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(e))
                 System.err.println("Illegal state warning: we've drawn a selector box w/out tool that supports it!");
@@ -3796,9 +3795,9 @@ public class MapViewer extends javax.swing.JComponent
                         
                         if (!mLabelEditWasActiveAtMousePress) {
                             if (activeTool == NodeTool)
-                                Actions.NewNode.fire(this);
+                                Actions.NewNode.fire(MapViewer.this);
                             else
-                                Actions.NewText.fire(this);
+                                Actions.NewText.fire(MapViewer.this);
                         }
                     }
                 /*
@@ -4040,39 +4039,12 @@ public class MapViewer extends javax.swing.JComponent
         //map.addNode(n1);
         //map.addNode(n2);
         //map.addNode(n3);
-        
-        // for print testing & generally handy
-        LWNode origin = new LWNode("ORIGIN", 0,0);
-        origin.setShape(new Rectangle2D.Float());
-        origin.setStrokeWidth(0);
-        origin.setFillColor(Color.darkGray);
-        origin.setTextColor(Color.lightGray);
-        Actions.FontBold.actOn(origin);
-
-        LWNode end = new LWNode("400x300");
-        end.setShape(new Rectangle2D.Float());
-        end.setStrokeWidth(0);
-        end.setAutoSized(false);
-        end.setFrame(300,250, 100,50);
-        end.setFillColor(Color.blue);
-        Actions.FontBold.actOn(end);
-        
-        LWNode center = new LWNode("center");
-        center.setShape(new Rectangle2D.Float());
-        center.setAutoSized(false);
-        center.setFrame(200,125, 100,50);
-        center.setStrokeWidth(0);
-        center.setFillColor(Color.green);
-
-        map.addNode(origin);
-        map.addNode(center);
-        map.addNode(end);
             
         if (true) {
             // group resize testing
-            //map.addNode(new LWNode("aaa", 100,100));
-            //map.addNode(new LWNode("bbb", 150,130));
-            //map.addNode(new LWNode("ccc", 200,160));
+            map.addNode(new LWNode("aaa", 100,100));
+            map.addNode(new LWNode("bbb", 150,130));
+            map.addNode(new LWNode("ccc", 200,160));
         }
         
         /*
@@ -4089,6 +4061,51 @@ public class MapViewer extends javax.swing.JComponent
         map.addNode(new LWNode("Four"));
         */
     }
+
+    static void installTestMap(LWMap map) {
+        // for print testing & scroll testing
+        LWNode origin = new LWNode("ORIGIN", 0,0);
+        origin.setShape(new Rectangle2D.Float());
+        origin.setStrokeWidth(0);
+        origin.setFillColor(Color.darkGray);
+        origin.setTextColor(Color.lightGray);
+        Actions.FontBold.actOn(origin);
+        map.addNode(origin);
+
+
+        LWNode n = new LWNode("LT");
+        n.setShape(new Rectangle2D.Float());
+        n.setStrokeWidth(0);
+        n.setAutoSized(false);
+        n.setFrame(200,125, 50,50);
+        n.setFillColor(Color.gray);
+        map.addNode(n);
+
+        n = (LWNode) n.duplicate();
+        n.setLabel("RT");
+        n.setLocation(251,125);
+        map.addNode(n);
+
+        /*
+        LWNode center = new LWNode("center");
+        center.setShape(new Rectangle2D.Float());
+        center.setAutoSized(false);
+        center.setFrame(200,125, 100,50);
+        center.setStrokeWidth(0);
+        center.setFillColor(Color.green);
+        map.addNode(center);
+        */
+
+        LWNode end = new LWNode("400x300");
+        end.setShape(new Rectangle2D.Float());
+        end.setStrokeWidth(0);
+        end.setAutoSized(false);
+        end.setFrame(300,250, 100,50);
+        end.setFillColor(Color.blue);
+        Actions.FontBold.actOn(end);
+        map.addNode(end);
+    }
+    
     
     private void out(Object o) {
         System.out.println(this + " " + (o==null?"null":o.toString()));
@@ -4115,7 +4132,7 @@ public class MapViewer extends javax.swing.JComponent
     private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     
-    private Point mouse = new Point();
+    private Point _mouse = new Point();
     
     final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
     Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
@@ -4127,15 +4144,16 @@ public class MapViewer extends javax.swing.JComponent
         
         System.out.println("MapViewer:main");
         
-            javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new VueTheme() {
-                    public javax.swing.plaf.FontUIResource getControlTextFont() { return fontTiny; }
-                    public javax.swing.plaf.FontUIResource getMenuTextFont() { return fontTiny; }
-                    public javax.swing.plaf.FontUIResource getSmallFont() { return fontTiny; }
-                });
+        javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new VueTheme() {
+                public javax.swing.plaf.FontUIResource getControlTextFont() { return fontTiny; }
+                public javax.swing.plaf.FontUIResource getMenuTextFont() { return fontTiny; }
+                public javax.swing.plaf.FontUIResource getSmallFont() { return fontTiny; }
+            });
             
         LWMap map = new LWMap("test");
         
-        installExampleNodes(map);
+        //installExampleNodes(map);
+        installTestMap(map);
 
         if (args.length > 0) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
