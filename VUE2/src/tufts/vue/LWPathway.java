@@ -19,8 +19,7 @@ import java.util.ArrayList;
  *
  * @author  Jay Briedis
  */
-public class LWPathway extends tufts.vue.LWComponent 
-    implements Pathway
+public class LWPathway extends tufts.vue.LWComponent implements Pathway
 {
     private LinkedList elementList = null;
     private int weight = 1;
@@ -40,8 +39,7 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public LWPathway(LWMap map, String label) {
         this(label);
-        this.map = map;
-        
+        this.map = map;        
     }
     
     /** Creates a new instance of LWPathway with the specified label */
@@ -51,51 +49,42 @@ public class LWPathway extends tufts.vue.LWComponent
         currentIndex = -1;
     }
      
-    /** adds an element to the 'end' of the pathway */
+    /** adds an element to the end of the pathway */
     public void addElement(LWComponent element) {
-        elementList.add(element);
-        
+       elementList.add(element); 
        if (currentIndex == -1) currentIndex = length() - 1;
+       //maybe need to repaint the view?
     }
     
-    /** adds an element at the specified location within the pathway*/
-    public void addElement(LWComponent element, int index){
-        if(elementList.size() >= index){
-            elementList.add(index, element);
-            
-            if (currentIndex == -1) currentIndex = index;
-        }else{
-            System.out.println("LWPathway.addElement(element, index), index out of bounds");
-        }
+    public LWMap getPathwayMap(){
+        return map;
     }
     
-    /** adds an element in between two other elements, if they are adjacent*/
-    public void addElement(LWComponent element, LWComponent adj1, LWComponent adj2){
-        int index1 = elementList.indexOf(adj1);
-        int index2 = elementList.indexOf(adj2);
-        int dif = index1 - index2;
-        if(elementList.size() >= index1 && elementList.size() >= index2){
-            if(Math.abs(dif) == 1){
-                if(dif == -1)
-                    elementList.add(index2, element);
-                else
-                    elementList.add(index1, element);
-            }
-        }else{
-            System.out.println("LWPathway.addElement(element,adj1,adj2), index out of bounds");
-        }
-    }
-    
-    public void draw(Graphics2D g){
-        /*Iterator iter = this.getElementIterator();
+    public void drawPathway(Graphics2D g){
+        Iterator iter = this.getElementIterator();
+        Color oldColor = g. getColor();
         while(iter.hasNext()){
             LWComponent comp = (LWComponent)iter.next();
-            if(comp instanceof LWNode){
-                ((LWNode)comp).setPathway(this);
-            } else if(comp instanceof LWLink){
-                
+            g.setColor(borderColor);
+            if(comp instanceof LWNode)
+                g.draw(comp.getShape());      
+            else if(comp instanceof LWLink){
+                LWLink link = (LWLink)comp;
+                LWComponent ep1 = link.getComponent1();
+                LWComponent ep2 = link.getComponent2();
+                if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
+                && !(ep1.getShape() == null && ep2.getShape() == null)) {
+                Area clipArea = new Area(g.getClipBounds());
+                if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
+                    clipArea.subtract(new Area(ep1.getShape()));
+                if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
+                    clipArea.subtract(new Area(ep2.getShape()));
+                g.clip(clipArea);
             }
-        }*/
+                g.draw(link.getLine());
+            }
+        }
+        g.setColor(oldColor);
     }
     
     public boolean contains(LWComponent element){
@@ -106,113 +95,59 @@ public class LWPathway extends tufts.vue.LWComponent
         return elementList.size();
     }
     
-    public LWComponent getFirst() {
-        
+    public LWComponent getFirst() {        
         LWComponent firstElement = null;
-        
-        try
-        {
+        try{
             firstElement = (LWComponent)elementList.getFirst();
             currentIndex = 0;
-        }
-        
-        catch(NoSuchElementException ne)
-        {
+        }catch(NoSuchElementException ne){
             firstElement = null;
-        }
-        
+        }        
         return firstElement;
     }
     
-    public boolean isFirst()
-    {
+    public boolean isFirst(){
+
         return (currentIndex == 0);
     }
     
-    public LWComponent getLast() {
-        
-        LWComponent lastElement = null;
-        
-        try
-        {
+    public LWComponent getLast() {        
+        LWComponent lastElement = null;        
+        try{
             lastElement = (LWComponent)elementList.getLast();
             currentIndex = length() - 1;
-        }
-        
-        catch(NoSuchElementException ne)
-        {
+        }catch(NoSuchElementException ne){
             lastElement = null;
         }
         
         return lastElement;
     }
     
-    public boolean isLast()
-    {
+    public boolean isLast(){
         return (currentIndex == (length() - 1));
     }
-    
-    /*
-    public LWComponent getPrevious(LWComponent current) {
-        int index = elementList.indexOf(current);
-        
-        if (index > 0)
-          return (LWComponent)elementList.get(--index);
-        
-        //if (currentIndex > 0)
-          //return (LWComponent)elementList.get(currentIndex - 1);
-        else
-          return null;
-        
-    }
-    */
-    
-    public LWComponent getPrevious()
-    {
+      
+    public LWComponent getPrevious(){
         if (currentIndex > 0)
-            return (LWComponent)elementList.get(--currentIndex);
-        
+            return (LWComponent)elementList.get(--currentIndex);        
         else
             return null;
     }
     
-    /*
-    public LWComponent getNext(LWComponent current) {
-        int index = elementList.indexOf(current);
-        
-        if (index >= 0 && index < (length() - 1))
-          return (LWComponent)elementList.get(++index);
-        
-        //if (currentIndex >= 0 && currentIndex < (length() - 1))
-          //return (LWComponent)elementList.get(currentIndex + 1);
-        else
-          return null;
-    }
-   */
-    
-    public LWComponent getNext()
-    {
+    public LWComponent getNext(){
         if (currentIndex < (length() - 1))
-            return (LWComponent)elementList.get(++currentIndex);
-        
+            return (LWComponent)elementList.get(++currentIndex);        
         else 
             return null;
     }
     
-    public LWComponent getElement(int index)
-    {
+    public LWComponent getElement(int index){
         LWComponent element = null;
-        
-        try
-        {
+        try{
             element = (LWComponent)elementList.get(index);
-        }
-        
-        catch (IndexOutOfBoundsException ie)
-        {
+        }catch (IndexOutOfBoundsException ie){
             element = null;
-        }
-       
+        }       
         return element;
     }
     
@@ -220,37 +155,14 @@ public class LWPathway extends tufts.vue.LWComponent
         return elementList.iterator();
     }
     
-    /*
-    public void removeElement(LWComponent element) {
-        
-        if (element.equals(getCurrent()))
-        {
-            if (isFirst(element))
-                setCurrent(getNext(element));
-            
-            else
-                setCurrent(getPrevious(element));
-        }
-        
-        boolean success = elementList.remove(element);
-        if(!success)
-            System.err.println("LWPathway.removeElement: element does not exist in pathway");
-    }
-    */
-    
-    public void removeElement(int index) {
-        
+    public void removeElement(int index) {       
         if (index == currentIndex)
         {
             //gotta fix this
-            if (!isFirst())
-            {
+            if (!isFirst()){
               getPrevious();
               System.out.println("moved back to " + currentIndex);
-            }
-            
-            else
-            {
+            }else{
               System.out.println("moved forward to " + currentIndex);
             }
         }
@@ -261,11 +173,8 @@ public class LWPathway extends tufts.vue.LWComponent
             System.err.println("LWPathway.removeElement: element does not exist in pathway");
     }
    
-    /**moves the selected element to a new index*/
-    public void moveElement(int oldIndex, int newIndex) 
-    {
+    public void moveElement(int oldIndex, int newIndex) {
         LWComponent element = getElement(oldIndex);
-        
         removeElement(oldIndex);
         addElement(element, newIndex);
     }
@@ -301,7 +210,6 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setElementList(java.util.List elementList) {
         this.elementList = (LinkedList)elementList;
-        
         if (elementList.size() >= 1) currentIndex = 0;
     }
     
@@ -317,20 +225,13 @@ public class LWPathway extends tufts.vue.LWComponent
     }
     /** end of Castor Interface */
     
-    public LWComponent getCurrent() {
- 
-        LWComponent element = null;
-        
-        try
-        {
+    public LWComponent getCurrent() { 
+        LWComponent element = null;        
+        try{
             element = (LWComponent)elementList.get(currentIndex);
-        }
-        
-        catch (IndexOutOfBoundsException ie)
-        {
+        }catch (IndexOutOfBoundsException ie){
             element = null;
-        }
-       
+        }      
         return element;
     }
     
@@ -342,22 +243,91 @@ public class LWPathway extends tufts.vue.LWComponent
         this.comment = comment;
     }
     
-    public void mapViewerEventRaised(MapViewerEvent e) {
-        System.out.println("MapViewer event: "+e);
-    }
-   
-    public void setCurrentIndex(int i)
-    {
+    public void setCurrentIndex(int i){
         currentIndex = i;
     }
     
-    public int getCurrentIndex()
-    {
+    public int getCurrentIndex(){
         return currentIndex;
     }
-    /*
-    public void dividePathway(Node node1, Node node2){
+   
+/*****************************/    
+/**methods below are not used*/    
+/*****************************/
+    
+    /** adds an element at the specified location within the pathway*/
+    public void addElement(LWComponent element, int index){
+        if(elementList.size() >= index){
+            elementList.add(index, element);
+            //if(current == null) setCurrent(element);
+            if (currentIndex == -1) currentIndex = index;
+        }else{
+            System.out.println("LWPathway.addElement(element, index), index out of bounds");
+        }
+    }
+    
+    /** adds an element in between two other elements, if they are adjacent*/
+    public void addElement(LWComponent element, LWComponent adj1, LWComponent adj2){
+        int index1 = elementList.indexOf(adj1);
+        int index2 = elementList.indexOf(adj2);
+        int dif = index1 - index2;
+        if(elementList.size() >= index1 && elementList.size() >= index2){
+            if(Math.abs(dif) == 1){
+                if(dif == -1)
+                    elementList.add(index2, element);
+                else
+                    elementList.add(index1, element);
+            }
+        }else{
+            System.out.println("LWPathway.addElement(element,adj1,adj2), index out of bounds");
+        }
+    }
+    
         
-    }*/
+    
+    public void removeElement(LWComponent element) {
+       /* 
+        if (element.equals(getCurrent()))
+        {
+            if (isFirst(element))
+                setCurrent(getNext(element));
+            
+            else
+                setCurrent(getPrevious(element));
+        }
+        
+        boolean success = elementList.remove(element);
+        if(!success)
+            System.err.println("LWPathway.removeElement: element does not exist in pathway");
+   */ }
+    
+    
+    
+    public LWComponent getNext(LWComponent current) {
+        int index = elementList.indexOf(current);
+        
+        if (index >= 0 && index < (length() - 1))
+          return (LWComponent)elementList.get(++index);
+        
+        //if (currentIndex >= 0 && currentIndex < (length() - 1))
+          //return (LWComponent)elementList.get(currentIndex + 1);
+        else
+          return null;
+    }
+   
+    
+    
+    public LWComponent getPrevious(LWComponent current) {
+        int index = elementList.indexOf(current);
+        
+        if (index > 0)
+          return (LWComponent)elementList.get(--index);
+        
+        //if (currentIndex > 0)
+          //return (LWComponent)elementList.get(currentIndex - 1);
+        else
+          return null;
+        
+    }
     
 }

@@ -674,7 +674,7 @@ public class LWComponent
     
     public void draw(java.awt.Graphics2D g)
     {
-        throw new UnsupportedOperationException("unimplemnted draw in " + this);
+        throw new UnsupportedOperationException("unimplemented draw in " + this);
     }
 
     public void addLWCListener(LWComponent.Listener listener)

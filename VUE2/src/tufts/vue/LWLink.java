@@ -74,6 +74,10 @@ public class LWLink extends LWComponent
     {
         return ep1.getParent() == ep2 || ep2.getParent() == ep1;
     }
+    /*
+    public Line2D getLine(){
+        return this.line;
+    }*/
     
     private final int MaxZoom = 1; //todo: get from Zoom code
     private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
@@ -274,7 +278,7 @@ public class LWLink extends LWComponent
         // return stroked shape?
     }
 
-    private void computeShape()
+    public void computeShape()
     {
         float startX = ep1.getCenterX();
         float startY = ep1.getCenterY();
@@ -374,15 +378,15 @@ public class LWLink extends LWComponent
         // another thing to look forward to when we don't need
         // this code anymore.
         if (!viewerCreationLink) {
-        if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
-            && !(ep1.getShape() == null && ep2.getShape() == null)) {
-            Area clipArea = new Area(g.getClipBounds());
-            if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
-                clipArea.subtract(new Area(ep1.getShape()));
-            if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
-                clipArea.subtract(new Area(ep2.getShape()));
-            g.clip(clipArea);
-        }
+            if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
+                && !(ep1.getShape() == null && ep2.getShape() == null)) {
+                Area clipArea = new Area(g.getClipBounds());
+                if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
+                    clipArea.subtract(new Area(ep1.getShape()));
+                if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
+                    clipArea.subtract(new Area(ep2.getShape()));
+                g.clip(clipArea);
+            }
         }
 
         
