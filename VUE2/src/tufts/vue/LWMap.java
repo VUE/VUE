@@ -118,7 +118,9 @@ public class LWMap extends LWContainer
         mChanges = 0;
         if (getUndoManager() == null)
             setUndoManager(new UndoManager(this));
-        // notify with an event mark as not for repaint (and set same bit on "repaint" event)
+        else
+            getUndoManager().flush();
+        // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public boolean isModified() {
         return mChanges > 0;
@@ -276,6 +278,9 @@ public class LWMap extends LWContainer
         }
         markAsSaved();
     }
+    
+    // do nothing
+    //void setScale(float scale) { }
     
     public void draw(DrawContext dc){
         super.draw(dc);

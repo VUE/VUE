@@ -417,12 +417,14 @@ public class LWLink extends LWComponent
         notify("link.control.1", new Undoable(old) { void undo() { setCtrlPoint1((Point2D)old); }} );
     }
 
+    /*
     protected void removeFromModel()
     {
         super.removeFromModel();
         if (ep1 != null) ep1.removeLinkRef(this);
         if (ep2 != null) ep2.removeLinkRef(this);
     }
+    */
 
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()

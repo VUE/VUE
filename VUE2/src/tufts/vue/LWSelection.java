@@ -255,6 +255,25 @@ public class LWSelection extends java.util.ArrayList
         return true;
     }
 
+    /** Remove from selection anything that's been deleted */
+    synchronized void clearDeleted()
+    {
+        if (DEBUG.SELECTION) System.out.println(this + " clearDeleted");
+        boolean removed = false;
+        LWComponent[] elements = new LWComponent[size()];
+        toArray(elements);
+        for (int i = 0; i < elements.length; i++) {
+            LWComponent c = elements[i];
+            if (c.isDeleted()) {
+                if (DEBUG.SELECTION) System.out.println(this + " clearDeleted: clearing " + c);
+                remove0(c);
+                removed = true;
+            }
+        }
+        if (removed)
+            notifyListeners();
+    }
+
     /** return bounds of map selection in map (not screen) coordinates */
     public Rectangle2D getBounds()
     {

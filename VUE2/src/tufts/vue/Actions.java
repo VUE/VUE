@@ -373,6 +373,16 @@ class Actions
             
             void act(Iterator i) {
                 super.act(i);
+
+                // LWSelection does NOT listen for events among what's
+                // selected (an optimization & we don't want the
+                // selection updating iself and issuing selection
+                // change events AS a delete takes place for each
+                // component as it's deleted) -- it only needs to know
+                // about deletions, so they're handled special case.
+                // Here, all we need to do is clear the selection as
+                // we know everything in it has just been deleted.
+
                 VUE.ModelSelection.clear();
             }
             void act(LWComponent c) {
@@ -382,11 +392,9 @@ class Actions
                     // both their endpoints are deleted
                     System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
                 } else if (c.isDeleted()) {
-                    // right now this can happen because links are auto-deleted if
-                    // both their endpoints are deleted
                     System.out.println("DELETE: " + c + " skipping (already deleted)");
                 } else if (parent.isDeleted()) {
-                    System.out.println("DELETE: " + c + " skipping (parent already deleted)");
+                    System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
                 } else if (parent.isSelected()) { // if parent selected, it will delete it's children
                     System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
                 } else {

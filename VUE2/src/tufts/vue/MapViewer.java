@@ -1272,6 +1272,8 @@ public class MapViewer extends javax.swing.JComponent
     
     /**
      * Handle events coming off the LWMap we're displaying.
+     * For most actions this repaints.  It tracks deletiions
+     * for updating the current rollover zoom.
      */
     public void LWCChanged(LWCEvent e)
     {

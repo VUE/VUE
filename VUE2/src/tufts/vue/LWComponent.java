@@ -1365,7 +1365,7 @@ public class LWComponent
     {
         // links nulled only after removeFromModel, so it's a marker
         // for a deleted component
-        return this.links == null;
+        return this.scale == -1;
     }
     
     /**
@@ -1378,9 +1378,10 @@ public class LWComponent
             throw new IllegalStateException("Attempt to delete already deleted: " + this);
         removeAllLWCListeners();
         disconnectFromLinks();
+        this.scale = -1;
         // help gc
-        this.links.clear();
-        this.links = null;
+        //this.links.clear();
+        //this.links = null;
     }
 
     private void disconnectFromLinks()

@@ -21,8 +21,7 @@ import java.awt.geom.Rectangle2D;
  */
 public abstract class LWContainer extends LWComponent
 {
-    //protected List children = new java.util.ArrayList();
-    protected List children = new UndoableArrayList();
+    protected List children = new java.util.ArrayList();
     protected LWComponent focusComponent;
     
     /** for use during restore */
@@ -257,6 +256,8 @@ public abstract class LWContainer extends LWComponent
     {
         ArrayList addedChildren = new ArrayList();
         
+        notify(LWKey.HierarchyChange);
+        
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.getParent() == this)
@@ -367,7 +368,7 @@ public abstract class LWContainer extends LWComponent
         }
         if (!this.children.remove(c))
             throw new IllegalStateException(this + " didn't contain child for removal: " + c);
-        c.setParent(null); // leave parent ref place for undo -- but -- ack need this!
+        //c.setParent(null); // leave parent ref place for undo -- but -- ack need this!
 
         // If this child was scaled inside us (as all children are except groups)
         // besure to restore it's scale back to 1 when de-parenting it.
@@ -383,6 +384,8 @@ public abstract class LWContainer extends LWComponent
      */
     public void removeChildren(Iterator i)
     {
+        notify(LWKey.HierarchyChange);
+
         ArrayList deletedChildren = new ArrayList();
         
         while (i.hasNext()) {

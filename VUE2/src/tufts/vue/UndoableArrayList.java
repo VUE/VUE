@@ -64,6 +64,13 @@ public class UndoableArrayList extends AbstractList
         c.toArray(elementData);
     }
 
+    Object[] getElementData() {
+        return elementData;
+    }
+    void setElementData(Object[] elementData) {
+        this.elementData = elementData;
+    }
+
     /**
      * Trims the capacity of this <tt>UndoableArrayList</tt> instance to be the
      * list's current size.  An application can use this operation to minimize

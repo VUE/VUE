@@ -17,6 +17,7 @@ public class UndoManager
     private ArrayList mRedoActions = new ArrayList(); // the list of redo actions (named groups of property changes)
     
     private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
+    //private Map mHierarchyChanges = new HashMap(); // all hierarchy changes, mapped by component, since last mark
     private LWCEvent mLastEvent; // most recent event since last mark
     private int mChangeCount; // individual property changes since last mark
 
@@ -38,25 +39,46 @@ public class UndoManager
             if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges " + propertyChanges);
 
             Iterator i = propertyChanges.entrySet().iterator();
+            // Handle hierarchy events first
+            boolean hierarchyChanged = false;
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
-                if (DEBUG.UNDO) System.out.println("\tprocessing " + e.getKey());
+                Map props = (Map) e.getValue();
+                if (props.containsKey(LWKey.HierarchyChange)) {
+                    undoComponentChanges((LWComponent) e.getKey(), props);
+                    hierarchyChanged = true;
+                    i.remove();
+                }
+            }
+            i = propertyChanges.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
                 undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
             }
+            if (hierarchyChanged)
+                VUE.getSelection().clearDeleted();
         }
 
         private void undoComponentChanges(LWComponent c, Map props)
         {
+            if (DEBUG.UNDO) System.out.println("\tprocessing component " + c);
             Iterator i = props.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry e = (Map.Entry) i.next();
                 if (DEBUG.UNDO) System.out.println("\tundoing " + e);
                 Object propKey = e.getKey();
                 Object oldValue = e.getValue();
-                if (oldValue instanceof Undoable)
+                if (propKey == LWKey.HierarchyChange) {
+                    if (DEBUG.UNDO) System.out.println("UNDO: restoring children of " + c + " to " + oldValue);
+                    LWContainer parent = (LWContainer) c;
+                    parent.children = (List) oldValue;
+                    parent.setScale(parent.getScale());
+                    parent.notify(LWKey.HierarchyChange);
+                } else if (oldValue instanceof Undoable) {
                     ((Undoable)oldValue).undo();
-                else
+                } else {
                     tufts.vue.beans.VueLWCPropertyMapper.setProperty(c, propKey, oldValue);
+                }
             }
         }
 
@@ -89,6 +111,11 @@ public class UndoManager
             return (UndoAction) mUndoActions.get(mUndoActions.size() - 1);
         else
             return null;
+    }
+
+    void flush() {
+        mUndoActions.clear();
+        mPropertyChanges.clear();
     }
 
     private boolean checkAndHandleUnmarkedChanges() {
@@ -132,8 +159,8 @@ public class UndoManager
                 sInUndo = false;
             }
         }
-        mRedoAction = collectChangesAsUndoAction("Redo " + undoAction.name);
-        Actions.Redo.putValue(Action.NAME, mRedoAction.name);
+        //mRedoAction = collectChangesAsUndoAction("Redo " + undoAction.name);
+        //Actions.Redo.putValue(Action.NAME, mRedoAction.name);
         setUndoActionLabel(peek());
     }
 
@@ -212,6 +239,7 @@ public class UndoManager
     private boolean mRedoCaptured = false;
     public void LWCChanged(LWCEvent e) {
         if (sInUndo) {
+if (true)return;
             if (!mRedoCaptured && mChangeCount > 0) 
                 throw new Error("Undo Error: have changes at start of redo record: " + mChangeCount + " " + mPropertyChanges + " " + e);
             mRedoCaptured = true;
@@ -224,7 +252,7 @@ public class UndoManager
 
     private void processEvent(LWCEvent e)
     {
-        if (e.getWhat().startsWith("hier.")) {
+        if (e.getWhat() == LWKey.HierarchyChange) {
             recordHierarchyChangeEvent(e);
         } else if (e.hasOldValue()) {
             recordUndoablePropertyChangeEvent(e);
@@ -236,43 +264,54 @@ public class UndoManager
         }
     }
 
+    //static class HierUndo extends Undoable { }
+
+    private static final Object HIERARCHY_CHANGE = "hierarchy.change";
     private void recordHierarchyChangeEvent(LWCEvent e)
     {
-        String propName = e.getWhat();
-        Object parent = e.getSource();
-        boolean compressed = false; // already had one of these: can ignore all subsequent
+        LWContainer parent = (LWContainer) e.getSource();
+        //Object old = ((ArrayList)parent.children).clone();
 
-        if (DEBUG.UNDO) System.out.println(" (HIERARCHY)");
+        //if (DEBUG.UNDO) System.out.println(" (HIERARCHY)");
+
+        recordUndoableChangeEvent(LWKey.HierarchyChange, parent, HIERARCHY_CHANGE);
+        //new Undoable(old) { void undo() { parent.children = (ArrayList) old; } });        
         
     }
     
     private void recordUndoablePropertyChangeEvent(LWCEvent e)
     {
-        String propName = e.getWhat();
-        LWComponent c = e.getComponent(); // can be list... todo: warn us if list (should only be for hier events)
+        // e.getComponent can really be list... todo: warn us if list (should only be for hier events)
+        recordUndoableChangeEvent(e.getWhat(), e.getComponent(), e.getOldValue());
+        mLastEvent = e;
+    }
+
+    private void recordUndoableChangeEvent(String propertyKey, LWComponent component, Object oldValue)
+    {
         boolean compressed = false; // already had one of these props: can ignore all subsequent
         
-        Object oldValue = e.getOldValue();
-        Map cPropList = (Map) mPropertyChanges.get(c);
+        Map cPropList = (Map) mPropertyChanges.get(component);
         if (cPropList != null) {
             //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
-            Object value = cPropList.get(propName);
+            Object value = cPropList.get(propertyKey);
             if (value != null) {
                 if (DEBUG.UNDO) System.out.println(" (compressed)");
                 compressed = true;
             }
         } else {
             cPropList = new HashMap();
-            mPropertyChanges.put(c, cPropList);
+            mPropertyChanges.put(component, cPropList);
         }
         
         if (!compressed) {
-            cPropList.put(propName, oldValue);
+            if (oldValue == HIERARCHY_CHANGE)
+                oldValue = ((ArrayList)((LWContainer)component).children).clone();
+            cPropList.put(propertyKey, oldValue);
             mChangeCount++;
-            mLastEvent = e;
             if (DEBUG.UNDO) {
-                if (DEBUG.META) System.out.println(" (stored: " + oldValue + ")");
-                else System.out.println(" (stored)");
+                System.out.println(" (stored: " + oldValue + ")");
+                //if (DEBUG.META) 
+                //else System.out.println(" (stored)");
             }
         }
     }

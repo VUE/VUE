@@ -169,6 +169,10 @@ implements VueConstants {
         }
     }
     
+    public static LWSelection getSelection() {
+        return ModelSelection;
+    }
+    
     private static Cursor oldCursor;
     public static synchronized void activateWaitCursor() {
         /*
@@ -766,10 +770,10 @@ implements VueConstants {
         
         public void reshape(int x, int y, int w, int h) {
             boolean ignore =
-            getX() == x &&
-            getY() == y &&
-            getWidth() == w &&
-            getHeight() == h;
+                getX() == x &&
+                getY() == y &&
+                getWidth() == w &&
+                getHeight() == h;
             
             // if w or h <= 0 we can know we're being hidden
             //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
