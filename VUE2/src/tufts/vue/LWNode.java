@@ -55,7 +55,8 @@ public class LWNode extends LWContainer
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
 
-    private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, 20,15, 10,10);
+    private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, 28,19, 12,12);
+    private Line2D dividerLine = new Line2D.Float();
     
     public LWNode(String label)
     {
@@ -94,11 +95,12 @@ public class LWNode extends LWContainer
             setNodeShape(StandardShapes[4]);
         else
             setShape(shape);
-        setStrokeWidth(2f);//todo config: default node stroke
+        setStrokeWidth(1f);// todo
         setLocation(x, y);
         //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
         setSize(10,10);
         setLabel(label);
+        setFont(FONT_NODE_DEFAULT);
     }
     
     // internal convenience
@@ -139,6 +141,7 @@ public class LWNode extends LWContainer
     
     // Enable this to use differently shaped generated icons
     // depending on if the resource is local or not
+    /*
     public void X_setResource(Resource resource)
     {
         if (resource != null) {
@@ -151,7 +154,8 @@ public class LWNode extends LWContainer
         // and references genIcon
         super.setResource(resource);
     }
-
+    */
+    
     public boolean handleDoubleClick(Point2D p)
     {
         System.out.println("handleDoubleClick " + p + " " + this);
@@ -399,6 +403,24 @@ public class LWNode extends LWContainer
         if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
         if (isAutoSized() || hasChildren())
             setPreferredSize(!isAutoSized());
+
+        if (getResource() != null) {
+            //double iy = relativeLabelY() + genIcon.getHeight() / 2;
+            float iconHeight = (float) genIcon.getHeight();
+            float iconWidth = (float) genIcon.getWidth();
+            //double iy = (getHeight() - iconHeight) / 2;
+            //double ix = PadX;
+            double iconX = 3;
+            double iconY = PadY/2 * getScale();  //same as relativeY hasChildren case
+            iconY += getLabelBox().getHeight() - iconHeight*(2f/3f);
+            //genIcon.setFrame(iconX, iconY, genIcon.getWidth(), genIcon.getHeight());
+            genIcon.setFrame(iconX, iconY, genIcon.getWidth(), genIcon.getHeight());
+
+            double dividerY = iconY + iconHeight*(2f/3f);
+            dividerLine.setLine(0, dividerY, getAbsoluteWidth(), dividerY);
+        }
+
+        
         layoutChildren();
         
         // could set size from label first, then layout children and
@@ -426,8 +448,10 @@ public class LWNode extends LWContainer
             if (width < childBounds.getWidth() + PadX*2)
                 width = (float) childBounds.getWidth() + PadX*2;
         }
-        if (getResource() != null)
+        if (getResource() != null) {
             width += PadX*1.5 + genIcon.getWidth();
+            height += genIcon.getHeight() * (2f/3f); //crude for now
+        }
 
         if (growOnly) {
             if (this.width > width)
@@ -483,7 +507,11 @@ public class LWNode extends LWContainer
         java.util.Iterator i = getChildIterator();
         //float y = (relativeLabelY() + PadY) * getScale();
         // relaveLabelY used to be the BASELINE for the text -- now it's the UL of the label object
-        float y = (relativeLabelY() + getLabelBox().getHeight() + PadY/2) * getScale();
+        //float y = (relativeLabelY() + getLabelBox().getHeight() + PadY/2) * getScale();
+        float y = relativeLabelY() + getLabelBox().getHeight();
+        if (genIcon != null)
+            y += genIcon.getHeight() / 2f;
+        y *= getScale();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             //float childX = PadX * getScale();
@@ -514,19 +542,23 @@ public class LWNode extends LWContainer
     {
         float offset;
         if (getResource() != null) {
-            offset = (float) (PadX*1.5 + genIcon.getWidth());
+            //offset = (float) (PadX*1.5 + genIcon.getWidth());
+            offset = (float) genIcon.getWidth() + 7;
         } else {
-            int w = getLabelBox().getPreferredSize().width;
-            offset = (this.width - w) / 2;
+            //int w = getLabelBox().getPreferredSize().width;
+            //offset = (this.width - w) / 2;
+            offset = 7;
         }
         return offset;
     }
     private float relativeLabelY()
     {
-        if (hasChildren())
+        if (true||hasChildren())
             return (PadY/2) * getScale();
         else
             return (this.height - getLabelBox().getPreferredSize().height) / 2;
+
+        //old
         //return (this.height - getLabelBox().getHeight()) / 2;
         /*
         if (hasChildren())
@@ -538,16 +570,12 @@ public class LWNode extends LWContainer
 
     public void draw(Graphics2D g)
     {
-        //this.graphics = g;
-        
         g.translate(getX(), getY());
         float scale = getScale();
         if (scale != 1f)
             g.scale(scale, scale);
             
         String label = getLabel();
-
-        // System.out.println("draw " + label);
 
         //-------------------------------------------------------
         // Fill the shape (if it's not transparent)
@@ -558,12 +586,6 @@ public class LWNode extends LWContainer
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
             imageIcon.paintIcon(null, g, 0, 0);
         } else {
-            /*
-            if (label != lastLabel) {
-                //System.out.println("label " + lastLabel + " -> " + label);
-                layout();
-                lastLabel = label;
-                }*/
             Color fillColor = getFillColor();
             if (fillColor != null) { // transparent if null
                 g.setColor(fillColor);
@@ -631,20 +653,35 @@ public class LWNode extends LWContainer
         // Here we'll check the zoom level, and if iit's say,
         // over 800%, we could draw the resource string in a tiny
         // font right in the icon.
-        
 
         if (getResource() != null) {
-            //double iy = relativeLabelY() + genIcon.getHeight() / 2;
             float iconHeight = (float) genIcon.getHeight();
             float iconWidth = (float) genIcon.getWidth();
-            double iy = (getHeight() - iconHeight) / 2;
-            double ix = PadX;
-            genIcon.setFrame(ix, iy, genIcon.getWidth(), genIcon.getHeight());
+            float iconX = (float) genIcon.getX();
+            float iconY = (float) genIcon.getY();
+
+            //-------------------------------------------------------
+            // paint the divider line
+            //-------------------------------------------------------
+
+            g.setColor(Color.black);
+            g.setStroke(STROKE_HALF);
+            g.draw(dividerLine);
+            
+            //-------------------------------------------------------
+            // paint the resource icon
+            //-------------------------------------------------------
+
             g.setColor(Color.white);
             g.fill(genIcon);
             g.setStroke(STROKE_HALF);
             g.setColor(Color.black);
             g.draw(genIcon);
+
+            //-------------------------------------------------------
+            // draw the short icon name 
+            //-------------------------------------------------------
+            
             g.setFont(FONT_ICON);
             String extension = getResource().getExtension();
             TextLayout row = new TextLayout(extension, g.getFont(), g.getFontRenderContext());            
@@ -655,7 +692,7 @@ public class LWNode extends LWContainer
 
             // Mac & PC 1.4.1 implementations haved reversed baselines
             // and differ in how descents are factored into bounds offsets
-            g.translate(ix, iy);
+            g.translate(iconX, iconY);
             float xoff = (iconWidth - tb.width) / 2;
             float yoff = (iconHeight - tb.height) / 2;
             if (VueUtil.isMacPlatform()) {
@@ -692,21 +729,16 @@ public class LWNode extends LWContainer
                 }
                 
             }
-                
-
-            
-                
             /*
-            ix += tb.x;
-            iy += tb.y + tb.height;
+            iconX += tb.x;
+            iconY += tb.y + tb.height;
             g.translate(tb.x, tb.y + tb.height);
             // get's actual shape outline of letters, but spacing isn't right
             Shape outline = row.getOutline(null);
             g.setColor(Color.green);
             g.draw(outline);
             */
-
-            g.translate(-ix, -iy);
+            g.translate(-iconX, -iconY);
         }
 
         // todo: create drawLabel, drawBorder & drawBody
