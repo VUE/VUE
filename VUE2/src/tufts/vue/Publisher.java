@@ -214,7 +214,7 @@ public class Publisher extends JDialog implements ActionListener {
            if(component.hasResource()){
                Resource resource = component.getResource();
                if(resource.isLocalFile()) {
-                    File file = new File(resource.getSpec());
+                    File file = new File(resource.getFileName());
                     if(file.isFile()) {
                         Vector row = new Vector();
                         row.add(new Boolean(true));
@@ -268,7 +268,7 @@ public class Publisher extends JDialog implements ActionListener {
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
 
-            File file = new File(r.getSpec());
+            File file = new File(r.getFileName());
 
             if(file.isFile() && b.booleanValue()) {
                  resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
@@ -375,7 +375,7 @@ public class Publisher extends JDialog implements ActionListener {
             Resource r = (Resource)(vector.elementAt(1));
             Boolean b = (Boolean)(vector.elementAt(0));
 
-            File file = new File(r.getSpec());
+            File file = new File(r.getFileName());
 
        
             if(file.isFile() && b.booleanValue()) {

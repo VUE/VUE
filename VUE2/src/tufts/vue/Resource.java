@@ -129,7 +129,7 @@ public class Resource
         */
         return txt;
     }
-    
+
     public java.net.URL toURL()
         throws java.net.MalformedURLException
     {
@@ -195,7 +195,14 @@ public class Resource
         this.referenceCreated = System.currentTimeMillis();
         try {
             url = new URL(this.spec);
-            //System.out.println("Resource [" + spec + "] has URL [" + url + "]");
+            /*
+            String fname = url.getFile();
+            System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
+            java.io.File file = new java.io.File(fname);
+            System.out.println("\t" + file + " exists=" +file.exists());
+            file = new java.io.File(spec);
+            System.out.println("\t" + file + " exists=" +file.exists());
+            */
         } catch (MalformedURLException e) {
             // Okay for url to be null: means local file
             //System.err.println(e);
@@ -205,6 +212,20 @@ public class Resource
     
     public String getSpec() {
        return this.spec;
+    }
+
+    /**
+     * If isLocalFile is true, this will return a file name
+     * suitable to be given to java.io.File such that it
+     * can be found.  Note that this may differ from getSpec.
+     * If isLocalFile is false, it will return the file
+     * portion of the URL, although that may not be useful.
+     */
+    public String getFileName() {
+        if (this.url == null)
+            return getSpec();
+        else
+            return url.getFile();
     }
 
     public boolean isLocalFile()
