@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JViewport;
+import javax.swing.border.*;
 
 /**
  * MapPanner.java
@@ -38,9 +39,7 @@ public class MapPanner extends javax.swing.JPanel
      */
     public MapPanner()
     {
-        //setBorder(new javax.swing.border.TitledBorder("Panner"));
-        setPreferredSize(new Dimension(100,100));
-        setBackground(SystemColor.control);
+        setPreferredSize(new Dimension(150,100));
         
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -194,18 +193,21 @@ public class MapPanner extends javax.swing.JPanel
 
     public void mousePressed(MouseEvent e)
     {
+        if (DEBUG.MOUSE) out(e);
         dragStart = e.getPoint();
         mapStart = mapViewer.getOriginLocation();
         repaint();
     }
     public void mouseReleased(MouseEvent e)
     {
+        if (DEBUG.MOUSE) out(e);
         dragStart = null;
         //mapViewer.adjustScrollRegion();// for now
     }
 
     public void mouseDragged(MouseEvent e)
     {
+        if (DEBUG.MOUSE) out(e);
         if (dragStart == null)
             return;
 
@@ -249,11 +251,15 @@ public class MapPanner extends javax.swing.JPanel
         repaint();
     }
     
-    public void mouseClicked(MouseEvent e) {}
-    public void mouseEntered(MouseEvent e) { /*System.err.println(e);*/ }
-    public void mouseExited(MouseEvent e) { /*System.err.println(e);*/ }
+    public void mouseClicked(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
+    public void mouseEntered(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
+    public void mouseExited(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
     public void mouseMoved(MouseEvent e) {}
 
+    private void out(Object o) {
+        System.out.println(this + " " + (o==null?"null":o.toString()));
+    }
+    
     public String toString() {
         return "MapPanner[" + mapViewer + "]";
     }

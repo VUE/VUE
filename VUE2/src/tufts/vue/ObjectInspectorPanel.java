@@ -82,8 +82,7 @@ public class ObjectInspectorPanel  extends JPanel
 	public ObjectInspectorPanel() {
 		super();
 		
-		setLayout( new BorderLayout()  );
-		setBorder( new EmptyBorder( 5,5,5,5) );
+		setLayout(new BorderLayout());
 		
 		VueResources.initComponent( this, "tabPane");
 		
