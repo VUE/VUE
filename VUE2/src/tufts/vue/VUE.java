@@ -58,6 +58,9 @@ public class VUE
     //overview tree window component
     public static LWOutlineView outlineView;
     
+    public static DataSourceViewer dataSourceViewer;
+    public static FavoritesWindow favoritesWindow;
+    
     public static java.net.URL getResource(String name)
     {
         java.net.URL url = null;
@@ -857,7 +860,7 @@ public class VUE
         frame.setJMenuBar(menuBar);
         //frame.getContentPane().add(toolBar,BorderLayout.NORTH);
         frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {System.exit(0);}});
+            public void windowClosing(WindowEvent e) {ExitAction.exitVue();}});
 
     }
     
