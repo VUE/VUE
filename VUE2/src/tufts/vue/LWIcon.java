@@ -157,7 +157,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         //public float getHeight() { return super.height; }
 
         boolean isShowing() {
-            return true;
+            return super.width > 0 && super.height > 0;
         }
 
         void setLocation(float x, float y)
