@@ -22,6 +22,7 @@ public class ZoomTool extends VueTool
         1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
         1.0,
         1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
+        , 96, 128, 256, 384, 512
     };
     private int curZoom = ZOOM_MANUAL;
     private Point2D zoomPoint = null;
@@ -45,9 +46,10 @@ public class ZoomTool extends VueTool
 	}
 
 
-
-    
     public boolean handleKeyPressed(KeyEvent e){return false;}
+    
+    /*
+    
     // todo: this is redundant when the full VUE app is running
     // as the actions in the menu trigger via their own accelerators
     public boolean XhandleKeyPressed(KeyEvent e)
@@ -87,9 +89,7 @@ public class ZoomTool extends VueTool
     }
     
     
-    /**
-     * set the center-on point in the map for the next zoom
-     */
+    // set the center-on point in the map for the next zoom
     public void setZoomPoint(Point2D mapLocation)
     {
         this.zoomPoint = mapLocation;
@@ -178,7 +178,9 @@ public class ZoomTool extends VueTool
         setZoom(newZoom, false);
         VUE.getActiveViewer().setMapOriginOffset(offset.getX(), offset.getY());
     }
+    */
 
+    /*
     public static double computeZoomFit(Dimension viewport,
                                         int borderGap,
                                         Rectangle2D bounds,
@@ -212,5 +214,6 @@ public class ZoomTool extends VueTool
         offset.setLocation(offsetX, offsetY);
         return newZoom;
     }
+    */
     
 }

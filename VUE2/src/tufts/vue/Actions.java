@@ -662,6 +662,7 @@ class Actions {
             public void act()
             {
                 // FIX:  zoom tool gone  VUE.getActiveViewer().zoomTool.setZoomBigger();
+                VUE.getActiveViewer().setZoomBigger();
             }
         };
     static final Action ZoomOut =
@@ -669,6 +670,7 @@ class Actions {
             public void act()
             {
                 //FIX:  zoom tool gone:  VUE.getActiveViewer().zoomTool.setZoomSmaller();
+                VUE.getActiveViewer().setZoomSmaller();
             }
         };
     static final Action ZoomFit =
@@ -676,6 +678,7 @@ class Actions {
             public void act()
             {
                 // FIX:  zoom tool gone VUE.getActiveViewer().zoomTool.setZoomFit();
+                VUE.getActiveViewer().setZoomFit();
             }
         };
     static final Action ZoomActual =
@@ -684,6 +687,7 @@ class Actions {
             public void act()
             {
                 // FIX:  VUE.getActiveViewer().zoomTool.setZoom(1.0);
+                VUE.getActiveViewer().setZoom(1.0);
             }
         };
 
