@@ -46,7 +46,7 @@ public class DataSourceViewer  extends JPanel{
     AbstractAction editAction; 
     AbstractAction deleteAction;
     AbstractAction saveAction;
-    final static String XML_MAPPING = "lw_mapping.xml";
+    final static String XML_MAPPING =  VueResources.getURL("mapping.lw").getFile();
     private static String  DATASOURCES_MAPPING;
     private static java.util.prefs.Preferences prefs;
 
@@ -511,7 +511,7 @@ public class DataSourceViewer  extends JPanel{
         } 
         catch (Exception e) 
         {
-            System.err.println("ActionUtil.unmarshallMap: " + e);
+            System.err.println("DataSourceViewer.SaveDataSourceViewer " + e);
             e.printStackTrace();
             sviewer = null;
         }

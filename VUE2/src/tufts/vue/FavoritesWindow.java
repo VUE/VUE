@@ -45,7 +45,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private DisplayAction displayAction = null;
     private VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
-    final static String XML_MAPPING = "lw_mapping.xml";
+    final static String XML_MAPPING = VueResources.getURL("mapping.lw").getFile();
     private static java.util.prefs.Preferences prefs;
     private static String  FAVORITES_MAPPING;
     private static int newFavorites = 0;
