@@ -71,7 +71,7 @@ public class AddDataSourcePanel extends JPanel {
                 }
             }
         });
-        typesPanel.add(new JLabel("Type:"));
+        typesPanel.add(new JLabel("Type:             "));
         typesPanel.add(typeField);
         addDataSourceBox.add(typesPanel);
         addDataSourceBox.add(addPanel);
@@ -89,7 +89,7 @@ public class AddDataSourcePanel extends JPanel {
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel pathLabel = new JLabel("Path:");
-            fileSelectButton  = new JButton("...");
+            fileSelectButton  = new JButton("Browse...");
             dsNameField = new JTextField();
             pathField = new JTextField();
             

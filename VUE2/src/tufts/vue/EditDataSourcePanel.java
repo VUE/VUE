@@ -40,6 +40,7 @@ public class EditDataSourcePanel extends JPanel{
         this.dialog = dialog;
         editDataSourcePanel = new JPanel();
         setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         setDataSource(DataSourceViewer.getActiveDataSource());
         DataSourceViewer.saveDataSourceViewer();
     }
@@ -63,6 +64,7 @@ public class EditDataSourcePanel extends JPanel{
     class FileDataSourcePanel extends JPanel {
         JTextField dsNameField;
         JTextField pathField ;
+        JButton fileSelectButton;
         LocalFileDataSource dataSource;
         String cDsNameField; //cached field to be used for reset.
         String cPathField; // cached path to be used on reset.
@@ -75,6 +77,19 @@ public class EditDataSourcePanel extends JPanel{
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel pathLabel = new JLabel("Path:");
+            fileSelectButton  = new JButton("Browse...");
+            fileSelectButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                     JFileChooser chooser = new JFileChooser();
+                     chooser.setDialogTitle("Select Folder");
+                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                     chooser.setFileFilter(new VueFileFilter());
+                     int option = chooser.showDialog(tufts.vue.VUE.getInstance(), "Select");
+                     if(option ==  JFileChooser.APPROVE_OPTION) {
+                         pathField.setText(chooser.getSelectedFile().getAbsolutePath());
+                     }
+                }
+            });
             dsNameField = new JTextField();
             pathField = new JTextField();
             
@@ -100,7 +115,7 @@ public class EditDataSourcePanel extends JPanel{
             bottomPanel.add(submitButton);
             bottomPanel.add(resetButton);
             c.anchor = GridBagConstraints.WEST;
-            c.gridwidth = GridBagConstraints.RELATIVE;
+            //c.gridwidth = GridBagConstraints.RELATIVE;
             c.fill = GridBagConstraints.NONE;
             c.weightx = 0.0;
             gridbag.setConstraints(dsNameLabel,c);
@@ -112,17 +127,22 @@ public class EditDataSourcePanel extends JPanel{
             gridbag.setConstraints(dsNameField,c);
             this.add(dsNameField);
             
-            c.gridwidth = GridBagConstraints.RELATIVE;
-            c.fill = GridBagConstraints.NONE;
+            c.gridwidth =1;
+             
             c.weightx = 0.0;
             gridbag.setConstraints(pathLabel,c);
             this.add(pathLabel);
             
-            c.gridwidth = GridBagConstraints.REMAINDER;
-            c.fill = GridBagConstraints.HORIZONTAL;
             c.weightx = 1.0;
+            c.fill = GridBagConstraints.HORIZONTAL;
             gridbag.setConstraints(pathField,c);
             this.add(pathField);
+       
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(fileSelectButton,c);
+            this.add(fileSelectButton);
             
             c.anchor = GridBagConstraints.EAST;
             c.gridwidth = GridBagConstraints.REMAINDER;
@@ -183,6 +203,8 @@ public class EditDataSourcePanel extends JPanel{
                     resetPanel();
                 }
             });
+            
+            
             bottomPanel.add(submitButton);
             bottomPanel.add(resetButton);
             c.anchor = GridBagConstraints.WEST;
