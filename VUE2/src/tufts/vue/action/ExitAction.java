@@ -12,9 +12,29 @@ package tufts.vue.action;
  */
 import javax.swing.*;
 import java.awt.event.*;
+// castor classes
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.Unmarshaller;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
+
+import org.exolab.castor.mapping.Mapping;
+import org.exolab.castor.mapping.MappingException;
+import org.xml.sax.InputSource;
+import javax.swing.JTree.*;
+import javax.swing.tree.*;
+import javax.swing.tree.TreePath;
+import java.io.*;
+import tufts.vue.*;
+import java.util.Vector;
 
 
 public class ExitAction extends AbstractAction {
+    
+    final static String XML_MAPPING = "lw_mapping.xml";
+    private static java.util.prefs.Preferences prefs = tufts.vue.VUE.prefs;
+    private static String  FAVORITES_MAPPING;
+    private static String  DATASOURCES_MAPPING;
     
     /** Creates a new instance of exitAction */
     public ExitAction() {
@@ -25,7 +45,46 @@ public class ExitAction extends AbstractAction {
     }
     
     public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
-        System.exit(0);
+        exitVue();
+    }
+    
+    public static void exitVue(){
+        
+                
+        //Saving favorites
+        
+                tufts.vue.VueDandDTree ft =  tufts.vue.VUE.favoritesWindow.getFavoritesTree();
+                tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
+                        
+                         
+                 try {
+          
+                        FAVORITES_MAPPING = prefs.get("mapping.favorites","") ;
+                        }catch(Exception e) { System.out.println("Favorites"+e);}
+        
+                         
+                         File favf  = new File(FAVORITES_MAPPING);
+                         FavoritesWindow.marshallMap(favf,sfavtree);
+               
+        
+                         System.out.println("Favorites Saved");
+                         
+         //Saving Datasources
+                   try {
+          
+                         DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
+                         }catch(Exception e) { System.out.println("datasources"+e);}
+        
+           
+                           File dsf  = new File(DATASOURCES_MAPPING);
+                           Vector sdataSources = tufts.vue.VUE.dataSourceViewer.getDataSources();
+                           tufts.vue.SaveDataSourceViewer sViewer= new tufts.vue.SaveDataSourceViewer(sdataSources);
+             
+                           tufts.vue.DataSourceViewer.marshallMap(dsf,sViewer);
+                         
+                          System.out.println("Datasources Saved");
+                          System.exit(0);
+        
     }
     
 }
