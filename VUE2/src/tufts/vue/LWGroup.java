@@ -88,7 +88,7 @@ public class LWGroup extends LWContainer
     public String getLabel()
     {
         if (super.getLabel() == null)
-            return "<LWGroup #" + getID() + ">";
+            return "[LWGroup #" + getID() + " nChild=" + children.size() + "]";
         else
             return super.getLabel();
     }

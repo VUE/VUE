@@ -36,7 +36,10 @@ public class ZoomTool extends VueTool
         return "Zoom";
     }
 
-    public boolean handleKeyPressed(KeyEvent e)
+    public boolean handleKeyPressed(KeyEvent e){return false;}
+    // todo: this is redundant when the full VUE app is running
+    // as the actions in the menu trigger via their own accelerators
+    public boolean XhandleKeyPressed(KeyEvent e)
     {
         int key = e.getKeyCode();
         if (e.isControlDown()) {
@@ -55,15 +58,21 @@ public class ZoomTool extends VueTool
                 setZoom(1.0);
                 break;
             case KEY_ZOOM_FIT:
-                setZoomFitContent(e.getComponent());
-                this.mapView.repaint();
+                setZoomFit();
                 break;
             default:
                 return false;
             }
+            System.out.println("ZoomTool: handled key " + key + " " + e.getKeyChar());
             return true;
         }
         return false;
+    }
+
+    void setZoomFit()
+    {
+        setZoomFitContent(this.mapView);
+        this.mapView.repaint();
     }
     
     

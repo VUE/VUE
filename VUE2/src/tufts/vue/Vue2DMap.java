@@ -12,13 +12,19 @@ package tufts.vue;
 
 import java.util.Vector;
 import java.util.ArrayList;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public class Vue2DMap extends LWContainer
     implements ConceptMap
 {
     public static final String CASTOR_XML_MAPPING = "vue2d_map.xml";
-
+    
+    // these for persistance use only
+    private float userOriginX;
+    private float userOriginY;
+    private double userZoom = 1;
+    
     /*
     class CVector extends java.util.Vector {
         // Used to set parent refs & ID's on child nodes.
@@ -81,6 +87,36 @@ public class Vue2DMap extends LWContainer
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
     }
+
+    
+
+    /** for viewer to report user origin sets via pan drags */
+    void setUserOrigin(float x, float y)
+    {
+        this.userOriginX = x;
+        this.userOriginY = y;
+    }
+    /** for persistance */
+    public Point2D getUserOrigin()
+    {
+        return new Point2D.Float(this.userOriginX, this.userOriginY);
+    }
+    /** for persistance */
+    public void setUserOrigin(Point2D p)
+    {
+        setUserOrigin((float) p.getX(), (float) p.getY());
+    }
+    /** for persistance */
+    public void setUserZoom(double zoom)
+    {
+        this.userZoom = zoom;
+    }
+    /** for persistance */
+    public double getUserZoom()
+    {
+        return this.userZoom;
+    }
+      
 
     /**
      * To be called once after a persisted map

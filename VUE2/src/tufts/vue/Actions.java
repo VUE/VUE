@@ -9,6 +9,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
+import javax.swing.AbstractAction;
 
 /**
  * VUE application actions (file, viewer/component, etc)
@@ -27,42 +28,51 @@ class Actions {
     static final private KeyStroke keyStroke(int vk) {
         return keyStroke(vk, 0);
     }
+
+    //-------------------------------------------------------
+    // selection actions
+    //-------------------------------------------------------
     
-    static final MapAction SelectAll =
+    static final Action SelectAll =
         new MapAction("Select All", keyStroke(KeyEvent.VK_A, META)) {
             boolean enabledFor(LWSelection l) { return true; }
-            public void actionPerformed(ActionEvent ae)
+            public void act()
             {
                 VUE.ModelSelection.add(VUE.getActiveViewer().getMap().getChildIterator());
             }
         };
-    static final MapAction DeselectAll =
+    static final Action DeselectAll =
         new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+META)) {
-            boolean enabledFor(LWSelection l) { return VUE.ModelSelection.size() > 0; }
-            public void actionPerformed(ActionEvent ae)
+            boolean enabledFor(LWSelection l) { return l.size() > 0; }
+            public void act()
             {
                 VUE.ModelSelection.clear();
             }
         };
-    static final MapAction Cut =
+    static final Action Cut =
         new MapAction("Cut", keyStroke(KeyEvent.VK_X, META)) {
             void Xact(LWComponent c) {
                 
             }
         };
-    static final MapAction Copy =
+    static final Action Copy =
         new MapAction("Copy", keyStroke(KeyEvent.VK_C, META)) {
             void Xact(LWComponent c) {
                 
             }
         };
-    static final MapAction Paste =
+    static final Action Paste =
         new MapAction("Paste", keyStroke(KeyEvent.VK_V, META)) {
             void Xact(LWComponent c) {
                 
             }
         };
-    static final MapAction Group =
+
+    //-------------------------------------------------------
+    // Group/Ungroup
+    //-------------------------------------------------------
+    
+    static final Action Group =
         new MapAction("Group", keyStroke(KeyEvent.VK_G, META))
         {
             boolean mayModifySelection() { return true; }
@@ -82,7 +92,7 @@ class Actions {
                 // really a UI policy that belongs to the viewer
             }
         };
-    static final MapAction Ungroup =
+    static final Action Ungroup =
         new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, META+SHIFT))
         {
             boolean mayModifySelection() { return true; }
@@ -98,7 +108,7 @@ class Actions {
                 }
             }
         };
-    static final MapAction Rename =
+    static final Action Rename =
         new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
         {
             boolean enabledFor(LWSelection l)
@@ -109,7 +119,7 @@ class Actions {
                 VUE.getActiveViewer().activateLabelEdit(c);
             }
         };
-    static final MapAction Delete =
+    static final Action Delete =
         new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
         {
             boolean mayModifySelection() { return true; }
@@ -117,6 +127,11 @@ class Actions {
                 c.getParent().deleteChild(c);
             }
         };
+    
+    //-------------------------------------------------------
+    // Arrange actions
+    //-------------------------------------------------------
+
     static final MapAction BringToFront =
         new MapAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
@@ -174,7 +189,7 @@ class Actions {
                 BringToFront.checkEnabled();
             }
         };
-    static final MapAction NewNode =
+    static final Action NewNode =
         new MapAction("New Node", keyStroke(KeyEvent.VK_N, META))
         {
             LWNode lastNode = null;
@@ -218,29 +233,16 @@ class Actions {
         };
 
         
-        // okay, what about zoom actions?  Don't need to 
-    static final MapAction ZoomIn =
-        new MapAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, META))
-        {
-            boolean enabledFor(LWSelection l) { return true; }
-            public void actionPerformed(ActionEvent ae)
-            {
-                //getActiveViewer().getZoomTool().setZoomBigger();
-            }
-        };
-
-        
     abstract static class AlignAction extends MapAction
     {
-        protected static float minX, minY;
-        protected static float maxX, maxY;
-        protected static float centerX, centerY;
-        protected static float totalWidth, totalHeight;
+        static float minX, minY;
+        static float maxX, maxY;
+        static float centerX, centerY;
+        static float totalWidth, totalHeight;
         // obviously not thread-safe here
         
-        AlignAction(String name) { super(name); }
+        private AlignAction(String name) { super(name); }
         boolean enabledFor(LWSelection l) { return l.size() >= 2; }
-        void align(LWComponent c){}
         void act(LWSelection selection)
         {
             Rectangle2D.Float r = (Rectangle2D.Float) Vue2DMap.getBounds(selection.iterator());
@@ -257,41 +259,86 @@ class Actions {
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
-            i = selection.iterator();
+            align(selection);
+        }
+        void align(LWSelection selection) {
+            Iterator i = selection.iterator();
             while (i.hasNext())
                 align((LWComponent) i.next());
         }
+        void align(LWComponent c) { throw new RuntimeException("unimplemented align action"); }
     };
         
-    static final MapAction AlignLeftEdges = new AlignAction("Align Left Edges") {
-            void align(LWComponent c) {
-                c.setLocation(minX, c.getY());
+    private static final Action[] ALIGN_ACTIONS = {
+        new AlignAction("Align Left Edges") {
+            void align(LWComponent c) { c.setLocation(minX, c.getY()); }
+        },
+        new AlignAction("Align Right Edges") {
+            void align(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
+        }
+    };
+    static final Action AlignLeftEdges = new AlignAction("Align Left Edges") {
+            void align(LWComponent c) { c.setLocation(minX, c.getY()); }
+        };
+    static final Action AlignRightEdges = new AlignAction("Align Right Edges") {
+            void align(LWComponent c) { c.setLocation(maxX - c.getWidth(), c.getY()); }
+        };
+    static final Action AlignTopEdges = new AlignAction("Align Top Edges") {
+            void align(LWComponent c) { c.setLocation(c.getX(), minY); }
+        };
+    static final Action AlignBottomEdges = new AlignAction("Align Bottom Edges") {
+            void align(LWComponent c) { c.setLocation(c.getX(), maxY - c.getHeight()); }
+        };
+    static final Action AlignCentersColumn = new AlignAction("Align Centers in Column") {
+            void align(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
+        };
+    static final Action AlignCentersRow = new AlignAction("Align Centers in Row") {
+            void align(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
+        };
+    static final Action DistributeVertically = new AlignAction("Distribute Vertically") {
+            //boolean enabledFor(LWSelection l) { return l.size() >= 3; }
+            // only 2 in selection is useful with our minimum layout region setting
+            void align(LWSelection selection)
+            {
+                LWComponent[] array = new LWComponent[selection.size()];
+                selection.toArray(array);
+                java.util.Arrays.sort(array, new java.util.Comparator() {
+                        public int compare(Object o1, Object o2) {
+                            return (int) (((LWComponent)o1).getY() - ((LWComponent)o2).getY());
+                        }});
+                float layoutRegion = maxY - minY;
+                if (layoutRegion < totalHeight)
+                    layoutRegion = totalHeight;
+                float verticalGap = (layoutRegion - totalHeight) / (selection.size() - 1);
+                float y = minY;
+                for (int i = 0; i < array.length; i++) {
+                    LWComponent c = array[i];
+                    c.setLocation(c.getX(), y);
+                    y += c.getHeight() + verticalGap;
+                }
             }
         };
-    static final MapAction AlignRightEdges = new AlignAction("Align Right Edges") {
-            void align(LWComponent c) {
-                c.setLocation(maxX - c.getWidth(), c.getY());
-            }
-        };
-    static final MapAction AlignTopEdges = new AlignAction("Align Top Edges") {
-            void align(LWComponent c) {
-                c.setLocation(c.getX(), minY);
-            }
-        };
-    static final MapAction AlignBottomEdges = new AlignAction("Align Bottom Edges") {
-            void align(LWComponent c) {
-                c.setLocation(c.getX(), maxY - c.getHeight());
-            }
-        };
-        
-    static final MapAction AlignCentersColumn = new AlignAction("Align Centers Column") {
-            void align(LWComponent c) {
-                c.setLocation(centerX - c.getWidth()/2, c.getY());
-            }
-        };
-    static final MapAction AlignCentersRow = new AlignAction("Align Centers Row") {
-            void align(LWComponent c) {
-                c.setLocation(c.getX(), centerY - c.getHeight()/2);
+
+    static final Action DistributeHorizontally = new AlignAction("Distribute Horizontally") {
+            //boolean enabledFor(LWSelection l) { return l.size() >= 3; }
+            void align(LWSelection selection)
+            {
+                LWComponent[] array = new LWComponent[selection.size()];
+                selection.toArray(array);
+                java.util.Arrays.sort(array, new java.util.Comparator() {
+                        public int compare(Object o1, Object o2) {
+                            return (int) (((LWComponent)o1).getX() - ((LWComponent)o2).getX());
+                        }});
+                float layoutRegion = maxX - minX;
+                if (layoutRegion < totalWidth)
+                    layoutRegion = totalWidth;
+                float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
+                float x = minX;
+                for (int i = 0; i < array.length; i++) {
+                    LWComponent c = array[i];
+                    c.setLocation(x, c.getY());
+                    x += c.getWidth() + horizontalGap;
+                }
             }
         };
 
@@ -299,59 +346,99 @@ class Actions {
     //-----------------------------------------------------------------------------
     // VueActions
     //-----------------------------------------------------------------------------
-    static final MapAction NewMap =
-        new MapAction("New")
+    static final Action NewMap =
+        new VueAction("New")
         {
-            private int count = 1;
-            boolean enabledFor(LWSelection l) { return true; }
-            public void actionPerformed(ActionEvent ae)
+            int count = 1;
+            public void act()
             {
                 Vue2DMap map = new Vue2DMap("New Map " + count++);
                 VUE.displayMap(map);
-                //MapViewer viewer = new tufts.vue.MapViewer(map);
-                //VUE.addViewer(viewer);                
             }
         };
-        
-    //-------------------------------------------------------
-    // VueAction
-    //-------------------------------------------------------
-    static final MapAction CloseMap =
-        new MapAction("Close")
+    static final Action CloseMap =
+        new VueAction("Close")
         {
-            boolean enabledFor(LWSelection l) { return true; }
-            /*
-              boolean enabled()
-              {
-              return VUE.openMapCount() > 0;
-              }
-            */
-            public void actionPerformed(ActionEvent ae)
+            // todo: listen to map viewer display event to tag
+            // with currently displayed map name\
+            boolean enabled() { return VUE.openMapCount() > 0; }
+            public void act()
             {
                 VUE.closeViewer(VUE.getActiveViewer());
             }
         };
+    static final Action Undo =
+        new VueAction("Undo", keyStroke(KeyEvent.VK_Z, META))
+        {
+            public boolean isEnabled() { return false; }
+
+        };
+    static final Action Redo =
+        new VueAction("Redo", keyStroke(KeyEvent.VK_Z, META+SHIFT))
+        {
+            public boolean isEnabled() { return false; }
+        };
+
+
     
-    //componentaction? MapSelectionAction?
-    static class MapAction extends javax.swing.AbstractAction
-        implements LWSelection.Listener
+    //-------------------------------------------------------
+    // Zoom actions
+    // Consider having the ZoomTool own these actions -- any
+    // other way to have mutiple key values trigger an action?
+    // Something about this feels kludgy.
+    //-------------------------------------------------------
+        
+    static final Action ZoomIn =
+        //new VueAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, META)) {
+        new VueAction("Zoom In", keyStroke(KeyEvent.VK_EQUALS, META)) {
+            public void act()
+            {
+                VUE.getActiveViewer().zoomTool.setZoomBigger();
+            }
+        };
+    static final Action ZoomOut =
+        new VueAction("Zoom Out", keyStroke(KeyEvent.VK_MINUS, META)) {
+            public void act()
+            {
+                VUE.getActiveViewer().zoomTool.setZoomSmaller();
+            }
+        };
+    static final Action ZoomFit =
+        new VueAction("Zoom Fit", keyStroke(KeyEvent.VK_0, META)) {
+            public void act()
+            {
+                VUE.getActiveViewer().zoomTool.setZoomFit();
+            }
+        };
+    static final Action ZoomActual =
+        new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, META)) {
+            boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
+            public void act()
+            {
+                VUE.getActiveViewer().zoomTool.setZoom(1.0);
+            }
+        };
+
+
+    
+    //-----------------------------------------------------------------------------
+    // VueAction: actions that don't depend on the selection
+    //-----------------------------------------------------------------------------
+    static class VueAction extends javax.swing.AbstractAction
     {
-        MapAction(String name, String shortDescription, KeyStroke keyStroke)
+        VueAction(String name, String shortDescription, KeyStroke keyStroke)
         {
             super(name);
             if (shortDescription != null)
                 putValue(SHORT_DESCRIPTION, shortDescription);
             if (keyStroke != null)
                 putValue(ACCELERATOR_KEY, keyStroke);
-            VUE.ModelSelection.addListener(this);
         }
-        MapAction(String name)
-        {
-            this(name, null, null);
-        }
-        MapAction(String name, KeyStroke keyStroke)
-        {
+        VueAction(String name, KeyStroke keyStroke) {
             this(name, null, keyStroke);
+        }
+        VueAction(String name) {
+            this(name, null, null);
         }
         public String getActionName()
         {
@@ -360,17 +447,55 @@ class Actions {
         public void actionPerformed(ActionEvent ae)
         {
             LWSelection selection = VUE.ModelSelection;
-            //todo: if no active viewer, try a static MapViewer in case it's running alone
-            System.out.println(ae);
-            System.out.println(ae.getActionCommand() + " " + selection);
+            //System.out.println(ae);
+            System.out.println("VueAction: " + ae.getActionCommand());
+            if (enabled()) {
+                act();
+            } else {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                System.err.println(getActionName() + ": Not currently enabled");
+            }
+        }
+        boolean enabled() { return true; }
+
+        void act() {
+            System.err.println("Unhandled VueAction: " + getActionName());
+        }
+        void Xact() {}// for commenting convenience
+    }
+
+
+    //-----------------------------------------------------------------------------
+    // MapAction: actions that depend on the selection in the map viewer
+    //-----------------------------------------------------------------------------
+    static class MapAction extends VueAction
+        implements LWSelection.Listener
+    {
+        MapAction(String name, String shortDescription, KeyStroke keyStroke)
+        {
+            super(name, shortDescription, keyStroke);
+            VUE.ModelSelection.addListener(this);
+        }
+        MapAction(String name) {
+            this(name, null, null);
+        }
+        MapAction(String name, KeyStroke keyStroke) {
+            this(name, null, keyStroke);
+        }
+        void act()
+        {
+            LWSelection selection = VUE.ModelSelection;
+            System.out.println("MapAction: " + getActionName() + " " + selection);
             if (enabledFor(selection)) {
                 if (mayModifySelection())
                     selection = (LWSelection) selection.clone();
                 act(selection);
                 VUE.getActiveViewer().repaint();
             } else {
+                // This shouldn't happen as actions should already
+                // be disabled if they're not  appropriate.
                 java.awt.Toolkit.getDefaultToolkit().beep();
-                System.out.println("Not enabled given this selection.");//todo: disable action
+                System.err.println(getActionName() + ": Not enabled given this selection: " + selection);
             }
         }
 
@@ -406,9 +531,10 @@ class Actions {
         }
         void act(LWComponent c)
         {
-            System.out.println("unhandled MapAction: " + getActionName() + " on " + c);
+            System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
         }
         void Xact(LWComponent c) {}// for commenting convenience
     }
+    
 }
 

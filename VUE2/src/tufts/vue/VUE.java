@@ -131,46 +131,34 @@ public class VUE
             System.err.println(e);
         }
         
-        /*
-         * create an example map (this will become
-         * map loading code after the viewer is up)
-         */
+        //-------------------------------------------------------
+        // Create the tabbed pane for the viewers
+        //-------------------------------------------------------
+
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
+
+        //-------------------------------------------------------
+        // Temporary: create example map(s)
+        //-------------------------------------------------------
+        
         Vue2DMap map1 = new Vue2DMap("One");
         Vue2DMap map2 = new Vue2DMap("Two");
-        Vue2DMap map3 = new Vue2DMap("Empty Map");
 
         installExampleMap(map1);
         installExampleMap(map2);
         installExampleNodes(map1);
-        
-        /*
-         * create the map viewer
-         */
 
-        MapViewer mapViewer1 = new tufts.vue.MapViewer(map1);
-        MapViewer mapViewer2 = new tufts.vue.MapViewer(map2);
-        MapViewer mapViewer3 = new tufts.vue.MapViewer(map3);
-        //MapViewer mapViewer4 = new tufts.vue.MapViewer(map1);
-
-        tabbedPane = new JTabbedPane();        
-        tabbedPane.addTab(map1.getLabel(), mapViewer1);
-        //tabbedPane.addTab(map1.getLabel()+"[View2]", mapViewer4);
-        // todo: can support seperate views, EXCEPT for selection bit
-        // that exsits in the LWComponent itself...
-        tabbedPane.addTab(map2.getLabel(), mapViewer2);
-        tabbedPane.addTab(map3.getLabel(), mapViewer3);
+        displayMap(map1);
+        displayMap(map2);
         
-        tabbedPane.setSelectedIndex(0);
-        tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
-        //tabbedPane.setTabPlacement(SwingConstants.TOP);
-        
-        /*
-         * create a an application frame and layout components
-         */
+        //-------------------------------------------------------
+        // create a an application frame and layout components
+        //-------------------------------------------------------
         
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        //toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
         //toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
@@ -219,7 +207,6 @@ public class VUE
         frame.setLocation(x, y);
         
         frame.show();
-        
 
     }
 
@@ -281,7 +268,7 @@ public class VUE
         tabbedPane.setSelectedComponent(mapViewer);
     }
     
-    
+    static JMenu alignMenu = new JMenu("Align");    
     private static void  setMenuToolbars(JFrame frame, Action[] windowActions)
     {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
@@ -292,7 +279,7 @@ public class VUE
         JMenu viewMenu = new JMenu("View");
         JMenu formatMenu = new JMenu("Format");
         JMenu arrangeMenu = new JMenu("Arrange");
-        JMenu alignMenu = new JMenu("Align");
+        //JMenu alignMenu = new JMenu("Align");
         JMenu windowMenu = new JMenu("Window");
         JMenu optionsMenu = new JMenu("Options");
         JMenu helpMenu = new JMenu("Help");
@@ -320,8 +307,8 @@ public class VUE
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
         
-        editMenu.add(new JMenuItem("Undo"));
-        editMenu.add(new JMenuItem("Redo"));
+        editMenu.add(Actions.Undo);
+        editMenu.add(Actions.Redo);
         editMenu.addSeparator();
         editMenu.add(Actions.NewNode);
         editMenu.add(Actions.Rename);
@@ -334,9 +321,9 @@ public class VUE
         editMenu.add(Actions.DeselectAll);
         
         viewMenu.add(Actions.ZoomIn);
-        viewMenu.add(new JMenuItem("Zoom Out"));
-        viewMenu.add(new JMenuItem("Zoom Fit"));
-        viewMenu.add(new JMenuItem("Zoom 100%"));
+        viewMenu.add(Actions.ZoomOut);
+        viewMenu.add(Actions.ZoomFit);
+        viewMenu.add(Actions.ZoomActual);
         viewMenu.addSeparator();
         viewMenu.add(new JMenuItem("Resources"));
         viewMenu.add(new JMenuItem("Collection"));
@@ -369,6 +356,9 @@ public class VUE
         alignMenu.addSeparator();
         alignMenu.add(Actions.AlignCentersRow);
         alignMenu.add(Actions.AlignCentersColumn);
+        alignMenu.addSeparator();
+        alignMenu.add(Actions.DistributeVertically);
+        alignMenu.add(Actions.DistributeHorizontally);
         
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);

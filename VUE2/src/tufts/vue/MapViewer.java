@@ -61,7 +61,7 @@ public class MapViewer extends javax.swing.JPanel
     private float mapOriginY = 0;
 
     private VueTool activeTool;
-    private ZoomTool zoomTool; // todo: get rid of this hard reference
+    ZoomTool zoomTool;
     
     public MapViewer(Vue2DMap map)
     {
@@ -110,6 +110,10 @@ public class MapViewer extends javax.swing.JPanel
         setFont(VueConstants.DefaultFont);
         loadMap(map);
 
+        Point2D p = getMap().getUserOrigin();
+        setMapOriginOffset(p.getX(), p.getY());
+        zoomTool.setZoom(getMap().getUserZoom());
+            
         VueSelection.addListener(this);
 
         /*
@@ -127,15 +131,14 @@ public class MapViewer extends javax.swing.JPanel
 
     /**
      * Set's the viewport such that the upper left corner
-     * displays at screenX, screenY.  Is precision
-     * due to possibility of zooming.
+     * displays at screenX, screenY.  The precision
+     * is due to possibility of zooming.
      */
-    
     public void setMapOriginOffset(float screenX, float screenY)
     {
         this.mapOriginX = screenX;
         this.mapOriginY = screenY;
-        //this.map.setOrigin(mapOriginX, mapOriginY);
+        getMap().setUserOrigin(screenX, screenY);
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
     }
     public void setMapOriginOffset(double screenX, double screenY) {
@@ -187,8 +190,7 @@ public class MapViewer extends javax.swing.JPanel
         else
             return (int) (0.5 + (-dim * zoomFactor));
     }
-    /*    
-    Rectangle mapToScreenRectRounded(Rectangle2D mapRect)
+    Rectangle mapToScreenRect(Rectangle2D mapRect)
     {
         if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
             throw new IllegalArgumentException("mapDim<0");
@@ -205,8 +207,7 @@ public class MapViewer extends javax.swing.JPanel
         //screenRect.height = (int) Math.round(mapRect.getHeight() * zoomFactor);
         return screenRect;
     }
-    */
-    Rectangle2D.Float mapToScreenRect(Rectangle2D mapRect)
+    Rectangle2D.Float mapToScreenRect2D(Rectangle2D mapRect)
     {
         if (mapRect.getWidth() < 0 || mapRect.getHeight() < 0)
             throw new IllegalArgumentException("mapDim<0");
@@ -253,9 +254,11 @@ public class MapViewer extends javax.swing.JPanel
         return new Point(lastMouseX, lastMouseY);
     }
 
-    public void setZoomFactor(double zoomFactor)
+    /* to be called by ZoomTool */
+    void setZoomFactor(double zoomFactor)
     {
         this.zoomFactor = zoomFactor;
+        getMap().setUserZoom(zoomFactor);
         new MapViewerEvent(this, MapViewerEvent.ZOOM).raise();
         repaint();
     }
@@ -264,10 +267,6 @@ public class MapViewer extends javax.swing.JPanel
     {
         return this.zoomFactor;
     }
-
-    /*
-     * end zoom code
-     */
 
     public void reshape(int x, int y, int w, int h)
     {
@@ -285,13 +284,14 @@ public class MapViewer extends javax.swing.JPanel
         return this.map;
     }
     
-    void unloadMap()
+    private void unloadMap()
     {
         this.map.removeLWCListener(this);
         this.map = null;
     }
     
-    void loadMap(Vue2DMap map)
+    private void loadMap(Vue2DMap map)
+
     {
         if (map == null)
             throw new IllegalArgumentException("loadMap: null Vue2DMap");
@@ -855,7 +855,7 @@ public class MapViewer extends javax.swing.JPanel
             g2.setStroke(STROKE_ONE);
             Rectangle2D selectionBounds = VueSelection.getBounds();
             //System.out.println("mapSelectionBounds="+selectionBounds);
-            Rectangle2D.Float sb = mapToScreenRect(selectionBounds);
+            Rectangle2D.Float sb = mapToScreenRect2D(selectionBounds);
             //System.out.println("screenSelectionBounds="+sb);
             drawSelectionBox(g2, sb);
         }
@@ -895,7 +895,7 @@ public class MapViewer extends javax.swing.JPanel
     static final int chs = 5; // component handle size -- todo: config
     void drawComponentSelectionBox(Graphics2D g, LWComponent c)
     {
-        Rectangle2D.Float r = mapToScreenRect(c.getBounds());
+        Rectangle2D.Float r = mapToScreenRect2D(c.getBounds());
         g.setColor(COLOR_SELECTION);
         g.draw(r);
         r.x -= (chs-1)/2;
@@ -952,10 +952,8 @@ public class MapViewer extends javax.swing.JPanel
     private JPopupMenu getComponentPopup(LWComponent c)
     {
         if (cPopup == null) {
-            // This menu has gotten too big at top level...
             cPopup = new JPopupMenu("Item Menu");
             cPopup.add(Actions.Rename);
-            cPopup.add(Actions.Delete);//clear?
             cPopup.addSeparator();
             cPopup.add(Actions.Group);
             cPopup.add(Actions.Ungroup);
@@ -964,6 +962,11 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.add(Actions.BringForward);
             cPopup.add(Actions.SendToBack);
             cPopup.add(Actions.SendBackward);
+            //cPopup.add(VUE.alignMenu);
+            //cPopup.add(VUE.alignMenu.getPopupMenu());
+
+
+            // This menu has gotten too big at top level...
             cPopup.addSeparator();
             cPopup.add(Actions.AlignLeftEdges);
             cPopup.add(Actions.AlignRightEdges);
@@ -972,20 +975,23 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.addSeparator();
             cPopup.add(Actions.AlignCentersRow);
             cPopup.add(Actions.AlignCentersColumn);
+            cPopup.addSeparator();
+            cPopup.add(Actions.DistributeVertically);
+            cPopup.add(Actions.DistributeHorizontally);
+            cPopup.addSeparator();
+            cPopup.add(Actions.Delete);
         }
-         if(c instanceof LWNode) {
+        if (c instanceof LWNode) {
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
-            Asset a = r.getAsset();  
+            Asset a = r == null ? null : r.getAsset();  
             if(a != null && assetMenu == null) {
                assetMenu = getAssetMenu(a);
                cPopup.add(assetMenu);
             } else if(a != null) {
                 assetMenu = getAssetMenu(a);
             }
-            
-            
-         }
+        }
         return cPopup;
     }
     
@@ -1620,10 +1626,20 @@ public class MapViewer extends javax.swing.JPanel
 	return getMap() + super.paramString();
     }
 
+    private boolean isAnythingCurrentlyVisible()
+    {
+        Rectangle mapRect = mapToScreenRect(getMap().getBounds());
+        Rectangle viewerRect = getBounds(null);
+        return mapRect.intersects(viewerRect);
+    }
+
     public void setVisible(boolean doShow)
     {
         super.setVisible(doShow);
         if (doShow) {
+            // todo: only do this if we've just been opened
+            //if (!isAnythingCurrentlyVisible())
+            //zoomTool.setZoomFitContent(this);//todo: go thru the action
             requestFocus();
             new MapViewerEvent(this, MapViewerEvent.DISPLAYED).raise();
             VUE.ModelSelection.clear(); // same as VueSelection / selectionClear()

@@ -238,14 +238,12 @@ public abstract class LWContainer extends LWComponent
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
-                //if (c1.getParent() != c2.getParent()) return 0;
                 return c2.getParent().getIndex(c2) - c1.getParent().getIndex(c1);
             }};
     private static Comparator ReverseOrder = new Comparator() {
             public int compare(Object o1, Object o2) {
                 LWComponent c1 = (LWComponent) o1;
                 LWComponent c2 = (LWComponent) o2;
-                //if (c1.getParent() != c2.getParent()) return 0;
                 return c1.getParent().getIndex(c1) - c2.getParent().getIndex(c2);
             }};
 

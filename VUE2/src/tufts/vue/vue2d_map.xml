@@ -101,6 +101,12 @@
 
 	<class name="tufts.vue.Vue2DMap" extends="tufts.vue.LWContainer">
 		<map-to xml="vue2d-map"/>
+		<field name="userZoom">
+			<bind-xml name="userZoom"/>
+		</field>
+		<field name="userOrigin">
+			<bind-xml name="userOrigin"/>
+		</field>
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                         <bind-xml matches="*"/> 
                 </field>
