@@ -49,8 +49,11 @@ public class VUE
     public static LWPathwayInspector pathwayInspector;
     public static PathwayControl control;
 
-    //hierarchy view component
+    //hierarchy view tree window component
     public static LWHierarchyTree hierarchyTree;
+    
+    //overview tree window component
+    public static LWOverviewTree overviewTree;
     
     public static java.net.URL getResource(String name)
     {
@@ -184,6 +187,15 @@ public class VUE
     }
     
     /**End of hierarchy view related method*/
+    
+    /**Overview related method*/
+    public static LWOverviewTree getOverviewTree()
+    {
+        return overviewTree;
+    }
+    
+    /**End of overview related method*/
+    
     private VUE() {}
     
     static JPanel toolPanel;//todo: tmp hack
@@ -284,13 +296,15 @@ public class VUE
         control = new PathwayControl(frame);
         
         hierarchyTree = new LWHierarchyTree(frame);
+        overviewTree = new LWOverviewTree(frame);
         //end of addition
            
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),
                                    control.getDisplayAction(), 
-                                   hierarchyTree.getDisplayAction()
+                                   hierarchyTree.getDisplayAction(),
+                                   overviewTree.getDisplayAction()
                                  };
         
         // adding the menus and toolbars

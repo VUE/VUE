@@ -21,6 +21,40 @@ public abstract class LWContainer extends LWComponent
 {
     protected ArrayList children = new java.util.ArrayList();
     
+    /**interface added by the power team*/
+    protected ArrayList listeners = new ArrayList();
+    
+    public interface LWContainerListener extends java.util.EventListener
+    {
+        public void LWContainerEventRaised(LWContainerEvent e);
+    }
+    
+    public void addLWContainerListener(LWContainerListener l)
+    {
+        listeners.add(l);
+    }
+    
+    public void removeLWContainerListener(LWContainerListener l)
+    {
+        listeners.remove(l);
+    }
+    
+    public void removeAllLWContainerListeners()
+    {
+        if (listeners != null)
+          listeners.clear();
+    }
+    
+    protected void dispatchLWContainerEvent(LWContainerEvent e)
+    {
+        for (Iterator i = listeners.iterator(); i.hasNext();)
+        {
+            LWContainerListener ml = (LWContainerListener)i.next();
+            ml.LWContainerEventRaised(e);
+        }
+    }
+    /**end of interface*/
+    
     /** for use during restore */
     private int idStringToInt(String idStr)
     {
@@ -203,6 +237,9 @@ public abstract class LWContainer extends LWComponent
     public void addChild(LWComponent c)
     {
         addChildInternal(c);
+        System.out.println("adding");
+        dispatchLWContainerEvent(new LWContainerEvent(this));
+        
         ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
         c.notify("added", this);
         notify("childAdded", c);
@@ -258,6 +295,9 @@ public abstract class LWContainer extends LWComponent
     protected void removeChild(LWComponent c)
     {
         removeChildInternal(c);
+        System.out.println("removing");
+        dispatchLWContainerEvent(new LWContainerEvent(this));
+        
         //c.notify("removed", this); // don't need to let anyone know this
         notify("childRemoved", c);
         layout();
