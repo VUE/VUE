@@ -233,6 +233,7 @@ public abstract class LWContainer extends LWComponent
         return list;
     }*/
 
+    /*
     protected String getNextUniqueID()
     {
         if (getParent() == null)
@@ -240,6 +241,7 @@ public abstract class LWContainer extends LWComponent
         else
             return getParent().getNextUniqueID();
     }
+    */
 
     /** In case the container subclass can do anything to lay out it's children
      *  (e.g., so that LWNode can override & handle chil layout).
