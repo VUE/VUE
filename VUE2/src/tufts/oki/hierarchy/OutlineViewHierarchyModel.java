@@ -190,6 +190,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         try
         {
             ArrayList nodes = findHierarchyNodeByComponentID(getRootNode(), id);
+            
             if (nodes == null) {
                 System.out.println("OutlineViewHierarchyModel: unhandled case, nodes is null");
                 return;
@@ -200,22 +201,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 HierarchyNode hierarchyNode = (HierarchyNode)i.next();
                 
                 if (newLabel == null)
-                {   
-                    /*
-                    String parentDisplayName = "";
-                    
-                    for (osid.hierarchy.NodeIterator pi = hierarchyNode.getParents(); pi.hasNext();)
-                    {
-                        HierarchyNode parentNode = (HierarchyNode)pi.next();
-                        parentDisplayName = parentNode.getDisplayName();
-                        
-                        System.out.println("parent name is " + parentDisplayName);
-                    }
-                    */
-                    
-                    newLabel = getNodeLabel(hierarchyNode.getLWComponent());
-                }
-                
+                  newLabel = getNodeLabel(hierarchyNode.getLWComponent());
+                  
                 hierarchyNode.updateDisplayName(newLabel);
                 revalidateTree(hierarchyNode);
             }
@@ -268,13 +255,10 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                
             //adds anything that is contained in the added LWNode
             for (Iterator nodeIterator = ((LWNode)addedChild).getNodeIterator(); nodeIterator.hasNext();)
-            {
-                addHierarchyTreeNode((LWNode)addedChild, (LWNode)nodeIterator.next());
-            }
+              addHierarchyTreeNode((LWNode)addedChild, (LWNode)nodeIterator.next());
             
             //updates the tree
             reloadTreeModel(parentNode);
-            //scrollPathToVisible(new TreePath(parentTreeNode.getPath()));
         }
              
         //if it is a LWLink
@@ -376,7 +360,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         //validateHierarchyNodeLinkLabels();
     }
     
-    
+    /*
     public void validateHierarchyNodeLinkLabels() throws osid.hierarchy.HierarchyException
     {
         for(osid.hierarchy.NodeIterator i = getAllNodes(); i.hasNext();)
@@ -407,6 +391,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             }
         }
     }
+    */
     
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
@@ -458,7 +443,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         {  
             String label, description;
          
-            //label = getNodeLabel(component, parentNode.getDisplayName()); 
             label = getNodeLabel(component);
             
             if ((description = component.getNotes()) == null)
@@ -543,7 +527,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         return path;
     }
     
-    //public String getNodeLabel(LWComponent component, String parentNodeDisplayName)
     public String getNodeLabel(LWComponent component)
     {
         String label;
@@ -552,31 +535,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         if ((label = component.getLabel()) == null)
         {
             if (component instanceof LWLink)
-            {
-                LWLink link = (LWLink)component;
-                /*
-                String connectedNodeLabel = "nothing";
-                  
-                //gets the name of the component that the link connects to
-                if (link.getComponent1() != null && link.getComponent1().getLabel() != null)
-                  connectedNodeLabel = link.getComponent1().getLabel();
-                     
-                //if (connectedNodeLabel.equals(parentNode.getDisplayName()))
-                if (connectedNodeLabel.equals(parentNodeDisplayName))
-                {
-                    if (link.getComponent2() !=null && link.getComponent2().getLabel() != null)
-                      connectedNodeLabel = link.getComponent2().getLabel();
-                   
-                    else
-                      connectedNodeLabel = "nothing"; 
-                }
-                  
-                label = new String("Link ID# " + link.getID() + ": to " + connectedNodeLabel);
-                */
-                
-                label = new String("Link ID# " + link.getID());
-            }
-                
+              label = new String("Link ID# " + component.getID());
+              
             else if (component instanceof LWNode)   
               label = new String("Node ID# " + component.getID());
         }
