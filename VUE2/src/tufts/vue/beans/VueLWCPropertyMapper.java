@@ -3,6 +3,7 @@ package tufts.vue.beans;
 
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.*;
 import java.beans.*;
 import javax.swing.*;
@@ -18,31 +19,6 @@ import tufts.vue.*;
 public class VueLWCPropertyMapper
     implements VuePropertyMapper
 {
-	
-    ////////////////
-    // Statics
-    /////////////////
-
-    /*
-    static public final String kFillColor = LWCEvent.FillColor;
-    static public final String kStrokeColor = LWCEvent.StrokeColor;
-    static public final String kTextColor = LWCEvent.TextColor;
-    static public final String kStrokeWeight = LWCEvent.StrokeWidth;
-    static public final String kFont = LWCEvent.Font;
-    static public final String kSize = LWCEvent.Size;
-    static public final String kLocation = LWCEvent.Location;
-    */
-
-    /*
-    	static public final String kFillColor = "fillColor";
-	static public final String kStrokeColor = "strokeColor";
-	static public final String kTextColor = "textColor";
-	static public final String kStrokeWeight = "strokeWeight";
-	static public final String kFont = "font";
-    */
-
-    //static public final String kLinkArrowState = "linkArrows";
-	
     static final String [] sNodeProperties = {  LWKey.FillColor,
                                                 LWKey.StrokeColor,
                                                 LWKey.TextColor,
@@ -135,58 +111,52 @@ public class VueLWCPropertyMapper
 
         if (pBean instanceof LWComponent) {
             setProperty((LWComponent)pBean, pName, pValue);
-            /*
-            LWComponent c = (LWComponent) pBean;
-			
-                 if (pName.equals(LWKey.FillColor))         c.setFillColor( (Color) pValue);
-            else if (pName.equals(LWKey.StrokeColor))       c.setStrokeColor( (Color) pValue);
-            else if (pName.equals(LWKey.TextColor))         c.setTextColor( (Color) pValue);
-            else if (pName.equals(LWKey.StrokeWidth))      c.setStrokeWidth( ((Float) pValue).floatValue());
-            else if (pName.equals(LWKey.Font))              c.setFont( (Font) pValue);
-			
-            if (c instanceof LWLink ) {
-                LWLink link = (LWLink) c;
-                if ( pName.equals(LWKey.LinkArrowState) ) {
-                    int state = ((Integer) pValue).intValue();
-                    link.setArrowState( state);
-                }
-            }
-            */
         } else 
             throw new IllegalArgumentException("VueLWCPropertyMapper: can't handle class " + pBean + " name=" + pName + " val=" + pValue);
     }
 
-    public static void setProperty(LWComponent c, String key, Object val)   {
-
-             if (key == LWKey.FillColor)      c.setFillColor( (Color) val);
-        else if (key == LWKey.StrokeColor)    c.setStrokeColor( (Color) val);
-        else if (key == LWKey.TextColor)      c.setTextColor( (Color) val);
-        else if (key == LWKey.StrokeWidth)    c.setStrokeWidth( ((Float) val).floatValue());
-        else if (key == LWKey.Font)           c.setFont( (Font) val);
-
-        if (c instanceof LWLink ) {
-            LWLink link = (LWLink) c;
-            if (key == LWKey.LinkArrows) {
-                int state = ((Integer) val).intValue();
-                link.setArrowState( state);
+    public static void setProperty(LWComponent c, Object key, Object val)
+    {
+        if (DEBUG.UNDO&&DEBUG.META) System.out.println("setProperty [" + key + "] on " + c + " with " + val);
+                                           
+             if (key == LWKey.FillColor)        c.setFillColor( (Color) val);
+        else if (key == LWKey.TextColor)        c.setTextColor( (Color) val);
+        else if (key == LWKey.StrokeColor)      c.setStrokeColor( (Color) val);
+        else if (key == LWKey.StrokeWidth)      c.setStrokeWidth( ((Float) val).floatValue());
+        else if (key == LWKey.Font)             c.setFont( (Font) val);
+        else if (key == LWKey.Label)            c.setLabel( (String) val);
+        else if (key == LWKey.Notes)            c.setNotes( (String) val);
+        else if (key == LWKey.Resource)         c.setResource( (Resource) val);
+        else if (key == LWKey.Location)         c.setLocation( (Point2D) val);
+        else if (key == LWKey.Size) {
+            // Point2D used as Size2D for now
+            Point2D.Float p = (Point2D.Float) val;
+            c.setSize(p.x, p.y);
+        }
+        else if (key == LWKey.LinkArrows) {
+            if (c instanceof LWLink) {
+                LWLink link = (LWLink) c;
+                link.setArrowState(((Integer) val).intValue());
             }
+        } else {
+            System.out.println("Unknown key in setProperty: [" + key + "] with " + val + " on " + c);
+            //new Throwable().printStackTrace();
         }
     }
 
 
-	/**
-	 * getBeanInfo
-	 * Returns the VueBeanInfo for the object.
-	 * @param Object - the object
-	 * @return VueBeanInfo the info for the object.
-	 **/
-	public VueBeanInfo getBeanInfo(Object pObject)  {
-		VueBeanInfo beanInfo = null;
-		if( pObject instanceof LWComponent) {
-			beanInfo = new LWCBeanInfo( (LWComponent) pObject);
-			}
-		return beanInfo;
-	}
+    /**
+     * getBeanInfo
+     * Returns the VueBeanInfo for the object.
+     * @param Object - the object
+     * @return VueBeanInfo the info for the object.
+     **/
+    public VueBeanInfo getBeanInfo(Object pObject)  {
+        VueBeanInfo beanInfo = null;
+        if (pObject instanceof LWComponent)
+            beanInfo = new LWCBeanInfo( (LWComponent) pObject);
+        return beanInfo;
+    }
 
 	
 	public class LWCBeanInfo implements VueBeanInfo {

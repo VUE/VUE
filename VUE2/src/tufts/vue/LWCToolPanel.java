@@ -10,72 +10,44 @@ import javax.swing.*;
 
 import tufts.vue.beans.*;
 
-
-
 /**
- * NodeToolPanel
- * This creates a font editor panel for editing fonts in the UI
- *
+ * LWCToolPanel
+ * This creates an editor panel for LWComponents
  **/
  
-public class LWCToolPanel extends JPanel implements ActionListener, PropertyChangeListener {
-// public class NodeToolPanel extends Box implements ActionListener, PropertyChangeListener {
- 
- 	////////////
- 	// Statics
- 	/////////////
- 	
- 	private static float [] sStrokeValues = { 0,1,2,3,4,5,6};
- 	private static String [] sStrokeMenuLabels = { "none",
-                                                       "1 pixel",
-                                                       "2 pixels",
-                                                       "3 pixels",
-                                                       "4 pixels",
-                                                       "5 pixels",
-                                                       "6 pixels"  };
+public class LWCToolPanel extends JPanel implements ActionListener, PropertyChangeListener
+{
+    private static float [] sStrokeValues = { 0,1,2,3,4,5,6};
+    private static String [] sStrokeMenuLabels = { "none",
+                                                   "1 pixel",
+                                                   "2 pixels",
+                                                   "3 pixels",
+                                                   "4 pixels",
+                                                   "5 pixels",
+                                                   "6 pixels"  };
     
- // End of array list
- 
+    /** fill button **/
+    ColorMenuButton mFillColorButton = null;
+    /** stroke color editor button **/
+    ColorMenuButton mStrokeColorButton = null;
+    /** Text color menu editor **/
+    ColorMenuButton mTextColorButton = null;
+    /** stroke size selector menu **/
+    StrokeMenuButton mStrokeButton = null;
+    /** the Font selection combo box **/
+    FontEditorPanel mFontPanel = null;
  	
-	///////////
-	// Fields 
-	////////////
+    VueBeanState mDefaultState = null;
+    VueBeanState mState = null;
 	
-	
- 	
- 	/** fill button **/
- 	ColorMenuButton mFillColorButton = null;
- 	
- 	/** stroke color editor button **/
- 	ColorMenuButton mStrokeColorButton = null;
- 	
- 	/** Text color menu editor **/
- 	ColorMenuButton mTextColorButton = null;
- 	
- 	/** stroke size selector menu **/
- 	StrokeMenuButton mStrokeButton = null;
- 	
- 	/** the Font selection combo box **/
- 	FontEditorPanel mFontPanel = null;
- 	
- 	
-	VueBeanState mDefaultState = null;
-	
-	VueBeanState mState = null;
-	
-	 	 	
- 	
- 	/////////////
- 	// Constructors
- 	//////////////////
- 	
+    protected static boolean debug = false;
      
-    private static boolean debug = false;
-     private static final Insets NoInsets = new Insets(0,0,0,0);
+    protected static final Insets NoInsets = new Insets(0,0,0,0);
+    protected static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
     //private static final Insets ButtonInsets = new Insets(-2,-2,-2,-1);
-    private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
     //private static final Insets ButtonInsets = NoInsets;
-     
+
+    
     public LWCToolPanel() {
         //System.out.println("*** CONSTRUCTED " + this);
         //new Throwable().printStackTrace();
@@ -151,64 +123,64 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
              mFontPanel.setBackground(bakColor);
          mFontPanel.setPropertyName( LWKey.Font );
  		
-		
          mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
-         LineIcon lineIcon = new LineIcon( 16,12);
          mStrokeButton.setBackground( bakColor);
-         mStrokeButton.setIcon( lineIcon);
+         mStrokeButton.setIcon(new LineIcon(16,12));
          mStrokeButton.setStroke( (float) 1);
          mStrokeButton.setPropertyName( LWKey.StrokeWidth);
-         //mStrokeButton.setBorderPainted(false);
          mStrokeButton.setMargin(ButtonInsets);
+         //mStrokeButton.setBorderPainted(false);
  		
-         box.add( mFillColorButton);
-         box.add( mStrokeColorButton);
-         box.add( mStrokeButton);
+         JComponent c = getLabelComponent();
+         if (c != null)
+             box.add(c);
+         
+         //if (!textOnly) {
+             box.add( mFillColorButton);
+             box.add( mStrokeColorButton);
+             box.add( mStrokeButton);
+             //}
          box.add( mFontPanel);
          box.add( mTextColorButton);
  		
          this.add(box);
  		
          initDefaultState();
-     }
- 	
- 	
-     ////////////////
-     // Methods
-     /////////////////
- 	
- 	
+    }
+
+    protected JComponent getLabelComponent() {
+        return null;
+    }
  	
     protected void initDefaultState() {
         //System.out.println("NodeToolPanel.initDefaultState");
         LWNode node = new LWNode("LWCToolPanel.initializer");
         mDefaultState = VueBeans.getState(node);
-        setValue(mDefaultState);
+        loadValues(mDefaultState);
     }
- 	
-    /**
-     * setValue
-     * Generic property editor access
-     **/
-    public void setValue( Object pValue) {
-        //System.out.println("NTP setValue " + pValue);
+
+    public static boolean isPreferredType(Object o) {
+        return o instanceof LWComponent;
+    }
+        
+    void loadValues(Object pValue) {
+        System.out.println("LWCToolPanel.loadValues " + pValue);
         VueBeanState state = null;
  		
-        enablePropertyChangeListeners( false);
-        if( pValue instanceof LWComponent) {
-            state = VueBeans.getState( pValue);
+        if (pValue instanceof LWComponent) {
+            if (!isPreferredType(pValue))
+                return;
+            state = VueBeans.getState(pValue);
+        } else if (pValue instanceof VueBeanState) {
+            state = (VueBeanState) pValue;
         }
-        else
-            if( pValue instanceof VueBeanState ) {
-                state = (VueBeanState) pValue;
-            }
- 		
-        if( state == null)  {
+        if (state == null)
             state = mDefaultState;
-        }
  		
         mState = state;
  		
+        enablePropertyChangeListeners(false);
+        
         Font font = (Font) state.getPropertyValue( LWKey.Font);
         mFontPanel.setValue( font);
  		
@@ -238,10 +210,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
         return mState;
     }
  	
-    /**
-     *
-     **/
-    public void enablePropertyChangeListeners( boolean pState) {
+    protected void enablePropertyChangeListeners( boolean pState) {
         if( pState ) {
             mStrokeButton.addPropertyChangeListener( this );
             mFontPanel.addPropertyChangeListener( this);
@@ -264,7 +233,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             System.out.println("LWC property changed: "+ pEvent.getPropertyName() + " " + pEvent);
 	  		
             VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
-            VUE.getUndoManager().markChangesAsUndoable(pEvent.getPropertyName());
+            VUE.getUndoManager().markChangesAsUndo(pEvent.getPropertyName());
             if( mState != null) {
                 mState.setPropertyValue( name, pEvent.getNewValue() );
             }
@@ -283,17 +252,15 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     }
  	
     public void actionPerformed( ActionEvent pEvent) {
-        System.out.println("LWCToolPanel: " + pEvent);
+        System.out.println(this + " " + pEvent);
  	
     }
  	
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
         VUE.initUI(true);
-
         debug = true;
-
-        VueUtil.displayComponent(new NodeToolPanel());
+        VueUtil.displayComponent(new LWCToolPanel());
     }
  	
 }

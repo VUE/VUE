@@ -904,7 +904,7 @@ class Actions
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
             if (VUE.getUndoManager() != null && undoable())
-                VUE.getUndoManager().markChangesAsUndoable(ae.getActionCommand());
+                VUE.getUndoManager().markChangesAsUndo(ae.getActionCommand());
             //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();
             if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");

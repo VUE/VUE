@@ -13,8 +13,9 @@ public class DEBUG
     public static boolean SCROLL = false;
     public static boolean SELECTION = false;
     public static boolean FOCUS = false;
-    public static boolean UNDO = false;
+    public static boolean UNDO = true;
     public static boolean PATHWAY = false;
+    public static boolean PROPERTIES = true;
 
     public static boolean META = false; // generic toggle to use in combination with other flags
 

@@ -436,6 +436,7 @@ class LWCInspector extends javax.swing.JPanel
         LWComponent c = this.lwc;
         //System.out.println("Inspector " + e);
         try {
+            boolean set = true;
             if (src == labelField)          c.setLabel(text);
             //else if (src == categoryField)  c.setCategory(text);
             //else if (src == notesField)     c.setNotes(text);
@@ -449,6 +450,10 @@ class LWCInspector extends javax.swing.JPanel
             //                float w = Float.parseFloat(text);
             //                c.setStrokeWidth(w);
             //            }
+            else
+                set = false;
+            if (set)
+                VUE.getUndoManager().markChangesAsUndo(src.toString());
             else
                 return;
         } catch (Exception ex) {

@@ -348,7 +348,7 @@ class TextBox extends JTextPane
             // for the label on an accidental edit activation)
             System.out.println("TextBox: key was pressed; setting label to: [" + getText() + "]");
             lwc.setLabel0(getText(), false);
-            VUE.getUndoManager().markChangesAsUndoable("Rename");
+            VUE.getUndoManager().markChangesAsUndo("Rename");
         }
     }
     public void focusGained(FocusEvent e)

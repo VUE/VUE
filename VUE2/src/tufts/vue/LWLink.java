@@ -152,21 +152,21 @@ public class LWLink extends LWComponent
     {
         //System.out.println("LWLink: control point " + index + " moved");
         
-        if (index == 0) {
+        if (index == 0) {       // endpoint 0 (start)
             setComponent1(null);
             startX = e.getMapX();
             startY = e.getMapY();
             endpointMoved = true;
             LinkTool.setMapIndicationIfOverValidTarget(ep2, this, e);
-        } else if (index == 1) {
+        } else if (index == 1) { // endpoint 1 (end)
             setComponent2(null);
             endX = e.getMapX();
             endY = e.getMapY();
             endpointMoved = true;
             LinkTool.setMapIndicationIfOverValidTarget(ep1, this, e);
-        } else if (index == 2) {
+        } else if (index == 2) { // optional control for curve
             setCtrlPoint0(e.getMapPoint());
-        } else if (index == 3) {
+        } else if (index == 3) { // optional control for curve
             setCtrlPoint1(e.getMapPoint());
         } else
             throw new IllegalArgumentException("LWLink ctrl point > 2");
@@ -186,6 +186,7 @@ public class LWLink extends LWComponent
                 setComponent2(dropTarget);
             // todo: ensure paint sequence same as LinkTool.makeLink
         }
+        notify("link.control");
     }
 
 
@@ -358,32 +359,44 @@ public class LWLink extends LWComponent
     }
     
     /** for persistance and ControlListener */
-    public void setCtrlPoint0(Point2D point)
+    public void setCtrlPoint0(Point2D point) {
+        setCtrlPoint0((float) point.getX(), (float) point.getY());
+    }
+    public void setCtrlPoint0(float x, float y)
     {
         if (curveControls == 0) {
             setControlCount(1);
             System.out.println("implied curved link by setting control point 0 " + this);
         }
+        Object old;
         if (curveControls == 2) {
-            cubicCurve.ctrlx1 = (float) point.getX();
-            cubicCurve.ctrly1 = (float) point.getY();
+            old = new Point2D.Float(cubicCurve.ctrlx1, cubicCurve.ctrly1); 
+            cubicCurve.ctrlx1 = x;
+            cubicCurve.ctrly1 = y;
         } else {
-            quadCurve.ctrlx = (float) point.getX();
-            quadCurve.ctrly = (float) point.getY();
+            old = new Point2D.Float(quadCurve.ctrlx, quadCurve.ctrly);
+            quadCurve.ctrlx = x;
+            quadCurve.ctrly = y;
         }
         endpointMoved = true;
+        notify("link.control.0", new Undoable(old) { void undo() { setCtrlPoint0((Point2D)old); }} );
     }
 
     /** for persistance and ControlListener */
-    public void setCtrlPoint1(Point2D point)
+    public void setCtrlPoint1(Point2D point) {
+        setCtrlPoint1((float) point.getX(), (float) point.getY());
+    }
+    public void setCtrlPoint1(float x, float y)
     {
         if (curveControls < 2) {
             setControlCount(2);
             System.out.println("implied cubic curved link by setting a control point 1 " + this);
         }
-        cubicCurve.ctrlx2 = (float) point.getX();
-        cubicCurve.ctrly2 = (float) point.getY();
+        Object old = new Point2D.Float(cubicCurve.ctrlx2, cubicCurve.ctrly2); 
+        cubicCurve.ctrlx2 = x;
+        cubicCurve.ctrly2 = y;
         endpointMoved = true;
+        notify("link.control.1", new Undoable(old) { void undo() { setCtrlPoint1((Point2D)old); }} );
     }
 
     protected void removeFromModel()
@@ -649,9 +662,14 @@ public class LWLink extends LWComponent
     
     public void setLocation(float x, float y)
     {
+        //Object old = new Point2D.Float(x, y);
         float dx = x - getX();
         float dy = y - getY();
         //System.out.println(getLabel() + " setLocation");
+
+        // Any free (unattached) endpoints get translated by
+        // how much we're moving, as well as any control points.
+        
         if (ep1 == null) {
             startX += dx;
             startY += dy;
@@ -663,16 +681,16 @@ public class LWLink extends LWComponent
             endpointMoved = true;
         }
         if (curveControls == 1) {
-            quadCurve.ctrlx += dx;
-            quadCurve.ctrly += dy;
-            endpointMoved = true;
+            setCtrlPoint0(quadCurve.ctrlx + dx,
+                          quadCurve.ctrly + dy);
         } else if (curveControls == 2) {
-            cubicCurve.ctrlx1 += dx;
-            cubicCurve.ctrly1 += dy;
-            cubicCurve.ctrlx2 += dx;
-            cubicCurve.ctrly2 += dy;
-            endpointMoved = true;
+            setCtrlPoint0(cubicCurve.ctrlx1 + dx,
+                          cubicCurve.ctrly1 + dy);
+            setCtrlPoint1(cubicCurve.ctrlx2 + dx,
+                          cubicCurve.ctrly2 + dy);
         }
+
+        //notify(LWKey.Location, old);
     }
 
     
@@ -1014,7 +1032,7 @@ public class LWLink extends LWComponent
             } else {
                 bounds.add(quadCurve.ctrlx, quadCurve.ctrly);
             }
-            //setEventsEnabled(false);
+            setEventsEnabled(false);
             try {
                 // todo check: any problem with events off here?
                 setSize(bounds.width, bounds.height);
@@ -1025,7 +1043,7 @@ public class LWLink extends LWComponent
             }
 
         } else {
-            //setEventsEnabled(false);
+            setEventsEnabled(false);
             try {
                 // todo check: any problem with events off here?
                 setSize(Math.abs(startX - endX), Math.abs(startY - endY));

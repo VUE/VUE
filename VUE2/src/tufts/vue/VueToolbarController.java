@@ -481,23 +481,21 @@ public class VueToolbarController
      }
 	 
      void initContextualPanelFromSelection( JPanel panel) {
-         // FIX:  move this to an interface rather than instance checking
-	 // (or even better: redo all of this so we don't have this problem).
-	 	
          LWSelection selection = VUE.ModelSelection;
-         Object item = null;
-         if (selection != null && selection.size() > 0)
-             item = selection.get(0);
-         if (item == null) return;
-	 	
-         if( panel instanceof NodeToolPanel )
-             ((NodeToolPanel) panel).setValue( item);
-         else if( panel instanceof LinkToolPanel )
-             ((LinkToolPanel) panel).setValue( item);
-         else if( panel instanceof TextToolPanel )
-             ((TextToolPanel) panel).setValue( item);
-         else if( panel instanceof LWCToolPanel)
-             ((LWCToolPanel) panel).setValue( item);
+         LWComponent c = null;
+         if (selection != null && selection.size() > 0) {
+             // TODO: something more sophisticated than just loading
+             // all the props from the first item in the selection and
+             // disregarding all the others.
+             c = selection.first();
+         } else 
+             return;
+
+         if (panel instanceof LWCToolPanel)
+             ((LWCToolPanel)panel).loadValues(c);
+         else {
+             System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
+         }
      }
 	 
 

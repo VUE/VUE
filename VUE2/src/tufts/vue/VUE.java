@@ -1339,7 +1339,7 @@ public class VUE
         map.addLink(k3);
         
         // create test pathways
-        if (true) {
+        if (false) {
             LWPathway p = new LWPathway("Test Pathway");
             p.add(n1);
             p.add(n2);

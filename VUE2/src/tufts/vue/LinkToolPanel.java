@@ -1,6 +1,5 @@
 package tufts.vue;
 
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -10,67 +9,23 @@ import javax.swing.*;
 import tufts.vue.beans.*;
 
 
-
 /**
  * LinkToolPanel
- * This creates a font editor panel for editing fonts in the UI
+ * This creates an editor panel for editing LWLink's
  *
  **/
  
- public class LinkToolPanel extends JPanel implements ActionListener, PropertyChangeListener {
- 
- 	////////////
- 	// Statics
- 	/////////////
+ public class LinkToolPanel extends LWCToolPanel
+ {
+     /** link color button **/
+     ColorMenuButton mLinkColorButton = null;
+
+     /** arrow head toggle button **/
+     JToggleButton mArrowStartButton = null;
  	
- 	private static float [] sStrokeValues = { 1,2,3,4,5,6};
- 	private static String [] sStrokeMenuLabels = {  "1 pixel",
- 											   "2 pixels",
- 											   "3 pixels",
- 											   "4 pixels",
- 											   "5 pixels",
- 											   "6 pixels"  };
- 											   
- // End of array list
- 
+     /** arrow tail toggle button **/
+     JToggleButton mArrowEndButton = null;
  	
-	///////////
-	// Fields 
-	////////////
-	
-	
- 	
- 	/** link color button **/
- 	ColorMenuButton mLinkColorButton = null;
- 	
- 	
- 	/** Text color menu editor **/
- 	ColorMenuButton mTextColorButton = null;
- 	
- 	/** stroke size selector menu **/
- 	StrokeMenuButton mStrokeButton = null;
- 	
- 	/** Arrow Start toggle button **/
- 	JToggleButton mArrowStartButton = null;
- 	
- 	/** end arrow button **/
- 	JToggleButton mArrowEndButton = null;
- 	
- 	/** the Font selection combo box **/
- 	FontEditorPanel mFontPanel = null;
- 	
- 	
-	VueBeanState mDefaultState = null;
-	
-	VueBeanState mState = null;
-	
-	 	 	
- 	
- 	/////////////
- 	// Constructors
- 	//////////////////
- 	
-     private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
      public LinkToolPanel() {
          //new Throwable("LINKTOOLPANEL CREATED").printStackTrace();
          
@@ -95,25 +50,6 @@ import tufts.vue.beans.*;
          mLinkColorButton.addPropertyChangeListener( this);
  		
  		
-         Color [] textColors = VueResources.getColorArray( "textColorValues");
-         String [] textColorNames = VueResources.getStringArray( "textColorNames");
-         mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
-         ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-         if( textIcon == null) System.out.println("issing resource: textColorIcon");
-         BlobIcon textBlob = new BlobIcon();
-         textBlob.setOverlay( textIcon );
-         mTextColorButton.setIcon(textBlob);
-         //mTextColorButton.setPropertyName("nodeTextColor");
-         mTextColorButton.setPropertyName(LWKey.TextColor);
-         mTextColorButton.setBackground( bakColor);
-         mTextColorButton.setBorderPainted(false);
-         mTextColorButton.setMargin(ButtonInsets);
-         mTextColorButton.addPropertyChangeListener( this);
- 		
-         mFontPanel = new FontEditorPanel();
-         mFontPanel.addPropertyChangeListener( this);
-
- 		
          mArrowStartButton = new JToggleButton();
          mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
          mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
@@ -129,26 +65,10 @@ import tufts.vue.beans.*;
          mArrowEndButton.setMargin(ButtonInsets);
          mArrowEndButton.setBorderPainted(false);
 		
-         mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
-         LineIcon lineIcon = new LineIcon( 16,12);
-         mStrokeButton.setIcon( lineIcon);
-         mStrokeButton.setStroke( (float) 1);
-         mStrokeButton.setPropertyName( LWKey.StrokeWidth);
-         mStrokeButton.setBackground( bakColor);
-         mStrokeButton.addPropertyChangeListener( this );
-         mStrokeButton.setMargin(ButtonInsets);
-         mStrokeButton.setBorderPainted(false);
  		
- 		
-         JLabel label = new JLabel("   Link:");
-         label.setFont(VueConstants.FONT_SMALL);
-         box.add(label);
          box.add( mLinkColorButton);
-         box.add( mStrokeButton);
          box.add( mArrowStartButton);
          box.add( mArrowEndButton);
-         box.add( mFontPanel);
-         box.add( mTextColorButton);
  		
          this.add( box);
  	
@@ -156,13 +76,18 @@ import tufts.vue.beans.*;
      }
  	
  	
+    protected javax.swing.JComponent getLabelComponent() {
+        javax.swing.JComponent label = new javax.swing.JLabel("   Link:");
+        label.setFont(VueConstants.FONT_SMALL);
+        return label;
+    }
      ////////////////
      // Methods
      /////////////////
  	
  	
-     private void initDefaultState() {
-         LWLink  link = LWLink.setDefaults(new LWLink());
+     protected void initDefaultState() {
+         LWLink link = LWLink.setDefaults(new LWLink());
          mDefaultState = VueBeans.getState(link);
      }
  	
@@ -184,8 +109,8 @@ import tufts.vue.beans.*;
          mState = state;
  		
          // stop listening while we change the values
-         enablePropertyListeners( false);
- 		
+         enablePropertyChangeListeners( false);
+
          if( mState.hasProperty( LWKey.Font) ) {
              Font font = (Font) state.getPropertyValue( LWKey.Font);
              mFontPanel.setValue( font);
@@ -228,55 +153,23 @@ import tufts.vue.beans.*;
              debug("missing text color property in state.");
          }
          // all done setting... start listening  again.
-         enablePropertyListeners( true);
+         enablePropertyChangeListeners( true);
      }
 
-     
- 	/**
- 	 * getValue
- 	 *
- 	 **/
- 	public VueBeanState getValue() {
- 		return mState;
- 	}
  	
- 	
- 	public void propertyChange( PropertyChangeEvent pEvent) {
- 		
- 		String name = pEvent.getPropertyName();
-  		if( !name.equals("ancestor") ) {
-	  		System.out.println("! Link Property Change: "+name);	
-	  		VueBeans.setPropertyValueForLWSelection( VUE.ModelSelection, name, pEvent.getNewValue() );
-  			
-  			if( mState != null) {
-  				mState.setPropertyValue( name, pEvent.getNewValue() );
-  				}
-  			if( mDefaultState != null) {
-  				mDefaultState.setPropertyValue( name,  pEvent.getNewValue() );
-  				}
-  			}
-  	}
-  	
-  	
-	private void enablePropertyListeners( boolean pEnable) {
-	
-	 	if( pEnable) {	
-	 		mLinkColorButton.addPropertyChangeListener( this);
-	 		mTextColorButton.addPropertyChangeListener( this);
-	 		mFontPanel.addPropertyChangeListener( this);
-			mArrowStartButton.addActionListener( this);
-			mArrowEndButton.addActionListener( this);
-	 		mStrokeButton.addPropertyChangeListener( this );
-			}
-		else {
-	 		mLinkColorButton.removePropertyChangeListener( this);
-	 		mTextColorButton.removePropertyChangeListener( this);
-	 		mFontPanel.removePropertyChangeListener( this);
-			mArrowStartButton.removeActionListener( this);
-			mArrowEndButton.removeActionListener( this);
-	 		mStrokeButton.removePropertyChangeListener( this );
-	 		}
+     protected void enablePropertyChangeListeners(boolean pEnable) {
+         super.enablePropertyChangeListeners(pEnable);
+         
+         if (pEnable) {	
+             mLinkColorButton.addPropertyChangeListener(this);
+             mArrowStartButton.addActionListener(this);
+             mArrowEndButton.addActionListener(this);
+         } else {
+             mLinkColorButton.removePropertyChangeListener(this);
+             mArrowStartButton.removeActionListener(this);
+             mArrowEndButton.removeActionListener(this);
 	 }
+     }
   	
  	
      public void actionPerformed( ActionEvent pEvent) {

@@ -3738,7 +3738,7 @@ public class MapViewer extends javax.swing.JComponent
             // don't sent event notifications for location & size changes
             // for performance)
             if (mouseWasDragged) {
-                VUE.getUndoManager().markChangesAsUndoable("Reshape");
+                VUE.getUndoManager().markChangesAsUndo("Reshape");
                 //getMap().notify(MapViewer.this, "repaint-drag");
                 // this is a hack for now to ensure any map modifications are noticed as we optimized
                 // out location & size set events

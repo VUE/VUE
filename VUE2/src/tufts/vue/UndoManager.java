@@ -11,11 +11,11 @@ import javax.swing.Action;
 public class UndoManager
     implements LWComponent.Listener
 {
-    //private static final String kUndoActionName = "undoActionName";
-    
-    ArrayList mChanges;
-    ArrayList mUndoActions = new ArrayList();
-    Map mPropertyChanges = new HashMap();
+    private static boolean sInUndo = false;
+
+    private ArrayList mChanges;
+    private ArrayList mUndoActions = new ArrayList();
+    private Map mPropertyChanges = new HashMap();
 
     /**
      * A list (map) of components each with a list (map) of property changes to them.
@@ -30,7 +30,38 @@ public class UndoManager
 
         void undoPropertyChanges()
         {
-            if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges");
+            if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges " + propertyChanges);
+
+            Iterator i = propertyChanges.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                if (DEBUG.UNDO) System.out.println("\tprocessing " + e.getKey());
+                undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
+                /*
+                LWComponent c = (LWComponent) e.getKey();
+                Map cPropChanges = (Map) e.getValue();
+                Iterator pi = cPropChanges.entrySet().iterator();
+                while (pi.hasNext()) {
+                    Map.Entry
+                    String propName =
+                }
+                */
+            }
+        }
+
+        private void undoComponentChanges(LWComponent c, Map props)
+        {
+            Iterator i = props.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry e = (Map.Entry) i.next();
+                if (DEBUG.UNDO) System.out.println("\tundoing " + e);
+                Object propKey = e.getKey();
+                Object oldValue = e.getValue();
+                if (oldValue instanceof Undoable)
+                    ((Undoable)oldValue).undo();
+                else
+                    tufts.vue.beans.VueLWCPropertyMapper.setProperty(c, propKey, oldValue);
+            }
         }
 
         public String toString() {
@@ -44,49 +75,96 @@ public class UndoManager
         mChanges = new ArrayList();
     }
 
+    private UndoAction pop()
+    {
+        int index = mUndoActions.size() - 1;
+        UndoAction ua = (UndoAction) mUndoActions.get(index);
+        mUndoActions.remove(index);
+        return ua;
+    }
+
+    private UndoAction peek()
+    {
+        if (mUndoActions.size() > 0)
+            return (UndoAction) mUndoActions.get(mUndoActions.size() - 1);
+        else
+            return null;
+    }
+
     public void undo()
     {
-        UndoAction undoAction = (UndoAction) mUndoActions.get(mUndoActions.size() - 1);
+        UndoAction undoAction = pop();
         if (DEBUG.UNDO) System.out.println(undoAction + ": UNDO");
-        undoAction.undoPropertyChanges();
+        sInUndo = true;
+        try {
+            undoAction.undoPropertyChanges();
+        } finally {
+            sInUndo = false;
+        }
+        setUndoActionLabel(peek());
+    }
+
+    private void setUndoActionLabel(UndoAction ua)
+    {
+        String name = "Undo ";
+
+        if (ua != null) {
+            if (DEBUG.UNDO||DEBUG.EVENTS) name += "#" + mUndoActions.size() + " ";
+            String uaName = ua.name;
+            if (Character.isLowerCase(uaName.charAt(0)))
+                uaName = Character.toUpperCase(uaName.charAt(0)) + uaName.substring(1);
+            name += uaName;
+            if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + ua.propertyChanges.size() + ")";
+            Actions.Undo.setEnabled(true);
+        } else {
+            Actions.Undo.setEnabled(false);
+        }
+        Actions.Undo.putValue(Action.NAME, name);
     }
     
-    public void markChangesAsUndoable(String name)
+    public synchronized void markChangesAsUndo(String name)
     {
         if (DEBUG.UNDO) System.out.println("UNDO: marking " + name);
-        UndoAction undoAction = new UndoAction(name, mPropertyChanges);
-        mUndoActions.add(undoAction);
+        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges);
+        mUndoActions.add(newUndoAction);
         mPropertyChanges = new HashMap();
-        String undoName = "Undo " + name;
-        if (DEBUG.EVENTS||DEBUG.UNDO) undoName += " (" + undoAction.propertyChanges.size() + ")";
-        Actions.Undo.putValue(Action.NAME, undoName);
+        setUndoActionLabel(newUndoAction);
     }
 
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.UNDO) System.out.println("UNDO: tracking " + e);
+        if (sInUndo) {
+            if (DEBUG.UNDO) System.out.println("\tredo: " + e);
+            return;
+        }
+        
+        if (DEBUG.UNDO) System.out.print("UNDO: " + e);
         String propName = e.getWhat();
         LWComponent c = e.getComponent(); // can be list...
         Object oldValue = e.getOldValue();
         if (oldValue != null) {
-            if (DEBUG.UNDO) System.out.println("\t   got old value " + oldValue);
+            // if (DEBUG.UNDO) System.out.println("\t given old value " + oldValue);
             Map propList = (Map) mPropertyChanges.get(c);
             if (propList != null) {
-                if (DEBUG.UNDO) System.out.println("\tfound existing component");
+                //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
                 Object value = propList.get(propName);
                 if (value != null) {
-                    if (DEBUG.UNDO) System.out.println("\tIGNORING: found existing property value: " + value);
+                    //if (DEBUG.UNDO) System.out.println("\tIGNORING: found existing property value: " + value);
+                    if (DEBUG.UNDO) System.out.println(" (compressed)");
                 } else {
                     propList.put(propName, oldValue);
-                    if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
+                    //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
+                    if (DEBUG.UNDO) System.out.println(" (stored)");
                 }
             } else {
                 propList = new HashMap();
                 propList.put(propName, oldValue);
                 mPropertyChanges.put(c, propList);
-                if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
+                //if (DEBUG.UNDO) System.out.println("\tstored old value " + oldValue);
+                if (DEBUG.UNDO) System.out.println(" (stored)");
             }
         } else {
-            if (DEBUG.UNDO) System.out.println("\tunhandled");
+            //if (DEBUG.UNDO) System.out.println("\tunhandled");
+            if (DEBUG.UNDO) System.out.println(" (unhandled)");
         }
     }
 
