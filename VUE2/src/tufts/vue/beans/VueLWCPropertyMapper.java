@@ -111,10 +111,14 @@ public class VueLWCPropertyMapper
         else if (key == LWKey.Location)         c.setLocation( (Point2D) val);
         else if (key == LWKey.Hidden)           c.setHidden( ((Boolean)val).booleanValue());
         else if (key == LWKey.Size) {
+            Size s = (Size) val;
+            c.setSize(s.width, s.height);
+        }
+        /*else if (key == LWKey.Size) {
             // Point2D used as Size2D for now
             Point2D.Float p = (Point2D.Float) val;
             c.setSize(p.x, p.y);
-        }
+            }*/
         else if (key == LWKey.Frame) {
             Rectangle2D.Float r = (Rectangle2D.Float) val;
             c.setFrame(r.x, r.y, r.width, r.height);
