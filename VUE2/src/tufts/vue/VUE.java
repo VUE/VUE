@@ -492,6 +492,8 @@ public class VUE
                 VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
                 ex.printStackTrace();
             }
+        } else {
+            pannerTool.setVisible(true);
         }
 
         if (splashScreen != null)
@@ -644,7 +646,8 @@ public class VUE
         // all over the place if there's isn't an active map (we could have
         // a dummy map as a reasonable hack to solve the problem so everybody
         // doesn't have to check for a null active map)
-        if (mMapTabsLeft.getTabCount() > 1 && askSaveIfModified(map)) {
+        //if (mMapTabsLeft.getTabCount() > 1 && askSaveIfModified(map)) {
+        if (askSaveIfModified(map)) {
             mMapTabsLeft.closeMap(map);
             mMapTabsRight.closeMap(map);
         }
@@ -724,7 +727,7 @@ public class VUE
             JButton r = new JButton(Actions.Redo);
             JButton p = new JButton(printAction);
             JButton v = new JButton(printAction);
-            v.setLabel("Print View");
+            v.setText("Print View");
             
             u.setBackground(Color.white);
             r.setBackground(Color.white);
@@ -751,7 +754,7 @@ public class VUE
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
-        fileMenu.add(printAction).setLabel("Print View...");
+        fileMenu.add(printAction).setText("Print View...");
         fileMenu.add(publishAction);
         //fileMenu.add(exportMenu);
         fileMenu.addSeparator();

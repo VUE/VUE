@@ -30,7 +30,7 @@ public class VueAction extends javax.swing.AbstractAction
             putValue(SHORT_DESCRIPTION, shortDescription);
         if (keyStroke != null)
             putValue(ACCELERATOR_KEY, keyStroke);
-        if (DEBUG.Enabled) System.out.println("Constructed: " + this);
+        //if (DEBUG.Enabled) System.out.println("Constructed: " + this);
     }
     public VueAction(String name, KeyStroke keyStroke) {
         this(name, null, keyStroke, null);

@@ -322,7 +322,7 @@ public class LWMap extends LWContainer
             }
         }
         if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
-            dc.g.setColor(java.awt.Color.red);
+            dc.g.setColor(java.awt.Color.green);
             dc.setAbsoluteStrokeWidth(1);
             dc.g.draw(getBounds());
         }
