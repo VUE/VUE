@@ -138,6 +138,12 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         
         //  If this is not a PC environment, drive letters won't likely work, so try to
         //  open a Unix root, "/".  This is likely to work for Mac OS-X as well.
+        
+        // 2004-10-11 SMF: If this is Mac OS X, we should grab the items
+        // in /Volumes, which is all mounted drives (including network), and
+        // a symlink to /, named as whatever the user wanted to name their hard-drive
+        // (e.g., "Macintosh HD")
+        
         if (rootCabinets.size() == 0) {
             File file = new File ("/");
             if (file.exists()) {
