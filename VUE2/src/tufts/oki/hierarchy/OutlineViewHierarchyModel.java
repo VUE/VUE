@@ -359,6 +359,10 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             for (Iterator i = childrenList.iterator(); i.hasNext();)
                 deleteHierarchyTreeNode((LWContainer)e.getSource(), (LWComponent)i.next());
         }
+        else if (message == LWKey.HierarchyChanged)
+        {
+            System.err.println(this + " needs to rebuild child list from scratch for " + e.getSource());
+        }
     }
     
     /**A method that creates a hierarch node with a given parent and the given LWComponent*/
