@@ -10,7 +10,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         pdf = {".pdf"},
         html = {".html", ".htm"},
         imap = {".imap"}, 
-        vue = {".vue", ".xml"};
+        vue = {".vue", ".xml"},
+        zip = {".zip"};
     private String[] extensions;
     private String description;
     
@@ -37,6 +38,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         else if (description.equals("vue") || description.equals("xml")) {
             extensions = vue;
             description = "VUE Files";
+        } else if (description.equals("zip")) {
+            this.extensions = zip;
         }
     }
     
