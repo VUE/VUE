@@ -204,15 +204,6 @@ public class MapViewer extends javax.swing.JPanel
         //setFont(VueConstants.DefaultFont);
         loadMap(map);
 
-        //-------------------------------------------------------
-        // If this map was just restored, there might
-        // have been an existing userZoom or userOrigin
-        // set -- we honor that last user configuration here.
-        //-------------------------------------------------------
-        setZoomFactor(getMap().getUserZoom());
-        Point2D p = getMap().getUserOrigin();
-        setMapOriginOffset(p.getX(), p.getY());
-            
         // we repaint any time the global selection changes
         VUE.ModelSelection.addListener(this);
 
@@ -243,6 +234,15 @@ public class MapViewer extends javax.swing.JPanel
         //add(scrollPane, BorderLayout.CENTER);
         
         /*End*/
+
+        //-------------------------------------------------------
+        // If this map was just restored, there might
+        // have been an existing userZoom or userOrigin
+        // set -- we honor that last user configuration here.
+        //-------------------------------------------------------
+        setZoomFactor(getMap().getUserZoom());
+        Point2D p = getMap().getUserOrigin();
+        setMapOriginOffset(p.getX(), p.getY());
     }
     
     
@@ -328,6 +328,7 @@ public class MapViewer extends javax.swing.JPanel
         this.mapOriginY = screenY;
         getMap().setUserOrigin(screenX, screenY);
         new MapViewerEvent(this, MapViewerEvent.PAN).raise();
+        repaint();
     }
     public void setMapOriginOffset(double screenX, double screenY) {
         setMapOriginOffset((float) screenX, (float) screenY);
@@ -455,8 +456,8 @@ public class MapViewer extends javax.swing.JPanel
     {
         this.zoomFactor = zoomFactor;
         getMap().setUserZoom(zoomFactor);
-        new MapViewerEvent(this, MapViewerEvent.ZOOM).raise();
         repaint();
+        new MapViewerEvent(this, MapViewerEvent.ZOOM).raise();
     }
                     
     public double getZoomFactor()
@@ -776,7 +777,6 @@ public class MapViewer extends javax.swing.JPanel
      * because we don't actually know the component sizes
      * until they're rendered (e.g., font metrics taken into
      * account, etc). todo: have only in LWMap
-     * @deprecated
      */
     public Rectangle2D getAllComponentBounds()
     {
@@ -2314,7 +2314,6 @@ public class MapViewer extends javax.swing.JPanel
             } else {
                 setMapOriginOffset(originAtDragStart.getX() + dx,
                                    originAtDragStart.getY() + dy);
-                repaint();
             }
         }
 
