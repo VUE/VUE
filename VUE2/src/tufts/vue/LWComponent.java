@@ -1516,9 +1516,9 @@ public class LWComponent
             if (e.getSource() == l) // this prevents events from going back to their source
                 continue;
             sEventDepth++;
-            if (DEBUG.EVENTS)
-                outln(l.toString());
             try {
+                if (DEBUG.EVENTS)
+                    outln(l + "");
                 //-------------------------------------------------------
                 // deliver the event
                 //-------------------------------------------------------
