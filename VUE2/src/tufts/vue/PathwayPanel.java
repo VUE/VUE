@@ -681,6 +681,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
     public void setCurrentPathway(LWPathway pathway)
     {
+        if (DEBUG.PATHWAY) System.out.println(this + " setCurrentPathway " + pathway);
         //if(this.getPathwayManager() != null)
         //    this.getPathwayManager().setCurrentPathway(pathway);
         getTableModel().setCurrentPathway(pathway);
@@ -692,7 +693,9 @@ public class PathwayPanel extends JPanel implements   ActionListener,
               pathway.getFirst();
         }       
         
-        updateEnabledStates(); 
+        // would be better to wait till we get a callback to do these:
+        updateEnabledFromSelection();
+        updateEnabledStates();
     }
     
     
@@ -702,6 +705,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     }
     
     /** PathwayTable still calling this */
+    // GET RID OF THIS & elemSelection (it's depending on it being set also)
     private void updateAddElementEnabled(){
         //System.out.println("selection: " + this.elemSelection);
         //SMF if(this.elemSelection && !getTableModel().getCurrentPathway().isLocked())
@@ -805,7 +809,8 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         VUE.getActiveMap().getPathwayList().remove(oldPathway);
     }
     
-    public void updateLabels(String text, String notes, LWPathway path, LWComponent comp){
+    /** For PathwayTable */
+    void updateLabels(String text, String notes, LWPathway path, LWComponent comp){
         pathLabel.setText(text);   
         pathLabel.repaint();
         
@@ -816,14 +821,6 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         dispComp = comp;
     }
 
-    /*
-    public void tableChanged(javax.swing.event.TableModelEvent tableModelEvent) {
-        System.out.println(this + " " + e);
-        updateEnabledStates();
-        this.repaint();
-    }
-    */
-    
     public void mapViewerEventRaised(MapViewerEvent e) {
         if ((e.getID() & MapViewerEvent.DISPLAYED) != 0){
             if (DEBUG.PATHWAY) System.out.println(this + " got " + e + " updating...");
