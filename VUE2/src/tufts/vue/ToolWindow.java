@@ -76,7 +76,12 @@ public class ToolWindow extends JWindow
                 }
             });
         */
+    }
 
+    public void setVisible(boolean show) {
+        if (show && isRolledUp())
+            setRolledUp(false);
+        super.setVisible(show);
     }
 
     /** look for a tabbed pane within us with the given title, and select it */
