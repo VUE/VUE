@@ -188,7 +188,7 @@ class MapDropTarget
                 if (hitComponent != null && fileList.size() == 1) {
                     hitComponent.setResource(file.toString());
                 } else {
-                    createNewNode(file.toString(), file.getName(), new java.awt.Point(x, y));
+                    createNewNode("file:///"+file.toString(), file.getName(), new java.awt.Point(x, y));
                     x += 15;
                     y += 15;
                 }
