@@ -232,4 +232,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             return this;
         }
     }
+
+    public String toString() {
+        return getClass().getName() + "@" + Integer.toHexString(hashCode());
+    }
 }

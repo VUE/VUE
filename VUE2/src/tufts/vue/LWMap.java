@@ -261,6 +261,7 @@ public class LWMap extends LWContainer
     public void setUserZoom(double zoom)
     {
         this.userZoom = zoom;
+        //notify("userZoom");//todo perf: mapviewer may be doing needless repaints
     }
     /** for persistance */
     public double getUserZoom()
@@ -363,7 +364,7 @@ public class LWMap extends LWContainer
 
     public String paramString()
     {
-        return super.paramString() + " file=" + this.file;
+        return super.paramString() + " <" + this.file + ">";
     }
     
 

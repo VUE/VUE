@@ -401,10 +401,7 @@ class Actions {
         {
             boolean mayModifySelection() { return true; }
             void act(LWComponent c) {
-                //have to update pathways - jay briedis
-                // TODO: this is the WAY WAY wrong place to do this -- SMF
-                // the pathway should listen for for deletions among it's elements --
-                // it's going to miss all sorts of deletions this way.
+                //have to update pathways - jay briedis (remove this code and add listeners in pathway instead --SMF)
                 Iterator iter = VUE.getActiveViewer()
                     .getMap()
                     .getPathwayManager()
@@ -428,15 +425,22 @@ class Actions {
                     }
                 }
 
-                // TODO BUG: if both parent & child in selection for deletion,
-                // we run into trouble.
                 LWContainer parent = c.getParent();
-                if (parent == null)
+                if (parent == null) {
                     // right now this can happen because links are auto-deleted if
                     // both their endpoints are deleted
-                    System.err.println("null parent in delete of " + c + " (already deleted)");
-                else
+                    System.out.println("DELETE: " + c + " null parent (already deleted)");
+                } else if (c.isDeleted()) {
+                    // right now this can happen because links are auto-deleted if
+                    // both their endpoints are deleted
+                    System.out.println("DELETE: " + c + " (already deleted)");
+                } else if (parent.isDeleted()) {
+                    System.out.println("DELETE: " + c + " (parent already deleted)");
+                } else if (parent.isSelected()) { // if parent selected, it will delete it's children
+                    System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
+                } else {
                     parent.deleteChildPermanently(c);
+                }
             }
         };
 

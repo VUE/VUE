@@ -307,6 +307,8 @@ public final class LWGroup extends LWContainer
         java.util.ListIterator i = children.listIterator(children.size());
         while (i.hasPrevious()) {
             LWComponent c = (LWComponent) i.previous();
+            if (c.isHidden())
+                continue;
             if (c.contains(mapX, mapY))
                 return this;
         }

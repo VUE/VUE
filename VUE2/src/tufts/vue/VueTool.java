@@ -248,38 +248,25 @@ public abstract class VueTool extends AbstractAction
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) { return false; }
     
-    public boolean handleMousePressed(MapMouseEvent e)
-    {
+    public boolean handleMousePressed(MapMouseEvent e) {
         if (debug) System.out.println(this + " handleMousePressed " + e);
         return false;
     }
-    
-    public boolean handleMouseDragged(MapMouseEvent e)
-    {
+    public boolean handleMouseDragged(MapMouseEvent e) {
         //System.out.println(this + " handleMouseDragged " + e);
         return false;
     }
-
-    public boolean handleMouseReleased(MapMouseEvent e)
-    {
+    public boolean handleMouseReleased(MapMouseEvent e) {
         if (debug) System.out.println(this + " handleMouseReleased " + e);
         return false;
     }
-    
-    //public void handleMouseClicked(java.awt.event.MouseEvent e, LWComponent hitComponent)
-    public void handleMouseClicked(MapMouseEvent e)
-    {
+    public void handleMouseClicked(MapMouseEvent e) {
         if (debug) System.out.println(this + " handleMouseClicked " + e);
-        //System.out.println(this + " handleMouseClicked on " + hitComponent);
     }
-
     public void handleDragAbort() {}
 
-
-    //public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
-    public boolean handleSelectorRelease(MapMouseEvent e)
-    {
-        System.err.println("VueTool: Unhandled selector release in " + this);
+    public boolean handleSelectorRelease(MapMouseEvent e) {
+        if (debug) System.out.println(this + " handleSelectorRelease " + e);
         return false;
     }
 	

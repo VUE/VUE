@@ -710,7 +710,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         // ignore events from ourself: they're there only
         // to notify any other map viewers listenting to this map.
-        if (e.getSource() == this)
+        if (e.getSource() == this || e.getSource() == this.inputHandler)
             return;
         if (paintedSelectionBounds != null) {
             // this will handle any size shrinkages -- old selection bounds
@@ -3080,7 +3080,7 @@ public class MapViewer extends javax.swing.JComponent
             // don't sent event notifications for location & size changes
             // for performance)
             if (mouseWasDragged)
-                getMap().notifyLWCListeners(new LWCEvent(this, getMap(), "repaint"));
+                getMap().notifyLWCListeners(new LWCEvent(MapViewer.this, getMap(), "repaint"));
 
             //-------------------------------------------------------
             // reset all in-drag only state

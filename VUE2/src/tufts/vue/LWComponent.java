@@ -144,12 +144,6 @@ public class LWComponent
     
     public void setNotes(String notes)
     {
-        // tmp hack to workaround NotePanel bugs
-        if (this.links == null) {
-            new Throwable("*** ATTEMPT TO SET NOTES ON A DELETED LWC " + this).printStackTrace();
-            return;
-        }
-        
         if (notes == null) {
             this.notes = null;
         } else {
@@ -162,12 +156,15 @@ public class LWComponent
         layout();
         notify("notes");
     }
+
+    // todo: setMetaData still relevant?
     public void setMetaData(String metaData)
     {
         this.metaData = metaData;
         layout();
         notify("meta-data");
     }
+    // todo: setCategory still relevant?
     public void setCategory(String category)
     {
         this.category = category;
@@ -386,7 +383,7 @@ public class LWComponent
      */
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
-    protected transient boolean displayed = true;
+    protected transient boolean hidden = true;
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
     protected transient boolean rollover = false;
@@ -758,10 +755,13 @@ public class LWComponent
     public List getAllLinks() {
         return getLinks();
     }
-    
+
+    /*
+      why was this here??
     public void setLinks(List links){
         this.links = links;
     }
+    */
 
     public LWLink getLinkTo(LWComponent c)
     {
@@ -1113,11 +1113,17 @@ public class LWComponent
     }
     public void notifyLWCListeners(LWCEvent e)
     {
+        if (isDeleted())
+            throw new IllegalStateException("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
+                                            + "\n\tdeleted=" + this
+                                            + "\n\tattempted notification=" + e);
+
         if (listeners != null) {
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext()) {
                 Listener l = (Listener) i.next();
                 if (DEBUG_EVENTS) System.out.println(e + " -> " + l);
+                //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
                 try {
                     l.LWCChanged(e);
                 } catch (Exception ex) {
@@ -1161,6 +1167,13 @@ public class LWComponent
     {
         notifyLWCListeners(new LWCEvent(this, componentList, what));
     }
+
+    public boolean isDeleted()
+    {
+        // links nulled only after removeFromModel, so it's a marker
+        // for a deleted component
+        return this.links == null;
+    }
     
     /**
      * Do any cleanup needed now that this LWComponent has
@@ -1168,6 +1181,8 @@ public class LWComponent
      */
     protected void removeFromModel()
     {
+        if (isDeleted())
+            throw new IllegalStateException("Attempt to delete already deleted: " + this);
         removeAllLWCListeners();
         disconnectFromLinks();
         // help gc
@@ -1193,13 +1208,13 @@ public class LWComponent
         return this.selected;
     }
     
-    public void setDisplayed(boolean displayed)
+    public void setHidden(boolean hidden)
     {
-        this.displayed = displayed;
+        this.hidden = hidden;
     }
-    public boolean isDisplayed()
+    public boolean isHidden()
     {
-        return this.displayed;
+        return this.hidden || isFiltered();
     }
 
     public void setIndicated(boolean indicated)

@@ -367,6 +367,8 @@ public abstract class LWContainer extends LWComponent
     /**
      * Remove any children in this iterator from this container.
      * Items not already children of this container are ignored.
+     * Children will be left as orphans -- up to caller what
+     * to do with those.
      */
     public void removeChildren(Iterator i)
     {
@@ -394,7 +396,7 @@ public abstract class LWContainer extends LWComponent
      */
     public void deleteChildPermanently(LWComponent c)
     {
-        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING " + c);
+        if (true||DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
         c.notify("deleting");
         removeChild(c);
         // note that parents of c will not get this event as
@@ -405,6 +407,9 @@ public abstract class LWContainer extends LWComponent
 
     protected void removeFromModel()
     {
+        //removeChildren(getChildIterator());
+        //actually -- lets leave children intact -- but what if they're selected?
+
         super.removeFromModel();
         if (this.children == VUE.ModelSelection) // todo: tmp debug
             throw new IllegalStateException("attempted to delete selection");
@@ -501,6 +506,8 @@ public abstract class LWContainer extends LWComponent
         // components are at end
         for (ListIterator i = children.listIterator(children.size()); i.hasPrevious();) {
             LWComponent c = (LWComponent) i.previous();
+            if (c.isHidden())
+                continue;
             if (c instanceof LWLink && ((LWLink)c).getControlCount() > 0) {
                 curvedLinks.add(c);
                 continue;
@@ -549,6 +556,8 @@ public abstract class LWContainer extends LWComponent
         for (ListIterator i = children.listIterator(children.size()); i.hasPrevious();) {
             LWComponent c = (LWComponent) i.previous();
             if (c == excluded)
+                continue;
+            if (c.isHidden())
                 continue;
             if (c instanceof LWLink && ((LWLink)c).getControlCount() > 0) {
                 curvedLinks.add(c);
@@ -643,6 +652,8 @@ public abstract class LWContainer extends LWComponent
             java.util.ListIterator i = children.listIterator(children.size());
             while (i.hasPrevious()) {
                 LWComponent c = (LWComponent) i.previous();
+                if (c.isHidden())
+                    continue;
                 if (!(c instanceof LWNode))
                     continue;
                 //if (c != excluded && c.contains(mapX, mapY)) {
@@ -668,13 +679,13 @@ public abstract class LWContainer extends LWComponent
     {
         // todo opt: has to on avg scan half of list every time
         // (will slow down selection in checks to enable front/back actions)
-        return children.indexOf(c) == children.size()-1;
+        return getIndex(c) == children.size()-1;
     }
     public boolean isOnBottom(LWComponent c)
     {
         // todo opt: has to on avg scan half of list every time
         // (will slow down selection in checks to enable front/back actions)
-        return children.indexOf(c) == 0;
+        return getIndex(c) == 0;
     }
 
     public int getLayer(LWComponent c)
@@ -683,6 +694,10 @@ public abstract class LWContainer extends LWComponent
     }
     private int getIndex(Object c)
     {
+        if (children == null)
+            throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
+                                            + "\n\tdeleted parent=" + this
+                                            + "\n\tseeking index of child=" + c);
         return children.indexOf(c);
     }
         
@@ -904,7 +919,7 @@ public abstract class LWContainer extends LWComponent
                 // difference.
                 // -------------------------------------------------------
                 
-                if (c.isDisplayed() && c.intersects(clipBounds)) {
+                if (!c.isHidden() && c.intersects(clipBounds)) {
                     _drawChild(dc, c);
                     if (MapViewer.DEBUG_PAINT) { // todo: remove MapViewer reference
                         if (c instanceof LWLink) links++;
@@ -979,7 +994,7 @@ public abstract class LWContainer extends LWComponent
     public String paramString()
     {
         if (children != null)
-            return super.paramString() + " nChild=" + children.size();
+            return super.paramString() + " chld=" + children.size();
         else
             return super.paramString();
             
