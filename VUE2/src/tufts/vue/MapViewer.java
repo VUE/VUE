@@ -4255,7 +4255,7 @@ public class MapViewer extends javax.swing.JComponent
                 }
 
                 float scaleX = (float) dScaleX;
-                float scaleY = (float) dScaleX;
+                float scaleY = (float) dScaleY;
                 
                 //-------------------------------------------------------
                 // Don't try to reposition child nodes -- they're parents
