@@ -145,15 +145,6 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
 
-        c.gridx=0;
-        c.gridy=1;
-        c.gridwidth=3;
-        c.insets = new Insets(10, 2,2, 2);
-        //keywords.setPreferredSize(new Dimension(120,20));
-        keywords.addKeyListener(this);
-        gridbag.setConstraints(keywords, c);
-        DRSearchPanel.add(keywords);
-        
       
         
         
