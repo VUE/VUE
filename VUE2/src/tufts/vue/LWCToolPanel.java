@@ -121,6 +121,10 @@ public class LWCToolPanel extends JPanel
          //else box.setBackground(bakColor);
          mBox.setBackground(bakColor);
          //this.setAlignmentX( LEFT_ALIGNMENT);
+
+         // Note: oddly, in Mac Aqua L&F, if we set the button icon
+         // (MenuButton.setButtonIcon) during init, we get a rounded
+         // button.  If we don't, we get a square button!
  		
          //-------------------------------------------------------
          // Fill Color menu

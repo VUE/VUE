@@ -304,6 +304,8 @@ public class VUE
                 nodr = true;
             else if (args[i].equals("-mac"))
                 useMacLAF = true;
+            else if (args[i].equals("-debug_init"))
+                DEBUG.INIT = true;
         }
     }
     

@@ -26,6 +26,7 @@ import java.util.*;
 import java.io.*;
 import java.beans.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 
 
@@ -54,7 +55,6 @@ public class FontEditorPanel extends Box
     /** the property name **/
     private Object mPropertyKey = LWKey.Font;
  	
-    private static final boolean debug = false;
     private static final Insets NoInsets = new Insets(0,0,0,0);
     private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
     private static final int VertSqueeze = 5;
@@ -64,31 +64,33 @@ public class FontEditorPanel extends Box
 	super(BoxLayout.X_AXIS);
 
         setFocusable(false);
-        if (debug) setBackground(Color.blue);
         
         //Box box = Box.createHorizontalBox();
-        /*
         // we set this border only to create a gap around these components
         // so they don't expand to 100% of the height of the region they're
         // in -- okay, that's not good enough -- will have to find another
         // way to constrain the combo-box.
-
-        if (debug)
-        setBorder(new javax.swing.border.LineBorder(Color.pink, VertSqueeze));
+        /*
+        if (true)
+            setBorder(new LineBorder(Color.pink, VertSqueeze));
         else
-        setBorder(new javax.swing.border.EmptyBorder(VertSqueeze,1,VertSqueeze,1));//t,l,b,r
+            setBorder(new EmptyBorder(VertSqueeze,1,VertSqueeze,1));//t,l,b,r
         */
 
         mFontCombo = new JComboBox(getFontNames());
         mFontCombo.addActionListener(this);
         Font f = mFontCombo.getFont();
-        Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
+        Font menuFont = f.deriveFont((float) f.getSize()-2);        
         mFontCombo.setFont(menuFont);
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
-        //Dimension comboSize = mFontCombo.getPreferredSize();
-        //comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
-        //mFontCombo.setMaximumSize(comboSize);
-
+        if (false) {
+            Dimension comboSize = mFontCombo.getPreferredSize();
+            comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
+            mFontCombo.setMaximumSize(comboSize);
+        }
+        if (VueUtil.isMacAquaLookAndFeel())
+            mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
+        
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
         //mFontCombo.setMaximumSize(new Dimension(50,50)); // no effect
@@ -98,9 +100,6 @@ public class FontEditorPanel extends Box
         //mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
         
         mSizeField = new JComboBox(sFontSizes);
-        //Dimension d = mSizeField.getPreferredSize();
-        //d.height += 2;
-        //mSizeField.setMaximumSize(d);
         mSizeField.setEditable(true);
         
         if (VueUtil.isMacAquaLookAndFeel()) {
@@ -137,7 +136,7 @@ public class FontEditorPanel extends Box
         
         mSizeField.addActionListener( this);
         f = mSizeField.getFont();
-        Font sizeFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
+        Font sizeFont = f.deriveFont((float) f.getSize()-2);        
         mSizeField.setFont( sizeFont);
         //mSizeField.setMaximumSize(mSizeField.getPreferredSize());
         //mSizeField.setBackground(VueTheme.getVueColor());
@@ -186,6 +185,12 @@ public class FontEditorPanel extends Box
 
     public void addNotify()
     {
+        if (VueUtil.isMacAquaLookAndFeel()) {
+            // font size edit box asymmetrically tall if left to default
+            Dimension d = mSizeField.getPreferredSize();
+            d.height += 1;
+            mSizeField.setMaximumSize(d);
+        }
         
         /* still to risky
         Dimension comboSize = mFontCombo.getPreferredSize();

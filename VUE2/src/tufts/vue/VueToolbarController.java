@@ -493,6 +493,7 @@ public class VueToolbarController
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
         DEBUG.Enabled = DEBUG.INIT = true;
+        DEBUG.TOOL = true;
         VUE.parseArgs(args);
         VUE.initUI(true);
 

@@ -208,7 +208,7 @@ implements ConceptMap//, Printable
         }
         setIsFiltered(false);
         mLWCFilter.setFilterOn(false);       
-        notify(LWKey.MapFilter,this);
+        notify(LWKey.MapFilter);
     }
     
     public  void applyFilter() {
@@ -238,7 +238,7 @@ implements ConceptMap//, Printable
             mLWCFilter.setFilterOn(true);
             setIsFiltered(true);
      
-        notify(LWKey.MapFilter,this);
+        notify(LWKey.MapFilter);
     }
     
     /**
