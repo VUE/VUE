@@ -227,8 +227,8 @@ implements  VUE.ActiveMapListener {
             metaDataLabelPanel.add(new JLabel("Metadata"));
             innerPanel.add(metaDataLabelPanel);
             propertiesEditor = new PropertiesEditor(true);
-            JPanel metadataPanel = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
-            metadataPanel.add(propertiesEditor);
+            JPanel metadataPanel = new JPanel(new BorderLayout());
+            metadataPanel.add(propertiesEditor,BorderLayout.WEST);
             innerPanel.add(metadataPanel);
             //innerPanel.add(mInfoScrollPane,BorderLayout.CENTER);
             mInfoScrollPane.getViewport().add( innerPanel);
@@ -237,7 +237,6 @@ implements  VUE.ActiveMapListener {
             setLayout(new BorderLayout());
             setBorder( new EmptyBorder(4,4,4,4) );
             add(innerPanel,BorderLayout.NORTH);
-            add(innerPanel);
             addFocusListener(this);
         }
         
