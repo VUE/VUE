@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.30 $ / $Date: 2005-01-14 01:33:40 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.30 2005-01-14 01:33:40 sfraize Exp $ -->
+<!-- $Revision: 1.31 $ / $Date: 2005-01-14 01:47:18 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.31 2005-01-14 01:47:18 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -477,10 +477,10 @@
 
   <target name="clean"
           description="Delete all build and intermediate files, leaving only the sources.">
-    <delete dir="${build.home}" failonerror="no"/>
-    <delete file="VUE-core.jar" failonerror="no"/>
-    <delete file="VUE-lib.jar"  failonerror="no"/>
-    <delete file="VUE-lib-minimal.jar" failonerror="no"/>
+    <delete dir="${build.home}"/>
+    <delete file="VUE-core.jar"/>
+    <delete file="VUE-lib.jar"/>
+    <delete file="VUE-lib-minimal.jar"/>
   </target>
 
   <target name="clean-emacs">
