@@ -159,10 +159,11 @@ public class DataSource {
 
             VueDragTree fileTree = new VueDragTree (cabVector.iterator(), displayName);
             JPanel remotePanel = new JPanel();
-            JScrollPane rSP = new JScrollPane (fileTree);
+            JScrollPane rSP = new JScrollPane(fileTree);
             remotePanel.setMinimumSize(new Dimension(300,100));
             remotePanel.setLayout(new BorderLayout());
-            remotePanel.add(rSP,BorderLayout.CENTER);
+            remotePanel.add(rSP,BorderLayout.CENTER,1);
+            remotePanel.validate();
             this.resourceViewer = remotePanel;
         }
 

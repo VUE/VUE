@@ -56,6 +56,7 @@ public class DataSourceViewer  extends JPanel{
     AbstractAction editAction; 
     AbstractAction deleteAction;
     AbstractAction saveAction;
+    AbstractAction refreshAction;
     
     final static String XML_MAPPING =  VueResources.getURL("mapping.lw").getFile();
 
@@ -121,19 +122,21 @@ public class DataSourceViewer  extends JPanel{
         
          JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
          topPanel.add(addButton);
-        topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,0));
+        //topPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 0);
+         topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,0));
          topPanel.add(deleteButton);
          topPanel.add(questionLabel);
-         topPanel.setMaximumSize(new Dimension(700,20));
+         topPanel.setMaximumSize(new Dimension(700,15));
         
          JPanel  dataSourcePanel = new JPanel();
          
          dataSourcePanel.setLayout(new BorderLayout());
          dataSourcePanel.add(topPanel,BorderLayout.NORTH);
          
+         
         JScrollPane jSP = new JScrollPane(dataSourceList);
         
-      
+          
         dataSourcePanel.add(jSP,BorderLayout.CENTER);
         add(dataSourcePanel,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
@@ -209,17 +212,20 @@ public class DataSourceViewer  extends JPanel{
                 saveDataSourceViewer();
             }
         };
+         refreshAction =  new AbstractAction("Refresh") {
+            public void actionPerformed(ActionEvent e) {
+                refreshDataSourceViewer();
+            }
+        };
         popup.add(addAction);
         popup.addSeparator();
         popup.add(editAction);
         popup.addSeparator();
         popup.add(deleteAction);
-        popup.addSeparator();
-        popup.add(saveAction);
-        
-        
-         
-       
+       // popup.addSeparator();
+       // popup.add(saveAction);
+         popup.addSeparator();
+        popup.add(refreshAction);
         
     }
     
@@ -859,6 +865,25 @@ public void addNewDataSource (String displayName, String name,String searchURL, 
             return true;
     }
 
+     public void refreshDataSourceViewer(){
+        
+         if (((DataSource)dataSourceList.getSelectedValue()).getType() == DataSource.FILING_LOCAL){
+             
+              DataSource ds = (DataSource)dataSourceList.getSelectedValue();
+             try{
+              ds.setViewer();        
+         
+             }
+            catch (Exception ex){System.out.println("Problem refreshing resource");} 
+             
+           setActiveDataSource(ds);
+             
+         }
+         
+         
+          
+    }
+    
     public static void saveDataSourceViewer(){
         
            if (dataSourceChanged){
