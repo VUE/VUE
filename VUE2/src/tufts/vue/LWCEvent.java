@@ -67,7 +67,10 @@ public class LWCEvent
     
     public LWComponent getComponent()
     {
-        return this.component;
+        if (component == null && components != null && components.size() > 0)
+            return (LWComponent) components.get(0);
+        else
+            return component;
     }
     
     public ArrayList getComponents()
