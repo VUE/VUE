@@ -517,11 +517,11 @@ public class Util
         // If tufts.macosx.Screen get's out of date, or
         // it's library is not included in the build, we'll
         // get a NoSuchMethodError
-        System.err.println(e + " tufts.macosx.Screen needs rebuild or VUE-MacOSX.jar library not in classpath");
+        System.err.println(e + ": tufts.macosx.Screen needs rebuild or VUE-MacOSX.jar library not in classpath");
     }
     private static void eout(NoClassDefFoundError e) {
         // We'll get this is /System/Library/Java isn't in the classpath
-        System.err.println(e + " Not Mac OS X Platform and/or /System/Library/Java not in classpath");
+        System.err.println(e + ": Not Mac OS X Platform or /System/Library/Java not in classpath");
     }
 
     public static void out(Object o) {
