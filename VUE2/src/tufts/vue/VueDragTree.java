@@ -81,19 +81,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
    
     private DefaultTreeModel createTreeModel(Object obj, String treeName ){
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(treeName); 
-        if (obj instanceof AssetIterator){
-            AssetIterator i = (AssetIterator)obj;
-            try{
-                if(!i.hasNext()) {
-                    root.add(new DefaultMutableTreeNode("No hits"));
-                }else {
-                    do {
-                        root.add(new AssetNode(i.next()));
-                    }while (i.hasNext());
-                }   
-            }catch (Exception e){System.out.println("VueDragTree.createTreeModel"+e);}
-                      
-        } else if(obj instanceof Iterator){
+        if(obj instanceof Iterator){
             Iterator i = (Iterator)obj;
              while (i.hasNext()){
                 Object resource = i.next(); 
