@@ -79,7 +79,8 @@ class DragTree extends JTree implements DragGestureListener,
 	private DefaultTreeModel createTreeModel() {
 	DefaultMutableTreeNode baseroot = new DefaultMutableTreeNode("Mounted Devices");
            
-               File[] roots = File.listRoots();        
+        //File[] roots = File.listRoots();        
+        File[] roots = { new File("/"), new File("C:\\"), new File("D:\\") };
         for(int j=0;j<roots.length;j++)        
                  {            
                String  mountedDevice = roots[j].getAbsolutePath();        
