@@ -91,9 +91,13 @@ public class UndoManager
             while (ci.hasNext()) {
                 LWComponent child = (LWComponent) ci.next();
                 child.setDeleted(false); // in case had been deleted
-                child.setParent(parent);
+                if (parent instanceof LWPathway)
+                    ; // special case: todo something cleaner
+                else
+                    child.setParent(parent);
             }
             parent.setScale(parent.getScale());
+            parent.layout();
             parent.notify(LWKey.HierarchyChanging);
         }
 
@@ -195,11 +199,16 @@ public class UndoManager
             // massage the name of the property to produce a more human
             // presentable name for the undo action
             if (DEBUG.UNDO||DEBUG.EVENTS) name += "#" + mUndoActions.size() + " ";
-            String uaName = undoAction.name.replace('.', ' ');
-            if (Character.isLowerCase(uaName.charAt(0)))
-                uaName = Character.toUpperCase(uaName.charAt(0)) + uaName.substring(1);
-            name += uaName;
-            //if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + ua.propertyChanges.size() + ")";
+            String uName = undoAction.name;
+            if (uName.startsWith("hier."))
+                uName = uName.substring(5);
+            // Replace all '.' with ' ' and capitalize first letter of each word
+            String[] word = uName.split("\\.");
+            for (int i = 0; i < word.length; i++) {
+                if (Character.isLowerCase(word[i].charAt(0)))
+                    word[i] = Character.toUpperCase(word[i].charAt(0)) + word[i].substring(1);
+                name += word[i] + " ";
+            }
             if (DEBUG.UNDO||DEBUG.EVENTS) name += " (" + undoAction.propertyChangeCount + ")";
             Actions.Undo.setEnabled(true);
         } else {
@@ -299,7 +308,7 @@ if (true)return;
 
         recordUndoableChangeEvent(LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
         //new Undoable(old) { void undo() { parent.children = (ArrayList) old; } });        
-        
+        mLastEvent = e;
     }
     
     private void recordUndoablePropertyChangeEvent(LWCEvent e)

@@ -686,7 +686,7 @@ public class LWComponent
     
     void setParent(LWContainer c)
     {
-        LWContainer old = this.parent;
+        //LWContainer old = this.parent;
         this.parent = c;
         //if (this.parent != null) notify("set-parent", new Undoable(old) { void undo() { setParent((LWContainer)old); }} );
     }
@@ -866,6 +866,21 @@ public class LWComponent
         return this.scale;
         //return 1f;
     }
+
+    /**
+     * Tell all links that have us as an endpoint that we've
+     * moved or resized so the link knows to recompute it's
+     * connection points.
+     */
+    protected void updateConnectedLinks()
+    {
+        java.util.Iterator i = getLinkRefs().iterator();
+        while (i.hasNext()) {
+            LWLink l = (LWLink) i.next();
+            l.setEndpointMoved(true);
+        }
+    }
+    
     public void translate(float dx, float dy)
     {
         setLocation(this.x + dx,
@@ -885,63 +900,40 @@ public class LWComponent
         setLocation(x, y);
         setSize(w, h);
 
-        /* play with this optimization when things more stable
-        
-        Object old = new Rectangle2D.Float(x, y, w, h);
-        try {
-            setEventsSuspended();
-            setLocation(x, y);
-            setSize(w, h);
-        } finally {
-            setEventsResumed();
-        }
+        /*
+        Object old = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        setLocation0(x, y);
+        setSize0(w, h);
+        updateConnectedLinks();
         notify(LWKey.Frame, old);
-
         */
     }
 
-    /**
-     * Tell all links that have us as an endpoint that we've
-     * moved or resized so the link knows to recompute it's
-     * connection points.
-     */
-    protected void updateConnectedLinks()
-    {
-        java.util.Iterator i = getLinkRefs().iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
-            l.setEndpointMoved(true);
-        }
+    private boolean linkNotificationDisabled = false;
+    private void setLocation0(float x, float y) {
+        this.x = x;
+        this.y = y;
     }
     
-    private boolean linkNotificationDisabled = false;
     public void setLocation(float x, float y)
     {
         if (this.x == x && this.y == y)
             return;
         Object old = new Point2D.Float(this.x, this.y);
-        //System.out.println(this + " setLocation("+x+","+y+")");
-        this.x = x;
-        this.y = y;
+        setLocation0(x, y);
         if (!linkNotificationDisabled)
             updateConnectedLinks();
-        
-        notify(LWKey.Location, old); // todo: does anyone need this?
-        // also: if enable, don't forget to put in setX/getX!
+        notify(LWKey.Location, old); // todo perf: does anyone need this except for undo?  lots of these during drags...
+        // todo: setX/getX should either handle undo or throw exception if used while not during restore
     }
-    
-    public void setLocation(double x, double y)
-    {
+    public void setLocation(double x, double y) {
         setLocation((float) x, (float) y);
     }
-
-    public void setLocation(Point2D p)
-    {
+    public void setLocation(Point2D p) {
         setLocation((float) p.getX(), (float) p.getY());
     }
     
-    public void setCenterAt(Point2D p)
-    {
+    public void setCenterAt(Point2D p) {
         setLocation((float) p.getX() - getWidth()/2,
                     (float) p.getY() - getHeight()/2);
     }
@@ -963,7 +955,7 @@ public class LWComponent
         return new Point2D.Float(getCenterX(), getCenterY());
     }
     
-    // todo: add a setUserSize which does the event notification --
+    // todo perf: add a setUserSize which does the event notification --
     // (for use in user drag resize -- and maybe fill-height &
     // fill-width) special case regular set-size not to do so as so
     // many actions will end up effecting the size of auto-sized
@@ -978,16 +970,24 @@ public class LWComponent
     // on LWComponent...
     
     /** set component to this many pixels in size */
+    public void setSize0(float w, float h)
+    {
+        if (this.width == w && this.width == h)
+            return;
+        if (DEBUG.LAYOUT) System.out.println("*** LWComponent setSize0 " + w + "x" + h + " " + this);
+        this.width = w;
+        this.height = h;
+    }
+    
+    /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
         if (this.width == w && this.width == h)
             return;
-        Object old = new Point2D.Float(w, h);
-        if (DEBUG.LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
-        this.width = w;
-        this.height = h;
+        Object old = new Point2D.Float(this.width, this.height);
+        setSize0(w, h);
         updateConnectedLinks();
-        notify(LWKey.Size, old); // todo: can we optimize this out?
+        notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
     /** set on screen visible component size to this many pixels in size -- used for user set size from
@@ -996,7 +996,9 @@ public class LWComponent
     public void setAbsoluteSize(float w, float h)
     {
         if (DEBUG.LAYOUT) System.out.println("*** LWComponent setAbsoluteSize " + w + "x" + h + " " + this);
+        //Object old = new Point2D.Float(this.width, this.height);
         setSize(w / getScale(), h / getScale());
+        //notify(LWKey.Size, old);
     }
 
     public float getX() { return this.x; }

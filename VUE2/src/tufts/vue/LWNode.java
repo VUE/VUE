@@ -321,14 +321,18 @@ public class LWNode extends LWContainer
     
     
     /** If true, compute node size from label & children */
-    public boolean isAutoSized()
-    {
+    public boolean isAutoSized() {
         return this.autoSized;
     }
-    public boolean setAutoSized(boolean tv)
+    public void setAutoSized(boolean tv)
     {
-        //System.out.println("AUTOSIZING=" + tv + " on " + this);
-        return this.autoSized = tv;
+        if (autoSized != tv) {
+            //Object old = autoSized ? Boolean.TRUE : Boolean.FALSE;
+            this.autoSized = tv;
+            //notify("node.autosized", new Undoable(old) { void undo(boolean b) { setAutoSized(b); }} );
+            // this is handled as a side-effect of setSize -- will only need
+            // this if we optimize setSize to by default be an internal non-event raising setter
+        }
     }
 
     /**

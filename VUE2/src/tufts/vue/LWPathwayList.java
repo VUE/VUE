@@ -103,8 +103,11 @@ public class LWPathwayList implements LWComponent.Listener
         p.setMap(getMap());
         mElements.add(p);
         setActivePathway(p);
-        LWCEvent e = new LWCEvent(this, p, "pathway.list.added");
+        LWCEvent e = new LWCEvent(this, p, "pathway.create", new Undoable(p) { void undo() { remove((LWPathway)old); }} );
+        // dispatch the event to map for it's listeners, particularly an undo manager if present
         getMap().notifyProxy(e);
+        // dispatch the event to any direct listeners of this LWPathwayList
+        // (such as the Pathway gui code)
         LWComponent.dispatchLWCEvent(this, mListeners, e);
         p.addLWCListener(this);
     }
@@ -121,7 +124,7 @@ public class LWPathwayList implements LWComponent.Listener
             throw new IllegalStateException(this + " didn't contain " + p + " for removal");
         if (mActive == p)
             setActivePathway(getFirst());
-        LWCEvent e = new LWCEvent(this, p, "pathway.list.deleted");
+        LWCEvent e = new LWCEvent(this, p, "pathway.delete", new Undoable(p) { void undo() { add((LWPathway)old); }} );
         getMap().notifyProxy(e);
         LWComponent.dispatchLWCEvent(this, mListeners, e);
     }

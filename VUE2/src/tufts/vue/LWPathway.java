@@ -143,6 +143,9 @@ public class LWPathway extends LWContainer
     public void addChildren(Iterator i)
     {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " addChildren " + VUE.getSelection());
+
+        notify(LWKey.HierarchyChanging);
+        
         ArrayList added = new java.util.ArrayList();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -167,7 +170,8 @@ public class LWPathway extends LWContainer
         if (added.size() > 0) {
             if (added.size() == 1)
                 setIndex(length()-1);
-            notify(LWKey.ChildrenAdded, added);
+            notify("hier.pathway.add", added);
+            //notify(LWKey.ChildrenAdded, added);
         }
     }
 
@@ -218,6 +222,9 @@ public class LWPathway extends LWContainer
     public void removeChildren(Iterator i)
     {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChildren " + VUE.getSelection());
+
+        notify(LWKey.HierarchyChanging);
+        
         ArrayList removed = new java.util.ArrayList();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -239,14 +246,20 @@ public class LWPathway extends LWContainer
                 setIndex(length() - 1);
             else
                 setIndex(mCurrentIndex);
-            notify(LWKey.ChildrenRemoved, removed);
+            notify("hier.pathway.remove", removed);
+            //notify(LWKey.ChildrenRemoved, removed);
         }
     }
     
-    private synchronized void remove(int index, boolean deleting) {
+    private synchronized void remove(int index, boolean deleting)
+    {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " remove index " + index + " deleting=" + deleting);
+
+        notify(LWKey.HierarchyChanging);
         LWComponent c = (LWComponent) children.remove(index);
+        
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removed " + c);
+
         if (length() == 0)
             mCurrentIndex = -1;
 
@@ -271,7 +284,8 @@ public class LWPathway extends LWContainer
             setIndex(mCurrentIndex);
 
         removingComponent = c; // todo: should be able to remove this now that we don't deliver events back to source
-        notify(LWKey.ChildRemoved, c);
+        notify("hier.pathway.remove", c);
+        //notify(LWKey.ChildRemoved, c);
         removingComponent = null;
     }
     

@@ -1298,9 +1298,10 @@ public class MapViewer extends javax.swing.JComponent
             // but the childRemoved event's component object is the whole map --
             // thus we'll repaint everything on every delete (or childAdded)
             return;
-        if (e.getWhat().startsWith("hier.child")) {
+        //if (e.getWhat().startsWith("hier.child")) {
+        if (e.getWhat().startsWith("hier.")) { // todo perf: figure out cases we can ignore
             // childAdded would clip if added outside edge
-            // of any existing components!
+            // of any existing components! (huh?)
             repaint();
             return;
         }
