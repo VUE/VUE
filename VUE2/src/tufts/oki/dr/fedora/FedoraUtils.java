@@ -44,7 +44,7 @@ public class FedoraUtils {
         java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
         String pValue = NOT_DEFINED;
         try {
-            FileInputStream fis = new FileInputStream(dr.getConfiguration().getPath());
+            FileInputStream fis = new FileInputStream(dr.getConfiguration().getPath().replaceAll("%20"," "));
             prefs.importPreferences(fis);
             pValue = prefs.get(pLookupKey,NOT_DEFINED);
             fis.close();
