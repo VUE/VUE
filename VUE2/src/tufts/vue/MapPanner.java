@@ -214,7 +214,7 @@ public class MapPanner extends javax.swing.JPanel
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-
+        
         if (mapViewer == null) {
             setViewer(VUE.getActiveViewer());//todo: remove
             // problem is at startup, somehow we no longer get an active viewer event
@@ -223,10 +223,21 @@ public class MapPanner extends javax.swing.JPanel
                 return;
         }
 
-        final MapViewer viewer = this.mapViewer;
+        final Rectangle pannerSize = new Rectangle(getSize());
+        pannerSize.width -= 1;
+        pannerSize.height -= 1;
+        paintViewerIntoRectangle(this, g, this.mapViewer, pannerSize);
+    }
+
+    public static void paintViewerIntoRectangle(Graphics g, final MapViewer viewer, final Rectangle pannerSize) {
+        paintViewerIntoRectangle(null, g, viewer, pannerSize);
+    }
+    
+    static void paintViewerIntoRectangle(MapPanner panner, Graphics g, final MapViewer viewer, final Rectangle paintRect)
+    {
 
         if (viewer.getVisibleWidth() < 1 || viewer.getVisibleHeight() < 1) {
-            out("nothing to paint"); 
+            System.out.println("paintViewerIntoRectangle: nothing to paint");
             return;
         }
 
@@ -254,13 +265,12 @@ public class MapPanner extends javax.swing.JPanel
          */
 
         final Point2D.Float offset = new Point2D.Float();
-        final Dimension pannerViewportSize = getSize();
-        pannerViewportSize.width -= 1;
-        pannerViewportSize.height -= 1;
-        this.zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
-                                                  DEBUG.MARGINS ? 0 : MapMargin,
-                                                  pannerRect,
-                                                  offset);
+        double zoomFactor = ZoomTool.computeZoomFit(paintRect.getSize(),
+                                                    DEBUG.MARGINS ? 0 : MapMargin,
+                                                    pannerRect,
+                                                    offset);
+        if (panner != null)
+            panner.zoomFactor = zoomFactor;
                                             
         /*
          * Construct a DrawContext to use in painting the entire
@@ -287,6 +297,7 @@ public class MapPanner extends javax.swing.JPanel
         // need to offset fill, so can't just use existing canvasRect
         final Rectangle2D canvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
         dc.g.setColor(viewer.getBackground());
+        // round size of canvas down...
         dc.g.fill(canvas);
         
         /*
@@ -304,6 +315,8 @@ public class MapPanner extends javax.swing.JPanel
         dc.g.setColor(Color.red);
         dc.g.draw(viewerRect);
     }
+
+    
 
     public void mouseClicked(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
     public void mouseEntered(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
