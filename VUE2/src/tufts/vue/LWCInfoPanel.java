@@ -42,8 +42,8 @@ ActionListener {
     
     private void setUpMetadataPane() {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
-        metadataPane.setLayout(layout);
-        metadataPane.add(resourceMetadataPanel);
+        metadataPane.setLayout(new BorderLayout());
+        metadataPane.add(resourceMetadataPanel,BorderLayout.WEST);
         
     }
     
@@ -86,12 +86,7 @@ ActionListener {
             container.add(field);
             
             
-            field  = new JLabel("Metadata");
-            c.gridwidth = GridBagConstraints.REMAINDER;     //end row
-            c.fill = GridBagConstraints.HORIZONTAL;
-            c.anchor = GridBagConstraints.WEST;
-            gridbag.setConstraints(field, c);
-            container.add(field);
+            
             if (readOnly) {
                 field.setBorder(new EmptyBorder(1,1,1,1));
                 if (field instanceof JTextField) {
@@ -103,6 +98,12 @@ ActionListener {
                     field.setBackground(SystemColor.control);
             }
         }
+        JLabel field  = new JLabel("Metadata");
+        c.gridwidth = GridBagConstraints.REMAINDER;     //end row
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.WEST;
+        gridbag.setConstraints(field, c);
+        container.add(field);
     }
     
     
@@ -178,7 +179,7 @@ ActionListener {
                 else
                     propertiesEditor = new PropertiesEditor(c.getResource().getProperties(), true);
                 resourceMetadataPanel = propertiesEditor;
-                metadataPane.add(resourceMetadataPanel);
+                metadataPane.add(resourceMetadataPanel,BorderLayout.WEST);
             }
         } else {
             if(c.getResource() != null && c.getResource().getProperties() != null) {
