@@ -222,6 +222,12 @@ public class LWMap extends LWContainer
         return rect;
     }
 
+    public String paramString()
+    {
+        return super.paramString() + " file=" + this.file;
+    }
+    
+
     /*public Dimension getSize()
     {
         return new Dimension(getWidth(), getHeight());
