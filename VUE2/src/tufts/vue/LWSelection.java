@@ -1,6 +1,8 @@
 package tufts.vue;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 
@@ -11,6 +13,8 @@ public class LWSelection extends java.util.ArrayList
     private java.util.List listeners = new java.util.ArrayList();
     private java.util.List controlListeners = new java.util.LinkedList();
     private Rectangle2D bounds = null;
+
+    private boolean isClone = false;
     
     public interface Listener extends java.util.EventListener {
         void selectionChanged(LWSelection selection);
@@ -83,6 +87,8 @@ public class LWSelection extends java.util.ArrayList
 
     private void notifyListeners()
     {
+        if (isClone) throw new IllegalStateException("LWSelection: clone's can't notify listeners! " + this);
+        
         Iterator i = listeners.iterator();
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
@@ -154,10 +160,10 @@ public class LWSelection extends java.util.ArrayList
         if (DEBUG_SELECTION) System.out.println("LWSelection: adding " + c);
         
         if (!c.isSelected()) {
-            c.setSelected(true);
+            if (!isClone) c.setSelected(true);
             bounds = null;
             super.add(c);
-            if (c instanceof ControlListener)
+            if (!isClone && c instanceof ControlListener)
                 addControlListener((ControlListener)c);
         } else
             throw new RuntimeException("LWSelection: attempt to add already selected component " + c);
@@ -172,8 +178,8 @@ public class LWSelection extends java.util.ArrayList
     private void remove0(LWComponent c)
     {
         if (DEBUG_SELECTION) System.out.println("LWSelection: removing " + c);
-        c.setSelected(false);
-        if (c instanceof ControlListener)
+        if (!isClone) c.setSelected(false);
+        if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
         bounds = null;
         if (!super.remove(c))
@@ -202,10 +208,13 @@ public class LWSelection extends java.util.ArrayList
         if (isEmpty())
             return false;
         if (DEBUG_SELECTION) System.out.println("LWSelection clear " + this);
-        java.util.Iterator i = iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setSelected(false);
+
+        if (!isClone) {
+            java.util.Iterator i = iterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                c.setSelected(false);
+            }
         }
         controlListeners.clear();
         bounds = null;
@@ -270,7 +279,7 @@ public class LWSelection extends java.util.ArrayList
                 return false;
         return true;
     }
-    
+
     public boolean allOfSameType()
     {
         Iterator i = iterator();
@@ -300,4 +309,15 @@ public class LWSelection extends java.util.ArrayList
         super.toArray(array);
         return array;
     }
+
+    public Object clone()
+    {
+        LWSelection copy = (LWSelection) super.clone();
+        copy.isClone = true;
+        // if anybody tries to use these we want a NPE
+        copy.listeners = null;
+        copy.controlListeners = null;
+        return copy;
+    }
+    
 }
