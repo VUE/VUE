@@ -14,10 +14,10 @@ public interface LWKey {
     public String Notes = "notes"; 
     public String Scale = "scale"; 
     public String Resource = "resource"; 
-    public String FillColor = "fillColor"; 
-    public String TextColor = "textColor"; 
-    public String StrokeColor = "strokeColor"; 
-    public String StrokeWidth = "strokeWidth"; 
+    public String FillColor = "fill.color"; 
+    public String TextColor = "text.color"; 
+    public String StrokeColor = "stroke.color"; 
+    public String StrokeWidth = "stroke.width"; 
     public String Font = "font";
     public String Hidden = "hidden";
 

@@ -955,6 +955,10 @@ class Actions
             // no way of ever getting turned back on!
         }
 
+        public void fire(Object source) {
+            actionPerformed(new ActionEvent(source, 0, (String) getValue(NAME)));
+        }
+
         // To update action's enabled state after an action is performed.
         private void updateActionListeners()
         {

@@ -21,14 +21,13 @@ public class StrokeMenuButton extends MenuButton
 			
     //protected ButtonGroup mGroup = new ButtonGroup();
     
-    public StrokeMenuButton(float [] pValues, String [] pMenuNames, boolean pGenerateIcons, boolean pHasCustom)
+    public StrokeMenuButton(float[] pValues, String [] pMenuNames, boolean pGenerateIcons, boolean pHasCustom)
     {
         Float[] values = new Float[pValues.length];
-        // I really hope this is one if the things java 1.5 has automatic support for...
+        // I really hope that java 1.5 auto-boxing will handle this type of thing for us...
         for (int i = 0; i < pValues.length; i++)
             values[i] = new Float(pValues[i]);
 
-        
         buildMenu(values, pMenuNames, false);
     }
 

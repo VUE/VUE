@@ -32,37 +32,43 @@ public class NodeToolPanel extends LWCToolPanel
     {
         /** The currently selected shape */
         //protected RectangularShape mShape;
+
+        protected Object mSelectedAction;
 			
         public ShapeMenuButton() {
+            setToolTipText("Node Shape");
+            
             //setPropertyName(LWKey.Shape);
             // note: without a property name we won't pick up shape
             // values when a node is selected -- that's okay tho.
             
-            //setBorder(new CompoundBorder(getBorder(), new EmptyBorder(1,1,2,1)));
+            setBorder(new CompoundBorder(getBorder(), new EmptyBorder(1,1,2,1)));
             //setBorder(new MatteBorder(3,3,4,3, Color.red));
-            setBorder(new EmptyBorder(3,3,3,3));
+            //setBorder(new EmptyBorder(3,3,3,3));
 
             buildMenu(NodeTool.getTool().getShapeSetterActions());
 
             // start with icon set to that of first item in the menu
-            setIcon(((AbstractButton)super.mPopup.getComponents()[0]).getIcon());
+            setIcon(((AbstractButton)super.mPopup.getComponent(0)).getIcon());
         }
 
 
-        protected void handleMenuSelection(ActionEvent e) {
+        protected void X_handleMenuSelection(ActionEvent e) {
             setIcon(((AbstractButton)e.getSource()).getIcon());
+            super.handleMenuSelection(e);
             // We don't need to handle setting the property
             // as the shape setter action does that.
         }
         
         public void setPropertyValue(Object o) {
-            System.out.println(this + "setProp " + o);
+            //System.out.println(this + " setProp " + o);
+            mSelectedAction = o;
             //setShape((RectangularShape)o);
         }
 	 
         public Object getPropertyValue() {
-            System.out.println(this + "getProp");
-            return null;
+            //System.out.println(this + " getProp " + mSelectedAction);
+            return mSelectedAction;
             //return getShape();
         }
         

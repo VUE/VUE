@@ -463,7 +463,7 @@ public class LWComponent
     public LWComponent()
     {
         if (DEBUG.PARENTING)
-            System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
+            System.out.println("LWComponent construct of " + getClass().getName() + Integer.toHexString(hashCode()));
         nodeFilter = new NodeFilter();
     }
 

@@ -15,13 +15,18 @@ import javax.swing.border.*;
  * @version March 2004
  *
  */
-public abstract class MenuButton extends JButton
+public abstract class MenuButton extends JButton implements ActionListener
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
 // menu-popups would automatically work also.
 {
     protected String mPropertyName;
     protected JPopupMenu mPopup;
     protected JMenuItem mEmptySelection;
+    protected Icon mButtonIcon;
+
+    private final String arrowText = "v ";
+
+    private boolean actionAreaClicked = false;
 
     public MenuButton()
     {
@@ -32,19 +37,48 @@ public abstract class MenuButton extends JButton
         //setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(), new LineBorder(Color.blue, 6)));
         //setBorder(BorderFactory.createRaisedBevelBorder());
         
+        final int borderIndent = 2;
         setBorder(BorderFactory.createEtchedBorder());
         //setBorder(new EmptyBorder(2,2,2,2));
+        
         setFont(VueConstants.FONT_ICONIC);
-        setText("v ");
+        setText(arrowText);
         setFocusable(false);
-        setContentAreaFilled(false);
-        addMouseListener(new MouseAdapter() {
+        //setContentAreaFilled(false);
+        addActionListener(this);
+        addMouseListener(new MouseAdapter(toString()) {
                 public void mousePressed(MouseEvent e) {
-                    Component c = e.getComponent(); 	
-                    getPopupMenu().show(c, 0, (int) c.getBounds().getHeight());
+                    if (getText() == arrowText && getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
+                        actionAreaClicked = true;
+                    } else {
+                        actionAreaClicked = false;
+                        Component c = e.getComponent(); 	
+                        getPopupMenu().show(c, 0, (int) c.getBounds().getHeight());
+                    }
                 }
             });
     }
+
+    public void actionPerformed(ActionEvent e) {
+        if (DEBUG.SELECTION||DEBUG.EVENTS) System.out.println(this + " " + e);
+        if (actionAreaClicked)
+            firePropertySetter();
+    }
+
+    public void setButtonIcon(Icon i) {
+        mButtonIcon = i;
+        super.setIcon(i);
+    }
+    
+    public void setIcon(Icon i) {
+        if (mButtonIcon != null) {
+            if (i instanceof BlobIcon && mButtonIcon instanceof BlobIcon)
+                ((BlobIcon)mButtonIcon).setColor(((BlobIcon)i).getColor());
+        } else {
+            super.setIcon(i);
+        }
+    }
+    
 
     protected JPopupMenu getPopupMenu() {
         return mPopup;
@@ -111,8 +145,8 @@ public abstract class MenuButton extends JButton
                 item = new JMenuItem((Action)values[i]);
             } else {
                 item = new JMenuItem();
-                item.putClientProperty(mValueKey, values[i]);
             }
+            item.putClientProperty(mValueKey, values[i]);
             Icon icon = makeIcon(values[i]);
             if (icon != null)
                 item.setIcon(makeIcon(values[i]));
@@ -135,6 +169,9 @@ public abstract class MenuButton extends JButton
     }
 		
     protected void handleMenuSelection(ActionEvent e) {
+        Icon i = ((AbstractButton)e.getSource()).getIcon();
+        if (i != null)
+            setIcon(i);
         handleValueSelection(((JComponent)e.getSource()).getClientProperty(mValueKey));
     }
     
@@ -143,6 +180,7 @@ public abstract class MenuButton extends JButton
             return;
         Object oldValue = getPropertyValue();
         setPropertyValue(newPropertyValue);
+        // don't bother to fire if prop value is an Action?
         firePropertyChanged(oldValue, newPropertyValue);
         repaint();
     }
@@ -150,12 +188,31 @@ public abstract class MenuButton extends JButton
     /** fire a property change event even if old & new values are the same */
     protected void firePropertyChanged(Object oldValue, Object newValue)
     {
-        PropertyChangeListener[] listeners = getPropertyChangeListeners();
-        if (listeners.length > 0) {
-            PropertyChangeEvent event = new PropertyChangeEvent(this, mPropertyName, oldValue, newValue);
-            for (int i = 0; i< listeners.length; i++) {
-                listeners[i].propertyChange(event);
+        if (getPropertyName() != null) {
+            PropertyChangeListener[] listeners = getPropertyChangeListeners();
+            if (listeners.length > 0) {
+                PropertyChangeEvent event = new PropertyChangeEvent(this, getPropertyName(), oldValue, newValue);
+                for (int i = 0; i< listeners.length; i++) {
+                    listeners[i].propertyChange(event);
+                }
             }
+        }
+    }
+    protected void firePropertySetter() {
+        Object o = getPropertyValue();
+        if (DEBUG.SELECTION||DEBUG.EVENTS) System.out.println(this + " firePropertySetter " + o);
+        if (o instanceof Action) {
+            if (o instanceof Actions.VueAction)
+                ((Actions.VueAction)o).fire(this);
+            else {
+                Action a = (Action) o;
+                String cmd = (String) a.getValue(Action.ACTION_COMMAND_KEY);
+                if (cmd == null)
+                    cmd = (String) a.getValue(Action.NAME);
+                a.actionPerformed(new ActionEvent(this, 0, cmd));
+            }
+        } else {
+            firePropertyChanged(o, o);
         }
     }
 	

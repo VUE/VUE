@@ -2824,7 +2824,7 @@ public class MapViewer extends javax.swing.JComponent
             
             if (key == KeyEvent.VK_DELETE) {
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                Actions.Delete.actionPerformed(new ActionEvent(this, 0, "Delete (key)"));
+                Actions.Delete.fire(this);
                 return;
             }
             

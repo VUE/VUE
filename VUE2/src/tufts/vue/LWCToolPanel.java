@@ -82,7 +82,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setIcon(new LineIcon(20,16, 3, false));
+         mStrokeColorButton.setButtonIcon(new LineIcon(20,16, 3, false));
          mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
          mStrokeColorButton.setToolTipText("Stroke Color");
          mStrokeColorButton.addPropertyChangeListener(this);
@@ -94,7 +94,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          float[] strokeValues = VueResources.getFloatArray("strokeWeightValues");
          String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
          mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
-         mStrokeButton.setIcon(new LineIcon(20,16));
+         mStrokeButton.setButtonIcon(new LineIcon(20,16));
          mStrokeButton.setStroke( (float) 1);
          mStrokeButton.setPropertyName( LWKey.StrokeWidth);
          mStrokeButton.setToolTipText("Stroke Width");
@@ -112,7 +112,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
          BlobIcon textBlob = new BlobIcon();
          textBlob.setOverlay( textIcon );
-         mTextColorButton.setIcon(textBlob);
+         mTextColorButton.setButtonIcon(textBlob);
          mTextColorButton.setPropertyName(LWKey.TextColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
@@ -210,16 +210,17 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
             if (!isPreferredType(pValue))
                 return;
             state = VueBeans.getState(pValue);
+            if (DEBUG.SELECTION) System.out.println(this + " loadValues (LWCToolPanel) " + state + " from " + pValue);
         } else if (pValue instanceof VueBeanState) {
             state = (VueBeanState) pValue;
+            if (DEBUG.SELECTION) System.out.println(this + " loadValues (LWCToolPanel) " + state);
         }
         if (state == null)
             state = mDefaultState;
  		
         mState = state;
         
-        if (DEBUG.SELECTION)
-            System.out.println(this + " loadValues (LWCToolPanel) " + pValue + " state=" + state);
+        //new Throwable().printStackTrace();
         
         setIgnorePropertyChangeEvents(true);
         

@@ -417,18 +417,18 @@ public class VueToolbarController
      **/
     private void updateContextualToolPanel() {
         VueTool tool = getSelectedTool();
-        if( tool.getParentTool() != null) {
+        if (tool.getParentTool() != null)
             tool = tool.getParentTool();
-        }
+
         JPanel panel = tool.getContextualPanel();
 		
-        if( panel == null) {
+        if (panel == null)
             panel = getContextualPanelForSelection();
-        } 	
-        if( panel != null) {
+
+        if (false&&panel != null)
             initContextualPanelFromSelection(panel);
-        }
-        getToolbar().setContextualToolPanel( panel );
+        
+        getToolbar().setContextualToolPanel(panel);
     }
 	 
 	 
@@ -484,7 +484,7 @@ public class VueToolbarController
         return panel;
     }
 	 
-    void initContextualPanelFromSelection( JPanel panel) {
+    private void initContextualPanelFromSelection( JPanel panel) {
         /*
         LWSelection selection = VUE.getSelection();
         LWComponent c = null;
@@ -498,7 +498,6 @@ public class VueToolbarController
         */
         
         if (panel instanceof LWCToolPanel)
-            //((LWCToolPanel)panel).loadValues(c);
             ((LWCToolPanel)panel).loadValues(VUE.getSelection());
         else {
             System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);

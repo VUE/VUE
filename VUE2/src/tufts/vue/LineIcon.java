@@ -72,34 +72,26 @@ public class LineIcon extends BlobIcon
 	
 	
     /**
-     * paintIcon
-     * Implementation of Icon interface
-     * This paints a color blob of the icon size at the 
-     * specified coords in the specified graphics.
+     * This paints a line icon with width of current weight,
+     * in the current color if one is set, or black otherwise.
      * If an overlay icon is set, the overlay icon will be
-     * painted on top of the blob, thus providing a framing
-     * system.
+     * painted on top.
      * @see java.awt.Icon
      **/
-    public void paintIcon( Component c, Graphics g, int x, int y)
+    public void paintIcon(Component c, Graphics g, int x, int y)
     {
-        /*
-        Color color = getColor();
-        if (color == null)
-            color = c.getBackground();
-        g.setColor( color);
-        g.fillRect(x,y, getIconWidth(), getIconHeight());
-        */
-			
         if (getWeight() > 0) {
-            g.setColor(getColor());
+            if (getColor() == null)
+                g.setColor(Color.black);
+            else
+                g.setColor(getColor());
             int weight = (int) getWeight();
             if (mDiagonal) {
                 //g.setStroke
                 g.drawLine(x, getIconHeight(), getIconWidth(), y);
             } else {
-                int y1 =  y+ ( (getIconHeight() - weight) /2);
-                g.fillRect( x, y1, getIconWidth(), weight );
+                int y1 = y + (getIconHeight() - weight) / 2;
+                g.fillRect(x, y1, getIconWidth(), weight );
             }
 			
         }

@@ -82,25 +82,30 @@ public class LWSelection extends java.util.ArrayList
 
     public synchronized void addListener(Listener l)
     {
+        if (DEBUG.SELECTION&&DEBUG.META) System.out.println(this + " adding listener   " + l);
         listeners.add(l);
     }
     public synchronized void removeListener(Listener l)
     {
+        if (DEBUG.SELECTION&&DEBUG.META) System.out.println(this + " removing listener " + l);
         listeners.remove(l);
     }
 
+    private Listener[] listener_buf = new Listener[128];
     private synchronized void notifyListeners()
     {
         if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
         
-        if (DEBUG.SELECTION) System.out.println(this + " NOTIFYING LISTENERS");
-        Iterator i = listeners.iterator();
+        if (DEBUG.SELECTION) System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS");
+        Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
+        int nlistener = listeners.size();
         long start = 0;
-        while (i.hasNext()) {
-            Listener l = (Listener) i.next();
+        for (int i = 0; i < nlistener; i++) {
+            if (DEBUG.SELECTION) System.out.print(this + " notifying: #" + (i+1) + " " + (i<9?" ":""));
+            Listener l = listener_iter[i];
             try {
                 if (DEBUG.SELECTION) {
-                    System.out.print(this + " notifying: " + l + "...");
+                    System.out.print(l + "...");
                     start = System.currentTimeMillis();
                 }
                 l.selectionChanged(this);

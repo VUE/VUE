@@ -16,7 +16,8 @@ public class DEBUG
     public static boolean UNDO = false;
     public static boolean PATHWAY = false;
     public static boolean DND = false; // drag & drop
-
+    public static boolean MOUSE = false;
+    
     //public static boolean PROPERTIES = true;
     
     public static boolean META = false; // generic toggle to use in combination with other flags

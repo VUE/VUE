@@ -23,9 +23,6 @@ public class ColorMenuButton extends MenuButton
     /** The currently selected Color item--if any **/
     protected Color mCurColor = new Color(0,0,0);
 			
-    /** the BlobIcon for the swatch **/
-    private BlobIcon mBlobIcon = null;
-
     /**
      * Constructor
      *
@@ -38,7 +35,7 @@ public class ColorMenuButton extends MenuButton
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
     public ColorMenuButton(Color [] pColors, String [] pMenuNames, boolean pHasCustom) {
-        setIcon(sIcon);
+        setButtonIcon(sIcon);
         buildMenu(pColors, pMenuNames, pHasCustom);
     }
 	
@@ -55,8 +52,6 @@ public class ColorMenuButton extends MenuButton
      */
     public void setColor(Color pColor) {
         mCurColor = pColor;
-        if (mBlobIcon != null)
-            mBlobIcon.setColor(pColor);
         if (pColor == null)
             mPopup.setSelected(super.mEmptySelection);
     }
@@ -74,14 +69,6 @@ public class ColorMenuButton extends MenuButton
 	 
     public Object getPropertyValue() {
         return getColor();
-    }
-	 
-    public void setIcon( Icon pIcon) {
-        super.setIcon(pIcon);
-        if (pIcon instanceof BlobIcon)
-            mBlobIcon = (BlobIcon) pIcon;
-        else
-            mBlobIcon = null;
     }
 	
     /** factory for superclass buildMenu */

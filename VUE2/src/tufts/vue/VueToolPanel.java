@@ -12,18 +12,11 @@ import javax.swing.border.*;
  * VueToolPanel
  *
  * The VueToolPanel is the component that holds the main VUE toolbar
- * and the contextual properties tools.  It listens for selection events
- * and broadcasts tool and property change events to registered listeners.
+ * and the contextual properties tools.  
  *
  **/
 public class VueToolPanel extends JPanel
 {
-
-	
-    ////////////////
-    // Fields
-    ////////////////
-	
     /** the panel where the main tools are placed **/
     private JPanel mMainToolPanel = null;
 	
@@ -46,13 +39,6 @@ public class VueToolPanel extends JPanel
 	
     /** background color **/
     static private Color mBakColor = VueResources.getColor("toolbar.background");
-	
-	
-	
-	
-    ///////////////
-    // Constructors
-    //////////////////
 	
 	
     /***
@@ -209,14 +195,19 @@ public class VueToolPanel extends JPanel
      * This method sets the contextual tool panel and removes
      * any components already displayed.
      **/
-    public void setContextualToolPanel( JPanel pPanel) {
-        mContextualToolPanel.removeAll();
+    private JPanel mPanelContent;
+    public void setContextualToolPanel(JPanel pPanel) {
+        if (mPanelContent == pPanel)
+            return;
+        if (DEBUG.SELECTION) System.out.println(this + " LOADING " + pPanel);
+        mContextualToolPanel.removeAll();        
         if (pPanel != null) {
             if (debug)
                 pPanel.setBackground(Color.cyan);
             else
                 pPanel.setBackground(mBakColor);
             mContextualToolPanel.add(pPanel);
+            mPanelContent = pPanel;
         }
         validate();
         repaint();
