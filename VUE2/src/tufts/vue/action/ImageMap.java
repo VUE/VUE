@@ -146,7 +146,7 @@ public class ImageMap extends AbstractAction {
             else res = "null";
             
             if(res.equals("null")) href = "nohref";
-            else href = "href=\"" + res + "\"";
+            else href = "href=\"" + res + "\" target=\"_blank\"";
             
             out += "<area " + href
                 +" alt=\""+ altLabel

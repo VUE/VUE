@@ -81,8 +81,8 @@ public class ActionUtil {
             chooser.addChoosableFileFilter(defaultFilter);  
             chooser.addChoosableFileFilter(new VueFileFilter("jpeg"));  
             chooser.addChoosableFileFilter(new VueFileFilter("svg"));
-            chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
-            chooser.addChoosableFileFilter(new VueFileFilter("html"));
+            //chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
+            //chooser.addChoosableFileFilter(new VueFileFilter("html"));
             chooser.addChoosableFileFilter(new VueFileFilter("imap"));
             
             chooser.setFileFilter(defaultFilter); 
