@@ -20,6 +20,7 @@ import java.lang.*;
  *  @author  Mark Norton
  */
 public class Id implements osid.shared.Id {
+    private static int counter = 0;
     private String id_str;
     private String IdSource = "tufts.edu";
 
@@ -33,7 +34,7 @@ public class Id implements osid.shared.Id {
     public Id() throws osid.shared.SharedException {
         long now = System.currentTimeMillis();
 
-        id_str = IdSource + "-" + java.lang.Long.toHexString(now);
+        id_str = IdSource + "-" + java.lang.Long.toHexString(now) + "-" + tufts.oki.shared.Id.counter++;
     }
     
     /**
