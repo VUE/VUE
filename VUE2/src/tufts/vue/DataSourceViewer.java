@@ -38,8 +38,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
     
-    public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google","Other"};
-    private static int  filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0;
+    public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google","OSID-DR"};
+    private static int  filinglocal = 0,favorites = 0,fedora=0,google=0,filingremote=0,osid_dr=0;
     private static boolean  problemloadingfromfile = false;
     private static String begIndex = "NONE";
     
@@ -335,10 +335,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         }
         
         dataSourceChanged = true;
-        if (type == DataSource.OTHER){type = DataSource.GOOGLE;
-                                     
-                                         }
-       
+        if (type == DataSource.GOOGLE){
+            //System.out.println("I am Search URL " + type +searchURL);
+        }
+        
         if (dataSourceList.getModel().getSize() == 0){//only element in the list
             
             if (type == DataSource.FILING_LOCAL)begIndex = "FILING_LOCAL";
@@ -346,6 +346,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             else if (type == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
             else if (type == DataSource.DR_FEDORA)begIndex = "DR_FEDORA";
             else if (type == DataSource.GOOGLE)begIndex = "GOOGLE";
+            else if (type == DataSource.OSID_DR)begIndex = "OSID_DR";
             
             
         }
@@ -360,6 +361,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     else if (filingremote > 0) {insertAt = filingremote - 1;}
                     else if (fedora > 0){insertAt = fedora - 1;}
                     else if (google > 0){insertAt = google - 1;}
+                    else if (osid_dr > 0){insertAt = osid_dr - 1;}
                     else {insertAt = dataSourceList.getModel().getSize();}
                     
                 }
@@ -376,6 +378,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 if (filingremote > 0) {filingremote = filingremote + postBreakSpot + 1;}
                 if (fedora > 0){fedora = fedora + postBreakSpot + 1;}
                 if (google > 0){google = google + postBreakSpot + 1;}
+                if (osid_dr > 0){osid_dr = osid_dr + postBreakSpot + 1;}
                 
                 
                 
@@ -385,6 +388,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     if (filingremote > 0) {insertAt = filingremote - 1;}
                     else if (fedora > 0){insertAt = fedora - 1;}
                     else if (google > 0){insertAt = google - 1;}
+                    else if (osid_dr > 0){insertAt = osid_dr - 1;}
                     else {insertAt = dataSourceList.getModel().getSize();}
                 } 
                 else{//no favorites    
@@ -392,6 +396,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         if (filingremote > 0) {preBreakSpot  = filingremote - 1; insertAt = preBreakSpot + 1;}
                         else if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
                         else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                        else if (osid_dr > 0){preBreakSpot  = osid_dr - 1;insertAt =preBreakSpot + 1; }
                         else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
                         favorites = insertAt;
                         
@@ -414,6 +419,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 if (filingremote > 0) {filingremote = filingremote +preExists + postExists + 1;}
                 if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
                 if (google > 0){google = google + preExists + postExists + 1;}
+                if (osid_dr > 0){osid_dr = osid_dr + preExists + postExists + 1;}
                 
                 
             }
@@ -426,6 +432,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     
                     if (fedora > 0){insertAt = fedora - 1;}
                     else if (google > 0){insertAt = google - 1;}
+                    else if (osid_dr > 0){insertAt = osid_dr - 1;}
                     else {insertAt = dataSourceList.getModel().getSize();}
                     
                     
@@ -437,6 +444,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     if (((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)){
                         if (fedora > 0){  preBreakSpot  = fedora - 1;insertAt =preBreakSpot + 1;                 }
                         else if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                        else if (osid_dr > 0){preBreakSpot  = osid_dr - 1;insertAt =preBreakSpot + 1; }
                         else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
                         filingremote  = insertAt;
                         
@@ -458,6 +466,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 
                 if (fedora > 0){fedora = fedora + preExists + postExists + 1;}
                 if (google > 0){google = google + preExists + postExists + 1;}
+                if (osid_dr > 0){osid_dr = osid_dr + preExists + postExists + 1;}
                 
             }
             
@@ -466,6 +475,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 if ((begIndex.compareTo("FEDORA") == 0) || (fedora > 0)){//Fedora already exists
                     
                     if (google > 0){insertAt = google - 1;}
+                    else if (osid_dr > 0){insertAt = osid_dr - 1;}
                     else {insertAt = dataSourceList.getModel().getSize();}
                     
                 }
@@ -477,6 +487,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         
                         
                         if (google > 0){preBreakSpot  = google - 1;insertAt =preBreakSpot + 1; }
+                        else if (osid_dr > 0){preBreakSpot  = osid_dr - 1;insertAt =preBreakSpot + 1; }
                         else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
                         fedora = insertAt;
                         
@@ -503,17 +514,18 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 
                 
                 if (google > 0){google = google + preBreakSpot + postBreakSpot + 1;}
+                if (osid_dr > 0){osid_dr = osid_dr + preBreakSpot + postBreakSpot + 1;}
                 
                 
                 
                 
             }
             
-            else {
+            else if (type == DataSource.GOOGLE) {
                 
                 
                 if ((begIndex.compareTo("GOOGLE") == 0) || (google > 0)){//Google already exists
-                    
+                    if (osid_dr > 0){insertAt = osid_dr - 1;}                    
                     insertAt = dataSourceList.getModel().getSize();
                     
                     
@@ -523,16 +535,27 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 else{//no google
                     
                     
-                    
-                    preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot + 1;
+                    if (((((favorites> 0) || (begIndex.compareTo("FILING_LOCAL") == 0)) || (begIndex.compareTo("FAVORITES") == 0)) || (begIndex.compareTo("FILING_REMOTE") == 0)) || (begIndex.compareTo("FEDORA") == 0)) {
+
+                    if (osid_dr > 0){preBreakSpot  = osid_dr - 1;insertAt =preBreakSpot + 1; }
+                    else {preBreakSpot = dataSourceList.getModel().getSize(); insertAt = preBreakSpot +1;}
                     google = insertAt;
+                    }
+                    else{
+                        insertAt = 0;
+                        begIndex = "GOOGLE";
+                        postBreakSpot = 1;
+                        
+                        
+                    }
                     
-                    
+                    if (preBreakSpot > 0){preExists = 1;}
+                    if (postBreakSpot > 0){postExists = 1;}
                     
                     
                 }
                 
-                
+                if (osid_dr > 0){osid_dr = osid_dr + preBreakSpot + postBreakSpot + 1;}
                 
                 
             }
@@ -603,7 +626,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 if (dataSourceList.getModel().getSize() == 1){//only one element in the list
                     
                     dataSourceList.getContents().removeElement(dataSource);
-                    filinglocal = 0; favorites = 0; filingremote = 0; fedora = 0; google = 0;
+                    filinglocal = 0; favorites = 0; filingremote = 0; fedora = 0; google = 0; osid_dr = 0;
                     
                 }
                 else{//not only element on the list
@@ -626,10 +649,6 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     }
                     
                     type = dataSource.getType();
-                    if (type == DataSource.OTHER) {type = DataSource.GOOGLE;
-                    
-                   
-                    }
                     
                     if (type == DataSource.FILING_LOCAL){
                         
@@ -637,6 +656,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         else if (filingremote  > 0){nDs = filingremote - 1;}
                         else if (fedora > 0) {nDs = fedora - 1;}
                         else if (google > 0){nDs = google - 1;}
+                        else if (osid_dr > 0){nDs = osid_dr - 1;}
                         else nDs = dataSourceList.getContents().getSize();
                         
                         if (nDs == 1 ){dataSourceList.getContents().removeElement(breakDs);}
@@ -649,6 +669,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         if (fedora > 0) fedora = fedora - breakExists - 1;
                         if (filingremote  > 0) filingremote = filingremote- breakExists - 1;
                         if (google > 0) google = google - breakExists - 1;
+                        if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                         
                         
                        // System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
@@ -659,6 +680,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         if (filingremote  > 0){nDs = filingremote -favorites- 1;}
                         else if (fedora > 0) {nDs = fedora - favorites - 1;}
                         else if (google > 0){nDs = google - favorites - 1;}
+                        else if (osid_dr > 0){nDs = osid_dr - favorites - 1;}
                         
                         else nDs = (dataSourceList.getContents().getSize() - favorites);
                         
@@ -672,11 +694,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         if (fedora > 0) fedora = fedora - breakExists - 1;
                         if (filingremote  > 0) filingremote = filingremote- breakExists - 1;
                         if (google > 0) google = google - breakExists - 1;
+                        if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                         
                     }
                     else if(type == DataSource.FILING_REMOTE){
                         if (fedora > 0) {nDs = fedora - filingremote - 1;}
                         else if (google > 0){nDs = google - filingremote - 1;}
+                        else if (osid_dr > 0){nDs = osid_dr - filingremote - 1;}
                         else nDs = (dataSourceList.getContents().getSize() - filingremote);
                         
                         
@@ -689,10 +713,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         
                         if (fedora > 0) fedora = fedora - breakExists - 1;
                         if (google > 0) google = google - breakExists - 1;
+                        if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                     }
                     
                     else if(type == DataSource.DR_FEDORA) {
                         if (google > 0){nDs = google - fedora - 1;}
+                        else if (osid_dr > 0){nDs = osid_dr - fedora - 1;}
                         else nDs = (dataSourceList.getContents().getSize() - fedora);
                         
                         if ((nDs == 1) && (breakExists == 1)){
@@ -704,14 +730,31 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                         
                         
                         if (google > 0) google = google - breakExists - 1;
+                        if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
+                        
+                        
+                    }
+                    else if(type == DataSource.GOOGLE) {
+                        if (osid_dr > 0){nDs = osid_dr - google - 1;}
+                        else nDs = (dataSourceList.getContents().getSize() - google);
+                        
+                        if ((nDs == 1) && (breakExists == 1)){
+                            dataSourceList.getContents().removeElement(breakDs);
+                            google = 0;
+                            
+                        }
+                        else {breakExists = 0;}
+                        
+                        
+                        if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                         
                         
                     }
                     else{
-                        nDs = (dataSourceList.getContents().getSize() - google);
+                        nDs = (dataSourceList.getContents().getSize() - osid_dr);
                         if ((nDs == 1) && (breakExists == 1)){
                             dataSourceList.getContents().removeElement(breakDs);
-                            google = 0;
+                            osid_dr = 0;
                             
                         }
                         else {breakExists = 0;}
@@ -774,6 +817,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     else if (filingremote  > 0){nDs = filingremote - 1;}
                     else if (fedora > 0) {nDs = fedora - 1;}
                     else if (google > 0){nDs = google - 1;}
+                    else if (osid_dr > 0){nDs = osid_dr - 1;}
                     else nDs = dataSourceList.getContents().getSize();
                     
                     if (nDs == 1 ){dataSourceList.getContents().removeElement(breakDs);}
@@ -786,6 +830,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     if (fedora > 0) fedora = fedora - breakExists - 1;
                     if (filingremote  > 0) filingremote = filingremote- breakExists - 1;
                     if (google > 0) google = google - breakExists - 1;
+                    if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                     
                     
                    // System.out.println("Stuff at local" +"nds"+nDs+"br" +breakExists+ "fav" +favorites+"rem"+filingremote+"fed"+fedora+"goo"+google);
@@ -796,6 +841,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     if (filingremote  > 0){nDs = filingremote- favorites- 1;}
                     else if (fedora > 0) {nDs = fedora - favorites - 1;}
                     else if (google > 0){nDs = google - favorites - 1;}
+                    else if (osid_dr > 0){nDs = osid_dr - favorites - 1;}
                     
                     else nDs = (dataSourceList.getContents().getSize() - favorites);
                     
@@ -809,11 +855,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     if (fedora > 0) fedora = fedora - breakExists - 1;
                     if (filingremote  > 0) filingremote = filingremote- breakExists - 1;
                     if (google > 0) google = google - breakExists - 1;
+                    if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                     
                 }
                 else if(type == DataSource.FILING_REMOTE){
                     if (fedora > 0) {nDs = fedora - filingremote - 1;}
                     else if (google > 0){nDs = google - filingremote - 1;}
+                    else if (osid_dr > 0){nDs = osid_dr - filingremote - 1;}
                     else nDs = (dataSourceList.getContents().getSize() - filingremote);
                     
                     
@@ -826,10 +874,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     
                     if (fedora > 0) fedora = fedora - breakExists - 1;
                     if (google > 0) google = google - breakExists - 1;
+                    if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                 }
                 
                 else if(type == DataSource.DR_FEDORA) {
                     if (google > 0){nDs = google - fedora - 1;}
+                    else if (osid_dr > 0){nDs = osid_dr - fedora - 1;}
                     else nDs = (dataSourceList.getContents().getSize() - fedora);
                     
                     if ((nDs == 1) && (breakExists == 1)){
@@ -841,14 +891,31 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     
                     
                     if (google > 0) google = google - breakExists - 1;
+                    if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
+                    
+                    
+                }
+                else if(type == DataSource.GOOGLE) {
+                    if (osid_dr > 0){nDs = osid_dr - google - 1;}
+                    else nDs = (dataSourceList.getContents().getSize() - google);
+                    
+                    if ((nDs == 1) && (breakExists == 1)){
+                        dataSourceList.getContents().removeElement(breakDs);
+                        google = 0;
+                        
+                    }
+                    else {breakExists = 0;}
+                    
+                    
+                    if (osid_dr > 0) osid_dr = osid_dr - breakExists - 1;
                     
                     
                 }
                 else{
-                    nDs = (dataSourceList.getContents().getSize() - google);
+                    nDs = (dataSourceList.getContents().getSize() - osid_dr);
                     if ((nDs == 1) && (breakExists == 1)){
                         dataSourceList.getContents().removeElement(breakDs);
-                        google = 0;
+                        osid_dr = 0;
                         
                     }
                     else {breakExists = 0;}
@@ -877,7 +944,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.FILING_REMOTE)begIndex = "FILING_REMOTE";
                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.DR_FEDORA)begIndex = "FEDORA";
                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.GOOGLE)begIndex = "GOOGLE";
-                 else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.OTHER)begIndex = "GOOGLE";
+                else if (((DataSource)dataSourceList.getModel().getElementAt(0)).getType() == DataSource.OSID_DR)begIndex = "OSID_DR";
                 
             }
             else begIndex = "NONE";
@@ -1026,7 +1093,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 //System.out.println("Did I get here in ok" + panel.getComponent(0));
                 JComboBox typeField = (JComboBox) panel.getComponent(1);
                 int type = typeField.getSelectedIndex();
-                 
+                 // System.out.println("Did I get here in ok");
                 JTextField dsNameField = (JTextField) panel.getComponent(3);
                 String dsNameStr = dsNameField.getText();
                 String nameStr = dsNameStr;
@@ -1080,7 +1147,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                     
                 }
                 
-                if((type == DataSource.FILING_REMOTE) && (!checkValidUser( userStr,pwStr,type))) {
+                if (type == DataSource.OSID_DR){
+                    
+                    if (adrStr.length() < 1){
+                        VueUtil.alert(null, "You need to enter a package name for the DR OSID implementation", "Invalid Address");
+                        return;
+                        
+                    }
+                    
+                    
+                }
+                if((type == 2) && (!checkValidUser( userStr,pwStr,type))) {
                     VueUtil.alert(null, "Not valid Tufts User. You are not allowed to create this dataSource", "Invalid User");
                     return;
                 }
@@ -1208,7 +1285,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     private void loadDataSources() {
         //--Marshalling etc
-        favorites = 0;fedora=0;google=0;filingremote = 0;
+        favorites = 0;fedora=0;google=0;filingremote = 0;osid_dr=0;
         boolean  problemloadingfromfile = true;
         
         boolean debug = false;
@@ -1252,6 +1329,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 addNewDataSource("UVA Finding Aids", "uva:fedora", "", "dl.lib.virginia.edu", "test", "test", DataSource.DR_FEDORA, false);
                 addNewDataSource("Tufts Web","google",VueResources.getString("url.google"), "","", "", DataSource.GOOGLE,false);
                 addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
+                addNewDataSource("OSID DR","OSID DR","ca.edusource.osid_dr.dr","","","",DataSource.OSID_DR, false);
+                addNewDataSource("OSID DR","OSID DR","comet.osidimpl.dr.sql","","","",DataSource.OSID_DR, false);
                 
             } catch (Exception ex) {
               
@@ -1339,7 +1418,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     
     public void keyPressed(KeyEvent e) {
       
-        if(e.getKeyCode() == 116){
+        if(e.getKeyCode() == java.awt.event.KeyEvent.VK_F5){
               
              refreshDataSourceViewer();
              
