@@ -88,6 +88,10 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         elementsModel = new ElementComboBoxModel();
         elementsModel.setElements(lWMap.getMapFilterModel().getKeyVector());
         elements = new JComboBox(elementsModel);
+        Font f = elements.getFont();
+        Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
+        elements.setFont(menuFont);
+        //elements.setPreferredSize(new Dimension(150,20));
         /// this is not user friendly may want to fix later.
         /**
          * elements.addItemListener(new ItemListener() {

@@ -236,8 +236,8 @@ implements  VUE.ActiveMapListener {
             mDescriptionEditor.setLineWrap(true);
             mDescriptionEditor.setWrapStyleWord(true);
             mDescriptionEditor.setRows(5);
-            mDescriptionEditor.setMaximumSize(new Dimension(150, 300));
-            mDescriptionEditor.setPreferredSize(new Dimension(150,100));
+            mDescriptionEditor.setMaximumSize(new Dimension(180, 300));
+            mDescriptionEditor.setPreferredSize(new Dimension(180,100));
             mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
             
             mDate = new JLabel();
