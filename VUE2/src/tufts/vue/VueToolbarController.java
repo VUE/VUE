@@ -35,6 +35,10 @@ public class VueToolbarController
 	
 	static private VueToolbarController sController = new VueToolbarController();
 	
+	/** Contextual tool panels for various selection types **/
+	static private NodeToolPanel sNodeSelectionContextualPanel= new NodeToolPanel();
+	static private TextToolPanel sTextSelectionContextualPanel = new TextToolPanel();
+	static LinkToolPanel sLinkSelectionContextualPanel = new LinkToolPanel();
 	
 	
 	
@@ -365,7 +369,15 @@ public class VueToolbarController
 		mCurSelectionID = selectionID;	  	
 
 		// update contextual panel
-		getToolbar().setContextualToolPanel( rootTool.getContextualPanel() );
+		updateContextualToolPanel();
+		/** OLD CODE
+		JPanel contextualPanel = rootTool.getContextualPanel();
+		if( contextualPanel == null) {
+			contextualPanel = getContextualToolForSelection();
+			}
+		getToolbar().setContextualToolPanel( contextualPanel );
+		END OLD CODE ****/
+		
 		// notify listeners
 		int size = mToolSelectionListeners.size();
 		for(int i=0; i<size; i++) {
@@ -373,6 +385,67 @@ public class VueToolbarController
 	  		listener.toolSelected( rootTool);
 	  		}
 	  }
+	 
+	 /**
+	  * updateContexxtualTools
+	  * This method checks to see if the current tool has
+	  * a contextual tool.  If so, it uses that panel.  If
+	  * not it uses the selection to get a panel.
+	  **/
+	 private void updateContextualToolPanel() {
+		VueTool tool = getSelectedTool();
+		if( tool.getParentTool() != null) {
+			tool = tool.getParentTool();
+			}
+		JPanel panel = tool.getContextualPanel();
+		
+		if( panel == null) {
+			panel = getContextualPanelForSelection();
+			if( panel != null) {
+				initContextualPanelFromSelection(panel);
+				}
+			} 	
+		getToolbar().setContextualToolPanel( panel );
+	 }
+	 
+	 private JPanel getContextualPanelForSelection() {
+	 	JPanel panel = null;
+	 	LWSelection selection = VUE.ModelSelection;
+	 	if( (!selection.isEmpty() ) && ( selection.allOfSameType()) ) {
+	 		LWComponent c = (LWComponent) selection.get(0);
+	 		if( c instanceof LWNode) {
+	 			panel = sNodeSelectionContextualPanel;
+	 			}
+	 		else
+	 		if( c instanceof LWLink) {
+	 			panel = sLinkSelectionContextualPanel;
+	 			}
+	 		}
+	 	return panel;
+	 }
+	 
+	 void initContextualPanelFromSelection( JPanel panel) {
+	 	// FIX:  move this to an interface rather than instance checking
+	 	if( true) return;
+	 	LWSelection selection = VUE.ModelSelection;
+	 	Object item = null;
+	 	if( (selection != null) && (!selection.isEmpty()) ) {
+	 		item = selection.get(0);
+	 		}
+	 	if( item == null) return;
+	 	
+	 	if( panel instanceof NodeToolPanel ) {
+	 		
+	 		((NodeToolPanel) panel).setValue( item);
+	 		}
+	 	if( panel instanceof LinkToolPanel ) {
+	 		((LinkToolPanel) panel).setValue( item);
+	 		}
+	 	if( panel instanceof TextToolPanel ) {
+	 		((TextToolPanel) panel).setValue( item);
+	 	}
+	 }
+	 
 	 
 	 /**
 	  * handleMapEvent
@@ -392,6 +465,7 @@ public class VueToolbarController
  	 * This method updates toolbars based on the new selection
  	 **/
  	public void selectionChanged( LWSelection pSelection)  {
+ 		updateContextualToolPanel();
  		debug("!!! ToolbarController checkign contextual tools");
  	}
 

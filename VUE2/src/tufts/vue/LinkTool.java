@@ -10,6 +10,9 @@ import java.awt.geom.Point2D;
 public class LinkTool extends VueTool
     implements VueConstants
 {
+    /** link tool contextual tool panel **/
+    LinkToolPanel mLinkContextualPanel = null;
+    
     LWComponent linkSource; // for starting a link
 
     private final LWComponent invisibleLinkEndpoint = new LWComponent();
@@ -24,7 +27,11 @@ public class LinkTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-        return null;
+        
+        if( mLinkContextualPanel == null) {
+        	mLinkContextualPanel = new LinkToolPanel();
+        	}
+        return mLinkContextualPanel;
     }
 
     public boolean supportsSelection() { return true; }

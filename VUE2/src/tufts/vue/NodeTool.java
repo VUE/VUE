@@ -13,7 +13,16 @@ import javax.swing.*;
 public class NodeTool extends VueTool
                               implements VueConstants
 {
+	///////////
+	// Fields
+	/////////////
+	
     private static NodeTool singleton = null;
+    
+    /** the contextual tool panel **/
+    private NodeToolPanel mNodeToolPanel = null;
+    
+    
     public NodeTool()
     {
         super();
@@ -40,7 +49,12 @@ public class NodeTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-        return null;
+        if( mNodeToolPanel == null) {
+        	
+        	mNodeToolPanel = new NodeToolPanel();
+        	}
+        	
+        return mNodeToolPanel;
     }
 
     public boolean supportsSelection() { return true; }

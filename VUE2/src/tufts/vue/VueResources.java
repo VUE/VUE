@@ -268,6 +268,42 @@ public class VueResources
 		return retValue;
 	}
 
+
+	/**
+	 * getColorArray()
+	 * This method gets a color based on the color string in the
+	 * the properties file.  Use formate:  myColor=rgbHex
+	 * grayColor=4F4F4F,BBCCDD,FFAAFF
+	 * blue=FF
+	 *
+	 * @param pLookupKey the string lookupkey in the properties file
+	 * @return Color[]  the colors, or null if missing
+	 **/
+	static public Color [] getColorArray( String pLookupKey) {
+		
+		Color [] retValue = null;
+		
+		try {
+			String []  strs = getStringArray( pLookupKey);
+			if( strs != null) {
+				int len = strs.length;
+				retValue = new Color [ len];
+				
+				for( int i=0; i< len; i++) {
+					Integer intVal =  Integer.valueOf(strs[i], 16);
+				 
+					retValue[i] = new Color( intVal.intValue() );
+					}
+				}
+		} catch (Exception e) {
+			alert("Missing Color resource: "+pLookupKey);
+			retValue = null;
+		}
+		return retValue;
+	}
+
+
+
     /**
      * getBool
      * Usage: flag=true
@@ -308,7 +344,7 @@ public class VueResources
 
 
 	static protected void alert( String pMsg) {
-		if( get("alerts") != null)
+		if( (sDebug)  || ( get("alerts") != null) )
 		System.out.println(pMsg);
 	}
 	
@@ -338,6 +374,6 @@ public class VueResources
 	static private boolean sDebug = false;
 	
 	static protected void debug( String pStr) {
-		if( sDebug) alert( pStr);
+		if( sDebug) System.out.println( pStr);
 	}
 }
