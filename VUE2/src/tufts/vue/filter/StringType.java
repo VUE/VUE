@@ -33,8 +33,8 @@ public class StringType extends DefaultType {
         Object value2 = s2.getValue();
         if(!(value1 instanceof String) || !(value2 instanceof String))
             return false;
-        String v1 = (String) value1;
-        String v2 = (String) value2;
+        String v1 = ((String) value1).toLowerCase();
+        String v2 = ((String) value2).toLowerCase();
         if(s1.getOperator().getDisplayName().equals(OP_EQUAL)){
             if(s2.getOperator().getDisplayName().equals(OP_EQUAL)) {
                 return v1.equals(v2);
