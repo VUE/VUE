@@ -66,8 +66,12 @@ public abstract class LWContainer extends LWComponent
                 continue;
             LWLink l = (LWLink) c;
             try {
-                l.setEndPoint1(topLevelContainer.findChildByID(l.getEndPoint1_ID()));
-                l.setEndPoint2(topLevelContainer.findChildByID(l.getEndPoint2_ID()));
+                String ep1ID = l.getEndPoint1_ID();
+                String ep2ID = l.getEndPoint2_ID();
+                if (ep1ID != null)
+                    l.setEndPoint1(topLevelContainer.findChildByID(ep1ID));
+                if (ep2ID != null)
+                    l.setEndPoint2(topLevelContainer.findChildByID(ep2ID));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("*** removing bad link " + l);
@@ -415,6 +419,7 @@ VueAction: Zoom 100% n=1
     /** Code is duplicated from above here, but subclasses (e.g.,
      * LWGroup) handle this differently, but we can't reuse
      * above code due to recursive usage.
+     * todo: is this still being taken advantage of?
      */
     public LWComponent findLWSubTargetAt(float mapX, float mapY)
     {
@@ -690,13 +695,13 @@ VueAction: Zoom 100% n=1
                     } finally {
                         gg.dispose();
                     }
-                    if (MapViewer.DEBUG_PAINT) {
+                    if (MapViewer.DEBUG_PAINT) { // todo: remove MapViewer reference
                         if (c instanceof LWLink) links++;
                         else nodes++;
                     }
                 }
             }
-            if (MapViewer.DEBUG_PAINT)
+            if (MapViewer.DEBUG_PAINT) // todo: remove MapViewer reference
                 System.out.println(this + " painted " + links + " links, " + nodes + " nodes");
         }
         if (DEBUG_CONTAINMENT) {
