@@ -48,6 +48,7 @@ public class FedoraDataSource extends VueDataSource{
           this.setUserName(username);
           this.setPassword(password);
           this.setResourceViewer();
+         
         
      }
     
