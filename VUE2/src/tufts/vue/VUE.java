@@ -9,6 +9,9 @@ import tufts.vue.action.*;
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
+ *
+ * modified by John Briedis on 5/29/03
+ * added support for Save as type html
  */
 public class VUE
     implements VueConstants
@@ -348,12 +351,14 @@ public class VUE
         helpMenu.add(new JMenuItem("Help"));
         
         ImageConversion imageAction = new ImageConversion("image");
+        ImageMap imageMap = new ImageMap("iMap");
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);
         toolBar.add(imageAction);
+        toolBar.add(imageMap);
         toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
