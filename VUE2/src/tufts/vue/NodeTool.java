@@ -258,14 +258,14 @@ public class NodeTool extends VueTool
             // dyanmic shape, you need to account for that for perfect
             // centering.
             
-            if (ToolIcon.width % 2 == 0)
-                sWidth = nearestOdd(ToolIcon.width / 2);
+            if (ToolIcon.Width % 2 == 0)
+                sWidth = nearestOdd(ToolIcon.Width / 2);
             else
-                sWidth = nearestEven(ToolIcon.width / 2);
-            if (ToolIcon.height % 2 == 0)
-                sHeight = nearestOdd(ToolIcon.height / 2);
+                sWidth = nearestEven(ToolIcon.Width / 2);
+            if (ToolIcon.Height % 2 == 0)
+                sHeight = nearestOdd(ToolIcon.Height / 2);
             else
-                sHeight = nearestEven(ToolIcon.height / 2);
+                sHeight = nearestEven(ToolIcon.Height / 2);
 
             sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColorLight, sWidth/2,sHeight/2,sShapeColor,true); // horizontal dark center
             //sShapeGradient = new GradientPaint(sWidth/2,0,sShapeColor, sWidth/2,sHeight/2,sShapeColorLight,true); // horizontal light center

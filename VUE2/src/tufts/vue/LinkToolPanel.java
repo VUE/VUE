@@ -18,13 +18,28 @@ import tufts.vue.beans.*;
  public class LinkToolPanel extends LWCToolPanel
  {
      private ColorMenuButton mLinkColorButton;
-     /** arrow head toggle button **/
-     private JToggleButton mArrowStartButton;
-     /** arrow tail toggle button **/
-     private JToggleButton mArrowEndButton;
+     private AbstractButton mArrowStartButton;
+     private AbstractButton mArrowEndButton;
  	
-    protected void buildBox() {
-        
+     protected void buildBox()
+     {
+         mArrowStartButton = new VueButton.Toggle("link.button.arrow.start", this);
+         mArrowEndButton = new VueButton.Toggle("link.button.arrow.end", this);
+         
+         JLabel label = new JLabel("   Link: ");
+         label.setFont(VueConstants.FONT_SMALL);
+         getBox().add(label);
+         
+         getBox().add(mArrowStartButton);
+         getBox().add(mArrowEndButton);
+         
+         getBox().add(mStrokeColorButton);
+         getBox().add(mStrokeButton);
+         getBox().add(mFontPanel);
+         getBox().add(mTextColorButton);
+    }
+     
+         /*
          mArrowStartButton = new JToggleButton();
          mArrowStartButton.setIcon(VueResources.getImageIcon( "arrowStartOffIcon") );
          mArrowStartButton.setSelectedIcon(VueResources.getImageIcon("arrowStartOnIcon") );
@@ -38,21 +53,10 @@ import tufts.vue.beans.*;
          mArrowEndButton.setMargin(ButtonInsets);
          mArrowEndButton.setBorderPainted(false);
          mArrowEndButton.addActionListener(this);
+         */
 
          //----
 
-         JLabel label = new JLabel("   Link: ");
-         label.setFont(VueConstants.FONT_SMALL);
-         getBox().add(label);
-         
-         getBox().add(mArrowStartButton);
-         getBox().add(mArrowEndButton);
-         
-         getBox().add(mStrokeColorButton);
-         getBox().add(mStrokeButton);
-         getBox().add(mFontPanel);
-         getBox().add(mTextColorButton);
-    }
          /*
          Color [] linkColors = VueResources.getColorArray( "linkColorValues");
          String [] linkColorNames = VueResources.getStringArray( "linkColorNames");

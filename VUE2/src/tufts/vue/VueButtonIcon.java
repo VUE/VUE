@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Graphics;
@@ -12,40 +13,43 @@ import javax.swing.Icon;
 import javax.swing.AbstractButton;
 import javax.swing.border.EtchedBorder;
 
-// TODO: replace ToolIcon with this or subclass of this.
+
 public class VueButtonIcon implements Icon
 {
     public static final int UP = 0;        // unselected/default
     public static final int PRESSED = 1;   // only while being held down by a mouse press
-    public static final int SELECTED = 2;  // selected (after mouse click)
+    public static final int SELECTED = 2;  // selected (for toggle buttons)
     public static final int DISABLED = 3;  // disabled
     public static final int ROLLOVER = 4;  // rollover
     public static final int MENU = 5;              // sub-menus: default (palette menu)
     public static final int MENU_SELECTED = 6;     // sub-menus: rollover (palette menu)
             
-    public static void installGenerated(AbstractButton b, Icon raw) {
-        b.setIcon(new VueButtonIcon(raw, UP));
-        b.setPressedIcon(new VueButtonIcon(raw, PRESSED));
-        b.setSelectedIcon(new VueButtonIcon(raw, SELECTED));
-        b.setDisabledIcon(new VueButtonIcon(raw, DISABLED));
-        b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER));
+    public static void installGenerated(AbstractButton b, Icon raw, Dimension s) {
+        if (s == null)
+            s = new Dimension(0,0);
+        b.setIcon(new VueButtonIcon(raw, UP, s));
+        b.setPressedIcon(new VueButtonIcon(raw, PRESSED, s));
+        b.setSelectedIcon(new VueButtonIcon(raw, SELECTED, s));
+        b.setDisabledIcon(new VueButtonIcon(raw, DISABLED, s));
+        b.setRolloverIcon(new VueButtonIcon(raw, ROLLOVER, s));
     }
 
     private static final Color sButtonColor = new Color(222,222,222);
     private static final Color sOverColor = Color.gray;
     private static final Color sDownColor = sOverColor;
     private static final EtchedBorder sEtchedBorder = new EtchedBorder();
+    private static final AlphaComposite DisabledAlpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
     
-    final int width = 22;
-    final int height = 22;
+    protected final int width;
+    protected final int height;
 
     private Insets insets = new Insets(0,0,0,0);
-    private int mType = UP;
     private Color mColor = sButtonColor;
 
+    private final int mType;
     private final Icon mRawIcon;
     private final boolean isPressIcon;
-    private boolean isRadioButton = false; // if in an exclusive button-group
+    protected boolean isRadioButton = false; // if in an exclusive button-group
 
     // OffsetWhenDown: nudge the icon when in the down state.
     // Set to true of "up" state appears as a button -- can
@@ -54,17 +58,16 @@ public class VueButtonIcon implements Icon
     private final static boolean OffsetWhenDown = false;
     private final static boolean debug = false;
 
-    protected VueButtonIcon(Icon rawIcon, int t)
+    public VueButtonIcon(Icon rawIcon, int t, int width, int height)
     {
-        mRawIcon = rawIcon;
-        mType = t;
-        isPressIcon = (t == PRESSED || t == SELECTED || t == MENU_SELECTED);
-        //mPaintGradient = isPressIcon || t == ROLLOVER;
-        //if (mPaintGradient)
+        this.mRawIcon = rawIcon;
+        this.mType = t;
+        this.width = width <= 0 ? rawIcon.getIconWidth() + 4 : width;
+        this.height = height <= 0 ? rawIcon.getIconHeight() + 4 : height;
+        this.isPressIcon = (t == PRESSED || t == SELECTED || t == MENU_SELECTED);
+        
         if (isPressIcon)
             mColor = Color.lightGray;
-        //mColor = Color.gray;
-        //mColor = ToolbarColor;
         if (debug) {
             if (t == MENU) mColor = Color.pink;
             if (t == MENU_SELECTED) mColor = Color.magenta;
@@ -73,6 +76,13 @@ public class VueButtonIcon implements Icon
         //if (t >= MENU) insets = new Insets(-1,-1,1,1);
     }
             
+    public VueButtonIcon(Icon rawIcon, int t, Dimension size) {
+        this(rawIcon, t, size.width, size.height);
+    }
+    public VueButtonIcon(Icon rawIcon, int t) {
+        this(rawIcon, t, 0, 0);
+    }
+        
     public int getIconWidth() { return width; }
     public int getIconHeight() { return height; }
 
@@ -81,7 +91,7 @@ public class VueButtonIcon implements Icon
      * paint the entire button as an icon plus it's visible icon graphic
      */
     public void paintIcon(Component c, Graphics g, int x, int y) {
-        if (debug) System.out.println("painting " + mRawIcon + " type = " + mType + " on " + c);
+        if (debug||DEBUG.BOXES) System.out.println("painting " + mRawIcon + " type = " + mType + " on " + c + " bg=" + c.getBackground());
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (mType >= MENU) {
@@ -141,7 +151,7 @@ public class VueButtonIcon implements Icon
         int ix = (w - mRawIcon.getIconWidth()) / 2;
         int iy = (h - mRawIcon.getIconHeight()) / 2;
         if (mType == DISABLED)
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            g2.setComposite(DisabledAlpha);
         if (DEBUG.BOXES) {
             g2.setColor(Color.red);
             g2.fillRect(ix, iy, mRawIcon.getIconWidth(), mRawIcon.getIconHeight());

@@ -128,29 +128,8 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         mSizeField.setFont( sizeFont);
         mSizeField.setMaximumSize(mSizeField.getPreferredSize());
  		
-        mBoldButton = new VueToggleButton("font.button.bold", this);
-        mItalicButton = new VueToggleButton("font.button.italic", this);
-
-        //mBoldButton = new VueButton("font.button.bold", this);
-        //mItalicButton = new VueButton("font.button.italic", this);
-
-        System.out.println(mBoldButton + " model=" + mBoldButton.getModel());
-        
-        /*
-        mBoldButton = new JToggleButton();
-        mBoldButton.setSelectedIcon( sBoldOn);
-        mBoldButton.setIcon( sBoldOff);
-        mBoldButton.addActionListener(this);
-        mBoldButton.setBorderPainted(false);
-        mBoldButton.setMargin(ButtonInsets);
-
-        mItalicButton = new JToggleButton();
-        mItalicButton.setSelectedIcon(sItalicOn);
-        mItalicButton.setIcon(sItalicOff);
-        mItalicButton.addActionListener(this);
-        mItalicButton.setBorderPainted(false);
-        mItalicButton.setMargin(ButtonInsets);
-        */
+        mBoldButton = new VueButton.Toggle("font.button.bold", this);
+        mItalicButton = new VueButton.Toggle("font.button.italic", this);
 
         /*
           Color [] textColors = VueResources.getColorArray("textColorValues");

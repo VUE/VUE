@@ -141,12 +141,14 @@ public class ToolWindow extends JWindow
         validate();
     }
 
-    private static final int stickyDist = 5;
+    private static final int StickyDist = 10;
+    private static final int ReleaseDist = 100;
     public void setLocation(int x, int y)
     {
         // todo: this is kind of a cheap method, but it works, & allows
         // user override by moving the toolwindow fast ("slamming" it
-        // past the sticky edge)
+        // past the sticky edge), or dragging it away
+        //out("setLocation0 " + x + "," + y);
         Component c = getParent();
         if (c != null) {
             Rectangle parent = getParent().getBounds();
@@ -157,19 +159,24 @@ public class ToolWindow extends JWindow
                 if (x > getX()) {
                     int toolRightEdge = getX() + getWidth();
                     int reDist = parent.x - toolRightEdge;
-                    if (reDist >= 0 && reDist <= stickyDist) {
+                    // mouseDist: distance between would-be lockdown & requested
+                    int mouseDist = x - (parent.x - getWidth());
+                    if (reDist >= 0 && reDist <= StickyDist && mouseDist < ReleaseDist) {
                         x = parent.x - getWidth();
-                        //out("gap " + reDist + ": sticking");
+                        //out("gap " + reDist + ", mouse " + mouseDist);
                     }
                 } else if (x < getX()) {
                     int reDist = getX() - (parent.x + parent.width);
-                    if (reDist >= 0 && reDist <= stickyDist) {
+                    // mouseDist: distance between would-be lockdown & requested
+                    int mouseDist = (parent.x + parent.width) - x;
+                    if (reDist >= 0 && reDist <= StickyDist && mouseDist < ReleaseDist) {
                         x = parent.x + parent.width;
-                        //out("gap " + reDist + ": sticking");
+                        //out("gap " + reDist + ", mouse " + mouseDist + ": sticking");
                     }
                 }
             }
         }
+        //out("setLocation1 " + x + "," + y);
         super.setLocation(x, y);
     }
     
@@ -291,11 +298,8 @@ public class ToolWindow extends JWindow
     {
         JPanel titlePanel = new JPanel();
         JPanel contentPanel = new JPanel();
-        // contentPanel contains title & everything else -- it has the beveled border...
         
-        //Component hideButton = new Button();
-        //JButton hideButton = new JButton("X");
-        JButton hideButton = null;
+        //JButton hideButton = null;
             
         public ContentPane(String title)
         {
@@ -383,8 +387,8 @@ public class ToolWindow extends JWindow
                 if (VueUtil.isMacAquaLookAndFeel())
                     y++;
                 l.setLocation(2, y);
-                if (hideButton != null)
-                    hideButton.setLocation(50,0);
+                //if (hideButton != null)
+                //hideButton.setLocation(50,0);
             }
 
             add(contentPanel, BorderLayout.CENTER);

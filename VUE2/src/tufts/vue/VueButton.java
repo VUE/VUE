@@ -7,10 +7,11 @@ import javax.swing.border.*;
 
 /**
  *
- * This class is a wrapper around JButton to get the look and feel for VUE.
- * VueButtons are currently used in Pathway Panel and Advanced Search.  The button sets the disabled, Up and Down icons.
- * All the icons must be present in VueResources in format buttonName.Up, buttonName.down, buttonName.disabled, or .raw
- * for generated buttons.
+ * This class is a wrapper around JButton to get the look and feel for
+ * VUE buttons displaying icons only (no text).  The button sets the
+ * disabled, up & down icons.  All the icons must be present in
+ * VueResources in format buttonName.Up, buttonName.down,
+ * buttonName.disabled, or .raw for generated buttons.
  *
  * @author  akumar03
  * @author  Scott Fraize
@@ -19,11 +20,6 @@ import javax.swing.border.*;
 
 public class VueButton extends JButton
 {
-    private static final String UP = ".up";
-    private static final String DOWN = ".down";
-    private static final String DISABLED = ".disabled";
-    private static final String RAW = ".raw";
-
     protected String key;
 
     public VueButton(String name, ActionListener l)
@@ -42,55 +38,107 @@ public class VueButton extends JButton
         init((String) a.getValue(Action.ACTION_COMMAND_KEY));
     }
 
+    public void addNotify() {
+        super.addNotify();
+        setBackground(getParent().getBackground());
+    }
 
-    private void init(String key)
-    {
+    private void init(String key) {
         this.key = key;
-        if (DEBUG.Enabled) System.out.println("initializing " + this);
-        
-        Icon i;
-        
-        if ((i = VueResources.getImageIcon(key + RAW)) != null) {
-            VueButtonIcon.installGenerated(this, i);
-        } else {
-            if ((i = VueResources.getImageIcon(key + UP)) != null)       setIcon(i);
-            if ((i = VueResources.getImageIcon(key + DOWN)) != null)     setPressedIcon(i);
-            if ((i = VueResources.getImageIcon(key + DISABLED)) != null) setDisabledIcon(i);
-        }
-
-        if (true) {
-            setBorder(null);
-            setBorderPainted(false);
-            setFocusable(false);
-            setOpaque(false);
-        }
-
-        if (getIcon() != null) {
-            Dimension imageSize = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
-            System.out.println(this + " icon size is " + VueUtil.out(imageSize) + " on " + key);
-            setPreferredSize(imageSize);
-        }
-
-        //setBackground(Color.white);
-        //setBackground(Color.red);
-        if (DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
-        
+        init(this, key);
     }
+    
+    public static class Toggle extends JToggleButton {
+        protected String key;
+        public Toggle(String name, ActionListener l) {
+            init(name);
+            if (l != null)
+                addActionListener(l);
+        }
+        public Toggle(String name) {
+            init(name);
+        }
+        
+        public Toggle(Action a) {
+            setAction(a);
+            init((String) a.getValue(Action.ACTION_COMMAND_KEY));
+        }
 
-    public String toString() {
-        return "VueButton[" + key + "]";
-    }
-
-    public static class Toggle extends VueButton {
+        /*
         public Toggle(String name, ActionListener l) {
             super(name, l);
             // apparently need more than this to get to work as a toggle
-            setModel(new JToggleButton.ToggleButtonModel());            
+            //setModel(new JToggleButton.ToggleButtonModel());
+            // if can get working, can subclass VueButton
+        }
+        */
+
+        public void addNotify() {
+            super.addNotify();
+            setBackground(getParent().getBackground());
+        }
+        
+        private void init(String key) {
+            this.key = key;
+            VueButton.init(this, key);
         }
         public String toString() {
             return "VueButton.Toggle[" + key + "]";
         }
     }
     
+
+    static void init(AbstractButton b, String key)
+    {
+        installResourceConfiguration(b, key);
+
+        if (true) {
+            b.setBorder(null);
+            b.setBorderPainted(false);
+            b.setFocusable(false);
+            b.setOpaque(false);
+        }
+
+        if (b.getIcon() != null) {
+            Dimension imageSize = new Dimension(b.getIcon().getIconWidth(), b.getIcon().getIconHeight());
+            System.out.println(b + " icon size is " + VueUtil.out(imageSize));
+            b.setPreferredSize(imageSize);
+        } else {
+            //if (DEBUG.Enabled) System.out.println(b + " init");
+        }
+
+        //setBackground(Color.white);
+        //setBackground(Color.red);
+        if (DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
+    }
+
+
+    public static final String kRAW = ".raw";
+    public static final String kUP = ".up";
+    public static final String kDOWN = ".down";
+    public static final String kDISABLED = ".disabled";
+    public static final String kSIZE = ".size";
+
+    public static void installResourceConfiguration(AbstractButton b, String key)
+    {
+        Icon i;
+        if ((i = VueResources.getImageIcon(key + kRAW)) != null) {
+            VueButtonIcon.installGenerated(b, i, VueResources.getSize(key + kSIZE));
+        } else {
+            if ((i = VueResources.getImageIcon(key + kUP)) != null)       b.setIcon(i);
+            if ((i = VueResources.getImageIcon(key + kDOWN)) != null)     b.setPressedIcon(i);
+            if ((i = VueResources.getImageIcon(key + kDISABLED)) != null) b.setDisabledIcon(i);
+        }
+        String tt = VueResources.getString(key + ".tooltip");
+        if (tt != null)
+            b.setToolTipText(tt);
+    }
+
+    
+
+    public String toString() {
+        return "VueButton[" + key + "]";
+    }
+
    
 }

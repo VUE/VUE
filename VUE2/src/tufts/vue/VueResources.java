@@ -70,6 +70,19 @@ public class VueResources
         return icon;
     }
 
+    public static Dimension getSize(String key) {
+        String[] data = VueResources.getStringArray(key);
+        if (data == null)
+            return null;
+        Dimension d = new Dimension();
+        if (data.length > 0) {
+            d.width = parseInt(data[0]);
+            if (data.length > 1)
+                d.height = parseInt(data[1]);
+        }
+        return d;
+    }
+        
     public static Cursor getCursor(String pLookupKey)
     {
         String[] data = VueResources.getStringArray(pLookupKey);
@@ -153,7 +166,7 @@ public class VueResources
         } catch (MissingResourceException mre) {
             alert("!!! Warning: Missing string resource "+pLookupKey );
         }
-        if (DEBUG.INIT) System.out.println("VueResources[" + pLookupKey + "] = \"" + result + "\"");
+        if (DEBUG.INIT) System.out.println("VueResources[" + pLookupKey + "] = " + (result==null?"null":"\"" + result + "\""));
         return result;
     }
 

@@ -49,14 +49,14 @@ public class VueToolPanel extends JPanel
     public VueToolPanel() {
         super();
         mButtonGroup = new ButtonGroup();
-		
+
         if (debug)
             setBackground(Color.blue);
         else
             setBackground( VueResources.getColor( "toolbar.background") );
 		
         setLayout( new BorderLayout() );
-        setBorder( new EmptyBorder(1,3,2,0) );//tlbr
+        setBorder( new EmptyBorder(1,3,2,10) );//tlbr
         //this.setBorder( new EmptyBorder(0,3,1,0) );//tlbr
 		
         mMainToolPanel = new JPanel();

@@ -8,16 +8,10 @@ import java.awt.*;
  *
  * This class is a wrapper around JToggleButton to get the look and feel for VUE.
  *
- * @author  Scott Fraize
- * @version March 2004
+ * @deprecated in favor of VueButton.Toggle
  */
 public class VueToggleButton extends JToggleButton
 {
-    private static final String UP = ".up";
-    private static final String DOWN = ".down";
-    private static final String DISABLED = ".disabled";
-    private static final String RAW = ".raw";
-
     private String key;
 
     public VueToggleButton(String name, java.awt.event.ActionListener listener)
@@ -36,20 +30,18 @@ public class VueToggleButton extends JToggleButton
         init((String) a.getValue(Action.ACTION_COMMAND_KEY));
     }
 
+    public void addNotify() {
+        super.addNotify();
+        setBackground(getParent().getBackground());
+        System.out.println(this + " setting bg to " + getParent() + " " + getParent().getBackground());
+    }
+    
     private void init(String key)
     {
         this.key = key;
-        if (DEBUG.Enabled) System.out.println("initializing " + this);
+        if (DEBUG.Enabled) System.out.println(this + " init");
         
-        Icon i;
-        
-        if ((i = VueResources.getImageIcon(key + RAW)) != null) {
-            VueButtonIcon.installGenerated(this, i);
-        } else {
-            if ((i = VueResources.getImageIcon(key + UP)) != null)       setIcon(i);
-            if ((i = VueResources.getImageIcon(key + DOWN)) != null)     setPressedIcon(i);
-            if ((i = VueResources.getImageIcon(key + DISABLED)) != null) setDisabledIcon(i);
-        }
+        VueButtonIcon.installResourceConfiguration(this, key);
 
         if (true) {
             setBorder(null);

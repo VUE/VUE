@@ -46,7 +46,7 @@ public class PathwayPanel extends JPanel implements ActionListener
     private boolean mNoteKeyWasPressed = false;
 
     private final Color bgColor = new Color(241, 243, 246);
-    private final Color altbgColor = new Color(186, 196, 222);
+    //private final Color altbgColor = new Color(186, 196, 222);
     
     private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
     private static final Action path_backward = new PlayerAction("pathway.control.backward");
@@ -93,6 +93,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         btnPathwayDelete   = new VueButton("pathways.delete", this);
         btnPathwayLock     = new VueButton("pathways.lock", this);
         btnPathwayShowOnly = new VueButton("pathways.showOnly", this);
+        //btnPathwayShowOnly = new VueButton.Toggle("pathways.showOnly", this);
         
         
         //        JPanel pathwayMasterPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 2, 1)) {
@@ -132,77 +133,42 @@ public class PathwayPanel extends JPanel implements ActionListener
         // Selected pathway add/remove element buttons
         //-------------------------------------------------------
         
-        btnElementAdd = new VueButton("add", this);
-        btnElementRemove = new VueButton("delete", this);
+        btnElementAdd = new VueButton("add-white", this);
+        btnElementRemove = new VueButton("delete-white", this);
+        btnElementAdd.setToolTipText("Add items to pathway");
+        btnElementRemove.setToolTipText("Remove items from pathway");
+
         btnElementUp = new VueButton("move-up", this);
         btnElementDown = new VueButton("move-down", this);
 
         JPanel elementControlPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 1, 1)) {
+        //JPanel elementControlPanel = new VueUtil.JPanel_aa() {
                 public void addNotify() {
+                    //setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
                     setBackground(new Color(98,115,161));
-                    setBorder(new EmptyBorder(2,2,2,5));
-                    //setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
+                    setBorder(new EmptyBorder(1,2,1,5));
 
-                    JLabel label = new JLabel("Add object to pathway");
+                    JLabel label = new JLabel("Add object to pathway ");
                     label.setFont(smallBoldFont);
                     label.setForeground(Color.white);
                     label.setBackground(getBackground());
-                    label.setBorder(new EmptyBorder(0,0,2,2)); //tlbr
+                    label.setBorder(new EmptyBorder(0,0,1,2)); //tlbr
                     
+                    //add(Box.createHorizontalGlue());
                     add(label);
+                    //add(Box.createHorizontalStrut(1));
                     add(btnElementAdd);
+                    //add(Box.createHorizontalStrut(1));
                     add(btnElementRemove);
+                    //add(Box.createHorizontalStrut(2));
                     add(btnElementUp);
+                    //add(Box.createHorizontalStrut(1));
                     add(btnElementDown);
                     
                     super.addNotify();
                 }
             };
                 
-        //-------------------------------------------------------
-        // Layout for the table components 
-        //-------------------------------------------------------
-        
-        GridBagLayout gridBag = new GridBagLayout();
-        GridBagConstraints gc = new GridBagConstraints();
-        
-        JPanel tablePanel = new JPanel();
-        //tablePanel.setBackground(bgColor);
-        tablePanel.setLayout(gridBag);
-        
-        gc.gridwidth = GridBagConstraints.REMAINDER;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.weightx = 1.0;
-        gc.gridheight = 1;
-        
-        //-------------------------------------------------------
-        // add pathway create/delete/lock control panel
-        gridBag.setConstraints(pathwayMasterPanel, gc);
-        tablePanel.add(pathwayMasterPanel);
-        
-        //-------------------------------------------------------
-        // add the PathwayTable
-        gc.insets = new Insets(0,0,0,0);
-        gc.fill = GridBagConstraints.BOTH;
-        gc.weighty = 3.0;
-        gc.gridheight = 18;
-        JScrollPane tablePane = new JScrollPane(mPathwayTable);
-        tablePane.setPreferredSize(new Dimension(getWidth(), 180));
-        //tablePane.setBorder(BorderFactory.createMatteBorder(0,1,0,1,Color.gray));
-        gridBag.setConstraints(tablePane, gc);
-        tablePanel.add(tablePane);
-        
-        //-------------------------------------------------------
-        // add pathway element add/remove control panel
-        gc.insets = new Insets(3,0,3,0);
-        gridBag.setConstraints(elementControlPanel, gc);
-        tablePanel.add(elementControlPanel);
-        
-        //-------------------------------------------------------
-        // Add the selected item text label
-        //gc.weighty = 0.0;
-        //gc.gridheight = 1;
-        
         
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
@@ -242,38 +208,69 @@ public class PathwayPanel extends JPanel implements ActionListener
         notesPanel.add(noteLabelPanel, BorderLayout.NORTH);
         notesPanel.setBorder(new EmptyBorder(7,0,0,0));
         notesPanel.add(new JScrollPane(notesArea), BorderLayout.CENTER);
+
+
         
         //-------------------------------------------------------
-        // Now layout the whole PathwayPanel
+        // Layout for the table components 
         //-------------------------------------------------------
         
         GridBagLayout bag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
+
         setLayout(bag);
+        c.gridwidth = GridBagConstraints.REMAINDER; // put everything in one column
+        c.weightx = 1.0; // make sure everything can fill to width
         
-        c.gridwidth = GridBagConstraints.REMAINDER;
+        //-------------------------------------------------------
+        // add pathway create/delete/lock control panel
+        //-------------------------------------------------------
+
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.gridheight = 1;
-        c.weightx = 1.0;
-        
         bag.setConstraints(pathwayMasterPanel, c);
         add(pathwayMasterPanel);
         
+        //-------------------------------------------------------
+        // add the PathwayTable
+        //-------------------------------------------------------
+
         c.fill = GridBagConstraints.BOTH;
-        c.weighty = 2.0;
-        c.gridheight = 11;
-        //tablePanel.setPreferredSize(new Dimension(getWidth(), 250));
-        bag.setConstraints(tablePanel, c);
-        add(tablePanel);
+        c.weighty = 2.5;
+        JScrollPane tablePane = new JScrollPane(mPathwayTable);
+        tablePane.setPreferredSize(new Dimension(getWidth(), 180));
+        bag.setConstraints(tablePane, c);
+        add(tablePane);
         
+        //-------------------------------------------------------
+        // add pathway element add/remove control panel
+        //-------------------------------------------------------
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weighty = 0;
+        c.insets = new Insets(3,0,1,1);
+        bag.setConstraints(elementControlPanel, c);
+        add(elementControlPanel);
+        
+        //-------------------------------------------------------
+        // Add the notes panel
+        //-------------------------------------------------------
+        
+        c.fill = GridBagConstraints.BOTH;
         c.weighty = 1.0;
-        c.gridheight = 8;
+        c.insets = new Insets(0,0,0,0);
         notesPanel.setPreferredSize(new Dimension(getWidth(), 80));
         bag.setConstraints(notesPanel, c);
         add(notesPanel);
 
+        //-------------------------------------------------------
+        // Add the playback panel
+        //-------------------------------------------------------
+
+        // (no constraints needed)
         add(playbackPanel);
         
+        //-------------------------------------------------------
+        // Disable all that need to be
         //-------------------------------------------------------
         
         updateEnabledStates();
@@ -518,13 +515,14 @@ public class PathwayPanel extends JPanel implements ActionListener
             path_backward.setEnabled(!atFirst);
             path_forward.setEnabled(!atLast);
             path_last.setEnabled(!atLast);
-            //btnElementUp.setEnabled(!atFirst);
-            //btnElementDown.setEnabled(!atLast);
+            btnElementUp.setEnabled(!atFirst);
+            btnElementDown.setEnabled(!atLast);
         } else {
             PlayerAction.setAllEnabled(false);
-            //btnElementUp.setEnabled(false);
-            //btnElementDown.setEnabled(false);
+            btnElementUp.setEnabled(false);
+            btnElementDown.setEnabled(false);
         }
+        btnPathwayShowOnly.setEnabled(pathway != null && pathway.length() > 0);
         btnPathwayLock.setEnabled(pathway != null);
     }
     
@@ -605,6 +603,14 @@ public class PathwayPanel extends JPanel implements ActionListener
         mDisplayedComponent = c;
         mDisplayedComponentPathway = pathway;
     }
+
+    public static void main(String[] args) {
+        System.out.println("PathwayPanel:main");
+        DEBUG.Enabled = DEBUG.INIT = true;
+        VUE.initUI(true);
+        VueUtil.displayComponent(new PlaybackToolPanel());
+    }
+    
 
     public String toString() {
         return "PathwayPanel[" + VUE.getActivePathway() + "]";
