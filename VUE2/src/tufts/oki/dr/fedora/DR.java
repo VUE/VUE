@@ -18,6 +18,7 @@ import tufts.oki.shared.TypeIterator;
 
 import java.util.Vector;
 import java.util.Properties;
+import java.util.Iterator;
 import java.net.*;
 import java.io.*;
 import javax.swing.JOptionPane;
@@ -65,9 +66,8 @@ public class DR implements osid.dr.DigitalRepository {
         this.description = description;
         this.configuration = getResource("fedora.conf");
         setFedoraProperties(configuration);
+        loadFedoraObjectAssetTypes();
         //setFedoraProperties(FedoraUtils.CONF);
-        createFedoraObjectAssetType("TUFTS_STD_IMAGE");
-        createFedoraObjectAssetType("XML_TO_HTMLDOC");
         searchTypes.add(new SearchType("Search"));
         searchTypes.add(new SearchType("Advanced Search"));
         //loadAssetTypes();
@@ -92,11 +92,20 @@ public class DR implements osid.dr.DigitalRepository {
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
             fedoraProperties.setProperty("url.fedora.soap.access", prefs.get("url.fedora.soap.access", ""));
              fedoraProperties.setProperty("url.fedora.get", prefs.get("url.fedora.get", ""));
+             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types",""));
             fis.close();
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
  
     }
-    
+    private void loadFedoraObjectAssetTypes() {
+        try {
+             Vector fedoraTypesVector = FedoraUtils.stringToVector(fedoraProperties.getProperty("fedora.types"));
+             Iterator i =fedoraTypesVector.iterator();
+             while(i.hasNext()) {
+                 createFedoraObjectAssetType((String)i.next());
+             }
+        } catch (Exception ex) { System.out.println("Unable to load fedora types"+ex);}
+    }
     public Properties getFedoraProperties() {
         return fedoraProperties;
     }
