@@ -556,7 +556,7 @@ public abstract class LWContainer extends LWComponent
         java.util.Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (c instanceof LWContainer && !(c instanceof LWGroup))
+            if (c.hasChildren() && !(c instanceof LWGroup))
                 list.addAll(((LWContainer)c).getAllDescendents());
         }
         return list;
@@ -868,8 +868,8 @@ public abstract class LWContainer extends LWComponent
         int idxLast = children.size() - 1;
         if (idx == idxLast)
             return false;
-        notify(LWKey.HierarchyChanging);
         //System.out.println("bringToFront " + c);
+        notify(LWKey.HierarchyChanging);
         children.remove(idx);
         children.add(c);
         // we layout the parent because a parent node may lay out
@@ -884,8 +884,8 @@ public abstract class LWContainer extends LWComponent
         int idx = children.indexOf(c);
         if (idx <= 0)
             return false;
-        notify(LWKey.HierarchyChanging);
         //System.out.println("sendToBack " + c);
+        notify(LWKey.HierarchyChanging);
         children.remove(idx);
         children.add(0, c);
         notify("hier.move.back", c);
@@ -899,8 +899,8 @@ public abstract class LWContainer extends LWComponent
         int idxLast = children.size() - 1;
         if (idx == idxLast)
             return false;
-        notify(LWKey.HierarchyChanging);
         //System.out.println("bringForward " + c);
+        notify(LWKey.HierarchyChanging);
         swap(idx, idx + 1);
         notify("hier.move.forward", c);
         c.getParent().layoutChildren();
@@ -912,8 +912,8 @@ public abstract class LWContainer extends LWComponent
         int idx = children.indexOf(c);
         if (idx <= 0) 
             return false;
-        notify(LWKey.HierarchyChanging);
         //System.out.println("sendBackward " + c);
+        notify(LWKey.HierarchyChanging);
         swap(idx, idx - 1);
         notify("hier.move.backward", c);
         c.getParent().layoutChildren();

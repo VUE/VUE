@@ -102,10 +102,14 @@ public class LWPathway extends LWContainer
     /** return the current element */
     public LWComponent getCurrent() { 
         LWComponent c = null;
+        if (mCurrentIndex < 0)
+            return null;
+        /*
         if (mCurrentIndex < 0 && length() > 0) {
             System.out.println(this + " lazy default of index to 0");
             mCurrentIndex = 0;
         }
+        */
         try {
             c = (LWComponent) children.get(mCurrentIndex);
         } catch (IndexOutOfBoundsException ie){

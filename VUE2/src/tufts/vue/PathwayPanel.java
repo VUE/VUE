@@ -289,17 +289,10 @@ public class PathwayPanel extends JPanel implements ActionListener
                 }
             });
         
-        //toggles the add button's availability depending on the selection
         VUE.ModelSelection.addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) {
                     if (s.size() == 1 && s.first().inPathway(getSelectedPathway())) {
                         getSelectedPathway().setCurrentElement(s.first());
-                        mTableModel.fireTableDataChanged();
-                        //updateTextAreas();
-                        // todo: changes to map selection are never updating
-                        // the text areas
-                        // (btw: should not need updateTextAreas() call above,
-                        // and it doesn't appear to be helping anyway)
                     } else
                         updateEnabledStates();
                 }
@@ -576,7 +569,24 @@ public class PathwayPanel extends JPanel implements ActionListener
             return;
         }
         
-        LWComponent c = mTableModel.getElement(mPathwayTable.getLastSelectedRow());
+        LWComponent c;
+
+        // this is bit hackish: if the PathwayTable has initiated this
+        // update from a selection change, we need to query it for
+        // the last selected component as opposed to getting it
+        // from the current pathway, because it may BE the current
+        // pathway.  We might detect this by allowing getCurrent()
+        // to return null, thus indicating a pathway selection, but
+        // we really always want a current element in the pathway also
+        // so something is always highlighted in the pathway table.
+        
+        if (mPathwayTable.inTableSelection())
+            c = mPathwayTable.getLastSelectedComponent();
+        else
+            c = pathway.getCurrent();
+
+        if (c == mDisplayedComponent && pathway == mDisplayedComponentPathway)
+            return;
         
         if (c instanceof LWPathway) {
             pathLabel.setText(pathway.getLabel());

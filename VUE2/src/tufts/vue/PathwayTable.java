@@ -44,6 +44,8 @@ public class PathwayTable extends JTable
     private final LineBorder normalBorder = null;//new LineBorder(regular, 2);
     
     private int lastSelectedRow = -1;
+    private LWComponent lastSelectedComponent;
+    private boolean inTableSelection;
 
     private final boolean showHeaders = true; // sets whether or not table column headers are shown
     private final int[] colWidths = {20,20,13,100,20,20};
@@ -106,7 +108,10 @@ public class PathwayTable extends JTable
                     int col = getSelectedColumn();
                     if (DEBUG.PATHWAY) System.out.println("PathwayTable: selected row "+row+", col "+col);    
                     
+                    PathwayTable.this.inTableSelection = true;
+                    
                     LWComponent c = tableModel.getElement(row);
+                    lastSelectedComponent = c;
                     LWPathway pathway = null;
                     if (c instanceof LWPathway)
                         pathway = (LWPathway) c;
@@ -117,9 +122,12 @@ public class PathwayTable extends JTable
                     if (c instanceof LWPathway) {
                         if (col == 0 || col == 2 || col == 5)
                             setValueAt(pathway, row, col); // toggle pathway bits: visible, open or locked
+                        //pathway.setCurrentIndex(-1);
                     } else {
                         pathway.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
                     }
+
+                    PathwayTable.this.inTableSelection = false;
 
                     VUE.getUndoManager().mark();
                 }
@@ -144,9 +152,16 @@ public class PathwayTable extends JTable
         // end of PathwayTable constructor
     }
 
+    boolean inTableSelection() {
+        return inTableSelection;
+    }
 
-    public int getLastSelectedRow() {
+    int getLastSelectedRow() {
         return lastSelectedRow;
+    }
+
+    LWComponent getLastSelectedComponent() {
+        return lastSelectedComponent;
     }
 
     private PathwayTableModel getTableModel() {

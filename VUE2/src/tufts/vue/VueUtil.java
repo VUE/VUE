@@ -309,6 +309,8 @@ public class VueUtil
         {
             if (curIter != null)
                 curIter.remove();
+            else
+                throw new IllegalStateException(this + ": no underlying iterator");
         }
     }
     /*
