@@ -314,7 +314,8 @@ public class ActionUtil {
     public static LWMap unmarshallMap(File file)
         throws java.io.IOException
     {
-        return unmarshallMap(file.toURI().toURL());
+        return unmarshallMap(file.toURL());
+        //return unmarshallMap(file.toURI().toURL());
     }
 
     /** Unmarshall a LWMap from the given URL (XML map data) */
