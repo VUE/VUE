@@ -160,7 +160,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
      */
     public ArrayList findHierarchyNodeByComponentID(HierarchyNode parentNode, String id) throws osid.hierarchy.HierarchyException
     {
-        if (parentNode == null ||id == null)
+        if (parentNode == null || id == null)
         {
             System.err.println("null in findHierarchyNodebyID method");
             return null;
@@ -189,7 +189,14 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
     {
         try
         {
-            ArrayList nodes = findHierarchyNodeByComponentID(getRootNode(), id);
+            ArrayList nodes = new ArrayList();
+            HierarchyNode rootNode = getRootNode();
+            
+            //checks to see if the id belongs to the root node, and if it does, adds to the arraylist
+            if (rootNode.getLWComponent().getID().equals(id))
+                nodes.add(rootNode);
+                   
+            nodes.addAll(findHierarchyNodeByComponentID(rootNode, id));
             
             if (nodes == null) {
                 System.out.println("OutlineViewHierarchyModel: unhandled case, nodes is null");
