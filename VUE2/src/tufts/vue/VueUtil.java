@@ -258,47 +258,6 @@ public class VueUtil
         }
     }
 
-    /*
-     * Compute two items: the zoom factor that will fit
-     * everything within the given bounds into the given
-     * viewport, and put into @param offset the offset
-     * to place the viewport at. Used to figure out how
-     * to fit everything within a map on the screen and
-     * where to pan to so you can see it all.
-     */
-    public static double computeZoomFit(java.awt.Dimension viewport,
-                                        int borderGap,
-                                        java.awt.geom.Rectangle2D bounds,
-                                        java.awt.geom.Point2D offset)
-    {
-        int viewWidth = viewport.width - borderGap * 2;
-        int viewHeight = viewport.height - borderGap * 2;
-        double vertZoom = (double) viewHeight / bounds.getHeight();
-        double horzZoom = (double) viewWidth / bounds.getWidth();
-        boolean centerVertical;
-        double newZoom;
-        if (horzZoom < vertZoom) {
-            newZoom = horzZoom;
-            centerVertical = true;
-        } else {
-            newZoom = vertZoom;
-            centerVertical = false;
-        }
-
-        // Now center the components within the dimension
-        // that had extra room to scale in.
-                    
-        double offsetX = bounds.getX() * newZoom - borderGap;
-        double offsetY = bounds.getY() * newZoom - borderGap;
-
-        if (centerVertical)
-            offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
-        else // center horizontal
-            offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
-
-        offset.setLocation(offsetX, offsetY);
-        return newZoom;
-    }
     
     public static void  setCurrentDirectoryPath(String cdp) {
         currentDirectoryPath = cdp;
