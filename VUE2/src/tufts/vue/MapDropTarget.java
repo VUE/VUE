@@ -339,10 +339,24 @@ class MapDropTarget
                     url = url.substring(0,i) + ":" + url.substring(i+1);
                     System.out.println("**PATCHED URL ["+url+"]");
                 }
-                // todo: if this is a file:/// url to a local html page,
+                // if this is a file:/// url to a local html page,
                 // AND we can determine that we're on another computer
                 // accessing this file via the network (can we?)
                 // then we should not covert this shortcut.
+                // Okay, this is good enough for now, tho it also
+                // won't end up converting a bad shortcut, and
+                // ideally that wouldn't be our decision.
+                // [this is not worth it]
+                /*
+                URL u = new URL(url);
+                if (u.getProtocol().equals("file")) {
+                    File f = new File(u.getFile());
+                    if (!f.exists()) {
+                        url = null;
+                        System.out.println("***  BAD FILE ["+f+"]");
+                    }
+                }
+                */
             }
         } catch (Exception e) {
             System.out.println(e);

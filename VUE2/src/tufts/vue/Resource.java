@@ -210,6 +210,13 @@ public class Resource
         }
     }
     
+    /** Return exactly whatever we were handed at creation time.  We
+     * need this because if it's a local file (file: URL or just local
+     * file path name), we need whatever the local OS gave us as a
+     * reference in order to give that to give back to openURL, as
+     * it's the most reliable string to give back to the underlying OS
+     * for opening a local file.  */
+    
     public String getSpec() {
        return this.spec;
     }
