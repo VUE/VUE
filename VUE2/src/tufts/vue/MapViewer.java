@@ -29,6 +29,7 @@ public class MapViewer extends javax.swing.JPanel
                , FocusListener
                , LWComponent.Listener
                , LWSelection.Listener
+               , VueToolSelectionListener
 {
     private Rectangle2D.Float RepaintRegion = null;
     private Rectangle paintedSelectionBounds = null;
@@ -77,7 +78,7 @@ public class MapViewer extends javax.swing.JPanel
     private float mapOriginY = 0;
 
     private VueTool activeTool;
-    ZoomTool zoomTool;
+    //CSB tool not tied to viewers:  // csb Tool gone:  ZoomTool zoomTool;
     
     private boolean isRightSide = false;
     MapViewer(LWMap map, boolean rightSide)
@@ -118,11 +119,14 @@ public class MapViewer extends javax.swing.JPanel
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
         // todo: tab to show/hide all tool windows
-        addTool(this.zoomTool = new ZoomTool(this));
+        
+        
+        //FIX:  tool gone addTool(this.zoomTool = new ZoomTool(this));
         
         /*
 
-        addTool(new ZoomTool(this, new int[]
+        /******
+        // CSB:  gone addTool(new ZoomTool(this, new int[]
             { KEY_ZOOM_IN_0,
               KEY_ZOOM_IN_1,
               KEY_ZOOM_OUT_0,
@@ -165,7 +169,7 @@ public class MapViewer extends javax.swing.JPanel
         // have been an existing userZoom or userOrigin
         // set -- we honor that last user configuration here.
         //-------------------------------------------------------
-        zoomTool.setZoom(getMap().getUserZoom(), false);
+        // Tool gone:  zoomTool.setZoom(getMap().getUserZoom(), false);
         Point2D p = getMap().getUserOrigin();
         setMapOriginOffset(p.getX(), p.getY());
             
@@ -183,6 +187,37 @@ public class MapViewer extends javax.swing.JPanel
                                                         | AWTEvent.TEXT_EVENT_MASK
                                                         | AWTEvent.MOUSE_EVENT_MASK);
         */
+    	
+    	// listen to tool selection events
+    	VueToolbarController.getController().addToolSelectionListener( this);
+    }
+    
+    
+    /** The currently selected tool **/
+    private VueTool mCurTool;
+    
+    /**
+     * getCurrentTool()
+     * Gets the current VueTool that is selected.
+     * @return the slected VueTool
+     **/
+    public VueTool getCurrentTool() {
+    	return mCurTool;
+    }
+    
+    /**
+     * setCurrentTool(VueTool)
+     * Sets the current VueTool for the map viewer.
+     * Updates any selection or state issues pased on the tool
+     * @param pTool - the new tool
+     **/
+    public void toolSelected( VueTool pTool) {
+    	
+    	mCurTool = pTool;
+    	// DEBUG
+    	System.out.println("MapViewer has a new tool: "+pTool.getID() );
+    	//FIX: Update user input here?
+    	// Dear Scott F.: enjoy this hook
     }
 
     void addTool(VueTool tool)
@@ -1440,11 +1475,11 @@ public class MapViewer extends javax.swing.JPanel
                     viewportAtDragStart = null;
                 return;
             } else if (toolKeyDown == KEY_TOOL_ZOOM) {
-                zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
-                if (toolKeyEvent.isShiftDown())
-                    zoomTool.setZoomSmaller();
-                else
-                    zoomTool.setZoomBigger();
+                // FIX: zoomTool.setZoomPoint(screenToMapPoint(e.getPoint()));
+               // if (toolKeyEvent.isShiftDown())
+               //     //zoomTool.setZoomSmaller();
+               // else
+               //     zoomTool.setZoomBigger();
                 return;
             }
             
@@ -2250,7 +2285,7 @@ public class MapViewer extends javax.swing.JPanel
 
     public void focusLost(FocusEvent e)
     {
-        if (DEBUG_FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
+        //if (DEBUG_FOCUS) System.out.println(this + " focusLost (to " + e.getOppositeComponent() +")");
         // todo: if focus is lost but NOT to another map viewer which then
         // grabs vue app focus, then we repaint here to clear our green
         // focus border, BUT, we still have application focus..
@@ -2375,7 +2410,7 @@ public class MapViewer extends javax.swing.JPanel
          * create the viewer
          */
         //JComponent mapView = new MapViewer(map);
-        //mapView.setPreferredSize(new Dimension(400,300));
+        //VUE.getActiveViewer().setPreferredSize(new Dimension(400,300));
         installExampleNodes(map);
         MapViewer mapView = new tufts.vue.MapViewer(map);
 
