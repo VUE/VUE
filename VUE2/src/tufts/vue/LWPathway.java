@@ -466,6 +466,16 @@ public class LWPathway
         System.out.println(this + " setElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
     }
 
+    public java.util.List getElementPropertyList()
+    {
+        return elementPropertyList;
+    }
+    
+    public void setElementPropertyList(java.util.List elementPropertyList)
+    {
+        this.elementPropertyList = (ArrayList)elementPropertyList;
+    }
+    
     private List idList = new ArrayList();
     /** for XML save/restore only */
     public List getElementIDList() {
