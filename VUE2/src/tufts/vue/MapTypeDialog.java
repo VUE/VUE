@@ -70,10 +70,15 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	UserMapType mCurType = null;
 	
 	DefaultTableModel mTableModel = null;
+	PropertyTableModel mPropertyTableModel = null;
 	
+	JComboBox mTypeEditor = null;
 		
 	/** was the okay button hit? **/
 	boolean mIsOkay = false;	
+	
+	/** new property name count **/
+	int mCount = 0;
 	
 	////////////////
 	// Constructors
@@ -107,8 +112,17 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		listControls.add( mAddTypeButton );
 		listControls.add( mRemoveTypeButton);
 		
-		mListModel = new DefaultListModel();
 		
+		UserMapType [] types = null;
+		if( mMap != null) {
+			types = mMap.getUserMapTypes();
+			}
+		mListModel = new DefaultListModel();
+		if( types != null) {
+			for(int i=0; i< types.length; i++)  {
+				mListModel.addElement( types[i] );
+				}
+			}
 		// mListModel.addElement( "Default");
 		mTypeList = new JList( mListModel);
 		mTypeList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION);
@@ -156,6 +170,9 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		mainPanel.add( BorderLayout.CENTER, propPanel);
 		add( BorderLayout.CENTER, mainPanel);
 		
+		if( mListModel.size() > 0 ) {
+			mTypeList.setSelectedIndex( 0);
+			}
 	}
 	
 	
@@ -163,9 +180,19 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		
 		String [] columns = {"Property", "Type", "Value"};
 		mTableModel = new DefaultTableModel( columns, 0);
+		mPropertyTableModel = new PropertyTableModel( null);
 		
+		mTable = new JTable( mPropertyTableModel);
+		mTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION);
+		mTable.setRowSelectionAllowed( true);
+		mTable.setColumnSelectionAllowed( false);
+		mTable.getSelectionModel().addListSelectionListener( this);
 		
-		mTable = new JTable( mTableModel);
+		mTypeEditor = new JComboBox( UserProperty.sPropertyTypeNames );
+
+		TableColumn typeColumn = mTable.getColumnModel().getColumn(1);
+		typeColumn.setCellEditor(new DefaultCellEditor( mTypeEditor));
+	
 	}
 	
 	public JButton createButton( String pText) {
@@ -188,8 +215,17 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		if( ts) {
 			boolean ps = (mTable.getSelectedRow() != -1);
 			mRemovePropertyButton.enable( ps);
-			mUpButton.enable(  ps);
-			mDownButton.enable( ps);
+			
+			int row = mTable.getSelectedRow();
+			if( row == -1) {
+				mUpButton.enable(  false);
+				mDownButton.enable( false);
+				}
+			else {
+				mUpButton.setEnabled( row != 0);
+				mDownButton.setEnabled( row < (mTable.getRowCount() -1));
+				}
+			
 			}
 			
 		boolean hm = (mMap != null);
@@ -203,6 +239,7 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	private void setUserType( UserMapType pType) {
 		if( mCurType != pType) {
 			mCurType = pType;
+			mPropertyTableModel.setUserType( pType);
 			
 			}
 	}
@@ -217,19 +254,32 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		if( name != null) {
 			UserMapType type = new UserMapType( mMap, name);
 			mListModel.addElement( type);
+			mTypeList.setSelectedValue( type, true);
 			//System.out.println(" -- added item: "+name);
 			//System.out.println("  curent size is:  "+mListModel.size() );
 			}
 	}
 	
 	public void doRemoveType() {
-	
+		Object obj = mTypeList.getSelectedValue();
+		if( obj != null) {
+			int index = mTypeList.getSelectedIndex();
+			UserMapType type = (UserMapType) obj;
+			mListModel.removeElement( type);
+			if( mListModel.size() > 0 ) {
+				if( index > 0)
+					index--;			
+				mTypeList.setSelectedIndex( index);
+				}
+			}
 	}
 	
 	public void doAddProperty() {
 		
 		String name = null;
-		name = JOptionPane.showInputDialog("Property name:");
+		//name = JOptionPane.showInputDialog("Property name:");
+		
+		name = "Property "+mCount++;
 		if( name != null) {
 			UserProperty prop = mCurType.createUserProperty( name);
 			Object [] objs = new Object[3];
@@ -240,14 +290,66 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 			mTableModel.addRow( objs );
 			if( mCurType != null)
 				mCurType.addUserProperty( prop);
+				mPropertyTableModel.fireTableDataChanged();
 			}
 	}
 	
 	public void doRemoveProperty() {
-	
+		if( mCurType != null) {
+			int index = mTable.getSelectedRow();
+			if( index < 0 )
+				return;
+			UserProperty [] props = mCurType.getUserProperties();
+			mCurType.removeUserProperty( props[ index] );
+			
+			mPropertyTableModel.fireTableDataChanged();
+		}
 	}
 	
+	public void doNudgeUp() {
+		
+		if( mCurType != null) {
+			int selection = mTable.getSelectedRow();
+			UserProperty property = null;
+			UserProperty [] rows = mCurType.getUserProperties();
+			if( rows != null) {
+				if( (selection >= 0) && ( selection < rows.length) ) {
+					mCurType.nudgeUserProperty( rows[ selection], true);
+					mPropertyTableModel.fireTableDataChanged();
+					}
+				}
+			}
+	}
+	
+	public void doNudgeDown() {
+		
+		if( mCurType != null) {
+			int selection = mTable.getSelectedRow();
+			UserProperty property = null;
+			UserProperty [] rows = mCurType.getUserProperties();
+			if( rows != null) {
+				if( (selection >= 0) && ( selection < rows.length) ) {
+					mCurType.nudgeUserProperty( rows[ selection], false);
+					mPropertyTableModel.fireTableDataChanged();
+					}
+				}
+			}
+	}
+	
+	
 	public void doOkay() {
+		
+		UserMapType [] types = null;
+		
+		if( !mListModel.isEmpty() ) {
+			 types = new UserMapType[ mListModel.size() ];
+			for( int i= 0; i< mListModel.size(); i++) {
+				types[ i] = (UserMapType) mListModel.elementAt( i);
+				}
+			}
+		mMap.setUserMapTypes( types);
+	
+	
 		mDialog.dispose();
 	}
 	
@@ -274,6 +376,10 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 				type = (UserMapType) obj;
 				}
 			setUserType( type);
+			
+			}
+		if( source == mTable) {
+			System.out.println( "table selection.");
 			}
 	updateEnabledStates();
 	}
@@ -297,11 +403,102 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 		if( source == mRemovePropertyButton ) {
 			doRemoveProperty();
 			}
+		if( source == mUpButton ) {
+			doNudgeUp();
+			}
+		if( source == mDownButton ) {
+			doNudgeDown();
+			}
 		updateEnabledStates();
 	
 	}
 
 	
 
+	public class PropertyTableModel extends AbstractTableModel {
+		
+		UserMapType mModelType = null;
+ String [] 		sColNames = {"Property","Type","Value"};
+		public PropertyTableModel( UserMapType pType) {
+			super();
+			mModelType = pType;
+		}
 
+		
+		public void setUserType( UserMapType pType) {
+			mModelType = pType;
+			fireTableDataChanged();
+		}
+		
+		public UserMapType getUserType() {
+			return mModelType;
+		}
+		
+		public int getRowCount() {
+  			int rows = 0;
+  			if( mModelType != null) {
+  				UserProperty [] names = mModelType.getUserProperties();
+  				if( names != null)
+  					rows = names.length;
+  				}
+  			return rows;
+ 		}
+  
+		public int getColumnCount() {
+			return 3;
+		}
+		
+		public Object getValueAt(int row, int column) {
+			Object value = null;
+			if( mModelType != null) {	
+				UserProperty  [] rows = mModelType.getUserProperties();
+				if( column == 0) 
+					value = rows[ row].getDisplayName();
+				if( column == 1) {
+					int type = rows[ row].getType();
+					value = UserProperty.sPropertyTypeNames[ type];
+					}
+				if( column == 2) {
+					value = rows[ row].getValue();
+					}
+				}
+			return value;
+		}
+		
+		public String getColumnName( int pCol) {
+			return sColNames[ pCol];
+		}
+		public void setValueAt( Object pValue, int pRow, int pCol) {
+			System.out.println("  setvalueAt: row" +pRow+ " col: "+pCol+" to: "+pValue.toString() );
+			
+			if( mModelType != null) {
+				UserProperty [] rows = null;
+				UserProperty prop = null;
+				
+				if( mCurType != null) { 
+					rows = mCurType.getUserProperties();
+					}
+				if( rows != null) {
+					prop = rows[ pRow];
+					}
+				if( prop != null) {
+					if( pCol == 0) {
+						prop.setDisplayName( (String) pValue);
+						}
+					if( pCol == 1) {
+						prop.setType( UserProperty.findTypeByName( (String) pValue) );
+						System.out.println("setting type");
+						}
+					if( pCol == 2) {
+						prop.setValue( (String) pValue) ;
+						}
+					}
+			}
+	
+		}
+		
+	public boolean isCellEditable( int pRow, int pCol) {
+		return true;
+	}
+	}
 }
