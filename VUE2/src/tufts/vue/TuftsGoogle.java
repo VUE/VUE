@@ -30,7 +30,7 @@ import org.xml.sax.InputSource;
  *
  * @author  RSaigal
  */
-public class TuftsGoogle extends JPanel implements ActionListener{
+public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     JTabbedPane googlePane; 
     JComboBox maxReturns;
     JPanel googleResultsPanel;
@@ -54,6 +54,7 @@ public class TuftsGoogle extends JPanel implements ActionListener{
          
            
          setLayout(new BorderLayout());
+       
          maxReturns = new JComboBox(maxReturnItems);
          maxReturns.setEditable(true);
          googlePane = new JTabbedPane();
@@ -85,8 +86,9 @@ public class TuftsGoogle extends JPanel implements ActionListener{
         c.gridy=1;
         c.gridwidth=2;
         c.ipady=0;
-       keywords = new JTextField();
+        keywords = new JTextField();
         keywords.setPreferredSize(new Dimension(120,20));
+        keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
         googleSearchPanel.add(keywords);
         
@@ -128,11 +130,19 @@ public class TuftsGoogle extends JPanel implements ActionListener{
             searchURL = VueResources.getString("url.google");
             
 
+            
+            
     }
     
     public void actionPerformed(ActionEvent e) {
         
-          int index = 0;  
+                  performSearch();
+                  
+    }
+    
+    public void performSearch(){
+        
+                int index = 0;  
               
                 
                 String searchString = keywords.getText();
@@ -251,6 +261,19 @@ public class TuftsGoogle extends JPanel implements ActionListener{
         }
         return unmarshaller;
     }
+     public void keyPressed(KeyEvent e) {
+    }
     
+    public void keyReleased(KeyEvent e) {
+    }
     
-}
+    public void keyTyped(KeyEvent e) {
+        if(e.getKeyChar()== KeyEvent.VK_ENTER) {
+            
+               performSearch();
+            }
+        }
+    }
+   
+    
+
