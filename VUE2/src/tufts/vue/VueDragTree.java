@@ -317,6 +317,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
  class PopupListener extends MouseAdapter {
     JPopupMenu popup;
     
+    
     PopupListener(JPopupMenu popupMenu) {
         popup = popupMenu;
     }
@@ -334,14 +335,15 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     }
     
     private void maybeShowPopup(MouseEvent e) {
+        if (VueDragTree.this.getSelectionPath() != null){
         if (e.isPopupTrigger()) {
             
-            System.out.println(" did trigger ever happen? resource listen haha");
             
             popup.show(e.getComponent(),
             e.getX(), e.getY());
             
         }
+    }
     }
 }
 }
@@ -484,7 +486,13 @@ class FileNode extends ResourceNode {
     private boolean explored = false;
     
     public FileNode(File file) 	{
+        
+      
         setUserObject(file);
+        try{
+        MapResource resource = new  MapResource(file.toURL().toString());
+        }catch (Exception ex){};
+      
     }
     public boolean getAllowsChildren() { return isDirectory(); }
     public boolean isLeaf() 	{ return !isDirectory(); }
@@ -513,6 +521,17 @@ class FileNode extends ResourceNode {
         filename.substring(index+1) :
             filename;
     }
+    
+   public void displayContent(){
+       
+       
+       try{
+           URL url = getFile().toURL();
+       VueUtil.openURL(url.toString().replaceFirst("/",""));
+       }catch (Exception ex){System.out.println("problem opening conten");}
+   }
+    
+   
     public void explore() {
         
         if(!isDirectory())
@@ -594,7 +613,7 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
         boolean b  = false;
         b |= flavor.equals(flavors[RESOURCE]);
         b |= flavor.equals(flavors[STRING]);
-        // b |= flavor.equals(flavors[PLAIN]);
+         //b |= flavor.equals(flavors[FILE]);
         return (b);
     }
     /**
