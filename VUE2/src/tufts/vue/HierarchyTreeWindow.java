@@ -15,7 +15,8 @@ import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractButton;
 import javax.swing.JScrollPane;
-
+import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeModel;
 /**
  *
  * @author  Daisuke Fujiwara
@@ -23,7 +24,7 @@ import javax.swing.JScrollPane;
 public class HierarchyTreeWindow extends InspectorWindow
 {
     private DisplayAction displayAction = null;
-    private JScrollPane scrollPane;
+    private JTree tree;
     
     /** Creates a new instance of HierarchyTreeWindow */
     public HierarchyTreeWindow(JFrame parent) 
@@ -31,7 +32,10 @@ public class HierarchyTreeWindow extends InspectorWindow
         super(parent, "Hierarchy Tree");
         setSize(500, 100);
         
-        scrollPane = new JScrollPane();
+        tree = new JTree();
+        tree.setEditable(true);
+        
+        JScrollPane scrollPane = new JScrollPane(tree);
         
         getContentPane().add(scrollPane);
         getContentPane().setBackground(Color.white);
@@ -46,9 +50,10 @@ public class HierarchyTreeWindow extends InspectorWindow
         );
     }
     
-    public void setTree()
+    public void setTree(DefaultTreeModel model)
     {
-        //do something here possibly with viewport?
+        tree.setModel(model);
+        //fire an event?
     }
     
     public Action getDisplayAction()
