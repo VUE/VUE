@@ -18,8 +18,6 @@ public class UndoManager
     
     private LWMap mMap; // the map who's modifications we're tracking
     
-    //private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
-    //private Map mHierarchyChanges = new HashMap(); // all hierarchy changes, mapped by component (LWContainer's), since last mark
     private Map mComponentChanges = new HashMap(); // all changes, mapped by component, since last mark
     private LinkedList mUndoSequence = new LinkedList();
     
@@ -27,22 +25,13 @@ public class UndoManager
     private int mChangeCount; // total recorded changes since last mark
 
     /**
-     * A list (map) of components each with a list (map) of property changes to them.
+     * A named sequence of triples: LWComponent, property key, and old value.
+     * LWCEvents are undone in the reverse order that they happened: the changes
+     * are peeled back.
      */
     private static class UndoAction {
         String name;
         List undoSequence;
-        /*
-        Map propertyChanges;
-        Map hierarchyChanges;
-        int changeCount;
-        UndoAction(String name, Map hierarchyChanges, Map propertyChanges, int changeCount) {
-            this.name = name;
-            this.hierarchyChanges = hierarchyChanges;
-            this.propertyChanges = propertyChanges;
-            this.changeCount = changeCount;
-        }
-        */
 
         UndoAction(String name, List undoSequence) {
             this.name = name;
@@ -73,108 +62,6 @@ public class UndoManager
                 + " cnt=" + changeCount()
                 + "]";
         }
-        
-        /*
-        void undo() {
-            undoHierarchyChanges();
-            undoPropertyChanges();
-            if (hierarchyChanges != null && hierarchyChanges.size() > 0)
-                VUE.getSelection().clearDeleted();
-        }
-
-        private void undoHierarchyChanges()
-        {
-            if (DEBUG.UNDO) System.out.println(this + " undoHierarchyChanges " + hierarchyChanges);
-            if (hierarchyChanges == null)
-                return;
-            Iterator i = hierarchyChanges.entrySet().iterator();
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                undoComponentChanges((LWComponent) e.getKey(), (Map) e.getValue());
-            }
-            
-        }
-        private void undoPropertyChanges()
-        {
-            if (DEBUG.UNDO) System.out.println(this + " undoPropertyChanges " + propertyChanges);
-            if (propertyChanges == null)
-                return;
-            Iterator i = propertyChanges.entrySet().iterator();
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                LWComponent c = (LWComponent) e.getKey();
-
-                // It's possible component was un-created during this
-                // undo by a prior hierarchy change, rendering it
-                // deleted -- don't bother undoing prop changes or
-                // we'll get zombie events (is this totally safe?
-                // happens on undo of duplicate of node parented to
-                // another node -- the setLocation by the parent's
-                // layout try's to get undo after we undo the create
-                // and delete it -- won't we need the setLocation on
-                // redo?  No: layout will automatically get called on
-                // the parent due to the hier change event)
-
-                if (!c.isDeleted()) {
-                    undoComponentChanges(c, (Map) e.getValue());
-                } else {
-                    if (DEBUG.UNDO) System.out.println(this + " SKIPPING: DELETED " + c);
-                }
-            }
-        }
-
-        private void undoComponentChanges(LWComponent c, Map props)
-        {
-            if (DEBUG.UNDO) System.out.println("\tundoComponentChanges " + c);
-            Iterator i = props.entrySet().iterator();
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                if (DEBUG.UNDO) System.out.println("\tundoing " + e);
-                Object propKey = e.getKey();
-                Object oldValue = e.getValue();
-                if (propKey == LWKey.HierarchyChanging) {
-                    undoHierarchyChange(c, oldValue);
-                } else if (oldValue instanceof Undoable) {
-                    ((Undoable)oldValue).undo();
-                } else {
-                    tufts.vue.beans.VueLWCPropertyMapper.setProperty(c, propKey, oldValue);
-                }
-            }
-        }
-
-        private void undoHierarchyChange(LWComponent c, Object oldValue)
-        {
-            if (DEBUG.UNDO) System.out.println(this + " restoring children of " + c + " to " + oldValue);
-            LWContainer parent = (LWContainer) c;
-            parent.children = (List) oldValue;
-            Iterator ci = parent.children.iterator();
-            // now make sure all the children are properly parented,
-            // and none of them are marked as deleted.
-            while (ci.hasNext()) {
-                LWComponent child = (LWComponent) ci.next();
-                if (parent instanceof LWPathway)
-                    ; // special case: todo: something cleaner (pathways don't "own" their children)
-                else {
-                    if (child.isDeleted())
-                        child.restoreToModel();
-                    child.setParent(parent);
-                }
-            }
-            parent.setScale(parent.getScale());
-            parent.layout();
-            parent.notify(LWKey.HierarchyChanging);
-        }
-
-        public String toString() {
-            String s = "UndoAction[" + name
-                + " cnt=" + changeCount;
-            if (hierarchyChanges != null)
-                s += " hierChange=" + hierarchyChanges.size();
-            if (propertyChanges != null)
-                s += " propChange=" + propertyChanges.size();
-            return s + "]";
-        }
-        */
     }
 
     private static class UndoItem
@@ -388,25 +275,9 @@ public class UndoManager
 
     private synchronized UndoAction collectChangesAsUndoAction(String name)
     {
-        /*
-        Map saveHier = null;
-        Map saveProp = null;
-        if (mHierarchyChanges.size() > 0) {
-            saveHier = mHierarchyChanges;
-            mHierarchyChanges = new HashMap();
-        }
-        if (mPropertyChanges.size() > 0) {
-            saveProp = mPropertyChanges;
-            mPropertyChanges = new HashMap();
-        }
-        UndoAction newUndoAction = new UndoAction(name, saveHier, saveProp, mChangeCount);
-        */
-        
         UndoAction newUndoAction = new UndoAction(name, mUndoSequence);
         if (DEBUG.UNDO) System.out.println(this + " marked " + mChangeCount + " property changes as " + newUndoAction);
         mUndoSequence = new LinkedList();
-        //mPropertyChanges.clear();
-        //mHierarchyChanges.clear();
         mComponentChanges.clear();
         mLastEvent = null;
         mChangeCount = 0;
@@ -449,16 +320,10 @@ if (true)return;
         }
     }
 
-    //static class HierUndo extends Undoable { }
-
     private static final Object HIERARCHY_CHANGE = "hierarchy.change";
     private void recordHierarchyChangingEvent(LWCEvent e)
     {
         LWContainer parent = (LWContainer) e.getSource();
-        //Object old = ((ArrayList)parent.children).clone();
-
-        //if (DEBUG.UNDO) System.out.println(" (HIERARCHY)");
-
         //recordUndoableChangeEvent(mHierarchyChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
         recordUndoableChangeEvent(mComponentChanges, LWKey.HierarchyChanging, parent, HIERARCHY_CHANGE);
         mLastEvent = e;
@@ -503,11 +368,10 @@ if (true)return;
         }
         
         if (compressed) {
-            // If compressed, still make sure the current property change UndoItem as
+            // If compressed, still make sure the current property change UndoItem is
             // at the end of the undo sequence.
             if (existingPropertyValue.index != mUndoSequence.size() - 1) {
                 UndoItem undoItem = (UndoItem) mUndoSequence.remove(existingPropertyValue.index);
-                //if (DEBUG.UNDO) System.out.println("Moving "+undoItem+" from index "+existingPropertyValue.index+" to end of list.");
                 if (DEBUG.UNDO) System.out.println("Moving index "
                                                    +existingPropertyValue.index+" to end index "+mUndoSequence.size()
                                                    + " " + undoItem);
@@ -517,7 +381,6 @@ if (true)return;
         } else {
             if (oldValue == HIERARCHY_CHANGE)
                 oldValue = ((ArrayList)((LWContainer)component).children).clone();
-            //cPropMap.put(propertyKey, oldValue);
             cPropMap.put(propertyKey, new IndexedProperty(mUndoSequence.size(), oldValue));
             mUndoSequence.add(new UndoItem(component, propertyKey, oldValue));
             mChangeCount++;
