@@ -87,10 +87,13 @@ public class DataSource {
             LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
             LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots(); 
             osid.shared.Agent agent = null; //  This may cause problems later.
-             System.out.println("Was I here in filing local after");
+             System.out.println("Was I here in filing local after. Found cabs ="+rootCabs);
             while(rootCabs.hasNext()){
+               
                 LocalCabinetEntry rootNode = (LocalCabinetEntry)rootCabs.next();
                  CabinetResource res = new CabinetResource (rootNode);
+                   System.out.println(" Resource ="+res.getSpec());
+               
                 cabVector.add (res);
 
                 
