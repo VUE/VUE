@@ -2168,8 +2168,15 @@ public class MapViewer extends javax.swing.JPanel
                         // todo: some kind of animation or something to show
                         // we're "opening" this node -- maybe an indication
                         // flash -- we'll need another thread for that.
+                        if(resource.getAsset() != null) {
+                            AssetViewer a = new AssetViewer(resource.getAsset());
+                            a.setSize(600,400);
+                            a.setLocation(e.getX(),e.getY());
+                            a.show();
+                        } else {
+                            resource.displayContent();
+                        }
                         System.out.println("opening resource for: " + hitComponent);
-                        resource.displayContent();
                     } else
                         activateLabelEdit(hitComponent);
                 }
