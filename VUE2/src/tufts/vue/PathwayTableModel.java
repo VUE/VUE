@@ -32,6 +32,29 @@ public class PathwayTableModel extends DefaultTableModel {
         getPathwayList().setActivePathway(p);
     }
 
+    private class DataEvent extends javax.swing.event.TableModelEvent {
+        private Object invoker;
+        DataEvent(Object invoker) {
+            super(PathwayTableModel.this);
+            this.invoker = invoker;
+        }
+        public String toString()
+        {
+            return "TableModelEvent["
+                + "src=" + getSource()
+                + " rows=" + getFirstRow() + "-" + getLastRow()
+                + " col=" + getColumn()
+                + " type=" + getType()
+                + " invoker=" + invoker.getClass().getName()
+                + "]";
+        }
+    }
+
+    void fireChanged(Object invoker)
+    {
+        fireTableChanged(new DataEvent(invoker));
+    }
+
     
     // get rid of this
     void setCurrentPathway(LWPathway path){

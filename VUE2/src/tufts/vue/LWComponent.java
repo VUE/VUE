@@ -9,6 +9,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
 
 import tufts.vue.beans.UserMapType;
@@ -250,6 +251,20 @@ public class LWComponent
     {
         return pathwayRefs != null && pathwayRefs.size() > 0;
     }
+
+    /** Is component in the given pathway? */
+    public boolean inPathway(LWPathway path)
+    {
+        if (pathwayRefs == null || path == null)
+            return false;
+        Iterator i = pathwayRefs.iterator();
+        while (i.hasNext()) {
+            if (i.next() == path)
+                return true;
+        }
+        return false;
+    }
+    
     void addPathwayRef(LWPathway p)
     {
         if (pathwayRefs == null)

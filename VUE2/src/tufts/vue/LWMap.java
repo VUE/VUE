@@ -250,7 +250,8 @@ public class LWMap extends LWContainer
         setChildScaleValues();
         //setScale(getScale());
         setChildParentReferences();
-        //mPathwayManager.completeXMLRestore();
+        if (mPathways == null)
+            mPathways = new LWPathwayList(this);
         mPathways.completeXMLRestore(this);
         this.nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);

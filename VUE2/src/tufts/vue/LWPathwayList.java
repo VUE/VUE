@@ -105,6 +105,10 @@ public class LWPathwayList
         return mActive;
     }
     
+    /**
+     * If this LWPathwayList is from the VUE active map, this sets
+     * the VUE application master for the active pathway.
+     */
     public void setActivePathway(LWPathway pathway) {
         mActive = pathway;
         

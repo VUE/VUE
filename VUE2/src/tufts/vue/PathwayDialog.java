@@ -77,8 +77,8 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
             else{
                 //pathPanel.getTableModel().addPathway(new LWPathway(pathLabel));
                 VUE.getActiveMap().addPathway(new LWPathway(pathLabel));
-                pathPanel.setAddElementEnabled();
-                System.out.println("set add element enabled...");
+                //pathPanel.setAddElementEnabled();
+                //System.out.println("set add element enabled...");
                 dispose();
             }
         }

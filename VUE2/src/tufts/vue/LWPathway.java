@@ -481,7 +481,7 @@ public class LWPathway extends LWContainer
             LWComponent c = (LWComponent)i.next();
 
             int strokeWidth;
-            boolean selected = (getCurrent() == c);
+            boolean selected = (getCurrent() == c && VUE.getActivePathway() == this);
             strokeWidth = BaseStroke;
 
             // because we're drawing under the object, only half of

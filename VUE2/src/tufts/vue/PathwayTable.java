@@ -52,12 +52,7 @@ public class PathwayTable extends JTable
 
         model.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
-                    System.out.println(this + " TableModelEvent[src="
-                                       + e.getSource()
-                                       + " rows=" + e.getFirstRow() + "-" + e.getLastRow()
-                                       + " col=" + e.getColumn()
-                                       + " type=" + e.getType()
-                                       + "]");
+                    System.out.println(this + " " + e);
                 }
             });
 
@@ -115,19 +110,23 @@ public class PathwayTable extends JTable
                         tableModel.setCurrentPathway(p);
 
                         if (c instanceof LWPathway) {
-                            pathPanel.setAddElementEnabled();
-                            pathPanel.removeElement.setEnabled(false);
+                            //pathPanel.setAddElementEnabled();
+                            //pathPanel.removeElement.setEnabled(false);
                             
                             if (col == 0 || col == 2)
-                                setValueAt(p, row, col);
+                                setValueAt(p, row, col); // what's this do??
                             
-                            tableModel.fireTableDataChanged();
-                            pathPanel.updateControlPanel();
+                            tableModel.fireChanged(this);
+                            //tableModel.fireTableDataChanged(new TableModelEvent(this));
+                            //pathPanel.updateControlPanel();
                             
                         } else {
                             p.setCurrentElement(c);
-                            pathPanel.removeElement.setEnabled(true);
-                            pathPanel.updateControlPanel();
+                            VUE.ModelSelection.setTo(c);
+                            //pathPanel.removeElement.setEnabled(true);
+                            //tableModel.fireChanged(this);
+                            //tableModel.fireTableDataChanged(new TableModelEvent(this)); // new
+                            //pathPanel.updateControlPanel();
                         }
                     }
                     else {
@@ -218,7 +217,8 @@ public class PathwayTable extends JTable
                             row = lastSelectedRow;
                         if(row != -1){
                             getTableModel().setValueAt(currentColor, row, 1);
-                            getTableModel().fireTableDataChanged();
+                            getTableModel().fireChanged(this);
+                            //getTableModel().fireTableDataChanged(new TableModelEvent(this));
                             VUE.getActiveViewer().repaint();//todo: handle via event
                         }
                     }               

@@ -943,10 +943,19 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         
         if (isSelected()) {
-            g.setColor(COLOR_HIGHLIGHT);
-            g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-            //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
-            g.draw(drawnShape);
+            LWPathway p = VUE.getActivePathway();
+            if (p != null && p.isVisible() && p.getCurrent() == this) {
+                // SPECIAL CASE:
+                // as the current element on the current pathway draws a huge
+                // semi-transparent stroke around it, skip drawing our fat 
+                // transparent selection stroke on this node.  So we just
+                // do nothing here.
+            } else {
+                g.setColor(COLOR_HIGHLIGHT);
+                g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+                //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
+                g.draw(drawnShape);
+            }
         }
         
         if (imageIcon != null) {
