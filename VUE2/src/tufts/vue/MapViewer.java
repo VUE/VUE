@@ -9,6 +9,9 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
+
+import osid.dr.*;
+
 /**
  * MapViewer.java
  *
@@ -933,6 +936,7 @@ public class MapViewer extends javax.swing.JPanel
     
     private JPopupMenu mapPopup = null;
     private JPopupMenu cPopup = null;
+    private JMenu assetMenu = null;
     private JPopupMenu getMapPopup()
     {
         // this is just example menu code for the moment
@@ -946,7 +950,7 @@ public class MapViewer extends javax.swing.JPanel
         }
         return mapPopup;
     }
-    private JPopupMenu getComponentPopup()
+    private JPopupMenu getComponentPopup(LWComponent c)
     {
         // this is just example menu code for the moment
         if (cPopup == null) {
@@ -962,6 +966,20 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.add(VUE.Actions.SendToBack);
             cPopup.add(VUE.Actions.SendBackward);
         }
+         if(c instanceof LWNode) {
+            LWNode n = (LWNode) c;
+            Resource r = n.getResource();
+            Asset a = r.getAsset();  
+            if(a != null && assetMenu == null) {
+               assetMenu = getAssetMenu(a);
+               cPopup.add(assetMenu);
+            } else if(a != null) {
+                assetMenu = getAssetMenu(a);
+            }
+            
+            
+         }
+      
         return cPopup;
     }
     
@@ -1171,7 +1189,7 @@ public class MapViewer extends javax.swing.JPanel
                 if (VueSelection.size() == 0) {
                     getMapPopup().show(e.getComponent(), e.getX(), e.getY());
                 } else {
-                    getComponentPopup().show(e.getComponent(), e.getX(), e.getY());
+                    getComponentPopup(this.hitComponent).show(e.getComponent(), e.getX(), e.getY());
                 }
             }
             else if (hitComponent != null)
@@ -1723,6 +1741,32 @@ public class MapViewer extends javax.swing.JPanel
 
     }
 
+    private JMenu getAssetMenu(Asset asset) {
+        JMenu returnMenu = new JMenu("Behaviors");
+        
+        InfoRecordIterator i;
+        try {
+            i = (InfoRecordIterator)asset.getInfoRecords();
+            while(i.hasNext()) {
+                  InfoRecord infoRecord = (InfoRecord)i.next();
+                  JMenu infoRecordMenu = new  JMenu(infoRecord.getId().getIdString());
+                  InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
+                  while(inf.hasNext()) {
+                      InfoField infoField = (InfoField)inf.next();
+                      System.out.println("InfoField "+ infoField+" Value " );
+                      String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getValue().toString();
+                      infoRecordMenu.add(new FedoraAction(infoField.getValue().toString(),method));
+                  }
+                  
+                  returnMenu.add(infoRecordMenu);
+            }
+        } catch(Exception e) { System.out.println("MapViewer.getAssetMenu"+e);}
+        return returnMenu;
+    }   
+// this class will move out of here
+
+  
+    
     //-------------------------------------------------------
     // debugging stuff
     //-------------------------------------------------------
@@ -1740,4 +1784,24 @@ public class MapViewer extends javax.swing.JPanel
 
 
 
+}
+
+class FedoraAction extends AbstractAction {
+    
+    /** Creates a new instance of exitAction */
+    static final String FEDORA_URL= "http://hosea.lib.tufts.edu:8080/fedora/";
+    String method = null;
+    public FedoraAction() {
+    }
+    
+    public FedoraAction(String label,String method) {
+        super(label);
+        this.method = method;
+    }
+    
+    public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
+      try {
+        VueUtil.openURL(FEDORA_URL+"get/"+method);
+      } catch(Exception e) { System.out.println("AbstractAction.actionPerformed" +e);} 
+    }
 }
