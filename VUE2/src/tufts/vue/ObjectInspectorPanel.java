@@ -166,7 +166,10 @@ implements LWSelection.Listener {
             lwc = pSelection.first();
              setLWComponent(lwc);
         }
-        else {
+        else if (pSelection.size() == 0) {
+            mTreePanel.updatePanel();
+        }else {
+            
            // debug("ObjectInspector item selection size is: "+ pSelection.size() );
         }
        // setLWComponent(lwc);
@@ -309,6 +312,9 @@ implements LWSelection.Listener {
                //tree.setSelectionPath(pComponent);
             }
               
+        public void updatePanel() {
+            tree.switchContainer(null);
+        }
     }
     
     public class NodeFilterPanel extends JPanel implements ActionListener{
