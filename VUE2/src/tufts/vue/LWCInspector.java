@@ -283,20 +283,21 @@ class LWCInspector extends javax.swing.JPanel
         setAllEnabled(true);
         //System.out.println(this + " loading " + c);
 
-        if (c instanceof LWNode) { // todo: instanceof Node interface
+        //        if (c instanceof LWNode) { // todo: instanceof Node interface
             if (c.getResource() != null)
                 loadText(resourceField, c.getResource().toString());
             else
                 loadText(resourceField, "");
-            resourceField.setEditable(true);
+            // We're allowing resources on Links now (everything can have a resource)
+            //resourceField.setEditable(true);
             //resourceLabel.setVisible(true);
             //resourceField.setVisible(true);
-        } else {
-            loadText(resourceField, "");
-            resourceField.setEditable(false);
-            //resourceLabel.setVisible(false);
-            //resourceField.setVisible(false);
-        }
+            //        } else {
+            //            loadText(resourceField, "");
+            //            resourceField.setEditable(false);
+            ////resourceLabel.setVisible(false);
+            ////resourceField.setVisible(false);
+            //        }
 
         String id = c.getID();
         if (c.getParent() == null)
