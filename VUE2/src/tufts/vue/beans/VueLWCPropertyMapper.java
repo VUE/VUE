@@ -115,6 +115,9 @@ public class VueLWCPropertyMapper
             throw new IllegalArgumentException("VueLWCPropertyMapper: can't handle class " + pBean + " name=" + pName + " val=" + pValue);
     }
 
+    // todo: have LWComponent & each subclass implement a property mapping
+    // interface for each of it's properties: this will perform a bit better
+    // than all those Undoable objects.
     public static void setProperty(LWComponent c, Object key, Object val)
     {
         if (DEBUG.UNDO&&DEBUG.META) System.out.println("setProperty [" + key + "] on " + c + " with " + val);
@@ -128,6 +131,7 @@ public class VueLWCPropertyMapper
         else if (key == LWKey.Notes)            c.setNotes( (String) val);
         else if (key == LWKey.Resource)         c.setResource( (Resource) val);
         else if (key == LWKey.Location)         c.setLocation( (Point2D) val);
+        else if (key == LWKey.Hidden)           c.setHidden( ((Boolean)val).booleanValue());
         else if (key == LWKey.Size) {
             // Point2D used as Size2D for now
             Point2D.Float p = (Point2D.Float) val;

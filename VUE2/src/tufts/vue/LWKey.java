@@ -19,6 +19,7 @@ public interface LWKey {
     public String StrokeColor = "strokeColor"; 
     public String StrokeWidth = "strokeWidth"; 
     public String Font = "font";
+    public String Hidden = "hidden";
 
     public String Created = "new.component"; // any LWComponets creation event
     //public String Added = "added"; // a child components add-notify

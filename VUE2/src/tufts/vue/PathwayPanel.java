@@ -90,7 +90,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         lab.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
         
         JPanel groupPanel = new JPanel(new GridLayout(1, 3, 0, 0));
-        groupPanel.setPreferredSize(new Dimension(57, 24));
+        //groupPanel.setPreferredSize(new Dimension(57, 24));
         groupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.bgColor));
         groupPanel.setBackground(bgColor);
         groupPanel.add(createButton);
@@ -157,13 +157,14 @@ public class PathwayPanel extends JPanel implements ActionListener
                 public void selectionChanged(LWSelection s) {
                     if (s.size() == 1 && s.first().inPathway(getSelectedPathway())) {
                         getSelectedPathway().setCurrentElement(s.first());
-                        updateTextAreas();
+                        tableModel.fireTableDataChanged();
+                        //updateTextAreas();
                         // todo: changes to map selection are never updating
                         // the text areas
                         // (btw: should not need updateTextAreas() call above,
                         // and it doesn't appear to be helping anyway)
-                    }
-                    updateEnabledStates();
+                    } else
+                        updateEnabledStates();
                 }
             }     
         );
@@ -350,7 +351,7 @@ public class PathwayPanel extends JPanel implements ActionListener
         buttons.setBackground(altbgColor);
         buttons.add(addElement);
         buttons.add(removeElement);
-        buttons.setPreferredSize(new Dimension(40,24));
+        //buttons.setPreferredSize(new Dimension(40,24));
         
     }
     

@@ -1620,7 +1620,7 @@ public class LWComponent
     {
         Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
         this.hidden = hidden;
-        notify("hidden", oldValue);
+        notify(LWKey.Hidden, oldValue);
     }
 
     public Boolean getXMLhidden() {
