@@ -448,8 +448,9 @@ implements VueConstants {
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner());
         
+        ToolWindow inspectorTool = null;
         if (nodr) {
-            ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
+            inspectorTool = new ToolWindow("Inspector", frame);
             inspectorTool.addTool(new LWCInspector());
         }
         
