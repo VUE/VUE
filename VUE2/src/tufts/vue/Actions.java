@@ -72,25 +72,27 @@ class Actions
             }
         };
 
-    static final Action AddPathwayNode = 
+    static final Action AddPathwayItem = 
         new LWCAction("Add to Pathway")
         {
             public void act(Iterator i) {
                 VUE.getActivePathway().add(i);
             }
             public boolean enabledFor(LWSelection s) {
+                // items can be added to pathway as many times as you want
                 return VUE.getActivePathway() != null && s.size() > 0;
             }
         };
         
-    static final Action DeletePathwayNode = 
+    static final Action RemovePathwayItem = 
         new LWCAction("Remove from Pathway")
         {
             public void act(Iterator i) {
                 VUE.getActivePathway().remove(i);
             }
             public boolean enabledFor(LWSelection s) {
-                return VUE.getActivePathway() != null && s.size() > 0;
+                LWPathway p = VUE.getActivePathway();
+                return p != null && s.size() > 0 && (s.size() > 1 || p.contains(s.first()));
             }
         }; 
     
@@ -1148,10 +1150,10 @@ class Actions
             
         }
         void act(LWLink c) {
-            System.out.println("Unhandled LWCAction: " + getActionName() + " on " + c);
+            if (DEBUG.SELECTION) System.out.println("LWCAction(link): ignoring " + getActionName() + " on " + c);
         }
         void act(LWNode c) {
-            System.out.println("Unhandled LWCAction: " + getActionName() + " on " + c);
+            if (DEBUG.SELECTION) System.out.println("LWCAction(node): ignoring " + getActionName() + " on " + c);
         }
         
         public String toString() { return "LWCAction[" + getActionName() + "]"; }

@@ -2543,6 +2543,8 @@ public class MapViewer extends javax.swing.JComponent
                     nodeMenu.add(a);
             }
             nodeMenu.addSeparator();
+            //nodeMenu.add(new JMenuItem("Set shape:")).setEnabled(false);
+            nodeMenu.add(new JLabel("   Set shape:"));
             Action[] shapeActions = NodeTool.getShapeSetterActions();
             for (int i = 0; i < shapeActions.length; i++) {
                 nodeMenu.add(shapeActions[i]);
@@ -2575,11 +2577,9 @@ public class MapViewer extends javax.swing.JComponent
 
         m.add(getNodeMenu("Nodes"));
         m.add(getLinkMenu("Links"));
-        m.addSeparator();
-        m.add(Actions.Duplicate);
-        m.addSeparator();
         m.add(getArrangeMenu());
         m.addSeparator();
+        m.add(Actions.Duplicate);
         m.add(Actions.Group);
         m.add(Actions.Ungroup);
         m.addSeparator();
@@ -2588,6 +2588,7 @@ public class MapViewer extends javax.swing.JComponent
         m.add(Actions.SendToBack);
         m.add(Actions.SendBackward);
         m.addSeparator();
+        m.add(Actions.DeselectAll);
         m.add(Actions.Delete);
         return m;
     }
@@ -2615,11 +2616,10 @@ public class MapViewer extends javax.swing.JComponent
         m.add(Actions.SendBackward);
         m.addSeparator();
         m.add(Actions.DeselectAll);
-        m.addSeparator();
         m.add(Actions.Delete);
         m.addSeparator();
-        m.add(Actions.AddPathwayNode); //15
-        m.add(Actions.DeletePathwayNode); //16
+        m.add(Actions.AddPathwayItem); //15
+        m.add(Actions.RemovePathwayItem); //16
         m.addSeparator(); //17
         m.add(Actions.HierarchyView);
         

@@ -335,6 +335,22 @@ public class LWNode extends LWContainer
         }
     }
 
+    private boolean isSameShape(Shape s1, Shape s2) {
+        if (s1 == null || s2 == null)
+            return false;
+        if (s1.getClass() == s2.getClass()) {
+            if (s1 instanceof RoundRectangle2D) {
+                RoundRectangle2D rr1 = (RoundRectangle2D) s1;
+                RoundRectangle2D rr2 = (RoundRectangle2D) s2;
+                return
+                    rr1.getArcWidth() == rr2.getArcWidth() &&
+                    rr1.getArcHeight() == rr2.getArcHeight();
+            } else
+                return true;
+        } else
+            return false;
+    }
+
     /**
      * @param shape a new instance of a shape for us to use
      */
@@ -347,10 +363,11 @@ public class LWNode extends LWContainer
         //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
         //}
 
-        // optimization hack
-        mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        if (isSameShape(this.boundsShape, shape))
+            return;
 
         Object old = this.boundsShape;
+        this.mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
         this.boundsShape = shape;
         this.drawnShape = (RectangularShape) shape.clone();
         adjustDrawnShape();
@@ -1250,7 +1267,8 @@ public class LWNode extends LWContainer
         }
     }
 
-    // load these from some kind of resource definition?
+
+    // @deprecated -- remove this -- only here for ancient backward compat
     static final NodeShape StandardShapes[] = {
         //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
         new NodeShape("Oval", new Ellipse2D.Float(0,0,10,10)),
@@ -1275,7 +1293,8 @@ public class LWNode extends LWContainer
         //new NodeShape("Parallelogram", null),
     };
 
-    private final boolean debug = true;
+    //private final boolean debug = true;
+
     
     
 }

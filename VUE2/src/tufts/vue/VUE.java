@@ -804,11 +804,10 @@ implements VueConstants {
         JMenu arrangeMenu = new JMenu("Arrange");
         arrangeMenu.setBackground( menuColor);
         
-        JMenu alignMenu = new JMenu("Align");
-        alignMenu.setBackground(menuColor);
-        
         JMenu windowMenu = new JMenu("Tools");
         windowMenu.setBackground( menuColor);
+        
+        JMenu alignMenu = new JMenu("Arrange/Align");
         
         /*
         JMenu optionsMenu = new JMenu("Options");
