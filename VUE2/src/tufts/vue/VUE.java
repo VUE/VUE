@@ -490,7 +490,8 @@ public class VUE
         
 
         //extra additions by the power team members
-        PDFConversion pdfAction = new PDFConversion("PDF");
+        //PDFConversion pdfAction = new PDFConversion("PDF");
+        PDFTransform pdfAction = new PDFTransform("PDF");
         HTMLConversion htmlAction = new HTMLConversion("Html");
         ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("Imap");
