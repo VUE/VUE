@@ -25,9 +25,9 @@ import java.util.ArrayList;
  */
 
 /**A class that represents a tree structure which holds the outline view model*/
-public class OutlineViewTree extends JTree implements java.awt.event.FocusListener, LWComponent.Listener, TreeModelListener, LWSelection.Listener
+public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener
 { 
-    private boolean focused = false;
+    private boolean selectionFromVUE = false;
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
@@ -44,7 +44,6 @@ public class OutlineViewTree extends JTree implements java.awt.event.FocusListen
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
-         this.addFocusListener(this);
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -78,7 +77,7 @@ public class OutlineViewTree extends JTree implements java.awt.event.FocusListen
                         }
                     }
                     
-                    if(focused)
+                    if(!selectionFromVUE)
                     {
                         //System.out.println("setting vue selection: " + selectedComponents.size());
                         
@@ -93,6 +92,8 @@ public class OutlineViewTree extends JTree implements java.awt.event.FocusListen
                     if(!selectedHierarchyNodes.isEmpty())
                       selectedNode = (tufts.oki.hierarchy.HierarchyNode)selectedHierarchyNodes.get(0);
      
+                    selectionFromVUE = false;
+                    
                         /*
                         if (selectedComponent instanceof LWMap)
                           selectedIcon = mapIcon;
@@ -234,18 +235,6 @@ public class OutlineViewTree extends JTree implements java.awt.event.FocusListen
     public void treeNodesRemoved(TreeModelEvent e) {}
     public void treeStructureChanged(TreeModelEvent e) {}
     
-    public void focusGained(java.awt.event.FocusEvent e) {
-        //System.out.println("Focus Gained on OutlineView");
-        //VUE.getSelection().removeListener(this);
-        focused = true;
-    }
-    
-    public void focusLost(java.awt.event.FocusEvent e) {
-        //VUE.getSelection().addListener(this);
-        //System.out.println("Focus lost on OutlineView");
-        focused = false;
-    }
-    
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
@@ -262,21 +251,17 @@ public class OutlineViewTree extends JTree implements java.awt.event.FocusListen
     
     /** A method for handling LWSelection event **/
     public void selectionChanged(LWSelection selection)
-    {
-        if(focused)
-        {
-           //System.out.println("returning!!!!!!");
-           return;
-        }
+    {  
+        selectionFromVUE = true;
         
-        //System.out.println("selectionChanged being called");
-       
         if (!selection.isEmpty())
           setSelectionPaths(selection);
         
         //else deselect
         else 
           super.setSelectionPath(null);
+        
+       
     }
     
     /**A class that specifies the rendering method of the outline view tree*/
