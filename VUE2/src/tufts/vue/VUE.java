@@ -656,6 +656,9 @@ implements VueConstants {
         return mMapTabsLeft;
     }
     
+    public static JFrame getInstance() {
+        return frame;
+    }
     public static LWMap getActiveMap() {
         if (getActiveViewer() != null)
             return getActiveViewer().getMap();
