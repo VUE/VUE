@@ -40,6 +40,9 @@ public class LWNode extends LWContainer
     private float fontHeight;
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
+    
+    private LWPathway currentPathway = null;
+    private Color borderColor = null;
 
     public LWNode(String label)
     {
@@ -498,7 +501,12 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         // Draw the indicated border if any
         //-------------------------------------------------------        
-
+        //if (currentPathway != null){
+        //    if(this.borderColor != null) g.setColor(currentPathway.getBorderColor());
+        //    else g.setColor(borderColor);
+        //    g.setStroke(new BasicStroke(5/8f));
+        //    g.draw(getShape());
+        //} else 
         if (isIndicated()) {
             g.setColor(COLOR_INDICATION);
             if (STROKE_INDICATION.getLineWidth() > getStrokeWidth())
@@ -559,9 +567,12 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         super.draw(g);
         
-        LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
-        
-        if(path != null) path.drawAgain(g);
+        //LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
+        //if(path != null) path.drawAgain(g);
+    }
+    
+    public void setPathway(LWPathway path){
+        this.currentPathway = path;
     }
 
     public static class NodeShape {

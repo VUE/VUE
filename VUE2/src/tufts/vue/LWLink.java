@@ -462,8 +462,8 @@ public class LWLink extends LWComponent
         //int h = getHeight() - clearBorder * 2;
         //g.fillRect(clearBorder, clearBorder, w, h);
         
-        LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
-        if(path != null) path.drawAgain(g);
+        //LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
+        //if(path != null) path.drawAgain(g);
     }
 
 

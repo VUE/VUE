@@ -78,6 +78,7 @@ public class LWPathwayInspector extends InspectorWindow
     private AbstractButton aButton = null;
     
     public InfoTableModel model = null;
+    private JPanel notes = null;
     private PathwayTab path = null;
     
     public LWPathwayInspector(JFrame owner, LWPathway pathway){
@@ -92,20 +93,18 @@ public class LWPathwayInspector extends InspectorWindow
         /**three components to be added to the tabbed pane*/
         InfoTable table = new InfoTable();
         //JPanel path = getPath();
-        //JPanel notes = getNotes();
+        notes = getNotes();
         
         path = new PathwayTab();
-        
         if(pathway != null)
             this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
-        
+        else
+            this.setTitle("PATHWAY INSPECTOR");
         /**instantiating and setting up tabbed pane*/
         pane = new JTabbedPane();
         pane.addTab("General Info", null, new JScrollPane(table), "Info Panel");
         pane.addTab("Node Info", null, path, "Path Panel");
-        //pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
-        
-        pane.addTab("Notes", null, new JScrollPane(new JPanel()), "Notes Panel");
+        pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
@@ -135,8 +134,27 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setPathway(LWPathway pathway){
         this.pathway = pathway;
-        path.setPathway(pathway);
-        model.fireTableDataChanged();
+        if(pathway != null && path != null){ 
+            path.setPathway(pathway);
+            System.out.println("set pathway to: " + pathway);
+            setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
+            pane.removeTabAt(2);
+            pane.removeTabAt(1);
+            path = null;
+            path = new PathwayTab();
+            path.setPathway(pathway);
+            notes = null;
+            notes = getNotes();
+            pane.addTab("Node Info", null, path, "Path Panel");
+            pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
+        
+            model.fireTableDataChanged();
+            repaint();
+        }  
+    }
+    
+    public LWPathway getPathway(){
+        return this.pathway;
     }
     
     Action displayAction = null;
@@ -151,7 +169,6 @@ public class LWPathwayInspector extends InspectorWindow
     private JPanel getNotes(){
         
         area = new JTextArea();
-        
         if(pathway != null) {
             area.setText(pathway.getComment());
             area.setWrapStyleWord(true);
@@ -161,9 +178,9 @@ public class LWPathwayInspector extends InspectorWindow
                    pathway.setComment(area.getText());
                }
             });
-        }else
-            area.setEditable(false);
-        
+            System.out.println("pathway in notes: " + pathway);
+        }
+        System.out.println("check...");
         JLabel north = new JLabel("Pathway Notes", JLabel.CENTER);
         
         JPanel panel = new JPanel();
@@ -195,7 +212,6 @@ public class LWPathwayInspector extends InspectorWindow
                             int row = getSelectedRow();
                             int col = getSelectedColumn();
                             if(row==3 && col==1){
-
                                 JColorChooser choose = new JColorChooser();
                                 Color newColor = choose.showDialog((Component)null, 
                                     "Choose Pathway Color", 
@@ -203,10 +219,7 @@ public class LWPathwayInspector extends InspectorWindow
                                 if(newColor != null)
                                     model.setValueAt(newColor, row, col);
                             }
-
                        }
-
-
                     });
                }
                
@@ -388,8 +401,6 @@ public class LWPathwayInspector extends InspectorWindow
         //submit
         else
         {            
-            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selected);
-            //node.setNotes(text.getText());
             LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selected);
             element.setNotes(text.getText());
             submit.setEnabled(false);
@@ -408,8 +419,6 @@ public class LWPathwayInspector extends InspectorWindow
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
             
-            //Node node = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getNode(selectedRow);
-            //text.setText(node.getNotes());
             LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
             text.setText(element.getNotes());
             
@@ -485,7 +494,9 @@ public class LWPathwayInspector extends InspectorWindow
         //returns the number of row (nodes of the pathway)
         public synchronized int getRowCount()
         {
-            return pathway.length();
+            if(getPathway() != null) 
+                return pathway.length();
+            return 0;
         }
         
         public int getColumnCount()
@@ -506,8 +517,6 @@ public class LWPathwayInspector extends InspectorWindow
                 switch(column)
                 {                    
                     case 0:
-                        //Node rowNode = pathway.getNode(row);
-                        //return rowNode.getLabel();
                         LWComponent rowElement = pathway.getElement(row);
                         return rowElement.getLabel();
                     //case 1:

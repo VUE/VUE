@@ -21,7 +21,7 @@ import java.awt.geom.Area;
  * @author  Jay Briedis
  */
 public class LWPathway extends tufts.vue.LWComponent 
-    implements Pathway//, LWComponent.Listener
+    implements Pathway
 {
         
     private LinkedList elementList = null;
@@ -47,14 +47,14 @@ public class LWPathway extends tufts.vue.LWComponent
     /** adds an element to the 'end' of the pathway */
     public void addElement(LWComponent element) {
         elementList.add(element);
-        if(current == null) current = element;
+        if(current == null) setCurrent(element);
     }
     
     /** adds an element at the specified location within the pathway*/
     public void addElement(LWComponent element, int index){
         if(elementList.size() >= index){
             elementList.add(index, element);
-            if(current == null) current = element;
+            if(current == null) setCurrent(element);
         }else{
             System.out.println("LWPathway.addElement(element, index), index out of bounds");
         }
@@ -79,7 +79,7 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void drawAgain(Graphics2D g)
     {
-        
+       /* 
         Iterator iter = this.getElementIterator();
         while(iter.hasNext()){
             LWComponent comp = (LWComponent)iter.next();
@@ -92,17 +92,27 @@ public class LWPathway extends tufts.vue.LWComponent
                 LWLink link = (LWLink)comp;
                 Shape s = comp.getShape();
                 Area clipArea = link.clip;
-                if(clipArea != null) g.clip(clipArea);
                 g.setColor(this.getBorderColor());
                 g.setStroke(new BasicStroke(5/8f));
+                if(clipArea != null) g.clip(clipArea);
                 g.draw(s);
                 //System.out.println("LWLink in pathway...");
             }
-        }
+        }*/
         //System.out.println("Done with iteration...");
     }
     
-    public void draw(Graphics2D g){}
+    public void draw(Graphics2D g){
+        Iterator iter = this.getElementIterator();
+        while(iter.hasNext()){
+            LWComponent comp = (LWComponent)iter.next();
+            if(comp instanceof LWNode){
+                ((LWNode)comp).setPathway(this);
+            } else if(comp instanceof LWLink){
+                
+            }
+        }
+    }
     
     public boolean contains(LWComponent element){
         return elementList.contains(element);
