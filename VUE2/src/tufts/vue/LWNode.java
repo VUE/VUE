@@ -175,10 +175,14 @@ public class LWNode extends LWContainer
     // was text box hit?  coordinates are component local
     private boolean textBoxHit(float cx, float cy)
     {
+        // todo cleanup: this is a fudgey computation: IconPad / PadTop not always used!
         float lx = relativeLabelX() - IconPadRight;
         float ly = relativeLabelY() - PadTop;
-        float height = getLabelBox().getHeight() + PadTop;
-        float width = (IconPadRight + getLabelBox().getWidth()) * TextWidthFudgeFactor;
+        Size size = getTextSize();
+        float height = size.height + PadTop;
+        float width = size.width + IconPadRight;
+        //float height = getLabelBox().getHeight() + PadTop;
+        //float width = (IconPadRight + getLabelBox().getWidth()) * TextWidthFudgeFactor;
 
         return
             cx >= lx &&
@@ -603,6 +607,7 @@ public class LWNode extends LWContainer
         if (ps.height < s.height)
             s.height = ps.height;
         s.width *= TextWidthFudgeFactor;
+        s.width += 3;
         return s;
     }
 
