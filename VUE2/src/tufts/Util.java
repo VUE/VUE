@@ -328,6 +328,52 @@ public class Util
         }
     }
 
+    /**
+     * Size a normal Window to the maximum size usable in the current
+     * platform & desktop configuration, <i>without</i> using the java
+     * special full-screen mode, which can't have any other windows
+     * on top of it, and changes the way user input events are handled.
+     * On the PC, this will just be the whole screen (bug: probably
+     * not good enough if they have non-hiding menu bar set to always-
+     * on-top). On the Mac, it will be adjusted for the top menu
+     * bar and the dock if it's visible.
+     */
+    // todo: test in multi-screen environment
+    public static void setFullScreen(java.awt.Window window)
+    {
+        java.awt.Dimension screen = window.getToolkit().getScreenSize();
+        if (isMacPlatform()) {
+            // mac won't layer a regular window over the menu bar, so
+            // we need to limit the size
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            Rectangle desktop = ge.getMaximumWindowBounds();
+            out("setFullScreen: mac maximum bounds  " + out(desktop));
+            if (desktop.x > 0 && desktop.x <= 4) {
+                // hack for smidge of space it attempts to leave if the dock is
+                // at left and auto-hiding
+                desktop.width += desktop.x;
+                desktop.x = 0;
+            } else {
+                // dock at bottom & auto-hiding
+                int botgap = screen.height - (desktop.y + desktop.height);
+                if (botgap > 0 && botgap <= 4) {
+                    desktop.height += botgap;
+                } else {
+                    // dock at right & auto-hiding
+                    int rtgap = screen.width - desktop.width;
+                    if (rtgap > 0 && rtgap <= 4)
+                        desktop.width += rtgap;
+                }
+            }
+            out("setFullScreen: mac adjusted bounds " + out(desktop));
+            window.setLocation(desktop.x, desktop.y);
+            window.setSize(desktop.width, desktop.height);
+        } else {
+            window.setLocation(0, 0);
+            window.setSize(screen.width, screen.height);
+        }
+    }
+
     /** a JPanel that anti-aliases text */
     public static class JPanel_aa extends javax.swing.JPanel {
         public JPanel_aa(java.awt.LayoutManager layout) {
