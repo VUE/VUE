@@ -40,7 +40,7 @@ import osid.dr.*;
  *
  * @author  Ranjani Saigal
  */
-public class FavoritesWindow extends JInternalFrame implements ActionListener, ItemListener 
+public class FavoritesWindow extends JPanel implements ActionListener, ItemListener 
 {
     private DisplayAction displayAction = null;
     private VueDandDTree favoritesTree ;
@@ -50,8 +50,8 @@ public class FavoritesWindow extends JInternalFrame implements ActionListener, I
     /** Creates a new instance of HierarchyTreeWindow */
     public FavoritesWindow(String displayName ) 
     {
-       
-        super(displayName);
+        setLayout(new BorderLayout());
+        //super(displayName);
         //setSize(300, 400); 
        JTabbedPane favoritesPane = new JTabbedPane();
        
@@ -82,9 +82,9 @@ public class FavoritesWindow extends JInternalFrame implements ActionListener, I
           
           createPopupMenu();
         
-          getContentPane().add(favoritesPane);
-          pack();
-          show();
+         add(favoritesPane,BorderLayout.CENTER);
+         // pack();
+          //show();
 
        
 //---------------------------------------------closing the window businees
@@ -273,11 +273,12 @@ public class FavoritesWindow extends JInternalFrame implements ActionListener, I
                  
                             if ((dn.getUserObject()) instanceof  Asset){
                                 
-                           
+                           /**
                              AssetViewer a = new AssetViewer((Asset)dn.getUserObject());
                             a.setSize(600,400);
                             a.setLocation(10,10);
                             a.show();
+                            */
                             }
                             else
                             {
