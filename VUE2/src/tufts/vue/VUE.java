@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.action.*;
 
@@ -14,10 +15,9 @@ public class VUE
     public static Cursor CURSOR_ZOOM_IN;
     public static Cursor CURSOR_ZOOM_OUT;
     
-    public static ConceptMap map1 = null;
-    
     public static JFrame frame;
     static JTabbedPane tabbedPane;
+    
     static {
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
@@ -49,7 +49,7 @@ public class VUE
         }
         public void mapViewerEventRaised(MapViewerEvent e)
         {
-            if (e.getID() != MapViewerEvent.HIDDEN)
+            if (e.getID() == MapViewerEvent.DISPLAYED)
                 setTitleFromViewer(e.getMapViewer());
         }
 
@@ -101,7 +101,7 @@ public class VUE
          * create an example map (this will become
          * map loading code after the viewer is up)
          */
-        map1 = new ConceptMap("Example One");
+        ConceptMap map1 = new ConceptMap("Example One");
         ConceptMap map2 = new ConceptMap("Example Two");
         ConceptMap map3 = new ConceptMap("Empty Map");
         
@@ -153,7 +153,7 @@ public class VUE
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
         //vuePanel.add(splitPane);
-        
+
         // adding the menu
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
@@ -161,9 +161,9 @@ public class VUE
         
         //adding actions
         SaveAction saveAction = new SaveAction("Save");
-        OpenAction openAction = new OpenAction("open");
-        menu.add(openAction);
-        menu.add(saveAction);
+        OpenAction openAction = new OpenAction("Open");
+        menu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
+        menu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
         frame.setJMenuBar(menuBar);
         frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
@@ -177,19 +177,11 @@ public class VUE
         
         frame.show();
 
-        /*
-        JFrame pannerContainer = new JFrame("Panner");
-        pannerContainer.setContentPane(new MapPanner(mapViewer1));
-        pannerContainer.setSize(100,100);
-        pannerContainer.show();
-        */
-
         ToolWindow pannerTool = new ToolWindow("Panner", frame);
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner(mapViewer1));
         pannerTool.show();
         
-        //ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         ToolWindow inspectorTool = new ToolWindow("", frame);
         inspectorTool.addTool(new MapItemInspector());
         inspectorTool.show();
@@ -217,16 +209,20 @@ public class VUE
         map.addLink(new Link(n2, n3));
         map.addLink(new Link(n2, n4));
     }
-    
-    public static  ConceptMap getMap() {
-        return map1;
+
+    public static ConceptMap getActiveMap()
+    {
+        MapViewer mapViewer = (MapViewer) tabbedPane.getSelectedComponent();
+        return mapViewer.getMap();
     }
-    
-    public static void setMap(ConceptMap cm) {
-       map1 = cm;
-        Container mapViewer5 = new tufts.vue.MapViewer(map1);
-        map1.addNode(new Node("Hello"));
-        tabbedPane.addTab(map1.getLabel(), mapViewer5);
-        frame.pack();
+
+    public static void displayMap(ConceptMap map)
+    {
+        // todo: figure out if we're already displaying this map
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
+        }
+        MapViewer mapViewer = new tufts.vue.MapViewer(map);
+        tabbedPane.addTab(map.getLabel(), mapViewer);
     }
 }
