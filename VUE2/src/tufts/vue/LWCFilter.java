@@ -142,6 +142,16 @@ public class LWCFilter {
     public Vector getStatements() {
         return this.statements;
     }
+    public void removeStatements(Key key) {
+        Vector removeStatements = new Vector();
+        Iterator i = statements.iterator();
+        while(i.hasNext()) {
+            Statement statement = (Statement)i.next();
+            if(((String)statement.getKey().getKey()).equals(key.getKey().toString()))
+                removeStatements.add(statement);
+        }
+        this.statements.removeAll(removeStatements);
+    }
     
         /*
          * isSelecting
@@ -326,34 +336,34 @@ public class LWCFilter {
     }
     
     private boolean matchStatementComponent(Statement statement, LWComponent pLWC) {
-        if(statement.getKey().getKey().toString().equals("Anywhere")) 
+        if(statement.getKey().getKey().toString().equals("Anywhere"))
             return matchLabel(statement, pLWC) | matchNotes(statement, pLWC);
         else if(statement.getKey().getKey().toString().equals("Label")) {
-             return  matchLabel(statement, pLWC);
+            return  matchLabel(statement, pLWC);
         }  else if(statement.getKey().getKey().toString().equals("Notes")) {
-             return  matchNotes(statement, pLWC);
+            return  matchNotes(statement, pLWC);
         } else  {
             return matchFilter(statement,pLWC);
         }
-            
+        
         
     }
     
-   
     
-     private boolean matchLabel(Statement statement, LWComponent pLWC) {
-         Statement labelStatement = new Statement("Label", pLWC.getLabel());
-          return  labelStatement.compare(statement);
-     }
-     
-     private boolean matchNotes(Statement statement, LWComponent pLWC) {
-         Statement notesStatement = new Statement("Label", pLWC.getNotes());
-          return  notesStatement.compare(statement);
-     }
     
-     private boolean matchFilter(Statement statement,LWComponent pLWC) {
-         return pLWC.getNodeFilter().compare(statement);
-     }
+    private boolean matchLabel(Statement statement, LWComponent pLWC) {
+        Statement labelStatement = new Statement("Label", pLWC.getLabel());
+        return  labelStatement.compare(statement);
+    }
+    
+    private boolean matchNotes(Statement statement, LWComponent pLWC) {
+        Statement notesStatement = new Statement("Label", pLWC.getNotes());
+        return  notesStatement.compare(statement);
+    }
+    
+    private boolean matchFilter(Statement statement,LWComponent pLWC) {
+        return pLWC.getNodeFilter().compare(statement);
+    }
     
     /**
      * LogicalStatement
