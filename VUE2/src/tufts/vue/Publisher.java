@@ -16,7 +16,7 @@ import javax.swing.table.*;
 import java.io.*;
 import java.net.*;
 import org.apache.commons.net.ftp.*;
-import java.util.Properties;
+import java.util.*;
 
 
 import fedora.server.management.FedoraAPIM;
@@ -28,7 +28,7 @@ import tufts.vue.action.*;
  *
  * @author  akumar03
  */
-public class Publisher extends JDialog implements ActionListener {
+public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
     /** Creates a new instance of Publisher */
     
@@ -57,9 +57,15 @@ public class Publisher extends JDialog implements ActionListener {
     private int publishMode = PUBLISH_MAP;
     private final int BUFFER_SIZE = 10240;// size for transferring files
     private int stage; // keep tracks of the screen
+    private String IMSManifest; // the string is written to manifest file;
     private static final  String VUE_MIME_TYPE = VueResources.getString("vue.type");
     private static final  String BINARY_MIME_TYPE = "application/binary";
-
+    private static final  String ZIP_MIME_TYPE = "application/zip";
+    
+    private static final String IMSCP_MANIFEST_ORGANIZATION = "%organization%";
+    private static final String IMSCP_MANIFEST_METADATA = "%metadata%";
+    private static final String IMSCP_MANIFEST_RESOURCES = "%resources%";
+    
     JPanel modeSelectionPanel;
     JPanel resourceSelectionPanel;
     JButton cancelButton;
@@ -79,7 +85,7 @@ public class Publisher extends JDialog implements ActionListener {
     public Publisher(Frame owner,String title) {
         //testing
         super(owner,title);
-    
+        
         nextButton = new JButton("Next >");
         finishButton = new JButton("Finish");
         cancelButton = new JButton("Cancel");
@@ -298,7 +304,7 @@ public class Publisher extends JDialog implements ActionListener {
         try {
             saveMap(map);
             Properties metadata = map.getMetadata();
-         
+            
             String pid = getDR().ingest(activeMapFile.getName() ,"obj-binary.xml", VUE_MIME_TYPE,activeMapFile, metadata).getIdString();
             JOptionPane.showMessageDialog(VUE.getInstance(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
@@ -310,7 +316,7 @@ public class Publisher extends JDialog implements ActionListener {
     }
     
     public void publishMap() {
-         try {
+        try {
             publishMap((LWMap)VUE.getActiveMap().clone());
         } catch (Exception ex) {
             alert(VUE.getInstance(),  "Export Not Supported:"+ex.getMessage(), "Export Error");
@@ -336,7 +342,7 @@ public class Publisher extends JDialog implements ActionListener {
                 ostream.close();
             } else {
                 Properties metadata  = VUE.getActiveMap().getMetadata();
-                String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml",BINARY_MIME_TYPE, savedCMap, metadata).getIdString();
+                String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml",ZIP_MIME_TYPE, savedCMap, metadata).getIdString();
                 JOptionPane.showMessageDialog(VUE.getInstance(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
                 System.out.println("Exported Map: id = "+pid);
                 
@@ -408,6 +414,16 @@ public class Publisher extends JDialog implements ActionListener {
     
     
     private File createIMSCP() throws IOException,URISyntaxException,CloneNotSupportedException {
+        String IMSCPMetadata = "";
+        String IMSCPOrganization ="";
+        String IMSCPResources = "";
+        int resourceCount =2; //resourceIdentifier 1 is used for map
+        IMSCPMetadata += getMetadataString(tufts.vue.VUE.getActiveMap().getMetadata());
+        IMSCPResources += getResourceTag(tufts.vue.VUE.getActiveMap().getMetadata(), IMSCP.MAP_FILE,1);
+        IMSCPOrganization += "<organization identifier=\"TOC1\" structure=\"hierarchical\">";
+        IMSCPOrganization += "<title>IMS Content Package of VUE Map</title> ";
+        IMSCPOrganization += "<item identifier=\"ITEM1\" identifierref=\"RESOURCE1\">";
+        IMSCPOrganization += "<title> VUE Cocept Map</title>";            
         LWMap saveMap = (LWMap) tufts.vue.VUE.getActiveMap().clone();
         IMSCP imscp = new IMSCP();
         Iterator i = resourceVector.iterator();
@@ -420,13 +436,29 @@ public class Publisher extends JDialog implements ActionListener {
             if(file.isFile() && b.booleanValue()) {
                 System.out.println("FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
                 resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
-                imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
+                String entry = IMSCP.RESOURCE_FILES+"/"+file.getName();
+                imscp.putEntry(entry,file);
+                IMSCPResources += getResourceTag(r.getProperties(),entry,resourceCount);
+                IMSCPOrganization += getItemTag("ITEM"+resourceCount, "RESOURCE"+resourceCount,"Resource "+resourceCount+" in Concept Map");
                 resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
                 replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+"/"+file.getName()));
-            }            
+                resourceCount++;
+            }
         }
         saveMap(saveMap);
         imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);
+        IMSCPOrganization +="</item>";  
+        IMSCPOrganization +="</organization>";  
+        IMSManifest = readRawManifest();
+        IMSManifest = IMSManifest.replaceAll(IMSCP_MANIFEST_METADATA, IMSCPMetadata).trim();
+        IMSManifest = IMSManifest.replaceAll(IMSCP_MANIFEST_ORGANIZATION, IMSCPOrganization);
+        IMSManifest = IMSManifest.replaceAll(IMSCP_MANIFEST_RESOURCES, IMSCPResources);
+          
+        File IMSManifestFile = File.createTempFile("imsmanifest",".xml");
+        BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(IMSManifestFile));
+        fos.write(IMSManifest.getBytes());
+        fos.close();
+        imscp.putEntry(IMSCP.MANIFEST_FILE,IMSManifestFile);
         System.out.println("Writing Active Map : "+activeMapFile.getName());
         imscp.closeZOS();
         return imscp.getFile();
@@ -493,7 +525,7 @@ public class Publisher extends JDialog implements ActionListener {
             LWComponent component = (LWComponent) i.next();
             if(component.hasResource()){
                 Resource resource = component.getResource();
-                if(resource.getSpec().equals(r1.getSpec())) 
+                if(resource.getSpec().equals(r1.getSpec()))
                     component.setResource(r2);
             }
         }
@@ -507,10 +539,63 @@ public class Publisher extends JDialog implements ActionListener {
     }
     
     private void alert(javax.swing.JFrame frame,String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(frame,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);   
+        javax.swing.JOptionPane.showMessageDialog(frame,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);
     }
-      
     
+    public static boolean isSupportedMetadataField(String field){
+        for(int i=0;i<DC_FIELDS.length;i++) {
+            if(DC_FIELDS[i].equalsIgnoreCase(field))
+                return true;
+        }
+        return false;
+    }
+    public static String getMetadataString(Properties dcFields) {
+        String metadata = "";
+        Enumeration e = dcFields.keys();
+        while(e.hasMoreElements()) {
+            String field = (String)e.nextElement();
+            if(isSupportedMetadataField(field))
+                metadata += "<"+DC_NAMESPACE+field+">"+dcFields.getProperty(field)+"</"+DC_NAMESPACE+field+">";
+        }
+        return metadata;
+    }  
+    private String getResourceTag(Properties dcFields,String entry,int resourceCount) {
+        String resourceTag = "";
+        String identifier = "RESOURCE"+resourceCount;
+        resourceTag = "<resource identifier=\""+identifier+"\" type=\"webcontent\" href=\""+entry+"\">\n";
+        resourceTag += "<file  href=\""+entry+"\"/>\n";
+        resourceTag += "<metadata>\n";
+        resourceTag += "<schema>Dublin Core</schema> \n";
+        resourceTag += "<schemaversion>1.1</schemaversion> \n";
+        resourceTag += getMetadataString(dcFields);
+        resourceTag += "</metadata>\n";
+        resourceTag += "</resource>\n";
+        return resourceTag;
+    }
+    
+    private String getItemTag(String item,String resource, String title) {
+        String itemTag = "";
+        itemTag += "<item identifier=\""+item+"\" identifierref=\""+resource+"\">";
+        itemTag += "<title>"+title+"</title>";
+        itemTag += "</item>";
+        return itemTag;
+    }
+    private String readRawManifest() {
+        String s = "";
+        try {
+            BufferedInputStream fis = new BufferedInputStream(new FileInputStream(VueResources.getFile("imsmanifest")));
+            byte[] buf = new byte[BUFFER_SIZE];
+            int ch;
+            int len;
+            while((len =fis.read(buf)) > 0) {
+                s = s+ new String(buf);
+            }
+            fis.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return s;
+    }
     public class ResourceTableModel  extends AbstractTableModel {
         
         public final String[] longValues = {"Selection", "123456789012345678901234567890","12356789","Processing...."};
@@ -572,8 +657,8 @@ public class Publisher extends JDialog implements ActionListener {
             fireTableCellUpdated(row, col);
         }
     }
-   
-           
+    
+    
     
     
 }
