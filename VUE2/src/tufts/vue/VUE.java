@@ -352,8 +352,11 @@ public class VUE
         
         helpMenu.add(new JMenuItem("Help"));
         
-        ImageConversion imageAction = new ImageConversion("image");
+        //extra additions by the power team members
+        ImageConversion imageAction = new ImageConversion("Jpeg");
         ImageMap imageMap = new ImageMap("iMap");
+        SVGConversion svgAction = new SVGConversion("SVG");
+        
         
         JToolBar toolBar = new JToolBar();
         toolBar.add(openAction);
@@ -361,6 +364,7 @@ public class VUE
         toolBar.add(saveAsAction);
         toolBar.add(imageAction);
         toolBar.add(imageMap);
+        toolBar.add(svgAction);
         toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
