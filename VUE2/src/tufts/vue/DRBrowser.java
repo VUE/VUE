@@ -7,7 +7,7 @@ import java.awt.event.*;
 
 import osid.dr.*;
 import osid.OsidException;
-import tufts.dr.fedora.*;
+import tufts.oki.dr.fedora.*;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.io.*;

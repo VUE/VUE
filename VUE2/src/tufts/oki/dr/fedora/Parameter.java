@@ -4,7 +4,7 @@
  * Created on October 13, 2003, 1:18 PM
  */
 
-package tufts.dr.fedora;
+package tufts.oki.dr.fedora;
 
 /**
  *

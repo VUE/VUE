@@ -4,7 +4,7 @@
  * Created on October 13, 2003, 12:14 PM
  */
 
-package tufts.dr.fedora;
+package tufts.oki.dr.fedora;
 
 /**
  *
@@ -26,7 +26,7 @@ public class ParameterInfoPart implements osid.dr.InfoPart {
     public ParameterInfoPart() {
     }
     
-    public ParameterInfoPart(DR dr,DisseminationInfoPart infoPart) throws osid.dr.DigitalRepositoryException {  
+    public ParameterInfoPart(DR dr,DisseminationInfoPart infoPart) throws osid.dr.DigitalRepositoryException,osid.shared.SharedException {  
         this.id = new PID("Parameter_Id");
         repeatable = true;
     }

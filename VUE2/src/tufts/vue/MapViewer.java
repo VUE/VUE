@@ -10,6 +10,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import javax.swing.*;
+import tufts.oki.dr.fedora.*;
 //import javax.swing.text.JTextComponent;
 
 import osid.dr.*;
@@ -2853,7 +2854,7 @@ public class MapViewer extends javax.swing.JPanel
                   while(inf.hasNext()) {
                       InfoField infoField = (InfoField)inf.next();
                       //String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getId().getIdString();
-                      infoRecordMenu.add(tufts.dr.fedora.FedoraUtils.getFedoraAction(infoField));
+                      infoRecordMenu.add(FedoraUtils.getFedoraAction(infoField));
                       //infoRecordMenu.add(new FedoraAction(infoField.getId().getIdString(),method));
                   }
                   
