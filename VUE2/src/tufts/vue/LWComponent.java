@@ -223,24 +223,33 @@ public class LWComponent
     /** for persistance */
     public void setXMLlabel(String text)
     {
-        setLabel(unescapeNewlines(text));
+        setLabel(unEscapeNewlines(text));
     }
 
     /** for persistance */
     public String getXMLnotes()
     {
-        return escapeNewlines(this.notes);
+        return escapeWhitespace(this.notes);
     }
 
-    /** for persistance */
+    /** for persistance -- gets called by castor after it reads in XML */
     public void setXMLnotes(String text)
     {
-        String notes = unescapeNewlines(text);
-        // hack in case castor xml indent was on when save was done
-        // (didn't used to be a problem, but castor must have
-        // changed how it handles this recently)
-        notes = notes.replaceAll("\n            %nl;", "");
-        notes = notes.replaceAll("\n            ", " ");
+
+        // If castor xml indent was on when save was done
+        // (org.exolab.castor.indent=true in castor.properties
+        // somewhere in the classpath, to make the XML more human
+        // readable) it will break up elements like: <note>many chars
+        // of text...</note> with newlines and whitespaces to indent
+        // the new lines in the XML -- however, on reading them back
+        // in, it puts this white space into the string you saved! So
+        // we patch up note strings here in case of that.  (btw, this
+        // isn't a problem for labels because they're XML attributes,
+        // not elements, which are quoted).
+        
+        text = text.replaceAll("\n[ \t]*%nl;", "%nl;");
+        text = text.replaceAll("\n[ \t]*", " ");
+        String notes = unEscapeWhitespace(text);
         setNotes(notes);
     }
 
@@ -249,16 +258,39 @@ public class LWComponent
         if (text == null)
             return null;
         else {
-            text = text.replaceAll("%", "%pct;");
             return text.replaceAll("\n", "%nl;");
         }
     }
-    private String unescapeNewlines(String text)
+    private String unEscapeNewlines(String text)
     {
         if (text == null)
             return null;
         else { 
-            text = text.replaceAll("%nl;", "\n");
+            return text.replaceAll("%nl;", "\n");
+        }
+
+    }
+    private String escapeWhitespace(String text)
+    {
+        if (text == null)
+            return null;
+        else {
+            text = text.replaceAll("%", "%pct;");
+            // replace all instances of two spaces with space+%sp;
+            // to break them up (and thus we wont lose space runs)
+            text = text.replaceAll("  ", " %sp;");
+            text = text.replaceAll("\t", "%tab;");
+            return escapeNewlines(text);
+        }
+    }
+    private String unEscapeWhitespace(String text)
+    {
+        if (text == null)
+            return null;
+        else { 
+            text = unEscapeNewlines(text);
+            text = text.replaceAll("%tab;", "\t");
+            text = text.replaceAll("%sp;", " ");
             return text.replaceAll("%pct;", "%");
         }
     }
@@ -1230,7 +1262,7 @@ public class LWComponent
         String s = cname.substring(cname.lastIndexOf('.')+1);
         s += "[" + getID();
         if (getLabel() != null)
-            s += " \"" + escapeNewlines(getLabel()) + "\"";
+            s += " \"" + escapeWhitespace(getLabel()) + "\"";
         if (getScale() != 1f)
             s += " z" + getScale();
         s += paramString();
