@@ -295,6 +295,7 @@ public class VUE
     {
         if (add) {
             JScrollPane scroller = new JScrollPane(tabbedPane.getComponentAt(0));
+            //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             tabbedPane.addTab("scrolling test", scroller);
             //tabbedPane.setComponentAt(0, scroller);
         }
@@ -383,11 +384,32 @@ public class VUE
             }
         }
         */
+        
+        final boolean useScrollbars = false; // in-progress feature
+        JScrollPane sp = null;
         if (mapViewer == null) {
             mapViewer = new tufts.vue.MapViewer(map);
             if (VUE.ActiveViewer == null)
                 VUE.ActiveViewer = mapViewer;
-            tabbedPane.addTab(map.getLabel(), mapViewer);
+
+            if (useScrollbars)
+                tabbedPane.addTab(map.getLabel(), sp = new JScrollPane(mapViewer));
+            else
+                tabbedPane.addTab(map.getLabel(), mapViewer);
+
+            // put BACKINGSTORE mode on a diag switch and test
+            // performance difference -- the obvious difference is
+            // vastly better performance if an inspector window is
+            // obscuring any part of the canvas (or any other window
+            // for that mater), which kills off a huge chunk of
+            // BLIT_SCROLL_MODE's optimization.  However, using
+            // backing store completely fucks up if we start
+            // hand-panning the map, tho I'm presuming that's because
+            // the hand panning isn't being done thru the viewport
+            // yet.
+            //
+            //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
+            
             MapViewer mv2 = new tufts.vue.MapViewer(map, true);
             tabbedPane2.addTab(map.getLabel(), mv2);
         }
@@ -399,7 +421,10 @@ public class VUE
         // need to add a listener to change colors -- PC gui feedback of which
         // tab is selected is completely horrible.
         */
-        tabbedPane.setSelectedComponent(mapViewer);
+        if (useScrollbars)
+            tabbedPane.setSelectedComponent(sp);
+        else
+            tabbedPane.setSelectedComponent(mapViewer);
 
     }
     
