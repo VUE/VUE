@@ -1805,8 +1805,8 @@ public class MapViewer extends javax.swing.JComponent
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
             System.out.println("paint " + paints + " " + this + ": "
-            + delta
-            + "ms (" + fps + " fps)");
+                               + delta
+                               + "ms (" + fps + " fps)");
         }
         paints++;
         RepaintRegion = null;
@@ -2797,14 +2797,13 @@ public class MapViewer extends javax.swing.JComponent
     
     
     static final int RIGHT_BUTTON_MASK =
-    java.awt.event.InputEvent.BUTTON2_MASK
-    | java.awt.event.InputEvent.BUTTON3_MASK;
+          java.awt.event.InputEvent.BUTTON2_MASK
+        | java.awt.event.InputEvent.BUTTON3_MASK;
     static final int ALL_MODIFIER_KEYS_MASK =
-    java.awt.event.InputEvent.SHIFT_MASK
-    | java.awt.event.InputEvent.CTRL_MASK
-    | java.awt.event.InputEvent.META_MASK
-    | java.awt.event.InputEvent.ALT_MASK;
-    
+          java.awt.event.InputEvent.SHIFT_MASK
+        | java.awt.event.InputEvent.CTRL_MASK
+        | java.awt.event.InputEvent.META_MASK
+        | java.awt.event.InputEvent.ALT_MASK;
     
     
     // toolKeyDown: a key being held down to temporarily activate
@@ -3039,7 +3038,7 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         public void keyReleased(KeyEvent e) {
-            if (DEBUG_KEYS) System.out.println(MapViewer.this + "[" + e.paramString() + "]");
+            if (DEBUG_KEYS) out("[" + e.paramString() + "]");
             
             if (toolKeyDown == e.getKeyCode()) {
                 // Don't revert tmp tool if we're in the middle of a drag
@@ -3580,7 +3579,6 @@ public class MapViewer extends javax.swing.JComponent
             
             //-------------------------------------------------------
             // Stop component dragging if the mouse leaves our component (the viewer)
-            // todo: auto-pan as we get close to edge
             //-------------------------------------------------------
             
             if (!e.getComponent().contains(screenX, screenY)) {
@@ -3660,7 +3658,7 @@ public class MapViewer extends javax.swing.JComponent
                 //-------------------------------------------------------
                 
                 dragComponent.setLocation(mapX + dragOffset.x,
-                mapY + dragOffset.y);
+                                          mapY + dragOffset.y);
                 //dragPosition.setLocation(mapX + dragOffset.x,mapY + dragOffset.y);
                 
                 if (inScrollPane)
@@ -3689,12 +3687,12 @@ public class MapViewer extends javax.swing.JComponent
                 ;
             }
             else if (!DEBUG_FINDPARENT_OFF
-            //&& (dragComponent instanceof LWNode || VueSelection.allOfType(LWNode.class)) //todo opt: cache type
-            //todo: dragComponent for moment is only ever the LWGroup or a LWLink
-            && dragComponent != null
-            //&& !(dragComponent instanceof LWLink) // todo: not possible -- dragComponent never a single LWC anymore
-            && !(VueSelection.allOfType(LWLink.class)) //todo opt: cache type
-            ) {
+                     //&& (dragComponent instanceof LWNode || VueSelection.allOfType(LWNode.class)) //todo opt: cache type
+                     //todo: dragComponent for moment is only ever the LWGroup or a LWLink
+                     && dragComponent != null
+                     //&& !(dragComponent instanceof LWLink) // todo: not possible -- dragComponent never a single LWC anymore
+                     && !(VueSelection.allOfType(LWLink.class)) //todo opt: cache type
+                     ) {
                 
                 //-------------------------------------------------------
                 // vanilla drag -- check for node drop onto another node
@@ -4058,23 +4056,23 @@ public class MapViewer extends javax.swing.JComponent
         
         private final boolean isDoubleClickEvent(MouseEvent e) {
             return e.getClickCount() == 2
-            && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
-            && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+                && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
+                && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }
         
         private final boolean isSingleClickEvent(MouseEvent e) {
             return e.getClickCount() == 1
-            && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
-            && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+                && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
+                && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }
         
         private final boolean isRightClickEvent(MouseEvent e) {
             // 1 click, button 2 or 3 pressed, button 1 not already down & ctrl not down
             return e.getClickCount() == 1
-            && (e.getButton() == java.awt.event.MouseEvent.BUTTON3 ||
-            e.getButton() == java.awt.event.MouseEvent.BUTTON2)
-            && (e.getModifiersEx() & java.awt.event.InputEvent.BUTTON1_DOWN_MASK) == 0
-            && !e.isControlDown();
+                && (e.getButton() == java.awt.event.MouseEvent.BUTTON3 ||
+                    e.getButton() == java.awt.event.MouseEvent.BUTTON2)
+                && (e.getModifiersEx() & java.awt.event.InputEvent.BUTTON1_DOWN_MASK) == 0
+                && !e.isControlDown();
         }
         
         public void mouseClicked(MouseEvent e) {
@@ -4107,7 +4105,7 @@ public class MapViewer extends javax.swing.JComponent
                         //todo: below not triggering under arrow tool if we just dragged the link --
                         // justSelected must be inappropriately set to the dragged component
                         if (!handled &&
-                        (activeTool == TextTool || hitComponent.isSelected() && hitComponent != justSelected))
+                            (activeTool == TextTool || hitComponent.isSelected() && hitComponent != justSelected))
                             activateLabelEdit(hitComponent);
                         
                     } else if (activeTool == TextTool || activeTool == NodeTool) {
