@@ -58,6 +58,6 @@ public interface LWKey {
 
     public String Repaint = "repaint"; // general: visual change but no permanent data change
 
-    public String LinkArrows = "linkArrows"; // link arrow state (0,1,2)
+    public String LinkArrows = "link.arrows"; // link arrow state (0,1,2)
     
 }

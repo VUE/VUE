@@ -71,6 +71,7 @@ public class VueButton extends JButton
     }
     
     public static class Toggle extends JToggleButton {
+        // todo: make an LWPropertyHandler for boolean's
         protected String key;
         public Toggle(String name, ActionListener l) {
             init(name);
@@ -131,7 +132,7 @@ public class VueButton extends JButton
 
         //setBackground(Color.white);
         //setBackground(Color.red);
-        System.out.println("Created new " + b);
+        if (DEBUG.Enabled) System.out.println("Created new " + b);
         //if (true||DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
     }
 

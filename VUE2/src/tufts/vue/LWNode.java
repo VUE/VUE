@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.vue.shape.RectangularPoly2D;
+                       
 import java.util.Iterator;
 import java.awt.*;
 import java.awt.geom.*;
@@ -94,8 +95,8 @@ public class LWNode extends LWContainer
         super.label = label; // todo: this for debugging
         setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
-            //setNodeShape(StandardShapes[4]);
-            setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
+            setShape(new tufts.vue.shape.RoundRect2D());
+          //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20));
         else
             setShape(shape);
         setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);

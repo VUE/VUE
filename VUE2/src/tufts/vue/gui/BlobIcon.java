@@ -207,6 +207,7 @@ public class BlobIcon implements Icon
     }
 
     public String toString() {
-        return "BlobIcon[" + paramString() + "]";
+        return getClass().getName() + "[" + paramString() + "]";
+        //return "BlobIcon[" + paramString() + "]";
     }
 }

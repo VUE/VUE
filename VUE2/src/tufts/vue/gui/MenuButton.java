@@ -49,7 +49,8 @@ public abstract class MenuButton extends JButton
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
 // menu-popups would automatically work also.
 {
-    protected String mPropertyName;
+    protected Object mPropertyKey;
+    //protected String mPropertyName;
     protected JPopupMenu mPopup;
     protected JMenuItem mEmptySelection;
     private Icon mButtonIcon;
@@ -109,7 +110,7 @@ public abstract class MenuButton extends JButton
      * Intended for use during initialization.
      **/
     public void setButtonIcon(Icon i) {
-        if (DEBUG.BOXES||DEBUG.TOOL) System.out.println("MenuButton " + this + " setButtonIcon " + i);
+        if (DEBUG.BOXES||DEBUG.TOOL) System.out.println(this + " setButtonIcon " + i);
         //if (DEBUG.Enabled) new Throwable().printStackTrace();
         _setIcon(mButtonIcon = i);
     }
@@ -184,6 +185,9 @@ public abstract class MenuButton extends JButton
             }
             src.paintIcon(c, g, sx, sy);
         }
+        public String toString() {
+            return "MenuProxyIcon[" + src + "]";
+        }
     }
     
     private void _setIcon(Icon i) {
@@ -199,7 +203,7 @@ public abstract class MenuButton extends JButton
         */
         Dimension d = getButtonSize();
         VueButtonIcon.installGenerated(this, new MenuProxyIcon(i), d);
-        System.out.println("MenuButton " + this + " *** installed generated, setPreferredSize " + d);
+        //System.out.println(this + " *** installed generated, setPreferredSize " + d);
         setPreferredSize(d);
     }
     
@@ -207,27 +211,37 @@ public abstract class MenuButton extends JButton
     protected JPopupMenu getPopupMenu() {
         return mPopup;
     }
-    
+
+    /*
     public void setPropertyName(String pName) {
         mPropertyName = pName;
     }
-
+    */
     public String getPropertyName() {
-        return mPropertyName;
+        return mPropertyKey == null ? null : mPropertyKey.toString();
+        //return mPropertyName;
+    }
+    
+    public void setPropertyKey(Object key) {
+        mPropertyKey = key;
+        //mPropertyName = key;
     }
 
     public Object getPropertyKey() {
-        return mPropertyName;
+        return mPropertyKey;
+        //return mPropertyName;
     }
 
     /** Set the property value, AND change the displayed menu icon to approriate selection for that value */
     public abstract void setPropertyValue(Object propertyValue);
     public abstract Object getPropertyValue();
 
+    /*
     public void loadPropertyValue(tufts.vue.beans.VueBeanState state) {
         if (DEBUG.TOOL) System.out.println(this + " loading " + getPropertyName() + " from " + state);
         setPropertyValue(state.getPropertyValue(getPropertyName()));
     }
+    */
 
     /*
     public void loadPropertyValue(Object propertyKey, LWComponent src) {
@@ -323,10 +337,19 @@ public abstract class MenuButton extends JButton
     protected void handleValueSelection(Object newPropertyValue) {
         if (newPropertyValue == null) // could be result of custom chooser
             return;
-        Object oldValue = getPropertyValue();
-        setPropertyValue(newPropertyValue);
-        // don't bother to fire if prop value is an Action?
-        firePropertyChanged(oldValue, newPropertyValue);
+        // even if we were build from actions, in which case the LWComponents
+        // have already been changed via that action, call setPropertyValue
+        // here so any listening LWCToolPanels can update their held state,
+        // and so subclasses can update their displayed selected icons
+
+        // Okay, do NOT call this with the action?  But what happens if nothing is selected?
+        if (newPropertyValue instanceof Action) {
+            System.out.println("Skipping setPropertyValue & firePropertyChanged for Action " + newPropertyValue);
+        } else {
+            Object oldValue = getPropertyValue();
+            setPropertyValue(newPropertyValue);
+            firePropertyChanged(oldValue, newPropertyValue);
+        }
         repaint();
     }
 	
@@ -381,7 +404,7 @@ public abstract class MenuButton extends JButton
     }
 	
     public String toString() {
-        return getClass().getName() + "[" + mPropertyName + "]";
+        return getClass().getName() + "[" + getPropertyName() + "]";
     }
 }
 

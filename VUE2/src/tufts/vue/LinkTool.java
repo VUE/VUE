@@ -239,7 +239,7 @@ public class LinkTool extends VueTool
             }
             
             // init link based on user defined state
-            VueBeanState state = getLinkToolPanel().getValue();
+            VueBeanState state = getLinkToolPanel().getCurrentState();
             if (state != null)
             	state.applyState(link);
             

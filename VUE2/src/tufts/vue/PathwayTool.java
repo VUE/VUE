@@ -141,6 +141,7 @@ public class PathwayTool extends VueSimpleTool
             label.setBorder(new EmptyBorder(3,0,0,0));
             add(label);
             JComboBox combo = new JComboBox(new PathwayComboBoxModel());
+            combo.setBackground(VueTheme.getVueColor());
             add(combo);
             add(Box.createHorizontalStrut(5));
             JPanel controls = new PathwayPanel.PlaybackToolPanel();

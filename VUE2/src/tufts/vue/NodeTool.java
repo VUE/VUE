@@ -51,8 +51,11 @@ public class NodeTool extends VueTool
     /** return the singleton instance of this class */
     public static NodeTool getTool()
     {
-        if (singleton == null)
-            throw new IllegalStateException("NodeTool.getTool: class not initialized by VUE");
+        if (singleton == null) {
+            new Throwable("Warning: NodeTool.getTool: class not initialized by VUE").printStackTrace();
+            //throw new IllegalStateException("NodeTool.getTool: class not initialized by VUE");
+            new NodeTool();
+        }
         return singleton;
     }
     
@@ -134,9 +137,9 @@ public class NodeTool extends VueTool
     public static LWNode createNode(String name)
     {
         LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
-        VueBeanState state = getNodeToolPanel().getValue();
+        VueBeanState state = getNodeToolPanel().getCurrentState();
         if (state != null)
-            state.applyState( node);
+            state.applyState(node);
         node.setAutoSized(true);
         return node;
     }
@@ -166,9 +169,9 @@ public class NodeTool extends VueTool
     {
         LWNode node = new LWNode();
         initTextNode(node);
-        VueBeanState state = TextTool.getTextToolPanel().getValue();
+        VueBeanState state = TextTool.getTextToolPanel().getCurrentState();
         if (state != null)
-            state.applyState( node);
+            state.applyState(node);
         return node;
     }
     
@@ -178,6 +181,8 @@ public class NodeTool extends VueTool
     }
 
     
+    /** @return an array of actions, with icon set, that will set the shape of selected
+     * LWNodes */
     public Action[] getShapeSetterActions() {
         Action[] actions = new Action[getSubToolIDs().size()];
         Enumeration e = getSubToolIDs().elements();
@@ -204,16 +209,17 @@ public class NodeTool extends VueTool
             super.setID(pID);
             //System.out.println(this + " ID set");
             //getShape(); // cache it for fast response first time
-            setGeneratedIcons(new ShapeIcon());
+            setGeneratedIcons(new ShapeIcon(getShapeInstance()));
         }
         
+        /** @return an action, with icon set, that will set the shape of selected
+         * LWNodes to the current shape for this SubTool */
         public Action getShapeSetterAction() {
             if (shapeSetterAction == null) {
-                shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon()) {
-                        void act(LWNode n) {
-                            n.setShape(getShapeInstance());
-                        }
+                shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon(getShapeInstance())) {
+                        void act(LWNode n) { n.setShape(getShapeInstance()); }
                     };
+                shapeSetterAction.putValue(LWKey.Shape, getShapeInstance()); // this is handy
             }
             return shapeSetterAction;
         }
@@ -304,16 +310,16 @@ public class NodeTool extends VueTool
             //sShapeGradient = new GradientPaint(0,0,sShapeColor.brighter(), sWidth/2,sHeight/2,sShapeColor,true); // diagonal
             
         }
-        
-        class ShapeIcon implements Icon
+        static class ShapeIcon implements Icon
         {
             public int getIconWidth() { return sWidth; }
             public int getIconHeight() { return sHeight; }
 
             private RectangularShape mShape;
-            ShapeIcon()
+            
+            ShapeIcon(RectangularShape pShape)
             {
-                mShape = getShapeInstance();
+                mShape = pShape;
                 if (mShape instanceof RoundRectangle2D) {
                     // hack to deal with arcs being too small on a tiny icon
                     ((RoundRectangle2D)mShape).setRoundRect(0, 0, sWidth,sHeight, 8,8);
@@ -334,6 +340,19 @@ public class NodeTool extends VueTool
                 g2.setStroke(STROKE_HALF);
                 g2.draw(mShape);
                 g2.translate(-x,-y);
+            }
+
+            /** @return true if representing the same *class* of shape.
+              *
+              * Currently shape's are differentiated
+              * by class only, which is why we have tufts.vue.shape.RoundRect2D with fixed arc widths as a separate
+              * class.  (Additnal architecture will be needed if we want to get around this self-imposed limitation)
+              */
+            public boolean equals(Object o) {
+                return o == this ||
+                    o != null && o instanceof ShapeIcon && ((ShapeIcon)o).mShape.getClass().equals(getClass());
+                // note: above will consider awt RoundRect2D's with different arcs as same shape... use tufts.vue.shape.*
+                // with fixed params to avoid this.
             }
 
             public String toString() {

@@ -31,9 +31,29 @@ import javax.swing.border.*;
 
 
 /**
- * LWCToolPanel
- * This creates an editor panel for LWComponents
- **/
+   
+A property editor panel for LWComponents.  General usage: a series of small
+JComponents that are also LWPropertyHandlers.
+
+ There are to major pieces to how these work:
+     1 - change state of a gui component, and at least one property
+             will change, and that should immediately flow thru to applicable selected objects
+     2 - maintain a state object that contains an aggregate of all the current properties,
+              for later querying (e.g., create a new node: what's the current state of the node
+              tools? (color,shape,font, etc)
+
+     Given this, there are two major event sources we have to deal with:
+     the first are PropertyChange events coming from user interaction with
+     the gui components, and the second are LWCEvents coming from currently
+     selected LWComponents.  We need to keep our total state value, as
+     well as gui states, sycned with any property changes from LWComponents.
+
+     Property changes from the gui components need also to update our
+     internal state, as well as flow out to the LWComponents (and in
+     that case, ignore the callback coming from the LWComponent, telling
+     us their property's just changed).
+              
+ */
  
 public class LWCToolPanel extends JPanel
     implements ActionListener, PropertyChangeListener, LWComponent.Listener
@@ -58,6 +78,8 @@ public class LWCToolPanel extends JPanel
     protected static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
 
     private Box mBox;
+
+    private ArrayList mPropertyHandlers = new ArrayList(); // hash-map by property??
 
     public LWCToolPanel()
     {
@@ -92,7 +114,7 @@ public class LWCToolPanel extends JPanel
          Color [] fillColors = VueResources.getColorArray("fillColorValues");
          String [] fillColorNames = VueResources.getStringArray("fillColorNames");
          mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
-         mFillColorButton.setPropertyName(LWKey.FillColor);
+         mFillColorButton.setPropertyKey(LWKey.FillColor);
          mFillColorButton.setColor(VueResources.getColor("defaultFillColor"));
          mFillColorButton.setToolTipText("Fill Color");
          mFillColorButton.addPropertyChangeListener(this); // always last or we get prop change events for setup
@@ -104,7 +126,7 @@ public class LWCToolPanel extends JPanel
          Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
+         mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
          mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
          mStrokeColorButton.setToolTipText("Stroke Color");
          mStrokeColorButton.addPropertyChangeListener(this);
@@ -116,10 +138,10 @@ public class LWCToolPanel extends JPanel
          float[] strokeValues = VueResources.getFloatArray("strokeWeightValues");
          String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
          mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
-         mStrokeButton.setPropertyName(LWKey.StrokeWidth);
+         mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
          mStrokeButton.setButtonIcon(new LineIcon(16,16));
          mStrokeButton.setStroke(1f);
-         //mStrokeButton.setPropertyName(LWKey.StrokeWidth);
+         //mStrokeButton.setPropertyKey(LWKey.StrokeWidth);
          mStrokeButton.setToolTipText("Stroke Width");
          mStrokeButton.addPropertyChangeListener(this);
 
@@ -130,7 +152,7 @@ public class LWCToolPanel extends JPanel
          Color[] textColors = VueResources.getColorArray("textColorValues");
          String[] textColorNames = VueResources.getStringArray("textColorNames");
          mTextColorButton = new ColorMenuButton(textColors, textColorNames, true);
-         mTextColorButton.setPropertyName(LWKey.TextColor);
+         mTextColorButton.setPropertyKey(LWKey.TextColor);
          mTextColorButton.setToolTipText("Text Color");
          mTextColorButton.addPropertyChangeListener(this);
 
@@ -155,7 +177,7 @@ public class LWCToolPanel extends JPanel
              mFontPanel.setBackground(Color.green);
          else
              mFontPanel.setBackground(bakColor);
-         mFontPanel.setPropertyName(LWKey.Font);
+         mFontPanel.setPropertyKey(LWKey.Font);
          mFontPanel.addPropertyChangeListener(this);
  		
          //-------------------------------------------------------
@@ -203,13 +225,37 @@ public class LWCToolPanel extends JPanel
          out("CONSTRUCTED.");
     }
 
-
+    /*
     protected void buildBox() {
         mBox.add( mFillColorButton);
         mBox.add( mStrokeColorButton);
         mBox.add( mStrokeButton);
         mBox.add( mFontPanel);
         mBox.add( mTextColorButton);
+    }
+    */
+
+    protected void buildBox() {
+        addComponent(mFillColorButton);
+        addComponent(mStrokeColorButton);
+        addComponent(mStrokeButton);
+        addComponent(mFontPanel);
+        addComponent(mTextColorButton);
+    }
+
+    /** @param c component to add to the box-row.  If an instance of LWPropertyProducer,
+     * also add to out tracking list of these for property updates */
+    public void addComponent(Component c) {
+        mBox.add(c);
+        if (c instanceof LWPropertyHandler)
+            addPropertyProducer((LWPropertyHandler) c);
+    }
+
+    // todo: would be even sweeter to on addNotify (first time only!)
+    // search our entire component hierarchy for property handlers
+    // and automatically add them
+    protected void addPropertyProducer(LWPropertyHandler p) {
+        mPropertyHandlers.add(p);
     }
 
     protected JComponent getBox() {
@@ -228,35 +274,79 @@ public class LWCToolPanel extends JPanel
     }
         
     /** load values from either a LWComponent, or a VueBeanState */
-    void loadValues(Object pValue) {
-        if (DEBUG.TOOL) out("loadValues0 (LWCToolPanel) " + pValue);
+    void loadValues(Object source) {
+        if (DEBUG.TOOL) out("loadValues0 (LWCToolPanel) " + source);
         VueBeanState state = null;
  		
-        if (pValue instanceof LWComponent) {
-            if (!isPreferredType(pValue))
+        if (source instanceof LWComponent) {
+            if (!isPreferredType(source))
                 return;
-            state = VueBeans.getState(pValue);
+            //state = VueBeans.getState(source);
             if (DEBUG.TOOL) out("loadValues1 (LWCToolPanel) " + state);
-        } else if (pValue instanceof VueBeanState) {
-            state = (VueBeanState) pValue;
+        } else if (source instanceof VueBeanState) {
+            state = (VueBeanState) source;
             //if (DEBUG.TOOL) out("loadValues2 (LWCToolPanel) " + state);
         }
-        if (state == null)
-            state = mDefaultState;
+        //if (state == null)
+             //    state = mDefaultState;
+        if (source == null)
+            source = mDefaultState;
  		
         mState = state;
         
         //new Throwable().printStackTrace();
         
         setIgnorePropertyChangeEvents(true);
-        
+
+        //------------------------------------------------------------------
+        // OKAY, COOL: now, really make LWCToolPanel hold an ArrayList
+        // of LWPropertyHanders: change buildBox to addToBox, and in
+        // it check for any LWPropertyHanders (so NodeTool ShapeMenu
+        // MenuButton is picked up) then we can iterate through that
+        // SAME list here as we do below in loadToolValue (change name
+        // to loadSingleValue or something)
+        //
+        // Can we make addToBox take an LWPropertyHander?  It could take
+        // two args I guess, one for Component and one for handler, and
+        // we could just to add(component, handler), and add(handler)
+        // could be a shortcut that throws exception if not also a
+        // Component.
+        // ------------------------------------------------------------------
+
+        Iterator i = mPropertyHandlers.iterator();
+        while (i.hasNext()) {
+            LWPropertyHandler dest = (LWPropertyHandler) i.next();
+            copyProperty(source, dest);
+        }
+
+        /*
+        copyProperty(source, mFontPanel);
+        copyProperty(source, mTextColorButton);
+        copyProperty(source, mFillColorButton);
+        copyProperty(source, mStrokeColorButton);
+        copyProperty(source, mStrokeButton);
+        */
+
+        /*
         mFontPanel.setValue(state.getPropertyValue(LWKey.Font));
           mTextColorButton.loadPropertyValue(state); // until is a MenuButton, might as will pick up property
           mFillColorButton.loadPropertyValue(state);
         mStrokeColorButton.loadPropertyValue(state);
              mStrokeButton.loadPropertyValue(state);
+        */
 
         setIgnorePropertyChangeEvents(false);
+    }
+
+    private void copyProperty(Object source, LWPropertyHandler dest) {
+        Object propertyKey = dest.getPropertyKey();
+
+        if (DEBUG.TOOL) System.out.println(dest + " loading [" + dest.getPropertyKey() + "] from " + source);
+        if (source instanceof VueBeanState) {
+            dest.setPropertyValue( ((VueBeanState)source).getPropertyValue( (String) dest.getPropertyKey()) );
+        } else if (source instanceof LWComponent) {
+            dest.setPropertyValue( ((LWComponent)source).getPropertyValue(dest.getPropertyKey()) );
+        }
     }
 
 
@@ -288,22 +378,19 @@ public class LWCToolPanel extends JPanel
     }
 
     private void loadToolValue(Object propertyKey, LWComponent src) {
-        Component[] children = mBox.getComponents();
         boolean success = false;
-        for (int i = 0; i < children.length; i++) {
-            if (children[i] instanceof LWPropertyHandler) { // todo perf: cache a list of these
-                LWPropertyHandler ph = (LWPropertyHandler) children[i];
-                if (DEBUG.TOOL&&DEBUG.META) System.out.println("Checking  key [" + propertyKey + "] against " + ph);
-                if (ph.getPropertyKey() == propertyKey) {
-                    if (DEBUG.TOOL) System.out.println("Matched key [" + propertyKey + "] to " + ph);
-                    ph.setPropertyValue(src.getPropertyValue(propertyKey));
-                    //ph.loadPropertyValue(propertyKey, src);
-                    success = true;
-                }
+        Iterator i = mPropertyHandlers.iterator();
+        while (i.hasNext()) {
+            LWPropertyHandler propertyHolder = (LWPropertyHandler) i.next();
+            if (DEBUG.TOOL&&DEBUG.META) System.out.println(this + " checking key [" + propertyKey + "] against " + propertyHolder);
+            if (propertyHolder.getPropertyKey() == propertyKey) {
+                if (DEBUG.TOOL) System.out.println(this + " matched key [" + propertyKey + "] to " + propertyHolder);
+                propertyHolder.setPropertyValue(src.getPropertyValue(propertyKey));
+                success = true;
             }
         }
         if (!success) {
-            if (DEBUG.TOOL) System.out.println(this + " ignored loadToolValue for " + propertyKey + " in " + src);
+            if (DEBUG.TOOL) System.out.println(this + " loadToolValue couldn't find LWPropertyHandler for " + propertyKey + " in " + src);
         }
     }
     
@@ -313,7 +400,7 @@ public class LWCToolPanel extends JPanel
     }
  	
     
-    public VueBeanState getValue() {
+    public VueBeanState getCurrentState() {
         return mState;
     }
  	
@@ -322,10 +409,13 @@ public class LWCToolPanel extends JPanel
         mIgnoreEvents = t;
     }
 
+    // I think we may ONLY need this if the tool panel cannot actually
+    // operate on something that's currently selected.  Is it really useful
+    // for the tool panel to even OPERATE if nothing is selected??
     public void propertyChange(PropertyChangeEvent e)
     {
         if (mIgnoreEvents) {
-            if (DEBUG.TOOL) out("ignoring " + e);
+            if (DEBUG.TOOL) out("propertyChange: skipping " + e);
             return;
         }
         String name = e.getPropertyName();
@@ -353,12 +443,12 @@ public class LWCToolPanel extends JPanel
 
     }
  	
-    public void actionPerformed( ActionEvent pEvent) {
-        System.out.println(this + " " + pEvent);
+    public void actionPerformed(ActionEvent pEvent) {
+        out("UNHANDLED: " + pEvent);
     }
 
     protected void out(Object o) {
-        System.out.println(this + " " + (o==null?"null":o.toString()));
+        System.out.println(this + ": " + (o==null?"null":o.toString()));
     }
     public String toString() {
         return getClass().getName();

@@ -122,9 +122,6 @@ public class LineIcon extends BlobIcon
     public String paramString() {
         return super.paramString() + " weight=" + mWeight;
     }
-    public String toString() {
-        return "LineIcon[" + paramString() + "]";
-    }
-    //public String toString() {return "LineIcon[" + (mColor==null?"":(mColor + ", ")) + mWeight + "]";}
+    //public String toString() { return "LineIcon[" + paramString() + "]"; }
     
 }

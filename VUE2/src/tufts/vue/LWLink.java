@@ -88,9 +88,13 @@ public class LWLink extends LWComponent
 
     private boolean endpointMoved = true; // has an endpoint moved since we last compute shape?
 
+    /** neither endpoint has arrow */
     public static final int ARROW_NONE = 0;
+    /** endpoint 1 has arrow */
     public static final int ARROW_EP1 = 0x1;
+    /** endpoint 2 has arrow */
     public static final int ARROW_EP2 = 0x2;
+    /** both endpoints have arrows */
     public static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
     
     private int mArrowState = ARROW_NONE;

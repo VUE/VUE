@@ -58,7 +58,7 @@ public class FontEditorPanel extends Box
     //ColorMenuButton mTextColorButton = null;
     
     /** the property name **/
-    private String mPropertyName = LWKey.Font;
+    private Object mPropertyKey = LWKey.Font;
  	
     private static final boolean debug = false;
     private static final Insets NoInsets = new Insets(0,0,0,0);
@@ -230,16 +230,16 @@ public class FontEditorPanel extends Box
     /////////////////
  	
  	
-    public void setPropertyName( String pName) {
-        mPropertyName = pName;
+    public void setPropertyKey(Object key) {
+        mPropertyKey = key;
     }
  	
     public String getPropertyName() {
-        return mPropertyName;
+        return mPropertyKey == null ? null : mPropertyKey.toString();
     }
 
     public Object getPropertyKey() {
-        return mPropertyName;
+        return mPropertyKey;
     }
  	
     public Object getPropertyValue() {
@@ -348,7 +348,7 @@ public class FontEditorPanel extends Box
     }
 
     public String toString() {
-        return "FontEditorPanel[" + makeFont() + "]";
+        return "FontEditorPanel[" + getPropertyKey() + " " + makeFont() + "]";
     }
 
     public static void main(String[] args) {

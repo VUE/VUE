@@ -57,7 +57,7 @@ public class VueButtonIcon implements Icon
     public static final int MENU_SELECTED = 6;     // sub-menus: rollover (palette menu)
             
     public static void installGenerated(AbstractButton b, Icon raw, Dimension s) {
-        if (DEBUG.INIT) System.out.println("Generating button states from " + raw);
+        if (DEBUG.INIT||DEBUG.TOOL) System.out.println(b + " generating button states from " + raw);
         if (s == null)
             s = new Dimension(0,0);
         b.setIcon(new VueButtonIcon(raw, UP, s));
@@ -79,7 +79,7 @@ public class VueButtonIcon implements Icon
     protected final int width;
     protected final int height;
 
-    private Insets insets = new Insets(0,0,0,0);
+    private static Insets insets = new Insets(0,0,0,0);
     private Color mColor = sButtonColor;
 
     private final int mType;
