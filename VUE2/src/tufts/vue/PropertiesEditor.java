@@ -135,12 +135,12 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         // setting box layout
         JPanel innerPanel=new JPanel();
-        innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
+        innerPanel.setLayout(new BorderLayout());
         //innerPanel.setBorder(BorderFactory.createEmptyBorder(0,6,6,6));
         
         
-        innerPanel.add(labelPanel);
-        innerPanel.add(propertiesPanel);
+        innerPanel.add(labelPanel,BorderLayout.NORTH);
+        innerPanel.add(propertiesPanel,BorderLayout.CENTER);
         //innerPanel.add(topPanel);
         //innerPanel.setBorder(BorderFactory.createTitledBorder("Metadata"));
         setLayout(new BorderLayout());

@@ -186,6 +186,7 @@ implements  VUE.ActiveMapListener {
      *
      **/
     public void activeMapChanged(LWMap map) {
+        System.out.println("Acitve Map Changed "+ map);
         setMap(map);
     }
     
@@ -219,8 +220,11 @@ implements  VUE.ActiveMapListener {
         PropertiesEditor propertiesEditor = null;
         public InfoPanel() {
             JPanel innerPanel = new JPanel();
-            BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
-            innerPanel.setLayout(boxLayout);
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+        
+            //BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
+            innerPanel.setLayout(gridbag);
             
             mInfoScrollPane = new JScrollPane();
             mInfoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -252,7 +256,13 @@ implements  VUE.ActiveMapListener {
             mPropPanel.addProperty("Description:",mDescriptionEditor);
             //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
-            innerPanel.add(mPropPanel);
+             c.weightx = 1.0;
+             c.gridwidth = GridBagConstraints.REMAINDER;
+             c.anchor = GridBagConstraints.NORTHWEST;
+             c.fill = GridBagConstraints.HORIZONTAL;
+             gridbag.setConstraints(mPropPanel,c);
+             innerPanel.add(mPropPanel);
+            
             /**
              * JPanel metaDataLabelPanel  = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
              * metaDataLabelPanel.add(new JLabel("Metadata"));
@@ -268,23 +278,31 @@ implements  VUE.ActiveMapListener {
                 }
             };
             
-            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            gridbag.setConstraints(linePanel,c);
             innerPanel.add(linePanel);
             linePanel.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
             propertiesEditor = new PropertiesEditor(true);
             JPanel metadataPanel = new JPanel(new BorderLayout());
-            metadataPanel.add(propertiesEditor,BorderLayout.NORTH);
+            metadataPanel.add(propertiesEditor,BorderLayout.CENTER);
             //metadataPanel.setBorder(BorderFactory.createEmptyBorder(0,9,0,6));
+            
+            c.weighty = 1.0;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.BOTH;
+            gridbag.setConstraints(metadataPanel,c);
             innerPanel.add(metadataPanel);
             //innerPanel.add(mInfoScrollPane,BorderLayout.CENTER);
-            mInfoScrollPane.setSize( new Dimension( 200, 400));
-            mInfoScrollPane.getViewport().add( innerPanel);
-            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-            setLayout(new FlowLayout(FlowLayout.LEFT));
+            //mInfoScrollPane.setSize( new Dimension( 200, 400));
+            //mInfoScrollPane.getViewport().setLayout(new BorderLayout());
+            //mInfoScrollPane.getViewport().add( innerPanel,BorderLayout.CENTER);
+            //mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+            setLayout(new BorderLayout());
             //setLayout(new BorderLayout());
             //setBorder( new EmptyBorder(4,4,4,4) );
             //add(mInfoScrollPane,BorderLayout.NORTH);
-            add(mInfoScrollPane);
+            add(innerPanel,BorderLayout.CENTER);
             setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
             addFocusListener(this);
         }
