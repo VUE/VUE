@@ -259,6 +259,7 @@ public class LWPathway
     }
 
     private List idList = new ArrayList();
+    /** for XML save/restore only */
     public List getElementIDList() {
         if (mDoingXMLRestore) {
             return idList;
