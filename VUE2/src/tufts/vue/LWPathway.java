@@ -158,7 +158,7 @@ public class LWPathway extends LWContainer
         if (added.size() > 0) {
             if (added.size() == 1)
                 setIndex(length()-1);
-            notify(LWCEvent.ChildrenAdded, added);
+            notify(LWKey.ChildrenAdded, added);
         }
     }
 
@@ -230,7 +230,7 @@ public class LWPathway extends LWContainer
                 setIndex(length() - 1);
             else
                 setIndex(mCurrentIndex);
-            notify(LWCEvent.ChildrenRemoved, removed);
+            notify(LWKey.ChildrenRemoved, removed);
         }
     }
     
@@ -262,7 +262,7 @@ public class LWPathway extends LWContainer
             setIndex(mCurrentIndex);
 
         removingComponent = c; // todo: should be able to remove this now that we don't deliver events back to source
-        notify(LWCEvent.ChildRemoved, c);
+        notify(LWKey.ChildRemoved, c);
         removingComponent = null;
     }
     
@@ -273,7 +273,7 @@ public class LWPathway extends LWContainer
             new Throwable(e + " ignoring: already deleting in " + this).printStackTrace();
             return;
         }
-        if (e.getWhat() == LWCEvent.Deleting) {
+        if (e.getWhat() == LWKey.Deleting) {
             removeAll(e.getComponent());
         } else {
             // rebroadcast our child events so that the LWPathwayList which is

@@ -88,7 +88,7 @@ import tufts.vue.beans.*;
          BlobIcon fillBlob = new BlobIcon();
          fillBlob.setOverlay( fillIcon );
          mLinkColorButton.setIcon(fillBlob);
-         mLinkColorButton.setPropertyName(VueLWCPropertyMapper.kStrokeColor);
+         mLinkColorButton.setPropertyName(LWKey.StrokeColor);
          mLinkColorButton.setBorderPainted(false);
          mLinkColorButton.setMargin(ButtonInsets);
          mLinkColorButton.setBackground( bakColor);
@@ -104,7 +104,7 @@ import tufts.vue.beans.*;
          textBlob.setOverlay( textIcon );
          mTextColorButton.setIcon(textBlob);
          //mTextColorButton.setPropertyName("nodeTextColor");
-         mTextColorButton.setPropertyName(VueLWCPropertyMapper.kTextColor);
+         mTextColorButton.setPropertyName(LWKey.TextColor);
          mTextColorButton.setBackground( bakColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
@@ -133,7 +133,7 @@ import tufts.vue.beans.*;
          LineIcon lineIcon = new LineIcon( 16,12);
          mStrokeButton.setIcon( lineIcon);
          mStrokeButton.setStroke( (float) 1);
-         mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
+         mStrokeButton.setPropertyName( LWKey.StrokeWidth);
          mStrokeButton.setBackground( bakColor);
          mStrokeButton.addPropertyChangeListener( this );
          mStrokeButton.setMargin(ButtonInsets);
@@ -186,24 +186,24 @@ import tufts.vue.beans.*;
          // stop listening while we change the values
          enablePropertyListeners( false);
  		
-         if( mState.hasProperty( VueLWCPropertyMapper.kFont) ) {
-             Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+         if( mState.hasProperty( LWKey.Font) ) {
+             Font font = (Font) state.getPropertyValue( LWKey.Font);
              mFontPanel.setValue( font);
          }
          else {
              debug("missing font property in state");
          }
  		
-         if( mState.hasProperty( VueLWCPropertyMapper.kStrokeWeight) ) {
-             Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
+         if( mState.hasProperty( LWKey.StrokeWidth) ) {
+             Float weight = (Float) state.getPropertyValue( LWKey.StrokeWidth);
              mStrokeButton.setStroke( weight.floatValue() );
          }
          else {
              debug("missing stroke weight proeprty in state.");
          }
  			
-         if( mState.hasProperty( VueLWCPropertyMapper.kLinkArrowState) ) {
-             Integer arrows = (Integer) state.getPropertyValue( VueLWCPropertyMapper.kLinkArrowState );
+         if( mState.hasProperty( LWKey.LinkArrows) ) {
+             Integer arrows = (Integer) state.getPropertyValue( LWKey.LinkArrows );
              int arrowState = arrows.intValue();
              mArrowStartButton.setSelected( (arrowState & LWLink.ARROW_EP1) == LWLink.ARROW_EP1);
              mArrowEndButton.setSelected( (arrowState & LWLink.ARROW_EP2) == LWLink.ARROW_EP2);
@@ -212,16 +212,16 @@ import tufts.vue.beans.*;
              debug("missing arrow state property in state");
          }
  		
-         if( mState.hasProperty( VueLWCPropertyMapper.kStrokeColor) ) {
-             Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
+         if( mState.hasProperty( LWKey.StrokeColor) ) {
+             Color fill = (Color) state.getPropertyValue( LWKey.StrokeColor);
              mLinkColorButton.setColor( fill);
          }
          else {
              debug(" missing link stroke color property.");
          }
  		
-         if( mState.hasProperty( VueLWCPropertyMapper.kTextColor) ) {
-             Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+         if( mState.hasProperty( LWKey.TextColor) ) {
+             Color text = (Color) state.getPropertyValue( LWKey.TextColor);
              mTextColorButton.setColor( text);
          }
          else {
@@ -296,7 +296,7 @@ import tufts.vue.beans.*;
                  }
                  Integer newValue = new Integer( state);
                  Integer oldValue = new Integer( oldState);
-                 PropertyChangeEvent event = new PropertyChangeEvent( button, VueLWCPropertyMapper.kLinkArrowState, oldValue, newValue);
+                 PropertyChangeEvent event = new PropertyChangeEvent( button, LWKey.LinkArrows, oldValue, newValue);
                  propertyChange( event);
              }
          }

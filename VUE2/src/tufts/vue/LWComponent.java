@@ -129,7 +129,7 @@ public class LWComponent
                 getLabelBox().setText(label);
         }
         layout();
-        notify(LWCEvent.Label, old);
+        notify(LWKey.Label, old);
     }
 
     TextBox getLabelBox()
@@ -157,7 +157,7 @@ public class LWComponent
                 this.notes = null;
         }
         layout();
-        notify(LWCEvent.Notes, old);
+        notify(LWKey.Notes, old);
     }
 
     /*
@@ -180,7 +180,7 @@ public class LWComponent
         Object old = this.resource;
         this.resource = resource;
         layout();
-        notify(LWCEvent.Resource, old);
+        notify(LWKey.Resource, old);
     }
    
 
@@ -475,6 +475,10 @@ public class LWComponent
         
         return c;
     }
+
+    private boolean eq(Object a, Object b) {
+        return a == b || (a != null && a.equals(b));
+    }
     
     public Color getFillColor()
     {
@@ -488,9 +492,11 @@ public class LWComponent
     }
     public void setFillColor(Color color)
     {
+        if (eq(color, fillColor))
+            return;
         Object old = this.fillColor;
         this.fillColor = color;
-        notify(LWCEvent.FillColor, old);
+        notify(LWKey.FillColor, old);
     }
 
     /** for persistance */
@@ -510,11 +516,13 @@ public class LWComponent
     }
     public void setTextColor(Color color)
     {
+        if (eq(color, textColor))
+            return;
         Object old = this.textColor;
         this.textColor = color;
         if (labelBox != null)
             labelBox.copyStyle(this); // todo better: handle thru style.textColor notification?
-        notify(LWCEvent.TextColor, old);
+        notify(LWKey.TextColor, old);
     }
     /** for persistance */
     public String getXMLtextColor()
@@ -533,9 +541,11 @@ public class LWComponent
     }
     public void setStrokeColor(Color color)
     {
+        if (eq(color, strokeColor))
+            return;
         Object old = this.strokeColor;
         this.strokeColor = color;
-        notify(LWCEvent.StrokeColor, old);
+        notify(LWKey.StrokeColor, old);
     }
     /** for persistance */
     public String getXMLstrokeColor()
@@ -589,7 +599,7 @@ public class LWComponent
                 getParent().layout();
             }
             layout();
-            notify(LWCEvent.StrokeWidth, new Float(oldStrokeWidth));
+            notify(LWKey.StrokeWidth, new Float(oldStrokeWidth));
         }
     }
     public Font getFont()
@@ -598,12 +608,14 @@ public class LWComponent
     }
     public void setFont(Font font)
     {
+        if (eq(font, this.font))
+            return;
         Object old = this.font;
         this.font = font;
         if (labelBox != null)
             labelBox.copyStyle(this);
         layout();
-        notify(LWCEvent.Font, old);
+        notify(LWKey.Font, old);
     }
     
     /** to support XML persistance */
@@ -625,13 +637,6 @@ public class LWComponent
     public void setXMLfont(String xml)
     {
         setFont(Font.decode(xml));
-    }
-    
-    public boolean isManagedColor()
-    {
-        // todo: either get rid of this or make it more sophisticated
-        Color c = getFillColor();
-        return c != null && (COLOR_NODE_DEFAULT.equals(c) || COLOR_NODE_INVERTED.equals(c));
     }
     
     /** default label X position impl: center the label in the bounding box */
@@ -831,8 +836,10 @@ public class LWComponent
 
     void setScale(float scale)
     {
+        if (this.scale == scale)
+            return;
         this.scale = scale;
-        notify(LWCEvent.Scale); // todo: why do we need to notify if scale is changed? try removing this
+        notify(LWKey.Scale); // todo: why do we need to notify if scale is changed? try removing this
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
@@ -852,8 +859,7 @@ public class LWComponent
     public void setFrame(Rectangle2D r)
     {
         if (DEBUG.LAYOUT) System.out.println("*** setFrame " + r + " " + this);
-        if (r.getX() != getX() || r.getY() != getY())
-            setLocation((float)r.getX(), (float)r.getY());
+        setLocation((float)r.getX(), (float)r.getY());
         setSize((float)r.getWidth(), (float)r.getHeight());
     }
 
@@ -874,13 +880,16 @@ public class LWComponent
     private boolean linkNotificationDisabled = false;
     public void setLocation(float x, float y)
     {
+        if (this.x == x && this.y == y)
+            return;
+        Object old = new Point2D.Float(this.x, this.y);
         //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
         if (!linkNotificationDisabled)
             updateConnectedLinks();
         
-        //notify("location"); // todo: does anyone need this?
+        notify(LWKey.Location, old); // todo: does anyone need this?
         // also: if enable, don't forget to put in setX/getX!
     }
     
@@ -920,10 +929,14 @@ public class LWComponent
     /** set component to this many pixels in size */
     public void setSize(float w, float h)
     {
+        if (this.width == w && this.width == h)
+            return;
+        Object old = new Point2D.Float(w, h);
         if (DEBUG.LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
         this.width = w;
         this.height = h;
         updateConnectedLinks();
+        notify(LWKey.Size, old); // todo: can we optimize this out?
     }
 
     /** set on screen visible component size to this many pixels in size -- used for user set size from
@@ -1161,10 +1174,21 @@ public class LWComponent
             listeners.clear();
         }
     }
+
+    protected boolean mEventsDisabled = false;
+    protected void setEventsEnabled(boolean t) {
+        if (DEBUG.EVENTS) System.out.println(this + " *** EVENTS ENABLED: " + t);
+        mEventsDisabled = !t;
+    }
     
     private static int sEventDepth = 0;
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
+        if (mEventsDisabled) {
+            if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
+            return;
+        }
+        
         if (isDeleted())
             throw new IllegalStateException("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"
                                             + "\n\tdeleted=" + this
@@ -1201,6 +1225,8 @@ public class LWComponent
      */
     static void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
     {
+        if (sEventDepth > 5)
+            throw new IllegalStateException("looping on delivery of " + e + " in " + source + " to " + listeners);
 
         // todo perf: take array code out and see if can fix all
         // concurrent mod exceptions (e.g., delete out from under a

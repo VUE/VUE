@@ -113,7 +113,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          BlobIcon fillBlob = new BlobIcon();
          fillBlob.setOverlay( fillIcon );
          mFillColorButton.setIcon(fillBlob);
-         mFillColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
+         mFillColorButton.setPropertyName( LWKey.FillColor);
          mFillColorButton.setBorderPainted(false);
          mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
          mFillColorButton.setMargin(ButtonInsets);
@@ -131,7 +131,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
          BlobIcon strokeBlob = new BlobIcon();
          strokeBlob.setOverlay( strokeIcon );
-         mStrokeColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
+         mStrokeColorButton.setPropertyName( LWKey.StrokeColor);
          mStrokeColorButton.setIcon( strokeBlob);
          mStrokeColorButton.setBorderPainted(false);
          mStrokeColorButton.setMargin(ButtonInsets);
@@ -144,7 +144,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          BlobIcon textBlob = new BlobIcon();
          textBlob.setOverlay( textIcon );
          mTextColorButton.setIcon(textBlob);
-         mTextColorButton.setPropertyName(VueLWCPropertyMapper.kTextColor);
+         mTextColorButton.setPropertyName(LWKey.TextColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
 
@@ -153,7 +153,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
              mFontPanel.setBackground(Color.green);
          else
              mFontPanel.setBackground(bakColor);
-         mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
+         mFontPanel.setPropertyName( LWKey.Font );
  		
 		
          mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
@@ -161,7 +161,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          mStrokeButton.setBackground( bakColor);
          mStrokeButton.setIcon( lineIcon);
          mStrokeButton.setStroke( (float) 1);
-         mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
+         mStrokeButton.setPropertyName( LWKey.StrokeWidth);
          //mStrokeButton.setBorderPainted(false);
          mStrokeButton.setMargin(ButtonInsets);
  		
@@ -220,22 +220,22 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  		
         mState = state;
  		
-        Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+        Font font = (Font) state.getPropertyValue( LWKey.Font);
         mFontPanel.setValue( font);
  		
-        Float weight = (Float) state.getPropertyValue( VueLWCPropertyMapper.kStrokeWeight);
+        Float weight = (Float) state.getPropertyValue( LWKey.StrokeWidth);
         float weightVal = 1;
         if( weight != null)
             weightVal = weight.floatValue();
         mStrokeButton.setStroke(weightVal);
  		
-        Color fill = (Color) state.getPropertyValue( VueLWCPropertyMapper.kFillColor);
+        Color fill = (Color) state.getPropertyValue( LWKey.FillColor);
         mFillColorButton.setColor( fill);
  		
-        Color stroke = (Color) state.getPropertyValue( VueLWCPropertyMapper.kStrokeColor);
+        Color stroke = (Color) state.getPropertyValue( LWKey.StrokeColor);
         mStrokeColorButton.setColor( stroke);
  		
-        Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+        Color text = (Color) state.getPropertyValue( LWKey.TextColor);
         mTextColorButton.setColor( text);
  		
         enablePropertyChangeListeners( true);

@@ -9,6 +9,10 @@ public class LWCEvent
      * event identifier, but you must be sure to use the constant
      * object here for any of these events or they may not be
      * recognized */
+
+    public static final String Location = "location"; 
+    public static final String Size = "size";
+    
     public static final String Label = "label"; 
     public static final String Notes = "notes"; 
     public static final String Scale = "scale"; 

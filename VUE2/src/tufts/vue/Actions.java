@@ -442,8 +442,8 @@ class Actions
     static final Action Rename =
         new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
         {
-            boolean enabledFor(LWSelection s)
-            {
+            boolean undoable() { return false; } // label edtior handles the undo
+            boolean enabledFor(LWSelection s) {
                 return s.size() == 1 && s.first().supportsUserLabel();
             }
             void act(LWComponent c) {
@@ -733,8 +733,8 @@ class Actions
         new VueAction("New Map")
         {
             private int count = 1;
-            public boolean undoable() { return false; }
-            public void act()
+            boolean undoable() { return false; }
+            void act()
             {
                 LWMap map = new LWMap("New Map " + count++);
                 VUE.displayMap(map);
@@ -753,9 +753,10 @@ class Actions
     static final Action Undo =
         new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
+            boolean undoable() { return false; }
             public boolean isEnabled() { return true; }
             public void act() {
-                UndoManager.undo();
+                VUE.getUndoManager().undo();
             }
 
         };
@@ -866,7 +867,7 @@ class Actions
             this(name, null, null);
         }
 
-        public boolean undoable() { return true; }
+        boolean undoable() { return true; }
 
         public String getActionName()
         {
@@ -902,9 +903,8 @@ class Actions
                 System.err.println("*** VueAction: event was " + ae);
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
-            System.out.println("active map: "+VUE.getActiveMap());
-            if (VUE.getActiveMap() != null && undoable())
-                VUE.getActiveMap().getUndoManager().markChangesAsUndoable(ae.getActionCommand());
+            if (VUE.getUndoManager() != null && undoable())
+                VUE.getUndoManager().markChangesAsUndoable(ae.getActionCommand());
             //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();
             if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");

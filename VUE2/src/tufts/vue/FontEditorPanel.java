@@ -66,7 +66,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
  	//ColorMenuButton mTextColorButton = null;
     
  	/** the property name **/
- 	String mPropertyName = VueLWCPropertyMapper.kFont;
+ 	String mPropertyName = LWKey.Font;
  	
  	/** the font **/
  	Font mFont = null;
@@ -167,7 +167,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         BlobIcon textBlob = new BlobIcon();
         textBlob.setOverlay( textIcon );
         mTextColorButton.setIcon(textBlob);
-        mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
+        mTextColorButton.setPropertyName( LWKey.TextColor);
         mTextColorButton.setBorderPainted(false);
         mTextColorButton.setMargin(ButtonInsets);
         mTextColorButton.addActionListener(this);

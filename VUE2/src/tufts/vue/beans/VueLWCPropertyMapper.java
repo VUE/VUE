@@ -15,57 +15,58 @@ import tufts.vue.*;
 *
 **/
 
-public class VueLWCPropertyMapper implements VuePropertyMapper {
+public class VueLWCPropertyMapper
+    implements VuePropertyMapper
+{
 	
-	////////////////
-	// Statics
-	/////////////////
-	
-	static public final String kFillColor = "fillColor";
+    ////////////////
+    // Statics
+    /////////////////
+
+    /*
+    static public final String kFillColor = LWCEvent.FillColor;
+    static public final String kStrokeColor = LWCEvent.StrokeColor;
+    static public final String kTextColor = LWCEvent.TextColor;
+    static public final String kStrokeWeight = LWCEvent.StrokeWidth;
+    static public final String kFont = LWCEvent.Font;
+    static public final String kSize = LWCEvent.Size;
+    static public final String kLocation = LWCEvent.Location;
+    */
+
+    /*
+    	static public final String kFillColor = "fillColor";
 	static public final String kStrokeColor = "strokeColor";
 	static public final String kTextColor = "textColor";
 	static public final String kStrokeWeight = "strokeWeight";
-	static public final String kLinkArrowState = "linkArrows";
 	static public final String kFont = "font";
+    */
+
+    //static public final String kLinkArrowState = "linkArrows";
 	
-	static final String [] sNodeProperties = {  kFillColor,
-                                                    kStrokeColor,
-                                                    kTextColor,
-                                                    kStrokeWeight,
-                                                    kFont
-        };
+    static final String [] sNodeProperties = {  LWKey.FillColor,
+                                                LWKey.StrokeColor,
+                                                LWKey.TextColor,
+                                                LWKey.StrokeWidth,
+                                                LWKey.Font
+    };
 												
-	static final String  []  sLinkProperties = {  kStrokeColor,
-                                                      kStrokeWeight,
-                                                      kTextColor,
-                                                      kLinkArrowState,
-                                                      kFont
-        };
+    static final String  []  sLinkProperties = {  LWKey.StrokeColor,
+                                                  LWKey.StrokeWidth,
+                                                  LWKey.TextColor,
+                                                  LWKey.LinkArrows,
+                                                  LWKey.Font
+    };
 												
-	static final String [] sTextProperties = {  kTextColor,
-                                                    kFont
-        };
-												
+    static final String [] sTextProperties = {  LWKey.TextColor, LWKey.Font };
 												
 	
-	////////////
-	// Fields
-	/////////////
+    ////////////
+    // Fields
+    /////////////
 	
-	VueBeanInfo mLWCInfo = null;
-	VueBeanInfo mNodeInfo = null;
-	VueBeanInfo mLinkInfo = null;
-	
-	
-	////////////////
-	// Constructors
-	//////////////////
-	
-	
-	//////////////
-	// Methods
-	///////////////
-	
+    VueBeanInfo mLWCInfo = null;
+    VueBeanInfo mNodeInfo = null;
+    VueBeanInfo mLinkInfo = null;
 	
 	
 	//////////////////
@@ -85,21 +86,21 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 		if(  pBean instanceof LWComponent) {
 			LWComponent obj = (LWComponent) pBean;
 			
-			if( pName.equals( kFillColor) ) {
+			if( pName.equals(LWKey.FillColor) ) {
 				return obj.getFillColor();
 				}
-			if( pName.equals(kStrokeColor) ) {
+			if( pName.equals(LWKey.StrokeColor) ) {
 				return obj.getStrokeColor();
 				}
-			if( pName.equals(kTextColor) ) {
+			if( pName.equals(LWKey.TextColor) ) {
 				return obj.getTextColor();
 				}
-			if( pName.equals( kStrokeWeight) ) {
+			if( pName.equals(LWKey.StrokeWidth) ) {
 				float f;
 				Float width = new Float( obj.getStrokeWidth() );
 				return width;
 				}
-			if( pName.equals( kFont) ) {
+			if( pName.equals(LWKey.Font) ) {
 				return obj.getFont();
 				}
 			
@@ -107,7 +108,7 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 				LWLink link = (LWLink) obj;
 
 				
-				if( pName.equals( kLinkArrowState) ) {
+				if( pName.equals(LWKey.LinkArrows) ) {
 					Integer state = new Integer( link.getArrowState() );
 					return state;
 					}
@@ -123,53 +124,54 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 	
 	
 
-	/**
-	 * setPropertyValuddddddddddddddddddddddddddddddddde
-	 * This sets the property with of the object with the passed value
-	 * @param OpObject - the object
-	 * @param String pName the proeprty name
-	 * @param pValue - the value of the named property
-	 **/
-	public void setPropertyValue(Object pBean, String pName, Object pValue)   {
-		if(  pBean instanceof LWComponent) {
-			LWComponent obj = (LWComponent) pBean;
-			
-			if( pName.equals( kFillColor) ) {
-				obj.setFillColor( (Color) pValue);
-				}
-			else
-			if( pName.equals(kStrokeColor) ) {
-				obj.setStrokeColor( (Color) pValue);
-				}
-			else
-			if( pName.equals(kTextColor) ) {
-				obj.setTextColor( (Color) pValue);
-				}
-			else
-			if( pName.equals( kStrokeWeight) ) {
-				float value = ((Float) pValue).floatValue();
-				obj.setStrokeWidth( value);
-				}
-			else
-			if( pName.equals( kFont) ) {
-				obj.setFont( (Font) pValue);
-				}
-			
-			if( obj instanceof LWLink ) {
-				LWLink link = (LWLink) obj;
+    /**
+     * setPropertyValue
+     * This sets the property with of the object with the passed value
+     * @param OpObject - the object
+     * @param String pName the proeprty name
+     * @param pValue - the value of the named property
+     **/
+    public void setPropertyValue(Object pBean, String pName, Object pValue)   {
 
-				if( pName.equals( kLinkArrowState) ) {
-					int state = ((Integer) pValue).intValue();
-					link.setArrowState( state);
-					}
-				}
-			}
-		else {
-			// should never happen...
-			System.out.println("Error - VueLWCPropertyMapper mapped to wrong class.");
-			}
-		
-	}
+        if (pBean instanceof LWComponent) {
+            setProperty((LWComponent)pBean, pName, pValue);
+            /*
+            LWComponent c = (LWComponent) pBean;
+			
+                 if (pName.equals(LWKey.FillColor))         c.setFillColor( (Color) pValue);
+            else if (pName.equals(LWKey.StrokeColor))       c.setStrokeColor( (Color) pValue);
+            else if (pName.equals(LWKey.TextColor))         c.setTextColor( (Color) pValue);
+            else if (pName.equals(LWKey.StrokeWidth))      c.setStrokeWidth( ((Float) pValue).floatValue());
+            else if (pName.equals(LWKey.Font))              c.setFont( (Font) pValue);
+			
+            if (c instanceof LWLink ) {
+                LWLink link = (LWLink) c;
+                if ( pName.equals(LWKey.LinkArrowState) ) {
+                    int state = ((Integer) pValue).intValue();
+                    link.setArrowState( state);
+                }
+            }
+            */
+        } else 
+            throw new IllegalArgumentException("VueLWCPropertyMapper: can't handle class " + pBean + " name=" + pName + " val=" + pValue);
+    }
+
+    public static void setProperty(LWComponent c, String key, Object val)   {
+
+             if (key == LWKey.FillColor)      c.setFillColor( (Color) val);
+        else if (key == LWKey.StrokeColor)    c.setStrokeColor( (Color) val);
+        else if (key == LWKey.TextColor)      c.setTextColor( (Color) val);
+        else if (key == LWKey.StrokeWidth)    c.setStrokeWidth( ((Float) val).floatValue());
+        else if (key == LWKey.Font)           c.setFont( (Font) val);
+
+        if (c instanceof LWLink ) {
+            LWLink link = (LWLink) c;
+            if (key == LWKey.LinkArrows) {
+                int state = ((Integer) val).intValue();
+                link.setArrowState( state);
+            }
+        }
+    }
 
 
 	/**
@@ -254,23 +256,23 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 			Color color = new Color(0,0,0);;
 			Class theClass = null;
 			
-			if( pName.equals(kFillColor) ||
-				pName.equals( kStrokeColor) ||
-				pName.equals( kTextColor) ) {
+			if( pName.equals(LWKey.FillColor) ||
+				pName.equals(LWKey.StrokeColor) ||
+				pName.equals(LWKey.TextColor) ) {
 				theClass = color.getClass();
 				}
 			else
-			if( pName.equals( kStrokeWeight) ) {
+			if( pName.equals(LWKey.StrokeWidth) ) {
 				Float thefloat = new Float(0);
 				theClass = thefloat.getClass();
 			}
 			else
-			if( pName.equals( kLinkArrowState) ) {
+			if( pName.equals(LWKey.LinkArrows) ) {
 				
 				theClass = i.getClass();
 				}
 			else
-			if( pName.equals( kFont) ) {
+			if( pName.equals(LWKey.Font) ) {
 				theClass = font.getClass();
 				}
 				

@@ -124,10 +124,10 @@ import tufts.vue.beans.*;
          // strop listening since we are chinging the proeprty values.
          enablePropertyChangeListeners( false);
  		
-         Font font = (Font) state.getPropertyValue( VueLWCPropertyMapper.kFont);
+         Font font = (Font) state.getPropertyValue( LWKey.Font);
          mFontPanel.setValue( font);
  		
-         Color text = (Color) state.getPropertyValue( VueLWCPropertyMapper.kTextColor);
+         Color text = (Color) state.getPropertyValue( LWKey.TextColor);
          mTextColorButton.setColor( text);
  		
          // start listening again

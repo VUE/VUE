@@ -96,7 +96,6 @@ public class LWLink extends LWComponent
     {
         if (ep1 == null || ep2 == null)
             throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
-        setSize(10,10);
         setDefaults(this);
         setComponent1(ep1);
         setComponent2(ep2);
@@ -1015,15 +1014,24 @@ public class LWLink extends LWComponent
             } else {
                 bounds.add(quadCurve.ctrlx, quadCurve.ctrly);
             }
-            setSize(bounds.width, bounds.height);
-            setX(bounds.x);
-            setY(bounds.y);
+            setEventsEnabled(false);
+            try {
+                setSize(bounds.width, bounds.height);//todo
+                setX(bounds.x);
+                setY(bounds.y);
+            } finally {
+                setEventsEnabled(true);
+            }
 
         } else {
-            setSize(Math.abs(startX - endX),
-                    Math.abs(startY - endY));
-            setX(this.centerX - getWidth()/2);
-            setY(this.centerY - getHeight()/2);
+            setEventsEnabled(false);
+            try {
+                setSize(Math.abs(startX - endX), Math.abs(startY - endY));//todo
+                setX(this.centerX - getWidth()/2);
+                setY(this.centerY - getHeight()/2);
+            } finally {
+                setEventsEnabled(true);
+            }
         }
 
         //-------------------------------------------------------
@@ -1122,13 +1130,14 @@ public class LWLink extends LWComponent
 
     public void setArrowState(int arrowState)
     {
+        if (mArrowState == arrowState)
+            return;
+        Object old = new Integer(mArrowState);
         if (arrowState < 0 || arrowState > ARROW_BOTH)
             throw new IllegalArgumentException("arrowState < 0 || > " + ARROW_BOTH + ": " + arrowState);
-        if (mArrowState != arrowState) {
-            mArrowState = arrowState;
-            layout();
-            notify("arrowState");
-        }
+        mArrowState = arrowState;
+        layout();
+        notify(LWKey.LinkArrows, old);
     }
 
     public int getArrowState()

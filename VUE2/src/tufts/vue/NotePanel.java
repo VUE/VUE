@@ -132,7 +132,7 @@ public class NotePanel extends JPanel
 	
     public void LWCChanged(LWCEvent e)
     {
-        if (e.getComponent() == mObject && e.getWhat() == LWCEvent.Deleting)
+        if (e.getComponent() == mObject && e.getWhat() == LWKey.Deleting)
             mObject = null;
     }
     

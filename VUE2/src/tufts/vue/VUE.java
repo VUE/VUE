@@ -492,19 +492,13 @@ public class VUE
         objectInspector.addTool(objectInspectorPanel);
         
         
-        if( false) {
+        if (false) {
             JFrame testFrame = new JFrame("Debug");
             testFrame.setSize( 300,300);
             //testFrame.getContentPane().add( new NodeInspectorPanel() );
             testFrame.getContentPane().add(objectInspectorPanel);
             testFrame.show();
         }
-        
-        
-        //addtion by the power team
-        // why do we need the LWPathwayInspector anymore?? -- SMF
-        //pathwayInspector = new LWPathwayInspector(frame);
-        //control = new PathwayControl(frame);
         
         /*
         ToolWindow htWindow = new ToolWindow("Hierarchy Tree", frame);
@@ -520,7 +514,6 @@ public class VUE
             sMapInspector,
             drBrowserTool,
             toolbarWindow,
-            //pathwayInspector,
             pannerTool,
             //htWindow,
             outlineView,
@@ -681,6 +674,10 @@ public class VUE
             return null;
     }
 
+    public static UndoManager getUndoManager()
+    {
+        return getActiveMap().getUndoManager();
+    }
 
     public static boolean isOkayToExit()
     {

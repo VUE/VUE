@@ -54,7 +54,7 @@ public class PathwayTableModel extends DefaultTableModel
             // although if anything in the pathway changes, fire a change event just in case.
             if (DEBUG.PATHWAY) System.out.println(this + " pathway event " + e);
             fireTableDataChanged();
-        } else if (e.getWhat() == LWCEvent.Label || e.getWhat().startsWith("pathway.")) {
+        } else if (e.getWhat() == LWKey.Label || e.getWhat().startsWith("pathway.")) {
             if (DEBUG.PATHWAY) System.out.println(this + " pathway child event " + e);
             // This means one of the LWComponents in the pathway has changed.
             // We only care about label changes as that's all that's displayed

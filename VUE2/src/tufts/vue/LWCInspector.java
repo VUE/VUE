@@ -180,7 +180,7 @@ class LWCInspector extends javax.swing.JPanel
         //System.out.println(this + " " + e);
         if (this.lwc != e.getSource())
             return;
-        if (e.getWhat() == LWCEvent.Deleting) {
+        if (e.getWhat() == LWKey.Deleting) {
             this.lwc = null;
             //loadItem(null);
             setAllEnabled(false);

@@ -247,8 +247,8 @@ public abstract class LWContainer extends LWComponent
         /*
         addChildInternal(c);
         ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
-        c.notify(LWCEvent.Added, this);
-        notify(LWCEvent.ChildAdded, c);
+        c.notify(LWKey.Added, this);
+        notify(LWKey.ChildAdded, c);
         */
     }
     
@@ -271,7 +271,7 @@ public abstract class LWContainer extends LWComponent
         }
         
         if (addedChildren.size() > 0) {
-            notify(LWCEvent.ChildrenAdded, addedChildren);
+            notify(LWKey.ChildrenAdded, addedChildren);
             //todo: change all these child events to a structureChanged event
             //? single addChild didn't call layout!
             layout();
@@ -346,7 +346,7 @@ public abstract class LWContainer extends LWComponent
         removeChildren(new VueUtil.SingleIterator(c));
         /*
         removeChildInternal(c);
-        notify(LWCEvent.ChildRemoved, c);
+        notify(LWKey.ChildRemoved, c);
         layout();
         */
     }
@@ -393,7 +393,7 @@ public abstract class LWContainer extends LWComponent
                 throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
         }
         if (deletedChildren.size() > 0) {
-            notify(LWCEvent.ChildrenRemoved, deletedChildren);
+            notify(LWKey.ChildrenRemoved, deletedChildren);
             //todo: change all these child events to a structureChanged event
             layout();
         }
@@ -410,10 +410,10 @@ public abstract class LWContainer extends LWComponent
         // we do the "deleting" notification first, so anybody listening
         // can still see the node in it's full current state before
         // anything changes.
-        c.notify(LWCEvent.Deleting);
+        c.notify(LWKey.Deleting);
         removeChild(c);
         c.removeFromModel();
-        //c.notify(LWCEvent.Deleted);
+        //c.notify(LWKey.Deleted);
     }
 
     protected void removeChildrenFromModel()
@@ -424,9 +424,9 @@ public abstract class LWContainer extends LWComponent
         Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.notify(LWCEvent.Deleting);
+            c.notify(LWKey.Deleting);
             c.removeFromModel();
-            //c.notify(LWCEvent.Deleted);
+            //c.notify(LWKey.Deleted);
         }
     }
     

@@ -392,9 +392,13 @@ public class LWMap extends LWContainer
      */
     protected void notifyLWCListeners(LWCEvent e)
     {
+        if (mEventsDisabled) {
+            if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
+            return;
+        }
         mCachedBoundsOld = true; // consider flushing bounds if layout() called also (any child layout bubbles up to us)
         String what = e.getWhat();
-        if (what != LWCEvent.Repaint && what != LWCEvent.Scale) {
+        if (what != LWKey.Repaint && what != LWKey.Scale) {
             // repaint is for non-permanent changes.
             // scale sets not considered modifications as they can
             // happen do to rollover -- any time a scale happens
@@ -412,7 +416,12 @@ public class LWMap extends LWContainer
     {
         if (mCachedBoundsOld) {
             mCachedBounds = getBounds(getChildIterator());
-            setFrame(mCachedBounds);
+            setEventsEnabled(false);
+            try {
+                setFrame(mCachedBounds);
+            } finally {
+                setEventsEnabled(true);
+            }
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
             if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
                 mCachedBoundsOld = false;
