@@ -141,7 +141,7 @@ public class NodeInspectorPanel  extends JPanel
 	public class InfoPanel extends JPanel {
 	
 		JScrollPane mInfoScrollPane = null;
-		
+                
 		Box mInfoBox = null;
 		
 		public InfoPanel() {
@@ -198,16 +198,14 @@ public class NodeInspectorPanel  extends JPanel
 		
 		/** the path scroll pane **/
 		JScrollPane mTreeScrollPane = null;
-		
-		
-		
-		
+                
 		/**
 		 * TreePanel
 		 * Constructs a pathway panel
 		 **/
 		public TreePanel() {
-						
+					
+                   
 			mTreeScrollPane = new JScrollPane();
 			mTreeScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 			mTreeScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -234,6 +232,9 @@ public class NodeInspectorPanel  extends JPanel
 		 **/
 		 public void updatePanel( LWNode pNode) {
 		 // update display based on the LWNode
+                     
+                     //mTreeScrollPane.getViewport().remove(your_old_component);
+                     mTreeScrollPane.getViewport().setView(new OutlineViewTree(pNode));
 		 }
 	}
 	

@@ -650,7 +650,6 @@ public class VUE
         exportMenu.add(pdfAction);
         exportMenu.add(imageAction);
         exportMenu.add(svgAction);
-        exportMenu.add(printAction);
         exportMenu.add(xmlAction);
         exportMenu.add(imageMap);
         /**End of addition*/
@@ -660,6 +659,7 @@ public class VUE
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
+        fileMenu.add(printAction);
         fileMenu.add(exportMenu);
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
