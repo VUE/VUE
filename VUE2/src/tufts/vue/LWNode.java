@@ -2,11 +2,19 @@ package tufts.vue;
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextLayout;
+import java.awt.font.TextAttribute;
+import java.text.AttributedString;
+
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.border.LineBorder;
+
+import javax.swing.text.*;
 
 import java.util.ArrayList;
 
@@ -22,8 +30,17 @@ import java.util.ArrayList;
 public class LWNode extends LWContainer
     implements Node
 {
-    protected final float ChildScale = 0.75f;   // % scale-down of children
-    private final int VerticalChildGap = 2;
+    //------------------------------------------------------------------
+    // Constants affecting the internal layout of nodes & any children
+    //------------------------------------------------------------------
+    private static final int PadX = 12;
+    private static final int PadY = 6;
+    private static final int VerticalChildGap = 2; // vertical space between children
+    private static final float ChildScale = 0.75f;   // % scale-down of children
+    
+    //------------------------------------------------------------------
+    // Instance info
+    //------------------------------------------------------------------
     
     protected RectangularShape drawnShape; // 0 based, not scaled
     protected RectangularShape boundsShape; // map based, scaled, used for computing hits
@@ -34,9 +51,6 @@ public class LWNode extends LWContainer
     private ImageIcon imageIcon = null;
     private boolean autoSized = true; // compute size from label & children
 
-    // Internal spacial layout
-    private final int padX = 12;
-    private final int padY = 6;
     private float fontHeight;
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
@@ -49,14 +63,16 @@ public class LWNode extends LWContainer
     // internal convenience
     LWNode(String label, float x, float y)
     {
-        setLabel(label);
+        super.label = label; // todo: this for debugging
         setFillColor(COLOR_NODE_DEFAULT);
         setNodeShape(StandardShapes[4]);
         setStrokeWidth(2f);//todo config: default node stroke
         setLocation(x, y);
+        //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
         setSize(10,10);
-        
+        setLabel(label);
     }
+    
     // internal convenience
     LWNode(String label, Resource resource)
     {
@@ -139,7 +155,8 @@ public class LWNode extends LWContainer
         this.boundsShape = shape;
         this.drawnShape = (RectangularShape) shape.clone();
         adjustDrawnShape();
-        this.lastLabel = null;
+        layout();
+        //this.lastLabel = null;
         // this will cause size to be computed at the next rendering
     }
 
@@ -178,12 +195,10 @@ public class LWNode extends LWContainer
     public boolean contains(float x, float y)
     {
         if (imageIcon != null)
-            return super.contains(x, y);
-        else
-            return boundsShape.contains(x, y);
+            return super.contains(x,y);
+
+        return boundsShape.contains(x, y);
     }
-    
-    
     
     void setImage(Image image)
     {
@@ -265,48 +280,7 @@ public class LWNode extends LWContainer
         this.drawnShape.setFrame(x, y, w, h);
     }
     
-    
-    class PLabel extends JLabel
-    //class PLabel extends JTextArea
-    {
-        PLabel(String txt)
-        {
-            super(txt);
-            //setSize(getWidth()*2, getHeight());
-            //setBorder(new LineBorder(Color.red));
-            setOpaque(false);
-            setFont(SmallFont);
-            setSize(getPreferredSize());
-        }
-        public void draw(Graphics2D g)
-        {
-            //super.paintBorder(g);
-            super.paintComponent(g);
-            g.setColor(Color.red);
-            g.setStroke(new BasicStroke(1/8f));
-            g.drawRect(0,0, getWidth(), getHeight());
-        }
-    }
 
-    /*
-    private PLabel pLabel;
-    public void mapItemChanged(MapItemEvent e)
-    {
-        System.out.println("mapItemChanged in LWNode " + e);
-        MapItem mi = e.getSource();
-        if (mi.getLabel() != lastLabel && this.fontMetrics != null) {
-            // add or remove child -- recompute size based on label
-            layout();
-            lastLabel = mi.getLabel();
-        }
-        //if  (e.getWhat().endsWith("Child")) {
-          //  // add or remove child -- recompute size
-            //layout();
-        //}
-    }
-*/
-    
-        
     public void setLocation(float x, float y)
     {
         //System.out.println("setLocation " + this);
@@ -335,17 +309,37 @@ public class LWNode extends LWContainer
             getParent().layout();
     }
       
+    /*
     private String lastLabel;
     private Graphics graphics;
-
     private FontMetrics getFontMetrics()
     {
         if (this.graphics == null)
             return null;
         return this.graphics.getFontMetrics(getFont());
     }
+    */
     
     private void setPreferredSize()
+    {
+        Dimension s = getLabelBox().getPreferredSize();
+        float width = s.width + PadX;
+        float height = s.height + PadY;
+        
+        if (hasChildren()) {
+            // resize to inclued size of children
+            height += PadY;
+            Rectangle2D childBounds = getAllChildrenBounds();
+            height += childBounds.getHeight();
+            if (width < childBounds.getWidth() + PadX*2)
+                width = (float) childBounds.getWidth() + PadX*2;
+        }
+        
+        setSizeNoLayout(width, height);
+    }
+
+    /*
+    private void OLDsetPreferredSize()
     {
         FontMetrics fm = getFontMetrics();
         if (fm == null) {
@@ -360,16 +354,16 @@ public class LWNode extends LWContainer
         this.fontHeight = fm.getAscent() - fm.getDescent() / 1;
         //this.fontHeight = fm.getAscent() + fm.getDescent();
         this.fontStringWidth = fm.stringWidth(label);
-        float width = this.fontStringWidth + (this.padX*2) + borderWidth;
-        float height = this.fontHeight + (this.padY*2) + borderWidth;
+        float width = this.fontStringWidth + (PadX*2) + borderWidth;
+        float height = this.fontHeight + (PadY*2) + borderWidth;
         
         if (hasChildren()) {
             // resize to inclued size of children
-            height += this.padY;
+            height += PadY;
             Rectangle2D childBounds = getAllChildrenBounds();
             height += childBounds.getHeight();
-            if (width < childBounds.getWidth() + this.padX*2)
-                width = (float) childBounds.getWidth() + this.padX*2;
+            if (width < childBounds.getWidth() + PadX*2)
+                width = (float) childBounds.getWidth() + PadX*2;
         }
         
         setSizeNoLayout(width, height);
@@ -380,17 +374,8 @@ public class LWNode extends LWContainer
             // on resize, keep the node's center the same
             setLocation(getX() + (oldWidth - this.width) / 2, getY());
         }
-
-        /*
-        pLabel = new PLabel(label);
-        float w = pLabel.getWidth();
-        if (w < width && !label.startsWith("<html>")) {
-            pLabel.setSize((int)width, pLabel.getHeight());
-            w = width;
-        }
-        setSize(w, pLabel.getHeight());
-        */
     }
+    */
 
     private Rectangle2D getAllChildrenBounds()
     {
@@ -426,10 +411,12 @@ public class LWNode extends LWContainer
         //new Throwable("layoutChildren " + this).printStackTrace();
         //System.out.println("layoutChildren " + this);
         java.util.Iterator i = getChildIterator();
-        float y = (labelY() + this.padY) * getScale();
+        //float y = (relativeLabelY() + PadY) * getScale();
+        // relaveLabelY used to be the BASELINE for the text -- now it's the UL of the label object
+        float y = (relativeLabelY() + getLabelBox().getHeight() + PadY/2) * getScale();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            //float childX = this.padX * getScale();
+            //float childX = PadX * getScale();
             float childX = (this.getWidth() - c.getWidth()) / 2;
             c.setLocation(getX() + childX, getY() + y);
             y += c.getBoundsHeight();
@@ -439,29 +426,45 @@ public class LWNode extends LWContainer
 
     public float getLabelX()
     {
-        return getX() + labelX();
+        return getX() + relativeLabelX();
     }
     public float getLabelY()
     {
-        return (getY() + labelY()) - this.fontHeight;
+        return getY() + relativeLabelY();
+        /*
+        if (this.labelBox == null)
+            return getY() + relativeLabelY();
+        else
+            return (getY() + relativeLabelY()) - this.labelBox.getHeight();
+        */
+        //return (getY() + relativeLabelY()) - this.fontHeight;
     }
 
-    private float labelX()
+    private float relativeLabelX()
     {
-        return (this.width - this.fontStringWidth) / 2;
-        //return this.padX;
+        int w = getLabelBox().getPreferredSize().width;
+        return (this.width - w) / 2;
+        //return (this.width - this.fontStringWidth) / 2;
+        //return PadX;
     }
-    private float labelY()
+    private float relativeLabelY()
     {
         if (hasChildren())
-            return this.fontHeight + this.padY * getScale();
+            return (PadY/2) * getScale();
+        else
+            return (this.height - getLabelBox().getPreferredSize().height) / 2;
+        //return (this.height - getLabelBox().getHeight()) / 2;
+        /*
+        if (hasChildren())
+            return this.fontHeight + PadY * getScale();
         else
             return (this.height+this.fontHeight) / 2f;
+        */
     }
 
     public void draw(Graphics2D g)
     {
-        this.graphics = g;
+        //this.graphics = g;
         
         g.translate(getX(), getY());
         float scale = getScale();
@@ -481,11 +484,12 @@ public class LWNode extends LWContainer
             //imageIcon.paintIcon(null, g, (int)getX(), (int)getY());
             imageIcon.paintIcon(null, g, 0, 0);
         } else {
+            /*
             if (label != lastLabel) {
                 //System.out.println("label " + lastLabel + " -> " + label);
                 layout();
                 lastLabel = label;
-            }
+                }*/
             Color fillColor = getFillColor();
             if (fillColor != null) { // transparent if null
                 g.setColor(fillColor);
@@ -516,34 +520,26 @@ public class LWNode extends LWContainer
         // Draw the text label if any
         //-------------------------------------------------------
         
+        /*
         if (label != null && label.length() > 0) {
-            float textBaseline = labelY();
-            if (false) {
-                // box the text for seeing layout metrics
-                g.setStroke(new BasicStroke(0.0001f));
-                g.setColor(Color.black);
-                g.draw(new Rectangle2D.Float(this.padX,
-                                             textBaseline-fontHeight,
-                                             fontStringWidth,
-                                             fontHeight));
-            }
+            float textBaseline = relativeLabelY();
             g.setFont(getFont());
             g.setColor(getTextColor());
-            g.drawString(label, labelX(), textBaseline);
-            //g.drawString(label, getX() + labelX(), getY() + textBaseline);
+            g.drawString(label, relativeLabelX(), textBaseline);
         }
-
-        /*
-          // todo: make a viewer option?
-          // temp: show the resource--  todo: display an icon
-        if (getNode().getResource() != null) {
-            g.setFont(VueConstants.SmallFont);
-            g.setColor(Color.black);
-            g.drawString(getNode().getResource().toString(), 0, getHeight()+12);
-            //g.drawString(getNode().getResource().toString(), getX(), getY() + getHeight()+17);
-            }
         */
 
+        if (this.labelBox != null && this.labelBox.getParent() == null) {
+            // if parent is not null, this box is an active edit on the map
+            // and we don't want to paint it here as AWT/Swing is handling
+            // that at the moment (and at a possibly slightly different offset)
+            float lx = relativeLabelX();
+            float ly = relativeLabelY();
+            g.translate(lx, ly);
+            this.labelBox.draw(g);
+            g.translate(-lx, -ly);
+        }
+        
         //-------------------------------------------------------
         // Restore graphics context
         //-------------------------------------------------------
@@ -555,6 +551,7 @@ public class LWNode extends LWContainer
         // Draw any children
         //-------------------------------------------------------
         super.draw(g);
+
     }
 
     public static class NodeShape {
@@ -608,10 +605,11 @@ public class LWNode extends LWContainer
         new NodeShape("Square", new Rectangle2D.Float(0,0,10,10), true),
         new NodeShape("Rectangle", new Rectangle2D.Float(0,0,10,10)),
         new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 10,10, 20,20)),
-        //new NodeShape("Diamond", null),
+        //new NodeShape("Triangle", new tufts.vue.shape.Triangle2D(0,0, 60,80)),
+        //new NodeShape("Diamond", new tufts.vue.shape.Diamond2D(0,0, 60,60)),
         //new NodeShape("Parallelogram", null),
     };
     
-
     
 }
+
