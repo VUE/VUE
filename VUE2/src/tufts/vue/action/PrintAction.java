@@ -49,13 +49,10 @@ public class PrintAction extends tufts.vue.VueAction
     }
     
     private PageFormat pageFormat;
-    private PageFormat getPageFormat(PrinterJob job)
+    private PageFormat getPageFormat(PrinterJob job, Rectangle2D bounds)
     {
         if (pageFormat == null) {
             pageFormat = job.defaultPage();
-            // todo: this guess assumes we're printing the whole
-            // map, not what's in the viewport...
-            Rectangle2D bounds = VUE.getActiveMap().getBounds();
             // todo: keep a list of print formats for each map?
             if (bounds.getWidth() > bounds.getHeight())
                 pageFormat.setOrientation(PageFormat.LANDSCAPE);
@@ -69,9 +66,9 @@ public class PrintAction extends tufts.vue.VueAction
      * PageFormat as the default setup.  If user hits cancel
      * on the dialog, null is returned.
      */
-    private PageFormat getPageFormatInteractive(PrinterJob job)
+    private PageFormat getPageFormatInteractive(PrinterJob job, Rectangle2D bounds)
     {
-        PageFormat initial = getPageFormat(job);
+        PageFormat initial = getPageFormat(job, bounds);
         PageFormat result = job.pageDialog(initial);
         if (result != initial)
             return pageFormat = result;
@@ -167,8 +164,8 @@ public class PrintAction extends tufts.vue.VueAction
             out("job starting for " + this.map);
             PrinterJob job = getPrinterJob();
             if (job.printDialog()) {
-                //PageFormat format = getPageFormat(job);
-                PageFormat format = getPageFormatInteractive(job);
+                //PageFormat format = getPageFormat(job, bounds);
+                PageFormat format = getPageFormatInteractive(job, bounds);
                 out("format: " + outpf(format));
                 if (format != null) {
                     job.setJobName(jobName);
