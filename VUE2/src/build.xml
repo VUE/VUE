@@ -1,7 +1,28 @@
 
-<project name="vue" default="vuedemo" basedir=".">
+<project name="vue" default="vue" basedir=".">
 
-<!-- $Revision: 1.7 $ / $Date: 2004-06-23 18:00:52 $ -->
+  <description>
+    This build file can build all the VUE sources, as well as package
+    them into various jar files useful for testing or test
+    distribution.  This including a Mac Finder or Windows Explorer
+    double-clickable (runnable) jar file that inclues all required
+    third party libraries (if java has already been installed on the
+    system).  Or it can be run from the command line with:
+    
+        java -jar VUE.jar
+    
+    Note that this is really only useful for testing, as it still
+    doesn't let us set a VUE icon for the file, or install a JVM if
+    one isn't present.  The targets for creating VUE-lib.jar and
+    VUE-core.jar are for convenience.  The VUE-lib.jar portion is huge
+    and slow to create, where's VUE-core.jar is just the VUE classes
+    and resources, and is quick to create.  This is convenient for
+    frequently moving around just VUE-core.jar and running via:
+
+        java -cp VUE-core.jar:VUE-lib.jar tufts.vue.VUE
+  </description>
+
+<!-- $Revision: 1.8 $ / $Date: 2004-07-22 23:09:41 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -10,6 +31,7 @@
   affect where the build process stores its outputs.
 -->
   <property name="top.dir"     value="./.."/>
+  <property name="src"         value="${basedir}"/>
   <property name="build.home"  value="${basedir}/build"/>
   <property name="build.class" value="${build.home}/classes" />
   <property name="dist.home"   value="${basedir}/dist"/>
@@ -37,79 +59,133 @@
   features that makes it easy to dynamically construct the classpath you
   need for each compilation.
 -->
-  <path id="runtime.classpath">
-    <pathelement path="${java.class.path}"/>
-    <pathelement location="${junit.jar}"/>
-    <pathelement path="."/>
 
-    <pathelement path="${lib.home}/activation.jar"/>
-    <pathelement path="${lib.home}/an_az.jar"/>
-    <pathelement path="${lib.home}/apache-commons.jar"/>
-    <pathelement path="${lib.home}/avalon-framework-cvs-20020806.jar"/>
-    <pathelement path="${lib.home}/axis-ant.jar"/>
-    <pathelement path="${lib.home}/axis-fedora.jar"/>
-    <pathelement path="${lib.home}/axis.jar"/>
-    <pathelement path="${lib.home}/batik-awt-util.jar"/>
-    <pathelement path="${lib.home}/batik-ext.jar"/>
-    <pathelement path="${lib.home}/batik-svggen.jar"/>
-    <pathelement path="${lib.home}/batik-util.jar"/>
-    <pathelement path="${lib.home}/batik.jar"/>
-    <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/> 
-<!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX - we only need XML-->
-    <pathelement path="${lib.home}/CometOsidImpl.jar"/>
-    <pathelement path="${lib.home}/commons-discovery.jar"/>
-    <pathelement path="${lib.home}/commons-httpclient.jar"/>
-    <pathelement path="${lib.home}/commons-logging.jar"/>
-    <pathelement path="${lib.home}/cryptix-asn1.jar"/>
-    <pathelement path="${lib.home}/cryptix32.jar"/>
-    <pathelement path="${lib.home}/dom2.jar"/>
-    <pathelement path="${lib.home}/drSql.jar"/>
-    <pathelement path="${lib.home}/ecldr.jar"/>
-    <pathelement path="${lib.home}/fedora-client.jar"/>
-    <pathelement path="${lib.home}/fedora-server.jar"/>
-    <pathelement path="${lib.home}/fedoragentypes.jar"/>
-    <pathelement path="${lib.home}/fedorautilities.jar"/>
-    <pathelement path="${lib.home}/fop.jar"/>
-    <pathelement path="${lib.home}/gnu-getopt-1.0.9.jar"/>
-    <pathelement path="${lib.home}/iTunesDR.jar"/>
-    <pathelement path="${lib.home}/iPhotosDR.jar"/>
-    <pathelement path="${lib.home}/jakarta-regexp-1.2.jar"/>
-    <pathelement path="${lib.home}/jaxrpc.jar"/>
-    <pathelement path="${lib.home}/jdom.jar"/>
-    <pathelement path="${lib.home}/jhbasic.jar"/>
-    <pathelement path="${lib.home}/jlfgr-1_0.jar"/> <!-- Java toolbarButtonGraphics -->
-    <pathelement path="${lib.home}/jms.jar"/>
-    <pathelement path="${lib.home}/jxtaid.jar"/>
-    <pathelement path="${lib.home}/jxtasecurity.jar"/>
-    <pathelement path="${lib.home}/log4j-1.2.4.jar"/>
-    <pathelement path="${lib.home}/log4j-1.2.8.jar"/>
-    <pathelement path="${lib.home}/mail.jar"/>
-    <pathelement path="${lib.home}/mysql.jar"/>
-    <pathelement path="${lib.home}/okiReversi.jar"/>
-    <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiSIDimpl.jar"/>  
-    <!-- This jar must load after okiSID_rc6_1.jar  -->
-    <pathelement path="${lib.home}/okiOSID_v2.jar" />
-    
-    <pathelement path="${lib.home}/postgresql.jar"/>
-    <pathelement path="${lib.home}/saaj.jar"/>
-    <pathelement path="${lib.home}/saxon6.5.jar"/>
-    <pathelement path="${lib.home}/scorm.jar"/>
-    <pathelement path="${lib.home}/servlet.jar"/>
-    <pathelement path="${lib.home}/smete.jar"/>
-    <pathelement path="${lib.home}/smeteclient.jar"/>
-    <pathelement path="${lib.home}/splash.jar"/>
-    <pathelement path="${lib.home}/wsdl4j.jar"/>
-    <pathelement path="${lib.home}/xalan-2.4.1.jar"/>
-    <pathelement path="${lib.home}/xerces-1.2.1.jar"/>
-    <pathelement path="${lib.home}/xercesImpl-2.2.1.jar"/>
-    <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xml-apis.jar"/>
-    <pathelement path="${lib.home}/xmlrpc-1.1.jar"/>
-    
+  <path id="runtime.classpath">
+    <!-- pathelement path="${java.class.path}"/ -->
+    <!-- It is important that we do NOT include java.class.path here, as it contains
+         everything ANT needs to run, which includes some jar files that overlap
+         with what we include ourselves, but of potentially different versions.
+         We need to leave that out to be sure our runtime test classpath is exactly
+         the same as the classpath we distribute with -->
+    <pathelement path="${build.class}"/>
+    <!-- pathelement location="${junit.jar}"/ -->
+    <pathelement path="."/>
+    <path refid="thirdparty.jarfiles.classpath"/>
   </path>
 
-
+  <!-- This is the list of 3rd party jar files that VUE uses.  It requires special ordering:
+       The jar file okiOSID_v2.jar must load AFTER okiSID_rc6_1.jar -->
+  <!-- We have to use a property (as opposed to a fileset) for the
+       libraries as we have to preserve the order.  We can't use a filelist
+       either (which does preserve order) because we need the list for a
+       zipgroupfileset, which requires a string of just the basenames to
+       actually create the archive (as opposed to just create a manifest,
+       which it mysteriously does unless things are exactly as it wants
+       them). -->
+  <!-- If we include activation.jar or jhbasic.jar, be sure to manually
+       remove signature files from them first (META_INF/SUN_MICR.*), or
+       we're DOA.  (It doesn't appear possible to re-bundle them into the
+       merge jar file). You'll know you're have this problem if you see
+       (this from including jhbasic.jar):
+        Exception in thread "main" java.lang.SecurityException:
+                no manifiest section for signature file entry Javax/help/resources/Constants_zh.class
+    -->
+  <!-- Notes about individual jar files: -->
+  <!-- jlfgr-1_0.jar: Contains Java toolbarButtonGraphics -->
+  <!-- castor-0.9.4.3.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.4.3-xml.jar -->
+  <property name="thirdparty.jarfiles.names"
+            value="
+                   activation_unsigned.jar
+                   an_az.jar
+                   apache-commons.jar
+                   avalon-framework-cvs-20020806.jar
+                   axis-ant.jar
+                   axis-fedora.jar
+                   axis.jar
+                   batik-awt-util.jar
+                   batik-ext.jar
+                   batik-svggen.jar
+                   batik-util.jar
+                   batik.jar
+                   castor-0.9.4.3-xml.jar
+                   commons-discovery.jar
+                   commons-httpclient.jar
+                   commons-logging.jar
+                   cryptix-asn1.jar
+                   cryptix32.jar
+                   dom2.jar
+                   drSql.jar
+                   ecldr.jar
+                   fedora-client.jar
+                   fedora-server.jar
+                   fedoragentypes.jar
+                   fedorautilities.jar
+                   fop.jar
+                   gnu-getopt-1.0.9.jar
+                   iTunesDR.jar
+                   iPhotosDR.jar
+                   jakarta-regexp-1.2.jar
+                   jaxrpc.jar
+                   jdom.jar
+                   jhbasic_unsigned.jar
+                   jlfgr-1_0.jar
+                   jms.jar
+                   jxtaid.jar
+                   jxtasecurity.jar
+                   log4j-1.2.4.jar
+                   log4j-1.2.8.jar
+                   mail.jar
+                   mysql.jar
+                   okiReversi.jar
+                   okiSID_rc6_1.jar
+                   okiSIDimpl.jar
+                   okiOSID_v2.jar
+                   postgresql.jar
+                   saaj.jar
+                   saxon6.5.jar
+                   scorm.jar
+                   servlet.jar
+                   smete.jar
+                   smeteclient.jar
+                   splash.jar
+                   wsdl4j.jar
+                   xalan-2.4.1.jar
+                   xerces-1.2.1.jar
+                   xercesImpl-2.2.1.jar
+                   xercesImpl.jar
+                   xml-apis.jar
+                   xmlrpc-1.1.jar
+                   "/>
+  
+  <!-- VUE will actually run with this minimal set of jar files, with the exception
+     of adding new OSID-DR datasources (e.g., comet.osidimpl.iTunesDR, if you also
+     include iTunesDR.jar).  The error message we get when attempting to do that
+     doesn't tell us anything about what it can't find, so we're just going to
+     go with the overkill list above.  But it looks like with some vetting, we
+     could reduce the size of the distriubtion to less than half it's current size. -->
+  <property name="thirdparty.jarfiles.names.minimal"
+            value="
+                   apache-commons.jar
+                   axis.jar
+                   batik-awt-util.jar
+                   batik-ext.jar
+                   batik-svggen.jar
+                   batik-util.jar
+                   castor-0.9.4.3-xml.jar
+                   commons-discovery.jar
+                   commons-logging.jar
+                   dom2.jar
+                   fedora-client.jar
+                   fedoragentypes.jar
+                   fedorautilities.jar
+                   fop.jar
+                   jaxrpc.jar
+                   okiSID_rc6_1.jar
+                   okiOSID_v2.jar
+                   saaj.jar
+                   xercesImpl.jar
+                   "/>
+                                                                                                          
   <path id="compile.classpath.common">
 
     <pathelement path="."/>                
@@ -175,6 +251,7 @@
     
   </path>
 
+
 <!-- ==================== Prepare Target ================================== -->
 <!--
   The "prepare" target is used to create the "build" destination directory,
@@ -210,18 +287,32 @@
 
   <target name="compile" depends="prepare"
     description="Compile Java sources using default javac">
-    <!-- <mkdir dir="${build.class}"/> -->
+    <mkdir dir="${build.class}"/>
     <echo message="lib.home is ${lib.home}"/>
 
-    <javac srcdir="${basedir}" 
+    <javac srcdir="${basedir}"
+           destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
+      <include name="tufts/*.java"/>
+    </javac>
+
+    <javac srcdir="${basedir}"
+           destdir="${build.class}"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
       <classpath refid="compile.classpath.oki1and2"/>
       <include name="tufts/vue/OsidAsset*.java"/>
     </javac>
-
+    
     <javac srcdir="${basedir}" 
+           destdir="${build.class}"
               debug="${compile.debug}"
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}">
@@ -230,26 +321,35 @@
     </javac>
 
     <javac srcdir="${basedir}" 
+           destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
       <classpath refid="compile.classpath.oki"/>
       <include name="tufts/oki/**/*.java"/>
       <exclude name="tufts/oki/repository/fedora/*.java"/>
     </javac>
 
     <javac srcdir="${basedir}" 
+           destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
       <classpath refid="compile.classpath.oki2"/>
       <include name="tufts/oki/repository/fedora/*.java"/>
     </javac>
 
     <javac srcdir="${basedir}" 
+           destdir="${build.class}"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
-           optimize="${compile.optimize}">
+           optimize="${compile.optimize}"
+           listfiles="yes"
+           >
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/vue/**/*.java"/>
       <exclude name="tufts/vue/OsidAsset*.java"/>
@@ -257,19 +357,107 @@
 
     </target>
 
+  
+  <!-- Create a classpath based on all the 3rd party jarfiles -->
+  <path id="thirdparty.jarfiles.classpath">
+    <filelist dir="${lib.home}" files="${thirdparty.jarfiles.names}"/>
+  </path>
+  <!-- Create some variables just for diagnostic output: -->
+  <pathconvert pathsep="," property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
+  <pathconvert pathsep="," property="info.classpath" refid="runtime.classpath"/>
 
-<!-- ==================== vuedemo Task ================================ -->
-<!--
-  The "Search" target runs the VUE application.
--->
-    <target name="vuedemo" depends="" description="Run the VUE application" >
+<!-- ==================== Vue JAR files ================================ -->
+  <target name="jar-core"
+          depends="compile"
+          description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">
+    <echo message="top.dir is ${top.dir}"/>
+    <echo message="build.class is ${build.class}"/>
+    <jar zipfile="${basedir}/VUE-core.jar" update="true" compress="false" index="true">
+      <!--fileset dir="${src}" includes="**/*.xml"/-->
+      <fileset dir="${src}" includes="**/*.conf"/>
+      <fileset dir="${src}" includes="**/*.properties"/>
+      <fileset dir="${src}" includes="tufts/vue/resources/**"/>
+      <fileset dir="${src}" includes="tufts/vue/images/**"/>
+      <fileset dir="${build.class}"/>
+    </jar>
+  </target>
 
+  
+  <target name="jar"
+          depends="jar-core"
+          description="Create VUE.jar - a single, distributable, runnable jar file containing VUE and all supporting libraries.">
+    <tstamp/>
+    <jar destfile="VUE.jar" compress="true" index="true" update="false">
+      <manifest>
+        <attribute name="Description" value="Tufts VUE 1.0 (Visual Understanding Environment) [beta]"/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
+        <attribute name="Main-Class" value="tufts.vue.VUE"/>
+      </manifest>
+      <zipgroupfileset dir="${basedir}" includes="VUE-core.jar"/>
+      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+    </jar>
+  </target>
+
+  <target name="jar-lib"
+          description="Create VUE-lib.jar - a jar file containing the kitchen-sink set of libraries to run VUE.">
+    <echo message="Jaring: ${info.jarfiles}"/>
+    <jar destfile="VUE-lib.jar" compress="false" index="true" update="false">
+      <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
+        and cannont include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->
+      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+    </jar>
+  </target>
+
+  <target name="jar-lib-minimal"
+          description="Create VUE-lib-minimal.jar - a jar file containing the minimal set libraries to run VUE (testing).">
+    <echo message="Jaring: ${thirdparty.jarfiles.names.minimal}"/>
+    <jar destfile="VUE-lib-minimal.jar" compress="true" index="true" update="false">
+      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names.minimal}"/>
+    </jar>
+  </target>
+     
+  
+<!-- ==================== Tasks to run VUE  ================================ -->
+
+    <target name="vue" depends="" description="Run the VUE application.">
+      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+        <classpath refid="runtime.classpath"/>
+      </java>
+    </target>
+    
+    <target name="vue-mac" depends="" description="Run the VUE application (Mac Look and Feel).">
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-            <classpath>
-                <path refid="runtime.classpath"/>
-            </classpath>
+          <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
+          <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+          <arg value="-mac"/>
+          <classpath refid="runtime.classpath"/>
+        </java>
+    </target>    
+    <target name="vue-mac-metal" depends="" description="Run the VUE application (Mac Look and Feel, Brushed Metal).">
+        <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+          <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
+          <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+          <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
+          <arg value="-mac"/>
+          <classpath refid="runtime.classpath"/>
         </java>
     </target>
+
+    <target name="vuedemo" depends="">
+      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+        <classpath refid="runtime.classpath"/>
+      </java>
+    </target>
+
+
+    <!-- ==================== Debugging tasks  ================================ -->
+    <target name="info" description="Display Library and Classpath Variables">
+      <echo message="Distribution jar files: ${info.jarfiles}"/>
+      <echo message="Runtime classpath: ${info.classpath}"/>
+    </target>
+
+    
 </project>
 
 
