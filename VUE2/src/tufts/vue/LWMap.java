@@ -60,7 +60,7 @@ import tufts.vue.filter.*;
  */
 
 public class LWMap extends LWContainer
-    implements ConceptMap, Printable
+    implements ConceptMap//, Printable
 {
     /** file we were opened from of saved to, if any */
     private File file;
@@ -631,7 +631,7 @@ public class LWMap extends LWContainer
     }
     
     
-
+    /*
     public int print(Graphics gc, PageFormat format, int pageIndex)
         throws java.awt.print.PrinterException
     {
@@ -699,7 +699,7 @@ public class LWMap extends LWContainer
         out("page " + pageIndex + " rendered.");
         return Printable.PAGE_EXISTS;
     }
-    
+    */    
     
     
     /*public Dimension getSize()
