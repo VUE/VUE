@@ -305,7 +305,7 @@ public class MapViewer extends javax.swing.JComponent
     private static final VueTool NodeTool = VueToolbarController.getController().getTool("nodeTool");
     private static final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     private static final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
-    private static final VueTool PathwayTool = VueToolbarController.getController().getTool("textTool");
+    private static final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
     
     /**
      * getCurrentTool()
@@ -325,7 +325,7 @@ public class MapViewer extends javax.swing.JComponent
 
     public void toolSelected(VueTool pTool)
     {
-        if (DEBUG.FOCUS) System.out.println(this + " tool selected: " + pTool.getID());
+        if (DEBUG.FOCUS) System.out.println(this + " toolSelected: " + pTool.getID());
         
         if (pTool == null) {
             System.err.println(this + " *** toolSelected: NULL TOOL");
@@ -337,8 +337,6 @@ public class MapViewer extends javax.swing.JComponent
         }
        
         activeTool = pTool;
-    	//System.out.println("MapViewer.toolSelected: " + pTool.getID());
-            
         setMapCursor(activeTool.getCursor());
 
         if (isDraggingSelectorBox) // in case we change tool via kbd shortcut in the middle of a drag
@@ -1886,7 +1884,7 @@ public class MapViewer extends javax.swing.JComponent
         // draw selection if there is one
         //-------------------------------------------------------
         
-        if (VueSelection != null && !VueSelection.isEmpty())
+        if (VueSelection != null && !VueSelection.isEmpty() && activeTool != PathwayTool)
             drawSelection(dc);
         else
             resizeControl.active = false;
@@ -2271,12 +2269,14 @@ public class MapViewer extends javax.swing.JComponent
             //if (!inDrag)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
 
-            setSelectionBoxResizeHandles(mapSelectionBounds);
-            resizeControl.active = true;
-            for (int i = 0; i < resizeControl.handles.length; i++) {
-                LWSelection.ControlPoint cp = resizeControl.handles[i];
-                drawSelectionHandleCentered(g2, cp.x, cp.y, cp.getColor());
-            }
+            //if (activeTool != PathwayTool) {
+                setSelectionBoxResizeHandles(mapSelectionBounds);
+                resizeControl.active = true;
+                for (int i = 0; i < resizeControl.handles.length; i++) {
+                    LWSelection.ControlPoint cp = resizeControl.handles[i];
+                    drawSelectionHandleCentered(g2, cp.x, cp.y, cp.getColor());
+                }
+                //}
         }
 
         //if (inDrag) return;
@@ -2285,6 +2285,7 @@ public class MapViewer extends javax.swing.JComponent
         // draw LWComponent requested control points
         //-------------------------------------------------------
         
+        //if (activeTool != PathwayTool) {
         it = VueSelection.getControlListeners().iterator();
         while (it.hasNext()) {
             LWSelection.ControlListener cl = (LWSelection.ControlListener) it.next();
@@ -2299,6 +2300,7 @@ public class MapViewer extends javax.swing.JComponent
                                             cp.getColor());
             }
         }
+        //}
 
         if (DEBUG_SHOW_MOUSE_LOCATION) resizeControl.draw(dc); // debug
 
