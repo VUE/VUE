@@ -68,7 +68,7 @@ public class PathwayTable extends JTable
         this.setGridColor(Color.lightGray);
         this.setBackground(bgColor);
         //this.setSelectionBackground(selectedbgColor);
-        //this.setDragEnabled(true);
+        this.setDragEnabled(true);
         
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);

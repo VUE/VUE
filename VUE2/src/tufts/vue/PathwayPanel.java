@@ -398,13 +398,22 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         LWPathway pathway = getSelectedPathway();
         
         if (btn == removeElement) {
-            if (VUE.ModelSelection.size() == 1 && pathway.containsMultiple(pathway.getCurrent())) {
-                // special case: if only one element in selection, AND it appears
-                // more than once in the current pathway, be sure to remove only the
-                // selected instance in the pathway.
-                pathway.remove(pathway.getCurrentIndex());
-            } else if (VUE.ModelSelection.isEmpty() && pathway.getCurrentIndex() >= 0) {
-                // if nothing in selection, allow removal of the current index
+            
+            // This is a heuristic to try and best guess what the user
+            // might want to actually remove.  If nothing in
+            // selection, and way have a current pathway
+            // index/element, remove that current pathway element.  If
+            // one item in selection, also remove whatever the current
+            // element is (which ideally is usually also the
+            // selection, but if it's different, we want to prioritize
+            // the current element hilighted in the PathwayTable).  If
+            // there's MORE than one item in selection, do a removeAll
+            // of everything in the selection.  This removes ALL instances
+            // of everything in selection, so that, for instance,
+            // a select all followed by pathway delete is guaranteed to
+            // empty the pathway entirely.
+
+            if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
                 pathway.remove(pathway.getCurrentIndex());
             } else {
                 pathway.remove(VUE.ModelSelection.iterator());

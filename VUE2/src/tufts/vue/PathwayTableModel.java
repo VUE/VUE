@@ -268,21 +268,15 @@ public class PathwayTableModel extends DefaultTableModel
         if (c instanceof LWPathway) {
             LWPathway p = (LWPathway) c;
 
-            if (col == 0) {
-                p.setVisible(!p.isVisible()); // not proper
-            } else if (col == 1){
-                p.setStrokeColor((Color)aValue); // proper
-            } else if (col == 2){
-                p.setOpen(!p.isOpen()); // not proper
-            } else if (col == 3){
-                p.setLabel((String)aValue); // proper
-            } else if (col == 5) {
-                //p.setLocked(((Boolean)aValue).getBooleanValue()); // proper
-                p.setLocked(!p.isLocked()); // not proper
+                 if (col == 0) { p.setVisible(!p.isVisible()); }      // not proper
+            else if (col == 1) { p.setStrokeColor((Color)aValue); }     // proper
+            else if (col == 2) { p.setOpen(!p.isOpen()); }              // not proper
+            else if (col == 3) { p.setLabel((String)aValue); }          // proper
+            else if (col == 5) { p.setLocked(!p.isLocked());             // not proper
+                //p.setLocked(((Boolean)aValue).getBooleanValue());     // e.g.: proper
             }
         } else if (c != null) {
-            if (col == 3)
-                c.setLabel((String)aValue);
+            if (col == 3) c.setLabel((String)aValue);
         }
         // all the above sets will trigger LWCEvents, listeneted to by the
         // LWPathways they're in, which are listeneted to by their map's
