@@ -322,19 +322,10 @@ public class PathwayTable extends JTable
                         setBackground(bgColor);
                 }
             } else {
-                switch (col) {
-                case 0:
-                case 2:
-                case 5:
-                    setIcon(null);
-                    break;
-                case 4:
-                    if (getTableModel().getPathwayForElementAt(row).getElementNotes(c) != null)
-                        setIcon(notes);
-                    else
-                        setIcon(null);
-                    break;
-                }
+                if (col == 4 && getTableModel().getPathwayForElementAt(row).getElementNotes(c) != null)
+                    setIcon(notes);
+                else
+                    return null;
             }
             return this;
             

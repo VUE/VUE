@@ -62,10 +62,12 @@ public abstract class MenuButton extends JButton
     public abstract void setPropertyValue(Object propertyValue);
     public abstract Object getPropertyValue();
 	
+    /** factory method for subclasses */
     protected Icon makeIcon(Object value) {
         return null;
     }
     
+    /** override if there is a custom menu item */
     protected Object runCustomChooser() {
         return null;
     }
@@ -75,7 +77,6 @@ public abstract class MenuButton extends JButton
         mPopup = new JPopupMenu();
 			
         final String valueKey = getPropertyName() + ".value";
-        //final String customName = "Custom...";
             
         ActionListener a = new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -104,12 +105,12 @@ public abstract class MenuButton extends JButton
         mPopup.add(mEmptySelection);
     }
 		
-    protected void handleMenuSelection(Object propertyValue) {
-        if (propertyValue == null) // could be result of custom chooser
+    protected void handleMenuSelection(Object newPropertyValue) {
+        if (newPropertyValue == null) // could be result of custom chooser
             return;
         Object oldValue = getPropertyValue();
-        setPropertyValue(propertyValue);
-        firePropertyChanged(oldValue, propertyValue);
+        setPropertyValue(newPropertyValue);
+        firePropertyChanged(oldValue, newPropertyValue);
         repaint();
     }
 	

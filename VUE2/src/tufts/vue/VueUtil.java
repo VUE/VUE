@@ -488,7 +488,7 @@ public class VueUtil
             colorChooser = new JColorChooser();
             //colorChooser.setDragEnabled(true);
             colorChooserDialog =
-                JColorChooser.createDialog(null,
+                JColorChooser.createDialog(VUE.frame,
                                            "Color Chooser",
                                            true,  
                                            colorChooser,
