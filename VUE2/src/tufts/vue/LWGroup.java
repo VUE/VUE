@@ -30,6 +30,9 @@ public class LWGroup extends LWContainer
                           (float)bounds.getY());
     }
 
+    /** to support restore only */
+    public LWGroup() {}
+
     /**
      * Create a new LWGroup, reparenting all the LWComponents
      * in the selection to the new group.
@@ -85,7 +88,7 @@ public class LWGroup extends LWContainer
     public String getLabel()
     {
         if (super.getLabel() == null)
-            return "[LWGroup #" + getID() + "]";
+            return "<LWGroup #" + getID() + ">";
         else
             return super.getLabel();
     }
@@ -128,26 +131,41 @@ public class LWGroup extends LWContainer
         return false;
     }
     
+    /**
+     * A hit on any component in the group finds the whole group,
+     * not that component.  A hit within the bounds of the entire
+     * group but not on any component hits <b>nothing</b>
+     */
     public LWComponent findLWComponentAt(float mapX, float mapY)
     {
+        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findLWComponentAt " + getLabel());
         // hit detection must traverse list in reverse as top-most
         // components are at end
-        if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findLWComponentAt " + getLabel());
         java.util.ListIterator i = children.listIterator(children.size());
         while (i.hasPrevious()) {
             LWComponent c = (LWComponent) i.previous();
             if (c.contains(mapX, mapY))
                 return this;
         }
-        return this;
+        return null;
     }
+    
     /*
     public LWComponent findLWSubTargetAt(float mapX, float mapY)
     {
         if (DEBUG_CONTAINMENT) System.out.println("LWGroup.findLWSubTargetAt[" + getLabel() + "]");
-        return super.findLWComponentAt(mapX, mapY);
+        LWComponent c = super.findLWSubTargetAt(mapX, mapY);
+        return c == this ? null : c;
         }*/
-        
+    
+    /** The group itself can never serve as a general target
+     * (e.g., for linking to)
+     */
+    public boolean targetContains(float x, float y)
+    {
+        return false;
+    }
+    
     public void draw(java.awt.Graphics2D g)
     {
         super.draw(g);
@@ -155,6 +173,8 @@ public class LWGroup extends LWContainer
             g.setColor(java.awt.Color.red);
             if (isIndicated())
                 g.setStroke(STROKE_INDICATION);
+            else
+                g.setStroke(STROKE_TWO);
             g.draw(getBounds());
         }
     }

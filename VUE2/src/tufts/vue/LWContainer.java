@@ -79,7 +79,7 @@ public abstract class LWContainer extends LWComponent
 
     protected void addChildInternal(LWComponent c)
     {
-        System.out.println(getLabel() + " ADDS " + c);
+        System.out.println("["+getLabel() + "] ADDS " + c);
         if (c.getParent() != null)
             c.getParent().removeChild(c);
         this.children.add(c);
@@ -96,7 +96,7 @@ public abstract class LWContainer extends LWComponent
     
     public void removeChild(LWComponent c)
     {
-        System.out.println(getLabel() + " REMOVES " + c);
+        System.out.println("["+getLabel() + "] REMOVES " + c);
         if (!this.children.remove(c))
             throw new RuntimeException(this + " DIDN'T CONTAIN CHILD FOR REMOVAL: " + c);
         c.notify("removed");
@@ -111,9 +111,9 @@ public abstract class LWContainer extends LWComponent
 
     public LWComponent findLWComponentAt(float mapX, float mapY)
     {
+        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findLWComponentAt[" + getLabel() + "]");
         // hit detection must traverse list in reverse as top-most
         // components are at end
-        if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findLWComponentAt[" + getLabel() + "]");
         java.util.ListIterator i = children.listIterator(children.size());
         while (i.hasPrevious()) {
             LWComponent c = (LWComponent) i.previous();
@@ -129,11 +129,13 @@ public abstract class LWContainer extends LWComponent
 
     /** Code is duplicated from above here, but subclasses (e.g.,
      * LWGroup) handle this differently, but we can't reuse
-     * above code because of recursive usage.
+     * above code due to recursive usage.
      */
     public LWComponent findLWSubTargetAt(float mapX, float mapY)
     {
         if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findLWSubTargetAt[" + getLabel() + "]");
+        // hit detection must traverse list in reverse as top-most
+        // components are at end
         java.util.ListIterator i = children.listIterator(children.size());
         while (i.hasPrevious()) {
             LWComponent c = (LWComponent) i.previous();

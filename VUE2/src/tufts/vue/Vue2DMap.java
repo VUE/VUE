@@ -113,9 +113,16 @@ public class Vue2DMap extends LWContainer
         System.out.println("failed to locate a LWC with id [" + ID + "] in " + this);
         return null;
     }
+    
     public LWComponent findLWComponentAt(float mapX, float mapY)
     {
         LWComponent c = super.findLWComponentAt(mapX, mapY);
+        return c == this ? null : c;
+    }
+
+    public LWComponent findLWSubTargetAt(float mapX, float mapY)
+    {
+        LWComponent c = super.findLWSubTargetAt(mapX, mapY);
         return c == this ? null : c;
     }
 

@@ -961,17 +961,16 @@ public class MapViewer extends javax.swing.JPanel
         // this is just example menu code for the moment
         if (cPopup == null) {
             cPopup = new JPopupMenu("Item Menu");
-            cPopup.add(VUE.Actions.Copy);
             cPopup.add(VUE.Actions.Rename);
-            cPopup.add(VUE.Actions.Delete);
+            cPopup.add(VUE.Actions.Delete);//clear?
+            cPopup.addSeparator();
+            cPopup.add(VUE.Actions.Group);
+            cPopup.add(VUE.Actions.Ungroup);
             cPopup.addSeparator();
             cPopup.add(VUE.Actions.BringToFront);
             cPopup.add(VUE.Actions.BringForward);
             cPopup.add(VUE.Actions.SendToBack);
             cPopup.add(VUE.Actions.SendBackward);
-            cPopup.addSeparator();
-            cPopup.add(VUE.Actions.Group);
-            cPopup.add(VUE.Actions.Ungroup);
         }
         return cPopup;
     }
@@ -1150,9 +1149,11 @@ public class MapViewer extends javax.swing.JPanel
             float mapY = screenToMapY(e.getY());
 
             this.hitComponent = getMap().findLWComponentAt(mapX, mapY);
-            if (DEBUG_MOUSE)
-                System.err.println("\ton " + hitComponent);
-
+            //if (DEBUG_MOUSE)
+            if (hitComponent != null)
+                System.out.println("\t    on " + hitComponent + "\n" + 
+                                   "\tparent " + hitComponent.getParent());
+            
             int mods = e.getModifiers();
             //e.isPopupTrigger()
             // java 1.4.0 bug on PC(w2k): isPopupTrigger isn't true for right-click!
@@ -1552,8 +1553,7 @@ public class MapViewer extends javax.swing.JPanel
         {
             if (linkTarget == linkSource)
                 return false;
-            if (linkTarget instanceof Vue2DMap ||
-                linkTarget.getParent() == linkSource ||
+            if (linkTarget.getParent() == linkSource ||
                 linkSource.getParent() == linkTarget)
                 return false;
             

@@ -279,10 +279,36 @@ public class VUE
             return keyStroke(vk, 0);
         }
         
-    static final MapAction Copy = new MapAction("Copy") {
+    static final MapAction SelectAll =
+        new MapAction("Select All", keyStroke(KeyEvent.VK_A, META)) {
+            public void actionPerformed(ActionEvent ae)
+            {
+            }
+        };
+    static final MapAction DeselectAll =
+        new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+META)) {
+            public void actionPerformed(ActionEvent ae)
+            {
+            }
+        };
+    static final MapAction Cut =
+        new MapAction("Cut", keyStroke(KeyEvent.VK_X, META)) {
             void Xact(LWComponent c) {
-
-            }};
+                
+            }
+        };
+    static final MapAction Copy =
+        new MapAction("Copy", keyStroke(KeyEvent.VK_C, META)) {
+            void Xact(LWComponent c) {
+                
+            }
+        };
+    static final MapAction Paste =
+        new MapAction("Paste", keyStroke(KeyEvent.VK_V, META)) {
+            void Xact(LWComponent c) {
+                
+            }
+        };
     static final MapAction Group =
         new MapAction("Group", keyStroke(KeyEvent.VK_G, META))
         {
@@ -295,7 +321,9 @@ public class VUE
             void act(LWSelection selection)
             {
                 LWComponent c = selection.first(); // all have same parent
-                c.getParent().addChild(LWGroup.create(selection));
+                LWGroup group = LWGroup.create(selection);
+                c.getParent().addChild(group);
+                //LWSelection.set(group);//todo
             }
         };
     static final MapAction Ungroup =
@@ -539,13 +567,14 @@ public class VUE
         editMenu.addSeparator();
         editMenu.add(Actions.NewNode);
         editMenu.addSeparator();
-        editMenu.add(new JMenuItem("Cut"));
-        editMenu.add(new JMenuItem("Copy"));
-        editMenu.add(new JMenuItem("Paste"));
+        editMenu.add(Actions.Cut);
+        editMenu.add(Actions.Copy);
+        editMenu.add(Actions.Paste);
         editMenu.addSeparator();
-        editMenu.add(new JMenuItem("Select All"));
+        editMenu.add(Actions.SelectAll);
+        editMenu.add(Actions.DeselectAll);
         
-        viewMenu.add(new JMenuItem("Zoom In"));
+        viewMenu.add(Actions.ZoomIn);
         viewMenu.add(new JMenuItem("Zoom Out"));
         viewMenu.add(new JMenuItem("Zoom Fit"));
         viewMenu.add(new JMenuItem("Zoom 100%"));
