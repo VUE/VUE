@@ -23,6 +23,7 @@ public interface Resource {
     static final int FILE = 1;              //  Resource is a Java File object.
     static final int URL = 2;               //  Resource is a URL.
     static final int DIRECTORY = 3;         //  Resource is a directory or folder.
+    static final int FAVORITES = 4;         //  Resource is a Favorites Folder
     static final int ASSET_OKIDR  = 10;     //  Resource is an OKI DR Asset.
     static final int ASSET_FEDORA = 11;     //  Resource is a Fedora Asset.
     
