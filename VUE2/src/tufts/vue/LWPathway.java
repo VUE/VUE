@@ -187,13 +187,13 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
        
     public void removeElement(LWComponent element) {
-       //Iterator iter = elementList.iterator();
+      
        System.out.println("the element version of the remove is being called");
        for(int i = 0; i < elementList.size(); i++){
             LWComponent comp = (LWComponent)elementList.get(i);
             if(comp.equals(element)){
                 this.removeElement(i);
-                break;
+                //break;
             }
        }
     }

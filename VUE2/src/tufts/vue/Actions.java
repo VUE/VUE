@@ -60,7 +60,8 @@ class Actions {
     static final Action AddPathwayNode = 
         new MapAction("Add to the Pathway")
         {
-            public void act()
+            public void act()//if it isn't the first node, set the curren index to the one before
+            //else keep the same index
             {
                 LWComponent[] array = VUE.ModelSelection.getArray();
                 
