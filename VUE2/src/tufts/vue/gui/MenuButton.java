@@ -153,10 +153,15 @@ public abstract class MenuButton extends JButton implements ActionListener
         return new Dimension(32,22); // better at 22, but get clipped 1 pix at top in VueToolbarController! todo: BUG
     }
     
+    /**
+     * Wraps an icon in a container icon that also draws a drop-down arrow at right of original
+     * icon.  For indicating there's a drop-down menu with the MenuButton.
+     */
     private class MenuProxyIcon implements Icon {
         private static final int arrowWidth = 5; // make sure is odd #
-        private static final int arrowGap = 3; // make sure is odd #
-        Icon src;
+        private static final int arrowGap = 3;
+        private Icon src;
+        
         MenuProxyIcon(Icon src) {
             this.src = src;
         }
