@@ -141,6 +141,7 @@ public class VueToolbarController
 			
 				for(int i=0; i<subtools.length; i++) {
 					VueTool subTool = this.loadTool( pName+"."+subtools[i] );
+					subTool.setParentTool( tool);
 					tool.addSubTool(subTool);
 					}
 				// load menu overlays (if any)
@@ -237,6 +238,22 @@ public class VueToolbarController
 	  	mSelectedTool = pTool;
 	  }
 	
+	
+	/**
+	 * getTool
+	 * This returns the active instance of a known tool, if active and availabe.
+	 * @param id java.lang.STring id of the tool
+	 **/
+	public VueTool getTool( String pID) {
+		
+		for( int i=0; i<mVueTools.length; i++) {
+			if( mVueTools[i].getID().equals( pID) ) {
+				return mVueTools[i];
+				}
+			}
+		return null;
+	}
+	
 	/**
 	 * getToolbar
 	 * 
@@ -314,10 +331,14 @@ public class VueToolbarController
 		if( mCurSelectionID.equals( selectionID) ) {
 			return;
 			}
+			
 		// new tool selection...
-	  	debug("  +++ new tool selection from: "+mCurSelectionID+ " to: "+selectionID );
+	  	debug(">>> new tool selection from: "+mCurSelectionID+ " to: "+selectionID );
 		mCurSelectionID = selectionID;	  	
 
+		// update contextual panel
+		getToolbar().setContextualToolPanel( rootTool.getContextualPanel() );
+		// notify listeners
 		int size = mToolSelectionListeners.size();
 		for(int i=0; i<size; i++) {
 	  		VueToolSelectionListener listener= (VueToolSelectionListener) mToolSelectionListeners.get(i);
