@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.26 $ / $Date: 2004-12-11 21:03:16 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.26 2004-12-11 21:03:16 sfraize Exp $ -->
+<!-- $Revision: 1.27 $ / $Date: 2004-12-16 16:03:12 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.27 2004-12-16 16:03:12 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -471,6 +471,7 @@
     </jar>
   </target>
      
+  <target name="all" depends="clean,mac-dist" description="Rebuild everything from scratch."/>
 
   <target name="clean"
           description="Delete all build and intermediate files, leaving only the sources.">
