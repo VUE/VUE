@@ -8,7 +8,7 @@ import java.text.*;
 import java.awt.*;
 import javax.swing.*;
 import java.net.URL;
-
+import java.io.File;
 /**
  * VueResources Class
  *
@@ -75,7 +75,7 @@ public class VueResources
         public static URL getURL(String pLookupKey) {
             URL url = null;
             try {
-                url = sResourceBundle.getClass().getResource(getString(pLookupKey));
+                url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
                 System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+url);
             } catch (Exception e) {
 		alert("  !!! failed to lead due to "+ e.toString() );
