@@ -405,8 +405,14 @@ class Actions {
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
-                if (f.getSize() > 1)
-                    c.setFont(new Font(f.getName(), f.getStyle(), f.getSize()-1));
+                int size = f.getSize();
+                if (size > 1) {
+                    if (size >= 14 && size % 2 == 0)
+                        size -= 2;
+                    else
+                        size--;
+                    c.setFont(new Font(f.getName(), f.getStyle(), size));
+                }
             }
         };
     static final Action FontBigger =
@@ -414,7 +420,12 @@ class Actions {
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
-                c.setFont(new Font(f.getName(), f.getStyle(), f.getSize()+1));
+                int size = f.getSize();
+                if (size >= 12 && size % 2 == 0)
+                    size += 2;
+                else
+                    size++;
+                c.setFont(new Font(f.getName(), f.getStyle(), size));
             }
         };
     static final Action FontBold =
@@ -462,7 +473,7 @@ class Actions {
         boolean enabledFor(LWSelection s) { return s.size() >= 2; }
         void act(LWSelection selection)
         {
-            // todo: remove/ignore any links in the selection!
+            // todo: remove/ignore any links in the selection?
             Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
             minX = r.x;
             minY = r.y;
