@@ -42,7 +42,7 @@ class Actions {
             boolean enabledFor(LWSelection s) { return true; }
             public void act()
             {
-                VUE.ModelSelection.setTo(VUE.getActiveViewer().getMap().getChildIterator());
+                VUE.ModelSelection.setTo(VUE.getActiveMap().getChildIterator());
             }
         };
     static final Action DeselectAll =
@@ -128,7 +128,8 @@ class Actions {
             {
                 // enable only when two or more objects in selection,
                 // and all share the same parent
-                return s.size() >= 2 && s.allHaveSameParent();
+                return (s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent();
+                //return s.size() >= 2 && s.allHaveSameParent();
             }
             void act(LWSelection selection)
             {
@@ -166,6 +167,7 @@ class Actions {
                 return s.size() == 1 && !(s.first() instanceof LWGroup);
             }
             void act(LWComponent c) {
+                // todo: throw interal exception if c not in active map
                 VUE.getActiveViewer().activateLabelEdit(c);
             }
         };
@@ -302,6 +304,7 @@ class Actions {
         boolean enabledFor(LWSelection s) { return s.size() >= 2; }
         void act(LWSelection selection)
         {
+            // todo: remove/ignore any links in the selection!
             Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
             minX = r.x;
             minY = r.y;
@@ -365,14 +368,14 @@ class Actions {
     static final AlignAction AlignCentersRow = new AlignAction("Align Centers in Row") {
             void align(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
         };
-    static final Action MakeRow = new AlignAction("Make Row", KeyEvent.VK_R) {
+    static final AlignAction MakeRow = new AlignAction("Make Row", KeyEvent.VK_R) {
             void align(LWSelection selection) {
                 AlignCentersRow.align(selection);
                 maxX = minX + totalWidth;
                 DistributeHorizontally.align(selection);
             }
         };
-    static final Action MakeColumn = new AlignAction("Make Column", KeyEvent.VK_C) {
+    static final AlignAction MakeColumn = new AlignAction("Make Column", KeyEvent.VK_C) {
             void align(LWSelection selection) {
                 AlignCentersColumn.align(selection);
                 maxY = minY + totalHeight;
@@ -455,6 +458,7 @@ class Actions {
             public void act()
             {
                 VUE.closeViewer(VUE.getActiveViewer());
+                //VUE.closeMap(VUE.getActiveMap());
             }
         };
     static final Action Undo =
@@ -479,14 +483,14 @@ class Actions {
                 // settings -- move this logic to NodeTool
                 LWNode node = new LWNode("new node");
                 node.setLocation(newLocation);
-                VUE.getActiveViewer().getMap().addNode(node);
+                VUE.getActiveMap().addNode(node);
+                VUE.ModelSelection.setTo(node);
 
                 //better: run a timer and do this if no activity (e.g., node creation)
                 // for 250ms or something -- todo bug: every other new node not activating label edit
 
                 // todo hack: we need to paint right away so the node can compute it's size,
                 // so that the label edit will show up in the right place..
-                VUE.ModelSelection.setTo(node);
                 MapViewer viewer = VUE.getActiveViewer();
                 viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
                 viewer.activateLabelEdit(node);
@@ -500,10 +504,9 @@ class Actions {
         {
             LWComponent createNewItem(Point2D newLocation)
             {
-                MapViewer viewer = VUE.getActiveViewer();
                 LWNode node = LWNode.createTextNode("new text");
                 node.setLocation(newLocation);
-                VUE.getActiveViewer().getMap().addNode(node);
+                VUE.getActiveMap().addNode(node);
                 VUE.ModelSelection.setTo(node); // also important so will be repainted
                 return node;
             }
