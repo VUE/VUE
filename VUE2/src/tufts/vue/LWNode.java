@@ -39,10 +39,13 @@ public class LWNode extends LWContainer
     private static final int EdgePadY = 3;
     private static final int PadTop = EdgePadY;
 
-    private static final int IconWidth = 22; // 22 is min width that will fit "www" in our icon font
-    private static final int IconHeight = 12;
-    private static final int IconPadLeft = 4;
+    private static final int IconGutterWidth = 26;
+
+    private static final int IconPadLeft = 2;
     private static final int IconPadRight = 0;
+    private static final int IconWidth = IconGutterWidth - IconPadLeft; // 22 is min width that will fit "www" in our icon font
+    private static final int IconHeight = 12;
+    
     //private static final int IconPadRight = 4;
     private static final int IconMargin = IconPadLeft + IconWidth + IconPadRight;
     /** this is the descent of the closed icon down below the divider line */
