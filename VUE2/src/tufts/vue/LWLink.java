@@ -32,8 +32,10 @@ public class LWLink extends LWComponent
     implements Link,
                LWSelection.ControlListener
 {
-    // TODO: are we fully going to allow endpoints to be null?  Everyone who
-    // calls getComponent[12] or getItem[12] will have to be prepared for that...
+    //private static final Color ContrastFillColor = new Color(255,255,255,224);
+    //private static final Color ContrastFillColor = new Color(255,255,255);
+    // transparency fill is actually just distracting
+    
     private LWComponent ep1;
     private LWComponent ep2;
     private Line2D.Float line = new Line2D.Float();
@@ -68,11 +70,11 @@ public class LWLink extends LWComponent
     public static final int ARROW_EP2 = 0x2;
     public static final int ARROW_BOTH = ARROW_EP1+ARROW_EP2;
     
-    private int arrowState = ARROW_NONE;
+    private int mArrowState = ARROW_NONE;
     
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
-                         12, 12,
+                         10, 9,
                          Color.darkGray,
                          LWIcon.Block.HORIZONTAL,
                          LWIcon.Block.COORDINATES_MAP);
@@ -418,7 +420,7 @@ public class LWLink extends LWComponent
             }
             if (mIconBlock.intersects(rect))
                 return true;
-            else if (this.labelBox != null)
+            else if (hasLabel())
                 return labelBox.intersectsMapRect(rect);
             //return rect.intersects(getLabelX(), getLabelY(),
             //                         labelBox.getWidth(), labelBox.getHeight());
@@ -475,7 +477,7 @@ public class LWLink extends LWComponent
         }
         if (mIconBlock.contains(x, y))
             return true;
-        else if (this.labelBox != null)
+        else if (hasLabel())
             return labelBox.containsMapLocation(x, y); // bit of a hack to do this way
         else
             return false;
@@ -1023,6 +1025,7 @@ public class LWLink extends LWComponent
             cubicCurve.y2 = endY;
         }
         
+        layout();
         // if there are any links connected to this link, make sure they
         // know that this endpoint has moved.
         updateConnectedLinks();
@@ -1074,19 +1077,19 @@ public class LWLink extends LWComponent
     {
         if (arrowState < 0 || arrowState > ARROW_BOTH)
             throw new IllegalArgumentException("arrowState < 0 || > " + ARROW_BOTH + ": " + arrowState);
-        this.arrowState = arrowState;
+        mArrowState = arrowState;
         //notify("repaint");
     }
 
     public int getArrowState()
     {
-        return arrowState;
+        return mArrowState;
     }
 
     void rotateArrowState()
     {
-        if (++arrowState > ARROW_BOTH)
-            arrowState = ARROW_NONE;
+        if (++mArrowState > ARROW_BOTH)
+            mArrowState = ARROW_NONE;
     }
 
     private void drawArrows(DrawContext dc)
@@ -1124,7 +1127,7 @@ public class LWLink extends LWComponent
         // do the adjustment in setStrokeWidth, actually.
         //dc.g.translate(line.getX1(), line.getY1());
 
-        if ((arrowState & ARROW_EP1) != 0) {
+        if ((mArrowState & ARROW_EP1) != 0) {
             dc.g.translate(startX, startY);
             dc.g.rotate(rotation1);
             dc.g.translate(-ep1Shape.getWidth() / 2, 0); // center shape on point (makes some assumption)
@@ -1133,7 +1136,7 @@ public class LWLink extends LWComponent
             dc.g.setTransform(savedTransform);
         }
         
-        if ((arrowState & ARROW_EP2) != 0) {
+        if ((mArrowState & ARROW_EP2) != 0) {
             // draw the second arrow
             //dc.g.translate(line.getX2(), line.getY2());
             dc.g.translate(endX, endY);
@@ -1151,10 +1154,6 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
 
-        //strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
-        //if (strokeWidth > MAX_RENDER_WIDTH)
-        //    strokeWidth = MAX_RENDER_WIDTH;
-        
         BasicStroke stroke = this.stroke;
 
         // If either end of this link is scaled, scale stroke
@@ -1243,20 +1242,26 @@ public class LWLink extends LWComponent
             g.draw(this.line);
         }
 
-        if (arrowState > 0)
+        if (mArrowState > 0)
             drawArrows(dc);
 
         //-------------------------------------------------------
         // Paint label if there is one
         //-------------------------------------------------------
         
-        String label = getLabel();
-        float textBoxWidth = 0;
-        if (label != null && label.length() > 0)
-        {
+        //float textBoxWidth = 0;
+        //float textBoxHeight = 0;
+        //boolean textBoxBeingEdited = false;
+        Color fillColor = isSelected() ? COLOR_HIGHLIGHT : getFillColor();
+        if (fillColor == null && getParent() != null)
+            fillColor = getParent().getFillColor();
+        //fillColor = ContrastFillColor;
+        if (hasLabel()) {
             TextBox textBox = getLabelBox();
             // only draw if we're not an active edit on the map
-            if (textBox.getParent() == null) {
+            if (textBox.getParent() != null) {
+                //textBoxBeingEdited = true;
+            } else {
                 float lx = getLabelX();
                 float ly = getLabelY();
 
@@ -1264,7 +1269,7 @@ public class LWLink extends LWComponent
                 // upper left hand corner, the textbox needs to have an absolute
                 // map location we can check later for hits -- we set it here
                 // everytime we paint -- its a hack.
-                textBox.setMapLocation(lx, ly);
+                //textBox.setMapLocation(lx, ly);
 
                 // We force a fill color on link labels to make sure we create
                 // a contrast between the text and the background, which otherwise
@@ -1272,24 +1277,20 @@ public class LWLink extends LWComponent
                 // some of the text.
                 // todo perf: only set opaque-bit/background once/when it changes.
                 // (probably put a textbox factory on LWComponent and override in LWLink)
-                //if (!isSelected()) {
-                Color c = isSelected() ? COLOR_HIGHLIGHT : getFillColor();
-                if (c == null)
-                    c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
-                textBox.setBackground(c);
+
+                    //c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
+                if (fillColor != null)
+                    textBox.setBackground(fillColor);
                 textBox.setOpaque(true);
-                //} else
-                    //textBox.setOpaque(false);
                 
-                
-                // todo: only need to do above set location when computing line
-                // or text changes somehow (content, font) or alignment changes
                 g.translate(lx, ly);
                 //if (isZoomedFocus()) g.scale(getScale(), getScale());
                 // todo: need to re-center label when this component relative to scale,
                 // and patch contains to understand a scaled label box...
                 textBox.draw(dc);
-                if (false&&isSelected()) {
+                
+                /* draw border
+                if (isSelected()) {
                     Dimension s = textBox.getSize();
                     g.setColor(COLOR_SELECTION);
                     //g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
@@ -1298,19 +1299,122 @@ public class LWLink extends LWComponent
                     // keep such a stroke handy for us... (DrawContext would be handy again...)
                     g.drawRect(0,0, s.width, s.height);
                 }
+                */
+                
                 //if (isZoomedFocus()) g.scale(1/getScale(), 1/getScale());
                 g.translate(-lx, -ly);
-                textBoxWidth = textBox.getWidth();
+                //textBoxWidth = textBox.getWidth();
+                //textBoxHeight = textBox.getHeight();
             }
         }
 
-        //if (mIconBlock.isShowing()) {
-            mIconBlock.setLocation(getLabelX() + textBoxWidth, getLabelY());
+        if (mIconBlock.isShowing()) {
+            //dc.g.setStroke(STROKE_HALF);
+            //dc.g.setColor(Color.gray);
+            //dc.g.draw(mIconBlock);
+            dc.g.setColor(fillColor);
+            dc.g.fill(mIconBlock);
             mIconBlock.draw(dc);
-            //}
+        }
+        
+        // todo perf: don't have to compute icon block location every time
+        /*
+        if (!textBoxBeingEdited && mIconBlock.isShowing()) {
+            mIconBlock.layout();
+            // at right
+            //float ibx = getLabelX() + textBoxWidth;
+            //float iby = getLabelY();
+            // at bottom
+            float ibx = getCenterX() - mIconBlock.width / 2;
+            float iby = getLabelY() + textBoxHeight;
+            mIconBlock.setLocation(ibx, iby);
+            mIconBlock.draw(dc);
+        }
+        */
 
         if (DEBUG_CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }
+
+
+    public void layout()
+    {
+        float cx = getCenterX();
+        float cy = getCenterY();
+        float totalHeight = 0;
+        //float totalWidth = 0;
+        boolean iconBlockShowing = mIconBlock.isShowing();
+
+        if (iconBlockShowing) {
+            mIconBlock.layout();
+            //totalWidth += mIconBlock.getWidth();
+            totalHeight += mIconBlock.getHeight();
+        }
+        if (hasLabel()) {
+            // since links don't have a sensible "location" in terms of an
+            // upper left hand corner, the textbox needs to have an absolute
+            // map location we can check later for hits 
+            //totalWidth += labelBox.getMapWidth();
+            totalHeight += labelBox.getMapHeight();
+            float lx = cx - labelBox.getMapWidth() / 2;
+            float ly = 0;
+            //if (iconBlockShowing)
+                // put label just over center so link splits block & label if horizontal                
+                //ly = cy - (labelBox.getMapHeight() + getStrokeWidth() / 2);
+            //else
+            ly = cy - totalHeight / 2;
+            labelBox.setMapLocation(lx, ly);
+        }
+        if (iconBlockShowing) {
+            float ibx = (float) (cx - mIconBlock.getWidth() / 2);
+            float iby = 0;
+
+            if (hasLabel()) {
+                iby = labelBox.getMapY() + labelBox.getMapHeight();
+            } else {
+                iby = (float) (cy - mIconBlock.getHeight() / 2f);
+            }
+            // we're seeing a sub-pixel gap -- this should fix
+            iby -= 0.5;
+            
+            mIconBlock.setLocation(ibx, iby);
+        }
+        
+        // at right
+        //float ibx = getLabelX() + textBoxWidth;
+        //float iby = getLabelY();
+        // at bottom
+        //float ibx = getCenterX() - mIconBlock.width / 2;
+        //float iby = getLabelY() + textBoxHeight;
+    }
+
+    /*
+    public float getLabelY()
+    {
+        if (hasLabel())
+            return labelBox.getMapY();
+        else
+            return getCenterY();
+    }
+    public float getLabelX()
+    {
+        if (hasLabel())
+            return labelBox.getMapX();
+        else
+            return getCenterX();
+    }
+    
+    public float X_getLabelY()
+    {
+        float y = getCenterY();
+        if (hasLabel()) {
+            y -= labelBox.getMapHeight() / 2;
+            if (mIconBlock.isShowing())
+                y -= mIconBlock.getHeight() / 2;
+        }
+        return y;
+    }
+    */
+    
 
     /** Create a duplicate LWLink.  The new link will
      * not be connected to any endpoints */

@@ -24,8 +24,11 @@ public abstract class LWIcon extends Rectangle2D.Float
 
     protected LWComponent mLWC;
     protected Color mColor;
+    protected float mMinWidth;
+    protected float mMinHeight;
 
     private LWIcon(LWComponent lwc, Color c) {
+        // default size
         super.width = 22;
         super.height = 12;
         mLWC = lwc;
@@ -48,6 +51,16 @@ public abstract class LWIcon extends Rectangle2D.Float
         super.height = h;
     }
 
+    public void setMinimumSize(float w, float h)
+    {
+        mMinWidth = w;
+        mMinHeight = h;
+        if (super.width < w)
+            super.width = w;
+        if (super.height < h)
+            super.height = h;
+    }
+
     public void setColor(Color c) {
         mColor = c;
     }
@@ -61,6 +74,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
     }
 
+    void layout() {} // subclasses can check for changes in here
+    
     abstract boolean isShowing();
     abstract public JComponent getToolTipComponent();
     //todo: make getToolTipComponent static & take lwc arg in case anyone else wants these
@@ -108,8 +123,10 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIcons[1] = mIconNotes = new LWIcon.Notes(lwc, c);
             mIcons[2] = mIconPathway = new LWIcon.Pathway(lwc, c);
 
-            for (int i = 0; i < mIcons.length; i++)
+            for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
+                mIcons[i].setMinimumSize(iconWidth, iconHeight);
+            }
 
             this.mLWC = lwc;
         }
@@ -159,20 +176,24 @@ public abstract class LWIcon extends Rectangle2D.Float
                 super.height = 0;
                 float iconY = super.y;
                 for (int i = 0; i < mIcons.length; i++) {
-                    if (mIcons[i].isShowing()) {
-                        mIcons[i].setLocation(x, iconY);
-                        iconY += mIconHeight;
-                        super.height += mIconHeight;
+                    LWIcon icon = mIcons[i];
+                    if (icon.isShowing()) {
+                        icon.layout();
+                        icon.setLocation(x, iconY);
+                        iconY += icon.height;
+                        super.height += icon.height;
                     }
                 }
             } else {
                 super.width = 0;
                 float iconX = super.x;
                 for (int i = 0; i < mIcons.length; i++) {
-                    if (mIcons[i].isShowing()) {
-                        mIcons[i].setLocation(iconX, y);
-                        iconX += mIconWidth;
-                        super.width += mIconWidth;
+                    LWIcon icon = mIcons[i];
+                    if (icon.isShowing()) {
+                        icon.layout();
+                        icon.setLocation(iconX, y);
+                        iconX += icon.width;
+                        super.width += icon.width;
                     }
                 }
             }
@@ -232,14 +253,17 @@ public abstract class LWIcon extends Rectangle2D.Float
                 Rectangle2D avoidRegion = null;
                 if (mLWC instanceof LWLink) {
                     float w = 1, h = 1;
-                    if  (mLWC.labelBox != null) {
+                    
+                    if (mLWC.hasLabel()) {
                         w = mLWC.labelBox.getMapWidth();
                         h = mLWC.labelBox.getMapHeight();
-                    }
-                    // Stay away from the link label:
-                    avoidRegion = new Rectangle2D.Float(mLWC.getLabelX(), mLWC.getLabelY(), w,h);
-                    // Stay way from the whole icon block:
-                    Rectangle2D.union(avoidRegion, this, avoidRegion);
+                        // Stay away from the link label:
+                        avoidRegion = new Rectangle2D.Float(mLWC.getLabelX(), mLWC.getLabelY(), w,h);
+                        // Stay way from the whole icon block:
+                        Rectangle2D.union(avoidRegion, this, avoidRegion);
+                    } else
+                        // Stay way from the whole icon block:
+                        avoidRegion = this;
                 } else {
                     avoidRegion = mLWC.getShapeBounds();
                 }
@@ -301,8 +325,13 @@ public abstract class LWIcon extends Rectangle2D.Float
         // On PC, two underscores look better than "---" in default Trebuchet font,
         // which leaves the dashes high in the box.
     
-        Resource(LWComponent lwc, Color c) { super(lwc, c); }
-        Resource(LWComponent lwc) { super(lwc); }
+        TextRow mTextRow;
+        
+        //Resource(LWComponent lwc) { super(lwc); }
+        Resource(LWComponent lwc, Color c) {
+            super(lwc, c);
+            layout();
+        }
 
         boolean isShowing() { return mLWC.hasResource(); }
         
@@ -320,7 +349,45 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
             return ttResource;
         }
+
+        void layout()
+        {
+            String extension = NoResource;
+            if (mLWC.hasResource())
+                extension = mLWC.getResource().getExtension();
+            mTextRow = new TextRow(extension, FONT_ICON);
+            // Resource icon special case can override parent set width:
+            super.width = mTextRow.width;
+            if (super.width < super.mMinWidth)
+                super.width = super.mMinWidth;
+        }
         
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+
+            double x = getX();
+            double y = getY();
+
+            dc.g.translate(x, y);
+            dc.g.setColor(mColor);
+            dc.g.setFont(FONT_ICON);
+
+            float xoff = (super.width - mTextRow.width) / 2;
+            float yoff = (super.height - mTextRow.height) / 2;
+            mTextRow.draw(dc.g, xoff, yoff);
+
+            // an experiment in semantic zoom
+            if (mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
+                dc.g.setFont(MinisculeFont);
+                dc.g.setColor(Color.gray);
+                dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));
+            }
+
+            dc.g.translate(-x, -y);
+        }
+
+        /*        
         void draw(DrawContext dc)
         {
             super.draw(dc);
@@ -334,7 +401,11 @@ public abstract class LWIcon extends Rectangle2D.Float
             double y = getY();
             dc.g.translate(x, y);
 
+            // todo perf: listen for resource change & cache text row
             TextRow row = new TextRow(extension, dc.g);
+            // Resource icon special case can override parent set width:
+            if (super.width < row.width)
+                super.width = row.width;
             float xoff = (super.width - row.width) / 2;
             float yoff = (super.height - row.height) / 2;
             row.draw(xoff, yoff);
@@ -349,6 +420,8 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             dc.g.translate(-x, -y);
         }
+        */
+        
     }
 
     static class Notes extends LWIcon

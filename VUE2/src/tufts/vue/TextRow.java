@@ -4,7 +4,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.font.TextLayout;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 
 public class TextRow
@@ -23,20 +25,36 @@ public class TextRow
     float width;
     float height;
     
-    public TextRow(String text, Graphics g)
+    public TextRow(String text, Font font, FontRenderContext frc)
     {
         this.text = text;
-        this.g2d = (Graphics2D) g;
-        this.row = new TextLayout(text, g2d.getFont(), g2d.getFontRenderContext());
+        this.row = new TextLayout(text, font, frc);
         this.bounds = (Rectangle2D.Float) row.getBounds();
         this.width = bounds.width;
         this.height = bounds.height;
     }
 
+    public TextRow(String text, Graphics g)
+    {
+        this(text, g.getFont(), ((Graphics2D)g).getFontRenderContext());
+        this.g2d = (Graphics2D) g;
+    }
+
+    public TextRow(String text, Font font)
+    {
+        // default FRC: anti-alias & fractional metrics
+        this(text, font, new FontRenderContext(null, true, true));
+    }
+    
     public float getWidth() { return width; }
     public float getHeight() { return height; }
 
     public void draw(float xoff, float yoff)
+    {
+        draw(this.g2d, xoff, yoff);
+    }
+        
+    public void draw(Graphics2D g2d, float xoff, float yoff)
     {
         //g.drawString(extension, 0, (int)(genIcon.getHeight()/1.66));
         

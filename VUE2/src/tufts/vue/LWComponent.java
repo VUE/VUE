@@ -74,12 +74,16 @@ public class LWComponent
             return;
         if (this.label != null && this.label.equals(label))
             return;
-        this.label = label;
-        // todo opt: only do this if node or link
-        if (labelBox == null)
-            getLabelBox();
-        else if (setDocument)
-            getLabelBox().setText(label);
+        if (label.length() == 0) {
+            this.label = null;
+        } else {
+            this.label = label;
+            // todo opt: only do this if node or link
+            if (labelBox == null)
+                getLabelBox();
+            else if (setDocument)
+                getLabelBox().setText(label);
+        }
         layout();
         notify("label");
     }
@@ -89,7 +93,9 @@ public class LWComponent
         if (this.labelBox == null) {
             this.labelBox = new TextBox(this, this.label);
             // hack for LWLink label box hit detection:
-            this.labelBox.setMapLocation(getCenterX(), getCenterY());
+            this.labelBox.setMapLocation(getCenterX() - labelBox.getMapWidth() / 2,
+                                         getCenterY() - labelBox.getMapHeight() / 2);
+            //layout();
         }
         return this.labelBox;
     }
@@ -117,11 +123,13 @@ public class LWComponent
     public void setMetaData(String metaData)
     {
         this.metaData = metaData;
+        layout();
         notify("meta-data");
     }
     public void setCategory(String category)
     {
         this.category = category;
+        layout();
         notify("category");
     }
     public void setResource(Resource resource)
@@ -468,6 +476,7 @@ public class LWComponent
                 // because stroke affects bounds-width, may need to re-layout parent
                 getParent().layout();
             }
+            layout();
             notify("strokeWidth");
         }
     }
@@ -514,18 +523,30 @@ public class LWComponent
     /** default label X position impl: center the label in the bounding box */
     public float getLabelX()
     {
-        float x = getCenterX();
-        if (labelBox != null)
-            x -= (labelBox.getMapWidth() / 2) + 1;
-        return x;
+        //float x = getCenterX();
+        if (hasLabel())
+            return getLabelBox().getMapX();
+        else if (labelBox != null)
+            return getCenterX() - labelBox.getMapWidth() / 2;
+        else
+            return getCenterX();
+        //  x -= (labelBox.getMapWidth() / 2) + 1;
+        //return x;
     }
     /** default label Y position impl: center the label in the bounding box */
     public float getLabelY()
     {
-        float y = getCenterY();
-        if (labelBox != null)
-            y -= labelBox.getMapHeight() / 2;
-        return y;
+        if (hasLabel())
+            return getLabelBox().getMapY();
+        else if (labelBox != null)
+            return getCenterY() - labelBox.getMapHeight() / 2;
+        else
+            return getCenterY();
+        
+        //float y = getCenterY();
+        //if (hasLabel())
+        //  y -= labelBox.getMapHeight() / 2;
+        //return y;
     }
     
     /*

@@ -237,10 +237,6 @@ public class LWNode extends LWContainer
             cy <= ly + height;
     }
 
-    //private transient JComponent ttResource = null;
-    //private transient JComponent ttNotes = null;
-    //private transient JComponent ttPathway = null;
-    //private transient String ttPathwayHtml = null;
     public void setResource(Resource resource)
     {
         super.setResource(resource);
@@ -252,135 +248,17 @@ public class LWNode extends LWContainer
         //ttNotes = null;
     }
 
-    /*
-    // AALabel: A JLabel that forces anti-aliasing -- use this if
-    // you want a tool-tip to be anti-aliased on the PC,
-    // because there's no way to set it otherwise.
-    // (This is redundant on the Mac which does it automatically)
-    class AALabel extends JLabel
-    {
-        AALabel(String s) { super(s); };
-        public void paintComponent(Graphics g) {
-            ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-                                             java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            super.paintComponent(g);
-        }
-    }
-    
-
-    private JComponent getResourceToolTip()
-    {
-        if (ttResource == null) {
-            ttResource = new AALabel("<html>&nbsp;<b>"
-                                     + getResource()
-                                     + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
-            ttResource.setFont(FONT_MEDIUM);
-        }
-        return ttResource;
-    }
-    
-    private JComponent getPathwayToolTip()
-    {
-        // We compute this one every time in case the
-        // pathway labels change.
-        String html = "<html>";
-        Iterator i = pathwayRefs.iterator();
-        int n = 0;
-        while (i.hasNext()) {
-            Pathway p = (Pathway) i.next();
-            if (n++ > 0)
-                html += "<br>";
-            html += "&nbsp;In path: <b>" + p.getLabel() + "</b>&nbsp;";
-        }
-        if (ttPathwayHtml == null || !ttPathwayHtml.equals(html)) {
-            ttPathway = new AALabel(html);
-            ttPathway.setFont(FONT_MEDIUM);
-            ttPathwayHtml = html;
-        }
-        return ttPathway;
-    }
-    
-    private JComponent getNotesToolTip()
-    {
-        if (ttNotes == null) {
-            String notes = getNotes();
-            int width = notes.length();
-            //System.out.println("width="+width);
-
-            if (width > 30) {
-                //JTextArea ta = new JTextArea(notes, 1, width);
-                JTextArea ta = new JTextArea(notes, 1, 30);
-                ta.setFont(FONT_SMALL);
-                ta.setLineWrap(true);
-                ta.setWrapStyleWord(true);
-                ttNotes = ta;
-            } else {
-                ttNotes = new JLabel(notes);
-                ttNotes.setFont(FONT_SMALL);
-            }
-        }
-        return ttNotes;
-    }
-*/
-    
     public void mouseOver(MapMouseEvent e)
     {
-        /*
-        if (textBoxHit(cx, cy)) {
-            System.out.println("over label");
-        } else
-        */
+        //if (textBoxHit(cx, cy)) System.out.println("over label");
 
         if (mIconBlock.isShowing())
             mIconBlock.checkAndHandleMouseOver(e);
-
-        /*
-        if (iconShowing()) {
-            JComponent tipComponent = null;
-            Rectangle2D.Float tipRegion = null;
-            double y = 0;
-            if (hasResource() && mIconResource.contains(cx, cy)) {
-
-                tipComponent = getResourceToolTip();
-                tipRegion = mIconResource;
-                
-            } else if (hasNotes() && mIconNotes.contains(cx, cy)) {
-                
-                tipComponent = getNotesToolTip();
-                tipRegion = mIconNotes;
-
-            } else if (inPathway() && mIconPathway.contains(cx, cy)) {
-                
-                tipComponent = getPathwayToolTip();
-                tipRegion = mIconPathway;
-            }
-            
-            // TODO: don't need to do this if there's already a tip showing!
-            if (tipComponent != null) {
-                // translate tipRegion from node to map coords
-                tipRegion = (Rectangle2D.Float) tipRegion.clone();
-                tipRegion.x += getX();
-                tipRegion.y += getY();
-                e.getViewer().setTip(this, tipComponent, tipRegion);
-            }
-        }
-        */
     }
 
-    /*
-    public void mouseExited(MapMouseEvent e)
-    {
-        super.mouseExited(e);
-        e.getViewer().clearTip();
-    }
-    */
-    
     public boolean handleDoubleClick(MapMouseEvent e)
     {
         //System.out.println("*** handleDoubleClick " + e + " " + this);
-
-        // need to get mapmouseevent here so can ask viewer
-        // to activate label edit.
 
         float cx = e.getComponentX();
         float cy = e.getComponentY();
@@ -731,7 +609,6 @@ public class LWNode extends LWContainer
             float iconPillarY = IconPillarPadY;
             //iconPillarY = EdgePadY;
 
-            
             mIconBlock.layout(); // in order to compute the size
 
             //float totalIconHeight = icons * IconHeight;

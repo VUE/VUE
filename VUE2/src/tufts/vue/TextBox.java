@@ -179,10 +179,11 @@ class TextBox extends JTextPane
         }
             
         wasOpaque = isOpaque();
-        if (lwc instanceof LWNode) {
-            Color c = lwc.getFillColor();
-            if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
-                c = lwc.getParent().getFillColor();
+        //if (lwc instanceof LWNode) {
+            Color c = lwc.getRenderFillColor();
+            //if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
+            if (c == null && lwc.getParent() != null)
+                c = lwc.getParent().getRenderFillColor(); // todo: only handles 1 level transparent embed!
             // todo: could also consider using map background if the node itself
             // is transpatent (has no fill color)
             if (c != null) {
@@ -195,7 +196,7 @@ class TextBox extends JTextPane
                 setOpaque(true);
                 setBackground(c);
             }
-        }
+        //}
         if (debug) System.out.println("addNotify: insets="+getInsets());
     }
     
@@ -430,20 +431,17 @@ class TextBox extends JTextPane
         return s;
     }
 
-    public float getMapWidth()
-    {
-        return mapWidth;
-    }
-    public float getMapHeight()
-    {
-        return mapHeight;
-    }
+    public float getMapX() { return this.mapX; }
+    public float getMapY() { return this.mapY; }
+    public float getMapWidth() { return mapWidth; }
+    public float getMapHeight() { return mapHeight; }
 
     public void setMapLocation(float x, float y)
     {
         this.mapX = x;
         this.mapY = y;
     }
+        
 
     public boolean intersectsMapRect(Rectangle2D rect)
     {
@@ -518,9 +516,10 @@ class TextBox extends JTextPane
         Graphics2D g = dc.g;
         if (debug || debug_box) {
             Dimension s = getPreferredSize();
-            g.setColor(Color.blue);
-            g.setStroke(MinStroke);
-            g.drawRect(0,0, s.width-1, s.height);
+            g.setColor(Color.red);
+            g.setStroke(MinStroke2);
+            g.drawRect(0,0, s.width, s.height);
+            //g.drawRect(0,0, s.width-1, s.height);
         }
             
         //s = getMinimumSize();
@@ -530,9 +529,10 @@ class TextBox extends JTextPane
 
         if (debug || debug_box || getParent() != null) {
             Dimension s = getSize();
-            g.setColor(Color.red);
-            g.setStroke(MinStroke2);
-            g.drawRect(0,0, s.width-1, s.height);
+            g.setColor(Color.blue);
+            g.setStroke(MinStroke);
+            g.drawRect(0,0, s.width, s.height);
+            //g.drawRect(0,0, s.width-1, s.height);
         }
 
     }
