@@ -1596,12 +1596,14 @@ public class MapViewer extends javax.swing.JPanel
                 return;
                 }*/
 
-            VueTool[] tools =  VueToolbarController.getController().getTools();
-            for (int i = 0; i < tools.length; i++) {
-                VueTool tool = tools[i];
-                if (tool.getShortcutKey() == keyChar) {
-                    VueToolbarController.getController().setSelectedTool(tool);
-                    return;
+            if (e.getModifiers() == 0) {
+                VueTool[] tools =  VueToolbarController.getController().getTools();
+                for (int i = 0; i < tools.length; i++) {
+                    VueTool tool = tools[i];
+                    if (tool.getShortcutKey() == keyChar) {
+                        VueToolbarController.getController().setSelectedTool(tool);
+                        return;
+                    }
                 }
             }
 
@@ -1661,6 +1663,8 @@ public class MapViewer extends javax.swing.JPanel
                     DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF;
                 } else if (c == 'P') {
                     DEBUG_PAINT = !DEBUG_PAINT;
+                } else if (c == 'K') {
+                    DEBUG_KEYS = !DEBUG_KEYS;
                 } else
                     did = false;
                 if (did) {
