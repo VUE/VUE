@@ -10,7 +10,7 @@ import java.util.Vector;
 import java.util.Enumeration;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import tufts.vue.LWNode;
+import tufts.vue.LWComponent;
 
 /**
  *
@@ -23,7 +23,7 @@ public class HierarchyNode implements osid.hierarchy.Node
     private String name;
     private String description;
     private DefaultMutableTreeNode treeNode;
-    private LWNode node;
+    private LWComponent component;
     
     /** Creates a new instance of HierarchyNode */
     public HierarchyNode(osid.shared.Id id, DefaultMutableTreeNode treeNode) 
@@ -32,6 +32,7 @@ public class HierarchyNode implements osid.hierarchy.Node
         this.id = id;
         name = null;
         description = null;
+        component = null;
         
         this.treeNode = treeNode;
     }
@@ -145,13 +146,18 @@ public class HierarchyNode implements osid.hierarchy.Node
         return treeNode;
     }
     
-    public void setLWNode(LWNode node)
+    public void setLWComponent(LWComponent component)
     {
-        this.node = node;
+        this.component = component;
     }
     
-    public LWNode getLWNode()
+    public LWComponent getLWComponent()
     {
-        return node;
+        return component;
+    }
+    
+    public String toString()
+    {
+        return name;
     }
 }

@@ -13,7 +13,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Iterator;
 import java.util.Enumeration;
 
-import tufts.vue.LWNode;
+//import tufts.vue.LWComponent;
+//import tufts.vue.LWContainer;
+//import tufts.vue.LWNode;
+//import tufts.vue.LWLink;
+
 import tufts.vue.HierarchyTreeModel;
 
 /**
@@ -33,14 +37,44 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
     private DefaultTreeModel treeModel;
     
     private int nextID = 1;
-     
-    private String getNextID()
+    
+    /** methods defined by Daisuke Fujiwara */
+    protected String getNextID()
     {
         return Integer.toString(nextID++, 10);
     }
     
+    public DefaultTreeModel getTreeModel()
+    {
+        return treeModel;
+    }
+    
+    protected void reloadTreeModel(HierarchyNode node)
+    {
+        treeModel.reload(node.getTreeNode());
+    }
+    
+    //assuming a single parent mode
+    protected HierarchyNode getRootNode() throws osid.hierarchy.HierarchyException
+    {
+        try
+        {
+            osid.hierarchy.NodeIterator i = getRootNodes();
+            HierarchyNode rootNode = (HierarchyNode)i.next();
+        
+            return rootNode;
+        }
+        
+        catch (osid.hierarchy.HierarchyException he)
+        {
+            throw new osid.hierarchy.HierarchyException("getRootNode caused a problem");
+        }
+    }
+    
+    /** end **/
+    
     /** Creates a new instance of HierarchyModel */
-    public HierarchyModel(LWNode rootNode)
+    public HierarchyModel()
     {
         map = new HashMap();
         
@@ -59,13 +93,11 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         description = "no description";
         
         availableTypes = new Vector();
-        
-        setUpHierarchyNodes(rootNode, null);
     }
     
-    public HierarchyModel(LWNode rootNode, String name, String description) 
+    public HierarchyModel(String name, String description) 
     {
-        this(rootNode);
+        this();
         this.name = name;
         this.description = description;
     }
@@ -383,44 +415,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         HierarchyTraversalInfoIterator iterator = new HierarchyTraversalInfoIterator(traversalInfoList);
         return (osid.hierarchy.TraversalInfoIterator)iterator;
     }
-    
-    /**custom methods*/
-    
-    public void setUpHierarchyNodes(LWNode node, osid.hierarchy.Node parentNode)
-    {
-        try
-        {
-            osid.hierarchy.Node hierarchyNode;
-        
-            if (parentNode == null)
-              hierarchyNode = createRootNode(new tufts.oki.shared.Id(getNextID()), new tufts.oki.shared.VueType(), 
-                                                                    node.getLabel(), node.getNotes());
-        
-            else
-              hierarchyNode = createNode(new tufts.oki.shared.Id(getNextID()), parentNode.getId(), new tufts.oki.shared.VueType(), 
-                                                                 node.getLabel(), node.getNotes());
-            
-            ((HierarchyNode)hierarchyNode).setLWNode(node);
-         
-            //do it recursively
-            for (Iterator i = node.getNodeIterator(); i.hasNext();)
-            {
-                LWNode nextNode = (LWNode)i.next();
-                setUpHierarchyNodes(nextNode, hierarchyNode);
-            }
-        }
-        
-        catch (osid.hierarchy.HierarchyException he)
-        {
-            System.out.println("hierarchy exception");
-        }
-        
-        catch (osid.shared.SharedException se)
-        {
-            System.out.println("shared exception");
-        }
-    }
-    
+     
     /*
     public Vector traverseUpDepthFirst(osid.hierarchy.Node node, int level)
     {
