@@ -14,18 +14,10 @@ import java.awt.datatransfer.*;
 import java.awt.dnd.*;
 import java.util.Vector;
 import javax.swing.event.*;
+import osid.dr.*;
 
 
 
-import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.Unmarshaller;
-
-import org.exolab.castor.mapping.Mapping;
-import org.exolab.castor.mapping.MappingException;
-import java.io.OutputStreamWriter;
-
-import org.xml.sax.InputSource;
- 
 import javax.swing.tree.*;
 import java.util.Iterator;
 
@@ -37,25 +29,15 @@ import java.util.Iterator;
 public class VueDragTree extends JTree implements DragGestureListener,
 		DragSourceListener {
     
-    private static final String searchURL = "http://googlesearch.tufts.edu/search?submit.y=5&site=tufts01&submit.x=11&output=xml_no_dtd&client=tufts01&q=";
-    
-    private static final String  XML_MAPPING = "tufts/google/google.xml";
-    private static final String  NXML_MAPPING = "google.xml";
    
     
-    private static int NResults = 10;
-    
-    private static String result ="";
-    
-    private static URL url;  
-   
-   
-    
-    public VueDragTree(String top,String query) {
+    public VueDragTree(Object obj, String treeName) {
        
         //create the treemodel
         
-        setModel(createTreeModel(top,query));
+        
+        
+        setModel(createTreeModel(obj, treeName));
         
         //Implement Drag
         
@@ -76,7 +58,7 @@ public class VueDragTree extends JTree implements DragGestureListener,
 			}
 		});
          
-                DragTreeCellRenderer renderer = new DragTreeCellRenderer(this);
+                VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer(this);
                
          
               
@@ -88,58 +70,54 @@ public class VueDragTree extends JTree implements DragGestureListener,
         
     }
     
-    private DefaultTreeModel createTreeModel(String top, String query){
-       
-        DefaultMutableTreeNode  baseRoot = new DefaultMutableTreeNode(top);
+    
+    //Creating treemodel
+    
+    private DefaultTreeModel createTreeModel(Object obj, String treeName){
         
-       
-         //Do Google Search and build the tree
-         
-         try {
-           result = "";
-           url = new URL(searchURL+query);
-           InputStream input = url.openStream();
-           int c;
-           while((c=input.read())!= -1) {
-               result = result + (char) c;
-           }
-           String filename = "google_result.xml";
-           System.out.println(filename);
-           FileWriter fileWriter = new FileWriter(filename);
-           
-           fileWriter.write(result);
-           fileWriter.close();
-         
-          GSP gsp = loadGSP(filename);
+        
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(treeName); 
           
-           Iterator i = gsp.getRES().getResultList().iterator();
-       
-           while(i.hasNext()) {
-               Result r = (Result)i.next();
-               
-               System.out.println(r.getTitle()+" "+r.getUrl());
-               ResultNode resultnode = new ResultNode(r);
-              
-               baseRoot.add(resultnode);
-               
-                   
-                   
-           } 
-        } catch (Exception e) {}
-          
-        return new DefaultTreeModel(baseRoot);
+        
+   
+        if (obj instanceof AssetIterator){
+            AssetIterator i = (AssetIterator)obj;
+            try{
+                while (i.hasNext())
+                            root.add(new AssetNode(i.next()));
+            }catch (Exception e){System.out.println("VueDragTree.createTreeModel"+e);}
+                      
+        } else{
+            Iterator i = (Iterator)obj;
+             while (i.hasNext()){
+                Object resource = i.next(); 
+                if (resource instanceof File)
+                {
+                             
+                    FileNode rootNode = new FileNode((File)resource);
+                    root.add(rootNode);
+                    rootNode.explore();
+                }
+                else 
+                    root.add(new DefaultMutableTreeNode(resource));
+            }
+        }
+                  
+     return new DefaultTreeModel(root);
        
     }
+   
+    //****************************************
     
    public void dragGestureRecognized(DragGestureEvent e)
     {
         // drag anything ...
-        Result result = getResult();
-        String resultUrl = result.getUrl();
         
-        if (resultUrl != null) {
+        Object resource = getObject();
+        
+        if (resource != null) {
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
-			new StringSelection(resultUrl), // transferable
+			new VueDragTreeNodeSelection(resource), // transferable
 			this);  // drag source listener
         }
     }
@@ -150,28 +128,29 @@ public class VueDragTree extends JTree implements DragGestureListener,
     public void dropActionChanged(DragSourceDragEvent e) {}  
     
 
- public Result getResult() {
+ public Object getObject() {
         TreePath path = getLeadSelectionPath();
         if (path == null)
             return null;
-        ResultNode node = (ResultNode)path.getLastPathComponent();
-        return ((Result)node.getUserObject());
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        return (node.getUserObject());
     }
     
- 
+
  
  
  
  //Cell Renderer
-class DragTreeCellRenderer extends DefaultTreeCellRenderer {
+class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
     protected VueDragTree tree;
-    protected ResultNode lastNode;
+   // protected ResultNode lastNode;
     private String metaData;
     
-public DragTreeCellRenderer(VueDragTree pTree) {
+public VueDragTreeCellRenderer(VueDragTree pTree) {
         this.tree = pTree;
-        metaData = "deafult metadata";
-        tree.addMouseMotionListener(new MouseMotionAdapter() {
+        metaData = "default metadata";
+        /*
+         tree.addMouseMotionListener(new MouseMotionAdapter() {
                 //JPopupMenu popUp;
             public void mouseMoved(MouseEvent me) {
                 TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
@@ -203,6 +182,7 @@ public DragTreeCellRenderer(VueDragTree pTree) {
             
         });
 
+         */
     }
 
   
@@ -211,61 +191,151 @@ public DragTreeCellRenderer(VueDragTree pTree) {
         
     }
 } 
-    //Part of the Marshaller ---------
     
-     private static GSP loadGSP(String filename)
-    {
-       
-        try {
-            Unmarshaller unmarshaller = getUnmarshaller();
-           unmarshaller.setValidation(false);
-           GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource(new FileReader(filename)));
-            return gsp;
-        } catch (Exception e) {
-            System.out.println("loadGSP[" + filename + "]: " + e);
-            e.printStackTrace();
-            return null;
-        }
-    }
-    
-   private static GSP loadGSP(URL url)
-    {
-       try {
-         InputStream input = url.openStream();
-         int c;
-         while((c=input.read())!= -1) {
-               result = result + (char) c;
-         }
-       
-           Unmarshaller unmarshaller = getUnmarshaller();
-           unmarshaller.setValidation(false);
-           GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource());
-            return gsp;
-        } catch (Exception e) {
-            System.out.println("loadGSP " + e);
-            e.printStackTrace();
-            return null;
-        }
-    }
-    
-
-    private static Unmarshaller unmarshaller = null;
-    private static Unmarshaller getUnmarshaller()
-    {
-        if (unmarshaller == null) {
-            unmarshaller = new Unmarshaller();
-            Mapping mapping = new Mapping();
-            try {
-                mapping.loadMapping(NXML_MAPPING);
-                unmarshaller.setMapping(mapping);
-            } catch (Exception e) {
-                System.err.println("getUnmarshaller: " + e);
-            }
-        }
-        return unmarshaller;
-    }
-    
+  
     
     
     
 }
+
+class FileNode extends DefaultMutableTreeNode {
+	private boolean explored = false;
+
+	public FileNode(File file) 	{ 
+		setUserObject(file); 
+	}
+	public boolean getAllowsChildren() { return isDirectory(); }
+	public boolean isLeaf() 	{ return !isDirectory(); }
+	public File getFile()		{ return (File)getUserObject(); }
+
+	public boolean isExplored() { return explored; }
+
+	public boolean isDirectory() {
+              
+		File file = getFile();
+                   
+                    if (file != null)
+                    {
+                        return file.isDirectory();
+                    }
+                    else
+                    {
+                        return false;
+                    }
+              
+	}
+	public String toString() {
+		File file = (File)getUserObject();
+		String filename = file.toString();
+		int index = filename.lastIndexOf(File.separator);
+
+		return (index != -1 && index != filename.length()-1) ? 
+									filename.substring(index+1) : 
+									filename;
+	}
+	public void explore() {
+                
+		if(!isDirectory())
+			return;
+
+		if(!isExplored()) {
+			File file = getFile();
+                          System.out.println("I am here");
+                        
+			File[] children = file.listFiles();
+
+			for(int i=0; i < children.length; ++i) 
+				add(new FileNode(children[i]));
+
+			explored = true;
+		}
+	}
+}
+  class AssetNode extends DefaultMutableTreeNode {
+	private boolean explored = false;
+        private Asset asset;
+	public AssetNode(Asset asset) 	{ 
+            this.asset = asset;
+            setUserObject(asset); 
+	}
+        public  Asset getAsset() {
+            return this.asset;
+        }
+	public String toString(){
+            String returnString = "Fedora Object";
+            try {
+                returnString = asset.getDisplayName();
+            } catch (Exception e) { System.out.println("FedoraNode.toString() "+e);}
+            return returnString;
+	}
+}
+
+  class VueDragTreeNodeSelection extends Vector implements Transferable{
+       final static int FILE = 0;
+        final static int STRING = 1;
+        final static int PLAIN = 2;
+        final static int ASSET = 0;
+        public static DataFlavor assetFlavor;
+        String displayName = "";
+        /**
+         try {
+                assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
+            } catch (Exception e) { System.out.println("FedoraSelection "+e);}
+            **/
+        DataFlavor flavors[] = {DataFlavor.plainTextFlavor,
+                                DataFlavor.stringFlavor,
+                                DataFlavor.plainTextFlavor};
+        public VueDragTreeNodeSelection(Object resource)
+        {
+            addElement(resource);
+            if (resource instanceof Asset){
+            try {
+             assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
+         //    assetFlavor = new DataFlavor("asset","asset");
+                displayName = ((Asset)elementAt(0)).getDisplayName();
+            } catch (Exception e) { System.out.println("FedoraSelection "+e);}
+            
+
+            if(assetFlavor != null) {
+                flavors[ASSET] = assetFlavor;
+            }
+            }else if(resource instanceof File){
+                flavors[FILE] = DataFlavor.javaFileListFlavor;
+                displayName = ((File)elementAt(0)).getName();
+            }else
+            displayName = elementAt(0).toString();
+                
+        }
+        /* Returns the array of flavors in which it can provide the data. */
+        public synchronized DataFlavor[] getTransferDataFlavors() {
+    	return flavors;
+        }
+        /* Returns whether the requested flavor is supported by this object. */
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            boolean b  = false;
+            b |=flavor.equals(flavors[ASSET]);
+            b |= flavor.equals(flavors[STRING]);
+           // b |= flavor.equals(flavors[PLAIN]);
+        	return (b);
+        }
+        /**
+         * If the data was requested in the "java.lang.String" flavor,
+         * return the String representing the selection.
+         */
+        public synchronized Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            
+    	if (flavor.equals(flavors[STRING])) {
+            System.out.println("I am here"+this.elementAt(0));
+    	    return this.elementAt(0);
+    	} else if (flavor.equals(flavors[PLAIN])) {
+             System.out.println("I am plain"+this.elementAt(0));
+    	    return new StringReader(displayName);
+    	} else if (flavor.equals(flavors[ASSET])) {
+    	    return this;
+        } else if (flavor.equals(flavors[FILE])){
+            return this;
+    	} else {
+    	    throw new UnsupportedFlavorException(flavor);
+    	}
+        }
+    }
