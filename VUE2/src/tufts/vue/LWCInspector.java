@@ -297,7 +297,7 @@ class LWCInspector extends javax.swing.JPanel
         if (c.getParent() == null)
             id += " [PARENT IS NULL]";
         else {
-            id += " p=\"" + c.getParent().getLabel() + "\"";
+            id += " p=<" + c.getParent().getLabel() + ">";
             id += " i" + c.getParent().getLayer(c);
             id += " L" + c.getLinkRefs().size();
             if (c instanceof LWContainer)

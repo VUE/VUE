@@ -29,6 +29,9 @@ public class MapViewer extends javax.swing.JPanel
                , LWComponent.Listener
                , LWSelection.Listener
 {
+    private Rectangle2D.Float RepaintRegion = null;
+    private Rectangle paintedSelectionBounds = null;
+    
     public interface Listener extends java.util.EventListener
     {
         public void mapViewerEventRaised(MapViewerEvent e);
@@ -108,7 +111,15 @@ public class MapViewer extends javax.swing.JPanel
         */
 
         //setPreferredSize(new Dimension(400,300));
-        setBackground(map.getFillColor());
+        
+        //-------------------------------------------------------
+        // set the background color here on the panel instead
+        // of querying the map BG color every time in paintComponent
+        // because the MapPanner, for instance, wants to use
+        // it's own background color setting (hmm: should we let it?)
+        //-------------------------------------------------------
+        setBackground(map.getFillColor()); // todo: will need to listen for fill color changsae
+        
         setFont(VueConstants.DefaultFont);
         loadMap(map);
 
@@ -316,11 +327,62 @@ public class MapViewer extends javax.swing.JPanel
         repaint();
     }
     
-    public void selectionChanged(LWSelection l)
+    private Rectangle mapRectToPaintRegion(Rectangle2D mapRect)
+    {
+        Rectangle r = mapToScreenRect(mapRect);
+        r.width++;
+        r.height++;
+        return r;
+    }
+
+    private void repaintMapRegion(Rectangle2D mapRect)
+    {
+        repaint(mapRectToPaintRegion(mapRect));
+    }
+    private void repaintMapRegionGrown(Rectangle2D mapRect, float growth)
+    {
+        mapRect.setRect(mapRect.getX() - growth/2,
+                        mapRect.getY() - growth/2,
+                        mapRect.getWidth() + growth,
+                        mapRect.getHeight() + growth);
+        repaint(mapRectToPaintRegion(mapRect));
+    }
+    private void repaintMapRegionAdjusted(Rectangle2D mapRect)
+    {
+        repaint(growForSelection(mapToScreenRect(mapRect)));
+    }
+
+    // We grow the bounds here to include any selection
+    // handles that may be rendering as we drag the component
+    // todo: do we have to do StrokeBug05 compensation here?
+    private Rectangle growForSelection(Rectangle r)
+    {
+        // adding 2 to SHS at moment due to Mac bugs
+        int adjust = SelectionHandleSize + 2;
+        int margin = adjust / 2;
+        r.x -= margin;
+        r.y -= margin;
+        r.width += adjust + 1;
+        r.height += adjust + 1;
+        return r;
+    }
+    
+    public void selectionChanged(LWSelection s)
     {
         //System.out.println("MapViewer: selectionChanged");
-        repaint();
+        repaintSelection();
     }
+    
+    /** update the regions of both the old selection & the new selection */
+    public void repaintSelection()
+    {
+        if (paintedSelectionBounds != null)
+            repaint(paintedSelectionBounds);
+        Rectangle2D newBounds = VueSelection.getBounds();
+        if (newBounds != null)
+            repaintMapRegionAdjusted(newBounds);
+    }
+    
     
     public void LWCChanged(LWCEvent e)
     {
@@ -328,26 +390,47 @@ public class MapViewer extends javax.swing.JPanel
         // when dragging, esp if there are children if
         // we have those events turned in...
         //System.out.println("MapViewer: " + e);
-        if (e.getWhat().equals("location"))
+        if (e.getWhat().equals("location")
+            || e.getWhat().equals("added") // depend on childAdded 
+            )
+            // || e.getWhat.equals("childRemoved"))
+            // todo: deleting even will set up for repainting that node,
+            // but the childRemoved event's component object is the whole map --
+            // thus we'll repaint everything on every delete (or childAdded)
             return;
+        if (e.getWhat().startsWith("child")) {
+            // childAdded would clip if added outside edge
+            // of any existing components!
+            repaint();
+            return;
+        }
         if (e.getWhat().equals("deleting")) {
             // FYI, the selection itself could listen for this,
             // but that's a ton of events for this one thing.
             // todo: maybe have LWContainer check isSelected & manage it in deleteChild?
             LWComponent c = e.getComponent();
             boolean wasSelected = c.isSelected();
-            selectionRemove(c); // ensure isn't in selection
 
-            // if we just dispersed a group that was selected,
-            // put all the former children into the selection instead
-            if (wasSelected && c instanceof LWGroup)
-                selectionAdd(((LWGroup)c).getChildIterator());
+            if (wasSelected) {
+                selectionRemove(c); // ensure isn't in selection
+                
+                // if we just dispersed a group that was selected,
+                // put all the former children into the selection instead
+                if (c instanceof LWGroup)
+                    selectionAdd(((LWGroup)c).getChildIterator());
+            }
         }
-        if (e.getSource() == this)
+        if (e.getSource() == this)//todo: still relevant?
             return;
-        repaint(); // todo opt: could opt region 
+        if (paintedSelectionBounds != null) {
+            // this will handle any size shrinkages -- old selection bounds
+            // will still include the old size (this depends on fact that
+            // we can only change the properties of a selected component)
+            repaint(paintedSelectionBounds);
+        }
+        repaintMapRegionAdjusted(e.getComponent().getBounds());
     }
-    
+
     /**
      * By default, add all nodes hit by this box to a list for doing selection.
      * If NO nodes are in the list, search for links within the region
@@ -474,12 +557,20 @@ public class MapViewer extends javax.swing.JPanel
             clearIndicated();
             indication = c;
             c.setIndicated(true);
+            if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
+                repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
+            else
+                repaintMapRegion(indication.getBounds());
         }
     }
     public void clearIndicated()
     {
         if (indication != null) {
             indication.setIndicated(false);
+            if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
+                repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
+            else
+                repaintMapRegion(indication.getBounds());
             indication = null;
         }
     }
@@ -492,20 +583,56 @@ public class MapViewer extends javax.swing.JPanel
     private static final Line2D Xaxis = new Line2D.Float(-3000, 0, 3000, 0);
     private static final Line2D Yaxis = new Line2D.Float(0, -3000, 0, 3000);
 
+    private static int paints=0;
+    public void paint(Graphics g)
+    {
+        long start = 0;
+        if (DEBUG_PAINT) {
+            System.out.print("paint " + paints + "..."); System.out.flush();
+            start = System.currentTimeMillis();
+        }
+        
+        super.paint(g);
+
+        if (DEBUG_PAINT) {
+            long delta = System.currentTimeMillis() - start;
+            long fps = delta > 0 ? 1000/delta : -1;
+            System.out.println("paint " + paints + ": "
+                               + delta
+                               + "ms (" + fps + " fps)");
+            paints++;
+        }
+        RepaintRegion = null;
+    }
+
     /**
      * Java Swing JComponent.paintComponent -- paint the map on the map viewer canvas
      */
-    private static int paints=0;
+    //private static final Color rrColor = new Color(208,208,208);
+    private static final Color rrColor = Color.yellow;
     public void paintComponent(Graphics g)
     {
-        //System.out.println("paint " + paints++);
-        // paint the background
-        Rectangle r = g.getClipBounds();
-        g.setColor(getBackground());
-        g.fillRect(r.x, r.y, r.width, r.height);
-        //super.paintComponent(g);
-        
         Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+        
+        Rectangle cb = g.getClipBounds();
+        // paint the background
+        g.setColor(getBackground());
+        g.fillRect(cb.x, cb.y, cb.width, cb.height);
+        //g.fillRect(getBounds());
+        
+        if (!DEBUG_REPAINT_OPTIMIZE_OFF) {
+            if (DEBUG_PAINT && RepaintRegion != null) {
+                g2.setColor(rrColor);
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.setColor(Color.black);
+                g2.setStroke(STROKE_ONE);
+                Rectangle r = g.getClipBounds();
+                r.width--;
+                r.height--;
+                g2.draw(r);
+            }
+        }
         
         g2.translate(-getOriginX(), -getOriginY());
         if (zoomFactor != 1)
@@ -538,14 +665,22 @@ public class MapViewer extends javax.swing.JPanel
         // string widths on noticable on long strings
         if (!DEBUG_ANTIALIAS_OFF)
             g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+
+        //-------------------------------------------------------
+        // Draw the map
+        //-------------------------------------------------------
+
         this.map.draw(g2);
+
+        //-------------------------------------------------------
+        // Draw any link in the process of being dragged out
+        //-------------------------------------------------------
         if (creationLink.isDisplayed())
             creationLink.draw(g2);
-            //drawComponent(g2, creationLink);
+
         // render the current indication on top
-        //if (indication != null)
-        //indication.draw(g2);
-            //drawComponent(g2, indication);
+        //if (indication != null) indication.draw(g2);
 
         /*
         if (dragComponent != null) {
@@ -554,10 +689,9 @@ public class MapViewer extends javax.swing.JPanel
         }
         */
 
-        //-------------------------------------------------------
-        //-------------------------------------------------------
-        //paintLWComponents(g2);
-        ////super.paintChildren(g2);
+        //if (draggingChild) {
+        //    dragComponent.setDispalyed(true);
+        //}
         
         //-------------------------------------------------------
         // Restore us to raw screen coordinates & turn off
@@ -569,7 +703,7 @@ public class MapViewer extends javax.swing.JPanel
         g2.translate(getOriginX(), getOriginY());
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
 
-        paintSelection(g2);
+        drawSelection(g2);
 
         if (DEBUG_SHOW_MOUSE_LOCATION) {
             g2.setColor(Color.red);
@@ -604,8 +738,8 @@ public class MapViewer extends javax.swing.JPanel
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
         
         //setOpaque(false);
-        //super.paintComponent(g);
-        super.paintChildren(g2);
+        if (activeTextEdit != null)     // This is a real Swing JComponent 
+            super.paintChildren(g2);
         //setOpaque(true);
         
     }
@@ -772,71 +906,9 @@ public class MapViewer extends javax.swing.JPanel
         activeTextEdit.requestFocus();
     }
     
-    /*
-    private void drawComponentList(Graphics2D g2, java.util.List componentList)
-    {
-        java.util.Iterator i = componentList.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.isDisplayed() && c != indication && !c.isChild())
-                drawComponent(g2, c);
-        }
-    }
-    private void drawComponent(Graphics2D g2, LWComponent c)
-    {
-        try {
-            c.draw((Graphics2D) g2.create());
-        } catch (Throwable e) {
-            System.err.println("Render exception: " + e);
-            e.printStackTrace();
-        }
-    }
-    void paintLWComponents(Graphics2D g2)
-    {
-        // anti-alias shapes by default
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // anti-alias text
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        // Do we need fractional metrics?  Gives us slightly more accurate
-        // string widths on noticable on long strings
-        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        
-        //-------------------------------------------------------
-        // Draw the components.
-        // Draw links first so their ends aren't visible.
-        //-------------------------------------------------------
-        
-        // render the LWLinks first so ends are obscured later
-        // when the LWNodes are rendered.
-        //drawComponentList(g2, linkList);
-        
-        // render any arbitrary LWComponents
-        drawComponentList(g2, componentList);
-        
-        // render the LWNodes
-        // (also need to render nodes b4 links so links can compute their location)
-        drawComponentList(g2, nodeList);
-
-        // render the LWLinks LAST so sure to see links to child nodes
-        drawComponentList(g2, linkList);
-        
-        if (creationLink.isDisplayed())
-            drawComponent(g2, creationLink);
-
-        // render the current selection on top
-        //if (lastSelection != null && VueSelection.size() == 1)
-        //  drawComponent(g2, lastSelection);
-        
-        // render the current indication on top
-        if (indication != null)
-            drawComponent(g2, indication);
-    }
-*/
-
-
     // todo: move all this code to LWSelection?
     // don't want to make LWSelection a LWComponent tho
-    void paintSelection(Graphics2D g2)
+    void drawSelection(Graphics2D g2)
     {
         if (VueSelection.size() > 0) {
             g2.setColor(COLOR_SELECTION);
@@ -897,8 +969,7 @@ public class MapViewer extends javax.swing.JPanel
             g2.setStroke(STROKE_ONE);
             // todo opt: don't recompute bounds here every paint ---
             // can cache in draggedSelectionGroup
-            Rectangle2D selectionBounds;
-            selectionBounds = VueSelection.getBounds();
+            Rectangle2D selectionBounds = VueSelection.getBounds();
             /*
               bounds cache hack
             if (VueSelection.size() == 1)
@@ -908,6 +979,8 @@ public class MapViewer extends javax.swing.JPanel
             */
             //System.out.println("mapSelectionBounds="+selectionBounds);
             Rectangle2D.Float sb = mapToScreenRect2D(selectionBounds);
+            paintedSelectionBounds = mapToScreenRect(selectionBounds);
+            growForSelection(paintedSelectionBounds);
             //System.out.println("screenSelectionBounds="+sb);
             drawSelectionBox(g2, sb);
         }
@@ -920,7 +993,7 @@ public class MapViewer extends javax.swing.JPanel
     private void drawSelectionHandle(Graphics2D g, float x, float y)
     {
         SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
-        g.setColor(Color.white);
+        g.setColor(COLOR_SELECTION_HANDLE);
         g.fill(SelectionHandle);
         g.setColor(COLOR_SELECTION);
         g.draw(SelectionHandle);
@@ -947,7 +1020,7 @@ public class MapViewer extends javax.swing.JPanel
     static final int chs = 5; // component handle size -- todo: config
     void drawComponentSelectionBox(Graphics2D g, LWComponent c)
     {
-        Rectangle2D.Float r = mapToScreenRect2D(c.getBounds());
+        Rectangle2D.Float r = mapToScreenRect2D(c.getShapeBounds());
         g.setColor(COLOR_SELECTION);
         g.draw(r);
         r.x -= (chs-1)/2;
@@ -1031,22 +1104,14 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.add(Actions.BringForward);
             cPopup.add(Actions.SendToBack);
             cPopup.add(Actions.SendBackward);
-            //cPopup.add(VUE.alignMenu);
-            //cPopup.add(VUE.alignMenu.getPopupMenu());
-
-
-            // This menu has gotten too big at top level...
             cPopup.addSeparator();
-            cPopup.add(Actions.AlignLeftEdges);
-            cPopup.add(Actions.AlignRightEdges);
-            cPopup.add(Actions.AlignTopEdges);
-            cPopup.add(Actions.AlignBottomEdges);
-            cPopup.addSeparator();
-            cPopup.add(Actions.AlignCentersRow);
-            cPopup.add(Actions.AlignCentersColumn);
-            cPopup.addSeparator();
-            cPopup.add(Actions.DistributeVertically);
-            cPopup.add(Actions.DistributeHorizontally);
+            for (int i = 0; i < Actions.ALIGN_MENU_ACTIONS.length; i++) {
+                Action a = Actions.ALIGN_MENU_ACTIONS[i];
+                if (a == null)
+                    cPopup.addSeparator();
+                else
+                    cPopup.add(a);
+            }
             cPopup.addSeparator();
             cPopup.add(Actions.Delete);
             // todo: special add-to selection action that adds
@@ -1217,8 +1282,10 @@ public class MapViewer extends javax.swing.JPanel
                     DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN;
                 } else if (c == 'R') {
                     DEBUG_REPAINT_OPTIMIZE_OFF = !DEBUG_REPAINT_OPTIMIZE_OFF;
-                } else if (c == 'P') {
+                } else if (c == 'F') {
                     DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF;
+                } else if (c == 'P') {
+                    DEBUG_PAINT = !DEBUG_PAINT;
                 } else
                     did = false;
                 if (did) {
@@ -1339,8 +1406,10 @@ public class MapViewer extends javax.swing.JPanel
                     // Okay, ONLY drag even a single object via the selection
                   //if (VueSelection.size() > 1) {
                         // pick up a group selection for dragging
+                    if (!(hitComponent instanceof LWLink)) { // makes no sense to drag links at moment.
                         draggedSelectionGroup.useSelection(VueSelection);
                         dragComponent = draggedSelectionGroup;
+                    }
                   //} else {
                         // just pick up the single component
                         //dragComponent = hitComponent;
@@ -1460,7 +1529,16 @@ public class MapViewer extends javax.swing.JPanel
                 if (!DEBUG_REPAINT_OPTIMIZE_OFF) {
                     // Now add to repaint-rect the new selection
                     repaintRect.add(draggedSelectionBox);
-                    repaintRect.grow(1,1);
+                    //repaintRect.grow(4,4);
+                    // todo java bug: antialiased bottom or right edge of a stroke
+                    // (a single pixel's worth) is erased by the dragged selection box
+                    // when it passes exactly along/thru the edge in a 1-pixel increment.
+                    // No amount of growing the region will help because the bug
+                    // happens along the edge of whatever the repaint-region is itself,
+                    // so all you can do is move around where the bug happens relative
+                    // to dragged selection box.
+                    repaintRect.width++;
+                    repaintRect.height++;
                     repaint(repaintRect);
                 } else {
                     repaint();
@@ -1472,49 +1550,48 @@ public class MapViewer extends javax.swing.JPanel
             float mapX = screenToMapX(screenX);
             float mapY = screenToMapY(screenY);
 
-            Rectangle2D repaintRegion = null;
+            Rectangle2D.Float repaintRegion = new Rectangle2D.Float();
 
             if (dragComponent != null) {
+                // todo opt: do all this in dragStart
                 //-------------------------------------------------------
                 // Compute repaint region based on what's being dragged
                 //-------------------------------------------------------
-                repaintRegion = dragComponent.getBounds();
+                repaintRegion.setRect(dragComponent.getBounds());
+                //System.out.println("Starting " + repaintRegion);
 
-                if (repaintRegion == null) {// todo: this is debug
-                    new Throwable("mouseDragged: null bounds dragComponent " + dragComponent).printStackTrace();
-                    repaintRegion = new Rectangle2D.Float();
-                }
+                //if (repaintRegion == null) {// todo: this is debug
+                //new Throwable("mouseDragged: null bounds dragComponent " + dragComponent).printStackTrace();
+                //    repaintRegion = new Rectangle2D.Float();
+                //}
 
                 if (dragComponent instanceof LWLink) {
-                    LWLink lwl = (LWLink) dragComponent;
                     // todo: not currently used as link dragging disabled
-                    // todo: will help to add topmost parent of linked-to
-                    // component to rr because text labels are being
-                    // subtly shifted when the clip region passes through
-                    // painted text, and this only appears to apply 
-                    // when zoom level is <= 100%.  Actually, adding
-                    // topmost parent only helps for case of dragging
-                    // a node around a parent that has a link to an
-                    // inner child, thus the clip region freq passes
-                    // thru parent -- it's not even a general fix.
-                    
+                    LWLink lwl = (LWLink) dragComponent;
                     repaintRegion.add(lwl.getComponent1().getBounds());
                     repaintRegion.add(lwl.getComponent2().getBounds());
                 }
+
                 //-------------------------------------------------------
                 // Reposition the component due to mouse drag
                 //-------------------------------------------------------
+
                 dragComponent.setLocation((float) (mapX + dragOffset.getX()),
                                           (float) (mapY + dragOffset.getY()));
+
                 //-------------------------------------------------------
                 // Compute more repaint region
                 //-------------------------------------------------------
+
+                //System.out.println("  Adding " + dragComponent.getBounds());
                 repaintRegion.add(dragComponent.getBounds());
+                //if (DEBUG_PAINT) System.out.println("     Got " + repaintRegion);
+                
                 if (dragComponent instanceof LWLink) {
                     // todo: not currently used as link dragging disabled
-                    LWLink lwl = (LWLink) dragComponent;
-                    repaintRegion.add(lwl.getComponent1().getBounds());
-                    repaintRegion.add(lwl.getComponent2().getBounds());
+                    LWLink l = (LWLink) dragComponent;
+                    repaintRegion.add(l.getComponent1().getBounds());
+                    repaintRegion.add(l.getComponent2().getBounds());
                 }
             }
             
@@ -1525,12 +1602,12 @@ public class MapViewer extends javax.swing.JPanel
                 //-------------------------------------------------------
                 LWComponent over = findLWLinkTargetAt(mapX, mapY);
                 if (indication != null && indication != over) {
-                    repaintRegion.add(indication.getBounds());
+                    //repaintRegion.add(indication.getBounds());
                     clearIndicated();
                 }
                 if (over != null && isValidLinkTarget(over)) {
                     setIndicated(over);
-                    repaintRegion.add(over.getBounds());
+                    //repaintRegion.add(over.getBounds());
                 }
                 //} else if (dragComponent instanceof LWNode && !DEBUG_FINDPARENT_OFF) {
             } else if (!DEBUG_FINDPARENT_OFF
@@ -1545,21 +1622,15 @@ public class MapViewer extends javax.swing.JPanel
                 //LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
                 LWNode over = getMap().findLWNodeAt(mapX, mapY);
                 if (indication != null && indication != over) {
-                    repaintRegion.add(indication.getBounds());
+                    //repaintRegion.add(indication.getBounds());
                     clearIndicated();
                 }
                 if (over != null && isValidParentTarget(over)) {
                     setIndicated(over);
-                    if (repaintRegion == null) // todo: this is debug
-                        new Throwable("mouseDragged: null rr").printStackTrace();
-                    Rectangle2D bounds = over.getBounds();
-                    if (bounds == null) // todo: this is debug
-                        new Throwable("mouseDragged: null bounds for over " + over).printStackTrace();
-                    repaintRegion.add(over.getBounds());
+                    //repaintRegion.add(over.getBounds());
                 }
             }
 
-            
             if (dragComponent != null && DEBUG_REPAINT_OPTIMIZE_OFF) {
                 
                 repaint();
@@ -1585,30 +1656,60 @@ public class MapViewer extends javax.swing.JPanel
                 // Will also need to grow by stroke width of a dragged link
                 // as it's corners are beyond bounds point with very wide strokes.
 
-                java.util.Iterator i;
+                java.util.Iterator i = null;
                 if (dragComponent instanceof LWLink) {
                     // todo: not in use as moment as Link dragging disabled...
-                    LWLink lwl = (LWLink) dragComponent;
-                    i = new VueUtil.GroupIterator(lwl.getLinkEndpointsIterator(),
-                                                  lwl.getComponent1().getLinkEndpointsIterator(),
-                                                  lwl.getComponent2().getLinkEndpointsIterator());
+                    LWLink l = (LWLink) dragComponent;
+                    i = new VueUtil.GroupIterator(l.getLinkEndpointsIterator(),
+                                                  l.getComponent1().getLinkEndpointsIterator(),
+                                                  l.getComponent2().getLinkEndpointsIterator());
                                                       
-                } else
+                } else {
+                    // TODO OPT: compute this once when we start the drag!
                     i = dragComponent.getAllConnectedNodes().iterator();
+                }
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
                     repaintRegion.add(c.getBounds());
                 }
                 if (linkSource != null)
                     repaintRegion.add(linkSource.getBounds());
+
                 Rectangle rr = mapToScreenRect(repaintRegion);
-                // We grow the bounds here to include any selection
-                // handles that may be rendering as we drag the component
-                //rr.grow(SelectionHandleSize-1,SelectionHandleSize-1);
-                rr.grow(SelectionHandleSize+3,SelectionHandleSize+3);//todo: tmp hack slop region
+                growForSelection(rr);
+
+                /*
+                boolean draggingChild = false;
+                if (!(dragComponent.getParent() instanceof LWMap)) {
+                    dragComponent.setDisplayed(false);
+                    draggingChild = true;
+                    }*/
+
+                //integerAlignRect(repaintRegion); // doesn't help aa clip-rect bug
+
+                RepaintRegion = repaintRegion;
+
+                // speeds up traversal: limits Graphics calls
+                // speeds up painting: limits raw blitting 
                 repaint(rr);
+
+                // TODO BUG: java is dithering strokes (and probably
+                // everything) at the TOP edge of the repaint region
+                // (graphics clip-rect) to whatever the background
+                // color is... (if we fill the repaint region with
+                // a color b4 painting, it will dither to that color)
+                
             }
         }
+
+        /*
+        private void integerAlignRect(Rectangle2D.Float r)
+        {
+            r.x = (float) Math.floor(r.x);
+            r.y = (float) Math.floor(r.y);
+            r.width = (float) Math.ceil(r.width);
+            r.height = (float) Math.ceil(r.height);
+            }*/
 
         public void mouseReleased(MouseEvent e)
         {
@@ -1618,14 +1719,15 @@ public class MapViewer extends javax.swing.JPanel
             setLastMousePoint(e.getX(), e.getY());
             
             if (linkSource != null) {
+                repaintMapRegionAdjusted(creationLink.getBounds());
                 creationLink.setDisplayed(false);
                 LWComponent linkDest = indication;
                 if (linkDest != null && linkDest != linkSource)
                 {
-                    LWLink lwl = linkDest.getLinkTo(linkSource);
-                    if (lwl != null) {
-                        // There's alreay a link tween these two -- increment the weight
-                        lwl.incrementWeight();
+                    LWLink l = linkDest.getLinkTo(linkSource);
+                    if (l != null) {
+                        // There's already a link tween these two -- increment the weight
+                        l.incrementWeight();
                     } else {
                         getMap().addLink(new LWLink(linkSource, linkDest));
                     }
@@ -1655,7 +1757,8 @@ public class MapViewer extends javax.swing.JPanel
                     if (droppedChild instanceof LWLink) // don't reparent links!
                         continue;
                     // todo: actually re-do drop if anything other than map so will re-layout
-                    if (droppedChild.getParent() != parentTarget && droppedChild != parentTarget) {
+                    if ((droppedChild.getParent() != parentTarget || parentTarget instanceof LWNode)
+                        && droppedChild != parentTarget) {
                         //-------------------------------------------------------
                         // we were over a valid NEW parent -- reparent
                         //-------------------------------------------------------
@@ -1732,6 +1835,10 @@ public class MapViewer extends javax.swing.JPanel
                     selectionToggle(list.iterator());
                 else
                     selectionAdd(list.iterator());
+
+                draggedSelectionBox.width++;
+                draggedSelectionBox.height++;
+                repaint(draggedSelectionBox);
                 draggedSelectionBox = null;
                 
                 // bounds cache hack
@@ -1741,8 +1848,8 @@ public class MapViewer extends javax.swing.JPanel
                 // so we can use it's cached bounds to compute
                 // the painting of the selection -- rename to just
                 // SelectionGroup if we keep using it this way.
+                
             }
-            repaint();
         }
 
         private final boolean noModifierKeysDown(MouseEvent e)
@@ -2042,6 +2149,7 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_MOUSE = false;
     private boolean DEBUG_REPAINT_OPTIMIZE_OFF = false;
     private boolean DEBUG_FINDPARENT_OFF = false;
+    static boolean DEBUG_PAINT = false;
     private int mouseX;
     private int mouseY;
 

@@ -22,7 +22,6 @@ import java.awt.geom.Rectangle2D;
  */
 public final class LWGroup extends LWContainer
 {
-    /** to support restore only */
     public LWGroup() {}
 
     /**

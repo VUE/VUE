@@ -183,6 +183,19 @@ public class LWMap extends LWContainer
      */
     public static Rectangle2D getBounds(java.util.Iterator i)
     {
+        Rectangle2D rect = new Rectangle2D.Float();
+
+        if (i.hasNext()) {
+            rect.setRect(((LWComponent)i.next()).getBounds());
+            while (i.hasNext())
+                rect.add(((LWComponent)i.next()).getBounds());
+        }
+        return rect;
+    }
+    
+    /*
+    public static Rectangle2D getBounds(java.util.Iterator i)
+    {
         float xMin = Float.POSITIVE_INFINITY;
         float yMin = Float.POSITIVE_INFINITY;
         float xMax = Float.NEGATIVE_INFINITY;
@@ -208,6 +221,7 @@ public class LWMap extends LWContainer
 
         return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
     }
+    */
 
     
 }

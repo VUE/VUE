@@ -23,28 +23,161 @@ import java.awt.geom.Rectangle2D;
 public class LWLink extends LWComponent
     implements Link
 {
-    //private static final float WEIGHT_RENDER_RATIO = 2f;
-    //private static final float MAX_RENDER_WIDTH = 16f;
+    private LWComponent ep1;
+    private LWComponent ep2;
+    private Line2D.Float line = new Line2D.Float();
+
+    private float centerX;
+    private float centerY;
     
+    private String endPoint1_ID; // used only during restore
+    private String endPoint2_ID; // used only during restore
+    
+    private boolean ordered = false; // not doing anything with this yet
+    private int endPoint1Style = 0;
+    private int endPoint2Style = 0;
+    
+    /**
+     * Used only for restore -- must be public
+     */
+    public LWLink() {}
+
+    /**
+     * Create a new link between two LWC's
+     */
+    public LWLink(LWComponent ep1, LWComponent ep2)
+    {
+        if (ep1 == null || ep2 == null)
+            throw new IllegalArgumentException("LWLink: ep1=" + ep1 + " ep2=" + ep2);
+        this.ep1 = ep1;
+        this.ep2 = ep2;
+        setSize(10,10);
+        setFont(FONT_LINKLABEL);
+        setTextColor(COLOR_LINK_LABEL);
+        setEndPoint1(ep1);
+        setEndPoint2(ep2);
+        setStrokeWidth(2f); //todo config: default link width
+        computeShape();
+    }
+
+    protected void removeFromModel()
+    {
+        super.removeFromModel();
+        ep1.removeLinkRef(this);
+        ep2.removeLinkRef(this);
+    }
+
+    /** Is this link between a parent and a child? */
+    public boolean isParentChildLink()
+    {
+        return ep1.getParent() == ep2 || ep2.getParent() == ep1;
+    }
+    
+    private final int MaxZoom = 1; //todo: get from Zoom code
+    private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
+    public boolean intersects(Rectangle2D rect)
+    {
+        // todo: handle StrokeBug05
+        float w = getStrokeWidth();
+        if (true || w <= SmallestScaleableStrokeWidth) {
+            return rect.intersectsLine(this.line);
+        } else {
+            Shape s = this.stroke.createStrokedShape(this.line); // todo: cache this!
+            return s.intersects(rect);
+            // todo: ought to compensate for stroke shrinkage
+            // due to a link to a child (or remove that feature)
+            
+            /*
+            //private Line2D edge1 = new Line2D.Float();
+            //private Line2D edge2 = new Line2D.Float();
+            // probably faster to do it this way for vanilla lines,
+            // tho also need to compute perpedicular segments from
+            // endpoints.
+            edge1.setLine(this.line);//move "left"
+            if (rect.intersectsLine(edge1))
+                return true;
+            edge1.setLine(this.line); //move "right"
+            if (rect.intersectsLine(edge2))
+                return true;
+            */
+        }
+    }
+
+    public boolean contains(float x, float y)
+    {
+        if (VueUtil.StrokeBug05) {
+            x -= 0.5f;
+            y -= 0.5f;
+        }
+        float maxDist = getStrokeWidth() / 2;
+        return line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1;
+    }
+    
+    /**
+     * Does x,y fall within the selection target for this component.
+     * For links, we need to get within 20 pixels of the center.
+     */
+    public boolean targetContains(float x, float y)
+    {
+        if (VueUtil.StrokeBug05) {
+            x -= 0.5f;
+            y -= 0.5f;
+        }
+        float swath = getStrokeWidth() / 2 + 20; // todo: preference
+        float sx = this.centerX - swath;
+        float sy = this.centerY - swath;
+        float ex = this.centerX + swath;
+        float ey = this.centerY + swath;
+        
+        return x >= sx && x <= ex && y >= sy && y <= ey;
+    }
+    
+    public LWComponent getComponent1() { return ep1; }
+    public LWComponent getComponent2() { return ep2; }
+    public MapItem getItem1() { return ep1; }
+    public MapItem getItem2() { return ep2; }
+
+    void setEndPoint1(LWComponent c)
+    {
+        if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
+        this.ep1 = c;
+        //if (c == null) System.err.println(this + " endPoint1 set to null");
+        //else
+        c.addLinkRef(this);
+        if (this.ep2 != null)
+            computeShape();
+        //System.out.println(this + " ep1 = " + c);
+    }
+    void setEndPoint2(LWComponent c)
+    {
+        if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint2 to null");
+        this.ep2 = c;
+        //if (c == null) System.err.println(this + " endPointd2 set to null");
+        //else
+        c.addLinkRef(this);
+        if (this.ep1 != null)
+            computeShape();
+        //System.out.println(this + " ep2 = " + c);
+    }
     // interface
     
     // used only during save
     public String getEndPoint1_ID()
     {
         //System.err.println("getEndPoint1_ID called for " + this);
-        if (this.c1 == null)
+        if (this.ep1 == null)
             return this.endPoint1_ID;
         else
-            return this.c1.getID();
+            return this.ep1.getID();
     }
     // used only during save
     public String getEndPoint2_ID()
     {
         //System.err.println("getEndPoint2_ID called for " + this);
-        if (this.c2 == null)
+        if (this.ep2 == null)
             return this.endPoint2_ID;
         else
-            return this.c2.getID();
+            return this.ep2.getID();
     }
 
     // used only during restore
@@ -73,15 +206,12 @@ public class LWLink extends LWComponent
     {
         setStrokeWidth((float)w);
     }
-
     public void setStrokeWidth(float w)
     {
         if (w <= 0f)
             w = 0.1f;
         super.setStrokeWidth(w);
     }
-    
-
     public int incrementWeight()
     {
         //this.weight += 1;
@@ -90,103 +220,6 @@ public class LWLink extends LWComponent
         return getWeight();
     }
 
-    // impl
-    
-    private String endPoint1_ID; // used only during restore
-    private String endPoint2_ID; // used only during restore
-    
-    //private int weight = 1;
-    private boolean ordered = false;
-    private int endPoint1Style = 0;
-    private int endPoint2Style = 0;
-    private LWComponent c1;
-    private LWComponent c2;
-    private Line2D line = new Line2D.Float();
-    
-    /**
-     * Used ONLY for restore -- must be public so can be reflected
-     */
-    public LWLink() {}
-
-    /**
-     * Create a new link between two LWC's
-     */
-    public LWLink(LWComponent c1, LWComponent c2)
-    {
-        if (c1 == null || c2 == null)
-            throw new IllegalArgumentException("LWLink: c1=" + c1 + " c2=" + c2);
-        this.c1 = c1;
-        this.c2 = c2;
-        setSize(10,10);
-        setFont(FONT_LINKLABEL);
-        setTextColor(COLOR_LINK_LABEL);
-        setEndPoint1(c1);
-        setEndPoint2(c2);
-        setStrokeWidth(2f);
-        // todo: compute location now
-        
-        //manager = LWPathwayManager.getInstance();
-    }
-    
-    protected void removeFromModel()
-    {
-        super.removeFromModel();
-        c1.removeLinkRef(this);
-        c2.removeLinkRef(this);
-    }
-
-    public boolean intersects(Rectangle2D rect)
-    {
-        return rect.intersectsLine(this.line);
-    }
-
-    public boolean contains(float x, float y)
-    {
-        //if (super.contains(x, y))
-        //  return true;
-        if (VueUtil.StrokeBug05) {
-            x -= 0.5f;
-            y -= 0.5f;
-        }
-        //float maxDist = (getWeight() * WEIGHT_RENDER_RATIO) / 2;
-        float maxDist = getStrokeWidth() / 2;
-        return line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1;
-    }
-    
-    public LWComponent getComponent1()
-    {
-        return c1;
-    }
-    public LWComponent getComponent2()
-    {
-        return c2;
-    }
-    public MapItem getItem1()
-    {
-        return c1;
-    }
-    public MapItem getItem2()
-    {
-        return c2;
-    }
-    void setEndPoint1(LWComponent c)
-    {
-        if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
-        this.c1 = c;
-        //if (c == null) System.err.println(this + " endPoint1 set to null");
-        //else
-        c.addLinkRef(this);
-        //System.out.println(this + " ep1 = " + c);
-    }
-    void setEndPoint2(LWComponent c)
-    {
-        if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint2 to null");
-        this.c2 = c;
-        //if (c == null) System.err.println(this + " endPointd2 set to null");
-        //else
-        c.addLinkRef(this);
-        //System.out.println(this + " ep2 = " + c);
-    }
     public java.util.Iterator getLinkEndpointsIterator()
     {
         java.util.List endpoints = new java.util.ArrayList(2);
@@ -220,60 +253,65 @@ public class LWLink extends LWComponent
         // perhaps to actually have a child move it's parent
         // around here, yet we can't do generally in setLocation
         // or then we couldn't individually drag a parent
-        if (!c1.isChild())
-            c1.setLocation(c1.getX() - dx, c1.getY() - dy);
-        if (!c2.isChild())
-            c2.setLocation(c2.getX() - dx, c2.getY() - dy);
+        if (!ep1.isChild())
+            ep1.setLocation(ep1.getX() - dx, ep1.getY() - dy);
+        if (!ep2.isChild())
+            ep2.setLocation(ep2.getX() - dx, ep2.getY() - dy);
         super.setLocation(x,y);
     }
     */
 
-    private static final int clearBorder = 4;
-    private Rectangle2D box = new Rectangle2D.Float();
-    public void draw(Graphics2D g)
+    public Shape getShape()
     {
-        // Draw the connecting line
+        return this.line;
+        // return stroked shape?
+    }
 
+    private void computeShape()
+    {
         float startX, startY, endX, endY, locX, locY;
-        startX = c1.getCenterX();
-        startY = c1.getCenterY();
-        endX = c2.getCenterX();
-        endY = c2.getCenterY();
+        startX = ep1.getCenterX();
+        startY = ep1.getCenterY();
+        endX = ep2.getCenterX();
+        endY = ep2.getCenterY();
 
-        if (false&&c1.isChild()) {
-            /*
-            Point2D p = c1.nearestPoint(endX, endY);
-            startX = (float) p.getX();
-            startY = (float) p.getY();
-            */
+        /*
+          // a different way of computing connection
+          // points that minimizes over-stroke of
+          // our parent (if we have one)
+          
+        if (ep1.isChild()) {
+            //Point2D p = ep1.nearestPoint(endX, endY);
+            //startX = (float) p.getX();
+            //startY = (float) p.getY();
             // nearest corner
             if (endX > startX)
-                startX += c1.getWidth() / 2;
+                startX += ep1.getWidth() / 2;
             else if (endX < startX)
-                startX -= c1.getWidth() / 2;
+                startX -= ep1.getWidth() / 2;
             if (endY > startY)
-                startY += c1.getHeight() / 2;
+                startY += ep1.getHeight() / 2;
             else if (endY < startY)
-                startY -= c1.getHeight() / 2;
+                startY -= ep1.getHeight() / 2;
         }
-        if (false&&c2.isChild()) {
-            /*
-            Point2D p = c2.nearestPoint(startX, startY);
-            endX = (float) p.getX();
-            endY = (float) p.getY();
-            */
+        if (ep2.isChild()) {
+            //Point2D p = ep2.nearestPoint(startX, startY);
+            //endX = (float) p.getX();
+            //endY = (float) p.getY();
             // nearest corner
             if (endX > startX)
-                endX -= c2.getWidth() / 2;
+                endX -= ep2.getWidth() / 2;
             else if (endX < startX)
-                endX += c2.getWidth() / 2;
+                endX += ep2.getWidth() / 2;
             if (endY > startY)
-                endY -= c2.getHeight() / 2;
+                endY -= ep2.getHeight() / 2;
             else if (endY < startY)
-                endY += c2.getHeight() / 2;
+                endY += ep2.getHeight() / 2;
         }
-        locX = startX - (startX - endX) / 2;
-        locY = startY - (startY - endY) / 2;
+        */
+        
+        this.centerX = startX - (startX - endX) / 2;
+        this.centerY = startY - (startY - endY) / 2;
         
         // Set our location to the midpoint between
         // the nodes we're connecting.
@@ -285,8 +323,11 @@ public class LWLink extends LWComponent
         //                locY - getHeight()/2);
         //todo: eventually have LWComponent setLocation
         // tell all connected links to recompute themselves...
-        setX(locX - getWidth()/2);
-        setY(locY - getHeight()/2);
+
+        setSize(Math.abs(startX - endX),
+                Math.abs(startY - endY));
+        setX(this.centerX - getWidth()/2);
+        setY(this.centerY - getHeight()/2);
         
         if (VueUtil.StrokeBug05) {
             startX -= 0.5;
@@ -298,9 +339,14 @@ public class LWLink extends LWComponent
         //-------------------------------------------------------
         // Set the stroke line
         //-------------------------------------------------------
-        // todo: compute & return this in getShape
         this.line.setLine(startX, startY, endX, endY);
-
+    }
+    
+    private static final int clearBorder = 4;
+    private Rectangle2D box = new Rectangle2D.Float();
+    public void draw(Graphics2D g)
+    {
+        computeShape(); // compute this.line
 
         // Clip the node shape so the link doesn't draw into it.
         // We need to do this instead of just drawing links first
@@ -312,14 +358,17 @@ public class LWLink extends LWComponent
         // todo: this will eventually be replace by links knowing
         // their exact endpoint at edge of the shape of each node --
         // we need to compute the intersection of a shape and a line segment
-        //if ((c1.getShape() != null && !c1.isChild())
-        //|| (c2.getShape() != null && !c2.isChild())) {
-        if (c1.getShape() != null || c2.getShape() != null) {
+
+        //if ((ep1.getShape() != null && !ep1.isChild())
+        //|| (ep2.getShape() != null && !ep2.isChild())) {
+        //if (ep1.getShape() != null || ep2.getShape() != null) {
+        if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
+            && !(ep1.getShape() == null && ep2.getShape() == null)) {
             Area clipArea = new Area(g.getClipBounds());
-            if (c1.getShape() != null /*&& !c1.isChild()*/)
-                clipArea.subtract(new Area(c1.getShape()));
-            if (c2.getShape() != null /*&& !c2.isChild()*/)
-                clipArea.subtract(new Area(c2.getShape()));
+            if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
+                clipArea.subtract(new Area(ep1.getShape()));
+            if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
+                clipArea.subtract(new Area(ep2.getShape()));
             g.clip(clipArea);
         }
 
@@ -349,17 +398,17 @@ public class LWLink extends LWComponent
         // to smallest of the scales (even better: render the stroke
         // in a variable width narrowing as it went...)
         // todo: cache this scaled stroke
-        if (c1.getScale() != 1f || c2.getScale() != 1f) {
+        if (ep1.getScale() != 1f || ep2.getScale() != 1f) {
             float strokeWidth = getStrokeWidth();
-            if (c1.getScale() < c2.getScale())
-                strokeWidth *= c1.getScale();
+            if (ep1.getScale() < ep2.getScale())
+                strokeWidth *= ep1.getScale();
             else
-                strokeWidth *= c2.getScale();
+                strokeWidth *= ep2.getScale();
             //g.setStroke(new BasicStroke(strokeWidth));
             stroke = new BasicStroke(strokeWidth);
         } else {
             //g.setStroke(this.stroke);
-            stroke = this.stroke;;
+            stroke = this.stroke;
         }
     
         //-------------------------------------------------------
@@ -387,7 +436,6 @@ public class LWLink extends LWComponent
         else
             g.setColor(getStrokeColor());
 
-        //g.setColor(getStrokeColor());
         g.setStroke(stroke);
         g.draw(this.line);
 
@@ -397,35 +445,29 @@ public class LWLink extends LWComponent
             g.setFont(getFont());
             FontMetrics fm = g.getFontMetrics();
             float w = fm.stringWidth(label);
-            g.drawString(label, locX - w/2, locY - (strokeWidth/2));
+            g.drawString(label, centerX - w/2, centerY - (strokeWidth/2));
         }
        
-        //g.drawLine((int)sx, (int)sy, (int)ex, (int)ey);
-        //g.drawLine(sx, sy, ex, ey);
-
-        /*
-         * Draw the handle
-         */
-        /*
-        //fixme
-        g.setColor(Color.darkGray);
-        int w = getWidth() - clearBorder * 2;
-        int h = getHeight() - clearBorder * 2;
-        g.fillRect(clearBorder, clearBorder, w, h);
-        */
+        // Draw a handle
+        //g.setColor(Color.darkGray);
+        //int w = getWidth() - clearBorder * 2;
+        //int h = getHeight() - clearBorder * 2;
+        //g.fillRect(clearBorder, clearBorder, w, h);
         
     }
 
 
     // these two to support a special dynamic link
     // which we use while creating a new link
-    LWLink(LWComponent c2)
+    LWLink(LWComponent ep2)
     {
-        this.c2 = c2;
+        this.ep2 = ep2;
+        setStrokeWidth(2f); //todo config: default link width
     }
-    void setSource(LWComponent c1)
+    
+    void setSource(LWComponent ep1)
     {
-        this.c1 = c1;
+        this.ep1 = ep1;
     }
     
     

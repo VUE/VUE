@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -227,9 +228,7 @@ public abstract class LWContainer extends LWComponent
                 continue;
             // also don't need to do anything if link is BETWEEN a parent and a child
             // (in which case, at the moment, we don't even see the link)
-            if (l.getComponent1().getParent() == l.getComponent2())
-                continue;
-            if (l.getComponent2().getParent() == l.getComponent1())
+            if (l.isParentChildLink())
                 continue;
             /*
             System.err.println("*** ENSURING " + l);
@@ -615,20 +614,48 @@ public abstract class LWContainer extends LWComponent
     }
     //void float getChildScale() // if we get rid of color toggling, cleaner to implement this way
     
-    /**
-     * If this container supports special layout for it's children,
-     * do it here.
-     */
-    protected void layout() {}
-    
     public void draw(java.awt.Graphics2D g)
     {
+        int nodes = 0;
+        int links = 0;
+        
         if (this.children.size() > 0) {
+
+            Rectangle clipBounds = g.getClipBounds();
+            
+            /*if (false) {
+                System.out.println("DRAWING " + this);
+                System.out.println("clipBounds="+clipBounds);
+                System.out.println("      mvrr="+MapViewer.RepaintRegion);
+                }*/
+                
             java.util.Iterator i = getChildIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                c.draw((java.awt.Graphics2D) g.create()); // todo opt: remove the create?
+
+                //-------------------------------------------------------
+                // This is a huge speed optimzation.  Eliminating all
+                // the Graphics2D calls that would end up having to
+                // check the clipBounds internally makes a giant
+                // difference.
+                // -------------------------------------------------------
+                
+                if (c.isDisplayed() && c.intersects(clipBounds)) {
+                    try {
+                        c.draw((java.awt.Graphics2D) g.create());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.err.println("*** Exception drawing: " + c);
+                        System.err.println("***         In parent: " + this);
+                    }
+                    if (MapViewer.DEBUG_PAINT) {
+                        if (c instanceof LWLink) links++;
+                        else nodes++;
+                    }
+                }
             }
+            if (MapViewer.DEBUG_PAINT)
+                System.out.println(this + " painted " + links + " links, " + nodes + " nodes");
         }
         if (DEBUG_CONTAINMENT) {
             g.setColor(java.awt.Color.green);

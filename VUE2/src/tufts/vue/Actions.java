@@ -470,61 +470,42 @@ class Actions {
         };
 
     static final Action NewNode =
-        new VueAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND))
+        new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND))
         {
-            LWNode lastNode = null;
-            Point lastMousePress = null;
-            Point2D lastNodeLocation = null;
-            
-            void act()
+            LWComponent createNewItem(Point2D newLocation)
             {
                 // todo: this is where we'll get the active NodeTool
                 // and have it create the new node based on it's current
                 // settings -- move this logic to NodeTool
-                
-                MapViewer viewer = VUE.getActiveViewer();
                 LWNode node = new LWNode("new node");
-                Point mousePress = viewer.getLastMousePoint();
-                Point2D newNodeLocation = viewer.screenToMapPoint(mousePress);
-                
-                if (mousePress.equals(lastMousePress) &&
-                    lastNode.getLocation().equals(lastNodeLocation))
-                {
-                    newNodeLocation.setLocation(lastNodeLocation.getX() + 10,
-                                                lastNodeLocation.getY() + 10);
-                }
-                
-                node.setLocation(newNodeLocation);
-                viewer.getMap().addNode(node);
+                node.setLocation(newLocation);
+                VUE.getActiveViewer().getMap().addNode(node);
 
                 //better: run a timer and do this if no activity (e.g., node creation)
                 // for 250ms or something -- todo bug: every other new node not activating label edit
 
                 // todo hack: we need to paint right away so the node can compute it's size,
                 // so that the label edit will show up in the right place..
+                VUE.ModelSelection.setTo(node);
+                MapViewer viewer = VUE.getActiveViewer();
                 viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
                 viewer.activateLabelEdit(node);
-                VUE.ModelSelection.setTo(node);
-
-                lastNode = node;
-                lastNodeLocation = newNodeLocation;
-                lastMousePress = mousePress;
+                
+                return node;
             }
         };
 
-
     static final Action NewText =
-        new VueAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND))
+        new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND))
         {
-            void act()
+            LWComponent createNewItem(Point2D newLocation)
             {
-                // todo: this is where we'll query the active TextTool
-                // and/or move this code there
-                
                 MapViewer viewer = VUE.getActiveViewer();
                 LWNode node = LWNode.createTextNode("new text");
-                node.setLocation(viewer.screenToMapPoint(viewer.getLastMousePoint()));
-                viewer.getMap().addNode(node);
+                node.setLocation(newLocation);
+                VUE.getActiveViewer().getMap().addNode(node);
+                VUE.ModelSelection.setTo(node); // also important so will be repainted
+                return node;
             }
         };
 
@@ -622,7 +603,38 @@ class Actions {
         void Xact() {}// for commenting convenience
     }
 
+    static class NewItemAction extends VueAction
+    {
+        static LWComponent lastItem = null;
+        static Point lastMousePress = null;
+        static Point2D lastLocation = null;
+        
+        NewItemAction(String name, KeyStroke keyStroke) {
+            super(name, null, keyStroke);
+        }
+            
+        void act()
+        {
+            MapViewer viewer = VUE.getActiveViewer();
+            Point mousePress = viewer.getLastMousePoint();
+            Point2D newLocation = viewer.screenToMapPoint(mousePress);
+                
+            if (mousePress.equals(lastMousePress) && lastItem.getLocation().equals(lastLocation)) {
+                newLocation.setLocation(lastLocation.getX(),
+                                        lastLocation.getY() + lastItem.getBoundsHeight());
+            }
 
+            lastItem = createNewItem(newLocation);
+            lastLocation = newLocation;
+            lastMousePress = mousePress;
+        }
+
+        LWComponent createNewItem(Point2D p)
+        {
+            throw new UnsupportedOperationException("NewItemAction: unimplemented create");
+        }
+        
+    }
     //-----------------------------------------------------------------------------
     // MapAction: actions that depend on the selection in the map viewer
     //-----------------------------------------------------------------------------
@@ -648,7 +660,7 @@ class Actions {
                 if (mayModifySelection())
                     selection = (LWSelection) selection.clone();
                 act(selection);
-                VUE.getActiveViewer().repaint();
+                VUE.getActiveViewer().repaintSelection();
             } else {
                 // This shouldn't happen as actions should already
                 // be disabled if they're not  appropriate.

@@ -27,7 +27,7 @@ public class VUE
     //set to public so that action package can access it (Jay Briedis 6/4/03)
     public static JTabbedPane tabbedPane;
     
-    public static LWPathwayInspector inspector;
+    public static LWPathwayInspector pathwayInspector;
     
     static {
         /*
@@ -122,7 +122,7 @@ public class VUE
     }
     
     public static LWPathwayInspector getPathwayInspector(){
-        return inspector;
+        return pathwayInspector;
     }
 
     private VUE() {}
@@ -156,7 +156,7 @@ public class VUE
 
             installExampleMap(map1);
             installExampleMap(map2);
-            //installExampleNodes(map1);
+            installExampleNodes(map1);
             
             displayMap(map1);
             displayMap(map2);
@@ -204,12 +204,13 @@ public class VUE
         //inspectorTool.addTool(new MapItemInspector());
         
         //LWPathwayInspector pathwayInspect = new LWPathwayInspector(frame);
-        inspector = new LWPathwayInspector(frame);
+        pathwayInspector = new LWPathwayInspector(frame);
         
-        
-        Action[] windowActions = { pannerTool.getDisplayAction(),
-                                   inspectorTool.getDisplayAction(),
-                                   inspector.getDisplayAction()};
+        Action[] windowActions = {
+            pannerTool.getDisplayAction(),
+            inspectorTool.getDisplayAction(),
+            pathwayInspector.getDisplayAction()
+        };
 
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);

@@ -41,6 +41,7 @@ public class LWComponent
     public void setLabel(String label)
     {
         this.label = label;
+        layout();
         notify("label");
     }
     public void setNotes(String notes)
@@ -95,6 +96,12 @@ public class LWComponent
         return this.metaData;
     }
 
+    /**
+     * If this component supports special layout for it's children,
+     * or resizes based on font, label, etc, do it here.
+     */
+    protected void layout() {}
+    
     public String OLD_toString()
     {
         String s = getClass().getName() + "[id=" + getID();
@@ -120,20 +127,20 @@ public class LWComponent
     private float y;
     
     // persistent impl
-    protected float width;
-    protected float height;
+    protected float width = 10;
+    protected float height = 10;
 
     protected Color fillColor = null;           //style
     protected Color textColor = COLOR_TEXT;     //style
     protected Color strokeColor = COLOR_STROKE; //style
-    protected float strokeWidth = 2f;            //style (equate w/default stroke)
+    protected float strokeWidth = 0f;            //style
     protected Font font = null;                 //style
     //protected Font font = FONT_DEFAULT;
     
     /*
      * Runtime only information
      */
-    protected transient BasicStroke stroke = STROKE_TWO;//equate with above strokeWidth default
+    protected transient BasicStroke stroke = STROKE_ZERO;
     protected transient boolean displayed = true;
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
@@ -167,13 +174,13 @@ public class LWComponent
             System.err.println(e);
             return null;
         }
-        c.setLabel(getLabel());
         c.setFillColor(getFillColor());
         c.setTextColor(getTextColor());
         c.setStrokeColor(getStrokeColor());
         c.setStrokeWidth(getStrokeWidth());
-        c.setFont(getFont());
-        c.scale = scale;
+        c.font = this.font;
+        c.label = this.label;
+        c.scale = this.scale;
         return c;
     }
     
@@ -277,7 +284,7 @@ public class LWComponent
     public void setFont(Font font)
     {
         this.font = font;
-        //layout();
+        layout();
         notify("font");
     }
     /** to support XML persistance */
@@ -316,10 +323,12 @@ public class LWComponent
         return getCenterY();
     }
     
+    /*
     public boolean isChild()
     {
         return this.parent != null || parent instanceof LWMap; // todo: kind of a hack
     }
+    */
     void setParent(LWContainer c)
     {
         this.parent = c;
@@ -477,6 +486,7 @@ public class LWComponent
         if (DEBUG_LAYOUT) System.out.println("*** LWComponent setSize " + w + "x" + h + " " + this);
         this.width = w;
         this.height = h;
+        // todo: notify?
     }
 
     public float getX() { return this.x; }
@@ -487,6 +497,12 @@ public class LWComponent
     public void setY(float y) { this.y = y; }
     public float getWidth() { return this.width * getScale(); }
     public float getHeight() { return this.height * getScale(); }
+    public float getBoundsWidth() {
+        return (this.width + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
+    }
+    public float getBoundsHeight() {
+        return (this.height + (strokeWidth > 0 ? strokeWidth/2 : 0)) * getScale();
+    }
     public float getCenterX() { return this.x + getWidth() / 2; }
     public float getCenterY() { return this.y + getHeight() / 2; }
 
@@ -511,7 +527,32 @@ public class LWComponent
         throw new UnsupportedOperationException("unimplemented setShape in " + this);
     }
 
+    /**
+     * Return bounds, including any stroke width.
+     */
     public Rectangle2D getBounds()
+    {
+        // todo opt: cache this object?
+        Rectangle2D b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        double sw = getStrokeWidth();
+
+        // we need this adjustment for repaint optimzation to
+        // work properly -- would be a bit cleaner to compensate
+        // for this in the viewer
+        //if (isIndicated() && STROKE_INDICATION.getLineWidth() > sw)
+        //    sw = STROKE_INDICATION.getLineWidth();
+
+        if (sw > 0) {
+            double adj = sw / 2;
+            b.setRect(b.getX()-adj, b.getY()-adj, b.getWidth()+sw, b.getHeight()+sw);
+        }
+        return b;
+    }
+
+    /**
+     * Return internal bounds of the shape.
+     */
+    public Rectangle2D getShapeBounds()
     {
         // todo opt: cache this object?
         return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
@@ -528,7 +569,8 @@ public class LWComponent
     
     public boolean intersects(Rectangle2D rect)
     {
-        return rect.intersects(getX(), getY(), getWidth(), getHeight());
+        return rect.intersects(getBounds());
+        //return rect.intersects(getX(), getY(), getWidth(), getHeight());
     }
 
     /**

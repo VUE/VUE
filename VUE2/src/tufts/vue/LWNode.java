@@ -26,7 +26,7 @@ public class LWNode extends LWContainer
     private final int VerticalChildGap = 2;
     
     protected RectangularShape drawnShape; // 0 based, not scaled
-    protected RectangularShape boundsShape; // map based, scaled (not used at moment)
+    protected RectangularShape boundsShape; // map based, scaled, used for computing hits
     protected NodeShape nodeShape;
     protected boolean equalAspect = false;
     //todo: probably collapse off of the above into NodeShape
@@ -50,10 +50,11 @@ public class LWNode extends LWContainer
     LWNode(String label, float x, float y)
     {
         setLabel(label);
-        setNodeShape(StandardShapes[4]);
         setFillColor(COLOR_NODE_DEFAULT);
+        setNodeShape(StandardShapes[4]);
+        setStrokeWidth(2f);//todo config: default node stroke
         setLocation(x, y);
-        setStrokeWidth(2f);
+        setSize(10,10);
         
         //get instance of pathway manager
         //manager = LWPathwayManager.getInstance();
@@ -109,11 +110,6 @@ public class LWNode extends LWContainer
     {
         return this.autoSized = tv;
     }
-    
-    public Shape getShape()
-    {
-        return this.boundsShape;
-    }
 
     /** for persistance */
     public NodeShape getNodeShape()
@@ -148,6 +144,48 @@ public class LWNode extends LWContainer
         this.lastLabel = null;
         // this will cause size to be computed at the next rendering
     }
+
+    public Shape getShape()
+    {
+        return this.boundsShape;
+    }
+
+    /*
+    public Rectangle2D getBounds()
+    {
+        Rectangle2D b = this.boundsShape.getBounds2D();
+        double sw = getStrokeWidth();
+        if (sw > 0) {
+            double adj = sw / 2;
+            b.setRect(b.getX()-adj, b.getY()-adj, b.getWidth()+sw, b.getHeight()+sw);
+        }
+        return b;
+        //return this.boundsShape.getBounds2D();
+    }
+    */
+
+    public boolean intersects(Rectangle2D rect)
+    {
+        // If we've never been painted, graphics won't be set.
+        // This is so that LWContainer repaint optimization
+        // will be sure to paint us at least once so we can
+        // compute our bounds based on our size (assuming we're
+        // auto-sized).  todo: find a way to do this cleaner
+        //if (this.graphics == null)
+         //   return true;
+        //return boundsShape.intersects(rect);
+        return getBounds().intersects(rect);
+    }
+
+    public boolean contains(float x, float y)
+    {
+        if (imageIcon != null)
+            return super.contains(x, y);
+        else
+            return boundsShape.contains(x, y);
+    }
+    
+    
     
     void setImage(Image image)
     {
@@ -156,11 +194,6 @@ public class LWNode extends LWContainer
         setAutoSized(false);
         setShape(new Rectangle2D.Float());
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-    }
-
-    public Rectangle2D getBounds()
-    {
-        return getShape().getBounds2D();
     }
 
     public void addChild(LWComponent c)
@@ -176,7 +209,7 @@ public class LWNode extends LWContainer
         setSizeNoLayout(w, h);
         layout();
     }
-    
+
     private void setSizeNoLayout(float w, float h)
     {
         if (DEBUG_LAYOUT) System.out.println("*** " + this + " setSizeNoLayout " + w + "x" + h);
@@ -234,19 +267,6 @@ public class LWNode extends LWContainer
         this.drawnShape.setFrame(x, y, w, h);
     }
     
-    public boolean contains(float x, float y)
-    {
-        if (imageIcon != null)
-            return super.contains(x, y);
-        else
-            return boundsShape.contains(x, y);
-    }
-    
-    public boolean intersects(Rectangle2D rect)
-    {
-        return boundsShape.intersects(rect);
-    }
-
     
     class PLabel extends JLabel
     //class PLabel extends JTextArea
@@ -288,30 +308,6 @@ public class LWNode extends LWContainer
     }
 */
     
-    private Rectangle2D getAllChildrenBounds()
-    {
-        // compute bounds based on a vertical stacking layout
-        java.util.Iterator i = getChildIterator();
-        float height = 0;
-        float maxWidth = 0;
-        float width;
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            height += c.getHeight() + VerticalChildGap;
-            width = c.getWidth();
-            //height += c.height + VerticalChildGap;
-            //width = c.width;
-            if (width > maxWidth)
-                maxWidth = width;
-            
-        }
-        // If WE'RE already scaled, these totals will be off
-        // This is way confusing -- I hope we can
-        // can get rid of this feature soon.
-        height /= getScale();
-        maxWidth /= getScale();
-        return new Rectangle2D.Float(0f, 0f, maxWidth, height);
-    }
         
     public void setLocation(float x, float y)
     {
@@ -343,12 +339,6 @@ public class LWNode extends LWContainer
       
     private String lastLabel;
     private Graphics graphics;
-
-    public void setFont(Font font)
-    {
-        super.setFont(font);
-        layout();
-    }
 
     private FontMetrics getFontMetrics()
     {
@@ -386,7 +376,9 @@ public class LWNode extends LWContainer
         
         setSizeNoLayout(width, height);
         
-        if (this.width != oldWidth && lastLabel != null && !isChild()) {
+        if (this.width != oldWidth && lastLabel != null &&
+            !(getParent() instanceof LWNode)) // todo: this last test really depends on if parent is laying us out
+        {
             // on resize, keep the node's center the same
             setLocation(getX() + (oldWidth - this.width) / 2, getY());
         }
@@ -402,6 +394,31 @@ public class LWNode extends LWContainer
         */
     }
 
+    private Rectangle2D getAllChildrenBounds()
+    {
+        // compute bounds based on a vertical stacking layout
+        java.util.Iterator i = getChildIterator();
+        float height = 0;
+        float maxWidth = 0;
+        float width;
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            height += c.getBoundsHeight() + VerticalChildGap;
+            width = c.getBoundsWidth();
+            //height += c.height + VerticalChildGap;
+            //width = c.width;
+            if (width > maxWidth)
+                maxWidth = width;
+            
+        }
+        // If WE'RE already scaled, these totals will be off
+        // This is way confusing -- I hope we can
+        // can get rid of this feature soon.
+        height /= getScale();
+        maxWidth /= getScale();
+        return new Rectangle2D.Float(0f, 0f, maxWidth, height);
+    }
+    
     // todo: okay, we do NOT want to do this every damn paint --
     // makes it impossible to drag out a child!
     protected void layoutChildren()
@@ -417,7 +434,7 @@ public class LWNode extends LWContainer
             //float childX = this.padX * getScale();
             float childX = (this.getWidth() - c.getWidth()) / 2;
             c.setLocation(getX() + childX, getY() + y);
-            y += c.getHeight();
+            y += c.getBoundsHeight();
             y += VerticalChildGap * getScale();
         }
     }
@@ -479,21 +496,21 @@ public class LWNode extends LWContainer
         }
 
         //-------------------------------------------------------
-        // Draw the indicated border if any, instead of the pathways border
+        // Draw the indicated border if any
         //-------------------------------------------------------        
 
         if (isIndicated()) {
-                g.setColor(COLOR_INDICATION);
-                if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
-                    g.setStroke(STROKE_INDICATION);
-                else
-                    g.setStroke(this.stroke);
-                g.draw(drawnShape);
-            } else if (getStrokeWidth() > 0) {
-                g.setColor(getStrokeColor());
+            g.setColor(COLOR_INDICATION);
+            if (STROKE_INDICATION.getLineWidth() > getStrokeWidth())
+                g.setStroke(STROKE_INDICATION);
+            else
                 g.setStroke(this.stroke);
-                g.draw(drawnShape);
-            }       
+            g.draw(drawnShape);
+        } else if (getStrokeWidth() > 0) {
+            g.setColor(getStrokeColor());
+            g.setStroke(this.stroke);
+            g.draw(drawnShape);
+        }       
 
         //-------------------------------------------------------
         // Draw the text label if any
@@ -586,11 +603,11 @@ public class LWNode extends LWContainer
     
     static final NodeShape StandardShapes[] = {
         //new NodeShape("Oval", new RoundRectangle2D.Float(0,0, 0,0, 180,180)),
-        new NodeShape("Oval", new Ellipse2D.Float()),
-        new NodeShape("Circle", new Ellipse2D.Float(), true),
-        new NodeShape("Square", new Rectangle2D.Float(), true),
-        new NodeShape("Rectangle", new Rectangle2D.Float()),
-        new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 0,0, 20,20)),
+        new NodeShape("Oval", new Ellipse2D.Float(0,0,10,10)),
+        new NodeShape("Circle", new Ellipse2D.Float(0,0,10,10), true),
+        new NodeShape("Square", new Rectangle2D.Float(0,0,10,10), true),
+        new NodeShape("Rectangle", new Rectangle2D.Float(0,0,10,10)),
+        new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 10,10, 20,20)),
         //new NodeShape("Diamond", null),
         //new NodeShape("Parallelogram", null),
     };
