@@ -37,7 +37,7 @@ public class DataSourceViewer  extends JPanel{
     /** Creates a new instance of DataSourceViewer */
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
-    public static final String[] dataSourceTypes = {"Favorites","Filing-Local", "Filing-Remote","Fedora","Google"};
+    public static final String[] dataSourceTypes = {"Filing-Local", "Filing-Remote","Fedora","Google"};
     public static java.util.Vector dataSources;
     DataSource activeDataSource;
     DRBrowser drBrowser;
@@ -177,7 +177,7 @@ public class DataSourceViewer  extends JPanel{
     
     public void addNewDataSource (String displayName, String name,String searchURL, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
        try{
-          System.out.print("Search string" + searchURL);
+          System.out.print("Search string" + searchURL );
         DataSource ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
         dataSources.addElement (ds);  //  Add datasource to data source vector.
         dataSourceList.getContents().addElement(ds); // SHOULD BE DONE IN SINGE STEP
@@ -276,7 +276,7 @@ public class DataSourceViewer  extends JPanel{
         addPanel.add(userField);        //  7:  user field.
         addPanel.add(pwLabel);          //  8:  pw label.
         addPanel.add(pwField);          //  9:  pw field.
-         addPanel.add(searchURLLabel);   //  10:   searchURL Label
+        addPanel.add(searchURLLabel);   //  10:   searchURL Label
         addPanel.add(searchURLField);   //  11:   searchURL
 
         addPanel.add(anon1);            //  12:  anonymous label.
@@ -310,8 +310,8 @@ public class DataSourceViewer  extends JPanel{
                 String userStr = userField.getText();
                 JTextField pwField = (JTextField) panel.getComponent(9);
                 String pwStr = pwField.getText();
-                 JTextField  searchURLField = (JTextField)panel.getComponent(11);
-                 String  searchURLStr = searchURLField.getText();
+                JTextField  searchURLField = (JTextField)panel.getComponent(11);
+                String  searchURLStr = searchURLField.getText();
                  
                 /**
                 int type = 0;                      
@@ -325,11 +325,13 @@ public class DataSourceViewer  extends JPanel{
                     VueUtil.alert(null, "Datasourcename should be atleast 1 char long", "Invalid DataSource Name");
                     return;
                 }
-                if(!checkValidUser( userStr,pwStr,type)) {
+                
+                if((type == 2) && (!checkValidUser( userStr,pwStr,type))) {
                     VueUtil.alert(null, "Not valid Tufts User. You are not allowed to create this dataSource", "Invalid User");
                     return;
                 }
                 try {
+                     System.out.println ("Add data source params: " + type + ", " + dsNameStr + ", " + nameStr + ", " + adrStr + ", " + userStr + ", " + pwStr);
                     dsv.addNewDataSource (dsNameStr, nameStr, searchURLStr, adrStr, userStr, pwStr, type,false);
                 } catch (Exception ex) {
                     VueUtil.alert(null,"Cannot add Datasource"+nameStr+": "+ex.getMessage(), "Datasource can't be added");
@@ -433,6 +435,23 @@ public class DataSourceViewer  extends JPanel{
                 activeDataSource.setUserName(userField.getText());
                 activeDataSource.setPassword(pwField.getText());
                 activeDataSource.setsearchURL(urlField.getText());
+<<<<<<< DataSourceViewer.java
+                
+                //-----------
+                 drBrowser.remove(resourcesPanel);
+                  resourcesPanel  = new JPanel();
+                  resourcesPanel.setLayout(new BorderLayout());
+                  resourcesPanel.setBorder(new TitledBorder(activeDataSource.getDisplayName()));
+                   resourcesPanel.add(activeDataSource.getResourceViewer(),BorderLayout.CENTER);
+                    drBrowser.add(resourcesPanel,BorderLayout.CENTER);
+                 drBrowser.repaint();
+                drBrowser.validate();
+                
+                
+                
+                //----
+                
+=======
                 try {
                     activeDataSource.setViewer();
                 } catch(Exception ex) {
@@ -440,6 +459,7 @@ public class DataSourceViewer  extends JPanel{
                 } 
                 setActiveDataSource(activeDataSource); // reset resource panel after edits
                   
+>>>>>>> 1.19
                 dia.hide();
             }
         });
@@ -479,7 +499,9 @@ public class DataSourceViewer  extends JPanel{
                 
         // this should be created automatically from a config file. That will be done in future.
                 try {  
+                    System.out.println("this is load " + DataSource.FILING_LOCAL+"rem" +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
                     DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
+                    
                     //ds1.setDisplayColor(Color.BLACK);
                     dataSources.add(ds1);
                     dataSourceList.getContents().addElement(ds1);
