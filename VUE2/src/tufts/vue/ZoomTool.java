@@ -63,13 +63,18 @@ public class ZoomTool extends VueTool
         return true;
     }
 
+    public boolean isZoomOutMode()
+    {
+        return getSelectedSubTool().getID().equals("zoomTool.zoomOut");
+    }
+
     public boolean supportsDraggedSelector(MouseEvent e)
     {
         // This is so that if they RIGHT click, the dragged selector doesn't appear --
         // because right click in zoom does a zoom out, and it makes less sense to
         // zoom out on a particular region.
         // Need to recognize button 1 on a drag, where getButton=0, or a release, where modifiers 0 but getButton=1
-        return e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
+        return !isZoomOutMode() && (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
     }
     
     
