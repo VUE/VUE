@@ -85,9 +85,10 @@ public class LWGroup extends LWComponent
         if (c.getParent() != null)
             c.getParent().removeChild(c);
         this.children.add(c);
-        c.setParent(this);
         if (c.getFont() == null)
             c.setFont(getFont());
+        c.setParent(this);
+        c.notify("added");
     }
     public void removeChild(LWComponent c)
     {

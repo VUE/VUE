@@ -6,6 +6,7 @@ public class LWCEvent
     private LWComponent component;
     private String what;
 
+    // todo: we still using both src & component?
     public LWCEvent(Object source, LWComponent c, String what)
     {
         this.source = source;
@@ -30,10 +31,11 @@ public class LWCEvent
 
     public String toString()
     {
-        return "LWCEvent[" + what
-            + " " + component
-            + " src=" + source
-            + "]";
+        String s = "LWCEvent[" + what
+            + " " + component;
+        if (source != component)
+            s += " src=" + source;
+        return s + "]";
     }
 }
 

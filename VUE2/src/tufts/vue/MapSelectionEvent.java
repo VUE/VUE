@@ -1,6 +1,6 @@
 package tufts.vue;
 
-// rename SelectionEvent
+// rename SelectionEvent, or CanvasSelecion?
 public class MapSelectionEvent
     extends EventRaiser
 {
