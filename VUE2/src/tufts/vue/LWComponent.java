@@ -13,6 +13,15 @@ package tufts.vue;
 
 class LWComponent
 {
+    public static final java.awt.Stroke STROKE_ONE = new java.awt.BasicStroke(1f);
+    public static final java.awt.Stroke STROKE_TWO = new java.awt.BasicStroke(2f);
+    public static final java.awt.Stroke STROKE_DEFAULT = STROKE_ONE;
+
+    public static final java.awt.Color COLOR_SELECTION = java.awt.Color.blue;
+    public static final java.awt.Color COLOR_INDICATION = java.awt.Color.red;
+    public static final java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
+    public static final java.awt.Color COLOR_FAINT = java.awt.Color.lightGray;
+    
     protected int x;
     protected int y;
     protected int width;
@@ -21,15 +30,44 @@ class LWComponent
     protected boolean selected = false;
     protected boolean indicated = false;
 
+    private java.util.List links = new java.util.ArrayList();
+
     protected LWComponent() {}
+
+    public void addLink(LWLink link)
+    {
+        this.links.add(link);
+    }
+    
+    public void removeLink(LWLink link)
+    {
+        this.links.remove(link);
+    }
+
+    public LWLink getLinkTo(LWComponent c)
+    {
+        java.util.Iterator i = this.links.iterator();
+        while (i.hasNext()) {
+            LWLink lwl = (LWLink) i.next();
+            if (lwl.getComponent1() == c || lwl.getComponent2() == c)
+                return lwl;
+        }
+        return null;
+    }
+
+    public boolean hasLinkTo(LWComponent c)
+    {
+        return getLinkTo(c) != null;
+    }
 
     public MapItem getMapItem()
     {
         return null;
     }
-
+    
     public void setLocation(int x, int y)
     {
+        //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
     }
@@ -50,18 +88,78 @@ class LWComponent
     public int getWidth() { return this.width; }
     public int getHeight() { return this.height; }
     
+    /**
+     * Default implementation: checks bounding box
+     */
     public boolean contains(int x, int y)
     {
         return x >= this.x && x <= (this.x+width)
             && y >= this.y && y <= (this.y+height);
     }
-    
-    public void draw(java.awt.Graphics g)
+
+    /**
+     * Does x,y fall within the selection target for this component.
+     * This default impl adds a 30 pixel swath to bounding box.
+     */
+    public boolean targetContains(int x, int y)
     {
-        //System.err.println("drawing " + this);
+        final int swath = 30; // todo: preference
+        int sx = this.x - swath;
+        int sy = this.y - swath;
+        int ex = this.x + width + swath;
+        int ey = this.y + height + swath;
+        
+        return x >= sx && x <= ex && y >= sy && y <= ey;
     }
 
+    /**
+     * We divide area around the bounding box into 8 regions -- directly
+     * above/below/left/right can compute distance to nearest edge
+     * with a single subtract.  For the other regions out at the
+     * corners, do a distance calculation to the nearest corner.
+     * Behaviour undefined if x,y are within component bounds.
+     */
+    public double distanceToEdge(int x, int y)
+    {
+        int ex = this.x + width;
+        int ey = this.y + height;
 
+        if (x >= this.x && x <= ex) {
+            // we're directly above or below this component
+            return y < this.y ? this.y - y : y - ey;
+        } else if (y >= this.y && y <= ey) {
+            // we're directly to the left or right of this component
+            return x < this.x ? this.x - x : x - ex;
+        } else {
+            // This computation only makes sense following the above
+            // code -- we already know we must be closest to a corner
+            // if we're down here.
+            int nearCornerX = x > ex ? ex : this.x;
+            int nearCornerY = y > ey ? ey : this.y;
+            int dx = nearCornerX - x;
+            int dy = nearCornerY - y;
+            return java.lang.StrictMath.sqrt(dx*dx + dy*dy);
+        }
+    }
+    
+    /**
+     * Return the distance from x,y to the center of
+     * this components bounding box.
+     */
+    public double distanceToCenter(int x, int y)
+    {
+        int cx = this.x + width / 2;
+        int cy = this.y + height / 2;
+        int dx = cx - x;
+        int dy = cy - y;
+        return java.lang.StrictMath.sqrt(dx*dx + dy*dy);
+    }
+    
+    public void draw(java.awt.Graphics2D g)
+    {
+        // System.err.println("drawing " + this);
+    }
+    
     public void setSelected(boolean selected)
     {
         this.selected = selected;
@@ -92,7 +190,7 @@ class LWComponent
     
     public String toString()
     {
-        return getClass().getName() + "["+x+","+y + " " + width + "x" + height + "]";
+        return super.toString() + "["+x+","+y + " " + width + "x" + height + " " + getMapItem() + "]";
     }
     
 }

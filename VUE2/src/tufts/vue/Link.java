@@ -2,31 +2,32 @@ package tufts.vue;
 
 public class Link extends MapItem
 {
-    private Node node1;
-    private Node node2;
-    private int weight = 0;
+    private MapItem node1;
+    private MapItem node2;
+    private int weight = 1;
     private boolean ordered = true;
+    private boolean fixed = false;
 
-    public Link(Node n1, Node n2)
+    public Link(MapItem i1, MapItem i2)
     {
-        setNode1(n1);
-        setNode2(n2);
+        setItem1(i1);
+        setItem2(i2);
     }
     
-    public void setNode1(Node node)
+    public void setItem1(MapItem node)
     {
         this.node1 = node;
     }
-    public Node getNode1()
+    public MapItem getItem1()
     {
         return this.node1;
     }
 
-    public void setNode2(Node node)
+    public void setItem2(MapItem node)
     {
         this.node2 = node;
     }
-    public Node getNode2()
+    public MapItem getItem2()
     {
         return this.node2;
     }
@@ -42,6 +43,12 @@ public class Link extends MapItem
         return this.weight;
     }
 
+    public int incrementWeight()
+    {
+        this.weight += 1;
+        return this.weight;
+    }
+
     public void setOrdered(boolean ordered)
     {
         this.ordered = ordered;
@@ -50,6 +57,15 @@ public class Link extends MapItem
     public boolean isOrdered()
     {
         return this.ordered;
+    }
+    public void setFixed(boolean fixed)
+    {
+        this.fixed = fixed;
+    }
+    
+    public boolean isFixed()
+    {
+        return this.fixed;
     }
     
 }

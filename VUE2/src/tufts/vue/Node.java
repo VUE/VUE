@@ -33,6 +33,11 @@ public class Node extends MapItem
         setPosition(p);
     }
 
+    public String toString()
+    {
+        return super.toString() + " resource=" + getResource();
+    }
+
     public void setResource(Resource resource)
     {
         this.resource = resource;

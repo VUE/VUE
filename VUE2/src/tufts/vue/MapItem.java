@@ -30,7 +30,7 @@ public abstract class MapItem
 
     public String toString()
     {
-        return "MapItem[id=" + getID() + " label=" + getLabel() + "]";
+        return getClass().getName() + "[id=" + getID() + " " + getLabel() + "]";
     }
     
     public void setID(String ID)

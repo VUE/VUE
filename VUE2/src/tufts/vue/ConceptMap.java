@@ -14,7 +14,11 @@ public class ConceptMap extends MapItem
     private java.util.List nodeList = new java.util.Vector();
     private java.util.List linkList = new java.util.Vector();
     private java.util.List pathwayList = new java.util.Vector();
+    
     private java.util.List listeners = new java.util.Vector();
+
+    private int originX;
+    private int originY;
 
     ConceptMap(String label)
     {
@@ -104,6 +108,28 @@ public class ConceptMap extends MapItem
     {
         return pathwayList.iterator();
     }
+
+    /*
+     * Methods for setting & getting display hints
+     * todo: make this a seperate interface?
+     */
+
+    public void dSetOrigin(int x, int y)
+    {
+        this.originX = x;
+        this.originY = y;
+    }
+
+    public int dGetOriginX()
+    {
+        return this.originX;
+    }
+    public int dGetOriginY()
+    {
+        return this.originY;
+    }
+
+
 
     
 }
