@@ -110,7 +110,6 @@ public class LWPathwayList
         
         if (VUE.getActiveMap() != null)
             VUE.getActiveMap().notify(this, LWCEvent.Repaint);
-        //VUE.getPathwayInspector().repaint();
     }
 
     private Object get(int i) { return elements.get(i); }

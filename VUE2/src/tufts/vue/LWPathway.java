@@ -84,17 +84,19 @@ public class LWPathway extends LWContainer
         return mCurrentIndex = i;
     }
 
-    protected void notify(String what, LWComponent contents)
+    /*
+    protected void notifyLWCListeners(LWCEvent e)
     {
-        LWCEvent event = new LWCEvent(this, contents, what);
         // notify our explicit listeners
-        super.notifyLWCListeners(event);
+        super.notifyLWCListeners(e);
         // simulate being parented to our map -- this
         // is how the map knows to redraw itself if
         // something is added/removed to the pathway
+        // [already done as we've setParent to the map]
         if (getMap() != null)
-            getMap().notifyLWCListeners(event);
+            getMap().notifyLWCListeners(e);
     }
+    */
 
     /**
      * Overrides LWContainer addChild.  Pathways aren't true
@@ -413,7 +415,7 @@ public class LWPathway extends LWContainer
     /** for PathwayTable */
     void setCurrentElement(LWComponent c) {
         setIndex(children.indexOf(c));
-        VUE.getActiveMap().notify(this, LWCEvent.Repaint);
+        notify(LWCEvent.Repaint);
     }
     
     public int getCurrentIndex(){

@@ -208,7 +208,7 @@ public class PathwayTable extends JTable
                         if(row != -1){
                             getTableModel().setValueAt(currentColor, row, 1);
                             getTableModel().fireTableDataChanged();
-                            VUE.getActiveViewer().repaint();
+                            //VUE.getActiveViewer().repaint();
                         }
                     }               
                 }
