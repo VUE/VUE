@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.net.*;
 import org.apache.commons.net.ftp.*;
-
+import java.awt.Frame;
 
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
@@ -31,15 +31,19 @@ public class Publish   extends AbstractAction  {
     String fileName;
     String tempMETSfileName;
     File activeMapFile;
+    Frame owner;
+    String label;
     public Publish() {
     }
     
-    public Publish(String label) {
+    public Publish(Frame owner,String label) {
         super(label);
+        this.owner = owner;
+        this.label  = label;
     }
     public void actionPerformed(java.awt.event.ActionEvent e) {
         try {
-            Publisher publisher = new Publisher();
+            Publisher publisher = new Publisher(owner,label);
       
         } catch(Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");

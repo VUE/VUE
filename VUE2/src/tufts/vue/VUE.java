@@ -1012,7 +1012,7 @@ public class VUE
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open");
         ExitAction exitAction = new ExitAction("Quit");
-        Publish publishAction = new Publish("Publish");
+        Publish publishAction = new Publish(frame,"Publish");
         
         /**Actions added by the power team*/
         JMenu exportMenu = new JMenu("Export");
