@@ -173,33 +173,30 @@
 		<field name="userOrigin">
 			<bind-xml name="userOrigin" node="element"/>
 		</field>
-		<field name="PathwayManager" type="tufts.vue.LWPathwayManager">
-			<bind-xml name="PathwayManager" node="element" />
+		<!-- field name="Pathways" type="tufts.vue.LWPathwayList" -->
+		<field name="Pathways">
+			<bind-xml name="PathwayList" node="element"/>
 		</field>
-	
-		
-        <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
-            <bind-xml matches="*"/> 
-        </field>
+                <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
+                  <bind-xml matches="*"/> 
+                </field>
         
 	</class>
 
-	<class name="tufts.vue.LWPathwayManager">
-		<map-to xml="PathwayManager"/>
-		<field name="PathwayList" type="tufts.vue.LWPathway" collection="collection">
-			<bind-xml name="Pathway" />
-		</field>
+	<class name="tufts.vue.LWPathwayList">
+		<map-to xml="PathwayList"/>
 		<field name="currentIndex" type="integer">
-			<bind-xml name="CurrentPathway" node="attribute" />
+			<bind-xml name="currentPathway" node="attribute" />
+		</field>
+		<field name="elementList" collection="collection">
+			<bind-xml name="pathway" />
 		</field>
 	</class>
 	
-	<class name="tufts.vue.LWPathway">
-		<field name="label" type="string">
-			<bind-xml name="label" node="attribute" />
-		</field>
+	<class name="tufts.vue.LWPathway" extends="tufts.vue.LWContainer">
+		<map-to xml="pathway"/>
 		<field name="currentIndex" type="integer">
-			<bind-xml name="CurrentIndex" node="attribute" />
+			<bind-xml name="currentIndex" node="attribute"/>
 		</field>
 		<field name="elementIDList" type="string" collection="collection">
 			<bind-xml name="id" />
@@ -214,7 +211,11 @@
                         <bind-xml name="id" node="attribute"/>
                 </field>
                 <field name="elementNotes" type="string">
-                        <bind-xml name="pathwayNotes" node="element"/>
+                  <bind-xml name="pathwayNotes" node="attribute"/>
+                  <!-- We save as an attribue instead of an element to
+                       get around potential bugs in castor element
+                       saves of long strings.
+                    -->
                 </field>
         </class>
 

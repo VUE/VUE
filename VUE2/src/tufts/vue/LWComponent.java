@@ -250,7 +250,7 @@ public class LWComponent
     {
         return pathwayRefs != null && pathwayRefs.size() > 0;
     }
-    void addPathwayRef(Pathway p)
+    void addPathwayRef(LWPathway p)
     {
         if (pathwayRefs == null)
             pathwayRefs = new ArrayList();
@@ -258,7 +258,7 @@ public class LWComponent
         layout();
         notify("pathway.add");
     }
-    void removePathwayRef(Pathway p)
+    void removePathwayRef(LWPathway p)
     {
         pathwayRefs.remove(p);
         layout();
@@ -1249,6 +1249,14 @@ public class LWComponent
     public boolean isHidden()
     {
         return this.hidden || isFiltered();
+    }
+    public void setVisible(boolean visible)
+    {
+        setHidden(!visible);
+    }
+    public boolean isVisible()
+    {
+        return !isHidden();
     }
 
     public void setIndicated(boolean indicated)

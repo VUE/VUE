@@ -19,13 +19,13 @@ public class LWPathwayElementProperty
     public LWPathwayElementProperty()
     {
         ID = "no ID";
-        notes = "no pathway notes";
+        //notes = "no pathway notes";
     }
     
     public LWPathwayElementProperty(String ID) 
     {
         this.ID = ID;
-        notes = "no pathway notes";
+        //notes = "no pathway notes";
     }
     
     public LWPathwayElementProperty(String ID, String notes)
@@ -46,11 +46,16 @@ public class LWPathwayElementProperty
     
     public String getElementNotes()
     {
+        if (notes != null && notes.length() < 1)
+            this.notes = null;
         return notes;
     }
     
     public void setElementNotes(String notes)
     {
-        this.notes = notes;
+        if (notes != null && notes.trim().length() < 1)
+            this.notes = null;
+        else
+            this.notes = notes;
     }
 }

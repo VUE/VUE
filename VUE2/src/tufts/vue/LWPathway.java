@@ -21,136 +21,139 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 
-public class LWPathway
-    implements Pathway, LWComponent.Listener
+public class LWPathway extends LWContainer
+    implements LWComponent.Listener
 {
-    private LinkedList elementList = null;
     private int weight = 1;
-    private String comment = "";
     private boolean ordered = false;
-    private Color borderColor = Color.blue;
-    private LWMap map = null;
-    private String label = "";
-    private int currentIndex;
-    private String notes = "";
-    private boolean showing = true;
+    private int mCurrentIndex = -1;
     private boolean open = true;
     private boolean locked = false;
     private boolean mDoingXMLRestore = false;
-    private ArrayList colorArray = new ArrayList();
-    
-    private ArrayList elementPropertyList = null;
+
+    private ArrayList elementPropertyList = new ArrayList();
+
+    private static Color[] ColorTable = {
+        new Color(153, 51, 51),
+        new Color(204, 51, 204),
+        new Color(51, 204, 51),
+        new Color(51, 204, 204),
+        new Color(255, 102, 51),
+        new Color(51, 102, 204),
+    };
+    private static int sColorIndex = 0;
     
     /**default constructor used for marshalling*/
     public LWPathway() {
-        //added by Daisuke
-        elementList = new LinkedList();
-        elementPropertyList = new ArrayList();
-        
-        currentIndex = -1;
         mDoingXMLRestore = true;
-
-        /*
-
-        colorArray.add(new Color(255, 255, 51));
-        colorArray.add(new Color(255, 102, 51));
-        colorArray.add(new Color(204, 51, 204));
-        colorArray.add(new Color(51, 204, 204));
-        colorArray.add(new Color(51, 204, 51));
-
-        // need to save & restore this color -- in any case,
-        // we can't rely on having an active map while
-        // simply doing a raw data-restore -- SMF 2004-01-29 20:27.48
-
-          LWPathwayManager manager = VUE.getActiveMap().getPathwayManager();
-        if(manager != null && manager.getPathwayList() != null){
-            int num = manager.getPathwayList().size();
-            borderColor = (Color)colorArray.get(num % 5);
-        }
-        System.out.println("manager: " + manager.toString());
-        System.out.println("pathway border color: " + borderColor.toString());
-        
-        */
     }
-    
-    public LWPathway(LWMap map, String label) {
-        this(label);
-        this.map = map;        
+
+    LWPathway(String label) {
+        this(null, label);
     }
-    
+
     /** Creates a new instance of LWPathway with the specified label */
-    public LWPathway(String label) {
-        this.setLabel(label);
-        elementList = new LinkedList();
-        elementPropertyList = new ArrayList();
-        currentIndex = -1;
-        
-        colorArray.add(new Color(153, 51, 51));
-        colorArray.add(new Color(204, 51, 204));
-        colorArray.add(new Color(51, 204, 51));
-        colorArray.add(new Color(51, 204, 204));
-        colorArray.add(new Color(255, 102, 51));
-        colorArray.add(new Color(51, 102, 204));
-        
+    public LWPathway(LWMap map, String label) {
+        setMap(map);
+        setLabel(label);
+        setStrokeColor(getNextColor());
+    }
+
+    private static Color getNextColor()
+    {
+        if (sColorIndex >= ColorTable.length)
+            sColorIndex = 0;
+        return ColorTable[sColorIndex++];
+        /*
         LWPathwayManager manager = VUE.getActiveMap().getPathwayManager();
+        System.out.println("manager: " + manager.toString());
         if(manager != null && manager.getPathwayList() != null){
             int num = manager.getPathwayList().size();
             borderColor = (Color)colorArray.get(num % 6);
         }
-        
-        System.out.println("manager: " + manager.toString());
         System.out.println("pathway border color: " + borderColor.toString());
+        */
     }
      
-    /** adds an element to the end of the pathway */
-    public void addElement(LWComponent element) {
-       elementList.add(element);
-       elementPropertyList.add(new LWPathwayElementProperty(element.getID()));
-       element.addLWCListener(this);       
-       element.addPathwayRef(this);
-       if (currentIndex == -1) currentIndex = length() - 1;
-       //maybe need to repaint the view?
+    public int getWeight() { return weight; }
+    public void setWeight(int weight) { this.weight = weight; }
+
+    private int setIndex(int i)
+    {
+        System.out.println(this + " setIndex " + i);
+        return mCurrentIndex = i;
+    }
+
+    protected void notify(String what, LWComponent contents)
+    {
+        LWCEvent event = new LWCEvent(this, contents, what);
+        // notify our explicit listeners
+        super.notifyLWCListeners(event);
+        // simulate being parented to our map -- this
+        // is how the map knows to redraw itself if
+        // something is added/removed to the pathway
+        getMap().notifyLWCListeners(event);
+    }
+
+    /**
+     * Overrides LWContainer addChild.  Pathways aren't true
+     * parents, so all we want to do is add a reference to them.
+     */
+    public void addChild(LWComponent c)
+    {
+        children.add(c);
+        c.addPathwayRef(this);
+        new Throwable(this + " addChild " + c).printStackTrace();
+        // don't want to add to element props if they already have some!
+        // (is happening on restore)
+        elementPropertyList.add(new LWPathwayElementProperty(c.getID()));
+        if (mCurrentIndex == -1) setIndex(length() - 1);
+        c.addLWCListener(this);       
+        notify(LWCEvent.ChildAdded, c);
+    }
+    public void removeChild(LWComponent c)
+    {
+        children.remove(c);
+        c.removePathwayRef(this);
+        c.removeLWCListener(this);       
+        notify(LWCEvent.ChildRemoved, c);
     }
     
+    /** adds an element to the end of the pathway */
+    public void add(LWComponent c) {
+        addChild(c);
+    }
+
+    public void remove(LWComponent c) {
+        removeChild(c);
+    }
+
+    public void add(Iterator i)
+    {
+        while (i.hasNext()) add((LWComponent) i.next());
+    }
+    /*
+    public void addElement(LWComponent c) {
+        add(c);
+    }
+    */
     public void LWCChanged(LWCEvent e)
     {
-        if (e.getWhat() == LWCEvent.Deleting) {
-            removeElement(elementList.indexOf(e.getComponent()), true);
-        }
+        if (e.getWhat() == LWCEvent.Deleting)
+            remove(e.getComponent());
     }
     
-    public LWMap getPathwayMap(){
-        return map;
+    public LWMap getMap(){
+        return (LWMap) getParent();
     }
-    
-    
-    public void setShowing(boolean showing){
-        this.showing = showing;
+    public void setMap(LWMap map) {
+        setParent(map);
     }
-    
-    public void toggleShowing(){
-        if(this.showing)
-            this.showing = false;
-        else
-            this.showing = true;
+
+    public void setLocked(boolean t) {
+        this.locked = t;
     }
-    
-    public boolean isShowing(){
-        return showing;
-    }
-    
-    public boolean getShowing(){
-        return showing;
-    }
-    
-    public void setLocked(){
-         if(this.locked)
-            this.locked = false;
-        else
-            this.locked = true;
-    }
-    
-    public boolean getLocked(){
+    public boolean isLocked(){
         return locked;
     }
     
@@ -158,16 +161,302 @@ public class LWPathway
         this.open = open;
     }
     
-    public void setOpen(){
-        if(this.open)
-            this.open = false;
-        else
-            this.open = true;
-    }
-    
-    public boolean getOpen(){
+    public boolean isOpen() {
         return open;
     }
+
+    public boolean contains(LWComponent c) {
+        return children.contains(c);
+    }
+
+    public int length() {
+        return children.size();
+    }
+    
+    public LWComponent getFirst()
+    {
+        if (length() > 0) {
+            setIndex(0);
+            return (LWComponent) children.get(0);
+        }
+        return null;
+    }
+    
+    public boolean isFirst(){
+        return (mCurrentIndex == 0);
+    }
+    
+    public LWComponent getLast() {        
+        if (length() > 0) {
+            setIndex(length() - 1);
+            return (LWComponent) children.get(length() - 1);
+        }
+        return null;
+    }
+    
+    public boolean isLast(){
+        return (mCurrentIndex == (length() - 1));
+    }
+      
+    public LWComponent getPrevious(){
+        if (mCurrentIndex > 0)
+            return (LWComponent) children.get(setIndex(mCurrentIndex - 1));
+        else
+            return null;
+    }
+    
+    public LWComponent getNext(){
+        if (mCurrentIndex < (length() - 1))
+            return (LWComponent) children.get(setIndex(mCurrentIndex + 1));
+        else 
+            return null;
+    }
+
+    /*
+    public LWComponent getElement(int index){
+        LWComponent element = null;
+        
+        try{
+            element = (LWComponent)elementList.get(index);
+        }catch (IndexOutOfBoundsException ie){
+            element = null;
+        }    
+        
+        return element;
+    }
+    */
+
+    /** Pathway interface */
+    public java.util.Iterator getElementIterator() {
+        return children.iterator();
+    }
+    /*    
+    public void removeElement(int index) {
+        removeElement(index, false);
+    }
+
+    protected void removeElement(int index, boolean deleted) {
+        
+        //if the current node needs to be deleted and it isn't the first node, 
+        //set the current index to the one before, else keep the same index
+        if (index == mCurrentIndex && !isFirst())
+            //if (!isFirst())
+          mCurrentIndex--;
+        
+        //if the node to be deleted is before the current node, set the current index to the one before
+        else if (index < mCurrentIndex)
+          mCurrentIndex--;
+        
+        LWComponent element = (LWComponent)elementList.remove(index);
+        
+        System.out.println(this + " removing index " + index + " c="+element);
+
+        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
+        {
+            if(((LWPathwayElementProperty)i.next()).getElementID().equals(element.getID()))
+            {
+                i.remove();
+                break;
+            }
+        }
+        
+        
+        if (element == null) {
+            System.err.println(this + " removeElement: element does not exist in pathway");
+        } else {
+            if (!deleted) {
+                element.removePathwayRef(this);
+                //element.removeLWCListener(this);
+            }
+        }
+    }
+       
+    public void removeElement(LWComponent element) {
+      
+       System.out.println("the element version of the remove is being called");
+       for(int i = 0; i < elementList.size(); i++){
+            LWComponent comp = (LWComponent)elementList.get(i);
+            if(comp.equals(element)){
+                this.removeElement(i);
+                element.removePathwayRef(this);
+                //break;
+            }
+       }
+    }
+*/
+    /**
+     * Make sure we've completely cleaned up the pathway when it's
+     * been deleted (must get rid of LWComponent references to this
+     * pathway)
+     */
+    protected void removeFromModel()
+    {
+        Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.removePathwayRef(this);
+       }
+    }
+
+    public void moveElement(int oldIndex, int newIndex) {
+        throw new UnsupportedOperationException("LWPathway.moveElement");
+        // will need to clean up add/remove element code at bottom
+        // and track addPathRefs before can put this back in
+        /*
+        LWComponent element = getElement(oldIndex);
+        removeElement(oldIndex);
+        addElement(element, newIndex);
+        */
+    }
+    
+    public boolean getOrdered() {
+        return ordered;
+    }
+    
+    public void setOrdered(boolean ordered) {
+        this.ordered = ordered;
+    }
+
+    /**
+     * for persistance: override of LWContainer: pathways never save their children
+     * as they don't own them -- they only save ID references to them.
+     */
+    public ArrayList getChildList()
+    {
+        return null;
+    }
+    
+    public java.util.List getElementList() {
+        //System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
+        return super.children;
+    }
+
+    /** for persistance */
+    public java.util.List getElementPropertyList() {
+        return elementPropertyList;
+    }
+    
+    private List idList = new ArrayList();
+    /** for XML save/restore only */
+    public List getElementIDList() {
+        if (mDoingXMLRestore) {
+            return idList;
+        } else {
+            idList.clear();
+            Iterator i = getElementIterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                idList.add(c.getID());
+            }
+        }
+        System.out.println(this + " getElementIDList: " + idList);
+        return idList;
+    }
+
+
+    /*
+    public void setElementIDList(List idList) {
+        System.out.println(this + " setElementIDList: " + idList);
+        this.idList = idList;
+    }
+    */
+    
+    void completeXMLRestore(LWMap map)
+    {
+        System.out.println(this + " completeXMLRestore, map=" + map);
+        setParent(map);
+        Iterator i = this.idList.iterator();
+        while (i.hasNext()) {
+            String id = (String) i.next();
+            LWComponent c = getMap().findChildByID(id);
+            System.out.println("\tpath adding " + c);
+            add(c);
+        }
+        mDoingXMLRestore = false;
+    }
+    
+    /** Interface for the linked list used by the Castor mapping file*/
+    /**
+    public ArrayList getElementArrayList()
+    {
+        System.out.println("calling get elementarraylist for " + getLabel());
+         return new ArrayList(elementList);
+    }
+    
+    public void setElementArrayList(ArrayList list)
+    {
+        System.out.println("calling set elementarraylist for " + getLabel());
+        elementList = new LinkedList(list);
+    }
+    **/
+    /*
+    public void setElementArrayList(LWComponent component)
+    {
+        System.out.println("calling set elementarraylist for " + getLabel());
+        elementList.add(component);
+    }
+    */
+    /** end of Castor Interface */
+    
+    /** return the current element */
+    public LWComponent getCurrent() { 
+        LWComponent c = null;
+        try {
+            c = (LWComponent) children.get(mCurrentIndex);
+        } catch (IndexOutOfBoundsException ie){
+            c = null;
+        }      
+        return c;
+    }
+    
+    /** for PathwayTable */
+    void setCurrentElement(LWComponent c) {
+        setIndex(children.indexOf(c));
+        VUE.getActiveMap().notify(this, LWCEvent.Repaint);
+    }
+    
+    public int getCurrentIndex(){
+        return mCurrentIndex;
+    }
+
+    public String getElementNotes(LWComponent c)
+    {
+        if (c == null) return null;
+        
+        String notes = null;
+        
+        for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
+            LWPathwayElementProperty element = (LWPathwayElementProperty) i.next();
+            if (element.getElementID().equals(c.getID())) {
+                notes = element.getElementNotes();
+                break;
+            }
+        }
+        //System.out.println("returning notes for " + c + " [" + notes + "]");
+        return notes;
+    }
+
+    public void setElementNotes(LWComponent component, String notes)
+    {   
+        if (notes == null || component == null)
+        {
+            System.err.println("argument(s) to setElementNotes is null");
+            return;
+        }
+        
+        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
+        {
+            LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
+            
+            if (element.getElementID().equals(component.getID()))
+            {
+                element.setElementNotes(notes);
+                //can elements be in a pathway twice?
+                break;
+            }
+        }
+    }
+
     
     private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
     private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
@@ -186,7 +475,7 @@ public class LWPathway
             dash_phase = 0.5f;
         if (DEBUG.PATHWAY) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
         
-        g.setColor(borderColor);
+        g.setColor(getStrokeColor());
         LWComponent last = null;
         Line2D connector = new Line2D.Float();
         BasicStroke connectorStroke =
@@ -202,7 +491,7 @@ public class LWPathway
             LWComponent c = (LWComponent)i.next();
 
             int strokeWidth;
-            boolean selected = (((LWComponent)elementList.get(this.getCurrentIndex())) == c);
+            boolean selected = (getCurrent() == c);
             strokeWidth = BaseStroke;
 
             // because we're drawing under the object, only half of
@@ -245,469 +534,15 @@ public class LWPathway
             last = c;
         }
     }
-
-    public void OLD_drawPathway(Graphics2D g){
-        Iterator iter = this.getElementIterator();
-        Color oldColor = g. getColor();
-        BasicStroke oldStroke = (BasicStroke)g.getStroke();
-        float width = oldStroke.getLineWidth();
-        BasicStroke currentStroke = new BasicStroke(width*4);
-        while(iter.hasNext()){
-            LWComponent comp = (LWComponent)iter.next();
-            g.setColor(borderColor);
-            g.setStroke(oldStroke);
-            if((LWComponent)elementList.get(this.getCurrentIndex()) == comp)
-                g.setStroke(currentStroke);
-            if(comp instanceof LWNode)
-                g.draw(comp.getShape());      
-            else if(comp instanceof LWLink){
-                LWLink link = (LWLink)comp;
-                LWComponent ep1 = link.getComponent1();
-                LWComponent ep2 = link.getComponent2();
-                if (!(ep1 instanceof LWLink && ep2 instanceof LWLink)
-                && !(ep1.getShape() == null && ep2.getShape() == null)) {
-                Area clipArea = new Area(g.getClipBounds());
-                if (!(ep1 instanceof LWLink) && ep1.getShape() != null)
-                    clipArea.subtract(new Area(ep1.getShape()));
-                if (!(ep2 instanceof LWLink) && ep2.getShape() != null)
-                    clipArea.subtract(new Area(ep2.getShape()));
-                g.clip(clipArea);
-            }
-                g.draw(link.getShape());
-            }
-        }
-        g.setColor(oldColor);
-    }
     
-    public boolean contains(LWComponent element){
-        return elementList.contains(element);
-    }
-    
-    public int length() {
-        return elementList.size();
-    }
-    
-    public LWComponent getFirst() {        
-        LWComponent firstElement = null;
-        
-        try{
-            firstElement = (LWComponent)elementList.getFirst();
-            currentIndex = 0;
-        }catch(NoSuchElementException ne){
-            firstElement = null;
-        }        
-        
-        return firstElement;
-    }
-    
-    public boolean isFirst(){
-        return (currentIndex == 0);
-    }
-    
-    public LWComponent getLast() {        
-        LWComponent lastElement = null;  
-        
-        try{
-            lastElement = (LWComponent)elementList.getLast();
-            currentIndex = length() - 1;
-        }catch(NoSuchElementException ne){
-            lastElement = null;
-        }
-        return lastElement;
-    }
-    
-    public boolean isLast(){
-        return (currentIndex == (length() - 1));
-    }
-      
-    public LWComponent getPrevious(){
-        if (currentIndex > 0)
-            return (LWComponent)elementList.get(--currentIndex);        
-        else
-            return null;
-    }
-    
-    public LWComponent getNext(){
-        if (currentIndex < (length() - 1))
-            return (LWComponent)elementList.get(++currentIndex);        
-        else 
-            return null;
-    }
-    
-    public LWComponent getElement(int index){
-        LWComponent element = null;
-        
-        try{
-            element = (LWComponent)elementList.get(index);
-        }catch (IndexOutOfBoundsException ie){
-            element = null;
-        }    
-        
-        return element;
-    }
-    
-    public java.util.Iterator getElementIterator() {
-        return elementList.iterator();
-    }
-    
-    public void removeElement(int index) {
-        removeElement(index, false);
-    }
-
-    protected void removeElement(int index, boolean deleted) {
-        
-        //if the current node needs to be deleted and it isn't the first node, 
-        //set the current index to the one before, else keep the same index
-        if (index == currentIndex && !isFirst())
-            //if (!isFirst())
-          currentIndex--;
-        
-        //if the node to be deleted is before the current node, set the current index to the one before
-        else if (index < currentIndex)
-          currentIndex--;
-        
-        LWComponent element = (LWComponent)elementList.remove(index);
-        
-        System.out.println(this + " removing index " + index + " c="+element);
-
-        /**Daisuke's code */
-        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
-        {
-            if(((LWPathwayElementProperty)i.next()).getElementID().equals(element.getID()))
-            {
-                i.remove();
-                break;
-            }
-        }
-        
-        /**end */
-        
-        if (element == null) {
-            System.err.println(this + " removeElement: element does not exist in pathway");
-        } else {
-            if (!deleted) {
-                element.removePathwayRef(this);
-                element.removeLWCListener(this);
-            }
-        }
-    }
-       
-    public void removeElement(LWComponent element) {
-      
-       System.out.println("the element version of the remove is being called");
-       for(int i = 0; i < elementList.size(); i++){
-            LWComponent comp = (LWComponent)elementList.get(i);
-            if(comp.equals(element)){
-                this.removeElement(i);
-                element.removePathwayRef(this);
-                //break;
-            }
-       }
-    }
-
-    /**
-     * Make sure we've completely cleaned up the pathway when it's
-     * been deleted (must get rid of LWComponent references to this
-     * pathway)
-     */
-    public void removeFromModel()
-    {
-        Iterator i = elementList.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.removePathwayRef(this);
-       }
-    }
-
-    public void moveElement(int oldIndex, int newIndex) {
-        throw new UnsupportedOperationException("LWPathway.moveElement");
-        // will need to clean up add/remove element code at bottom
-        // and track addPathRefs before can put this back in
-        /*
-        LWComponent element = getElement(oldIndex);
-        removeElement(oldIndex);
-        addElement(element, newIndex);
-        */
-    }
-    
-    /**accessor methods used also by xml marshalling process*/
-    public Color getBorderColor(){
-        return borderColor;
-    }
-    
-    public void setBorderColor(Color color){
-        this.borderColor = color;
-    }
-    
-    public int getWeight() {
-        return weight;
-    }
-    
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-    
-    public boolean getOrdered() {
-        return ordered;
-    }
-    
-    public void setOrdered(boolean ordered) {
-        this.ordered = ordered;
-    }
-    
-    public java.util.List getElementList() {
-        //System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
-        return elementList;
-    }
-    
-    public void setElementList(java.util.List elementList) {
-        this.elementList = (LinkedList)elementList;
-        if (elementList.size() >= 1) currentIndex = 0;
-        System.out.println(this + " setElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
-    }
-
-    public java.util.List getElementPropertyList()
-    {
-        return elementPropertyList;
-    }
-    
-    public void setElementPropertyList(java.util.List elementPropertyList)
-    {
-        this.elementPropertyList = (ArrayList)elementPropertyList;
-    }
-    
-    private List idList = new ArrayList();
-    /** for XML save/restore only */
-    public List getElementIDList() {
-        if (mDoingXMLRestore) {
-            return idList;
-        } else {
-            idList.clear();
-            Iterator i = getElementIterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                idList.add(c.getID());
-            }
-        }
-        System.out.println(this + " getElementIDList: " + idList);
-        return idList;
-    }
-
-
-    /*
-    public void setElementIDList(List idList) {
-        System.out.println(this + " setElementIDList: " + idList);
-        this.idList = idList;
-    }
-    */
-    
-    void completeXMLRestore(LWMap map)
-    {
-        System.out.println(this + " completeXMLRestore, map=" + map);
-        this.map = map;
-        Iterator i = this.idList.iterator();
-        while (i.hasNext()) {
-            String id = (String) i.next();
-            LWComponent c = this.map.findChildByID(id);
-            System.out.println("\tpath adding " + c);
-            addElement(c);
-        }
-        mDoingXMLRestore = false;
-    }
-    
-    /** Interface for the linked list used by the Castor mapping file*/
-    /**
-    public ArrayList getElementArrayList()
-    {
-        System.out.println("calling get elementarraylist for " + getLabel());
-         return new ArrayList(elementList);
-    }
-    
-    public void setElementArrayList(ArrayList list)
-    {
-        System.out.println("calling set elementarraylist for " + getLabel());
-        elementList = new LinkedList(list);
-    }
-    **/
-    public void setElementArrayList(LWComponent component)
-    {
-        System.out.println("calling set elementarraylist for " + getLabel());
-        elementList.add(component);
-    }
-    
-    /** end of Castor Interface */
-    
-    public LWComponent getCurrent() { 
-        LWComponent element = null;        
-        try{
-            element = (LWComponent)elementList.get(currentIndex);
-        }catch (IndexOutOfBoundsException ie){
-            element = null;
-        }      
-        return element;
-    }
-    
-    public String getComment(){
-        return comment;
-    }
-    
-    public void setComment(String comment){
-        this.comment = comment;
-    }
-    
-    public void setCurrentIndex(int i){
-        System.out.println("Current pathway node is now " + i);
-        currentIndex = i;
-        VUE.getActiveMap().notify(this, LWCEvent.Repaint);
-    }
-    
-    public int getCurrentIndex(){
-        return currentIndex;
-    }
-    
-    public int getElementIndex(LWComponent comp){
-        Iterator iter = this.elementList.iterator();
-        int index = 0;
-        while(iter.hasNext()){
-            LWComponent c = (LWComponent)iter.next();
-            if(c.equals(comp)){
-                return index;
-            }
-            index++;
-        }
-        return -1;
-    }
-    
-    public String getLabel() {
-        return this.label;
-    }
-    
-    public String getNotes() {
-        return this.notes;
-    }
-      
-    public String getElementNotes(LWComponent component)
-    {
-        String notes = "Not available";
-        
-        if (component == null)
-        {
-            System.err.println("argument to getElementNotes is null");
-            return notes;
-        }
-        
-        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
-        {
-            LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
-            
-            if (element.getElementID().equals(component.getID()))
-            {
-                notes = element.getElementNotes();
-                break;
-            }
-        }    
-        
-        return notes;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-    
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public void setElementNotes(LWComponent component, String notes)
-    {   
-        if (notes == null || component == null)
-        {
-            System.err.println("argument(s) to setElementNotes is null");
-            return;
-        }
-        
-        for(Iterator i = elementPropertyList.iterator(); i.hasNext();)
-        {
-            LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
-            
-            if (element.getElementID().equals(component.getID()))
-            {
-                element.setElementNotes(notes);
-                //can elements be in a pathway twice?
-                break;
-            }
-        }
-    }
-
     public String toString()
     {
         return "LWPathway[" + label
             + " n="
-            + (elementList==null?-1:elementList.size())
-            + " idx="+currentIndex
-            + " map=" + (map==null?"null":map.getLabel())
+            + (children==null?-1:children.size())
+            + " idx="+mCurrentIndex
+            + " map=" + (getMap()==null?"null":getMap().getLabel())
             + "]";
     }
 
-    
-/*****************************/    
-/**methods below are not used (actually: moveElement uses them -- SMF) */    
-/*****************************/
-    
-    /** adds an element at the specified location within the pathway*/
-    /*
-    public void addElement(LWComponent element, int index){
-        if(elementList.size() >= index){
-            elementList.add(index, element);
-            //if(current == null) setCurrent(element);
-            if (currentIndex == -1) currentIndex = index;
-        }else{
-            System.out.println("LWPathway.addElement(element, index), index out of bounds");
-        }
-    }
-    */
-    /** adds an element in between two other elements, if they are adjacent*/
-    /*
-    public void addElement(LWComponent element, LWComponent adj1, LWComponent adj2){
-        int index1 = elementList.indexOf(adj1);
-        int index2 = elementList.indexOf(adj2);
-        int dif = index1 - index2;
-        if(elementList.size() >= index1 && elementList.size() >= index2){
-            if(Math.abs(dif) == 1){
-                if(dif == -1)
-                    elementList.add(index2, element);
-                else
-                    elementList.add(index1, element);
-            }
-        }else{
-            System.out.println("LWPathway.addElement(element,adj1,adj2), index out of bounds");
-        }
-    }
-    
-    public LWComponent getNext(LWComponent current) {
-        int index = elementList.indexOf(current);
-        
-        if (index >= 0 && index < (length() - 1))
-          return (LWComponent)elementList.get(++index);
-        
-        //if (currentIndex >= 0 && currentIndex < (length() - 1))
-          //return (LWComponent)elementList.get(currentIndex + 1);
-        else
-          return null;
-    }
-    
-    public LWComponent getPrevious(LWComponent current) {
-        int index = elementList.indexOf(current);
-        
-        if (index > 0)
-          return (LWComponent)elementList.get(--index);
-        
-        //if (currentIndex > 0)
-          //return (LWComponent)elementList.get(currentIndex - 1);
-        else
-          return null;
-        
-    }
-    */
 }
-

@@ -71,63 +71,27 @@ class Actions
             }
         };
 
-    /**Addition by Daisuke Fujiwara*/
-    
     static final Action AddPathwayNode = 
-        new MapAction("Add to the Pathway")
+        new MapAction("Add to Pathway")
         {
-            public void act()
-            {
-                LWComponent[] array = VUE.ModelSelection.getArray();
-                
-                //adds the elements to the current pathway associated with the map
-                for (int i = 0; i < array.length; i++)
-                    VUE.getActivePathway().addElement(array[i]);
-                
-                //updates the inspector's pathwayTab
-                // This should be happening thru internal model notification
-                // as a result of the above addElement! -- SMF
-                VUE.getPathwayInspector().notifyPathwayTab();
-                
-                //updates the control panel
-                //VUE.getPathwayControl().updateControlPanel();
+            public void act(LWComponent c) {
+                VUE.getActivePathway().add(c);
             }
-            
             public boolean enabled() {
                 return VUE.getActivePathway() != null;
             }
         };
         
-    /**End of Addition by Daisuke Fujiwara*/
-       
-    /** Added by Jay Briedis */
-        
     static final Action DeletePathwayNode = 
-        new MapAction("Delete from the Pathway")
+        new MapAction("Remove from Pathway")
         {
-            public void act()
-            {
-                LWComponent[] array = VUE.ModelSelection.getArray();
-                System.out.println("deleting the current node for the pathway...");
-                //deletes the elements to the current pathway associated with the map
-                for (int i = 0; i < array.length; i++)
-                    VUE.getActivePathway().removeElement(array[i]);
-
-                //updates the inspector's pathwayTab
-                // This should be happening thru internal model notification
-                // as a result of the above removeElement! -- SMF
-                VUE.getPathwayInspector().notifyPathwayTab();
-
-                //updates the control panel
-                //VUE.getPathwayControl().updateControlPanel();
+            public void act(LWComponent c) {
+                VUE.getActivePathway().remove(c);
             }
-
             public boolean enabled() {
                 return VUE.getActivePathway() != null;
             }
         }; 
-    
-    /** End of Jay's Addition*/
     
     //-------------------------------------------------------
     // Alternative View actions
@@ -934,7 +898,8 @@ class Actions
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
             System.out.println("active map: "+VUE.getActiveMap());
-            VUE.getActiveMap().getUndoManager().markChangesAsUndoable(ae.getActionCommand());
+            if (VUE.getActiveMap() != null)
+                VUE.getActiveMap().getUndoManager().markChangesAsUndoable(ae.getActionCommand());
             //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();
             if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");

@@ -279,7 +279,7 @@ public class MapInspectorPanel  extends JPanel
 		/** the path display area **/
 		//JPanel mPathDisplay = null;
 		
-		PathwayTab mPathDisplay = null;
+		PathwayPanel mPathDisplay = null;
 		
 		/**
 		 * PathwayPane
@@ -291,7 +291,7 @@ public class MapInspectorPanel  extends JPanel
 			//mPathDisplay = new JPanel();
 			//mPathDisplay.add( new JLabel("Pathway offline") );
 			
-                        mPathDisplay = new PathwayTab(VUE.frame);
+                        mPathDisplay = new PathwayPanel(VUE.frame);
                         
 			mPathScrollPane = new JScrollPane();
 			mPathScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -316,7 +316,7 @@ public class MapInspectorPanel  extends JPanel
 		 **/
 		 public void updatePanel( LWMap pMap) {
                      
-                        mPathDisplay.setPathwayManager(pMap.getPathwayManager());
+                     //PATH TODO: mPathDisplay.setPathwayManager(pMap.getPathwayManager());
 		 // update display based on the LWMap
 		 }
 	}

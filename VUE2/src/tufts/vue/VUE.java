@@ -47,9 +47,9 @@ public class VUE
     private static JSplitPane viewerSplit;
     
     //pathway components
-    public static LWPathwayInspector pathwayInspector;
+    //public static LWPathwayInspector pathwayInspector;
     //public static PathwayControl control;
-
+    static MapInspectorPanel sMapInspectorPanel;
     static ToolWindow objectInspector;
     static ObjectInspectorPanel objectInspectorPanel;
     
@@ -199,17 +199,18 @@ public class VUE
         */
     }
     
-    /**Pathway related methods added by the PowerTeam*/
-    public static LWPathwayInspector getPathwayInspector(){
+
+    /*public static LWPathwayInspector getPathwayInspector(){
         return pathwayInspector;
-    }
+        }*/
     public static LWPathway getActivePathway() {
-        LWPathway p1 = pathwayInspector.getPathway();
-        LWPathway p2 = getActiveMap().getPathwayManager().getCurrentPathway();
-        if (p1 != p2) {
-            System.out.println("Pathway mayhem: too many cooks:\n\t" + p1 + "\n\t" + p2);
-        }
-        return p2 == null ? p1 : p2;
+        //LWPathway p1 = pathwayInspector.getPathway();
+        //LWPathway p2 = getActiveMap().getPathwayManager().getCurrentPathway();
+        //if (p1 != p2) System.out.println("Pathway mayhem: too many cooks:\n\t" + p1 + "\n\t" + p2);
+        //return p2 == null ? p1 : p2;
+        LWPathway p = getActiveMap().getPathways().getActivePathway();
+        System.out.println("getActivePathway: " + p);
+        return p;
     }
     
     /*public static PathwayControl getPathwayControl()
@@ -471,9 +472,9 @@ public class VUE
 		
         // get the proper scree/main frame size
         ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
-        MapInspectorPanel mip = new MapInspectorPanel();
-        ModelSelection.addListener( mip);
-        mapInspector.addTool( mip );
+        sMapInspectorPanel = new MapInspectorPanel();
+        ModelSelection.addListener(sMapInspectorPanel);
+        mapInspector.addTool(sMapInspectorPanel);
         
         //ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
         objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
@@ -494,7 +495,7 @@ public class VUE
         
         //addtion by the power team
         // why do we need the LWPathwayInspector anymore?? -- SMF
-        pathwayInspector = new LWPathwayInspector(frame);
+        //pathwayInspector = new LWPathwayInspector(frame);
         //control = new PathwayControl(frame);
         
         /*
@@ -1296,19 +1297,17 @@ public class VUE
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
-        map.markAsSaved();
         
-        //creating test pathways
-        if(map.getLabel().equals("Map 1")){
-            LWPathway p1 = new LWPathway("Pathway 1");
-            LinkedList linkedlist = new LinkedList();
-            linkedlist.add(n1);
-            linkedlist.add(n2);
-            linkedlist.add(n3);
-            linkedlist.add(k1);
-            p1.setElementList(linkedlist);
-            map.addPathway(p1);
-        }/*else if(map.getLabel().equals("Test Nodes")){        
+        // create test pathways
+        if (true) {
+            LWPathway p = new LWPathway("Test Pathway");
+            p.add(n1);
+            p.add(n2);
+            p.add(n3);
+            map.addPathway(p);
+        }
+        
+        /*else if(map.getLabel().equals("Test Nodes")){        
             LWPathway p2 = new LWPathway("Pathway 2");
             
             p2.setComment("A comment.");
@@ -1321,6 +1320,9 @@ public class VUE
             p2.setElementList(anotherList);
             map.addPathway(p2);            
         }*/
+
+        map.markAsSaved();
+        
     }
 
 }

@@ -19,13 +19,13 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 {
     JButton okButton, cancelButton;
     JTextField textField;
-    PathwayTab tab = null;
+    PathwayPanel pathPanel = null;
     
-    public PathwayDialog(PathwayTab tab, Point location)
+    public PathwayDialog(PathwayPanel pathPanel, Point location)
     {
-        //super(tab.getDialogParent(), "New Pathway Name", true);
-        super(tab.getParentFrame(), "New Pathway Name", true);
-        this.tab = tab;
+        //super(pathPanel.getDialogParent(), "New Pathway Name", true);
+        super(pathPanel.getParentFrame(), "New Pathway Name", true);
+        this.pathPanel = pathPanel;
         setSize(250, 100);
         setLocation(location);
         setUpUI();
@@ -67,7 +67,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         if (e.getSource() == okButton)
         {
             String pathLabel = textField.getText();
-            if(tab.getPathwayTableModel().isRepeat(pathLabel)){
+            if(pathPanel.getTableModel().containsPathwayNamed(pathLabel)){
                 JOptionPane option = new JOptionPane(
                     "Please rename this pathway.",
                     JOptionPane.INFORMATION_MESSAGE);
@@ -75,8 +75,9 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
                 dialog.show();
             }
             else{
-                tab.getPathwayTableModel().addPathway(new LWPathway(pathLabel));
-                tab.setAddElementEnabled();
+                //pathPanel.getTableModel().addPathway(new LWPathway(pathLabel));
+                VUE.getActiveMap().addPathway(new LWPathway(pathLabel));
+                pathPanel.setAddElementEnabled();
                 System.out.println("set add element enabled...");
                 dispose();
             }
@@ -99,9 +100,10 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
             //if the ok button or the text field has the focus, add a designated new pathway
             if (okButton.isFocusOwner() || textField.isFocusOwner())
             {    
-                //tab.addPathway(new LWPathway(textField.getText()));
+                //pathPanel.addPathway(new LWPathway(textField.getText()));
                 
-                tab.getPathwayTableModel().addPathway(new LWPathway(textField.getText()));
+                //pathPanel.getTableModel().addPathway(new LWPathway(textField.getText()));
+                VUE.getActiveMap().addPathway(new LWPathway(textField.getText()));
                 dispose();                  
             }
 

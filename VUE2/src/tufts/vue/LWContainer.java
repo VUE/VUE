@@ -277,6 +277,8 @@ public abstract class LWContainer extends LWComponent
     }
     
     // todo: should probably just get rid of this helper -- not worth bother
+    // If keep, this code may belong on the node as it only implies to
+    // the embedded nature of child components in nodes.
     private void ensureLinksPaintOnTopOfAllParents()
     {
         ensureLinksPaintOnTopOfAllParents((LWComponent) this);
@@ -974,7 +976,7 @@ public abstract class LWContainer extends LWComponent
                 // difference.
                 // -------------------------------------------------------
                 
-                if (!c.isHidden() && c.intersects(clipBounds)) {
+                if (c.isVisible() && c.intersects(clipBounds)) {
                     _drawChild(dc, c);
                     if (MapViewer.DEBUG_PAINT) { // todo: remove MapViewer reference
                         if (c instanceof LWLink) links++;

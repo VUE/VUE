@@ -222,6 +222,12 @@ public class VueUtil
             javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().indexOf("aqua") >= 0;
     }
 
+    public static Iterator EmptyIterator = new Iterator() {
+            public boolean hasNext() { return false; }
+            public Object next() { throw new NoSuchElementException(); }
+            public void remove() { throw new UnsupportedOperationException(); }
+        };
+    
     public static class GroupIterator implements Iterator
     {
         private Object[] iterables = new Object[4];

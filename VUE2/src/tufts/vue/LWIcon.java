@@ -589,7 +589,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         boolean isShowing() { return mLWC.inPathway(); }
 
         void doDoubleClickAction() {
-            VUE.pathwayInspector.setVisible(true);
+            //if (DEBUG.OLDPW) VUE.pathwayInspector.setVisible(true);
         }
         
         private JComponent ttPathway;

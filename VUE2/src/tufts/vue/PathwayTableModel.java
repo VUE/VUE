@@ -12,48 +12,84 @@ import java.awt.*;
 import java.util.*;
 
 /**
- *
+ * @author  Scott Fraize
  * @author  Jay Briedis
+ * @version February 2004
  */
-public class PathwayTableModel extends DefaultTableModel{
+public class PathwayTableModel extends DefaultTableModel {
     
-    private PathwayTab tab = null;
-    private LWPathwayManager manager = null;
-    
-    
-    public PathwayTableModel(PathwayTab tab){
-       this.tab = tab;
-       this.addTableModelListener(tab);
-    }
+    public PathwayTableModel() { }
 
-    public LWPathwayManager getManager(){
-        if(manager == null && VUE.getActiveMap() != null) {
-            this.manager = VUE.getActiveMap().getPathwayManager();
+    private LWPathwayList getPathways() {
+        return VUE.getActiveMap() == null ? null : VUE.getActiveMap().getPathways();
+    }
+    Iterator getPathwayIterator() {
+        return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathways().iterator();
+    }
+    
+    // get rid of this
+    private void setCurrentPathway(LWPathway path){
+        if (getPathways() != null){           
+            getPathways().setActivePathway(path);
+            fireTableDataChanged();
+            //SMF tab.updateControlPanel();
         }
-        return manager;
     }
     
-    public void setPathwayManager(LWPathwayManager manager){
-        this.manager = manager;
-        this.fireTableDataChanged();
-    }
-    
-    public void addPathway(LWPathway pathway){
-        if(this.getManager() != null){  
-            this.getManager().addPathway(pathway);         
-            this.fireTableDataChanged();
-            tab.updateControlPanel();
-        }        
-    }
-    
-    public LWPathway getCurrentPathway(){
-        if(this.getManager() != null)
-            return this.getManager().getCurrentPathway();
+    /** for PathwayTable */
+    LWPathway getCurrentPathway(){
+        if (getPathways() != null)
+            return getPathways().getActivePathway();
         else
             return null;
     }
 
-    public Object getElement(int row){
+    /** for PathwayPanel */
+    int getCurrentPathwayIndex(){
+        return getList().indexOf(VUE.getActivePathway());
+    }
+
+    /** for PathwayTable */
+    LWPathway getPathwayForElementAt(int pRow)
+    {
+        Iterator i = getPathwayIterator();
+        int row = 0;
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            if (row == pRow)
+                return p;
+            row++;
+            if (p.isOpen()) {
+                Iterator ci = p.getElementIterator();
+                while (ci.hasNext()) {
+                    LWComponent c = (LWComponent) ci.next();
+                    if (row == pRow)
+                        return p;
+                    row++;
+                }
+            }
+        }
+        return null;
+    }
+
+    // get the model list
+    private java.util.List getList() {
+        java.util.List list = new ArrayList();
+        Iterator i = getPathwayIterator();
+        while (i.hasNext()) {
+            LWPathway p = (LWPathway) i.next();
+            list.add(p);
+            if (p.isOpen())
+                list.addAll(p.getElementList());
+        }
+        return list;
+    }
+
+    /** for PathwayTable */
+    LWComponent getElement(int row){
+        if (getPathways() == null)
+            return null;
+        return (LWComponent) getList().get(row);
         /*
         Iterator i = pathways.iterator();
         int idx = 0;
@@ -64,85 +100,24 @@ public class PathwayTableModel extends DefaultTableModel{
             idx++;
         }
         */
-        
-        if(this.getManager() != null)
-            return this.getManager().getPathwaysElement(row);
-        return null;
-    }
-    
-    public void addElement(LWComponent comp){
-        if(this.getManager() != null){
-            this.getManager().addPathwayElement(comp, this.getCurrentPathway());
-            this.fireTableDataChanged();
-            tab.updateControlPanel();
-        }
-    }
-    
-    public void addElements(LWComponent[] array){
-        if(this.getManager() != null){
-            this.getManager().addPathwayElements(array, this.getCurrentPathway());
-            this.fireTableDataChanged();
-            tab.updateControlPanel();
-        }
-    }
-    
-    public void removeElement(LWComponent comp){
-        if(this.getManager() != null){
-            this.getManager().removeElement(comp);
-            this.fireTableDataChanged();
-            /*if (this.getManager().getCurrentPathway().getCurrent() == null){
-                tab.removeElement.setEnabled(false);
-            }*/
-            tab.updateControlPanel();
-        }
-    }
-    
-    public void removePathway(LWPathway pathway){
-        if(this.getManager() != null){
-            
-            this.getManager().removePathway(pathway);
-            this.fireTableDataChanged();
-            tab.updateControlPanel();
-            /*if (this.getManager().getCurrentPathway() == null){
-                tab.removeElement.setEnabled(false);
-                tab.addElement.setEnabled(false);
-            }else if(this.getManager().getCurrentPathway().getCurrent() == null){
-                tab.removeElement.setEnabled(false);
-            }else{
-                tab.removeElement.setEnabled(true);
-                tab.addElement.setEnabled(true);
-            }*/
-        }
-    }
-    
-    public synchronized int getRowCount(){
-        if(this.getManager() != null)
-            return manager.length();
-        return 0;
     }
 
-    public int getColumnCount(){
+    public synchronized int getRowCount(){
+        return getList().size();
+    }
+
+    public int getColumnCount() {
         return 6;
     }
     
     public String getColumnName(int col){
-        try{
-            switch(col){
-                case 0:
-                    return "A";
-                case 1:
-                    return "B";
-                case 2:
-                    return "C";
-                case 3:
-                    return "D";
-                case 4:
-                    return "E";
-                case 5:
-                    return "F";
-            }
-        }catch (Exception e){
-            System.err.println("exception in the table model:" + e);
+        switch(col){
+        case 0: return "A";
+        case 1: return "B";
+        case 2: return "C";
+        case 3: return "D";
+        case 4: return "E";
+        case 5: return "F";
         }
         return "";
     }
@@ -158,137 +133,86 @@ public class PathwayTableModel extends DefaultTableModel{
             return null;
     }
     
-    public void setCurrentPathway(LWPathway path){
-        if(this.getManager() != null){           
-            this.getManager().setCurrentPathway(path);
-            this.fireTableDataChanged();
-            tab.updateControlPanel();
-        }
-    }
-    
     public boolean isCellEditable(int row, int col){
-        LWPathway path = null;
-        if(this.getManager() != null){
-            if(this.getManager().getPathwaysElement(row) instanceof LWPathway){
-                path = (LWPathway)this.getManager().getPathwaysElement(row);
-            }else{
-                path = this.getManager().getPathwayforElementAt(row);
-            }
-            if(path != null && path.getLocked())
+        if (getPathways() != null){
+            LWPathway p = getPathwayForElementAt(row);
+            if (p.isLocked())
                 return false;
-            return (col == 1 || col == 3);
+            else
+                return col == 1 || col == 3;
         }
         return false;
     }
     
-    public boolean isRepeat(String name){
-        boolean isRep = false;
-        if(this.getManager() != null){
-            Iterator iter = this.getManager().getPathwayIterator();
-            while(iter.hasNext()){
-                Object obj = iter.next();
-                if(obj instanceof LWPathway){
-                    LWPathway path = (LWPathway)obj;
-                    if(path.getLabel().equals(name))
-                        isRep = true;
-                }
-            }
+    public boolean containsPathwayNamed(String label) {
+        Iterator i = getPathwayIterator();
+        while (i.hasNext()){
+            LWPathway p = (LWPathway) i.next();
+            if (p.getLabel().equals(label))
+                return true;
         }
-        return isRep;
+        return false;
     }
     
-    public synchronized Object getValueAt(int row, int col){
-        
-        if(this.getManager() != null){
-            Object elem = this.getManager().getPathwaysElement(row);
-            if(elem instanceof LWPathway){
-                LWPathway pathway = (LWPathway)elem;
-
-                boolean hasNotes = true;
-                if(pathway.getNotes().equals(null) || pathway.getNotes().equals(""))
-                    hasNotes = false;
-
-                boolean isDisplayed = false;
-                if(pathway.getShowing())
-                    isDisplayed = true;
-
-                boolean isOpen = false;
-                if(pathway.getOpen())
-                    isOpen = true;
-                
-                boolean isLocked = false;
-                if(pathway.getLocked())
-                    isLocked = true;
-
-                try{
-                    switch(col){
-                        case 0:
-                            return new Boolean(isDisplayed);
-                        case 1:
-                            return pathway.getBorderColor();
-                        case 2:
-                            return new Boolean(isOpen);
-                        case 3:
-                            return pathway.getLabel();
-                        case 4:
-                            return new Boolean(hasNotes);
-                        case 5:
-                            return new Boolean(isLocked);
-                    }
-                }catch (Exception e){
-                    System.err.println("exception in the table model, setting pathway cell:" + e);
-                } 
-            }else if (elem instanceof LWComponent){
-                LWComponent comp = (LWComponent)elem;
-                try{
-                    switch(col){
-                        case 3:
-                            return comp.getLabel();
-                    }
-                }catch (Exception e){
-                    System.err.println("exception in the table model, setting pathway element cell:" + e);
-                }  
-            }
+    public synchronized Object getValueAt(int row, int col)
+    {
+        LWComponent c = getElement(row);
+        if (c instanceof LWPathway) {
+            LWPathway p = (LWPathway) c;
+            try{
+                switch (col){
+                case 0: return new Boolean(p.isVisible());
+                case 1: return p.getStrokeColor();
+                case 2: return new Boolean(p.isOpen());
+                case 3: return p.getLabel();
+                case 4: return new Boolean(p.hasNotes());
+                case 5: return new Boolean(p.isLocked());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("exception in the table model, setting pathway cell:" + e);
+            } 
+        } else {
+            try {
+                if (col == 3) return c.getLabel();
+                //if (col == 4) return Boolean.FALSE;
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("exception in the table model, setting pathway element cell:" + e);
+            }  
         }
-        return null; 
+        return null;
     }
+
+    private void setActivePathway(LWPathway p)
+    {
+        getPathways().setActivePathway(p);
+    }
+
     
     public void setValueAt(Object aValue, int row, int col){
-        if(this.getManager() != null){
-            Object elem = this.getManager().getPathwaysElement(row);
-            if(elem instanceof LWPathway){
+        LWComponent c = getElement(row);
+        if (c instanceof LWPathway){
+            LWPathway p = (LWPathway) c;
 
-                LWPathway path = (LWPathway)elem;
+            if (col == 0) {
+                p.setVisible(!p.isVisible());
+            } else if (col == 1){
+                p.setStrokeColor((Color)aValue);
+            } else if (col == 2){
+                p.setOpen(!p.isOpen());
+                setActivePathway(p);
+            } else if (col == 3){
+                p.setLabel((String)aValue);
+                setActivePathway(p);
+            } else if (col == 5){
+                p.setLocked(!p.isLocked());
+            }
+            fireTableDataChanged();
+        } else if (c != null) {
+            if (col == 3)
+                c.setLabel((String)aValue);
+        }
+    }   
 
-                if(path != null){
-                    if(col == 0){
-                        //path.setShowing();
-                        path.toggleShowing();
-                    }
-                    else if(col == 1){
-                        path.setBorderColor((Color)aValue);
-                    }
-                    else if(col == 2){
-                        this.getManager().setPathOpen(path);
-                        //manager.setCurrentPathway(path);                   
-                    }
-                    else if(col == 3){
-                        path.setLabel((String)aValue);
-                        //manager.setCurrentPathway(path);
-                    }
-                    else if(col == 5){
-                        path.setLocked();
-                    }
-                    
-                }
-            }
-            else if (elem instanceof LWComponent){
-                LWComponent comp = (LWComponent)elem;
-                if(col == 3){
-                    comp.setLabel((String)aValue);
-                }
-            }
-            this.fireTableDataChanged();         
-        }   
-    }
 }

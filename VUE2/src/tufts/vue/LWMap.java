@@ -29,7 +29,8 @@ public class LWMap extends LWContainer
     private double userZoom = 1;
     private File file;
     
-    private LWPathwayManager mPathwayManager = null;
+    //private LWPathwayManager mPathwayManager = null;
+    private LWPathwayList mPathways = null;
     
     /** user map types **/
     private UserMapType [] mUserTypes = null;
@@ -50,8 +51,6 @@ public class LWMap extends LWContainer
     public LWMap()
     {   
         setLabel("<map-during-XML-restoration>");
-        // this can't be right: what about the LWPathwayManager that castor is constructing for us?
-        mPathwayManager = new LWPathwayManager(this);
     	markDate();
     }
 
@@ -63,7 +62,8 @@ public class LWMap extends LWContainer
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
         setLabel(label);
-        mPathwayManager = new LWPathwayManager(this);
+        //mPathwayManager = new LWPathwayManager(this);
+        mPathways = new LWPathwayList(this);
         markDate();
         markAsSaved();
     }
@@ -214,16 +214,28 @@ public class LWMap extends LWContainer
    }
     
      
-     
+    /* 
     public LWPathwayManager getPathwayManager(){ 
         return mPathwayManager;
     }
-    
+    */
+    public LWPathwayList getPathways(){ 
+        return mPathways;
+    }
+    /** for persistance restore only */
+    public void setPathways(LWPathwayList l){
+        System.out.println(this + " pathways set to " + l);
+        mPathways = l;
+        mPathways.setMap(this);
+    }
+
+    /*
     public void setPathwayManager(LWPathwayManager manager)
     {
         mPathwayManager = manager;
         mPathwayManager.setMap(this);
     }
+    */
     
     private int nextID = 1;
     protected String getNextUniqueID()
@@ -238,7 +250,8 @@ public class LWMap extends LWContainer
         setChildScaleValues();
         //setScale(getScale());
         setChildParentReferences();
-        mPathwayManager.completeXMLRestore();
+        //mPathwayManager.completeXMLRestore();
+        mPathways.completeXMLRestore(this);
         this.nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
@@ -253,13 +266,14 @@ public class LWMap extends LWContainer
     
     public void draw(DrawContext dc){
         //LWPathway path = this.getPathwayManager().getCurrentPathway();        
-        Iterator i = getPathwayManager().getPathwayIterator();
+        //Iterator i = getPathwayManager().getPathwayIterator();
+        Iterator i = getPathways().iterator();
         int pathIndex = 0;
         while (i.hasNext()) {
             Object o = i.next();
             if (o instanceof LWPathway) {
                 LWPathway path = (LWPathway) o;
-                if (path != null && path.getShowing()) {
+                if (path != null && path.isVisible()) {
                     dc.setIndex(pathIndex++);
                     path.drawPathway(dc.create());
                 }
@@ -346,11 +360,12 @@ public class LWMap extends LWContainer
         addChild(c);
         return c;
     }
-    
-    LWPathway addPathway(LWPathway c)
+
+    LWPathway addPathway(LWPathway p)
     {
-        mPathwayManager.addPathway(c);
-        return c;
+        mPathways.add(p);
+        p.setMap(this);
+        return p;
     }
     
     LWComponent addLWC(LWComponent c)
