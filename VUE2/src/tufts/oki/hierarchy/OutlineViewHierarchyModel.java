@@ -163,7 +163,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             }
             
             if (parentNode == null) {
-                System.err.println("*** NULL parentTreeNode in LWOutlineViewTree");
+                System.err.println("*** NULL parentNode when adding a hierarchy node in OutlineViewHierarchyModel");
                 // don't know what right thing to do here, but this exception
                 // was driving me crazy -- SMF 2003-11-13 18:19.04
                 return;
@@ -253,11 +253,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                     System.err.println("couldn't find the root");
                 }
             }
-            
-            //if (linkedTreeNode1 != null)
-                //scrollPathToVisible(new TreePath(linkedTreeNode1.getPath()));
-            //if (linkedTreeNode2 != null)
-                //scrollPathToVisible(new TreePath(linkedTreeNode2.getPath()));
         }
     }
     
@@ -284,12 +279,14 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 System.err.println("couldn't get the root");
             }
              
-            if (parentNode == null) {
-                System.err.println("*** NULL parentTreeNode in LWOutlineViewTree in delete suckaaa");
+            if (parentNode == null) 
+            {
+                System.err.println("*** NULL parentNode when deleting a hierarchy node in OutlineViewHierarchyModel");
                 // don't know what right thing to do here, but this exception
                 // was driving me crazy -- SMF 2003-11-13 18:19.04
                 return;
             }
+            
             //finds the tree node representing the deleted child
             deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);
              

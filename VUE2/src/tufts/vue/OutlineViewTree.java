@@ -98,6 +98,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             setModel(null);
     }
     
+    /**A method that sets the current tree path to the one designated by the given LWComponent*/
     public void setSelectionPath(LWComponent component)
     {
         TreePath path = hierarchyModel.getTreePath(component);
@@ -170,12 +171,14 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
           repaint();      
     }
     
+    /**A class that specifies the rendering method of the outline view tree*/
     private class OutlineViewTreeRenderer extends DefaultTreeCellRenderer
     {
         private javax.swing.ImageIcon nodeIcon = null, linkIcon = null;
         
         public OutlineViewTreeRenderer()
         {
+            //retrieves the icons for nodes and links
             nodeIcon = VueResources.getImageIcon("outlineIcon.node");
             linkIcon = VueResources.getImageIcon("outlineIcon.link");
         }

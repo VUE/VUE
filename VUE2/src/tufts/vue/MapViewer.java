@@ -224,17 +224,6 @@ public class MapViewer extends javax.swing.JPanel
     	// listen to tool selection events
     	VueToolbarController.getController().addToolSelectionListener( this);
         
-        /*By Daisuke*/
-      
-        //tree = new OutlineViewTree(map);
-        //scrollPane = new JScrollPane(tree);
-       // scrollPane.setVisible(false);
-        
-        //setLayout(new BorderLayout());
-        //add(scrollPane, BorderLayout.CENTER);
-        
-        /*End*/
-
         //-------------------------------------------------------
         // If this map was just restored, there might
         // have been an existing userZoom or userOrigin
@@ -285,16 +274,6 @@ public class MapViewer extends javax.swing.JPanel
             System.err.println("*** MapViewer.toolSelected: NULL ID IN TOOL!");
             return;
         }
-       
-       // if (pTool.getID().equals("outlineTool"))
-        //{
-         //  System.out.println("switching display mode");
-         //  setMode(!outlineMode);
-            
-           //maybe set the cursor to something else or no return
-           //return;
-         //  System.out.println("came back from the setmode function");
-        //}
        
         activeTool = pTool;
     	//System.out.println("MapViewer.toolSelected: " + pTool.getID());
@@ -3520,15 +3499,20 @@ public class MapViewer extends javax.swing.JPanel
                     VUE.getPathwayInspector().setPathwayManager(getMap().getPathwayManager());
                 }
                     
-                // outline view
+                // outline view switching
                 if (VUE.getOutlineViewTree() != null) // in case just running MapViewer w/out VUE app
                     VUE.getOutlineViewTree().switchMap(getMap());
                     
-                // hierarchy view
-                if (this.map instanceof LWHierarchyMap && VUE.getHierarchyTree() != null)
-                    VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
-                else
-                    VUE.getHierarchyTree().setHierarchyModel(null);
+                // hierarchy view switching
+                if (VUE.getHierarchyTree() != null)
+                {
+                    if (this.map instanceof LWHierarchyMap)
+                      VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
+                    else
+                      VUE.getHierarchyTree().setHierarchyModel(null);
+                }
+                
+                // end of addition by Daisuke 
                 
                 this.VueSelection = VUE.ModelSelection;
                 if (oldActiveMap != this.map) {

@@ -82,7 +82,7 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         
         catch (osid.shared.SharedException se)
         {
-            System.out.println("shared exception");
+            System.err.println("shared exception");
         }
             
         name = "no name";
