@@ -111,7 +111,7 @@ public class LWNode extends LWContainer
     private Line2D dividerStub = new Line2D.Float();
 
     private transient boolean mIsRectShape = true;
-    private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
+    //private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -320,14 +320,19 @@ public class LWNode extends LWContainer
     public javax.swing.ImageIcon getIcon() { return null; }
     
     
-    public void setIsTextNode( boolean pState) {
-    	mIsTextNode = pState;
+    public void setIsTextNode(boolean asText) {
+        if (asText)
+            setFillColor(null);
+        else
+            setFillColor(getParent().getFillColor());
+    	//mIsTextNode = pState;
     }
     
     public boolean isTextNode() {
         // Just what a text node is is a bit confusing right now, but it's useful
         // guess for now.
-    	return (mIsTextNode || (getFillColor() == null && mIsRectShape)) && !hasChildren();
+    	//return (mIsTextNode || (getFillColor() == null && mIsRectShape)) && !hasChildren();
+    	return getFillColor() == null && mIsRectShape && !hasChildren();
     }
     
     /** If true, compute node size from label & children */

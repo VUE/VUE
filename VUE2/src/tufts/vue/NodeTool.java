@@ -127,7 +127,7 @@ public class NodeTool extends VueTool
         node.setAutoSized(true);
         node.setShape(new java.awt.geom.Rectangle2D.Float());
         node.setStrokeWidth(0f);
-        node.setFillColor(COLOR_TRANSPARENT);
+        //node.setFillColor(COLOR_TRANSPARENT);
         node.setFont(LWNode.DEFAULT_TEXT_FONT);
         
         return node;
