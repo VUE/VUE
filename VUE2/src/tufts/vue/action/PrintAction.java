@@ -50,19 +50,23 @@ public class PrintAction extends AbstractAction implements Printable {
     {
         PrinterJob job = PrinterJob.getPrinterJob();
         
-        PageFormat format = job.defaultPage();
+        PageFormat format = new PageFormat();//job.defaultPage();
         Paper paper = format.getPaper();
         
-        int offset = 15;
+        int offset = 300;
         double x, y, width, height;
         x = paper.getImageableX() + offset;
         y = paper.getImageableY() + offset;
-        width = paper.getWidth() - offset;
-        height = paper.getHeight() - offset;
+        width = paper.getImageableWidth() - offset;
+        height = paper.getImageableHeight() - offset;
         
         paper.setImageableArea(x, y, width, height);
         
+        paper.setSize(paper.getWidth() - 50, paper.getHeight() - 50);
+        System.out.println(paper.getImageableX() + ", " + paper.getImageableY());
         format.setPaper(paper);
+        
+        format = job.validatePage(format);
         job.setPrintable(this, format);
         
         try
