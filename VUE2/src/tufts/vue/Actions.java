@@ -365,10 +365,13 @@ implements VueConstants {
     };
     
     static final LWCAction Delete =
-        new LWCAction("Delete", keyStroke(KeyEvent.VK_BACK_SPACE), ":general/Delete") {
-            // We use BACK_SPACE instead of DELETE because that key is bigger, and
+        new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
+            // We could use BACK_SPACE instead of DELETE because that key is bigger, and
             // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
-            // And the MapViewer special-case handles both anyway as a backup.
+            // BUT, if we use backspace, trying to use it in a text field in, say
+            // the object inspector panel causes it to delete the selection instead of
+            // backing up a char...
+            // The MapViewer special-case handles both anyway as a backup.
                       
         // hierarchicalAction is true: if parent being deleted,
         // let it handle deleting the children (ignore any
