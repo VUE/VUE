@@ -58,9 +58,9 @@ public class DataSourceList extends JList implements DropTargetListener{
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                if (((DataSource)value).getType() == 0)
+                if (((DataSource)value).getType() == DataSource.FAVORITES)
                     setIcon(myFavoritesIcon);
-                else if (((DataSource)value).getType() == 1)
+                else if (((DataSource)value).getType() == DataSource.FILING_LOCAL)
                     setIcon(myComputerIcon);
                 else 
                     setIcon(remoteIcon);
@@ -80,12 +80,19 @@ public class DataSourceList extends JList implements DropTargetListener{
     public void dragOver(DropTargetDragEvent e) {}
     
     public void drop(DropTargetDropEvent e) { 
-        e.acceptDrop(DnDConstants.ACTION_COPY);    
+        e.acceptDrop(DnDConstants.ACTION_COPY); 
+        int current = this.getSelectedIndex();
+        System.out.println("What is the current index " + this.getSelectedIndex());
         int dropLocation = locationToIndex(e.getLocation());
-        this.setSelectedIndex(dropLocation);
+       this.setSelectedIndex(dropLocation);
         
-        DataSource ds = (DataSource)getSelectedValue();
+         
+       DataSource ds = (DataSource)getSelectedValue();
+        //DataSource ds =(DataSource)((this.getContents()).getElementAt(dropLocation));
+        try {
         FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
+        
+        
         VueDandDTree favoritesTree = fw.getFavoritesTree();
         favoritesTree.setRootVisible(true);
         DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
@@ -133,10 +140,8 @@ public class DataSourceList extends JList implements DropTargetListener{
                           
                                         model.insertNodeInto(newNode, rootNode, 0);
                                       favoritesTree.expandPath(new TreePath(rootNode.getPath()));
-                                    
                                       favoritesTree.setRootVisible(false);
-                       
-                        
+        
                           }
                     }
                 }
@@ -146,101 +151,21 @@ public class DataSourceList extends JList implements DropTargetListener{
                 //continue;
             }
         
-        /**
-        if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
-        for (int i = 0; i < dataFlavors.length; i++) {
-            DataFlavor flavor = dataFlavors[i];
-            Object data = null;
-            System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName()); 
-            if (debug) System.out.print("flavor" + i + " " + flavor.getMimeType());
-            try {
-                data = transfer.getTransferData(flavor);
-            } catch (Exception ex) {
-                System.out.println("getTransferData: " + ex);
-            }
-            if (debug) System.out.println(" transferData=" + data);
-            
-            try {
-                if (flavor.isFlavorJavaFileListType()) {
-                    
-                    if (debug) System.out.println("FILE LIST FOUND");
-                    fileList = (java.util.List) transfer.getTransferData(flavor);
-                    
-                    java.util.Iterator iter = fileList.iterator();
-                    
-                    while (iter.hasNext()) {
-                        java.io.File file = (java.io.File) iter.next();
-                        if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                        
-                        
-                        
-                        
-                        
-                        FileNode newNode = new FileNode(file);
-                        
-                        model.insertNodeInto(newNode, rootNode, 0);
-                        
-                        
-                        
-                    }
-                    success = true;
-                    
-                    break;
-                } else if (flavor.getHumanPresentableName().equals("asset")) {
-                    if (debug) System.out.println("ASSET FOUND");
-                    assetList = (java.util.List) transfer.getTransferData(flavor);
-                    
-                    
-                    
-                    
-                    java.util.Iterator iter = assetList.iterator();
-                    
-                    
-                    while(iter.hasNext()) {
-                        Asset asset = (Asset) iter.next();
-                        AssetNode newNode =new  AssetNode(asset);
-                        
-                        model.insertNodeInto(newNode, rootNode, 0);
-                        
-                    }
-                    break;
-                } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
-                    // && flavor.isFlavorTextType() -- java 1.4 only
-                {
-                    // checking isFlavorTextType() above should be
-                    // enough, but some Windows apps (e.g.,
-                    // Netscape-6) are leading the flavor list with
-                    // 20-30 mime-types of "text/uri-list", but the
-                    // reader only ever spits out the first character.
-                    
-                    resourceName = readTextFlavor(flavor, transfer);
-                    if (resourceName != null){
-                        
-                        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(resourceName);
-                        model.insertNodeInto(newNode, rootNode, 0);
-                        
-                    }
-                    break;
-                    
-                } else {
-                    //System.out.println("Unhandled flavor: " + flavor);
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                //System.out.println(ex);
-                continue;
-            }
-            
-        }
-        **/
-        
-        
         
         e.dropComplete(success);
+        
         favoritesTree.expandRow(0);
         favoritesTree.setRootVisible(false);
+        this.setSelectedIndex(current);
+         VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
+        } catch (Exception ex) { 
+            this.setSelectedIndex(current);
         
+            VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
+            
+        }
+           
+            
     }
     
     

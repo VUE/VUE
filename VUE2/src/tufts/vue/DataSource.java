@@ -22,12 +22,15 @@ import tufts.oki.localFiling.*;
 import tufts.oki.shared.*;
 
 
+
+
 public class DataSource {
-    public static final int FAVORITES = 4;
+    public static final int FAVORITES = 1;
     public static final int FILING_LOCAL = 0;
-    public static final int FILING_REMOTE = 1;
-    public static final int DR_FEDORA = 2;
-    public static final int GOOGLE = 3;
+    public static final int FILING_REMOTE = 2;
+    public static final int DR_FEDORA = 3;
+    public static final int GOOGLE = 4;
+ 
     private String id;
     private int type;
     private String displayName; 
@@ -79,8 +82,10 @@ public class DataSource {
     public  void setViewer () throws java.net.MalformedURLException,osid.filing.FilingException {
         if(type == FAVORITES) {
             
-            VUE.favoritesWindow = new FavoritesWindow(displayName);
-            this.resourceViewer =  VUE.favoritesWindow;
+           // VUE.favoritesWindow = new FavoritesWindow(displayName);
+            //this.resourceViewer =  VUE.favoritesWindow;
+            System.out.println("was I here" + this);
+            this.resourceViewer = new FavoritesWindow(displayName);
 
                      
         }
@@ -106,6 +111,7 @@ public class DataSource {
             VueDragTree fileTree = new VueDragTree (cabVector.iterator(), displayName);
             System.out.println("Was I here in Vuedrag 2");
             JScrollPane rSP = new JScrollPane (fileTree);
+            rSP.setPreferredSize(new Dimension(200, 200));
             this.resourceViewer = rSP;
         }
         else if (type == FILING_REMOTE) {
@@ -160,14 +166,14 @@ public class DataSource {
     public String getName() {
         return name;
     }
-    public void setsearchURL(String searchURL) {
+    public void setSearchURL(String searchURL) {
         this.searchURL = searchURL;
        try{
            this.setViewer();
        }catch (Exception ex){}
     }
     
-    public String getsearchURL() {
+    public String getSearchURL() {
         return searchURL;
     }
     public void setAddress(String address) {

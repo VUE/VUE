@@ -37,12 +37,15 @@ public class DataSourceViewer  extends JPanel{
     /** Creates a new instance of DataSourceViewer */
     public final int ADD_MODE = 0;
     public final int EDIT_MODE = 1;
-    public static final String[] dataSourceTypes = {"Filing-Local", "Filing-Remote","Fedora","Google"};
+ 
+    public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google"};
+    private static int filinglocal,favorites,fedora,google,filingremote;
+   
     public static java.util.Vector dataSources;
     DataSource activeDataSource;
     DRBrowser drBrowser;
     JPopupMenu popup;       // add edit popup
-    DataSourceList dataSourceList;
+    public static DataSourceList dataSourceList;
     JPanel resourcesPanel;
     JDialog addEditDialog = null;   //  The add/edit dialog box.
     AbstractAction addAction;//
@@ -61,7 +64,9 @@ public class DataSourceViewer  extends JPanel{
         setPopup();
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
-        dataSourceList = new DataSourceList();     
+        dataSourceList = new DataSourceList();
+       
+       
         loadDataSources();
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
@@ -177,10 +182,83 @@ public class DataSourceViewer  extends JPanel{
     
     public void addNewDataSource (String displayName, String name,String searchURL, String address, String user, String password, int type, boolean active) throws java.net.MalformedURLException{   
        try{
-          System.out.print("Search string" + searchURL );
+          //System.out.print("Search string" + searchURL );
+           System.out.println("type" + type+ "filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         DataSource ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
-        dataSources.addElement (ds);  //  Add datasource to data source vector.
-        dataSourceList.getContents().addElement(ds); // SHOULD BE DONE IN SINGE STEP
+        int insertBefore =  0 ;
+        if (type == DataSource.FILING_LOCAL){
+                        System.out.println("I am in the filing part");
+                        if (favorites >0 ){insertBefore = favorites;}
+                        else if (filingremote > 0 ){insertBefore = filingremote;}
+                        else if (fedora > 0 ) {insertBefore = fedora;}
+                        else if(google >0 ){insertBefore = google;}
+                        else{}
+                      
+                       
+        }
+        else if (type == DataSource.FAVORITES){
+          
+                      if (filingremote > 0 ){insertBefore = filingremote;}
+                      else if (fedora > 0 ) {insertBefore = fedora ;}
+                                  
+                     else if(google >0 ){insertBefore = google;
+                                                }
+                     else {
+                       if(!(dataSourceList.getContents().isEmpty())){insertBefore = dataSourceList.getContents().getSize();
+                     }
+                     }
+                      if (favorites == 0){favorites = insertBefore;}
+                     
+        
+        }
+        else if (type == DataSource.FILING_REMOTE){
+                     if (fedora > 0 ) {insertBefore = fedora ;
+                                               
+                        }
+                     else if(google >0 ){insertBefore = google;
+                                                }
+                     else {
+                         
+                         if(!(dataSourceList.getContents().isEmpty())){insertBefore = dataSourceList.getContents().getSize();
+                         }
+                     }
+                        if (filingremote  == 0){filingremote = insertBefore;}
+         
+                  
+                   
+            
+        }
+        else if (type == DataSource.DR_FEDORA){
+            
+            if(google >0 ){insertBefore = google;}
+            else { if(!(dataSourceList.getContents().isEmpty())){insertBefore = dataSourceList.getContents().getSize();}
+            }
+               if (fedora == 0){fedora = insertBefore;}
+           
+       
+        }
+        else {
+            
+           if(!(dataSourceList.getContents().isEmpty())){google = dataSourceList.getContents().getSize();
+          }
+        }
+            
+        
+        
+                 
+        
+       System.out.println("Insert Before " + insertBefore+"type" + type);
+                               
+        if (insertBefore > 0){
+                        dataSources.insertElementAt(ds, insertBefore);
+                        dataSourceList.getContents().insertElementAt(ds,insertBefore);    
+        }
+        else {
+            
+         dataSources.add(ds);
+         dataSourceList.getContents().addElement(ds);       
+        }
+               System.out.println("filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         if (active) setActiveDataSource(ds);
        }catch (Exception ex){}
         drBrowser.repaint();
@@ -188,6 +266,8 @@ public class DataSourceViewer  extends JPanel{
     }
     
     public void deleteDataSource(DataSource dataSource) {
+        
+          System.out.println("DataSource --filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         int choice = JOptionPane.showConfirmDialog(null,"Do you want to delete Datasource "+dataSource.getDisplayName(),"Confirm Delete",JOptionPane.YES_NO_CANCEL_OPTION);
         if(choice == 0) {
             
@@ -195,7 +275,30 @@ public class DataSourceViewer  extends JPanel{
             if(dataSources.size() >0 ) {
                 setActiveDataSource((DataSource)dataSources.firstElement());
             }
-            dataSources.remove(dataSource);
+           
+         
+            if (dataSource.getType() == DataSource.FILING_LOCAL) {if (favorites > 0 )favorites = favorites - 1;
+                                                                  if (filingremote > 0)filingremote = filingremote - 1;
+                                                                  if (fedora > 0)fedora = fedora - 1;
+                                                                  if (google > 0)google = google - 1;
+           
+            }
+            else if  (dataSource.getType() == DataSource.FAVORITES){if (favorites == 1) favorites = 0;
+                                                                   if (filingremote > 0 ) filingremote = filingremote - 1;
+                                                                  if (fedora > 0)fedora = fedora - 1;
+                                                                  if (google > 0)google = google - 1;
+                                                                    
+            }
+            else if (dataSource.getType() == DataSource.FILING_REMOTE){ if (filingremote == 1) filingremote = 0;
+                                                              if (fedora > 0)fedora = fedora - 1;
+                                                                  if (google > 0)google = google - 1;
+            }
+            else if (dataSource.getType() == DataSource.DR_FEDORA){ if (fedora == 1) fedora = 0;
+                                                                    if (google > 0)google = google - 1;
+            }
+                 
+                System.out.println("Delete -after filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
+               dataSources.remove(dataSource);
             dataSourceList.getContents().removeElement(dataSource);
             
         }
@@ -347,7 +450,7 @@ public class DataSourceViewer  extends JPanel{
     private void createEditPanel(JPanel editPanel) {
         JTextField dsNameField = new JTextField(activeDataSource.getDisplayName());
         JTextField nameField = new JTextField(activeDataSource.getName());
-        JTextField urlField = new JTextField(activeDataSource.getsearchURL());
+        JTextField urlField = new JTextField(activeDataSource.getSearchURL());
         JTextField adrField = new JTextField(activeDataSource.getAddress());
         JTextField userField = new JTextField(activeDataSource.getUserName());
         JTextField pwField = new JTextField(activeDataSource.getPassword());
@@ -434,7 +537,7 @@ public class DataSourceViewer  extends JPanel{
                 activeDataSource.setAddress(adrField.getText());
                 activeDataSource.setUserName(userField.getText());
                 activeDataSource.setPassword(pwField.getText());
-                activeDataSource.setsearchURL(urlField.getText());
+                activeDataSource.setSearchURL(urlField.getText());
 
                 try {
                     activeDataSource.setViewer();
@@ -454,11 +557,11 @@ public class DataSourceViewer  extends JPanel{
         
         
         //--Marshalling etc
-      
+            filinglocal = 0; favorites = 0;fedora=0;google=0;filingremote = 0;
           
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
-            /*if(f.exists()){
+            if(f.exists()){
         
           SaveDataSourceViewer rViewer = unMarshallMap(f);
           Vector rsources = rViewer.getSaveDataSources();
@@ -467,62 +570,79 @@ public class DataSourceViewer  extends JPanel{
                System.out.println(ds.getDisplayName()+"Is this active ---  "+ds.isActiveDataSource());
                try {
                 addNewDataSource(ds.getDisplayName(),
-                                         ds.getName(), ds.getAddress(), ds.getUserName(), 
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
                                          ds.getPassword(), ds.getType(),ds.isActiveDataSource());
                                  }
-          catch(Exception ex) {
-          }
+          catch(Exception ex) {}
           }
            
             }
        
             
-            else{*/
+            else{
                 
         // this should be created automatically from a config file. That will be done in future.
                 try {  
                     System.out.println("this is load " + DataSource.FILING_LOCAL+"rem" +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
-                    DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
                     
-                    //ds1.setDisplayColor(Color.BLACK);
-                    dataSources.add(ds1);
-                    dataSourceList.getContents().addElement(ds1);
-                     DataSource ds2 = new DataSource("ds2", "My Favorites","favorites",DataSource.FAVORITES);
-                    //ds3.setDisplayColor(Color.BLUE);
-                    dataSources.add(ds2);
-                    dataSourceList.getContents().addElement(ds2);
                     
-                    DataSource ds3 =  new DataSource("ds3", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
-                    //ds2.setDisplayColor(Color.RED);
-                    dataSources.add(ds3);
-                    dataSourceList.getContents().addElement(ds3);
-                    setActiveDataSource(ds3);
-                    
-                    DataSource ds4= new DataSource("ds4","UVA: Finding Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
-                    dataSources.add(ds4);
-                    dataSourceList.getContents().addElement(ds4);
+                    DataSource ds = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
+                     try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),false);
+                                 }catch (Exception ex){}
+                 
+                     ds = new DataSource("ds2", "My Favorites","favorites","","","","",DataSource.FAVORITES);
                    
-                    DataSource ds5 = new DataSource("ds5", "Tufts Web","google",VueResources.getString("url.google"),"","","",DataSource.GOOGLE);
-                    //ds4.setDisplayColor(Color.YELLOW);
-                    dataSources.add(ds5);
-                    dataSourceList.getContents().addElement(ds5);
-                    
-                    DataSource ds6 = new DataSource("ds6", "NYU Web","google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9","","","",DataSource.GOOGLE);
-                    //ds4.setDisplayColor(Color.YELLOW);
-                    dataSources.add(ds6);
-                    dataSourceList.getContents().addElement(ds6);
+                      try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
+                                 }catch (Exception ex){}
                      
+                    ds =  new DataSource("ds3", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
+                  try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
+                                 }catch (Exception ex){}
+                     
+                    setActiveDataSource(ds);
                     
+                    ds= new DataSource("ds4","UVA: Finding Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
+                    
+                    try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
+                                 }catch (Exception ex){}
+                    
+                   
+                    ds = new DataSource("ds5", "Tufts Web","google",VueResources.getString("url.google"),"","","",DataSource.GOOGLE);
+                 
+                    
+                    try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
+                                 }catch (Exception ex){}
+                    
+                    ds = new DataSource("ds6", "NYU Web","google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9","","","",DataSource.GOOGLE);
+                
+                   
+                    try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),ds.isActiveDataSource());
+                                 }catch (Exception ex){}
 
-                } catch (Exception ex) {
+                }catch (Exception ex) {
                     System.out.println("Datasources can't be loaded");
                 }
       
-    
-            //}
-        //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.CENTER);
-        //drBrowser.add(dsMyComputer.getResourceViewer(),BorderLayout.SOUTH);
-       
+            }
+            
     }
     
         

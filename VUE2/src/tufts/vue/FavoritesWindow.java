@@ -42,13 +42,13 @@ import osid.dr.*;
  */
 public class FavoritesWindow extends JPanel implements ActionListener, ItemListener,KeyListener {
     private DisplayAction displayAction = null;
-    private VueDandDTree favoritesTree ;
+    public  VueDandDTree favoritesTree ;
     private JPanel searchResultsPane ;
     private JScrollPane browsePane;
     private JTabbedPane favoritesPane;
     final static String XML_MAPPING = VueResources.getURL("mapping.lw").getFile();
     private static String  FAVORITES_MAPPING;
-    private static int FAVORITES = 4;
+    private static int FAVORITES = DataSource.FAVORITES;
     private static int newFavorites = 0;
     JTextField keywords;
     boolean fileOpen = false;
@@ -61,9 +61,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         favoritesPane = new JTabbedPane();
         
         
-        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
+        File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ displayName+VueResources.getString("save.favorites"));
        
-        
+        //System.out.println("I tried to open" + f);
      
             try {
             SaveVueJTree restorefavtree = unMarshallMap(f);
@@ -74,7 +74,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             favoritesTree.setRootVisible(false);
             
             this.setFavoritesTree(favoritesTree);
-            }catch (Exception ex){fileOpen = false;
+            }catch (Exception ex){
+                System.out.println("I tried to open" + f);
+                fileOpen = false;
                
             }
             
@@ -82,8 +84,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             //  System.out.println("Afte Unmarshalling "+restorefavtree.getClass().getName()+ " root"+ restorefavtree.getSaveTreeRoot().getResourceName());
           
     
-            MapResource favResource = new MapResource("My Favorites");
-            favResource.setType(Resource.FAVORITES);
+            MapResource favResource = new MapResource(displayName);
+            favResource.setType(DataSource.FAVORITES);
             
             
             FavoritesNode favRoot= new FavoritesNode(favResource);
@@ -99,7 +101,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         
         
         searchResultsPane = new JPanel();
-        JPanel favSearchPanel = createfavSearchPanel(favoritesTree,favoritesPane,searchResultsPane);
+        JPanel favSearchPanel = createfavSearchPanel(favoritesTree,favoritesPane,searchResultsPane,displayName);
         
         favoritesPane.addTab("Search",favSearchPanel);
         favoritesPane.addTab("Search Results",searchResultsPane);
@@ -113,7 +115,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     }
     
     
-    public JPanel createfavSearchPanel(VueDandDTree favoritesTree,JTabbedPane fp,JPanel sp){
+    public JPanel createfavSearchPanel(VueDandDTree favoritesTree,JTabbedPane fp,JPanel sp, String displayName){
         
         JPanel FavSearchPanel = new JPanel();
         setLayout(new BorderLayout());
@@ -135,7 +137,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         c.ipady = 10;
         c.insets = defaultInsets;
         c.anchor = GridBagConstraints.NORTH;
-        JLabel topLabel = new JLabel("Search Favorites");
+        JLabel topLabel = new JLabel("");
         gridbag.setConstraints(topLabel, c);
         queryPanel.add(topLabel);
         
@@ -188,9 +190,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     }
     
     
-    public Action getDisplayAction() {
+    public Action getDisplayAction(String displayName) {
         if (displayAction == null)
-            displayAction = new DisplayAction("My Favorites");
+            displayAction = new DisplayAction(displayName);
         
         return (Action)displayAction;
     }
@@ -309,7 +311,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         MapResource favResource = new MapResource("New Favorites Folder");
                         favResource.setType(FAVORITES);
                         FavoritesNode favNode = new FavoritesNode(favResource);
-                        
+                        System.out.println("Am in fav" + favNode);
                         
                         if (model.getRoot() != resNode){
                             
@@ -497,7 +499,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     ResourceNode childNode = (ResourceNode)favRoot.getChildAt(outi);
                     
                     foundit = compareNode(searchString,childNode,serRoot,false);
-                    System.out.println("And here "+ childNode.toString()+foundit);
+                  //  System.out.println("And here "+ childNode.toString()+foundit);
                     
                 }
                 
