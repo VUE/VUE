@@ -815,7 +815,7 @@ public class LWNode extends LWContainer
         // font right in the icon.
 
         if (iconShowing())
-            drawUnderlineAndIcon(g);
+            drawUnderlineAndIcon(dc);
 
         // todo: create drawLabel, drawBorder & drawBody
         // LWComponent methods so can automatically turn
@@ -931,8 +931,13 @@ public class LWNode extends LWContainer
     // On PC, two underscores look better than "---" in default Trebuchet font,
     // which leaves the dashes high in the box.
     
-    private void drawUnderlineAndIcon(Graphics2D g)
+    
+    private static Font MinisculeFont = new Font("SansSerif", Font.PLAIN, 1);
+    //private static Font MinisculeFont = new Font("Arial Narrow", Font.PLAIN, 1);
+
+    private void drawUnderlineAndIcon(DrawContext dc)
     {
+        Graphics2D g = dc.g;
         float iconHeight = (float) genIcon.getHeight();
         float iconWidth = (float) genIcon.getWidth();
         float iconX = (float) genIcon.getX();
@@ -976,18 +981,21 @@ public class LWNode extends LWContainer
         g.translate(iconX, iconY);
         float xoff = (iconWidth - tb.width) / 2;
         float yoff = (IconHeight - tb.height) / 2;
+        float baseline = 0;
         if (VueUtil.isMacPlatform()) {
             yoff += tb.height;
             yoff += tb.y;
             xoff += tb.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
             row.draw(g, xoff, yoff);
 
+            tb.y += yoff;
+            tb.y -= tb.height;
+            baseline = tb.y + tb.height;
+            
             if (debug||DEBUG_LAYOUT) {
                 // draw a red bounding box for testing
                 tb.x += xoff;
                 tb.y = -tb.y; // if any descent below baseline, will be non-zero
-                tb.y += yoff;
-                tb.y -= tb.height;
                 g.setStroke(new java.awt.BasicStroke(0.5f));
                 g.setColor(Color.red);
                 g.draw(tb);
@@ -999,6 +1007,7 @@ public class LWNode extends LWContainer
             // the default case.
                 
             row.draw(g, -tb.x + xoff, -tb.y + yoff);
+            baseline = yoff + tb.height;
 
             if (debug||DEBUG_LAYOUT) {
                 // draw a red bounding box for testing
@@ -1008,13 +1017,19 @@ public class LWNode extends LWContainer
                 g.setColor(Color.red);
                 g.draw(tb);
             }
-
         }
+
+        // an experiment in semantic zoom
+        if (dc.zoom >= 8.0 && getResource() != null) {
+            g.setFont(MinisculeFont);
+            g.drawString(getResource().toString(), 0, IconHeight+2);
+        }
+
 
         if (hasNotes()) {
             Font f = FONT_ICON.deriveFont((float) (FONT_ICON.getSize() - 3));
             g.setFont(f);
-             g.setColor(Color.gray);
+            g.setColor(Color.gray);
             g.drawString("notes", IconWidth+IconPadRight, IconHeight-1);
             //g.drawString("notes", childOffseX(), IconHeight-1);
             //g.drawString("notes", IconWidth/4, IconHeight-1);
