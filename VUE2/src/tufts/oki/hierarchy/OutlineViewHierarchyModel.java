@@ -395,14 +395,12 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                
                if(node.getDisplayName().equals(link.getLabel()))
                {
-                 System.out.println("continuing with the labeled link");
                  continue;
                }
                
                if (link.getComponent1() == null || link.getComponent2() == null)    
                {
                  node.updateDisplayName("Link ID# " + link.getID() + " : to nothing");               
-                 System.out.println(link.getID() + "has changed to nothing");
                }
                
                else
