@@ -254,7 +254,7 @@ implements LWSelection.Listener {
                     // update the display
                 }
             };
-            t.run();
+            t.start();
         }
     }
     
