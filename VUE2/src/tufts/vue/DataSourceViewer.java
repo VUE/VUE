@@ -247,7 +247,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
         else type = 6;
-        if(JOptionPane.showConfirmDialog(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation",JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
+        if(VueUtil.confirm(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation") == JOptionPane.OK_OPTION) {
             Vector dataSourceVector = (Vector)allDataSources.get(type);
             dataSourceVector.removeElement(ds);
         }
