@@ -6,24 +6,21 @@
 
 package tufts.vue;
 
-import javax.swing.Action;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractButton;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import java.awt.Color;
+import java.awt.BorderLayout;
+
 /**
  *
  * @author  Daisuke Fujiwara
  */
 public class LWOutlineView extends InspectorWindow 
 {
-    //private DisplayAction displayAction = null;
     private OutlineViewTree tree = null;
-
+    private JLabel outlineLabel = null;
+    
     /** Creates a new instance of LWOutlineView */
     public LWOutlineView(JFrame parent) 
     {
@@ -33,58 +30,17 @@ public class LWOutlineView extends InspectorWindow
         tree = new OutlineViewTree();
         JScrollPane scrollPane = new JScrollPane(tree);
         
-        getContentPane().add(scrollPane);
+        outlineLabel = new JLabel();
+        
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
+        getContentPane().add(outlineLabel, BorderLayout.NORTH);
         getContentPane().setBackground(Color.white);
-
-        /*
-        super.addWindowListener(new WindowAdapter()
-            {
-                public void windowClosing(WindowEvent e) 
-                {
-                    displayAction.setButton(false);
-                }
-            }
-        );
-        */
     }
-
-    public OutlineViewTree getTree() 
+ 
+    public void switchMap(LWMap map)
     {
-        return tree;
+        tree.switchContainer(map);
+        outlineLabel.setText("Map: " + map.getLabel());
     }
-    
-
-    /**A method used by VUE to display the tree*/
-    /*
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction("Outline View");
-        
-        return (Action)displayAction;
-    }
-    */
-    /**A class which controls the visibility of the tree */
-    /*
-    private class DisplayAction extends AbstractAction
-    {
-        private AbstractButton aButton;
-        
-        public DisplayAction(String label)
-        {
-            super(label);
-        }
-        
-        public void actionPerformed(ActionEvent e)
-        {
-            aButton = (AbstractButton) e.getSource();
-            setVisible(aButton.isSelected());
-        }
-        
-        public void setButton(boolean state)
-        {
-            aButton.setSelected(state);
-        }
-    }
-    */
 }

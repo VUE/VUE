@@ -198,7 +198,12 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 		
 		/** the path scroll pane **/
 		JScrollPane mTreeScrollPane = null;
+                
+                /** the tree to represented in the scroll pane **/
                 OutlineViewTree tree = null;
+                
+                /** the header of the panel**/
+                JLabel panelLabel = null;
                 
 		/**
 		 * TreePanel
@@ -212,6 +217,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                         
                         
                         tree = new OutlineViewTree();
+                        panelLabel = new JLabel();
                         
 			mTreeScrollPane = new JScrollPane(tree);
 			mTreeScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -219,6 +225,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 			mTreeScrollPane.setLocation(new Point(8, 9));
 			mTreeScrollPane.setVisible(true);
 		
+                        add(panelLabel, BorderLayout.NORTH);
                         add(mTreeScrollPane, BorderLayout.CENTER);
 			//add( mTreeScrollPane );
 		}
@@ -243,8 +250,11 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                     
                     //if the tree is not intiliazed, hidden, or doesn't contain the given node, 
                     //then it switches the model of the tree using the given node
-                    if (!tree.isInitialized() || !isVisible() || !tree.contains(pNode)) 
-                      tree.switchContainer(pNode);
+                    if (!tree.isInitialized() || !isVisible() || !tree.contains(pNode))
+                    {
+                        panelLabel.setText("Node: " + pNode.getLabel());
+                        tree.switchContainer(pNode);
+                    }
                     
                     //if the node is in the model and the panel is visible and intialized, 
                     //then it sets the selected path to the one which ends with the given node

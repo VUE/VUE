@@ -32,7 +32,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setModel(null);
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        
+         setCellRenderer(new OutlineViewTreeRenderer());
+         setRootVisible(false);
+         
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
             new TreeSelectionListener() 
@@ -166,5 +168,39 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         //when a label on a node was changed
         if (message.equals("label"))
           repaint();      
+    }
+    
+    private class OutlineViewTreeRenderer extends DefaultTreeCellRenderer
+    {
+        private javax.swing.ImageIcon nodeIcon = null, linkIcon = null;
+        
+        public OutlineViewTreeRenderer()
+        {
+            nodeIcon = VueResources.getImageIcon("outlineIcon.node");
+            linkIcon = VueResources.getImageIcon("outlineIcon.link");
+        }
+        
+        public Component getTreeCellRendererComponent(
+                        JTree tree,
+                        Object value,
+                        boolean sel,
+                        boolean expanded,
+                        boolean leaf,
+                        int row,
+                        boolean hasFocus) 
+        {
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+            tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
+            LWComponent component = hierarchyNode.getLWComponent();
+            
+            if (component instanceof LWNode)
+              setIcon(nodeIcon);
+            
+            else if (component instanceof LWLink)
+              setIcon(linkIcon);
+           
+            return this;
+        }
     }
 }

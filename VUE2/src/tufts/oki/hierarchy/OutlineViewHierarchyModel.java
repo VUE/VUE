@@ -283,7 +283,13 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             {
                 System.err.println("couldn't get the root");
             }
-            
+             
+            if (parentNode == null) {
+                System.err.println("*** NULL parentTreeNode in LWOutlineViewTree in delete suckaaa");
+                // don't know what right thing to do here, but this exception
+                // was driving me crazy -- SMF 2003-11-13 18:19.04
+                return;
+            }
             //finds the tree node representing the deleted child
             deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);
              
@@ -371,7 +377,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             if ((label = component.getLabel()) == null)
             {
                 if (component instanceof LWLink)
-                  label = new String("Link:" + component.getID());
+                {
+                  LWLink link = (LWLink)component;
+                  String connectedNodeLabel;
+                  
+                  if ((connectedNodeLabel = link.getComponent1().getLabel()).equals(parentNode.getDisplayName()))
+                    connectedNodeLabel = link.getComponent2().getLabel();
+                  
+                  label = new String("Link: to " + connectedNodeLabel);
+                }
                 
                 else if (component instanceof LWNode)   
                   label = new String("Node:" + component.getID());

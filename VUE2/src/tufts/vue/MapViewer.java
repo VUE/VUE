@@ -3439,20 +3439,22 @@ public class MapViewer extends javax.swing.JPanel
                 if (VUE.getPathwayInspector() != null) {
                     if (DEBUG_FOCUS) System.err.println("Setting pathway manager to: " + getMap().getPathwayManager());
                     VUE.getPathwayInspector().setPathwayManager(getMap().getPathwayManager());
-                    
-                    //outline view
-                    if (DEBUG_FOCUS) System.err.println("Notifying outline tree view...");
-                    VUE.getOutlineViewTree().getTree().switchContainer(getMap());
-                    
-                    //hierarchy view
-                    /*
-                      Doesn't compile -- SMF 2004-01-04 12:32.51 Sunday
-                      if(this.map instanceof LWHierarchyMap)
-                      VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
-                      else
-                      VUE.getHierarchyTree().setHierarchyModel(null);
-                    */
                 }
+                    
+                //outline view
+                if (DEBUG_FOCUS) System.err.println("Notifying outline tree view...");
+                  VUE.getOutlineViewTree().switchMap(getMap());
+                    
+                //hierarchy view
+                /*
+                Doesn't compile -- SMF 2004-01-04 12:32.51 Sunday
+                if(this.map instanceof LWHierarchyMap)
+                  VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
+                
+                else
+                  VUE.getHierarchyTree().setHierarchyModel(null);
+                */
+                
                 //end of addition
                 
                 this.VueSelection = VUE.ModelSelection;
