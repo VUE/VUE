@@ -203,6 +203,20 @@ public class LocalByteStore extends LocalCabinetEntry implements osid.filing.Byt
         mime_type = mimeType;
         return mime_type;
     }
+     /**
+     *  Return a URL string for this LocalByteStore.
+     */
+    public String getUrl() {
+        String fn = getFile().getAbsolutePath();
+        return "file://" + fn;
+    }
+
+    /**
+     *  Rename the file corresponding to this byte store and update it's display
+     *  name to the new name.
+     *
+     *  @author Mark Norton
+     */
     
     /**
      *  Get the bytes in a file associated with this byte store.
