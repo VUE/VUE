@@ -204,6 +204,16 @@ class TextBox extends JTextPane
      */
     public void removeNotify()
     {
+        //------------------------------------------------------------------
+        // this set's the "mark to the point" -- sets them to the same
+        // location, thus clearing the selection.  We need this as a
+        // workaround for an obscure bug where sometimes if the focus
+        // change is to a pop-up menu, the edit properly goes
+        // inactive, but the selection within it is still drawn with
+        // it's highlighted background.
+        setCaretPosition(getCaretPosition());
+        //------------------------------------------------------------------
+        
         super.removeNotify();
         setBorder(null);
         if (savedFont != null) {
@@ -368,8 +378,12 @@ class TextBox extends JTextPane
     void copyStyle(LWComponent c)
     {
         SimpleAttributeSet a = new SimpleAttributeSet();
-        //StyleConstants.setAlignment(a, StyleConstants.ALIGN_RIGHT);
-        StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);//todo: from node or LWC
+        //todo: set align from node or LWC
+        //if (c.hasChildren()) { // test
+        //    StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
+        //    System.out.println(this + " ALIGN-LEFT");
+        //} else
+            StyleConstants.setAlignment(a, StyleConstants.ALIGN_CENTER);
         StyleConstants.setForeground(a, c.getTextColor());
         setFontAttributes(a, c.getFont());
         StyledDocument doc = getStyledDocument();
