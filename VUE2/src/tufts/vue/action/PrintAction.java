@@ -154,7 +154,10 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
         isPrintUnderway = true;
         setEnabled(false);
         isPrintingView = ae.getActionCommand().indexOf("View") >= 0;
-        new Thread(this).start();
+        //new Thread(this).start();
+        // if any tool windows open in W2K/1.4.2 when start this thread,
+        // the print dialog get's obscured!
+        run();
     }
 
     // this should be private
