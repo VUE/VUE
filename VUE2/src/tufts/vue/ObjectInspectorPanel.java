@@ -103,7 +103,7 @@ implements LWSelection.Listener {
         mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
         mTabbedPane.addTab(mNodeFilterPanel.getName(),mNodeFilterPanel);
         add( BorderLayout.CENTER, mTabbedPane );
-        System.out.println("CREATED OBJECT INSPECTOR PANEL");
+        if (DEBUG.INIT) System.out.println("Created " + this);
     }
     
     
