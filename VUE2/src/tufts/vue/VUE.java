@@ -614,9 +614,6 @@ public class VUE
             inspectorTool,
         };
 
-        // must be called before first call to buildMenuBar
-        //buildWindowDisplayActions(toolWindows);
-        
         // adding the menus and toolbars
         if (DEBUG.INIT) out("setting JMenuBar...");
         frame.setJMenuBar(new VueMenuBar(ToolWindows));
@@ -786,7 +783,6 @@ public class VUE
     {
         if (!VueUtil.isMacPlatform())
             throw new RuntimeException("can only install OSX event handlers on Mac OS X");
-        
         
         MRJAdapter.addQuitApplicationListener(new ExitAction());
         MRJAdapter.addAboutListener(new AboutAction());
@@ -1203,25 +1199,13 @@ public class VUE
     }
     static void ensureToolWindowVisibility(final String title) {
         if (VueUtil.isMacPlatform() && !inNativeFullScreen()) {
-            //new Throwable("ENSURETOOLWINDOWVISIBILITY").printStackTrace();
             VUE.invokeAfterAWT(new Runnable() {
                     public void run() {
-                        try {
-                            tufts.macosx.Screen.keepWindowsOnTop(title, inFullScreen());
-                        } catch (NoSuchMethodError e) {
-                            // If tufts.macosx.Screen get's out of date, or
-                            // it's library is not included in the build, we'll
-                            // get this exception.
-                            System.err.println(e);
-                        } catch (NoClassDefFoundError e) {
-                            // We'll get this is /System/Library/Java isn't in the classpath
-                            System.err.println(e);
-                        }
+                        tufts.Util.keepToolWindowsOnTop(title, inFullScreen());
                     }
                 });
         }
     }
-    
     
     static class VueToolBar extends JToolBar
     {
@@ -1566,7 +1550,7 @@ public class VUE
             if (mLinkedButton == null)
                 mLinkedButton = (AbstractButton) e.getSource();
             if (firstDisplay && mWindow.getX() == 0 && mWindow.getY() == 0) {
-                mWindow.setLocation(20,20);
+                mWindow.setLocation(20,22);
             }
             firstDisplay = false;
             if (mLinkedButton.isSelected()) {

@@ -203,7 +203,7 @@ public class PresentationTool extends VueTool
 
     private void makeInvisible() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            out("makeInvisible");
+            //out("makeInvisible");
             try {
                 tufts.macosx.Screen.makeMainInvisible();
                 invisible = true;
@@ -215,7 +215,7 @@ public class PresentationTool extends VueTool
         
     private void makeVisible() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            out("makeVisible");
+            //out("makeVisible");
             try {
                 if (tufts.macosx.Screen.isMainInvisible())
                     tufts.macosx.Screen.fadeUpMainWindow();
@@ -230,7 +230,7 @@ public class PresentationTool extends VueTool
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             VUE.invokeAfterAWT(new Runnable() {
                     public void run() {
-                        out("makeVisibleLater");
+                        //out("makeVisibleLater");
                         //if (invisible)
                         makeVisible();
                     }

@@ -490,29 +490,50 @@ public class Util
     public static void screenToBlack() {
         if (!isMacPlatform())
             return;
-
         try {
             tufts.macosx.Screen.goBlack();    
-        } catch (NoSuchMethodError e) {
-            eout(e);
-        } catch (NoClassDefFoundError e) {
+        } catch (LinkageError e) {
             eout(e);
         }
     }
     
     public static void screenFadeFromBlack() {
-        if (!isMacPlatform())
-            return;
-
-        try {
-            tufts.macosx.Screen.fadeFromBlack();
-        } catch (NoSuchMethodError e) {
-            eout(e);
-        } catch (NoClassDefFoundError e) {
-            eout(e);
+        if (isMacPlatform()) {
+            try {
+                tufts.macosx.Screen.fadeFromBlack();
+            } catch (LinkageError e) {
+                eout(e);
+            }
         }
     }
 
+    /** For mac platform: to keep tool windows that are frames on top
+     * of the main app window, you need to go to "native" java/cocoa code.
+     * @param inActionTitle - the title of a window just shown / or currently
+     * undergoing a show, to make sure we fix up, even if it doesn't claim
+     * to be visible yet.
+     */
+    public static void keepToolWindowsOnTop(String inActionTitle, boolean inFullScreenMode)
+    {
+        if (isMacPlatform()) {
+            try {
+                tufts.macosx.Screen.keepWindowsOnTop(inActionTitle, inFullScreenMode);
+            } catch (LinkageError e) {
+                eout(e);
+            }
+        }
+    }
+
+    private static void eout(LinkageError e) {
+        if (e instanceof NoSuchMethodError)
+            eout((NoSuchMethodError)e);
+        else if (e instanceof NoClassDefFoundError)
+            eout((NoClassDefFoundError)e);
+        else {
+            System.err.println(e + ": problem with Mac Java/Cocoa Code");
+        }
+    }
+    
     private static void eout(NoSuchMethodError e) {
         // If tufts.macosx.Screen get's out of date, or
         // it's library is not included in the build, we'll
