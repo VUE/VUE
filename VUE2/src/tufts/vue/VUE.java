@@ -137,6 +137,12 @@ public class VUE
         return pathwayInspector;
     }
 
+    //added by Daisuke Fujiwara
+    public static PathwayControl getPathwayControl()
+    {
+        return control;
+    }
+    
     private VUE() {}
     
     public static void main(String[] args)
@@ -246,6 +252,7 @@ public class VUE
         );
         
         //End of addition by Daisuke Fujiwara
+        
         Action[] windowActions = { pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),

@@ -1180,6 +1180,10 @@ public class MapViewer extends javax.swing.JPanel
             }
             cPopup.addSeparator();
             cPopup.add(Actions.Delete);
+            
+            //added by Daisuke
+            cPopup.add(Actions.AddPathwayNode);
+            
             // todo: special add-to selection action that adds
             // hitComponent to selection so have way other
             // than shift-click to add to selection (so you

@@ -134,6 +134,8 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setPathway(LWPathway pathway){
         this.pathway = pathway;
+        
+        /*
         if(pathway != null && path != null){ 
             path.setPathway(pathway);
             System.out.println("set pathway to: " + pathway);
@@ -150,11 +152,26 @@ public class LWPathwayInspector extends InspectorWindow
         
             model.fireTableDataChanged();
             repaint();
-        }  
+        } 
+        */
+        
+        path.setPathway(pathway);
+        
+        notes = null;
+        notes = getNotes();
+        pane.removeTabAt(2);
+        pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
+        
+        model.fireTableDataChanged();
     }
     
     public LWPathway getPathway(){
         return this.pathway;
+    }
+    
+    public void notifyPathwayTab()
+    {
+        path.updateTable();
     }
     
     Action displayAction = null;
