@@ -52,7 +52,7 @@ public class DEBUG
     public static  void setAllEnabled(boolean t) {
         CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
-            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=t;
+            PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=t;
         if (t == false)
             META = false;
     }

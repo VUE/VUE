@@ -2432,11 +2432,39 @@ public class MapViewer extends javax.swing.JComponent
         
         return sSinglePopup;
     }
+
+    private void dumpAsset(Asset asset)
+        throws osid.dr.DigitalRepositoryException
+    {
+        System.out.println("DUMP: Asset " + asset.getClass().getName() + "[" + asset + "]"
+                           + " displayName=[" + asset.getDisplayName() + "]"
+                           + " description=[" + asset.getDescription() + "]"
+                           );
+        osid.dr.InfoRecordIterator i = asset.getInfoRecords();
+        while (i.hasNext()) {
+            System.out.print("\t");
+            dumpInfoRecord((osid.dr.InfoRecord) i.next());
+            //osid.dr.InfoRecord r = (osid.dr.InfoRecord) i.next();
+        }
+    }
+
+    private void dumpInfoRecord(osid.dr.InfoRecord r)
+        throws osid.dr.DigitalRepositoryException
+    {
+        System.out.println(r);
+        osid.dr.InfoFieldIterator i = r.getInfoFields();
+        while (i.hasNext()) {
+            osid.dr.InfoField f = i.next();
+            System.out.println("\t\t" + f);
+        }
+    }
+            
     
     private void buildAssetMenu(Asset asset) {
         sAssetMenu.removeAll();
         osid.dr.InfoRecordIterator i;
         try {
+            if (DEBUG.DR) dumpAsset(asset);
             i = asset.getInfoRecordsByInfoStructure(new PID(AssetResource.DISSEMINATION_INFOSTRUCTURE_ID));
             while(i.hasNext()) {
                 osid.dr.InfoRecord infoRecord = i.next();
@@ -2726,6 +2754,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'Z') { resetScrollRegion(); }
                 
                 else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
+                else if (c == '^') { DEBUG.DR = !DEBUG.DR; }
                 else if (c == '+') { DEBUG.META = !DEBUG.META; }
                 else if (c == '?') { DEBUG.SCROLL = !DEBUG.SCROLL; }
                 else if (c == '{') { DEBUG.PATHWAY = !DEBUG.PATHWAY; }
