@@ -293,7 +293,7 @@ public class LWComponent
     {
         // todo: either get rid of this or make it more sophisticated
         Color c = getFillColor();
-        return c != null && (c == COLOR_NODE_DEFAULT || c == COLOR_NODE_INVERTED);
+        return c != null && (COLOR_NODE_DEFAULT.equals(c) || COLOR_NODE_INVERTED.equals(c));
     }
     
     public float getLabelX()
@@ -408,6 +408,32 @@ public class LWComponent
     public boolean hasLinkTo(LWComponent c)
     {
         return getLinkTo(c) != null;
+    }
+
+    protected void ensureLinksPaintOnTopOfAllParents()
+    {
+        java.util.Iterator i = this.links.iterator();
+        while (i.hasNext()) {
+            LWLink link = (LWLink) i.next();
+            LWContainer commonParent = link.getParent();
+            if (commonParent != getParent()) {
+                // If we don't have the same parent, we may need to shuffle the deck
+                // so that any links to us will be sure to paint on top of the parent
+                // we do have, so you can see the link goes to us (this), and not our
+                // parent.  todo: nothing in runtime that later prevents user from
+                // sending link to back and creating a very confusing visual situation,
+                // unless all of our parents happen to be transparent.
+                LWComponent topMostParentThatIsSiblingOfLink = getParentWithParent(commonParent);
+                commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, link);
+            }
+        }
+    }
+
+    LWComponent getParentWithParent(LWContainer parent)
+    {
+        if (getParent() == parent)
+            return this;
+        return getParent().getParentWithParent(parent);
     }
 
     public void setScale(float scale)

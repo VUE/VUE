@@ -51,47 +51,22 @@ public class LWMap extends LWContainer
     public void completeXMLRestore()
     {
         System.out.println(getLabel() + ": completing restore...");
-        resolvePersistedLinks();
+        resolvePersistedLinks(this);
+        setChildScaleValues();
         setChildParentReferences();
         nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
     }
-    
-    /**
-     * To be called once after a persisted map
-     * is restored.
-     */
-    public void resolvePersistedLinks()
-    {
-        // todo: technically, a LWContainer could contain a link,
-        // and this won't restore any of those -- but there's
-        // no way to drag a link as a child of anything else
-        // at the moment.
-        
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (!(c instanceof LWLink))
-                continue;
-            LWLink l = (LWLink) c;
-            l.setEndPoint1(findItemByID(l.getEndPoint1_ID()));
-            l.setEndPoint2(findItemByID(l.getEndPoint2_ID()));
-        }
-        // todo?: throw exception if this called again &
-        // clear out link item id strings
-    }
 
-    private LWComponent findItemByID(String ID)
+    protected LWComponent findChildByID(String ID)
     {
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getID().equals(ID))
-                return c;
-        }
-        System.err.println(this + " failed to locate a LWC with id [" + ID + "]");
-        return null;
+        LWComponent c = super.findChildByID(ID);
+        if (c == null) {
+            System.err.println(this + " failed to locate a LWComponent with id [" + ID + "]");
+            return null;
+        } else
+            return c;
     }
     
     /**

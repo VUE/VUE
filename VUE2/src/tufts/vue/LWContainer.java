@@ -31,6 +31,50 @@ public abstract class LWContainer extends LWComponent
         return id;
     }
     /** for use during restore */
+    protected LWComponent findChildByID(String ID)
+    {
+        java.util.Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getID().equals(ID))
+                return c;
+            if (c instanceof LWContainer) {
+                c = ((LWContainer)c).findChildByID(ID);
+                if (c != null)
+                    return c;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * For restore: To be called once after a persisted map
+     * is restored.
+     */
+    protected void resolvePersistedLinks(LWContainer topLevelContainer)
+    {
+        java.util.Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWContainer) {
+                ((LWContainer)c).resolvePersistedLinks(topLevelContainer);
+                continue;
+            }
+            if (!(c instanceof LWLink))
+                continue;
+            LWLink l = (LWLink) c;
+            try {
+                l.setEndPoint1(topLevelContainer.findChildByID(l.getEndPoint1_ID()));
+                l.setEndPoint2(topLevelContainer.findChildByID(l.getEndPoint2_ID()));
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("*** removing bad link " + l);
+                i.remove();
+            }
+        }
+    }
+    
+    /** for use during restore */
     protected int findGreatestChildID()
     {
         int maxID = -1;
@@ -57,6 +101,16 @@ public abstract class LWContainer extends LWComponent
             c.setParent(this);
             if (c instanceof LWContainer)
                 ((LWContainer)c).setChildParentReferences();
+        }
+    }
+
+    /** for use during restore */
+    protected void setChildScaleValues()
+    {
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setScale(c.getScale());
         }
     }
     
@@ -128,17 +182,37 @@ public abstract class LWContainer extends LWComponent
 
     protected void addChildInternal(LWComponent c)
     {
-        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDS " + c);
-        if (c.getParent() != null)
+        if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
+        if (c.getParent() != null) {
+            if (c.getParent() == this) {
+                if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
+                // this okay -- in fact useful for child node re-drop on existing parent to trigger
+                // re-ordering & re-layout
+            }
             c.getParent().removeChild(c);
+        }
         if (c.getFont() == null)//todo: really want to do this? only if not manually set?
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
+        c.ensureLinksPaintOnTopOfAllParents();
+        
         // todo: raise all in getLinkRefs to the top of the stack if we're
         // being added as a child of anything other than the top level map
     }
-        
+
+    protected void ensureLinksPaintOnTopOfAllParents()
+    {
+        super.ensureLinksPaintOnTopOfAllParents();
+        java.util.Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.ensureLinksPaintOnTopOfAllParents();
+            if (c instanceof LWContainer)
+                ((LWContainer)c).ensureLinksPaintOnTopOfAllParents();
+        }
+    }
+
     public void addChild(LWComponent c)
     {
         addChildInternal(c);
@@ -435,6 +509,37 @@ public abstract class LWContainer extends LWComponent
         children.set(i, children.set(j, children.get(i)));
     }
 
+    // essentially this implements an "insert-after" of top relative to bottom
+    void ensurePaintSequence(LWComponent onBottom, LWComponent onTop)
+    {
+        if (onBottom.getParent() != this || onTop.getParent() != this)
+            throw new IllegalArgumentException(this + " both aren't children " + onBottom + " " + onTop);
+        int bottomIndex = getIndex(onBottom);
+        int topIndex = getIndex(onTop);
+        if (bottomIndex < 0 || topIndex < 0)
+            throw new IllegalArgumentException(this + " both aren't in list! " + bottomIndex + " " + topIndex);
+        //if (DEBUG_PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
+        if (topIndex == (bottomIndex - 1)) {
+            swap(topIndex, bottomIndex);
+            if (DEBUG_PARENTING) System.out.println("ensurePaintSequence: swapped " + onTop);
+        } else if (topIndex < bottomIndex) {
+            children.remove(topIndex);
+            // don't forget that after above remove the indexes have all been shifted down one
+            if (bottomIndex >= children.size())
+                children.add(onTop);
+            else
+                children.add(bottomIndex, onTop);
+            if (DEBUG_PARENTING) System.out.println("ensurePaintSequence: inserted " + onTop);
+        } else {
+            //if (DEBUG_PARENTING) System.out.println("ensurePaintSequence: already sequenced");
+        }
+        //if (DEBUG_PARENTING) System.out.println("ensurepaintsequence: " + onBottom + " " + onTop);
+        
+    }
+
+    // todo: this really wants to be in LWNode, not general to container,
+    // or even better, support this feature in a much cleaner way
+    // (e.g., tweak the font size or something)
     public void setScale(float scale)
     {
         super.setScale(scale);
