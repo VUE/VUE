@@ -75,29 +75,27 @@ public abstract class MenuButton extends JButton
         mPopup = new JPopupMenu();
 			
         final String valueKey = getPropertyName() + ".value";
-        final String customName = "Custom...";
+        //final String customName = "Custom...";
             
         ActionListener a = new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    if (e.getActionCommand() == customName)
-                        handleMenuSelection(runCustomChooser());
-                    else
-                        handleMenuSelection(((JComponent)e.getSource()).getClientProperty(valueKey));
+                    handleMenuSelection(((JComponent)e.getSource()).getClientProperty(valueKey));
                 }};
             
         for (int i = 0; i < values.length; i++) {
             JMenuItem item = new JMenuItem();
             item.setIcon(makeIcon(values[i]));
-            item.addActionListener(a);
             item.putClientProperty(valueKey, values[i]);
             if (names != null)
                 item.setText(names[i]);
+            item.addActionListener(a);
             mPopup.add(item);
         }
 
         if (createCustom) {
-            JMenuItem item = new JMenuItem(customName);
-            item.addActionListener(a);
+            JMenuItem item = new JMenuItem("Custom..."); // todo: more control over this item
+            item.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) { handleMenuSelection(runCustomChooser()); }});
             mPopup.add(item);
         }
 
