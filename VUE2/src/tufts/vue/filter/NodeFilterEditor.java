@@ -23,20 +23,31 @@ import java.util.*;
 import java.util.ArrayList;
 
 public class NodeFilterEditor extends JPanel{
-    NodeFilterTableModel nodeFilterTableModel;
+    NodeFilter nodeFilter;
     boolean editable = false;
     JComboBox keyEditor;
     JComboBox operatorEditor;
     JTable nodeFilterTable;
+    AddButtonListener addButtonListener = null;
+    DeleteButtonListener deleteButtonListener = null;
+    NodeFilterSelectionListener sListener = null;
+    JButton addButton=new tufts.vue.VueButton("add");
+    JButton deleteButton=new tufts.vue.VueButton("delete");
     
     /** Creates a new instance of NodeFilterEditor */
     public NodeFilterEditor( NodeFilter nodeFilter,boolean editable) {
-        nodeFilterTableModel = new NodeFilterTableModel(nodeFilter,editable);
+        System.out.println("Created new instance of node filter editor");
+        this.nodeFilter = nodeFilter;
+        setNodeFilterPanel();
+    }
+    
+    public NodeFilterEditor( NodeFilter nodeFilter) {
+        this.nodeFilter = nodeFilter;
         setNodeFilterPanel();
     }
     
     private void setNodeFilterPanel() {
-        nodeFilterTable = new JTable(nodeFilterTableModel);
+        nodeFilterTable = new JTable(nodeFilter);
         nodeFilterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         JScrollPane nodeFilterScrollPane=new JScrollPane(nodeFilterTable);
         nodeFilterScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
@@ -46,23 +57,24 @@ public class NodeFilterEditor extends JPanel{
         nodeFilterPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
-        JButton addButton=new tufts.vue.VueButton("add");
-        addButton.addActionListener(new AddButtonListener(nodeFilterTableModel));
+        addButtonListener = new AddButtonListener(nodeFilter);
+        addButton.addActionListener(addButtonListener);
         
         
         // GRID: deleteConditionButton
-        JButton deleteButton=new tufts.vue.VueButton("delete");
+        
         deleteButton.setEnabled(false);
         // adding the delete functionality */
-        NodeFilterSelectionListener sListener= new NodeFilterSelectionListener(deleteButton, -1);
+        sListener= new NodeFilterSelectionListener(deleteButton, -1);
         nodeFilterTable.getSelectionModel().addListSelectionListener(sListener);
-        deleteButton.addActionListener(new DeleteButtonListener(nodeFilterTable, sListener));
+        deleteButtonListener = new DeleteButtonListener(nodeFilterTable, sListener);
+        deleteButton.addActionListener(deleteButtonListener);
         
         /** setting editors ***/
-        keyEditor = new JComboBox(tufts.vue.VUE.getActiveMap().getMapFilterModel());
+        keyEditor = new JComboBox(tufts.vue.VUE.getActiveMap().getMapFilterModel().getKeyVector());
         nodeFilterTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(keyEditor));
         //operatorEditor = new JComboBox((Vector)((Key)keyEditor.getItemAt(0)).getType().getOperators());
-        nodeFilterTable.getColumnModel().getColumn(NodeFilterTableModel.OPERATOR_COL).setCellEditor(new OperatorCellEditor());
+        nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(new OperatorCellEditor());
         
         
         JPanel innerPanel=new JPanel();
@@ -84,108 +96,20 @@ public class NodeFilterEditor extends JPanel{
         
         validate();
     }
-    public class NodeFilterTableModel extends AbstractTableModel {
-        public static final int KEY_COL = 0;
-        public static final int OPERATOR_COL = 1;
-        public static final int VALUE_COL = 2;
-        public static final int TYPE_COL = 3;
-        
-        
-        boolean editable;
-        NodeFilter nodeFilter;
-        
-        public NodeFilterTableModel(NodeFilter nodeFilter,boolean editable) {
-            this.editable = editable;
-            this.nodeFilter  = nodeFilter;
-        }
-        
-        public NodeFilter getNodeFilter() {
-            return this.nodeFilter;
-        }
-        
-        public void addStatement(Statement statement) {
-            nodeFilter.add(statement);
-        }
-        
-        public boolean isEditable() {
-            return editable;
-        }
-        
-        public String getColumnName(int col) {
-            if (col==0) {
-                return "Field";
-            } else if(col == 1) {
-                return "Criteria";
-            } else
-                return "Search";
-            
-            
-        }
-        
-        public int getRowCount() {
-            return nodeFilter.size();
-        }
-        
-        public int getColumnCount() {
-            return 3;
-        }
-        /**
-         * public Class getColumnClass(int c) {
-         * if(getValueAt(0,c) != null)
-         * return getValueAt(0, c).getClass();
-         * return Object.class;
-         * }
-         */
-        public Object getValueAt(int row, int col) {
-            Statement statement = (Statement) nodeFilter.get(row);
-            if (col== KEY_COL)
-                return statement.getKey().toString();
-            else if(col == OPERATOR_COL)
-                return statement.getOperator();
-            else
-                return statement.getValue();
-            
-        }
-        public void setValueAt(Object value, int row, int col) {
-            Statement statement = (Statement) nodeFilter.get(row);
-            Key key = statement.getKey();
-            if(col == VALUE_COL) {
-                if(statement.getKey().getType().getDisplayName().equals(Type.INTEGER_TYPE)) {
-                    statement.setValue(new Integer("0"+(String)value));
-                } else {
-                    statement.setValue(value);
-                }
-            } else if(col == KEY_COL)  {
-                statement.setKey((Key)value);
-                setValueAt(((Key)value).getType().getDefaultOperator(),row,OPERATOR_COL);
-                setValueAt(((Key)value).getDefaultValue(), row,VALUE_COL);
-                //statement.setOperator(((Key)value).getType().getDefaultOperator());
-                //statement.setValue(((Key)value).getDefaultValue());
-                // fireTableRowsUpdated(row,row);
-                
-            }else if(col == OPERATOR_COL)  {
-                if(value instanceof Operator)
-                    statement.setOperator((Operator)value);
-            }
-            
-            // row = -1 adds new condions else replace the existing one.
-            
-            fireTableCellUpdated(row, col);
-            fireTableDataChanged();
-        }
-        
-        
-        public boolean isCellEditable(int row, int col) {
-            //Note that the data/cell address is constant,
-            //no matter where the cell appears onscreen.
-            //  return editable;
-            return true;
-        }
+    
+    public void setNodeFilter(NodeFilter nodeFilter)  {
+        nodeFilterTable.setModel(nodeFilter);
+        addButton.removeActionListener(addButtonListener);
+        addButtonListener = new AddButtonListener(nodeFilter);
+        addButton.addActionListener(addButtonListener);
+        deleteButton.removeActionListener(deleteButtonListener);
+        deleteButtonListener = new DeleteButtonListener(nodeFilterTable, sListener);
+        deleteButton.addActionListener(deleteButtonListener);
     }
     
     public class AddButtonListener implements ActionListener {
-        private  NodeFilterTableModel model;
-        public AddButtonListener(NodeFilterTableModel model) {
+        private  NodeFilter model;
+        public AddButtonListener(NodeFilter model) {
             this.model=model;
         }
         
@@ -219,9 +143,9 @@ public class NodeFilterEditor extends JPanel{
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             
             TableModel tableModel = table.getModel();
-            if (tableModel instanceof NodeFilterTableModel) {
-                NodeFilterTableModel nodeFilterTableModel  = (NodeFilterTableModel) tableModel;
-                editor =  new JComboBox((Vector)((Statement)(nodeFilterTableModel.getNodeFilter().get(row))).getKey().getType().getSettableOperators());
+            if (tableModel instanceof NodeFilter) {
+                NodeFilter nodeFilter  = (NodeFilter) tableModel;
+                editor =  new JComboBox((Vector)((Statement)(nodeFilter.get(row))).getKey().getType().getSettableOperators());
                 return editor;
             }
             return (new JTextField(""));
@@ -243,8 +167,8 @@ public class NodeFilterEditor extends JPanel{
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             TableModel tableModel = table.getModel();
-            if (tableModel instanceof NodeFilterTableModel) {
-                editor = new JComboBox((Vector)tufts.vue.VUE.getActiveMap().getMapFilterModel());
+            if (tableModel instanceof NodeFilter) {
+                editor = new JComboBox((Vector)tufts.vue.VUE.getActiveMap().getMapFilterModel().getKeyVector());
                 return editor;
             }
             return (new JTextField(""));// if no editor present
@@ -259,7 +183,7 @@ public class NodeFilterEditor extends JPanel{
     }
     /** not used currently.  **/
     public class AddDialog extends JDialog {
-        NodeFilterTableModel model;
+        NodeFilter model;
         JLabel keyLabel;
         JLabel typeLabel;
         JLabel operatorLabel;
@@ -271,7 +195,7 @@ public class NodeFilterEditor extends JPanel{
         
         Vector allTypes;
         
-        public AddDialog(NodeFilterTableModel model) {
+        public AddDialog(NodeFilter model) {
             super(tufts.vue.VUE.getInstance(),"Add Key",true);
             this.model = model;
             allTypes = (Vector)TypeFactory.getAllTypes();
@@ -279,7 +203,7 @@ public class NodeFilterEditor extends JPanel{
             typeLabel = new JLabel("Type");
             operatorLabel = new JLabel("Operator");
             valueLabel = new JLabel("Value");
-            keyEditor = new JComboBox(tufts.vue.VUE.getActiveMap().getMapFilterModel());
+            keyEditor = new JComboBox(tufts.vue.VUE.getActiveMap().getMapFilterModel().getKeyVector());
             
             
             operatorEditor = new JComboBox();
@@ -442,8 +366,8 @@ public class NodeFilterEditor extends JPanel{
         public void actionPerformed(ActionEvent e) {
             // will only be invoked if an existing row is selected
             int r=m_sListener.getSelectedRow();
-            ((NodeFilterTableModel) table.getModel()).getNodeFilter().remove(r);
-            ((NodeFilterTableModel) table.getModel()).fireTableRowsDeleted(r,r);
+            ((NodeFilter) table.getModel()).remove(r);
+            ((NodeFilter) table.getModel()).fireTableRowsDeleted(r,r);
             if(r> 0)
                 table.setRowSelectionInterval(r-1, r-1);
             else if(table.getRowCount() > 0)

@@ -38,6 +38,10 @@ public class DefaultType implements tufts.vue.filter.Type {
         return operatorList;
     }
     
+    public void setOperators(List operatorList) {
+        this.operatorList = operatorList;
+    }
+    
     public void addOperator(Operator operator) {
         operatorList.add(operator);
     }

@@ -14,14 +14,14 @@ public class Key {
     
     /** Creates a new instance of Key */
     Type type;
-    Object key;
+    Object sKey;
     Object defaultValue;
     public Key() {
     }
     
     public Key(String key,Type type) {
         this.type = type;
-        this.key = key;
+        this.sKey = key;
         if(type.getDisplayName().equals(Type.INTEGER_TYPE))
             defaultValue = new Integer(0);
         else if(type.getDisplayName().equals(Type.BOOLEAN_TYPE))
@@ -39,15 +39,15 @@ public class Key {
     }
     
      public void setKey(Object key) {
-        this.key = key;
+        this.sKey = key;
     }
     
     public Object getKey() {
-        return this.key;
+        return this.sKey;
     }
     
     public String toString() {
-        return key.toString();
+        return sKey.toString();
     }
     
     public Object getDefaultValue() {

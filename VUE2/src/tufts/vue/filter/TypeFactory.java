@@ -18,7 +18,7 @@ public class TypeFactory {
     
     /** Creates a new instance of TypeFactory */
     public static Type getIntegerType() {
-        return new IntergerType();
+        return new IntegerType();
         /**
         Operator eqOperator = new DefaultOperator("equal","=",true) {
             public boolean compare(Statement s1,Statement s2) {
