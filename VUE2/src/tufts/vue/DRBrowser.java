@@ -72,8 +72,15 @@ class DRBrowser extends JPanel {
     }
 
     public static void main(String args[]) {
+        DEBUG.DR = true;
         DRBrowser drb = new DRBrowser(false);
         tufts.Util.displayComponent(drb);
+        try {
+            java.util.prefs.Preferences p = tufts.oki.dr.fedora.FedoraUtils.getDefaultPreferences(null);
+            p.exportSubtree(System.out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         //drb.loadDataSourceViewer();
         
     }
