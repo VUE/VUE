@@ -12,7 +12,7 @@ package tufts.oki.dr.fedora;
  */
 
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.util.prefs.Preferences;
 import java.util.ResourceBundle;
 import javax.swing.AbstractAction;
@@ -114,9 +114,14 @@ public class FedoraUtils {
             AbstractAction fedoraAction = new AbstractAction(infoRecord.getId().getIdString()) {
                 public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
                     try {
-                      String fedoraUrl = mDR.getFedoraProperties().getProperty("url.fedora.get","http://hosea.lib.tufts.edu:8080/fedora/get");
-                      openURL(mInfoRecord.getInfoField(new PID(getFedoraProperty(mDR, "DisseminationURLInfoPartId"))).getValue().toString());
-                     } catch(Exception ex) { } 
+                      //String fedoraUrl = mDR.getFedoraProperties().getProperty("url.fedora.get","http://vue-dl.tccs..tufts.edu:8080/fedora/get");
+                      String fedoraUrl = mInfoRecord.getInfoField(new PID(getFedoraProperty(mDR, "DisseminationURLInfoPartId"))).getValue().toString();
+                      URL url = new URL(fedoraUrl);
+                      URLConnection connection = url.openConnection();
+                      System.out.println("FEDORA ACTION: Content-type:"+connection.getContentType()+" for url :"+fedoraUrl);
+                      
+                      openURL(fedoraUrl);
+                     } catch(Exception ex) {  } 
                 }
 
             };

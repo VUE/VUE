@@ -16,11 +16,8 @@ import osid.dr.*;
 import tufts.oki.shared.TypeIterator;
 
 
-import java.util.Vector;
-import java.util.Properties;
-import java.util.Iterator;
-import java.util.Enumeration;
 import java.util.prefs.Preferences;
+import java.util.*;
 import java.net.*;
 import java.io.*;
 import javax.swing.JOptionPane;
@@ -56,7 +53,7 @@ import fedora.client.ingest.AutoIngestor;
 
 
 public class DR implements osid.dr.DigitalRepository {
-    
+    public final boolean DEBUG = false;
     public static final String DC_NAMESPACE = "dc:";
     public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
     
@@ -427,7 +424,9 @@ public class DR implements osid.dr.DigitalRepository {
         return null;
     }
     
-    public  osid.shared.Id ingest(String fileName,String templateFileName, File file,Properties properties) throws osid.dr.DigitalRepositoryException, java.net.SocketException,java.io.IOException,osid.shared.SharedException,javax.xml.rpc.ServiceException{
+    public  osid.shared.Id ingest(String fileName,String templateFileName,String fileType, File file,Properties properties) throws osid.dr.DigitalRepositoryException, java.net.SocketException,java.io.IOException,osid.shared.SharedException,javax.xml.rpc.ServiceException{
+        long sTime = System.currentTimeMillis();
+        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA:fileName ="+fileName+"fileType ="+fileType+"t = 0");
         // this part transfers file to a ftp server.  this is required since the content management part of fedora server needs object to be on web server
         String host = FedoraUtils.getFedoraProperty(this,"admin.ftp.address");
         String url = FedoraUtils.getFedoraProperty(this,"admin.ftp.url");
@@ -443,12 +442,13 @@ public class DR implements osid.dr.DigitalRepository {
         client.storeFile(fileName,new FileInputStream(file));
         client.logout();
         client.disconnect();
+        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Writting to FTP Server:"+(System.currentTimeMillis()-sTime));
         fileName = url+fileName;
         // this part does the creation of METSFile
         int BUFFER_SIZE = 10240;
         StringBuffer sb = new StringBuffer();
         String s = new String();
-        FileInputStream fis = new FileInputStream(new File(getResource(templateFileName).getFile().replaceAll("%20"," ")));
+        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(new File(getResource(templateFileName).getFile().replaceAll("%20"," "))));
         //FileInputStream fis = new FileInputStream(new File(templateFileName));
         //DataInputStream in = new DataInputStream(fis);
         byte[] buf = new byte[BUFFER_SIZE];
@@ -458,25 +458,39 @@ public class DR implements osid.dr.DigitalRepository {
             s = s+ new String(buf);
         }
         fis.close();
+        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Read Mets File:"+(System.currentTimeMillis()-sTime));
+        
         //in.close();
         //  s = sb.toString();
         //String r =  s.replaceAll("%file.location%", fileName).trim();
-        String r = updateMetadata(s, fileName,file.getName(),properties);
+        String r = updateMetadata(s, fileName,file.getName(),fileType,properties);
+        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Resplaced Metadata:"+(System.currentTimeMillis()-sTime));
+        
         //writing the to outputfile
         File METSfile = File.createTempFile("vueMETSMap",".xml");
         FileOutputStream fos = new FileOutputStream(METSfile);
         fos.write(r.getBytes());
         fos.close();
+        
         AutoIngestor a = new AutoIngestor(address.getHost(), address.getPort(),FedoraUtils.getFedoraProperty(this,"admin.fedora.username"),FedoraUtils.getFedoraProperty(this,"admin.fedora.username"));
         String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest");
+        if(DEBUG) System.out.println("INGESTING FILE TO FEDORA: Ingest complete:"+(System.currentTimeMillis()-sTime));
+        
         System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
         return new PID(pid);
     }
     
-    private String updateMetadata(String s,String fileLocation, String fileTitle, Properties dcFields) {
+    private String updateMetadata(String s,String fileLocation, String fileTitle, String fileType,Properties dcFields) {
+        Calendar calendar = new GregorianCalendar();
+        //String created = calendar.get(Calendar.YEAR)+"-"+calendar.get(Calendar.MONTH)+"-"+calendar.get(Calendar.DAY_OF_MONTH);
+        //created += "T"+calendar.get(Calendar.HOUR)+":"+calendar.get(Calendar.MINUTE)+":"+calendar.get(Calendar.SECOND);
+        java.text.SimpleDateFormat date = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        String created = date.format(calendar.getTime());
         String dcMetadata;
         s = s.replaceAll("%file.location%", fileLocation).trim();
-        s = s.replaceAll("%file.title%", fileTitle).trim();
+        s = s.replaceAll("%file.title%", fileTitle);
+        s = s.replaceAll("%file.type%",fileType);
+        s = s.replaceAll("%file.created%", created);
         s = s.replaceAll("%dc.Metadata%", getMetadataString(dcFields));
         return s;
         
