@@ -604,8 +604,8 @@ public class LWComponent
     public Rectangle2D getBounds()
     {
         // todo opt: cache this object?
-        Rectangle2D b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
-        double sw = getStrokeWidth();
+        final Rectangle2D b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        final double sw = getStrokeWidth();
 
         // we need this adjustment for repaint optimzation to
         // work properly -- would be a bit cleaner to compensate
@@ -777,7 +777,15 @@ public class LWComponent
             while (i.hasNext()) {
                 Listener l = (Listener) i.next();
                 if (DEBUG_EVENTS) System.out.println(e + " -> " + l);
-                l.LWCChanged(e);
+                try {
+                    l.LWCChanged(e);
+                } catch (Exception ex) {
+                    System.err.println("LWComponent.notifyLWCListeners: exception during LWCEvent notification:"
+                                       + "\n\tnotifying component: " + this
+                                       + "\n\tevent was: " + e
+                                       + "\n\tfailing listener: " + l);
+                    ex.printStackTrace();
+                }
             }
         }
 
