@@ -63,7 +63,8 @@ public abstract class VueTool extends AbstractAction
     protected Icon mOverlayDownIcon = null;
 
     protected char mShortcutKey = 0;
-    protected java.awt.Cursor mCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+
+    protected java.awt.Cursor mCursor = null;
     
     /** thedeafult  property bean state of any tool subproperties **/
   	protected Object mBeanState = null;
@@ -202,8 +203,18 @@ public abstract class VueTool extends AbstractAction
      * Gets the cursor for the tool
      * @return an instance of java.awt.Cursor
      **/
-    public Cursor getCursor() {
-        return mCursor;
+    public Cursor getCursor()
+    {
+        //System.out.println(this + " getCursor: mCursor=" + mCursor);
+        Cursor cursor = null;
+        if (hasSubTools()) 
+            cursor = getSelectedSubTool().getCursor();
+        if (cursor == null)
+            cursor = mCursor;
+        //if (cursor == null)
+        //cursor = VueConstants.CURSOR_WAIT; // this is debug
+        //Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+        return cursor;
     }
 
     public void setShortcutKey(char pChar)
