@@ -54,6 +54,22 @@ class Actions {
             }
         };
 
+    /**Addition by Daisuke Fujiwara*/
+    
+    static final Action AddPathwayNode = 
+        new MapAction("Add to the Pathway")
+        {
+            public void act()
+            {
+                LWComponent[] array = VUE.ModelSelection.getArray();
+                
+                for (int i = 0; i < array.length; i++)
+                    VUE.getPathwayInspector().getPathway().addElement(array[i]);
+            }
+        };
+        
+    /**End of Addition by Daisuke Fujiwara*/
+        
     //-------------------------------------------------------
     // Edit actions
     //-------------------------------------------------------
