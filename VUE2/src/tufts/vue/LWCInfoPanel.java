@@ -54,17 +54,16 @@ ActionListener {
         // settting metadata
         setUpMetadataPane();
         setLayout(new BorderLayout());
-        add(fieldPane, BorderLayout.CENTER);
-        add(metadataPane,BorderLayout.SOUTH);
+        add(fieldPane, BorderLayout.NORTH);
+        add(metadataPane,BorderLayout.CENTER);
         VUE.ModelSelection.addListener(this);
     }
     
     private void setUpMetadataPane() {
-        BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(new BorderLayout());
         metadataPane.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
         propertiesEditor = new PropertiesEditor(true);
-        metadataPane.add(propertiesEditor,BorderLayout.NORTH);
+        metadataPane.add(propertiesEditor,BorderLayout.CENTER);
         validate();
         
     }

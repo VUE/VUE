@@ -191,35 +191,18 @@ implements LWSelection.Listener {
         
         JScrollPane mInfoScrollPane = null;
         JLabel nodeLabel = null;
-        Box mInfoBox = null;
         
         public InfoPanel() {
             setLayout( new BorderLayout() );
-            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
-            mInfoBox = Box.createVerticalBox();
-            
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6)); 
             nodeLabel = new JLabel("Node");
             nodeLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
             JPanel labelPanel = new JPanel(new BorderLayout());
             labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
             labelPanel.add(nodeLabel);
-            // DEMO FIXX:  Demo hack
-            mInfoBox.add(labelPanel);
-            mInfoBox.add( new LWCInfoPanel() );
-            mInfoScrollPane = new JScrollPane();
-            mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            mInfoScrollPane.setLocation(new Point(8, 9));
-            mInfoScrollPane.setVisible(true);
-            mInfoScrollPane.getViewport().add(mInfoBox);
-            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
-            //mInfoScrollPane.getViewport().add(new JPanel());
-            
             setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
-            add(mInfoScrollPane,BorderLayout.NORTH );
-            
-            //mInfoBox.add( new JLabel("Node Info") );
-            // mInfoBox.add( new PropertyPanel() );;
+            add(labelPanel,BorderLayout.NORTH);
+            add(new LWCInfoPanel(),BorderLayout.CENTER);
         }
         
         
