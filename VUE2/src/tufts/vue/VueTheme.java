@@ -25,15 +25,11 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     public FontUIResource getUserTextFont() {
         return defaultFont;
     }
-    protected ColorUIResource getSecondary1() {
-        return VueSecondary1;
-    }
-    protected ColorUIResource getSecondary2() {
-        return VueSecondary2;
-    }
-    protected ColorUIResource getSecondary3() {
-        return VueSecondary3;
-    }
+
+    protected ColorUIResource getSecondary1() { return VueSecondary1; }
+    protected ColorUIResource getSecondary2() { return VueSecondary2; }
+    protected ColorUIResource getSecondary3() { return VueSecondary3; }
+    
 
     //public ColorUIResource getMenuBackground() {
     //    return new ColorUIResource(Color.green);

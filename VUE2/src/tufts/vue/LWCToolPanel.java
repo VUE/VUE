@@ -76,31 +76,38 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color [] fillColors = VueResources.getColorArray( "fillColorValues");
          String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
          mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
+         mFillColorButton.setColor(VueResources.getColor("defaultFillColor") );
+         mFillColorButton.setPropertyName(LWKey.FillColor);
+         
          //mFillColorButton.setBackground( bakColor);
          //ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
          //BlobIcon fillBlob = new BlobIcon();
          //fillBlob.setOverlay( fillIcon );
          //mFillColorButton.setIcon(fillBlob);
          //mFillColorButton.setBorderPainted(false);
-         mFillColorButton.setPropertyName(LWKey.FillColor);
-         mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
          //mFillColorButton.setMargin(ButtonInsets);
-
          // this skips painting background: will technically perform
          // better as we don't need to fill it with the icon filling
          // it all, but leaving off for now so we can see region for
          // debug (not a performance concern)
          // mFillColorButton.setContentAreaFilled(false);
 
-         Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
-         String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
-         mStrokeColorButton = new ColorMenuButton( strokeColors, strokeColorNames, true);
+         Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
+         String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
+         mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
+         mStrokeColorButton.setIcon(new LineIcon(16,16, 3));
+         mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
+         
+         /*
          //mStrokeColorButton.setBackground( bakColor);
          ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
          BlobIcon strokeBlob = new BlobIcon();
          strokeBlob.setOverlay( strokeIcon );
          mStrokeColorButton.setPropertyName( LWKey.StrokeColor);
          mStrokeColorButton.setIcon( strokeBlob);
+         */
+
+         
          //mStrokeColorButton.setBorderPainted(false);
          //mStrokeColorButton.setMargin(ButtonInsets);
 

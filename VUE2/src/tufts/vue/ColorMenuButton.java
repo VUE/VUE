@@ -76,7 +76,7 @@ public class ColorMenuButton extends JButton implements ActionListener
         setBorder(BorderFactory.createRaisedBevelBorder());
         //setBorder(new CompoundBorder(BorderFactory.createRaisedBevelBorder(), new EmptyBorder(3,3,3,3)));
         //setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(), new LineBorder(Color.blue, 6)));
-        setText("v");
+        setText("v ");
         setFont(VueConstants.FONT_SMALL);
         setFocusable(false);
     }

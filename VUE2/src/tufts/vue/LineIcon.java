@@ -33,6 +33,11 @@ public class LineIcon extends BlobIcon
         this( pWidth, pHeight, null, null);
     }
 	
+    public LineIcon( int pWidth,int  pHeight, int pWeight) {
+        this( pWidth, pHeight, null, null);
+        setWeight(pWeight);
+    }
+	
     public LineIcon( int pWidth, int pHeight, Color pColor) {
         this( pWidth, pHeight, pColor, null);
     }
