@@ -35,17 +35,19 @@ public class LWNode extends LWContainer
     // Constants affecting the internal layout of nodes & any children
     //------------------------------------------------------------------
     static final float ChildScale = 0.75f;   // % scale-down of children
+    static final float NODE_DEFAULT_STROKE_WIDTH = 1f;
+    static final Color NODE_DEFAULT_STROKE_COLOR = Color.gray;
     
     private static final boolean AlwaysShowIcon = false;
         
-    private static final int PadTop = 3;
-    //private static final int PadY = PadTop + 3;
-    //private static final int PadX = 12;
+    private static final int EdgePadY = 2;
+    private static final int PadTop = EdgePadY;
 
-    private static final int IconWidth = 28;
-    private static final int IconHeight = 19;
+    private static final int IconWidth = 22; // 22 is min width that will fit "www" in our icon font
+    private static final int IconHeight = 12;
     private static final int IconPadLeft = 4;
-    private static final int IconPadRight = 4;
+    private static final int IconPadRight = 0;
+    //private static final int IconPadRight = 4;
     private static final int IconMargin = IconPadLeft + IconWidth + IconPadRight;
     /** this is the descent of the closed icon down below the divider line */
     private static final float IconDescent = IconHeight / 3f;
@@ -54,9 +56,13 @@ public class LWNode extends LWContainer
     private static final int IconPadBottom = (int) IconAscent;
     private static final int IconMinY = IconPadLeft;
 
-    // TODO: need to multiply all these by ChildScale now...
-    private static final int ChildOffsetX = IconMargin; // X offset of children when icon showing
-    private static final int ChildOffsetY = 1; // how far children down from bottom of icon
+    private static final int LabelPadLeft = 6; // distance to right of iconMargin dividerLine
+    private static final int LabelPositionXWhenIconShowing = IconMargin + LabelPadLeft;
+
+    // TODO: need to multiply all these by ChildScale (huh?)
+    
+    private static final int ChildOffsetX = IconMargin + LabelPadLeft; // X offset of children when icon showing
+    private static final int ChildOffsetY = 4; // how far children down from bottom of label divider line
     private static final int ChildPadX = 5; // min space at left/right of children
     private static final int ChildVerticalGap = 3; // vertical space between children
     private static final int ChildHorizontalGap = 3; // horizontal space between children
@@ -69,8 +75,15 @@ public class LWNode extends LWContainer
     // at some zooms (some of the more "irregular" ones), we get huge
     // understatement errors from java in computing the width of some
     // font strings, so this pad needs to be big enough to compensate
-    // for the error in the worst case.
-    private static final int DividerStubPadX = 9;
+    // for the error in the worst case, which we're guessing at here
+    // based on a small set of random test cases.
+    private static final int TextWidthFudgeAmount = 10;
+    //private static final int DividerStubPadX = TextWidthFudgeAmount;
+
+    private static final int MarginLinePadY = 5;
+    private static final int IconPillarPadY = MarginLinePadY;
+    
+
     
     //------------------------------------------------------------------
     // Instance info
@@ -85,11 +98,19 @@ public class LWNode extends LWContainer
     private ImageIcon imageIcon = null;
     private boolean autoSized = true; // compute size from label & children
 
-    private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, IconWidth,IconHeight, 12,12);
-    private Line2D dividerLine = new Line2D.Float();
+    //private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, IconWidth,IconHeight, 12,12);
+    //private RectangularShape genIcon = new Rectangle2D.Float(0,0, IconWidth,IconHeight);
+    private Line2D dividerUnderline = new Line2D.Float();
+    private Line2D dividerMarginLine = new Line2D.Float();
     private Line2D dividerStub = new Line2D.Float();
 
     private boolean isRectShape = true;
+
+    private NodeIcon resourceIcon = new ResourceIcon();
+    private NodeIcon notesIcon = new NotesIcon(this);
+
+    private float iconPillarX;
+    private float iconPillarY;
     
     public LWNode(String label)
     {
@@ -128,7 +149,8 @@ public class LWNode extends LWContainer
             setNodeShape(StandardShapes[4]);
         else
             setShape(shape);
-        setStrokeWidth(1f);// todo
+        setStrokeWidth(NODE_DEFAULT_STROKE_WIDTH);
+        setStrokeColor(NODE_DEFAULT_STROKE_COLOR);
         setLocation(x, y);
         //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
         setSize(10,10);
@@ -157,8 +179,8 @@ public class LWNode extends LWContainer
         // TODO: do this as a class and we don't have to keep handling the newInstance everywhere we setNodeShape
         if (getShape() != null)
             newNode.setShape((RectangularShape)((RectangularShape)getShape()).clone());
-        else if (getNodeShape() != null) // todo: for backward compat only 
-            newNode.setNodeShape(getNodeShape());
+        //else if (getNodeShape() != null) // todo: for backward compat only 
+        //newNode.setNodeShape(getNodeShape());
         return newNode;
     }
     
@@ -191,7 +213,7 @@ public class LWNode extends LWContainer
     
     private boolean iconShowing()
     {
-        return AlwaysShowIcon || getResource() != null;
+        return AlwaysShowIcon || hasResource() || hasNotes() || hasMetaData() || inPathway();
     }
 
     // was text box hit?  coordinates are component local
@@ -200,7 +222,7 @@ public class LWNode extends LWContainer
         float lx = relativeLabelX() - IconPadRight;
         float ly = relativeLabelY() - PadTop;
         float height = getLabelBox().getHeight() + PadTop;
-        float width = IconPadRight + getLabelBox().getWidth() + DividerStubPadX;
+        float width = IconPadRight + getLabelBox().getWidth() + TextWidthFudgeAmount;
 
         return
             cx >= lx &&
@@ -226,7 +248,7 @@ public class LWNode extends LWContainer
             // by default, a double-click anywhere else in
             // node opens the resource
             
-            if (getResource() != null) {
+            if (hasResource()) {
                 getResource().displayContent();
                 // todo: some kind of animation or something to show
                 // we're "opening" this node -- maybe an indication
@@ -355,7 +377,7 @@ public class LWNode extends LWContainer
                 float cy = y - getY();
                 return boundsShape.contains(x, y)
                     || textBoxHit(cx, cy)
-                    || genIcon.contains(cx, cy);
+                    || resourceIcon.contains(cx, cy);
             }
         }
         // if shape is not rectangular, check textBoxHit & genIcon hit
@@ -472,7 +494,7 @@ public class LWNode extends LWContainer
         //float height = s.height + PadY;
         //float height = getLabelBox().getHeight() + IconHeight/3f;
         //float height = getLabelBox().getHeight() + IconDescent;
-        float height = PadTop + text.height;
+        float height = EdgePadY + text.height + EdgePadY;
         
         if (getLabelBox().getHeight() != text.height) {
             // NOTE: prefHeight often a couple of pixels less than getHeight
@@ -480,40 +502,30 @@ public class LWNode extends LWContainer
             System.err.println("\tpref=" + text.height);
             System.err.println("\treal=" + getLabelBox().getHeight());
         }
-        
-        //-------------------------------------------------------
-        // resource icon
-        //-------------------------------------------------------
-        
-        if (iconShowing()) {
-            double dividerY = PadTop + text.height;
-            
-            float iconWidth = IconWidth;
-            float iconHeight = IconHeight;
-            double iconX = IconPadLeft;
-            double iconY = dividerY - IconAscent;
 
-            if (iconY < IconMinY) {
-                // this can happen if font size is very small
-                iconY = IconMinY;
-                dividerY = iconY + IconAscent;
-            }
-            
-            //if (hasNotes()) iconHeight *= 2;
-            genIcon.setFrame(iconX, iconY, iconWidth, iconHeight);
+        // *** set icon Y position in all cases to a centered vertical
+        // position, but never such that baseline is below bottom of
+        // first icon -- this is tricky tho, as first icon can move
+        // down a bit to be centered with the label!
 
-            double stubX = relativeLabelX() + text.width + DividerStubPadX;
+        if (!iconShowing()) {
+            width += LabelPadLeft * 2 + TextWidthFudgeAmount; // adjust for scaled fonts understating their width
+        } else {
+            float dividerY = EdgePadY + text.height;
+            // GAK: relativeLabelX barely safe to call here,but only cause it
+            // only computes horizontal centering when NOT displaying an icon
+            double stubX = LabelPositionXWhenIconShowing + text.width + TextWidthFudgeAmount;
             double stubHeight = DividerStubAscent;
             
-            dividerLine.setLine(0, dividerY, stubX, dividerY);
+            //dividerUnderline.setLine(0, dividerY, stubX, dividerY);
+            dividerUnderline.setLine(IconMargin, dividerY, stubX, dividerY);
             dividerStub.setLine(stubX, dividerY, stubX, dividerY - stubHeight);
 
-            height = PadTop + (float)dividerY + IconDescent;
+            ////height = PadTop + (float)dividerY + IconDescent; // for aligning 1st icon with label bottom
             width = (float)stubX + IconPadLeft; // be symmetrical with left padding
-        } else {
-            width += 12;
+            //width += IconPadLeft;
         }
-
+        
         //-------------------------------------------------------
         // set size (was setPreferredSize)
         //-------------------------------------------------------
@@ -527,12 +539,74 @@ public class LWNode extends LWContainer
                 width = childOffsetX() + childrenWidth + ChildPadX;
             height += childrenHeight;
             height += ChildOffsetY + ChildrenPadBottom; // additional space below last child before bottom of node
-        } else if (iconShowing()) {
-            height += IconPadBottom;
         }
+        //        else if (iconShowing()) {
+        //            height += IconPadBottom;
+        //        }
         //else add pad or make sure vertical centering the plain label
+
+        //-------------------------------------------------------
+        // display any icons
+        //-------------------------------------------------------
+        
+        if (iconShowing()) {
+            float iconWidth = IconWidth;
+            float iconHeight = IconHeight;
+            float iconX = IconPadLeft;
+            //float iconY = dividerY - IconAscent;
+            //float iconY = dividerY - iconHeight; // align bottom of 1st icon with bottom of label
+            //float iconY = PadTop;
+
+            /*
+            if (iconY < IconMinY) {
+                // this can happen if font size is very small when
+                // alignining the first icon with the bottom of the text label
+                iconY = IconMinY;
+                dividerY = iconY + IconAscent;
+            }
+            */
+
+            this.iconPillarX = iconX;
+            this.iconPillarY = IconPillarPadY;
+            //this.iconPillarY = EdgePadY;
+            
+            int icons = 0;
+            if (hasResource()) icons++;
+            if (hasNotes()) icons++;
+            if (hasMetaData()) icons++;
+            if (inPathway()) icons++;
+
+            float iconPillarHeight = icons * IconHeight + IconPillarPadY * 2;
+
+            if (height < iconPillarHeight)
+                height += iconPillarHeight - height;
+            else {
+                // special case prettification -- if vertically centering
+                // the icon stack would only drop it down by up to a few
+                // pixels, go ahead and do so because it's so much nicer
+                // to look at.
+                float totalIconHeight = icons * IconHeight;
+                float centerY = (height - totalIconHeight) / 2;
+                if (centerY > IconPillarPadY+3)
+                    centerY = IconPillarPadY+3;
+                this.iconPillarY = centerY;
+            }
+            
+            float y = this.iconPillarY;
+            if (hasResource()) {
+                resourceIcon.setFrame(iconX, y, iconWidth, iconHeight);
+                y += resourceIcon.getHeight();
+            }
+            if (hasNotes()) {
+                notesIcon.setFrame(iconX, y, iconWidth, iconHeight);
+                y += notesIcon.getHeight();
+            }
+
+
+        }
         
         setSizeNoLayout(width, height);
+        dividerMarginLine.setLine(IconMargin, MarginLinePadY, IconMargin, height-MarginLinePadY);
 
         /*
         if (growOnly) {
@@ -572,8 +646,8 @@ public class LWNode extends LWContainer
      * the current scale factor of the parent.
      */
     
-    private float childBaseX = 0;
-    private float childBaseY = 0;
+    //private float childBaseX = 0;
+    //private float childBaseY = 0;
     protected void layoutChildren(float[] size)
     {
         if (!hasChildren())
@@ -582,29 +656,31 @@ public class LWNode extends LWContainer
         float baseX = childOffsetX() * getScale();
         float baseY = 0;
         if (iconShowing()) {
-            baseY = (float) (genIcon.getY() + IconHeight + ChildOffsetY);
+            //baseY = (float) (resourceIcon.getY() + IconHeight + ChildOffsetY);
+            baseY = (float) dividerUnderline.getY1();
         } else {
             baseY = relativeLabelY() + getLabelBox().getHeight();
         }
+        baseY += ChildOffsetY;
         baseY *= getScale();
         baseX += getX();
         baseY += getY();
 
         //System.out.println("layoutChildren " + this);
 
-        childBaseX = baseX;
-        childBaseY = baseY;
+        //childBaseX = baseX;
+        //childBaseY = baseY;
         // for relative-to-parent child layouts
         //baseX = baseY = 0;
         
-        //layoutChildrenSingleColumn(baseX, baseY, size);
-        layoutChildrenGrid(baseX, baseY, size);
+        if (true)
+            layoutChildrenSingleColumn(baseX, baseY, size);
+        else
+            layoutChildrenGrid(baseX, baseY, size, 2);
 
         if (size != null) {
             size[0] /= getScale();
             size[1] /= getScale();
-            //size[0] *= ChildScale;
-            //size[1] *= ChildScale;
         }
         
     }
@@ -619,16 +695,12 @@ public class LWNode extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setLocation(baseX, y);
-            //c.setAbsoluteLocation(getAbsoluteX() + childBaseX + baseX,
-            //                    getAbsoluteY() + childBaseY + y);
             y += c.getHeight();
-            //y += c.getAbsoluteHeight();
             y += ChildVerticalGap * getScale();
 
             if (size != null) {
                 // track max width
                 float w = c.getBoundsWidth();
-                //float w = c.getAbsoluteWidth();
                 if (w > maxWidth)
                     maxWidth = w;
             }
@@ -664,9 +736,7 @@ public class LWNode extends LWContainer
         
     }
 
-    final static int nColumn = 2;
-        
-    protected void layoutChildrenGrid(float baseX, float baseY, float[] size)
+    protected void layoutChildrenGrid(float baseX, float baseY, float[] size, int nColumn)
     {
         float y = baseY;
         float totalWidth = 0;
@@ -730,9 +800,10 @@ public class LWNode extends LWContainer
         if (iconShowing()) {
             //offset = (float) (PadX*1.5 + genIcon.getWidth());
             //offset = (float) genIcon.getWidth() + 7;
-            offset = IconMargin;
+            //offset = IconMargin + LabelPadLeft;
+            return LabelPositionXWhenIconShowing;
         } else {
-            // Center if no resource icon
+            // horizontally center if no resource icon
             int w = getLabelBox().getPreferredSize().width;
             offset = (this.width - w) / 2;
             offset++;
@@ -742,17 +813,44 @@ public class LWNode extends LWContainer
     }
     private float relativeLabelY()
     {
+        //return EdgePadY;
+        
+        if (hasChildren())
+            return EdgePadY;
+        else {
+            // only need this in case of small font sizes and an icon
+            // is showing -- if so, center label vertically in row with the first icon
+            // Actually, no: center in whole node -- gak, we really want both,
+            // but only to a certian threshold -- what a hack!
+            float textHeight = getLabelBox().getPreferredSize().height;
+            return (this.height - textHeight) / 2;
+
+            /*
+            float textHeight = getLabelBox().getPreferredSize().height;
+            if (iconShowing() && textHeight < IconHeight)
+                return iconPillarY + (IconHeight - textHeight) / 2;
+            else
+                return EdgePadY;
+            */
+        }
+        
+        /*
+          // for single resource icon style layout
         if (iconShowing() || hasChildren()) {
             if (iconShowing())
-                return (float) dividerLine.getY1() - getLabelBox().getPreferredSize().height;
+                return (float) dividerUnderline.getY1() - getLabelBox().getPreferredSize().height;
             else
                 return PadTop;
         }
         else // center vertically
             return (this.height - getLabelBox().getPreferredSize().height) / 2;
+        */
     }
 
     //private static AlphaComposite childComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    
+    private static final float ZoomAlpha = 0.8f;
+    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ZoomAlpha);
     
     public void draw(DrawContext dc)
     {
@@ -776,8 +874,10 @@ public class LWNode extends LWContainer
                 g.setColor(fillColor);
                 //g.setColor(new Color(128,128,128,128));
                 if (isZoomedFocus())
-                    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+                    g.setComposite(ZoomTransparency);
                 g.fill(drawnShape);
+                if (isZoomedFocus())
+                    g.setComposite(AlphaComposite.Src);
             }
         }
 
@@ -815,12 +915,7 @@ public class LWNode extends LWContainer
         // Draw the generated icon
         //-------------------------------------------------------
 
-        // Here we'll check the zoom level, and if iit's say,
-        // over 800%, we could draw the resource string in a tiny
-        // font right in the icon.
-
-        if (iconShowing())
-            drawUnderlineAndIcon(dc);
+        drawNodeDecorations(dc);
 
         // todo: create drawLabel, drawBorder & drawBody
         // LWComponent methods so can automatically turn
@@ -841,7 +936,7 @@ public class LWNode extends LWContainer
             float lx = relativeLabelX();
             float ly = relativeLabelY();
             g.translate(lx, ly);
-            this.labelBox.draw(g);
+            this.labelBox.draw(dc);
             g.translate(-lx, -ly);
 
             // todo: this (and in LWLink) is a hack -- can't we
@@ -880,6 +975,8 @@ public class LWNode extends LWContainer
             //g.scale(ChildScale, ChildScale);
             //super.draw(dc.createScaled(ChildScale)); // not using this
             //g.setComposite(childComposite);
+            if (isZoomedFocus())
+                g.setComposite(ZoomTransparency);
             super.draw(dc);
         }
     }
@@ -941,120 +1038,188 @@ public class LWNode extends LWContainer
     private static Font MinisculeFont = new Font("SansSerif", Font.PLAIN, 1);
     //private static Font MinisculeFont = new Font("Arial Narrow", Font.PLAIN, 1);
 
-    private void drawUnderlineAndIcon(DrawContext dc)
+    private void drawNodeDecorations(DrawContext dc)
     {
         Graphics2D g = dc.g;
-        float iconHeight = (float) genIcon.getHeight();
-        float iconWidth = (float) genIcon.getWidth();
-        float iconX = (float) genIcon.getX();
-        float iconY = (float) genIcon.getY();
+        float iconWidth = IconWidth;
+        float iconHeight = IconHeight;
+        float iconX = iconPillarX;
+        float iconY = iconPillarY;
 
-        //-------------------------------------------------------
-        // paint the divider line
-        //-------------------------------------------------------
-
-        g.setColor(Color.black);
-        g.setStroke(STROKE_HALF);
-        g.draw(dividerLine);
-        g.draw(dividerStub);
-            
-        //-------------------------------------------------------
-        // paint the resource icon
-        //-------------------------------------------------------
-
-        g.setColor(Color.white);
-        g.fill(genIcon);
-        g.setStroke(STROKE_HALF);
-        g.setColor(Color.black);
-        g.draw(genIcon);
-
-        //-------------------------------------------------------
-        // draw the short icon name 
-        //-------------------------------------------------------
-            
-        g.setFont(FONT_ICON);
-        String extension = NoResource;
-        if (getResource() != null)
-            extension = getResource().getExtension();
-        TextLayout row = new TextLayout(extension, g.getFont(), g.getFontRenderContext());
-        //g.drawString(extension, 0, (int)(genIcon.getHeight()/1.66));
-        Rectangle2D.Float tb = (Rectangle2D.Float) row.getBounds();
-        
-        if (DEBUG_LAYOUT) System.out.println("[" + extension + "] bounds="+tb);
-
-        // Mac & PC 1.4.1 implementations haved reversed baselines
-        // and differ in how descents are factored into bounds offsets
-        g.translate(iconX, iconY);
-        float xoff = (iconWidth - tb.width) / 2;
-        float yoff = (IconHeight - tb.height) / 2;
-        float baseline = 0;
-        if (VueUtil.isMacPlatform()) {
-            yoff += tb.height;
-            yoff += tb.y;
-            xoff += tb.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
-            row.draw(g, xoff, yoff);
-
-            tb.y += yoff;
-            tb.y -= tb.height;
-            baseline = tb.y + tb.height;
-            
-            if (debug||DEBUG_LAYOUT) {
-                // draw a red bounding box for testing
-                tb.x += xoff;
-                tb.y = -tb.y; // if any descent below baseline, will be non-zero
-                g.setStroke(new java.awt.BasicStroke(0.5f));
-                g.setColor(Color.red);
-                g.draw(tb);
-            }
-                
-        } else {
-            // This is cleaner, thus I'm assuming the PC
-            // implementation is also cleaner, and worthy of being
-            // the default case.
-                
-            row.draw(g, -tb.x + xoff, -tb.y + yoff);
-            baseline = yoff + tb.height;
-
-            if (debug||DEBUG_LAYOUT) {
-                // draw a red bounding box for testing
-                tb.x = xoff;
-                tb.y = yoff;
-                g.setStroke(new java.awt.BasicStroke(0.5f));
-                g.setColor(Color.red);
-                g.draw(tb);
-            }
-        }
-
-        // an experiment in semantic zoom
-        if (dc.zoom >= 8.0 && getResource() != null) {
-            g.setFont(MinisculeFont);
-            g.drawString(getResource().toString(), 0, IconHeight+2);
-        }
-
-
-        if (hasNotes()) {
-            Font f = FONT_ICON.deriveFont((float) (FONT_ICON.getSize() - 3));
-            g.setFont(f);
+        if (DEBUG_BOXES) {
+            //-------------------------------------------------------
+            // paint a divider line
+            //-------------------------------------------------------
             g.setColor(Color.gray);
-            g.drawString("notes", IconWidth+IconPadRight, IconHeight-1);
-            //g.drawString("notes", childOffseX(), IconHeight-1);
-            //g.drawString("notes", IconWidth/4, IconHeight-1);
+            g.setStroke(STROKE_EIGHTH);
+            g.draw(dividerUnderline);
+            g.draw(dividerStub);
         }
-        
-        g.translate(-iconX, -iconY);
+            
+        //-------------------------------------------------------
+        // paint the node icons
+        //-------------------------------------------------------
+
+        if (iconShowing()) {
+            g.setColor(Color.gray);
+            g.setStroke(STROKE_ONE);
+            g.draw(dividerMarginLine);
+
+            if (hasResource())
+                resourceIcon.draw(dc);
+            if (hasNotes())
+                notesIcon.draw(dc);
+        }
     }
+
+
+
+    private static class NodeIcon extends Rectangle2D.Float
+    {
+        void draw(DrawContext dc)
+        {
+            if (DEBUG_BOXES) {
+                dc.g.setColor(Color.red);
+                dc.g.setStroke(STROKE_SIXTEENTH);
+                dc.g.draw(this);
+            }
+        }
+    }
+    private class ResourceIcon extends NodeIcon
+    {
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            dc.g.setColor(Color.black);
+            dc.g.setFont(FONT_ICON);
+            String extension = NoResource;
+            if (hasResource())
+                extension = getResource().getExtension();
+            double x = getX();
+            double y = getY();
+            dc.g.translate(x, y);
+
+            TextRow row = new TextRow(extension, dc.g);
+            float xoff = (IconWidth - row.width) / 2;
+            float yoff = (IconHeight - row.height) / 2;
+            row.draw(xoff, yoff);
+
+            // an experiment in semantic zoom
+            if (dc.zoom >= 8.0 && hasResource()) {
+                dc.g.setFont(MinisculeFont);
+                dc.g.setColor(Color.gray);
+                dc.g.drawString(getResource().toString(), 0, (int)(super.height));
+            }
+
+            
+            dc.g.translate(-x, -y);
+        }
+    }
+    private static class NotesIcon extends NodeIcon
+    {
+        final static Color pencilColor = new Color(61, 0, 88);
+
+        final static GeneralPath pencil_body = new GeneralPath();
+        final static GeneralPath pencil_point = new GeneralPath();
+        final static GeneralPath pencil_tip = new GeneralPath();
+
+        final static Stroke stroke = new BasicStroke(0.2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+
+        final static float MaxX = 155;
+        final static float MaxY = 212;
+
+        final static float scale = 0.04f;
+        final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+
+        static float iconWidth = MaxX * scale;
+        static float iconHeight = MaxY * scale;
+        //static float iconXoff = (super.width - iconWidth) / 2f;
+        //static float iconYoff = (super.height - iconHeight) / 2f;
+
+        static {
+            pencil_body.moveTo(0,31);
+            pencil_body.lineTo(55,0);
+            pencil_body.lineTo(150,155);
+            pencil_body.lineTo(98,187);
+            pencil_body.closePath();
+            pencil_body.transform(t);
+
+            pencil_point.moveTo(98,187);
+            pencil_point.lineTo(150,155);
+            pencil_point.lineTo(150,212);
+            pencil_point.closePath();
+
+            /*pencil_point.moveTo(150,155);
+            pencil_point.lineTo(150,212);
+            pencil_point.lineTo(98,187);
+            */
+            
+            pencil_point.transform(t);
+
+            pencil_tip.moveTo(132,203);
+            pencil_tip.lineTo(150,192);
+            pencil_tip.lineTo(150,212);
+            pencil_tip.closePath();
+            pencil_tip.transform(t);
+        }
+
+        LWNode node;
+        NotesIcon(LWNode node)
+        {
+            this.node = node;
+        }
+            
+        
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX();
+            double y = getY();
+            
+            dc.g.translate(x, y);
+
+            // an experiment in semantic zoom
+            if (dc.zoom >= 8.0) {
+                dc.g.setFont(MinisculeFont);
+                dc.g.setColor(Color.gray);
+                dc.g.drawString(this.node.getNotes(), 0, (int)(super.height));
+            }
+
+            double x2 = (getWidth() - iconWidth) / 2;
+            double y2 = (getHeight() - iconHeight) / 2;
+            dc.g.translate(x2, y2);
+            x += x2;
+            y += y2;
+            
+            dc.g.setColor(pencilColor);
+            dc.g.fill(pencil_body);
+            dc.g.setStroke(stroke);
+            dc.g.setColor(Color.white);
+            dc.g.fill(pencil_point);
+            dc.g.setColor(pencilColor);
+            dc.g.draw(pencil_point);
+            dc.g.fill(pencil_tip);
+
+            dc.g.translate(-x, -y);
+        }
+    }
+
+
+    
     
 
     /** for persistance
      * @deprecated */
     public NodeShape getNodeShape()
     {
+        //System.err.println("*** Warning: deprecated use of LWNode.getNodeShape in " + this);
         //return this.nodeShape;
         return null;
     }
     /** @deprecated */
     public void setNodeShape(NodeShape nodeShape)
     {
+        //System.err.println("*** Warning: deprecated use of LWNode.setNodeShape on " + this);
         this.nodeShape = nodeShape;
         this.equalAspect = nodeShape.equalAspect;
         setShape(nodeShape.getShapeInstance());
@@ -1133,7 +1298,7 @@ public class LWNode extends LWContainer
         //new NodeShape("Parallelogram", null),
     };
 
-    private final boolean debug = false;
+    private final boolean debug = true;
     
     
 }
@@ -1182,7 +1347,7 @@ public class LWNode extends LWContainer
             if (width < childBounds.getWidth() + PadX*2)
                 width = (float) childBounds.getWidth() + PadX*2;
         }
-        if (getResource() != null) {
+        if (hasResource) {
             width += PadX*1.5 + genIcon.getWidth();
             //height += genIcon.getHeight(); // better match to spec
             height += genIcon.getHeight() * (2f/3f); //crude for now
