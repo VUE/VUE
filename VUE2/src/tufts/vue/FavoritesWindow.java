@@ -511,6 +511,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             serResultTree.expandRow(0);
            
             serResultTree.setRootVisible(false);
+            serResultTree.setShowsRootHandles(true);
            
             
             JScrollPane fPane = new JScrollPane(serResultTree);
@@ -627,8 +628,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                 addSearchNode(newNode,child);
                 
                 
+                
             }
         }
+        
+      // System.out.println("What is the child count" + newNode.getChildCount());
         
         topNode.add(newNode);
         
