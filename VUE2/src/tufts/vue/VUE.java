@@ -165,7 +165,7 @@ public class VUE
         
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        //toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
         //toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
