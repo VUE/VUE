@@ -19,6 +19,7 @@
 package tufts;
 
 import java.util.*;
+import java.util.prefs.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.*;
@@ -201,7 +202,25 @@ public class Util
     private static void openURL_Unix(String url)
         throws java.io.IOException
     {
-        throw new java.io.IOException("Unimplemented");
+        // For now we just assume Netscape is installed.
+
+        // todo: run down list of netscape, mozilla, konqueror (KDE
+        // browser), gnome version?  KDE/Gnome may have their own
+        // services for getting a default browser.
+        
+        // First, attempt to open the URL in a currently running session of Netscape
+        Process process = Runtime.getRuntime().exec(new String[] { "netscape",
+                                                                   "-remove",
+                                                                   "'openURL('" + url + "')" });
+        try {
+            int exitCode = process.waitFor();
+            if (exitCode != 0)	// if Netscape was not open
+                Runtime.getRuntime().exec(new String[] { "netscape", url });
+        } catch (InterruptedException e) {
+            java.io.IOException ioe =  new java.io.IOException();
+            ioe.initCause(e);
+            throw ioe;
+        }
     }
 
     public static java.util.Iterator EmptyIterator = new java.util.Iterator() {
@@ -596,11 +615,12 @@ public class Util
     public static void main(String args[])
         throws java.io.IOException
     {
-        System.out.println("cursor16 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(16,16));
-        System.out.println("cursor24 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(24,24));
-        System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
-
+        //System.out.println("cursor16 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(16,16));
+        //System.out.println("cursor24 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(24,24));
+        //System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
                                        //.list(System.out);
+
+        /*
         Hashtable props = System.getProperties();
         Enumeration e = props.keys();
         while (e.hasMoreElements()) {
@@ -608,6 +628,7 @@ public class Util
             //System.out.println("[1;36m" + key + "[m=" + props.get(key));
             System.out.println(key + "=" + props.get(key));
         }
+        */
         
         if (args.length > 0)
             openURL(args[0]);
