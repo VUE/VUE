@@ -290,7 +290,7 @@ class MapDropTarget
         boolean success = false;
 
         if (fileList != null) {
-            if (debug) System.out.println("\tLIST, size= " + fileList.size());
+            if (DEBUG.DND) System.out.println("\tHANDLING LIST, size= " + fileList.size());
             java.util.Iterator iter = fileList.iterator();
             int x = dropLocation.x;
             int y = dropLocation.y;
@@ -299,8 +299,8 @@ class MapDropTarget
             while (iter.hasNext()) {
                 File file = (File) iter.next();
 
-                //String resourceSpec = file.getPath();
-                String resourceSpec = "file://" + file.getPath();
+                //String resourceSpec = "file://" + file.getPath(); // why was this done? it breaks URL shortcuts
+                String resourceSpec = file.getPath();
                 String resourceName = file.getName();
                 
                 if (file.getPath().toLowerCase().endsWith(".url")) {
@@ -308,8 +308,9 @@ class MapDropTarget
                     // for the actual web reference.
                     String url = convertWindowsURLShortCutToURL(file);
                     if (url != null) {
-                       //resourceSpec = url;
-                          resourceSpec = "file://" + url;
+                       resourceSpec = url;
+                       // why was this done?  It breaks URL shortcuts...
+                       //   resourceSpec = "file://" + url;
                         if (file.getName().length() > 4)
                             resourceName = file.getName().substring(0, file.getName().length() - 4);
                         else
@@ -337,6 +338,7 @@ class MapDropTarget
                 VUE.getSelection().setTo(addedNodes.iterator());
          
         } else if (resourceList != null) {
+            if (DEBUG.DND) System.out.println("\tHANDLING RESOURCE LIST, size= " + resourceList.size());
             if (resourceList.size() == 1 && hitComponent != null && overwriteResource) {
                 // modifier key was down: force resetting of the resource
                 hitComponent.setResource((Resource)resourceList.get(0));
@@ -357,6 +359,7 @@ class MapDropTarget
                 }
             }
         } else if (droppedText != null) {
+            if (DEBUG.DND) System.out.println("\tHANDLING DROPPED TEXT");
             // Attempt to make a URL of any string dropped -- if fails,
             // just treat as regular pasted text.  todo: if newlines
             // in middle of string, don't do this, or possibly attempt
@@ -439,7 +442,7 @@ class MapDropTarget
                 if (u.getProtocol().equals("file")) {
                     File f = new File(u.getFile());
                     if (!f.exists()) {
-                        url = null;
+                       url = null;
                         System.out.println("***  BAD FILE ["+f+"]");
                     }
                 }
@@ -477,19 +480,29 @@ class MapDropTarget
     // then we don't even have to know about the map, or the MapViewer
     // which for instance can do the zoom conversion of the drop location
     // for us.
-    private LWNode createNewNode(String resourceName, String resourceTitle, java.awt.Point p)
+    /**
+     * @param resourceSpec The simplest, raw string reference handed to us from the operating system as a name for the object
+     * @param resourceName A name for the new node that will contain the resource
+     */
+    // TODO: handle case of a dropped reference to a local HTML file, where we want to use
+    // the file name as the generated node name, and yet ALSO want to set the resourceTitle
+    // via an HTML scan of the file (if one can be found).
+    private LWNode createNewNode(String resourceSpec, String resourceName, java.awt.Point p)
     {
-        Resource resource = new MapResource(resourceName);
+        MapResource resource = new MapResource(resourceSpec);
 
-        if (resourceTitle == null) {
-            ((MapResource)resource).setTitleFromContent();
+        if (resourceName == null) {
+            resource.setTitleFromContent();
             if (resource.getTitle() != null)
-                resourceTitle = resource.getTitle();
+                resourceName = resource.getTitle();
             else
-                resourceTitle = createResourceTitle(resourceName);
+                resourceName = createResourceTitle(resourceSpec);
+        } else if (resourceSpec.endsWith(".html") || resourceSpec.endsWith(".htm")) {
+            // attempt to scan a local file
+            resource.setTitleFromContent();
         }
 
-        LWNode node = NodeTool.createNode(resourceTitle);
+        LWNode node = NodeTool.createNode(resourceName);
         node.setResource(resource);
         if (p != null) {
             node.setCenterAt(dropToMapLocation(p));

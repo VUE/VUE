@@ -830,7 +830,7 @@ class Actions
         {
             LWComponent createNewItem(Point2D newLocation)
             {
-                LWNode node = NodeTool.createNode("new node");
+                LWNode node = NodeTool.createNewNode();
                 node.setLocation(newLocation);
                 //node.setCenterAt(newLocation); // better but screws up NewItemAction's serial item creation positioning
                 VUE.getActiveMap().addNode(node);

@@ -225,7 +225,7 @@ public class LinkTool extends VueTool
             boolean createdNode = false;
             if (pLinkDest == null) {
                 // // some compiler bug is requiring that we fully qualify NodeTool here!
-                pLinkDest = NodeTool.createNode("new node");
+                pLinkDest = NodeTool.createNewNode();
                 pLinkDest.setCenterAt(e.getMapPoint());
                 commonParent.addChild(pLinkDest);
                 createdNode = true;

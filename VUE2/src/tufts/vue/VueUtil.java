@@ -173,8 +173,19 @@ public class VueUtil
     private static void openURL_Windows(String url)
         throws java.io.IOException
     {
+        System.out.println("openURL_Windows[" + url + "]");
+
+        // On at least Windows 200, %20's don't work when given to url.dll FileProtocolHandler
+        
+        // Also at least Win2K: file:///C:/foo/bar.html works, but start that with file:/ or file://
+        // and it DOES NOT work -- you MUST have the three slashes, OR, you can have NO SLASHES,
+        // and it will work... (file:C:/foo/bar.html)
+        // ALSO, file:// or // file:/// works BY ITSELF (file:/ by itself still doesn't work).
+        
+        url = url.replaceAll("%20", " ");
+        url = url.replaceFirst("^file:/+", "file:");
         String cmd = PC_OPENURL_CMD + " " + url;
-        System.err.println("Opening PC URL with: [" + cmd + "]");
+        System.out.println("exec[" + cmd + "]");
         Process p = Runtime.getRuntime().exec(cmd);
         if (false) {
             try {

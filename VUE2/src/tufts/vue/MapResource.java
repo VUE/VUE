@@ -18,13 +18,6 @@
 
 package tufts.vue;
 
-/**
- * The Resource class is intended to handle a reference
- * to either a URL (local file: or http:) or a digital
- * repository reference, which is TBD.  This needs
- * more work.
- */
-
 import java.util.*;
 
 
@@ -33,6 +26,11 @@ import java.io.*;
 import java.util.regex.*;
 import javax.swing.JComponent;
 
+/**
+ * The MapResource class is handles a reference
+ * to either a local file or a URL.
+ */
+
 public class MapResource implements Resource {
     static final long SIZE_UNKNOWN = -1;
     public static java.awt.datatransfer.DataFlavor resourceFlavor;
@@ -40,8 +38,7 @@ public class MapResource implements Resource {
     static {
         try{
             resourceFlavor = new java.awt.datatransfer.DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
-            
-        } catch(Exception ex) {ex.printStackTrace();  }
+        } catch(Exception ex) {ex.printStackTrace();}
     }
     long referenceCreated;
     long accessAttempted;
@@ -71,15 +68,9 @@ public class MapResource implements Resource {
     }
     
     public MapResource(String spec) {
-        
         setSpec(spec);
-        
-        this.type = isLocalFile() ? Resource.FILE : Resource.URL;
-        
         this.mTitle = spec;
     }
-    
-    
     
     
     public Object toDigitalRepositoryReference() {
@@ -94,20 +85,24 @@ public class MapResource implements Resource {
         // we're going to canonicalize everything ourselves coming
         // in...
         
-        if (this.url == null)
-            txt = spec;
-        else
+        if (this.url == null) {
+            // this logic shouldn't be needed: if spec can be a a valid URL, this.url will already be set
+            //if (spec.startsWith("file:") || spec.startsWith("http:"))
+            //    txt = spec;
+            //else
+                txt = "file:///" + spec;
+        } else
             txt = this.url.toString();
 
-        if ( (!spec.startsWith("file")) && (!spec.startsWith("http")) )
-        {
-            txt = "file://" + spec;
-        }
+        //if (!spec.startsWith("file") && !spec.startsWith("http"))
+        //    txt = "file:///" + spec;
+
         return txt;
     }
     
     public java.net.URL toURL()
-    throws java.net.MalformedURLException {
+        throws java.net.MalformedURLException
+    {
         if (url == null)
             return new java.net.URL(toURLString());
         else
@@ -173,6 +168,7 @@ public class MapResource implements Resource {
     }
     
     public void setSpec(String spec) {
+        //System.out.println(this + " setSpec " + spec);
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
         try {
@@ -192,9 +188,15 @@ public class MapResource implements Resource {
         } catch (Exception e) {
             System.err.println(e);
         }
+
+        this.type = isLocalFile() ? Resource.FILE : Resource.URL;
     }
     
     public void setTitleFromContent() {
+        URL url = null;
+        try {
+            url = toURL();
+        } catch (Exception e) {}
         if (url != null) {
             try {
                 System.err.println("Opening connection to " + url);

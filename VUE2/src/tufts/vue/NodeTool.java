@@ -126,6 +126,11 @@ public class NodeTool extends VueTool
     }
     */
 
+    /**
+     * Create a new node with the current default properties.
+     * @param name the name for the new node
+     * @return the newly constructed node
+     */
     public static LWNode createNode(String name)
     {
         LWNode node = new LWNode(name, getActiveSubTool().getShapeInstance());
@@ -135,10 +140,15 @@ public class NodeTool extends VueTool
         node.setAutoSized(true);
         return node;
     }
-    public static LWNode createNode()
-    {
+    /** @return a new default node with no label */
+    public static LWNode createNode() {
         return createNode(null);
     }
+    /** @return a new default node with the default new node label */
+    public static LWNode createNewNode() {
+        return createNode("New Node");
+    }
+        
     
     static LWNode initTextNode(LWNode node)
     {

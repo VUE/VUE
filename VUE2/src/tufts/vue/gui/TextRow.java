@@ -17,7 +17,10 @@
  */
 
 
-package tufts.vue;
+package tufts.vue.gui;
+
+import tufts.vue.DEBUG;
+import tufts.vue.VueUtil;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -28,8 +31,14 @@ import java.awt.font.TextLayout;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Provide an immutable single line of text with an exact bounding
+ * box determined by font metrics of all characters in the string.
+ *
+ * @see java.awt.font.TextLayout
+ */
+
 public class TextRow
-    implements VueConstants
 {
     private String text;
     private Graphics2D g2d;
@@ -39,8 +48,8 @@ public class TextRow
 
     private Rectangle2D.Float bounds;
 
-    float width;
-    float height;
+    private float width;
+    private float height;
     
     public TextRow(String text, Font font, FontRenderContext frc)
     {
