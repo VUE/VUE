@@ -145,8 +145,26 @@ class Actions {
         {
             public void act()
             {
-                LWHierarchyMap hierarchyMap = new LWHierarchyMap((LWNode)(VUE.ModelSelection.get(0)));
-                hierarchyMap.createHierarchy();
+                LWNode rootNode = (LWNode)(VUE.ModelSelection.get(0));
+                String name = new String(rootNode.getLabel() + "'s Hierarchy View");
+                String description = new String("Hierarchy view model of " + rootNode.getLabel());
+                
+                tufts.oki.hierarchy.HierarchyViewHierarchyModel model = 
+                      new tufts.oki.hierarchy.HierarchyViewHierarchyModel(rootNode, name, description);
+                
+                String mapLabel;
+        
+                try
+                {
+                    mapLabel = model.getDisplayName();
+                }
+        
+                catch(osid.hierarchy.HierarchyException he)
+                {
+                    mapLabel = "Hierarchy Map"; 
+                }
+                
+                LWHierarchyMap hierarchyMap = new LWHierarchyMap(model, mapLabel);
                 
                 VUE.displayMap((LWMap)hierarchyMap);
             }

@@ -41,6 +41,50 @@ public class MapViewer extends javax.swing.JPanel
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
 
+    /**By Daisuke */
+    private boolean outlineMode = false;
+    private OutlineViewTree tree;
+    private JScrollPane scrollPane;
+    
+    public void setMode(boolean flag)
+    {   
+        //deals with switching the display mode 
+        //if it tries to switch to do the same mode, it does nothing
+        
+        if (outlineMode == false && flag == true)
+        {
+           outlineMode = flag;
+           
+           setBackground(Color.white);
+           scrollPane.setVisible(true);
+           
+           //setLayout(new BorderLayout());
+           //add(scrollPane, BorderLayout.CENTER);  
+           //invalidate();
+           //validate();
+           revalidate();
+        }
+        
+        else if (outlineMode == true && flag == false)
+        {
+           outlineMode = flag;
+           
+           setBackground(null);
+           scrollPane.setVisible(false);
+           
+           //remove(scrollPane);
+           //setLayout(null);
+           //invalidate();
+           //validate();
+           revalidate();
+        }
+        
+        System.out.println("about to issue a repaint()");
+        repaint();
+    }
+    
+    /**End*/
+    
     public interface Listener extends java.util.EventListener
     {
         public void mapViewerEventRaised(MapViewerEvent e);
@@ -125,6 +169,7 @@ public class MapViewer extends javax.swing.JPanel
     {
         //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
+        
         setLayout(null);
         //setLayout(new NoLayout());
         //setLayout(new FlowLayout());
@@ -187,6 +232,17 @@ public class MapViewer extends javax.swing.JPanel
         // if this map is closed.
     	// listen to tool selection events
     	VueToolbarController.getController().addToolSelectionListener( this);
+        
+        /*By Daisuke*/
+      
+        //tree = new OutlineViewTree(map);
+        //scrollPane = new JScrollPane(tree);
+       // scrollPane.setVisible(false);
+        
+        //setLayout(new BorderLayout());
+        //add(scrollPane, BorderLayout.CENTER);
+        
+        /*End*/
     }
     
     
@@ -219,6 +275,8 @@ public class MapViewer extends javax.swing.JPanel
 
     public void toolSelected(VueTool pTool)
     {
+        System.out.println("tool selected in map viewer:" + pTool.getID());
+        
         if (pTool == null) {
             System.err.println("*** MapViewer.toolSelected: NULL TOOL");
             return;
@@ -227,6 +285,17 @@ public class MapViewer extends javax.swing.JPanel
             System.err.println("*** MapViewer.toolSelected: NULL ID IN TOOL!");
             return;
         }
+       
+       // if (pTool.getID().equals("outlineTool"))
+        //{
+         //  System.out.println("switching display mode");
+         //  setMode(!outlineMode);
+            
+           //maybe set the cursor to something else or no return
+           //return;
+         //  System.out.println("came back from the setmode function");
+        //}
+       
         activeTool = pTool;
     	//System.out.println("MapViewer.toolSelected: " + pTool.getID());
             
@@ -887,8 +956,9 @@ public class MapViewer extends javax.swing.JPanel
      */
     //private static final Color rrColor = new Color(208,208,208);
     private static final Color rrColor = Color.yellow;
+    
     public void paintComponent(Graphics g)
-    {
+    {   
         Graphics2D g2 = (Graphics2D) g;
         
         Rectangle cb = g.getClipBounds();
@@ -1079,7 +1149,6 @@ public class MapViewer extends javax.swing.JPanel
         if (activeTextEdit != null)     // This is a real Swing JComponent 
             super.paintChildren(g2);
         //setOpaque(true);
-        
     }
 
     /** This paintChildren is a no-op.  super.paint() will call this,
@@ -3160,7 +3229,16 @@ public class MapViewer extends javax.swing.JPanel
                 {
                     if (VUE.getPathwayInspector() != null) {
                         VUE.getPathwayInspector().setPathwayManager(this.map.getPathwayManager());
-                        //VUE.getOutlineViewTree().switchMap(this.map);// TODO: BUG: this method is on the TreeVIEW, not the Tree -- SMF
+                    
+                        //outline view
+                        VUE.getOutlineViewTree().getTree().switchContainer(this.map);
+                        
+                        //hierarchy view
+                        if(this.map instanceof LWHierarchyMap)
+                          VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
+                        
+                        else
+                          VUE.getHierarchyTree().setHierarchyModel(null);
                     }
                 }
                 //end of addition
