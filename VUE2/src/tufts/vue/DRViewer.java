@@ -23,7 +23,7 @@ import fedora.server.types.gen.*;
 import fedora.server.utilities.DateUtility;
 
 
-public class DRViewer extends JPanel implements ActionListener {
+public class DRViewer extends JPanel implements ActionListener,KeyListener {
     JTabbedPane tabbedPane;
     JPanel DRSearchResults;
     JPanel DRSearch;
@@ -128,6 +128,7 @@ public class DRViewer extends JPanel implements ActionListener {
         c.gridwidth=2;
         c.ipady=0;
         keywords.setPreferredSize(new Dimension(120,20));
+        keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
         DRSearchPanel.add(keywords);
         
@@ -225,14 +226,17 @@ public class DRViewer extends JPanel implements ActionListener {
 
             JComponent field = (JComponent) labelTextPairs[i+1];
             //field.setFont(VueConstants.SmallFont);
-            if (field instanceof JTextField)
+            if (field instanceof JTextField) {
                 ((JTextField)field).addActionListener(this);
+                ((JTextField)field).addKeyListener(this);
+            }
             gridbag.setConstraints(field, c);
             container.add(field);
         }
         
-        c.insets = new Insets(20, 10, 10, 10);
+        c.insets = new Insets(20, 40, 10, 5);
         c.anchor = GridBagConstraints.EAST;
+        c.fill = GridBagConstraints.NONE;
         JButton advancedSearchButton = new JButton("Advanced Search");
         advancedSearchButton.setSize(new Dimension(160,20));
         advancedSearchButton.addActionListener(this);
@@ -240,74 +244,101 @@ public class DRViewer extends JPanel implements ActionListener {
         container.add(advancedSearchButton);
     }   
     
+    private void performSearch() {
+        osid.dr.AssetIterator resultObjectsIterator;
+        try {
+            searchCriteria.setKeywords(keywords.getText());
+            searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+            resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
+            VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
+            tree.setRootVisible(false);
+            JScrollPane jsp = new JScrollPane(tree);
+            DRSearchResults.setLayout(new BorderLayout());
+            DRSearchResults.add(jsp,BorderLayout.CENTER,0);
+            tabbedPane.setSelectedComponent(DRSearchResults);
+        } catch (Exception ex) {
+                        System.out.println(ex);
+        }
+    }
+    
+    private void performAdvancedSearch() {
+        osid.dr.AssetIterator resultObjectsIterator;
+        try {
+            java.util.Vector conditionVector = new java.util.Vector();
+            Condition condition=new Condition();
+            if(idField.getText().length() > 0) {
+                condition.setValue(idField.getText());
+                condition.setProperty("pid");
+                condition.setOperator(ComparisonOperator.eq);
+                conditionVector.add(condition);
+            }
+            if(titleField.getText().length()>0) {
+                condition.setValue(titleField.getText());
+                condition.setProperty("title");
+                condition.setOperator(ComparisonOperator.has);
+                conditionVector.add(condition);
+            }
+             if(creatorField.getText().length()>0) {
+                condition.setValue(creatorField.getText());
+                condition.setProperty("creator");
+                condition.setOperator(ComparisonOperator.has);
+                conditionVector.add(condition);
+            }
+            if(typeField.getText().length()>0) {
+                condition.setValue(typeField.getText());
+                condition.setProperty("type");
+                condition.setOperator(ComparisonOperator.has);
+                conditionVector.add(condition);
+            }
+             if(coverageField.getText().length()>0) {
+                condition.setValue(coverageField.getText());
+                condition.setProperty("coverage");
+                condition.setOperator(ComparisonOperator.has);
+                conditionVector.add(condition);
+            }
+            Condition[] cond=new Condition[conditionVector.size()];
+            for(int i=0;i<cond.length;i++)
+                cond[i] = (Condition)conditionVector.get(i);
+            searchCriteria.setConditions(cond);
+            searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
+            resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
+            //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
+            VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
+            tree.setRootVisible(false);
+            JScrollPane jsp = new JScrollPane(tree);
+            DRSearchResults.setLayout(new BorderLayout());
+            DRSearchResults.add(jsp,BorderLayout.CENTER,0);
+            tabbedPane.setSelectedComponent(DRSearchResults);
+        } catch (Exception ex) {
+                        System.out.println(ex);
+        }
+    }
+    
+        
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equals("Search")) {
-          osid.dr.AssetIterator resultObjectsIterator;
-                try {
-                    searchCriteria.setKeywords(keywords.getText());
-                    searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
-                    resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,searchType); 
-                    VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
-                    tree.setRootVisible(false);
-                    JScrollPane jsp = new JScrollPane(tree);
-                    DRSearchResults.setLayout(new BorderLayout());
-                    DRSearchResults.add(jsp,BorderLayout.CENTER,0);
-                    tabbedPane.setSelectedComponent(DRSearchResults);
-                } catch (Exception ex) {
-			 	System.out.println(ex);
-		}
+          performSearch();
         }
          if(e.getActionCommand().equals("Advanced Search")) {
-          osid.dr.AssetIterator resultObjectsIterator;
-                try {
-                    java.util.Vector conditionVector = new java.util.Vector();
-                    Condition condition=new Condition();
-                    if(idField.getText().length() > 0) {
-                        condition.setValue(idField.getText());
-                        condition.setProperty("pid");
-                        condition.setOperator(ComparisonOperator.eq);
-                        conditionVector.add(condition);
-                    }
-                    if(titleField.getText().length()>0) {
-                        condition.setValue(titleField.getText());
-                        condition.setProperty("title");
-                        condition.setOperator(ComparisonOperator.has);
-                        conditionVector.add(condition);
-                    }
-                     if(creatorField.getText().length()>0) {
-                        condition.setValue(creatorField.getText());
-                        condition.setProperty("creator");
-                        condition.setOperator(ComparisonOperator.has);
-                        conditionVector.add(condition);
-                    }
-                    if(typeField.getText().length()>0) {
-                        condition.setValue(typeField.getText());
-                        condition.setProperty("type");
-                        condition.setOperator(ComparisonOperator.has);
-                        conditionVector.add(condition);
-                    }
-                     if(coverageField.getText().length()>0) {
-                        condition.setValue(coverageField.getText());
-                        condition.setProperty("coverage");
-                        condition.setOperator(ComparisonOperator.has);
-                        conditionVector.add(condition);
-                    }
-                    Condition[] cond=new Condition[conditionVector.size()];
-                    for(int i=0;i<cond.length;i++)
-                        cond[i] = (Condition)conditionVector.get(i);
-                    searchCriteria.setConditions(cond);
-                    searchCriteria.setMaxReturns(maxReturns.getSelectedItem().toString());
-                    resultObjectsIterator = dr.getAssetsBySearch(searchCriteria,advancedSearchType); FedoraSoapFactory.advancedSearch((DR)dr,cond,maxReturns.getSelectedItem().toString());
-                    //VueDragTree tree = new VueDragTree(resultTitles.iterator(),"Fedora Search Results");
-                    VueDragTree tree = new VueDragTree(resultObjectsIterator,"Fedora Search Results");
-                    tree.setRootVisible(false);
-                    JScrollPane jsp = new JScrollPane(tree);
-                    DRSearchResults.setLayout(new BorderLayout());
-                    DRSearchResults.add(jsp,BorderLayout.CENTER,0);
-                    tabbedPane.setSelectedComponent(DRSearchResults);
-                } catch (Exception ex) {
-			 	System.out.println(ex);
-		}
+          performAdvancedSearch();
+        }
+    }
+    
+    
+    
+    public void keyPressed(KeyEvent e) {
+    }
+    
+    public void keyReleased(KeyEvent e) {
+    }
+    
+    public void keyTyped(KeyEvent e) {
+        if(e.getKeyChar()== KeyEvent.VK_ENTER) {
+            if(e.getComponent() == keywords) {
+                performSearch();
+            } else {
+                performAdvancedSearch();
+            }
         }
     }
     
