@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -49,97 +49,74 @@ import org.xml.sax.InputSource;
  * @author  RSaigal
  */
 public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
-    JTabbedPane googlePane; 
+    JTabbedPane googlePane;
     JComboBox maxReturns;
     JPanel googleResultsPanel;
     String searchURL;
-    int prevStartIndex = 0; 
+    int prevStartIndex = 0;
     int nextStartIndex = 0;
     JScrollPane jsp = new JScrollPane();
-      JTextField keywords;
-      JButton prevButton;
-      JButton nextButton;
-      JButton searchButton;
-     String[] maxReturnItems = { 
-           
-            "10",
-            "20" 
-      };
-   //private static  String searchURL;
+    JTextField keywords;
+    JButton prevButton;
+    JButton nextButton;
+    JButton searchButton;
+    String[] maxReturnItems = {
+        "10",
+        "20",
+        "30"
+    };
+    //private static  String searchURL;
     private static URL  XML_MAPPING = VueResources.getURL("mapping.google");
     private static String query;
-    
     private static int NResults = 10;
-    
     private static String result ="";
-     private static URL url;
-      
+    private static URL url;
+    
     /** Creates a new instance of TuftsGoogle */
     public TuftsGoogle(String displayName, String inputURL) {
-         
-           
-         setLayout(new BorderLayout());
-       
-       
-         searchURL = inputURL;
-         System.out.println("search url" + inputURL);
-         maxReturns = new JComboBox(maxReturnItems);
-         maxReturns.setEditable(true);
-         googlePane = new JTabbedPane();
-         JPanel googleSearch = new JPanel(new BorderLayout());
-         
-         
-         JLabel returnLabel = new JLabel("Maximum number of returns?");
-          returnLabel.setFont(new Font("Arial",Font.PLAIN, 12));
-        
-         
-         
+        setLayout(new BorderLayout());
+        searchURL = inputURL;
+        System.out.println("search url" + inputURL);
+        maxReturns = new JComboBox(maxReturnItems);
+        maxReturns.setEditable(true);
+        googlePane = new JTabbedPane();
+        JPanel googleSearch = new JPanel(new BorderLayout());
+        JLabel returnLabel = new JLabel("Maximum number of returns?");
+        returnLabel.setFont(new Font("Arial",Font.PLAIN, 12));
         JPanel googleSearchPanel = new JPanel();
-        
-            
-   /**  
-    * @Setup  searchPanel
-    */
-   
-    
-   
-       // googleSearch = new JPanel(new BorderLayout());
+        /**
+         * @Setup  searchPanel
+         */
+        // googleSearch = new JPanel(new BorderLayout());
         googleSearch.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
-        
-        //DRSearchPanel.setBackground(Color.LIGHT_GRAY);
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         googleSearchPanel.setLayout(gridbag);
         Insets defaultInsets = new Insets(2,2,2,2);
+        
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
-        
-     //adding the label Keywords
         c.gridx = 0;
         c.gridy = 1;
-        
         c.insets = new Insets(10,2,2, 2);
         JLabel keyLabel = new JLabel("Keywords: ");
         keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
         gridbag.setConstraints(keyLabel,c);
         googleSearchPanel.add(keyLabel);
-          
-     
-    //adding the search box 
+        
+        
+        //adding the search box
         c.gridx=1;
         c.gridy=1;
         c.gridwidth=2;
         c.insets = new Insets(10, 2,2, 2);
-          keywords = new JTextField();
+        keywords = new JTextField();
         //keywords.setPreferredSize(new Dimension(120,20));
         keywords.addKeyListener(this);
         gridbag.setConstraints(keywords, c);
         googleSearchPanel.add(keywords);
         
-        
-        
-    
-      // adding the number of search results tab.
+        // adding the number of search results tab.
         c.gridx=0;
         c.gridy=2;
         c.gridwidth=2;
@@ -151,7 +128,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         c.gridx=2;
         c.gridy=2;
         c.gridwidth=1;
-       // maxReturns.setPreferredSize(new Dimension(40,20));
+         maxReturns.setPreferredSize(new Dimension(100,20));
         gridbag.setConstraints(maxReturns,c);
         googleSearchPanel.add(maxReturns);
         
@@ -164,237 +141,121 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         gridbag.setConstraints(searchButton,c);
         googleSearchPanel.add(searchButton);
         
-      
+        googleSearch.add(googleSearchPanel,BorderLayout.NORTH);
+        googlePane.addTab("Search",googleSearch);
         
-    
         
-        /*
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-        googleSearchPanel.setLayout(gridbag);
-        Insets defaultInsets = new Insets(2,2,2,2);
-        c.fill = GridBagConstraints.HORIZONTAL;
+        googleResultsPanel = new JPanel(new BorderLayout());
+        googlePane.addTab("Search Results",googleResultsPanel);
+        add(googlePane,BorderLayout.CENTER );
+        //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
         
-        //adding the top label   
-        c.weightx = 1.0;
-        c.gridx=0;
-        c.gridy=0;
-        c.gridwidth=3;
-        c.ipady = 10;
-        c.insets = defaultInsets;
-        c.anchor = GridBagConstraints.NORTH;
-        //JLabel topLabel = new JLabel("");
-        //gridbag.setConstraints(topLabel, c);
-        //googleSearchPanel.add(topLabel);
+        prevButton = new JButton("Previous");
+        prevButton.setPreferredSize(new Dimension(120,20));
+        prevButton.addActionListener(this);
+        prevButton.setEnabled(false);
+        nextButton = new JButton("Next");
+        nextButton.setPreferredSize(new Dimension(80,20));
+        nextButton.addActionListener(this);
         
-        //adding the words Keywords  
-          c.gridx = 0;
-          c.gridy = 0;
-          c.gridwidth = 2;
-          c.insets = new Insets(5, 2,2,2);
-          JLabel keyLabel = new JLabel("Enter Keywords");
-          keyLabel.setFont(new Font("Arial",Font.PLAIN, 12));
-          gridbag.setConstraints(keyLabel,c);
-          googleSearchPanel.add(keyLabel);
-          
-    //adding the search box and the button
-        c.gridx=0;
-        c.gridy=1;
-        c.gridwidth=2;
-        c.ipady=0;
-        keywords = new JTextField();
-        keywords.setPreferredSize(new Dimension(120,20));
-        keywords.addKeyListener(this);
-        gridbag.setConstraints(keywords, c);
-        googleSearchPanel.add(keywords);
         
-        c.gridx=2;
-        c.gridy=1;
-        c.gridwidth=1;
-        searchButton = new JButton("Search");
-        searchButton.setPreferredSize(new Dimension(80,20));
-        searchButton.addActionListener(this);
-        gridbag.setConstraints(searchButton,c);
-        googleSearchPanel.add(searchButton);
-        
-      // adding the number of search results tab.
-        c.gridx=0;
-        c.gridy=2;
-        c.gridwidth=2;
-        JLabel returnLabel = new JLabel("Maximum number of returns?");
-        gridbag.setConstraints(returnLabel, c);
-        googleSearchPanel.add(returnLabel);
-        
-        c.gridx=2;
-        c.gridy=2;
-        c.gridwidth=1;
-        maxReturns.setPreferredSize(new Dimension(40,20));
-        gridbag.setConstraints(maxReturns,c);
-        googleSearchPanel.add(maxReturns);
-        //------------------
-        */
-        
-         googleSearch.add(googleSearchPanel,BorderLayout.NORTH);
-         googlePane.addTab("Search",googleSearch);
-         
-          
-         googleResultsPanel = new JPanel(new BorderLayout());
-         googlePane.addTab("Search Results",googleResultsPanel);
-          add(googlePane,BorderLayout.CENTER );
-          //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
-                 
-         prevButton = new JButton("Previous");
-          prevButton.setPreferredSize(new Dimension(120,20));
-          prevButton.addActionListener(this);
-          prevButton.setEnabled(false);
-          nextButton = new JButton("Next");
-         nextButton.setPreferredSize(new Dimension(80,20));
-         nextButton.addActionListener(this);
-         
-                 
-        //  bottomPanel.add(prevButton);
-         // bottomPanel.add(nextButton);
-          //googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
-                 
-         
-        
-//--------------------------------------------------------------------
-            
-         //searchURL = VueResources.getString("url.google");
-         
-              
-            
-            
     }
     
     public void actionPerformed(ActionEvent e) {
-                 
-                  if (e.getActionCommand().toString() == "Search") {
-                      performSearch(0);
-                  
-                   nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
-                   prevStartIndex = 0;
-              
-                  }
-                   if (e.getActionCommand().toString() == "Previous"){
-                      
-                       
-                       performSearch(prevStartIndex);
-                      
-                       if ( prevStartIndex == 0){prevButton.setEnabled(false);}
-                       
-                       else {
-                           prevStartIndex = prevStartIndex - Integer.parseInt(maxReturns.getSelectedItem().toString());
-                               nextStartIndex = nextStartIndex  - Integer.parseInt(maxReturns.getSelectedItem().toString()); 
-                              
-                       }
-                       
-                      
-                       }
-                   if (e.getActionCommand().toString() == "Next"){
-                       
-                      
-                       if (nextStartIndex >0 )prevButton.setEnabled(true);
-                       performSearch(nextStartIndex);
-                        prevStartIndex = nextStartIndex - Integer.parseInt(maxReturns.getSelectedItem().toString());
-                        nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
-                      
-                        
-                        
-                       
-                   }
+        if (e.getActionCommand().toString() == "Search") {
+            Thread t = new Thread() {
+                public void run() {
+                    performSearch(0);
+                }
+            };
+            t.start();
+            nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
+            prevStartIndex = 0;
+        }
+        if (e.getActionCommand().toString() == "Previous"){
+            Thread t = new Thread() {
+                public void run() {
+                    performSearch(prevStartIndex);
+                }
+            };
+            t.start();
+            if ( prevStartIndex == 0){prevButton.setEnabled(false);}
+            else {
+                prevStartIndex = prevStartIndex - Integer.parseInt(maxReturns.getSelectedItem().toString());
+                nextStartIndex = nextStartIndex  - Integer.parseInt(maxReturns.getSelectedItem().toString());
+            }
+        }
+        if (e.getActionCommand().toString() == "Next"){
+            if (nextStartIndex >0 )prevButton.setEnabled(true);
+            Thread t = new Thread() {
+                public void run() {
+                    performSearch(nextStartIndex);
+                }
+            };
+            prevStartIndex = nextStartIndex - Integer.parseInt(maxReturns.getSelectedItem().toString());
+            nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
+        }
     }
     
     public void performSearch(int searchStartIndex){
-        
-                int index = 0;  
-              
-                
-                String searchString = keywords.getText();
-                 System.out.println("Keywords" + searchString + "wowee" + searchURL);
-                  
-                
-               if (!searchString.equals("")){
-                
-                try {
-                    
-                   
-              url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&start="+searchStartIndex+"&q="+searchString);
-            System.out.println("Google search = "+url);
-           InputStream input = url.openStream();
-           int c;
-           while((c=input.read())!= -1) {
-               result = result + (char) c;
-           }
-           String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results");
-           FileWriter fileWriter = new FileWriter(googleResultsFile);
-           fileWriter.write(result);
-           fileWriter.close();
-           result = "";
-         
-          GSP gsp = loadGSP(googleResultsFile);
-           Iterator i = gsp.getRES().getResultList().iterator();
-            Vector resultVector = new Vector();
-            
-           while(i.hasNext()) {
-               
-                Result r = (Result)i.next();
-                URLResource urlResource = new URLResource(r.getUrl());
-                if (r.getTitle() != null) urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
-                else urlResource.setTitle(r.getUrl().toString());
-               
-                resultVector.add(urlResource);
-              //resultVector.add(r.get());
-              // resultVector.add(r.getTitle());
-               System.out.println(r.getTitle()+" "+r.getUrl());
-               
-             
-           } 
-          
-                VueDragTree tree = new VueDragTree(resultVector.iterator(),"GoogleSearchResults");
-      
-                tree.setEditable(true);
-
-                tree.setRootVisible(false);
-              
-                
-                 googleResultsPanel.remove(jsp);
-                 jsp = new JScrollPane(tree);
-                
-                 JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
-                 //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
-         
-         
-                 
-          bottomPanel.add(prevButton);
-         bottomPanel.add(nextButton);
-         googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
-                 
-                 googleResultsPanel.add(jsp,BorderLayout.CENTER);
-                 googleResultsPanel.validate();
-                 
-                 
-                 googlePane.setSelectedComponent(googleResultsPanel);    
-                    
-              
-        } catch (Exception ex) {System.out.println("cannot connect google");
-        
-        
-                               }
- 
+        int index = 0;
+        String searchString = keywords.getText();
+        searchButton.setEnabled(false);
+        if (!searchString.equals("")){
+            try {
+                url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&start="+searchStartIndex+"&q="+searchString);
+                System.out.println("Google search = "+url);
+                InputStream input = url.openStream();
+                int c;
+                while((c=input.read())!= -1) {
+                    result = result + (char) c;
                 }
+                String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results");
+                FileWriter fileWriter = new FileWriter(googleResultsFile);
+                fileWriter.write(result);
+                fileWriter.close();
+                result = "";
                 
+                GSP gsp = loadGSP(googleResultsFile);
+                Iterator i = gsp.getRES().getResultList().iterator();
+                Vector resultVector = new Vector();
+                
+                while(i.hasNext()) {
+                    Result r = (Result)i.next();
+                    URLResource urlResource = new URLResource(r.getUrl());
+                    if (r.getTitle() != null) urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
+                    else urlResource.setTitle(r.getUrl().toString());
+                    resultVector.add(urlResource);
+                    System.out.println(r.getTitle()+" "+r.getUrl());
+                    
+                }
+                VueDragTree tree = new VueDragTree(resultVector.iterator(),"GoogleSearchResults");
+                tree.setEditable(true);
+                tree.setRootVisible(false);
+                googleResultsPanel.remove(jsp);
+                jsp = new JScrollPane(tree);
+                JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+                //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+                bottomPanel.add(prevButton);
+                bottomPanel.add(nextButton);
+                googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
+                googleResultsPanel.add(jsp,BorderLayout.CENTER);
+                googleResultsPanel.validate();
+                googlePane.setSelectedComponent(googleResultsPanel);
+            } catch (Exception ex) {
+                System.out.println("cannot connect google");
+            }
+        }
+        searchButton.setEnabled(true);
         
-        
-       
     }
-    
-     private static GSP loadGSP(String filename) {
-  
+    // Functions to support marshalling and unmarshalling of the reults generated through search using castor.
+    private static GSP loadGSP(String filename) {
+        
         try {
-           Unmarshaller unmarshaller = getUnmarshaller();
-           unmarshaller.setValidation(false);
-           GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource(new FileReader(filename)));
+            Unmarshaller unmarshaller = getUnmarshaller();
+            unmarshaller.setValidation(false);
+            GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource(new FileReader(filename)));
             return gsp;
         } catch (Exception e) {
             System.out.println("loadGSP[" + filename + "]: " + e);
@@ -403,18 +264,17 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         }
     }
     
-   private static GSP loadGSP(URL url)
-    {
-       try {
-         InputStream input = url.openStream();
-         int c;
-         while((c=input.read())!= -1) {
-               result = result + (char) c;
-         }
-       
-           Unmarshaller unmarshaller = getUnmarshaller();
-           unmarshaller.setValidation(false);
-           GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource());
+    private static GSP loadGSP(URL url) {
+        try {
+            InputStream input = url.openStream();
+            int c;
+            while((c=input.read())!= -1) {
+                result = result + (char) c;
+            }
+            
+            Unmarshaller unmarshaller = getUnmarshaller();
+            unmarshaller.setValidation(false);
+            GSP gsp = (GSP) unmarshaller.unmarshal(new InputSource());
             return gsp;
         } catch (Exception e) {
             System.out.println("loadGSP " + e);
@@ -423,10 +283,9 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
         }
     }
     
-
+    
     private static Unmarshaller unmarshaller = null;
-    private static Unmarshaller getUnmarshaller()
-    {
+    private static Unmarshaller getUnmarshaller() {
         if (unmarshaller == null) {
             unmarshaller = new Unmarshaller();
             Mapping mapping = new Mapping();
@@ -436,11 +295,11 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                 unmarshaller.setMapping(mapping);
             } catch (Exception e) {
                 System.out.println("TuftsGoogle.getUnmarshaller: " + XML_MAPPING+e);
-           }
+            }
         }
         return unmarshaller;
     }
-     public void keyPressed(KeyEvent e) {
+    public void keyPressed(KeyEvent e) {
     }
     
     public void keyReleased(KeyEvent e) {
@@ -449,10 +308,10 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     public void keyTyped(KeyEvent e) {
         if(e.getKeyChar()== KeyEvent.VK_ENTER) {
             
-              searchButton.doClick();
-            }
+            searchButton.doClick();
         }
     }
-   
-    
+}
+
+
 
