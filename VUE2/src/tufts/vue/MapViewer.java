@@ -412,13 +412,6 @@ public class MapViewer extends javax.swing.JComponent
         
         if (!pReset) {
             if (inScrollPane) {
-                // Record the on-screen map location of focus point before
-                // the zoom.
-                /*
-                if (mapAnchor == tufts.vue.ZoomTool.CENTER_MAP_IN_VIEW) {
-                    screenPositionOfMapAnchor = mapAnchor;
-                } else {
-                */
                 if (!centerOnAnchor) {
                     Point2D canvasPosition = mapToScreenPoint2D(mapAnchor);
                     Point canvasOffset = getLocation(); // scrolled offset of our canvas in the scroll-pane

@@ -177,7 +177,13 @@ public class ZoomTool extends VueTool
             if (DEBUG.SCROLL) System.out.println("VISIBLE CENTER " + viewer.getVisibleCenter());
             focus = viewer.screenToMapPoint2D(viewer.getVisibleCenter());
         }
-        viewer.setZoomFactor(newZoomFactor, reset, focus, false);
+
+        // If zooming in, anchor to the click point.  If zooming out, always
+        // zoom out from the center.
+        if (newZoomFactor > viewer.mZoomFactor)
+            viewer.setZoomFactor(newZoomFactor, reset, focus, false);
+        else
+            viewer.setZoomFactor(newZoomFactor, reset, null, true);
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
@@ -195,8 +201,7 @@ public class ZoomTool extends VueTool
                 newZoom = MaxZoom;
 
             viewer.setZoomFactor(newZoom, false, center, true);
-            //setZoom(newZoom, false, CENTER_MAP_IN_VIEW, false);
-            //setZoom(newZoom, true, center, true);
+            
         } else {
             if (newZoom > MaxZoom) {
                 setZoom(MaxZoom, true, CENTER_FOCUS, true);
