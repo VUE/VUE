@@ -206,7 +206,7 @@ public class PathwayTable extends JTable
         public void actionPerformed(ActionEvent e) {
             if (VUE.getActivePathway().isLocked())
                 return;
-            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor);
+            Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor, VUE.getFrame());
             fireEditingStopped();
             if (c != null) {
                 // why the row checking here?

@@ -721,6 +721,10 @@ public class VUE
         return frame;
     }
 
+    public static JFrame getFrame() {
+        return frame;
+    }
+
     public static UndoManager getUndoManager() {
         LWMap map = getActiveMap();
         if (map != null)

@@ -98,7 +98,7 @@ public class ColorMenuButton extends MenuButton
     }
 
     protected Object runCustomChooser() {
-        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor());
+        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), tufts.vue.VUE.getFrame());
         // todo: set up own listeners for color change in chooser
         // --that way way can actually tweak color on map as they play
         // with it in the chooser
