@@ -110,6 +110,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
     }
     
+    public LWPathway getPathway()
+    {
+        return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
+    }
+    
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
