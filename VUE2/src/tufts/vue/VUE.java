@@ -180,18 +180,11 @@ public class VUE
         vuePanel.add(splitPane, BorderLayout.CENTER);
         //vuePanel.add(splitPane);
 
-        // adding the menu
-        JMenuBar menuBar = new JMenuBar();
-        JMenu menu = new JMenu("File");
-        menuBar.add(menu);
+        // adding the menus and toolbars
+        setMenuToolbars(frame);
         
-        //adding actions
-        SaveAction saveAction = new SaveAction("Save");
-        OpenAction openAction = new OpenAction("Open");
-        menu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
-        menu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
-        frame.setJMenuBar(menuBar);
-        frame.setContentPane(vuePanel);
+        frame.getContentPane().add(vuePanel,BorderLayout.CENTER);
+        //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
         frame.pack();
@@ -251,5 +244,75 @@ public class VUE
         MapViewer mapViewer = new tufts.vue.MapViewer(map);
         tabbedPane.addTab(map.getLabel(), mapViewer);
         tabbedPane.setSelectedComponent(mapViewer);
+    }
+    
+    private static void  setMenuToolbars(JFrame frame) {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenu editMenu = new JMenu("Edit");
+        JMenu viewMenu = new JMenu("View");
+        JMenu formatMenu = new JMenu("Format");
+        JMenu optionsMenu = new JMenu("Options");
+        JMenu helpMenu = new JMenu("Help");
+        
+        menuBar.add(fileMenu);
+        menuBar.add(editMenu);
+        menuBar.add(viewMenu);
+        menuBar.add(formatMenu);
+        menuBar.add(optionsMenu);
+        menuBar.add(helpMenu);
+        //adding actions
+        SaveAction saveAction = new SaveAction("Save",false);
+        SaveAction saveAsAction = new SaveAction("Save As...");
+        OpenAction openAction = new OpenAction("Open");
+        fileMenu.add(new JMenuItem("New"));
+        fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, Event.META_MASK));
+        fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, Event.META_MASK));
+        fileMenu.add(saveAsAction);
+        fileMenu.add(new JMenuItem("Export ..."));
+        fileMenu.addSeparator();
+        fileMenu.add(new JMenuItem("Quit"));
+        
+        editMenu.add(new JMenuItem("Undo"));
+        editMenu.add(new JMenuItem("Redo"));
+        editMenu.addSeparator();
+        editMenu.add(new JMenuItem("Cut"));
+        editMenu.add(new JMenuItem("Copy"));
+        editMenu.add(new JMenuItem("Paste"));
+        editMenu.addSeparator();
+        editMenu.add(new JMenuItem("Select All"));
+        
+        viewMenu.add(new JMenuItem("Zoom In"));
+        viewMenu.add(new JMenuItem("Zoom Out"));
+        viewMenu.addSeparator();
+        viewMenu.add(new JMenuItem("Resources"));
+        viewMenu.add(new JMenuItem("Collection"));
+        viewMenu.add(new JMenuItem("Inspector"));
+        viewMenu.add(new JMenuItem("Pathway"));
+        viewMenu.add(new JMenuItem("Toolbar"));
+        viewMenu.add(new JMenuItem("Overview"));
+        
+        formatMenu.add(new JMenuItem("Font"));
+        formatMenu.add(new JMenuItem("Size"));
+        formatMenu.add(new JMenuItem("Style"));
+        formatMenu.add(new JMenuItem("Juspify"));
+        formatMenu.add(new JMenuItem("Align"));
+        formatMenu.add(new JMenuItem("Group"));
+        formatMenu.add(new JMenuItem("UnGroup"));
+        
+        optionsMenu.add(new JMenuItem("Node Types..."));
+        optionsMenu.add(new JMenuItem("Map Preference..."));
+        optionsMenu.add(new JMenuItem("Preferences..."));
+        
+        helpMenu.add(new JMenuItem("Help"));
+        
+        
+        JToolBar toolBar = new JToolBar();
+        toolBar.add(openAction);
+        toolBar.add(saveAction);
+        toolBar.add(saveAsAction);
+        toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+        frame.setJMenuBar(menuBar);
+        frame.getContentPane().add(toolBar,BorderLayout.NORTH);
     }
 }
