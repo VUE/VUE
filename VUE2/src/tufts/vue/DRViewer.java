@@ -35,8 +35,10 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     JTabbedPane tabbedPane;
     JPanel DRSearchResults;
     JPanel DRSearch;
-    JPanel advancedSearchPanel;
+    JPanel DRAdvancedSearch;
+   
     
+
     JTextField keywords;
     JComboBox maxReturns;
     
@@ -83,11 +85,8 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         setSearchPanel();
         setAdvancedSearchPanel();
         tabbedPane.addTab("Search" , DRSearch);
-        tabbedPane.addTab("Advanced Search",advancedSearchPanel);
+        tabbedPane.addTab("Advanced Search",DRAdvancedSearch);
         tabbedPane.addTab("Search Results",DRSearchResults);   
-       // tabbedPane.setBackground(new Color(200,200,50));
-       // tabbedPane.setBackgroundAt(1,new Color(100,100,50));
-        //tabbedPane.setForeground(new Color(100,100,240));
         tabbedPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 /**
@@ -107,6 +106,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     
      private void  setSearchPanel() {
         DRSearch = new JPanel(new BorderLayout());
+        DRSearch.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
         JPanel DRSearchPanel = new JPanel();
         //DRSearchPanel.setBackground(Color.LIGHT_GRAY);
         GridBagLayout gridbag = new GridBagLayout();
@@ -163,58 +163,21 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         gridbag.setConstraints(searchButton,c);
         DRSearchPanel.add(searchButton);
         
-        /**
-        //adding the line
-        c.gridx =0;
-        c.gridy = 3;
-        c.gridwidth = 3;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        PolygonIcon line = new PolygonIcon(new Rectangle(0,0,1000, 1),Color.BLACK);
-        JLabel lineLabel = new JLabel(line);
-       // lineLabel.setPreferredSize(new Dimension(100, 1));
-        gridbag.setConstraints(lineLabel,c);
-        DRSearchPanel.add(lineLabel);
-        
-      //adding the advanced search tab.
-        
-        c.gridx=0;
-        c.gridy=4;
-        c.gridwidth = 3;
-        c.insets = new Insets(10, 2, 10, 2);
-       
-        JLabel advancedLabel = new JLabel("Advanced Search");
-        gridbag.setConstraints(advancedLabel,c);
-        DRSearchPanel.add(advancedLabel);
-        
-        c.gridx=0;
-        c.gridy=5;
-        c.insets = defaultInsets;
-        //setAdvancedSearchPanel();
-        
-        setAdvancedSearchPane();
-        gridbag.setConstraints(advancedSearchPanel,c);
-        DRSearchPanel.add(advancedSearchPanel);
-         *
-         */
-        
         DRSearch.add(DRSearchPanel,BorderLayout.NORTH);
         DRSearch.validate();
         
     }
      
      private void setAdvancedSearchPanel() {
+         DRAdvancedSearch= new JPanel(new BorderLayout());
          m_model=new ConditionsTableModel();
-         JTable conditionsTable=new JTable(m_model);      
-         conditionsTable.setPreferredScrollableViewportSize(new Dimension(100,200));
+         JTable conditionsTable=new JTable(m_model);     
+         conditionsTable.setPreferredScrollableViewportSize(new Dimension(100,100));
          JScrollPane conditionsScrollPane=new JScrollPane(conditionsTable);
          conditionsScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,6,6));
          JPanel innerConditionsPanel=new JPanel();
          innerConditionsPanel.setLayout(new BorderLayout());
          innerConditionsPanel.add(conditionsScrollPane, BorderLayout.CENTER);
-         
-         // EAST: modifyConditionsOuterPanel(modifyConditionsInnerPanel)
-         
-         // NORTH: modifyConditionsInnerPanel
          
          // GRID: addConditionButton
          JButton addConditionButton=new JButton(VueResources.getImageIcon("addLight"));
@@ -251,28 +214,29 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          addConditionButton.addActionListener(new AddConditionButtonListener(m_model));
          deleteConditionButton.addActionListener(new DeleteConditionButtonListener(m_model, sListener));
          
-         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
          topPanel.add(addConditionButton);
-         topPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+         topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
          topPanel.add(deleteConditionButton);
          
-         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,6,0));
+         JPanel bottomPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
          bottomPanel.add(advancedSearchButton);
          bottomPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
          
         
         
-         advancedSearchPanel=new JPanel();
+         JPanel advancedSearchPanel=new JPanel();
          advancedSearchPanel.setLayout(new BoxLayout(advancedSearchPanel, BoxLayout.Y_AXIS));
-         advancedSearchPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
+         advancedSearchPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
          
          advancedSearchPanel.add(topPanel);
          advancedSearchPanel.add(innerConditionsPanel);
          advancedSearchPanel.add(bottomPanel);
         
-        
+         DRAdvancedSearch.add(advancedSearchPanel,BorderLayout.NORTH);
+         DRAdvancedSearch.validate();
          //advancedSearchPanel.add(advancedSearchButton,BorderLayout.SOUTH);
-         advancedSearchPanel.validate();
+         
      }
      
    
@@ -455,22 +419,20 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
 
     }
     
-     public class ConditionSelectionListener
-            implements ListSelectionListener {
-
+    public class ConditionSelectionListener  implements ListSelectionListener {        
         private int m_selectedRow;
-       private JButton m_deleteButton;
-
+        private JButton m_deleteButton;
+        
         public ConditionSelectionListener(JButton deleteButton, int selectedRow) {
             m_selectedRow=selectedRow;
             m_deleteButton=deleteButton;
             updateButtons();
         }
-
+        
         public void valueChanged(ListSelectionEvent e) {
             //Ignore extra messages.
             if (e.getValueIsAdjusting()) return;
-
+            
             ListSelectionModel lsm = (ListSelectionModel)e.getSource();
             if (lsm.isSelectionEmpty()) {
                 m_selectedRow=-1;
@@ -479,20 +441,21 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             }
             updateButtons();
         }
-
+        
         public int getSelectedRow() {
             return m_selectedRow;
         }
-
+        
         private void updateButtons() {
             if (getSelectedRow()==-1) {
-               m_deleteButton.setEnabled(false);
+                m_deleteButton.setEnabled(false);
             } else {
                 m_deleteButton.setEnabled(true);
             }
         }
     }
-      public class AddConditionButtonListener
+    
+     public class AddConditionButtonListener
             implements ActionListener {
 
         private ConditionsTableModel m_model;
@@ -516,151 +479,25 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         }
           
     }
-      
-      public class ChangeConditionButtonListener
-            implements ActionListener {
 
-        private ConditionsTableModel m_model;
-        private ConditionSelectionListener m_sListener;
-
-        public ChangeConditionButtonListener(ConditionsTableModel model,
-                ConditionSelectionListener sListener) {
-            m_model=model;
-            m_sListener=sListener;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            // will only be invoked if an existing row is selected
-            ModConditionDialog dialog=new ModConditionDialog(m_model,
-                    m_sListener.getSelectedRow());
-            dialog.setVisible(true);
-        }
-    }
-
-      public class DeleteConditionButtonListener
-            implements ActionListener {
-
-        private ConditionsTableModel m_model;
-        private ConditionSelectionListener m_sListener;
-
-        public DeleteConditionButtonListener(ConditionsTableModel model,
-                ConditionSelectionListener sListener) {
-            m_model=model;
-            m_sListener=sListener;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            // will only be invoked if an existing row is selected
-            int r=m_sListener.getSelectedRow();
-            m_model.getConditions().remove(r);
-            m_model.fireTableRowsDeleted(r,r);
-        }
-     }
+     public class DeleteConditionButtonListener implements ActionListener { 
+          private ConditionsTableModel m_model;
+          private ConditionSelectionListener m_sListener;
+          
+          public DeleteConditionButtonListener(ConditionsTableModel model,
+          ConditionSelectionListener sListener) {
+              m_model=model;
+              m_sListener=sListener;
+          }
+          
+          public void actionPerformed(ActionEvent e) {
+              // will only be invoked if an existing row is selected
+              int r=m_sListener.getSelectedRow();
+              m_model.getConditions().remove(r);
+              m_model.fireTableRowsDeleted(r,r);
+          }
+      }
       
 
-    public class ModConditionDialog
-            extends JDialog {
-
-        private ConditionsTableModel m_model;
-        private int m_rowNum;
-        private JComboBox m_fieldBox;
-        private JComboBox m_operatorBox;
-        private JTextField m_valueField;
-        private String[] s_fieldArray = {"pid", "label", "fType", "bDef",
-            "bMech", "cModel", "state", "locker", "cDate", "mDate",
-            "dcmDate", "title", "creator", "subject", "description",
-            "publisher", "contributor", "date", "type", "format",
-            "identifier", "source", "language", "relation", "coverage",
-            "rights"};
-     private String[] s_operatorArray = {"contains", "equals",
-            "is less than", "is less than or equal to", "is greater than",
-            "is greater than or equal to"};
-    private  String[] s_operatorActuals = {"has", "eq", "lt", "le",
-            "gt", "ge"};
-
-        public ModConditionDialog(ConditionsTableModel model, int rowNum) {
-            //super(null, "Enter Condition", true);
-            m_model=model;
-            m_rowNum=rowNum;
-
-            // mainPanel(northPanel, southPanel)
-
-                // NORTH: northPanel(fieldBox,operatorBox,valueField)
-
-                    m_fieldBox=new JComboBox(s_fieldArray);
-                    m_operatorBox=new JComboBox(s_operatorArray);
-                    m_valueField=new JTextField(10);
-                    if (rowNum!=-1) {
-                        // if this is an edit, start with current values
-                        m_fieldBox.setSelectedIndex(indexOf((String) m_model.getValueAt(rowNum, 0)));
-                        m_operatorBox.setSelectedIndex(indexOf((String) m_model.getValueAt(rowNum, 1)));
-                        m_valueField.setText((String) m_model.getValueAt(rowNum, 2));
-                    }
-
-                JPanel northPanel=new JPanel();
-                northPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-                northPanel.setBorder(BorderFactory.createEmptyBorder(6,6,6,6));
-                northPanel.add(m_fieldBox);
-                northPanel.add(m_operatorBox);
-                northPanel.add(m_valueField);
-
-                // SOUTH: southPanel(cancelButton, okButton)
-
-                    JButton okButton=new JButton("Ok");
-                    okButton.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            updateModelAndNotify();
-                            setVisible(false);
-                        }
-                    });
-
-                    JButton cancelButton=new JButton("Cancel");
-                    cancelButton.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            setVisible(false);
-                        }
-                    });
-
-                JPanel southPanel=new JPanel();
-                southPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-                southPanel.add(okButton);
-                southPanel.add(cancelButton);
-
-            getContentPane().setLayout(new BorderLayout());
-            getContentPane().add(northPanel, BorderLayout.NORTH);
-            getContentPane().add(southPanel, BorderLayout.SOUTH);
-            pack();
-            //setLocation(Administrator.getInstance().getCenteredPos(getSize().width, getSize().height));
-        }
-
-        private int indexOf(String s) {
-            for (int i=0; i<s_fieldArray.length; i++) {
-                if (s_fieldArray[i].equals(s)) return i;
-            }
-            for (int i=0; i<s_operatorArray.length; i++) {
-                if (s_operatorArray[i].equals(s)) return i;
-            }
-            return -1;
-        }
-
-        public void updateModelAndNotify() {
-            // create a Condition given the current values
-            Condition cond=new Condition();
-            cond.setProperty(s_fieldArray[m_fieldBox.getSelectedIndex()]);
-            cond.setOperator(ComparisonOperator.fromValue(
-                    s_operatorActuals[m_operatorBox.getSelectedIndex()]));
-            cond.setValue(m_valueField.getText());
-            // if rowNum is -1, add it
-            if (m_rowNum==-1) {
-               // if it wasn't there before, add it
-               m_model.getConditions().add(cond);
-            } else {
-               // else replace existing condition
-               m_model.getConditions().set(m_rowNum, cond);
-            }
-            m_model.fireTableDataChanged();
-        }
-
-
-    }
+  
 }
