@@ -219,7 +219,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
+        saveDataSourceViewer();
         refreshDataSourceList();
+       
         
         
     }
@@ -239,7 +241,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             Vector dataSourceVector = (Vector)allDataSources.get(type);
             dataSourceVector.removeElement(ds);
         }
-        
+         saveDataSourceViewer();
         
     }
     
@@ -449,7 +451,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
         }catch (Exception ex) {
             
-            VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
+            //VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
             DataSource ds1 = new LocalFileDataSource("My Computer","");
             addDataSource(ds1);
             DataSource ds2 = new FavoritesDataSource("My Favorites");
