@@ -116,7 +116,6 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public boolean isFirst(){
-
         return (currentIndex == 0);
     }
     
@@ -129,7 +128,6 @@ public class LWPathway //extends tufts.vue.LWComponent
         }catch(NoSuchElementException ne){
             lastElement = null;
         }
-        
         return lastElement;
     }
     
@@ -230,19 +228,22 @@ public class LWPathway //extends tufts.vue.LWComponent
     }
     
     public java.util.List getElementList() {
+         System.out.println("LWPathway.getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
         return elementList;
     }
     
     public void setElementList(java.util.List elementList) {
         this.elementList = (LinkedList)elementList;
         if (elementList.size() >= 1) currentIndex = 0;
+        System.out.println("LWPathway.setElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
     }
     
     /** Interface for the linked list used by the Castor mapping file*/
+    /**
     public ArrayList getElementArrayList()
     {
         System.out.println("calling get elementarraylist for " + getLabel());
-        return new ArrayList(elementList);
+         return new ArrayList(elementList);
     }
     
     public void setElementArrayList(ArrayList list)
@@ -250,7 +251,7 @@ public class LWPathway //extends tufts.vue.LWComponent
         System.out.println("calling set elementarraylist for " + getLabel());
         elementList = new LinkedList(list);
     }
-    
+    **/
     public void setElementArrayList(LWComponent component)
     {
         System.out.println("calling set elementarraylist for " + getLabel());
