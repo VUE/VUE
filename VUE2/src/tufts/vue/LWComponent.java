@@ -336,6 +336,12 @@ public class LWComponent
     {
         return this.fillColor;
     }
+    /** Color to use at draw time.
+        LWNode overrides to provide darkening of children. */
+    public Color getRenderFillColor()
+    {
+        return getFillColor();
+    }
     public void setFillColor(Color color)
     {
         this.fillColor = color;
@@ -1115,7 +1121,7 @@ public class LWComponent
 
     public void mouseEntered(MapMouseEvent e)
     {
-        System.out.println("MouseEntered " + this);
+        if (DEBUG_ROLLOVER) System.out.println("MouseEntered " + this);
         //e.getViewer().setIndicated(this);
         mouseOver(e);
     }
@@ -1130,7 +1136,7 @@ public class LWComponent
     }
     public void mouseExited(MapMouseEvent e)
     {
-        System.out.println(" MouseExited " + this);
+        if (DEBUG_ROLLOVER) System.out.println(" MouseExited " + this);
         //e.getViewer().clearIndicated();
     }
     
