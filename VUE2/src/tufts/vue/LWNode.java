@@ -50,6 +50,7 @@ public class LWNode extends LWGroup
         setShape(StandardShapes[4]);
         setFillColor(COLOR_NODE_DEFAULT);
         setLocation(x, y);
+        setStrokeWidth(2f);
     }
     // internal convenience
     LWNode(String label, Resource resource)
@@ -229,11 +230,8 @@ public class LWNode extends LWGroup
         }
     }
 
-    private PLabel pLabel;
-    private FontMetrics fontMetrics;
-    private String lastLabel;
-    
     /*
+    private PLabel pLabel;
     public void mapItemChanged(MapItemEvent e)
     {
         System.out.println("mapItemChanged in LWNode " + e);
@@ -298,6 +296,17 @@ public class LWNode extends LWGroup
             getParent().layout();
     }
       
+    private FontMetrics fontMetrics;
+    private String lastLabel;
+
+    private void saveFontMetrics(Graphics g)
+    {
+        FontMetrics oldMetrics = this.fontMetrics;
+        this.fontMetrics = g.getFontMetrics();
+        if (this.fontMetrics != oldMetrics)
+            layout();
+    }
+    
     private void setPreferredSize()
     {
         String label = getLabel();
@@ -387,7 +396,7 @@ public class LWNode extends LWGroup
         if (scale != 1f)
             g.scale(scale, scale);
         g.setFont(getFont());
-        this.fontMetrics = g.getFontMetrics();
+        saveFontMetrics(g);
 
         String label = getLabel();
 
@@ -418,8 +427,13 @@ public class LWNode extends LWGroup
         else
             g.setColor(getStrokeColor());
         if (imageIcon == null) {
-            g.setStroke(new java.awt.BasicStroke(borderWidth));
-            g.draw(drawnShape);
+            //g.setStroke(new java.awt.BasicStroke(borderWidth));
+            // todo: cache this stroke object
+            float w = getStrokeWidth();
+            if (w > 0f) {
+                g.setStroke(new java.awt.BasicStroke(getStrokeWidth()));
+                g.draw(drawnShape);
+            }
         }
 
         if (false) {
@@ -443,11 +457,8 @@ public class LWNode extends LWGroup
                                          fontHeight));
         }
         g.setColor(getTextColor());
-        if (true)
-            //g.drawString(label, getX() + labelX(), getY() + textBaseline);
-            g.drawString(label, labelX(), textBaseline);
-        else
-            pLabel.draw(g);
+        g.drawString(label, labelX(), textBaseline);
+        //g.drawString(label, getX() + labelX(), getY() + textBaseline);
 
         /*
           // temp: show the resource--  todo: display an icon
