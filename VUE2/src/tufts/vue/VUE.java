@@ -95,23 +95,6 @@ public class VUE
         if (imageURL != null)
             button = new JButton(new ImageIcon(imageURL));
         */
-    /*
-    static {
-
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Image iconZoomIn;
-        Image iconZoomOut;
-        if (VueUtil.isMacPlatform()) {
-            iconZoomIn = toolkit.getImage("images/ZoomIn16.gif");
-            iconZoomOut = toolkit.getImage("images/ZoomOut16.gif");
-        } else {
-            iconZoomIn = toolkit.getImage("images/ZoomIn24.gif");
-            iconZoomOut = toolkit.getImage("images/ZoomOut24.gif");
-        }
-        CURSOR_ZOOM_IN = toolkit.createCustomCursor(iconZoomIn, new Point(0,0), "ZoomIn");
-        CURSOR_ZOOM_OUT = toolkit.createCustomCursor(iconZoomOut, new Point(0,0), "ZoomOut");
-    }
-    */
 
     static class VueFrame extends JFrame
         implements MapViewer.Listener
@@ -167,12 +150,14 @@ public class VUE
     static {
         if (false && VueUtil.isMacPlatform()) {
             final String usmbProp = "apple.laf.useScreenMenuBar";
-            final String appNameProp = "com.apple.mrj.application.apple.menu.about.name";
             if (System.getProperty(usmbProp) == null)
                 System.setProperty(usmbProp, "true");
+            /*
+            final String appNameProp = "com.apple.mrj.application.apple.menu.about.name";
             // setting appNameProp here doesn't do anything anything since VM
             // has already made use of this property...
             System.setProperty(appNameProp, "VUE");
+            */
         }
     }
 
@@ -228,6 +213,48 @@ public class VUE
         } catch (Exception e) {
             System.err.println(e);
         }
+
+        /*
+        // from java.swing.plaf.basic.BasicLookAndFeel.java:
+            "TabbedPane.font", dialogPlain12,
+            "TabbedPane.background", table.get("control"),
+            "TabbedPane.foreground", table.get("controlText"),
+            "TabbedPane.highlight", table.get("controlLtHighlight"),
+            "TabbedPane.light", table.get("controlHighlight"),
+            "TabbedPane.shadow", table.get("controlShadow"),
+            "TabbedPane.darkShadow", table.get("controlDkShadow"),
+	    "TabbedPane.selected", null,
+            "TabbedPane.focus", table.get("controlText"),
+            "TabbedPane.textIconGap", four,
+            "TabbedPane.tabInsets", tabbedPaneTabInsets,
+            "TabbedPane.selectedTabPadInsets", tabbedPaneTabPadInsets,
+            "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
+            "TabbedPane.contentBorderInsets", tabbedPaneContentBorderInsets,
+            "TabbedPane.tabRunOverlay", new Integer(2),
+
+        // from java.swing.plaf.metal.MetalLookAndFeel.java:
+            "TabbedPane.font", controlTextValue,
+            "TabbedPane.tabAreaBackground", getControl(),
+            "TabbedPane.background", getControlShadow(),
+            "TabbedPane.light", getControl(),
+            "TabbedPane.focus", getPrimaryControlDarkShadow(),
+            "TabbedPane.selected", getControl(),
+            "TabbedPane.selectHighlight", getControlHighlight(),
+            "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
+            "TabbedPane.tabInsets", tabbedPaneTabInsets,
+        */
+        Color toolbarColor = VueResources.getColor("toolbar.background");
+        String lafName = UIManager.getLookAndFeel().getName();
+        System.out.println("LookAndFeel: \"" + lafName + "\" " + UIManager.getLookAndFeel());
+        if (lafName.equals("Metal") || lafName.equals("Windows")) {
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
+            UIManager.getLookAndFeelDefaults().put("TabbedPane.background", toolbarColor);
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.blue);
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.light", Color.orange);
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.focus", Color.yellow);
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", Color.magenta);
+            //UIManager.getLookAndFeelDefaults().put("TabbedPane.selectHighlight", Color.red);
+        }
         
         // loading preferences
         prefs = java.util.prefs.Preferences.userRoot().node("/");
@@ -277,7 +304,8 @@ public class VUE
         toolPanel.setLayout(new BorderLayout());
         //DRBrowser drBrowser = new DRBrowser();
         DRBrowser drBrowser = null;
-        if (args.length < 1 || !args[0].equals("-nodr"))  {
+        boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
+        if (!nodr)  {
             drBrowser = new DRBrowser();
             toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         }
@@ -426,12 +454,14 @@ public class VUE
             }
         }
         
-        try {
-            OpenAction.displayMap(new File(System.getProperty("user.dir")+"/tufts/vue/resources/startup.xml"));// this will be loaded using vue resourece
-        } catch(Exception ex) {
-            VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
-            ex.printStackTrace();
-        }
+        if (!nodr) {
+            try {
+                OpenAction.displayMap(new File(System.getProperty("user.dir")+"/tufts/vue/resources/startup.xml"));// this will be loaded using vue resourece
+            } catch(Exception ex) {
+                VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
+                ex.printStackTrace();
+            }
+        }            
         //setViewerScrollbarsDisplayed(true);
         System.out.println("VUE.main completed.");
     }
@@ -551,12 +581,14 @@ public class VUE
             super.addNotify();
             if (!VueUtil.isMacPlatform()) {
                 setForeground(Color.darkGray);
-                setBackground(BgColor);
+                //setBackground(BgColor);
             }
         }
         
         public void addTab(LWMap map, Component c)
         {
+            //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
+            //super.addTab(map.getLabel(), new JScrollPane(c));
             super.addTab(map.getLabel(), c);
             map.addLWCListener(this);
             // todo perf: we should be able to ask to listen only
@@ -612,6 +644,7 @@ public class VUE
         // todo: figure out if we're already displaying this map
 
         //System.out.println("VUE.displayMap Looking for " + map.getFile());
+        /*
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             MapViewer mv = (MapViewer) mMapTabsLeft.getComponentAt(i);
             File existingFile = mv.getMap().getFile();
@@ -623,6 +656,7 @@ public class VUE
                 //break;
             }
         }
+        */
         
         final boolean useScrollbars = false; // in-progress feature
         JScrollPane sp = null;

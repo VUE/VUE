@@ -143,6 +143,10 @@ public class MapPanner extends javax.swing.JPanel
         
     }
 
+    protected void paintBorder(Graphics g) {
+        // panner disables any border
+    }
+
     public void mousePressed(MouseEvent e)
     {
         dragStart = e.getPoint();

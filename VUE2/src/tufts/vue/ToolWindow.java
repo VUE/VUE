@@ -167,8 +167,10 @@ public class ToolWindow
         public void paint(Graphics g) {
             //System.out.println("painting " + this);
             super.paint(g);
-            g.setColor(SystemColor.activeCaptionText);
             int xoff = getWidth() - edgeInset;
+            g.setColor(SystemColor.activeCaption);
+            g.fillRect(xoff, yoff, iconSize,iconSize);
+            g.setColor(SystemColor.activeCaptionText);
             g.drawRect(xoff, yoff, iconSize,iconSize);
             g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
             g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
@@ -273,11 +275,18 @@ public class ToolWindow
         return mTitle;
     }
 
-    public void addTool(Component c)
+    public void addTool(JComponent c)
     {
         // todo: make it so can add more than one tool
         // -- probably use BoxLayout
         toolPanel.contentPanel.add(c, BorderLayout.CENTER);
+        //c.setBorder(new LineBorder(Color.red, 5));
+        //c.setBorder(new LineBorder(SystemColor.control, 5));
+        if (c.getBackground().equals(SystemColor.control))
+            c.setBorder(new LineBorder(SystemColor.control, 5));
+        else
+            c.setBorder(new LineBorder(Color.lightGray, 5));
+        //c.setBorder(new LineBorder(c.getBackground(), 5));
         setBackground(c.getBackground());
         pack();
         // double-buffering isn't happening on the PC during

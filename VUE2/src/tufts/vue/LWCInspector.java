@@ -53,7 +53,11 @@ class LWCInspector extends javax.swing.JPanel
 
     public LWCInspector()
     {
-        setBorder(new TitledBorder("Inspector"));
+        //setBorder(LineBorder.createBlackLineBorder());
+        //setBorder(new TitledBorder("Inspector"));
+        // todo lookinto: may be something special about TitleBorders that are allowing
+        // mouse events to be detected by the ToolPanel for the resize corner
+        //setBorder(new LineBorder(Color.white, 6));
         //extraPanel.setLayout(new BorderLayout());
         //extraPanel.setSize(200,100);
         //extraPanel.add(new JLabel("foo"));
