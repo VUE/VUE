@@ -22,7 +22,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.ArrayList;
 
-public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener{
+public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,tufts.vue.VUE.ActiveMapListener{
     NodeFilter nodeFilter;
     boolean editable = false;
     KeyCellEditor keyEditor;
@@ -110,6 +110,9 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener{
         nodeFilterTable.getColumnModel().getColumn(NodeFilter.OPERATOR_COL).setCellEditor(operatorEditor);         
     }
     
+    public void activeMapChanged(tufts.vue.LWMap lWMap) {
+        lWMap.getMapFilterModel().addListener(this);
+    }    
   
     public class AddButtonListener implements ActionListener {
         private  NodeFilter model;
@@ -125,7 +128,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener{
                 stmt.setOperator(key.getType().getDefaultOperator());
                 stmt.setValue(key.getDefaultValue());
                 model.addStatement(stmt);
-                tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(model);
+                //tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(model);
                 model.fireTableDataChanged();
             }
         }

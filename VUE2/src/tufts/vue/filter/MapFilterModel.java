@@ -37,6 +37,9 @@ public class MapFilterModel  extends AbstractTableModel{
     public synchronized void remove(Key key) {
         int i = keyVector.indexOf(key);
         keyVector.remove(keyVector.indexOf(key));
+        Iterator iter = tufts.vue.VUE.getActiveMap().getAllDescendents().iterator();
+        while(iter.hasNext()) 
+            ((tufts.vue.LWComponent)iter.next()).getNodeFilter().removeStatements(key);
         notifyListeners(new MapFilterModelEvent(key,MapFilterModelEvent.KEY_DELETED));
     }
     
@@ -70,10 +73,13 @@ public class MapFilterModel  extends AbstractTableModel{
     }
     
     /** for Actions.java */
-    java.util.List getListeners() {
-        return this.listeners;
+    public ArrayList getListeners() {
+        return (ArrayList)listeners;
     }
     
+    public void setListeners(ArrayList listeners) {
+      this.listeners = listeners;
+    }
     public void addAll(MapFilterModel keys) {
         keyVector.addAll(keys.getKeyVector());
     }

@@ -14,7 +14,7 @@ package tufts.vue.filter;
 import java.util.*;
 import javax.swing.table.*;
 import javax.swing.event.*;
-public class NodeFilter extends AbstractTableModel  implements MapFilterModel.Listener {
+public class NodeFilter extends AbstractTableModel  {
     public static final int KEY_COL = 0;
     public static final int OPERATOR_COL = 1;
     public static final int VALUE_COL = 2;
@@ -31,18 +31,20 @@ public class NodeFilter extends AbstractTableModel  implements MapFilterModel.Li
         this(false);
     }
     
-    public void mapFilterModelChanged(MapFilterModelEvent e) {
+
+    
+    public synchronized void removeStatements(Key key) {
         Vector removeStatements = new Vector();
         Iterator i = statementVector.iterator();
         while(i.hasNext()) {
             Statement statement = (Statement)i.next();
-            if(statement.getKey() == e.getKey() && e.getAction() == MapFilterModelEvent.KEY_DELETED) {
+            if(((String)statement.getKey().getKey()).equals(key.getKey().toString()))
                 removeStatements.add(statement);
-            }
         }
         removeAll(removeStatements);
         // setNodeFilter(nodeFilter);
     }
+    
     public synchronized void add(Statement statement) {
         statementVector.add(statement);
     }
