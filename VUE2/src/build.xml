@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.35 $ / $Date: 2005-03-24 20:10:06 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.35 2005-03-24 20:10:06 sfraize Exp $ -->
+<!-- $Revision: 1.36 $ / $Date: 2005-03-24 23:38:05 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.36 2005-03-24 23:38:05 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -479,18 +479,19 @@
     <!-- Build for stuff that makes use of the Apple com.apple.cocoa.{application,foundation}.* classes
          that reside in /System/Library/Java in Mac OS X, which can access native OS X features via
          classes such as NSWindow, NSApplcation, etc. -->
+    <mkdir dir="maclib/classes"/>
     <javac srcdir="${basedir}" 
-           destdir="${build.class}"
+           destdir="maclib/classes"
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
            classpath="/System/Library/Java"
            >
-      <include name="tufts/macosx/**/*.java"/>
+      <include name="maclib/**/*.java"/>
     </javac>
     <jar destfile="${lib.home}/VUE-MacOSX.jar" compress="true" index="false" update="false">
-      <fileset dir="${build.class}" includes="tufts/macosx/**"/>
+      <fileset dir="maclib/classes" includes="tufts/macosx/**"/>
     </jar>
   </target>
      
@@ -511,37 +512,6 @@
   </target>
   
   
-<!-- ==================== Tasks to run VUE  ================================ -->
-
-    <target name="vue" depends="" description="Run the VUE application.">
-      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-        <classpath refid="runtime.classpath"/>
-      </java>
-    </target>
-    
-    <target name="vue-mac" depends="" description="Run the VUE application (Mac Look and Feel).">
-        <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-          <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
-          <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
-          <arg value="-useMacLookAndFeel"/>
-          <classpath refid="runtime.classpath"/>
-        </java>
-    </target>    
-    <target name="vue-mac-metal" depends="" description="Run the VUE application (Mac Look and Feel, Brushed Metal).">
-        <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-          <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
-          <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
-          <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
-          <arg value="-useMacLookAndFeel"/>
-          <classpath refid="runtime.classpath"/>
-        </java>
-    </target>
-
-    <target name="vuedemo" depends="">
-      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
-        <classpath refid="runtime.classpath"/>
-      </java>
-    </target>
 
     <property name="mac.bundle_signature" value="TVUE"/> <!-- must match MacOS/Info.plist CFBundleSignature -->
 
@@ -550,7 +520,11 @@
     </target>
 
     <target name="mac-dist-nv" depends="jar" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
-      <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist"/>
+      <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist">
+      <extra-tasks>
+        <copy file="${lib.home}/BlackShipsImages.jar" todir="${build.home}/NarraVision.app/Contents" verbose="true"/>
+      </extra-tasks>
+      </make-mac-osx-application>
     </target>
 
     <target name="test" depends="mac-dist,mac-dist-nv"/>
@@ -652,6 +626,38 @@ class Version {
     </target>
     
 
+<!-- ==================== Tasks to run VUE  ================================ -->
+
+    <target name="vue" depends="" description="Run the VUE application.">
+      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+        <classpath refid="runtime.classpath"/>
+      </java>
+    </target>
+    
+    <target name="vue-mac" depends="" description="Run the VUE application (Mac Look and Feel).">
+        <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+          <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
+          <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+          <arg value="-useMacLookAndFeel"/>
+          <classpath refid="runtime.classpath"/>
+        </java>
+    </target>    
+    <target name="vue-mac-metal" depends="" description="Run the VUE application (Mac Look and Feel, Brushed Metal).">
+        <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+          <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
+          <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+          <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
+          <arg value="-useMacLookAndFeel"/>
+          <classpath refid="runtime.classpath"/>
+        </java>
+    </target>
+
+    <target name="vuedemo" depends="">
+      <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+        <classpath refid="runtime.classpath"/>
+      </java>
+    </target>
+    
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
       <pathconvert pathsep="," property="info.classpath" refid="runtime.classpath"/>

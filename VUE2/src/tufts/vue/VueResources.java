@@ -147,6 +147,7 @@ public class VueResources
         //debug("\tloadImageIcon["+ file + "]");
         try {
             URL resource = sResourceBundle.getClass().getResource(file); //  new URL(  urlStr );
+            //if (DEBUG.INIT) System.out.println("\tURL[" + resource + "]");
             if (resource != null) {
                 icon = new ImageIcon( resource);
                 if (icon.getImageLoadStatus() != MediaTracker.COMPLETE)

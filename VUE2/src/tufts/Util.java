@@ -532,11 +532,11 @@ public class Util
      * undergoing a show, to make sure we fix up, even if it doesn't claim
      * to be visible yet.
      */
-    public static void keepToolWindowsOnTop(String inActionTitle, boolean inFullScreenMode)
+    public static void keepToolWindowsOnTop(String mainWindowTitleStart, String inActionTitle, boolean inFullScreenMode)
     {
         if (isMacPlatform()) {
             try {
-                tufts.macosx.Screen.keepWindowsOnTop(inActionTitle, inFullScreenMode);
+                tufts.macosx.Screen.keepWindowsOnTop(mainWindowTitleStart, inActionTitle, inFullScreenMode);
             } catch (LinkageError e) {
                 eout(e);
             }
@@ -620,18 +620,37 @@ public class Util
         //System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
                                        //.list(System.out);
 
-        Hashtable props = System.getProperties();
-        Enumeration e = props.keys();
-        while (e.hasMoreElements()) {
-            Object key = e.nextElement();
-            //System.out.println("[1;36m" + key + "[m=" + props.get(key));
-            System.out.println(key + "=" + props.get(key));
+        // TESTING CODE
+        
+        if (args.length == 1) {
+            openURL(args[0]);
+            //else
+            //test_OpenURL();
+        } else if (args.length == 2) {
+            try {
+                // Even tho we tried putting blackships.jar in two different places in java.library.path, it claimed it couldn't find it.
+                System.loadLibrary("blackships.jar");
+                java.net.URL url = new java.net.URL("blackships/large/02_010b_DutchFamily_l.jpg");
+                System.out.println("URL: " + url);
+                System.out.println("CONTENT: " + url.getContent());
+                // cannot build a file object from a URL
+                //java.net.URL url = new java.net.URL("jar:file:/VUE/src/VUE-core.jar!/tufts/vue/images/pathway_hide_on.gif");
+                //java.net.URI uri = new java.net.URI(url.toString());
+                //java.io.File f = new java.io.File(uri);
+                //System.out.println("File " + f + " has length " + f.length() + " exists=" + f.exists());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            Hashtable props = System.getProperties();
+            Enumeration e = props.keys();
+            while (e.hasMoreElements()) {
+                Object key = e.nextElement();
+                //System.out.println("[1;36m" + key + "[m=" + props.get(key));
+                System.out.println(key + "=" + props.get(key));
+            }
         }
         
-        if (args.length > 0)
-            openURL(args[0]);
-        //else
-            //test_OpenURL();
         System.exit(0);
     }
 

@@ -181,26 +181,36 @@ public class MapResource implements Resource {
     }
     
     // todo: resource's should be atomic: don't allow post construction setSpec
-    public void setSpec(String spec) {
+    public void setSpec(final String spec) {
         //System.out.println(this + " setSpec " + spec);
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
         try {
-            url = new URL(this.spec);
+
+            if (spec.startsWith("resource:")) {
+                final String classpathResource = spec.substring(9);
+                //System.out.println("Searching for classpath resource [" + classpathResource + "]");
+                url = getClass().getResource(classpathResource);
+            } else {
+                url = new URL(spec);
+            }
+
             /*
-              String fname = url.getFile();
-              System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
-              java.io.File file = new java.io.File(fname);
-              System.out.println("\t" + file + " exists=" +file.exists());
-              file = new java.io.File(spec);
-              System.out.println("\t" + file + " exists=" +file.exists());
-             */
+            String fname = url.getFile();
+            System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
+            java.io.File file = new java.io.File(fname);
+            System.out.println("\t" + file + " exists=" +file.exists());
+            file = new java.io.File(spec);
+            System.out.println("\t" + file + " exists=" +file.exists());
+            */
+
         } catch (MalformedURLException e) {
             // Okay for url to be null: means local file
             //System.err.println(e);
             //System.out.println("Resource [" + spec + "] *** NOT A URL ***");
         } catch (Exception e) {
-            System.err.println(e);
+            //System.err.println(e);
+            e.printStackTrace();
         }
 
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
