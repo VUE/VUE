@@ -261,15 +261,15 @@ public class DR implements osid.dr.DigitalRepository {
      *     @return InfoStructureIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws DigitalRepositoryException if there is a general failure
      */
-    public InfoStructureIterator getInfoStructures() throws osid.dr.DigitalRepositoryException {
-        return (osid.dr.InfoStructureIterator) new BehaviorInfoStructureIterator(infoStructures);
+    public osid.dr.InfoStructureIterator getInfoStructures() throws osid.dr.DigitalRepositoryException {
+        return (osid.dr.InfoStructureIterator) new InfoStructureIterator(infoStructures);
     }
     
     /**     Get the InfoStructures that this AssetType must support.  InfoStructures are used to categorize information about Assets.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
      *     @return InfoStructureIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws DigitalRepositoryException if there is a general failure
      */
-    public InfoStructureIterator getMandatoryInfoStructures(osid.shared.Type assetType) throws osid.dr.DigitalRepositoryException {
+    public osid.dr.InfoStructureIterator getMandatoryInfoStructures(osid.shared.Type assetType) throws osid.dr.DigitalRepositoryException {
         return null;
     }
     
