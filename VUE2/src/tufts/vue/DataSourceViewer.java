@@ -487,22 +487,32 @@ public class DataSourceViewer  extends JPanel{
                     //ds1.setDisplayColor(Color.BLACK);
                     dataSources.add(ds1);
                     dataSourceList.getContents().addElement(ds1);
-                    DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
-                    //ds2.setDisplayColor(Color.RED);
+                     DataSource ds2 = new DataSource("ds2", "My Favorites","favorites",DataSource.FAVORITES);
+                    //ds3.setDisplayColor(Color.BLUE);
                     dataSources.add(ds2);
                     dataSourceList.getContents().addElement(ds2);
-                    setActiveDataSource(ds2);
-                    DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
-                    //ds3.setDisplayColor(Color.BLUE);
+                    
+                    DataSource ds3 =  new DataSource("ds3", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
+                    //ds2.setDisplayColor(Color.RED);
                     dataSources.add(ds3);
                     dataSourceList.getContents().addElement(ds3);
-                    DataSource ds4 = new DataSource("ds4", "Tufts Web","google",VueResources.getString("url.google"),"","","",DataSource.GOOGLE);
-                    //ds4.setDisplayColor(Color.YELLOW);
+                    setActiveDataSource(ds3);
+                    
+                    DataSource ds4= new DataSource("ds4","UVA: Finding Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
                     dataSources.add(ds4);
                     dataSourceList.getContents().addElement(ds4);
-                    DataSource ds5 = new DataSource("ds5","UVA: Findiing Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
+                   
+                    DataSource ds5 = new DataSource("ds5", "Tufts Web","google",VueResources.getString("url.google"),"","","",DataSource.GOOGLE);
+                    //ds4.setDisplayColor(Color.YELLOW);
                     dataSources.add(ds5);
                     dataSourceList.getContents().addElement(ds5);
+                    
+                    DataSource ds6 = new DataSource("ds6", "NYU Web","google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9","","","",DataSource.GOOGLE);
+                    //ds4.setDisplayColor(Color.YELLOW);
+                    dataSources.add(ds6);
+                    dataSourceList.getContents().addElement(ds6);
+                     
+                    
 
                 } catch (Exception ex) {
                     System.out.println("Datasources can't be loaded");
