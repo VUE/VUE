@@ -39,7 +39,7 @@ public class HandTool extends VueTool
     }
     
     public JPanel getContextualPanel() {
-		return VueToolbarController.getController().getSuggestedContextualPanel();
+        return VueToolbarController.getController().getSuggestedContextualPanel();
     }
 
     public boolean supportsSelectorBox()

@@ -167,9 +167,8 @@ public abstract class MenuButton extends JButton implements ActionListener
         public void paintIcon(Component c, Graphics g, int sx, int sy) {
             int w = src.getIconWidth();
             int h = src.getIconHeight();
-            ///int h = getHeight(); // get height of entire button...(need compensate incoming x/y)
             if (DEBUG.BOXES) System.out.println("proxyPaint x=" + sx + " y=" + sy + " src=" + src);
-            g.setColor(Color.black);
+            g.setColor(Color.darkGray);
             int x = sx + w + arrowGap;
             //int y = sy + h / 2 - 1;  // src icon relative
             int y = getHeight() / 2 - 1; // parent button relative: keeps arrows aligned across butons buttons of same height

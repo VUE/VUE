@@ -498,6 +498,7 @@ public class VueToolbarController
             
         } else {
             panel = getLWCToolPanel();
+            //panel = null;
         }
         if (DEBUG.SELECTION) System.out.println("getContextualPanelForSelection returning " + panel);
         return panel;

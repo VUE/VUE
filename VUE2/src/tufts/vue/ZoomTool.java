@@ -48,7 +48,7 @@ public class ZoomTool extends VueTool
     }
 	
     public JPanel getContextualPanel() {
-		return VueToolbarController.getController().getSuggestedContextualPanel();
+        return VueToolbarController.getController().getSuggestedContextualPanel();
     }
 
     public void handleSelection() {

@@ -38,7 +38,7 @@ public class SelectionTool extends VueTool {
     }
     
     public JPanel getContextualPanel() {
-		return VueToolbarController.getController().getSuggestedContextualPanel();
+        return VueToolbarController.getController().getSuggestedContextualPanel();
     }
 
     public boolean supportsSelection() { return true; }
