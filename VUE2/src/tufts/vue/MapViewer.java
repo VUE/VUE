@@ -2329,6 +2329,9 @@ public class MapViewer extends javax.swing.JComponent
         // hitComponent to selection so have way other
         // than shift-click to add to selection (so you
         // can do it all with the mouse)
+        m.add(new VueAction("Show Object Inspector") {
+                void act() { VUE.objectInspector.setVisible(true); }
+            });
         
         return m;
     }
@@ -2434,8 +2437,9 @@ public class MapViewer extends javax.swing.JComponent
             sMapPopup.add(Actions.ZoomActual);
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.SelectAll);
-            //sMapPopup.add("Visible");
-            //sMapPopup.setBackground(Color.gray);
+            sMapPopup.add(new VueAction("Show Map Inspector") {
+                    void act() { VUE.sMapInspector.setVisible(true); }
+                });
         }
         return sMapPopup;
     }
