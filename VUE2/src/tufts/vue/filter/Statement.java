@@ -84,5 +84,10 @@ public class Statement {
     public boolean compare(Statement statement2) {
         return getKey().getType().compare(this, statement2);
     }
+
+    public String toString() {
+        return "Statement[" + key + " " + operartor + " '" + value + "']";
+        //return "Statement[op=" + operartor + " key=" + key + " val=" + value + "]";
+    }
         
 }

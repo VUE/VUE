@@ -64,15 +64,20 @@ public class Key {
         return this.sKey;
     }
     
-    public String toString() {
-        return sKey.toString();
-    }
-    
     public Object getDefaultValue() {
         return defaultValue;
     }
     public void setDefaultValue(Object defaultValue) {
         this.defaultValue = defaultValue;
     }
-    
+
+    public String toString() {
+        return sKey.toString();
+    }
+
+    /*
+    public String toString() {
+        return "Key[type="+type + " key=" + sKey + " default=" + defaultValue + "]";
+    }
+    */
 }
