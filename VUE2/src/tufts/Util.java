@@ -620,7 +620,6 @@ public class Util
         //System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
                                        //.list(System.out);
 
-        /*
         Hashtable props = System.getProperties();
         Enumeration e = props.keys();
         while (e.hasMoreElements()) {
@@ -628,7 +627,6 @@ public class Util
             //System.out.println("[1;36m" + key + "[m=" + props.get(key));
             System.out.println(key + "=" + props.get(key));
         }
-        */
         
         if (args.length > 0)
             openURL(args[0]);

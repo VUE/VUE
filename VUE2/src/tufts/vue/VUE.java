@@ -41,7 +41,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.288 2005-03-11 03:25:46 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.289 2005-03-24 19:34:02 sfraize Exp $
     
 /**
  * Vue application class.
@@ -90,8 +90,6 @@ public class VUE
     public static boolean  dropIsLocal = false;
     private static boolean isStartupUnderway = true;
 
-    public static final boolean TUFTS = true;
-    
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
     public interface ActiveMapListener {
@@ -135,7 +133,7 @@ public class VUE
             //MapViewerEvent.ZOOM;        // title includes zoom
         
         VueFrame() {
-            super("VUE: Visual Understanding Environment");
+            super(VueResources.getString("application.title"));
             setIconImage(VueResources.getImageIcon("vueIcon32x32").getImage());
         }
 
@@ -211,7 +209,7 @@ public class VUE
         }
         
         private void setTitleFromViewer(MapViewer viewer) {
-            String title = "VUE: " + viewer.getMap().getLabel();
+            String title = VUE.NAME + ": " + viewer.getMap().getLabel();
             //if (viewer.getMap().isCurrentlyFiltered())
             // will need to listen to map for filter change state or this gets out of date
             //    title += " (Filtered)";
@@ -444,11 +442,24 @@ public class VUE
     private static JPanel toolPanel;
     private static boolean themeSet = false;
     private static boolean nodr = false;
+
+
+    public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
+    public static final String NAME = VueResources.getString("application.name");
+    
     
     public static void main(String[] args) {
         System.out.println("VUE: main");
         System.out.println("VUE: build: " + tufts.vue.Version.AllInfo);
+        System.out.println("VUE: name: " + VUE.NAME);
         //System.out.println("VUE: fully built: " + build.version.AllInfo);
+
+        //VUE.TUFTS = 
+        if (VUE.TUFTS)
+            System.out.println("VUE: TUFTS features only (no MIT/development)");
+        else
+            System.out.println("VUE: MIT/development features enabled");
+        
         parseArgs(args);
         
         // initUI installs the VueTheme (unless mac look), which must be done
@@ -1489,7 +1500,7 @@ public class VUE
             window.show();
         }
         private Window createWindow() {
-            ToolWindow w = createToolWindow("VUE Short-Cut Keys");
+            ToolWindow w = createToolWindow(VUE.NAME + " Short-Cut Keys");
             w.addTool(createShortcutsList());
             return w;
         }

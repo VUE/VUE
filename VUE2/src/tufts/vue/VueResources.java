@@ -38,10 +38,46 @@ import java.io.File;
 public class VueResources
 {
     /** Resource Bundle **/
-    protected static ResourceBundle sResourceBundle =  ResourceBundle.getBundle("tufts.vue.VueResources");
+    //protected static final ResourceBundle VueResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
+    //protected static final ResourceBundle NarraVisionResourceBundle;
+    protected static final ResourceBundle sResourceBundle;
+
     protected static Map Cache = new HashMap();
 
-	
+    static {
+
+        final String featureSet = System.getProperty("tufts.vue.features");
+            
+        if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")) {
+            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", "NV"));
+        } else {
+            sResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
+        }
+
+        /*        
+        //NarraVisionResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("en", "US", "NV"));
+        NarraVisionResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources", new Locale("", "", "NV"));
+        sResourceBundle = NarraVisionResourceBundle;
+        //sResourceBundle = VueResourceBundle;
+        */
+        
+        System.out.println("DEFAULT LOCALE: " + Locale.getDefault());
+        System.out.println("RESOURCE BUNDLE: " + sResourceBundle + " locale: " + sResourceBundle.getLocale());
+
+        dumpResource("resources.vue");
+        dumpResource("resources.narravision");
+        dumpResource("application.name");
+        dumpResource("application.title");
+
+    }
+
+    public static void main(String[] args) {
+    }
+
+    private static void dumpResource(String name) {
+        System.out.println(name + ": " + getString(name));
+    }
+    
     /**
      * Return the vue resource bundle.
      */
@@ -538,7 +574,7 @@ public class VueResources
             System.out.println(pMsg);
     }
 	
-	
+
     static private String get( String pKey)  {
         String value = null;
         try {
@@ -546,7 +582,6 @@ public class VueResources
         } catch( Exception e) {
         }
         return value;
-		
     }
 	
     static public void initComponent( JComponent pObj, String pKey) {
