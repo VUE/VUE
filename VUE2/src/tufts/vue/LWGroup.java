@@ -202,9 +202,13 @@ public final class LWGroup extends LWContainer
 
         if (DEBUG.PARENTING) out("dispersing group " + this);
 
+        // todo: if group in group, want to disperse to parent group,
+        // not the map!
         LWContainer newParent = getFirstAncestor(LWMap.class);
-        List tmpChildren = new ArrayList(children);
-        newParent.addChildren(tmpChildren.iterator());
+        if (hasChildren()) {
+            List tmpChildren = new ArrayList(children);
+            newParent.addChildren(tmpChildren.iterator());
+        }
         getParent().deleteChildPermanently(this);
     }
 

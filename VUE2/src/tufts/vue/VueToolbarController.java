@@ -322,6 +322,7 @@ public class VueToolbarController
         }
 
         mSelectedTool = rootTool;
+        mSelectedTool.handleToolSelection();
     }
 	 
     /**

@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  * visible viewport.
  *
  * @author Scott Fraize
- * @version 3/27/03
+ * @version 12/11/04
  */
 public class MapPanner extends javax.swing.JPanel
     implements VueConstants,
@@ -223,18 +223,19 @@ public class MapPanner extends javax.swing.JPanel
                 return;
         }
 
-        if (mapViewer.getVisibleWidth() < 1 || mapViewer.getVisibleHeight() < 1) {
+        final MapViewer viewer = this.mapViewer;
+
+        if (viewer.getVisibleWidth() < 1 || viewer.getVisibleHeight() < 1) {
             out("nothing to paint"); 
             return;
         }
 
-        //final Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
-        final Rectangle2D allComponentBounds = mapViewer.getMap().getBounds();
-        final Rectangle2D canvasRect = mapViewer.getCanvasMapBounds();
-        final Rectangle2D viewerRect = mapViewer.getVisibleMapBounds();
+        final Rectangle2D allComponentBounds = viewer.getMap().getBounds();
+        final Rectangle2D canvasRect = viewer.getCanvasMapBounds();
+        final Rectangle2D viewerRect = viewer.getVisibleMapBounds();
         final Rectangle2D pannerRect;
 
-        if (ViewerAlwaysVisible) {
+        if (ViewerAlwaysVisible && viewer.inScrollPane()) {
             if (ShowFullCanvas)
                 // the fudgey margins go away with show full canvas -- which indicates
                 // the problem w/out the canvas is obviously because we can *drag* to
@@ -246,57 +247,62 @@ public class MapPanner extends javax.swing.JPanel
         } else
             pannerRect = allComponentBounds;
 
-        Dimension pannerViewportSize = getSize();
+        
+        /*
+         * Compute the zoom required to fit everything in the size of the
+         * current panner tool window.
+         */
+
+        final Point2D.Float offset = new Point2D.Float();
+        final Dimension pannerViewportSize = getSize();
         pannerViewportSize.width -= 1;
         pannerViewportSize.height -= 1;
-        
-        Graphics2D g2 = (Graphics2D) g;
-        Point2D offset = new Point2D.Double();
-        
-        zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
-                                             DEBUG.MARGINS ? 0 : MapMargin,
-                                             pannerRect,
-                                             offset);
+        this.zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
+                                                  DEBUG.MARGINS ? 0 : MapMargin,
+                                                  pannerRect,
+                                                  offset);
                                             
-
-        g2.setColor(mapViewer.getBackground());
-        g2.translate(-offset.getX(), -offset.getY());
-        g2.scale(zoomFactor, zoomFactor);
-        g2.fill(mapViewer.getCanvasMapBounds());
-        //g2.fill(viewerRect);
-
         /*
          * Construct a DrawContext to use in painting the entire
          * map on the panner window.
          */
 
-        DrawContext dc = new DrawContext(g2, zoomFactor);
-        //dc.setAntiAlias(true);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, mapViewer.AA_ON);//pickup MapViewer AA state for debug
+        final DrawContext dc = new DrawContext(g, zoomFactor, -offset.x, -offset.y, null);
+
+        dc.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);//pickup MapViewer AA state for debug
         dc.setPrioritizeSpeed(true);
         dc.setFractionalFontMetrics(false);
         dc.setPrinting(true); // what we want on panner draw same as printing -- really a "non-interactive" flag
         dc.setDraftQuality(true); // okay to skimp in rendering of panner image -- it's usually so tiny
+        dc.setMapDrawing();
 
+        /*
+         * Fill the background representing the currently active canvas region.
+         * If the viewer is in a scroll-region, this will be the total area
+         * it's scrolling over -- a large canvas.  If not, it will simply be
+         * the visible viewer canvas, which virtually "pan's" over the infinite
+         * coordinate space the map lies in.
+         */
+        
+        // need to offset fill, so can't just use existing canvasRect
+        final Rectangle2D canvas = viewer.screenToMapRect(new Rectangle(1,1, viewer.getWidth(), viewer.getHeight()));
+        dc.g.setColor(viewer.getBackground());
+        dc.g.fill(canvas);
+        
         /*
          * Now tell the active LWMap to draw itself here on the panner.
          */
-        mapViewer.getMap().draw(dc);
+        
+        viewer.getMap().draw(dc);
         
         /*
-         * Show where the edge of the visible viewer region overlaps the map
+         * Show where the edge of the *visible* viewer region overlaps the map
          */
-        if (false&&VueUtil.isMacPlatform()) {
-            // this still relvant for mac? 
-            dc.setAbsoluteStroke(1);
-        } else {
-            dc.setAntiAlias(false);
-            g2.setStroke(STROKE_ONE);
-        }
-        g2.setColor(Color.red);
-        g2.draw(viewerRect);
-        //g2.scale(1/zoomFactor, 1/zoomFactor);
-        //g2.translate(offset.getX(), offset.getY());
+        
+        dc.setAntiAlias(false);
+        dc.setAbsoluteStroke(1);
+        dc.g.setColor(Color.red);
+        dc.g.draw(viewerRect);
     }
 
     public void mouseClicked(MouseEvent e) { if (DEBUG.MOUSE) out(e); }

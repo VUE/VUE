@@ -284,10 +284,6 @@ public class PrintAction extends tufts.vue.VueAction
     }
 
 
-    private void out(String s) {
-        System.out.println("PrintAction: " + s);
-    }
-
     private static String outpf(PageFormat p) {
         if (p == null) return null;
         final String[] o = {"LANDSCAPE", "PORTRAIT", "REVERSE LANDSCAPE"};

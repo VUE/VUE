@@ -504,7 +504,8 @@ public class LWLink extends LWComponent
         return ep1.getParent() == ep2 || ep2.getParent() == ep1;
     }
 
-    public LWComponent getFarTarget(LWComponent source)
+    /** @return the endpoint of this link that is not the given source */
+    public LWComponent getFarPoint(LWComponent source)
     {
         if (getComponent1() == source)
             return getComponent2();
@@ -512,6 +513,22 @@ public class LWLink extends LWComponent
             return getComponent1();
         else
             throw new IllegalArgumentException("bad farpoint: " + source + " not connected to " + this);
+    }
+    
+    
+    /** @return the endpoint of this link that is not the given source, if congruent with the arrow directionality */
+    public LWComponent getFarNavPoint(LWComponent source)
+    {
+        int arrows = getArrowState();
+        if (getComponent1() == source) {
+            if (arrows == ARROW_NONE || (arrows & ARROW_EP2) != 0)
+                return getComponent2();
+        } else if (getComponent2() == source) {
+            if (arrows == ARROW_NONE || (arrows & ARROW_EP1) != 0)
+                return getComponent1();
+        } else
+            throw new IllegalArgumentException("bad farpoint: " + source + " not connected to " + this);
+        return null;
     }
 
     /**
@@ -1303,17 +1320,20 @@ public class LWLink extends LWComponent
         
         boolean ep1group = getComponent1() instanceof LWGroup;
         boolean ep2group = getComponent2() instanceof LWGroup;
-        if (ep1group || ep2group || DEBUG.BOXES) {
-            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, 10,10);
+        if ((ep1group || ep2group) && !dc.isPrinting() || DEBUG.BOXES) {
+            float size = 8;
+            if (dc.zoom < 1)
+                size /= dc.zoom;
+            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
             Composite composite = dc.g.getComposite();
             dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             dc.g.setColor(Color.green);
             if (ep1group || DEBUG.BOXES) {
-                dot.setFrameFromCenter(startX, startY, startX+5, startY+5);
+                dot.setFrameFromCenter(startX, startY, startX+size/2, startY+size/2);
                 dc.g.fill(dot);
             }
             if (ep2group || DEBUG.BOXES) {
-                dot.setFrameFromCenter(endX, endY, endX+5, endY+5);
+                dot.setFrameFromCenter(endX, endY, endX+size/2, endY+size/2);
                 if (DEBUG.BOXES) dc.g.setColor(Color.red);
                 dc.g.fill(dot);
             }

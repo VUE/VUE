@@ -440,15 +440,24 @@ implements VueConstants {
             }
         }
     };
+    /** handle dispersing groups, or removing selected elements from groups */
     static final Action Ungroup =
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupGC.png") {
         //new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/GroupUnGC.png") {
         new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/Ungroup.png") {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) {
-            return s.countTypes(LWGroup.class) > 0;
+            return s.countTypes(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
         }
-        void act(Iterator i) {
+        void act(LWSelection s) {
+            boolean removing = s.allHaveSameParentOfType(LWGroup.class);
+            if (removing)
+                removeFromGroup(s.iterator());
+            else
+                disperse(s.iterator());
+        }
+
+        private void disperse(Iterator i) {
             List dispersedChildren = new ArrayList();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
@@ -459,6 +468,25 @@ implements VueConstants {
                 }
             }
             VUE.getSelection().setTo(dispersedChildren.iterator());
+        }
+            
+        private void removeFromGroup(Iterator i) {
+            List removed = new ArrayList();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                if (c.getParent() instanceof LWGroup)
+                    removed.add(c);
+            }
+            if (removed.size() > 0) {
+                LWComponent first = (LWComponent) removed.get(0);
+                LWGroup group = (LWGroup) first.getParent();
+                LWContainer newParent = group.getParent();
+                newParent.addChildren(removed.iterator());
+                VUE.getSelection().setTo(removed.iterator());
+                // if we've removed them all, disperse the group
+                if (!group.hasChildren())
+                    group.disperse();
+            }
         }
     };
     static final Action Rename =
@@ -604,12 +632,16 @@ implements VueConstants {
                     if (c instanceof LWLink)
                         i.remove();
                     // remove all children of nodes or groups, who's parent handles their layout
-                    if (!(c.getParent() instanceof LWMap)) // really: c.isLaidOut()
+                    //if (!(c.getParent() instanceof LWMap)) // really: c.isLaidOut()
+                    // need to allow for in-group components now.
+                    // todo: unser unexpected behaviour if some in-group and some not?
+                    if (c.getParent() instanceof LWNode) // really: c.isLaidOut()
                         i.remove();
                 }
             }
             
             Rectangle2D.Float r = (Rectangle2D.Float) selection.getBounds();
+            //out(selection + " bounds=" + r);
             minX = r.x;
             minY = r.y;
             maxX = r.x + r.width;
@@ -964,8 +996,9 @@ implements VueConstants {
             LWSelection selection = VUE.getSelection();
             //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
-                if (mayModifySelection())
+                if (mayModifySelection()) {
                     selection = (LWSelection) selection.clone();
+                }
                 act(selection);
                 VUE.getActiveViewer().repaintSelection();
             } else {

@@ -430,6 +430,14 @@ public class LWSelection extends java.util.ArrayList
         }
         return true;
     }
+    
+    public boolean allHaveSameParentOfType(Class clazz)
+    {
+        if (size() == 0)
+            return false;
+
+        return allHaveSameParent() && clazz.isInstance(first().getParent());
+    }
 
     public LWComponent[] getArray()
     {

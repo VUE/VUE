@@ -73,7 +73,8 @@ public class TextRow
     }
     
         
-    private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
+    //private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
+    private static final BasicStroke BorderStroke = new BasicStroke(1);
 
     public void draw(Graphics2D g2d, float xoff, float yoff)
     {
@@ -104,9 +105,10 @@ public class TextRow
                 tb.y = -tb.y;
                 tb.y += yoff;
                 tb.y -= tb.height;
-                g2d.setStroke(BorderStroke);
-                g2d.setColor(Color.green);
-                g2d.draw(tb);
+                Graphics2D g = (Graphics2D) g2d.create();
+                g.setStroke(BorderStroke);
+                g.setColor(Color.green);
+                g.draw(tb);
             }
                 
         } else {

@@ -443,6 +443,13 @@ public class LWComponent
         } else
             return getLabel().replace('\n', ' ');
     }
+    
+    String getDiagnosticLabel() {
+        if (getLabel() == null) {
+            return getUniqueComponentTypeLabel();
+        } else
+            return getUniqueComponentTypeLabel() + ": " + getLabel().replace('\n', ' ');
+    }
 
     /** return a guaranteed unique name for this LWComponent */
     public String getUniqueComponentTypeLabel() {
@@ -685,6 +692,11 @@ public class LWComponent
     public boolean isTransparent()
     {
         return fillColor == null || fillColor.getAlpha() == 0;
+    }
+    
+    public boolean isTranslucent()
+    {
+        return fillColor == null || fillColor.getAlpha() != 1;
     }
     
     /** Color to use at draw time.
@@ -1037,7 +1049,6 @@ public class LWComponent
         return list;
     }
     
-    //needed for pathways to access a node's links - jay briedis
     // todo: this same as getLinkRefs
     public List getLinks(){
         return this.links;
@@ -1690,9 +1701,12 @@ public class LWComponent
         return this.rollover;
     }
 
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
-        return excluded == this ? null : this;
+        if (ignoreSelected && isSelected())
+            return null;
+        else
+            return excluded == this ? null : this;
     }
 
 

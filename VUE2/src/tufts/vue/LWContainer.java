@@ -671,10 +671,18 @@ public abstract class LWContainer extends LWComponent
      * above code due to recursive usage.
      */
 
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded) {
+        return findDeepestChildAt(mapX, mapY, excluded, false);
+    }
+    public LWComponent findDeepestChildAt(float mapX, float mapY, boolean ignoreSelected) {
+        return findDeepestChildAt(mapX, mapY, null, ignoreSelected);
+    }
+    
     /**
      * Find deepest child at mapX, mapY.  May return this component.
      */
-    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
+
+    public LWComponent findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
         if (DEBUG.CONTAINMENT) {
             System.out.print("LWContainer.findDeepestChildAt[" + toName() + "]");
@@ -684,7 +692,7 @@ public abstract class LWContainer extends LWComponent
             if (focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
         }
 
-        LWComponent found = _findDeepestChildAt(mapX, mapY, excluded);
+        LWComponent found = _findDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
 
         if (DEBUG.CONTAINMENT) {
             if (found == this)
@@ -698,13 +706,13 @@ public abstract class LWContainer extends LWComponent
         return found;
     }
     
-    private LWComponent _findDeepestChildAt(float mapX, float mapY, LWComponent excluded)
+    private LWComponent _findDeepestChildAt(float mapX, float mapY, LWComponent excluded, boolean ignoreSelected)
     {
         // TODO: change this gross focusComponent hack to a cleaner special case:
         // have the entire LWMap maintain a list of all the current focus components,
         // (the deepest + all it's parents) and always check that first & no matter what
         if (focusComponent != null && focusComponent.contains(mapX, mapY))
-            return focusComponent.findDeepestChildAt(mapX, mapY, excluded);
+            return focusComponent.findDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
         
         // hit detection must traverse list in reverse as top-most
         // components are at end
@@ -714,6 +722,8 @@ public abstract class LWContainer extends LWComponent
         for (ListIterator i = children.listIterator(children.size()); i.hasPrevious();) {
             LWComponent c = (LWComponent) i.previous();
             if (c == excluded)
+                continue;
+            if (ignoreSelected && c.isSelected())
                 continue;
             if (c.isHidden())
                 continue;
@@ -730,10 +740,10 @@ public abstract class LWContainer extends LWComponent
                 // opposed for checking the parent bounds below before
                 // we bother to look within the container.
                 if (container.focusComponent != null && container.focusComponent.contains(mapX, mapY))
-                    return container.focusComponent.findDeepestChildAt(mapX, mapY, excluded);
+                    return container.focusComponent.findDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
             }
             if (c.contains(mapX, mapY))
-                return c.findDeepestChildAt(mapX, mapY, excluded);
+                return c.findDeepestChildAt(mapX, mapY, excluded, ignoreSelected);
         }
         // we check curved links last because they can take up so much
         // hit-space (the entire interior of their arc)

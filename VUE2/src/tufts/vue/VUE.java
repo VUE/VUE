@@ -398,7 +398,9 @@ public class VUE
     private static boolean nodr = false;
     
     public static void main(String[] args) {
-        System.out.println("VUE:main");
+        System.out.println("VUE: main");
+        System.out.println("VUE: build: " + tufts.vue.Version.AllInfo);
+        //System.out.println("VUE: fully built: " + build.version.AllInfo);
         parseArgs(args);
         
         // initUI installs the VueTheme (unless mac look), which must be done
@@ -412,8 +414,6 @@ public class VUE
         else
             splashScreen = new SplashScreen();
 
-        System.out.println("VUE: fully built: " + tufts.vue.Version.BuildDay);
-        
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------

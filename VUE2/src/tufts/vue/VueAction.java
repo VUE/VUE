@@ -207,6 +207,10 @@ public class VueAction extends javax.swing.AbstractAction
         System.err.println("Unhandled VueAction: " + getActionName());
     }
 
+    protected void out(String s) {
+        System.out.println(this + ": " + s);
+    }
+
     public String toString() { return "VueAction[" + getActionName() + "]"; }
 }
 

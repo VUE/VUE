@@ -54,9 +54,9 @@ public class AboutAction extends AbstractAction
         String debugInfo = "";
         if (tufts.vue.DEBUG.Enabled)
             debugInfo = "<br>&nbsp;&nbsp;&nbsp;"
-                + Version.BuildTime + "/"
-                + Version.BuildUser + "/"
-                + Version.BuildPlatform;
+                + Version.Time + "/"
+                + Version.User + "/"
+                + Version.Platform;
         
         JLabel jtf = new JLabel("<html><font color = \"#20316A\"> <br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Developed by Tufts Academic Technology<br>"
@@ -64,7 +64,7 @@ public class AboutAction extends AbstractAction
                                 + "&nbsp;&nbsp;&nbsp;Copyright &copy; 2004 MIT University<br>"
                                 + "&nbsp;&nbsp;&nbsp;All Rights Reserved<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;Version 0.9+ <br>"
-                                + "&nbsp;&nbsp;&nbsp;Built " + Version.BuildDay
+                                + "&nbsp;&nbsp;&nbsp;Built " + Version.Date
                                 + debugInfo
                                 + "<br><br>"
                                 + "&nbsp;&nbsp;&nbsp;<u>http://vue.tccs.tufts.edu</u><br>"

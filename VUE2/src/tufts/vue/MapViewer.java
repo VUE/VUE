@@ -1250,6 +1250,7 @@ public class MapViewer extends javax.swing.JComponent
         if (indication != c) {
             clearIndicated();
             indication = c;
+            if (DEBUG.PARENTING) out("indication  set  to " + c);
             //c.setIndicated(true);
             if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
                 repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
@@ -1264,6 +1265,7 @@ public class MapViewer extends javax.swing.JComponent
                 repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
             else
                 repaintMapRegion(indication.getBounds());
+            if (DEBUG.PARENTING) out("clearing indication " + indication);
             indication = null;
         }
     }
@@ -1555,7 +1557,7 @@ public class MapViewer extends javax.swing.JComponent
     
     public void paintComponent(Graphics g)
     {
-        isScaleDraw = false;
+        //isScaleDraw = false;
         Graphics2D g2 = (Graphics2D) g;
         
         /*
@@ -1579,8 +1581,7 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
         
-        DrawContext dc = new DrawContext(g2, getZoomFactor());
-        
+        DrawContext dc = new DrawContext(g2, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds());
         dc.setAntiAlias(DEBUG_ANTI_ALIAS);
         dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
         dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
@@ -1591,21 +1592,9 @@ public class MapViewer extends javax.swing.JComponent
         // adjust GC for pan & zoom
         //-------------------------------------------------------
         
-        setScaleDraw(g2);
-        
-        if (DEBUG_SHOW_ORIGIN) {
-            g2.setStroke(STROKE_ONE);
-            g2.setColor(Color.lightGray);
-            g2.draw(Xaxis);
-            g2.draw(Yaxis);
-            if (mZoomFactor >= 6.0) {
-                dc.setAbsoluteStroke(1);
-                g2.setColor(Color.black);
-                g2.draw(Xaxis);
-                g2.draw(Yaxis);
-            }
-        }
-        
+        //setScaleDraw(g2);
+        dc.setMapDrawing();
+
         //-------------------------------------------------------
         // DRAW THE MAP
         //
@@ -1620,6 +1609,24 @@ public class MapViewer extends javax.swing.JComponent
         //-------------------------------------------------------
         
         activeTool.handleDraw(dc, this.map);
+        
+        dc.setMapDrawing();
+        if (DEBUG_SHOW_ORIGIN) {
+            out("DRAWING ORIGIN");
+            // why isn't this working anymore?  was just after fill, but
+            // now that tool does fill, we have to do on top, but can't
+            // see it...
+            g2.setStroke(STROKE_ONE);
+            g2.setColor(Color.lightGray);
+            g2.draw(Xaxis);
+            g2.draw(Yaxis);
+            if (mZoomFactor >= 6.0) {
+                dc.setAbsoluteStroke(1);
+                g2.setColor(Color.black);
+                g2.draw(Xaxis);
+                g2.draw(Yaxis);
+            }
+        }
         
         /*
         if (dragComponent != null) {
@@ -1651,7 +1658,8 @@ public class MapViewer extends javax.swing.JComponent
         if (indication != null)
             drawIndication(dc);
 
-        setRawDraw(dc.g);
+        dc.setRawDrawing();
+        //setRawDraw(dc.g);
         
         //-------------------------------------------------------
         // draw the dragged selector box
@@ -1956,6 +1964,7 @@ public class MapViewer extends javax.swing.JComponent
      */
     
     // todo: move all this code to LWSelection?
+    // todo perf: way too much calculation here for every draw: do some on selection change?
     private void drawSelection(DrawContext dc) {
         Graphics2D g2 = dc.g;
         g2.setColor(COLOR_SELECTION);
@@ -1977,7 +1986,8 @@ public class MapViewer extends javax.swing.JComponent
         // draw ghost shapes
         //-------------------------------------------------------
 
-        setScaleDraw(g2);
+        //setScaleDraw(g2);
+        dc.setMapDrawing();
 
         it = VueSelection.iterator();
         //g2.setStroke(new BasicStroke((float) (STROKE_HALF.getLineWidth() * mZoomInverse)));
@@ -2010,7 +2020,8 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
         
-        setRawDraw(g2);
+        dc.setRawDrawing();
+        //setRawDraw(g2);
         
         g2.setStroke(STROKE_SELECTION);
         //g2.setComposite(AlphaComposite.Src);
@@ -2050,7 +2061,7 @@ public class MapViewer extends javax.swing.JComponent
                 g2.draw(mapSelectionBounds);
             } else {
                 // Only one in selection:
-                // Special case to keep control handles out of way of node icons
+                // SPECIAL CASE to keep control handles out of way of node icons
                 // when node is scaled way down:
                 if (VueSelection.first().getScale() < 0.6) {
                     final float grow = SelectionHandleSize/2;
@@ -2066,14 +2077,15 @@ public class MapViewer extends javax.swing.JComponent
             //if (!sDragUnderway)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
             
-            //if (activeTool != PathwayTool) {
+            boolean groupies = VueSelection.allHaveSameParentOfType(LWGroup.class);
+            
             setSelectionBoxResizeHandles(mapSelectionBounds);
             resizeControl.active = true;
             for (int i = 0; i < resizeControl.handles.length; i++) {
                 LWSelection.ControlPoint cp = resizeControl.handles[i];
-                drawSelectionHandleCentered(g2, cp.x, cp.y, cp.getColor());
+                drawSelectionHandleCentered(g2, cp.x, cp.y,
+                                            groupies ? COLOR_SELECTION : cp.getColor());
             }
-            //}
         }
         
         //if (sDragUnderway) return;
@@ -2092,9 +2104,9 @@ public class MapViewer extends javax.swing.JComponent
                 if (cp == null)
                     continue;
                 drawSelectionHandleCentered(g2,
-                mapToScreenX(cp.x),
-                mapToScreenY(cp.y),
-                cp.getColor());
+                                            mapToScreenX(cp.x),
+                                            mapToScreenY(cp.y),
+                                            cp.getColor());
             }
         }
         //}
@@ -2131,6 +2143,7 @@ public class MapViewer extends javax.swing.JComponent
     // Helper methods for keeping us scaled the way we want.
     // Assumes we only ever work with a single GC per cycle.
     // todo: cleaner: do with saving & restoring current transform
+    /*
     private boolean isScaleDraw = false;
     private AffineTransform savedTransform;
     private void setScaleDraw(Graphics2D g) {
@@ -2149,13 +2162,15 @@ public class MapViewer extends javax.swing.JComponent
             isScaleDraw = false;
         }
     }
+    */
 
     private void drawIndication(DrawContext dc)
     {
         if (indication == null)
             return;
         
-        setScaleDraw(dc.g);
+        dc.setMapDrawing();
+        //setScaleDraw(dc.g);
         double minStroke = STROKE_SELECTION.getLineWidth() * 2 * mZoomInverse;
         if (indication.getStrokeWidth() > minStroke)
             dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
@@ -2200,8 +2215,10 @@ public class MapViewer extends javax.swing.JComponent
         // will have poor to no contrast if it's over the selection color --
         // e.g., a link connection point at the edge of node who at the moment
         // happens to be selected and has a border.
-        g.setColor(COLOR_SELECTION);
-        g.draw(SelectionHandle);
+        if (!COLOR_SELECTION.equals(fillColor)) {
+            g.setColor(COLOR_SELECTION);
+            g.draw(SelectionHandle);
+        }
     }
     
     static final float sMinSelectEdge = SelectionHandleSize * 2;
@@ -3574,25 +3591,38 @@ public class MapViewer extends javax.swing.JComponent
                 //-------------------------------------------------------
                 // vanilla drag -- check for node drop onto another node
                 //-------------------------------------------------------
+
+                // TODO: this code needs major cleanup, and needs to be made
+                // container general instead of node specific.
                 
                 LWComponent over = null;
+                /*
                 LWComponent dragLWC = null;
                 if (dragComponent instanceof LWGroup) {
                     // dragComponent is (always?)) a LWGroup these days...
                     LWGroup group = (LWGroup) dragComponent;
                     if (group.getChildList().size() == 1)
                         dragLWC = (LWComponent) group.getChildList().get(0);
-                } 
+                }
                 if (dragLWC == null)
                     over = getMap().findLWNodeAt(mapX, mapY);
                 else
                     over = getMap().findDeepestChildAt(mapX, mapY, dragLWC);
+                */
+                // is ignoreSelected good enough because possible children of
+                // a dragged object are not selected?
+                over = getMap().findDeepestChildAt(mapX, mapY, true);
+                
                 if (indication != null && indication != over) {
                     //repaintRegion.add(indication.getBounds());
                     clearIndicated();
                 }
-                if (over != null && isValidParentTarget(over)) {
-                    setIndicated(over);
+                if (over != null) {
+                    if (isValidParentTarget(over))
+                        setIndicated(over);
+                    else if (isValidParentTarget(over.getParent()))
+                        setIndicated(over.getParent());
+                        
                     //repaintRegion.add(over.getBounds());
                 }
             }
@@ -3727,8 +3757,9 @@ public class MapViewer extends javax.swing.JComponent
             else if (activeTool.handleMouseReleased(mme)) {
                 repaint();
             }
-            else if (mouseWasDragged && (indication == null || indication instanceof LWNode)) {
-                checkAndHandleNodeDropReparenting();
+            else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
+                if (!e.isShiftDown())
+                    checkAndHandleDroppedReparenting();
             }
             
             // special case event notification for any other viewers
@@ -3830,6 +3861,72 @@ public class MapViewer extends javax.swing.JComponent
          * Take what's in the selection and drop it on the current indication,
          * or on the map if no current indication.
          */
+        private void checkAndHandleDroppedReparenting() {
+            //-------------------------------------------------------
+            // check to see if any things could be dropped on a new parent
+            // This got alot more complicated adding support for
+            // dropping whole selections of components, especially
+            // if there are embedded children selected.
+            //-------------------------------------------------------
+            
+            LWContainer parentTarget;
+            if (indication == null)
+                parentTarget = getMap();
+            else
+                parentTarget = (LWContainer) indication;
+            
+            java.util.List moveList = new java.util.ArrayList();
+            java.util.Iterator i = VueSelection.iterator();
+            while (i.hasNext()) {
+                LWComponent droppedChild = (LWComponent) i.next();
+                // don't reparent links
+                if (droppedChild instanceof LWLink)
+                    continue;
+                // can only pull something out of group via ungroup
+                //if (droppedChild.getParent() instanceof LWGroup)
+                //  continue; // not with new "page" groups
+                // don't do anything if parent might be reparenting
+                if (droppedChild.getParent().isSelected())
+                    continue;
+                // todo: actually re-do drop if anything other than map so will re-layout
+                if (
+                    (droppedChild.getParent() != parentTarget || parentTarget instanceof LWNode) &&
+                    droppedChild != parentTarget) {
+                    //-------------------------------------------------------
+                    // we were over a valid NEW parent -- reparent
+                    //-------------------------------------------------------
+                    if (DEBUG.PARENTING)
+                        System.out.println("*** REPARENTING " + droppedChild + " as child of " + parentTarget);
+                    moveList.add(droppedChild);
+                }
+            }
+            
+            // okay -- what we want is to tell the parent we're moving
+            // from to remove them all at once -- the problem is our
+            // selection could contain components of multiple parents.
+            // So we have to handle each source parent seperately, and
+            // remove all it's children at once -- this is so the
+            // parent won't re-lay itself out (call layout()) while
+            // removing children, because if does it will re-set the
+            // position of other siblings about to be removed back to
+            // the parent's layout spot from the draggeed position
+            // they currently occupy and we're trying to move them to.
+            
+            java.util.HashSet parents = new java.util.HashSet();
+            i = moveList.iterator();
+            while (i.hasNext()) {
+                LWComponent c = (LWComponent) i.next();
+                parents.add(c.getParent());
+            }
+            java.util.Iterator pi = parents.iterator();
+            while (pi.hasNext()) {
+                LWContainer parent = (LWContainer) pi.next();
+                if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
+                parent.reparentTo(parentTarget, moveList.iterator());
+                //parent.removeChildren(moveList.iterator());
+            }
+        }
+        
         private void checkAndHandleNodeDropReparenting() {
             //-------------------------------------------------------
             // check to see if any things could be dropped on a new parent
@@ -4033,6 +4130,8 @@ public class MapViewer extends javax.swing.JComponent
          * Make sure we don't create any loops
          */
         public boolean isValidParentTarget(LWComponent parentTarget) {
+            if (parentTarget == null)
+                return false;
             //if (dragComponent == draggedSelectionGroup && parentTarget.isSelected())
             if (parentTarget.isSelected())
                 // meaning it's in the dragged selection, so it can never be a drop target
@@ -4041,7 +4140,7 @@ public class MapViewer extends javax.swing.JComponent
                 return false;
             if (parentTarget.getParent() == dragComponent)
                 return false;
-            if (parentTarget instanceof LWContainer == false)
+            if (parentTarget instanceof LWContainer == false || parentTarget instanceof LWMap)
                 return false;
             return true;
         }

@@ -601,8 +601,6 @@ public abstract class VueTool extends AbstractAction
         if (parent != null)
             parent.setSelectedSubTool(this);
 
-        this.handleToolSelection();
-		
         if (parent != null)
             parent.handleToolSelection();
 

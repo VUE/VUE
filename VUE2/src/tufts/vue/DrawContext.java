@@ -22,37 +22,54 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 
 public class DrawContext
 {
-    // consider getting rid of all the methods and make all the members final.
     public final Graphics2D g;
     public final double zoom;
+    private final float offsetX;
+    private final float offsetY;
+    
     private int index;
     private boolean disableAntiAlias = false;
     private boolean isPrinting = false;
     private boolean isDraftQuality = false;
     private boolean isBlackWhiteReversed = false;
+    private Rectangle frame;
 
     private VueTool activeTool;
-    // tracking the active tool for conditional drawing would probably be
-    // better handled through a more comprehensive tool architecture,
-    // that gave the active tool chances to draw whatever it wants
-    // at 4 different points: under everything, over everything,
-    // under the selected object and over the selected object.
 
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
     // that grabs transform scale value.
-    
-    public DrawContext(Graphics2D g, double zoom)
+
+    public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame)
     {
-        this.g = g;
+        this.g = (Graphics2D) g;
         this.zoom = zoom;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.frame = frame;
     }
-    public DrawContext(Graphics2D g)
+    
+    public DrawContext(Graphics g, double zoom)
+    {
+        this(g, zoom, 0, 0, null);
+    }
+    public DrawContext(Graphics g)
     {
         this(g, 1.0);
+    }
+
+    /*
+    public setFrame(Rectangle frame) {
+        this.frame = frame;
+    }
+    */
+    public Rectangle getFrame() {
+        return new Rectangle(frame);
     }
 
     public void setActiveTool(VueTool tool) {
@@ -99,10 +116,10 @@ public class DrawContext
             setAntiAlias(false);
     }
 
-    /** passthru to Graphcs.setColor.  This method available for override */
+    /* passthru to Graphcs.setColor.  This method available for override 
     public void setColor(Color c) {
         g.setColor(c);
-    }
+    }*/
         
     public void setAntiAlias(boolean on)
     {
@@ -156,6 +173,32 @@ public class DrawContext
         return this.index;
     }
 
+    private boolean inMapDraw = false;
+    private AffineTransform savedTransform;
+    /** set up for drawing a model: adjust to the current zoom and offset.
+     * MapViewer, MapPanner, VueTool, etc, to use.*/
+    // todo: change to single setMapDrawing(boolean)
+    public void setMapDrawing() {
+        if (!inMapDraw) {
+            savedTransform = g.getTransform();
+            g.translate(offsetX, offsetY);
+            g.scale(zoom, zoom);
+            //System.out.println("DC SCALE TO " + zoom);
+            //System.out.println("DC SCALE TO " + g.getTransform());
+            inMapDraw = true;
+        }
+    }
+    public void setRawDrawing() {
+        if (inMapDraw) {
+            if (savedTransform == null)
+                throw new IllegalStateException("attempt to revert to raw draw in a derivative DrawContext");
+            //System.out.println("DC REVER TO " + savedTransform);
+            g.setTransform(savedTransform);
+            inMapDraw = false;
+        }
+    }
+    
+
     public DrawContext create()
     {
         return new DrawContext(this);
@@ -165,12 +208,16 @@ public class DrawContext
     {
         this.g = (Graphics2D) dc.g.create();
         this.zoom = dc.zoom;
+        this.offsetX = dc.offsetX;
+        this.offsetY = dc.offsetY;
         this.disableAntiAlias = dc.disableAntiAlias;
         this.index = dc.index;
         this.isPrinting = dc.isPrinting;
         this.isDraftQuality = dc.isDraftQuality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.activeTool = dc.activeTool;
+        this.inMapDraw = dc.inMapDraw;
+        this.frame = dc.frame;
     }
 
 
