@@ -61,6 +61,10 @@ public interface LWKey {
     /** link arrow state: 0=none, 1=start arrow, 2=end arrow, 3=both arrows */
     public String LinkArrows = "link.arrows";
     /** link curve state: 0=straight, 1=1 control point (Quadric), 2=2 control points (Cubic) */
-    public String LinkCurves = "link.curves"; 
+    public String LinkCurves = "link.curves";
+
+    /* the map filter has changed somehow */
+    public String MapFilter = "map.filter"; 
+    
     
 }

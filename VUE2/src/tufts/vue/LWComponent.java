@@ -255,17 +255,15 @@ public class LWComponent
    
     
     /**
-     * setIsFiltered
-     * This sets teh flag for the component so that it is either
+     * This sets the flag for the component so that it is either
      * hidden or visible based on a match to the active LWCFilter
      **/
-    public void setIsFiltered( boolean pState) {
+    public void setIsFiltered(boolean pState) {
     	mIsFiltered = pState;
     }
     
     /**
-     * isFiltered
-     * @return true - if should be hidden; false if not
+     * @return true if should be hidden due to a currently applied filter, false if not
      **/
     public boolean isFiltered() {
     	return mIsFiltered;

@@ -173,15 +173,38 @@ public class LWMap extends LWContainer
     public LWCFilter getLWCFilter() {
         return mLWCFilter;
     }
-    
+
+    /** @return true if this map currently conditionally displaying
+     * it's components based on a filter */
+    public boolean isCurrentlyFiltered() {
+        return mLWCFilter != null && mLWCFilter.isFilterOn() && mLWCFilter.hasPersistentAction();
+    }
+
     /**
-     * setLWCFilter
      * This sets the LWC Filter to filter out node and link componenets.
-     * @param LWCFilter - the filter
+     * This should be anytime the filtering is to change, even if we 
+     * already have our filter set to to the given filter.  We will
+     * apply / clear as appropriate to the state of the filter.
+     * @param LWCFilter the filter to install and/or update against
      **/
-    public void setLWCFilter(LWCFilter pFilter) {
-        out("setLWCFilter: " + pFilter);
-        mLWCFilter = pFilter;
+    public void setLWCFilter(LWCFilter filter) {
+        out("setLWCFilter: " + filter);
+        mLWCFilter = filter;
+        if (filter == null || filter.isFilterOn() == false) {
+            clearFilter();
+        } else {
+            filter.applyFilter();
+        }
+        notify(LWKey.MapFilter); // not currently undoable
+    }
+
+    private void clearFilter() {
+        Iterator i = getAllDescendentsIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setIsFiltered(false);
+            c.layout();
+        }
     }
     
     /**
@@ -479,12 +502,15 @@ public class LWMap extends LWContainer
         // consider flushing bounds if layout() called also (any child layout bubbles up to us)
         // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
         String what = e.getWhat();
-        if (what != LWKey.Repaint && what != LWKey.Scale) {
+        if (what == LWKey.Repaint || what == LWKey.Scale) {
+            // nop            
+            ;
             // repaint is for non-permanent changes.
             // scale sets not considered modifications as they can
             // happen do to rollover -- any time a scale happens
             // otherwise will be in conjunction with a reparenting
             // event, and so we'll detect the change that way.
+        } else {
             markChange(e);
         }
         super.notifyLWCListeners(e);

@@ -640,9 +640,14 @@ public class VUE
                 while (i.hasNext())
                     ((ActiveViewerListener)i.next()).activeViewerChanged(viewer);
                 if (oldActiveMap != ActiveViewer.getMap()) {
+                    LWMap activeMap = viewer.getMap();
                     i = sActiveMapListeners.iterator();
-                    while (i.hasNext())
-                        ((ActiveMapListener)i.next()).activeMapChanged(viewer.getMap());
+                    out("ActiveMap set to " + activeMap);
+                    while (i.hasNext()) {
+                        ActiveMapListener aml = (ActiveMapListener) i.next();
+                        if (DEBUG.EVENTS) out("activeMapChanged -> " + aml);
+                        aml.activeMapChanged(activeMap);
+                    }
                 }
             }
         } else {

@@ -618,25 +618,23 @@ implements  VUE.ActiveMapListener {
          * @param the LWMap
          **/
         public void updatePanel( LWMap pMap) {
-            boolean hasMap = pMap != null;
+            boolean hasMap = (pMap != null);
+            
             mFilterButton.setEnabled(hasMap);
             mClearFilterButton.setEnabled( hasMap);
             mMoreButton.setEnabled( hasMap);
             mFewerButton.setEnabled( hasMap);
             
             if (hasMap) {
-                if(pMap.getLWCFilter() == null) {
-                    mFilter = new LWCFilter(pMap);     
+                if (pMap.getLWCFilter() == null) {
+                    mFilter = new LWCFilter(pMap);
                     pMap.setLWCFilter(mFilter);
-                }   else 
+                } else 
                     mFilter = pMap.getLWCFilter();
-            }else{
+            } else {
                 mFilter = new LWCFilter();
                 return;
             }
-            
-            
-            
             
             if(mFilter.getStatements() == null) {
                 mFilter.setStatements(new Vector());
@@ -695,28 +693,25 @@ implements  VUE.ActiveMapListener {
             return filter;
         }
         
+        /** Enabled the current filter, and tell the map of a filter change */
         public void applyFilter() {
             mFilter = makeFilter();
-            if( mMap != null) {
-                mMap.setLWCFilter( mFilter);
-                mFilter.applyFilter();
-                mMap.setIsFiltered(true);
+            if (mMap != null) {
+                mFilter.setFilterOn(true);
+                mMap.setLWCFilter(mFilter);
             }
         }
         
+        /** Disable the current filter, and tell the map of a filter change */
         public void clearFilter() {
-            
-            if( mMap == null)
+            if (mMap == null)
                 return;
-            java.util.List list = mMap.getAllDescendents();
-            
-            Iterator it = list.iterator();
-            while (it.hasNext()) {
-                LWComponent c = (LWComponent) it.next();
-                c.setIsFiltered( false);
+            if (mFilter == null) {
+                mMap.setLWCFilter(null);
+            } else {
+                mFilter.setFilterOn(false);
+                mMap.setLWCFilter(mFilter);
             }
-            mMap.notify( this, "repaint");
-           mMap.setIsFiltered(false);
         }
         
         public void addStatement() {

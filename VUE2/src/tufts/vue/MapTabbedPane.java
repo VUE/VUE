@@ -102,6 +102,8 @@ public class MapTabbedPane extends JTabbedPane
         String title = map.getLabel();
         if (title.toLowerCase().endsWith(".vue") && title.length() > 4)
             title = title.substring(0, title.length() - 4);
+        if (map.isCurrentlyFiltered())
+            title += "*";
         return title;
     }
 
@@ -186,7 +188,7 @@ public class MapTabbedPane extends JTabbedPane
         }
         addTab(viewerToTabTitle(viewer), c);
         LWMap map = viewer.getMap();
-        map.addLWCListener(this, LWKey.Label);
+        map.addLWCListener(this, new Object[] { LWKey.MapFilter, LWKey.Label } );
         // todo perf: we should be able to ask to listen only
         // for events from this object directly (that we don't
         // care to hear from it's children), and even that

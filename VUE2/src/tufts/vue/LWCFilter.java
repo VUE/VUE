@@ -84,7 +84,7 @@ public class LWCFilter {
     private boolean mIsLogicalNot = false;
     
     /** is the map filter currenlty on **/
-    boolean mIsFilterOn = true;
+    boolean mIsFilterOn = false;
     
     /** LWMap **/
     private LWMap mMap = null;
@@ -141,6 +141,14 @@ public class LWCFilter {
      **/
     public boolean isFilterOn() {
         return mIsFilterOn;
+    }
+
+    /** @return true if the action of this filter has a persistent effect on the map
+     * e.g.: SHOW/HIDE are persistent in that items remained in a changed state as long
+     * as the filter is in effect, where as the SELECT action has no persistent effect:
+     * it's just a one-time change of the selection */
+    public boolean hasPersistentAction() {
+        return mFilterAction != ACTION_SELECT;
     }
     
     public void setFilterAction(Object action) {
@@ -272,16 +280,17 @@ public class LWCFilter {
      **/
     public void applyFilter() {
         
-        if( mMap == null) {
+        if( mMap == null)
             return;
-        }
+
+        if (!isFilterOn()) throw new IllegalStateException("attempting to apply filter that is not enabled " + this);
+        
         if (DEBUG) debug("LWCFilter.applyFilter()");
         
         if (getFilterAction() == ACTION_SELECT)
             VUE.getSelection().clear();
         
-        java.util.List list = mMap.getAllDescendents();
-        Iterator it = list.iterator();
+        Iterator it = mMap.getAllDescendentsIterator();
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
             if( (c instanceof LWNode) || (c instanceof LWLink) ) {
@@ -302,10 +311,23 @@ public class LWCFilter {
         }
         
         // repaint
-        mMap.notify(this, "repaint");
+        //mMap.notify(this, "repaint");
         
     }
-    
+
+    /** clear our map of any filtering */
+    /*
+    public void unApplyFilter() {
+        if (mMap == null)
+            return;
+        Iterator it = mMap.getAllDescendentsIterator();
+        while (it.hasNext()) {
+            LWComponent c = (LWComponent) it.next();
+            c.setIsFiltered( false);
+        }
+        mMap.notify(this, "repaint");
+    }
+    */
     
     /**
      * showComponent
