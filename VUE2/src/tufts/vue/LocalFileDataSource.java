@@ -15,14 +15,9 @@ package tufts.vue;
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
- 
-/*
- * LocalFileDataSource.java
- *
- * Created on October 15, 2003, 5:28 PM
  */
-
-
+ 
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.9 2005-03-11 04:58:25 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -42,22 +37,18 @@ import tufts.vue.action.*;
 
 
 /**
- *
  * @author  rsaigal
  */
-
 
 public class LocalFileDataSource extends VueDataSource implements Publishable{
     
     private JComponent resourceViewer;
     
-    public LocalFileDataSource(){
-        
-        
+    public LocalFileDataSource() {        
     }
     
-    public LocalFileDataSource(String displayName, String address) throws DataSourceException{
-        
+    public LocalFileDataSource(String displayName, String address) throws DataSourceException
+    {
         this.setDisplayName(displayName);
         this.setAddress(address);
         
@@ -68,15 +59,45 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         this.setResourceViewer();
     }
 
-    //List getLikelyUserVolumes() {}
-    
-    public void  setResourceViewer(){
-        
+    public void setResourceViewer()
+    {
         Vector cabVector = new Vector();
+        
+        if (getDisplayName().equals("My Computer")) {
+            // This is a bit of a hack, but we need to do this for
+            // now because when the resource viewer saves it's state,
+            // it saves even the defaults (so we can't make this a subclass).
+            installDesktopFolders(cabVector);
+        }
+
+        if (this.getAddress().length() > 0) {
+            osid.shared.Agent agent = null; //  This may cause problems later.
+            LocalCabinet rootNode = new LocalCabinet(this.getAddress(),agent,null);
+            CabinetResource res = new CabinetResource(rootNode);
+            cabVector.add(res);
+        }
+        
+        VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
+        fileTree.setRootVisible(true);
+        fileTree.setShowsRootHandles(true);
+        fileTree.expandRow(0);
+        fileTree.setRootVisible(false);
+        JPanel localPanel = new JPanel();
+        JScrollPane rSP = new JScrollPane(fileTree);
+        localPanel.setMinimumSize(new Dimension(290,100));
+        localPanel.setLayout(new BorderLayout());
+        localPanel.add(rSP,BorderLayout.CENTER);
+        this.resourceViewer = localPanel;
+        DataSourceViewer.refreshDataSourcePanel(this);
+        
+    }
+    
+    private void installDesktopFolders(Vector cabVector)
+    {
         osid.shared.Agent agent = null; //  This may cause problems later.
 
         FileSystemView fsview = FileSystemView.getFileSystemView();
-        
+            
         File home = new File(System.getProperty("user.home"));
         if (home.exists() && home.canRead()) {
             // This might be better handled via addRoot on the LocalFilingManager, but
@@ -128,53 +149,36 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
                 cabVector.add(r);
             }
         }
-        
-        try{
+
+        try {
             LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
-            
-            if (this.getAddress().compareTo("") == 0){
-                LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots();
-                while(rootCabs.hasNext()){
-                    LocalCabinetEntry rootNode = (LocalCabinetEntry)rootCabs.next();
-                    CabinetResource res = new CabinetResource(rootNode);
-                    if (rootNode instanceof LocalCabinet) {
-                        File f = ((LocalCabinet)rootNode).getFile();
-                        try {
-                            if (f.getCanonicalPath().equals("/") && gotSlash)
-                                continue;
-                        } catch (Exception e) {
-                            System.err.println(e);
-                        }
-                        String sysName = fsview.getSystemDisplayName(f);
-                        if (sysName != null)
-                            res.setTitle(sysName);
-                    }
-                    cabVector.add(res);
-                }
-            }
-            // setPublishMode(Publisher.PUBLISH_CMAP);
-            else {
-                LocalCabinet rootNode = new LocalCabinet(this.getAddress(),agent,null);
+                
+            LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots();
+            while(rootCabs.hasNext()){
+                LocalCabinetEntry rootNode = (LocalCabinetEntry)rootCabs.next();
                 CabinetResource res = new CabinetResource(rootNode);
+                if (rootNode instanceof LocalCabinet) {
+                    File f = ((LocalCabinet)rootNode).getFile();
+                    try {
+                        if (f.getCanonicalPath().equals("/") && gotSlash)
+                            continue;
+                    } catch (Exception e) {
+                        System.err.println(e);
+                    }
+                    String sysName = fsview.getSystemDisplayName(f);
+                    if (sysName != null)
+                        res.setTitle(sysName);
+                }
                 cabVector.add(res);
             }
-        }catch (Exception ex) {VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");}
-        
-        VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
-        fileTree.setRootVisible(true);
-        fileTree.setShowsRootHandles(true);
-        fileTree.expandRow(0);
-        fileTree.setRootVisible(false);
-        JPanel localPanel = new JPanel();
-        JScrollPane rSP = new JScrollPane(fileTree);
-        localPanel.setMinimumSize(new Dimension(290,100));
-        localPanel.setLayout(new BorderLayout());
-        localPanel.add(rSP,BorderLayout.CENTER);
-        this.resourceViewer = localPanel;
-        DataSourceViewer.refreshDataSourcePanel(this);
-        
+            // setPublishMode(Publisher.PUBLISH_CMAP);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            VueUtil.alert(null,ex.getMessage(),"Error Setting Reseource Viewer");
+        }
     }
-    
+
+        
     public JComponent getResourceViewer(){
         
         return this.resourceViewer;
