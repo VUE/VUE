@@ -91,6 +91,7 @@ class TriIterator implements PathIterator
         {x + width, y + height},
         {0,0},
     };
+    // upsidedown triangle
     double[][] dCurrentPointUD = {
         {x, y},
         {x + width/2, y + height},
@@ -100,24 +101,26 @@ class TriIterator implements PathIterator
     final int[] segment = { SEG_MOVETO, SEG_LINETO, SEG_LINETO, SEG_CLOSE };
     
     public int currentSegment(double[] coords) { 
-        if (!upsidedown) {
-            coords[0] = dCurrentPoint[index][0];  
-            coords[1] = dCurrentPoint[index][1];
-        } else {
+        if (upsidedown) {
             coords[0] = dCurrentPointUD[index][0];  
             coords[1] = dCurrentPointUD[index][1];
+        } else {
+            coords[0] = dCurrentPoint[index][0];  
+            coords[1] = dCurrentPoint[index][1];
         }
+        //System.out.println("i"+index + " TRI Dcoords=" +coords[0] + "," + coords[1]);
         return segment[index];
     }
 			
     public int currentSegment(float[] coords){ 
-        if (!upsidedown) {
-            coords[0] = (float)dCurrentPoint[index][0];  
-            coords[1] = (float)dCurrentPoint[index][1];
-        } else {
+        if (upsidedown) {
             coords[0] = (float)dCurrentPointUD[index][0];  
             coords[1] = (float)dCurrentPointUD[index][1];
+        } else {
+            coords[0] = (float)dCurrentPoint[index][0];  
+            coords[1] = (float)dCurrentPoint[index][1];
         }
+        //System.out.println("i"+index + " TRI Fcoords=" +coords[0] + "," + coords[1]);
         return segment[index];
     } 
 			
