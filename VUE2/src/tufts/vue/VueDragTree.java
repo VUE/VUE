@@ -21,7 +21,6 @@ import osid.dr.*;
 import javax.swing.tree.*;
 import java.util.Iterator;
 
-
 /**
  *
  * @author  rsaigal
@@ -54,7 +53,17 @@ public class VueDragTree extends JTree implements DragGestureListener,
 			}
 			public void treeExpanded(TreeExpansionEvent e) {
 				TreePath path = e.getPath();
-                              
+                                if(path != null) {
+					FileNode node = (FileNode)
+								   path.getLastPathComponent();
+
+					if( !node.isExplored()) {
+						DefaultTreeModel model = 
+									(DefaultTreeModel)getModel();
+						node.explore();
+						model.nodeStructureChanged(node);
+					}
+				}
 			}
 		});
          
@@ -192,10 +201,6 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
     }
 } 
     
-  
-    
-    
-    
 }
 
 class FileNode extends DefaultMutableTreeNode {
@@ -240,9 +245,7 @@ class FileNode extends DefaultMutableTreeNode {
 
 		if(!isExplored()) {
 			File file = getFile();
-                          
-                        
-			File[] children = file.listFiles();
+                       	File[] children = file.listFiles();
 
 			for(int i=0; i < children.length; ++i) 
 				add(new FileNode(children[i]));
