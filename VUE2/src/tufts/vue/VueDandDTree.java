@@ -58,28 +58,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                                     }
         
  public void drop(DropTargetDropEvent e ) {
-               /*
-        
-                        if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
-                                      if (e.isLocalTransfer()) {
-                                          System.out.println("this could be it");
-                                           e.acceptDrop(DnDConstants.ACTION_MOVE);
-                                      }
-                                      else {
-                                    e.acceptDrop(DnDConstants.ACTION_COPY);
-                                      }
-                                     
-                            } 
-                        else {
-                                if (debug) System.out.println("Dtree: rejecting drop");
-                                    e.rejectDrop();
-                                    return;
-                                }
-                *
-                */
+             
       
-                            if (e.isLocalTransfer()) {
-                                          System.out.println("this could be it");
+                              if (e.isLocalTransfer()) {
+                                         
                                            e.acceptDrop(DnDConstants.ACTION_MOVE);
                                       }
                                       else {
@@ -134,8 +116,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
 
                        FileNode newNode = new FileNode(file);
                        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-                       model.insertNodeInto(newNode, node, 0);             
-                   
+                       model.insertNodeInto(newNode, node, 0);    
+                      
+                       this.expandRow(node.getLevel());
                    
                                                         
                                                 }
@@ -156,7 +139,8 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                        Asset asset = (Asset) iter.next();
                        AssetNode newNode =new  AssetNode(asset);             
                       
-                       model.insertNodeInto(newNode, node, 0);             
+                       model.insertNodeInto(newNode, node, 0);  
+                         this.expandRow(node.getLevel());
               }
                     break;
                 } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
@@ -174,6 +158,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                         DefaultTreeModel model = (DefaultTreeModel)this.getModel();
                         DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(resourceName);
                         model.insertNodeInto(newNode, node, 0);  
+                          this.expandRow(node.getLevel());
                     }
                         break;
                     
