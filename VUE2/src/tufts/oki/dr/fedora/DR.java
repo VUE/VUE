@@ -370,13 +370,16 @@ public class DR implements osid.dr.DigitalRepository {
     
     public Asset getAsset(osid.shared.Id assetId) throws osid.dr.DigitalRepositoryException {
         Condition[] condition = new Condition[1];
+        condition[0] = new Condition();
+        condition[0].setProperty("pid");
+        condition[0].setOperator(ComparisonOperator.eq);
+        
         try {
+            System.out.println("Searching for object ="+assetId.getIdString());
             condition[0].setValue(assetId.getIdString());
         } catch(osid.shared.SharedException ex) {
             throw new osid.dr.DigitalRepositoryException(ex.getMessage());
         }
-        condition[0].setProperty("pid");
-        condition[0].setOperator(ComparisonOperator.eq);
         SearchCriteria searchCriteria = new SearchCriteria();
         searchCriteria.setConditions(condition);
         searchCriteria.setMaxReturns("1");
@@ -426,12 +429,12 @@ public class DR implements osid.dr.DigitalRepository {
     
     public  osid.shared.Id ingest(String fileName,String templateFileName, File file,Properties properties) throws osid.dr.DigitalRepositoryException, java.net.SocketException,java.io.IOException,osid.shared.SharedException,javax.xml.rpc.ServiceException{
         // this part transfers file to a ftp server.  this is required since the content management part of fedora server needs object to be on web server
-        String host = "dl.tccs.tufts.edu";
-        String url = "http://dl.tccs.tufts.edu/~vue/fedora/";
-        int port = 21;
-        String userName = "vue";
-        String password = "vue@at";
-        String directory = "public_html/fedora";
+        String host = FedoraUtils.getFedoraProperty(this,"admin.ftp.address");
+        String url = FedoraUtils.getFedoraProperty(this,"admin.ftp.url");
+        int port = Integer.parseInt(FedoraUtils.getFedoraProperty(this,"admin.ftp.port"));
+        String userName = FedoraUtils.getFedoraProperty(this,"admin.ftp.username");
+        String password = FedoraUtils.getFedoraProperty(this,"admin.ftp.password");
+        String directory = FedoraUtils.getFedoraProperty(this,"admin.ftp.directory");
         FTPClient client = new FTPClient();
         client.connect(host,port);
         client.login(userName,password);
@@ -447,7 +450,7 @@ public class DR implements osid.dr.DigitalRepository {
         String s = new String();
         FileInputStream fis = new FileInputStream(new File(getResource(templateFileName).getFile().replaceAll("%20"," ")));
         //FileInputStream fis = new FileInputStream(new File(templateFileName));
-        DataInputStream in = new DataInputStream(fis);
+        //DataInputStream in = new DataInputStream(fis);
         byte[] buf = new byte[BUFFER_SIZE];
         int ch;
         int len;
@@ -455,7 +458,7 @@ public class DR implements osid.dr.DigitalRepository {
             s = s+ new String(buf);
         }
         fis.close();
-        in.close();
+        //in.close();
         //  s = sb.toString();
         //String r =  s.replaceAll("%file.location%", fileName).trim();
         String r = updateMetadata(s, fileName,file.getName(),properties);
@@ -464,7 +467,7 @@ public class DR implements osid.dr.DigitalRepository {
         FileOutputStream fos = new FileOutputStream(METSfile);
         fos.write(r.getBytes());
         fos.close();
-        AutoIngestor a = new AutoIngestor(address.getHost(), address.getPort(),"fedoraAdmin","fedoraAdmin");
+        AutoIngestor a = new AutoIngestor(address.getHost(), address.getPort(),FedoraUtils.getFedoraProperty(this,"admin.fedora.username"),FedoraUtils.getFedoraProperty(this,"admin.fedora.username"));
         String pid = a.ingestAndCommit(new FileInputStream(METSfile),"Test Ingest");
         System.out.println(" METSfile= " + METSfile.getPath()+" PID = "+pid);
         return new PID(pid);
@@ -475,7 +478,6 @@ public class DR implements osid.dr.DigitalRepository {
         s = s.replaceAll("%file.location%", fileLocation).trim();
         s = s.replaceAll("%file.title%", fileTitle).trim();
         s = s.replaceAll("%dc.Metadata%", getMetadataString(dcFields));
-        System.out.println("METADATA ==== "+getMetadataString(dcFields)+"\n SIZE="+dcFields.size());
         return s;
         
     }
