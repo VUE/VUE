@@ -68,6 +68,7 @@ public final class LWGroup extends LWContainer
             // If both ends of any link are in the selection,
             // also add those links as children of the group.
             //-------------------------------------------------------
+            // todo: need to check all descendents: LWContainer.getAllDescedents
             Iterator li = c.getLinkRefs().iterator();
             //todo: need to recursively check children for link refs also
             while (li.hasNext()) {

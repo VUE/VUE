@@ -338,7 +338,20 @@ public abstract class LWContainer extends LWComponent
         }
         return list;
     }
-
+    
+    public java.util.List getAllDescendents()
+    {
+        java.util.List list = new java.util.ArrayList();
+        list.addAll(children);
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c instanceof LWContainer)
+                list.addAll(((LWContainer)c).getAllDescendents());
+        }
+        return list;
+    }
+    
     /**
      * Only called AFTER we've determined that mapX, mapY already
      * lie within the bounds of this LWComponent via contains(x,y)

@@ -1022,6 +1022,7 @@ public class MapViewer extends javax.swing.JPanel
         if (cPopup == null) {
             cPopup = new JPopupMenu("Item Menu");
             cPopup.add(Actions.Rename);
+            cPopup.add(Actions.Duplicate);
             cPopup.addSeparator();
             cPopup.add(Actions.Group);
             cPopup.add(Actions.Ungroup);
@@ -1198,7 +1199,9 @@ public class MapViewer extends javax.swing.JPanel
             }
 
 
-            if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+            // BUTTON1_DOWN_MASK Doesn't appear to be getting set in mac Java 1.4!
+            //if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+            if (e.isShiftDown()) {
                 // display debugging features
                 char c = e.getKeyChar();
                 boolean did = true;
@@ -1218,8 +1221,10 @@ public class MapViewer extends javax.swing.JPanel
                     DEBUG_FINDPARENT_OFF = !DEBUG_FINDPARENT_OFF;
                 } else
                     did = false;
-                if (did)
+                if (did) {
+                    System.err.println("MapViewer diagnostic '" + c + "' toggled.");
                     repaint();
+                }
             }
         }
         

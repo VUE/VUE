@@ -23,8 +23,8 @@ import java.awt.geom.Rectangle2D;
  */
 
 public class LWComponent
-    implements MapItem,
-               VueConstants
+    implements MapItem
+               ,VueConstants
 {
     public interface Listener extends java.util.EventListener
     {
@@ -152,6 +152,29 @@ public class LWComponent
     public LWComponent()
     {
         //System.out.println(Integer.toHexString(hashCode()) + " LWComponent construct of " + getClass().getName());
+    }
+
+    /** Create a component with a duplicate style.
+     * Does not duplicate any links to this component
+     */
+    public LWComponent duplicate()
+    {
+        LWComponent c = null;
+
+        try {
+            c = (LWComponent) getClass().newInstance();
+        } catch (Exception e) {
+            System.err.println(e);
+            return null;
+        }
+        c.setLabel(getLabel());
+        c.setFillColor(getFillColor());
+        c.setTextColor(getTextColor());
+        c.setStrokeColor(getStrokeColor());
+        c.setStrokeWidth(getStrokeWidth());
+        c.setFont(getFont());
+        c.scale = scale;
+        return c;
     }
     
     public Color getFillColor()
@@ -377,7 +400,9 @@ public class LWComponent
             else if (l.getComponent2() != this) // todo opt: remove extra check eventually
                 list.add(l.getComponent2());
             else
+                // todo: actually, I think we want to support these
                 throw new IllegalStateException("link to self on " + this);
+            
         }
         return list;
     }

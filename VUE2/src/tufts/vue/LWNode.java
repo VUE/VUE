@@ -74,6 +74,14 @@ public class LWNode extends LWContainer
         setNodeShape(StandardShapes[shapeType]);
     }
 
+    // create a duplicate style
+    public LWComponent duplicate()
+    {
+        LWNode node = (LWNode) super.duplicate();
+        node.setNodeShape(getNodeShape());
+        return node;
+    }
+    
     /** for save/restore only */
     public LWNode()
     {

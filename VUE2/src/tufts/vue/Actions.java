@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.util.Iterator;
+import java.util.List;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
@@ -55,19 +56,42 @@ class Actions {
     static final Action Cut =
         new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
             void Xact(LWComponent c) {
-                
             }
         };
     static final Action Copy =
         new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
             void Xact(LWComponent c) {
-                
             }
         };
     static final Action Paste =
         new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
             void Xact(LWComponent c) {
-                
+            }
+        };
+
+    static final Action Duplicate =
+        // todo: call this duplicate?
+        new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
+            List newCopies = new java.util.ArrayList();
+            boolean mayModifySelection() { return true; }
+            boolean enabledFor(LWSelection l)
+            {
+                return l.size() > 0 && !l.allOfType(LWLink.class);
+            }
+            void act(Iterator i) {
+                newCopies.clear();
+                super.act(i);
+                VUE.ModelSelection.setTo(newCopies.iterator());
+            }
+            void act(LWComponent c) {
+                // doesn't currently make sense to duplicate links seperately
+                // -- will need to handle via LWContainer duplicate
+                if (c instanceof LWLink)
+                    return;
+                LWComponent copy = c.duplicate();
+                copy.setLocation(c.getX()+10, c.getY()+10);
+                c.getParent().addChild(copy);
+                newCopies.add(copy);
             }
         };
 

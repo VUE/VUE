@@ -335,6 +335,7 @@ public class VUE
         editMenu.add(Actions.NewNode);
         editMenu.add(Actions.NewText);
         editMenu.add(Actions.Rename);
+        editMenu.add(Actions.Duplicate);
         editMenu.addSeparator();
         editMenu.add(Actions.Cut);
         editMenu.add(Actions.Copy);

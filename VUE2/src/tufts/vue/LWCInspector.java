@@ -230,7 +230,7 @@ class LWCInspector extends javax.swing.JPanel
         }
         setAllEnabled(true);
 
-        String id = "<selection> ";
+        String id = "";
         if (selection.allOfSameType())
             id += selection.first().getClass().getName();
         else
