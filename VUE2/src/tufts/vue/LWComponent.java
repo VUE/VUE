@@ -30,6 +30,32 @@ public class LWComponent
         public void LWCChanged(LWCEvent e);
     }
     
+    /**
+     * getUserMapType
+     * @return String the user map type id
+     **/
+    public String getUserMapType() {
+    	return mUserMapType;
+    }
+    
+    /**
+     * setUserMapType
+     * @param String the user map type id for this LWC
+     **/
+    public void setUserMapType( String pID) {
+    	mUserMapType = pID;
+    }
+    
+    public void setUSerPropertyValue( String pKey, Object pValue ) {
+    	mUserPropertyValues.put( pKey, pValue);
+    }
+    
+    public Object getUserProeprtyValue( String pKey) {
+    	Object retValue = mUserPropertyValues.get( pKey);
+    	return retValue;
+    }
+    
+    
     public void setID(String ID)
     {
         if (this.ID != null)
@@ -258,6 +284,8 @@ public class LWComponent
     private Resource resource = null;
     private float x;
     private float y;
+    private String mUserMapType = null;
+    private java.util.Map mUserPropertyValues = new java.util.HashMap();
     
     // persistent impl
     protected float width = 10;
