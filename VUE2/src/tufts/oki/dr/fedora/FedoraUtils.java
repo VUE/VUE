@@ -79,10 +79,9 @@ public class FedoraUtils {
             Preferences prefs = (Preferences) prefsCache.get(url);
             if (prefs != null)
                 return prefs;
-            String filename = url.getFile().replaceAll("%20"," ");
             prefs = Preferences.userRoot().node("/");
-            System.out.println("*** FedoraUtils.getPreferences: loading & caching prefs from \"" + filename + "\"");
-            InputStream stream = new BufferedInputStream(new FileInputStream(filename));
+            System.out.println("*** FedoraUtils.getPreferences: loading & caching prefs from \"" + url + "\"");
+            InputStream stream = new BufferedInputStream(url.openStream());
             prefs.importPreferences(stream);
             prefsCache.put(url, prefs);
             stream.close();
