@@ -41,7 +41,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.293 2005-03-28 03:18:35 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.294 2005-03-28 03:23:35 sfraize Exp $
     
 /**
  * Vue application class.
@@ -1625,44 +1625,15 @@ public class VUE
 
         private void handleShown() {
             //out("handleShown [" + getTitle() + "]");
-            /*
-            if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
-                // Restore the frame title to the title w/out the "@"
-                // in front (see handleHidden).
-                Frame f = (Frame) mWindow;
-                f.setTitle(mTitle);
-            }
-            */
             setButtonState(true);
             updateActionTitle(false);
         }
-        
         private void handleHidden() {
             //out("handleHidden [" + getTitle() + "]");
-
-            /*
-            if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
-                
-                // This a hack for the tufts.macosx.Screen code.  When
-                // a window goes hidden, we tag it as so with "@" in
-                // the title, so the low-level mac code can know it's
-                // hidden as far as java is concerned (you can't query
-                // an OSX window for that information).  We do this so
-                // that our Screen.java windowing code can know to
-                // deparent the window from the applilcation when it's
-                // hidden -- otherwise it will continue to "move" with
-                // the parent window while hidden, and could be moved
-                // off screen.
-                
-                Frame f = (Frame) mWindow;
-                if (!f.getTitle().startsWith("@")) {
-                    f.setTitle("@" + mTitle);
-                }
-            }
-            */
             setButtonState(false);
             updateActionTitle(false);
         }
+        
         private void updateActionTitle(boolean firstTime) {
             if (!firstTime && !showActionLabel)
                 return;
