@@ -54,7 +54,7 @@ import java.util.ArrayList;
  */
 
 /**A class that represents a tree structure which holds the outline view model*/
-public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener
+public class OutlineViewTree extends JTree implements LWComponent.Listener, LWSelection.Listener
 {
     private boolean selectionFromVUE = false;
     private boolean valueChangedState = false;
@@ -63,7 +63,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     private boolean labelChangeState = false;
     
     private LWContainer currentContainer = null;
-    private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
     
     private ImageIcon  nodeIcon = VueResources.getImageIcon("outlineIcon.node");
@@ -85,16 +84,13 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             new TreeSelectionListener() 
             {
                 public void valueChanged(TreeSelectionEvent e) 
-                {    
+                {        
                     ArrayList selectedComponents = new ArrayList();
-                    ArrayList selectedHierarchyNodes = new ArrayList();
-                    
                     TreePath[] paths = getSelectionPaths();
                     
                     //if there is no selected nodes
                     if (paths == null)
                     {
-                        selectedNode = null;    
                         valueChangedState = false;
                         selectionFromVUE = false;
                     
@@ -118,9 +114,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                         {
                             selectedComponents.add(component);
                         }
-                            
-                        selectedHierarchyNodes.add(hierarchyNode);
-                        
                     }
                     
                     if(!selectionFromVUE)
@@ -132,12 +125,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                     
                         else
                           VUE.getSelection().clear();
-                    }
-                    
-                    //saving the reference for the renaming purpose
-                    if(!selectedHierarchyNodes.isEmpty())
-                    {
-                        selectedNode = (tufts.oki.hierarchy.HierarchyNode)selectedHierarchyNodes.get(0);
                     }
                     
                     valueChangedState = false;
@@ -172,7 +159,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             hierarchyModel = new tufts.oki.hierarchy.OutlineViewHierarchyModel(newContainer);
             DefaultTreeModel model = hierarchyModel.getTreeModel();
             
-            model.addTreeModelListener(this);
             setModel(model);
             
             currentContainer.addLWCListener(this, LWKey.Label);
@@ -233,53 +219,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
           return false;
     }
     
-    /**A method that deals with dynamic changes to the tree element*/
-    public void treeNodesChanged(TreeModelEvent e)
-    {     
-        //retrieves the selected node
-        DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
-        
-        //it appropriate retrieves the child of the selected node
-        try 
-        {
-            int index = e.getChildIndices()[0];
-            treeNode = (DefaultMutableTreeNode)(treeNode.getChildAt(index));
-        } 
-        
-        catch (NullPointerException exc) {}
-       
-        //might want to come up with an exception
-        //if(treeNode != (DefaultMutableTreeNode)getModel().getRoot() && selectedNode != null)
-        if (selectedNode != null && !labelChangeState)
-        {
-            labelChangeState = true;
-            
-            //changes the node's label and sets it as a new object of the tree node
-            try
-            {
-                String newLabel = treeNode.toString();
-                treeNode.setUserObject(selectedNode);
-                if (DEBUG.FOCUS)
-                    new Throwable("treeNodesChanged " + e + " newLabel=[" + newLabel + "]").printStackTrace();
-                //System.out.println("treeNodesChanged " + e + " newLabel=[" + newLabel + "]");
-                selectedNode.changeLWComponentLabel(newLabel);
-            }
-            
-            catch (osid.hierarchy.HierarchyException he)
-            {
-                //resets the change to the previous one
-                treeNode.setUserObject(selectedNode);
-            }
-            
-            labelChangeState = false;
-        }
-    }
-    
-    /**unused portion of the interface*/
-    public void treeNodesInserted(TreeModelEvent e) {}
-    public void treeNodesRemoved(TreeModelEvent e) {}
-    public void treeStructureChanged(TreeModelEvent e) {}
-    
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
@@ -336,7 +275,6 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                 tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
                 LWComponent component = hierarchyNode.getLWComponent();
                 
-                //if (((DefaultMutableTreeNode)getModel().getRoot()).getUserObject().equals(hierarchyNode) || component instanceof LWMap)
                 if (component instanceof LWMap)
                   setIcon(mapIcon);
                 
@@ -381,6 +319,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     {
         // This is the component that will handle the editing of the cell value
         private OutlineViewEditorElement editorElement = null;
+        private tufts.oki.hierarchy.HierarchyNode hierarchyNode = null;
+        
         private boolean modified = false;
         private final int clickToStartEditing = 2;
         
@@ -400,7 +340,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             editorElement.setText(label);
             
             DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
-            LWComponent selectedLWComponent = ((tufts.oki.hierarchy.HierarchyNode)node.getUserObject()).getLWComponent();
+            hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)node.getUserObject();
+            LWComponent selectedLWComponent = hierarchyNode.getLWComponent();
             
             if (selectedLWComponent instanceof LWNode)
               editorElement.setIcon(nodeIcon);
@@ -419,9 +360,18 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         // It must return the new value to be stored in the cell.
         public Object getCellEditorValue() 
         {
-            Object text = editorElement.getText();
-            if (DEBUG.FOCUS) System.out.println(this + " getCellEditorValue returns [" + text + "]");
-            return text;
+            try
+            {
+                String text = editorElement.getText();
+                if (DEBUG.FOCUS) System.out.println(this + " getCellEditorValue returns [" + text + "]");
+                
+                hierarchyNode.changeLWComponentLabel(text);
+            }
+            
+            catch (osid.hierarchy.HierarchyException he)
+            {}
+            
+            return hierarchyNode;
         }
         
         /** When any key is pressed on the text area, then it sets the flag that the value needs to be modified,
@@ -469,7 +419,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public void focusLost(FocusEvent e) 
         {
             if (DEBUG.FOCUS) System.out.println(this + " focusLost to " + e.getOppositeComponent() + " modified="+modified);
-            if (modified) {
+            
+            if (modified) {   
                 this.stopCellEditing();
                 modified = false;
             }
