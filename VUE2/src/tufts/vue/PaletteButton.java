@@ -84,6 +84,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	public PaletteButton() {
 		super();
 		setBorder( null);
+                setFocusable(false);
 	}
 	
 	
@@ -103,6 +104,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		setPaletteButtonItems( pItems );
 		setRolloverEnabled( true);
 		setBorder( null);
+                setFocusable(false);
 		
 	}
 	
@@ -434,6 +436,11 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		// fake a click to handle radio selection after menu selection
 		doClick();		
 	}
+
+    public String toString()
+    {
+        return "PaletteButton[" + getIcon() + "]";
+    }
 	
 	
 	/**
@@ -441,16 +448,50 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	*( and fix some swing bugs.
 	**/
 	public class PBPopupMenu extends JPopupMenu {
+
+            private boolean mIsVisibleLocked;
+
+            public PBPopupMenu() {
+                setFocusable(false);
+            }
+            
+            public void setVisibleLocked(boolean t) {
+                if (sDebug) System.out.println(this + " LOCK " + t);
+                mIsVisibleLocked = t;
+            }
 	
-	
-		public boolean isPopupMenuTrigger( MouseEvent pEvent ) {
-			boolean retValue = false;
-                        System.out.println("PBPopupMenu: " + pEvent);
-			
-			if(pEvent.getID() == MouseEvent.MOUSE_PRESSED )
-				retValue =true;
-			return retValue;
-		}
+            public void setVisible(boolean b) {
+                //System.out.println(this + " setVisible " + b);
+                if (sDebug) new Throwable(this + " setVisible " + b).printStackTrace();
+                //if (!b) new Throwable("HIDING").printStackTrace();
+                if (mIsVisibleLocked && !b) {
+                    if (sDebug) System.out.println(this + " setVisible OVERRIDE");
+                    super.setVisible(true);
+                } else
+                    super.setVisible(b);
+            }
+
+            public void menuSelectionChanged(boolean isIncluded) {
+                if (sDebug) System.out.println(this + " menuSelectionChanged included=" + isIncluded);
+                //new Throwable("menuSelectionChanged").printStackTrace();
+                super.menuSelectionChanged(isIncluded);
+            }
+
+        // I can't find this call anywhere in the java api or our src -- needed anymore?
+            // where was this from? -- smf
+            public boolean isPopupMenuTrigger( MouseEvent pEvent ) {
+                boolean retValue = false;
+                System.out.println(this + " " + pEvent);
+                
+                if(pEvent.getID() == MouseEvent.MOUSE_PRESSED )
+                    retValue =true;
+                return retValue;
+            }
+
+            public String toString()
+            {
+                return "PBPopupMenu[" + getIcon() + "]";
+            }
 	}
 	
 	
