@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
+import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
@@ -181,11 +182,15 @@ class Actions {
         };
     static final Action Paste =
         new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
-            public boolean isEnabled() { return true; }//listen for scratch buffer fill
+            boolean enabledFor(LWSelection s) { return true; }
+            //public boolean isEnabled() { return true; }//listen for scratch buffer fill
             void act() {
-                LWContainer parent = VUE.getActiveViewer().getMap();
+                //LWContainer parent = VUE.getActiveViewer().getMap();
                 // iter thru scratch buffer and do reparenting
                 //parent.
+                
+                Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
+                VUE.getActiveViewer().getMapDropTarget().processTransferable(clipboard.getContents(this), null);
             }
         };
 
@@ -691,7 +696,8 @@ class Actions {
             public void act()
             {
                 // FIX:  zoom tool gone  VUE.getActiveViewer().zoomTool.setZoomBigger();
-                VUE.getActiveViewer().setZoomBigger();
+                //VUE.getActiveViewer().setZoomBigger();
+                ZoomTool.setZoomBigger(null);
             }
         };
     static final Action ZoomOut =
@@ -699,7 +705,8 @@ class Actions {
             public void act()
             {
                 //FIX:  zoom tool gone:  VUE.getActiveViewer().zoomTool.setZoomSmaller();
-                VUE.getActiveViewer().setZoomSmaller();
+                //VUE.getActiveViewer().setZoomSmaller();
+                ZoomTool.setZoomSmaller(null);
             }
         };
     static final Action ZoomFit =
@@ -707,7 +714,8 @@ class Actions {
             public void act()
             {
                 // FIX:  zoom tool gone VUE.getActiveViewer().zoomTool.setZoomFit();
-                VUE.getActiveViewer().setZoomFit();
+                //VUE.getActiveViewer().setZoomFit();
+                ZoomTool.setZoomFit();
             }
         };
     static final Action ZoomActual =
@@ -716,7 +724,8 @@ class Actions {
             public void act()
             {
                 // FIX:  VUE.getActiveViewer().zoomTool.setZoom(1.0);
-                VUE.getActiveViewer().setZoom(1.0);
+                //VUE.getActiveViewer().setZoom(1.0);
+                ZoomTool.setZoom(1.0);
             }
         };
 

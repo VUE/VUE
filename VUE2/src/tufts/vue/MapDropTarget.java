@@ -71,7 +71,6 @@ class MapDropTarget
                                       + "\n\tdropAction=" + e.getDropAction()
                                       + "\n\tlocation=" + e.getLocation()
                                       );
-        java.awt.Point dropLocation = e.getLocation();
 
         //if ((e.getSourceActions() & DnDConstants.ACTION_COPY) != 0) {
         if ((e.getSourceActions() & ACCEPTABLE_DROP_TYPES) != 0) {
@@ -85,8 +84,18 @@ class MapDropTarget
 
         // Scan thru the data-flavors, looking for a useful mime-type
 
+        boolean success = processTransferable(e.getTransferable(), e.getLocation());
+
+        e.dropComplete(success);
+    }
+
+    public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
+    {
+        if (dropLocation == null)
+            dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
+        
         boolean success = false;
-        Transferable transfer = e.getTransferable();
+
         DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
 
         String resourceName = null;
@@ -95,7 +104,7 @@ class MapDropTarget
         java.util.List fileList = null;
         java.util.List assetList = null;
         
-        if (debug) System.out.println("drop: found " + dataFlavors.length + " dataFlavors");
+        if (debug) System.out.println("TRANSFER: found " + dataFlavors.length + " dataFlavors");
         for (int i = 0; i < dataFlavors.length; i++) {
             DataFlavor flavor = dataFlavors[i];
             Object data = null;
@@ -112,7 +121,7 @@ class MapDropTarget
             try {
                 if (data instanceof java.awt.Image) {
                     droppedImage = (java.awt.Image) data;
-                    if (debug) System.out.println("drop: found image " + droppedImage);
+                    if (debug) System.out.println("TRANSFER: found image " + droppedImage);
                     break;
                 } else if (flavor.isFlavorJavaFileListType()) {
                     fileList = (java.util.List) transfer.getTransferData(flavor);
@@ -121,7 +130,7 @@ class MapDropTarget
                     System.out.println("ASSET FOUND");
                     assetList = (java.util.List) transfer.getTransferData(flavor);
                     break;
-                } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
+                } else if (flavor.isFlavorTextType() || flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
                     // && flavor.isFlavorTextType() -- java 1.4 only
                 {
                     // checking isFlavorTextType() above should be
@@ -184,7 +193,7 @@ class MapDropTarget
             success = true;
         }
 
-        e.dropComplete(success);
+        return success;
     }
 
     private String readTextFlavor(DataFlavor flavor, Transferable transfer)
