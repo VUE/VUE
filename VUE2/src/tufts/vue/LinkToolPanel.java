@@ -87,7 +87,7 @@ import tufts.vue.beans.*;
              mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);
                mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
          } else
-             debug("missing arrow state property in state");
+             System.out.println(this + " missing arrow state property in state");
  		
          /*
          if (mState.hasProperty( LWKey.StrokeColor) ) {
@@ -125,14 +125,6 @@ import tufts.vue.beans.*;
      }
  	
  	
- 	
- 	boolean sDebug = true;
- 	private void debug( String str) {
- 		if( sDebug ) {
- 			System.out.println("  LinkToolPanel - "+str);
- 			}
- 	}
-
     public static void main(String[] args) {
         System.out.println("LinkToolPanel:main");
         VUE.initUI(true);

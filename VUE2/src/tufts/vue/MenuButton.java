@@ -95,9 +95,10 @@ public abstract class MenuButton extends JButton
     {
         mPopup = new JPopupMenu();
 			
-        //final String valueKey = getPropertyName() + ".value"; // todo: getPropertyName usually not set at this point!
+        //final String valueKey = getPropertyName() + ".value"; // propertyName usually not set at this point!
             
-        ActionListener a = new ActionListener() {
+        final ActionListener menuItemAction =
+            new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     handleMenuSelection(e);
                 }};
@@ -114,7 +115,7 @@ public abstract class MenuButton extends JButton
             item.putClientProperty(mValueKey, values[i]);
             if (names != null)
                 item.setText(names[i]);
-            item.addActionListener(a);
+            item.addActionListener(menuItemAction);
             mPopup.add(item);
         }
 
