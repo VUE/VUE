@@ -215,7 +215,12 @@ public class VueUtil
     {
         return UnixPlatform;
     }
-    
+
+    public static boolean isMacAquaLookAndFeel()
+    {
+        return isMacPlatform() &&
+            javax.swing.UIManager.getLookAndFeel().getName().toLowerCase().indexOf("aqua") >= 0;
+    }
 
     public static class GroupIterator implements Iterator
     {
