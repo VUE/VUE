@@ -22,7 +22,9 @@ public interface VueConstants
     static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
     
     static java.awt.Color COLOR_LINK_LABEL = java.awt.Color.darkGray;
-    static java.awt.Color COLOR_SELECTION = new java.awt.Color(74, 133, 255);
+    //static java.awt.Color COLOR_SELECTION = new java.awt.Color(74, 133, 255);
+    static java.awt.Color COLOR_SELECTION = VueResources.getColor("mapViewer.selection.color");
+
     //static java.awt.Color COLOR_SELECTION_HANDLE = new java.awt.Color(74, 255, 133);
     static java.awt.Color COLOR_SELECTION_HANDLE = Color.white;
     static java.awt.Color COLOR_SELECTION_DRAG = java.awt.Color.gray;
@@ -46,6 +48,7 @@ public interface VueConstants
     static Cursor CURSOR_HAND     = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     static Cursor CURSOR_MOVE     = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
     static Cursor CURSOR_WAIT     = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+    static Cursor CURSOR_TEXT     = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR);
     static Cursor CURSOR_CROSSHAIR= Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
     static Cursor CURSOR_DEFAULT  = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     
