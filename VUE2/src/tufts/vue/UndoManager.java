@@ -13,9 +13,11 @@ public class UndoManager
 {
     private static boolean sInUndo = false;
 
-    private ArrayList mChanges;
-    private ArrayList mUndoActions = new ArrayList();
-    private Map mPropertyChanges = new HashMap();
+    private ArrayList mUndoActions = new ArrayList(); // the list of undo actions (named groups of property changes)
+    
+    private Map mPropertyChanges = new HashMap(); // all property changes, mapped by component, since last mark
+    private LWCEvent mLastEvent; // most recent event since last mark
+    private int mChangeCount; // individual property changes since last mark
 
     /**
      * A list (map) of components each with a list (map) of property changes to them.
@@ -67,7 +69,6 @@ public class UndoManager
     public UndoManager(LWMap map)
     {
         map.addLWCListener(this);
-        mChanges = new ArrayList();
         setUndoActionLabel(null); // disable undo action at start
     }
 
@@ -91,13 +92,16 @@ public class UndoManager
 
     public void redo()
     {
+        if (mChangeCount > 0) new Throwable(this + " UNMARKED CHANGES IN REDO! " + mPropertyChanges);
         if (DEBUG.UNDO) System.out.println(this + ": REDO");
     }
     
     public void undo()
     {
+        if (mChangeCount > 0) new Throwable(this + " UNMARKED CHANGES IN UNDO! " + mPropertyChanges);
+        
         UndoAction undoAction = pop();
-        if (DEBUG.UNDO) System.out.println(undoAction + ": UNDO");
+        if (DEBUG.UNDO) System.out.println("UNDO: undoing " + undoAction);
         if (undoAction != null) {
             sInUndo = true;
             try {
@@ -142,31 +146,29 @@ public class UndoManager
         // otherwise use the aggregateName for the group of property
         // changes that took place.
         String name = null;
-        if (mPropCount == 1 && mLastEvent != null)
+        if (mChangeCount == 1 && mLastEvent != null)
             name = mLastEvent.getWhat();
         else
             name = aggregateName;
         markChangesAsUndo(name);
     }
 
-    private LWCEvent mLastEvent;
-    private int mPropCount;
     public synchronized void markChangesAsUndo(String name)
     {
-        if (mPropCount == 0) // if nothing changed, don't bother adding an UndoAction
+        if (mChangeCount == 0) // if nothing changed, don't bother adding an UndoAction
             return;
         if (name == null) {
             if (mLastEvent == null)
                 return;
             name = mLastEvent.getWhat();
         }
-        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mPropCount);
+        UndoAction newUndoAction = new UndoAction(name, mPropertyChanges, mChangeCount);
         mUndoActions.add(newUndoAction);
-        if (DEBUG.UNDO) System.out.println("UNDO: marked " + mPropCount + " property changes under '" + name + "'");
+        if (DEBUG.UNDO) System.out.println("UNDO: marked " + mChangeCount + " property changes under '" + name + "'");
         setUndoActionLabel(newUndoAction);
         mPropertyChanges = new HashMap();
         mLastEvent = null;
-        mPropCount = 0;
+        mChangeCount = 0;
     }
 
     public void LWCChanged(LWCEvent e) {
@@ -175,34 +177,9 @@ public class UndoManager
             return;
         }
         if (DEBUG.UNDO) System.out.print("UNDO: " + e);
-        String propName = e.getWhat();
-        LWComponent c = e.getComponent(); // can be list...
-        boolean compressed = false; // already had one of these props: can ignore all subsequent
 
         if (e.hasOldValue()) {
-            Object oldValue = e.getOldValue();
-            Map cPropList = (Map) mPropertyChanges.get(c);
-            if (cPropList != null) {
-                //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
-                Object value = cPropList.get(propName);
-                if (value != null) {
-                    if (DEBUG.UNDO) System.out.println(" (compressed)");
-                    compressed = true;
-                }
-            } else {
-                cPropList = new HashMap();
-                mPropertyChanges.put(c, cPropList);
-            }
-                
-            if (!compressed) {
-                cPropList.put(propName, oldValue);
-                mPropCount++;
-                mLastEvent = e;
-                if (DEBUG.UNDO) {
-                    if (DEBUG.META) System.out.println(" (stored: " + oldValue + ")");
-                               else System.out.println(" (stored)");
-                }
-            }
+            recordUndoablePropertyChangeEvent(e);
         } else {
             if (DEBUG.UNDO) {
                 System.out.println(" (ignored: no old value)");
@@ -211,9 +188,40 @@ public class UndoManager
         }
     }
 
+    private void recordUndoablePropertyChangeEvent(LWCEvent e)
+    {
+        String propName = e.getWhat();
+        LWComponent c = e.getComponent(); // can be list...
+        boolean compressed = false; // already had one of these props: can ignore all subsequent
+        
+        Object oldValue = e.getOldValue();
+        Map cPropList = (Map) mPropertyChanges.get(c);
+        if (cPropList != null) {
+            //if (DEBUG.UNDO) System.out.println("\tfound existing component " + c);
+            Object value = cPropList.get(propName);
+            if (value != null) {
+                if (DEBUG.UNDO) System.out.println(" (compressed)");
+                compressed = true;
+            }
+        } else {
+            cPropList = new HashMap();
+            mPropertyChanges.put(c, cPropList);
+        }
+        
+        if (!compressed) {
+            cPropList.put(propName, oldValue);
+            mChangeCount++;
+            mLastEvent = e;
+            if (DEBUG.UNDO) {
+                if (DEBUG.META) System.out.println(" (stored: " + oldValue + ")");
+                else System.out.println(" (stored)");
+            }
+        }
+    }
+
     public String toString()
     {
-        return "UndoManager[]";
+        return "UndoManager[" + mChangeCount + "]";
     }
     
 }
