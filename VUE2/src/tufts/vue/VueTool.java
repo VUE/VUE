@@ -361,12 +361,14 @@ public abstract class VueTool extends AbstractAction
     //public void handleSelectionChange(LWSelection s) {}
     // temporary: give this to everyone
     public void handleSelectionChange(LWSelection s) {
-        if (//s.size() == 1 &&
+        if (!VUE.TUFTS &&
             VUE.multipleMapsVisible() &&
             VUE.getLeftTabbedPane().getSelectedViewer() == VUE.getActiveViewer() &&
             VUE.getRightTabbedPane().getSelectedViewer().getMap() == VUE.getActiveMap()
             )
         {
+            // the right viewer tracks & zooms to whatever is selected
+            // in the left viewer.
             MapViewer viewer = VUE.getRightTabbedPane().getSelectedViewer();
             ZoomTool.setZoomFitRegion(viewer, s.getBounds(), 16);
         }

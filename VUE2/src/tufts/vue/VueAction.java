@@ -80,6 +80,7 @@ public class VueAction extends javax.swing.AbstractAction
 
     private void setIcon(String iconSpec) {
         Icon icon = null;
+        if (VUE.TUFTS) return;
         if (iconSpec.startsWith(":")) {
             icon = VueResources.getImageIconResource("/toolbarButtonGraphics/" + iconSpec.substring(1) + "16.gif");
             putValue(SMALL_ICON, icon);

@@ -87,6 +87,8 @@ public class VUE
     public static FavoritesWindow favoritesWindow;
     public static boolean  dropIsLocal = false;
     private static boolean isStartupUnderway = true;
+
+    public static final boolean TUFTS = true;
     
     private static java.util.List sActiveMapListeners = new java.util.ArrayList();
     private static java.util.List sActiveViewerListeners = new java.util.ArrayList();
@@ -559,16 +561,17 @@ public class VUE
 
         //frame.getContentPane().add(tbc.getToolbar(), BorderLayout.NORTH);
                 
-        JPanel toolBarPanel = new JPanel(new BorderLayout());
-        //JPanel toolBarPanel = new JPanel();
-
-        toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
-        //toolBarPanel.add(VueToolBar.makeButton(new SaveAction()), BorderLayout.SOUTH);
-        toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
-        //toolBarPanel.add(tbc.getToolbar());
-        //toolBarPanel.add(new VueToolBar());
-        frame.addComp(toolBarPanel, BorderLayout.NORTH);
-        //frame.getContentPane().add(new VueToolBar(), BorderLayout.NORTH);
+        JPanel toolBarPanel = null;
+        if (VUE.TUFTS) {
+            //toolBarPanel = new JPanel();
+            //toolBarPanel.add(tbc.getToolbar());
+            frame.addComp(tbc.getToolbar(), BorderLayout.NORTH);
+        } else {
+            toolBarPanel = new JPanel(new BorderLayout());
+            toolBarPanel.add(tbc.getToolbar(), BorderLayout.NORTH);
+            toolBarPanel.add(new VueToolBar(), BorderLayout.SOUTH);
+            frame.addComp(toolBarPanel, BorderLayout.NORTH);
+        }
 
         if (DEBUG.INIT) out("created VueToolBar");
         // Map Inspector

@@ -3769,8 +3769,13 @@ public class MapViewer extends javax.swing.JComponent
                 repaint();
             }
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
-                if (!e.isShiftDown())
-                    checkAndHandleDroppedReparenting();
+                if (VUE.TUFTS) {
+                    if (indication == null || indication instanceof LWNode)
+                        checkAndHandleNodeDropReparenting();
+                } else {
+                    if (!e.isShiftDown())
+                        checkAndHandleDroppedReparenting();
+                }
             }
             
             // special case event notification for any other viewers

@@ -55,6 +55,7 @@ public final class LWGroup extends LWContainer
     public LWGroup() {}
 
     public boolean supportsUserResize() {
+        if (VUE.TUFTS) return false;
         return true;
     }
     
@@ -134,8 +135,6 @@ public final class LWGroup extends LWContainer
             group.addChildInternal(comps[x]);
         }
         group.setSizeFromChildren();
-        // todo: catch any child size change events (e.g., due to font)
-        // so we can recompute our bounds
         return group;
     }
     
@@ -174,6 +173,7 @@ public final class LWGroup extends LWContainer
                       (float)bounds.getHeight());
         super.setLocation((float)bounds.getX(),
                           (float)bounds.getY());
+
     }
     
     public void setZoomedFocus(boolean tv)
@@ -230,6 +230,7 @@ public final class LWGroup extends LWContainer
 
     public void setLocation(float x, float y)
     {
+//setAspect(1280f / 854f);
         float dx = x - getX();
         float dy = y - getY();
         //System.out.println(getLabel() + " setLocation");
@@ -370,6 +371,11 @@ public final class LWGroup extends LWContainer
 
     public Rectangle2D getBounds()
     {
+        if (supportsUserResize())
+            return super.getBounds();
+
+        // Without user-resize, always report size as bounds of what we contain
+        
         Rectangle2D.Float bounds = null;
         Iterator i = getChildIterator();
         if (i.hasNext()) {
