@@ -162,6 +162,7 @@ public class MapPanner extends javax.swing.JPanel
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, mapViewer.AA_ON);//pickup MapViewer AA state for debug
         dc.setPrioritizeSpeed(true);
         dc.setFractionalFontMetrics(false);
+        dc.setPrinting(true); // what we want on panner draw same as printing -- really a "non-interactive" flag
 
         /*
          * Now tell the active LWMap to draw itself here on the panner.

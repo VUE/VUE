@@ -583,7 +583,6 @@ public class VUE
                 oldActiveMap = ActiveViewer.getMap();
             ActiveViewer = viewer;
             out("ActiveViewer set to " + viewer);
-            if (DEBUG.FOCUS) new Throwable("ACTIVE VIEWER SET").printStackTrace();
             if (ActiveViewer != null) {
                 java.util.Iterator i = sActiveViewerListeners.iterator();
                 while (i.hasNext())

@@ -10,7 +10,6 @@ import javax.swing.border.*;
  * Howver, this will mean providing & handling all our own decorations
  * -- can we somehow query the LookAndFeel to we can do something
  * compatible?
- * todo: put in layer that is BELOW pop-up menu layer -- this is appearing over menus!
  */
 
 public class ToolWindow
@@ -32,11 +31,7 @@ public class ToolWindow
     }
     
     private Point dragStart;
-    private Dimension dragSizeStart; // tmp public hack
-
-    /**handles opening and closing inspector*/
-    private AbstractButton mDisplayButton = null;
-
+    private Dimension dragSizeStart;
     private boolean isRolledUp = false;
     private Dimension savedSize;
 
