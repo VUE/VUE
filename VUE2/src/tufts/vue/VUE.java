@@ -374,14 +374,7 @@ public class VUE
         //toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         frame.setJMenuBar(menuBar);
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
-        frame.addWindowListener(new WindowListener(){
-          public void windowClosing(WindowEvent e){System.exit(0);}
-          public void windowOpened(WindowEvent e){}
-          public void windowClosed(WindowEvent e){}
-          public void windowIconified(WindowEvent e){}
-          public void windowDeiconified(WindowEvent e){}
-          public void windowActivated(WindowEvent e){}
-          public void windowDeactivated(WindowEvent e){}
-        });
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {System.exit(0);}});
     }
 }
