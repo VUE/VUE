@@ -12,6 +12,7 @@ import tufts.vue.action.*;
  *
  * modified by John Briedis on 5/29/03
  * added support for Save as type html
+ * and support for html image mapping
  */
 public class VUE
     implements VueConstants
