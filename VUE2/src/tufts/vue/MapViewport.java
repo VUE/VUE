@@ -130,14 +130,28 @@ class MapViewport extends JViewport
         setCanvasPosition(new Point2D.Double(-p.getX(), -p.getY()));
     }
     
-    public void zoomAdjust(Point2D mapAnchor)
+    public void zoomAdjust(Point2D mapAnchor, Point2D screenPositionOfMapAnchor)
     {
         adjustCanvasSize(false, true, true, false, true);
-        placeMapLocationAtViewCenter(mapAnchor);
+        placeMapLocationAtViewLocation(mapAnchor, screenPositionOfMapAnchor);
+        //placeMapLocationAtViewCenter(mapAnchor);
     }
 
+    public void placeMapLocationAtViewLocation(Point2D mapAnchor, Point2D viewLocation)
+    {
+        Point2D canvasAnchor = viewer.mapToScreenPoint2D(mapAnchor);
+        if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS ANCHOR: " + out(canvasAnchor));
+        Point2D.Double canvasOffset = new Point2D.Double();
+        canvasOffset.x = canvasAnchor.getX() - viewLocation.getX();
+        canvasOffset.y = canvasAnchor.getY() - viewLocation.getY();
+        if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS OFFSET: " + out(canvasOffset));
+        setVisibleCanvasCorner(canvasOffset);
+    }
+    
     public void placeMapLocationAtViewCenter(Point2D mapAnchor)
     {
+        placeMapLocationAtViewLocation(mapAnchor, new Point2D.Double(getWidth() / 2, getHeight() / 2));
+        /*
         Point2D canvasAnchor = viewer.mapToScreenPoint2D(mapAnchor);
         if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS ANCHOR: " + out(canvasAnchor));
         Point2D.Double canvasOffset = new Point2D.Double();
@@ -145,6 +159,7 @@ class MapViewport extends JViewport
         canvasOffset.y = canvasAnchor.getY() - getHeight() / 2.0;
         if (DEBUG.SCROLL) System.out.println("  ZOOM CANVAS OFFSET: " + out(canvasOffset));
         setVisibleCanvasCorner(canvasOffset);
+        */
     }
     
     void adjustSize() {

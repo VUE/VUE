@@ -31,14 +31,17 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen
  * on an instance of LWMap.
  *
+ * @author Scott Fraize
+ * @version 11/5/03
+ */
+
+/*
  * Todo arch: rename LWMouseEvent and package with all the LW model classes as
  * the primary gui interaction channel between the model and a gui panel displaying a map.
  * Will  need to create a viewer interface to generically handle conversions between
  * viewer coordinates and LWMap coordinates.
- *
- * @author Scott Fraize
- * @version 11/5/03
  */
+
 public class MapMouseEvent extends MouseEvent
 {
     float mapX;
@@ -48,7 +51,6 @@ public class MapMouseEvent extends MouseEvent
     Rectangle selectorBox;
     int pressX;
     int pressY;
-    
     
     public MapMouseEvent(MouseEvent e, float mapX, float mapY, LWComponent hitComponent, Rectangle selectorBox)
     {

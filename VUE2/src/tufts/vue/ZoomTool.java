@@ -92,7 +92,8 @@ public class ZoomTool extends VueTool
     {
         if (DEBUG.TOOL) System.out.println(this + " handleMouseReleased " + e);
 
-        Point p = e.getPoint();
+        //Point p = e.getPoint();
+        Point2D p = e.getMapPoint();
         
         if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
             //|| toolKeyEvent != null && toolKeyEvent.isShiftDown()
@@ -117,7 +118,7 @@ public class ZoomTool extends VueTool
     
     public boolean handleKeyPressed(KeyEvent e){return false;}
     
-    public static boolean setZoomBigger(Point focus)
+    public static boolean setZoomBigger(Point2D focus)
     {
         double curZoom = VUE.getActiveViewer().getZoomFactor();
         for (int i = 0; i < ZoomDefaults.length; i++) {
@@ -129,7 +130,7 @@ public class ZoomTool extends VueTool
         return false;
     }
     
-    public static boolean setZoomSmaller(Point focus)
+    public static boolean setZoomSmaller(Point2D focus)
     {
         double curZoom = VUE.getActiveViewer().getZoomFactor();
         for (int i = ZoomDefaults.length - 1; i >= 0; i--) {
@@ -148,21 +149,26 @@ public class ZoomTool extends VueTool
     {
         setZoom(zoomFactor, true, CENTER_FOCUS, false);
     }
-    public static void setZoom(double zoomFactor, Point focus)
+    public static void setZoom(double zoomFactor, Point2D focus)
     {
         setZoom(zoomFactor, true, focus, false);
     }
-    
+
+    /**
+     * @param focus - map location to anchor the zoom at (keep at same screen location)
+     */
     private static void setZoom(double newZoomFactor, boolean adjustViewport, Point2D focus, boolean reset)
     {
         // this is much simpler as the viewer now handles adjusting for the focal point
         MapViewer viewer = VUE.getActiveViewer();
         if (focus == DONT_FOCUS) {
             focus = null;
-        } else if (focus instanceof Point) {
+        }
+        //else if (focus instanceof Point) {
             // if a Point and not just a Point2D, it was a screen coordinate from setZoomBigger/Smaller
-            focus = viewer.screenToMapPoint((Point)focus);
-        } else if (adjustViewport && (focus == null || focus == CENTER_FOCUS)) {
+            //focus = viewer.screenToMapPoint((Point)focus);
+        //}
+        else if (adjustViewport && (focus == null || focus == CENTER_FOCUS)) {
             // If no user selected zoom focus point, zoom in to
             // towards the map location at the center of the
             // viewport.

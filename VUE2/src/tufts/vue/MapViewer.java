@@ -35,22 +35,29 @@ import tufts.vue.shape.*;
 import osid.dr.*;
 
 /**
- * class MapViewer
- *
  * Implements a component for displaying & interacting with
- * an instance of LWMap.
+ * an instance of LWMap.  Handles drawing the LWSelection &
+ * providing interaction with it.  Provides for moving LWNode's
+ * around, dropping them on other LWNodes as children.  Provides
+ * context menus. Defers to the active tool for the current
+ * cursor, as well as what to when dragging out a selector-box.
  *
- * Implement as a swing JComponent to be sure to get
+ * Implemented as a swing JComponent to be sure to get
  * double-buffering on the PC (is automatic on Mac),
  * and because of course the rest of VUE uses Swing.
  *
+ * Note that all the mapToScreen & screenToMap conversion routines
+ * would have been more aptly name canvasToMap and mapToCanvas,
+ * as they no longer represent actualy on-screen (Panel) locations
+ * once the viewer has been put into a JScrollPane.  (If not
+ * running in a scroll-pane, they original semantics still apply).
+ *
  * @author Scott Fraize
- * @version March 2004
- *
- * todo: rename this class LWCanvas & break parts of it out so file size is smaller
- *
  */
 
+// Note: you'll see a bunch of code for repaint optimzation, which was never 100% completed,
+// and is not turned on.
+// todo: rename this class LWCanvas & break parts of it out so file size is smaller
 public class MapViewer extends javax.swing.JComponent
     implements VueConstants
                , FocusListener
@@ -106,6 +113,7 @@ public class MapViewer extends javax.swing.JComponent
     //-------------------------------------------------------
     // Pan & Zoom Support
     //-------------------------------------------------------
+    // package-private for MapViewport class
     double mZoomFactor = 1.0;
     double mZoomInverse = 1/mZoomFactor;
     Point2D.Float mOffset = new Point2D.Float();
@@ -117,16 +125,6 @@ public class MapViewer extends javax.swing.JComponent
     /** The currently selected tool **/
     private VueTool activeTool;
     
-    /*
-    private static final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
-    private static final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
-    private static final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
-    private static final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
-    private static final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
-    private static final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
-    private static final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
-    */
-
     private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
@@ -385,7 +383,9 @@ public class MapViewer extends javax.swing.JComponent
     /**
      * @param pZoomFactor -- the new zoom factor
      * @param pReset -- completely reset the scrolling region to the map bounds
-     * @param pFocus -- the on screen focus point, in panel canvas
+     * @param pMapAnchor
+
+     * -- the on screen focus point, in panel canvas
      * coordinates when in scroll pane, so upper left may be > 0,0.
      * Mouse events are given to us in these panel coordinates, but
      * if, say, you wanted to zoom in on the center of the *visible*
@@ -393,13 +393,13 @@ public class MapViewer extends javax.swing.JComponent
      * panel location in the center of viewport first.  The map
      * location under the focus location should be the same after the
      * zoom as it was before the zoom.  Can be null if don't want to
-     * make this adjustment.  */
+     * make this adjustment.
+
+     */
     
     void setZoomFactor(double pZoomFactor, boolean pReset, Point2D mapAnchor) {
         if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
         
-        //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
-        //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
         if (mapAnchor == null && !pReset) {
             mapAnchor = screenToMapPoint2D(getVisibleCenter());
             if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + out(mapAnchor));
@@ -407,21 +407,28 @@ public class MapViewer extends javax.swing.JComponent
             if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + out(mapAnchor));
         }
         
+        Point2D.Float offset = null; // offset for non-scrol-region zoom
+        Point2D screenPositionOfMapAnchor = null; // offset 
         
-        // Record the on-screen map location of focus point before
-        // the zoom.
-        //Point2D.Float mapAnchor = null;
-        Point2D.Float offset = new Point2D.Float();
-        //if (pFocus != null) {
-        if (!pReset && !inScrollPane) {
-            // TODO: this is for non-scroll map viewer: cleanup
-            //mapAnchor = screenToMapPoint(pFocus);
-            //if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
-            Point2D focus = mapToScreenPoint2D(mapAnchor);
-            offset.x = (float) ((mapAnchor.getX() * pZoomFactor) - focus.getX());
-            offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - focus.getY());
-            //if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
-            setMapOriginOffset(offset.x, offset.y, false);
+        if (!pReset) {
+            if (!inScrollPane) {
+                // This is for non-scroll map viewer: it works to keep the focus
+                // location at the same point on the screen.  
+                //if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
+                Point2D focus = mapToScreenPoint2D(mapAnchor);
+                offset = new Point2D.Float();
+                offset.x = (float) ((mapAnchor.getX() * pZoomFactor) - focus.getX());
+                offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - focus.getY());
+                //if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
+                setMapOriginOffset(offset.x, offset.y, false);
+            } else {
+                // Record the on-screen map location of focus point before
+                // the zoom.
+                Point2D canvasPosition = mapToScreenPoint2D(mapAnchor);
+                Point canvasOffset = getLocation(); // scrolled offset of our canvas in the scroll-pane
+                screenPositionOfMapAnchor = new Point2D.Double(canvasPosition.getX() + canvasOffset.x,
+                                                               canvasPosition.getY() + canvasOffset.y);
+            }
         }
 
         //------------------------------------------------------------------
@@ -445,24 +452,13 @@ public class MapViewer extends javax.swing.JComponent
         
         if (inScrollPane) {
             if (mapAnchor != null && !pReset) {
-                mViewport.zoomAdjust(mapAnchor);
+                mViewport.zoomAdjust(mapAnchor, screenPositionOfMapAnchor);
             } else {
                 adjustCanvasSize(false, true, true);
             }
         } else {
-            if (mapAnchor != null) {
+            if (mapAnchor != null)
                 setMapOriginOffset(offset.x, offset.y);
-                // Now: find out where the anchor has moved to,
-                // and adjust the viewport so it's back at it's old
-                // location.
-                /*
-                  // from old ZoomTool code:
-                Point newFocus = mapToScreenPoint(pFocus);
-                int offsetX = newFocus.getX() - pFocus.getX();
-                int offsetY = newFocus.getY() - pFocus.getY();
-                viewer.setMapOriginOffset(offsetX, offsetY);
-                 */
-            }
         }
         
         repaint();
@@ -549,7 +545,8 @@ public class MapViewer extends javax.swing.JComponent
     }
 
     //------------------------------------------------------------------
-    // The core conversion routines
+    // The core conversion routines: todo: rename "screen" to "canvas",
+    // as "screen" no longer accurate if we're in a scroll-pane.
     //------------------------------------------------------------------
     float screenToMapX(float x) {
         //if (scrollerCoords) return (float) ((x + getOriginX()) * mZoomInverse) + getX();
@@ -698,7 +695,7 @@ public class MapViewer extends javax.swing.JComponent
         }
     }
     
-    /** return the coordinate of this JComponent (the canvas coordinate) currently
+    /** @return the coordinate of this JComponent (the canvas coordinate) currently
      * visible in the center the viewport.  This is the same x/y value you'd get
      * from a mouse event clicked exactly in the middle of the displayed viewport,
      * which if scroll all the way up-left, will be same as canvas coords, but if not,
@@ -1648,7 +1645,7 @@ public class MapViewer extends javax.swing.JComponent
         if (DEBUG.VIEWER) {
             g2.setColor(Color.red);
             g2.setStroke(new java.awt.BasicStroke(1f));
-            g2.drawLine(_mouse.x,_mouse.y, _mouse.x,_mouse.y);
+            g2.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
             
             int iX = (int) (screenToMapX(_mouse.x) * 100);
             int iY = (int) (screenToMapY(_mouse.y) * 100);
@@ -1656,6 +1653,9 @@ public class MapViewer extends javax.swing.JComponent
             float mapY = iY / 100f;
 
             Point2D mapCoords = new Point2D.Float(mapX, mapY);
+            Point canvas = getLocation();
+            Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
+                                                     
             
             g2.setFont(VueConstants.FixedFont);
             int x = -getX() + 10;
@@ -1663,15 +1663,16 @@ public class MapViewer extends javax.swing.JComponent
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
                 g2.drawString("     origin at: " + out(getOriginLocation()), x, y+=15);
-                g2.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
                 g2.drawString("     map mouse: " + out(mapCoords), x, y+=15);
+                g2.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
+                g2.drawString(" ~screen mouse: " + out(screen), x, y+=15);
                 /*if (inScrollPane){
                 Point extent = viewportToCanvasPoint(mouse);
                 Point2D map = extentToMapPoint(extent);
                 g2.drawString("  extent point: " + out(extent), x, y+=15);
                 g2.drawString("     map point: " + out(map), x, y+=15);
                 }*/
-                g2.drawString("canvas-location " + out(getLocation()), x, y+= 15);
+                g2.drawString("canvas-location " + out(canvas), x, y+= 15);
                 if (inScrollPane){
                 g2.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
                 }
@@ -4233,25 +4234,23 @@ public class MapViewer extends javax.swing.JComponent
             
         LWMap map = new LWMap("test");
         
+        final boolean zoomTest = true;
 
+        if (zoomTest) {
+            DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true; // zoom test
+            DEBUG.KEYS = DEBUG.MOUSE = true;
+            installZoomTestMap(map);
+        } else {
+            DEBUG.BOXES = true; // node layout test
+            installExampleNodes(map);
+        }
+        
         if (args.length == 1) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
-            installExampleNodes(map);
             VueUtil.displayComponent(new MapViewer(map), 400,300);
 
         } else {
 
-            final boolean zoomTest = false;
-
-            if (zoomTest) {
-                DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true; // zoom test
-                DEBUG.KEYS = true;
-                installZoomTestMap(map);
-            } else {
-                DEBUG.BOXES = true; // node layout test
-                installExampleNodes(map);
-            }
-            
             MapViewer viewer = new MapViewer(map);
             viewer.DEBUG_SHOW_ORIGIN = true;
             viewer.DEBUG_TIMER_ROLLOVER = false;
