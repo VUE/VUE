@@ -334,7 +334,8 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             deletedChildNode = findHierarchyNode(parentNode, deletedChild, false);  
                 
             //removes from the hierarch model
-            deleteHierarchyNode(parentNode, deletedChildNode);
+            deleteHierarchyNode(deletedChildNode);
+            reloadTreeModel(parentNode);
         }
          
         //if it is a LWLink
@@ -356,13 +357,15 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             if (linkedNode1 != null)
             {
                 HierarchyNode linkNode1 = findHierarchyNode(linkedNode1, link, false);
-                deleteHierarchyNode(linkedNode1, linkNode1);
+                deleteHierarchyNode(linkNode1);
+                reloadTreeModel(linkedNode1);
             }
               
             if (linkedNode2 != null)
             {
                 HierarchyNode linkNode2 = findHierarchyNode(linkedNode2, link, false); 
-                deleteHierarchyNode(linkedNode2, linkNode2);
+                deleteHierarchyNode(linkNode2);
+                reloadTreeModel(linkedNode2);
             }
         }
         
@@ -432,49 +435,31 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             }
             else if (message == LWKey.HierarchyChanged)
             {   
-                LWContainer container = (LWContainer)e.getSource();
+                LWContainer container = (LWContainer)e.getSource();  
+                System.out.println("the container it needs to change is " + container.toString());
                 
-                //reinitializing
+                ArrayList nodes = new ArrayList();
+                HierarchyNode rootNode = getRootNode();
+                
                 if (container instanceof LWMap)
                 {    
-                    String label, description;
-                    
-                    if ((label = container.getLabel()) == null)   
-                      label = new String("Container:" + container.getID());
-              
-                    if ((description = container.getNotes()) == null)
-                      description = new String("No description for " + label);
-                    
-                    HierarchyNode rootNode = getRootNode();
-                    rootNode.updateDisplayName(label);
-                    rootNode.updateDescription(description);
-                    rootNode.setLWComponent(container);
-                    
-                    for (osid.hierarchy.NodeIterator ni = rootNode.getChildren(); ni.hasNext();)
-                      deleteHierarchyNode(rootNode, (HierarchyNode)ni.next()); 
-                    
-                    for (Iterator i = container.getChildIterator(); i.hasNext();)
-                    {
-                        LWComponent component = (LWComponent)i.next();
-                        addHierarchyTreeNode(container, component);
-                    }
+                    //rootNode.setLWComponent(container);
+                    nodes.add(rootNode);
                 }
                 
-                else
-                {
-                    ArrayList nodes = findHierarchyNodeByComponentID(getRootNode(), container.getID());
-                 
-                    for (Iterator i = nodes.iterator(); i.hasNext();)
-                    {   
-                        HierarchyNode hierarchyNode = (HierarchyNode)i.next();
-                        
-                        for (osid.hierarchy.NodeIterator ni = hierarchyNode.getParents(); ni.hasNext();)
-                        {
-                            HierarchyNode parentNode = (HierarchyNode)ni.next();
-                            
-                            deleteHierarchyNode(parentNode, hierarchyNode);
-                            addHierarchyTreeNode((LWContainer)parentNode.getLWComponent(), container);
-                        }
+                nodes.addAll(findHierarchyNodeByComponentID(rootNode, container.getID()));
+                
+                for (Iterator i = nodes.iterator(); i.hasNext();)
+                { 
+                    HierarchyNode hierarchyNode = (HierarchyNode)i.next();
+                    
+                    for (osid.hierarchy.NodeIterator ni = hierarchyNode.getChildren(); ni.hasNext();)
+                      deleteHierarchyNode((HierarchyNode)ni.next()); 
+                    
+                    for (Iterator ci = container.getChildIterator(); ci.hasNext();)
+                    {
+                        LWComponent component = (LWComponent)ci.next();
+                        addHierarchyTreeNode(container, component);
                     }
                 }
                 
@@ -525,10 +510,18 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
     }
     
     /**A method that deletes the given node*/
-    private void deleteHierarchyNode(HierarchyNode parentNode, HierarchyNode childNode) throws osid.hierarchy.HierarchyException
+    private void deleteHierarchyNode(HierarchyNode childNode) throws osid.hierarchy.HierarchyException
     {
         try
         {  
+            /*
+            if (childNode == null)
+            {
+                System.err.println("the childNode to be deleted is NULL");
+                return;
+            }
+            */
+            
             for (osid.hierarchy.NodeIterator ni = childNode.getChildren(); ni.hasNext();)
             {
                 HierarchyNode node = (HierarchyNode)ni.next();
@@ -536,9 +529,6 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             }
             
             deleteNode(childNode.getId());
-            
-            if (parentNode != null)
-              reloadTreeModel(parentNode);
         }
                
         catch(Exception e)
