@@ -399,7 +399,7 @@ class FileNode extends DefaultMutableTreeNode {
                 
         }
         /* Returns the array of flavors in which it can provide the data. */
-        public synchronized DataFlavor[] getTransferDataFlavors() {
+        public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
     	return flavors;
         }
         /* Returns whether the requested flavor is supported by this object. */
@@ -430,4 +430,5 @@ class FileNode extends DefaultMutableTreeNode {
     	    throw new UnsupportedFlavorException(flavor);
     	}
         }
+         
     }

@@ -36,6 +36,9 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import java.awt.*;
+import javax.swing.*;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.KeyAdapter;
@@ -82,6 +85,7 @@ public class LWPathwayInspector extends InspectorWindow
     public InfoTableModel model = null;
     private Notes notes = null;
     private PathwayTab pathwayTab = null;
+    //private Info info = null;
     
     public LWPathwayInspector(JFrame owner, LWPathway pathway){
         this(owner);
@@ -93,22 +97,30 @@ public class LWPathwayInspector extends InspectorWindow
         
         InfoTable table = new InfoTable();
         notes = new Notes();
-        pathwayTab = new PathwayTab();
+        pathwayTab = new PathwayTab(this);
+        Info info = new Info();
+        info.setInfo(this.getPathway());
         
         this.setTitle("PATHWAY INSPECTOR");
         
         pane = new JTabbedPane();
-        pane.addTab("General Info", null, new JScrollPane(table), "Info Panel");
-        pane.addTab("Node Info", null, pathwayTab, "Path Panel");
-        pane.addTab("Notes", null, new JScrollPane(notes), "Notes Panel");
+        
+        pane.addTab("Info", null, info, "Info Tab");
+        pane.addTab("Notes", null, notes, "Notes Tab");
+        pane.addTab("Pathways", null, pathwayTab, "Pathways Tab");
+        pane.addTab("Filters", null, new JLabel("Filters..."), "Filters Tab");
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
-        this.setSize(350, 300);
+        this.setSize(350, 600);
         
         /**unselects checkbox in VUE window menu on closing*/
         super.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {setButton(false);}});
+    }
+    
+    public PathwayControl getPathwayControl(){
+        return pathwayTab.getPathwayControl();
     }
     
     public void setButton(boolean state){
@@ -134,6 +146,118 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void notifyPathwayTab(){
         pathwayTab.updateTable();
+        pathwayTab.getPathwayControl().updateControlPanel();
+    }
+    
+     /*protected void getField(String name,
+                               GridBagLayout gridbag,
+                               GridBagConstraints c,
+                               JPanel infoPanel) {
+         JTextField field = new JTextField("");
+         gridbag.setConstraints(field, c);
+         infoPanel.add(field);
+     }*/
+     
+     private class Info extends JPanel
+    {
+        private JTextField titleField = new JTextField("");
+        private JTextField authorField = new JTextField("");
+        
+        public Info()
+        {
+             
+             GridBagLayout gridbag = new GridBagLayout();
+             GridBagConstraints c = new GridBagConstraints();
+             
+             setLayout(gridbag);
+
+             c.fill = GridBagConstraints.HORIZONTAL;
+             c.weightx = 1.0;
+             c.insets = new Insets(10, 5, 5, 10);
+             c.gridwidth = GridBagConstraints.REMAINDER; //end row
+             JLabel label = new JLabel();
+             gridbag.setConstraints(label, c);
+             add(label);
+             c.weightx = 0.0;		   
+
+             c.gridwidth = GridBagConstraints.RELATIVE; 
+             getLabel("Title", gridbag, c, this);
+
+             c.gridwidth = GridBagConstraints.REMAINDER; 
+             gridbag.setConstraints(titleField, c);
+             add(titleField);
+
+             c.gridwidth = GridBagConstraints.RELATIVE; 
+             getLabel("Author", gridbag, c, this);
+
+             c.gridwidth = GridBagConstraints.REMAINDER; 
+             gridbag.setConstraints(authorField, c);
+             add(authorField);
+
+             c.gridwidth = GridBagConstraints.RELATIVE; 
+             getLabel("Date", gridbag, c, this);
+
+             c.gridwidth = GridBagConstraints.REMAINDER; 
+             getLabel("", gridbag, c, this);
+
+             c.gridwidth = GridBagConstraints.RELATIVE; 
+             getLabel("Location", gridbag, c, this);
+
+             c.gridwidth = GridBagConstraints.REMAINDER; 
+             getLabel("", gridbag, c, this); 
+        }
+        
+        public void setInfo(LWPathway pathway){
+              if(pathway != null){
+                  titleField.setText(pathway.getLabel());
+                authorField.setText("Current User");
+              }  
+        }
+        
+        public void getLabel(String name,
+                               GridBagLayout gridbag,
+                               GridBagConstraints c,
+                               JPanel infoPanel) {
+             JLabel label = new JLabel(name);
+             label.setAlignmentY(JLabel.CENTER_ALIGNMENT);
+             gridbag.setConstraints(label, c);
+             infoPanel.add(label);
+        }
+     
+    }
+     
+     public void getLabel(String name,
+                               GridBagLayout gridbag,
+                               GridBagConstraints c,
+                               JPanel infoPanel) {
+             JLabel label = new JLabel(name);
+             label.setAlignmentY(JLabel.CENTER_ALIGNMENT);
+             gridbag.setConstraints(label, c);
+             infoPanel.add(label);
+    }
+    
+    public JPanel getNotesPanel(){
+        JPanel notesPanel = new JPanel();
+        JTextArea text = new JTextArea();
+        JPanel filler = new JPanel();
+        filler.setLayout(new GridLayout(1,4));
+        
+        JLabel label1 = new JLabel(" ");
+        JLabel label2 = new JLabel(" ");
+        JLabel label3 = new JLabel(" ");
+        JButton saveButton = new JButton("Save");
+        
+        filler.add(label1);
+        filler.add(label2);
+        filler.add(label3);
+        filler.add(saveButton);
+        
+        notesPanel.setLayout(new BorderLayout(5,5));
+        notesPanel.add(new JLabel("Notes: "), BorderLayout.NORTH);
+        notesPanel.add(text, BorderLayout.CENTER);
+        notesPanel.add(filler, BorderLayout.SOUTH);
+       
+        return notesPanel;
     }
     
     private class Notes extends JPanel
@@ -142,10 +266,23 @@ public class LWPathwayInspector extends InspectorWindow
         
         public Notes ()
         {
-            setLayout(new BorderLayout());
-            setPreferredSize(new Dimension(315, 200));
-            setBorder(border);    
-            
+            //JPanel notesPanel = new JPanel();
+            //JTextArea text = new JTextArea();
+            JPanel filler = new JPanel();
+            filler.setLayout(new GridLayout(1,4));
+
+            JLabel label1 = new JLabel(" ");
+            JLabel label2 = new JLabel(" ");
+            JLabel label3 = new JLabel(" ");
+            JButton saveButton = new JButton("Save");
+
+            filler.add(label1);
+            filler.add(label2);
+            filler.add(label3);
+            filler.add(saveButton);
+
+            setLayout(new BorderLayout(5,5));
+            add(new JLabel("Notes: "), BorderLayout.NORTH);
             area = new JTextArea();
             area.setWrapStyleWord(true);
             area.setLineWrap(true);
@@ -156,11 +293,20 @@ public class LWPathwayInspector extends InspectorWindow
                         //notesPathway.setComment(area.getText());
                         pathway.setComment(area.getText());
                     }
-                });                
-            JLabel north = new JLabel("Pathway Notes", JLabel.CENTER);
+                }); 
+            
+            add(area, BorderLayout.CENTER);
+            add(filler, BorderLayout.SOUTH);
+
+            //setLayout(new BorderLayout());
+            //setPreferredSize(new Dimension(315, 200));
+            //setBorder(border);    
+            
+                           
+            //JLabel north = new JLabel("Pathway Notes", JLabel.CENTER);
         
-            add(north, BorderLayout.NORTH);
-            add(area, BorderLayout.CENTER);    
+            //add(north, BorderLayout.NORTH);
+            //add(area, BorderLayout.CENTER);    
         }
         
         public void setNotes()
@@ -270,7 +416,7 @@ public class LWPathwayInspector extends InspectorWindow
                 if(row == 0){
                     pathway.setLabel((String)value);
                     setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
-                    PathwayControl control = VUE.getPathwayControl();
+                    PathwayControl control = pathwayTab.getPathwayControl();
                     control.repaint();
                 } 
                 //can't set the length

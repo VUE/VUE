@@ -2,6 +2,9 @@
  * LWPathwayManager.java
  *
  * Created on June 23, 2003, 3:03 PM
+ *
+ * Keeps arraylist of all pathways for a given concept map
+ * Also tracks the current pathway selected for the given map
  */
 
 package tufts.vue;
@@ -18,6 +21,9 @@ public class LWPathwayManager {
     private LWPathway current = null;
     private LWMap map = null;
     
+    /* beginning of castor mapping methods */
+    
+    /* constructors */
     public LWPathwayManager() {
         pathways = new ArrayList();
     }
@@ -27,6 +33,7 @@ public class LWPathwayManager {
         this.map = map;
     }
     
+    /* get and set the concept map for the arraylist of pathways*/
     public void setMap(LWMap map){
         this.map = map;
     }
@@ -35,10 +42,12 @@ public class LWPathwayManager {
         return map;
     }
     
+    /* iterates through arraylist of pathways */
     public java.util.Iterator getPathwayIterator() {
         return pathways.iterator();
     }
     
+    /* methods for accessing data from and manipulating the arraylist */
     public LWPathway getPathway(int index)
     {
         return (LWPathway)pathways.get(index);

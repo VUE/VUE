@@ -47,7 +47,7 @@ public class VUE
     
     //pathway components
     public static LWPathwayInspector pathwayInspector;
-    public static PathwayControl control;
+    //public static PathwayControl control;
 
     //hierarchy view tree window component
     public static LWHierarchyTree hierarchyTree;
@@ -175,10 +175,10 @@ public class VUE
         return pathwayInspector;
     }
     
-    public static PathwayControl getPathwayControl()
+    /*public static PathwayControl getPathwayControl()
     {
         return control;
-    }
+    }*/
     
     /**End of pathway related methods*/
     
@@ -340,7 +340,7 @@ public class VUE
 		
         //addtion by the power team
         pathwayInspector = new LWPathwayInspector(frame);
-        control = new PathwayControl(frame);
+        //control = new PathwayControl(frame);
         
         hierarchyTree = new LWHierarchyTree(frame);
         outlineViewTree = new LWOutlineViewTree(frame);
@@ -351,7 +351,7 @@ public class VUE
                                    inspectorTool.getDisplayAction(),
                                    drBrowserTool.getDisplayAction(),
                                    pathwayInspector.getDisplayAction(),
-                                   control.getDisplayAction(), 
+                                   //control.getDisplayAction(), 
                                    hierarchyTree.getDisplayAction(),
                                    mapInspector.getDisplayAction(),
                                    objectInspector.getDisplayAction(),

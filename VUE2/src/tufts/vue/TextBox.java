@@ -510,4 +510,29 @@ class TextBox extends JTextPane
         }
 
     }
+ /*   
+    public void changedUpdate(javax.swing.event.DocumentEvent documentEvent) {
+    }
+    
+    public void focusGained(java.awt.event.FocusEvent focusEvent) {
+    }
+    
+    public void focusLost(java.awt.event.FocusEvent focusEvent) {
+    }
+    
+    public void insertUpdate(javax.swing.event.DocumentEvent documentEvent) {
+    }
+    
+    public void keyPressed(java.awt.event.KeyEvent keyEvent) {
+    }
+    
+    public void keyReleased(java.awt.event.KeyEvent keyEvent) {
+    }
+    
+    public void keyTyped(java.awt.event.KeyEvent keyEvent) {
+    }
+    
+    public void removeUpdate(javax.swing.event.DocumentEvent documentEvent) {
+    }
+   */ 
 }

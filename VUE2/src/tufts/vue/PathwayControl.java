@@ -37,33 +37,32 @@ import java.awt.event.WindowEvent;
  */
 
 /**A class that displays the control of pathways*/
-public class PathwayControl extends InspectorWindow implements ActionListener, ItemListener
+public class PathwayControl extends JPanel implements ActionListener, ItemListener
 {
     /**Necessary widgets to control pathways*/
     private JButton firstButton, lastButton, forwardButton, backButton;
-    private JButton removeButton; //temporarily existing
+    private JButton removeButton, createButton;
     private JLabel nodeLabel;
     private JComboBox pathwayList;
     
     //pathway currently being kept track of
     private LWPathwayManager pathwayManager = null;
     
-    private final String noPathway = "";
-    private final String addPathway = "add a new pathway";
+    private final String noPathway = "                          ";
+    //private final String addPathway = "Create New Path";
     private final String emptyLabel = "empty";
-    
-    private DisplayAction displayAction = null;
+    private JDialog parent = null;
+    private PathwayTab tab = null;
+    //private DisplayAction displayAction = null;
     
     /** Creates a new instance of PathwayControl */
-    public PathwayControl(JFrame parent) 
+    public PathwayControl(JDialog parent, PathwayTab tab) 
     {   
-        super(parent, "Pathway Control");
-        setSize(500, 100);
-        
+        this.parent = parent;
+        this.tab = tab;
         pathwayList = new JComboBox();
         
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.white);
+        setLayout(new BorderLayout());
         
         firstButton = new JButton("<<");
         lastButton = new JButton(">>");
@@ -71,20 +70,14 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         backButton = new JButton("<");
         nodeLabel = new JLabel(emptyLabel);
         
-        /**
-        firstButton.setEnabled(false);
-        lastButton.setEnabled(false);
-        forwardButton.setEnabled(false);
-        backButton.setEnabled(false);
-        */
-        
         firstButton.addActionListener(this);
         lastButton.addActionListener(this);
         forwardButton.addActionListener(this);
         backButton.addActionListener(this);
         
-        //temporarily here
-        removeButton = new JButton("Remove Pathway");
+        createButton = new JButton("Create New Path");
+        removeButton = new JButton("Delete Selected Path");
+        createButton.addActionListener(this);
         removeButton.addActionListener(this);
         
         pathwayList.setRenderer(new pathwayRenderer());
@@ -93,7 +86,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout());
         buttonPanel.setBackground(Color.white);
-        buttonPanel.add(removeButton);
+        
         buttonPanel.add(firstButton);
         buttonPanel.add(backButton);
         buttonPanel.add(forwardButton);
@@ -106,26 +99,29 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         descriptionPanel.add(nodeLabel);
         
         JPanel mainPanel = new JPanel();
+        mainPanel.add(new JLabel("Select:"));
         mainPanel.add(pathwayList);
-        mainPanel.add(buttonPanel);
+        mainPanel.add(new JLabel("???"));
+        //mainPanel.add(buttonPanel);
         
-        getContentPane().add(mainPanel, BorderLayout.CENTER);
-        getContentPane().add(descriptionPanel, BorderLayout.NORTH);
+        JPanel pathwayPanel = new JPanel();
         
-        super.addWindowListener(new WindowAdapter()
-            {
-                public void windowClosing(WindowEvent e) 
-                {
-                    displayAction.setButton(false);
-                }
-            }
-        );
+        
+        pathwayPanel.add(createButton);
+        pathwayPanel.add(removeButton);
+        
+        add(pathwayPanel, BorderLayout.SOUTH);
+        
+        
+        
+        add(mainPanel, BorderLayout.CENTER);
+        //add(descriptionPanel, BorderLayout.NORTH);
     }
     
     /**A constructor with a pathway manager as an argument*/
-    public PathwayControl(JFrame parent, LWPathwayManager pathwayManager)
+    public PathwayControl(LWPathwayManager pathwayManager)
     {
-        this(parent);
+        //this(parent);
         setPathwayManager(pathwayManager);
     }
     
@@ -138,7 +134,7 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         //come up with a better way
         pathwayList.removeAllItems();
         pathwayList.addItem(noPathway);
-        pathwayList.addItem(addPathway);
+        //pathwayList.addItem(addPathway);
         
         //iterting through to add existing pathways to the combo box list
         for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
@@ -188,32 +184,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
     public LWPathway getCurrentPathway()
     {
         return this.getPathwayManager().getCurrentPathway();
-    }
-    
-    /** sets the active pathway as current position in pathway menu*/
-//    public void setCurrentPosition(){
-//        if(this.getPathwayManager() != null && 
-//            this.getPathwayManager().getCurrentPathway() != null)
-//                this.pathwayList.setSelectedItem(this.getPathwayManager().getCurrentPathway().getLabel());
-//        //System.out.println("setting the current position to: " + this.getPathwayManager().getCurrentPathway().getLabel());
-//    }
-    
-    /**Saves the current pathway so that it can be restored next time the pathway manager is chosen*/
-    /*public void saveCurrentPathway()
-    {
-         if (pathwayManager != null)
-         {
-            //System.out.println("setting the current pathway in the manager to : " + currentPathway.getLabel());
-            this.setCurrentPathway(currentPathway);
-         }
-    }*/
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        PathwayControl control = new PathwayControl(null);
-        control.show();
     }
     
     /**A method which updates the widgets accordingly*/
@@ -323,6 +293,11 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         //temporarily here
         else if (e.getSource() == removeButton)
           removePathway(this.getCurrentPathway());
+        
+        else if (e.getSource() == createButton){    
+                PathwayDialog dialog = new PathwayDialog(parent, getLocationOnScreen());
+                dialog.show();
+        }
           
         //notifies the change to the panel
         updateControlPanel();
@@ -348,20 +323,14 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
            
             
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly
+            /*
             else if (pathwayList.getSelectedItem().equals(addPathway))
             {    
-                PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
+                PathwayDialog dialog = new PathwayDialog(parent, getLocationOnScreen());
                 dialog.show();
             }
+             */
         } 
-    }
-     
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction("Pathway Control");
-        
-        return (Action)displayAction;
     }
     
     /**A private class which defines how the combo box should be rendered*/
@@ -497,6 +466,38 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         
     }
     
+}
+
+
+        /** sets the active pathway as current position in pathway menu*/
+//    public void setCurrentPosition(){
+//        if(this.getPathwayManager() != null && 
+//            this.getPathwayManager().getCurrentPathway() != null)
+//                this.pathwayList.setSelectedItem(this.getPathwayManager().getCurrentPathway().getLabel());
+//        //System.out.println("setting the current position to: " + this.getPathwayManager().getCurrentPathway().getLabel());
+//    }
+    
+    /**Saves the current pathway so that it can be restored next time the pathway manager is chosen*/
+    /*public void saveCurrentPathway()
+    {
+         if (pathwayManager != null)
+         {
+            //System.out.println("setting the current pathway in the manager to : " + currentPathway.getLabel());
+            this.setCurrentPathway(currentPathway);
+         }
+    }*/
+    
+     /*
+    public Action getDisplayAction()
+    {
+        if (displayAction == null)
+            displayAction = new DisplayAction("Pathway Control");
+        
+        return (Action)displayAction;
+    }
+    */
+
+/*
     private class DisplayAction extends AbstractAction
     {
         private AbstractButton aButton;
@@ -518,5 +519,4 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         {
             aButton.setSelected(state);
         }
-    }
-}
+    }*/

@@ -85,7 +85,7 @@ class Actions {
                 VUE.getPathwayInspector().notifyPathwayTab();
                 
                 //updates the control panel
-                VUE.getPathwayControl().updateControlPanel();
+                //VUE.getPathwayControl().updateControlPanel();
             }
             
             public boolean enabled()
@@ -117,7 +117,7 @@ class Actions {
                 VUE.getPathwayInspector().notifyPathwayTab();
 
                 //updates the control panel
-                VUE.getPathwayControl().updateControlPanel();
+                //VUE.getPathwayControl().updateControlPanel();
             }
 
             public boolean enabled()
