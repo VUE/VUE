@@ -1313,7 +1313,7 @@ public class LWComponent
     protected void notify(String what)
     {
         // todo: we still need both src & component? (this,this)
-        notifyLWCListeners(new LWCEvent(this, this, what, null));
+        notifyLWCListeners(new LWCEvent(this, this, what, LWCEvent.NO_OLD_VALUE));
     }
     
     /**a notify with an array of components

@@ -211,7 +211,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
     }
  	
     protected void enablePropertyChangeListeners( boolean pState) {
-        if( pState ) {
+        if (pState) {
             mStrokeButton.addPropertyChangeListener( this );
             mFontPanel.addPropertyChangeListener( this);
             mTextColorButton.addPropertyChangeListener( this);

@@ -92,10 +92,30 @@ import tufts.vue.beans.*;
      }
  	
  	
-     /**
-      * setValue
-      * Generic property editor access
-      **/
+     void loadValues(Object pValue) {
+         super.loadValues(pValue);
+         if (!(pValue instanceof LWLink))
+             return;
+ 		
+         enablePropertyChangeListeners( false);// todo: already did once in parent loadValues
+
+         if (mState.hasProperty(LWKey.LinkArrows)) {
+             int arrowState = ((Integer) mState.getPropertyValue(LWKey.LinkArrows)).intValue();
+             mArrowStartButton.setSelected((arrowState & LWLink.ARROW_EP1) != 0);
+               mArrowEndButton.setSelected((arrowState & LWLink.ARROW_EP2) != 0);
+         } else
+             debug("missing arrow state property in state");
+ 		
+         if (mState.hasProperty( LWKey.StrokeColor) ) {
+             Color c = (Color) mState.getPropertyValue(LWKey.StrokeColor);
+             mLinkColorButton.setColor(c);
+         } else 
+             debug("missing link stroke color property.");
+
+         enablePropertyChangeListeners( true);
+     }
+     
+     /*
      public void setValue( Object pValue) {
          //System.out.println("LinkToolPanel setValue " + pValue);
          VueBeanState state = null;
@@ -155,6 +175,7 @@ import tufts.vue.beans.*;
          // all done setting... start listening  again.
          enablePropertyChangeListeners( true);
      }
+     */
 
  	
      protected void enablePropertyChangeListeners(boolean pEnable) {

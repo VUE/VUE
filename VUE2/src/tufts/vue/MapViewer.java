@@ -1282,7 +1282,8 @@ public class MapViewer extends javax.swing.JComponent
         //if (!isRightSide)
         //System.out.println(e + " delivered to " + this);
 
-        //if (e.getWhat() == LWKey.Location) // ignore as handled in drag (todo: something cleaner)
+        // ignore as handled in drag (todo: something cleaner: need these is prop change not from map)
+        //if (e.getWhat() == LWKey.Location || e.getWhat() == LWKey.Size) 
         //return;
 
         if (e.getWhat() == LWKey.Added) // depend on childAdded 

@@ -144,8 +144,8 @@ public class UndoManager
         if (DEBUG.UNDO) System.out.print("UNDO: " + e);
         String propName = e.getWhat();
         LWComponent c = e.getComponent(); // can be list...
-        Object oldValue = e.getOldValue();
-        if (oldValue != null) {
+        if (e.hasOldValue()) {
+            Object oldValue = e.getOldValue();
             // if (DEBUG.UNDO) System.out.println("\t given old value " + oldValue);
             Map propList = (Map) mPropertyChanges.get(c);
             if (propList != null) {
@@ -172,7 +172,10 @@ public class UndoManager
             }
         } else {
             //if (DEBUG.UNDO) System.out.println("\tunhandled");
-            if (DEBUG.UNDO) System.out.println(" (unhandled)");
+            if (DEBUG.UNDO) {
+                System.out.println(" (unhandled)");
+                new Throwable().printStackTrace();
+            }
         }
     }
 
