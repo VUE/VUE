@@ -555,7 +555,7 @@ implements  VUE.ActiveMapListener {
             mMoreButton = new VueButton("add");
             mFewerButton = new VueButton("delete");
             
-            mFewerButton.hide();
+            mFewerButton.setVisible(false);
             
             mFilterButton.addActionListener( this);
             mClearFilterButton.addActionListener( this);
@@ -618,10 +618,10 @@ implements  VUE.ActiveMapListener {
          **/
         public void updatePanel( LWMap pMap) {
             boolean hasMap = pMap != null;
-            mFilterButton.enable(hasMap);
-            mClearFilterButton.enable( hasMap);
-            mMoreButton.enable( hasMap);
-            mFewerButton.enable( hasMap);
+            mFilterButton.setEnabled(hasMap);
+            mClearFilterButton.setEnabled( hasMap);
+            mMoreButton.setEnabled( hasMap);
+            mFewerButton.setEnabled( hasMap);
             
             if (hasMap) {
                 if(pMap.getLWCFilter() == null) {
@@ -719,7 +719,7 @@ implements  VUE.ActiveMapListener {
         }
         
         public void addStatement() {
-            mFewerButton.show();
+            mFewerButton.setVisible(true);
             LWCFilter.LogicalStatement ls = mFilter.createLogicalStatement() ;
             FilterStatementEditor fse = new FilterStatementEditor( mFilter, ls);
             mStatementEditors.add( fse);
@@ -735,7 +735,7 @@ implements  VUE.ActiveMapListener {
             mFilterBox.remove( fse);
             mStatementEditors.remove( fse);
             if( mStatementEditors.size() <= 1 ) {
-                mFewerButton.hide();
+                mFewerButton.setVisible(false);
             }
             validate();
         }

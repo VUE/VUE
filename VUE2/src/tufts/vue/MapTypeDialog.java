@@ -226,18 +226,18 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 	private void updateEnabledStates() {
 		boolean ts = (mCurType != null);
 		
-		mAddPropertyButton.enable( ts);
-		mRemovePropertyButton.enable( ts);
-		mUpButton.enable( ts);
-		mDownButton.enable( ts);
+		mAddPropertyButton.setEnabled( ts);
+		mRemovePropertyButton.setEnabled( ts);
+		mUpButton.setEnabled( ts);
+		mDownButton.setEnabled( ts);
 		if( ts) {
 			boolean ps = (mTable.getSelectedRow() != -1);
-			mRemovePropertyButton.enable( ps);
+			mRemovePropertyButton.setEnabled( ps);
 			
 			int row = mTable.getSelectedRow();
 			if( row == -1) {
-				mUpButton.enable(  false);
-				mDownButton.enable( false);
+				mUpButton.setEnabled(  false);
+				mDownButton.setEnabled( false);
 				}
 			else {
 				mUpButton.setEnabled( row != 0);
@@ -247,10 +247,10 @@ public class MapTypeDialog extends JPanel  implements ActionListener, ListSelect
 			}
 			
 		boolean hm = (mMap != null);
-		mAddTypeButton.enable( hm);
-		mRemoveTypeButton.enable( hm);
+		mAddTypeButton.setEnabled( hm);
+		mRemoveTypeButton.setEnabled( hm);
 		if( hm) {
-			mRemoveTypeButton.enable( mTypeList.getSelectedIndex() >= 0);
+			mRemoveTypeButton.setEnabled( mTypeList.getSelectedIndex() >= 0);
 			}
 	}
 	
