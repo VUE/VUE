@@ -31,7 +31,7 @@ public class VUE
     /** The currently active viewer (e.g., is visible
         and has focus).  Actions (@see Actions.java) are performed on
         the active model (sometimes querying the active viewer). */
-    public static MapViewer ActiveViewer = null;
+    private static MapViewer ActiveViewer = null;
     /** The currently active selection.
         elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
@@ -200,13 +200,17 @@ public class VUE
     /**End of overview related method*/
     
     private VUE() {}
-    
-    static JPanel toolPanel;//todo: tmp hack
-    public static void main(String[] args)
+
+    static void initUI() {
+        initUI(false);
+    }
+
+    static void initUI(boolean debug)
     {
         String laf = null;
         //laf = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        //laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        if (debug)
+            laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         try {
             if (laf != null)
                 javax.swing.UIManager.setLookAndFeel(laf);
@@ -232,6 +236,18 @@ public class VUE
             "TabbedPane.contentBorderInsets", tabbedPaneContentBorderInsets,
             "TabbedPane.tabRunOverlay", new Integer(2),
 
+            "ComboBox.font", sansSerifPlain12,
+            "ComboBox.background", table.get("window"),
+            "ComboBox.foreground", table.get("textText"),
+	    "ComboBox.buttonBackground", table.get("control"),
+	    "ComboBox.buttonShadow", table.get("controlShadow"),
+	    "ComboBox.buttonDarkShadow", table.get("controlDkShadow"),
+	    "ComboBox.buttonHighlight", table.get("controlLtHighlight"),
+            "ComboBox.selectionBackground", table.get("textHighlight"),
+            "ComboBox.selectionForeground", table.get("textHighlightText"),
+            "ComboBox.disabledBackground", table.get("control"),
+            "ComboBox.disabledForeground", table.get("textInactiveText"),
+            
         // from java.swing.plaf.metal.MetalLookAndFeel.java:
             "TabbedPane.font", controlTextValue,
             "TabbedPane.tabAreaBackground", getControl(),
@@ -242,13 +258,31 @@ public class VUE
             "TabbedPane.selectHighlight", getControlHighlight(),
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
             "TabbedPane.tabInsets", tabbedPaneTabInsets,
+
+            "ComboBox.background", table.get("control"),
+            "ComboBox.foreground", table.get("controlText"),
+            "ComboBox.selectionBackground", getPrimaryControlShadow(),
+            "ComboBox.selectionForeground", getControlTextColor(),
+            "ComboBox.font", controlTextValue,
+            
         */
-        Color toolbarColor = VueResources.getColor("toolbar.background");
+        //Color toolbarColor = VueResources.getColor("toolbar.background");
         String lafName = UIManager.getLookAndFeel().getName();
         System.out.println("LookAndFeel: \"" + lafName + "\" " + UIManager.getLookAndFeel());
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
+            //UIManager.getLookAndFeelDefaults().put("ComboBox.foreground", Color.red);
+            UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
 
+            // this doesn't do anything I can see:
+            if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonBackground", Color.yellow);
+            // Okay: this works to change selected bg -- the one thing we didn't want to change.
+            //UIManager.getLookAndFeelDefaults().put("ComboBox.selectionBackground", Color.white);
+
+            if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonShadow", Color.green);
+            if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonDarkShadow", Color.red);
+            
+                
             // Affects tabs but not tab contents background, so looks broken:
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
 
@@ -261,6 +295,12 @@ public class VUE
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", Color.magenta);
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.selectHighlight", Color.red);
         }
+    }
+    
+    static JPanel toolPanel;//todo: tmp hack
+    public static void main(String[] args)
+    {
+        initUI();
         
         // loading preferences
         prefs = java.util.prefs.Preferences.userRoot().node("/");
@@ -292,8 +332,13 @@ public class VUE
         DRBrowser drBrowser = null;
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         if (!nodr)  {
-            drBrowser = new DRBrowser();
-            toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+            try {
+                drBrowser = new DRBrowser();
+                toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                System.err.println("DR browser blowing up -- try another day.");
+            }
         } else {
             //-------------------------------------------------------
             // create example map(s)
@@ -506,20 +551,28 @@ public class VUE
 
     public static void closeMap(LWMap map)
     {
+        boolean proceed = true;
         if (map.isModified()) {
+            // todo: even better - make buttons say "save", "don't save" & "cancel" like OSX
             int response = JOptionPane.showConfirmDialog(VUE.frame,
-                                                         "Map has been modified. Save changes before closing?"
-                                                         + (DEBUG_EVENTS?("[modifications="+map.getModCount()+"]"):""),
+                                                         "\"" + map.getLabel() + "\" "
+                                                         + "has been modified.  \nSave changes before closing?"
+                                                         + (DEBUG_EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
                                                          " Save changes?",
                                                          JOptionPane.YES_NO_CANCEL_OPTION);
             if (response == JOptionPane.YES_OPTION) {
-                System.out.println("Save map...");
+                if (SaveAction.saveMap(map))
+                    proceed = true;
+                else
+                    proceed = false;
             } else if (response == JOptionPane.CANCEL_OPTION) {
-                return;
+                proceed = false;
             }
         }
-        mMapTabsLeft.closeMap(map);
-        mMapTabsRight.closeMap(map);
+        if (proceed) {
+            mMapTabsLeft.closeMap(map);
+            mMapTabsRight.closeMap(map);
+        }
     }
 
     static class MapTabbedPane extends JTabbedPane
@@ -717,7 +770,20 @@ public class VUE
         public void closeMap(LWMap map)
         {
             System.out.println(this + " closing " + map);
-            remove(findTabWithMap(map));
+            int mapTabIndex = findTabWithMap(map);
+            MapViewer viewer = getViewerAt(mapTabIndex);
+            if (viewer == getActiveViewer()) {
+                // be sure to clear active viewer -- it was probably us.
+                // If there are other maps open, one of them will shortly get a
+                // focusGained event and set itself to the active viewer.
+                setActiveViewer(null);
+                // we might want to force notification even if selection is already empty:
+                // we want all listeners, particularly the actions, to
+                // update in case this is last map open
+                VUE.ModelSelection.clear();
+                //VUE.ModelSelection.clearAndNotify();
+            }
+            remove(mapTabIndex);
         }
 
         public void paintComponent(Graphics g) {
@@ -1079,6 +1145,7 @@ public class VUE
         map.addLink(k1);
         map.addLink(k2);
         map.addLink(k3);
+        map.markAsSaved();
         
         //creating test pathways
         if(map.getLabel().equals("Map 1")){

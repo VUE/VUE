@@ -1083,10 +1083,13 @@ class Actions
         }
         */
 
-        boolean enabled() { return enabledFor(VUE.ModelSelection); }
+        boolean enabled() { return VUE.getActiveMap() != null && enabledFor(VUE.ModelSelection); }
 
         public void selectionChanged(LWSelection selection) {
-            setEnabled(enabledFor(selection));
+            if (VUE.getActiveMap() == null)
+                setEnabled(false);
+            else
+                setEnabled(enabledFor(selection));
         }
         void checkEnabled() {
             selectionChanged(VUE.ModelSelection);

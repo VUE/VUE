@@ -53,7 +53,11 @@ public class VueUtil
     public static void main(String args[])
         throws java.io.IOException
     {
-        //.list(System.out);
+        System.out.println("cursor16 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(16,16));
+        System.out.println("cursor24 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(24,24));
+        System.out.println("cursor32 " + java.awt.Toolkit.getDefaultToolkit().getBestCursorSize(32,32));
+
+                                       //.list(System.out);
         Hashtable props = System.getProperties();
         Enumeration e = props.keys();
         while (e.hasMoreElements()) {
@@ -312,6 +316,17 @@ public class VueUtil
         if(!userFolder.delete()) 
              throw new RuntimeException(userFolder.getAbsolutePath()+":cannot be deleted");
     }
+
+    public static void centerOnScreen(java.awt.Window window)
+    {
+        if (VueUtil.getJavaVersion() >= 1.4f) {
+            java.awt.Point p = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+            p.x -= window.getWidth() / 2;
+            p.y -= window.getHeight() / 2;
+            window.setLocation(p);
+        }
+    }
+    
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
          javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      

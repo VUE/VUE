@@ -57,14 +57,32 @@ public class SaveAction extends AbstractAction
     {
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
         
-        LWMap map = tufts.vue.VUE.getActiveMap();
+        saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs());
+        
+        System.out.println("Action["+e.getActionCommand()+"] completed.");
+    }
+
+    /**
+     * @return true if success, false if not
+     */
+      
+    public static boolean saveMap(LWMap map, boolean saveAs)
+    {
+        System.out.println("SaveAction.saveMap: " + map);
+        
+        if (map == null)
+            return false;
+        
         File file = map.getFile();
         
-        if (isSaveAs() || file == null)
+        if (saveAs || file == null)
             file = ActionUtil.selectFile("Save Map", "vue");
+
+        if (file == null)
+            return false;
         
-        if (file != null)
-        {
+        try {
+
             String name = file.getName().toLowerCase();
 
             if (name.endsWith(".xml") || name.endsWith(".vue"))
@@ -72,21 +90,41 @@ public class SaveAction extends AbstractAction
             
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
                 new ImageConversion().createJpeg(file);
-
+            
             else if (name.endsWith(".svg"))
                 new SVGConversion().createSVG(file);
-
+            
             else if (name.endsWith(".pdf"))
                 new PDFTransform().convert(file);
-
+            
             else if (name.endsWith(".html"))
                 new HTMLConversion().convert(file);
             
-            System.out.println("Wrote " + file);
+            // don't know this as not all the above stuff is passing
+            // exceptions on to us!
+            System.out.println("Save code completed for " + file);
+            return true;
+
+        } catch (Exception e) {
+            Throwable originalException = e;
+            if (e.getCause() != null)
+                originalException = e.getCause();
+            if (originalException instanceof java.io.FileNotFoundException) {
+                System.out.println("Save failed: " + originalException);
+            } else {
+                e.printStackTrace();
+            }
+            System.err.println("Exception attempting to save file " + file);
+            VueUtil.alert(null, "Save failed: " + originalException, "Save error");
         }
-            
-        System.out.println("Action["+e.getActionCommand()+"] completed.");
+
+        return false;
     }
+
+    public static boolean saveMap(LWMap map) {
+        return saveMap(map, false);
+    }
+    
 
     
     /*

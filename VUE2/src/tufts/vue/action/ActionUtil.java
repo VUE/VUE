@@ -69,7 +69,6 @@ public class ActionUtil {
         {
             picked = chooser.getSelectedFile();
             
-            boolean proceed = true;
             String fileName = picked.getAbsolutePath();
             String extension = chooser.getFileFilter().getDescription();
                 
@@ -84,12 +83,11 @@ public class ActionUtil {
                         "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                   
                 if (n == JOptionPane.NO_OPTION)
-                    proceed = false;
+                    picked = null;
             } 
             
-            if (proceed == true) {
+            if (picked != null)
                 VueUtil.setCurrentDirectoryPath(picked.getParent());
-            }
         }
         
         return picked;
@@ -144,14 +142,19 @@ public class ActionUtil {
     
     /**A static method which creates an appropriate marshaller and marshal the given map*/
     public static void marshallMap(File file, LWMap map)
+    /*
+      // really need to put these in and let everyone handle the exceptions --
+      // otherwise we can't know how it may have failed!
+        throws java.io.IOException,
+               org.exolab.castor.mapping.MappingException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException
+    */
     {
         Marshaller marshaller = null;
-        
-        //if (this.marshaller == null) {
         Mapping mapping = new Mapping();
             
-        try 
-        {  
+        try {  
             FileWriter writer = new FileWriter(file);
             
             marshaller = new Marshaller(writer);
@@ -167,12 +170,16 @@ public class ActionUtil {
 
             map.setFile(file);
             map.markAsSaved();
-        } 
-        catch (Exception e) 
-        {
+
+            System.out.println("Wrote " + file);
+
+        } catch (Exception e) {
             System.err.println("ActionUtil.marshallMap: " + e);
+            // until everyone has chance to update their code
+            // to handle the exceptions, wrap this in a runtime exception.
+            throw new RuntimeException(e);
         }
-        //}
+
     }
     
     /**A static method which creates an appropriate unmarshaller and unmarshal the given concept map*/

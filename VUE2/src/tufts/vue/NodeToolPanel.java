@@ -68,12 +68,22 @@ import tufts.vue.beans.*;
  	// Constructors
  	//////////////////
  	
- 	public NodeToolPanel() {
- 		
+     
+     private static boolean debug = false;
+     public NodeToolPanel() {
+         final Insets NoInsets = new Insets(0,0,0,0);
+                
  		Color bakColor = VueResources.getColor("toolbar.background");
-		this.setBackground( bakColor);
+ 		if (debug) bakColor = Color.red;
+		if (false)
+                    setBackground(Color.blue);
+                else
+                    setBackground( bakColor);
  		Box box = Box.createHorizontalBox();
-		box.setBackground( bakColor);
+                if (false)
+                    box.setBackground(Color.green);
+                else
+                    box.setBackground(bakColor);
  		this.setAlignmentX( LEFT_ALIGNMENT);
  		
  		Color [] fillColors = VueResources.getColorArray( "fillColorValues");
@@ -85,8 +95,9 @@ import tufts.vue.beans.*;
 		fillBlob.setOverlay( fillIcon );
 		mFillColorButton.setIcon(fillBlob);
  		mFillColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
- 		mFillColorButton.setBorder(null);
+ 		mFillColorButton.setBorderPainted(false);
  		mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
+ 		mFillColorButton.setMargin(NoInsets);
 
  		Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
  		String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
@@ -97,6 +108,8 @@ import tufts.vue.beans.*;
 		strokeBlob.setOverlay( strokeIcon );
 		mStrokeColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
 		mStrokeColorButton.setIcon( strokeBlob);
+		mStrokeColorButton.setBorderPainted(false);
+		mStrokeColorButton.setMargin(NoInsets);
 
  		Color [] textColors = VueResources.getColorArray( "textColorValues");
  		String [] textColorNames = VueResources.getStringArray( "textColorNames");
@@ -107,10 +120,13 @@ import tufts.vue.beans.*;
 		textBlob.setOverlay( textIcon );
 		mTextColorButton.setIcon(textBlob);
  		mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
+ 		mTextColorButton.setBorderPainted(false);
 
  		mFontPanel = new FontEditorPanel();
 		mFontPanel.setBackground( bakColor);
  		mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
+                mFontPanel.setBorder(null);
+ 		//mFontPanel.setMargin(NoInsets); // how reduce border?
  		
  		
 		
@@ -246,6 +262,22 @@ import tufts.vue.beans.*;
  	
  	}
  	
+    public static void main(String[] args) {
+        System.out.println("NodeToolPanel:main");
+        //sFontNames = new String[] { "New Times Roman", "Courier", "Arial" }; // so doesn't bother to load system fonts
+
+        debug = true;
+        VUE.initUI(true);
+
+        JComponent comp = new NodeToolPanel();
+        JFrame frame = new JFrame("toolbar");
+        comp.setSize(comp.getPreferredSize());
+        frame.setContentPane(comp);
+        frame.pack();
+        frame.validate();
+        VueUtil.centerOnScreen(frame);
+        frame.show();
+    }
  	
  	
  }

@@ -67,14 +67,18 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	
  	public FontEditorPanel() {
                 loadFontNames();
+                Insets NoInsets = new Insets(0,0,0,0);
                 
  		Box box = Box.createHorizontalBox();
  		
+
                 mFontCombo = new JComboBox( sFontNames);
  		mFontCombo.addActionListener( this );
  		Font f = mFontCombo.getFont();
  		Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
  		mFontCombo.setFont( menuFont);
+                //mFontCombo.setBackground(Color.green);
+ 		//mFontCombo.setBorderPainted(false);
  		
  		
  		mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
@@ -88,11 +92,15 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  		mBoldButton.setSelectedIcon( sBoldOn);
  		mBoldButton.setIcon( sBoldOff);
  		mBoldButton.addActionListener( this);
- 		
+                mBoldButton.setBorderPainted(false);
+                mBoldButton.setMargin(NoInsets);
+                
  		mItalicButton = new JToggleButton();
  		mItalicButton.setSelectedIcon( sItalicOn );
  		mItalicButton.setIcon( sItalicOff);
  		mItalicButton.addActionListener( this);
+                mItalicButton.setBorderPainted(false);
+                mItalicButton.setMargin(NoInsets);
  		
  		box.add( mFontCombo);
  		box.add( mSizeField);
@@ -168,7 +176,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	}
  	
  	public void initColors( Color pColor) {
- 		mFontCombo.setBackground( pColor);
+            //mFontCombo.setBackground( pColor);
  		mBoldButton.setBackground( pColor);
  		mItalicButton.setBackground( pColor);
  	}
@@ -224,4 +232,21 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  			}
  		return -1;
  	}
+
+    public static void main(String[] args) {
+        System.out.println("FontEditorPanel:main");
+        sFontNames = new String[] { "New Times Roman", "Courier", "Arial" }; // so doesn't bother to load system fonts
+
+        VUE.initUI(true);
+
+        JComponent comp = new FontEditorPanel();
+        JFrame frame = new JFrame("toolbar");
+        comp.setSize(comp.getPreferredSize());
+        frame.setContentPane(comp);
+        frame.pack();
+        frame.validate();
+        VueUtil.centerOnScreen(frame);
+        frame.show();
+    }
+     
  }
