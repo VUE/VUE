@@ -341,17 +341,16 @@ implements  VUE.ActiveMapListener {
     public class MetadataPanel extends JPanel implements ActionListener, PropertyChangeListener {
         PropertiesEditor propertiesEditor = null;
         public MetadataPanel() {
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+            //setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+            setLayout(new BorderLayout());
             setBorder( new EmptyBorder(4,4,4,4) );
         }
         
         
         public MetadataPanel(LWMap map) {
-            
-            setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
-            setBorder( new EmptyBorder(4,4,4,4) );
+            this();
             propertiesEditor = new PropertiesEditor(map.getMetadata(),true);
-            add(propertiesEditor);
+            add(propertiesEditor,BorderLayout.WEST);
             
         }
         
@@ -368,9 +367,8 @@ implements  VUE.ActiveMapListener {
             if(propertiesEditor != null) {
                 propertiesEditor.setProperties(pMap.getMetadata(),true);
             } else {
-                System.out.println("MAP Properties editor is null");
                 propertiesEditor = new PropertiesEditor(pMap.getMetadata(),true);
-                add(propertiesEditor);
+                add(propertiesEditor,BorderLayout.WEST);
             }
             validate();
             
