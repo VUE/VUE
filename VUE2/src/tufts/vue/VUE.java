@@ -879,7 +879,7 @@ public class VUE
         public void LWCChanged(LWCEvent e)
         {
             LWComponent c = e.getComponent();
-            if (c instanceof LWMap && e.getWhat().equals("label")) {
+            if (c instanceof LWMap && e.getWhat() == LWKey.Label) {
                 //System.out.println("MapTabbedPane " + e);
                 LWMap map = (LWMap) c;
                 int i = findTabWithMap(map);

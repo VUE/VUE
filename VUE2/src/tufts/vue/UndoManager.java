@@ -171,6 +171,14 @@ public class UndoManager
         mChangeCount = 0;
     }
 
+    /**
+     * Every event anywhere in the map we're listening to will
+     * get delivered to us here.  If the event has an old
+     * value in it, we save it for later undo.  If it's
+     * a hierarchy event (add/remove/delete/forward/back, etc)
+     * we handle it specially.
+     */
+
     public void LWCChanged(LWCEvent e) {
         if (sInUndo) {
             if (DEBUG.UNDO) System.out.println("\tredo: " + e);

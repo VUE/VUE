@@ -821,7 +821,7 @@ public abstract class LWContainer extends LWComponent
         children.add(c);
         // we layout the parent because a parent node will lay out
         // it's children in the order they appear in this list
-        notify("reorder.ToFront", c);
+        notify("hier.order.front", c);
         c.getParent().layoutChildren();
         return true;
     }
@@ -834,7 +834,7 @@ public abstract class LWContainer extends LWComponent
         //System.out.println("sendToBack " + c);
         children.remove(idx);
         children.add(0, c);
-        notify("reorder.ToBack", c);
+        notify("hier.order.back", c);
         c.getParent().layoutChildren();
         return true;
     }
@@ -847,7 +847,7 @@ public abstract class LWContainer extends LWComponent
             return false;
         //System.out.println("bringForward " + c);
         swap(idx, idx + 1);
-        notify("reorder.Forward", c);
+        notify("hier.order.forward", c);
         c.getParent().layoutChildren();
         return true;
     }
@@ -859,7 +859,7 @@ public abstract class LWContainer extends LWComponent
             return false;
         //System.out.println("sendBackward " + c);
         swap(idx, idx - 1);
-        notify("reorder.Backward", c);
+        notify("hier.order.backward", c);
         c.getParent().layoutChildren();
         return true;
     }
@@ -885,6 +885,7 @@ public abstract class LWContainer extends LWComponent
         //if (DEBUG.PARENTING) System.out.println("ENSUREPAINTSEQUENCE: " + onBottom + " " + onTop);
         if (topIndex == (bottomIndex - 1)) {
             swap(topIndex, bottomIndex);
+            notify("hier.sequence");
             if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: swapped " + onTop);
         } else if (topIndex < bottomIndex) {
             children.remove(topIndex);
@@ -893,6 +894,7 @@ public abstract class LWContainer extends LWComponent
                 children.add(onTop);
             else
                 children.add(bottomIndex, onTop);
+            notify("hier.sequence");
             if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: inserted " + onTop);
         } else {
             //if (DEBUG.PARENTING) System.out.println("ensurePaintSequence: already sequenced");
