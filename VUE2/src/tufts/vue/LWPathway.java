@@ -214,12 +214,12 @@ public class LWPathway extends tufts.vue.LWComponent implements Pathway
     }
     
     /** Interface for the linked list used by the Castor mapping file*/
-    public ArrayList getArrayElementList()
+    public ArrayList getElementArrayList()
     {
         return new ArrayList(elementList);
     }
     
-    public void setArrayElementList(ArrayList list)
+    public void setElementArrayList(ArrayList list)
     {
         elementList = new LinkedList(list);
     }
