@@ -4,7 +4,7 @@
  * Created on October 2, 2003, 10:56 AM
  */
 
-package VUEDevelopment.src.tufts.oki.hierarchy;
+package tufts.oki.hierarchy;
 
 import java.util.Vector;
 import java.util.HashMap;
@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Enumeration;
 
 import tufts.vue.LWNode;
+import tufts.vue.HierarchyTreeModel;
 
 /**
  *
@@ -21,8 +22,8 @@ import tufts.vue.LWNode;
  */
 public class HierarchyModel implements osid.hierarchy.Hierarchy
 {
-    private String description = null, name= null;
-    private osid.shared.Id ID = null;
+    private String description, name;
+    private osid.shared.Id ID;
   
     boolean multipleParents = false;
     boolean recursion = true;
@@ -31,17 +32,40 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
     private Vector availableTypes;
     private DefaultTreeModel treeModel;
     
-    /** Creates a new instance of HierarchyModel */
-    public HierarchyModel()
+    private int nextID = 1;
+     
+    private String getNextID()
     {
-        map = new HashMap();
-        treeModel = null;
-        availableTypes = new Vector();
+        return Integer.toString(nextID++, 10);
     }
     
-    public HierarchyModel(String name, String description) 
+    /** Creates a new instance of HierarchyModel */
+    public HierarchyModel(LWNode rootNode)
     {
-        this();
+        map = new HashMap();
+        
+        try 
+        {
+            ID = new tufts.oki.shared.Id(getNextID());
+            
+        }
+        
+        catch (osid.shared.SharedException se)
+        {
+            System.out.println("shared exception");
+        }
+            
+        name = "no name";
+        description = "no description";
+        
+        availableTypes = new Vector();
+        
+        setUpHierarchyNodes(rootNode, null);
+    }
+    
+    public HierarchyModel(LWNode rootNode, String name, String description) 
+    {
+        this(rootNode);
         this.name = name;
         this.description = description;
     }
@@ -135,8 +159,6 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         {
             throw new osid.hierarchy.HierarchyException("exception");
         }
-        
-       
     }
     
     public osid.hierarchy.Node createRootNode(osid.shared.Id nodeId, osid.shared.Type type, String name, String description) throws osid.hierarchy.HierarchyException 
@@ -360,6 +382,43 @@ public class HierarchyModel implements osid.hierarchy.Hierarchy
         
         HierarchyTraversalInfoIterator iterator = new HierarchyTraversalInfoIterator(traversalInfoList);
         return (osid.hierarchy.TraversalInfoIterator)iterator;
+    }
+    
+    /**custom methods*/
+    
+    public void setUpHierarchyNodes(LWNode node, osid.hierarchy.Node parentNode)
+    {
+        try
+        {
+            osid.hierarchy.Node hierarchyNode;
+        
+            if (parentNode == null)
+              hierarchyNode = createRootNode(new tufts.oki.shared.Id(getNextID()), new tufts.oki.shared.VueType(), 
+                                                                    node.getLabel(), node.getNotes());
+        
+            else
+              hierarchyNode = createNode(new tufts.oki.shared.Id(getNextID()), parentNode.getId(), new tufts.oki.shared.VueType(), 
+                                                                 node.getLabel(), node.getNotes());
+            
+            ((HierarchyNode)hierarchyNode).setLWNode(node);
+         
+            //do it recursively
+            for (Iterator i = node.getNodeIterator(); i.hasNext();)
+            {
+                LWNode nextNode = (LWNode)i.next();
+                setUpHierarchyNodes(nextNode, hierarchyNode);
+            }
+        }
+        
+        catch (osid.hierarchy.HierarchyException he)
+        {
+            System.out.println("hierarchy exception");
+        }
+        
+        catch (osid.shared.SharedException se)
+        {
+            System.out.println("shared exception");
+        }
     }
     
     /*

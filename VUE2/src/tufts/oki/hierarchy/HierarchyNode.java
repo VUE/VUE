@@ -4,7 +4,7 @@
  * Created on October 2, 2003, 11:11 AM
  */
 
-package VUEDevelopment.src.tufts.oki.hierarchy;
+package tufts.oki.hierarchy;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -136,7 +136,7 @@ public class HierarchyNode implements osid.hierarchy.Node
     
     public void changeParent(osid.shared.Id first, osid.shared.Id second) throws osid.hierarchy.HierarchyException
     {
-        
+        //unimplemented
     }
     
     /** custom methods */

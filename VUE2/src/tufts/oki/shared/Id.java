@@ -45,7 +45,7 @@ public class Id implements osid.shared.Id {
      *  @author OkiImpl_1_0_rc05
      *
      */
-    protected Id(String idString) throws osid.shared.SharedException {
+    public Id(String idString) throws osid.shared.SharedException {
         if (idString == null) {
             throw new osid.shared.SharedException(osid.shared.SharedException.NULL_ARGUMENT);
         }

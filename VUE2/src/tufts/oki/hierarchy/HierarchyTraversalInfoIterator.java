@@ -4,7 +4,7 @@
  * Created on October 5, 2003, 7:13 PM
  */
 
-package VUEDevelopment.src.tufts.oki.hierarchy;
+package tufts.oki.hierarchy;
 
 import java.util.Vector;
 /**
