@@ -26,7 +26,6 @@ public interface Resource {
     static final int FAVORITES = 4;         //  Resource is a Favorites Folder
     static final int ASSET_OKIDR  = 10;     //  Resource is an OKI DR Asset.
     static final int ASSET_FEDORA = 11;     //  Resource is a Fedora Asset.
-    
     /**  
      *  Return the title or display name associated with the resource.
      *  (any length restrictions?)

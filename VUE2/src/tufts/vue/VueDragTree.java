@@ -634,18 +634,11 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     final static int STRING = 1;
     final static int PLAIN = 2;
     final static int RESOURCE = 0;
-    public static DataFlavor resourceFlavor;
+    public static DataFlavor resourceFlavor = MapResource.resourceFlavor;
     public static DataFlavor favoritesFlavor;
     String displayName = "";
    
-    
-    static {
-        try {
-            resourceFlavor = new DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
-            //    assetFlavor = new DataFlavor("asset","asset");
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-    
+   
     /**
      * try {
      * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");

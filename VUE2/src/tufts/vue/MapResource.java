@@ -19,8 +19,14 @@ import fedora.server.types.gen.*;
 
 public class MapResource implements Resource {
     static final long SIZE_UNKNOWN = -1;
+    public static java.awt.datatransfer.DataFlavor resourceFlavor;
     // constats that define the type of resource
-    
+    static {
+        try{
+            resourceFlavor = new java.awt.datatransfer.DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
+            
+        } catch(Exception ex) {ex.printStackTrace();  }
+    }
     long referenceCreated;
     long accessAttempted;
     long accessSuccessful;
@@ -34,46 +40,43 @@ public class MapResource implements Resource {
     
     /** property name cache **/
     private String [] mPropertyNames = null;
-
+    
     /** an optional resource title */
     protected String mTitle;
-
+    
     private URL url = null;
     
     // for castor to save and restore
-     Vector propertyList = null;
+    Vector propertyList = null;
     
     public MapResource() {
         this.type =  Resource.NONE;
-    } 
+    }
     
-    public MapResource(String spec)
-    {
+    public MapResource(String spec) {
         
         setSpec(spec);
-      
+        
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
         
         this.mTitle = spec;
     }
     
-   
     
     
-    public Object toDigitalRepositoryReference()
-    {
+    
+    public Object toDigitalRepositoryReference() {
         return null;
     }
     
-    public String toURLString()
-    {
+    public String toURLString() {
         String txt;
         
         // todo fixme: this pathname may have been created on another
         // platform, (meaning, a different separator char) unless
         // we're going to canonicalize everything ourselves coming
         // in...
-
+        
         if (this.url == null)
             txt = "file://" + spec;
         else
@@ -83,28 +86,26 @@ public class MapResource implements Resource {
             txt = "file://" + spec;
         else
             txt = spec;
-        */
+         */
         return txt;
     }
-
+    
     public java.net.URL toURL()
-        throws java.net.MalformedURLException
-    {
+    throws java.net.MalformedURLException {
         if (url == null)
             return new java.net.URL(toURLString());
         else
             return this.url;
     }
-
-    public void displayContent()
-    {
+    
+    public void displayContent() {
         System.out.println("displayContent for " + this);
         try {
             this.accessAttempted = System.currentTimeMillis();
             //if (getAsset() != null) {
-                //AssetViewer a = new AssetViewer(getAsset());
-                //a.setSize(600,400);
-                //a.show();
+            //AssetViewer a = new AssetViewer(getAsset());
+            //a.setSize(600,400);
+            //a.show();
             //} else
             if (VueUtil.isMacPlatform())
                 VueUtil.openURL(toURLString());
@@ -115,7 +116,7 @@ public class MapResource implements Resource {
             System.err.println(e);
         }
     }
-
+    
     public long getReferenceCreated() {
         return this.referenceCreated;
     }
@@ -146,16 +147,15 @@ public class MapResource implements Resource {
     public void setSize(long size) {
         this.size = size;
     }
-
+    
     public void setTitle(String title) {
         mTitle = title;
     }
-
-    public String getTitle()
-    {
+    
+    public String getTitle() {
         return mTitle;
     }
-
+    
     public void setSpec(String spec) {
         this.spec = spec;
         this.referenceCreated = System.currentTimeMillis();
@@ -168,7 +168,7 @@ public class MapResource implements Resource {
               System.out.println("\t" + file + " exists=" +file.exists());
               file = new java.io.File(spec);
               System.out.println("\t" + file + " exists=" +file.exists());
-            */
+             */
         } catch (MalformedURLException e) {
             // Okay for url to be null: means local file
             //System.err.println(e);
@@ -177,9 +177,8 @@ public class MapResource implements Resource {
             System.err.println(e);
         }
     }
-
-    public void setTitleFromContent()
-    {
+    
+    public void setTitleFromContent() {
         if (url != null) {
             try {
                 System.err.println("Opening connection to " + url);
@@ -200,11 +199,10 @@ public class MapResource implements Resource {
             }
         }
     }
-
+    
     private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+).*",
-                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
-    private static String searchURLforTitle(URLConnection url_conn)
-    {
+    Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+    private static String searchURLforTitle(URLConnection url_conn) {
         String title = null;
         try {
             title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
@@ -215,11 +213,10 @@ public class MapResource implements Resource {
         }
         return title;
     }
-
+    
     /** search a stream for a single regex -- one matching group only.
      * Only search the first n bytes of input stream. */
-    private static String searchStreamForRegex(InputStream in, Pattern regex, int bytes)
-    {
+    private static String searchStreamForRegex(InputStream in, Pattern regex, int bytes) {
         String result = null;
         try {
             System.out.println("*** Searching for regex in " + in);
@@ -245,7 +242,7 @@ public class MapResource implements Resource {
         }
         return result;
     }
-
+    
     
     
     /** Return exactly whatever we were handed at creation time.  We
@@ -256,9 +253,9 @@ public class MapResource implements Resource {
      * for opening a local file.  */
     
     public String getSpec() {
-       return this.spec;
+        return this.spec;
     }
-
+    
     /**
      * If isLocalFile is true, this will return a file name
      * suitable to be given to java.io.File such that it
@@ -272,16 +269,14 @@ public class MapResource implements Resource {
         else
             return url.getFile();
     }
-
-    public boolean isLocalFile()
-    {
+    
+    public boolean isLocalFile() {
         return url == null || url.getProtocol().equals("file");
         //String s = spec.toLowerCase();
         //return s.startsWith("file:") || s.indexOf(':') < 0;
     }
-
-    public String getExtension()
-    {
+    
+    public String getExtension() {
         String ext = "xxx";
         if (spec.startsWith("http"))
             ext = "web";
@@ -297,10 +292,10 @@ public class MapResource implements Resource {
         }
         if (ext.length() > 4)
             ext = ext.substring(0,4);
-
+        
         return ext;
     }
-
+    
     
     /**
      * getPropertyNames
@@ -308,20 +303,20 @@ public class MapResource implements Resource {
      * @return String [] the list of property names
      **/
     public String [] getPropertyNames() {
-    	
-    	if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
-	    	Set keys = mProperties.keySet();
-			if( ! keys.isEmpty() ) {
-				mPropertyNames = new String[ keys.size() ];
-				Iterator it = keys.iterator();
-				int i=0;
-				while( it.hasNext()) {
-					mPropertyNames[i] = (String) it.next();
-					i++;
-					}
-				}
-			}
-    	return mPropertyNames;
+        
+        if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
+            Set keys = mProperties.keySet();
+            if( ! keys.isEmpty() ) {
+                mPropertyNames = new String[ keys.size() ];
+                Iterator it = keys.iterator();
+                int i=0;
+                while( it.hasNext()) {
+                    mPropertyNames[i] = (String) it.next();
+                    i++;
+                }
+            }
+        }
+        return mPropertyNames;
     }
     
     /**
@@ -334,44 +329,43 @@ public class MapResource implements Resource {
      * @param STring pName the proeprty name
      * @param Object pValue the value
      **/
-     public void setPropertyValue( String pName, Object pValue) {
-     	/** invalidate our dumb cache of names if we add a new one **/
-     	if( !mProperties.containsKey( pName) ) {
-     		mPropertyNames = null;
-     		}	
-     	mProperties.put( pName, pValue);
-     }
-     
-     public Properties getProperties() {
-         return (Properties)mProperties;
-     }
-     
-     public void setProperties(Properties pProperties) {
-         System.out.println("SET PROPERTIES");
-         this.mProperties = pProperties;
-     }
-     
-     /**
-      * getPropertyValue
-      * This method returns a value for the given property name.
-      * @param pname the property name.
-      * @return Object the value
-      **/
-     public Object getPropertyValue( String pName) {
-     	Object value = null;
-     	value = mProperties.get( pName);
-     	return value;
-     }
-     
-     public boolean isSelected(){
-         return selected;
-     }
-     
-     public void setSelected(boolean selected) {
-         this.selected = selected;
-     }
-    public String toString()
-    {
+    public void setPropertyValue( String pName, Object pValue) {
+        /** invalidate our dumb cache of names if we add a new one **/
+        if( !mProperties.containsKey( pName) ) {
+            mPropertyNames = null;
+        }
+        mProperties.put( pName, pValue);
+    }
+    
+    public Properties getProperties() {
+        return (Properties)mProperties;
+    }
+    
+    public void setProperties(Properties pProperties) {
+        System.out.println("SET PROPERTIES");
+        this.mProperties = pProperties;
+    }
+    
+    /**
+     * getPropertyValue
+     * This method returns a value for the given property name.
+     * @param pname the property name.
+     * @return Object the value
+     **/
+    public Object getPropertyValue( String pName) {
+        Object value = null;
+        value = mProperties.get( pName);
+        return value;
+    }
+    
+    public boolean isSelected(){
+        return selected;
+    }
+    
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+    public String toString() {
         return getSpec();
     }
     
@@ -383,16 +377,16 @@ public class MapResource implements Resource {
     }
     public String getToolTipInformation() {
         return "ToolTip Information";
-    }   
-
-   
+    }
+    
+    
     
     public Vector getPropertyList() {
         propertyList = new Vector();
         if(mProperties.size() ==0) // a hack for castor to work
             return null;
-            
-            
+        
+        
         Iterator i = mProperties.keySet().iterator();
         while(i.hasNext()) {
             Object object = i.next();
@@ -404,8 +398,8 @@ public class MapResource implements Resource {
         System.out.println(this + " getPropertyList: " + propertyList);
         return propertyList;
     }
-
-     public void setPropertyList(Vector propertyList) {
+    
+    public void setPropertyList(Vector propertyList) {
         this.propertyList = propertyList;
         this.mProperties = new Properties();
         Iterator i = propertyList.iterator();
@@ -414,5 +408,5 @@ public class MapResource implements Resource {
             mProperties.put(entry.getEntryKey(),entry.getEntryValue());
         }
     }
- 
+    
 }
