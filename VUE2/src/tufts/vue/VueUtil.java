@@ -331,7 +331,18 @@ public class VueUtil
             window.setLocation(x, y);
         }
     }
-    
+
+    // This is for testing individual components.
+    public static void displayComponent(javax.swing.JComponent comp)
+    {
+        javax.swing.JFrame frame = new javax.swing.JFrame(comp.getClass().getName());
+        comp.setSize(comp.getPreferredSize());
+        frame.setContentPane(comp);
+        frame.pack();
+        frame.validate();
+        VueUtil.centerOnScreen(frame);
+        frame.show();
+    }
     
     public static void alert(javax.swing.JComponent component,String message,String title) {
          javax.swing.JOptionPane.showMessageDialog(component,message,title,javax.swing.JOptionPane.ERROR_MESSAGE);                                      

@@ -70,14 +70,16 @@ import tufts.vue.beans.*;
  	// Constructors
  	//////////////////
  	
- 	public LinkToolPanel() {
+     private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
+     public LinkToolPanel() {
  		
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
                 Color bakColor = VueResources.getColor("toolbar.background");
 		Box box = Box.createHorizontalBox();
  		setBackground( bakColor);
- 		
+                setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
+                
  		Color [] linkColors = VueResources.getColorArray( "linkColorValues");
  		String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
  		mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
@@ -86,7 +88,8 @@ import tufts.vue.beans.*;
 		fillBlob.setOverlay( fillIcon );
 		mLinkColorButton.setIcon(fillBlob);
  		mLinkColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
- 		mLinkColorButton.setBorder(null);
+ 		mLinkColorButton.setBorderPainted(false);
+ 		mLinkColorButton.setMargin(ButtonInsets);
  		mLinkColorButton.setBackground( bakColor);
  		mLinkColorButton.addPropertyChangeListener( this);
  		
@@ -101,24 +104,28 @@ import tufts.vue.beans.*;
 		mTextColorButton.setIcon(textBlob);
  		mTextColorButton.setPropertyName("nodeTextColor");
  		mTextColorButton.setBackground( bakColor);
+ 		mTextColorButton.setBorderPainted(false);
+ 		mTextColorButton.setMargin(ButtonInsets);
  		mTextColorButton.addPropertyChangeListener( this);
  		
  		mFontPanel = new FontEditorPanel();
  		mFontPanel.addPropertyChangeListener( this);
 
  		
- 		
-		
 		mArrowStartButton = new JToggleButton();
 		mArrowStartButton.setIcon( VueResources.getImageIcon( "arrowStartOffIcon") );
 		mArrowStartButton.setSelectedIcon( VueResources.getImageIcon("arrowStartOnIcon") );
 		mArrowStartButton.setBackground( bakColor);
+		mArrowStartButton.setBorderPainted(false);
+ 		mArrowStartButton.setMargin(ButtonInsets);
 		mArrowStartButton.addActionListener( this);
 		
 		mArrowEndButton = new JToggleButton();
 		mArrowEndButton.setIcon( VueResources.getImageIcon( "arrowEndOffIcon") );
 		mArrowEndButton.setSelectedIcon( VueResources.getImageIcon("arrowEndOnIcon") );
 		mArrowEndButton.addActionListener( this);
+ 		mArrowEndButton.setMargin(ButtonInsets);
+                mArrowEndButton.setBorderPainted(false);
 		
 		mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
 		LineIcon lineIcon = new LineIcon( 16,12);
@@ -127,14 +134,16 @@ import tufts.vue.beans.*;
  		mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
  		mStrokeButton.setBackground( bakColor);
  		mStrokeButton.addPropertyChangeListener( this );
+ 		mStrokeButton.setMargin(ButtonInsets);
+		mStrokeButton.setBorderPainted(false);
  		
  		
  		box.add( mLinkColorButton);
  		box.add( mArrowStartButton);
  		box.add( mStrokeButton);
  		box.add( mArrowEndButton);
- 		box.add(mTextColorButton);
  		box.add( mFontPanel);
+ 		box.add( mTextColorButton);
  		
  		this.add( box);
  	
@@ -293,4 +302,11 @@ import tufts.vue.beans.*;
  			System.out.println("  LinkToolPanel - "+str);
  			}
  	}
+
+    public static void main(String[] args) {
+        System.out.println("LinkToolPanel:main");
+        VUE.initUI(true);
+        VueUtil.displayComponent(new LinkToolPanel());
+    }
+     
  }

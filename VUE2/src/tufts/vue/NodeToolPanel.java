@@ -26,14 +26,14 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	/////////////
  	
  	private static float [] sStrokeValues = { 0,1,2,3,4,5,6};
- 	private static String [] sStrokeMenuLabels = { "nonne",
- 											   "1 pixel",
- 											   "2 pixels",
- 											   "3 pixels",
- 											   "4 pixels",
- 											   "5 pixels",
- 											   "6 pixels"  };
- 											   
+ 	private static String [] sStrokeMenuLabels = { "none",
+                                                       "1 pixel",
+                                                       "2 pixels",
+                                                       "3 pixels",
+                                                       "4 pixels",
+                                                       "5 pixels",
+                                                       "6 pixels"  };
+    
  // End of array list
  
  	
@@ -156,8 +156,8 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          box.add( mFillColorButton);
          box.add( mStrokeColorButton);
          box.add( mStrokeButton);
-         box.add( mTextColorButton);
          box.add( mFontPanel);
+         box.add( mTextColorButton);
  		
          this.add(box);
  		
@@ -182,6 +182,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	 * Generic property editor access
  	 **/
  	public void setValue( Object pValue) {
+            System.out.println("NTP setValue " + pValue);
  		VueBeanState state = null;
  		
  		enablePropertyChangeListeners( false);
@@ -251,7 +252,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
  	 }
  	 
  	public void propertyChange( PropertyChangeEvent pEvent) {
- 		//System.out.println("Node property chaged: "+pEvent.getPropertyName());
+ 		System.out.println("Node property chaged: "+pEvent.getPropertyName());
   		String name = pEvent.getPropertyName();
   		if( !name.equals("ancestor") ) {
 	  		
@@ -283,15 +284,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
 
         debug = true;
 
-        JComponent comp = new NodeToolPanel();
-
-        JFrame frame = new JFrame(comp.getClass().getName());
-        comp.setSize(comp.getPreferredSize());
-        frame.setContentPane(comp);
-        frame.pack();
-        frame.validate();
-        VueUtil.centerOnScreen(frame);
-        frame.show();
+        VueUtil.displayComponent(new NodeToolPanel());
     }
  	
  }
