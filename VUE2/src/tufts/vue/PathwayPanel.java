@@ -84,7 +84,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     /* end Pathway Control Properties */
     
     private String[] colNames = {"A", "B", "C", "D", "E", "F"};
-    private int[] colWidths = {20,20,20,100,20,20};
+    private int[] colWidths = {20,20,1,100,20,20};
  
     /** Creates a new instance of PathwayPanel */
 
@@ -180,9 +180,9 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         pathwayTable = new PathwayTable(tableModel);
         pathwayTable.setBackground(bgColor);
         
-        for(int i = 0; i < 6; i++){
+        for (int i = 0; i < colWidths.length; i++){
             TableColumn col = pathwayTable.getColumn(colNames[i]);
-            if(i != 3) col.setMaxWidth(colWidths[i]);
+            if (i != 3) col.setMaxWidth(colWidths[i]);
         } 
         
         JScrollPane tablePane = new JScrollPane(pathwayTable);
@@ -384,7 +384,6 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         
         buttons = new JPanel(new GridLayout(1, 2, 0, 0));
         buttons.setBackground(altbgColor);
-        
         buttons.add(addElement);
         buttons.add(removeElement);
         buttons.setPreferredSize(new Dimension(40,24));
