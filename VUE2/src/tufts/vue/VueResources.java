@@ -1,6 +1,4 @@
-
 package tufts.vue;
-
 
 import java.util.*;
 
@@ -9,6 +7,7 @@ import java.awt.*;
 import javax.swing.*;
 import java.net.URL;
 import java.io.File;
+
 /**
  * VueResources Class
  *
@@ -19,164 +18,183 @@ import java.io.File;
  **/
 public class VueResources
 {
-  
-
-	/** Resource Bundle **/
-	protected static ResourceBundle sResourceBundle =  ResourceBundle.getBundle("tufts.vue.VueResources");
- 
+    /** Resource Bundle **/
+    protected static ResourceBundle sResourceBundle =  ResourceBundle.getBundle("tufts.vue.VueResources");
 
 	
-	/**
-	* Return the vue resource bundle.
-	*/
-	public static ResourceBundle getBundle() {
-		return sResourceBundle;
-	}
-
-
+    /**
+     * Return the vue resource bundle.
+     */
+    public static ResourceBundle getBundle() {
+        return sResourceBundle;
+    }
+    
 	
 	
-	/**
-	* getImageIcon()
-	* This method returns an ImageIcon based on the file
-	* specified by the properties file
-	* myIcon=/my/package/myImage.gif
-	* It will use the resource bulde's class to generate a URL
-	* to map to local systems.
-	*
-	* @param pLookupKey - the key in the properties file
-	 *  @returns ImageIcon referenced by the resource bundle's lookupkey balue
-	 **/
-	public static ImageIcon getImageIcon(String pLookupKey)  {
-		ImageIcon icon = null;   // (ImageIcon) sIconDict. getString(pLookupKey);
-		String  str = null;
-		URL resource = null;
+    /**
+     * getImageIcon()
+     * This method returns an ImageIcon based on the file
+     * specified by the properties file
+     * myIcon=/my/package/myImage.gif
+     * It will use the resource bulde's class to generate a URL
+     * to map to local systems.
+     *
+     * @param pLookupKey - the key in the properties file
+     *  @returns ImageIcon referenced by the resource bundle's lookupkey balue
+     **/
+    public static ImageIcon getImageIcon(String pLookupKey)  {
+        ImageIcon icon = null;   // (ImageIcon) sIconDict. getString(pLookupKey);
+        String  str = null;
 		
-		debug("Loading icon: "+pLookupKey);
-		try {
-			str = getString( pLookupKey);
-			if( str != null) {
-				debug("  value: "+ str);
-				resource = sResourceBundle.getClass().getResource( str) ;        //  new URL(  urlStr );
-				if (resource != null) {
-					icon = new ImageIcon( resource);
-					
-					if ( icon.getImageLoadStatus() != MediaTracker.COMPLETE)
-						alert("Unable to load image resource " + str +"; URL = '" + resource + "'");
-					}
-				}
-			
-		} catch (Exception e) {
-			alert("  !!! failed to lead due to "+ e.toString() );
-			}
-		return icon;
-		}
+        debug("Loading icon: "+pLookupKey);
+        str = getString(pLookupKey);
+        if (str != null)
+            icon = loadImageIcon(str);
+        return icon;
+    }
+
+    private static ImageIcon loadImageIcon(String file) {
+        ImageIcon icon = null;
+        debug("  loadImageIcon["+ file + "]");
+        try {
+            URL resource = sResourceBundle.getClass().getResource(file); //  new URL(  urlStr );
+            if (resource != null) {
+                icon = new ImageIcon( resource);
+                if (icon.getImageLoadStatus() != MediaTracker.COMPLETE)
+                    alert("Unable to load image resource " + file +"; URL = '" + resource + "'");
+            }
+        } catch (Exception e) {
+            System.err.println(e);
+            alert("  !!! failed to load image icon: " + e);
+        }
+        return icon;
+    }
+
+    public static Cursor getCursor(String pLookupKey)
+    {
+        String[] data = VueResources.getStringArray(pLookupKey);
+        if (data == null)
+            return null;
+        ImageIcon icon = loadImageIcon(data[0]);
+        Cursor cursor = null;
+        if (icon != null) {
+            Point hot = new Point();
+            if (data.length > 2) {
+                try {
+                    hot.x = Integer.parseInt(data[1]);
+                    hot.y = Integer.parseInt(data[2]);
+                } catch (Exception e) {
+                    System.err.println(e);
+                }
+            }
+            //System.out.println("Creating cursor for " + icon);
+            //System.out.println("Creating cursor " + pLookupKey + " " + Arrays.asList(data) + " with hotspot " + hot);
+            // Well, hotspot appears to have no effect on Windows 2000, JVM 1.4.2.
+            cursor = Toolkit.getDefaultToolkit().createCustomCursor(icon.getImage(), hot, pLookupKey+":"+icon.toString());
+        }
+        return cursor;
+    }
         
-        public static URL getURL(String pLookupKey) {
-            URL url = null;
-            try {
-                url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
-                System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+url);
-            } catch (Exception e) {
-		alert("  !!! failed to lead due to "+ e.toString() );
-            }
-            return url;
+        
+    public static URL getURL(String pLookupKey) {
+        URL url = null;
+        try {
+            url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
+            System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+url);
+        } catch (Exception e) {
+            alert("  !!! failed to lead due to "+ e.toString() );
         }
+        return url;
+    }
 	
-        public static File getFile(String pLookupKey) {
-           File file = null;
-            try {
-                file =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")) ;
-                System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+file);
-            } catch (Exception e) {
-		alert("  !!! failed to lead due to "+ e.toString() );
-            }
-            return file;
+    public static File getFile(String pLookupKey) {
+        File file = null;
+        try {
+            file =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")) ;
+            System.out.println("URL found for plookupkey = "+pLookupKey+"  : "+file);
+        } catch (Exception e) {
+            alert("  !!! failed to lead due to "+ e.toString() );
         }
-	/**
-	 * getString
-	 * This method returns the String from a properties file
-	 * for the given lookup key.
-	 * Format:  myString=Some Nice Message String
-	 * 
-	 * @param pLookupKey - the key
-	 * @return String - the result String, null if not found
-	 **/
-	public final static String getString(String pLookupKey) {
-		try {
-			return sResourceBundle.getString(pLookupKey);
-		}
-		catch (MissingResourceException mre) {
-			alert("!!! Warning: Missing string resource "+pLookupKey );
-			}
-		return null;
-	}
+        return file;
+    }
+    /**
+     * getString
+     * This method returns the String from a properties file
+     * for the given lookup key.
+     * Format:  myString=Some Nice Message String
+     * 
+     * @param pLookupKey - the key
+     * @return String - the result String, null if not found
+     **/
+    public final static String getString(String pLookupKey) {
+        try {
+            return sResourceBundle.getString(pLookupKey);
+        }
+        catch (MissingResourceException mre) {
+            alert("!!! Warning: Missing string resource "+pLookupKey );
+        }
+        return null;
+    }
 
 	
-	/**
-	 * getStringArray()
-	 * This method returns a String array based on the string in
-	 * the properties file.  Commas may not be used in the string.
-	 * There is no escapeingo of commas at this point.
-	 * Format:  myStrings=File,Edit,Windows,Help
-	 * 
-	 * @param pLookupKey - the key in the properties file
-	 * @return String [] the array
-	 **/
-	public static String [] getStringArray(String pLookupKey) {
-            String[] retValue = null;
-            String s = getString(pLookupKey);
-            if (s != null)
-                retValue = s.split(",\\s*");
-            return retValue;
-	}
+    /**
+     * getStringArray()
+     * This method returns a String array based on the string in
+     * the properties file.  Commas may not be used in the string.
+     * There is no escapeingo of commas at this point.
+     * Format:  myStrings=File,Edit,Windows,Help
+     * 
+     * @param pLookupKey - the key in the properties file
+     * @return String [] the array
+     **/
+    public static String [] getStringArray(String pLookupKey) {
+        String[] retValue = null;
+        String s = getString(pLookupKey);
+        if (s != null)
+            retValue = s.split(",\\s*");
+        return retValue;
+    }
 	
-	/**
-	 * getIntArray
-	 * Thsi method returns an integer array from a properties resource
-	 * The format for the properties file is:  myInts=12,13,14,15
-	 * Using a "," (comma) as the separator 
-	 * Format:  myIntArray=123,456,789
-	 *
-	 * @param String pLookupKey the key of the property
-	 * #return int [] the array of ints
-	 **/
-	public static int [] getIntArray( String pLookupKey) {
+    /**
+     * getIntArray
+     * Thsi method returns an integer array from a properties resource
+     * The format for the properties file is:  myInts=12,13,14,15
+     * Using a "," (comma) as the separator 
+     * Format:  myIntArray=123,456,789
+     *
+     * @param String pLookupKey the key of the property
+     * #return int [] the array of ints
+     **/
+    public static int [] getIntArray( String pLookupKey) {
 		
-		int [] retValue = null;
-		String [] s = getStringArray( pLookupKey);
+        int [] retValue = null;
+        String [] s = getStringArray( pLookupKey);
 		
-		if( s != null) {
-			retValue = new int[ s.length];
-			Integer intValue = null;
-			for( int i=0; i<s.length; i++) {
-				intValue = new Integer( s[i]);
-				retValue[i] = intValue.intValue() ; 
-				}
-			}
-		return retValue;
-	}
+        if( s != null) {
+            retValue = new int[s.length];
+            for( int i=0; i<s.length; i++)
+                retValue[i] = Integer.parseInt(s[i]);
+        }
+        return retValue;
+    }
 
 
 
-	/**
-	 * getInt
-	 * This returns an int based on the int at the lookup key.
-	 * Format: myInt=123
-	 * @param pLookupKey - the lookup key
-	 * @returns int - the int value in the properties file
-	 **/
-	static public int getInt( String pLookupKey) {
-		
-		int retValue = 0;
-		String s = getString( pLookupKey);
-		
-		if( s != null) {
-			Integer i = new Integer( s );
-			retValue = i.intValue();
-			}
+    /**
+     * getInt
+     * This returns an int based on the int at the lookup key.
+     * Format: myInt=123
+     * @param pLookupKey - the lookup key
+     * @returns int - the int value in the properties file
+     **/
+    static public int getInt( String pLookupKey)
+    {
+        int retValue = 0;
+        String s = getString(pLookupKey);
+        if (s != null)
+            retValue = Integer.parseInt(s);
 	return retValue;
-	}
+    }
 
 	
     /**
@@ -360,37 +378,37 @@ public class VueResources
 	}
 
 
-	static protected void alert( String pMsg) {
-		if( (sDebug)  || ( get("alerts") != null) )
-		System.out.println(pMsg);
-	}
+    static protected void alert( String pMsg) {
+        if( (sDebug)  || ( get("alerts") != null) )
+            System.out.println(pMsg);
+    }
 	
 	
-	static private String get( String pKey)  {
-		String value = null;
-		try {
-			value = getBundle().getString( pKey);
-		} catch( Exception e) {
-		}
-		return value;
+    static private String get( String pKey)  {
+        String value = null;
+        try {
+            value = getBundle().getString( pKey);
+        } catch( Exception e) {
+        }
+        return value;
 		
-	}
+    }
 	
-	static public void initComponent( JComponent pObj, String pKey) {
+    static public void initComponent( JComponent pObj, String pKey) {
 	
-		Font font = getFont( pKey+".font");
-		Color background = getColor( pKey + ".background");
+        Font font = getFont( pKey+".font");
+        Color background = getColor( pKey + ".background");
 		
-		if( font != null)
-			pObj.setFont( font);
-		if( background != null)
-			pObj.setBackground( background);	
+        if( font != null)
+            pObj.setFont( font);
+        if( background != null)
+            pObj.setBackground( background);	
 	
-	}
+    }
 	
-	static private boolean sDebug = false;
+    static private boolean sDebug = false;
 	
-	static protected void debug( String pStr) {
-		if( sDebug) System.out.println( pStr);
-	}
+    static protected void debug( String pStr) {
+        if( sDebug) System.out.println( pStr);
+    }
 }
