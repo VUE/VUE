@@ -7,8 +7,12 @@ set JAVA_HOME=C:\forte_jdk\j2sdk1.4.0
 set VUE_HOME=C:\Daisuke\VUEDevelopment\src
 =======
 set JAVA_HOME=C:\j2sdk1.4.0_03
+<<<<<<< vue.bat
+set VUE_HOME=C:\vueproject\VUEDevelopment\src
+=======
 set VUE_HOME=C:\anoop\euclid\VUEDevelopment\src
 >>>>>>> 1.4
+>>>>>>> 1.5
 
 set JAVA=%JAVA_HOME%\bin\java
 set JAVAC=%JAVA_HOME%\bin\javac

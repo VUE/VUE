@@ -8,6 +8,8 @@ import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.border.LineBorder;
 
+import java.util.ArrayList;
+
 /**
  * LWNode.java
  *
@@ -26,6 +28,7 @@ public class LWNode extends LWContainer
     protected RectangularShape boundsShape; // map based, scaled
     
     private float borderWidth = 2;
+    private ArrayList borderList = new ArrayList();
     private ImageIcon imageIcon = null;
     private boolean fixedAspect = false;
     private boolean autoSized = true; // compute size from label & children
@@ -122,6 +125,14 @@ public class LWNode extends LWContainer
         adjustDrawnShape();
         this.lastLabel = null;
         // this will cause size to be computed at the next rendering
+    }
+    
+    protected void setBorderLayer(Color color){
+        borderList.add(color);
+    }
+    
+    protected ArrayList getBorderLayers(){
+        return borderList;
     }
     
     void setImage(Image image)
@@ -459,6 +470,19 @@ public class LWNode extends LWContainer
             g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
             g.draw(drawnShape);
+        }
+        
+        //draw any borders for pathways
+        if (this.getBorderLayers().size() > 0) {
+            ArrayList colors = getBorderLayers();
+            for(int i = 0; i < getBorderLayers().size(); i++){
+                g.setColor((Color)getBorderLayers().get(i));
+                if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
+                    g.setStroke(STROKE_INDICATION);
+                else
+                    g.setStroke(this.stroke);
+                g.draw(drawnShape);
+            }
         }
         
         //g.setStroke(new java.awt.BasicStroke(0.001f));
