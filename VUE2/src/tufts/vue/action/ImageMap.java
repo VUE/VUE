@@ -4,7 +4,7 @@
  * Created on June 6, 2003, 5:01 PM
  */
 
-package tufts.vue;
+package tufts.vue.action;
 
 /**
  *
@@ -16,7 +16,8 @@ import java.io.*;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.geom.Rectangle2D;
-import tufts.vue.action.ActionUtil;
+//import tufts.vue.action.ActionUtil;
+import tufts.vue.*;
 
 public class ImageMap extends AbstractAction {
     
@@ -38,21 +39,18 @@ public class ImageMap extends AbstractAction {
         BufferedImage mapImage = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
         this.map = currentMap.getMap();
         Graphics2D g = (Graphics2D) mapImage.getGraphics();
-         g.setColor(Color.WHITE);
+        
+        g.setColor(Color.WHITE);
         g.fillRect(0, 0, size.width, size.height);
         g.setColor(Color.BLACK);
         g.drawRect(0, 0, size.width-1, size.height-1);
-        //g.drawRect(xOffset, yOffset, size.width+xOffset- 1, size.height+yOffset - 1);
-       
-        
-         g.translate(-xOffset, -yOffset);
+             
+        g.translate(-xOffset, -yOffset);
         g.setClip(0, 0, size.width, size.height);
-       //currentMap.paintComponent(g);
-        
             
         DrawContext dc = new DrawContext(g, scale);
-             // render the map
-            map.draw(dc);
+        // render the map
+        map.draw(dc);
            
         
         try
@@ -91,9 +89,6 @@ public class ImageMap extends AbstractAction {
         Rectangle2D bounds = currentMap.getAllComponentBounds();
         xOffset = (int)bounds.getX(); 
         yOffset = (int)bounds.getY();
-        System.out.println("bounds are " + xOffset + ", " + yOffset);
-        
-        //Dimension size = new Dimension((int)bounds.getWidth() + xOffset, (int)bounds.getHeight() + yOffset);
         Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
             
         /**
@@ -151,8 +146,6 @@ public class ImageMap extends AbstractAction {
             String res = "";
             int ox = (int)node.getX() -  xOffset;
             int oy = (int)node.getY() -  yOffset;
-            //int ox = (int)node.getX();
-            //int oy = (int)node.getY();
             int ow = (int)node.getWidth();
             int oh = (int)node.getHeight();
             
