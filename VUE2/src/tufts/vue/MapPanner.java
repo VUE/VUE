@@ -87,9 +87,11 @@ public class MapPanner extends javax.swing.JPanel
         g2.scale(zoomFactor, zoomFactor);
         g2.setColor(Color.white);
         g2.fill(mapViewerRect);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         mapViewer.getMap().draw(g2);
-        g2.setColor(Color.red);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setColor(Color.red);
         g2.setStroke(STROKE_ONE);
         g2.draw(mapViewerRect);
 
