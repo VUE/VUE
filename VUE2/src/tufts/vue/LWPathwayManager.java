@@ -203,7 +203,8 @@ public class LWPathwayManager {
         //if(this.getCurrentPathway() != null && !this.getCurrentPathway().equals(pathway))
         //    this.hidePathwayElements();
         current = pathway;
-        VUE.getActiveViewer().repaint();
+        if (VUE.getActiveMap() != null)
+            VUE.getActiveMap().notify(this, "repaint");
     }
    
     public Object getFirst(){

@@ -18,7 +18,7 @@ import java.util.*;
 public class PathwayTableModel extends DefaultTableModel{
     
     private PathwayTab tab = null;
-    private LWPathwayManager manager = null;//VUE.getActiveMap().getPathwayManager();
+    private LWPathwayManager manager = null;
     //private ArrayList tableList = null;
    
     
@@ -29,9 +29,10 @@ public class PathwayTableModel extends DefaultTableModel{
     }
 
     public LWPathwayManager getManager(){
-        if(manager == null){
+        if(manager == null && VUE.getActiveMap() != null) {
             this.manager = VUE.getActiveMap().getPathwayManager();
         }
+        //if (manager == null) new Throwable("PathwayTableModel.getManager() returning null").printStackTrace();
         return manager;
     }
     
@@ -41,10 +42,6 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public void addPathway(LWPathway pathway){
-        if(manager == null){
-            this.manager = VUE.getActiveMap().getPathwayManager();
-        }
-        
         if(this.getManager() != null){  
             manager.addPathway(pathway);         
             this.fireTableDataChanged(); 
@@ -213,11 +210,6 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public void setValueAt(Object aValue, int row, int col){
-        
-        if(manager == null){
-            this.manager = VUE.getActiveMap().getPathwayManager();    
-        }
-        
         if(this.getManager() != null){
             Object elem = manager.getPathwaysElement(row);
             if(elem instanceof LWPathway){
