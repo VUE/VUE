@@ -42,12 +42,13 @@ public class NodeToolPanel extends LWCToolPanel
     private ShapeMenuButton mShapeButton;
     
     public NodeToolPanel() {
-        JLabel label = new JLabel("   Node: ");
-        label.setFont(VueConstants.FONT_SMALL);
+        
+        //JLabel label = new JLabel("   Node: ");
+        //label.setFont(VueConstants.FONT_SMALL);
         getBox().add(mShapeButton = new ShapeMenuButton(), 0);
         mShapeButton.addPropertyChangeListener(this);
         addPropertyProducer(mShapeButton);
-        getBox().add(label, 0);
+        //getBox().add(label, 0);
     }
     
     public static boolean isPreferredType(Object o) {

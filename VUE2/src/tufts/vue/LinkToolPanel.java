@@ -49,10 +49,10 @@ public class LinkToolPanel extends LWCToolPanel
         final AbstractButton mArrowStartButton = new VueButton.Toggle("link.button.arrow.start");
         final AbstractButton mArrowEndButton = new VueButton.Toggle("link.button.arrow.end");
         
-        JLabel label = new JLabel("   Link: ");
-        label.setFont(VueConstants.FONT_SMALL);
-
-        addComponent(label);
+        //JLabel label = new JLabel("   Link: ");
+        //label.setFont(VueConstants.FONT_SMALL);
+        //addComponent(label);
+        
         //addComponent(linkStraight);
         //addComponent(linkCurved);
         //addComponent(linkCurvedS);
