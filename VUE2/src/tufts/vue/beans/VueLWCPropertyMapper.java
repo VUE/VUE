@@ -24,7 +24,7 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 	static public final String kFillColor = "fillColor";
 	static public final String kStrokeColor = "strokeColor";
 	static public final String kTextColor = "textColor";
-	static public final String kStrokeWeight = "stroke";
+	static public final String kStrokeWeight = "strokeWeight";
 	static public final String kLinkArrowState = "linkArrows";
 	static public final String kFont = "font";
 	
@@ -152,7 +152,6 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 				}
 			else
 			if( pName.equals( kFont) ) {
-				debug(" setting font");
 				obj.setFont( (Font) pValue);
 				}
 			
@@ -198,11 +197,12 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 		LWCBeanInfo( LWComponent pLWC ) {
 			
 			if( pLWC instanceof LWNode) {
-				if( false) {
-					mPropertyNames = sNodeProperties;
+				//FIX:  add check for text node ehre.
+				if( ((LWNode) pLWC).isTextNode() ) {
+					mPropertyNames = sTextProperties;
 					}
 				else {
-					mPropertyNames = sTextProperties;
+					mPropertyNames = sNodeProperties;
 					}
 				}
 			else
@@ -245,9 +245,6 @@ public class VueLWCPropertyMapper implements VuePropertyMapper {
 
 	 			
 	
-	static public final String kStrokeWeight = "stroke";
-	static public final String kLinkArrowState = "linkArrows";
-	static public final String kFont = "font";
 		
 		private VuePropertyDescriptor createDescriptor( String pName) {
 			VuePropertyDescriptor desc = null;

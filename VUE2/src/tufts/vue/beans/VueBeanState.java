@@ -138,6 +138,26 @@ public class VueBeanState implements VueBeanInfo   {
 	public void setPropertyValue( String pName, Object pValue) {
 		mProperties.put( pName, pValue);
 	}
+	
+	
+	/**
+	 * applyState
+	 * This method applies teh property VueBeanState to an object
+	 * @param Object pBean - the object to take the properties
+	 **/
+	public void applyState( Object pBean) {
+		
+		String[] propertyNames = getPropertyNames();
+		System.out.println( "*** applyState: "+ pBean.getClass().getName() );
+		if( propertyNames != null) {
+			for (int i = 0; i < propertyNames.length; i++) {
+				String name = propertyNames[i];
+				Object value = getPropertyValue(name);
+				System.out.println("    "+name+"  value: "+value);
+				VueBeans.setPropertyValue( pBean, name, value);
+				}
+			}
+	}
 
 
 	/***

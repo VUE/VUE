@@ -179,7 +179,6 @@ public class VueBeans   {
 	static public void setPropertyValueForLWSelection(LWSelection pSelection, String pName, Object pValue  ) {
 		
 		if(  (pSelection == null) || pSelection.isEmpty()) {
-			System.out.println("  Selection null or empty.");
 			return;
 			}
 		Iterator it = pSelection.iterator();
