@@ -982,7 +982,7 @@ public abstract class LWContainer extends LWComponent
     }
     
     public void replaceResource(Resource r1,Resource r2) {
-        Iterator i = getChildIterator();
+        Iterator i = getAllDescendentsIterator();
         while(i.hasNext()) {
             LWComponent component = (LWComponent) i.next();
             if(component.hasResource()){
@@ -990,11 +990,7 @@ public abstract class LWContainer extends LWComponent
                 if(resource == r1) 
                     component.setResource(r2);
             }
-            if(component instanceof LWContainer)
-                ((LWContainer)component).replaceResource(r1,r2);
         }
-
-  
     }
 
     void setScale(float scale)
