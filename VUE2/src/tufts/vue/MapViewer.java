@@ -47,12 +47,20 @@ public class MapViewer extends javax.swing.JPanel
     //-------------------------------------------------------
     // Selection support
     //-------------------------------------------------------
+
+    /** an alias for the global selection -- sometimes taking on the value null */
     protected LWSelection VueSelection = VUE.ModelSelection;
+    /** a group that contains everything in the current selection.
+     *  Used for doing operations on the entire group (selection) at once */
     protected LWGroup draggedSelectionGroup = LWGroup.createTemporary(VueSelection);
-    protected Rectangle draggedSelectorBox;     // currently dragged selection box
-    protected Rectangle lastPaintedSelectorBox; // last selector box drawn
-    protected boolean draggingSelectorBox;     // are we currently dragging a selection box?
-    protected boolean inDrag;                   // are we currently in a drag?
+    /** the currently dragged selection box */
+    protected Rectangle draggedSelectorBox;
+    /** the last selector box drawn -- for repaint optimization */
+    protected Rectangle lastPaintedSelectorBox;
+    /** are we currently dragging a selection box? */
+    protected boolean draggingSelectorBox;
+    /** are we currently in a drag of any kind? (mouseDragged being called) */
+    protected boolean inDrag;                  
 
     //-------------------------------------------------------
     // For dragging out new links
@@ -97,6 +105,7 @@ public class MapViewer extends javax.swing.JPanel
         //super(false); // turn off double buffering -- frame seems handle it?
         setOpaque(true);
         creationLink.setDisplayed(false);
+        invisibleLinkEndpoint.addLinkRef(creationLink);
         setLayout(null);
         //setLayout(new NoLayout());
         //setLayout(new FlowLayout());
@@ -444,6 +453,9 @@ public class MapViewer extends javax.swing.JPanel
     }
     
     
+    /**
+     * Handle events coming off the LWMap we're displaying.
+     */
     public void LWCChanged(LWCEvent e)
     {
         // todo: optimize -- we get tons of location events
@@ -1003,7 +1015,8 @@ public class MapViewer extends javax.swing.JPanel
         java.util.Iterator it = VueSelection.iterator();
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
-            drawComponentSelectionBox(g2, c);
+            if (!(c instanceof LWLink))
+                drawComponentSelectionBox(g2, c);
         }
         
         //if (!VueSelection.isEmpty() && (!inDrag || draggingSelectorBox)) {
@@ -1032,6 +1045,8 @@ public class MapViewer extends javax.swing.JPanel
     // exterior drawn box will be 1 pixel bigger
     private void drawSelectionHandle(Graphics2D g, float x, float y)
     {
+        //x = Math.round(x);
+        //y = Math.round(y);
         SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
         g.setColor(COLOR_SELECTION_HANDLE);
         g.fill(SelectionHandle);
@@ -1043,6 +1058,14 @@ public class MapViewer extends javax.swing.JPanel
         g.draw(r);
         r.x -= SelectionHandleSize/2;
         r.y -= SelectionHandleSize/2;
+
+        //r.x = Math.round(r.x);
+        //r.y = Math.round(r.y);
+        //r.width = Math.round(r.width);
+        //r.height = Math.round(r.height);
+        //g.draw(r);
+        //r.x -= SelectionHandleSize/2;
+        //r.y -= SelectionHandleSize/2;
 
         // Draw the four corners
         drawSelectionHandle(g, r.x, r.y);
@@ -1404,6 +1427,11 @@ public class MapViewer extends javax.swing.JPanel
             if (DEBUG_MOUSE)
                 System.out.println("dragStart set to " + dragStart);
             
+            //-------------------------------------------------------
+            // If any "tool" keys are being held down, start special
+            // operations and return (e.g., spacebar down for map drag)
+            //-------------------------------------------------------
+
             if (toolKeyDown == KEY_TOOL_PAN) {
                 originAtDragStart = getOriginLocation();
                 if (getParent() instanceof JViewport)
@@ -1422,7 +1450,17 @@ public class MapViewer extends javax.swing.JPanel
             
             setLastMousePressPoint(e.getX(), e.getY());
             dragComponent = null;
+
+            //-------------------------------------------------------
+            // Check for hits on selection handles
+            //-------------------------------------------------------
             
+            // if (SelectionHandles.
+            
+            //-------------------------------------------------------
+            // Check for hits on map LWComponents
+            //-------------------------------------------------------
+                
             float mapX = screenToMapX(e.getX());
             float mapY = screenToMapY(e.getY());
 
