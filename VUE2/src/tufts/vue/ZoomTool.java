@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import javax.swing.*;
@@ -61,6 +62,16 @@ public class ZoomTool extends VueTool
     {
         return true;
     }
+
+    public boolean supportsDraggedSelector(MouseEvent e)
+    {
+        // This is so that if they RIGHT click, the dragged selector doesn't appear --
+        // because right click in zoom does a zoom out, and it makes less sense to
+        // zoom out on a particular region.
+        // Need to recognize button 1 on a drag, where getButton=0, or a release, where modifiers 0 but getButton=1
+        return e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
+    }
+    
     
     public boolean handleKeyPressed(KeyEvent e){return false;}
     

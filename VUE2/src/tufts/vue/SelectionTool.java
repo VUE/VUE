@@ -25,9 +25,6 @@ public class SelectionTool extends VueTool {
         return null;
     }
 
-    public boolean supportsSelection()
-    {
-        return true;
-    }
+    public boolean supportsSelection() { return true; }
     
 }
