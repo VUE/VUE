@@ -38,6 +38,7 @@ public class PathwayTable extends JTable
     private final Font currentFont = new Font("SansSerif", Font.BOLD, 12);
     private final Font normalFont = new Font("SansSerif", Font.PLAIN, 10);
     private final Color bgColor = new Color(241, 243, 246);;
+    //private final Color bgColor = Color.red;
     private final Color selectedbgColor = Color.white;
     private final Color currentNodeColor = Color.red;
     

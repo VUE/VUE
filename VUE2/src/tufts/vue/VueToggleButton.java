@@ -1,47 +1,40 @@
 package tufts.vue;
 
-import java.awt.*;
-import java.awt.event.ActionListener;
 import javax.swing.*;
-import javax.swing.border.*;
+import java.awt.*;
 
 /**
+ * VueToggleButton
  *
- * This class is a wrapper around JButton to get the look and feel for VUE.
- * VueButtons are currently used in Pathway Panel and Advanced Search.  The button sets the disabled, Up and Down icons.
- * All the icons must be present in VueResources in format buttonName.Up, buttonName.down, buttonName.disabled, or .raw
- * for generated buttons.
+ * This class is a wrapper around JToggleButton to get the look and feel for VUE.
  *
- * @author  akumar03
  * @author  Scott Fraize
  * @version March 2004
  */
-
-public class VueButton extends JButton
+public class VueToggleButton extends JToggleButton
 {
     private static final String UP = ".up";
     private static final String DOWN = ".down";
     private static final String DISABLED = ".disabled";
     private static final String RAW = ".raw";
 
-    protected String key;
+    private String key;
 
-    public VueButton(String name, ActionListener l)
+    public VueToggleButton(String name, java.awt.event.ActionListener listener)
     {
         init(name);
-        if (l != null)
-            addActionListener(l);
+        if (listener != null)
+            addActionListener(listener);
     }
     
-    public VueButton(String name) {
+    public VueToggleButton(String name) {
         init(name);
     }
 
-    public VueButton(Action a) {
+    public VueToggleButton(Action a) {
         setAction(a);
         init((String) a.getValue(Action.ACTION_COMMAND_KEY));
     }
-
 
     private void init(String key)
     {
@@ -67,30 +60,20 @@ public class VueButton extends JButton
 
         if (getIcon() != null) {
             Dimension imageSize = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
-            System.out.println(this + " icon size is " + VueUtil.out(imageSize) + " on " + key);
+            System.out.println("VueToggleButton: icon size is " + VueUtil.out(imageSize) + " on " + key);
             setPreferredSize(imageSize);
         }
 
         //setBackground(Color.white);
         //setBackground(Color.red);
         if (DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
-        
+
     }
 
     public String toString() {
-        return "VueButton[" + key + "]";
+        return "VueToggleButton[" + key + "]";
     }
 
-    public static class Toggle extends VueButton {
-        public Toggle(String name, ActionListener l) {
-            super(name, l);
-            // apparently need more than this to get to work as a toggle
-            setModel(new JToggleButton.ToggleButtonModel());            
-        }
-        public String toString() {
-            return "VueButton.Toggle[" + key + "]";
-        }
-    }
-    
+
    
 }

@@ -141,23 +141,33 @@ public class ToolWindow extends JWindow
         validate();
     }
 
-    private static final int stickyDist = 10;
+    private static final int stickyDist = 5;
     public void setLocation(int x, int y)
     {
-        // todo: finish
+        // todo: this is kind of a cheap method, but it works, & allows
+        // user override by moving the toolwindow fast ("slamming" it
+        // past the sticky edge)
         Component c = getParent();
         if (c != null) {
             Rectangle parent = getParent().getBounds();
             //System.out.println("parent at " + parent);
-            if (getY() < parent.y + parent.height
-                && getY() + getHeight() > parent.y
-                && x > getX())
-            {
+            if (getY() < parent.y + parent.height &&
+                getY() + getHeight() > parent.y) {
                 // We're vertically in the parent plane
-                int toolRightEdge = getX() + getWidth();
-                int reDist = parent.x - toolRightEdge;
-                if (reDist >= 0 && reDist <= stickyDist)
-                    x = parent.x - getWidth();
+                if (x > getX()) {
+                    int toolRightEdge = getX() + getWidth();
+                    int reDist = parent.x - toolRightEdge;
+                    if (reDist >= 0 && reDist <= stickyDist) {
+                        x = parent.x - getWidth();
+                        //out("gap " + reDist + ": sticking");
+                    }
+                } else if (x < getX()) {
+                    int reDist = getX() - (parent.x + parent.width);
+                    if (reDist >= 0 && reDist <= stickyDist) {
+                        x = parent.x + parent.width;
+                        //out("gap " + reDist + ": sticking");
+                    }
+                }
             }
         }
         super.setLocation(x, y);

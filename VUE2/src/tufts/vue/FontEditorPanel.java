@@ -18,55 +18,41 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  **/
 public class FontEditorPanel extends Box implements ActionListener, VueConstants
 {
+    /*
     static Icon sItalicOn = VueResources.getImageIcon("italicOnIcon");
     static Icon sItalicOff = VueResources.getImageIcon("italicOffIcon");
     static Icon sBoldOn = VueResources.getImageIcon("boldOnIcon");
     static Icon sBoldOff = VueResources.getImageIcon("boldOffIcon");
+    */
     
     //private static String [] sFontSizeMenuLabels = { };
     private static String [] sFontSizes = { "8","9","10","12","14","18","24","36","48"};
     
-    
-    ///////////
-    // Fields 
-    ////////////
-	
     /** the font list **/
     static String[] sFontNames = null;
  
  	
     /** Text color editor button **/
-    ColorMenuButton mColorButton = null;
+    private ColorMenuButton mColorButton = null;
  	
     /** the Font selection combo box **/
-    JComboBox mFontCombo = null;
+    private JComboBox mFontCombo = null;
+    private JComboBox mSizeField;
+    private AbstractButton mBoldButton;
+    private AbstractButton mItalicButton;
  	
-    /** the size edit area **/
-    //NumericField mSizeField = null;
-    JComboBox mSizeField = null;
+    /** the font size **/
+    private int mSize = 14;
  	
-    /** bold botton **/
-    JToggleButton mBoldButton = null;
- 	
-    /** italic button **/
-    JToggleButton mItalicButton = null;
- 	
-    /** the size **/
-    int mSize = 14;
- 	
-    /** Text color menu editor **/
+    /* Text color menu editor **/
     //ColorMenuButton mTextColorButton = null;
     
     /** the property name **/
-    String mPropertyName = LWKey.Font;
+    private String mPropertyName = LWKey.Font;
  	
     /** the font **/
-    Font mFont = null;
+    private Font mFont = null;
  	
- 	
-    /////////////
-    // Constructors
-    //////////////////
  	
     private static final boolean debug = false;
     private static final Insets NoInsets = new Insets(0,0,0,0);
@@ -142,20 +128,30 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         mSizeField.setFont( sizeFont);
         mSizeField.setMaximumSize(mSizeField.getPreferredSize());
  		
+        mBoldButton = new VueToggleButton("font.button.bold", this);
+        mItalicButton = new VueToggleButton("font.button.italic", this);
+
+        //mBoldButton = new VueButton("font.button.bold", this);
+        //mItalicButton = new VueButton("font.button.italic", this);
+
+        System.out.println(mBoldButton + " model=" + mBoldButton.getModel());
+        
+        /*
         mBoldButton = new JToggleButton();
         mBoldButton.setSelectedIcon( sBoldOn);
         mBoldButton.setIcon( sBoldOff);
         mBoldButton.addActionListener(this);
         mBoldButton.setBorderPainted(false);
         mBoldButton.setMargin(ButtonInsets);
-                
+
         mItalicButton = new JToggleButton();
         mItalicButton.setSelectedIcon(sItalicOn);
         mItalicButton.setIcon(sItalicOff);
         mItalicButton.addActionListener(this);
         mItalicButton.setBorderPainted(false);
         mItalicButton.setMargin(ButtonInsets);
- 		
+        */
+
         /*
           Color [] textColors = VueResources.getColorArray("textColorValues");
           String [] textColorNames = VueResources.getStringArray("textColorNames");
@@ -171,7 +167,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
           mTextColorButton.addActionListener(this);
         */
          
-        JLabel label = new JLabel("   Text:");
+        JLabel label = new JLabel("   Text: ");
         label.setFont(VueConstants.FONT_SMALL);
         add(label);
         add(mFontCombo);
@@ -324,6 +320,7 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
 
     public static void main(String[] args) {
         System.out.println("FontEditorPanel:main");
+        DEBUG.Enabled = DEBUG.INIT = true;
         VUE.initUI(true);
         
         sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts

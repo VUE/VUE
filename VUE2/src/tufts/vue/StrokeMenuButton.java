@@ -29,6 +29,7 @@ public class StrokeMenuButton extends MenuButton
             values[i] = new Float(pValues[i]);
 
         buildMenu(values, pMenuNames, false);
+        setFont(VueConstants.FONT_SMALL);
     }
 
     public StrokeMenuButton() {}
@@ -38,10 +39,12 @@ public class StrokeMenuButton extends MenuButton
         mStroke = width;
 	 	
         // if we are using a LineIcon, update it
-        if (getIcon() instanceof LineIcon ) {
+        if (getIcon() instanceof LineIcon) {
             LineIcon icon = (LineIcon) getIcon();
             icon.setWeight(mStroke);
         }
+
+        setText(((int)mStroke) + "px");
     }
     public float getStroke() {
         return mStroke;

@@ -96,9 +96,9 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          float[] strokeValues = VueResources.getFloatArray("strokeWeightValues");
          String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
          mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
-         mStrokeButton.setButtonIcon(new LineIcon(20,16));
-         mStrokeButton.setStroke( (float) 1);
-         mStrokeButton.setPropertyName( LWKey.StrokeWidth);
+         mStrokeButton.setButtonIcon(new LineIcon(16,16));
+         mStrokeButton.setStroke(1f);
+         mStrokeButton.setPropertyName(LWKey.StrokeWidth);
          mStrokeButton.setToolTipText("Stroke Width");
          mStrokeButton.addPropertyChangeListener(this);
 
@@ -301,6 +301,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
  	
     public static void main(String[] args) {
         System.out.println("LWCToolPanel:main");
+        DEBUG.Enabled = DEBUG.INIT = true;
         VUE.initUI(true);
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
         VueUtil.displayComponent(new LWCToolPanel());

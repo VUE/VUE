@@ -536,6 +536,7 @@ public class VueToolbarController
 
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
+        DEBUG.Enabled = DEBUG.INIT = true;
         VUE.initUI(true);
 
         FontEditorPanel.sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts

@@ -241,7 +241,10 @@ public class VUE
         initUI(false);
     }
     
-    static void initUI(boolean debug) {
+    static void initUI(boolean debug)
+    {
+        if (!themeSet)
+            MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
         
         String lafn = null;
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
@@ -270,11 +273,13 @@ public class VUE
     
     
     private static JPanel toolPanel;
+    private static boolean themeSet = false;
     public static void main(String[] args) {
         System.out.println("VUE:main");
         
         // Must install theme before any other GUI code or our VueTheme gets ignored
         MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
+        themeSet = true;
 
         boolean nodr = (args.length > 0 && args[0].equals("-nodr"));
         Window splashScreen = null;

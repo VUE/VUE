@@ -46,7 +46,6 @@ public class VueResources
         ImageIcon icon = null;   // (ImageIcon) sIconDict. getString(pLookupKey);
         String  str = null;
 		
-        debug("Loading icon: "+pLookupKey);
         str = getString(pLookupKey);
         if (str != null)
             icon = loadImageIcon(str);
@@ -55,7 +54,7 @@ public class VueResources
 
     private static ImageIcon loadImageIcon(String file) {
         ImageIcon icon = null;
-        debug("  loadImageIcon["+ file + "]");
+        //debug("\tloadImageIcon["+ file + "]");
         try {
             URL resource = sResourceBundle.getClass().getResource(file); //  new URL(  urlStr );
             if (resource != null) {
@@ -67,6 +66,7 @@ public class VueResources
             System.err.println(e);
             alert("  !!! failed to load image icon: " + e);
         }
+        if (DEBUG.INIT) System.out.println("\tloadImageIcon[" + file + "] = " + icon);
         return icon;
     }
 
@@ -147,13 +147,14 @@ public class VueResources
      * @return String - the result String, null if not found
      **/
     public final static String getString(String pLookupKey) {
+        String result = null;
         try {
-            return sResourceBundle.getString(pLookupKey);
-        }
-        catch (MissingResourceException mre) {
+            result = sResourceBundle.getString(pLookupKey);
+        } catch (MissingResourceException mre) {
             alert("!!! Warning: Missing string resource "+pLookupKey );
         }
-        return null;
+        if (DEBUG.INIT) System.out.println("VueResources[" + pLookupKey + "] = \"" + result + "\"");
+        return result;
     }
 
 	
@@ -439,6 +440,6 @@ public class VueResources
     static private boolean sDebug = false;
 	
     static protected void debug( String pStr) {
-        if( sDebug) System.out.println( pStr);
+        if (sDebug || DEBUG.INIT) System.out.println( pStr);
     }
 }

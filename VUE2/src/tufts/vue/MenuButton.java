@@ -24,7 +24,7 @@ public abstract class MenuButton extends JButton implements ActionListener
     protected JMenuItem mEmptySelection;
     protected Icon mButtonIcon;
 
-    private final String arrowText = "v ";
+    protected static final String ArrowText = "v ";
 
     private boolean actionAreaClicked = false;
 
@@ -46,12 +46,12 @@ public abstract class MenuButton extends JButton implements ActionListener
         }
         
         setFont(VueConstants.FONT_ICONIC);
-        setText(arrowText);
+        setText(ArrowText);
         setFocusable(false);
         addActionListener(this);
         addMouseListener(new MouseAdapter(toString()) {
                 public void mousePressed(MouseEvent e) {
-                    if (getText() == arrowText && getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
+                    if (/*getText() == ArrowText &&*/ getIcon() != null && e.getX() < getIcon().getIconWidth() + borderIndent) {
                         actionAreaClicked = true;
                     } else {
                         actionAreaClicked = false;
