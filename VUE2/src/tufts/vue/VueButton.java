@@ -25,7 +25,9 @@ public class VueButton extends JButton {
     public static String UP = "up";
     public static String DOWN = "down";
     public static String DISABLED = "disabled";
-    public VueButton(String name) {
+
+    public VueButton(String name, java.awt.event.ActionListener listener)
+    {
         super(VueResources.getImageIcon(name+"."+UP));
         Icon i;
         if ((i = VueResources.getImageIcon(name+"."+DOWN)) != null)     setSelectedIcon(i);
@@ -34,8 +36,12 @@ public class VueButton extends JButton {
         //setBackground(Color.white);
         setOpaque(false);
         setPreferredSize(new Dimension(17, 17));
-        
+        if (listener != null)
+            addActionListener(listener);
     }
     
+    public VueButton(String name) {
+        this(name, null);
+    }
    
 }

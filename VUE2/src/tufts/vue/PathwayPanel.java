@@ -27,7 +27,7 @@ import javax.swing.border.*;
  * @version February 2004
  */
 
-public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.Listener
+public class PathwayPanel extends JPanel implements ActionListener
 {    
     private PathwayTable pathwayTable = null;
     private PathwayTableModel tableModel = null;
@@ -44,24 +44,6 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     //private Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
     private Font defaultFont = null;
     private Font highlightFont = null;
-
-    /* Pathway control properties */
-    /*
-    private ImageIcon firstUp = VueResources.getImageIcon("controlRewindUp");
-    private ImageIcon firstDown = VueResources.getImageIcon("controlRewindDown");
-    private ImageIcon firstDisabled = VueResources.getImageIcon("controlRewindDisabled");
-    private ImageIcon backUp = VueResources.getImageIcon("controlPlayBackwardUp");
-    private ImageIcon forwardUp = VueResources.getImageIcon("controlPlayForwardUp");
-    private ImageIcon lastUp = VueResources.getImageIcon("controlForwardUp");
-    private ImageIcon backDown = VueResources.getImageIcon("controlPlayBackwardDown");
-    private ImageIcon forwardDown = VueResources.getImageIcon("controlPlayForwardDown");
-    private ImageIcon lastDown = VueResources.getImageIcon("controlForwardDown");
-    private ImageIcon backDisabled = VueResources.getImageIcon("controlPlayBackwardDisabled");
-    private ImageIcon forwardDisabled = VueResources.getImageIcon("controlPlayForwardDisabled");
-    private ImageIcon lastDisabled = VueResources.getImageIcon("controlForwardDisabled");
-
-    private ImageIcon lockUpIcon = VueResources.getImageIcon("lockUp");
-    */
     
     private JButton removeButton, createButton, lockButton;
     private JButton firstButton, backButton, forwardButton, lastButton;
@@ -94,22 +76,9 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         
         setupPathwayControl();
          
-        createButton = new VueButton("add");
-        createButton.addActionListener(this);
-        
-        removeButton = new VueButton("delete");
-        removeButton.addActionListener(this);
-        removeButton.setEnabled(false);
-
-        lockButton = new VueButton("lock");
-        lockButton.addActionListener(this);
-        /*
-        lockButton = new JButton(lockUpIcon);
-        lockButton.setSelectedIcon(lockUpIcon);
-        lockButton.setBackground(Color.white);
-        lockButton.addActionListener(this);
-        lockButton.setBorderPainted(false);
-        */
+        createButton = new VueButton("add", this);
+        removeButton = new VueButton("delete", this);
+        lockButton = new VueButton("lock", this);
         
         JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         editPathwaysPanel.setBackground(bgColor);
@@ -307,6 +276,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         bag.setConstraints(notesPanel, c);
         add(notesPanel);
         
+        updateEnabledStates();
         /* End of Layout for pathways tab */
     }
 

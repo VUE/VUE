@@ -134,12 +134,7 @@ public class LWPathwayList implements LWComponent.Listener
         LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
     
-    /**Interface for Castor by Daisuke Fujiwara
-       In order to prevent redundancy, the current pathway is saved as an index instead of the entire pathway
-     */
-    
-    public int getCurrentIndex()
-    {
+    public int getCurrentIndex() {
         return indexOf(mActive);
     }
     
@@ -151,8 +146,6 @@ public class LWPathwayList implements LWComponent.Listener
             setActivePathway(getFirst());
         }
     }
-    
-    /**End of Castor Interface*/
     
     public String toString()
     {
