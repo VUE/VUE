@@ -434,7 +434,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
             nextButton.setEnabled(true);
         }
     }
-    public Iterator getAssetResourceIterator(AssetIterator i)  throws osid.dr.DigitalRepositoryException, osid.OsidException{
+    public Iterator getAssetResourceIterator(osid.dr.AssetIterator i)  throws osid.dr.DigitalRepositoryException, osid.OsidException{
         Vector assetResources = new Vector();
         while(i.hasNext()) {
             assetResources.add(new AssetResource(i.next()));
