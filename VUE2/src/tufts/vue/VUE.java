@@ -522,16 +522,18 @@ public class VUE
         int mWasSelected = -1;
         protected void fireStateChanged() {
             super.fireStateChanged();
-            int selected = getModel().getSelectedIndex();
-            if (mWasSelected >= 0) {
-                setForegroundAt(mWasSelected, Color.darkGray);
-                //setBackgroundAt(mWasSelected, BgColor);
+            if (!VueUtil.isMacPlatform()) { // don't mess w/aqua
+                int selected = getModel().getSelectedIndex();
+                if (mWasSelected >= 0) {
+                    setForegroundAt(mWasSelected, Color.darkGray);
+                    //setBackgroundAt(mWasSelected, BgColor);
+                }
+                if (selected >= 0) {
+                    setForegroundAt(selected, Color.black);
+                    //setBackgroundAt(selected, Color.white);// no effect
+                }
+                mWasSelected = selected;
             }
-            if (selected >= 0) {
-                setForegroundAt(selected, Color.black);
-                //setBackgroundAt(selected, Color.white);// no effect
-            }
-            mWasSelected = selected;
         }
         
         public void addNotify()
