@@ -28,6 +28,7 @@ class LWCInspector extends javax.swing.JPanel
     JTextField categoryField = new JTextField();
     JTextField resourceField = new JTextField();
     JTextField notesField = new JTextField();
+    JPanel extraPanel = new JPanel();
     
     //JTextArea notesField = new JTextArea(1, 20);
 
@@ -47,11 +48,15 @@ class LWCInspector extends javax.swing.JPanel
             "Category", categoryField,
             "Resource", resourceField,
             "Notes",    notesField,
+            //"Extra",    extraPanel,
         };
 
     public LWCInspector()
     {
         setBorder(new TitledBorder("Inspector"));
+        //extraPanel.setLayout(new BorderLayout());
+        //extraPanel.setSize(200,100);
+        //extraPanel.add(new JLabel("foo"));
         
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -321,6 +326,7 @@ class LWCInspector extends javax.swing.JPanel
         //if (c.getScale() != 1)
         //  fontString += " (" + (f.getSize()*c.getScale()) + ")";
         fontField.setText(c.getXMLfont());
+        // todo: font.getSize2D()?
         //fontField.setText(f.getName() + "-" + fontSize);
         //sizeField.setText(c.getWidth() + "x" + c.getHeight());
         
@@ -328,7 +334,24 @@ class LWCInspector extends javax.swing.JPanel
         textColorField.setText(c.getXMLtextColor());
         strokeColorField.setText(c.getXMLstrokeColor());
         strokeField.setText(""+c.getStrokeWidth());
+
+        /*
+        if (false&&c.labelBox != null) {
+            //extraPanel.add(p);
+            if (lastp != null) {
+                //System.out.println("REMOVING " + lastp);
+                VUE.toolPanel.remove(lastp);
+            }
+            JPanel np = new JPanel();
+            //System.out.println("ADDING " + p);
+            VUE.toolPanel.add(np, BorderLayout.CENTER);
+            System.out.println("ADDING MTP TO VUE for " + c);
+            np.add(c.labelBox);
+            lastp = np;
+        }
+        */
     }
+    //static JComponent lastp = null;
 
     private void setFillColors(String text)
     {
