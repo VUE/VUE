@@ -14,7 +14,7 @@ import java.util.Vector;
 import java.util.ArrayList;
 import java.awt.geom.Rectangle2D;
 
-public class Vue2DMap extends LWContainer
+public class Vue2DMap extends LWGroup
     implements ConceptMap
 {
     public static final String CASTOR_XML_MAPPING = "vue2d_map.xml";

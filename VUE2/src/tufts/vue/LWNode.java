@@ -17,7 +17,7 @@ import javax.swing.border.LineBorder;
  * @author Scott Fraize
  * @version 3/10/03
  */
-public class LWNode extends LWContainer
+public class LWNode extends LWGroup
     implements Node
 {
     private final int VerticalChildGap = 2;

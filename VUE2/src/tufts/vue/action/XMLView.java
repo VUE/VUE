@@ -14,6 +14,13 @@ package tufts.vue.action;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.regex.*;
+import java.util.ArrayList;
+import java.awt.Font;
+import java.awt.Color;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -41,8 +48,11 @@ public class XMLView extends AbstractAction{
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private static  String fileName = "default.xml";
     private Marshaller marshaller = null;
+    private JTextPane xmlArea = null;
+    private StyledDocument doc = null;
+    private ArrayList braces = null;
     
-   
+    
     public XMLView() {
     }
  
@@ -63,12 +73,16 @@ public class XMLView extends AbstractAction{
             }catch(Exception ex) {
                 System.out.println(ex);
             }
-            System.out.println("saving to default.xml complete...");
+            //System.out.println("saving to default.xml complete...");
 
             //create html view from default.xml
             File xmlFile = new File(fileName);
-            JTextArea xmlArea = new JTextArea();
+            xmlArea = new JTextPane();
+            doc = (StyledDocument)xmlArea.getDocument();
+            
             xmlArea.setText("");
+            xmlArea.setEditable(false);
+            xmlArea.setFont(new Font("SansSerif", Font.PLAIN, 14));
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             org.w3c.dom.Document xmlDoc = null;
             try{
@@ -77,18 +91,21 @@ public class XMLView extends AbstractAction{
             }catch(Exception ex){
                 System.out.println("problem creating dom object from xml file: "+ex);
             }
-            System.out.println("created parsed DOM document");
+            
             try {
                 xmlArea.setText(docToString(xmlDoc));
             }
             catch (TransformerException te){
                 System.out.println("transformer exception: "+te);
             }
-            System.out.println("created a text doc to display in viewer");
-
+            
+            //setAttributes();
+            /*for(int i = 0; i < braces.size(); i++){
+                System.out.println(braces.get(i));
+            }*/
+            
             JScrollPane pane = new JScrollPane(xmlArea);
 
-            //get name of current tab
             String mapName = VUE.getActiveMap().getLabel();
             JTabbedPane tabPane = VUE.tabbedPane;
             for(int i = 0; i < tabPane.getComponentCount(); i++){
@@ -106,6 +123,13 @@ public class XMLView extends AbstractAction{
         }
     }
     
+    private void setAttributes(){
+        SimpleAttributeSet att = new SimpleAttributeSet();
+        StyleConstants.setForeground(att, Color.yellow);
+        for(int i = 0; i < braces.size(); i++)
+            doc.setCharacterAttributes(Integer.parseInt((String)braces.get(i)), 1, att, false);
+    }
+    
     private String docToString(org.w3c.dom.Document xmlDoc) throws TransformerException{
         
         DOMSource domSource=new DOMSource(xmlDoc);
@@ -119,7 +143,92 @@ public class XMLView extends AbstractAction{
         
         transformer.setOutputProperty("indent","yes");
         transformer.transform(domSource, result);        
-        return stringWriter.toString();   
+        
+        //Pattern p = Pattern.compile("></|<\\?|</|<|/>|>");
+        Pattern p = Pattern.compile("^</|^+?");
+        Matcher m = p.matcher(stringWriter.toString());
+        StringBuffer sb = new StringBuffer();
+        int indent = 0;
+        System.out.println("before find...");
+        while(m.find()){
+            String group = m.group();
+            String tab = "";
+            String tabInd = "     ";
+            System.out.println("group: " + group);
+            
+            if(group.equals("^</")){
+                indent--;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                
+                //m.appendReplacement(sb, ">\n" + tab + "</");
+                m.appendReplacement(sb, tab + "</");
+            }
+            else if(group.equals("^")){
+                indent++;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                
+                //m.appendReplacement(sb, "\n" + tab + "</");
+                m.appendReplacement(sb, tab + "<");
+            }/*
+            else if(group.equals("<")){                
+                indent++;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                //m.appendReplacement(sb, "<");
+            }
+            else if(group.equals(">")){
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                //m.appendReplacement(sb, ">\n" + tab + tabInd);
+                //m.appendReplacement(sb, ">" + tab + tabInd);
+            }*/
+        }
+        m.appendTail(sb);
+        /*
+        Matcher match = p.matcher(sb.toString());
+        StringBuffer buff = new StringBuffer();
+        int fallback = 0;
+        braces = new ArrayList();
+        
+        while(match.find()){
+            String group = match.group();
+            //String tab = "";
+            //String tabInc = "        ";
+            if(group.equals("<?")){
+                //match.appendReplacement(buff, "<?");                
+            }
+            else if(group.equals("</")){
+                
+                //for(int i = 0; i < indent; i++)
+                //    tab += tabInc;
+                //indent--;
+                //match.appendReplacement(buff, "\n" + tab + "</");
+            }
+            else if(group.equals("<")){                
+                //indent++;
+                //for(int i = 0; i < indent; i++)
+                //    tab += tabInc;
+                //match.appendReplacement(buff, tab + "<");
+                fallback--;
+                braces.add(Integer.toString(match.start() + fallback));
+            }
+            else if(group.equals("</")){
+                //for(int i = 0; i < indent; i++)
+                //    tab += tabInc;
+                //match.appendReplacement(buff, "</");
+            }
+            else if(group.equals(">")){
+                //for(int i = 0; i < indent; i++)
+                //    tab += tabInc;
+                //match.appendReplacement(buff, ">\n" + tab + "         ");
+                //braces.add(Integer.toString(match.start()));
+            }
+        }
+        //match.appendTail(buff);
+        */
+        return sb.toString();
     }
  
     private Marshaller getMarshaller()
