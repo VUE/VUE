@@ -4386,7 +4386,7 @@ public class MapViewer extends javax.swing.JComponent
         
         System.out.println("MapViewer:main");
         
-        javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new VueTheme() {
+        javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new VueTheme(false) {
                 public javax.swing.plaf.FontUIResource getControlTextFont() { return fontTiny; }
                 public javax.swing.plaf.FontUIResource getMenuTextFont() { return fontTiny; }
                 public javax.swing.plaf.FontUIResource getSmallFont() { return fontTiny; }
