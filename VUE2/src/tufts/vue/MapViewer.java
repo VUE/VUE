@@ -9,7 +9,6 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-
 import osid.dr.*;
 
 /**
@@ -943,7 +942,7 @@ public class MapViewer extends javax.swing.JPanel
         if (mapPopup == null) {
             mapPopup = new JPopupMenu("Map Menu");
             mapPopup.addSeparator();
-            mapPopup.add(VUE.Actions.NewNode);
+            mapPopup.add(Actions.NewNode);
             mapPopup.addSeparator();
             //mapPopup.add("Visible");
             mapPopup.setBackground(Color.gray);
@@ -952,19 +951,27 @@ public class MapViewer extends javax.swing.JPanel
     }
     private JPopupMenu getComponentPopup(LWComponent c)
     {
-        // this is just example menu code for the moment
         if (cPopup == null) {
+            // This menu has gotten too big at top level...
             cPopup = new JPopupMenu("Item Menu");
-            cPopup.add(VUE.Actions.Rename);
-            cPopup.add(VUE.Actions.Delete);//clear?
+            cPopup.add(Actions.Rename);
+            cPopup.add(Actions.Delete);//clear?
             cPopup.addSeparator();
-            cPopup.add(VUE.Actions.Group);
-            cPopup.add(VUE.Actions.Ungroup);
+            cPopup.add(Actions.Group);
+            cPopup.add(Actions.Ungroup);
             cPopup.addSeparator();
-            cPopup.add(VUE.Actions.BringToFront);
-            cPopup.add(VUE.Actions.BringForward);
-            cPopup.add(VUE.Actions.SendToBack);
-            cPopup.add(VUE.Actions.SendBackward);
+            cPopup.add(Actions.BringToFront);
+            cPopup.add(Actions.BringForward);
+            cPopup.add(Actions.SendToBack);
+            cPopup.add(Actions.SendBackward);
+            cPopup.addSeparator();
+            cPopup.add(Actions.AlignLeftEdges);
+            cPopup.add(Actions.AlignRightEdges);
+            cPopup.add(Actions.AlignTopEdges);
+            cPopup.add(Actions.AlignBottomEdges);
+            cPopup.addSeparator();
+            cPopup.add(Actions.AlignCentersRow);
+            cPopup.add(Actions.AlignCentersColumn);
         }
          if(c instanceof LWNode) {
             LWNode n = (LWNode) c;
@@ -979,7 +986,6 @@ public class MapViewer extends javax.swing.JPanel
             
             
          }
-      
         return cPopup;
     }
     
@@ -1051,14 +1057,14 @@ public class MapViewer extends javax.swing.JPanel
 
             /*
             if (key == KeyEvent.VK_F2 && lastSelection instanceof LWNode) {//todo: handle via action only
-                VUE.Actions.Rename.actionPerformed(new ActionEvent(this, 0, "Rename-via-viewer-key"));
+                Actions.Rename.actionPerformed(new ActionEvent(this, 0, "Rename-via-viewer-key"));
                 //activateLabelEdit(lastSelection);
                 return;
                 }*/
             
             if (key == KeyEvent.VK_DELETE) {
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
-                VUE.Actions.Delete.actionPerformed(new ActionEvent(this, 0, "Delete-via-viewer-key"));
+                Actions.Delete.actionPerformed(new ActionEvent(this, 0, "Delete-via-viewer-key"));
                 return;
             }
             
@@ -1740,7 +1746,6 @@ public class MapViewer extends javax.swing.JPanel
         map.addNode(new LWNode("Four"));
 
     }
-
     private JMenu getAssetMenu(Asset asset) {
         JMenu returnMenu = new JMenu("Behaviors");
         
@@ -1764,7 +1769,6 @@ public class MapViewer extends javax.swing.JPanel
         return returnMenu;
     }   
 // this class will move out of here
-
   
     
     //-------------------------------------------------------

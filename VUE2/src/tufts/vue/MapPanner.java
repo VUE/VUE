@@ -25,11 +25,16 @@ public class MapPanner extends javax.swing.JPanel
     private double zoomFactor;
     private Point dragStart;
     
-    public MapPanner(MapViewer mapViewer)
+    /**
+     * Get's global (thru AWT hierarchy) MapViewerEvent's
+     * to know what to display & when to update.  It's
+     * intended that there only be one MapPanner in the
+     * application at a time.
+     */
+    public MapPanner()
     {
         //setBorder(new javax.swing.border.TitledBorder("Panner"));
         setPreferredSize(new Dimension(100,100));
-        setViewer(mapViewer);
         setBackground(SystemColor.control);
         
         //addMouseListener(this);
@@ -38,6 +43,11 @@ public class MapPanner extends javax.swing.JPanel
         // VUE.addEventListener(this, MapViewerEvent.class);
     }
 
+    /**
+     * All instances of MapViewer raise MapViewer events
+     * as the act, and the MapPanner hears all of them
+     * here.
+     */
     public void mapViewerEventRaised(MapViewerEvent e)
     {
         if (e.getID() == MapViewerEvent.DISPLAYED) {
@@ -50,7 +60,7 @@ public class MapPanner extends javax.swing.JPanel
         }
     }
     
-    public void setViewer(MapViewer mapViewer)
+    private void setViewer(MapViewer mapViewer)
     {
         this.mapViewer = mapViewer;
     }

@@ -1,10 +1,10 @@
 package tufts.vue;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
 import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.action.*;
+
 
 /**
  * Vue application class.
@@ -171,7 +171,6 @@ public class VUE
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
         toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
-        //toolPanel.add(new MapPanner(mapViewer1), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
         //toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
@@ -196,7 +195,7 @@ public class VUE
         // Create the tool windows
         ToolWindow pannerTool = new ToolWindow("Panner", frame);
         pannerTool.setSize(120,120);
-        pannerTool.addTool(new MapPanner(mapViewer1));
+        pannerTool.addTool(new MapPanner());
 
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         inspectorTool.addTool(new LWCInspector());
@@ -224,6 +223,11 @@ public class VUE
 
     }
 
+    public static int openMapCount()
+    {
+        return tabbedPane.getTabCount();
+    }
+    
     public static MapViewer getActiveViewer()
     {
         Object c = tabbedPane.getSelectedComponent();
@@ -246,319 +250,37 @@ public class VUE
     {
         return getActiveViewer().getMap();
     }
+    
+    public static void addViewer(MapViewer viewer)
+    {
+        tabbedPane.addTab(viewer.getMap().getLabel(), viewer);
+    }
+    
+    public static void closeViewer(Component c)
+    {
+        tabbedPane.remove(c);
+    }
 
     public static void displayMap(Vue2DMap map)
     {
+        System.out.println("VUE.displayMap " + map);
+        MapViewer mapViewer = null;
         // todo: figure out if we're already displaying this map
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
+            if (mv.getMap() == map) {
+                mapViewer = mv;
+                System.out.println("VUE.displayMap found existing " + map + " in " + mv);
+                break;
+            }
         }
-        MapViewer mapViewer = new tufts.vue.MapViewer(map);
-        tabbedPane.addTab(map.getLabel(), mapViewer);
+        if (mapViewer == null) {
+            mapViewer = new tufts.vue.MapViewer(map);
+            tabbedPane.addTab(map.getLabel(), mapViewer);
+        }
         tabbedPane.setSelectedComponent(mapViewer);
     }
     
-    // really, this wants to be ComponentAction or something
-    // also, it doesn't belong in the MapViewer -- put it
-    // in VUE?  Vue2DMap?  Main menu's will also need to use this.
-    //private MapAction maBringToFront = new MapAction("Bring to Front");
-
-    //REALLY, these are ConceptMapActions -- they take a selection
-    // and make changes to a Vue2DMap based on what's in it.
-
-    // set to VUE.this for the singleton VUE instance
-    // We need this to access the actions statically.
-
-    static class Actions {
-        static final int META = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
-        static final int CTRL = Event.CTRL_MASK;
-        static final int SHIFT = Event.SHIFT_MASK;
-
-        static final private KeyStroke keyStroke(int vk, int mod) {
-            return KeyStroke.getKeyStroke(vk, mod);
-        }
-        static final private KeyStroke keyStroke(int vk) {
-            return keyStroke(vk, 0);
-        }
-        
-    static final MapAction SelectAll =
-        new MapAction("Select All", keyStroke(KeyEvent.VK_A, META)) {
-            boolean enabledFor(LWSelection l) { return true; }
-            public void actionPerformed(ActionEvent ae)
-            {
-                VUE.ModelSelection.add(getActiveViewer().getMap().getChildIterator());
-            }
-        };
-    static final MapAction DeselectAll =
-        new MapAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+META)) {
-            boolean enabledFor(LWSelection l) { return VUE.ModelSelection.size() > 0; }
-            public void actionPerformed(ActionEvent ae)
-            {
-                VUE.ModelSelection.clear();
-            }
-        };
-    static final MapAction Cut =
-        new MapAction("Cut", keyStroke(KeyEvent.VK_X, META)) {
-            void Xact(LWComponent c) {
-                
-            }
-        };
-    static final MapAction Copy =
-        new MapAction("Copy", keyStroke(KeyEvent.VK_C, META)) {
-            void Xact(LWComponent c) {
-                
-            }
-        };
-    static final MapAction Paste =
-        new MapAction("Paste", keyStroke(KeyEvent.VK_V, META)) {
-            void Xact(LWComponent c) {
-                
-            }
-        };
-    static final MapAction Group =
-        new MapAction("Group", keyStroke(KeyEvent.VK_G, META))
-        {
-            boolean mayModifySelection() { return true; }
-            boolean enabledFor(LWSelection l)
-            {
-                // enable only when two or more objects in selection,
-                // and all share the same parent
-                return l.size() > 1 && l.allHaveSameParent();
-            }
-            void act(LWSelection selection)
-            {
-                LWContainer parent = selection.first().getParent(); // all have same parent
-                LWGroup group = LWGroup.create(selection);
-                parent.addChild(group);
-                VUE.ModelSelection.setTo(group);
-                // setting selection here is slightly sketchy in that it's
-                // really a UI policy that belongs to the viewer
-            }
-        };
-    static final MapAction Ungroup =
-        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, META+SHIFT))
-        {
-            boolean mayModifySelection() { return true; }
-            boolean enabledFor(LWSelection l)
-            {
-                return l.countTypes(LWGroup.class) > 0;
-            }
-            void act(LWComponent c)
-            {
-                if (c instanceof LWGroup) {
-                    System.out.println("dispersing group " + c);
-                    ((LWGroup)c).disperse();
-                }
-            }
-        };
-    static final MapAction Rename =
-        new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
-        {
-            boolean enabledFor(LWSelection l)
-            {
-                return l.size() == 1 && !(l.first() instanceof LWGroup);
-            }
-            void act(LWComponent c) {
-                getActiveViewer().activateLabelEdit(c);
-            }
-        };
-    static final MapAction Delete =
-        new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
-        {
-            boolean mayModifySelection() { return true; }
-            void act(LWComponent c) {
-                c.getParent().deleteChild(c);
-            }
-        };
-    static final MapAction BringToFront =
-        new MapAction("Bring to Front",
-                      "Raise object to the top, completely unobscured",
-                      keyStroke(KeyEvent.VK_CLOSE_BRACKET, META+SHIFT))
-        {
-            boolean enabledFor(LWSelection l)
-            {
-                if (l.size() == 1)
-                    return !l.first().getParent().isOnTop(l.first());
-                return l.size() > 1;
-            }
-            void act(LWSelection selection) {
-                LWContainer.bringToFront(selection);
-                checkEnabled();
-            }
-            void checkEnabled()
-            {
-                super.checkEnabled();
-                BringForward.checkEnabled();
-                SendToBack.checkEnabled();
-                SendBackward.checkEnabled();
-            }
-        };
-    static final MapAction SendToBack =
-        new MapAction("Send to Back",
-                      "Make sure this object doesn't obscure any other object",
-                      keyStroke(KeyEvent.VK_OPEN_BRACKET, META+SHIFT))
-        {
-            boolean enabledFor(LWSelection l)
-            {
-                if (l.size() == 1)
-                    return !l.first().getParent().isOnBottom(l.first());
-                return l.size() > 1;
-            }
-            void act(LWSelection selection) {
-                LWContainer.sendToBack(selection);
-                BringToFront.checkEnabled();
-            }
-        };
-    static final MapAction BringForward =
-        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, META))
-        {
-            boolean enabledFor(LWSelection l) { return BringToFront.enabledFor(l); }
-            void act(LWSelection selection) {
-                LWContainer.bringForward(selection);
-                BringToFront.checkEnabled();
-            }
-        };
-    static final MapAction SendBackward =
-        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, META))
-        {
-            boolean enabledFor(LWSelection l) { return SendToBack.enabledFor(l); }
-            void act(LWSelection selection) {
-                LWContainer.sendBackward(selection);
-                BringToFront.checkEnabled();
-            }
-        };
-    static final MapAction NewNode =
-        new MapAction("New Node", keyStroke(KeyEvent.VK_N, META))
-        {
-            LWNode lastNode = null;
-            Point lastMousePress = null;
-            Point2D lastNodeLocation = null;
-            
-            boolean enabledFor(LWSelection l) { return true; }
-            
-            public void actionPerformed(ActionEvent ae)
-            {
-                System.out.println(ae.getActionCommand());
-                // todo: this is where we'll get the active NodeTool
-                // and have it create the new node based on it's current
-                // settings -- move this logic to NodeTool
-                
-                MapViewer viewer = getActiveViewer();
-                LWNode node = new LWNode("new node");
-                Point mousePress = viewer.getLastMousePoint();
-                Point2D newNodeLocation = viewer.screenToMapPoint(mousePress);
-                
-                if (mousePress.equals(lastMousePress) &&
-                    lastNode.getLocation().equals(lastNodeLocation))
-                {
-                    newNodeLocation.setLocation(lastNodeLocation.getX() + 10,
-                                                lastNodeLocation.getY() + 10);
-                }
-                
-                node.setLocation(newNodeLocation);
-                viewer.getMap().addNode(node);
-
-                //better: run a timer and do this if no activity (e.g., node creation)
-                // for 250ms or something -- todo bug: every other new node not activating label edit
-                viewer.paintImmediately(viewer.getBounds());
-                viewer.activateLabelEdit(node);
-
-                lastNode = node;
-                lastNodeLocation = newNodeLocation;
-                lastMousePress = mousePress;
-            }
-            
-        };
-
-        // okay, what about zoom actions?  Don't need to 
-    static final MapAction ZoomIn =
-        new MapAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, META))
-        {
-            public void actionPerformed(ActionEvent ae)
-            {
-                //getActiveViewer().getZoomTool().setZoomBigger();
-            }
-        };
-    }
-
-    //componentaction? MapSelectionAction?
-    static class MapAction extends AbstractAction
-        implements LWSelection.Listener
-    {
-        private MapAction(String name, String shortDescription, KeyStroke keyStroke)
-        {
-            super(name);
-            if (shortDescription != null)
-                putValue(SHORT_DESCRIPTION, shortDescription);
-            if (keyStroke != null)
-                putValue(ACCELERATOR_KEY, keyStroke);
-            VUE.ModelSelection.addListener(this);
-        }
-        private  MapAction(String name)
-        {
-            this(name, null, null);
-        }
-        private MapAction(String name, KeyStroke keyStroke)
-        {
-            this(name, null, keyStroke);
-        }
-        public String getActionName()
-        {
-            return (String) getValue(Action.NAME);
-        }
-        public void actionPerformed(ActionEvent ae)
-        {
-            LWSelection selection = VUE.ModelSelection;
-            //todo: if no active viewer, try a static MapViewer in case it's running alone
-            System.out.println(ae);
-            System.out.println(ae.getActionCommand() + " " + selection);
-            if (enabledFor(selection)) {
-                if (mayModifySelection())
-                    selection = (LWSelection) selection.clone();
-                act(selection);
-                getActiveViewer().repaint();
-            } else {
-                Toolkit.getDefaultToolkit().beep();
-                System.out.println("Not enabled given this selection.");//todo: disable action
-            }
-        }
-
-        public void selectionChanged(LWSelection selection) {
-            setEnabled(enabledFor(selection));
-        }
-        void checkEnabled() {
-            selectionChanged(VUE.ModelSelection);
-        }
-        
-        /** Is this action enabled given this selection? */
-        boolean enabledFor(LWSelection l) { return l.size() > 0; }
-        
-        /** the action may result in an event that has the viewer
-         * change what's in the current selection (e.g., on delete,
-         * the viewer makes sure the deleted object is no longer
-         * in the selection group */
-        boolean mayModifySelection() { return false; }
-        
-        void act(LWSelection selection)
-        {
-            act(selection.iterator());
-        }
-        // automatically apply the action serially to everything in the
-        // selection -- override if this isn't what the action
-        // needs to do.
-        void act(java.util.Iterator i)
-        {
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                act(c);
-            }
-        }
-        void act(LWComponent c)
-        {
-            System.out.println("unhandled MapAction: " + getActionName() + " on " + c);
-        }
-        void Xact(LWComponent c) {}// for commenting convenience
-    }
     
     private static void  setMenuToolbars(JFrame frame, Action[] windowActions)
     {
@@ -588,10 +310,11 @@ public class VUE
         SaveAction saveAsAction = new SaveAction("Save As...");
         OpenAction openAction = new OpenAction("Open");
         ExitAction exitAction = new ExitAction("Quit");
-        fileMenu.add(new JMenuItem("New"));
+        fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction);
+        fileMenu.add(Actions.CloseMap);
         //fileMenu.add(htmlAction);
         fileMenu.add(new JMenuItem("Export ..."));
         fileMenu.addSeparator();
@@ -639,8 +362,13 @@ public class VUE
         formatMenu.add(new JMenuItem("Style"));
         formatMenu.add(new JMenuItem("Justify"));
 
-        alignMenu.add(new JMenuItem("Row"));
-        alignMenu.add(new JMenuItem("Column"));
+        alignMenu.add(Actions.AlignLeftEdges);
+        alignMenu.add(Actions.AlignRightEdges);
+        alignMenu.add(Actions.AlignTopEdges);
+        alignMenu.add(Actions.AlignBottomEdges);
+        alignMenu.addSeparator();
+        alignMenu.add(Actions.AlignCentersRow);
+        alignMenu.add(Actions.AlignCentersColumn);
         
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
