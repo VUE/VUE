@@ -298,4 +298,9 @@ public class CabinetResource extends MapResource{
         return this.entry;
     }
     
+    public void setEntry(osid.filing.CabinetEntry entry){
+        
+        this.entry = entry;   
+    }
+    
 }

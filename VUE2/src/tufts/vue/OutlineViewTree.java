@@ -185,6 +185,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     /**A method for handling a LWC event*/
     public void LWCChanged(LWCEvent e)
     {
+        System.out.println("Lwc+" +e);
+    
         //when a label on a node was changed
         //Already label filtered. ???
         //hierarchyModel.updateNodeDisplayName(e.getComponent());

@@ -51,7 +51,9 @@ public class MapResource implements Resource {
     {
         
         setSpec(spec);
+      
         this.type = isLocalFile() ? Resource.FILE : Resource.URL;
+        
         this.mTitle = spec;
     }
     

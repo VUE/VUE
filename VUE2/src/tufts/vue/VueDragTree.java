@@ -449,6 +449,7 @@ class CabinetNode extends ResourceNode {
      */
     public boolean isLeaf() {
         CabinetResource res = (CabinetResource) getUserObject();
+        if (res.getEntry() == null)return true;
         if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
             return false;
         else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet())
@@ -528,7 +529,9 @@ class CabinetNode extends ResourceNode {
             CabinetEntry ce = (CabinetEntry) res.getEntry();
             return ce.getDisplayName();
         } catch (Exception e) {
-            return userObject.getClass().toString();
+            if (res.getTitle() != null)return res.mTitle;
+            
+            else return userObject.getClass().toString();
         }
     }
     

@@ -26,7 +26,7 @@ public class VUE
     implements VueConstants
 {
     public static final String VUE_CONF = "vue.conf";
-    
+   
     // preferences for the application
     //public static Preferences prefs;
     
@@ -95,6 +95,7 @@ public class VUE
         return url;
     }
     
+    
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
         URL imageURL = getClass().getResource(imgLocation);    FileOutputStream fos = new FileOutputStream("vue.conf");
@@ -137,6 +138,8 @@ public class VUE
             if ((e.getID() & TitleChangeMask) != 0)
                 setTitleFromViewer(e.getMapViewer());
         }
+        
+        
         
         private void setTitleFromViewer(MapViewer viewer) {
             setTitle("VUE: " + viewer.getMap().getLabel());
@@ -314,6 +317,7 @@ public class VUE
         if (!nodr)  {
             drBrowser = new DRBrowser(true);
             toolPanel.add(drBrowser, BorderLayout.CENTER);
+            
             /*
             try {
                 drBrowser = new DRBrowser();

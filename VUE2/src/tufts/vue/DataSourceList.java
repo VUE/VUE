@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.io.*;
 import java.io.IOException;
 import java.net.URL;
+import java.util.regex.*;
 
 import javax.swing.*;
 
@@ -52,13 +53,14 @@ public class DataSourceList extends JList implements DropTargetListener{
     private final Icon myFavoritesIcon = VueResources.getImageIcon("dataSourceMyFavorites");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
+    DataSourceViewer dsViewer;
     
     
     
     
-    
-    public DataSourceList() {
+    public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
+        this.dsViewer = dsViewer;
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
@@ -80,9 +82,32 @@ public class DataSourceList extends JList implements DropTargetListener{
                     this.setPreferredSize(new Dimension(200,20));
                 }
                 else  if (((DataSource)value).getType() == DataSource.BREAK){
-                    setIcon(breakIcon);
-                    this.setPreferredSize(new Dimension(180,3));
+                  
+                     JPanel linePanel = new JPanel() {
+                   protected void paintComponent(Graphics g) {
+                     Graphics2D g2d = (Graphics2D)g;
+                        g2d.setColor(Color.LIGHT_GRAY);
+                         float dash1[] = {3.0f};
+                        BasicStroke dashed = new BasicStroke(1.0f, 
+                                                      BasicStroke.CAP_BUTT, 
+                                                      BasicStroke.JOIN_MITER, 
+                                                     10.0f, dash1, 0.0f);
+                        g2d.setStroke(dashed);
+                        g2d.drawLine(0,3,DataSourceList.this.dsViewer.getSize().width - 30 ,3);
+
+                 
+                   }
+                   };
+                       
+                   
+                   
+                  
+                  this.setPreferredSize(new Dimension(200,20));
                     
+                   // return new JButton("hello");
+                  return linePanel;
+                    
+                   
                     
                 }
                 else{
@@ -121,7 +146,7 @@ public class DataSourceList extends JList implements DropTargetListener{
     public void drop(DropTargetDropEvent e) {
         e.acceptDrop(DnDConstants.ACTION_COPY);
         int current = this.getSelectedIndex();
-        System.out.println("What is the current index " + this.getSelectedIndex());
+       // System.out.println("What is the current index " + this.getSelectedIndex());
         int dropLocation = locationToIndex(e.getLocation());
         this.setSelectedIndex(dropLocation);
         
@@ -194,6 +219,15 @@ public class DataSourceList extends JList implements DropTargetListener{
                         
                         File file = (File)iter.next();
                         
+                          System.out.println("did i come out  here "+file);
+                          
+                          
+                          
+                          
+                        if (file.isDirectory()){
+                            
+                            System.out.println("did i come here "+file);
+                        
                         try{
                             
                           
@@ -210,6 +244,31 @@ public class DataSourceList extends JList implements DropTargetListener{
                             
                             CabinetEntry entry = res.getEntry();
                             
+                            
+                            
+                            
+                              if (file.getPath().toLowerCase().endsWith(".url")) {
+                    // Search a windows .url file (an internet shortcut)
+                    // for the actual web reference.
+                    String url = convertWindowsURLShortCutToURL(file);
+                    if (url != null) {
+                       //resourceSpec = url;
+                           res.setSpec("file://" + url);
+                           String resName;
+                        if (file.getName().length() > 4)
+                            resName = file.getName().substring(0, file.getName().length() - 4);
+                        else
+                            resName = file.getName();
+                           
+                            res.setTitle(resName);
+                           
+                    }
+                    
+                }
+                           
+                            
+                            
+                            
                             CabinetNode cabNode = null;
                             if (entry instanceof RemoteCabinetEntry)
                                 cabNode = new CabinetNode(res, CabinetNode.REMOTE);
@@ -217,16 +276,12 @@ public class DataSourceList extends JList implements DropTargetListener{
                                 
                                 cabNode = new CabinetNode(res, CabinetNode.LOCAL);
                             
-                           // System.out.println(" I am in cab node ---- Datasourcelist");
+                       
+                        
                             
-                           
-                           if (file.isDirectory()){cabNode.explore();
-                                             System.out.println(" I am also here");
-                                             
-                           }
-                            
-                            
-                            
+                      
+                        
+                        
                             model.insertNodeInto(cabNode, rootNode, 0);
                             favoritesTree.expandPath(new TreePath(rootNode.getPath()));
                             
@@ -241,6 +296,67 @@ public class DataSourceList extends JList implements DropTargetListener{
                         
                     }
                     
+                    else{
+                       
+                      try{
+                            
+                          
+                            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+                            osid.shared.Agent agent = null;
+                            
+                            LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                            
+                            
+                            
+                            CabinetResource res = new CabinetResource(cab);
+                            res.setTitle(file.getAbsolutePath());
+                          
+                            
+                            CabinetEntry oldentry = res.getEntry();
+                            
+                              res.setEntry(null);
+                              
+                               if (file.getPath().toLowerCase().endsWith(".url")) {
+                    // Search a windows .url file (an internet shortcut)
+                    // for the actual web reference.
+                    String url = convertWindowsURLShortCutToURL(file);
+                    if (url != null) {
+                       //resourceSpec = url;
+                           res.setSpec("file://" + url);
+                           String resName;
+                        if (file.getName().length() > 4)
+                            resName = file.getName().substring(0, file.getName().length() - 4);
+                        else
+                            resName = file.getName();
+                           res.setTitle(resourceName);
+                    }
+                }
+                            
+                            
+                              
+                            
+                            CabinetNode cabNode = null;
+                            if (oldentry instanceof RemoteCabinetEntry)
+                                cabNode = new CabinetNode(res, CabinetNode.REMOTE);
+                            else
+                                
+                                cabNode = new CabinetNode(res, CabinetNode.LOCAL);
+                            
+                            model.insertNodeInto(cabNode, rootNode, 0);
+                            favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+                            
+                      
+                            
+                            favoritesTree.setRootVisible(false);
+                            
+                            
+                            
+                        }catch (Exception EX) {}
+                   
+                        
+                    }
+                    
+                    }
                 }
                 
                 else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)){
@@ -288,9 +404,58 @@ public class DataSourceList extends JList implements DropTargetListener{
         
         
     }
+     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
     
-    
-    
+        private String convertWindowsURLShortCutToURL(File file)
+    {
+        String url = null;
+        try {
+            if (debug) System.out.println("*** Searching for URL in: " + file);
+            FileInputStream is = new FileInputStream(file);
+            byte[] buf = new byte[2048]; // if not in first 2048, don't bother
+            int len = is.read(buf);
+            is.close();
+            String str = new String(buf, 0, len);
+            if (debug) System.out.println("*** size="+str.length() +"["+str+"]");
+            Matcher m = URL_Line.matcher(str);
+            if (m.lookingAt()) {
+                url = m.group(1);
+                if (url != null)
+                    url = url.trim();
+                if (debug) System.out.println("*** FOUND URL ["+url+"]");
+                int i = url.indexOf("|/");
+                if (i > -1) {
+                    // odd: have found "file:///D|/dir/file.html" example
+                    // where '|' is where ':' should be -- still works
+                    // for Windows 2000 as a shortcut, but NOT using
+                    // Windows 2000 url DLL, so VUE can't open it.
+                    url = url.substring(0,i) + ":" + url.substring(i+1);
+                    System.out.println("**PATCHED URL ["+url+"]");
+                }
+                // if this is a file:/// url to a local html page,
+                // AND we can determine that we're on another computer
+                // accessing this file via the network (can we?)
+                // then we should not covert this shortcut.
+                // Okay, this is good enough for now, tho it also
+                // won't end up converting a bad shortcut, and
+                // ideally that wouldn't be our decision.
+                // [this is not worth it]
+                /*
+                URL u = new URL(url);
+                if (u.getProtocol().equals("file")) {
+                    File f = new File(u.getFile());
+                    if (!f.exists()) {
+                        url = null;
+                        System.out.println("***  BAD FILE ["+f+"]");
+                    }
+                }
+                */
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return url;
+    }
     
     
     //---------------------Accept Drop end

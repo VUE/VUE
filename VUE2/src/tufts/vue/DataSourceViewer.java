@@ -66,7 +66,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         setBorder(new TitledBorder("DataSource"));
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
-        dataSourceList = new DataSourceList();  
+        dataSourceList = new DataSourceList(this);  
         loadDataSources();
         if (loadingFromFile)dataSourceChanged = false;
         setPopup(); 
@@ -197,7 +197,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
         drBrowser.repaint();
         drBrowser.validate();
-        System.out.println("Setting active datasource = "+ds.getDisplayName());
+      
     }
     
     
@@ -288,13 +288,30 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         DataSource ds;
         int insertAt = 0,postBreakSpot = 0, preBreakSpot = 0;
         int preExists = 0, postExists = 0;
-        //System.out.println("This is stuff"+"fav" + favorites + "rem" + filingremote+"beg" + begIndex);
+      // System.out.println("This is address" + address+"type" +type);
+      
+       
+        if (address.compareTo("") != 0){
+            
+        if (type == DataSource.FILING_LOCAL)  {
+            
+         File testFile = new File(address);
+        
+         if (!(testFile.isDirectory())){
+             VueUtil.alert(null, "You can only mount directories or drives", "Invalid Data Source");
+             
+              return; 
+         }
+          
+            
+        }
+    }
         
         try{
             ds = new DataSource("id", displayName, name, searchURL,address, user, password, type);
         }catch (Exception ex){
             
-            //VueUtil.alert(VUE.getInstance(),"There was a problem adding this Data Source","DataSource not added");
+            VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
           //  System.out.println("There was a problem adding this Data Source");
             return;
         }
@@ -506,7 +523,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             
         }
         
-        //System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
+       System.out.println("preBreak" +preBreakSpot +"insertAt" + insertAt +"postBreakSpot" +postBreakSpot);
         
         if (preBreakSpot > 0){
             

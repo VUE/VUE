@@ -39,7 +39,7 @@ public class PolygonIcon implements Icon {
     public void setIconWidth(int width){
         
         this.width = width;
-        
+                
     }  
       public void setIconHeight(int height){
         
@@ -48,6 +48,7 @@ public class PolygonIcon implements Icon {
     }  
         
     public int getIconWidth() {
+        
         return width;
     }
     
