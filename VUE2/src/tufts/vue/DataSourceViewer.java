@@ -66,7 +66,7 @@ public class DataSourceViewer  extends JPanel{
         setBorder(new TitledBorder("DataSource"));
         
        // dataSources = new java.util.Vector();
-        setPopup();
+        //setPopup();
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
         dataSourceList = new DataSourceList();
@@ -76,7 +76,7 @@ public class DataSourceViewer  extends JPanel{
       
         if (loadingFromFile)dataSourceChanged = false;
         
-        
+           setPopup();
         
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
@@ -182,6 +182,8 @@ public class DataSourceViewer  extends JPanel{
     
     public void  setPopup() {
         popup = new JPopupMenu();
+       
+       
         addAction = new AbstractAction("Add") {
             public void actionPerformed(ActionEvent e) {
                 showAddEditWindow(0);
@@ -214,12 +216,20 @@ public class DataSourceViewer  extends JPanel{
         popup.add(deleteAction);
         popup.addSeparator();
         popup.add(saveAction);
+        
+        
+         
+       
+        
     }
     
     public void showAddEditWindow(int mode) {
      if ((addEditDialog == null)  || true) { // always true, need to work for cases where case where the dialog already exists
-            addEditDialog = new JDialog();
-            addEditDialog.setName("Add/Edit Dialog");
+            addEditDialog = new JDialog(tufts.vue.VUE.getInstance(),"Add/Edit Dialog",true);
+           // addEditDialog.setResizable(false);
+            //addEditDialog.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
+            
+           // addEditDialog.setName("Add/Edit Dialog");
             //  Create a tabbed pane with two panes:  Add and Edit.
             JTabbedPane tabbedPane = new JTabbedPane();
             tabbedPane.setName("Tabbed Pane");

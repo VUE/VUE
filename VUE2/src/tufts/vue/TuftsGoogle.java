@@ -134,20 +134,20 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
          googleResultsPanel = new JPanel(new BorderLayout());
          googlePane.addTab("Search Results",googleResultsPanel);
           add(googlePane,BorderLayout.CENTER );
-          JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+          //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
                  
-          prevButton = new JButton("Previous");
+         prevButton = new JButton("Previous");
           prevButton.setPreferredSize(new Dimension(120,20));
           prevButton.addActionListener(this);
           prevButton.setEnabled(false);
           nextButton = new JButton("Next");
-          nextButton.setPreferredSize(new Dimension(80,20));
-          nextButton.addActionListener(this);
+         nextButton.setPreferredSize(new Dimension(80,20));
+         nextButton.addActionListener(this);
          
                  
-          bottomPanel.add(prevButton);
-          bottomPanel.add(nextButton);
-          googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
+        //  bottomPanel.add(prevButton);
+         // bottomPanel.add(nextButton);
+          //googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
                  
          
         
@@ -162,11 +162,12 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     
     public void actionPerformed(ActionEvent e) {
                  
-                  if (e.getActionCommand().toString() == "Search") {performSearch(0);
-                 
+                  if (e.getActionCommand().toString() == "Search") {
+                      performSearch(0);
                   
                    nextStartIndex = nextStartIndex+ Integer.parseInt(maxReturns.getSelectedItem().toString());
                    prevStartIndex = 0;
+              
                   }
                    if (e.getActionCommand().toString() == "Previous"){
                       
@@ -180,6 +181,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                                nextStartIndex = nextStartIndex  - Integer.parseInt(maxReturns.getSelectedItem().toString()); 
                               
                        }
+                       
                       
                        }
                    if (e.getActionCommand().toString() == "Next"){
@@ -252,7 +254,14 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                  googleResultsPanel.remove(jsp);
                  jsp = new JScrollPane(tree);
                 
-               
+                 JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+                 //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+         
+         
+                 
+          bottomPanel.add(prevButton);
+         bottomPanel.add(nextButton);
+         googleResultsPanel.add(bottomPanel,BorderLayout.SOUTH);
                  
                  googleResultsPanel.add(jsp,BorderLayout.CENTER);
                  googleResultsPanel.validate();

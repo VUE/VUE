@@ -194,7 +194,8 @@ public class DataSourceList extends JList implements DropTargetListener{
         favoritesTree.expandRow(0);
         favoritesTree.setRootVisible(false);
         this.setSelectedIndex(current);
-         VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
+        fw.favoritesPane.setSelectedIndex(2);
+        // VueUtil.alert(null, "Successfully added resource to "+ds.getDisplayName(),"Resource Added");
         } catch (Exception ex) { 
             this.setSelectedIndex(current);
         
