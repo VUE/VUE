@@ -171,6 +171,7 @@ class MapDropTarget
         }
         
         boolean createAsChildren = !modifierKeyWasDown && hitComponent instanceof LWNode;
+        boolean overwriteResource = modifierKeyWasDown;
 
         // if no drop location (e.g., we did a "Paste") then assume where
         // they last clicked.
@@ -279,17 +280,24 @@ class MapDropTarget
                 VUE.ModelSelection.setTo(addedNodes.iterator());
          
         } else if (resourceList != null) {
-            java.util.Iterator iter = resourceList.iterator();
-            int x = dropLocation.x;
-            int y = dropLocation.y;
-            while (iter.hasNext()) {
-                Resource resource = (Resource) iter.next();
-                createNewNode(resource, new java.awt.Point(x,y));
-                x += 15;
-                y += 15;
-                success = true;
+            if (resourceList.size() == 1 && hitComponent != null && overwriteResource) {
+                // modifier key was down: force resetting of the resource
+                hitComponent.setResource((Resource)resourceList.get(0));
+            } else {
+                java.util.Iterator iter = resourceList.iterator();
+                int x = dropLocation.x;
+                int y = dropLocation.y;
+                while (iter.hasNext()) {
+                    Resource resource = (Resource) iter.next();
+                    if (createAsChildren) 
+                        ((LWNode)hitComponent).addChild(createNewNode(resource, null));
+                    else
+                        createNewNode(resource, new java.awt.Point(x,y));
+                    x += 15;
+                    y += 15;
+                    success = true;
+                }
             }
-     
         } else if (droppedText != null) {
             // Attempt to make a URL of any string dropped -- if fails,
             // just treat as regular pasted text.  todo: if newlines
@@ -414,17 +422,23 @@ class MapDropTarget
         if (p != null) {
             node.setCenterAt(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?
-        } // else: special case: no node location, sp we're creating a child node -- don't add to map
+        } // else: special case: no node location, so we're creating a child node -- don't add to map
         return node;
     }
 
-    private LWNode createNewNode(Resource resource, java.awt.Point p) {
-         LWNode node = NodeTool.createNode(resource.getTitle());
-         node.setResource(resource);
-         if (p != null) {
+    private LWNode createNewNode(Resource resource, java.awt.Point p)
+    {
+        String title;
+        if (resource.getTitle() != null)
+            title = resource.getTitle();
+        else
+            title = resource.getSpec();
+        LWNode node = NodeTool.createNode(title);
+        node.setResource(resource);
+        if (p != null) {
             node.setCenterAt(dropToMapLocation(p));
             viewer.getMap().addNode(node);            //set selection to node?
-        } // else: special case: no node location, sp we're creating a child node -- don't add to map
+        } // else: special case: no node location, so we're creating a child node -- don't add to map
         return node;
         
     }
