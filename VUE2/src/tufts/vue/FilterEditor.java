@@ -50,6 +50,23 @@ public class FilterEditor extends JPanel{
     }
     private void setNodeFilterPanel() {
         filterTable = new JTable(filterTableModel);
+        filterTable.addFocusListener(new FocusListener() {
+             public void focusLost(FocusEvent e) {
+                 if(filterTable.isEditing()) {
+                     filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
+                 }
+                 filterTable.removeEditor();
+             }
+             public void focusGained(FocusEvent e) {
+             }
+         });
+         filterTable.addKeyListener(new KeyAdapter() {
+             public void keyPressed(KeyEvent e) {
+                 if(filterTable.getSelectedRow() == (filterTableModel.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
+                     filterTableModel.addStatement();
+                 }
+             }
+         });
         filterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         filterTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
         JScrollPane filterScrollPane=new JScrollPane(filterTable);
@@ -117,7 +134,21 @@ public class FilterEditor extends JPanel{
         
         public void addStatement(Statement statement) {
             filters.add(statement);
+            fireTableDataChanged();
         }
+        
+        public void addStatement() {
+            Statement stmt = new Statement();
+            Key key = keyAnywhere;
+            if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
+                key = (Key) tufts.vue.VUE.getActiveMap().getMapFilterModel().get(0);
+            }
+            stmt.setKey(key);
+            stmt.setOperator(key.getType().getDefaultOperator());
+            stmt.setValue(key.getDefaultValue());
+            addStatement(stmt);
+        }
+            
         
         public boolean isEditable() {
             return editable;

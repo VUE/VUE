@@ -36,6 +36,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
     public static int SEARCH_ATTEMPTS = 3;
     public int countError = 0;
     ConditionsTableModel m_model;
+    JTable conditionsTable;
     JTabbedPane tabbedPane;
     JPanel DRSearchResults;
     JPanel DRSearch;
@@ -190,8 +191,18 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
      private void setAdvancedSearchPanel() {
          DRAdvancedSearch= new JPanel(new BorderLayout());
          m_model=new ConditionsTableModel();
-         JTable conditionsTable=new JTable(m_model);     
+         conditionsTable=new JTable(m_model);     
          conditionsTable.setPreferredScrollableViewportSize(new Dimension(100,100));
+         conditionsTable.addFocusListener(new FocusListener() {
+             public void focusLost(FocusEvent e) {
+                 if(conditionsTable.isEditing()) {
+                     conditionsTable.getCellEditor(conditionsTable.getEditingRow(),conditionsTable.getEditingColumn()).stopCellEditing();
+                 }
+                 conditionsTable.removeEditor();
+             }
+             public void focusGained(FocusEvent e) {
+             }
+         });
          JScrollPane conditionsScrollPane=new JScrollPane(conditionsTable);
          conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
          JPanel innerConditionsPanel=new JPanel();
