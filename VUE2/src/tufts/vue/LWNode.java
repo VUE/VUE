@@ -505,9 +505,9 @@ public class LWNode extends LWContainer
         setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
     }
 
-    public void addChild(LWComponent c)
+    public void addChildren(Iterator i)
     {
-        super.addChild(c);
+        super.addChildren(i);
         setScale(getScale()); // make sure children get shrunk
         layout();
     }

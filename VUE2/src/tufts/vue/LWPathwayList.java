@@ -7,7 +7,7 @@ import java.util.*;
  *
  * Keeps a list of all pathways for a given LWMap.  Also tracks the
  * current pathway selected for the given map.  Provides for
- * aggregating all the events that happen with in the pathways and
+ * aggregating all the events that happen within the pathways and
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *

@@ -227,9 +227,6 @@ public class LWPathway extends LWContainer
     public void add(Iterator i) {
         addChildren(i);
     }
-    public void remove(Iterator i) {
-        removeChildren(i);
-    }
 
     /**
      * As a LWComponent may appear more than once in a pathway, we
@@ -254,6 +251,15 @@ public class LWPathway extends LWContainer
     
     /**
      * Overrides LWContainer removeChildren.  Pathways aren't true
+     * parents, so nobody should be calling this LWContainer method on us.
+     * Always @throws UnsupportedOperationException
+     */
+    public void removeChildren(Iterator i) {
+        throw new UnsupportedOperationException(this + ".removeChildren");
+    }
+    
+    /**
+     * Overrides LWContainer removeChildren.  Pathways aren't true
      * parents, so all we want to do is remove the reference to them
      * and raise a change event.  Removes all items in iterator
      * COMPLETELY from the pathway -- all instances are removed.
@@ -261,7 +267,7 @@ public class LWPathway extends LWContainer
      * we just make sure any that are in this pathway are removed.
      */
     //  Todo: factor & comine with remove(int index, bool deleting)
-    public void removeChildren(Iterator i)
+    public void remove(Iterator i)
     {
         if (DEBUG.PATHWAY||DEBUG.PARENTING) System.out.println(this + " removeChildren " + VUE.getSelection());
 
@@ -291,7 +297,7 @@ public class LWPathway extends LWContainer
             notify("pathway.remove", new Undoable(removed) { void undo() { undoRemoveChildren((List)old); }} );
         }
     }
-    
+
     private LWComponent removingComponent = null;
     private synchronized void remove(int index, boolean deleting)
     {

@@ -1532,27 +1532,31 @@ public class LWComponent
     }
 
     /**
-     * Do any cleanup needed now that this LWComponent has
-     * been removed from the model
+     * Do final cleanup needed now that this LWComponent has
+     * been removed from the model.  Calling this on an already
+     * deleted LWComponent has no effect.
      */
-    protected void removeFromModel() {
-        removeFromModel(true);
-    }
-
-    protected void removeFromModel(boolean first)
+    protected void removeFromModel()
     {
         if (isDeleted()) {
             if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(lwc): ignoring (already removed)");
             return;
         }
-        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(lwc), first="+first);
-            //throw new IllegalStateException(this + ": attempt to delete already deleted");
-        if (first)
-            notify(LWKey.Deleting);
+        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(lwc)");
+        //throw new IllegalStateException(this + ": attempt to delete already deleted");
+        notify(LWKey.Deleting);
+        prepareToRemoveFromModel();
         removeAllLWCListeners();
         disconnectFromLinks();
         setDeleted(true);
     }
+
+    /**
+     * For subclasses to override that need to do cleanup
+     * activity before the the default LWComponent removeFromModel
+     * cleanup runs.
+     */
+    protected void prepareToRemoveFromModel() { }
 
     /** undelete */
     protected void restoreToModel()
@@ -1614,9 +1618,14 @@ public class LWComponent
         setHidden(b.booleanValue());
     }
     
+    /**
+     * @return true if this component has been hidden.  Note that this
+     * is different from isFiltered.  All children of a hidden component
+     * are also hidden, but not all children of a filtered component
+     * are filtered.
+     */
     public boolean isHidden()
     {
-        //return this.hidden || isFiltered(); //so that can filter parent WITHOUT filtering children
         return this.hidden;
     }
     public void setVisible(boolean visible)

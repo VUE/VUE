@@ -159,7 +159,7 @@ public class LWSelection extends java.util.ArrayList
         boolean changed = false;
         while (i.hasNext()) {
             c = (LWComponent) i.next();
-            if (!c.isSelected()) {
+            if (!c.isSelected() && c.isVisible() && !c.isFiltered()) {
                 add0(c);
                 changed = true;
             }

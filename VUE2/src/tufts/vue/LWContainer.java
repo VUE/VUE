@@ -208,6 +208,93 @@ public abstract class LWContainer extends LWComponent
      */
     void layoutChildren() { }
 
+
+    /**
+     * Make sure this LWComponent has an ID -- will have an effect on
+     * on any brand new LWComponent exactly once per VM instance.
+     */
+    private void ensureID(LWComponent c)
+    {
+        if (c.getID() == null)
+            c.setID(getNextUniqueID());
+
+        if (c instanceof LWContainer) {
+            Iterator i = ((LWContainer)c).getChildIterator();
+            while (i.hasNext())
+                ensureID((LWComponent) i.next());
+        }
+    }
+
+    /**
+     * @param possibleChildren should contain at least one child of this container
+     * to be reparented.  Children not in this container are ignored.
+     * @param newParent is the new parent for any children of ours found in possibleChildren
+     */
+    public void reparentTo(LWContainer newParent, Iterator possibleChildren)
+    {
+        notify(LWKey.HierarchyChanging);
+
+        List reparenting = new ArrayList();
+        while (possibleChildren.hasNext()) {
+            LWComponent c = (LWComponent) possibleChildren.next();
+            if (c.getParent() == this)
+                reparenting.add(c);
+        }
+        removeChildren(reparenting.iterator());
+        newParent.addChildren(reparenting.iterator());
+    }
+
+    final void addChild(LWComponent c) {
+        addChildren(new VueUtil.SingleIterator(c));
+    }
+    final void removeChild(LWComponent c) {
+        removeChildren(new VueUtil.SingleIterator(c));
+    }
+
+    public void addChildren(Iterator i)
+    {
+        notify(LWKey.HierarchyChanging);
+        
+        ArrayList addedChildren = new ArrayList();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            addChildInternal(c);
+            addedChildren.add(c);
+        }
+
+        // need to do this afterwords so everyone has a parent to check
+        Iterator in = addedChildren.iterator();
+        while (in.hasNext())
+            ensureLinksPaintOnTopOfAllParents((LWComponent) in.next());
+        
+        if (addedChildren.size() > 0) {
+            notify(LWKey.ChildrenAdded, addedChildren);
+            layout();
+        }
+    }
+    
+    /**
+     * Remove any children in this iterator from this container.
+     */
+    protected void removeChildren(Iterator i)
+    {
+        notify(LWKey.HierarchyChanging);
+
+        ArrayList removedChildren = new ArrayList();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getParent() == this) {
+                removeChildInternal(c);
+                removedChildren.add(c);
+            } else
+                throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
+        }
+        if (removedChildren.size() > 0) {
+            notify(LWKey.ChildrenRemoved, removedChildren);
+            layout();
+        }
+    }
+    
     protected void addChildInternal(LWComponent c)
     {
         if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
@@ -229,58 +316,97 @@ public abstract class LWContainer extends LWComponent
         c.setParent(this);
         ensureID(c);
     }
-
-    private void ensureID(LWComponent c)
+    
+    protected void removeChildInternal(LWComponent c)
     {
-        if (c.getID() == null)
-            c.setID(getNextUniqueID());
-
-        if (c instanceof LWContainer) {
-            Iterator i = ((LWContainer)c).getChildIterator();
-            while (i.hasNext())
-                ensureID((LWComponent) i.next());
+        if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
+        if (this.children == null) {
+            // this should never be possible now
+            new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
+            return;
         }
+        if (isDeleted()) {
+            // just in case:
+            new Throwable(this + " FYI: ZOMBIE PARENT DELETING CHILD " + c).printStackTrace();
+            return;
+        }
+        if (!this.children.remove(c)) {
+            throw new IllegalStateException(this + " didn't contain child for removal: " + c);
+            /*
+            if (DEBUG.PARENTING) {
+                System.out.println(this + " FYI: didn't contain child for removal: " + c);
+                if (DEBUG.META) new Throwable().printStackTrace();
+            }
+            */
+        }
+        //c.setParent(null);
+
+        // If this child was scaled inside us (as all children are except groups)
+        // be sure to restore it's scale back to 1 when de-parenting it.
+        // todo: maybe better to handle this in LWNode somehow as that's only
+        // place nodes actually get scaled at all right now -- either that or
+        // when it's added back into it's new parent, which can set it based
+        // on whatever scale policy it implements.
+        if (c.getScale() != 1f)
+            c.setScale(1f);
+    }
+    
+
+    /**
+     * Delete a child and PERMANENTLY remove it from the model.
+     * Differs from removeChild / removeChildren, which just
+     * de-parent the nodes, tho leave any listeners & links to it in place.
+     */
+    public void deleteChildPermanently(LWComponent c)
+    {
+        if (true||DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
+
+        // We did the "deleting" notification first, so anybody
+        // listening can still see the node in it's full current state
+        // before anything changes.  But children now keep their
+        // parent reference until their removed from the model, so the
+        // only thing different when removeFromModel issues it's
+        // LWKey.Deleting event is the parent won't list it as a
+        // child, but since it still has the parent ref, event
+        // up-notification will still work, which is good enough.
+        // (It's probably not safe to deliver more than one
+        // LWKey.Deleting event -- if need to put it back here, have
+        // to be able to tell removeFromModel optionally not to issue
+        // the event).
+
+        //c.notify(LWKey.Deleting);
+        
+        removeChild(c);
+        c.removeFromModel();
     }
 
-    public void addChild(LWComponent c)
+    protected void removeChildrenFromModel()
     {
-        addChildren(new VueUtil.SingleIterator(c));
-        /*
-        addChildInternal(c);
-        ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
-        c.notify(LWKey.Added, this);
-        notify(LWKey.ChildAdded, c);
-        */
-    }
-
-    public void addChildren(Iterator i)
-    {
-        ArrayList addedChildren = new ArrayList();
-        
-        notify(LWKey.HierarchyChanging);
-        
+        Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            if (c.getParent() == this)
-                throw new IllegalArgumentException(this + " addChildren trying to add exsiting child " + c);
-            addChildInternal(c);
-            addedChildren.add(c);
-        }
-
-        // need to do this afterwords so everyone has a parent to check
-        Iterator in = addedChildren.iterator();
-        while (in.hasNext()) {
-            ensureLinksPaintOnTopOfAllParents((LWComponent) in.next());
-        }
-        
-        if (addedChildren.size() > 0) {
-            notify(LWKey.ChildrenAdded, addedChildren);
-            //todo: change all these child events to a structureChanged event
-            //? single addChild didn't call layout!
-            layout();
+            c.removeFromModel();
         }
     }
     
+    protected void prepareToRemoveFromModel()
+    {
+        removeChildrenFromModel();
+        if (this.children == VUE.ModelSelection) // todo: tmp debug
+            throw new IllegalStateException("attempted to delete selection");
+    }
+    
+    protected void restoreToModel()
+    {
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setParent(this);
+            c.restoreToModel();
+        }
+        super.restoreToModel();
+    }
+
     // todo: should probably just get rid of this helper -- not worth bother
     // If keep, this code may belong on the node as it only implies to
     // the embedded nature of child components in nodes.
@@ -344,148 +470,6 @@ public abstract class LWContainer extends LWComponent
         }
     }
     
-    protected void removeChild(LWComponent c)
-    {
-        removeChildren(new VueUtil.SingleIterator(c));
-        /*
-        removeChildInternal(c);
-        notify(LWKey.ChildRemoved, c);
-        layout();
-        */
-    }
-
-    protected void removeChildInternal(LWComponent c)
-    {
-        if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
-        if (this.children == null) {
-            // this should never be possible now
-            new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
-            return;
-        }
-        if (isDeleted()) {
-            // just in case:
-            new Throwable(this + " FYI: ZOMBIE PARENT DELETING CHILD " + c).printStackTrace();
-            return;
-        }
-        if (!this.children.remove(c)) {
-            throw new IllegalStateException(this + " didn't contain child for removal: " + c);
-            /*
-            if (DEBUG.PARENTING) {
-                System.out.println(this + " FYI: didn't contain child for removal: " + c);
-                if (DEBUG.META) new Throwable().printStackTrace();
-            }
-            */
-        }
-        //c.setParent(null);
-
-        // If this child was scaled inside us (as all children are except groups)
-        // be sure to restore it's scale back to 1 when de-parenting it.
-        // todo: maybe better to handle this in LWNode somehow as that's only
-        // place nodes actually get scaled at all right now -- either that or
-        // when it's added back into it's new parent, which can set it based
-        // on whatever scale policy it implements.
-        if (c.getScale() != 1f)
-            c.setScale(1f);
-    }
-    
-    /**
-     * Remove any children in this iterator from this container.
-     * Items not already children of this container are ignored.
-     * Children will be left as orphans -- up to caller what
-     * to do with those.
-     */
-    protected void removeChildren(Iterator i)
-    {
-        notify(LWKey.HierarchyChanging);
-
-        ArrayList removedChildren = new ArrayList();
-        
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.getParent() == this) {
-                removeChildInternal(c);
-                removedChildren.add(c);
-            } else
-                throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
-        }
-        if (removedChildren.size() > 0) {
-            notify(LWKey.ChildrenRemoved, removedChildren);
-            layout();
-        }
-    }
-
-    /**
-     * @param possibleChildren should contain at least one child of this container
-     * to be reparented.  Children not in this container are ignored.
-     */
-    public void reparentTo(LWContainer newParent, Iterator possibleChildren)
-    {
-        notify(LWKey.HierarchyChanging);
-
-        List reparenting = new ArrayList();
-        while (possibleChildren.hasNext()) {
-            LWComponent c = (LWComponent) possibleChildren.next();
-            if (c.getParent() == this)
-                reparenting.add(c);
-        }
-        removeChildren(reparenting.iterator());
-        newParent.addChildren(reparenting.iterator());
-    }
-
-    /**
-     * Delete a child and PERMANENTLY remove it from the model.
-     * Differs from removeChild / removeChildren, which just
-     * de-parent the nodes, tho leave any listeners & links to it in place.
-     */
-    public void deleteChildPermanently(LWComponent c)
-    {
-        if (true||DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
-        // we do the "deleting" notification first, so anybody listening
-        // can still see the node in it's full current state before
-        // anything changes.
-        c.notify(LWKey.Deleting);
-        removeChild(c);
-        c.removeFromModel(false);
-    }
-
-    protected void removeChildrenFromModel()
-    {
-        // don't actaully deparent our children -- leave them parented
-        // to us even tho we're being deleted, which will facilitate
-        // undo.
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            //c.notify(LWKey.Deleting);
-            c.removeFromModel();
-        }
-    }
-    
-    protected void removeFromModel(boolean first)
-    {
-        if (isDeleted()) {
-            if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(container): ignoring (already removed)");
-            return;
-        }
-        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(container), first="+first);
-        if (first) notify(LWKey.Deleting);
-        removeChildrenFromModel();
-        super.removeFromModel(false);
-        if (this.children == VUE.ModelSelection) // todo: tmp debug
-            throw new IllegalStateException("attempted to delete selection");
-    }
-    
-    protected void restoreToModel()
-    {
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setParent(this);
-            c.restoreToModel();
-        }
-        super.restoreToModel();
-    }
-
     /*
     public java.util.List getAllConnectedNodes()
     {
@@ -1110,7 +1094,7 @@ public abstract class LWContainer extends LWComponent
 
     public String paramString()
     {
-        if (children != null)
+        if (children != null && children.size() > 0)
             return super.paramString() + " chld=" + children.size();
         else
             return super.paramString();
