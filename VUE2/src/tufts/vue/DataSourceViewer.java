@@ -95,7 +95,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         
         setLayout(new BorderLayout());
-        setBorder(new TitledBorder("DataSource"));
+        setBorder(new TitledBorder("Data Source"));
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
         
@@ -138,7 +138,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         // GRID: addConditionButton
         JButton addButton=new VueButton("add");
         addButton.setBackground(this.getBackground());
-        addButton.setToolTipText("Add/Edit Datasource Information");
+        addButton.setToolTipText("Add new or edit data source");
         
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -151,7 +151,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         // GRID: deleteConditionButton
         JButton deleteButton=new VueButton("delete");
         deleteButton.setBackground(this.getBackground());
-        deleteButton.setToolTipText("Remove a Datasource from VUE");
+        deleteButton.setToolTipText("Delete data source");
         
         deleteButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -176,7 +176,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JButton refreshButton=new VueButton("refresh");
         
         refreshButton.setBackground(this.getBackground());
-        refreshButton.setToolTipText("Refresh Local Datasource");
+        refreshButton.setToolTipText("Refresh data sources");
         
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -189,7 +189,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));
-        questionLabel.setToolTipText("Add/Delete/Refresh a Data Source");
+        questionLabel.setToolTipText("This panel lists data sources currently availabe to VUE. Use the data source panel buttons to edit, delete  or create new data sources");
         
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         
