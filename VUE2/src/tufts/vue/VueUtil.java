@@ -7,14 +7,14 @@ public class VueUtil
     private static boolean WindowsPlatform = false;
     private static boolean MacPlatform = false;
     private static boolean UnixPlatform = false;
-    private static double javaVersion = 1.0f;
+    private static float javaVersion = 1.0f;
 
     static {
         String osName = System.getProperty("os.name");
         String javaSpec = System.getProperty("java.specification.version");
 
         try {
-            javaVersion = Double.parseDouble(javaSpec);
+            javaVersion = Float.parseFloat(javaSpec);
             System.out.println("Java Version: " + javaVersion);
         } catch (Exception e) {
             System.err.println("Couldn't parse java.specifcaion.version: [" + javaSpec + "]");

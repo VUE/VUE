@@ -190,7 +190,8 @@ class MapDropTarget
             
         Node n = new Node(resourceTitle, new Resource(resourceName), location);
         conceptMap.addNode(n);
-        ((MapViewer)mapContainer).setSelection(((MapViewer)mapContainer).findLWNode(n));
+        //((MapViewer)mapContainer).setSelection(((MapViewer)mapContainer).findLWNode(n));
+        //todo:fixme
     }
 
     void createNewNode(java.awt.Image image, java.awt.Point p)
@@ -200,7 +201,8 @@ class MapDropTarget
         conceptMap.addNode(n);
         LWNode lwNode = ((MapViewer)mapContainer).findLWNode(n);
         lwNode.setImage(image);
-        ((MapViewer)mapContainer).setSelection(lwNode);
+        //((MapViewer)mapContainer).setSelection(lwNode);
+        //todo:fixme
     }
 
     private Point2D dropToMapLocation(java.awt.Point p)

@@ -17,6 +17,8 @@ public abstract class MapItem
     private String notes = EMPTY;
     private String metaData = EMPTY;
     private String category = EMPTY;
+    private float x;
+    private float y;
 
     public MapItem()
     {
@@ -28,34 +30,98 @@ public abstract class MapItem
         setLabel(label);
     }
 
-    public String toString()
+    private java.util.List listeners;
+    public void addChangeListener(MapItemChangeListener listener)
     {
-        return getClass().getName() + "[id=" + getID() + " " + getLabel() + "]";
+        if (listeners == null)
+            listeners = new java.util.ArrayList();
+        listeners.add(listener);
+    }
+    public void removeChangeListener(MapItemChangeListener listener)
+    {
+        if (listeners == null)
+            return;
+        listeners.remove(listener);
+    }
+    public void notifyChangeListeners(MapItemChangeEvent e)
+    {
+        if (listeners == null)
+            return;
+        this.inNotify = true;
+        try {
+            java.util.Iterator i = listeners.iterator();
+            while (i.hasNext())
+                ((MapItemChangeListener)i.next()).mapItemChanged(e);
+        } finally {
+            this.inNotify = false;
+        }
     }
     
+    private boolean inNotify = false;
+    private void notify(String what)
+    {
+        notifyChangeListeners(new MapItemChangeEvent(this, what));
+    }
+    
+    public float getX()
+    {
+        return this.x;
+    }
+    public float getY()
+    {
+        return this.y;
+    }
+
+    public void setPosition(java.awt.geom.Point2D p)
+    {
+        setPosition((float)p.getX(), (float)p.getY());
+    }
+    
+    public java.awt.geom.Point2D getPosition()
+    {
+        return new java.awt.geom.Point2D.Float(this.x, this.y);
+    }
+
+    public void setPosition(float x, float y)
+    {
+        if (this.inNotify) return;
+        this.x = x;
+        this.y = y;
+        notify("position");
+    }
     public void setID(String ID)
     {
+        if (this.inNotify) return;
         this.ID = ID;
+        notify("ID");
     }
 
     public void setLabel(String label)
     {
+        if (this.inNotify) return;
         this.label = label;
+        notify("label");
     }
 
     public void setNotes(String notes)
     {
+        if (this.inNotify) return;
         this.notes = notes;
+        notify("notes");
     }
 
     public void setMetaData(String metaData)
     {
+        if (this.inNotify) return;
         this.metaData = metaData;
+        notify("meta-data");
     }
 
     public void setCategory(String category)
     {
+        if (this.inNotify) return;
         this.category = category;
+        notify("category");
     }
     
     public String getCategory()
@@ -82,4 +148,11 @@ public abstract class MapItem
     {
         return this.metaData;
     }
+
+    public String toString()
+    {
+        return getClass().getName() + "[id=" + getID() + " " + getLabel() + "]";
+    }
+    
+    
 }

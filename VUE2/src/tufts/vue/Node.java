@@ -7,7 +7,6 @@ public class Node extends MapItem
 {
     private Resource resource = null;
     // using awt Point for now
-    private Point2D position = new Point2D.Float(0,0);
     private javax.swing.ImageIcon icon = null;
 
     public Node(String label)
@@ -42,30 +41,6 @@ public class Node extends MapItem
     public void setResource(Resource resource)
     {
         this.resource = resource;
-    }
-
-    public void setPosition(Point2D position)
-    {
-        this.position = position;
-    }
-
-    public void setPosition(float x, float y)
-    {
-        this.position = new Point2D.Float(x, y);
-    }
-
-    public Point2D getPosition()
-    {
-        return this.position;
-    }
-
-    public float getX()
-    {
-        return (float) this.position.getX();
-    }
-    public float getY()
-    {
-        return (float) this.position.getY();
     }
 
     public void setIcon(javax.swing.ImageIcon icon)

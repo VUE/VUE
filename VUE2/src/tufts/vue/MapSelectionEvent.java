@@ -1,5 +1,6 @@
 package tufts.vue;
 
+// rename SelectionEvent
 public class MapSelectionEvent
     extends EventRaiser
 {
@@ -23,7 +24,6 @@ public class MapSelectionEvent
 
     public void dispatch(Object listener)
     {
-        //System.err.println("dispatch to " + listener);
         ((MapSelectionListener)listener).eventRaised(this);
     }
     

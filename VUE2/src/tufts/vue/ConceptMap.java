@@ -20,7 +20,7 @@ public class ConceptMap extends MapItem
     private float originX;
     private float originY;
 
-    ConceptMap(String label)
+    public ConceptMap(String label)
     {
         super(label);
     }
@@ -45,31 +45,31 @@ public class ConceptMap extends MapItem
     }
 
 
-    public void addMapListener(MapChangeListener cl)
+    public void addMapListener(MapListener cl)
     {
         listeners.add(cl);
     }
 
-    public void notifyMapListeners(MapChangeEvent e)
+    public void notifyMapListeners(MapEvent e)
     {
         java.util.Iterator i = listeners.iterator();
         int id = e.getID();
         while (i.hasNext()) {
-            MapChangeListener mcl = (MapChangeListener) i.next();
+            MapListener mcl = (MapListener) i.next();
             switch (id) {
-            case MapChangeEvent.ADD:
+            case MapEvent.ADD:
                 mcl.mapItemAdded(e);
                 break;
-            case MapChangeEvent.REMOVE:
+            case MapEvent.REMOVE:
                 mcl.mapItemRemoved(e);
                 break;
-            case MapChangeEvent.CHANGE:
+            case MapEvent.CHANGE:
                 mcl.mapItemChanged(e);
                 break;
             }
         }
     }
-    public void removeMapListener(MapChangeListener mcl)
+    public void removeMapListener(MapListener mcl)
     {
         listeners.remove(mcl);
     }
@@ -81,37 +81,37 @@ public class ConceptMap extends MapItem
     public void addNode(Node node)
     {
         nodeList.add(node);
-        notifyMapListeners(new MapChangeEvent(this, node, MapChangeEvent.ADD));
+        notifyMapListeners(new MapEvent(this, node, MapEvent.ADD));
     }
 
     public void removeNode(Node node)
     {
         nodeList.remove(node);
-        notifyMapListeners(new MapChangeEvent(this, node, MapChangeEvent.REMOVE));
+        notifyMapListeners(new MapEvent(this, node, MapEvent.REMOVE));
     }
 
     public void addLink(Link link)
     {
         linkList.add(link);
-        notifyMapListeners(new MapChangeEvent(this, link, MapChangeEvent.ADD));
+        notifyMapListeners(new MapEvent(this, link, MapEvent.ADD));
     }
 
     public void removeLink(Link link)
     {
         linkList.remove(link);
-        notifyMapListeners(new MapChangeEvent(this, link, MapChangeEvent.REMOVE));
+        notifyMapListeners(new MapEvent(this, link, MapEvent.REMOVE));
     }
 
     public void addPathway(Pathway pathway)
     {
         pathwayList.add(pathway);
-        notifyMapListeners(new MapChangeEvent(this, pathway, MapChangeEvent.ADD));
+        notifyMapListeners(new MapEvent(this, pathway, MapEvent.ADD));
     }
 
     public void removePathway(Pathway pathway)
     {
         pathwayList.remove(pathway);
-        notifyMapListeners(new MapChangeEvent(this, pathway, MapChangeEvent.REMOVE));
+        notifyMapListeners(new MapEvent(this, pathway, MapEvent.REMOVE));
     }
 
     public java.util.Iterator getNodeIterator()

@@ -10,19 +10,96 @@ import javax.swing.*;
  */
 public class VUE
 {
-    public static void main(String[] args) {
+    public static Cursor CURSOR_ZOOM_IN;
+    public static Cursor CURSOR_ZOOM_OUT;
+
+    static {
+        /*
+        String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
+        URL imageURL = getClass().getResource(imgLocation);
+        if (imageURL != null)
+            button = new JButton(new ImageIcon(imageURL));
+        */
+
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Image iconZoomIn;
+        Image iconZoomOut;
+        if (VueUtil.isMacPlatform()) {
+            iconZoomIn = toolkit.getImage("images/ZoomIn16.gif");
+            iconZoomOut = toolkit.getImage("images/ZoomOut16.gif");
+        } else {
+            iconZoomIn = toolkit.getImage("images/ZoomIn24.gif");
+            iconZoomOut = toolkit.getImage("images/ZoomOut24.gif");
+        }
+        CURSOR_ZOOM_IN = toolkit.createCustomCursor(iconZoomIn, new Point(0,0), "ZoomIn");
+        CURSOR_ZOOM_OUT = toolkit.createCustomCursor(iconZoomOut, new Point(0,0), "ZoomOut");
+    }
+
+    static class VueFrame extends JFrame
+    {
+        VueFrame()
+        {
+            super("VUE: Tufts Concept Map Tool");
+        }
+    }
+
+    static class VuePanel extends JPanel
+    {
+        public void paint(Graphics g)
+        {
+            // only works when, of course, the panel is asked
+            // to redraw -- but if you mess with subcomponents
+            // and just they repaint, we lose this.
+            // todo: There must be a way to stick this in a global
+            // property somewhere.
+            ((Graphics2D)g).setRenderingHint
+                (RenderingHints.KEY_TEXT_ANTIALIASING,
+                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            super.paint(g);
+        }
+    }
+
+    public static void main(String[] args)
+    {
+        String laf = null;
+        //laf = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        //laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+        try {
+            if (laf != null)
+                javax.swing.UIManager.setLookAndFeel(laf);
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+        
         /*
          * create an example map (this will become
          * map loading code after the viewer is up)
          */
-        ConceptMap map = new ConceptMap("Example Map");
+        ConceptMap map1 = new ConceptMap("Example One");
+        ConceptMap map2 = new ConceptMap("Example Two");
+        ConceptMap map3 = new ConceptMap("Empty Map");
         
         /*
          * create the map viewer
          */
-        Container mapViewer = new tufts.vue.MapViewer(map);
-        installExampleMap(map);
+        MapViewer mapViewer1 = new tufts.vue.MapViewer(map1);
+        Container mapViewer2 = new tufts.vue.MapViewer(map1);
+        Container mapViewer3 = new tufts.vue.MapViewer(map2);
+        Container mapViewer4 = new tufts.vue.MapViewer(map3);
 
+        installExampleMap(map1);
+        installExampleMap(map2);
+
+        JTabbedPane tabbedPane = new JTabbedPane();        
+        tabbedPane.addTab(map1.getLabel(), mapViewer1);
+        tabbedPane.addTab(map1.getLabel() + "[View 2]", mapViewer2);
+        tabbedPane.addTab(map2.getLabel(), mapViewer3);
+        tabbedPane.addTab(map3.getLabel(), mapViewer4);
+        
+        tabbedPane.setSelectedIndex(0);
+        tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
+        //tabbedPane.setTabPlacement(SwingConstants.TOP);
+        
         /*
          * create a an application frame and layout components
          */
@@ -30,30 +107,56 @@ public class VUE
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
         toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        //toolPanel.add(new MapPanner(mapViewer1), BorderLayout.CENTER);
         toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
+
         JSplitPane splitPane = new JSplitPane();
-        JScrollPane leftScroller = new JScrollPane(toolPanel);
+        //JScrollPane leftScroller = new JScrollPane(toolPanel);
 
         splitPane.setResizeWeight(0.25); // 25% space to the left component
         splitPane.setContinuousLayout(true);
         splitPane.setOneTouchExpandable(true);
-        splitPane.setLeftComponent(leftScroller);
-        splitPane.setRightComponent(mapViewer);
+        splitPane.setLeftComponent(toolPanel);
+        //splitPane.setLeftComponent(leftScroller);
+        splitPane.setRightComponent(tabbedPane);
 
 
-        JFrame frame = new JFrame("VUE: Tufts Concept Map Tool");
-        frame.setContentPane(splitPane);
+        //JFrame frame = new JFrame("VUE: Tufts Concept Map Tool");
+        JFrame frame = new VueFrame();
+        JPanel vuePanel = new VuePanel();
+        vuePanel.setLayout(new BorderLayout());
+        vuePanel.add(splitPane, BorderLayout.CENTER);
+        //vuePanel.add(splitPane);
+        frame.setContentPane(vuePanel);
+        //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
         frame.pack();
-        
+
         Dimension d = frame.getToolkit().getScreenSize();
         int x = d.width/2 - frame.getWidth()/2;
         int y = d.height/2 - frame.getHeight()/2;
         frame.setLocation(x, y);
         
         frame.show();
-        frame.repaint();
+
+        /*
+        JFrame pannerContainer = new JFrame("Panner");
+        pannerContainer.setContentPane(new MapPanner(mapViewer1));
+        pannerContainer.setSize(100,100);
+        pannerContainer.show();
+        */
+
+        ToolWindow pannerTool = new ToolWindow("Panner", frame);
+        pannerTool.setSize(120,120);
+        pannerTool.addTool(new MapPanner(mapViewer1));
+        pannerTool.show();
+        
+        //ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
+        ToolWindow inspectorTool = new ToolWindow("", frame);
+        inspectorTool.setSize(250,100);
+        inspectorTool.addTool(new MapItemInspector());
+        inspectorTool.show();
     }
 
 

@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Window;
 
 /**
  * Generic awt containment event raiser.
@@ -31,6 +32,14 @@ public abstract class EventRaiser
         while (parent.getParent() != null)
             parent = parent.getParent();
         deliverToChildren((Container)parent);
+        if (parent instanceof Window) {
+            Window w = (Window) parent;
+            Window[] owned = w.getOwnedWindows();
+            //System.err.println(java.util.Arrays.asList(owned);
+            for (int i = 0; i < owned.length; i++) {
+                deliverToChildren(owned[i]);
+            }
+        }
     }
 
     abstract void dispatch(Object listener);

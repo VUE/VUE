@@ -94,7 +94,8 @@ class LWLink extends LWComponent
         g.setColor(Color.lightGray);
         g.setStroke(STROKE_ONE);
         //g.drawRect(this.x, this.y, getWidth(), getHeight());
-        g.drawRect((int)this.x, (int)this.y, (int)getWidth(), (int)getHeight());
+        //g.drawRect((int)this.x, (int)this.y, (int)getWidth(), (int)getHeight());
+        g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
 
         /*
          * Draw the link

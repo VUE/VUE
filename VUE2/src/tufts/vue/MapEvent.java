@@ -1,6 +1,6 @@
 package tufts.vue;
 
-public class MapChangeEvent
+public class MapEvent
 {
     public static final int ADD = 1;
     public static final int REMOVE = 2;
@@ -10,7 +10,7 @@ public class MapChangeEvent
     private ConceptMap source;
     private MapItem item;
 
-    public MapChangeEvent(ConceptMap map, MapItem item, int id)
+    public MapEvent(ConceptMap map, MapItem item, int id)
     {
         this.source = map;
         this.item = item;

@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * LWComponent.java
@@ -14,28 +15,47 @@ import java.awt.geom.Point2D;
  */
 
 class LWComponent
+    implements VueConstants, MapItemChangeListener
+// todo: consider subclassing the abstract RectangularShape???
 {
-    public static final java.awt.Stroke STROKE_ONE = new java.awt.BasicStroke(1f);
-    public static final java.awt.Stroke STROKE_TWO = new java.awt.BasicStroke(2f);
-    public static final java.awt.Stroke STROKE_DEFAULT = STROKE_ONE;
-
-    public static final java.awt.Color COLOR_SELECTION = java.awt.Color.blue;
-    public static final java.awt.Color COLOR_INDICATION = java.awt.Color.red;
-    public static final java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
-    public static final java.awt.Color COLOR_FAINT = java.awt.Color.lightGray;
-    
-    protected float x;
-    protected float y;
+    private float x;
+    private float y;
     protected float width;
     protected float height;
     protected boolean displayed = true;
-    protected boolean selected = false;
+    protected boolean selected = false; // todo: remove?
     protected boolean indicated = false;
 
+    protected MapItem mapItem;
+    
     private java.util.List links = new java.util.ArrayList();
 
     protected LWComponent() {}
+    protected LWComponent(MapItem mapItem)
+    {
+        if (mapItem == null)
+            throw new java.lang.IllegalArgumentException("LWNode: node is null");
+        this.mapItem = mapItem;
+        this.mapItem.addChangeListener(this);
+    }
 
+    public void mapItemChanged(MapItemChangeEvent e)
+    {
+        //System.out.println(e);
+        MapItem mi = e.getSource();
+        setLocation(mi.getPosition());
+    }
+
+    public MapItem getMapItem()
+    {
+        return this.mapItem;
+    }
+
+    public Point2D getLabelOffset()
+    {
+        return new Point2D.Float(x + width / 2, y + width / 2);
+    }
+    
     public void addLink(LWLink link)
     {
         this.links.add(link);
@@ -62,24 +82,22 @@ class LWComponent
         return getLinkTo(c) != null;
     }
 
-    public MapItem getMapItem()
-    {
-        return null;
-    }
-
     public void setLocation(float x, float y)
     {
         //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
     }
+    
+    public void setLocation(double x, double y)
+    {
+        setLocation((float) x, (float) y);
+    }
 
-    /*
     public void setLocation(Point2D p)
     {
-        this.x = (float) p.getX();
-        this.y = (float) p.getY();
-        }*/
+        setLocation((float) p.getX(), (float) p.getY());
+    }
     
     public Point2D getLocation()
     {
@@ -96,6 +114,11 @@ class LWComponent
     public float getY() { return this.y; }
     public float getWidth() { return this.width; }
     public float getHeight() { return this.height; }
+
+    public Rectangle2D getBounds()
+    {
+        return new Rectangle2D.Float(this.x, this.y, this.width, this.height);
+    }
     
     /**
      * Default implementation: checks bounding box
@@ -104,6 +127,12 @@ class LWComponent
     {
         return x >= this.x && x <= (this.x+width)
             && y >= this.y && y <= (this.y+height);
+    }
+    
+
+    public boolean intersects(Rectangle2D rect)
+    {
+        return false; // todo: fixme
     }
 
     /**
