@@ -20,16 +20,21 @@ public class PolygonIcon implements Icon {
     private final int DEFAULT_HEIGHT = 5;
     private final int DEFAULT_WIDTH = 5;
     private Color color = Color.BLACK;
-    private int height;
-    private int width;
+    private int height  = DEFAULT_HEIGHT;;
+    private int width = DEFAULT_WIDTH;
+    private Shape shape;
     /** Creates a new instance of PolygonIcon */
     public PolygonIcon() {
     }
     
     public PolygonIcon(Color color) {
         this.color = color;
-        height = DEFAULT_HEIGHT;
-        width = DEFAULT_WIDTH;
+    }
+    
+    public PolygonIcon(Shape shape,Color color){
+        this.color = color;
+        this.shape = shape;
+        
     }
     
     public int getIconWidth() {
@@ -42,7 +47,9 @@ public class PolygonIcon implements Icon {
     
     public void paintIcon(Component c, Graphics g, int x, int y) {
        Graphics2D g2d = (Graphics2D) g;
-       Shape shape = new Rectangle(x,y,width,height);
+       if(shape == null){
+           shape = new Rectangle(x,y,width,height);
+       }
        g2d.setColor(color);
        g2d.fill(shape);
     }
