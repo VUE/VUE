@@ -18,10 +18,6 @@ import tufts.vue.*;
 public class OpenAction extends AbstractAction
 {
     final static java.net.URL XML_MAPPING = VUE.CASTOR_XML_MAPPING_RESOURCE;
-    //final static String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
-    //final static java.net.URL XML_MAPPING = ClassLoader.getSystemResource("lw_mapping.xml");
-    //final java.net.URL XML_MAPPING = getClass().getResource("lw_mapping.xml");
-    //final static String XML_MAPPING = LWMap.CASTOR_XML_MAPPING;
     
     /** Creates a new instance of OpenAction */
     public OpenAction() {
@@ -84,7 +80,7 @@ public class OpenAction extends AbstractAction
             //return map;
             File file = new File(filename);
             LWMap map = ActionUtil.unmarshallMap(file);
-            map.setLabel(file.getName());
+            map.setFile(file);
             return map;
         } 
         catch (Exception e) 

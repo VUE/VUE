@@ -40,8 +40,7 @@ public class ActionUtil {
        It returns the selected file or null if the process didn't complete*/
     public static File selectFile(String title, String fileType)
     {
-        File file = null;
-        
+        File picked = null;
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
         
@@ -67,40 +66,38 @@ public class ActionUtil {
         
         if (option == JFileChooser.APPROVE_OPTION) 
         {
-            boolean proceed = true;
+            picked = chooser.getSelectedFile();
             
-            if (chooser.getSelectedFile().exists())
-              {
-                int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File", 
+            boolean proceed = true;
+            String fileName = picked.getAbsolutePath();
+            String extension = chooser.getFileFilter().getDescription();
+                
+            //if it isn't a file name with the right extention 
+            if (!fileName.endsWith("." + extension)) {
+                fileName += "." + extension;
+                picked = new File(fileName);
+            }
+            
+            if (picked.exists()) {
+                int n = JOptionPane.showConfirmDialog(null, "Would you Like to Replace the File \'" + picked.getName() + "\'", 
                         "Replacing File", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                   
                 if (n == JOptionPane.NO_OPTION)
-                  proceed = false;
-                
-              } 
-        
-            if (proceed == true)
-              {
-                String fileName = chooser.getSelectedFile().getAbsolutePath();
-                  
-                String extension = chooser.getFileFilter().getDescription();
-                
-                //if it isn't a file name with the right extention 
-                if (!fileName.endsWith("." + extension))
-                fileName += "." + extension;
-                
-                file = new File(fileName); 
-                  
-                // if they choose nothing, fileName will be null -- detect & abort
-                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-              }
+                    proceed = false;
+            } 
+            
+            if (proceed == true) {
+                VueUtil.setCurrentDirectoryPath(picked.getParent());
+            }
         }
         
-        return file;
+        return picked;
     }
     
     /**A static method which displays a file chooser for the user to choose which file to open.
-       It returns the selected file or null if the process didn't complete */
+       It returns the selected file or null if the process didn't complete
+    TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
+    will open two open file dialogs. */
     public static File openFile(String title, String extension)
     {
         File file = null;
@@ -139,12 +136,13 @@ public class ActionUtil {
         return file;
     }
     
+    /**A static method which creates an appropriate marshaller and marshal the active map*/
     public static void marshallMap(File file)
     {
         marshallMap(file, tufts.vue.VUE.getActiveMap());
     }
     
-    /**A static method which creates an appropriate marshaller and marshal the active map*/
+    /**A static method which creates an appropriate marshaller and marshal the given map*/
     public static void marshallMap(File file, LWMap map)
     {
         Marshaller marshaller = null;
@@ -166,7 +164,8 @@ public class ActionUtil {
             
             writer.flush();
             writer.close();
-            
+
+            map.setFile(file);
         } 
         catch (Exception e) 
         {

@@ -18,7 +18,7 @@ import tufts.vue.*;
  */
 public class SaveAction extends AbstractAction
 {
-    private static File file = null;
+    //    private static File file = null;
     private boolean saveAs = true;
    
     public SaveAction() {
@@ -43,7 +43,7 @@ public class SaveAction extends AbstractAction
         this.saveAs = saveAs;
     }      
     
-    
+    /*    
     public void setFileName(String fileName) {
         file = new File(fileName);
     }
@@ -51,8 +51,46 @@ public class SaveAction extends AbstractAction
     public String getFileName() {
         return file.getAbsolutePath();
     }
+    */
     
     public void actionPerformed(ActionEvent e)
+    {
+        System.out.println("Action["+e.getActionCommand()+"] invoked...");
+        
+        LWMap map = tufts.vue.VUE.getActiveMap();
+        File file = map.getFile();
+        
+        if (isSaveAs() || file == null)
+            file = ActionUtil.selectFile("Save Map", "xml");
+        
+        if (file != null)
+        {
+            String name = file.getName().toLowerCase();
+
+            if (name.endsWith(".xml"))
+                ActionUtil.marshallMap(file, map);
+            
+            else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
+                new ImageConversion().createJpeg(file);
+
+            else if (name.endsWith(".svg"))
+                new SVGConversion().createSVG(file);
+
+            else if (name.endsWith(".pdf"))
+                new PDFTransform().convert(file);
+
+            else if (name.endsWith(".html"))
+                new HTMLConversion().convert(file);
+            
+            System.out.println("Wrote " + file);
+        }
+            
+        System.out.println("Action["+e.getActionCommand()+"] completed.");
+    }
+
+    
+    /*
+    public void actionPerformed_writes_over_other_saved_maps(ActionEvent e)
     {
         System.out.println("Action["+e.getActionCommand()+"] invoked...");
          
@@ -90,6 +128,9 @@ public class SaveAction extends AbstractAction
             
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
+    */
+
+    
 }
 
 
