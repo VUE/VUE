@@ -22,6 +22,7 @@ public class NodeTool extends VueTool
         singleton = this;
     }
 
+
     /** return the singleton instance of this class */
     public static NodeTool getTool()
     {
@@ -42,7 +43,7 @@ public class NodeTool extends VueTool
         return null;
     }
 
-    public boolean supportsSelection() { return false; }
+    public boolean supportsSelection() { return true; }
     
     /*
     public boolean supportsXORSelectorDrawing()
@@ -77,6 +78,17 @@ public class NodeTool extends VueTool
         */
     }
     
+    public boolean handleSelectorRelease(MapMouseEvent e)
+    {
+        LWNode node = createNode();
+        node.setAutoSized(false);
+        node.setFrame(e.getMapSelectorBox());
+        e.getMap().addNode(node);
+        VUE.ModelSelection.setTo(node);
+        e.getViewer().activateLabelEdit(node);
+        return true;
+    }
+    /*
     public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
     {
         LWNode node = createNode();
@@ -86,7 +98,7 @@ public class NodeTool extends VueTool
         VUE.ModelSelection.setTo(node);
         VUE.getActiveViewer().activateLabelEdit(node);
     }
-
+    */
 
     public static LWNode createNode(String name)
     {
