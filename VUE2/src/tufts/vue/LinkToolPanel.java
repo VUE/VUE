@@ -84,11 +84,11 @@ import tufts.vue.beans.*;
          Color [] linkColors = VueResources.getColorArray( "linkColorValues");
          String [] linkColorNames = VueResources.getStringArray( "linkColorNames");
          mLinkColorButton = new ColorMenuButton( linkColors, linkColorNames, true);
-         ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
+         ImageIcon fillIcon = VueResources.getImageIcon("linkFillIcon");
          BlobIcon fillBlob = new BlobIcon();
          fillBlob.setOverlay( fillIcon );
          mLinkColorButton.setIcon(fillBlob);
-         mLinkColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
+         mLinkColorButton.setPropertyName(VueLWCPropertyMapper.kStrokeColor);
          mLinkColorButton.setBorderPainted(false);
          mLinkColorButton.setMargin(ButtonInsets);
          mLinkColorButton.setBackground( bakColor);
@@ -141,8 +141,8 @@ import tufts.vue.beans.*;
  		
  		
          box.add( mLinkColorButton);
-         box.add( mArrowStartButton);
          box.add( mStrokeButton);
+         box.add( mArrowStartButton);
          box.add( mArrowEndButton);
          box.add( mFontPanel);
          box.add( mTextColorButton);

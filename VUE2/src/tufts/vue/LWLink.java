@@ -1548,6 +1548,8 @@ public class LWLink extends LWComponent
                 else
                     ibx = (float) (cx - mIconBlock.getWidth() / 2);
                 iby = (float) (cy - mIconBlock.getHeight() / 2);
+                // we're also seeing a sub-pixel gap here -- this should fix
+                ibx -= 0.5;
             }
             mIconBlock.setLocation(ibx, iby);
         }

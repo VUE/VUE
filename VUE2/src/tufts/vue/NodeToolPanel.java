@@ -138,7 +138,7 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          BlobIcon textBlob = new BlobIcon();
          textBlob.setOverlay( textIcon );
          mTextColorButton.setIcon(textBlob);
-         mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
+         mTextColorButton.setPropertyName(VueLWCPropertyMapper.kTextColor);
          mTextColorButton.setBorderPainted(false);
          mTextColorButton.setMargin(ButtonInsets);
 
