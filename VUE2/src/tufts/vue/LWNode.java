@@ -90,6 +90,7 @@ public class LWNode extends LWContainer
     public LWComponent duplicate()
     {
         LWNode node = (LWNode) super.duplicate();
+        node.autoSized = this.autoSized;
         node.setNodeShape(getNodeShape());
         return node;
     }
@@ -188,8 +189,8 @@ public class LWNode extends LWContainer
         // auto-sized).  todo: find a way to do this cleaner
         //if (this.graphics == null)
          //   return true;
-        //return boundsShape.intersects(rect);
-        return getBounds().intersects(rect);
+        return boundsShape.intersects(rect);
+        //return getBounds().intersects(rect);
     }
 
     public boolean contains(float x, float y)
@@ -499,7 +500,8 @@ public class LWNode extends LWContainer
 
         //-------------------------------------------------------
         // Draw the indicated border if any
-        //-------------------------------------------------------        
+        //-------------------------------------------------------
+        // todo perf: factor out these conditionals
         if (isIndicated()) {
             g.setColor(COLOR_INDICATION);
             if (STROKE_INDICATION.getLineWidth() > getStrokeWidth())
@@ -513,6 +515,14 @@ public class LWNode extends LWContainer
             else
                 g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
+            g.draw(drawnShape);
+        } else if (isSelected() && getFillColor() == null) {
+            // If stroke is zero & there's no fill color then there's
+            // no way to see what the shape is. So if we're selected,
+            // we draw a faint one anyway so you can see what shape
+            // this object is.
+            g.setColor(COLOR_SELECTION);
+            g.setStroke(STROKE_HALF);
             g.draw(drawnShape);
         }
         // todo: would be nice if this shape has no border and isn't rectangular
@@ -609,8 +619,13 @@ public class LWNode extends LWContainer
         new NodeShape("Square", new Rectangle2D.Float(0,0,10,10), true),
         new NodeShape("Rectangle", new Rectangle2D.Float(0,0,10,10)),
         new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 10,10, 20,20)),
-        new NodeShape("Triangle", new tufts.vue.shape.Triangle2D(0,0, 60,120)),
-        new NodeShape("Diamond", new tufts.vue.shape.Diamond2D(0,0, 60,60)),
+        //new NodeShape("Triangle", new tufts.vue.shape.Triangle2D(0,0, 60,120)),
+        //new NodeShape("Diamond", new tufts.vue.shape.Diamond2D(0,0, 60,60)),
+        new NodeShape("Triangle", new tufts.vue.shape.RectangularPoly2D(3, 0,0, 60,120)),
+        new NodeShape("Diamond", new tufts.vue.shape.RectangularPoly2D(4, 0,0, 120,120)),
+        new NodeShape("Hexagon", new tufts.vue.shape.RectangularPoly2D(5, 0,0, 120,120)),
+        new NodeShape("Pentagon", new tufts.vue.shape.RectangularPoly2D(6, 0,0, 120,120)),
+        new NodeShape("Octagon", new tufts.vue.shape.RectangularPoly2D(8, 0,0, 120,120)),
 
         // Polygon class not a RectangularShape...
         //new NodeShape("Poly3", new Polygon(new int[] {0, 10, 20}, new int[] {0, 20, 0}, 3)),
