@@ -1910,7 +1910,7 @@ public class MapViewer extends javax.swing.JComponent
         
         if (DEBUG_SHOW_MOUSE_LOCATION) {
             g2.setColor(Color.red);
-            g2.setStroke(new java.awt.BasicStroke(0.01f));
+            g2.setStroke(new java.awt.BasicStroke(1f));
             g2.drawLine(mouse.x,mouse.y, mouse.x,mouse.y);
 
             int iX = (int) (screenToMapX(mouse.x) * 100);
