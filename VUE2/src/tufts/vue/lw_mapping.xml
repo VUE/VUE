@@ -202,6 +202,26 @@
 			<bind-xml name="Element" />
 		</field>
 	</class>
+		<class name="tufts.vue.Resource">
+		<field name="referenceCreated" type="long">
+			<bind-xml name="referenceCreated" node="attribute"/>
+		</field>
+		<field name="accessAttempted" type="long">
+			<bind-xml name="accessAttempted" node="attribute"/>
+		</field>
+		<field name="accessSuccessful" type="long">
+			<bind-xml name="accessSuccessful" node="attribute"/>
+		</field>
+		<field name="size" type="long">
+			<bind-xml name="size" node="attribute"/>
+		</field>
+		<field name="spec" type="string">
+			<bind-xml name="spec" node="element" />
+		</field>
+		<field name="castorFedoraObject" type="tufts.vue.CastorFedoraObject">
+			<bind-xml name="castorFedoraObject" node="element"/>
+		</field>
+	</class>
 		<!-- FEDORA OBJECTS -->
 	<class name="tufts.vue.CastorFedoraObject">
 		<field name="id" type="string">
