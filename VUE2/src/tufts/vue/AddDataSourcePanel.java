@@ -36,7 +36,7 @@ import java.awt.event.*;
 public class AddDataSourcePanel extends JPanel {
     
     /** Creates a new instance of AddDataSourcePanel */
-    String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google","OSID-DR"};
+    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID-DR"};
     Box addDataSourceBox;
     JPanel addPanel;
     JPanel typesPanel;
@@ -71,7 +71,7 @@ public class AddDataSourcePanel extends JPanel {
                 }
             }
         });
-        typesPanel.add(new JLabel("DataSource Type:"));
+        typesPanel.add(new JLabel("Type:"));
         typesPanel.add(typeField);
         addDataSourceBox.add(typesPanel);
         addDataSourceBox.add(addPanel);
