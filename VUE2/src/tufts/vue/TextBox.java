@@ -67,6 +67,7 @@ class TextBox extends JTextPane
                , KeyListener
                , DocumentListener
 {
+    static final Color SelectionColor = VueResources.getColor("mapViewer.textBox.selection.color");
     static final boolean debug = false;
     
     private LWComponent lwc;
@@ -80,6 +81,7 @@ class TextBox extends JTextPane
     {
         this(lwc, null);
     }
+
     TextBox(LWComponent lwc, String text)
     {
         this.lwc = lwc;
@@ -102,6 +104,8 @@ class TextBox extends JTextPane
         addFocusListener(this);
         getDocument().addDocumentListener(this);
         setSize(getPreferredSize());
+        if (VueUtil.isWindowsPlatform() && SelectionColor != null)
+            setSelectionColor(SelectionColor);
         
         if (debug) System.out.println("new TextBox[" + text + "] " + getSize());
     }
