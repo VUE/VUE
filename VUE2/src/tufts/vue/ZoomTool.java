@@ -1,7 +1,9 @@
 package tufts.vue;
 
 import java.awt.Container;
+import java.awt.Point;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -10,40 +12,29 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 
 public class ZoomTool extends VueTool
-// implements VueKeys -- to keep organized all in one place
 {
-    static final int KEY_ZOOM_IN_0  = KeyEvent.VK_EQUALS;
-    static final int KEY_ZOOM_IN_1  = KeyEvent.VK_ADD;
-    static final int KEY_ZOOM_OUT_0 = KeyEvent.VK_MINUS;
-    static final int KEY_ZOOM_OUT_1 = KeyEvent.VK_SUBTRACT;
-    static final int KEY_ZOOM_FIT   = KeyEvent.VK_0;
-    static final int KEY_ZOOM_ACTUAL= KeyEvent.VK_1;
-    
     static private final int ZOOM_MANUAL = -1;
     static private final double[] ZoomDefaults = {
         1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
         1.0,
         1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
-        , 96, 128, 256, 384, 512
+        //, 96, 128, 256, 384, 512
     };
-    private int curZoom = ZOOM_MANUAL;
-    private Point2D zoomPoint = null;
-
-    private static final int ZOOM_FIT_PAD = 16;
+    static private final int ZOOM_FIT_PAD = 16;
+    static private final double MaxZoom = ZoomDefaults[ZoomDefaults.length - 1];
 
     
     public ZoomTool() {
         super();
     }
 	
-	
-    public void handleSelection() {
-    }
-	
     public JPanel getContextualPanel() {
         return null;
     }
 
+    public void handleSelection() {
+    }
+	
     private static final Color SelectorColor = Color.red;
     private static final Color SelectorColorInverted = new Color(0,255,255); // inverse of red
     public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)
@@ -68,8 +59,12 @@ public class ZoomTool extends VueTool
         return getSelectedSubTool().getID().equals("zoomTool.zoomOut");
     }
 
+    public boolean supportsSelection() { return false; }
+
     public boolean supportsDraggedSelector(MouseEvent e)
     {
+        // todo: take a map mouse event, and if zoom level on viewer == MaxZoom, return false
+        
         // This is so that if they RIGHT click, the dragged selector doesn't appear --
         // because right click in zoom does a zoom out, and it makes less sense to
         // zoom out on a particular region.
@@ -77,97 +72,95 @@ public class ZoomTool extends VueTool
         return !isZoomOutMode() && (e.getButton() == MouseEvent.BUTTON1 || (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0);
     }
     
+    public boolean handleMouseReleased(MapMouseEvent e)
+    {
+        System.out.println(this + " handleMouseReleased " + e);
+
+        Point p = e.getPoint();
+        
+        if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
+            //|| toolKeyEvent != null && toolKeyEvent.isShiftDown()
+            ) {
+            if (isZoomOutMode())
+                setZoomBigger(p);
+            else
+                setZoomSmaller(p);
+        } else {
+            Rectangle box = e.getSelectorBox();
+            if (box != null && box.width > 10 && box.height > 10) {
+                setZoomFitRegion(e.getMapSelectorBox());
+            } else {
+                if (isZoomOutMode())
+                    setZoomSmaller(p);
+                else
+                    setZoomBigger(p);
+            }
+        }
+        return true;
+    }
+    
+
+    /*
+        if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
+            || toolKeyEvent != null && toolKeyEvent.isShiftDown()
+            ) {
+            setZoomPoint(e.getPoint());
+            if (ZoomTool.isZoomOutMode())
+                setZoomBigger();
+            else
+                setZoomSmaller();
+        } else {
+            if (draggedSelectorBox != null &&
+                draggedSelectorBox.getWidth() > 10 && draggedSelectorBox.getHeight() > 10) {
+                setZoomFitRegion(screenToMapRect(draggedSelectorBox));
+            } else {
+                setZoomPoint(e.getPoint());
+                if (ZoomTool.isZoomOutMode())
+                    setZoomSmaller();
+                else
+                    setZoomBigger();
+            }
+        }
+    */
     
     public boolean handleKeyPressed(KeyEvent e){return false;}
     
-    /*
-    
-    // todo: this is redundant when the full VUE app is running
-    // as the actions in the menu trigger via their own accelerators
-    public boolean XhandleKeyPressed(KeyEvent e)
+    public static boolean setZoomBigger(Point focus)
     {
-        int key = e.getKeyCode();
-        if (e.isControlDown()) {
-            // todo: if on a mac, make these
-            // Meta chords instead (the apple key)
-            switch (key) {
-            case KEY_ZOOM_IN_0:
-            case KEY_ZOOM_IN_1:
-                setZoomBigger();
-                break;
-            case KEY_ZOOM_OUT_0:
-            case KEY_ZOOM_OUT_1:
-                setZoomSmaller();
-                break;
-            case KEY_ZOOM_ACTUAL:
-                setZoom(1.0);
-                break;
-            case KEY_ZOOM_FIT:
-                setZoomFit();
-                break;
-            default:
-                return false;
+        double curZoom = VUE.getActiveViewer().getZoomFactor();
+        for (int i = 0; i < ZoomDefaults.length; i++) {
+            if (ZoomDefaults[i] > curZoom) {
+                setZoom(ZoomDefaults[i], focus);
+                return true;
             }
-            System.out.println("ZoomTool: handled key " + key + " " + e.getKeyChar());
-            return true;
+        }
+        return false;
+    }
+    
+    public static boolean setZoomSmaller(Point focus)
+    {
+        double curZoom = VUE.getActiveViewer().getZoomFactor();
+        for (int i = ZoomDefaults.length - 1; i >= 0; i--) {
+            if (ZoomDefaults[i] < curZoom) {
+                setZoom(ZoomDefaults[i], focus);
+                return true;
+            }
         }
         return false;
     }
 
-    void setZoomFit()
+    public static void setZoom(double zoomFactor)
     {
-        setZoomFitContent( VUE.getActiveViewer() );
-        VUE.getActiveViewer().repaint();
+        setZoom(zoomFactor, true, null);
+    }
+    public static void setZoom(double zoomFactor, Point focus)
+    {
+        setZoom(zoomFactor, true, focus);
     }
     
-    
-    // set the center-on point in the map for the next zoom
-    public void setZoomPoint(Point2D mapLocation)
+    static void setZoom(double newZoomFactor, boolean adjustViewport, Point focus)
     {
-        this.zoomPoint = mapLocation;
-    }
-
-    public boolean setZoomBigger()
-    {
-        if (curZoom == ZOOM_MANUAL) {
-            // find next highest zoom default
-            for (int i = 0; i < ZoomDefaults.length; i++) {
-                if (ZoomDefaults[i] > VUE.getActiveViewer().getZoomFactor()) {
-                    setZoom(ZoomDefaults[curZoom = i]);
-                    break;
-                }
-            }
-        } else if (curZoom >= ZoomDefaults.length - 1)
-            return false;
-        else
-            setZoom(ZoomDefaults[++curZoom]);
-        return true;
-    }
-    
-    public boolean setZoomSmaller()
-    {
-        if (curZoom == ZOOM_MANUAL) {
-            // find next lowest zoom default
-            for (int i = ZoomDefaults.length - 1; i >= 0; i--) {
-                if (ZoomDefaults[i] < VUE.getActiveViewer().getZoomFactor()) {
-                    setZoom(ZoomDefaults[curZoom = i]);
-                    break;
-                }
-            }
-        } else if (curZoom < 1)
-            return false;
-        else
-            setZoom(ZoomDefaults[--curZoom]);
-        return true;
-    }
-    
-    public void setZoom(double zoomFactor)
-    {
-        setZoom(zoomFactor, true);
-    }
-    
-    void setZoom(double newZoomFactor, boolean adjustViewport)
-    {
+        /*
         curZoom = ZOOM_MANUAL;
         for (int i = 0; i < ZoomDefaults.length; i++) {
             if (newZoomFactor == ZoomDefaults[i]) {
@@ -175,48 +168,68 @@ public class ZoomTool extends VueTool
                 break;
             }
         }
+        */
 
+        MapViewer viewer = VUE.getActiveViewer();
+        
         if (adjustViewport) {
-            Container c = VUE.getActiveViewer();
-            Point2D zoomMapCenter = null;
-            if (this.zoomPoint == null) {
-                // center on the viewport
-                zoomMapCenter = new Point2D.Float(VUE.getActiveViewer().screenToMapX(c.getWidth() / 2),
-                                                  VUE.getActiveViewer().screenToMapY(c.getHeight() / 2));
-            } else {
-                // center on given point (e.g., where user clicked)
-                zoomMapCenter = this.zoomPoint;
-                this.zoomPoint = null;
+            if (focus == null) {
+                // If no user selected zoom focus point, zoom in to
+                // towards the map location at the center of the
+                // viewport.
+                Container c = viewer;
+                focus = new Point(c.getWidth() / 2, c.getHeight() / 2);
             }
-
-            float offsetX = (float) (zoomMapCenter.getX() * newZoomFactor) - c.getWidth() / 2;
-            float offsetY = (float) (zoomMapCenter.getY() * newZoomFactor) - c.getHeight() / 2;
-
-            VUE.getActiveViewer().setMapOriginOffset(offsetX, offsetY);
+            Point2D mapAnchor = viewer.screenToMapPoint(focus);
+            double offsetX = (mapAnchor.getX() * newZoomFactor) - focus.getX();
+            double offsetY = (mapAnchor.getY() * newZoomFactor) - focus.getY();
+            viewer.setMapOriginOffset(offsetX, offsetY);
         }
         
-        VUE.getActiveViewer().setZoomFactor(newZoomFactor);
+        viewer.setZoomFactor(newZoomFactor);
         
     }
-
-    public void setZoomFitContent(java.awt.Component viewport)
+    
+    /** fit everything in the current map into the current viewport */
+    public static void setZoomFit()
+    {
+        setZoomFitRegion(VUE.getActiveViewer().getMap().getBounds(),
+                         ZOOM_FIT_PAD);
+    }
+    
+    public static void setZoomFitRegion(Rectangle2D mapRegion)
+    {
+        setZoomFitRegion(mapRegion, 0);
+    }
+    
+    public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
         Point2D.Double offset = new Point2D.Double();
-        double newZoom = computeZoomFit(viewport.getSize(),
-                                        ZOOM_FIT_PAD,
-                                        VUE.getActiveViewer().getMap().getBounds(),
-                                        //VUE.getActiveViewer().getAllComponentBounds(),
+        MapViewer viewer = VUE.getActiveViewer();
+        double newZoom = computeZoomFit(viewer.getSize(),
+                                        edgePadding,
+                                        mapRegion,
                                         offset);
-        setZoom(newZoom, false);
-        VUE.getActiveViewer().setMapOriginOffset(offset.getX(), offset.getY());
+        if (newZoom > MaxZoom) {
+            setZoom(MaxZoom, true, null);
+        } else {
+            setZoom(newZoom, false, null);
+            viewer.setMapOriginOffset(offset.getX(), offset.getY());
+        }
     }
-    */
-
+    
     /*
-    public static double computeZoomFit(Dimension viewport,
+     * Compute two items: the zoom factor that will fit
+     * everything within the given bounds into the given
+     * viewport, and put into @param offset the offset
+     * to place the viewport at. Used to figure out how
+     * to fit everything within a map on the screen and
+     * where to pan to so you can see it all.
+     */
+    public static double computeZoomFit(java.awt.Dimension viewport,
                                         int borderGap,
-                                        Rectangle2D bounds,
-                                        Point2D offset)
+                                        java.awt.geom.Rectangle2D bounds,
+                                        java.awt.geom.Point2D offset)
     {
         int viewWidth = viewport.width - borderGap * 2;
         int viewHeight = viewport.height - borderGap * 2;
@@ -246,6 +259,5 @@ public class ZoomTool extends VueTool
         offset.setLocation(offsetX, offsetY);
         return newZoom;
     }
-    */
     
 }
