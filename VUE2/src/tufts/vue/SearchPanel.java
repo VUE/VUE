@@ -1,10 +1,11 @@
+package tufts.vue;
 /*
  * SearchPanel.java
  *
  * Created on May 2, 2003, 9:03 PM
  */
 
-package tufts.vue;
+
 
 
 import tufts.google.*;
