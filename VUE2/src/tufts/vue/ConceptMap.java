@@ -56,14 +56,15 @@ public class ConceptMap extends MapItem
     private float originX;
     private float originY;
     
+    // only to be used during a restore from persisted
     public ConceptMap() {   
-        super("Map");
-        setID("0");
+        super("<untitled map>");
     }
 
     public ConceptMap(String label)
     {
         super(label);
+        setID("0");
     }
 
     /**
@@ -78,6 +79,8 @@ public class ConceptMap extends MapItem
             l.setItem1(findItemByID(l.getItem1_ID()));
             l.setItem2(findItemByID(l.getItem2_ID()));
         }
+        // todo: throw exception if this called again &
+        // clear out link item id strings
     }
 
     private MapItem findItemByID(String ID)
@@ -119,6 +122,11 @@ public class ConceptMap extends MapItem
 
     public void notifyMapListeners(MapEvent e)
     {
+        if (listeners == null) {
+            //System.out.println("impossible condition: listeners is null");
+            return;
+        }
+            
         java.util.Iterator i = listeners.iterator();
         int id = e.getID();
         while (i.hasNext()) {
@@ -144,6 +152,13 @@ public class ConceptMap extends MapItem
     {
         listeners.clear();
     }
+
+    // override of MapItem notify to convert to Map event
+    public void notifyChangeListeners(MapItemEvent e)
+    {
+        notifyMapListeners(new MapEvent(this, e.getSource(), MapEvent.CHANGE));
+    }
+
 
     public void addNode(Node node)
     {
