@@ -1130,7 +1130,8 @@ public class LWLink extends LWComponent
                 g.setColor(COLOR_SELECTION);
                 //g.setColor(Color.red);
                 //g.setStroke(new BasicStroke(0.5f));
-                g.setStroke(new BasicStroke(0.2f));
+                //g.setStroke(new BasicStroke(0.2f));
+                g.setStroke(new BasicStroke(0.5f / (float) g.getTransform().getScaleX()));
                 // todo opt: less object allocation
                 if (isCubicCurve) {
                     Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
@@ -1190,9 +1191,10 @@ public class LWLink extends LWComponent
                 if (isSelected()) {
                     Dimension s = textBox.getSize();
                     g.setColor(COLOR_SELECTION);
-                    g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
+                    //g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
+                    g.setStroke(new BasicStroke(1f / (float) g.getTransform().getScaleX()));
                     // -- i guess we could compute based on zoom level -- maybe MapViewer could
-                    // keep such a stroke handy for us...
+                    // keep such a stroke handy for us... (DrawContext would be handy again...)
                     g.drawRect(0,0, s.width, s.height);
                 }
                 g.translate(-lx, -ly);
