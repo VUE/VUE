@@ -190,11 +190,12 @@ public class ColorMenuButton extends JButton implements ActionListener
         Color old = getColor();
         setColor( pColor);
         fireColorChanged( old, pColor);
+        repaint();
     }
 	
 	
-    public void fireColorChanged( Color pOldColor, Color pNewColor) {
-		
+    protected void fireColorChanged(Color pOldColor, Color pNewColor)
+    {
         PropertyChangeListener [] listeners = getPropertyChangeListeners();
         if( listeners != null) {
             PropertyChangeEvent event = new PropertyChangeEvent( this, mPropertyName, pOldColor, pNewColor );
