@@ -18,7 +18,7 @@ import java.util.*;
 public class PathwayTableModel extends DefaultTableModel{
     
     private PathwayTab tab = null;
-    private LWPathwayManager manager = VUE.getActiveMap().getPathwayManager();
+    private LWPathwayManager manager = null;//VUE.getActiveMap().getPathwayManager();
     //private ArrayList tableList = null;
    
     
@@ -28,13 +28,23 @@ public class PathwayTableModel extends DefaultTableModel{
        this.addTableModelListener(tab);
     }
 
-    private LWPathwayManager getManager(){
-        if(manager == null)
+    public LWPathwayManager getManager(){
+        if(manager == null){
             this.manager = VUE.getActiveMap().getPathwayManager();
+        }
         return manager;
     }
     
+    public void setPathwayManager(LWPathwayManager manager){
+        this.manager = manager;
+        this.fireTableDataChanged();
+    }
+    
     public void addPathway(LWPathway pathway){
+        if(manager == null){
+            this.manager = VUE.getActiveMap().getPathwayManager();
+        }
+        
         if(this.getManager() != null){  
             manager.addPathway(pathway);         
             this.fireTableDataChanged(); 
@@ -43,13 +53,18 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public LWPathway getCurrentPathway(){
-        return this.manager.getCurrentPathway();
+        if(this.getManager() != null)
+            return this.manager.getCurrentPathway();
+        else
+            return null;
     }
-    
+  /*  
     public int getCurrentIndex(){
-        return this.manager.getCurrentIndex();
+        if(this.getManager() != null)
+            return this.manager.getCurrentIndex();
+        return 0;
     }
-    
+    */
     public Object getElement(int row){
         if(this.manager != null)
             return manager.getPathwaysElement(row);
@@ -118,8 +133,10 @@ public class PathwayTableModel extends DefaultTableModel{
             return Color.class;
         else if(col == 0 || col == 2 || col == 4)
             return ImageIcon.class;
+        else if(col == 3)
+            return Object.class;
         else
-            return String.class;
+            return null;
     }
     
     public void setCurrentPathway(LWPathway path){
@@ -130,15 +147,6 @@ public class PathwayTableModel extends DefaultTableModel{
         Class colClass = this.getColumnClass(col);
         return colClass == Boolean.class || colClass == String.class;
     }
-    
-    /*
-    public void setCurrentOpen(boolean val){
-        manager.setCurrentOpen(val);
-    }
-    
-    public void setCurrentOpen(){
-        manager.setCurrentOpen();
-    }*/
     
     public boolean isRepeat(String name){
         boolean isRep = false;
@@ -156,99 +164,102 @@ public class PathwayTableModel extends DefaultTableModel{
     
     public synchronized Object getValueAt(int row, int col){
         
-        Object elem = manager.getPathwaysElement(row);
-        if(elem instanceof LWPathway){
-            LWPathway pathway = (LWPathway)elem;
-            
-            boolean hasNotes = true;
-            if(pathway.getNotes().equals(null) || pathway.getNotes().equals(""))
-                hasNotes = false;
-                
-            boolean isDisplayed = false;
-            if(pathway.getShowing())
-                isDisplayed = true;
-            
-            boolean isOpen = false;
-            if(pathway.getOpen())
-                isOpen = true;
-                
-            try{
-                switch(col){
-                    case 0:
-                        return new Boolean(isDisplayed);
-                    case 1:
-                        return pathway.getBorderColor();
-                    case 2:
-                        return new Boolean(isOpen);
-                    case 3:
-                        return pathway.getLabel();
-                    case 4:
-                        return new Boolean(hasNotes);
-                }
-            }catch (Exception e){
-                System.err.println("exception in the table model, setting pathway cell:" + e);
-            } 
-        }else if (elem instanceof LWComponent){
-            LWComponent comp = (LWComponent)elem;
-            
-            //LWPathway pathway = manager.getPathwayforElementAt(row);
-            //int elemIndex = pathway.getElementIndex(comp);
+        if(this.getManager() != null){
+            Object elem = manager.getPathwaysElement(row);
+            if(elem instanceof LWPathway){
+                LWPathway pathway = (LWPathway)elem;
 
-            /*boolean isCurrent = false;
-            if(pathway.getCurrentIndex() == elemIndex)
-                isCurrent = true;
-                */
-            try{
-                switch(col){
-                    case 3:
-                        return comp.getLabel();
-                }
-            }catch (Exception e){
-                System.err.println("exception in the table model, setting pathway element cell:" + e);
-            }  
+                boolean hasNotes = true;
+                if(pathway.getNotes().equals(null) || pathway.getNotes().equals(""))
+                    hasNotes = false;
+
+                boolean isDisplayed = false;
+                if(pathway.getShowing())
+                    isDisplayed = true;
+
+                boolean isOpen = false;
+                if(pathway.getOpen())
+                    isOpen = true;
+
+                try{
+                    switch(col){
+                        case 0:
+                            return new Boolean(isDisplayed);
+                        case 1:
+                            return pathway.getBorderColor();
+                        case 2:
+                            return new Boolean(isOpen);
+                        case 3:
+                            return pathway;
+                        case 4:
+                            return new Boolean(hasNotes);
+                    }
+                }catch (Exception e){
+                    System.err.println("exception in the table model, setting pathway cell:" + e);
+                } 
+            }else if (elem instanceof LWComponent){
+                //LWPathway pathway = this.manager.getPathwayforElementAt(row);
+                LWComponent comp = (LWComponent)elem;
+                //ArrayList list = new ArrayList();
+                //list.add(pathway);
+                //list.add(comp);
+                try{
+                    switch(col){
+                        case 3:
+                            return comp;
+                    }
+                }catch (Exception e){
+                    System.err.println("exception in the table model, setting pathway element cell:" + e);
+                }  
+            }
         }
         return null; 
     }
     
     public void setValueAt(Object aValue, int row, int col){
         
-        Object elem = manager.getPathwaysElement(row);
-        if(elem instanceof LWPathway){
-            
-            LWPathway path = (LWPathway)elem;
-            
-            if(path != null){
-                if(col == 0){
-                    path.setShowing();
-                }
-                else if(col == 1){
-                    //path.setBorderColor((Color)aValue);
-                    //manager.setCurrentPathway(path);
-                }
-                else if(col == 2){
-                    manager.setPathOpen(path);
-                    //manager.setCurrentPathway(path);                   
-                }
-                else if(col == 3){
-                    path.setLabel((String)aValue);
-                    //manager.setCurrentPathway(path);
-                }
-                else if(col == 4){
-                    path.setNotes((String)aValue);
-                    //manager.setCurrentPathway(path);
+        if(manager == null){
+            this.manager = VUE.getActiveMap().getPathwayManager();    
+        }
+        
+        if(this.getManager() != null){
+            Object elem = manager.getPathwaysElement(row);
+            if(elem instanceof LWPathway){
+
+                LWPathway path = (LWPathway)elem;
+
+                if(path != null){
+                    if(col == 0){
+                        path.setShowing();
+                    }
+                    else if(col == 1){
+                        path.setBorderColor((Color)aValue);
+                    }
+                    else if(col == 2){
+                        manager.setPathOpen(path);
+                        //manager.setCurrentPathway(path);                   
+                    }
+                    else if(col == 3){
+                        //path.setLabel((String)aValue);
+                        //manager.setCurrentPathway(path);
+                    }
+                    else if(col == 4){
+                        //path.setNotes((String)aValue);
+                        //manager.setCurrentPathway(path);
+                    }
                 }
             }
-        }
-        else if (elem instanceof LWComponent){
-            LWComponent comp = (LWComponent)elem;
-            if(col == 3){
-                comp.setLabel((String)aValue);
+            else if (elem instanceof LWComponent){
+                LWComponent comp = (LWComponent)elem;
+                if(col == 3){
+                    comp.setLabel((String)aValue);
+                }
             }
-        }
-        this.fireTableDataChanged();
-        System.out.println("just fired table data changed in SetValueAt");
-    }   
-}
+            this.fireTableDataChanged();
+          
+        }   
+    }
+} //end of PathwayTableModel class
 
 
 /*

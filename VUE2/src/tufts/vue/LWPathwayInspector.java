@@ -110,7 +110,7 @@ public class LWPathwayInspector extends InspectorWindow
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
-        this.setSize(420, 450);
+        this.setSize(350, 450);
         /*unselects checkbox in VUE window menu on closing*/
         /*
         super.addWindowListener(new WindowAdapter(){
@@ -120,6 +120,10 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void setPathwayManager(LWPathwayManager pathwayManager){
         pathwayTab.setPathwayManager(pathwayManager);
+    }
+    
+    public LWPathway getCurrentPathway(){
+        return pathwayTab.getPathwayTableModel().getCurrentPathway();
     }
     
     public LWPathway getPathway(){

@@ -107,8 +107,9 @@ public class VUE
         }
         public void mapViewerEventRaised(MapViewerEvent e)
         {
-            if ((e.getID() & TitleChangeMask) != 0)
-                setTitleFromViewer(e.getMapViewer());
+            if ((e.getID() & TitleChangeMask) != 0){
+                setTitleFromViewer(e.getMapViewer()); 
+            }
         }
 
         private void setTitleFromViewer(MapViewer viewer)

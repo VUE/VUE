@@ -272,7 +272,7 @@ public class LWPathway
     }
     
     public java.util.List getElementList() {
-        System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
+        //System.out.println(this + " getElementList type  ="+elementList.getClass().getName()+"  size="+elementList.size());
         return elementList;
     }
     

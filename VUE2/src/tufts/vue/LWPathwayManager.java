@@ -99,21 +99,12 @@ public class LWPathwayManager {
     }
     
     public void addPathwayElement(LWComponent comp, LWPathway path){
-        System.out.println("adding pathway element");
         if(path.getOpen()){
             this.hidePathwayElements();
             path.addElement(comp);
             this.showPathwayElements();
         }else{
             path.addElement(comp);
-        
-            System.out.println("completed adding pathway element");
-            for(int i=0; i < pathways.size(); i++){
-                if(pathways.get(i) instanceof LWPathway)
-                    System.out.println("element " +i+ ": " + ((LWPathway)pathways.get(i)).getLabel());
-                else
-                    System.out.println("element " +i+ ": " + ((LWComponent)pathways.get(i)).getLabel());
-            }
         }
     }
     
@@ -167,7 +158,6 @@ public class LWPathwayManager {
                 index += list.size();
             }               
         }*/
-        System.out.println("completed showing elements");
     }
     
     public void setPathOpen(LWPathway path){
@@ -190,13 +180,13 @@ public class LWPathwayManager {
             if(list.get(j) instanceof LWComponent)
                 pathways.remove(list.get(j));
         }
-        
-        System.out.println("completed hiding elements");
     }
     
     public LWPathway getPathwayforElementAt(int index){
-        if(index < 0){
-            for(int i = index; i > 0; i--){
+        System.out.println("in pathway manager get p for e:: index: " +index);
+        if(index > 0){
+            for(int i = index; i > -1; i--){
+                System.out.println("in pathway manager get p for e:: i: " +i+", inst: " + pathways.get(i).getClass());
                 if(pathways.get(i) instanceof LWPathway){
                     return (LWPathway)pathways.get(i);
                 }
@@ -272,8 +262,9 @@ public class LWPathwayManager {
     }
     
     public void removePathway(LWPathway pathway){
+        this.hidePathwayElements();
         pathways.remove(pathway);
-        
+        this.showPathwayElements();
         if(current.equals(pathway)){
             if(this.getFirst() != null && this.getFirst() instanceof LWPathway)
                 this.setCurrentPathway((LWPathway)this.getFirst());
