@@ -52,6 +52,7 @@ class LWComponent
 
     private java.util.List lwcListeners;
 
+    //changed constructor to public so call from ImageMapper works
     protected LWComponent() {}
     protected LWComponent(MapItem mapItem)
     {
