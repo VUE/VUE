@@ -179,7 +179,10 @@ public class ActionUtil {
         
         catch (MappingException me)
         {
-            System.out.println("exception");
+            me.printStackTrace(System.err);
+            JOptionPane.showMessageDialog(null, "Error in mapping file, closing the application", 
+              "LW_Mapping Exception", JOptionPane.PLAIN_MESSAGE);
+                
             System.exit(0);
         }
         
