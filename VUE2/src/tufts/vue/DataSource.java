@@ -22,6 +22,7 @@ public class DataSource {
     public static final int FILING_LOCAL = 1;
     public static final int FILING_REMOTE = 2;
     public static final int DR_FEDORA = 3;
+    public static final int GOOGLE = 4;
     private String id;
     private int type;
     private String displayName; 
@@ -58,7 +59,13 @@ public class DataSource {
             setResourceViewer(jSP);
         }else if(type== DR_FEDORA) {
             setResourceViewer(new DRViewer("fedora.conf", id,displayName,displayName));
-        } else {
+        } 
+         else if(type == GOOGLE) {
+             TuftsGoogle jSP = new TuftsGoogle();
+             System.out.println("I am in Google");
+            setResourceViewer(jSP);
+        }
+        else {
             setResourceViewer(new JLabel(displayName+" : No Viewer Available"));
         }
     }
