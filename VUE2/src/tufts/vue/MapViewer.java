@@ -725,7 +725,7 @@ public class MapViewer extends javax.swing.JPanel
             float mapX = screenToMapX(lastMouseX);
             float mapY = screenToMapY(lastMouseY);
             LWComponent hit = getMap().findDeepestChildAt(mapX, mapY);
-            System.out.println("RolloverTask: hit=" + hit);
+            //System.out.println("RolloverTask: hit=" + hit);
             //if (hit != null && !hit.isSelected())
             if (hit != null)
                 setRollover(hit);
