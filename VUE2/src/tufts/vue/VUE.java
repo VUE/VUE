@@ -469,6 +469,8 @@ public class VUE
             }
         }            
         //setViewerScrollbarsDisplayed(true);
+        System.out.println("VUE.main: loading fonts...");
+        FontEditorPanel.loadFontNames();
         System.out.println("VUE.main completed.");
     }
 
@@ -526,7 +528,14 @@ public class VUE
 
         private int mWasSelected = -1;
         protected void fireStateChanged() {
-            super.fireStateChanged();
+            try {
+                super.fireStateChanged();
+            } catch (ArrayIndexOutOfBoundsException e) {
+                // this is happening after we close everything and then
+                // open another map -- no idea why, but this successfully
+                // ignores it.
+                System.err.println(this + " JTabbedPane.fireStateChanged: " + e);
+            }
             if (!VueUtil.isMacPlatform()) { // don't mess w/aqua
                 int selected = getModel().getSelectedIndex();
                 if (mWasSelected >= 0) {
@@ -572,7 +581,7 @@ public class VUE
             super.addNotify();
             if (!VueUtil.isMacPlatform()) {
                 setForeground(Color.darkGray);
-                //setBackground(BgColor);
+                setBackground(BgColor);
             }
             addFocusListener(this); // hope not to hear anything...
             // don't let us be focusable or sometimes you can select
