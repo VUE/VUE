@@ -10,6 +10,7 @@ package tufts.vue;
 import java.io.*;
 import java.util.*;
 import java.awt.*;
+import java.beans.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -140,6 +141,17 @@ public class MapInspectorPanel  extends JPanel
 	}
 
 	
+	public void activatePathwayTab() {
+		mTabbedPane.setSelectedComponent( mPathPanel);
+	}
+	
+	public void activateInfoTab() {
+		mTabbedPane.setSelectedComponent( mInfoPanel);
+	}
+	
+	public void activateFilterTab() {
+		mTabbedPane.setSelectedComponent( mFilterPanel);
+	}
 	
 	/////////////
 		// LWSelection.Listener Interface Implementation
@@ -165,11 +177,18 @@ public class MapInspectorPanel  extends JPanel
 	 * This is the tab panel for displaying Map Info
 	 *
 	 **/
-	public class InfoPanel extends JPanel {
+	public class InfoPanel extends JPanel implements ActionListener, PropertyChangeListener {
 	
 		JScrollPane mInfoScrollPane = null;
 		
 		Box mInfoBox = null;
+		
+		JTextField mTitleEditor = null;
+		JTextField mAuthorEditor = null;
+		JLabel mDate = null;
+		JLabel mLocation = null;
+		
+		PropertyPanel mPropPanel = null;
 		
 		public InfoPanel() {
 			
@@ -186,8 +205,19 @@ public class MapInspectorPanel  extends JPanel
 			mInfoScrollPane.getViewport().add( mInfoBox);
 		
 			add( BorderLayout.CENTER, mInfoScrollPane );
+			
+			mTitleEditor = new JTextField();
+			
+			mAuthorEditor = new JTextField();
+			mDate = new JLabel();
+			mLocation = new JLabel();
+			mPropPanel  = new PropertyPanel();
+			mPropPanel.addProperty( "Title:", mTitleEditor);
+			mPropPanel.addProperty("Author:", mAuthorEditor);
+			mPropPanel.addProperty("Date:", mDate);
+			mPropPanel.addProperty("Location:",mLocation);
+			mInfoBox.add( mPropPanel);
 		}
-		
 		
 		public String getName() {
 			return VueResources.getString("mapInfoTabName") ;
@@ -202,6 +232,36 @@ public class MapInspectorPanel  extends JPanel
 		 **/
 		public void updatePanel( LWMap pMap) {
 			// update the display
+			mDate.setText( mMap.getDate() );
+			mTitleEditor.setText( mMap.getLabel() );
+			mAuthorEditor.setText( mMap.getAuthor() );
+			File file = mMap.getFile() ;
+			String path = "";
+			if( file != null) {
+				path = file.getPath();
+				}
+			mLocation.setText( path);
+		}
+		
+		protected void saveInfo() {
+			if( mMap != null) {
+				mMap.setLabel( mTitleEditor.getText() );
+				mMap.setAuthor(  mAuthorEditor.getText() );
+				}
+		}
+		
+		public void actionPerformed( ActionEvent pEvent) {
+			Object source = pEvent.getSource();
+			if( source == mTitleEditor) {
+				saveInfo();
+				}
+			if( source == mAuthorEditor ) {
+				saveInfo();
+				}
+		}
+		
+		public void propertyChange( PropertyChangeEvent pEvent) {
+		
 		}
 		
 	}
