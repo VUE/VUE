@@ -208,6 +208,12 @@ public class LinkTool extends VueTool
                 createdNode = true;
             }
             LWLink link = new LWLink(pLinkSource, pLinkDest);
+
+            if (getSelectedSubTool().getID().equals("linkTool.curve")) {
+                link.setControlCount(1);
+                // new ctrl points are on-center of curve: set ctrl pt off center a bit so can see curve
+                link.setCtrlPoint0(new Point2D.Float(link.getCenterX()-20, link.getCenterY()-10));
+            }
             
            /**
            // init link based on user defined state
