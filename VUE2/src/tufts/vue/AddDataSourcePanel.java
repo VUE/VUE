@@ -80,12 +80,14 @@ public class AddDataSourcePanel extends JPanel {
     class FileDataSourcePanel extends JPanel {
         JTextField dsNameField;
         JTextField pathField ;
+        JButton fileSelectButton;
         public FileDataSourcePanel() {
             GridBagLayout gridbag = new GridBagLayout();
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel pathLabel = new JLabel("Path:");
+            fileSelectButton  = new JButton("...");
             dsNameField = new JTextField();
             pathField = new JTextField();
             
@@ -102,6 +104,19 @@ public class AddDataSourcePanel extends JPanel {
                 }
             });
             
+            fileSelectButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                     JFileChooser chooser = new JFileChooser();
+                     chooser.setDialogTitle("Select Folder");
+                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                     chooser.setFileFilter(new VueFileFilter());
+                     int option = chooser.showDialog(tufts.vue.VUE.getInstance(), "Select");
+                     if(option ==  JFileChooser.APPROVE_OPTION) {
+                         pathField.setText(chooser.getSelectedFile().getAbsolutePath());
+                     }
+                }
+            });
+            
             JButton resetButton = new JButton("Reset");
             resetButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
@@ -111,7 +126,7 @@ public class AddDataSourcePanel extends JPanel {
             bottomPanel.add(submitButton);
             bottomPanel.add(resetButton);
             c.anchor = GridBagConstraints.WEST;
-            c.gridwidth = GridBagConstraints.RELATIVE;
+            //c.gridwidth = GridBagConstraints.RELATIVE;
             c.fill = GridBagConstraints.NONE;
             c.weightx = 0.0;
             gridbag.setConstraints(dsNameLabel,c);
@@ -123,17 +138,22 @@ public class AddDataSourcePanel extends JPanel {
             gridbag.setConstraints(dsNameField,c);
             this.add(dsNameField);
             
-            c.gridwidth = GridBagConstraints.RELATIVE;
-            c.fill = GridBagConstraints.NONE;
+            c.gridwidth =1;
+             
             c.weightx = 0.0;
             gridbag.setConstraints(pathLabel,c);
             this.add(pathLabel);
             
-            c.gridwidth = GridBagConstraints.REMAINDER;
-            c.fill = GridBagConstraints.HORIZONTAL;
             c.weightx = 1.0;
+            c.fill = GridBagConstraints.HORIZONTAL;
             gridbag.setConstraints(pathField,c);
             this.add(pathField);
+       
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(fileSelectButton,c);
+            this.add(fileSelectButton);
             
             c.anchor = GridBagConstraints.EAST;
             c.gridwidth = GridBagConstraints.REMAINDER;
