@@ -27,77 +27,71 @@ import java.util.*;
 
 
 /**
- * VueToolbarController
- *
- * This could use a serious re-write, along with VueToolPanel, VueTool, and the way
+ * Track the selection and change the current contextual tool panel as appropriate,
+ * as well as relaying selection events to the current contextual tool panel.
+ * Also maintin list of VueToolSelectionListeners, for those who want to know
+ * when the currently active tool changes.
+ * 
+ * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  **/
 public class VueToolbarController  
-    implements LWSelection.Listener  
+    implements LWSelection.Listener, LWComponent.Listener
 {
     //////////
     // Statics
     //////////
 	
-    /** debug state true on/ false off **/
-    private static boolean sDebug = false;
-	
-    /** the list of tools **/
-    public static final String kDefaultToolsKey = "defaultToolNames";
-	
-    static private VueToolbarController sController;
+    /** the list of tool names is under this key in the resources **/
+    public static final String DefaultToolsKey = "defaultToolNames";
+    private static VueToolbarController sController;
 	
     //////////
     // Fields
     //////////
 	
-    // FIX: mToolPanel could be moved to an interface to support a different view of the tools
-    /** a table of toolbars for each map **/
     private VueToolPanel mToolPanel = null;
 	
     /** a list of tool selection listeners **/
     private Vector mToolSelectionListeners = new Vector();
 	
     /** a list of available tools **/
-    private VueTool []  mVueTools = null;
+    private VueTool[] mVueTools = null;
 	
     /** current contextual panel **/
     private JPanel mContextualPanel = null;
-	
-    // current tool panel
-    private JPanel mMainToolbar = null;
 	
     // the currently selected tool 
     private VueTool mSelectedTool = null;
 	
     // current selection id
-    private String mCurSelectionID = new String();
+    //private String mCurSelectionID = new String();
 
     private LWCToolPanel mLWCToolPanel;
 	
 	
-    ////////////////
-    //  Constructors
-    ///////////////////
-	
-    /***
-     * VUEToolbarControler()
-     * The constructor that builds an initial VUE ToolPanel
+    /**
+     * @return the singleton controller
      **/
-    protected  VueToolbarController() {
-        super();
+    static public VueToolbarController getController() {
+        if (sController == null)
+            sController = new VueToolbarController();
+        return sController;
+    }
+
+	
+    /**
+     * Load the tools as defined in the resource properties file, and
+     * create the VueToolPanel.
+     **/
+    protected VueToolbarController() {
         loadTools();
         mToolPanel = createDefaultToolbar();
 		
     }
-	
-	
-    ////////////////
-    //  Methods
-    ////////////////
 
-    public VueTool[] getTools()
-    {
+    /** @return array of all the top-level VueTool's */
+    public VueTool[] getTools() {
         return mVueTools;
     }
 
@@ -110,12 +104,11 @@ public class VueToolbarController
 	
 	
     /**
-     * loadTools()
      * Loads the default tools specified in a resource file
      **/
-    protected synchronized void loadTools() {
-		
-        String [] names = VueResources.getStringArray( kDefaultToolsKey );
+    protected synchronized void loadTools()
+    {
+        String [] names = VueResources.getStringArray(DefaultToolsKey);
         if( names != null) {
             mVueTools = new VueTool[ names.length];
             for( int i=0; i< names.length; i++) {
@@ -126,14 +119,12 @@ public class VueToolbarController
     }
 	
     /**
-     * loadTool
-     * This method loads a VueTool with the bivien name from the
+     * This method loads a VueTool with the given name from the
      * vue properties file.
-     *
      **/
-    public VueTool loadTool(String pName) {
-		
-        final String classKey = pName+".class";
+    private VueTool loadTool(String pName)
+    {
+        final String classKey = pName + ".class";
         final String className = VueResources.getString(classKey);
 
         if (className == null) {
@@ -150,59 +141,16 @@ public class VueToolbarController
 
             if (DEBUG.Enabled) System.out.println("Loading tool " + pName + " " + toolClass);
             tool = (VueTool) toolClass.newInstance();
-					
+
             // set the tool's properties...
+            
             tool.setID(pName);
-            tool.setToolName(VueResources.getString(pName + ".name"));
-            tool.setToolTipText(VueResources.getString(pName + ".tooltip"));
+            tool.initFromResources();
 
-            Icon rawIcon = VueResources.getImageIcon(pName+".raw");
-            if (rawIcon != null) {
-                tool.setGeneratedIcons(rawIcon);
-            } else {
-                Icon i;
-                if ((i = VueResources.getImageIcon(pName+".up")) != null)
-                    tool.setIcon(i);
-                if ((i = VueResources.getImageIcon(pName+".down")) != null)
-                    tool.setDownIcon(i);
-                if ((i = VueResources.getImageIcon(pName+".selected")) != null)
-                    tool.setSelectedIcon(i);
-                if ((i = VueResources.getImageIcon(pName+".disabled")) != null)
-                    tool.setDisabledIcon(i);
-                if ((i = VueResources.getImageIcon(pName+".rollover")) != null)
-                    tool.setRolloverIcon(i);
-                if ((i = VueResources.getImageIcon(pName+".menu")) != null)
-                    tool.setMenuItemIcon(i);
-                if ((i = VueResources.getImageIcon(pName+".menuselected")) != null)
-                    tool.setMenuItemSelectedIcon(i);
-            }
-
-            tool.setShortcutKey(VueResources.getChar( pName+".shortcutKey"));
-
-            int cursorID = VueResources.getInt(pName+".cursorID", -1);
-            if (cursorID >= 0) {
-                //System.out.println(tool + " found cursor ID: " + cursorID);
-                tool.setCursorByID(cursorID);
-            } else {
-                Cursor cursor = VueResources.getCursor(pName+".cursor");
-                if (cursor != null)
-                    tool.setCursor(cursor);
-                /*
-                ImageIcon icon = VueResources.getImageIcon( pName+".cursor");
-                if (icon != null) {
-                    //System.out.println(tool + " found cursor icon: " + icon);
-                    //System.out.println(tool + " cursor icon image: " + icon.getImage());
-                    Toolkit toolkit = Toolkit.getDefaultToolkit();
-                    //System.out.println("Creating cursor for " + icon);
-                    tool.setCursor(toolkit.createCustomCursor(icon.getImage(), new Point(0,0), pName+":"+icon.toString()));
-                }
-                */
-            }
-			
             String subtools[];
             String defaultTool = null;
             subtools = VueResources.getStringArray( pName+".subtools");
-            if( subtools != null) {
+            if (subtools != null) {
 				
                 tool.setOverlayUpIcon( VueResources.getImageIcon( pName+".overlay"));
                 tool.setOverlayDownIcon( VueResources.getImageIcon( pName+".overlaydown") );
@@ -220,8 +168,6 @@ public class VueToolbarController
                     defaultTool = subtools[0];
                 }
 				
-				
-					
                 VueTool dst = tool.getSubTool( pName + "."+defaultTool );
                 if( dst != null) {
                     tool.setIcon( dst.getIcon() );
@@ -247,59 +193,28 @@ public class VueToolbarController
     }
 	
     /**
-     * createDefaultToolbar()
-     *
-     * A factory method to generate the toolbar
+     * A factory method to generate the toolbar.  Tools must already
+     * be loaded before calling.
      **/
-    public VueToolPanel createDefaultToolbar() {
+    private VueToolPanel createDefaultToolbar() {
         VueToolPanel toolbar = new VueToolPanel();
-        toolbar.addTools( mVueTools );
-		
+        toolbar.addTools(mVueTools);
         return toolbar;
     }
 	
-    /**
-     * getController()
-     *
-     * @return the static controller
-     **/
-    static public VueToolbarController getController() {
-        if (sController == null)
-            sController = new VueToolbarController();
-        return sController;
-    }
-
-	
-    static ToolWindow sToolWindow = null;
 	
     /**
-     * getToolWindow()
-     * Returns the default toolwindow for the tools and sub tools
-     *
-     **/
-    public ToolWindow getToolWindow() {
-        return sToolWindow;
-    }
-    public void setToolWindow( ToolWindow pWindow ) {
-        sToolWindow = pWindow;
-    }
-	
-    /**
-     * getSelectedTool()
      * This method returns the selected VueTool
-     * @returns VueTool
+     * @returns currently active VueTool
      **/
     public VueTool getSelectedTool() {
-        VueTool tool = null;
-	 	
-        if( getToolbar() != null) {
-            tool = getToolbar().getSelectedTool();
-        }
-        return tool;
+        if (getToolbar() == null)
+            return null;
+        else
+            return getToolbar().getSelectedTool();
     }
 	 
     /**
-     * setSelectedTool()
      * This method sets teh slected VueTool
      * It will attempt to update teh button group in the Toolbar
      * and notify listners by calling selectionChanged.
@@ -316,14 +231,12 @@ public class VueToolbarController
 	
 	
     /**
-     * getTool
-     * This returns the active instance of a known tool, if active and availabe.
-     * @param id java.lang.STring id of the tool
+     * @return the instance of a known tool
+     * @param pID id (name) of the tool
      **/
-    public VueTool getTool( String pID) {
-		
+    public VueTool getTool(String pID) {
         for( int i=0; i<mVueTools.length; i++) {
-            if( mVueTools[i].getID().equals( pID) ) {
+            if (mVueTools[i].getID().equals(pID)) {
                 return mVueTools[i];
             }
         }
@@ -331,48 +244,13 @@ public class VueToolbarController
     }
 	
     /**
-     * getToolbar
-     * 
-     * This method gets teh toolbar for a given Map object.
-     * If there is not currently a toolbar for the upa, it
-     * will build one.
-     *
-     * @param Map the map
-     * @return Jpanel the toolbar panel
-     *
+     * @return the VueToolPanel
      **/
-    public VueToolPanel getToolbar( ) {
-		
+    public VueToolPanel getToolbar() {
         return mToolPanel;
     }
 		
-	
-	
-    public JPanel getContextualPanel() { 
-        return mContextualPanel;
-    }
-	
-    public void setContextualPanel( JPanel pPanel) {
-        mContextualPanel = pPanel;
-    }
-	
-	
 
-    /**
-     *  updateToolbar
-     *  This method will update teh existing toolbar of a Map.
-     * You should callt his if the prefs or set of tools changes for a map
-     *
-     * @param Map the Map object
-     **/
-    public void setEnabledToolsFromMap( LWMap pMap) {
-	 		 	
-        // FIX
-        //  update to just remove/disable
-	 	
-    }
-	 
-	  
     /**
      * addToolSelectionListener
      * Adds a VueToolSelectionListener to receive notification when
@@ -389,10 +267,8 @@ public class VueToolbarController
 	  
 	  
     /**
-     * handleToolSelection
      * This method is called when a tool selection event happens.
      * It will notify all toolbar
-     *
      **/
     protected void handleToolSelection(VueTool pTool)
     {
@@ -418,9 +294,7 @@ public class VueToolbarController
         */
         // allow re-selection of existing tool: handy for use as "apply" to a current selection
         // if the changing the active sub-tool can have an effect on selected objects
-        
-
-        mCurSelectionID = selectionID;	  	
+        //mCurSelectionID = selectionID;	  	
 
         // update contextual panel
         updateContextualToolPanel();
@@ -444,7 +318,6 @@ public class VueToolbarController
     }
 	 
     /**
-     * updateContexxtualTools
      * This method checks to see if the current tool has
      * a contextual tool.  If so, it uses that panel.  If
      * not it uses the selection to get a panel.
@@ -467,9 +340,8 @@ public class VueToolbarController
 	 
 	 
     /**
-     * getSuggestedContextualPanel()
-     * Retusn the suggest tool panel to use based on the current state
-     * of the controller and map.
+     * @return the suggest tool panel to use based on the current state
+     * of the controller (selected tool) and the map selection.
      **/
     public JPanel getSuggestedContextualPanel() {
         JPanel panel = null;
@@ -532,12 +404,13 @@ public class VueToolbarController
             return;
         */
         
-        // TODO: CLEAN THIS UP: interested tool panels should listen to selection themselves
+        // Maybe better: interested tool panels should listen to selection themselves
         // The only value we get from this right now is that only the active tool panel
         // will get loadValues called, letting inactive ones keep their state, which is
         // handy for some cases, but as long as the tool could know if it's active or not,
         // we'd have all the functionality we need, and in a much simpler & more effective
         // manner.
+        
         if (panel instanceof LWCToolPanel)
             ((LWCToolPanel)panel).loadSelection(VUE.getSelection());
         else {
@@ -545,31 +418,71 @@ public class VueToolbarController
         }
     }
 	 
-
-     
     /**
-     * handleMapEvent
-     *
-     **/
-    public void handleMapEvent( Event pEvent) {
-	  	
-        // FIX: This handles selection events...
-	  
-    }
-	
- 	
-    /**
-     * selectionChanged
      * The implemenation of the LWSelection.Listener
-     *
      * This method updates toolbars based on the new selection
      **/
-    public void selectionChanged( LWSelection pSelection)  {
+    private LWComponent singleSelection = null;
+    public void selectionChanged(LWSelection s) {
+        
+        if (s.size() == 1) {
+            if (singleSelection != null)
+                singleSelection.removeLWCListener(this);
+            singleSelection = s.first();
+            //loadValues(singleSelection);
+            singleSelection.addLWCListener(this);
+        } else if (s.size() > 1) {
+            // todo: if we are to populate the tool bar properties when
+            // there's a multiple selection, what do we use?
+            //loadValues(s.first());
+        }
+        if (s.size() != 1 && singleSelection != null) {
+            singleSelection.removeLWCListener(this);
+            singleSelection = null;
+        }
+
         updateContextualToolPanel();
-        debug("!!! ToolbarController checkign contextual tools");
+        if (singleSelection != null)
+            loadToolValue(null, singleSelection);
+    }
+
+    public void LWCChanged(LWCEvent e) {
+        loadToolValue(e.getWhat(), e.getComponent());
+    }
+
+    /**
+     * Load the value from src, indicated by propertyKey, into any of our tool's that are LWPropertyProducer's.
+     * If propertyKey is null, all producers will attempt to load what there interested in, even if
+     * the object doesn't support the property (in which case the value will be null and should be ignored).
+     */
+    // todo: cache the property producers
+    private void loadToolValue(Object propertyKey, LWComponent src)
+    {
+        for (int i = 0; i < mVueTools.length; i++) {
+            if (mVueTools[i] instanceof LWPropertyProducer) {
+                LWPropertyProducer p = (LWPropertyProducer) mVueTools[i];
+                if (propertyKey == null || propertyKey == p.getPropertyKey()) {
+                    Object value = src.getPropertyValue(p.getPropertyKey());
+                    if (DEBUG.TOOL) out("loadToolValue: loading producer "
+                                        + p
+                                        + " key=" + p.getPropertyKey()
+                                        + " with val=" + value
+                                        + " from " + src);
+                    p.setPropertyValue(value);
+                }
+            }
+        }
     }
 
 
+     
+    /*
+    public void handleMapEvent( Event pEvent) {
+        // FIX: This handles selection events...
+    }
+    */
+	
+ 	
     private void out(String s) {
         System.out.println(this + " " + s);
     }
@@ -583,6 +496,8 @@ public class VueToolbarController
             System.out.println( pMsg);
     }
 
+    private static boolean sDebug = false;
+	
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
         DEBUG.Enabled = DEBUG.INIT = true;
@@ -603,6 +518,42 @@ public class VueToolbarController
         VueUtil.centerOnScreen(frame);
         frame.show();
     }
+
+
+    /*
+     *  updateToolbar
+     *  This method will update teh existing toolbar of a Map.
+     * You should callt his if the prefs or set of tools changes for a map
+     *
+     * @param Map the Map object
+    public void setEnabledToolsFromMap( LWMap pMap) {
+	 		 	
+        // FIX
+        //  update to just remove/disable
+	 	
+    }
+     **/
+	 
+    /*
+    public JPanel getContextualPanel() { 
+        return mContextualPanel;
+    }
+    public void setContextualPanel( JPanel pPanel) {
+        mContextualPanel = pPanel;
+    }
+    */
+    /*
+    static ToolWindow sToolWindow = null;
+    public ToolWindow getToolWindow() {
+        return sToolWindow;
+    }
+    public void setToolWindow( ToolWindow pWindow ) {
+        sToolWindow = pWindow;
+    }
+    */
+	
+
+    
      
 }
 

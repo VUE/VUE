@@ -31,7 +31,6 @@ import javax.swing.border.*;
  * It is used for the main tool bar tool
  *
  * @author csb
- * @author smf
  * @version 1.1
  **/
 public class PaletteButton extends JRadioButton implements ActionListener
@@ -324,7 +323,8 @@ public class PaletteButton extends JRadioButton implements ActionListener
      *
      * @param pItem - the PaletteButtonItem to use as the source
      **/
-    public void setPropertiesFromItem( PaletteButtonItem pItem) {
+
+    public void setPropertiesFromItem(AbstractButton pItem) {
 	
         this.setIcon( pItem.getIcon() );
         this.setPressedIcon( pItem.getPressedIcon() );

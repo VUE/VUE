@@ -29,8 +29,13 @@ import java.awt.geom.*;
 import javax.swing.*;
 import tufts.vue.beans.VueBeanState;
 
+/**
+ * VueTool for creating LWNodes.  Methods for creating default new nodes based on
+ * tool states, and for handling the drag-create of new nodes.
+ */
+
 public class NodeTool extends VueTool
-    implements VueConstants
+    implements VueConstants, LWPropertyProducer
 {
     private static NodeTool singleton = null;
     
@@ -45,6 +50,37 @@ public class NodeTool extends VueTool
         if (singleton != null) 
             new Throwable("Warning: mulitple instances of " + this).printStackTrace();
         singleton = this;
+    }
+
+    /** LWPropertyProducer impl:
+        @return LWKey.Shape */
+    final public Object getPropertyKey() { return LWKey.Shape; }
+    
+    /** LWPropertyProducer impl:
+        @return currently selected shape value */
+    public Object getPropertyValue() {
+        // this not actually used right now.
+        return getActiveSubTool().getShapeInstance();
+    }
+    
+    /** LWPropertyProducer impl: load the currently selected tool to the one with given shape */
+    public void setPropertyValue(Object shape) {
+        // Find the sub-tool with the matching shape, then load it's button icon images
+        // into the displayed selection icon
+        if (shape == null)
+            return;
+        Enumeration e = getSubToolIDs().elements();
+        while (e.hasMoreElements()) {
+            String id = (String) e.nextElement();
+            SubTool subtool = (SubTool) getSubTool(id);
+            if (subtool.isShape((RectangularShape) shape)) {
+                ((PaletteButton)mLinkedButton).setPropertiesFromItem(subtool.mLinkedButton);
+                // call super.setSelectedSubTool to avoid firing the shape setters
+                // as we're only LOADING the value here.
+                super.setSelectedSubTool(subtool);
+                break;
+            }
+        }
     }
 
 
@@ -233,6 +269,10 @@ public class NodeTool extends VueTool
         return values;
     }
 
+    /**
+     * VueTool class for each of the specifc node shapes.  Knows how to generate
+     * an action for shape setting, and creates a dynamic icon based on the node shape.
+     */
     public static class SubTool extends VueSimpleTool
     {
         private Class shapeClass = null;
@@ -255,6 +295,7 @@ public class NodeTool extends VueTool
                 shapeSetterAction = new Actions.LWCAction(getToolName(), new ShapeIcon(getShapeInstance())) {
                         void act(LWNode n) { n.setShape(getShapeInstance()); }
                     };
+                //shapeSetterAction.putValue("property.key", LWKey.Shape);
                 shapeSetterAction.putValue("property.value", getShape()); // this may be handy
                 // key is from: MenuButton.ValueKey
             }
@@ -280,6 +321,11 @@ public class NodeTool extends VueTool
                 e.printStackTrace();
             }
             return rectShape;
+        }
+
+        /** @return true if given shape is of same type as us */
+        public boolean isShape(RectangularShape shape) {
+            return shape != null && getShape().getClass().equals(shape.getClass());
         }
         
         public RectangularShape getShape()

@@ -24,8 +24,14 @@ import javax.swing.*;
 import java.awt.geom.Point2D;
 import tufts.vue.beans.VueBeanState;
 
+/**
+ * VueTool for creating links.  Provides methods for creating default new links
+ * based on the current state of the tools, as well as the handling drag-create
+ * of new links.
+ */
+
 public class LinkTool extends VueTool
-    implements VueConstants
+    implements VueConstants, LWPropertyProducer
 {
     /** link tool contextual tool panel **/
     private static LinkToolPanel sLinkContextualPanel;
@@ -56,6 +62,35 @@ public class LinkTool extends VueTool
         return sLinkContextualPanel;
     }
 
+    /** LWPropertyProducer impl:
+        @return LWKey.LinkCurves */
+    final public Object getPropertyKey() { return LWKey.LinkCurves; }
+    /** LWPropertyProducer impl:
+        @return currently selected link tool curve count */
+    public Object getPropertyValue() {
+        return new Integer(getActiveSubTool().getCurveCount());
+    }
+    /** LWPropertyProducer impl: load the currently selected link tool to the one with given curve count */
+    public void setPropertyValue(Object curveValue) {
+        // Find the sub-tool with the matching curve-count, then load it's button icon images
+        // into the displayed selection icon
+        if (curveValue == null)
+            return;
+        Enumeration e = getSubToolIDs().elements();
+        int curveCount = ((Integer)curveValue).intValue();
+        while (e.hasMoreElements()) {
+            String id = (String) e.nextElement();
+            SubTool subtool = (SubTool) getSubTool(id);
+            if (subtool.getCurveCount() == curveCount) {
+                ((PaletteButton)mLinkedButton).setPropertiesFromItem(subtool.mLinkedButton);
+                // call super.setSelectedSubTool to avoid firing the setters
+                // as we're only LOADING the value here.
+                super.setSelectedSubTool(subtool);
+                break;
+            }
+        }
+    }
+
     public void setSelectedSubTool(VueTool tool) {
         super.setSelectedSubTool(tool);
         if (VUE.getSelection().size() > 0) {
@@ -64,6 +99,10 @@ public class LinkTool extends VueTool
         }
     }
 
+    public SubTool getActiveSubTool() {
+        return (SubTool) getSelectedSubTool();
+    }
+    
     public boolean supportsSelection() { return true; }
 
     public boolean handleMousePressed(MapMouseEvent e)
@@ -273,6 +312,10 @@ public class LinkTool extends VueTool
         }
     }
 
+    /**
+     * VueTool class for each of the specifc link styles (straight, curved, etc).  Knows how to generate
+     * an action for setting the shape.
+     */
     public static class SubTool extends VueSimpleTool
     {
         private int curveCount = -1;

@@ -42,11 +42,17 @@ JComponents that are also LWPropertyProducers
               for later querying (e.g., create a new node: what's the current state of the node
               tools? (color,shape,font, etc)
 
-     Given this, there are two major event sources we have to deal with:
+     Given this, there are three major event sources we have to deal with:
      the first are PropertyChange events coming from user interaction with
      the gui components, and the second are LWCEvents coming from currently
      selected LWComponents.  We need to keep our total state value, as
      well as gui states, sycned with any property changes from LWComponents.
+     The third is the current selection: when that changes, we need to
+     re-init everything from the current selection (note that changing
+     the selection may have also installed a completely different active
+     contextual tool panel).  Currently the selection change handling
+     is mediated by the VueToolbarController (and maybe we want to have
+     it mediate all of this?)
 
      Property changes from the gui components need also to update our
      internal state, as well as flow out to the LWComponents (and in
@@ -54,7 +60,9 @@ JComponents that are also LWPropertyProducers
      us their property's just changed).
 
 In total: Mediates back and forth between the selection and tool states.
-The VueBeanState caching is a bit of a fuzzy, but we're keeping it for now.
+The VueBeanState cached holds the property values for us even if there
+is no selection (so we can change the tool state w/out a selection and
+remember it).
               
  */
 
@@ -318,6 +326,11 @@ public class LWCToolPanel extends JPanel
             dest.setPropertyValue(value);
         }
     }
+
+    // generic full version of property picker-uppers:
+    // When selection changes, pick up properties of new selected item (or multi-prop state when handle multi-selections)
+    // When a PROPERTY changes IN the selection, pick that up.
+    // Can we combine these two to something generic? (either as one loop, or at least as one helper class)
 
 
     private LWComponent singleSelection = null;

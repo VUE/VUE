@@ -152,9 +152,8 @@ public class VueToolPanel extends JPanel
         if( mTools == null) {
             mTools = new Vector();
         }
-        mTools.add( pTool);
-        PaletteButton button = createPaletteButton( pTool);
-		
+        mTools.add(pTool);
+        PaletteButton button = createPaletteButton(pTool);
         // save teh component in the button map
         mToolButtons.put( pTool.getID(), button);
                 
@@ -217,7 +216,7 @@ public class VueToolPanel extends JPanel
     public void setContextualToolPanel(JPanel pPanel) {
         if (mPanelContent == pPanel)
             return;
-        if (DEBUG.SELECTION) System.out.println(this + " LOADING " + pPanel);
+        if (DEBUG.TOOL) System.out.println(this + " LOADING " + pPanel);
         mContextualToolPanel.removeAll();        
         if (pPanel != null) {
             if (debug)
@@ -258,7 +257,7 @@ public class VueToolPanel extends JPanel
      * @param pTool -= the tool to map to aPaletteButton
      * @return PaletteButton - a PaletteButton with properties based on the VueTool
      **/
-    protected PaletteButton createPaletteButton( VueTool pTool)
+    protected PaletteButton createPaletteButton(VueTool pTool)
     {
         PaletteButton button = null;
         
@@ -272,7 +271,6 @@ public class VueToolPanel extends JPanel
                 VueTool subTool = pTool.getSubTool( name);
                 if( subTool != null) {
                     PaletteButtonItem item = new PaletteButtonItem();
-					
                     item.setIcon( subTool.getIcon() );
                     item.setSelectedIcon( subTool.getSelectedIcon() );
                     item.setDisabledIcon( subTool.getDisabledIcon() );
@@ -285,6 +283,8 @@ public class VueToolPanel extends JPanel
                     item.addActionListener( subTool);
 					
                     items[i] = item;
+
+                    subTool.setLinkedButton(item);
                 }
             }
             button = new PaletteButton( items );
@@ -300,6 +300,10 @@ public class VueToolPanel extends JPanel
         // set the user context to the VueTOol
         button.setContext( pTool);
         button.addActionListener( pTool);
+
+        // store the button in the tool
+        pTool.setLinkedButton(button);
+        
         return button;
     }
 	

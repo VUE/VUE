@@ -129,7 +129,7 @@ public class LWComponent
         if (key == LWKey.Location)      return getLocation();
         if (key == LWKey.Hidden)        return new Boolean(isHidden());
              
-        if (DEBUG.Enabled) out(this + " note: getPropertyValue; unsupported property [" + key + "]");
+        if (DEBUG.Enabled) out("note: getPropertyValue; unsupported property [" + key + "] (returning null)");
         //return UnsupportedPropertyValue;
         return null;
         //throw new RuntimeException("Unknown property key[" + key + "]");
@@ -158,7 +158,7 @@ public class LWComponent
             Rectangle2D.Float r = (Rectangle2D.Float) val;
             setFrame(r.x, r.y, r.width, r.height);
         } else {
-            out(this + " setProperty: unknown key [" + key + "] with value [" + val + "]");
+            out("setProperty: unknown key [" + key + "] with value [" + val + "]");
             new Throwable("FYI: Unhandled Property").printStackTrace();
         }
     }

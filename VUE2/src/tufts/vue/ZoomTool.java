@@ -51,9 +51,6 @@ public class ZoomTool extends VueTool
         return VueToolbarController.getController().getSuggestedContextualPanel();
     }
 
-    public void handleSelection() {
-    }
-	
     private static final Color SelectorColor = Color.red;
     private static final Color SelectorColorInverted = new Color(0,255,255); // inverse of red
     public void drawSelector(java.awt.Graphics2D g, java.awt.Rectangle r)

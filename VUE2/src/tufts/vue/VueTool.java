@@ -91,6 +91,8 @@ public abstract class VueTool extends AbstractAction
     protected boolean mEnabled = true;
 
     protected HashMap mResourceMap = new HashMap();
+
+    protected AbstractButton mLinkedButton;
     
     public VueTool() {
         super();
@@ -111,7 +113,7 @@ public abstract class VueTool extends AbstractAction
      * Sets the tool's unique id.
      * @param pID the id String
      **/
-    public void setID( String pID ) {
+    public void setID(String pID ) {
         mID = pID;
         //System.out.println("Initializing tool " + this);
         ResourceBundle rb = VueResources.getBundle();
@@ -131,6 +133,50 @@ public abstract class VueTool extends AbstractAction
     {
         return (String) mResourceMap.get(key);
     }
+
+    /** Initialize tool from resource properties.  Must be called after setID. */
+    void initFromResources()
+    {
+        setToolName(getAttribute("name"));
+        setToolTipText(getAttribute("tooltip"));
+
+        Icon rawIcon =  VueResources.getImageIcon(mID+".raw");
+        if (rawIcon != null) {
+            setGeneratedIcons(rawIcon);
+        } else {
+            Icon i;
+            if ((i = VueResources.getImageIcon(mID+".up")) != null)               setIcon(i);
+            if ((i = VueResources.getImageIcon(mID+".down")) != null)             setDownIcon(i);
+            if ((i = VueResources.getImageIcon(mID+".selected")) != null)         setSelectedIcon(i);
+            if ((i = VueResources.getImageIcon(mID+".disabled")) != null)         setDisabledIcon(i);
+            if ((i = VueResources.getImageIcon(mID+".rollover")) != null)         setRolloverIcon(i);
+            if ((i = VueResources.getImageIcon(mID+".menu")) != null)             setMenuItemIcon(i);
+            if ((i = VueResources.getImageIcon(mID+".menuselected")) != null)     setMenuItemSelectedIcon(i);
+        }
+        
+        setShortcutKey(VueResources.getChar(mID+".shortcutKey"));
+
+        int cursorID = VueResources.getInt(mID+".cursorID", -1);
+        if (cursorID >= 0) {
+            //System.out.println(tool + " found cursor ID: " + cursorID);
+            setCursorByID(cursorID);
+        } else {
+            Cursor cursor = VueResources.getCursor(mID+".cursor");
+            if (cursor != null)
+                setCursor(cursor);
+            /*
+              ImageIcon icon = VueResources.getImageIcon( mID+".cursor");
+              if (icon != null) {
+              //System.out.println(tool + " found cursor icon: " + icon);
+              //System.out.println(tool + " cursor icon image: " + icon.getImage());
+              Toolkit toolkit = Toolkit.getDefaultToolkit();
+              //System.out.println("Creating cursor for " + icon);
+              tool.setCursor(toolkit.createCustomCursor(icon.getImage(), new Point(0,0), mID+":"+icon.toString()));
+              }
+            */
+        }
+    }
+    
     
     /**
      * getSelectionID
@@ -226,6 +272,10 @@ public abstract class VueTool extends AbstractAction
     public char getShortcutKey()
     {
         return mShortcutKey;
+    }
+
+    public void setLinkedButton(AbstractButton b) {
+        mLinkedButton = b;
     }
 
     // rename supportsClickSelection?
