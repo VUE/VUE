@@ -50,7 +50,7 @@ public class VUE
     public static LWHierarchyTree hierarchyTree;
     
     //overview tree window component
-    public static LWOutlineViewTree outlineViewTree;
+    public static LWOutlineView outlineView;
     
     public static java.net.URL getResource(String name)
     {
@@ -198,9 +198,9 @@ public class VUE
     /**End of hierarchy view related method*/
     
     /**Overview related method*/
-    public static LWOutlineViewTree getOutlineViewTree()
+    public static LWOutlineView getOutlineViewTree()
     {
-        return outlineViewTree;
+        return outlineView;
     }
     
     /**End of overview related method*/
@@ -350,7 +350,7 @@ public class VUE
         //control = new PathwayControl(frame);
         
         hierarchyTree = new LWHierarchyTree(frame);
-        outlineViewTree = new LWOutlineViewTree(frame);
+        outlineView = new LWOutlineView(frame);
         //end of addition
        
         Action[] windowActions = { toolbarWindow.getDisplayAction(),
@@ -362,7 +362,8 @@ public class VUE
                                    hierarchyTree.getDisplayAction(),
                                    mapInspector.getDisplayAction(),
                                    objectInspector.getDisplayAction(),
-                                   outlineViewTree.getDisplayAction()
+                                   //outlineViewTree.getDisplayAction()
+                                   outlineView.getDisplayAction()
                                  };
         
         // adding the menus and toolbars

@@ -240,7 +240,8 @@ public class NodeInspectorPanel  extends JPanel
 		 **/
 		 public void updatePanel( LWNode pNode) {
 		 // update display based on the LWNode
-                    tree.setModel(new OutlineViewTreeModel(pNode));
+                    //tree.setModel(new OutlineViewTreeModel(pNode));
+                    tree.switchContainer(pNode);
 		 }
 	}
 	
