@@ -27,8 +27,7 @@ import tufts.vue.*;
 
 public class OpenAction extends AbstractAction
 {
-    final String XML_MAPPING = "vue2d_map.xml";
-    //final String XML_MAPPING = "concept_map.xml";
+    final String XML_MAPPING = Vue2DMap.CASTOR_XML_MAPPING;
 
     /** Creates a new instance of OpenAction */
     public OpenAction() {
@@ -36,7 +35,7 @@ public class OpenAction extends AbstractAction
     public OpenAction(String label) {
         super(label);
         System.out.println("in openAction constructor...");
-          putValue(Action.SHORT_DESCRIPTION,label);
+        putValue(Action.SHORT_DESCRIPTION,label);
     }
 
     public void actionPerformed(ActionEvent e)
@@ -59,7 +58,7 @@ public class OpenAction extends AbstractAction
                 VUE.clearWaitCursor();
             }
         }
-        System.out.println("Action["+e.getActionCommand()+"] performed!");
+        System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
 
     private Vue2DMap loadMap(String filename)

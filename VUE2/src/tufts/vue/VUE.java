@@ -17,6 +17,8 @@ import tufts.vue.action.*;
 public class VUE
     implements VueConstants
 {
+    public static final String CASTOR_XML_MAPPING = Vue2DMap.CASTOR_XML_MAPPING;
+
     public static Cursor CURSOR_ZOOM_IN;
     public static Cursor CURSOR_ZOOM_OUT;
     
@@ -132,8 +134,8 @@ public class VUE
          * create an example map (this will become
          * map loading code after the viewer is up)
          */
-        Vue2DMap map1 = new Vue2DMap("Example One");
-        Vue2DMap map2 = new Vue2DMap("Example Two");
+        Vue2DMap map1 = new Vue2DMap("One");
+        Vue2DMap map2 = new Vue2DMap("Two");
         Vue2DMap map3 = new Vue2DMap("Empty Map");
 
         installExampleMap(map1);
@@ -147,9 +149,13 @@ public class VUE
         MapViewer mapViewer1 = new tufts.vue.MapViewer(map1);
         MapViewer mapViewer2 = new tufts.vue.MapViewer(map2);
         MapViewer mapViewer3 = new tufts.vue.MapViewer(map3);
+        //MapViewer mapViewer4 = new tufts.vue.MapViewer(map1);
 
         tabbedPane = new JTabbedPane();        
         tabbedPane.addTab(map1.getLabel(), mapViewer1);
+        //tabbedPane.addTab(map1.getLabel()+"[View2]", mapViewer4);
+        // todo: can support seperate views, EXCEPT for selection bit
+        // that exsits in the LWComponent itself...
         tabbedPane.addTab(map2.getLabel(), mapViewer2);
         tabbedPane.addTab(map3.getLabel(), mapViewer3);
         

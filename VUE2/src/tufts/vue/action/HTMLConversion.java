@@ -31,7 +31,7 @@ public class HTMLConversion extends AbstractAction {
     
     private static  String htmlFileName = "default.html";
     private static  String fileName = "C:\\vueproject\\VUEDevelopment\\src\\default.xml";
-    final String XML_MAPPING = "concept_map.xml";
+    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private Marshaller marshaller = null;
     
     /** Creates a new instance of HTMLConversion */

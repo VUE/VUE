@@ -27,8 +27,7 @@ import tufts.vue.*;
  */
 public class SaveAction extends AbstractAction
 {
-    //final String XML_MAPPING = "concept_map.xml";
-    final String XML_MAPPING = "vue2d_map.xml";
+    final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private static  String fileName = "test.xml";
     private Marshaller marshaller = null;
     private boolean saveAs = true;
