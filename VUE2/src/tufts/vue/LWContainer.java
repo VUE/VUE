@@ -1084,11 +1084,13 @@ public abstract class LWContainer extends LWComponent
             if (DEBUG.PAINT) 
                 out(this + " painted " + links + " links, " + nodes + " nodes");
         }
+        /*
         if (DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.green);
             dc.g.setStroke(STROKE_ONE);
             dc.g.draw(getBounds());
         }
+        */
     }
 
     private void _drawChild(DrawContext _dc, LWComponent c)

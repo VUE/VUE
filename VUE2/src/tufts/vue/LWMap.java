@@ -313,6 +313,11 @@ public class LWMap extends LWContainer
     //void setScale(float scale) { }
     
     public void draw(DrawContext dc){
+        if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
+            dc.g.setColor(java.awt.Color.green);
+            dc.setAbsoluteStroke(1);
+            dc.g.draw(getBounds());
+        }
         super.draw(dc);
         Iterator i = getPathwayList().iterator();
         int pathIndex = 0;
@@ -323,12 +328,6 @@ public class LWMap extends LWContainer
                 path.drawPathway(dc.create());
             }
         }
-        if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
-            dc.g.setColor(java.awt.Color.green);
-            dc.setAbsoluteStrokeWidth(1);
-            dc.g.draw(getBounds());
-        }
-        
     }
 
     protected LWComponent findChildByID(String ID)

@@ -1180,7 +1180,7 @@ public class LWLink extends LWComponent
                 //-------------------------------------------------------
                 g.setColor(COLOR_SELECTION);
                 //g.setColor(Color.red);
-                dc.setAbsoluteStrokeWidth(0.5f);
+                dc.setAbsoluteStroke(0.5);
                 if (curveControls == 2) {
                     Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
                     g.draw(ctrlLine);
@@ -1223,7 +1223,7 @@ public class LWLink extends LWComponent
             dc.g.setComposite(composite);
         }
                 
-        if (DEBUG.CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
+        if (DEBUG.CONTAINMENT) { dc.setAbsoluteStroke(0.1); g.draw(getBounds()); }
     }
 
 

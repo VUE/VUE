@@ -32,7 +32,8 @@ public class MapPanner extends javax.swing.JPanel
 
     // Enable this to keep viewport always visible in panner: (it causes while-you-drag
     // zoom adjusting tho, which can be a bit disorienting)
-    private static final boolean ViewerAlwaysVisible = false;
+    private static final boolean ViewerAlwaysVisible = true;
+    private static final int MapMargin = ViewerAlwaysVisible ? 5 : 50;
     
     /**
      * Get's global (thru AWT hierarchy) MapViewerEvent's
@@ -210,7 +211,7 @@ public class MapPanner extends javax.swing.JPanel
         Point2D offset = new Point2D.Double();
         
         zoomFactor = ZoomTool.computeZoomFit(pannerViewportSize,
-                                             DEBUG.MARGINS ? 0 : 5,
+                                             DEBUG.MARGINS ? 0 : MapMargin,
                                              pannerRect,
                                              offset);
                                             
@@ -243,7 +244,7 @@ public class MapPanner extends javax.swing.JPanel
          */
         if (VueUtil.isMacPlatform()) {
             // this still relvant for mac? 
-            dc.setAbsoluteStrokeWidth(1);
+            dc.setAbsoluteStroke(1);
         } else {
             dc.setAntiAlias(false);
             g2.setStroke(STROKE_ONE);

@@ -89,9 +89,9 @@ public class DrawContext
      * width independent of any current scaling (presuming
      * scaling is same in X/Y direction's -- only tracks X scale factor).
      */
-    public void setAbsoluteStrokeWidth(float width)
+    public void setAbsoluteStroke(double width)
     {
-        this.g.setStroke(new java.awt.BasicStroke(width / (float) this.g.getTransform().getScaleX()));
+        this.g.setStroke(new java.awt.BasicStroke((float) (width / this.g.getTransform().getScaleX())));
     }
 
     /**
