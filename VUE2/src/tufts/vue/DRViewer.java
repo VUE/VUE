@@ -224,10 +224,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         // GRID: addConditionButton
         JButton addConditionButton=new VueButton("add");
         addConditionButton.setBackground(this.getBackground());
+        addConditionButton.setToolTipText("Add Condition");
         // GRID: deleteConditionButton
         JButton deleteConditionButton=new VueButton("delete");
         deleteConditionButton.setBackground(this.getBackground());
-        
+        deleteConditionButton.setToolTipText("Delete Condition");
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));
         questionLabel.setToolTipText("Add or Delete conditions using +/- buttons. Click on table cell to modify  conditions");

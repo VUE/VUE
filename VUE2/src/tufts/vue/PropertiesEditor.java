@@ -46,6 +46,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     }
     
     private void setResourePropertiesPanel() {
+        addPropertyButton.setToolTipText("Add Metadata");
+        deletePropertyButton.setToolTipText("Delete Metadata");
         propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
