@@ -51,7 +51,7 @@ public class SaveAction extends AbstractAction {
         mapping =  new Mapping();
         mapping.loadMapping( "mapping.xml" );
         marshaller.setMapping(mapping);
-        marshaller.marshal(tufts.vue.VUE.getMap());
+        marshaller.marshal(tufts.vue.VUE.getActiveMap());
         
       }catch(Exception ex) {System.out.println(ex);}
           System.out.println("Action["+e.getActionCommand()+"] performed!");
