@@ -255,6 +255,6 @@
         <ID2>1</ID2>
     </child>
     <userZoom>1.0</userZoom>
-    <userOrigin x="34.283356" y="25.2583"/>
+    <userOrigin x="24" y="12"/>
     <PathwayList currentPathway="-1"/>
 </LW-MAP>
