@@ -117,9 +117,11 @@ public class LWPathway extends LWContainer
         removeChild(c);
     }
 
-    public void add(Iterator i)
-    {
+    public void add(Iterator i) {
         while (i.hasNext()) add((LWComponent) i.next());
+    }
+    public void remove(Iterator i) {
+        while (i.hasNext()) remove((LWComponent) i.next());
     }
     /*
     public void addElement(LWComponent c) {

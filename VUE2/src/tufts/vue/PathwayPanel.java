@@ -204,7 +204,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         tableModel.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {
                     System.out.println(this + " " + e);
-                    updateControlPanel();
+                    updateEnabledStates();
                     //repaint();
                 }
             });
@@ -222,38 +222,8 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         
         setButtons();
         //toggles the add button's availability depending on the selection
-        VUE.ModelSelection.addListener( new LWSelection.Listener() {
-                public void selectionChanged(LWSelection s)
-                {
-                    updateSelection();
-                    /*
-                    setElemSelection(!sel.isEmpty());
-                    if (!sel.isEmpty()){
-                        LWPathway path = VUE.getActivePathway();
-                        addElement.setEnabled(path != null && !path.isLocked());
-                        removeElement.setEnabled(path != null && !path.isLocked() && path.length() > 0);
-                    */
-                        /*
-                          old old
-                        if (VUE.getActiveMap().getPathwayManager().length() > 0
-                            && !VUE.getActiveMap().getPathwayManager().getCurrentPathway().isLocked())
-                            addElement.setEnabled(true);
-                        else
-                            addElement.setEnabled(false);
-                        
-                        LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
-                        if (path != null && !path.isLocked() && path.getCurrentIndex() > -1)
-                            removeElement.setEnabled(true);
-                        else
-                            removeElement.setEnabled(false);
-                        */
-                    /*
-                    }else{
-                        addElement.setEnabled(false);
-                        removeElement.setEnabled(false);
-                    }
-                    */
-                }
+        VUE.ModelSelection.addListener(new LWSelection.Listener() {
+                public void selectionChanged(LWSelection s) { updateEnabledFromSelection(); }
             }     
         );
         
@@ -575,7 +545,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
        ((PathwayTableModel)pathwayTable.getModel()).getPathway().setCurrentIndex(index);
        
         //update the pathway control panel
-        updateControlPanel();
+        updateEnabledStates();
     }*/
     
     public PathwayTableModel getTableModel(){
@@ -631,7 +601,11 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         int selected = pathwayTable.getSelectedRow();
         Object btn = e.getSource();
         
-        if (btn == removeElement){    
+        if (false && btn == removeElement) {
+            // We used to allow removing the current element in the panel,
+            // but now we only allow removing something that's in the
+            // the VUE selection.
+            /*
             Object obj = null;
             if (selected != -1) 
                 obj = getTableModel().getElement(selected);
@@ -645,7 +619,9 @@ public class PathwayPanel extends JPanel implements   ActionListener,
             } else {
                 System.out.println("Error trying to remove pathway element: selected object not found.");
             }
+            */
         }            
+        else if (btn == removeElement)  { getSelectedPathway().remove(VUE.ModelSelection.iterator()); }
         else if (btn == addElement)     { getSelectedPathway().add(VUE.ModelSelection.iterator()); }
         else if (btn == firstButton)    { getSelectedPathway().getFirst(); }
         else if (btn == lastButton)     { getSelectedPathway().getLast(); }
@@ -658,13 +634,13 @@ public class PathwayPanel extends JPanel implements   ActionListener,
                 //int currentRow = getTableModel().getManager().getPathwayIndex(getTableModel().getCurrentPathway());
                 int currentRow = getTableModel().getCurrentPathwayIndex();
                 this.getPathwayTable().setValueAt(this, currentRow, 5);
-                this.setAddElementEnabled();
+                this.updateAddElementEnabled();
             }
         }
         
         //getTableModel().fireTableDataChanged();
         updateTable();
-        //updateControlPanel();
+        //updateEnabledStates();
         VUE.getActiveMap().notify(this, LWCEvent.Repaint);//todo: remove
     }
    
@@ -685,7 +661,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     {
         //PATH TODO:getTableModel().setPathwayManager(VUE.getActiveMap().getPathwayList());
         new Throwable("PATH TODO").printStackTrace();
-        updateControlPanel();
+        updateEnabledStates();
     }
     */
     
@@ -716,7 +692,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
               pathway.getFirst();
         }       
         
-        updateControlPanel(); 
+        updateEnabledStates(); 
     }
     
     
@@ -726,7 +702,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     }
     
     /** PathwayTable still calling this */
-    private void setAddElementEnabled(){
+    private void updateAddElementEnabled(){
         //System.out.println("selection: " + this.elemSelection);
         //SMF if(this.elemSelection && !getTableModel().getCurrentPathway().isLocked())
         boolean enabled = true;
@@ -737,7 +713,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         this.addElement.setEnabled(enabled);
     }
 
-    private void updateSelection()
+    private void updateEnabledFromSelection()
     {
         LWSelection selection = VUE.ModelSelection;
         setElemSelection(selection.size() > 0);
@@ -769,15 +745,15 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     }
     
     /**A method which updates the widgets accordingly*/
-    private void updateControlPanel()
+    private void updateEnabledStates()
     {
         //-------------------------------------------------------
         // handle selection
-        //updateSelection();
+        //updateEnabledFromSelection();
         
         //-------------------------------------------------------
         // handle add elem?
-        setAddElementEnabled();
+        updateAddElementEnabled();
 
         //-------------------------------------------------------
         // original handle
@@ -843,7 +819,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
     /*
     public void tableChanged(javax.swing.event.TableModelEvent tableModelEvent) {
         System.out.println(this + " " + e);
-        updateControlPanel();
+        updateEnabledStates();
         this.repaint();
     }
     */
@@ -852,7 +828,7 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         if ((e.getID() & MapViewerEvent.DISPLAYED) != 0){
             if (DEBUG.PATHWAY) System.out.println(this + " got " + e + " updating...");
             updateTable();
-            //updateControlPanel();
+            //updateEnabledStates();
             //getTableModel().fireTableDataChanged();
 
             //old:
