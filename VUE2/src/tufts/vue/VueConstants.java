@@ -17,7 +17,7 @@ public interface VueConstants
 
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 14);
     static Font FONT_MEDIUM = new Font("SansSerif", Font.PLAIN, 12);
-    static Font FONT_MEDIUM_BOLD = new Font("SansSerif", Font.BOLD,12);
+    static Font FONT_MEDIUM_BOLD = new Font("SansSerif", Font.BOLD,11);
     static Font FONT_SMALL = new Font("SansSerif", Font.PLAIN, 10);
     static Font FONT_SMALL_BOLD = new Font("SansSerif", Font.BOLD, 10);
     static Font FONT_TINY = new Font("SansSerif", Font.PLAIN, 8);
