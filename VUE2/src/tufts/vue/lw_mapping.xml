@@ -201,7 +201,7 @@
 		<field name="currentIndex" type="integer">
 			<bind-xml name="CurrentIndex" node="attribute" />
 		</field>
-		<field name="ElementArrayList" type="tufts.vue.LWComponent" collection="collection" >
+		<field name="elementList" type="tufts.vue.LWComponent" collection="collection" >
 			<bind-xml name="Element" />
 		</field>
 	</class>
@@ -254,6 +254,8 @@
 	
 
 <!-- saving favorite nodes-->
+<!---------------->
+
 	<class name="tufts.vue.SaveVueJTree">
 		<map-to xml="SaveVueJTree" />
 		<field name="saveTreeRoot" type="tufts.vue.SaveNode">
