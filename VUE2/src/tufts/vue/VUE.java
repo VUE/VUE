@@ -1091,7 +1091,7 @@ implements VueConstants {
         map.addLink(k2);
         map.addLink(k3);
         // create test pathways
-        if (false) {
+        if (true) {
             LWPathway p = new LWPathway("Test Pathway");
             p.add(n1);
             p.add(n2);

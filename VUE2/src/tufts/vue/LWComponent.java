@@ -1335,6 +1335,15 @@ public class LWComponent
         if (sEventDepth > 5)
             throw new IllegalStateException("looping on delivery of " + e + " in " + source + " to " + listeners);
 
+        if (source instanceof LWComponent && ((LWComponent)source).isDeleted() || listeners == null) {
+            System.err.println("DISPATCH: deleted component or null listeners attempting event dispatch:"
+                               + "\n\tsource=" + source
+                               + "\n\tlisteners=" + listeners
+                               + "\n\tattempted notification=" + e);
+            new Throwable("ZOMBIE DISPATCH").printStackTrace();
+            return;
+        }
+        
         // todo perf: take array code out and see if can fix all
         // concurrent mod exceptions (e.g., delete out from under a
         // pathway was giving us some problems, tho I think that may

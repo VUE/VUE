@@ -340,7 +340,7 @@ public class LWPathway extends LWContainer
         }
         if (e.getWhat() == LWKey.Deleting) {
             removeAll(e.getComponent());
-        } else {
+        } else if (super.listeners != null) {
             // rebroadcast our child events so that the LWPathwayList which is
             // listening to us can pass them on to the PathwayTableModel
             dispatchLWCEvent(this, super.listeners, e);
@@ -538,7 +538,7 @@ public class LWPathway extends LWContainer
         while (i.hasNext()) {
             String id = (String) i.next();
             LWComponent c = getMap().findChildByID(id);
-            System.out.println("\tpath adding " + c);
+            if (DEBUG.PATHWAY) System.out.println("\tpath adding " + c);
             add(c);
         }
         mDoingXMLRestore = false;

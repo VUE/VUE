@@ -53,12 +53,13 @@ public class PathwayPanel extends JPanel implements ActionListener
     private final String noPathway = "                          ";
     private final String emptyLabel = "empty";
     
-    private LWComponent displayedComponent;
-    private LWPathway displayedComponentPathway;
-    
     private Color bgColor = new Color(241, 243, 246);
     private Color altbgColor = new Color(186, 196, 222);
     
+    private LWComponent mDisplayedComponent;
+    private LWPathway mDisplayedComponentPathway;
+    private boolean mNoteKeyWasPressed = false;
+
     /* end Pathway Control Properties */
     
     private String[] colNames = {"A", "B", "C", "D", "E", "F"};
@@ -224,26 +225,11 @@ public class PathwayPanel extends JPanel implements ActionListener
         notesArea.setBackground(Color.white);
         notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
         notesArea.addKeyListener(new KeyAdapter() {
-                public void keyTyped(KeyEvent e) {
-                    if (DEBUG.PATHWAY) System.out.println(this + " " + e);
-                    if (displayedComponent == null)
-                        return;
-                    // we get this event before the typed key is included in the text,
-                    // thus we add it here manually (already slow and a hack to do this every
-                    // key press -- should do it on focus loss instead -- this won't handle
-                    // saving after a selection delete for example!)
-                    //String text = notesArea.getText() + e.getKeyChar();
-                    // this is doubling key's now (what changed?) in any case, we have
-                    // to handle focus loss because we still miss the last key 
-                    String text = notesArea.getText();
-                    if (displayedComponent instanceof LWPathway) {
-                        if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
-                        displayedComponent.setNotes(text);
-                    } else {
-                        if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
-                        displayedComponentPathway.setElementNotes(displayedComponent, text);                        
-                    }
-                }
+                public void keyPressed(KeyEvent e) { mNoteKeyWasPressed = true; }
+                public void keyTyped(KeyEvent e) { if (e.getKeyCode() == KeyEvent.VK_ENTER) ensureNotesSaved(); }
+            });
+        notesArea.addFocusListener(new FocusAdapter() {
+                public void focusLost(FocusEvent e) { ensureNotesSaved(); }
             });
 
 
@@ -281,6 +267,20 @@ public class PathwayPanel extends JPanel implements ActionListener
         
         updateEnabledStates();
         /* End of Layout for pathways tab */
+    }
+
+    private void ensureNotesSaved() {
+        if (mNoteKeyWasPressed && mDisplayedComponent != null) {
+            String text = notesArea.getText();
+            if (mDisplayedComponent instanceof LWPathway) {
+                if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
+                mDisplayedComponent.setNotes(text);
+            } else {
+                if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
+                mDisplayedComponentPathway.setElementNotes(mDisplayedComponent, text);                        
+            }
+            VUE.getUndoManager().mark();
+        }
     }
 
     /** Returns the currently selected pathway.  As currently
@@ -473,8 +473,13 @@ public class PathwayPanel extends JPanel implements ActionListener
     private void updateLabels()
     {
         LWPathway pathway = getSelectedPathway();
-        if (pathway == null)
+        if (pathway == null) {
+            mDisplayedComponent = null;
+            mDisplayedComponentPathway = null;
+            pathLabel.setText("");
+            notesArea.setText("");
             return;
+        }
         LWComponent c = tableModel.getElement(pathwayTable.getLastSelectedRow());
         
         String labelText = "Notes: " + pathway.getLabel();
@@ -488,9 +493,10 @@ public class PathwayPanel extends JPanel implements ActionListener
         }
         pathLabel.setText(labelText);
         notesArea.setText(notesText);
+        mNoteKeyWasPressed = false;
         
-        displayedComponent = c;
-        displayedComponentPathway = pathway;
+        mDisplayedComponent = c;
+        mDisplayedComponentPathway = pathway;
     }
 
     public String toString() {
