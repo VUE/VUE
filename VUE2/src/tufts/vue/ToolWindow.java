@@ -103,6 +103,7 @@ public class ToolWindow
     }
     
     private ToolPanel toolPanel;
+    private String title;
     public ToolWindow(String title, Frame owner)
     {
         //setUndecorated(true);
@@ -110,10 +111,32 @@ public class ToolWindow
         addMouseListener(this);
         addMouseMotionListener(this);
         setBackground(SystemColor.control);
+        this.title = title;
         setContentPane(toolPanel = new ToolPanel(title));
         pack();
         //setLocationRelativeTo(owner);
         //setFocusableWindowState(false); // nothing can get input
+    }
+    
+    class DisplayAction extends AbstractAction
+    {
+        public DisplayAction(String label)
+        {
+            super(label);
+        }
+        public void actionPerformed(ActionEvent e)
+        {
+            AbstractButton btn = (AbstractButton) e.getSource();
+            setVisible(btn.isSelected());
+        }
+    }
+
+    Action displayAction;
+    public Action getDisplayAction()
+    {
+        if (displayAction == null)
+            displayAction = new DisplayAction(this.title);
+        return displayAction;
     }
 
     public void addTool(Component c)
