@@ -13,11 +13,13 @@ package tufts.oki.dr.fedora;
 
 import javax.swing.AbstractAction;
 import java.util.ResourceBundle;
+import java.io.*;
 
 public class FedoraUtils {
     
     /** Creates a new instance of FedoraUtils */
     public static final String SEPARATOR = ",";
+    public static final String NOT_DEFINED = "Property not defined";
     
   
     public static java.util.Vector stringToVector(String str) {
@@ -38,6 +40,50 @@ public class FedoraUtils {
         return processString;
     }
     
+    public static String getFedoraProperty(DR dr,String pLookupKey)  throws osid.dr.DigitalRepositoryException{
+        java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
+        String pValue = NOT_DEFINED;
+        try {
+            FileInputStream fis = new FileInputStream(dr.getConfiguration().getPath());
+            prefs.importPreferences(fis);
+            pValue = prefs.get(pLookupKey,NOT_DEFINED);
+            fis.close();
+        } catch(Exception ex) {
+            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraProperty "+ex.getMessage());
+        } 
+        return pValue;   
+        
+    }
+    
+    public static String[] getFedoraPropertyArray(DR dr,String pLookupKey) throws osid.dr.DigitalRepositoryException{
+        String pValue = getFedoraProperty(dr,pLookupKey);
+        return pValue.split(SEPARATOR);
+    }
+    
+    public static String[] getAdvancedSearchFields(DR dr)  throws osid.dr.DigitalRepositoryException{
+        return getFedoraPropertyArray(dr,"fedora.advanced.search.fields");
+    }
+    public static String[] getAdvancedSearchOperators(DR dr)  throws osid.dr.DigitalRepositoryException{
+        return getFedoraPropertyArray(dr,"fedora.advanced.search.operators");
+
+    }
+    public static String getAdvancedSearchOperatorsActuals(DR dr,String pOperator) throws osid.dr.DigitalRepositoryException{
+        String[] pOperators =   getAdvancedSearchOperators(dr);
+        String[] pOperatorsActuals = getFedoraPropertyArray(dr,"fedora.search.advanced.operators.actuals");
+        String pValue = NOT_DEFINED;
+        boolean flag = true;
+        for(int i =0;i<pOperators.length && flag;i++) {
+            if(pOperators[i].equalsIgnoreCase(pOperator)) {
+                pValue = pOperatorsActuals[i];
+                flag = false;
+            }
+        }
+        return pValue;
+    }
+    
+    
+    
+   
     public static String getSaveFileName(osid.shared.Id objectId,osid.shared.Id behaviorId,osid.shared.Id disseminationId) throws osid.OsidException {
         String saveFileName = processId(objectId.getIdString()+"-"+behaviorId.getIdString()+"-"+disseminationId.getIdString());
         return saveFileName;
