@@ -43,7 +43,7 @@ import osid.dr.*;
 public class FavoritesWindow extends JPanel implements ActionListener, ItemListener 
 {
     private DisplayAction displayAction = null;
-    private VueDandDTree favoritesTree ;
+    public  VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
     final static String XML_MAPPING = "lw_mapping.xml";
     
@@ -51,17 +51,14 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public FavoritesWindow(String displayName ) 
     {
         setLayout(new BorderLayout());
-        //super(displayName);
-        //setSize(300, 400); 
+       
        JTabbedPane favoritesPane = new JTabbedPane();
        
-      //   TreeModel testModel = favoritesTree.getModel();
-        //JTree sertree = new JTree();
-        // sertree.setModel(testModel);
+    
         FavoritesNode browseRoot = new FavoritesNode("Bookmarks");
  
          favoritesTree = new VueDandDTree(browseRoot);
-          
+         this.setFavoritesTree(favoritesTree); 
        
         JPanel searchResultsPane = new JPanel();
         FavSearchPanel favSearchPanel = new FavSearchPanel(favoritesTree,favoritesPane,searchResultsPane);
@@ -76,22 +73,30 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
        
           browsePane = new JScrollPane(favoritesTree);
          favoritesPane.add("Browse", browsePane); 
-          
+         
         
          
           
           createPopupMenu();
         
          add(favoritesPane,BorderLayout.CENTER);
-         // pack();
-          //show();
-
-       
-//---------------------------------------------closing the window businees
+         
+        
+         
         
     }
     
-  
+   public VueDandDTree getFavoritesTree(){
+       return (this.favoritesTree);
+
+   }
+   
+   public void setFavoritesTree(VueDandDTree favoritesTree){
+       this.favoritesTree = favoritesTree;
+       
+   }
+       
+       
     public Action getDisplayAction()
     {
         if (displayAction == null)
