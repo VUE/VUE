@@ -119,7 +119,7 @@ public class LWComponent
         // to differentiate hierarchy events that are just reparentings from
         // creations (the opposite end of this solution is in removeFromModel, when
         // we know something has been explicitly deleted).
-        notify("new-component-add", new Undoable() { void undo() { setDeleted(true); }} );
+        notify("new-component-add", new Undoable() { void undo() { removeFromModel(); }} );
     }
     public void setLabel(String label)
     {
