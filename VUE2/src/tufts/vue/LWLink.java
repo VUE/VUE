@@ -1238,14 +1238,20 @@ public class LWLink extends LWComponent
         //float textBoxWidth = 0;
         //float textBoxHeight = 0;
         //boolean textBoxBeingEdited = false;
+
         Color fillColor;
-        if (dc.isPrinting() || !isSelected())
-            fillColor = getFillColor();
-        else
-            fillColor = COLOR_HIGHLIGHT;
-        if (fillColor == null && getParent() != null)
-            fillColor = getParent().getFillColor();
-        //fillColor = ContrastFillColor;
+        if (dc.isDraftQuality() || DEBUG.BOXES) {
+            fillColor = null;
+        } else {
+            if (dc.isPrinting() || !isSelected())
+                fillColor = getFillColor();
+            else
+                fillColor = COLOR_HIGHLIGHT;
+            if (fillColor == null && getParent() != null)
+                fillColor = getParent().getFillColor();
+            //fillColor = ContrastFillColor;
+        }
+        
         if (hasLabel()) {
             TextBox textBox = getLabelBox();
             // only draw if we're not an active edit on the map
@@ -1268,14 +1274,12 @@ public class LWLink extends LWComponent
                 // todo perf: only set opaque-bit/background once/when it changes.
                 // (probably put a textbox factory on LWComponent and override in LWLink)
 
-                    //c = getParent().getFillColor(); // todo: maybe have a getBackroundColor which searches up parents
-                if (!DEBUG.BOXES) {
-                    if (fillColor != null) {
-                        textBox.setBackground(fillColor);
-                        textBox.setOpaque(true);
-                    }
-                } else
+                if (fillColor == null) {
                     textBox.setOpaque(false);
+                } else {
+                    textBox.setBackground(fillColor);
+                    textBox.setOpaque(true);
+                }
                 
                 dc.g.translate(lx, ly);
                 //if (isZoomedFocus()) g.scale(getScale(), getScale());
@@ -1317,8 +1321,10 @@ public class LWLink extends LWComponent
             //dc.g.setStroke(STROKE_HALF);
             //dc.g.setColor(Color.gray);
             //dc.g.draw(mIconBlock);
-            dc.g.setColor(fillColor);
-            dc.g.fill(mIconBlock);
+            if (fillColor != null) {
+                dc.g.setColor(fillColor);
+                dc.g.fill(mIconBlock);
+            }
             mIconBlock.draw(dc);
         }
         // todo perf: don't have to compute icon block location every time

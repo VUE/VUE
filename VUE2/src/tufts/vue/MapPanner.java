@@ -28,6 +28,7 @@ public class MapPanner extends javax.swing.JPanel
     private MapViewer mapViewer; // active MapViewer
     private double zoomFactor; // zoomFactor that will fit entire map in the panner
     private Point dragStart; // where mouse was at mouse press
+    private Point lastDrag; // where mouse was at last drag
     private Point2D mapStart; // where map origin was at mouse press
     private LWMap map; // active map
 
@@ -71,14 +72,6 @@ public class MapPanner extends javax.swing.JPanel
     
     private void setViewer(MapViewer mapViewer)
     {
-
-        // TODO: create a special event that happens in a map whenever
-        // an UndoManager.mark occurs (a new UndoAction is generated)
-        // -- this is an accurate large-granularity change event that
-        // we could use for repainting the panner (as we don't want to
-        // repaint it for every event that happens during a drag, for
-        // instance -- that would slow things down too much).
-
         if (this.mapViewer != mapViewer) {
             this.mapViewer = mapViewer;
             if (mapViewer != null)
@@ -97,7 +90,82 @@ public class MapPanner extends javax.swing.JPanel
     }
 
     public void LWCChanged(LWCEvent e) {
+        // we only see UserActionCompleted events
         repaint();
+    }
+
+    public void mousePressed(MouseEvent e)
+    {
+        if (DEBUG.MOUSE) out(e);
+        dragStart = lastDrag = e.getPoint();
+        mapStart = mapViewer.getOriginLocation();
+        repaint();
+    }
+    public void mouseReleased(MouseEvent e)
+    {
+        if (DEBUG.MOUSE) out(e);
+        dragStart = lastDrag = null;
+        //mapViewer.adjustScrollRegion();// for now
+    }
+
+    public void mouseDragged(MouseEvent e)
+    {
+        if (DEBUG.MOUSE) out(e);
+        if (dragStart == null)
+            return;
+
+        /*
+        Rectangle   viewerBounds = new Rectangle(mapViewer.getWidth()-1, mapViewer.getHeight()-1);
+        if (viewerBounds.isEmpty())
+            return;
+        Rectangle2D mapViewerRect = mapViewer.screenToMapRect(viewerBounds);
+        boolean keepx = false;
+        if (mapViewerRect.getX() <= pannerMinX)
+            keepx = true;
+        // No good -- need to pre-compute this!
+        //
+        // It's surprisingly complex to try and figure out in advance if repositioning the map
+        // change the panner zoom offset...  (And we still need to support being "off the grid"
+        // in any case because the user can always manually drag the main view into outer-space)
+        */
+        
+        if (DEBUG.SCROLL) out("mouse " + e.getPoint());
+        int x = e.getX();
+        int y = e.getY();
+
+        if (mapViewer.inScrollPane()) {
+            if (x < 0 || x > getWidth() || y < 0 || y > getHeight()) {
+                lastDrag = e.getPoint();
+                return;
+            }
+            int dx = x - lastDrag.x;
+            int dy = y - lastDrag.y;
+            double factor = mapViewer.getZoomFactor() / this.zoomFactor;
+
+            dx = (int) (dx * factor + 0.5);
+            dy = (int) (dy * factor + 0.5);
+            
+            if (DEBUG.SCROLL) out("dx="+dx + " dy="+dy);
+            
+            mapViewer.panScrollRegion(dx, dy);
+            lastDrag = e.getPoint();
+            
+        } else {
+            // hack till we disallow the maprect from going beyond edge
+            if (x < 0) x = 0;
+            else if (x > getWidth()-2) x = getWidth()-2;
+            if (y < 0) y = 0;
+            else if (y > getHeight()-2) y = getHeight()-2;
+        
+            double factor = this.zoomFactor / mapViewer.getZoomFactor();
+            double dragOffsetX = (x - dragStart.getX()) / factor;
+            double dragOffsetY = (y - dragStart.getY()) / factor;
+            mapViewer.setMapOriginOffset(mapStart.getX() + dragOffsetX,
+                                         mapStart.getY() + dragOffsetY);
+            mapViewer.repaint();
+            repaint();
+        }
+
     }
     
     public void paintComponent(Graphics g)
@@ -160,6 +228,7 @@ public class MapPanner extends javax.swing.JPanel
         dc.setPrioritizeSpeed(true);
         dc.setFractionalFontMetrics(false);
         dc.setPrinting(true); // what we want on panner draw same as printing -- really a "non-interactive" flag
+        dc.setDraftQuality(true); // okay to skimp in rendering of panner image -- it's usually so tiny
 
         /*
          * Now tell the active LWMap to draw itself here on the panner.
@@ -185,70 +254,6 @@ public class MapPanner extends javax.swing.JPanel
         g2.translate(offset.getX(), offset.getY());
     }
 
-    protected void X_paintBorder(Graphics g) {
-        // panner disables any border
-    }
-
-    public void mousePressed(MouseEvent e)
-    {
-        if (DEBUG.MOUSE) out(e);
-        dragStart = e.getPoint();
-        mapStart = mapViewer.getOriginLocation();
-        repaint();
-    }
-    public void mouseReleased(MouseEvent e)
-    {
-        if (DEBUG.MOUSE) out(e);
-        dragStart = null;
-        //mapViewer.adjustScrollRegion();// for now
-    }
-
-    public void mouseDragged(MouseEvent e)
-    {
-        if (DEBUG.MOUSE) out(e);
-        if (dragStart == null)
-            return;
-
-        int x = e.getX();
-        int y = e.getY();
-
-        // hack till we disallow the maprect from going beyond edge
-        if (x < 0) x = 0;
-        else if (x > getWidth()-2) x = getWidth()-2;
-        if (y < 0) y = 0;
-        else if (y > getHeight()-2) y = getHeight()-2;
-        
-        /*
-        Rectangle   viewerBounds = new Rectangle(mapViewer.getWidth()-1, mapViewer.getHeight()-1);
-        if (viewerBounds.isEmpty())
-            return;
-        Rectangle2D mapViewerRect = mapViewer.screenToMapRect(viewerBounds);
-        boolean keepx = false;
-        if (mapViewerRect.getX() <= pannerMinX)
-            keepx = true;
-        // No good -- need to pre-compute this!
-        //
-        // It's surprisingly complex to try and figure out in advance if repositioning the map
-        // change the panner zoom offset...  (And we still need to support being "off the grid"
-        // in any case because the user can always manually drag the main view into outer-space)
-        */
-        
-        double factor = this.zoomFactor / mapViewer.getZoomFactor();
-        double dragOffsetX = (x - dragStart.getX()) / factor;
-        double dragOffsetY = (y - dragStart.getY()) / factor;
-
-        /*
-         * Reposition the active MapViewer -- this will generate an
-         * event that we'll get, a which point the panner will
-         * then repaint itself.  [ NO LONGER TRUE ]
-         */
-        mapViewer.setMapOriginOffset(mapStart.getX() + dragOffsetX,
-                                     mapStart.getY() + dragOffsetY);
-        // for now...:
-        mapViewer.repaint();
-        repaint();
-    }
-    
     public void mouseClicked(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
     public void mouseEntered(MouseEvent e) { if (DEBUG.MOUSE) out(e); }
     public void mouseExited(MouseEvent e) { if (DEBUG.MOUSE) out(e); }

@@ -103,6 +103,10 @@ public class MapViewer extends javax.swing.JComponent
         this(map);
         this.isRightSide = true;
     }
+
+    boolean inScrollPane() {
+        return inScrollPane;
+    }
     
     private InputHandler inputHandler = new InputHandler();
     public void addNotify() {
@@ -612,14 +616,14 @@ public class MapViewer extends javax.swing.JComponent
             return getWidth() > 0 && getHeight() > 0;
     }
     
-    private void panScrollRegion(int dx, int dy) {
+    void panScrollRegion(int dx, int dy) {
         Point location = mViewport.getViewPosition();
         if (DEBUG.SCROLL) out("PAN: dx=" + dx + " dy=" + dy);
         if (DEBUG.SCROLL) out("PAN: viewport start: " + location);
         location.translate(dx, dy);
         if (DEBUG.SCROLL) out("PAN: viewport   end: " + location);
         
-        final boolean allowGrowth = false; // not-working
+        final boolean allowGrowth = false; // not-working as true
         float ox = mOffset.x;
         float oy = mOffset.y;
         boolean originMoved = false;

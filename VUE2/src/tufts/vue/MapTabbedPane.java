@@ -158,8 +158,12 @@ public class MapTabbedPane extends JTabbedPane
         
     public void addViewer(MapViewer viewer) {
         Component c = viewer;
-        if (true || !this.name.startsWith("*"))
-            c = new JScrollPane(viewer);
+        if (true || !this.name.startsWith("*")) {
+            JScrollPane scrollPane = new JScrollPane(viewer);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+            c = scrollPane;
+        }
         addTab(viewerToTabTitle(viewer), c);
         LWMap map = viewer.getMap();
         map.addLWCListener(this, LWKey.Label);

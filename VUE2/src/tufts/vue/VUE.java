@@ -459,7 +459,7 @@ public class VUE
         //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
-        //frame.pack(); // no point in packing if we're about to force a set-size
+        frame.pack();
         frame.setSize(800,600);// todo: make % of screen, make sure tool windows below don't go off screen!
         frame.validate();
         

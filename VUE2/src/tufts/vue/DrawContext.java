@@ -11,6 +11,7 @@ public class DrawContext
     int index;
     private boolean disableAntiAlias = false;
     private boolean isPrinting = false;
+    private boolean isDraftQuality = false;
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
     // that grabs transform scale value.
@@ -46,6 +47,14 @@ public class DrawContext
 
     public boolean isPrinting() {
         return isPrinting;
+    }
+
+    public void setDraftQuality(boolean t) {
+        isDraftQuality = t;
+    }
+
+    public boolean isDraftQuality() {
+        return isDraftQuality;
     }
 
     public void disableAntiAlias(boolean tv)
