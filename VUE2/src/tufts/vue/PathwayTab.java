@@ -27,21 +27,20 @@ import javax.swing.event.ListSelectionListener;
 
 /**
  *
- * @author  ptadministrator
+ * @author  Daisuke Fujiwara
  */
+/**A class which displays nodes in a pathway */
 public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener
 {    
+    //necessary widgets
     private JTable pathwayTable;
-    private PathwayTableModel model;
     private JButton moveUp, moveDown, remove;
     private JTextArea text;
     
     /** Creates a new instance of PathwayTab */
     public PathwayTab() 
     {   
-        model = new PathwayTableModel();
-        
-        pathwayTable = new JTable(model);
+        pathwayTable = new JTable(new PathwayTableModel());
         pathwayTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         ListSelectionModel lsm = pathwayTable.getSelectionModel();
         lsm.addListSelectionListener(this);
@@ -54,6 +53,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         
         JPanel buttons = new JPanel();
         buttons.setLayout(new FlowLayout());
+        buttons.setPreferredSize(new Dimension (80, 60));
         
         moveUp = new JButton("Up");
         moveDown = new JButton("Down");
@@ -86,61 +86,68 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         add(textPanel, BorderLayout.SOUTH);
     }
     
+    /**Another constructor which takes in a pathway as an argument*/
     public PathwayTab(LWPathway pathway)
     {
         this();
-        model.setPathway(pathway);
+        ((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
     }
     
+    /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
+        //gets the selected row number
         int selected = pathwayTable.getSelectedRow();
         
+        //moves up the selected row 
         if (e.getSource() == moveUp)
         {
             selected--;
             pathwayTable.setRowSelectionInterval(selected, selected);
-            //remove.setEnabled(true);
         }
         
+        //moves down the selected row
         else if (e.getSource() == moveDown)
         {
             selected++; 
             pathwayTable.setRowSelectionInterval(selected, selected);
-            //remove.setEnabled(true);
         }
         
-        //remove
+        //removes the selected row
         else
         {    
              if (selected != -1)
              {
-                model.deleteRow(selected);
-                //remove.setEnabled(false);                
+                ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);
              }  
         }        
     }
     
+    /**Reacts to list selections dispatched by the table*/
     public void valueChanged(ListSelectionEvent le)
     {
         ListSelectionModel lsm = (ListSelectionModel)le.getSource();
 
+        //if there is a row selected
         if (!lsm.isSelectionEmpty())
         {
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
             
+            //if the selected row is the last row, then disables the move down button
             if(selectedRow == pathwayTable.getRowCount() - 1)
                 moveDown.setEnabled(false);
             else
                 moveDown.setEnabled(true);
             
+            //if the selected row is the first row, then disables the move up button
             if(selectedRow == 0)
                 moveUp.setEnabled(false);
             else
                 moveUp.setEnabled(true);
         }
         
+        //if no row is selected, then disables all buttons
         else
         {
             moveDown.setEnabled(false);
@@ -154,27 +161,35 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
      */
     public static void main(String[] args) 
     {
+        //setting up the tool window
         ToolWindow window = new ToolWindow("Pathway Control", null);
         window.setSize(400, 300);
         window.addTool(new PathwayTab(new LWPathway(0)));
         window.setVisible(true);
     }
     
+    /**A model used by the table which displays nodes of the pathway*/
     private class PathwayTableModel extends AbstractTableModel
     {
+        //pathway whose nodes are displayed in the table
         private LWPathway pathway;
-        private final String[] columnNames = {"Nodes/Links"};
         
+        //column names for the table
+        private final String[] columnNames = {"Nodes/Links"};
+         
         public PathwayTableModel()
         {
+            //default pathway
             pathway = new LWPathway();
         }
         
+        //sets the pathway to the given pathway
         public synchronized void setPathway(LWPathway pathway)
         {
             this.pathway = pathway;
         }
         
+        //returns the number of row (nodes of the pathway)
         public synchronized int getRowCount()
         {
             return pathway.length();
@@ -190,6 +205,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             return columnNames[column];
         }
         
+        //a method which defines how what each cell should display
         public synchronized Object getValueAt(int row, int column)
         {
             try
@@ -212,12 +228,14 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             return "";
         }
         
+        //adds a row to the table (insertion)
         public synchronized void addRow(Node node)
         {
             pathway.addNode(node);
             fireTableRowsInserted(getRowCount() - 1, getRowCount() - 1);
         }
         
+        //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
             pathway.removeNode(pathway.getNode(row));
