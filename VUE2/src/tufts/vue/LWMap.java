@@ -21,8 +21,6 @@ import java.awt.Graphics2D;
 public class LWMap extends LWContainer
     implements ConceptMap
 {
-    public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
-     
     // these for persistance use only
     private float userOriginX;
     private float userOriginY;
@@ -39,12 +37,12 @@ public class LWMap extends LWContainer
 
     public LWMap(String label)
     {
-        setLabel(label);
         setID("0");
         setFillColor(java.awt.Color.white);
         setTextColor(COLOR_TEXT);
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
+        setLabel(label);
         manager = new LWPathwayManager(this);
     }
     
@@ -191,7 +189,7 @@ public class LWMap extends LWContainer
     {
         Rectangle2D bounds = getBounds(getChildIterator());
         setSize((float)bounds.getWidth(), (float)bounds.getHeight());
-        System.out.println("LWMap.getBounds: " + bounds);
+        System.out.println(this + " getBounds: " + bounds);
         return bounds;
     }
     
