@@ -184,11 +184,6 @@ public class ZoomTool extends VueTool
             viewer.setZoomFactor(newZoomFactor, reset, null, true);
     }
     
-    public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
-    {
-        setZoomFitRegion(VUE.getActiveViewer(), mapRegion, edgePadding);
-    }
-    
     public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, int edgePadding)
     {
         if (mapRegion == null) {
@@ -218,16 +213,51 @@ public class ZoomTool extends VueTool
                 viewer.setMapOriginOffset(offsetX, offsetY);
                 //viewer.resetScrollRegion();
             } else {
+
+                if (false)
+                    animatedZoomTo(viewer, newZoom, offset);
+                
                 setZoom(viewer, newZoom, false, DONT_FOCUS, true);
                 viewer.setMapOriginOffset(offset.getX(), offset.getY());
             }
         }
     }
-    
-    /** fit everything in the current map into the current viewport */
-    public static void setZoomFit()
+
+    private static void animatedZoomTo(MapViewer viewer, double newZoom, Point2D offset)
     {
-        setZoomFit(VUE.getActiveViewer());
+        final int frames = 10;
+
+        double cz = viewer.getZoomFactor();
+        double cx = viewer.getOriginX();
+        double cy = viewer.getOriginY();
+                
+        double dz = newZoom - cz;
+        double dx = offset.getX() - cx;
+        double dy = offset.getY() - cy;
+
+        double iz = dz/frames;
+        double ix = dx/frames;
+        double iy = dy/frames;
+
+        // This will currenly only work on a viewer that's NOT
+        // in a scroll-pane (so ony full-screen windows for now)
+        // as the repaint does nothing to adjust the scrolling
+        // viewport.
+        for (int i = 1; i < frames; i++) {
+            setZoom(viewer, cz + iz*i, false, DONT_FOCUS, true);
+            viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
+            viewer.paintImmediately();
+        }
+    }
+    
+    public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
+    {
+        setZoomFitRegion(VUE.getActiveViewer(), mapRegion, edgePadding);
+    }
+    
+    public static void setZoomFitRegion(Rectangle2D mapRegion)
+    {
+        setZoomFitRegion(mapRegion, 0);
     }
     
     /** fit all of the map contents for the given viewer to be visible */
@@ -243,10 +273,12 @@ public class ZoomTool extends VueTool
         // we can't use it as our zoom fit becomes a circular, cycling computation.
     }
     
-    public static void setZoomFitRegion(Rectangle2D mapRegion)
+    /** fit everything in the current map into the current viewport */
+    public static void setZoomFit()
     {
-        setZoomFitRegion(mapRegion, 0);
+        setZoomFit(VUE.getActiveViewer());
     }
+    
     
     public static double computeZoomFit(Dimension viewport, int borderGap, Rectangle2D bounds, Point2D offset) {
         return computeZoomFit(viewport, borderGap, bounds, offset, true);
