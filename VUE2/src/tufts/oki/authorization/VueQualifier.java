@@ -35,10 +35,10 @@ public class VueQualifier implements osid.authorization.Qualifier {
     private String description = null;              //  The qualifier description.
     private osid.shared.Id id = null;               //  The qualifier id.
     private osid.shared.Type type = null;           //  The qualifier type.
-    private VueAuthorizationManager azMgr = null;   //  Cached AuthZMgr to resolve id's against objects.
+    private AuthorizationManager azMgr = null;   //  Cached AuthZMgr to resolve id's against objects.
     
     /** Creates a new instance of VueQualifier */
-    public VueQualifier(String displayName, String description, osid.shared.Id id, osid.shared.Type type, VueAuthorizationManager mgr) {
+    public VueQualifier(String displayName, String description, osid.shared.Id id, osid.shared.Type type, AuthorizationManager mgr) {
         this.displayName = displayName;
         this.description = description;
         this.id = id;
@@ -49,7 +49,7 @@ public class VueQualifier implements osid.authorization.Qualifier {
     }
     
     /** Creates a new instance of VueQualifier given a parent. */
-    public VueQualifier(String displayName, String description, osid.shared.Id id, osid.shared.Type type, VueAuthorizationManager mgr, VueQualifier parent) {
+    public VueQualifier(String displayName, String description, osid.shared.Id id, osid.shared.Type type, AuthorizationManager mgr, VueQualifier parent) {
         this.displayName = displayName;
         this.description = description;
         this.id = id;
