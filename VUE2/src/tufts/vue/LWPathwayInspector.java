@@ -94,6 +94,7 @@ public class LWPathwayInspector extends InspectorWindow
  
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
+        this.setResizable(true);
         
         InfoTable table = new InfoTable();
         notes = new Notes();
@@ -112,15 +113,14 @@ public class LWPathwayInspector extends InspectorWindow
         
         /**adding pane and setting location of this stand alone window*/
         this.getContentPane().add(pane);
-        this.setSize(350, 600);
-        
+        this.setSize(400, 650);
         /**unselects checkbox in VUE window menu on closing*/
         super.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e) {setButton(false);}});
     }
     
-    public PathwayControl getPathwayControl(){
-        return pathwayTab.getPathwayControl();
+    public void setPathwayManager(LWPathwayManager pathwayManager){
+        pathwayTab.setPathwayManager(pathwayManager);
     }
     
     public void setButton(boolean state){
@@ -146,7 +146,7 @@ public class LWPathwayInspector extends InspectorWindow
     
     public void notifyPathwayTab(){
         pathwayTab.updateTable();
-        pathwayTab.getPathwayControl().updateControlPanel();
+        pathwayTab.updateControlPanel();
     }
     
      /*protected void getField(String name,
@@ -416,8 +416,7 @@ public class LWPathwayInspector extends InspectorWindow
                 if(row == 0){
                     pathway.setLabel((String)value);
                     setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
-                    PathwayControl control = pathwayTab.getPathwayControl();
-                    control.repaint();
+                    VUE.getPathwayInspector().repaint();
                 } 
                 //can't set the length
                 else if(row == 2){
