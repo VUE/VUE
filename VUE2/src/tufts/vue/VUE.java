@@ -141,10 +141,9 @@ public class VUE
         tabbedPane.setPreferredSize(new Dimension(500,400));
         
         if (args.length < 1) {
-        //-------------------------------------------------------
-        // Temporary: create example map(s)
-        //-------------------------------------------------------
-
+            //-------------------------------------------------------
+            // Temporary: create example map(s)
+            //-------------------------------------------------------
             LWMap map1 = new LWMap("One");
             LWMap map2 = new LWMap("Two");
 
@@ -154,7 +153,7 @@ public class VUE
             
             displayMap(map1);
             displayMap(map2);
-        } else {
+
             // Create an empty map
             //displayMap(new LWMap("New Map"));
         }
@@ -166,7 +165,7 @@ public class VUE
         
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new BorderLayout());
-        toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
+        //toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
         //toolPanel.add(new MapItemInspector(), BorderLayout.SOUTH);
 
@@ -329,6 +328,7 @@ public class VUE
         editMenu.add(Actions.Redo);
         editMenu.addSeparator();
         editMenu.add(Actions.NewNode);
+        editMenu.add(Actions.NewText);
         editMenu.add(Actions.Rename);
         editMenu.addSeparator();
         editMenu.add(Actions.Cut);

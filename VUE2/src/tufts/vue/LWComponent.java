@@ -26,8 +26,6 @@ public class LWComponent
     implements MapItem,
                VueConstants
 {
-    static boolean DEBUG_LAYOUT = false;
-    
     public interface Listener extends java.util.EventListener
     {
         public void LWCChanged(LWCEvent e);
@@ -128,14 +126,14 @@ public class LWComponent
     protected Color fillColor = null;           //style
     protected Color textColor = COLOR_TEXT;     //style
     protected Color strokeColor = COLOR_STROKE; //style
-    protected float strokeWidth = 1f;            //style
+    protected float strokeWidth = 2f;            //style (equate w/default stroke)
     protected Font font = null;                 //style
     //protected Font font = FONT_DEFAULT;
     
     /*
      * Runtime only information
      */
-    protected transient BasicStroke stroke = STROKE_ONE;//equate with above strokeWidth default
+    protected transient BasicStroke stroke = STROKE_TWO;//equate with above strokeWidth default
     protected transient boolean displayed = true;
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
@@ -268,7 +266,7 @@ public class LWComponent
     public void setFont(Font font)
     {
         this.font = font;
-        layout();
+        //layout();
         notify("font");
     }
     /** to support XML persistance */
@@ -291,16 +289,11 @@ public class LWComponent
         setFont(Font.decode(xml));
     }
     
-    /**
-     * If this item supports children,
-     * lay them out.
-     */
-    protected void layout() {}
-    
     public boolean isManagedColor()
     {
-        return getFillColor() == COLOR_NODE_DEFAULT
-            || getFillColor() == COLOR_NODE_INVERTED;
+        // todo: either get rid of this or make it more sophisticated
+        Color c = getFillColor();
+        return c != null && (c == COLOR_NODE_DEFAULT || c == COLOR_NODE_INVERTED);
     }
     
     public float getLabelX()
@@ -420,6 +413,7 @@ public class LWComponent
     public void setScale(float scale)
     {
         this.scale = scale;
+        notify("scale");
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
@@ -437,7 +431,7 @@ public class LWComponent
         //System.out.println(this + " setLocation("+x+","+y+")");
         this.x = x;
         this.y = y;
-        // notify("location"); // todo: does anyone need this?
+        //notify("location"); // todo: does anyone need this?
         // also: if enable, don't forget to put in setX/getX!
     }
     
@@ -627,9 +621,19 @@ public class LWComponent
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext()) {
                 Listener l = (Listener) i.next();
+                if (DEBUG_EVENTS) System.out.println(e + " -> " + l);
                 l.LWCChanged(e);
             }
         }
+
+        // todo: have a seperate notifyParent? -- every parent
+        // shouldn't have to be a listener
+
+        // todo: "added" events don't need to go thru parent chain as
+        // a "childAdded" event has already taken place (but
+        // listeners, eg, inspectors, may need to know to see if the
+        // parent changed)
+        
         if (parent != null)
             parent.notifyLWCListeners(e);
     }
@@ -699,5 +703,4 @@ public class LWComponent
         s += "]";
         return s;
     }
-    
 }

@@ -32,9 +32,9 @@ public class LWCEvent
     public String toString()
     {
         String s = "LWCEvent[" + what
-            + " " + component;
-        if (source != component)
-            s += " src=" + source;
+            + " " + source;
+        if (component != source)
+            s += " c=" + component;
         return s + "]";
     }
 }

@@ -63,6 +63,15 @@ public class LWNode extends LWContainer
     {
         setShape(StandardShapes[4]);//todo: from persist
     }
+
+    static LWNode createTextNode(String text)
+    {
+        LWNode node = new LWNode(text);
+        node.setShape(StandardShapes[3]);
+        node.setStrokeWidth(0f);
+        node.setFillColor(null);
+        return node;
+    }
     
     // temporary convience
     LWNode(String label, int shapeType)
@@ -133,18 +142,7 @@ public class LWNode extends LWContainer
     {
         super.addChild(c);
         //c.setScale(getScale() * ChildScale);
-        //setScale(getScale());// to prop color toggle hack
         setScale(getScale());// to prop color toggle hack
-        layout();
-    }
-
-    public void removeChild(LWComponent c)
-    {
-        super.removeChild(c);
-        c.setScale(1f);
-        if (c.isManagedColor())
-            c.setFillColor(COLOR_NODE_DEFAULT);
-        c.layout();
         layout();
     }
 
@@ -265,16 +263,19 @@ public class LWNode extends LWContainer
         float width;
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            //height += c.getHeight() + VerticalChildGap;
-            //width = c.getWidth();
-            height += c.height + VerticalChildGap;
-            width = c.width;
+            height += c.getHeight() + VerticalChildGap;
+            width = c.getWidth();
+            //height += c.height + VerticalChildGap;
+            //width = c.width;
             if (width > maxWidth)
                 maxWidth = width;
             
         }
-        height *= ChildScale;
-        maxWidth *= ChildScale;
+        // If WE'RE already scaled, these totals will be off
+        // This is way confusing -- I hope we can
+        // can get rid of this feature soon.
+        height /= getScale();
+        maxWidth /= getScale();
         return new Rectangle2D.Float(0f, 0f, maxWidth, height);
     }
         
@@ -289,12 +290,9 @@ public class LWNode extends LWContainer
         layoutChildren();
     }
     
-    // TODO OPT: way too much activity setting these layouts --
-    // everybody is getting there size reset all the time --
-    // see DEBUG_LAYOUT & work w/child nodes.
     protected void layout()
     {
-        //System.out.println("layout " + this);
+        if (DEBUG_LAYOUT) System.out.println("*** LAYOUT " + this);
         if (isAutoSized())
             setPreferredSize();
         layoutChildren();
@@ -304,31 +302,38 @@ public class LWNode extends LWContainer
         // that if bigger so don't have to reproduce layout logic in
         // both getAllChildren bounds and layoutChildren
 
-        if (getParent() != null)
+        // todo: handle thru event?
+        if (getParent() != null) // parent could be null constructing coded demo maps
             getParent().layout();
     }
       
-    private FontMetrics fontMetrics;
     private String lastLabel;
+    private Graphics graphics;
 
-    private void saveFontMetrics(Graphics g)
+    public void setFont(Font font)
     {
-        FontMetrics oldMetrics = this.fontMetrics;
-        this.fontMetrics = g.getFontMetrics();
-        if (this.fontMetrics != oldMetrics)
-            layout();
+        super.setFont(font);
+        layout();
+    }
+
+    private FontMetrics getFontMetrics()
+    {
+        if (this.graphics == null)
+            return null;
+        return this.graphics.getFontMetrics(getFont());
     }
     
     private void setPreferredSize()
     {
-        String label = getLabel();
-        //System.out.println("setPreferredSize " + label);
-        if (this.fontMetrics == null) {
-            //new Throwable("null FontMetrics in " + this).printStackTrace();
-            // Can happen in another view that hasn't been painted yet
+        FontMetrics fm = getFontMetrics();
+        if (fm == null) {
+            // Happens first time, or in another view that hasn't  painted yet
             return;
         }
-        FontMetrics fm = this.fontMetrics;
+        
+        String label = getLabel();
+        //System.out.println("setPreferredSize " + label);
+
         float oldWidth = getWidth();
         this.fontHeight = fm.getAscent() - fm.getDescent() / 1;
         this.fontStringWidth = fm.stringWidth(label);
@@ -362,10 +367,13 @@ public class LWNode extends LWContainer
         */
     }
 
+    // todo: okay, we do NOT want to do this every damn paint --
+    // makes it impossible to drag out a child!
     protected void layoutChildren()
     {
         if (!hasChildren())
             return;
+        //new Throwable("layoutChildren " + this).printStackTrace();
         //System.out.println("layoutChildren " + this);
         java.util.Iterator i = getChildIterator();
         float y = (labelY() + this.padY) * getScale();
@@ -403,18 +411,21 @@ public class LWNode extends LWContainer
 
     public void draw(Graphics2D g)
     {
+        this.graphics = g;
+        
         g.translate(getX(), getY());
         float scale = getScale();
         if (scale != 1f)
             g.scale(scale, scale);
         g.setFont(getFont());
-        saveFontMetrics(g);
-
+            
         String label = getLabel();
 
         // System.out.println("draw " + label);
 
-        // Fill the shape
+        //-------------------------------------------------------
+        // Fill the shape (if it's not transparent)
+        //-------------------------------------------------------
         
         if (imageIcon != null) {
             // experimental
@@ -426,8 +437,11 @@ public class LWNode extends LWContainer
                 layout();
                 lastLabel = label;
             }
-            g.setColor(getFillColor());
-            g.fill(drawnShape);
+            Color fillColor = getFillColor();
+            if (fillColor != null) { // transparent if null
+                g.setColor(fillColor);
+                g.fill(drawnShape);
+            }
         }
 
         //-------------------------------------------------------

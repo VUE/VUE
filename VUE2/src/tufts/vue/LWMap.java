@@ -64,6 +64,11 @@ public class LWMap extends LWContainer
      */
     private void resolvePersistedLinks()
     {
+        // todo: technically, a LWContainer could contain a link,
+        // and this won't restore any of those -- but there's
+        // no way to drag a link as a child of anything else
+        // at the moment.
+        
         java.util.Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();

@@ -31,20 +31,20 @@ public final class LWGroup extends LWContainer
     void useSelection(LWSelection selection)
     {
         Rectangle2D bounds = selection.getBounds();
-        super.children = selection;
         super.setSize((float)bounds.getWidth(),
                       (float)bounds.getHeight());
         super.setLocation((float)bounds.getX(),
                           (float)bounds.getY());
+        super.children = selection;
     }
-    
+
     /**
      * Create a new LWGroup, reparenting all the LWComponents
      * in the selection to the new group.
      */
     static LWGroup create(java.util.List selection)
     {
-        LWGroup group = new LWGroup(selection);
+        LWGroup group = new LWGroup();
         // todo: turn off all events while this reorg is happening?
         // Now grab all the children
         Iterator i = selection.iterator();
@@ -52,24 +52,30 @@ public final class LWGroup extends LWContainer
             LWComponent c = (LWComponent) i.next();
             group.addChildInternal(c);
         }
+        group.setSizeFromChildren();
+        // todo: catch any child size change events (e.g., due to font)
+        // so we can recompute our bounds
         return group;
     }
     
     /**
-     * Temporarily "borrow" the children in the list for the sole
+     * "Borrow" the children in the list for the sole
      * purpose of computing total bounds and moving
      * them around en-mass -- used for dragging a selection.
      * Does NOT reparent the components in any way.
      */
     static LWGroup createTemporary(java.util.ArrayList selection)
     {
-        LWGroup group = new LWGroup(selection);
+        //LWGroup group = new LWGroup(selection);
+        LWGroup group = new LWGroup();
         group.children = (java.util.ArrayList) selection.clone();
+        group.setSizeFromChildren();
         if (DEBUG_CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
         return group;
     }
 
     /** Set size & location of this group based on LWComponents in selection */
+    /*
     private LWGroup(java.util.List selection)
     {
         Rectangle2D bounds = LWMap.getBounds(selection.iterator());
@@ -78,6 +84,17 @@ public final class LWGroup extends LWContainer
         super.setLocation((float)bounds.getX(),
                           (float)bounds.getY());
     }
+    */
+    
+    private void setSizeFromChildren()
+    {
+        Rectangle2D bounds = LWMap.getBounds(getChildIterator());
+        super.setSize((float)bounds.getWidth(),
+                      (float)bounds.getHeight());
+        super.setLocation((float)bounds.getX(),
+                          (float)bounds.getY());
+    }
+    
 
 
     /**
@@ -126,6 +143,22 @@ public final class LWGroup extends LWContainer
         // so don't have to do all this
     }
     
+    // don't scale the group object -- only it's children
+    // todo: Can't sanely support scaling of a group because
+    // we'd also have to scale the space between the
+    // the children, and scale is already a hack feature
+    // that I'm hoping we'll be able to make go away.
+    public void setScale(float scale) {}
+
+    public void XsetScale(float scale)
+    {
+        java.util.Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.setScale(scale);
+        }
+        setSizeFromChildren();
+    }
     public boolean contains(float x, float y)
     {
         java.util.Iterator i = getChildIterator();
@@ -186,6 +219,14 @@ public final class LWGroup extends LWContainer
     public void draw(java.awt.Graphics2D g)
     {
         super.draw(g);
+        if (isIndicated()) {
+            // this shouldn't happen, but just in case...
+            if (isIndicated()) {
+                g.setColor(COLOR_INDICATION);
+                g.setStroke(STROKE_INDICATION);
+                g.draw(getBounds());
+            }
+        }
         if (DEBUG_CONTAINMENT) {
             g.setColor(java.awt.Color.red);
             if (isIndicated())

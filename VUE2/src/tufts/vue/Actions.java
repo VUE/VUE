@@ -191,48 +191,6 @@ class Actions {
                 BringToFront.checkEnabled();
             }
         };
-    static final Action NewNode =
-        new MapAction("New Node", keyStroke(KeyEvent.VK_N, META))
-        {
-            LWNode lastNode = null;
-            Point lastMousePress = null;
-            Point2D lastNodeLocation = null;
-            
-            boolean enabledFor(LWSelection l) { return true; }
-            
-            public void actionPerformed(ActionEvent ae)
-            {
-                System.out.println(ae.getActionCommand());
-                // todo: this is where we'll get the active NodeTool
-                // and have it create the new node based on it's current
-                // settings -- move this logic to NodeTool
-                
-                MapViewer viewer = VUE.getActiveViewer();
-                LWNode node = new LWNode("new node");
-                Point mousePress = viewer.getLastMousePoint();
-                Point2D newNodeLocation = viewer.screenToMapPoint(mousePress);
-                
-                if (mousePress.equals(lastMousePress) &&
-                    lastNode.getLocation().equals(lastNodeLocation))
-                {
-                    newNodeLocation.setLocation(lastNodeLocation.getX() + 10,
-                                                lastNodeLocation.getY() + 10);
-                }
-                
-                node.setLocation(newNodeLocation);
-                viewer.getMap().addNode(node);
-
-                //better: run a timer and do this if no activity (e.g., node creation)
-                // for 250ms or something -- todo bug: every other new node not activating label edit
-                viewer.paintImmediately(viewer.getBounds());
-                viewer.activateLabelEdit(node);
-
-                lastNode = node;
-                lastNodeLocation = newNodeLocation;
-                lastMousePress = mousePress;
-            }
-            
-        };
 
     //-------------------------------------------------------
     // Font/Text Actions
@@ -243,7 +201,8 @@ class Actions {
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
-                c.setFont(new Font(f.getName(), f.getStyle(), f.getSize()-1));
+                if (f.getSize() > 1)
+                    c.setFont(new Font(f.getName(), f.getStyle(), f.getSize()-1));
             }
         };
     static final Action FontBigger =
@@ -259,11 +218,7 @@ class Actions {
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
-                int newStyle = f.getStyle();
-                if (f.isBold())
-                    newStyle &= ~Font.BOLD;
-                else
-                    newStyle |= Font.BOLD;
+                int newStyle = f.getStyle() ^ Font.BOLD;;
                 c.setFont(new Font(f.getName(), newStyle, f.getSize()));
             }
         };
@@ -272,11 +227,7 @@ class Actions {
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
-                int newStyle = f.getStyle();
-                if (f.isItalic())
-                    newStyle &= ~Font.ITALIC;
-                else
-                    newStyle |= Font.ITALIC;
+                int newStyle = f.getStyle() ^ Font.ITALIC;;
                 c.setFont(new Font(f.getName(), newStyle, f.getSize()));
             }
         };
@@ -289,8 +240,7 @@ class Actions {
         static float minX, minY;
         static float maxX, maxY;
         static float centerX, centerY;
-        static float totalWidth, totalHeight;
-        static boolean allHaveSameX, allHaveSameY;
+        static float totalWidth, totalHeight; // added width/height of all in selection
         // obviously not thread-safe here
         
         private AlignAction(String name) { super(name); }
@@ -308,13 +258,8 @@ class Actions {
             totalWidth = totalHeight = 0;
             float x = selection.first().getX();
             float y = selection.first().getY();
-            allHaveSameX = allHaveSameY = true;
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (c.getX() != x)
-                    allHaveSameX = false;
-                if (c.getY() != y)
-                    allHaveSameY = false;
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
@@ -327,12 +272,6 @@ class Actions {
         }
         void align(LWComponent c) { throw new RuntimeException("unimplemented align action"); }
 
-        LWComponent[] sortByX(LWSelection selection)
-        {
-            LWComponent[] array = new LWComponent[selection.size()];
-            selection.toArray(array);
-            return sortByX(array);
-        }
         LWComponent[] sortByX(LWComponent[] array)
         {
             java.util.Arrays.sort(array, new java.util.Comparator() {
@@ -340,12 +279,6 @@ class Actions {
                         return (int) (((LWComponent)o1).getX() - ((LWComponent)o2).getX());
                     }});
             return array;
-        }
-        LWComponent[] sortByY(LWSelection selection)
-        {
-            LWComponent[] array = new LWComponent[selection.size()];
-            selection.toArray(array);
-            return sortByY(array);
         }
         LWComponent[] sortByY(LWComponent[] array)
         {
@@ -388,7 +321,7 @@ class Actions {
             // only 2 in selection is useful with our minimum layout region setting
             void align(LWSelection selection)
             {
-                LWComponent[] comps = sortByY(sortByX(selection));
+                LWComponent[] comps = sortByY(sortByX(selection.getArray()));
                 float layoutRegion = maxY - minY;
                 if (layoutRegion < totalHeight)
                     layoutRegion = totalHeight;
@@ -406,7 +339,7 @@ class Actions {
             //boolean enabledFor(LWSelection l) { return l.size() >= 3; }
             void align(LWSelection selection)
             {
-                LWComponent[] comps = sortByX(sortByY(selection));
+                LWComponent[] comps = sortByX(sortByY(selection.getArray()));
                 float layoutRegion = maxX - minX;
                 if (layoutRegion < totalWidth)
                     layoutRegion = totalWidth;
@@ -457,6 +390,64 @@ class Actions {
             public boolean isEnabled() { return false; }
         };
 
+    static final Action NewNode =
+        new VueAction("New Node", keyStroke(KeyEvent.VK_N, META))
+        {
+            LWNode lastNode = null;
+            Point lastMousePress = null;
+            Point2D lastNodeLocation = null;
+            
+            void act()
+            {
+                // todo: this is where we'll get the active NodeTool
+                // and have it create the new node based on it's current
+                // settings -- move this logic to NodeTool
+                
+                MapViewer viewer = VUE.getActiveViewer();
+                LWNode node = new LWNode("new node");
+                Point mousePress = viewer.getLastMousePoint();
+                Point2D newNodeLocation = viewer.screenToMapPoint(mousePress);
+                
+                if (mousePress.equals(lastMousePress) &&
+                    lastNode.getLocation().equals(lastNodeLocation))
+                {
+                    newNodeLocation.setLocation(lastNodeLocation.getX() + 10,
+                                                lastNodeLocation.getY() + 10);
+                }
+                
+                node.setLocation(newNodeLocation);
+                viewer.getMap().addNode(node);
+
+                //better: run a timer and do this if no activity (e.g., node creation)
+                // for 250ms or something -- todo bug: every other new node not activating label edit
+
+                // todo hack: we need to paint right away so the node can compute it's size,
+                // so that the label edit will show up in the right place..
+                viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
+                viewer.activateLabelEdit(node);
+                VUE.ModelSelection.setTo(node);
+
+                lastNode = node;
+                lastNodeLocation = newNodeLocation;
+                lastMousePress = mousePress;
+            }
+        };
+
+
+    static final Action NewText =
+        new VueAction("New Text", keyStroke(KeyEvent.VK_T, META))
+        {
+            void act()
+            {
+                // todo: this is where we'll query the active TextTool
+                // and/or move this code there
+                
+                MapViewer viewer = VUE.getActiveViewer();
+                LWNode node = LWNode.createTextNode("new text");
+                node.setLocation(viewer.screenToMapPoint(viewer.getLastMousePoint()));
+                viewer.getMap().addNode(node);
+            }
+        };
 
     
     //-------------------------------------------------------
@@ -524,14 +515,20 @@ class Actions {
         }
         public void actionPerformed(ActionEvent ae)
         {
-            LWSelection selection = VUE.ModelSelection;
-            //System.out.println(ae);
-            System.out.println("VueAction: " + ae.getActionCommand());
-            if (enabled()) {
-                act();
-            } else {
+            try {
+                System.out.println("VueAction: " + ae.getActionCommand());
+                if (enabled()) {
+                    act();
+                } else {
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+                    System.err.println(getActionName() + ": Not currently enabled");
+                }
+            } catch (Exception e) {
                 java.awt.Toolkit.getDefaultToolkit().beep();
-                System.err.println(getActionName() + ": Not currently enabled");
+                e.printStackTrace();
+                System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
+                System.err.println("*** VueAction: selection is " + VUE.ModelSelection);
+                System.err.println("*** VueAction: event was " + ae);
             }
         }
         boolean enabled() { return true; }

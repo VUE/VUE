@@ -126,6 +126,7 @@ public class MapViewer extends javax.swing.JPanel
 
         // draggedSelectionGroup is always a selected component as
         // it's only used when it IS the selection
+        // There was some reason we need to have the set -- what was it?
         draggedSelectionGroup.setSelected(true);
 
         /*
@@ -325,7 +326,7 @@ public class MapViewer extends javax.swing.JPanel
         // todo: optimize -- we get tons of location events
         // when dragging, esp if there are children if
         // we have those events turned in...
-        System.out.println("MapViewer: " + e);
+        //System.out.println("MapViewer: " + e);
         if (e.getWhat().equals("location"))
             return;
         if (e.getWhat().equals("deleting")) {
@@ -559,6 +560,27 @@ public class MapViewer extends javax.swing.JPanel
 
         paintSelection(g2);
 
+        if (DEBUG_SHOW_MOUSE_LOCATION) {
+            g2.setColor(Color.red);
+            g2.setStroke(new java.awt.BasicStroke(0.01f));
+            g2.drawLine(mouseX,mouseY, mouseX,mouseY);
+
+            int iX = (int) (screenToMapX(mouseX) * 100);
+            int iY = (int) (screenToMapY(mouseY) * 100);
+            float mapX = iX / 100f;
+            float mapY = iY / 100f;
+
+            g2.setFont(VueConstants.DefaultFont);
+            int y = 0;
+            g2.drawString("screen(" + mouseX + "," +  mouseY + ")", 10, y+=20);
+            g2.drawString("mapX " + mapX, 10, y+=20);
+            g2.drawString("mapY " + mapY, 10, y+=20);;
+            g2.drawString("zoom " + getZoomFactor(), 10, y+=20);
+            g2.drawString("anitAlias " + !DEBUG_ANTIALIAS_OFF, 10, y+=20);
+            g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, 10, y+=20);
+            g2.drawString("repaintOptimize " + !DEBUG_REPAINT_OPTIMIZE_OFF, 10, y+=20);
+        }
+
         if (DEBUG_SHOW_ORIGIN && zoomFactor >= 6.0) {
             //g2.setComposite(java.awt.AlphaComposite.Xor);
             g2.translate(-getOriginX(), -getOriginY());
@@ -651,7 +673,7 @@ public class MapViewer extends javax.swing.JPanel
         
         public void focusLost(FocusEvent e)
         {
-            //System.out.println("map edit focusLost");
+            System.out.println("mapTextEdit focusLost to " + e.getOppositeComponent());
             removeLabelEdit();
         }
         public void focusGained(FocusEvent e)
@@ -801,30 +823,10 @@ public class MapViewer extends javax.swing.JPanel
 */
 
 
+    // todo: move all this code to LWSelection?
+    // don't want to make LWSelection a LWComponent tho
     void paintSelection(Graphics2D g2)
     {
-        if (DEBUG_SHOW_MOUSE_LOCATION) {
-            // okay, now we're moved back into screen space
-            g2.setColor(Color.red);
-            g2.setStroke(new java.awt.BasicStroke(0.01f));
-            g2.drawLine(mouseX,mouseY, mouseX,mouseY);
-
-            int iX = (int) (screenToMapX(mouseX) * 100);
-            int iY = (int) (screenToMapY(mouseY) * 100);
-            float mapX = iX / 100f;
-            float mapY = iY / 100f;
-
-            g2.setFont(VueConstants.DefaultFont);
-            int y = 0;
-            g2.drawString("screen(" + mouseX + "," +  mouseY + ")", 10, y+=20);
-            g2.drawString("mapX " + mapX, 10, y+=20);
-            g2.drawString("mapY " + mapY, 10, y+=20);;
-            g2.drawString("zoom " + getZoomFactor(), 10, y+=20);
-            g2.drawString("anitAlias " + !DEBUG_ANTIALIAS_OFF, 10, y+=20);
-            g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, 10, y+=20);
-            g2.drawString("repaintOptimize " + !DEBUG_REPAINT_OPTIMIZE_OFF, 10, y+=20);
-        }
-
         if (VueSelection.size() > 0) {
             g2.setColor(COLOR_SELECTION);
             g2.setStroke(STROKE_SELECTION);
@@ -872,9 +874,22 @@ public class MapViewer extends javax.swing.JPanel
             g2.setStroke(STROKE_SELECTION_DYNAMIC);
             g2.drawRect(draggedSelectionBox.x, draggedSelectionBox.y,
                         draggedSelectionBox.width, draggedSelectionBox.height);
-        } else if (!VueSelection.isEmpty() && !inDrag) {
+            // end paint dragged selection box
+        }// else
+        //if (!VueSelection.isEmpty() && (!inDrag || draggingSelectionBox)) {
+        if (!VueSelection.isEmpty()) {
             g2.setStroke(STROKE_ONE);
-            Rectangle2D selectionBounds = VueSelection.getBounds();
+            // todo opt: don't recompute bounds here every paint ---
+            // can cache in draggedSelectionGroup
+            Rectangle2D selectionBounds;
+            selectionBounds = VueSelection.getBounds();
+            /*
+              bounds cache hack
+            if (VueSelection.size() == 1)
+                selectionBounds = VueSelection.first().getBounds();
+            else
+                selectionBounds = draggedSelectionGroup.getBounds();
+            */
             //System.out.println("mapSelectionBounds="+selectionBounds);
             Rectangle2D.Float sb = mapToScreenRect2D(selectionBounds);
             //System.out.println("screenSelectionBounds="+sb);
@@ -957,6 +972,17 @@ public class MapViewer extends javax.swing.JPanel
     {
         VueSelection.clear();
     }
+    protected void selectionToggle(LWComponent c)
+    {
+        if (c.isSelected())
+            selectionRemove(c);
+        else
+            selectionAdd(c);
+    }
+    protected void selectionToggle(java.util.Iterator i)
+    {
+        VueSelection.toggle(i);
+    }
     
     private JPopupMenu mapPopup = null;
     private JPopupMenu cPopup = null;
@@ -968,6 +994,7 @@ public class MapViewer extends javax.swing.JPanel
             mapPopup = new JPopupMenu("Map Menu");
             mapPopup.addSeparator();
             mapPopup.add(Actions.NewNode);
+            mapPopup.add(Actions.NewText);
             mapPopup.addSeparator();
             //mapPopup.add("Visible");
             mapPopup.setBackground(Color.gray);
@@ -1005,6 +1032,10 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.add(Actions.DistributeHorizontally);
             cPopup.addSeparator();
             cPopup.add(Actions.Delete);
+            // todo: special add-to selection action that adds
+            // hitComponent to selection so have way other
+            // than shift-click to add to selection (so you
+            // can do it all with the mouse)
         }
         if (c instanceof LWNode) {
             LWNode n = (LWNode) c;
@@ -1028,6 +1059,7 @@ public class MapViewer extends javax.swing.JPanel
         | java.awt.event.InputEvent.CTRL_MASK
         | java.awt.event.InputEvent.META_MASK
         | java.awt.event.InputEvent.ALT_MASK;
+    
     
     class InputHandler extends tufts.vue.MouseAdapter
         implements java.awt.event.KeyListener
@@ -1105,6 +1137,7 @@ public class MapViewer extends javax.swing.JPanel
                     double oldY = screenToMapY(dragStart.y) + dragOffset.getY();
                     dragComponent.setLocation(oldX, oldY);
                     dragComponent = null;
+                    mouseWasDragged = false;
                     clearIndicated(); // incase dragging new link
                     repaint();
                 }
@@ -1221,8 +1254,9 @@ public class MapViewer extends javax.swing.JPanel
             int mods = e.getModifiers();
             //e.isPopupTrigger()
             // java 1.4.0 bug on PC(w2k): isPopupTrigger isn't true for right-click!
-
-            if ((mods & RIGHT_BUTTON_MASK) != 0 && (mods & java.awt.Event.CTRL_MASK) == 0)
+            //if ((mods & RIGHT_BUTTON_MASK) != 0 && (mods & java.awt.Event.CTRL_MASK) == 0)
+            
+            if ((mods & RIGHT_BUTTON_MASK) != 0 && !e.isControlDown())
             {
                 //-------------------------------------------------------
                 // MOUSE: We've pressed the right button down, so pop
@@ -1257,10 +1291,9 @@ public class MapViewer extends javax.swing.JPanel
                     //-------------------------------------------------------
                     // Shift was down: TOGGLE SELECTION STATUS
                     //-------------------------------------------------------
-                    if (hitComponent.isSelected())
-                        selectionRemove(hitComponent);
-                    else
-                        selectionAdd(hitComponent);
+
+                    selectionToggle(hitComponent);
+                    
                 } else {
                     //-------------------------------------------------------
                     // Vanilla mouse press:
@@ -1278,14 +1311,15 @@ public class MapViewer extends javax.swing.JPanel
                     // it in case they start dragging.  If it's a mult-selection,
                     // set us up for a group drag.
                     //-------------------------------------------------------
-                    if (VueSelection.size() > 1) {
+                    // Okay, ONLY drag even a single object via the selection
+                  //if (VueSelection.size() > 1) {
                         // pick up a group selection for dragging
                         draggedSelectionGroup.useSelection(VueSelection);
                         dragComponent = draggedSelectionGroup;
-                    } else {
+                  //} else {
                         // just pick up the single component
-                        dragComponent = hitComponent;
-                    }
+                        //dragComponent = hitComponent;
+                  //}
 
                 }
             } else {
@@ -1293,7 +1327,9 @@ public class MapViewer extends javax.swing.JPanel
                 // hitComponent was null
                 //-------------------------------------------------------
 
-                if (VueSelection.size() > 1 && VueSelection.contains(mapX, mapY)) {
+                if (noModifierKeysDown(e) &&
+                    VueSelection.size() > 1 &&
+                    VueSelection.contains(mapX, mapY)) {
                     //-------------------------------------------------------
                     // PICK UP A GROUP SELECTION FOR DRAGGING
                     //
@@ -1305,7 +1341,7 @@ public class MapViewer extends javax.swing.JPanel
                     dragComponent = draggedSelectionGroup;
                 } else if (!e.isShiftDown()) {
                     //-------------------------------------------------------
-                    // CLEAR SELECTION
+                    // CLEAR CURRENT SELECTION & START DRAGGING FOR A NEW ONE
                     //
                     // If we truly clicked on nothing, clear the selection,
                     // unless shift was down, which is easy to accidentally
@@ -1341,8 +1377,9 @@ public class MapViewer extends javax.swing.JPanel
             inDrag = true;
             //System.out.println("drag " + drags++);
             if (mouseWasDragged == false) {
-                // we're just starting this drag 
-                mouseWasDragged = true;
+                // we're just starting this drag
+                if (dragComponent != null)
+                    mouseWasDragged = true;
             }
             
             if (DEBUG_SHOW_MOUSE_LOCATION) {
@@ -1381,16 +1418,21 @@ public class MapViewer extends javax.swing.JPanel
             // Update the dragged selection box
             //-------------------------------------------------------
             if (dragComponent == null && draggingSelectionBox) {
-                int sx = dragStart.x < screenX ? dragStart.x : screenX;
-                int sy = dragStart.y < screenY ? dragStart.y : screenY;
+                // Set repaint-rect to where old selection is
                 Rectangle repaintRect;
                 if (draggedSelectionBox != null)
                     repaintRect = draggedSelectionBox;
                 else
                     repaintRect = new Rectangle();
+                
+                // Set the current selection box
+                int sx = dragStart.x < screenX ? dragStart.x : screenX;
+                int sy = dragStart.y < screenY ? dragStart.y : screenY;
                 draggedSelectionBox = new Rectangle(sx, sy,
                                              Math.abs(dragStart.x - screenX),
                                              Math.abs(dragStart.y - screenY));
+
+                // Now add to repaint-rect the new selection
                 repaintRect.add(draggedSelectionBox);
                 repaintRect.grow(1,1);
                 repaint(repaintRect);
@@ -1408,6 +1450,12 @@ public class MapViewer extends javax.swing.JPanel
                 // Compute repaint region based on what's being dragged
                 //-------------------------------------------------------
                 repaintRegion = dragComponent.getBounds();
+
+                if (repaintRegion == null) {// todo: this is debug
+                    new Throwable("mouseDragged: null bounds dragComponent " + dragComponent).printStackTrace();
+                    repaintRegion = new Rectangle2D.Float();
+                }
+
                 if (dragComponent instanceof LWLink) {
                     LWLink lwl = (LWLink) dragComponent;
                     // todo: not currently used as link dragging disabled
@@ -1442,8 +1490,10 @@ public class MapViewer extends javax.swing.JPanel
             }
             
             if (linkSource != null) {
+                //-------------------------------------------------------
                 // we're dragging a new link looking for an
                 // allowable endpoint
+                //-------------------------------------------------------
                 LWComponent over = findLWLinkTargetAt(mapX, mapY);
                 if (indication != null && indication != over) {
                     repaintRegion.add(indication.getBounds());
@@ -1453,15 +1503,28 @@ public class MapViewer extends javax.swing.JPanel
                     setIndicated(over);
                     repaintRegion.add(over.getBounds());
                 }
-          } else if (dragComponent instanceof LWNode && !DEBUG_FINDPARENT_OFF) {
+                //} else if (dragComponent instanceof LWNode && !DEBUG_FINDPARENT_OFF) {
+            } else if (!DEBUG_FINDPARENT_OFF
+                       //&& (dragComponent instanceof LWNode || VueSelection.allOfType(LWNode.class)) //todo opt: cache type
+                       //todo: dragComponent for moment is only ever the LWGroup or a LWLink
+                       && dragComponent != null
+                       && !(dragComponent instanceof LWLink)
+                    ) {
+                
                 // regular drag -- check for node drop onto another
-                LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
+                //LWNode over = getMap().findLWNodeAt(mapX, mapY, dragComponent);
+                LWNode over = getMap().findLWNodeAt(mapX, mapY);
                 if (indication != null && indication != over) {
                     repaintRegion.add(indication.getBounds());
                     clearIndicated();
                 }
                 if (over != null && isValidParentTarget(over)) {
                     setIndicated(over);
+                    if (repaintRegion == null) // todo: this is debug
+                        new Throwable("mouseDragged: null rr").printStackTrace();
+                    Rectangle2D bounds = over.getBounds();
+                    if (bounds == null) // todo: this is debug
+                        new Throwable("mouseDragged: null bounds for over " + over).printStackTrace();
                     repaintRegion.add(over.getBounds());
                 }
             }
@@ -1501,7 +1564,6 @@ public class MapViewer extends javax.swing.JPanel
                                                   lwl.getComponent2().getLinkEndpointsIterator());
                                                       
                 } else
-                    //i = dragComponent.getLinkEndpointsIterator();
                     i = dragComponent.getAllConnectedNodes().iterator();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
@@ -1523,8 +1585,6 @@ public class MapViewer extends javax.swing.JPanel
             inDrag = false;
             if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + "]");
 
-            //if (dragComponent == draggedSelectionGroup)
-            //draggedSelectionGroup.useSelection(VueSelection);
             setLastMousePoint(e.getX(), e.getY());
             
             if (linkSource != null) {
@@ -1541,38 +1601,89 @@ public class MapViewer extends javax.swing.JPanel
                     }
                 }
                 linkSource = null;
-            } else if (mouseWasDragged && dragComponent instanceof LWNode) {
-                // drop one node on another -- add as child
-                LWNode droppedChild = (LWNode) dragComponent;
-                LWContainer targetParent = (LWNode) indication;
+//            } else if (mouseWasDragged && dragComponent instanceof LWNode) {
+                // indication.allowsChildren()
+            } else if (mouseWasDragged &&
+                       (indication == null || indication instanceof LWNode)) {
 
-                if (targetParent == null)
-                    targetParent = getMap();
+                //-------------------------------------------------------
+                // check to see if any things could be dropped on a new parent
+                // This got alot more complicated adding support for
+                // dropping whole selections of components.
+                //-------------------------------------------------------
                 
-                /*
-                if (targetParent == null)
-                    System.out.println("DE-PARENTING " + droppedChild);
+                LWContainer parentTarget;
+                if (indication == null)
+                    parentTarget = getMap();
                 else
-                    System.out.println("adding " + droppedChild + " as child of " + targetParent);
-                */
-                //getMap().removeNode(droppedChild.getNode());
-                //targetParent.getNode().addChild(droppedChild.getNode());
-                // todo: any other LWComponent views listenting to this concept map
-                // won't get updated properly -- this isn't a current requirement,
-                // but we should support it.
-                //removeLWC(droppedChild);
-                
-                if (targetParent != null && targetParent != droppedChild.getParent()) {
-                    // we were over a valid parent -- reparent
-                    targetParent.addChild(droppedChild);
+                    parentTarget = (LWNode) indication;
+
+                java.util.List moveList = new java.util.ArrayList();
+                java.util.Iterator i = VueSelection.iterator();
+                while (i.hasNext()) {
+                    LWComponent droppedChild = (LWComponent) i.next();
+                    //if (!(droppedChild instanceof LWNode) // only allow nodes to drop
+                        //continue;
+                    // todo: actually re-do drop if anything other than map so will re-layout
+                    if (droppedChild.getParent() != parentTarget && droppedChild != parentTarget) {
+                        //-------------------------------------------------------
+                        // we were over a valid NEW parent -- reparent
+                        //-------------------------------------------------------
+                        if (DEBUG_PARENTING)
+                            System.out.println("*** REPARENTING " + droppedChild + " as child of " + parentTarget);
+                        moveList.add(droppedChild);
+                    }
                 }
+
+                // okay -- what we want is to tell the parent we're
+                // moving from to remove them all at once -- the
+                // problem is our selection could contain components
+                // of multiple parents.  So we have to handle each
+                // source parent seperately, and remove all it's
+                // children at once -- this is so the parent won't
+                // re-lay itself out (call layout()) while removing
+                // children, because if does it will re-set the
+                // position of other siblings about to be removed back
+                // to the parent's layout spot from the draggeed
+                // position they currently occupy and we're trying to
+                // move them to.
+
+                java.util.HashSet parents = new java.util.HashSet();
+                i = moveList.iterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    parents.add(c.getParent());
+                }
+                java.util.Iterator pi = parents.iterator();
+                while (pi.hasNext()) {
+                    LWContainer parent = (LWContainer) pi.next();
+                    if (DEBUG_PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
+                    parent.removeChildren(moveList.iterator());
+                }
+                i = moveList.iterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    parentTarget.addChild(c);
+                }
+                
+                
                 /*
-                else if (droppedChild.getParent() != null &&
-                           droppedChild.getParent() != getMap()) {
-                    // we weren't over a valid parent -- remove from
-                    // existing parent if there was one
-                    droppedChild.getParent().removeChild(droppedChild);
-                    } */
+                //-------------------------------------------------------
+                // We just dragged something that could be reparented
+                // depending on what it's over now that it's dropped.
+                // Drop one node on another -- add as child
+                //-------------------------------------------------------
+
+                LWNode droppedChild = (LWNode) dragComponent;
+                
+                if (parentTarget != droppedChild.getParent()) {
+                    //-------------------------------------------------------
+                    // we were over a valid NEW parent -- reparent
+                    //-------------------------------------------------------
+                    //System.out.println("*** REPARENTING " + droppedChild + " as child of " + parentTarget);
+                    parentTarget.addChild(droppedChild);
+                }
+                */
             }
             
             dragComponent = null;
@@ -1587,12 +1698,28 @@ public class MapViewer extends javax.swing.JPanel
                 Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectionBox);
                 //System.out.println("map " + hitRect);
                 java.util.List list = computeSelection(hitRect);
-                selectionAdd(list.iterator());
+                if (e.isShiftDown())
+                    selectionToggle(list.iterator());
+                else
+                    selectionAdd(list.iterator());
                 draggedSelectionBox = null;
+                
+                // bounds cache hack
+                if (!VueSelection.isEmpty())
+                    draggedSelectionGroup.useSelection(VueSelection);
+                // todo: need to update draggedSelectionGroup here
+                // so we can use it's cached bounds to compute
+                // the painting of the selection -- rename to just
+                // SelectionGroup if we keep using it this way.
             }
             repaint();
         }
 
+        private final boolean noModifierKeysDown(MouseEvent e)
+        {
+            return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+        }
+        
         private final boolean isDoubleClickEvent(MouseEvent e)
         {
             return e.getClickCount() == 2
@@ -1679,6 +1806,10 @@ public class MapViewer extends javax.swing.JPanel
          */
         public boolean isValidParentTarget(LWComponent parentTarget)
         {
+            //if (dragComponent == draggedSelectionGroup && parentTarget.isSelected())
+            if (parentTarget.isSelected())
+                // meaning it's in the dragged selection, so it can never be a drop target
+                return false;
             if (parentTarget == dragComponent)
                 return false;
             if (parentTarget.getParent() == dragComponent)
@@ -1863,6 +1994,11 @@ public class MapViewer extends javax.swing.JPanel
         return returnMenu;
     }   
 // this class will move out of here
+
+    public String toString()
+    {
+        return "MapViewer@" + Integer.toHexString(hashCode());
+    }
   
     
     //-------------------------------------------------------

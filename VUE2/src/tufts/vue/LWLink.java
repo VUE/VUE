@@ -23,8 +23,8 @@ import java.awt.geom.Rectangle2D;
 public class LWLink extends LWComponent
     implements Link
 {
-    private static final float WEIGHT_RENDER_RATIO = 2f;
-    private static final float MAX_RENDER_WIDTH = 16f;
+    //private static final float WEIGHT_RENDER_RATIO = 2f;
+    //private static final float MAX_RENDER_WIDTH = 16f;
 
     // interface
     
@@ -67,16 +67,27 @@ public class LWLink extends LWComponent
     }
     public int getWeight()
     {
-        return this.weight;
+        return (int) (getStrokeWidth() + 0.5f);
     }
     public void setWeight(int w)
     {
-        this.weight = w;
+        setStrokeWidth((float)w);
     }
+
+    public void setStrokeWidth(float w)
+    {
+        if (w <= 0f)
+            w = 0.1f;
+        super.setStrokeWidth(w);
+    }
+    
+
     public int incrementWeight()
     {
-        this.weight += 1;
-        return this.weight;
+        //this.weight += 1;
+        //return this.weight;
+        setStrokeWidth(getStrokeWidth()+1);
+        return getWeight();
     }
 
     // impl
@@ -84,7 +95,7 @@ public class LWLink extends LWComponent
     private String endPoint1_ID; // used only during restore
     private String endPoint2_ID; // used only during restore
     
-    private int weight = 1;
+    //private int weight = 1;
     private boolean ordered = false;
     private int endPoint1Style = 0;
     private int endPoint2Style = 0;
@@ -111,6 +122,8 @@ public class LWLink extends LWComponent
         setTextColor(COLOR_LINK_LABEL);
         setEndPoint1(c1);
         setEndPoint2(c2);
+        setStrokeWidth(2f);
+        // todo: compute location now
     }
     
     protected void removeFromModel()
@@ -133,7 +146,8 @@ public class LWLink extends LWComponent
             x -= 0.5f;
             y -= 0.5f;
         }
-        float maxDist = (getWeight() * WEIGHT_RENDER_RATIO) / 2;
+        //float maxDist = (getWeight() * WEIGHT_RENDER_RATIO) / 2;
+        float maxDist = getStrokeWidth() / 2;
         return line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1;
     }
     
@@ -209,7 +223,7 @@ public class LWLink extends LWComponent
         super.setLocation(x,y);
     }
     */
-    
+
     private static final int clearBorder = 4;
     private Rectangle2D box = new Rectangle2D.Float();
     public void draw(Graphics2D g)
@@ -257,12 +271,18 @@ public class LWLink extends LWComponent
         locX = startX - (startX - endX) / 2;
         locY = startY - (startY - endY) / 2;
         
-        /*
-         * Set our location to the midpoint between
-         * the nodes we're connecting.
-         */
-        super.setLocation(locX - getWidth()/2,
-                          locY - getHeight()/2);
+        // Set our location to the midpoint between
+        // the nodes we're connecting.
+        // todo: as this happens every paint for every link,
+        // make sure we don't raise locations events
+        // (override if we decide we LWComponent's normally
+        // sending location events, which we don't now).
+        //super.setLocation(locX - getWidth()/2,
+        //                locY - getHeight()/2);
+        //todo: eventually have LWComponent setLocation
+        // tell all connected links to recompute themselves...
+        setX(locX - getWidth()/2);
+        setY(locY - getHeight()/2);
         
 
         /*
@@ -289,21 +309,25 @@ public class LWLink extends LWComponent
         else
             g.setColor(getStrokeColor());
         
-        float strokeWidth = 0f;
-        // set the stroke width
-        strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
-        if (strokeWidth > MAX_RENDER_WIDTH)
-            strokeWidth = MAX_RENDER_WIDTH;
+
+        //
+        //strokeWidth = getWeight() * WEIGHT_RENDER_RATIO;
+        //if (strokeWidth > MAX_RENDER_WIDTH)
+        //    strokeWidth = MAX_RENDER_WIDTH;
+        
         // If either end of this link is scaled, scale stroke
         // to smallest of the scales (even better: render the stroke
         // in a variable width narrowing as it went...)
         if (c1.getScale() != 1f || c2.getScale() != 1f) {
+            float strokeWidth = getStrokeWidth();
             if (c1.getScale() < c2.getScale())
                 strokeWidth *= c1.getScale();
             else
                 strokeWidth *= c2.getScale();
+            g.setStroke(new BasicStroke(strokeWidth));
+        } else {
+            g.setStroke(this.stroke);
         }
-        g.setStroke(new BasicStroke(strokeWidth));
     
         if (VueUtil.StrokeBug05) {
             startX -= 0.5;
@@ -320,6 +344,9 @@ public class LWLink extends LWComponent
         // todo: this works, but it may be a big performance hit,
         // and it doesn't solve the problem of knowing the true
         // visible link length so we can properly center the label
+        // todo: this will eventually be replace by links knowing
+        // their exact endpoint at edge of the shape of each node --
+        // we need to compute the intersection of a shape and a line segment
         //if ((c1.getShape() != null && !c1.isChild())
         //|| (c2.getShape() != null && !c2.isChild())) {
         if (c1.getShape() != null || c2.getShape() != null) {

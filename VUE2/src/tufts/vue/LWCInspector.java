@@ -154,8 +154,8 @@ class LWCInspector extends javax.swing.JPanel
 
     public void LWCChanged(LWCEvent e)
     {
-        System.out.println("LWCInspector: " + e);
-        if (this.lwc != e.getComponent())
+        //System.out.println(this + " " + e);
+        if (this.lwc != e.getSource())
             return;
         if (e.getWhat().equals("deleting")) {
             this.lwc = null;
@@ -269,6 +269,7 @@ class LWCInspector extends javax.swing.JPanel
                 setAllEnabled(false);
         }
 
+        //System.out.println(this + " loadItem " + lwc);
         LWComponent c = this.lwc;
         if (c == null)
             return;

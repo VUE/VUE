@@ -48,9 +48,9 @@ public class LWSelection extends java.util.ArrayList
     {
         if (!c.isSelected()) {
             add0(c);
+            notifyListeners();
         } else
             if (DEBUG_SELECTION) System.out.println("addToSelection(already): " + c);
-        notifyListeners();
     }
     
     public boolean add(Object o)
@@ -58,32 +58,64 @@ public class LWSelection extends java.util.ArrayList
         throw new RuntimeException("LWSelection can't add " + o.getClass() + ": " + o);
     }
     
+    /** Make sure all in iterator are in selection & do a single change notify at the end */
     void add(Iterator i)
     {
         LWComponent c;
+        boolean changed = false;
         while (i.hasNext()) {
             c = (LWComponent) i.next();
-            add0(c);
+            if (!c.isSelected()) {
+                add0(c);
+                changed = true;
+            }
         }
-        notifyListeners();
+        if (changed)
+            notifyListeners();
+    }
+    
+    /** Change the selection status of all LWComponents in iterator */
+    void toggle(Iterator i)
+    {
+        LWComponent c;
+        boolean changed = false;
+        while (i.hasNext()) {
+            c = (LWComponent) i.next();
+            if (c.isSelected())
+                remove0(c);
+            else
+                add0(c);
+            changed = true;
+        }
+        if (changed)
+            notifyListeners();
     }
     
     private void add0(LWComponent c)
     {
         if (DEBUG_SELECTION) System.out.println("LWSelection adding " + c);
-        c.setSelected(true);
-        bounds = null;
-        super.add(c);
+        
+        if (!c.isSelected()) {
+            c.setSelected(true);
+            bounds = null;
+            super.add(c);
+        } else
+            throw new RuntimeException("LWSelection: attempt to add already selected component " + c);
     }
     
     public void remove(LWComponent c)
+    {
+        remove0(c);
+        notifyListeners();
+    }
+
+    private void remove0(LWComponent c)
     {
         if (DEBUG_SELECTION) System.out.println("LWSelection removing " + c);
         c.setSelected(false);
         bounds = null;
         if (!super.remove(c))
             throw new RuntimeException("LWSelection remove: doesn't contain! " + c);
-        notifyListeners();
     }
     
     public void clear()
@@ -149,6 +181,17 @@ public class LWSelection extends java.util.ArrayList
         return count;
     }
     
+    public boolean allOfType(Class clazz)
+    {
+        Iterator i = iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (!clazz.isInstance(c))
+                return false;
+        }
+        return true;
+    }
+    
     public boolean allOfSameType()
     {
         LWComponent oc = null;
@@ -161,7 +204,7 @@ public class LWSelection extends java.util.ArrayList
         }
         return true;
     }
-    
+
     public boolean allHaveSameParent()
     {
         LWComponent oc = null;
@@ -173,5 +216,12 @@ public class LWSelection extends java.util.ArrayList
             oc = c;
         }
         return true;
+    }
+
+    public LWComponent[] getArray()
+    {
+        LWComponent[] array = new LWComponent[size()];
+        super.toArray(array);
+        return array;
     }
 }

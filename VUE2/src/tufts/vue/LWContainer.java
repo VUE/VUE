@@ -17,8 +17,6 @@ import java.awt.geom.Rectangle2D;
  */
 public abstract class LWContainer extends LWComponent
 {
-    static boolean DEBUG_PARENTING = true;
-
     protected ArrayList children = new java.util.ArrayList();
     
     /** for use during restore */
@@ -137,21 +135,62 @@ public abstract class LWContainer extends LWComponent
             c.setFont(getFont());
         this.children.add(c);
         c.setParent(this);
+        // todo: raise all in getLinkRefs to the top of the stack if we're
+        // being added as a child of anything other than the top level map
     }
         
     public void addChild(LWComponent c)
     {
         addChildInternal(c);
         c.notify("added", this);
+        notify("childAdded", c);
     }
     
     protected void removeChild(LWComponent c)
+    {
+        removeChild0(c);
+        //c.notify("removed", this); // don't need to let anyone know this
+        notify("childRemoved", c);
+        layout();
+    }
+
+    private void removeChild0(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (!this.children.remove(c))
             throw new IllegalStateException(this + " didn't contain child for removal: " + c);
         c.setParent(null);
-        notify("childRemoved", c);
+
+        // gunk to handle scale stuff
+        if (c.isManagedColor())
+            c.setFillColor(COLOR_NODE_DEFAULT);
+        c.setScale(1f);
+
+        //if (c instanceof LWContainer)
+        //  ((LWContainer)c).layout();//why doing this here instead of setScale?
+        // todo: check layout diags with it at end of setScale to see if
+        // too many layouts happening is a problem
+    }
+    
+    /**
+     * Remove any children in this iterator from this container.
+     * Items not already children of this container are ignored.
+     */
+    public void removeChildren(Iterator i)
+    {
+        int count = 0;
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getParent() == this) {
+                removeChild0(c);
+                count++;
+            }
+        }
+        if (count > 0) {
+            notify("childrenRemoved");
+            //todo: change all these child events to a structureChanged event
+            layout();
+        }
     }
 
     public void deleteChild(LWComponent c)
@@ -228,7 +267,8 @@ public abstract class LWContainer extends LWComponent
     }
 
     
-    public LWNode findLWNodeAt(float mapX, float mapY, LWComponent excluded)
+    //    public LWNode findLWNodeAt(float mapX, float mapY, LWComponent excluded)
+    public LWNode findLWNodeAt(float mapX, float mapY)
     {
         // hit detection must traverse list in reverse as top-most
         // components are at end
@@ -239,9 +279,10 @@ public abstract class LWContainer extends LWComponent
                 LWComponent c = (LWComponent) i.previous();
                 if (!(c instanceof LWNode))
                     continue;
-                if (c != excluded && c.contains(mapX, mapY)) {
+                //if (c != excluded && c.contains(mapX, mapY)) {
+                if (!c.isSelected() && c.contains(mapX, mapY)) {
                     if (c.hasChildren())
-                        return ((LWContainer)c).findLWNodeAt(mapX, mapY, excluded);
+                        return ((LWContainer)c).findLWNodeAt(mapX, mapY);
                     else
                         return (LWNode) c;
                 }
@@ -403,14 +444,21 @@ public abstract class LWContainer extends LWComponent
             LWComponent c = (LWComponent) i.next();
             // todo: temporary hack color change for children
             if (c.isManagedColor()) {
-                if (getFillColor() == COLOR_NODE_DEFAULT)
+                if (COLOR_NODE_DEFAULT.equals(getFillColor()))
                     c.setFillColor(COLOR_NODE_INVERTED);
                 else
                     c.setFillColor(COLOR_NODE_DEFAULT);
             }
             c.setScale(scale * ChildScale);
         }
+        layout(); // todo: if we leave scaling in, see if can do this less frequently
     }
+    
+    /**
+     * If this container supports special layout for it's children,
+     * do it here.
+     */
+    protected void layout() {}
     
     public void draw(java.awt.Graphics2D g)
     {
