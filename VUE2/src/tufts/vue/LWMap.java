@@ -13,6 +13,7 @@ package tufts.vue;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Properties;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -44,8 +45,13 @@ public class LWMap extends LWContainer
     /** the current Map Filter **/
     LWCFilter mLWCFilter = new LWCFilter();
 
+    /** Metadata for Publishing **/ 
+    Properties metadata = new Properties();
+    
     private long mChanges = 0;
     private boolean mCachedBoundsOld = true;
+    
+    
     
     // only to be used during a restore from persisted
     public LWMap()
@@ -213,7 +219,13 @@ public class LWMap extends LWContainer
    	mDate = pDate;
    }
     
+   public Properties getMetadata(){
+       return metadata;
+   }
      
+   public void setMetadata(Properties metadata) {
+       this.metadata = metadata;
+   }
     /* 
     public LWPathwayManager getPathwayManager(){ 
         return mPathwayManager;

@@ -55,6 +55,9 @@ public class MapInspectorPanel  extends JPanel
 	
 	/** filter panel **/
 	FilterPanel mFilterPanel = null;
+        
+        /** Metadata Panel **/
+        MetadataPanel metadataPanel = null;
 	
 	///////////////////
 	// Constructors
@@ -73,10 +76,12 @@ public class MapInspectorPanel  extends JPanel
 		mInfoPanel = new InfoPanel();
 		mPathPanel = new PathwayPane();
 		mFilterPanel = new FilterPanel();
+                metadataPanel = new MetadataPanel();
 		
 		mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
 		mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
 		mTabbedPane.addTab( mFilterPanel.getName(), mFilterPanel);
+                mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
 	
 		add( BorderLayout.CENTER, mTabbedPane );
 		validate();
@@ -121,6 +126,7 @@ public class MapInspectorPanel  extends JPanel
 			mInfoPanel.updatePanel( mMap);
 			mPathPanel.updatePanel( mMap);
 			mFilterPanel.updatePanel( mMap);
+                        metadataPanel.updatePanel(mMap);
 			}
 	}
 	
@@ -151,6 +157,9 @@ public class MapInspectorPanel  extends JPanel
 	
 	public void activateFilterTab() {
 		mTabbedPane.setSelectedComponent( mFilterPanel);
+	}
+        public void activateMetadataTab() {
+		mTabbedPane.setSelectedComponent( metadataPanel);
 	}
 	
 	/////////////
@@ -635,11 +644,47 @@ public class MapInspectorPanel  extends JPanel
 		}
 	
 	}
+        
+        
+    public class MetadataPanel extends JPanel implements ActionListener, PropertyChangeListener {
+                PropertiesEditor propertiesEditor = null;
+		
+		public MetadataPanel() {
+			
+			setLayout( new BorderLayout() );
+			setBorder( new EmptyBorder(4,4,4,4) );
+                       // add(propertiesEditor);
+                       
+                }
+                
+                public void actionPerformed(ActionEvent e) {
+                }
+                
+                public void propertyChange(PropertyChangeEvent evt) {
+                }
+                public String getName() {
+                    return "Metadata"; // this should come from VueResources
+                }
+                public void updatePanel( LWMap pMap) {
+			// update the display
+                    if(propertiesEditor != null)
+                        remove(propertiesEditor);
+                    propertiesEditor = new PropertiesEditor(pMap.getMetadata(),true);
+                    add(propertiesEditor);
+                    validate();
 
+                        
+		}
+             
+                
+    }
+    
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
 
+   
+		
 }
 
 

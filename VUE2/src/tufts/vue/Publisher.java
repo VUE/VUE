@@ -287,7 +287,7 @@ public class Publisher extends JDialog implements ActionListener {
     public void publishMap() {
         try {
             saveActiveMap();
-            Properties metadata = new Properties();
+            Properties metadata = VUE.getActiveMap().getMetadata();
             String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, metadata).getIdString();
             System.out.println("Published Map: id = "+pid);
         } catch (Exception ex) {
@@ -299,7 +299,7 @@ public class Publisher extends JDialog implements ActionListener {
     public void publishCMap() {
         try {
             File savedCMap = createIMSCP();
-            Properties metadata = new Properties();
+            Properties metadata  = VUE.getActiveMap().getMetadata();
             String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
           
             System.out.println("Published CMap: id = "+pid);

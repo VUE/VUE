@@ -64,6 +64,12 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         JComboBox comboBox = new JComboBox(DC_FIELDS);
         propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
         
+        
+        JPanel labelPanel=new JPanel(new FlowLayout(FlowLayout.LEFT,2,0));
+        labelPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
+        JLabel label = new JLabel("Resource Metadata");
+        label.setAlignmentX(Label.LEFT_ALIGNMENT);
+        labelPanel.add(label);
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
         topPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
@@ -82,10 +88,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
         innerPanel.setBorder(BorderFactory.createEmptyBorder(2,6,6,6));
         
-        JLabel label = new JLabel("Resource Metadata");
         
-        label.setAlignmentX(Label.LEFT_ALIGNMENT);
-        innerPanel.add(label);
+        innerPanel.add(labelPanel);
         innerPanel.add(propertiesPanel);
         innerPanel.add(topPanel);
         
