@@ -307,7 +307,7 @@ public class VUE
         hierarchyTree = new LWHierarchyTree(frame);
         outlineViewTree = new LWOutlineViewTree(frame);
         //end of addition
-           
+       
         Action[] windowActions = { toolbarWindow.getDisplayAction(),
         							pannerTool.getDisplayAction(),
                                    inspectorTool.getDisplayAction(),
@@ -406,7 +406,7 @@ public class VUE
     public static JTabbedPane getTabbedPane(){
         return tabbedPane;
     }
-    
+
     public static LWMap getActiveMap()
     {
         if (getActiveViewer() != null)
@@ -640,7 +640,8 @@ public class VUE
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
         toolBar.add(svgAction);
-        toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+       // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+        toolBar.add(new JButton(new PolygonIcon(Color.RED)));
         frame.setJMenuBar(menuBar);
         //frame.getContentPane().add(toolBar,BorderLayout.NORTH);
         frame.addWindowListener(new WindowAdapter() {

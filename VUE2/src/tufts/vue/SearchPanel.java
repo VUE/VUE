@@ -32,7 +32,7 @@ import org.xml.sax.InputSource;
  */
 public class SearchPanel extends JPanel{
   
-   private static  String searchURL;
+    private static  String searchURL;
     private static java.util.prefs.Preferences prefs;
     private static String  XML_MAPPING;
     private static String query;
