@@ -172,6 +172,10 @@ public class VueDataSource implements DataSource{
        
        
    }
+   
+   public String toString() {
+       return getDisplayName();
+   }
     
     
 }
