@@ -2,16 +2,42 @@ package tufts.vue;
 
 import java.util.Iterator;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 
 public class LWSelection extends java.util.ArrayList
 {
-    public static final boolean DEBUG_SELECTION = false;
+    public static final boolean DEBUG_SELECTION = VueResources.getBool("selection.debug");
 
     private java.util.List listeners = new java.util.ArrayList();
+    private java.util.List controlListeners = new java.util.LinkedList();
     private Rectangle2D bounds = null;
     
     public interface Listener extends java.util.EventListener {
         void selectionChanged(LWSelection selection);
+    }
+    public interface ControlListener extends java.util.EventListener {
+        void controlPointMoved(int index, Point2D newMapLocation);
+        void controlPointDropped(int index, Point2D newMapLocation);
+        Point2D.Float[] getControlPoints();
+    }
+
+    //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
+    private void addControlListener(ControlListener listener)
+    {
+        if (DEBUG_SELECTION) System.out.println("LWSelection: adding control listener " + listener);
+        controlListeners.add(listener);
+    }
+    
+    private void removeControlListener(ControlListener listener)
+    {
+        if (DEBUG_SELECTION) System.out.println("LWSelection: removing control listener " + listener);
+        if (!controlListeners.remove(listener))
+            throw new IllegalStateException("LWSelection: didn't contain control listener " + listener);
+    }
+
+    java.util.List getControlListeners()
+    {
+        return controlListeners;
     }
 
     public void addListener(Listener l)
@@ -93,12 +119,14 @@ public class LWSelection extends java.util.ArrayList
     
     private void add0(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection adding " + c);
+        if (DEBUG_SELECTION) System.out.println("LWSelection: adding " + c);
         
         if (!c.isSelected()) {
             c.setSelected(true);
             bounds = null;
             super.add(c);
+            if (c instanceof ControlListener)
+                addControlListener((ControlListener)c);
         } else
             throw new RuntimeException("LWSelection: attempt to add already selected component " + c);
     }
@@ -111,8 +139,10 @@ public class LWSelection extends java.util.ArrayList
 
     private void remove0(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection removing " + c);
+        if (DEBUG_SELECTION) System.out.println("LWSelection: removing " + c);
         c.setSelected(false);
+        if (c instanceof ControlListener)
+            removeControlListener((ControlListener)c);
         bounds = null;
         if (!super.remove(c))
             throw new RuntimeException("LWSelection remove: list doesn't contain " + c);
@@ -145,6 +175,7 @@ public class LWSelection extends java.util.ArrayList
             LWComponent c = (LWComponent) i.next();
             c.setSelected(false);
         }
+        controlListeners.clear();
         bounds = null;
         super.clear();
         return true;
