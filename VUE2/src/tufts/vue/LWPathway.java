@@ -109,12 +109,12 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void draw(Graphics2D g)
     {
-        System.out.println("attempting to draw a pathway...");
-        Iterator iter = getNodeIterator();
-        while(iter.hasNext()){
-            LWNode node = (LWNode)iter.next();
-            //node.setIndicated(true);
-        }
+        //System.out.println("attempting to draw a pathway...");
+        //Iterator iter = getNodeIterator();
+        //while(iter.hasNext()){
+        //    LWNode node = (LWNode)iter.next();
+            
+        //}
     }
     
     public boolean contains(Node node){
@@ -234,9 +234,5 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setComment(String comment){
         this.comment = comment;
-    }
-    
-    public void appendComment(String comment){
-        this.comment += comment;
     }
 }

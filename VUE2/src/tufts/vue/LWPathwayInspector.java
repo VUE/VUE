@@ -182,7 +182,9 @@ public class LWPathwayInspector extends InspectorWindow
                             if(newColor != null)
                                 model.setValueAt(newColor, row, col);
                         }
+                        
                    }
+                   
                    
                 });
                
@@ -281,7 +283,6 @@ public class LWPathwayInspector extends InspectorWindow
         pathPanel.setBorder(border);
        
         JScrollPane scrollPane = new JScrollPane(pathwayTable);
-        //pathwayTable.setPreferredScrollableViewportSize(getPreferredSize());
         
         JPanel buttons = new JPanel();
         buttons.setLayout(new FlowLayout());

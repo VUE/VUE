@@ -13,11 +13,9 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JComboBox;
-<<<<<<< PathwayControl.java
 import javax.swing.JDialog;
-=======
 import javax.swing.JTextField;
->>>>>>> 1.5
+
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.border.LineBorder;
 import java.awt.FlowLayout;
@@ -164,8 +162,8 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        PathwayControl control = new PathwayControl(new LWPathwayManager(1));
+    //public static void main(String[] args) {
+     //   PathwayControl control = new PathwayControl(new LWPathwayManager(1));
         
         /*
         //setting up pathway control in a tool window
@@ -175,10 +173,10 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
         window.setVisible(true);
         */
         
-        InspectorWindow window = new InspectorWindow(null, "test");
-        window.getContentPane().add(control);
-        window.show();
-    }
+     //   InspectorWindow window = new InspectorWindow(null, "test");
+     //   window.getContentPane().add(control);
+     //   window.show();
+    //}
     
     /**A method which updates the widgets accordingly*/
     public void updateControlPanel()

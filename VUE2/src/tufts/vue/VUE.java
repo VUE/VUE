@@ -243,7 +243,6 @@ public class VUE
             
             String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
             title = title.substring(0, title.length()-4);
-            System.out.println("title: " + title);
             for(int i = 0; i < tabbedPane.getTabCount(); i++){
                 if(tabbedPane.getTitleAt(i).equals(title)){
                     return (MapViewer) tabbedPane.getComponentAt(i);
@@ -273,7 +272,7 @@ public class VUE
 
     public static void displayMap(LWMap map)
     {
-        System.out.println("VUE.displayMap " + map);
+        //System.out.println("VUE.displayMap " + map);
         MapViewer mapViewer = null;
         // todo: figure out if we're already displaying this map
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {

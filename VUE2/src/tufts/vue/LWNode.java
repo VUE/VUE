@@ -42,6 +42,7 @@ public class LWNode extends LWContainer
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
 
+    private LWPathwayManager manager = null;
     
     public LWNode(String label)
     {
@@ -56,6 +57,9 @@ public class LWNode extends LWContainer
         setFillColor(COLOR_NODE_DEFAULT);
         setLocation(x, y);
         setStrokeWidth(2f);
+        
+        //get instance of pathway manager
+        manager = LWPathwayManager.getInstance();
     }
     // internal convenience
     LWNode(String label, Resource resource)
@@ -478,10 +482,16 @@ public class LWNode extends LWContainer
         }
 
         //-------------------------------------------------------
-        // Draw the border if any
+        // Draw the pathway border if any
         //-------------------------------------------------------
         
         //get current pathway
+        LWPathway path = manager.getCurrentPathway();
+        if(path.contains(this)){
+            g.setColor(path.getBorderColor());
+            g.setStroke(STROKE_INDICATION);
+            g.draw(drawnShape);
+        }
         /*
         if () {
             g.setColor(COLOR_INDICATION);
@@ -512,7 +522,7 @@ public class LWNode extends LWContainer
             g.setStroke(this.stroke);
             g.draw(drawnShape);
         }
-        
+        /*
         //draw any borders for pathways
         if (this.getBorderLayers().size() > 0) {
             ArrayList colors = getBorderLayers();
@@ -524,7 +534,7 @@ public class LWNode extends LWContainer
                     g.setStroke(this.stroke);
                 g.draw(drawnShape);
             }
-        }
+        }*/
 
         //-------------------------------------------------------
         // Draw the text label if any
