@@ -199,6 +199,10 @@ public abstract class LWContainer extends LWComponent
         return children.indexOf(c) == 0;
     }
 
+    public int getLayer(LWComponent c)
+    {
+        return getIndex(c);
+    }
     private int getIndex(Object c)
     {
         return children.indexOf(c);

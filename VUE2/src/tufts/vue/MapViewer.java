@@ -13,13 +13,13 @@ import javax.swing.text.JTextComponent;
  * MapViewer.java
  *
  * Implements a panel for displaying & interacting with
- * an instance of ConceptMap.  
+ * an instance of Vue2DMap.
  *
  * @author Scott Fraize
  * @version 3/16/03
  */
 
-//todo: rename LWViewer or LWCanvas
+//todo: rename LWViewer or LWCanvas?
 public class MapViewer extends javax.swing.JPanel
     // We use a swing component instead of AWT to get double buffering.
     // (The mac AWT impl has does this anyway, but not the PC).
@@ -27,6 +27,11 @@ public class MapViewer extends javax.swing.JPanel
                , LWComponent.Listener
                , LWSelection.Listener
 {
+    public interface Listener extends java.util.EventListener
+    {
+        public void mapViewerEventRaised(MapViewerEvent e);
+    }
+
     java.util.List tools = new java.util.ArrayList();
 
     protected Vue2DMap map;                   // the map we're displaying & interacting with
@@ -52,17 +57,6 @@ public class MapViewer extends javax.swing.JPanel
     private double zoomFactor = 1.0;
     private float mapOriginX = 0;
     private float mapOriginY = 0;
-
-    //-------------------------------------------------------
-    // temporary debugging stuff
-    //-------------------------------------------------------
-    private boolean DEBUG_SHOW_ORIGIN = false;
-    private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
-    private boolean DEBUG_KEYS = false;
-    private boolean DEBUG_MOUSE = false;
-    private int mouseX;
-    private int mouseY;
-    //-------------------------------------------------------
 
     private VueTool activeTool;
     private ZoomTool zoomTool; // todo: get rid of this hard reference
@@ -504,12 +498,14 @@ public class MapViewer extends javax.swing.JPanel
         //-------------------------------------------------------
         
         // anti-alias shapes by default
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
         // anti-alias text
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        if (!DEBUG_ANTIALIAS_OFF)
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         // Do we need fractional metrics?  Gives us slightly more accurate
         // string widths on noticable on long strings
-        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        if (!DEBUG_ANTIALIAS_OFF)
+            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         this.map.draw(g2);
         if (creationLink.isDisplayed())
             creationLink.draw(g2);
@@ -539,7 +535,7 @@ public class MapViewer extends javax.swing.JPanel
         if (zoomFactor != 1)
             g2.scale(1.0/zoomFactor, 1.0/zoomFactor);
         g2.translate(getOriginX(), getOriginY());
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
 
         paintSelection(g2);
 
@@ -552,7 +548,7 @@ public class MapViewer extends javax.swing.JPanel
             g2.draw(Yaxis);
         }
 
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
         
         //setOpaque(false);
         //super.paintComponent(g);
@@ -817,9 +813,39 @@ public class MapViewer extends javax.swing.JPanel
         }
         
         if (draggedSelectionBox != null) {
-            // draw the selection drag box
-            // todo: consider doing this on the glass pane for speed?
-            g2.setXORMode(COLOR_SELECTION_DRAG);
+            //-------------------------------------------------------
+            // draw the selection box being dragged by the user
+            //-------------------------------------------------------
+            
+            // todo opt: would this be any faster done on a glass pane?
+            
+            //-------------------------------------------------------
+            // TODO BUG: pixels seems to subtly shift for SOME nodes as they
+            // pass in and out of the drag region on PC JVM 1.4 -- doesn't
+            // depend on region on screen -- actually the node!!
+            // Happens to text more often -- somtimes text & strokes.
+            // Happens much more frequently at zoom exactly 100%.
+            
+            // BTW, XOR isn't the problem -- maybe if we used
+            // Graphics2D.draw(Shape) instead of drawRect?
+            // Doesn't appear to have anything to do with the layer of
+            // the node either.  Perhaps if it's shape contains rounded
+            // components?  Or maybe this is an anti-alias bug?
+            // doesn't appear to be anti-alias or fractional-metrics
+            // related for the text, tho switchin AA off stops
+            // it when the whole node is sometimes slightly streteched
+            // or compressed off to the right.
+
+            // Doesn't seem to happen right away either -- have
+            // to zoom in/out some and/or pan the map around first
+            // Poss requirement: change zoom (in worked), then PAN
+            // while at the zoom level, then zoom back to 100%
+            // this seems to do it for the text shifting anyway --
+            // shifting of everything takes something else I guess.
+            //-------------------------------------------------------
+            
+            //g2.setXORMode(COLOR_SELECTION_DRAG);
+            g2.setColor(COLOR_SELECTION_DRAG);
             g2.setStroke(STROKE_SELECTION_DYNAMIC);
             g2.drawRect(draggedSelectionBox.x, draggedSelectionBox.y,
                         draggedSelectionBox.width, draggedSelectionBox.height);
@@ -864,9 +890,9 @@ public class MapViewer extends javax.swing.JPanel
     }
     
     static final Rectangle2D ComponentHandle = new Rectangle2D.Float(0,0,0,0);
+    static final int chs = 5; // component handle size -- todo: config
     void drawComponentSelectionBox(Graphics2D g, LWComponent c)
     {
-        final int chs = 3; // component handle size -- todo: config
         Rectangle2D.Float r = mapToScreenRect(c.getBounds());
         g.setColor(COLOR_SELECTION);
         g.draw(r);
@@ -1064,14 +1090,23 @@ public class MapViewer extends javax.swing.JPanel
             }
 
 
-            // debug
-            char c = e.getKeyChar();
-            if (c == 'M') {
-                DEBUG_SHOW_MOUSE_LOCATION = !DEBUG_SHOW_MOUSE_LOCATION;
-                repaint();
-            } else if (c == 'O') {
-                DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN;
-                repaint();
+            if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+                // display debugging features
+                char c = e.getKeyChar();
+                if (c == 'M') {
+                    DEBUG_SHOW_MOUSE_LOCATION = !DEBUG_SHOW_MOUSE_LOCATION;
+                    repaint();
+                } else if (c == 'A') {
+                    DEBUG_ANTIALIAS_OFF = !DEBUG_ANTIALIAS_OFF;
+                    if (DEBUG_ANTIALIAS_OFF)
+                        AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
+                    else
+                        AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+                    repaint();
+                } else if (c == 'O') {
+                    DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN;
+                    repaint();
+                }
             }
         }
         
@@ -1687,5 +1722,22 @@ public class MapViewer extends javax.swing.JPanel
         map.addNode(new LWNode("Four"));
 
     }
+
+    //-------------------------------------------------------
+    // debugging stuff
+    //-------------------------------------------------------
+    
+    private boolean DEBUG_SHOW_ORIGIN = false;
+    private boolean DEBUG_ANTIALIAS_OFF = false;
+    private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
+    private boolean DEBUG_KEYS = false;
+    private boolean DEBUG_MOUSE = false;
+    private int mouseX;
+    private int mouseY;
+
+    private final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
+    private Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+
+
 
 }

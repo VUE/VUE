@@ -17,7 +17,7 @@ import java.awt.geom.Rectangle2D;
  */
 public class MapPanner extends javax.swing.JPanel
     implements VueConstants,
-               MapViewerListener,
+               MapViewer.Listener,
                MouseListener,
                MouseMotionListener
 {

@@ -19,7 +19,7 @@ public interface VueConstants
     static Font FONT_LINKLABEL = new Font("SansSerif", Font.PLAIN, 10);
     
     static java.awt.Color COLOR_LINK_LABEL = java.awt.Color.darkGray;
-    static java.awt.Color COLOR_SELECTION = java.awt.Color.blue;
+    static java.awt.Color COLOR_SELECTION = new java.awt.Color(74, 133, 255);
     static java.awt.Color COLOR_SELECTION_DRAG = java.awt.Color.gray;
     static java.awt.Color COLOR_INDICATION = java.awt.Color.red;
     static java.awt.Color COLOR_DEFAULT = java.awt.Color.black;
@@ -48,12 +48,13 @@ public interface VueConstants
     static Cursor CURSOR_ARROW    = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     static Cursor CURSOR_SUBSELECT= Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR); // white arrow
 
-    static java.awt.Stroke STROKE_ONE = new java.awt.BasicStroke(1f);
-    static java.awt.Stroke STROKE_TWO = new java.awt.BasicStroke(2f);
-    static java.awt.Stroke STROKE_INDICATION = new java.awt.BasicStroke(3f);
-    static java.awt.Stroke STROKE_DEFAULT = STROKE_ONE;
-    static java.awt.Stroke STROKE_SELECTION = new java.awt.BasicStroke(1f);
-    static java.awt.Stroke STROKE_SELECTION_DYNAMIC = new java.awt.BasicStroke(1f);
+    static java.awt.BasicStroke STROKE_ZERO = new java.awt.BasicStroke(0f);
+    static java.awt.BasicStroke STROKE_ONE = new java.awt.BasicStroke(1f);
+    static java.awt.BasicStroke STROKE_TWO = new java.awt.BasicStroke(2f);
+    static java.awt.BasicStroke STROKE_INDICATION = new java.awt.BasicStroke(3f);
+    static java.awt.BasicStroke STROKE_DEFAULT = STROKE_ONE;
+    static java.awt.BasicStroke STROKE_SELECTION = new java.awt.BasicStroke(1f);
+    static java.awt.BasicStroke STROKE_SELECTION_DYNAMIC = new java.awt.BasicStroke(1f);
 
     static boolean DEBUG_CONTAINMENT = false;
 

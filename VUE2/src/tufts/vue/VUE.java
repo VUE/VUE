@@ -49,7 +49,7 @@ public class VUE
     }
 
     static class VueFrame extends JFrame
-        implements MapViewerListener
+        implements MapViewer.Listener
     {
         final int TitleChangeMask = MapViewerEvent.DISPLAYED | MapViewerEvent.ZOOM;
         

@@ -23,7 +23,7 @@ public class MapViewerEvent
 
     public Class getListenerClass()
     {
-        return MapViewerListener.class;
+        return MapViewer.Listener.class;
     }
     
     public MapViewer getMapViewer()
@@ -33,7 +33,7 @@ public class MapViewerEvent
 
     public void dispatch(Object listener)
     {
-        ((MapViewerListener)listener).mapViewerEventRaised(this);
+        ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
 
     public String toString()

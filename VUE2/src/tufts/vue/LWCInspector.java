@@ -245,9 +245,12 @@ class LWCInspector extends javax.swing.JPanel
 
         String id = lwc.getID();
         if (lwc.getParent() == null)
-            id += " [parent is null!]";
-        else
+            id += " [PARENT IS NULL]";
+        else {
             id += " [parent: " + lwc.getParent().getLabel() + "]";
+            id += " z:" + lwc.getParent().getLayer(lwc);
+        }
+        
         idField.setText(id);
         labelField.setBackground(lwc.getFillColor());
         loadText(labelField, lwc.getLabel());

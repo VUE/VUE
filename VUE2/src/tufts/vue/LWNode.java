@@ -430,37 +430,29 @@ public class LWNode extends LWGroup
             g.fill(drawnShape);
         }
 
-        // Draw the border
+        //-------------------------------------------------------
+        // Draw the border if any
+        //-------------------------------------------------------
         
-        if (isIndicated())
+        if (isIndicated()) {
             g.setColor(COLOR_INDICATION);
-        //else if (isSelected())
-            //g.setColor(COLOR_SELECTION);
-        else
-            g.setColor(getStrokeColor());
-        
-        if (imageIcon == null) {
-            if (isIndicated()) {
+            if (STROKE_INDICATION.getLineWidth() > this.stroke.getLineWidth())
                 g.setStroke(STROKE_INDICATION);
-                g.draw(drawnShape);
-            } else {
-                float w = getStrokeWidth();
-                if (w > 0f) {
-                    // todo opt: cache this stroke object
-                    g.setStroke(new java.awt.BasicStroke(getStrokeWidth()));
-                    g.draw(drawnShape);
-                }
-            }
+            else
+                g.setStroke(this.stroke);
+            g.draw(drawnShape);
+        } else if (getStrokeWidth() > 0) {
+            g.setColor(getStrokeColor());
+            g.setStroke(this.stroke);
+            g.draw(drawnShape);
         }
-
-        if (false) {
-            g.setStroke(new java.awt.BasicStroke(0.001f));
-            g.setColor(Color.green);
-            g.draw(boundsShape);
-        }
+        
+        //g.setStroke(new java.awt.BasicStroke(0.001f));
+        //g.setColor(Color.green);
+        //g.draw(boundsShape);
 
         //-------------------------------------------------------
-        // Draw the text label
+        // Draw the text label if any
         //-------------------------------------------------------
         
         if (label != null) {

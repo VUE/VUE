@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -123,20 +125,17 @@ public class LWComponent
     // persistent impl
     protected float width;
     protected float height;
-    //protected PColor fillColor = new PColor(COLOR_FILL); // todo: use PColor in constants
-    //protected PColor textColor = new PColor(COLOR_TEXT);
-    //protected PColor strokeColor = new PColor(COLOR_STROKE);
-    //protected Color fillColor = COLOR_FILL;
     protected Color fillColor = null;
     protected Color textColor = COLOR_TEXT;
     protected Color strokeColor = COLOR_STROKE;
     protected float strokeWidth = 1f;
-    //protected Font font = FONT_DEFAULT;
     protected Font font = null;
+    //protected Font font = FONT_DEFAULT;
     
     /*
      * Runtime only information
      */
+    protected transient BasicStroke stroke = STROKE_ONE;//equate with above strokeWidth default
     protected transient boolean displayed = true;
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
@@ -146,8 +145,7 @@ public class LWComponent
     // list of LWLinks that contain us as an endpoint
     private transient ArrayList links = new ArrayList();
 
-    // Scale exists ONLY to support the child-node
-    // convenience feature.
+    // Scale currently exists ONLY to support the child-node feature.
     protected transient float scale = 1.0f;
     protected final float ChildScale = 0.75f;
 
@@ -254,8 +252,14 @@ public class LWComponent
     }
     public void setStrokeWidth(float w)
     {
-        this.strokeWidth = w;
-        notify("strokeWidth");
+        if (this.strokeWidth != w) {
+            this.strokeWidth = w;
+            if (w > 0)
+                this.stroke = new BasicStroke(w);
+            else
+                this.stroke = STROKE_ZERO;
+            notify("strokeWidth");
+        }
     }
     public Font getFont()
     {
