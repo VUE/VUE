@@ -244,6 +244,20 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                 googlePane.setSelectedComponent(googleResultsPanel);
             } catch (Exception ex) {
                 System.out.println("cannot connect google");
+                
+                googleResultsPanel.remove(jsp);
+                JPanel jp = new JPanel(new BorderLayout());
+                jp.setBackground(Color.WHITE);
+                JLabel jl = new JLabel("No Match Found");
+                jp.add(jl,BorderLayout.NORTH);
+                JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+                //JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,2, 0));
+                
+                googleResultsPanel.add(jp,BorderLayout.CENTER);
+                googleResultsPanel.validate();
+                googlePane.setSelectedComponent(googleResultsPanel);
+                
+                
             }
         }
         searchButton.setEnabled(true);
