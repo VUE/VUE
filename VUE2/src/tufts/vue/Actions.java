@@ -3,6 +3,8 @@ package tufts.vue;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Collection;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
@@ -92,7 +94,6 @@ class Actions {
             {
               if (VUE.getPathwayInspector().getPathway() == null)
                   return false;
-              
               else
                   return true;
             }
@@ -128,7 +129,7 @@ class Actions {
               else
                   return true;
             }
-    }; 
+        }; 
     
     /** End of Jay's Addition*/
     
@@ -160,81 +161,217 @@ class Actions {
         };
         
     /**End of Addition by Daisuke Fujiwara*/
-        
-    //-------------------------------------------------------
-    // Edit actions
-    //-------------------------------------------------------
 
-    static final Action Cut =
-        new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
-            public boolean isEnabled() { return false; }
-            void act(LWComponent c) {
-                //VUE.ScratchBuffer.add(c);
+    //-------------------------------------------------------
+    // Link actions
+    //-------------------------------------------------------
+        
+    static final Action LinkMakeStraight =
+        new MapAction("Make Straight") {
+            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
+            public void act(LWComponent c) { ((LWLink)c).setControlCount(0); }
+        };
+    static final Action LinkMakeQuadCurved =
+        new MapAction("Make Curved (1 point)") {
+            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
+            public void act(LWComponent c) { ((LWLink)c).setControlCount(1); }
+        };
+    static final Action LinkMakeCubicCurved =
+        new MapAction("Make Curved (2 points)") {
+            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
+            public void act(LWComponent c) { ((LWLink)c).setControlCount(2); }
+        };
+    static final Action LinkArrows =
+        new MapAction("Arrows", keyStroke(KeyEvent.VK_L, COMMAND)) {
+            boolean enabledFor(LWSelection s) { return s.allOfType(LWLink.class); }
+            public void act(LWComponent c)
+            {
+                ((LWLink)c).rotateArrowState();
             }
         };
 
-    static final Action Copy =
-        new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
-            public boolean isEnabled() { return false; }
+    /** Helper for menu creation.  Null's indicate good places
+        for menu separators. */
+    public static final Action[] LINK_MENU_ACTIONS = {
+        LinkMakeStraight,
+        LinkMakeQuadCurved,
+        LinkMakeCubicCurved,
+        LinkArrows
+    };
+    //-------------------------------------------------------
+    // Edit actions: Duplicate, Cut, Copy & Paste
+    // These actions all make use of the statics
+    // below.
+    //-------------------------------------------------------
+
+    private static ArrayList ScratchBuffer = new ArrayList();
+    private static LWContainer ScratchMap;
+            
+    private static HashMap sCopies = new HashMap();
+    private static HashMap sOriginals = new HashMap();
+
+    private static final int sCopyOffset = 10;
+
+    private static Collection duplicatePreservingLinks(Iterator i)
+    {
+        sCopies.clear();
+        sOriginals.clear();
+        
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            LWComponent copy = c.duplicate();
+            sCopies.put(c, copy);
+            sOriginals.put(copy, c);
+        }
+        reconnectLinks();
+        return sCopies.values();
+    }
+    
+    private static void reconnectLinks()
+    {
+        Iterator ic = sCopies.values().iterator();
+        while (ic.hasNext()) {
+            LWComponent c = (LWComponent) ic.next();
+            if (!(c instanceof LWLink))
+                continue;
+            LWLink copied_link = (LWLink) c;
+            LWLink original_link = (LWLink) sOriginals.get(copied_link);
+            
+            copied_link.setComponent1((LWComponent)sCopies.get(original_link.getComponent1()));
+            copied_link.setComponent2((LWComponent)sCopies.get(original_link.getComponent2()));
+        }
+        
+    }
+            
+            
+    static final MapAction Duplicate =
+        new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
+            boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            void act(Iterator i) {
+                sCopies.clear();
+                sOriginals.clear();
+                super.act(i);
+                reconnectLinks();
+                VUE.ModelSelection.setTo(sCopies.values().iterator());
+            }
+
             void act(LWComponent c) {
-                //VUE.ScratchBuffer.add(c.duplicate());
+                LWComponent copy = c.duplicate();
+                copy.setLocation(c.getX()+sCopyOffset,
+                                 c.getY()+sCopyOffset);
+                c.getParent().addChild(copy);
+                //System.out.println("duplicated:\n\t" + c + "\n\t" + copy);
+                sCopies.put(c, copy);
+                sOriginals.put(copy, c);
+            }
+
+        };
+
+    static final Action Cut =
+        new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
+            boolean mayModifySelection() { return true; }
+            boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            void act(LWSelection selection) {
+                Copy.act(selection);
+                Delete.act(selection);
+                ScratchMap = null;  // okay to paste back in same location
+            }
+        };
+
+    static final MapAction Copy =
+        new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
+            boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            void act(Iterator iSelection) {
+                ScratchBuffer.clear();
+                ScratchBuffer.addAll(duplicatePreservingLinks(iSelection));
+                ScratchMap = VUE.getActiveViewer().getMap();
+                // paste differs from duplicate in that the new parent is
+                // always the top level map -- not the old parent -- so a node
+                // that was a child has to have it's scale set back to 1.0
+                // todo: do this automatically in removeChild?
+                Iterator i = ScratchBuffer.iterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    if (c.getScale() != 1f)
+                        c.setScale(1f);
+                }
             }
         };
     static final Action Paste =
         new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
             boolean enabledFor(LWSelection s) { return true; }
+            //boolean enabledFor(LWSelection s)// doesn't get updates from ScratchBuffer!
+            //{ return ScratchBuffer.size() > 0; }
             //public boolean isEnabled() { return true; }//listen for scratch buffer fill
+
             void act() {
-                //LWContainer parent = VUE.getActiveViewer().getMap();
-                // iter thru scratch buffer and do reparenting
-                //parent.
+                LWContainer parent = VUE.getActiveViewer().getMap();
+                if (parent == ScratchMap) {
+                    // unless this was from a cut or it came from a
+                    // different map, or we already pasted this,
+                    // offset the location.  This is conveniently
+                    // cumulative since we're offsetting the actual
+                    // components in the cut buffer, which are
+                    // duplicated each time we paste.
+                    Iterator i = ScratchBuffer.iterator();
+                    while (i.hasNext()) {
+                        LWComponent c = (LWComponent) i.next();
+                        c.setLocation(c.getX()+sCopyOffset,
+                                      c.getY()+sCopyOffset);
+                    }
+                } else
+                    ScratchMap = parent; // pastes again to this map will be offset
+
+                Collection pasted = duplicatePreservingLinks(ScratchBuffer.iterator());
+                parent.addChildren(pasted.iterator());
+                VUE.ModelSelection.setTo(pasted.iterator());
+            }
+            void act_system() {
                 
                 Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
                 VUE.getActiveViewer().getMapDropTarget().processTransferable(clipboard.getContents(this), null);
             }
         };
 
-    static final Action Duplicate =
-        // todo: call this duplicate?
-        new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
-            List newCopies = new java.util.ArrayList();
-            // boolean mayModifySelection() { return true; } // only matters if CONCURRENTLY: todo rename
-            boolean enabledFor(LWSelection s)
-            {
-                //return s.size() > 0 && !s.allOfType(LWLink.class);
-                return s.size() > 0;
-            }
-            void act(Iterator i) {
-                newCopies.clear();
-                super.act(i);
-                VUE.ModelSelection.setTo(newCopies.iterator());
-            }
+    static final MapAction Delete =
+        new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
+        {
+            boolean mayModifySelection() { return true; }
             void act(LWComponent c) {
-                // doesn't currently make sense to duplicate links seperately
-                // -- will need to handle via LWContainer duplicate
-                if (false&&c instanceof LWLink) {
-                    // BELOW NOT AS RELEVANT as links can stand on their
-                    // own -- however, we still have problem of reconnecting
-                    // them...
-                    
-                    //todo: implement cut/copy/paste before making this
-                    // more sophisitcated -- will have to work out
-                    // separte code to compute what links to add to
-                    // to cut group beforehand, and then other code
-                    // of how to reproduce them later... (e.g.,
-                    // process all links first). -- ACTUALLY --
-                    // should put everything in cut buffer first,
-                    // and figure out the link grabs at paste time,
-                    // which could theoretically depend on the paste context.
-                    LWLink l = (LWLink) c;
-                    //if (!l.bothEndsInSelection()) {
-                    return;
+                //have to update pathways - jay briedis
+                // TODO: this is the WAY WAY wrong place to do this -- SMF
+                // the pathway should listen for for deletions among it's elements --
+                // it's going to miss all sorts of deletions this way.
+                Iterator iter = VUE.getActiveViewer()
+                    .getMap()
+                    .getPathwayManager()
+                    .getPathwayIterator();
+                while(iter.hasNext()){
+                    LWPathway pathway = (LWPathway)iter.next();
+                    if(pathway.contains(c)){
+                        if(c instanceof LWNode){
+                            LWNode node = (LWNode)c;
+                            ArrayList links = (ArrayList)c.getLinks(); // may be modified concurrently
+                            if(links != null){
+                                for (int i = 0; i < links.size(); i++) {
+                                    LWLink l = (LWLink) links.get(i);
+                                    if(pathway.contains(l)){
+                                        pathway.removeElement(l);
+                                    }
+                                }
+                            }
+                        }
+                        pathway.removeElement(c);                        
+                    }
                 }
-                LWComponent copy = c.duplicate();
-                copy.setLocation(c.getX()+10, c.getY()+10); // todo: offset in resources
-                c.getParent().addChild(copy);
-                System.out.println("duplicated:\n\t" + c + "\n\t" + copy);
-                newCopies.add(copy);
+
+                LWContainer parent = c.getParent();
+                if (parent == null)
+                    // right now this can happen because links are auto-deleted if
+                    // both their endpoints are deleted
+                    System.err.println("null parent in delete of " + c + " (already deleted)");
+                else
+                    parent.deleteChildPermanently(c);
             }
         };
 
@@ -291,46 +428,6 @@ class Actions {
             void act(LWComponent c) {
                 // todo: throw interal exception if c not in active map
                 VUE.getActiveViewer().activateLabelEdit(c);
-            }
-        };
-    static final Action Delete =
-        new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
-        {
-            boolean mayModifySelection() { return true; }
-            void act(LWComponent c) {
-                //have to update pathways - jay briedis
-                // TODO: this is the WAY WAY wrong place to do this -- SMF:)
-                // the pathway should listen for for deletions among it's elements.
-                Iterator iter = VUE.getActiveViewer()
-                    .getMap()
-                    .getPathwayManager()
-                    .getPathwayIterator();
-                while(iter.hasNext()){
-                    LWPathway pathway = (LWPathway)iter.next();
-                    if(pathway.contains(c)){
-                        if(c instanceof LWNode){
-                            LWNode node = (LWNode)c;
-                            ArrayList links = (ArrayList)c.getLinks(); // may be modified concurrently
-                            if(links != null){
-                                for (int i = 0; i < links.size(); i++) {
-                                    LWLink l = (LWLink) links.get(i);
-                                    if(pathway.contains(l)){
-                                        pathway.removeElement(l);
-                                    }
-                                }
-                            }
-                        }
-                        pathway.removeElement(c);                        
-                    }
-                }
-
-                LWContainer parent = c.getParent();
-                if (parent == null)
-                    // right now this can happen because links are auto-deleted if
-                    // both their endpoints are deleted
-                    System.err.println("null parent in delete of " + c + " (already deleted)");
-                else
-                    parent.deleteChild(c);
             }
         };
     
@@ -470,10 +567,18 @@ class Actions {
         {
             super(name);
         }
+        boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return s.size() >= 2; }
         void act(LWSelection selection)
         {
-            // todo: remove/ignore any links in the selection?
+            if (!selection.allOfType(LWLink.class)) {
+                // remove all links from our cloned copy of the selection
+                Iterator i = selection.iterator();
+                while (i.hasNext())
+                    if (i.next() instanceof LWLink)
+                        i.remove();
+            }
+    
             Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
             minX = r.x;
             minY = r.y;
@@ -485,8 +590,6 @@ class Actions {
             totalWidth = totalHeight = 0;
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
-                if (c instanceof LWLink)
-                    continue;
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
@@ -879,10 +982,19 @@ class Actions {
         /** Is this action enabled given this selection? */
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
         
-        /** the action may result in an event that has the viewer
-         * change what's in the current selection (e.g., on delete,
-         * the viewer makes sure the deleted object is no longer
-         * in the selection group */
+        /** mayModifySelection: the action may result in an event that
+         * has the viewer change what's in the current selection
+         * (e.g., on delete, the viewer makes sure the deleted object
+         * is no longer in the selection group -- we need this because
+         * actions usually iterate thru the selection, and if it might
+         * change in the middle of the iteration, we have to clone it
+         * before going thru it or we will get conncurrent
+         * modification exceptions.  An action does NOT need to
+         * declare that it may modification the selection if it just
+         * changes the selection at the end of the iteration (e.g., by
+         * setting the selection to newly copied nodes or something)
+         * */
+
         boolean mayModifySelection() { return false; }
         
         void act(LWSelection selection)
@@ -911,10 +1023,52 @@ class Actions {
         }
         void act(LWComponent c)
         {
+            if (c instanceof LWLink)
+                act((LWLink)c);
+            else if (c instanceof LWNode)
+                act((LWNode)c);
+            else
+                System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
+            
+        }
+        void act(LWLink c)
+        {
             System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
         }
+        void act(LWNode c)
+        {
+            System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
+        }
+        
         void Xact(LWComponent c) {}// for commenting convenience
     }
     
 }
 
+
+
+
+                /*
+                  Cut.act(LWSelection)
+                // todo perf: if want to be risky & hairy,
+                // could do all this instead:
+                ScratchBuffer.clear();
+                // we can put the originals into the scratch
+                // buffer in the case of Cut, but need to
+                // make sure nobody is listening to them, and
+                // manually remove them from the map.
+                // This is different than doing a "Delete"
+                Iterator i = selection.iterator();
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    c.getParent().removeChild(c);
+                    c.removeAllLWCListeners();
+                    // will also need to disconnect all link
+                    // connections that pass over the "selection"
+                    // boundry of what's in and out ... not
+                    // worth the hassle when we can just Copy
+                    // then Delete
+                    ScratchBuffer.add(c);
+                }
+                VUE.ModelSelection.clear();
+                */
