@@ -282,11 +282,9 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
             } catch (Exception e) { System.out.println("FedoraNode.toString() "+e);}
             return returnString;
 	}
-}
-    
-}
-
-class FileNode extends DefaultMutableTreeNode {
+ }
+ 
+ public class FileNode extends DefaultMutableTreeNode {
 	private boolean explored = false;
 
 	public FileNode(File file) 	{ 
@@ -336,9 +334,9 @@ class FileNode extends DefaultMutableTreeNode {
 			explored = true;
 		}
 	}
-}
+ }
 
-  class FavoritesNode extends DefaultMutableTreeNode {
+ public class FavoritesNode extends DefaultMutableTreeNode {
         public FavoritesNode(String displayName){
             super(displayName);
             
@@ -347,7 +345,11 @@ class FileNode extends DefaultMutableTreeNode {
                 this.explore();
 		
 		}
-}    
+ }    
+    
+}
+
+
  
   class VueDragTreeNodeSelection extends Vector implements Transferable{
        final static int FILE = 0;
