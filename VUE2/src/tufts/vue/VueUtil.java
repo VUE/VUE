@@ -761,6 +761,13 @@ public class VueUtil
         float[] coords = computeYCrossings(x_axis, shape, new float[4]);
         // coords[0] & coords[2], the x values, can be ignored, as they always == x_axis
 
+        if (coords.length < 4) {
+            // TODO FIX: if line is outside edge of shape, we're screwed (see d:/test-layout.vue)
+            System.err.println("clip error " + coords);
+            new Throwable("CLIP ERROR shape=" + shape).printStackTrace();
+            return null;
+        }
+
         float upper; // y value at top
         float lower; // y value at bottom
         if (coords[1] < coords[3]) {
