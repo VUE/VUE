@@ -198,21 +198,29 @@ public class NodeInspectorPanel  extends JPanel
 		
 		/** the path scroll pane **/
 		JScrollPane mTreeScrollPane = null;
+                OutlineViewTree tree = null;
                 
 		/**
 		 * TreePanel
 		 * Constructs a pathway panel
 		 **/
 		public TreePanel() {
-					
-                   
-			mTreeScrollPane = new JScrollPane();
+				
+                        //fix the layout?
+                        setLayout( new BorderLayout() );
+			setBorder( new EmptyBorder(4,4,4,4) );
+                        
+                        
+                        tree = new OutlineViewTree();
+                        
+			mTreeScrollPane = new JScrollPane(tree);
 			mTreeScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 			mTreeScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mTreeScrollPane.setLocation(new Point(8, 9));
 			mTreeScrollPane.setVisible(true);
 		
-			add( mTreeScrollPane );
+                        add(mTreeScrollPane, BorderLayout.CENTER);
+			//add( mTreeScrollPane );
 		}
 		
 		
@@ -232,9 +240,7 @@ public class NodeInspectorPanel  extends JPanel
 		 **/
 		 public void updatePanel( LWNode pNode) {
 		 // update display based on the LWNode
-                     
-                     //mTreeScrollPane.getViewport().remove(your_old_component);
-                     mTreeScrollPane.getViewport().setView(new OutlineViewTree(pNode));
+                    tree.setModel(new OutlineViewTreeModel(pNode));
 		 }
 	}
 	
