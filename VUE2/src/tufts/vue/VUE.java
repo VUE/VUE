@@ -238,7 +238,7 @@ public class VUE
     
     /**End of overview related method*/
     
-    private VUE() {}
+    public  VUE() {}
     
     static void initUI() {
         initUI(false);
