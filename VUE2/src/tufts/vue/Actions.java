@@ -810,7 +810,9 @@ class Actions
             }
         };
     static final Action Undo =
-        new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
+        new VueAction("Undo",
+                      keyStroke(KeyEvent.VK_Z, COMMAND),
+                      "/toolbarButtonGraphics/general/Undo16.gif")
         {
             boolean undoable() { return false; }
             void act() { VUE.getUndoManager().undo(); }

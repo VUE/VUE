@@ -351,6 +351,7 @@ public class LWComponent
     }
     
     public NodeFilter getNodeFilter() {
+        //out(this + " getNodeFilter " + nodeFilter);
         return nodeFilter;
     }
 

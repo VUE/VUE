@@ -828,6 +828,9 @@ public class VUE
             menuBar.add(r).setFocusable(false);
             menuBar.add(p).setFocusable(false);
             menuBar.add(v).setFocusable(false);
+
+            //menuBar.add(new tufts.vue.gui.VueButton(Actions.Undo)).setFocusable(false);
+            // not picking up icon yet...
         }
 
         if (DEBUG.Enabled) {
@@ -1091,7 +1094,7 @@ public class VUE
         s.clear(); // clear isSelected bits
     }
     
-    static void installExampleMap(LWMap map) {
+    public static void installExampleMap(LWMap map) {
         /*
          * create some test nodes & links
          */
