@@ -88,6 +88,7 @@ public class OpenAction extends VueAction
         } 
         catch (Exception e) 
         {
+            VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
             e.printStackTrace();
             return null;
@@ -103,6 +104,7 @@ public class OpenAction extends VueAction
         } 
         catch (Exception e) 
         {
+           VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
             System.err.println("OpenAction.loadMap[" + url + "]: " + e);
             e.printStackTrace();
             return null;
