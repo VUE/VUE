@@ -339,6 +339,10 @@ class MapDropTarget
                     url = url.substring(0,i) + ":" + url.substring(i+1);
                     System.out.println("**PATCHED URL ["+url+"]");
                 }
+                // todo: if this is a file:/// url to a local html page,
+                // AND we can determine that we're on another computer
+                // accessing this file via the network (can we?)
+                // then we should not covert this shortcut.
             }
         } catch (Exception e) {
             System.out.println(e);
