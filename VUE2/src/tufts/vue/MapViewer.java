@@ -1775,6 +1775,7 @@ public class MapViewer extends javax.swing.JPanel
                 // color is... (if we fill the repaint region with
                 // a color b4 painting, it will dither to that color)
                 
+                
             }
         }
 

@@ -30,11 +30,18 @@ public class LWPathway extends tufts.vue.LWComponent
     private String comment = "";
     private boolean ordered = false;
     private Color borderColor = Color.blue;
+    private LWMap map = null;
     
     /**default constructor used for marshalling*/
     public LWPathway() {
         //added by Daisuke
-        elementList = new LinkedList();
+        elementList = new LinkedList();    
+    }
+    
+    public LWPathway(LWMap map, String label) {
+        this(label);
+        this.map = map;
+        
     }
     
     /** Creates a new instance of LWPathway with the specified label */
@@ -77,33 +84,8 @@ public class LWPathway extends tufts.vue.LWComponent
         }
     }
     
-    public void drawAgain(Graphics2D g)
-    {
-       /* 
-        Iterator iter = this.getElementIterator();
-        while(iter.hasNext()){
-            LWComponent comp = (LWComponent)iter.next();
-            if(comp instanceof LWNode){
-                Shape s = comp.getShape();
-                g.setColor(this.getBorderColor());
-                g.setStroke(new BasicStroke(5/8f));
-                g.draw(s);
-            } else if(comp instanceof LWLink){
-                LWLink link = (LWLink)comp;
-                Shape s = comp.getShape();
-                Area clipArea = link.clip;
-                g.setColor(this.getBorderColor());
-                g.setStroke(new BasicStroke(5/8f));
-                if(clipArea != null) g.clip(clipArea);
-                g.draw(s);
-                //System.out.println("LWLink in pathway...");
-            }
-        }*/
-        //System.out.println("Done with iteration...");
-    }
-    
     public void draw(Graphics2D g){
-        Iterator iter = this.getElementIterator();
+        /*Iterator iter = this.getElementIterator();
         while(iter.hasNext()){
             LWComponent comp = (LWComponent)iter.next();
             if(comp instanceof LWNode){
@@ -111,7 +93,7 @@ public class LWPathway extends tufts.vue.LWComponent
             } else if(comp instanceof LWLink){
                 
             }
-        }
+        }*/
     }
     
     public boolean contains(LWComponent element){
@@ -250,6 +232,10 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public void setComment(String comment){
         this.comment = comment;
+    }
+    
+    public void mapViewerEventRaised(MapViewerEvent e) {
+        System.out.println("MapViewer event: "+e);
     }
     
     //testing constructor

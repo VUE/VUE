@@ -41,6 +41,8 @@ public class LWNode extends LWContainer
     private float fontStringWidth;
     private float borderWidth = 2; // what is this really?
     
+    // pathway handlers added by Jay Briedis (7/1/03)
+    //not used currently, and hopefully will not need to be used
     private LWPathway currentPathway = null;
     private Color borderColor = null;
 
@@ -499,12 +501,12 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         // Draw the indicated border if any
         //-------------------------------------------------------        
-        if (currentPathway != null){
+        /*if (currentPathway != null){
             if(this.borderColor != null) g.setColor(borderColor);
             else g.setColor(Color.white);
             g.setStroke(new BasicStroke(5/8f));
             g.draw(drawnShape);
-        } else if (isIndicated()) {
+        } else*/ if (isIndicated()) {
             g.setColor(COLOR_INDICATION);
             if (STROKE_INDICATION.getLineWidth() > getStrokeWidth())
                 g.setStroke(STROKE_INDICATION);
