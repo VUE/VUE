@@ -30,7 +30,7 @@ import org.xml.sax.InputSource;
  *
  * @author  rsaigal
  */
-public class SearchPanel extends JInternalFrame{
+public class SearchPanel extends JPanel{
   
    private static final String searchURL = "http://googlesearch.tufts.edu/search?submit.y=5&site=tufts01&submit.x=11&output=xml_no_dtd&client=tufts01&q=";
     
@@ -43,51 +43,35 @@ public class SearchPanel extends JInternalFrame{
     
     private static URL url;
     
-    public SearchPanel(int x, int y) {
-        super("Vue Search Panel");
-        setSize(x,y);
+    public SearchPanel() {
+      
         
+        this.setLayout(new BorderLayout());
        //Create the query panel and result panel//      
   
         JPanel queryPanel =  new JPanel();        
      
         
         final JPanel resultPanel = new JPanel();
-        resultPanel.setSize(400,300);
+        
         resultPanel.setLayout(new BorderLayout());
-         
+        queryPanel.setLayout(new BorderLayout()); 
+      
         
-        //Layout for the search panel  
-        
-        GridBagLayout myGridLayout = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-
-        
-        
-        queryPanel.setLayout(myGridLayout);
         final JTextField queryBox = new JTextField();
-        c.gridx = 0;
-        c.gridy = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-    
-        myGridLayout.setConstraints(queryBox, c);
-        queryPanel.add(queryBox);
+       
+       
+        queryPanel.add(queryBox,BorderLayout.NORTH);
  
         JButton searchButton = new JButton("Search"); 
+       
         searchButton.setPreferredSize(new Dimension(100,30));
-        c.gridy = 1;
-        c.anchor = GridBagConstraints.CENTER;
-        c.insets = new Insets(0,150,0,150);
-       
-        myGridLayout.setConstraints(searchButton, c);
-        queryPanel.add(searchButton);
+        
+        queryPanel.add(searchButton,BorderLayout.SOUTH);
        
        
-        Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-       
-        contentPane.add(queryPanel,BorderLayout.NORTH);
-        contentPane.add(resultPanel,BorderLayout.CENTER);
+        this.add(queryPanel,BorderLayout.NORTH);
+        this.add(resultPanel,BorderLayout.CENTER);
 
         //Add action to the submint button
    
