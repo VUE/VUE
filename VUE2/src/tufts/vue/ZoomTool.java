@@ -152,7 +152,7 @@ public class ZoomTool extends VueTool
             // towards the map location at the center of the
             // viewport.
             if (DEBUG.SCROLL) System.out.println("VISIBLE CENTER " + viewer.getVisibleCenter());
-            focus = viewer.screenToMapPoint(viewer.getVisibleCenter());
+            focus = viewer.screenToMapPoint2D(viewer.getVisibleCenter());
         }
         viewer.setZoomFactor(newZoomFactor, reset, focus);
     }

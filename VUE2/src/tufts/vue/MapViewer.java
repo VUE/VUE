@@ -383,7 +383,7 @@ public class MapViewer extends javax.swing.JComponent
         //if (pReset && pFocus != null) // oops: zoom fit does this -- can we let it?
         //throw new IllegalArgumentException(this + " setZoomFactor: can't reset & focus at same time " + pZoomFactor + " " + pFocus);
         if (mapAnchor == null && !pReset) {
-            mapAnchor = screenToMapPoint(getVisibleCenter());
+            mapAnchor = screenToMapPoint2D(getVisibleCenter());
             if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + out(mapAnchor));
         } else {
             if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + out(mapAnchor));
@@ -541,6 +541,12 @@ public class MapViewer extends javax.swing.JComponent
         //if (scrollerCoords) return (float) ((y + getOriginX()) * mZoomInverse) + getY();
         return (float) ((y + getOriginY()) * mZoomInverse);
     }
+    float screenToMapX(double x) {
+        return (float) ((x + getOriginX()) * mZoomInverse);
+    }
+    float screenToMapY(double y) {
+        return (float) ((y + getOriginY()) * mZoomInverse);
+    }
     int mapToScreenX(double x) {
         //if (scrollerCoords) return (int) (0.5 + ((x * mZoomFactor) - getOriginX())) - getX();
         return (int) (0.5 + ((x * mZoomFactor) - getOriginX()));
@@ -569,6 +575,9 @@ public class MapViewer extends javax.swing.JComponent
     }
     float screenToMapDim(int dim) {
         return (float) (dim * mZoomInverse);
+    }
+    Point2D.Float screenToMapPoint2D(Point2D p) {
+        return new Point2D.Float(screenToMapX(p.getX()), screenToMapY(p.getY()));
     }
     Point2D.Float screenToMapPoint(Point p) {
         return screenToMapPoint(p.x, p.y);
@@ -677,15 +686,15 @@ public class MapViewer extends javax.swing.JComponent
      * which if scroll all the way up-left, will be same as canvas coords, but if not,
      * will be offset by scrolled amount.
      */
-    public Point getVisibleCenter() {
-        return viewportToCanvasPoint(getVisibleWidth() / 2, getVisibleHeight() / 2);
+    public Point2D getVisibleCenter() {
+        return viewportToCanvasPoint(getVisibleWidth() / 2.0, getVisibleHeight() / 2.0);
     }
     
-    private Point viewportToCanvasPoint(int x, int y) {
+    private Point2D viewportToCanvasPoint(double x, double y) {
         if (inScrollPane)
-            return new Point(x - getX(), y - getY());
+            return new Point2D.Double(x - getX(), y - getY());
         else
-            return new Point(x, y);
+            return new Point2D.Double(x, y);
     }
     
     /**
@@ -1662,10 +1671,14 @@ public class MapViewer extends javax.swing.JComponent
             //g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
             g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
 
-            Point center = getVisibleCenter();
-            dc.setAbsoluteStroke(0.5);
-            g2.drawLine(-99999, center.y, 99999, center.y);
-            g2.drawLine(center.x, -99999, center.x, 99999);
+            Point2D center = getVisibleCenter();
+            dc.setAbsoluteStroke(1);
+            Line2D ScreenX = new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord);
+            Line2D ScreenY = new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
+            g2.draw(ScreenX);
+            g2.draw(ScreenY);
+            //g2.drawLine(-99999, center.getX(), 99999, center.getY());
+            //g2.drawLine(center.getX(), -99999, center.getY(), 99999);
         }
 
         /*
