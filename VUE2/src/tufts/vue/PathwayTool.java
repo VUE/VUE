@@ -12,8 +12,5 @@ public class PathwayTool extends VueSimpleTool
         super();
     }
     
-    public boolean supportsSelectorBox()
-    {
-        return false;
-    }
+    public boolean supportsSelection() { return true; }
 }

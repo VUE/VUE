@@ -519,6 +519,8 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     private void updateLabels()
     {
         LWPathway pathway = getSelectedPathway();
+        if (pathway == null)
+            return;
         LWComponent c = pathway.getCurrent();
         
         String labelText = "Notes: " + pathway.getLabel();
