@@ -602,10 +602,7 @@ implements  VUE.ActiveMapListener {
             
             
             mFilterBox = Box.createVerticalBox();
-            mFilter = new LWCFilter();
-            
             mFilterScrollPane = new JScrollPane();
-            
             filterEditor = new FilterEditor();
             filterEditor.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
             mFilterBox.add(filterEditor);
@@ -644,19 +641,14 @@ implements  VUE.ActiveMapListener {
             mFewerButton.setEnabled( hasMap);
             
             if (hasMap) {
-                if (pMap.getLWCFilter() == null) {
-                    mFilter = new LWCFilter(pMap);
-                    pMap.setLWCFilter(mFilter);
-                } else 
-                    mFilter = pMap.getLWCFilter();
+                mMap = pMap;
+                mFilter = pMap.getLWCFilter();
             } else {
-                mFilter = new LWCFilter();
-                return;
+               return;
             }
             
             if(mFilter.getStatements() == null) {
                 mFilter.setStatements(new Vector());
-                
             }
             filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
             //mActionCombo.setSelectedItem(mFilter.getFilterAction());
@@ -679,64 +671,31 @@ implements  VUE.ActiveMapListener {
             // with sizeable maps).  There's also a bug where the filter is getting turned
             // off when you switch to another map and then back again.
             mFilterButton.doClick();
-            int val = ANY_MODE;
-            if( !mFilter.getIsAny() )
-                val = ALL_MODE;
-            if( mFilter.isLogicalNot() )
-                val += 2;
-            
-            //buildFilterBox( pMap);
-            /**
-             * mMainFilterPanel.remove(filterEditor);
-             *
-             * filterEditor = new FilterEditor();
-             * mFilter.setStatements(filterEditor.getFilterTableModel());
-             * mMainFilterPanel.add(BorderLayout.CENTER, filterEditor);
-             */
             mMainFilterPanel.validate();
         }
-        
-        public LWCFilter makeNewFIlter() {
-            LWCFilter filter = new LWCFilter();
-            LWCFilter.LogicalStatement [] satements = new LWCFilter.LogicalStatement[ mStatementEditors.size() ];
-            return filter;
-        }
-        
-        
-        public LWCFilter makeFilter() {
-            LWCFilter filter = new LWCFilter( mStatementEditors );
-            //LWCFilter filter = new LWCFilter(filterEditor.getFilterTableModel());
-            filter.setStatements(filterEditor.getFilterTableModel().getFilters());
-            filter.setMap( mMap);
-            if(mHideButton.isSelected())
-                filter.setFilterAction(LWCFilter.ACTION_HIDE);
-            else if(mSelectButton.isSelected())
-                filter.setFilterAction(LWCFilter.ACTION_SELECT);
-            else
-                filter.setFilterAction(LWCFilter.ACTION_SHOW);
-            
-            return filter;
-        }
-        
         /** Enabled the current filter, and tell the map of a filter change */
+        
+         public void makeFilter() {
+            mFilter.setStatements(filterEditor.getFilterTableModel().getFilters());
+            if(mHideButton.isSelected())
+                mFilter.setFilterAction(LWCFilter.ACTION_HIDE);
+            else if(mSelectButton.isSelected())
+                mFilter.setFilterAction(LWCFilter.ACTION_SELECT);
+            else
+                mFilter.setFilterAction(LWCFilter.ACTION_SHOW);
+        }
+        
         public void applyFilter() {
-            mFilter = makeFilter();
             if (mMap != null) {
-                mFilter.setFilterOn(true);
-                mMap.setLWCFilter(mFilter);
+                makeFilter();
+                mMap.applyFilter();
             }
         }
         
         /** Disable the current filter, and tell the map of a filter change */
         public void clearFilter() {
-            if (mMap == null)
-                return;
-            if (mFilter == null) {
-                mMap.setLWCFilter(null);
-            } else {
-                mFilter.setFilterOn(false);
-                mMap.setLWCFilter(mFilter);
-            }
+            if (mMap != null)
+               mMap.clearFilter();
         }
         
         public void addStatement() {

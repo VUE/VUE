@@ -266,75 +266,13 @@ public class LWCFilter {
         return mStatements;
     }
     
-    
-    /**
-     * applyFilter
-     * Applies this filter to the map.  It uses
-     * the isFiltering, isSelecting, isLogicalNot, isAny to
-     * constuct the terms and cations for logical expression.
-     * isFiltering causes Map items to be hidden or shown
-     * isSelecting causes the current selection to change
-     * isLogicalNot inverses the result set
-     * isAny is a logical OR, !isAny is a logcal AND for statements
-     *
-     **/
-    public void applyFilter() {
-        
-        if( mMap == null)
-            return;
-
-        if (!isFilterOn()) throw new IllegalStateException("attempting to apply filter that is not enabled " + this);
-        
-        if (DEBUG) debug("LWCFilter.applyFilter()");
-        
-        if (getFilterAction() == ACTION_SELECT)
-            VUE.getSelection().clear();
-        
-        Iterator it = mMap.getAllDescendentsIterator();
-        while (it.hasNext()) {
-            LWComponent c = (LWComponent) it.next();
-            if( (c instanceof LWNode) || (c instanceof LWLink) ) {
-                boolean state = isMatch( c);
-                if (DEBUG) debug("  FINAL: "+c.getLabel()+"  is  "+ state  );
-                if( isLogicalNot() ) {
-                    state = !state;
-                }
-                if (getFilterAction() == ACTION_HIDE)
-                    c.setIsFiltered(state);
-                else if (getFilterAction() == ACTION_SHOW)
-                    c.setIsFiltered(!state);
-                else if (getFilterAction() == ACTION_SELECT) {
-                    if (state)
-                        VUE.getSelection().add(c);
-                }
-            }
-        }
-        
-        // repaint
-        //mMap.notify(this, "repaint");
-        
-    }
-
-    /** clear our map of any filtering */
     /*
-    public void unApplyFilter() {
-        if (mMap == null)
-            return;
-        Iterator it = mMap.getAllDescendentsIterator();
-        while (it.hasNext()) {
-            LWComponent c = (LWComponent) it.next();
-            c.setIsFiltered( false);
-        }
-        mMap.notify(this, "repaint");
-    }
-    */
+     *isMatch
+     *this method checks if the componenent matches complex logic. It is not enabled in current version of VUE.
+     *@param LWComponent to be checked.
+     *@return true if matches the criteria
+     */ 
     
-    /**
-     * showComponent
-     * This method returns true if the the component should be filtered
-     *
-     * @return boolean true - if this should be shown; false if filtered
-     **/
     public boolean isMatch( LWComponent pLWC ) {
         
         // if any, we'll assume FALSE

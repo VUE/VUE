@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ import tufts.vue.filter.*;
  */
 
 public class LWMap extends LWContainer
-    implements ConceptMap//, Printable
+implements ConceptMap//, Printable
 {
     /** file we were opened from of saved to, if any */
     private File file;
@@ -80,9 +80,9 @@ public class LWMap extends LWContainer
     
     /** user description **/
     private String mDescription;
-
+    
     /** the current Map Filter **/
-    LWCFilter mLWCFilter = new LWCFilter();
+    LWCFilter mLWCFilter;
     
     /** Metadata for Publishing **/
     Properties metadata = new Properties();
@@ -101,11 +101,12 @@ public class LWMap extends LWContainer
     private float userOriginX;
     private float userOriginY;
     private double userZoom = 1;
-
+    
     
     // only to be used during a restore from persisted
     public LWMap() {
         setLabel("<map-during-XML-restoration>");
+        this.mLWCFilter = new LWCFilter(this);
         //setEventsSuspended();
         //markDate();
     }
@@ -120,6 +121,7 @@ public class LWMap extends LWContainer
         mPathways = new LWPathwayList(this);
         markDate();
         markAsSaved();
+        this.mLWCFilter = new LWCFilter(this);
     }
     
     private void markDate() {
@@ -173,17 +175,17 @@ public class LWMap extends LWContainer
     public LWCFilter getLWCFilter() {
         return mLWCFilter;
     }
-
+    
     /** @return true if this map currently conditionally displaying
      * it's components based on a filter */
     public boolean isCurrentlyFiltered() {
         return mLWCFilter != null && mLWCFilter.isFilterOn() && mLWCFilter.hasPersistentAction();
     }
-
+    
     /**
      * This tells us there's a new LWCFilter or filter state in effect
      * for the filtering of node's & links.
-     * This should be called anytime the filtering is to change, even if we 
+     * This should be called anytime the filtering is to change, even if we
      * already have our filter set to the given filter.  We will
      * apply / clear as appropriate to the state of the filter.
      * @param LWCFilter the filter to install and/or update against
@@ -191,26 +193,52 @@ public class LWMap extends LWContainer
     private boolean filterWasOn = false; // workaround for filter bug
     public void setLWCFilter(LWCFilter filter) {
         out("setLWCFilter: " + filter);
-        //new Throwable("setLWCFilter").printStackTrace();
-        if (filter == null || filter.isFilterOn() == false) {
-            if (mLWCFilter != null && filterWasOn)
-                clearFilter();
-            filterWasOn = false;
-        } else {
-            filter.applyFilter();
-            filterWasOn = true;
-        }
         mLWCFilter = filter;
-        notify(LWKey.MapFilter); // not currently undoable
+        applyFilter();
     }
-
-    private void clearFilter() {
+    
+    public  void clearFilter() {
         out("clearFilter: cur=" + mLWCFilter);
+         if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
+                VUE.getSelection().clear();
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setIsFiltered(false);
         }
+        setIsFiltered(false);
+        mLWCFilter.setFilterOn(false);       
+        notify(LWKey.MapFilter,this);
+    }
+    
+    public  void applyFilter() {
+      
+            if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
+                VUE.getSelection().clear();
+            
+            Iterator it = getAllDescendentsIterator();
+            while (it.hasNext()) {
+                LWComponent c = (LWComponent) it.next();
+                if( (c instanceof LWNode) || (c instanceof LWLink) ) {
+                    boolean state = mLWCFilter.isMatch( c);
+                    if( mLWCFilter.isLogicalNot() ) {
+                        state = !state;
+                    }
+                    if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_HIDE)
+                        c.setIsFiltered(state);
+                    else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SHOW)
+                        c.setIsFiltered(!state);
+                    else if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT) {
+                        if (state)
+                            VUE.getSelection().add(c);
+                    }
+                }
+            }
+            filterWasOn = true;
+            mLWCFilter.setFilterOn(true);
+            setIsFiltered(true);
+     
+        notify(LWKey.MapFilter,this);
     }
     
     /**
@@ -243,9 +271,9 @@ public class LWMap extends LWContainer
      * validateUserMapTypes
      * Searches the list of LW Compone
     private void validateUserMapTypes() {
-        
+     
         java.util.List list = getAllDescendents();
-        
+     
         Iterator it = list.iterator();
         while (it.hasNext()) {
             LWComponent c = (LWComponent) it.next();
@@ -264,7 +292,7 @@ public class LWMap extends LWContainer
      * hasUserMapType
      * This method verifies that the UserMapType exists for this Map.
      * @return boolean true if exists; false if not
-
+     
     private boolean hasUserMapType( UserMapType pType) {
         boolean found = false;
         if( mUserTypes != null) {
@@ -322,11 +350,11 @@ public class LWMap extends LWContainer
         out("setMapFilterModel " + mapFilterModel);
         this.mapFilterModel = mapFilterModel;
     }
-
+    
     public LWPathwayList getPathwayList() {
         return mPathways;
     }
-
+    
     /** for persistance restore only */
     public void setPathwayList(LWPathwayList l){
         System.out.println(this + " pathways set to " + l);
@@ -509,7 +537,7 @@ public class LWMap extends LWContainer
         // todo pref: should be safe to only do this if a size, location or scale, hide or filter event.
         String what = e.getWhat();
         if (what == LWKey.Repaint || what == LWKey.Scale) {
-            // nop            
+            // nop
             ;
             // repaint is for non-permanent changes.
             // scale sets not considered modifications as they can
@@ -550,7 +578,7 @@ public class LWMap extends LWContainer
             } finally {
                 setEventsResumed();
             }
-            */
+             */
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
             //if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
             //mCachedBoundsOld = false;
@@ -643,11 +671,11 @@ public class LWMap extends LWContainer
     //todo: this method must be re-written. not to save and restore
     public Object clone() throws CloneNotSupportedException{
         try {
-        String prefix = "concept_map";
-        String suffix = ".vue";
-        File tempFile  = File.createTempFile(prefix,suffix,VueUtil.getDefaultUserFolder());
-        tufts.vue.action.ActionUtil.marshallMap(tempFile, this);
-        return tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
+            String prefix = "concept_map";
+            String suffix = ".vue";
+            File tempFile  = File.createTempFile(prefix,suffix,VueUtil.getDefaultUserFolder());
+            tufts.vue.action.ActionUtil.marshallMap(tempFile, this);
+            return tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
         }catch(Exception ex) {
             throw new CloneNotSupportedException(ex.getMessage());
         }
@@ -677,26 +705,26 @@ public class LWMap extends LWContainer
             out("page " + pageIndex + " requested, ending print job.");
             return Printable.NO_SUCH_PAGE;
         }
-
+     
         out("asked to render page " + pageIndex + " in " + outpf(format));
-
+     
         Dimension page = new Dimension((int) format.getImageableWidth() - 1,
                                        (int) format.getImageableHeight() - 1);
-
+     
         Graphics2D g = (Graphics2D) gc;
-
+     
         if (DEBUG.Enabled) {
             g.setColor(Color.lightGray);
             g.fillRect(0,0, 9999,9999);
         }
-        
+     
         g.translate(format.getImageableX(), format.getImageableY());
-
+     
         // Don't need to clip if printing whole map, as computed zoom
         // should have made sure everything is within page size
         //if (!isPrintingView())
         //g.clipRect(0, 0, page.width, page.height);
-                        
+     
         if (DEBUG.Enabled) {
             //g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             // draw border outline of page
@@ -705,7 +733,7 @@ public class LWMap extends LWContainer
             g.drawRect(0, 0, page.width, page.height);
             //g.setComposite(AlphaComposite.Src);
         }
-        
+     
         // compute zoom & offset for visible map components
         Point2D offset = new Point2D.Double();
         // center vertically only if landscape mode
@@ -714,30 +742,30 @@ public class LWMap extends LWContainer
         out("rendering at scale " + scale);
         g.translate(-offset.getX(), -offset.getY());
         g.scale(scale,scale);
-
+     
         if (isPrintingView())
             g.clipRect((int) Math.floor(bounds.getX()),
                        (int) Math.floor(bounds.getY()),
                        (int) Math.ceil(bounds.getWidth()),
                        (int) Math.ceil(bounds.getHeight()));
-        
+     
         if (DEBUG.Enabled) {
             g.setColor(Color.red);
             g.setStroke(VueConstants.STROKE_TWO);
             g.draw(bounds);
         }
-            
+     
         // set up the DrawContext
         DrawContext dc = new DrawContext(g, scale);
         dc.setPrinting(true);
         dc.setAntiAlias(true);
         // render the map
         this.draw(dc);
-          
+     
         out("page " + pageIndex + " rendered.");
         return Printable.PAGE_EXISTS;
     }
-    */    
+     */
     
     
     /*public Dimension getSize()
