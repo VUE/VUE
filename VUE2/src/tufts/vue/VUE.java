@@ -20,25 +20,24 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
  */
 
 public class VUE
-    implements VueConstants
-{
+implements VueConstants {
     //public static final String CASTOR_XML_MAPPING = "lw_mapping.xml";
     public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = VueResources.getURL("mapping.lw");
     //    public static final java.net.URL CASTOR_XML_MAPPING_RESOURCE = ClassLoader.getSystemResource("lw_mapping.xml");
     //public final java.net.URL CASTOR_XML_MAPPING_RESOURCE = getClass().getResource("lw_mapping.xml");
     public static final String VUE_CONF = "vue.conf";
     
-    // preferences for the application 
+    // preferences for the application
     //public static Preferences prefs;
     
     /** The currently active viewer (e.g., is visible
-        and has focus).  Actions (@see Actions.java) are performed on
-        the active model (sometimes querying the active viewer). */
+     * and has focus).  Actions (@see Actions.java) are performed on
+     * the active model (sometimes querying the active viewer). */
     private static MapViewer ActiveViewer = null;
     /** The currently active selection.
-        elements in ModelSelection should always be from the ActiveModel */
+     * elements in ModelSelection should always be from the ActiveModel */
     public static LWSelection ModelSelection = new LWSelection();
-
+    
     /** teh global resource selection static model **/
     public static ResourceSelection sResourceSelection = new ResourceSelection();
     
@@ -62,8 +61,7 @@ public class VUE
     public static DataSourceViewer dataSourceViewer;
     public static FavoritesWindow favoritesWindow;
     
-    public static java.net.URL getResource(String name)
-    {
+    public static java.net.URL getResource(String name) {
         java.net.URL url = null;
         // First, check the current directory:
         java.io.File f = new java.io.File(name);
@@ -95,39 +93,36 @@ public class VUE
         } catch (Exception e) { System.out.println(e);}
         if (imageURL != null)
             button = new JButton(new ImageIcon(imageURL));
-        */
-
+         */
+    
     static class VueFrame extends JFrame
-        implements MapViewer.Listener
-    {
+    implements MapViewer.Listener {
         final int TitleChangeMask =
-            MapViewerEvent.DISPLAYED |
-            MapViewerEvent.FOCUSED |
-            MapViewerEvent.ZOOM;        // title includes zoom
+        MapViewerEvent.DISPLAYED |
+        MapViewerEvent.FOCUSED |
+        MapViewerEvent.ZOOM;        // title includes zoom
         
         VueFrame() {
             super("VUE: Tufts Concept Map Tool");
         }
-
+        
         /** never let the frame be hidden -- always ignored */
         public void setVisible(boolean tv) {
             System.out.println("VueFrame setVisible " + tv);
-
+            
             // The frame should never be "hidden" -- iconification
             // doesn't trigger that (nor Mac os "hide") -- so if we're
             // here the OS window manager is attempting to hide us
-            // (the 'x' button on the window frame). 
-
+            // (the 'x' button on the window frame).
+            
             super.setVisible(true);
         }
-        public void mapViewerEventRaised(MapViewerEvent e)
-        {
+        public void mapViewerEventRaised(MapViewerEvent e) {
             if ((e.getID() & TitleChangeMask) != 0)
                 setTitleFromViewer(e.getMapViewer());
         }
-
-        private void setTitleFromViewer(MapViewer viewer)
-        {
+        
+        private void setTitleFromViewer(MapViewer viewer) {
             String label = viewer.getMap().getLabel();
             if (viewer.getMap().getFile() != null)
                 label = viewer.getMap().getFile().getName();
@@ -145,23 +140,21 @@ public class VUE
             setTitle(title);
         }
     }
-
-    static class VuePanel extends JPanel
-    {
-        public void paint(Graphics g)
-        {
+    
+    static class VuePanel extends JPanel {
+        public void paint(Graphics g) {
             // only works when, of course, the panel is asked
             // to redraw -- but if you mess with subcomponents
             // and just they repaint, we lose this.
             // todo: There must be a way to stick this in a global
             // property somewhere.
             ((Graphics2D)g).setRenderingHint
-                (RenderingHints.KEY_TEXT_ANTIALIASING,
-                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            (RenderingHints.KEY_TEXT_ANTIALIASING,
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             super.paint(g);
         }
     }
-
+    
     static {
         if (false && VueUtil.isMacPlatform()) {
             final String usmbProp = "apple.laf.useScreenMenuBar";
@@ -172,13 +165,12 @@ public class VUE
             // setting appNameProp here doesn't do anything anything since VM
             // has already made use of this property...
             System.setProperty(appNameProp, "VUE");
-            */
+             */
         }
     }
-
+    
     private static Cursor oldCursor;
-    public static synchronized void activateWaitCursor()
-    {
+    public static synchronized void activateWaitCursor() {
         /*
         JRootPane rp = SwingUtilities.getRootPane(VUE.frame);
         if (oldCursor != null)
@@ -189,20 +181,19 @@ public class VUE
         // okay -- need to get this from the MapViewer..
         System.out.println("GOT OLD CURSOR " + oldCursor);
         rp.setCursor(CURSOR_WAIT);
-        */
+         */
     }
-    public static synchronized void clearWaitCursor()
-    {
+    public static synchronized void clearWaitCursor() {
         /*
         if (getActiveViewer() != null)
             getActiveViewer().setCursor(oldCursor);
         SwingUtilities.getRootPane(VUE.frame).setCursor(oldCursor);
         System.out.println("USED OLD CURSOR " + oldCursor);
         oldCursor = null;
-        */
+         */
     }
     
-
+    
     /*public static LWPathwayInspector getPathwayInspector(){
         return pathwayInspector;
         }*/
@@ -222,29 +213,26 @@ public class VUE
     /**End of pathway related methods*/
     
     /**Hierarchy View related method*/
-    public static LWHierarchyTree getHierarchyTree() 
-    {
+    public static LWHierarchyTree getHierarchyTree() {
         return hierarchyTree;
     }
     
     /**End of hierarchy view related method*/
     
     /**Overview related method*/
-    public static LWOutlineView getOutlineViewTree()
-    {
+    public static LWOutlineView getOutlineViewTree() {
         return outlineView;
     }
     
     /**End of overview related method*/
     
     private VUE() {}
-
+    
     static void initUI() {
         initUI(false);
     }
-
-    static void initUI(boolean debug)
-    {
+    
+    static void initUI(boolean debug) {
         MetalLookAndFeel.setCurrentTheme(new VueTheme()); // no freakin effect at all!
         
         String lafn = null;
@@ -259,7 +247,7 @@ public class VUE
         } catch (Exception e) {
             System.err.println(e);
         }
-
+        
         /*
         //-------------------------------------------------------
         // from java.swing.plaf.basic.BasicLookAndFeel.java:
@@ -271,7 +259,7 @@ public class VUE
             "TabbedPane.light", table.get("controlHighlight"),
             "TabbedPane.shadow", table.get("controlShadow"),
             "TabbedPane.darkShadow", table.get("controlDkShadow"),
-	    "TabbedPane.selected", null,
+            "TabbedPane.selected", null,
             "TabbedPane.focus", table.get("controlText"),
             "TabbedPane.textIconGap", four,
             "TabbedPane.tabInsets", tabbedPaneTabInsets,
@@ -279,24 +267,24 @@ public class VUE
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
             "TabbedPane.contentBorderInsets", tabbedPaneContentBorderInsets,
             "TabbedPane.tabRunOverlay", new Integer(2),
-
+         
             "ComboBox.font", sansSerifPlain12,
             "ComboBox.background", table.get("window"),
             "ComboBox.foreground", table.get("textText"),
-	    "ComboBox.buttonBackground", table.get("control"),
-	    "ComboBox.buttonShadow", table.get("controlShadow"),
-	    "ComboBox.buttonDarkShadow", table.get("controlDkShadow"),
-	    "ComboBox.buttonHighlight", table.get("controlLtHighlight"),
+            "ComboBox.buttonBackground", table.get("control"),
+            "ComboBox.buttonShadow", table.get("controlShadow"),
+            "ComboBox.buttonDarkShadow", table.get("controlDkShadow"),
+            "ComboBox.buttonHighlight", table.get("controlLtHighlight"),
             "ComboBox.selectionBackground", table.get("textHighlight"),
             "ComboBox.selectionForeground", table.get("textHighlightText"),
             "ComboBox.disabledBackground", table.get("control"),
             "ComboBox.disabledForeground", table.get("textInactiveText"),
-            
-	    "PopupMenu.font", dialogPlain12,
-	    "PopupMenu.background", table.get("menu"),
-	    "PopupMenu.foreground", table.get("menuText"),
-	    "PopupMenu.border", popupMenuBorder,
-            
+         
+            "PopupMenu.font", dialogPlain12,
+            "PopupMenu.background", table.get("menu"),
+            "PopupMenu.foreground", table.get("menuText"),
+            "PopupMenu.border", popupMenuBorder,
+         
         //-------------------------------------------------------
         // from java.swing.plaf.metal.MetalLookAndFeel.java:
         //-------------------------------------------------------
@@ -309,23 +297,23 @@ public class VUE
             "TabbedPane.selectHighlight", getControlHighlight(),
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
             "TabbedPane.tabInsets", tabbedPaneTabInsets,
-
+         
             "ComboBox.background", table.get("control"),
             "ComboBox.foreground", table.get("controlText"),
             "ComboBox.selectionBackground", getPrimaryControlShadow(),
             "ComboBox.selectionForeground", getControlTextColor(),
             "ComboBox.font", controlTextValue,
-            
-        */
+         
+         */
         //Color toolbarColor = VueResources.getColor("toolbar.background");
         LookAndFeel laf = UIManager.getLookAndFeel();
         String lafName = laf.getName();
         System.out.println("LookAndFeel: \"" + lafName + "\" " + laf);
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
-
+            
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
             UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
-
+            
             UIManager.getLookAndFeelDefaults().put("Label.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("Button.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("Menu.font", FONT_MEDIUM);
@@ -334,32 +322,32 @@ public class VUE
             UIManager.getLookAndFeelDefaults().put("CheckBox.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("RadioButton.font", FONT_MEDIUM);
             UIManager.getLookAndFeelDefaults().put("ToggleButton.font", FONT_MEDIUM);
-
-                // This is doing nothing I can see:
+            
+            // This is doing nothing I can see:
             //UIManager.getLookAndFeelDefaults().put("Menu.background", Color.white);
-
+            
             // This tweaks the bg, but the buttons all appear to paint their on bg,
             // so we only see a thin border of this:
             //UIManager.getLookAndFeelDefaults().put("PopupMenu.background", Color.white);
-
+            
             // the rest of these are tests
-
+            
             //UIManager.getLookAndFeelDefaults().put("ComboBox.foreground", Color.red);
-
+            
             // this doesn't do anything I can see (it does in windows L&F, but not Metal)
             //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonBackground", Color.yellow);
             // Okay: this works to change selected bg -- the one thing we didn't want to change.
             //UIManager.getLookAndFeelDefaults().put("ComboBox.selectionBackground", Color.white);
-
+            
             // Effect in Windows L&F, but not metal:
-            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonShadow", Color.green); 
+            //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonShadow", Color.green);
             // Effect in Windows L&F, but not metal:
             //if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonDarkShadow", Color.red);
             
-                
+            
             // Affects tabs but not tab contents background, so looks broken:
             //UIManager.getLookAndFeelDefaults().put("TabbedPane.selected", toolbarColor);
-
+            
             UIManager.getLookAndFeelDefaults().put("TabbedPane.tabAreaBackground", Color.green);
             // Why, in metal, is the default window "gray" background color neither lightGray
             // nor equal to the SystemColor.control???
@@ -372,15 +360,14 @@ public class VUE
     }
     
     static JPanel toolPanel;//todo: tmp hack
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         System.out.println("VUE:main");
         initUI();
         
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
-
+        
         mMapTabsLeft = new MapTabbedPane("*left");
         mMapTabsLeft.setTabPlacement(SwingConstants.BOTTOM);
         mMapTabsLeft.setPreferredSize(new Dimension(300,400));
@@ -388,7 +375,7 @@ public class VUE
         mMapTabsRight = new MapTabbedPane("right");
         mMapTabsRight.setTabPlacement(SwingConstants.BOTTOM);
         mMapTabsRight.setPreferredSize(new Dimension(300,400));
-
+        
         //-------------------------------------------------------
         // create a an application frame and layout components
         //-------------------------------------------------------
@@ -411,10 +398,10 @@ public class VUE
             //-------------------------------------------------------
             //LWMap map1 = new LWMap("Map 1");
             LWMap map2 = new LWMap("Map 2");
-
+            
             //installExampleNodes(map1);
             installExampleMap(map2);
-
+            
             //map1.setFillColor(new Color(255, 255, 192));
             
             //displayMap(map1);
@@ -424,14 +411,14 @@ public class VUE
         // DEMO FIX:
         // no lwinspector in left
         //toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
-
+        
         JSplitPane splitPane = new JSplitPane();
         //splitPane.setResizeWeight(0.40); // 25% space to the left component
         splitPane.setContinuousLayout(false);
         splitPane.setOneTouchExpandable(true);
         splitPane.setLeftComponent(toolPanel);
         //splitPane.setLeftComponent(leftScroller);
-
+        
         viewerSplit = new JSplitPane();
         viewerSplit.setOneTouchExpandable(true);
         viewerSplit.setRightComponent(mMapTabsRight);
@@ -442,10 +429,10 @@ public class VUE
         viewerSplit.setLeftComponent(mMapTabsLeft);
         viewerSplit.setResizeWeight(0.5);
         viewerSplit.setDividerLocation(9999);
-
+        
         //splitPane.setRightComponent(mMapTabsLeft);
         splitPane.setRightComponent(viewerSplit);
-
+        
         frame = new VueFrame();
         JPanel vuePanel = new VuePanel();
         vuePanel.setLayout(new BorderLayout());
@@ -455,7 +442,7 @@ public class VUE
         ToolWindow pannerTool = new ToolWindow("Panner", frame);
         pannerTool.setSize(120,120);
         pannerTool.addTool(new MapPanner());
-
+        
         ToolWindow inspectorTool = new ToolWindow("Inspector", frame);
         inspectorTool.addTool(new LWCInspector());
         
@@ -472,12 +459,12 @@ public class VUE
         tbc.setToolWindow( toolbarWindow);
         toolbarWindow.getContentPane().add( tbc.getToolbar() );
         toolbarWindow.pack();
-        */
-
+         */
+        
         frame.getContentPane().add( tbc.getToolbar(), BorderLayout.NORTH);
-		
+        
         // Map Inspector
-		
+        
         // get the proper scree/main frame size
         sMapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
         MapInspectorPanel mi = new MapInspectorPanel();
@@ -504,11 +491,11 @@ public class VUE
         ToolWindow htWindow = new ToolWindow("Hierarchy Tree", frame);
         hierarchyTree = new LWHierarchyTree();
         htWindow.addTool(hierarchyTree);
-        */
-
+         */
+        
         outlineView = new LWOutlineView(frame);
         //end of addition
-       
+        
         Window[] toolWindows = {
             objectInspector,
             sMapInspector,
@@ -530,7 +517,7 @@ public class VUE
         frame.pack();
         frame.setSize(800,600);
         frame.validate();
-
+        
         VueUtil.centerOnScreen(frame);
         
         // position inspectors pased on frame location
@@ -539,47 +526,47 @@ public class VUE
         objectInspector.setLocation( inspectorx, frame.getY() + sMapInspector.getHeight() );
         
         frame.addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                    System.out.println(e);
-                    ExitAction.exitVue();
-
-                    //-------------------------------------------------------
-                    // if we get here, it means exit was aborted.
-                    // (something wasn't saved & they decided to cancel or
-                    // there was an error during the save)
-                    //-------------------------------------------------------
-
-                    //frame.show();
-                    // not working!  How to cancel this windowClose?
-                    // According to WindowEvent.java &
-                    // WindowAdapter.java, canceling this
-                    // windowClosing is supposed to be possible, but
-                    // they don't mention how. Anyway, we've overriden
-                    // setVisible on VueFrame to make it impossible to
-                    // hide it, and that works, so this event just
-                    // becomes the they've pressed on the close button
-                    // event.
-                    
-                    return;
-                }
-                public void windowClosed(WindowEvent e) {
-                    // I've never see us even get this event...
-                    System.err.println(e);
-                    System.err.println("Too late: window disposed: exiting.");
-                    System.exit(-1);
-                }
-                public void windowStateChanged(WindowEvent e) {
-                    System.out.println(e);
-                }
-            });
-
+            public void windowClosing(WindowEvent e) {
+                System.out.println(e);
+                ExitAction.exitVue();
+                
+                //-------------------------------------------------------
+                // if we get here, it means exit was aborted.
+                // (something wasn't saved & they decided to cancel or
+                // there was an error during the save)
+                //-------------------------------------------------------
+                
+                //frame.show();
+                // not working!  How to cancel this windowClose?
+                // According to WindowEvent.java &
+                // WindowAdapter.java, canceling this
+                // windowClosing is supposed to be possible, but
+                // they don't mention how. Anyway, we've overriden
+                // setVisible on VueFrame to make it impossible to
+                // hide it, and that works, so this event just
+                // becomes the they've pressed on the close button
+                // event.
+                
+                return;
+            }
+            public void windowClosed(WindowEvent e) {
+                // I've never see us even get this event...
+                System.err.println(e);
+                System.err.println("Too late: window disposed: exiting.");
+                System.exit(-1);
+            }
+            public void windowStateChanged(WindowEvent e) {
+                System.out.println(e);
+            }
+        });
+        
         /*
         frame.addComponentListener(new ComponentAdapter() {
                 public void componentShown(ComponentEvent e) { System.out.println(e); }
                 public void componentHidden(ComponentEvent e) { System.out.println(e); frame.show(); }
             });
-        
-        */
+         
+         */
         frame.show();
         System.out.println("after showing frame...");
         if (args.length > 0) {
@@ -609,31 +596,31 @@ public class VUE
                 VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
                 ex.printStackTrace();
             }
-        }            
+        }
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
         MetalLookAndFeel.setCurrentTheme(new VueTheme()); // no effect whatsoever
     }
-
-
+    
+    
     public static int openMapCount() {
         return mMapTabsLeft.getTabCount();
     }
-
-
+    
+    
     static java.util.List sActiveMapListeners = new java.util.ArrayList();
     public interface ActiveMapListener {
         public void activeMapChanged(LWMap map);
     }
-
+    
     public static void addActiveMapListener(ActiveMapListener l) {
         sActiveMapListeners.add(l);
     }
     public static void removeActiveMapListener(ActiveMapListener l) {
         sActiveMapListeners.remove(l);
     }
-
+    
     
     public static void setActiveViewer(MapViewer viewer) {
         if (ActiveViewer == null || viewer == null || viewer.getMap() != ActiveViewer.getMap()) {
@@ -647,52 +634,52 @@ public class VUE
             ActiveViewer = viewer;
         }
     }
-
+    
     public static MapViewer getActiveViewer() {
         return ActiveViewer;
     }
     
-    public static boolean multipleMapsVisible()
-    {
+    public static boolean multipleMapsVisible() {
         if (viewerSplit == null)
             return false;
         int dl = viewerSplit.getDividerLocation();
         return dl >= viewerSplit.getMinimumDividerLocation()
-            && dl <= viewerSplit.getMaximumDividerLocation();
-            
+        && dl <= viewerSplit.getMaximumDividerLocation();
+        
     }
     
     public static JTabbedPane getTabbedPane() {
         return mMapTabsLeft;
     }
-
-    public static LWMap getActiveMap()
-    {
+    
+    public static LWMap getActiveMap() {
         if (getActiveViewer() != null)
             return getActiveViewer().getMap();
         else
             return null;
     }
-
-    public static UndoManager getUndoManager()
-    {
+    /*
+     * Returns instance of frame. used by orpahan dialogs
+     */
+    public static JFrame getInstance() {
+        return frame;
+    }
+    public static UndoManager getUndoManager() {
         return getActiveMap().getUndoManager();
     }
-
-    public static boolean isOkayToExit()
-    {
+    
+    public static boolean isOkayToExit() {
         int tabs = mMapTabsLeft.getTabCount();
         for (int i = 0; i < tabs; i++)
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         return true;
     }
-
+    
     /*
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
-    private static boolean askSaveIfModified(LWMap map)
-    {
+    private static boolean askSaveIfModified(LWMap map) {
         final Object[] defaultOrderButtons = { "Save", "Don't Save", "Cancel"};
         // oddly, mac aqua is reversing order of these buttons
         final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
@@ -701,23 +688,23 @@ public class VUE
             return true;
         
         int response = JOptionPane.showOptionDialog
-            (VUE.frame,
-
-             "Do you want to save the changes you made to \n"
-             + "'" + map.getLabel() + "'?"
-             + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
-
-             " Save changes?",
-             JOptionPane.YES_NO_CANCEL_OPTION,
-             JOptionPane.QUESTION_MESSAGE,
-             null,
-             VueUtil.isMacAquaLookAndFeel() ? macAquaOrderButtons : defaultOrderButtons,
-             "Save"
-             );
-
+        (VUE.frame,
+        
+        "Do you want to save the changes you made to \n"
+        + "'" + map.getLabel() + "'?"
+        + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
+        
+        " Save changes?",
+        JOptionPane.YES_NO_CANCEL_OPTION,
+        JOptionPane.QUESTION_MESSAGE,
+        null,
+        VueUtil.isMacAquaLookAndFeel() ? macAquaOrderButtons : defaultOrderButtons,
+        "Save"
+        );
+        
         if (VueUtil.isMacAquaLookAndFeel())
             response = (macAquaOrderButtons.length-1) - response;
-
+        
         if (response == JOptionPane.YES_OPTION) { // Save
             return SaveAction.saveMap(map);
         } else if (response == JOptionPane.NO_OPTION) { // Don't Save
@@ -727,8 +714,7 @@ public class VUE
             return false;
     }
     
-    public static void closeMap(LWMap map)
-    {
+    public static void closeMap(LWMap map) {
         // for now, we don't let them close the last open map as we get NPE's
         // all over the place if there's isn't an active map (we could have
         // a dummy map as a reasonable hack to solve the problem so everybody
@@ -738,18 +724,16 @@ public class VUE
             mMapTabsRight.closeMap(map);
         }
     }
-
+    
     static class MapTabbedPane extends JTabbedPane
-        implements LWComponent.Listener, FocusListener
-    {
+    implements LWComponent.Listener, FocusListener {
         private static final Color BgColor = VueResources.getColor("toolbar.background");
-
+        
         private String name;
-        MapTabbedPane(String name)
-        {
+        MapTabbedPane(String name) {
             this.name = name;
         }
-
+        
         private int mWasSelected = -1;
         protected void fireStateChanged() {
             try {
@@ -772,36 +756,33 @@ public class VUE
                 mWasSelected = selected;
             }
         }
-
+        
         /*
         public void setSelectedComponent(Component c) {
             if (c instanceof MapViewer){
             }
         }
-        */
+         */
         
         public void reshape(int x, int y, int w, int h) {
-            boolean ignore = 
-                getX() == x &&
-                getY() == y &&
-                getWidth() == w &&
-                getHeight() == h;
+            boolean ignore =
+            getX() == x &&
+            getY() == y &&
+            getWidth() == w &&
+            getHeight() == h;
             
             // if w or h <= 0 we can know we're being hidden
             //System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
             super.reshape(x,y, w,h);
         }
-
-        public void focusGained(FocusEvent e)
-        {
+        
+        public void focusGained(FocusEvent e) {
             System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
         }
-        public void focusLost(FocusEvent e)
-        {
+        public void focusLost(FocusEvent e) {
             System.out.println(this + " focusLost (to " + e.getOppositeComponent() + ")");
         }
-        public void addNotify()
-        {
+        public void addNotify() {
             super.addNotify();
             if (!VueUtil.isMacPlatform()) {
                 setForeground(Color.darkGray);
@@ -816,16 +797,14 @@ public class VUE
         }
         
         
-        private String mapToTabTitle(LWMap map)
-        {
+        private String mapToTabTitle(LWMap map) {
             String title = map.getLabel();
             if (title.toLowerCase().endsWith(".vue") && title.length() > 4)
                 title = title.substring(0, title.length() - 4);
             return title;
         }
-
-        public void addViewer(MapViewer viewer)
-        {
+        
+        public void addViewer(MapViewer viewer) {
             Component c = viewer;
             if (!this.name.startsWith("*"))
                 c = new JScrollPane(viewer);
@@ -849,13 +828,13 @@ public class VUE
             // for that mater), which kills off a huge chunk of
             // BLIT_SCROLL_MODE's optimization.  However, using
             // backing store completely fucks up if we start
-
+         
             // hand-panning the map, tho I'm presuming that's because
             // the hand panning isn't being done thru the viewport
             // yet.
             //
             //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
-            
+         
         public void addTab(LWMap pMap, Component c)
         {
             //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
@@ -865,10 +844,9 @@ public class VUE
             if (pMap.getFile() != null)
                 setToolTipTextAt(indexOfComponent(c), pMap.getFile().toString());
         }
-        */
-
-        public void LWCChanged(LWCEvent e)
-        {
+         */
+        
+        public void LWCChanged(LWCEvent e) {
             LWComponent c = e.getComponent();
             if (c instanceof LWMap && e.getWhat() == LWKey.Label) {
                 //System.out.println("MapTabbedPane " + e);
@@ -881,7 +859,7 @@ public class VUE
                 }
             }
         }
-
+        
         /*
          * Will find either the component index (default superclass
          * behavior), or, if the component found at any location
@@ -893,7 +871,7 @@ public class VUE
             for (int i = 0; i < getTabCount(); i++) {
                 Component c = getComponentAt(i);
                 if ((c != null && c.equals(component)) ||
-                    (c == null && c == component)) { 
+                (c == null && c == component)) {
                     return i;
                 }
                 if (c instanceof JScrollPane) {
@@ -901,11 +879,10 @@ public class VUE
                         return i;
                 }
             }
-            return -1; 
+            return -1;
         }
-
-        public MapViewer getViewerAt(int index)
-        {
+        
+        public MapViewer getViewerAt(int index) {
             Object c = getComponentAt(index);
             MapViewer viewer = null;
             if (c instanceof MapViewer)
@@ -915,8 +892,7 @@ public class VUE
             return viewer;
         }
         
-        public LWMap getMapAt(int index)
-        {
+        public LWMap getMapAt(int index) {
             MapViewer viewer = getViewerAt(index);
             LWMap map = null;
             if (viewer != null)
@@ -925,8 +901,7 @@ public class VUE
             return map;
         }
         
-        private int findTabWithMap(LWMap map)
-        {
+        private int findTabWithMap(LWMap map) {
             int tabs = getTabCount();
             for (int i = 0; i < tabs; i++) {
                 LWMap m = getMapAt(i);
@@ -938,22 +913,21 @@ public class VUE
             System.out.println(this + " failed to find map " + map);
             return -1;
         }
-
-        public void closeMap(LWMap map)
-        {
+        
+        public void closeMap(LWMap map) {
             System.out.println(this + " closing " + map);
             int mapTabIndex = findTabWithMap(map);
             MapViewer viewer = getViewerAt(mapTabIndex);
             if (viewer == getActiveViewer()) {
                 // be sure to clear active viewer -- it was probably us.
                 // If there are other maps open, one of them will shortly get a
-
+                
                 setActiveViewer(null);
                 // we might want to force notification even if selection is already empty:
                 // we want all listeners, particularly the actions, to
                 // update in case this is last map open
                 VUE.ModelSelection.clear();
-
+                
                 
                 if (mapTabIndex >= 1)
                     setActiveViewer(getViewerAt(mapTabIndex - 1));
@@ -965,26 +939,24 @@ public class VUE
             }
             remove(mapTabIndex);
         }
-
+        
         public void paintComponent(Graphics g) {
             ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
-                                             java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
             super.paintComponent(g);
         }
-
-        public String toString()
-        {
+        
+        public String toString() {
             return "MapTabbedPane<"+name+">";
         }
         
     }
     
-
-    public static void displayMap(LWMap pMap)
-    {
+    
+    public static void displayMap(LWMap pMap) {
         //System.out.println("VUE.displayMap " + map);
         MapViewer mapViewer = null;
-
+        
         //System.out.println("VUE.displayMap Looking for " + map.getFile());
         for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
@@ -1015,12 +987,11 @@ public class VUE
         }
         
         mMapTabsLeft.setSelectedComponent(mapViewer);
-
+        
     }
     
     private static Color menuColor = VueResources.getColor( "menubarColor");
-    private static void  setMenuToolbars(JFrame frame, Window[] toolWindows)
-    {
+    private static void  setMenuToolbars(JFrame frame, Window[] toolWindows) {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
         JMenuBar menuBar = new JMenuBar();
@@ -1043,14 +1014,14 @@ public class VUE
         
         JMenu alignMenu = new JMenu("Align");
         alignMenu.setBackground(menuColor);
-
+        
         JMenu windowMenu = new JMenu("Tools");
         windowMenu.setBackground( menuColor);
         
         /*
         JMenu optionsMenu = new JMenu("Options");
         optionsMenu.setBackground( menuColor);
-        */
+         */
         
         JMenu helpMenu = new JMenu("Help");
         helpMenu.setBackground( menuColor);
@@ -1088,7 +1059,7 @@ public class VUE
         exportMenu.add(svgAction);
         exportMenu.add(xmlAction);
         exportMenu.add(imageMap);
-         */
+          */
         /**End of addition*/
         
         fileMenu.add(Actions.NewMap);
@@ -1129,10 +1100,10 @@ public class VUE
         viewMenu.add(new JMenuItem("Pathway"));
         viewMenu.add(new JMenuItem("Toolbar"));
         viewMenu.add(new JMenuItem("Overview"));
-        */
+         */
         
         JMenu fontMenu = new JMenu("Font");
-
+        
         /*
         // this list bigger than screen & menu isn't scrolling for us!
         String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
@@ -1141,8 +1112,8 @@ public class VUE
             JMenuItem fm = new JMenuItem(fonts[i]);
             fontMenu.add(fm);
         }
-        */
-                           
+         */
+        
         //formatMenu.add(fontMenu);
         formatMenu.add(Actions.FontSmaller);
         formatMenu.add(Actions.FontBigger);
@@ -1168,7 +1139,7 @@ public class VUE
             else
                 formatMenu.add(a);
         }
-
+        
         for (int i = 0; i < Actions.ARRANGE_MENU_ACTIONS.length; i++) {
             Action a = Actions.ARRANGE_MENU_ACTIONS[i];
             if (a == null)
@@ -1197,13 +1168,13 @@ public class VUE
             windowAction.setLinkedButton(checkBox);
             windowMenu.add(checkBox);
         }
-
+        
         windowMenu.add(new UserDataAction());
         /*
         optionsMenu.add(new UserDataAction());
         optionsMenu.add(new JMenuItem("Map Preference..."));
         optionsMenu.add(new JMenuItem("Preferences..."));
-        */
+         */
         
         helpMenu.add(new JMenuItem("Help"));
         
@@ -1220,19 +1191,17 @@ public class VUE
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
         toolBar.add(svgAction);
-       // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
+        // toolBar.add(new JButton(new ImageIcon("tufts/vue/images/ZoomOut16.gif")));
         toolBar.add(new JButton(new PolygonIcon(Color.RED)));
         frame.setJMenuBar(menuBar);
         //frame.getContentPane().add(toolBar,BorderLayout.NORTH);
     }
     
-    static class WindowDisplayAction extends AbstractAction
-    {
+    static class WindowDisplayAction extends AbstractAction {
         AbstractButton mLinkedButton;
         Window mWindow;
         boolean firstDisplay = true;
-        public WindowDisplayAction(Window w)
-        {
+        public WindowDisplayAction(Window w) {
             super("window: " + w.getName());
             if (w instanceof Frame)
                 putValue(Action.NAME, ((Frame)w).getTitle());
@@ -1242,9 +1211,9 @@ public class VUE
                 putValue(Action.NAME, ((ToolWindow)w).getTitle());
             mWindow = w;
             mWindow.addComponentListener(new ComponentAdapter() {
-                    public void componentShown(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(true); }
-                    public void componentHidden(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(false); }
-                });
+                public void componentShown(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(true); }
+                public void componentHidden(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(false); }
+            });
         }
         void setLinkedButton(AbstractButton b) {
             mLinkedButton = b;
@@ -1263,10 +1232,9 @@ public class VUE
             mWindow.setVisible(mLinkedButton.isSelected());
         }
     }
-
-
-    static void installExampleNodes(LWMap map)
-    {
+    
+    
+    static void installExampleNodes(LWMap map) {
         map.setFillColor(new Color(255,255,220));
         
         map.addLWC(new LWNode("Oval", 0)).setFillColor(Color.red);
@@ -1291,7 +1259,7 @@ public class VUE
         map.addNode(new LWNode("iiiiiiiiiiiiiiiiiiii"));
         
         map.addNode(NodeTool.createTextNode("jumping"));
-
+        
         // Experiment in internal actions -- only works
         // partially here because they're all auto sized
         // based on text, and since haven't been painted yet,
@@ -1303,8 +1271,7 @@ public class VUE
         s.clear(); // clear isSelected bits
     }
     
-    static void installExampleMap(LWMap map)
-    {
+    static void installExampleMap(LWMap map) {
         /*
          * create some test nodes & links
          */
@@ -1342,10 +1309,10 @@ public class VUE
         
         map.markAsSaved();
         
-        /*else if(map.getLabel().equals("Test Nodes")){        
-        }/*else if(map.getLabel().equals("Test Nodes")){        
+        /*else if(map.getLabel().equals("Test Nodes")){
+        }/*else if(map.getLabel().equals("Test Nodes")){
             LWPathway p2 = new LWPathway("Pathway 2");
-            
+         
             p2.setComment("A comment.");
             LinkedList anotherList = new LinkedList();
             anotherList.add(n3);
@@ -1354,11 +1321,11 @@ public class VUE
             anotherList.add(k2);
             anotherList.add(k3);
             p2.setElementList(anotherList);
-            map.addPathway(p2);            
-
+            map.addPathway(p2);
+         
         map.markAsSaved();
-        
+         
         }*/
     }
-
+    
 }
