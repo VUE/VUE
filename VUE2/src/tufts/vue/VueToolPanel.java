@@ -74,8 +74,10 @@ public class VueToolPanel extends JPanel
             setBackground(VueTheme.getToolbarColor());
 		
         setLayout( new BorderLayout() );
-        setBorder( new EmptyBorder(1,3,2,10) );//tlbr
-        //this.setBorder( new EmptyBorder(0,3,1,0) );//tlbr
+        if (VueTheme.isMacMetalLAF())
+            setBorder(new EmptyBorder(0,3,2,10));//tlbr
+        else
+            setBorder(new EmptyBorder(1,3,2,10));//tlbr
 		
         mMainToolPanel = new JPanel();
         mMainBox = Box.createHorizontalBox();
@@ -98,8 +100,8 @@ public class VueToolPanel extends JPanel
             mContextualToolPanel.setBackground(mBakColor);
 		
         setAlignmentX( LEFT_ALIGNMENT);
-        add( BorderLayout.WEST, mMainToolPanel);
-        add( BorderLayout.EAST, mContextualToolPanel);
+        add(BorderLayout.WEST, mMainToolPanel);
+        add(BorderLayout.EAST, mContextualToolPanel);
         //add( BorderLayout.CENTER, mContextualToolPanel);
         //add( BorderLayout.EAST, Box.createHorizontalGlue());
     }

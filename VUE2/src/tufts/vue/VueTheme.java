@@ -33,7 +33,20 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         return singleton;
     }
 
-    VueTheme() {}
+    VueTheme()
+    {
+        if (DEBUG.INIT) new Throwable("VueTheme created").printStackTrace();
+        //System.out.println("VueTheme: LookAndFeel: " + javax.swing.UIManager.getLookAndFeel().getName());
+        if (isMacMetalLAF()) {
+            System.out.println("VueTheme: Mac Aqua Brush Metal Look");
+            ToolbarColor = SystemColor.window;
+        }
+    }
+
+    public static boolean isMacMetalLAF() {
+        String p = System.getProperty("apple.awt.brushMetalLook");
+        return p != null && p.equals("true");
+    }
     
     protected FontUIResource fontMedium = new FontUIResource("SansSerif", Font.PLAIN, 12);
     protected FontUIResource fontSmall  = new FontUIResource("SansSerif", Font.PLAIN, 11);

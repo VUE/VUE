@@ -41,13 +41,14 @@ import javax.swing.border.*;
  * so Command/Ctrl-W to close a ToolWindow only sometimes works.
  */
 
-public class ToolWindow extends JWindow
-//public class ToolWindow extends JFrame // will need on mac version, so convert to factory
+//public class ToolWindow extends JWindow
+public class ToolWindow extends JFrame // will need on mac version, so convert to factory
     implements MouseListener, MouseMotionListener, KeyListener, FocusListener
 {
     private final static int TitleHeight = 14;
     private final static Font TitleFont = new Font("SansSerf", Font.PLAIN, 10);
     private final static int ResizeCornerSize = 14;
+    //private final static Icon macWindowClose = VueResources.getIcon("macWindowClose");
     
     private final String mTitle;
     protected final ContentPane mContentPane;
@@ -57,18 +58,25 @@ public class ToolWindow extends JWindow
 
     private boolean isRolledUp = false;
     private Dimension savedSize;
+
+    private final boolean managedTitleBar;
     
     public ToolWindow(String title, Frame owner)
     {
-        super(owner);
-        //setUndecorated(true);
+        //super(owner);
+        managedTitleBar = true;
+        setUndecorated(managedTitleBar);
+        //if (((Object)this) instanceof JWindow)
+        //managedTitleBar = true;
         //if (owner instanceof JFrame) setRootPane(((JFrame)owner).getRootPane()); // no help getting menu bars shared on mac
+        
         this.mTitle = title;
         setName(title);
-        //setUndecorated(true);
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addKeyListener(this);
+        if (managedTitleBar) {
+            addMouseListener(this);
+            addMouseMotionListener(this);
+            addKeyListener(this);
+        }
         //setFocusable(false);
         addFocusListener(this); // should never see...
         if (debug) out("contentPane=" + getContentPane());
@@ -385,7 +393,7 @@ public class ToolWindow extends JWindow
 
     private class ContentPane extends JPanel
     {
-        JPanel titlePanel = new JPanel();
+        JPanel titlePanel;
         JPanel contentPanel = new JPanel();
         
         //JButton hideButton = null;
@@ -402,10 +410,17 @@ public class ToolWindow extends JWindow
             // on OSX.
 
             setLayout(new BorderLayout());
-            titlePanel.setPreferredSize(new Dimension(0, TitleHeight));
             contentPanel.setLayout(new BorderLayout());
             addKeyListener(ToolWindow.this);
 
+            if (managedTitleBar)
+                installTitlePanel(title);
+
+            add(contentPanel, BorderLayout.CENTER);
+        }
+
+        private void installTitlePanel(String title)
+        {
             /*
             if (hideButton != null) {
                 hideButton.setFont(new Font("SansSerf", Font.BOLD, 7));
@@ -414,10 +429,19 @@ public class ToolWindow extends JWindow
                 titlePanel.add(hideButton);
             }
             */
-            
+            titlePanel = new JPanel();
+            titlePanel.setPreferredSize(new Dimension(0, TitleHeight));
             if (VueUtil.isMacAquaLookAndFeel()) {
                 // Mac OS X Aqua L&F
                 //titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+                /*
+                if (VueTheme.isMacMetalLAF()) {
+                    // this doesn't work unless we're subclassed from a JFrame,
+                    // and in that case we don't need to do it anyway.
+                    // Bottom line: mac brushed metal look only applies to proper Frame's
+                    titlePanel.setBackground(SystemColor.window);
+                }
+                */
                 add(titlePanel, BorderLayout.NORTH);
                 contentPanel.setBorder(new LineBorder(Color.gray));
             } else {
@@ -483,8 +507,6 @@ public class ToolWindow extends JWindow
                 //if (hideButton != null)
                 //hideButton.setLocation(50,0);
             }
-
-            add(contentPanel, BorderLayout.CENTER);
         }
 
         private int iconSize;
@@ -506,14 +528,21 @@ public class ToolWindow extends JWindow
         public void paint(Graphics g) {
             //System.out.println("painting " + this);
             super.paint(g);
-            int xoff = getWidth() - edgeInset;
-            g.setColor(SystemColor.activeCaption);
-            g.fillRect(xoff, yoff, iconSize,iconSize);
-            g.setColor(SystemColor.activeCaptionText);
-            //g.setColor(SystemColor.activeCaption.brighter().brighter());
-            g.drawRect(xoff, yoff, iconSize,iconSize);
-            g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
-            g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
+            if (managedTitleBar) {
+                int xoff = getWidth() - edgeInset;
+                if (false && VueUtil.isMacAquaLookAndFeel()) {
+                    //macWindowClose.paintIcon(this, g, xoff, yoff);
+                } else {
+                    g.setColor(SystemColor.activeCaption);
+                    if (!VueTheme.isMacMetalLAF())
+                        g.fillRect(xoff, yoff, iconSize,iconSize);
+                    g.setColor(SystemColor.activeCaptionText);
+                    //g.setColor(SystemColor.activeCaption.brighter().brighter());
+                    g.drawRect(xoff, yoff, iconSize,iconSize);
+                    g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
+                    g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
+                }
+            }
         }
 
         private String out(Color c) {

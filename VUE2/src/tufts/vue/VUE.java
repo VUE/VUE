@@ -272,7 +272,7 @@ public class VUE
         //lafn = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
         //lafn = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
         if (!useMacLAF && VueUtil.isMacPlatform()) {
-            lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+           lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         } else 
            themeSet = true; // not using metal, so theme will have no effect
 
@@ -286,6 +286,7 @@ public class VUE
         } catch (Exception e) {
             System.err.println(e);
         }
+
         /*
         LookAndFeel laf = UIManager.getLookAndFeel();
         String lafName = laf.getName();
@@ -295,7 +296,8 @@ public class VUE
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
             ...
         */
-        
+
+        out("LookAndFeel: " + javax.swing.UIManager.getLookAndFeel().getName());
     }
 
     static void parseArgs(String[] args) {
@@ -321,8 +323,8 @@ public class VUE
         parseArgs(args);
 
         // Must install theme before any other GUI code or our VueTheme gets ignored
-        MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
-        themeSet = true;
+        //MetalLookAndFeel.setCurrentTheme(VueTheme.getTheme());
+        //themeSet = true;
 
         Window splashScreen = null;
         if (nodr)
