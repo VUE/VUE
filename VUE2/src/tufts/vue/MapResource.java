@@ -41,7 +41,7 @@ public class MapResource implements Resource {
     private URL url = null;
     
     // for castor to save and restore
-    protected Vector propertyList = null;
+     Vector propertyList = null;
     
     public MapResource() {
         this.type =  Resource.NONE;
@@ -383,20 +383,14 @@ public class MapResource implements Resource {
         return "ToolTip Information";
     }   
 
-    public void setPropertyList(Vector propertyList) {
-        System.out.println("PROPERTY = "+mProperties.size());
-        this.propertyList = propertyList;
-        this.mProperties = new Properties();
-        Iterator i = propertyList.iterator();
-        while(i.hasNext()) {
-            PropertyEntry entry = (PropertyEntry) i.next();
-            mProperties.put(entry.getEntryKey(),entry.getEntryValue());
-        }
-        System.out.println("PROPERTY = "+mProperties.size());
-    }
+   
     
     public Vector getPropertyList() {
-       propertyList = new Vector();
+        propertyList = new Vector();
+        if(mProperties.size() ==0) // a hack for castor to work
+            return null;
+            
+            
         Iterator i = mProperties.keySet().iterator();
         while(i.hasNext()) {
             Object object = i.next();
@@ -405,9 +399,18 @@ public class MapResource implements Resource {
             entry.setEntryValue(mProperties.get(object));
             propertyList.add(entry);
         }
-        System.out.println("Property = "+propertyList.size());       
+        System.out.println("getPropertyList : Property = "+propertyList.size());       
         return propertyList;
     }
-    
+
+     public void setPropertyList(Vector propertyList) {
+        this.propertyList = propertyList;
+        this.mProperties = new Properties();
+        Iterator i = propertyList.iterator();
+        while(i.hasNext()) {
+            PropertyEntry entry = (PropertyEntry) i.next();
+            mProperties.put(entry.getEntryKey(),entry.getEntryValue());
+        }
+    }
  
 }
