@@ -6,6 +6,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.*;
 
 
 /**
@@ -39,6 +40,8 @@ public class VueToolPanel extends JPanel
 	/** the current tool selection (TO DO:  remove this)  **/
 	private VueTool mCurrentTool = null;
 	
+	/** background color **/
+	static private Color mBakColor = VueResources.getColor("toolbar.background");
 	
 	
 	
@@ -56,21 +59,23 @@ public class VueToolPanel extends JPanel
 		super();
 		mButtonGroup = new ButtonGroup();
 		
+		this.setBackground( VueResources.getColor( "toolbar.background") );
 		
-		BoxLayout layoutMrg = new BoxLayout( this, BoxLayout.X_AXIS);
-		this.setLayout( layoutMrg);
+		this.setLayout( new BorderLayout() );
+		this.setBorder( new EmptyBorder(0,0,0,0) );
 		
 		mMainToolPanel = new JPanel();
 		BoxLayout boxLayout = new BoxLayout( mMainToolPanel, BoxLayout.X_AXIS);
 		mMainToolPanel.setLayout(boxLayout);
-		
+		mMainToolPanel.setBackground( mBakColor);
+
 		mContextualToolPanel = new JPanel();
 		BoxLayout ctpLayout = new BoxLayout(  mContextualToolPanel, BoxLayout.X_AXIS); 
 		mContextualToolPanel.setLayout( ctpLayout ); 
+		mContextualToolPanel.setBackground( mBakColor);
 		
-				
-		this.add( mMainToolPanel);
-		this.add( mContextualToolPanel);
+		this.add( BorderLayout.WEST, mMainToolPanel);
+		this.add( BorderLayout.CENTER, mContextualToolPanel);
 		
 	}
 	
@@ -84,6 +89,7 @@ public class VueToolPanel extends JPanel
 	 **/
 	public void addToolButton( PaletteButton pButton) {
 
+		pButton.setBackground( mBakColor);
 		mMainToolPanel.add( pButton);
 		mButtonGroup.add( pButton);
 		if( mButtonGroup.getButtonCount() == 1) {
@@ -141,6 +147,11 @@ public class VueToolPanel extends JPanel
 		return null;	 	
 	 }
 	
+	public void addContextual( Component pObj) {
+		if( pObj != null) {
+		mContextualToolPanel.add( pObj);
+		}
+	}
 	
 	/**
 	 * setContextualToolPanel
@@ -148,11 +159,15 @@ public class VueToolPanel extends JPanel
 	 * any components already displayed.
 	 **/
 	public void setContextualToolPanel( JPanel pPanel) {
+		
 		mContextualToolPanel.removeAll();
-                if (pPanel == null)
-                    System.err.println("null pPanel in setContextualToolPanel");
-                else
-                    mContextualToolPanel.add( pPanel);
+		if( pPanel != null) {
+			pPanel.setBackground( mBakColor);
+			mContextualToolPanel.add( pPanel);
+			}
+				
+		validate();
+		repaint();
 	}
 	
 	
@@ -250,7 +265,7 @@ public class VueToolPanel extends JPanel
 	}
 
 
-	static private boolean sDebug = false;
+	static private boolean sDebug = true;
 	private void debug( String pStr) {
 		if( sDebug)
 			System.out.println( "VueToolPanel - "+pStr);
