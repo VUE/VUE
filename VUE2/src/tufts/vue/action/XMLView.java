@@ -107,7 +107,6 @@ public class XMLView extends AbstractAction{
             JTabbedPane tabPane = VUE.tabbedPane;
             for(int i = 0; i < tabPane.getComponentCount(); i++){
                 if(tabPane.getTitleAt(i).equals(mapName +".xml")){
-                    System.out.println("in repeat selection.......");
                     VUE.tabbedPane.setSelectedIndex(i);
                     return;
                 }
@@ -115,21 +114,19 @@ public class XMLView extends AbstractAction{
 
             VUE.tabbedPane.addTab(mapName+".xml", pane);
             VUE.tabbedPane.setSelectedIndex(VUE.tabbedPane.getComponentCount()-1);
-            setAttributes();
-            for(int i = 0; i < braces.size(); i++){
-                System.out.println(braces.get(i));
-            }
+            //setAttributes();
+            
             pane.repaint();
             System.out.println("Action["+e.getActionCommand()+"] completed.");
         }
     }
-    
+    /*
     private void setAttributes(){
         SimpleAttributeSet att = new SimpleAttributeSet();
         StyleConstants.setForeground(att, Color.blue);
         for(int i = 0; i < braces.size(); i++)
             doc.setCharacterAttributes(Integer.parseInt((String)braces.get(i)), 1, att, false);
-    }
+    }*/
     
     private String docToString(org.w3c.dom.Document xmlDoc) throws TransformerException{
         
@@ -149,12 +146,11 @@ public class XMLView extends AbstractAction{
         Matcher m = p.matcher(lookUp);
         StringBuffer sb = new StringBuffer();
         int indent = -2;
-        braces = new ArrayList(); 
+        //braces = new ArrayList(); 
         while(m.find()){
             String group = m.group();
             String tab = "";
             String tabInd = "          ";
-            //System.out.println("group: " + group);
             
             if(group.equals("</")){
                 
@@ -162,7 +158,6 @@ public class XMLView extends AbstractAction{
                     tab += tabInd;
                 indent--;
                 m.appendReplacement(sb, "\n" + tab + "</");
-                //braces.add(Integer.toString(m.start()));
             }
             else if(group.equals("<")){
                 indent++;
@@ -170,17 +165,7 @@ public class XMLView extends AbstractAction{
                     tab += tabInd;
                 
                 m.appendReplacement(sb, "\n" + tab + "<");
-                //braces.add(Integer.toString(m.start()));
             }
-            /*else if(group.equals("/>")){
-                indent++;
-                for(int i = 0; i < indent; i++)
-                    tab += tabInd;
-                
-                m.appendReplacement(sb, "/>\n" + tab);
-                indent--;
-                //braces.add(Integer.toString(m.start()));
-            }*/
             else if(group.equals(">")){
                 indent++;
                 for(int i = 0; i < indent; i++)
@@ -192,13 +177,12 @@ public class XMLView extends AbstractAction{
 
                     if(b)
                     {   m.appendReplacement(sb, ">\n" + tab);
-                        System.out.println("word...");
+                        
                     }
                     else{
                         m.appendReplacement(sb, ">");
-                        System.out.println("no word...");
+                        
                     }indent--;
-                    //braces.add(Integer.toString(m.start()));
                 }
             }
             else if(group.equals(">#")){
@@ -208,7 +192,6 @@ public class XMLView extends AbstractAction{
                 
                 m.appendReplacement(sb, ">\n" + tab + "     #" );
                 indent--;
-                //braces.add(Integer.toString(m.start()));
             }
             else if(group.equals(">\\w")){
                 indent++;
@@ -217,7 +200,6 @@ public class XMLView extends AbstractAction{
                 
                 m.appendReplacement(sb, ">\n" + tab + "     $1" );
                 indent--;
-                //braces.add(Integer.toString(m.start()));
             }
         }
         m.appendTail(sb);

@@ -215,8 +215,7 @@ public class VUE
         JPanel vuePanel = new VuePanel();
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
-        //vuePanel.add(splitPane);
-
+        
         // Create the tool windows
         ToolWindow pannerTool = new ToolWindow("Panner", frame);
         pannerTool.setSize(120,120);
@@ -227,12 +226,13 @@ public class VUE
         
         pathwayInspector = new LWPathwayInspector(frame);
 
-        //inspector = new LWPathwayInspector(frame, manager.getCurrentPathway());
-
         //added by Daisuke Fujiwara
         LWPathwayManager manager = getActiveMap().getPathwayManager();
         control = new PathwayControl(frame, manager);
-         
+        
+        //pathwayInspector.setPathway(manager.getCurrentPathway());
+        //pathwayInspector = new LWPathwayInspector(frame, manager.getCurrentPathway());
+        
         //accomodates pathway manager swapping when the displayed map is changed
         // We'll eventually need to figure out another way to listen for this now that
         // we have multiple tabbed-panes with the split-view -- SF
@@ -315,13 +315,13 @@ public class VUE
         }
         //MapViewer view = (MapViewer) c;
         //LWMap map = view.getMap();
-        ////call LWPathwayControl.setPathwayManager(map.getPathwayManager());
         //return view;
-
+        
         // don't know how this will impact the pathway stuff, but we're
         // ActiveViewer now has to be maintained seperately, so we
         // can't query the tabbed panes.
         return ActiveViewer;
+
     }
     
     public static LWMap getActiveMap()
@@ -595,9 +595,10 @@ public class VUE
             linkedlist.add(n3);
             linkedlist.add(k1);
             p1.setElementList(linkedlist);
-            //map.addPathway(p1);
+            map.addPathway(p1);
         }else{        
             LWPathway p2 = new LWPathway("Pathway 2");
+            p2.setComment("A comment.");
             LinkedList anotherList = new LinkedList();
             anotherList.add(n3);
             anotherList.add(n4);
@@ -605,8 +606,7 @@ public class VUE
             anotherList.add(k2);
             anotherList.add(k3);
             p2.setElementList(anotherList);
-            //map.addPathway(p2);
-            
+            map.addPathway(p2);            
         }
     }
 }
