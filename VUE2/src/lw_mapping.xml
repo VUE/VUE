@@ -249,7 +249,17 @@
 		</field>
 		<field name="description" type="string">
 			<bind-xml name="description" node="element" />
-		</field>
+		</field>  
+               <field name = "address" type = "string">
+                    <bind-xml name ="address" node = "element" />
+               </field>
+               <field name = "userName" type = "string">
+                    <bind-xml name ="userName" node = "element" />
+               </field>
+               <field name = "password" type = "string">
+                    <bind-xml name ="password" node = "element" />
+               </field>
+ 
 	</class>
 	
 
