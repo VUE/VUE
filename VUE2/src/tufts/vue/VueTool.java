@@ -588,11 +588,11 @@ public abstract class VueTool extends AbstractAction
             int iy = (h - mRawIcon.getIconHeight()) / 2;
             if (mType == DISABLED)
                 g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            drawGraphic(c, g2, ix, iy);
             if (DEBUG.BOXES) {
                 g2.setColor(Color.red);
-                g2.drawRect(ix, iy, mRawIcon.getIconWidth(), mRawIcon.getIconHeight());
+                g2.fillRect(ix, iy, mRawIcon.getIconWidth(), mRawIcon.getIconHeight());
             }
+            drawGraphic(c, g2, ix, iy);
         }
 
         // can be overriden to do anything really fancy
