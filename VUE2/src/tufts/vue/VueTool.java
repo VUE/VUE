@@ -454,7 +454,7 @@ public abstract class VueTool extends AbstractAction
         setMenuItemSelectedIcon(new ToolIcon(mRawIcon, ToolIcon.MENU_SELECTED));
     }
 
-    static class ToolIcon extends VueButtonIcon
+    static class ToolIcon extends tufts.vue.gui.VueButtonIcon
     {
         static final int Width = 38;
         static final int Height = 26;
