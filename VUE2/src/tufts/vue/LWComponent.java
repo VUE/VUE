@@ -879,12 +879,19 @@ public class LWComponent
     
     public boolean equals(LWComponent component)
     {   
-        //if the ID matches 
-        if(getID().equals(component.getID()))
-          return true;
+        //if the object comparing with is a null pointer then return false
+        if (component == null)
+          return false;
         
         else
-          return false;
+        {
+            //if the ID matches
+            if(getID().equals(component.getID()))
+              return true;
+        
+            else
+              return false;
+        }
     }
     
     /**End of addition by Daisuke Fujiwara*/

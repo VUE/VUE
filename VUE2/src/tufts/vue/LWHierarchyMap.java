@@ -14,6 +14,7 @@ import java.util.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
+/**a class which creates a hierarchy view of a map from a given node*/
 public class LWHierarchyMap extends LWMap
 {
     //a root node where the hierarchy should start from
@@ -127,7 +128,7 @@ public class LWHierarchyMap extends LWMap
             }
         }
           
-        //debugging
+        /*
         for (Iterator ii = parentHash.keySet().iterator(); ii.hasNext();)
         {
           LWNode a = (LWNode)ii.next();
@@ -139,11 +140,11 @@ public class LWHierarchyMap extends LWMap
           else
             System.out.println("value null" + "\n\n");
         }
+         */
     }
     
-    /**creates the elements for the hierarchy map including duplicated nodes
-       and links between them according to the shortest path*/
-    public void createMap()
+    /**creates the links for the hierarchy map according to the shortest path*/
+    public void createLinks()
     {
         //verify a path between nodes and create a link between the nodes
         for (Iterator i = originalNodes.iterator(); i.hasNext();)
@@ -160,15 +161,15 @@ public class LWHierarchyMap extends LWMap
               
               LWLink link = new LWLink(parentCopy, childCopy);
               addLink(link);
+              
+              //how about the link label?
             }
         }
     }
     
-    /**organizes the nodes in a hierarchical manner*/
+    /**organizes the nodes in a hierarchichy in a recursive fashion*/
     public void layout(LWNode currentNode, int number, int total, int layer)
     {   
-        originalNodes.add(currentNode);
-        
         LWNode copyNode = (LWNode)nodeHash.get(currentNode);
         LWNode parentNode = (LWNode)parentHash.get(currentNode);
         
@@ -177,11 +178,11 @@ public class LWHierarchyMap extends LWMap
             LWNode parentCopyNode = (LWNode)nodeHash.get(parentNode);
             
             //set the location
-            Point2D point = parentCopyNode.getLocation();
-            float x = (float)point.getX();
-            float y = (float)point.getY();
+            float x = (float)parentCopyNode.getLocation().getX();
+            float y = (float)parentCopyNode.getLocation().getY();
             
             //location for the node
+            //could come up with a better algorithm
             int xRange = (150 * layer);
             int xIncrement = xRange / total;
             int xOffSet = number * xIncrement;
@@ -194,14 +195,13 @@ public class LWHierarchyMap extends LWMap
             
         //if it is the rootnode
         else
-          {
-            copyNode.setLocation(200f, 0f);
-          }
+          copyNode.setLocation(200f, 0f);
             
         int nextNumber = 0;
         int nextTotal = currentNode.getLinks().size(); 
         
         //doesn't gurantee any special order
+        //must come up with another algorithm if left to right has some meaning
         for (Iterator i = currentNode.getLinks().iterator(); i.hasNext();)
         {
             //links to nodes
@@ -211,7 +211,7 @@ public class LWHierarchyMap extends LWMap
             if ((nextNode = (LWNode)link.getComponent1()) == currentNode)
               nextNode = (LWNode)link.getComponent2();
             
-            if(!originalNodes.contains(nextNode))
+            if(!nextNode.equals(parentNode))
             {
               layout(nextNode, nextNumber, nextTotal, ++layer);
               nextNumber++;
@@ -223,9 +223,7 @@ public class LWHierarchyMap extends LWMap
     public void createHierarchy()
     {    
         computeShortestPath();
-        createMap();
-        
-        originalNodes.clear();
+        createLinks();
         layout(rootNode, 0, 0, 0);
     }
 }
