@@ -79,22 +79,6 @@ public class FedoraUtils {
             return dr.getPrefernces();
         } else {
             return getDefaultPreferences(dr.getConfiguration());
-            /*
-            URL url = dr.getConfiguration();
-            Preferences prefs = (Preferences) prefsCache.get(url);
-            if (prefs != null)
-                return prefs;
-            //prefs = Preferences.userRoot().node("/");
-            Class clazz = new FedoraUtils().getClass();
-            prefs = Preferences.userNodeForPackage(clazz);
-            System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
-            System.out.println("*** " + clazz.getName() + ".getPreferences: prefs=" + prefs);
-            InputStream stream = new BufferedInputStream(url.openStream());
-            prefs.importPreferences(stream);
-            prefsCache.put(url, prefs);
-            stream.close();
-            return prefs;
-            */
         }
     }
     
@@ -105,6 +89,7 @@ public class FedoraUtils {
     {
         if (url == null) {
             url = new FedoraUtils().getClass().getResource("fedora.conf");
+            // this for testing only
             new Throwable("using default preferences " + url).printStackTrace();
         }
         Preferences prefs = (Preferences) prefsCache.get(url);
@@ -112,8 +97,8 @@ public class FedoraUtils {
             return prefs;
         Class clazz = new FedoraUtils().getClass();
         prefs = Preferences.userRoot().node(clazz.getPackage().getName());
+        System.out.println("*** " + clazz.getName() + ".getPreferences: node=" + prefs);
         System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
-        System.out.println("*** " + clazz.getName() + ".getPreferences: prefs=" + prefs);
         InputStream stream = new BufferedInputStream(url.openStream());
         prefs.importPreferences(stream);
         prefsCache.put(url, prefs);
