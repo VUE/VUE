@@ -12,27 +12,12 @@ package tufts.oki.dr.fedora;
  */
 
 import javax.swing.AbstractAction;
+import java.util.ResourceBundle;
+
 public class FedoraUtils {
     
     /** Creates a new instance of FedoraUtils */
     public static final String SEPARATOR = ",";
-    public static final java.net.URL CONF = getResource("fedora.conf");
-    
-    public static java.net.URL getResource(String name)
-    {
-        java.net.URL url = null;
-        java.io.File f = new java.io.File(name);
-        if (f.exists()) {
-            try {
-                url = f.toURL();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (url == null)
-            url = ClassLoader.getSystemResource(name);
-       return url;
-    }
     
   
     public static java.util.Vector stringToVector(String str) {

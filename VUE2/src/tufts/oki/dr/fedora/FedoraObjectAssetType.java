@@ -42,7 +42,7 @@ public class FedoraObjectAssetType extends osid.shared.Type {
     private void loadInfoStructures() throws  osid.dr.DigitalRepositoryException {
         java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
         try {
-            FileInputStream fis = new FileInputStream(FedoraUtils.CONF.getPath());
+            FileInputStream fis = new FileInputStream(dr.getConfiguration().getFile());
             prefs.importPreferences(fis);
             String infoStructureString = prefs.get(type,"");
             java.util.Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);

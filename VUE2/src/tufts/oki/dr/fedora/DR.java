@@ -55,6 +55,7 @@ public class DR implements osid.dr.DigitalRepository {
     private java.util.Vector searchTypes = new java.util.Vector();
     private java.util.Vector assets = new java.util.Vector();
     private osid.shared.Id id;
+    private URL configuration;
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of DR */
@@ -62,7 +63,9 @@ public class DR implements osid.dr.DigitalRepository {
         this.id = new PID(id);
         this.displayName = displayName;
         this.description = description;
-        setFedoraProperties(FedoraUtils.CONF);
+        this.configuration = getResource("fedora.conf");
+        setFedoraProperties(configuration);
+        //setFedoraProperties(FedoraUtils.CONF);
         createFedoraObjectAssetType("TUFTS_STD_IMAGE");
         createFedoraObjectAssetType("XML_TO_HTMLDOC");
         searchTypes.add(new SearchType("Search"));
@@ -98,6 +101,10 @@ public class DR implements osid.dr.DigitalRepository {
         return fedoraProperties;
     }
 
+    public URL getConfiguration() {
+        return configuration;
+    }
+    
 
     /**To create AssetTypes that don't exist when repository is loaded. OKI NEEDS to add such a feature
      *@ param String type
@@ -371,82 +378,22 @@ public class DR implements osid.dr.DigitalRepository {
         return null;
     }
     
-  /**  
-    private String  getObject(String assetId) throws DigitalRepositoryException{
-        URL url;
-        String strBDEF = "fedora-system:3";
-        String strMethod = "getMethodIndex";
-        String strCall;
-        String output ="";
-        String location = null;
-       
-        try {
-           strCall = prefs.get("url.fedora.get","")+assetId+"/"+strBDEF+"/"+strMethod+"/";
-           url = new URL(strCall);
-           InputStream input =<a href="http://www.leadermortgage.com"><img src="http://www.lokvani.com/lokvani/data/ads/leadmort.gif" border="2"></a><br>
-         url.openStream();
-           int c;
-           while((c=input.read())!= -1) {
-             output += (char) c;
-           }
-           //location = "C:\\anoop\\euclid\\VUEDevelopment\\src\\tufts\\dr\\fedora\\temp\\"+processId(assetId)+".xml";
-           location = prefs.get("folder.fedora.temp","")+processId(assetId)+".xml";
-           FileWriter fileWriter = new FileWriter(location);
-           fileWriter.write(output);
-           fileWriter.close();
-        } catch (Exception e) {
-           // System.out.println("DR.getObject() "+e);
-            throw new DigitalRepositoryException("DR.getObject()"+e);
-        }
-        return location;
-    }   
- 
-    private FedoraObject createObject(String location) throws DigitalRepositoryException {
-        FedoraObject fedoraObject = null;
-         try {
-            Unmarshaller unmarshaller = getUnmarshaller();
-            unmarshallerString[] resField=new String[4];
-                resField[0]="pid";
-                resField[1]="title";
-                resField[2]="description";
-                resField[3]="cModel";.setValidation(false);
-           fedoraObject = (FedoraObject) unmarshaller.unmarshal(new InputSource(new FileReader(location)));
-           return fedoraObject;
-        } catch (Exception e) {
-         
-            throw new DigitalRepositoryException("DR.CreateObject["+location+"]: "+ e);
-        }
-    }
-    
-    
-    private  Unmarshaller unmarshaller = null;
-    private  Unmarshaller getUnmarshaller()
+   private java.net.URL getResource(String name)
     {
-        if (unmarshaller == null) {
-            unmarshaller = new Unmarshaller();
-            Mapping mapping = new Mapping();
+        java.net.URL url = null;
+        java.io.File f = new java.io.File(name);
+        if (f.exists()) {
             try {
-                mapping.loadMapping(prefs.get("mapping.lw","fedora_map.xml"));
-               // mapping.loadMapping("fedora_map.xml");
-                unmarshaller.setMapping(mapping);
-            } 
-            
-            catch (MappingException me)
-            {
-                me.printStackTrace(System.err);
-                JOptionPane.showMessageDialog(null, "Error in mapping file, closing the application", 
-                    "LW_Mapping Exception", JOptionPane.PLAIN_MESSAGE);
-                
-                System.exit(0);
-            }
-            
-            catch (Exception e) {
-                System.err.println("getUnmarshaller: " + e);
+                url = f.toURL();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        return unmarshaller;
+        if (url == null)
+           url = getClass().getResource(name);
+        System.out.println("fedora.conf = "+url.getFile());
+       return url;
     }
-   **/
 
    
 }
