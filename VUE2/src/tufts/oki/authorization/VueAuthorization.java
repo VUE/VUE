@@ -67,7 +67,7 @@ public class VueAuthorization implements osid.authorization.Authorization {
      *  @author Mark Norton
      */
     public osid.shared.Agent getAgent() throws osid.authorization.AuthorizationException {
-        osid.shared.SharedManager mgr = tufts.oki.authorization.VueAuthorizationManager.sharedMgr;
+        osid.shared.SharedManager mgr = tufts.oki.authorization.AuthorizationManager.sharedMgr;
         osid.shared.Agent ag = null;
         try {
             ag = mgr.getAgent (this.agentId);
@@ -117,7 +117,7 @@ public class VueAuthorization implements osid.authorization.Authorization {
     public osid.shared.Agent getModifiedBy() throws osid.authorization.AuthorizationException {
         if (this.modifiedById == null)
             return null;
-        osid.shared.SharedManager mgr = tufts.oki.authorization.VueAuthorizationManager.sharedMgr;
+        osid.shared.SharedManager mgr = tufts.oki.authorization.AuthorizationManager.sharedMgr;
         osid.shared.Agent ag = null;
         try {
             ag = mgr.getAgent (this.modifiedById);
