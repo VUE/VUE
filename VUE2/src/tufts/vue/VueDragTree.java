@@ -240,7 +240,7 @@ class FileNode extends DefaultMutableTreeNode {
 
 		if(!isExplored()) {
 			File file = getFile();
-                          System.out.println("I am here");
+                          
                         
 			File[] children = file.listFiles();
 
