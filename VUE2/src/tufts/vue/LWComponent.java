@@ -1448,7 +1448,7 @@ public class LWComponent
     /**
      * Deliver LWCEvent @param e to all the @param listeners
      */
-    private static Listener[] listener_buf = new Listener[16];
+    //private static Listener[] listener_buf = new Listener[16];
     static synchronized void dispatchLWCEvent(Object source, List listeners, LWCEvent e)
     {
         if (sEventDepth > 5) // guestimate max based on current architecture -- increase if you need to
@@ -1474,12 +1474,14 @@ public class LWComponent
         // an event has already had it's notification and we don't
         // need to make sure it doesn't get one further down the list.
         
-        int nlistener = listeners.size();
-        Listener[] listener_array = (Listener[]) listeners.toArray(listener_buf);
-        if (listener_array != listener_buf)
-            out("FYI: listener count " + nlistener + " exceeded performance buffer.");
+        //int nlistener = listeners.size();
+        //Listener[] listener_array = (Listener[]) listeners.toArray(listener_buf);
+        //if (listener_array != listener_buf)
+        //    out("FYI: listener count " + nlistener + " exceeded performance buffer.");
 
-        for (int i = 0; i < nlistener; i++) {
+        Listener[] listener_array = new Listener[listeners.size()];
+        listeners.toArray(listener_array);
+        for (int i = 0; i < listener_array.length; i++) {
             if (DEBUG.EVENTS && DEBUG.META) {
                 if (e.getSource() != source)
                     eout(e + " => " + source + " >> ");
