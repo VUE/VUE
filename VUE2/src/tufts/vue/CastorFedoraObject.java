@@ -14,7 +14,6 @@ package tufts.vue;
 import osid.dr.*;
 import tufts.oki.dr.fedora.*;
 
-
 public class CastorFedoraObject {
     String id;
     String type;
