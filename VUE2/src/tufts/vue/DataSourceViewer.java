@@ -102,6 +102,7 @@ public class DataSourceViewer  extends JPanel{
         System.out.println("Setting active datasource = "+ds.getDisplayName());
     }
     
+    
     public void  setPopup() {
         popup = new JPopupMenu();
         addAction = new AbstractAction("Add") {
@@ -432,7 +433,13 @@ public class DataSourceViewer  extends JPanel{
                 activeDataSource.setUserName(userField.getText());
                 activeDataSource.setPassword(pwField.getText());
                 activeDataSource.setsearchURL(urlField.getText());
-                
+                try {
+                    activeDataSource.setViewer();
+                } catch(Exception ex) {
+                    ex.printStackTrace();
+                } 
+                setActiveDataSource(activeDataSource); // reset resource panel after edits
+                  
                 dia.hide();
             }
         });
