@@ -20,9 +20,16 @@
     frequently moving around just VUE-core.jar and running via:
 
         java -cp VUE-core.jar:VUE-lib.jar tufts.vue.VUE
+
+    Mac Version: a Mac OS X Application directory has been
+    pre-configured in VUE.app.  Building mac-dist will copy
+    the current VUE.jar into it and then it's ready to go
+    as a Mac OS X app.  Just drop the folder into /Applications
+    (or wherever you like), double-click it and you're off
+    and running.
   </description>
 
-<!-- $Revision: 1.8 $ / $Date: 2004-07-22 23:09:41 $ -->
+<!-- $Revision: 1.9 $ / $Date: 2004-08-06 21:00:48 $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -450,6 +457,20 @@
       </java>
     </target>
 
+    <property name="mac.name"    value="VUE.app"/>
+    <property name="mac.contents" value="${mac.name}/Contents"/>
+    <property name="mac.bundle_signature" value="TVUE"/> <!-- must match Info.plist CFBundleSignature -->
+
+    <target name="mac-dist" depends="" description="Creates a Mac OS X distributable Applcation directory (build VUE.jar first).">
+      <mkdir dir="${mac.contents}/MacOS"/>
+      <mkdir dir="${mac.contents}/Resources/Java"/>
+      <echo file="${mac.contents}/PkgInfo" message="APPL${mac.bundle_signature}"/>
+      <copy file="MacOS/JavaApplicationStub" todir="${mac.contents}/MacOS"/>
+      <chmod file="${mac.contents}/MacOS/JavaApplicationStub" perm="755" verbose="true"/>
+      <copy file="MacOS/Info.plist" todir="${mac.contents}"/>
+      <copy file="MacOS/VUE.icns" todir="${mac.contents}/Resources"/>
+      <copy file="VUE.jar" todir="${mac.contents}"/>
+    </target>
 
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
