@@ -353,11 +353,13 @@ public class VUE
         helpMenu.add(new JMenuItem("Help"));
         
 
-        PDFConversion pdfAction = new PDFConversion("PDF");
+        
 
         //extra additions by the power team members
+        PDFConversion pdfAction = new PDFConversion("PDF");
+        HTMLConversion htmlAction = new HTMLConversion("Html");
         ImageConversion imageAction = new ImageConversion("Jpeg");
-        ImageMap imageMap = new ImageMap("iMap");
+        ImageMap imageMap = new ImageMap("Imap");
         SVGConversion svgAction = new SVGConversion("SVG");
         
 
@@ -367,6 +369,7 @@ public class VUE
         toolBar.add(saveAction);
         toolBar.add(saveAsAction);
         toolBar.add(imageAction);
+        toolBar.add(htmlAction);
         toolBar.add(pdfAction);
         toolBar.add(imageMap);
         toolBar.add(svgAction);

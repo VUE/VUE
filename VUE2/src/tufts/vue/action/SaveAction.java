@@ -109,11 +109,8 @@ public class SaveAction extends AbstractAction
             Mapping mapping = new Mapping();
             try {
                 this.marshaller = new Marshaller(new FileWriter(fileName));
-                System.out.println("in marshaller 1");
                 mapping.loadMapping(XML_MAPPING);
-                System.out.println("in marshaller 2");
                 marshaller.setMapping(mapping);
-                System.out.println("in marshaller 3");
             } catch (Exception e) {
                 System.err.println("OpenAction.getMarshaller: " + e);
             }
