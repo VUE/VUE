@@ -257,7 +257,7 @@ public class VUE
         }
         JRootPane root = SwingUtilities.getRootPane(VUE.frame);
         if (root != null) {
-            out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
+            //out("ACTIVATING WAIT CURSOR: current =  " + oldRootCursor + "\n");
             oldRootCursor = root.getCursor();
             root.setCursor(CURSOR_WAIT);
         }
@@ -269,7 +269,7 @@ public class VUE
     }
     
     private static void _clearWaitCursor() {
-        out("restoring old cursor " + oldRootCursor + "\n");
+        //out("restoring old cursor " + oldRootCursor + "\n");
         if (oldRootCursor == null)
             return;
         if (waitedViewer != null) {
@@ -763,7 +763,7 @@ public class VUE
         
         getRootWindow().show();
 
-        out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
+        //out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
         //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
         //out("\n\nACTIONTMAP " + java.util.Arrays.asList(frame.getActionMap().allKeys()));
         //out("ACTIONTMAP " + Arrays.asList(VUE.getActiveViewer().getActionMap().allKeys()));
