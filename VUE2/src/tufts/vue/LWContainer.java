@@ -156,6 +156,21 @@ public abstract class LWContainer extends LWComponent
         return getLinkList().iterator();
     }
 
+    /**
+     * return first ancestor of type clazz, or if no matching ancestor
+     * is found, return the upper most ancestor (one that has no
+     * parent, which is normally the LWMap)
+     */
+    public LWContainer getFirstAncestor(Class clazz)
+    {
+        if (getParent() == null)
+            return this;
+        else if (clazz.isInstance(getParent()))
+            return getParent();
+        else
+            return getParent().getFirstAncestor(clazz);
+    }
+
     
     /*
     public Iterator getPathwayIterator()

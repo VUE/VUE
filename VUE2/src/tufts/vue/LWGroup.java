@@ -84,13 +84,6 @@ public final class LWGroup extends LWContainer
         // to this group who's endpoints are BOTH
         // also being added to the group.
 
-        // todo: odd case -- create a link tween 2 grouped items,
-        // and the new link will NOT be in the group -- how
-        // concerned to we need to be? "problem" arises if you
-        // then dropped the grouped 2+ nodes into a parent, and
-        // the parent was on a higher layer than the link -- the
-        // link would "dissapear" behind the parent.
-        
         HashSet linkSet = new HashSet();
         List moveList = new java.util.ArrayList();
         Iterator i = selection.iterator();
@@ -184,32 +177,19 @@ public final class LWGroup extends LWContainer
      */
     public void disperse()
     {
-        // todo: turn off all events while this reorg is happening?
         // todo: better to insert all the children back into the
-        //      parent at the layer of group object...
+        // parent at the layer of group object instead of on top of
+        // everything else.
 
-        if (DEBUG.PARENTING) System.out.println("dispersing group " + this);
+        if (DEBUG.PARENTING) out("dispersing group " + this);
 
-        List children = getChildList();
-        Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            // set parent to null first so that addChild
-            // isn't calling us back with a remove child,
-            // doing needless work and concurrently modifying
-            // our iteration!
-            c.setParent(null);
-            getParent().addChildInternal(c);
-        }
-        i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.notify("added", getParent());
-        }
-        getParent().notify("childrenAdded", children);
+        LWContainer newParent = getFirstAncestor(LWMap.class);
+        List tmpChildren = new ArrayList(children);
+        newParent.addChildren(tmpChildren.iterator());
         getParent().deleteChildPermanently(this);
     }
 
+    /*
     public String getLabel()
     {
         if (super.getLabel() == null)
@@ -217,6 +197,7 @@ public final class LWGroup extends LWContainer
         else
             return super.getLabel();
     }
+    */
 
     /** groups are transparent -- defer to parent for background fill color */
     public java.awt.Color getFillColor()

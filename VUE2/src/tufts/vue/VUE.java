@@ -751,7 +751,7 @@ public class VUE
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));
         fileMenu.add(Actions.CloseMap);
         fileMenu.add(printAction);
-        fileMenu.add(printAction).setLabel("Print View");
+        fileMenu.add(printAction).setLabel("Print View...");
         fileMenu.add(publishAction);
         //fileMenu.add(exportMenu);
         fileMenu.addSeparator();

@@ -38,7 +38,7 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
     private String jobName;
     
     private PrintAction() {
-        super("Print");
+        super("Print...");
     }
 
     private boolean isPrintingView() {
@@ -61,7 +61,7 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
         if (isPrintingView())
             bounds = viewer.getVisibleMapBounds();
         else
-            bounds = map.getBounds();
+            bounds = map.getBounds(); // todo: need get visible component bounds
 
         if (bounds.isEmpty()) {
             out("Empty page: skipping print.");
@@ -139,7 +139,7 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
         }
         isPrintUnderway = true;
         setEnabled(false);
-        isPrintingView = ae.getActionCommand().endsWith("View");
+        isPrintingView = ae.getActionCommand().indexOf("View") >= 0;
         new Thread(this).start();
     }
 
@@ -151,7 +151,7 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
             if (job.printDialog()) {
                 try {
                     PageFormat format = getPageFormatInteractive(job);
-                    out("format: " + format);
+                    out("format: " + out(format));
                     job.setJobName(this.jobName);
                     job.setPrintable(this, format);
                     job.print();
@@ -174,7 +174,8 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
     }
 
     private static String out(PageFormat p) {
-        final String[] o = {"LANDSCAPE", "PORTRAIT", "REVERSE LANDSCAPE" };
+        if (p == null) return null;
+        final String[] o = {"LANDSCAPE", "PORTRAIT", "REVERSE LANDSCAPE"};
         return
             "PageFormat[" + o[p.getOrientation()]
             + " " + p.getImageableX() + "," + p.getImageableY()

@@ -864,7 +864,7 @@ public class LWComponent
     {
         return getLinkTo(c) != null;
     }
-    /* supports ensure link paint order code */
+    /** supports ensure link paint order code */
     protected  LWComponent getParentWithParent(LWContainer parent)
     {
         if (getParent() == parent)

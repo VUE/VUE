@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.FlatteningPathIterator;
+import javax.swing.JLabel;
 import javax.swing.JColorChooser;
     
 
@@ -493,6 +494,7 @@ public class VueUtil
         if (colorChooserDialog == null) {
             colorChooser = new JColorChooser();
             //colorChooser.setDragEnabled(true);
+            //colorChooser.setPreviewPanel(new JLabel("FOO")); // make it dissapear entirely, W2K/1.4.2/Metal
             colorChooserDialog =
                 JColorChooser.createDialog(VUE.frame,
                                            "Color Chooser",

@@ -421,8 +421,15 @@ public class LWLink extends LWComponent
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()
     {
-        // todo fix: if parent is null this may provide incorrect results
+        // todo fix: if parent is null this may provide incorrect results        
         return (ep1 != null && ep1.getParent() == ep2) || (ep2 != null && ep2.getParent() == ep1);
+    }
+    /** Are both ends of this link in the same LWNode parent? */
+    public boolean isNestedLink()
+    {
+        if (ep1 == null || ep2 == null)
+            return getParent() instanceof LWNode;
+        return ep1.getParent() == ep2.getParent() && ep1.getParent() instanceof LWNode;
     }
     
     public Shape getShape()
@@ -1189,6 +1196,28 @@ public class LWLink extends LWComponent
         if (mArrowState > 0)
             drawArrows(dc);
 
+        if (!isNestedLink())
+            drawLinkDecorations(dc);
+        
+        if (DEBUG.BOXES) {
+            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, 10,10);
+            dot.setFrameFromCenter(startX, startY, startX+5, startY+5);
+            Composite composite = dc.g.getComposite();
+            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            dc.g.setColor(Color.green);
+            dc.g.fill(dot);
+            dot.setFrameFromCenter(endX, endY, endX+5, endY+5);
+            dc.g.setColor(Color.red);
+            dc.g.fill(dot);
+            dc.g.setComposite(composite);
+        }
+                
+        if (DEBUG.CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
+    }
+
+
+    private void drawLinkDecorations(DrawContext dc)
+    {
         //-------------------------------------------------------
         // Paint label if there is one
         //-------------------------------------------------------
@@ -1235,7 +1264,7 @@ public class LWLink extends LWComponent
                 } else
                     textBox.setOpaque(false);
                 
-                g.translate(lx, ly);
+                dc.g.translate(lx, ly);
                 //if (isZoomedFocus()) g.scale(getScale(), getScale());
                 // todo: need to re-center label when this component relative to scale,
                 // and patch contains to understand a scaled label box...
@@ -1254,19 +1283,19 @@ public class LWLink extends LWComponent
                 */
                 
                 //if (isZoomedFocus()) g.scale(1/getScale(), 1/getScale());
-                g.translate(-lx, -ly);
+                dc.g.translate(-lx, -ly);
                 
                 if (false) { // debug
                     // draw label in center of bounding box just for
                     // comparing to our on-curve center computation
                     lx = getCenterX() - textBox.getMapWidth() / 2;
                     ly = getCenterY() - textBox.getMapHeight() / 2;
-                    g.translate(lx,ly);
+                    dc.g.translate(lx,ly);
                     //textBox.setBackground(Color.lightGray);
                     textBox.setOpaque(false);
-                    g.setColor(Color.blue);
+                    dc.g.setColor(Color.blue);
                     textBox.draw(dc);
-                    g.translate(-lx,-ly);
+                    dc.g.translate(-lx,-ly);
                 }
             }
         }
@@ -1279,7 +1308,6 @@ public class LWLink extends LWComponent
             dc.g.fill(mIconBlock);
             mIconBlock.draw(dc);
         }
-        
         // todo perf: don't have to compute icon block location every time
         /*
         if (!textBoxBeingEdited && mIconBlock.isShowing()) {
@@ -1294,21 +1322,6 @@ public class LWLink extends LWComponent
             mIconBlock.draw(dc);
         }
         */
-
-        if (DEBUG.BOXES) {
-            RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, 10,10);
-            dot.setFrameFromCenter(startX, startY, startX+5, startY+5);
-            Composite composite = dc.g.getComposite();
-            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            dc.g.setColor(Color.green);
-            dc.g.fill(dot);
-            dot.setFrameFromCenter(endX, endY, endX+5, endY+5);
-            dc.g.setColor(Color.red);
-            dc.g.fill(dot);
-            dc.g.setComposite(composite);
-        }
-                
-        if (DEBUG.CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }
 
 
