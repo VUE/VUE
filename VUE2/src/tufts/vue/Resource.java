@@ -8,7 +8,7 @@ package tufts.vue;
  */
 
 import osid.dr.*;
-import tufts.dr.fedora.*;
+import tufts.oki.dr.fedora.*;
 
 public class Resource
 {
