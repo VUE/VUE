@@ -781,9 +781,10 @@ public class LWNode extends LWContainer
             float totalIconHeight = (float) mIconBlock.getHeight();
             float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
 
-            if (min.height < iconPillarHeight)
+
+            if (min.height < iconPillarHeight) {
                 min.height += iconPillarHeight - min.height;
-            else {
+            } else if (mIsRectShape) {
                 // special case prettification -- if vertically centering
                 // the icon stack would only drop it down by up to a few
                 // pixels, go ahead and do so because it's so much nicer
@@ -792,6 +793,11 @@ public class LWNode extends LWContainer
                 if (centerY > IconPillarPadY+3)
                     centerY = IconPillarPadY+3;
                 iconPillarY = centerY;
+            }
+            
+            if (!mIsRectShape) {
+                float height = Math.max(min.height, givenHeight);
+                iconPillarY = height / 2 - totalIconHeight / 2;
             }
             
             mIconBlock.setLocation(iconPillarX, iconPillarY);
