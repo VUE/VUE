@@ -254,7 +254,6 @@
 	
 
 <!-- saving favorite nodes-->
-<!---------------->
 
 	<class name="tufts.vue.SaveVueJTree">
 		<map-to xml="SaveVueJTree" />
