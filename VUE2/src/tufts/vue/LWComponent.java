@@ -383,7 +383,7 @@ public class LWComponent
      */
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
-    protected transient boolean hidden = true;
+    protected transient boolean hidden = false;
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
     protected transient boolean rollover = false;
