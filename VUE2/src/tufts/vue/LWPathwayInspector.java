@@ -65,7 +65,7 @@ public class LWPathwayInspector extends InspectorWindow
     private LWPathwayManager manager = null;
     
     /**current pathway as indicated by the manager*/
-    private LWPathway pathway = new LWPathway(1);
+    private LWPathway pathway = null; //new LWPathway(1);
     
     /**third tab which holds the notes for the current pathway*/
     public JTextArea area = null, text = null;
@@ -76,10 +76,13 @@ public class LWPathwayInspector extends InspectorWindow
     /**standard border for all tabs*/
     private LineBorder border = new LineBorder(Color.black);
     
+    /**handles opening and closing inspector*/
     private AbstractButton aButton = null;
     
     public LWPathwayInspector(JFrame owner) {
         super(owner, "");
+        manager = LWPathwayManager.getInstance();
+        pathway = manager.getCurrentPathway();
         this.setTitle("PATHWAY INSPECTOR: " + pathway.getLabel());
         
         /**three components to be added to the tabbed pane*/

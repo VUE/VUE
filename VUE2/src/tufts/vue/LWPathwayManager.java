@@ -19,10 +19,11 @@ public class LWPathwayManager {
     private static LWPathwayManager manager = null;
     
     private LWPathwayManager() {
-        this(1);
         pathways = new ArrayList();
     }
     
+    /** Constructor used for testing */
+    /*
     private LWPathwayManager(int test){
         if(test == 1){
             LWPathway path1 = new LWPathway("Path 1");
@@ -36,10 +37,10 @@ public class LWPathwayManager {
             this.addPathway(path4);
             this.addPathway(path5);
         }
-    }
+    }*/
     
     public static LWPathwayManager getInstance(){
-        if(manager==null) manager = new LWPathwayManager();
+        if(manager==null) manager = new LWPathwayManager();       
         return manager;
     }
     
@@ -66,7 +67,7 @@ public class LWPathwayManager {
         current = pathway;
     }
    
-    public static LWPathway getFirst(){
+    public LWPathway getFirst(){
         return (LWPathway)pathways.get(0);
     }
     
@@ -83,6 +84,7 @@ public class LWPathwayManager {
         pathways.add(pathway);
         if(current == null)
             current = pathway;              
+        //System.out.println("manager adding a pathway...");
     }
     
     public void removePathway(LWPathway pathway){
