@@ -214,7 +214,7 @@ public class ToolWindow
             e.getX() > getWidth() - ResizeCornerSize &&
             e.getY() > getHeight() - ResizeCornerSize
             ||
-            e.getX() > getWidth() - 10 && e.getY() < TitleHeight; // tmp hack extra resize
+            e.getX() > getWidth() - 15 && e.getY() < TitleHeight; // tmp hack extra resize
         
     }
     
