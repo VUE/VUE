@@ -149,14 +149,22 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
  public void valueChanged(TreeSelectionEvent e) {
      try {
-         if(e.getPath().getLastPathComponent() != null && !e.isAddedPath()) {
-             resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
-         }else if(e.getPath().getPathComponent(0) != null) {
+         if(e.getPath().getLastPathComponent() != null ) {
+             resourceSelection.clear();
              resourceSelection.add(createResource(e.getPath().getLastPathComponent()));
+             //resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
          }
+         /**
+         if(e.getPath().getPathComponent(0) != null) {
+             //resourceSelection.add(createResource(e.getPath().getLastPathComponent()));
+             System.out.println("Added Resource = "+createResource(e.getPath().getLastPathComponent())+" : size = "+resourceSelection.size());
+         }
+          **/
      } catch(Exception ex) {
-         VueUtil.alert(null,ex.toString(),"Error in VueDragTree Selection");
+        // VueUtil.alert(null,ex.toString(),"Error in VueDragTree Selection");
+         System.out.println("VueDragTree.valueChanged "+ex.getMessage());
      }
+     // System.out.println("elements in path = "+e.getPath().getPathCount());
  } 
 
  private Resource createResource(Object object) throws osid.dr.DigitalRepositoryException,osid.OsidException {
