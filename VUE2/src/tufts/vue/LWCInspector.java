@@ -239,13 +239,16 @@ class LWCInspector extends javax.swing.JPanel
             locationField.setText("x: " + lwc.getX() + "   y: " + lwc.getY());
             sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
             Font f = lwc.getFont();
-            fontField.setText(f.getName() + "-" + f.getSize());
+            String fontSize = ""+f.getSize();
+            if (lwc.getScale() != 1)
+                fontSize += " (" + (f.getSize()*lwc.getScale()) + ")";
+            fontField.setText(f.getName() + "-" + fontSize);
             //sizeField.setText(mapItem.getWidth() + "x" + mapItem.getHeight());
         }
         
     }
 
-        public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent e)
     {
         //if (this.component == null)
         if (this.mapItem == null)
