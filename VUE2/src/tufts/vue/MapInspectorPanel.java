@@ -35,6 +35,7 @@ import javax.swing.border.*;
 
 
 import tufts.vue.filter.*;
+import tufts.vue.gui.*;
 
 /**
  * ObjectInspectorPanel
