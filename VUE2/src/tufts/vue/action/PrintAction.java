@@ -46,12 +46,11 @@ public class PrintAction extends AbstractAction implements Printable {
             
             //translate it to the printable section of the paper
             g2.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-            g2.setClip(0, 0, size.width, size.height);
-             
+            //g2.setClip(0, 0, size.width, size.height);
+            g2.setClip(0, 0, (int)pageFormat.getImageableWidth() - 1, (int)pageFormat.getImageableHeight() - 1);
             currentMap.paintComponent(g2);
           
             g2.setColor(Color.black);
-            //g2.drawRect(0, 0, size.width - 1, size.height - 1);
             g2.drawRect(0, 0, (int)pageFormat.getImageableWidth() - 1, (int)pageFormat.getImageableHeight() - 1);
             
             return Printable.PAGE_EXISTS;
