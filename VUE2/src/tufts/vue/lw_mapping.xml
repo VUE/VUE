@@ -152,6 +152,9 @@
 	        <field name="controlCount">
 			<bind-xml name="controlCount" node="attribute"/>
 		</field>
+	        <field name="arrowState">
+			<bind-xml name="arrowState" node="attribute"/>
+		</field>
                 <!-- if isn't curved, these will be null, and thus not saved. so if this
                      is present, we know it's a curved link-->
 	        <field name="ctrlPoint0">
