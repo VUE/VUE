@@ -424,6 +424,11 @@ VueAction: Zoom 100% n=1
         return this;
     }
 
+    public LWComponent findLWComponentAt(Point2D p)
+    {
+        return findLWComponentAt((float)p.getX(), (float)p.getY());
+    }
+
     /** Code is duplicated from above here, but subclasses (e.g.,
      * LWGroup) handle this differently, but we can't reuse
      * above code due to recursive usage.

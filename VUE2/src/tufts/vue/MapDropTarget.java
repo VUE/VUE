@@ -91,8 +91,18 @@ class MapDropTarget
 
     public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
     {
+        LWComponent hitComponent = null;
+
+        if (dropLocation != null) {
+            hitComponent = viewer.getMap().findLWComponentAt(dropToMapLocation(dropLocation));
+            System.out.println("\thitComponent=" + hitComponent);
+        }
+        
+        // if no drop location (e.g., we did a "Paste") then assume where
+        // they last clicked.
         if (dropLocation == null)
-            dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
+            dropLocation = viewer.getLastMousePressPoint();
+        //dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
         
         boolean success = false;
 
@@ -165,12 +175,17 @@ class MapDropTarget
             java.util.Iterator iter = fileList.iterator();
             int x = dropLocation.x;
             int y = dropLocation.y;
+
             while (iter.hasNext()) {
                 java.io.File file = (java.io.File) iter.next();
                 if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                createNewNode(file.toString(), file.getName(), new java.awt.Point(x, y));
-                x += 15;
-                y += 15;
+                if (hitComponent != null && fileList.size() == 1) {
+                    hitComponent.setResource(file.toString());
+                } else {
+                    createNewNode(file.toString(), file.getName(), new java.awt.Point(x, y));
+                    x += 15;
+                    y += 15;
+                }
                 success = true;
             }
             
@@ -186,7 +201,10 @@ class MapDropTarget
                 success = true;
             }
         } else if (resourceName != null) {
-            createNewNode(resourceName, null, dropLocation);
+            if (hitComponent != null)
+                hitComponent.setResource(resourceName);
+            else
+                createNewNode(resourceName, null, dropLocation);
             success = true;
         } else if (droppedText != null) {
             createNewTextNode(droppedText, dropLocation);
