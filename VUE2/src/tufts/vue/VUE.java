@@ -876,19 +876,17 @@ public class VUE
             return null;
     }
 
-    /*
-     * Returns instance of frame. used by orpahan dialogs
-     * (what calls this?  I see no reference to it in any
-     * VUE source -- does something using reflection call it?? --SMF)
+    /**
+     * deprecated - use getRootParent, getRootWindow or getRootFrame
      */
     public static JFrame getInstance() {
         return frame;
     }
 
-    public static JFrame getFrame() {
+    /** return the root VUE component used for parenting */
+    public static Component getRootParent() {
         return frame;
     }
-
     /** return the root VUE window, mainly for those who'd like it to be their parent */
     public static Window getRootWindow() {
         return frame;

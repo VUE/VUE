@@ -422,7 +422,7 @@ public class Util
     private static Dialog colorChooserDialog;
     private static boolean colorChosen;
     /** Convience method for running a JColorChooser and collecting the result */
-    public static Color runColorChooser(String title, Color c, Frame applicationFrame)
+    public static Color runColorChooser(String title, Color c, Component chooserParent)
     {
         if (colorChooserDialog == null) {
             colorChooser = new JColorChooser();
@@ -453,7 +453,7 @@ public class Util
             colorChooser.getPreviewPanel().add(new JLabel("FOO"));
             */
             colorChooserDialog =
-                JColorChooser.createDialog(applicationFrame,
+                JColorChooser.createDialog(chooserParent,
                                            "Color Chooser",
                                            true,  
                                            colorChooser,

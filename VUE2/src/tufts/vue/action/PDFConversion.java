@@ -83,7 +83,7 @@ public class PDFConversion extends AbstractAction {
             
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Save as PDF");
-            int option = chooser.showDialog(tufts.vue.VUE.getRootWindow(), "Save");
+            int option = chooser.showDialog(tufts.vue.VUE.getRootParent(), "Save");
             if (option == JFileChooser.APPROVE_OPTION) {
                 pdfFileName = chooser.getSelectedFile().getAbsolutePath();
                 if(!pdfFileName.endsWith(".pdf")) pdfFileName += ".pdf";

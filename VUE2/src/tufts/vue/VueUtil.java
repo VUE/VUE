@@ -358,11 +358,11 @@ public class VueUtil extends tufts.Util
     }
    
     public static void alert(String message,String title) {
-        javax.swing.JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
+        javax.swing.JOptionPane.showMessageDialog(VUE.getRootParent(),message,title,javax.swing.JOptionPane.ERROR_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));                                      
     }
    
     public static int confirm(String message,String title) {
-       return JOptionPane.showConfirmDialog(tufts.vue.VUE.getInstance(),message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
+       return JOptionPane.showConfirmDialog(VUE.getRootParent(),message,title,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,VueResources.getImageIcon("vueIcon32x32"));
     }
     
     public static int confirm(javax.swing.JComponent component, String message, String title) {

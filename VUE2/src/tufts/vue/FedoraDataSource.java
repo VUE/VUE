@@ -115,13 +115,13 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
             File savedMap = PublishUtil.saveMap(map);
             Properties metadata = map.getMetadata();
             String pid = getDR().ingest(savedMap.getName() ,"obj-binary.xml", PublishUtil.VUE_MIME_TYPE,savedMap, metadata).getIdString();
-            JOptionPane.showMessageDialog(VUE.getInstance(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(VUE.getRootParent(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
         } catch(IOException ex){
             throw ex;
         } catch(Exception ex) {
             System.out.println(ex);
-            JOptionPane.showMessageDialog(VUE.getInstance(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(VUE.getRootParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
             
         }
     }
@@ -130,13 +130,13 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
             File savedCMap = PublishUtil.createIMSCP(Publisher.resourceVector);
             Properties metadata  = map.getMetadata();
             String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml",PublishUtil.ZIP_MIME_TYPE, savedCMap, metadata).getIdString();
-            JOptionPane.showMessageDialog(VUE.getInstance(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(VUE.getRootParent(), "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
         } catch(IOException ex){
             throw ex;
         } catch(Exception ex) {
             System.out.println(ex);
-            JOptionPane.showMessageDialog(VUE.getInstance(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(VUE.getRootParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
             
         }
     }
@@ -165,7 +165,7 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
             throw ex;
         } catch(Exception ex) {
             System.out.println(ex);
-            JOptionPane.showMessageDialog(VUE.getInstance(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(VUE.getRootParent(), "Map cannot be exported "+ex.getMessage(),"Export Error",JOptionPane.ERROR_MESSAGE);
             
         }
     }

@@ -105,7 +105,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             dialog.hide();
                             dialog.dispose();
@@ -120,7 +120,7 @@ public class AddDataSourcePanel extends JPanel {
                     chooser.setDialogTitle("Select Folder");
                     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                     chooser.setFileFilter(new VueFileFilter());
-                    int option = chooser.showDialog(tufts.vue.VUE.getInstance(), "Select");
+                    int option = chooser.showDialog(VUE.getRootParent(), "Select");
                     if(option ==  JFileChooser.APPROVE_OPTION) {
                         pathField.setText(chooser.getSelectedFile().getAbsolutePath());
                     }
@@ -211,7 +211,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             dialog.hide();
                             dialog.dispose();
@@ -295,7 +295,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             dialog.hide();
                             dialog.dispose();
@@ -418,7 +418,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             dialog.hide();
                             dialog.dispose();
@@ -540,7 +540,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             dialog.hide();
                             dialog.dispose();
@@ -657,7 +657,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(tufts.vue.VUE.getInstance(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             if (DEBUG.DR) System.out.println(this + " dialog.hide");
                             dialog.hide();
