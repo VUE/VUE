@@ -125,15 +125,21 @@ public class VueToolbarController
 			tool.setID( pName);
 			tool.setToolName( VueResources.getString(( pName+".name") ) );
 			tool.setToolTipText( VueResources.getString( pName + ".tooltip") );
-			
-			tool.setIcon( VueResources.getImageIcon( pName+".up"));
-			tool.setDownIcon( VueResources.getImageIcon( pName+".down"));
-			tool.setSelectedIcon( VueResources.getImageIcon(pName+".selected"));
-			tool.setDisabledIcon( VueResources.getImageIcon(pName+".disabled"));
-			tool.setRolloverIcon( VueResources.getImageIcon( pName+".rollover"));
-			tool.setMenuItemIcon( VueResources.getImageIcon( pName+".menu"));
-			tool.setMenuItemSelectedIcon( VueResources.getImageIcon( pName+".menuselected"));
-			tool.setShortcutKey(VueResources.getChar( pName+".shortcutKey"));
+
+                        Icon rawIcon = VueResources.getImageIcon(pName+".raw");
+                        if (rawIcon != null) {
+                            tool.setGeneratedIcons(rawIcon);
+                        } else {
+                            tool.setIcon( VueResources.getImageIcon( pName+".up"));
+                            tool.setDownIcon( VueResources.getImageIcon( pName+".down"));
+                            tool.setSelectedIcon( VueResources.getImageIcon(pName+".selected"));
+                            tool.setDisabledIcon( VueResources.getImageIcon(pName+".disabled"));
+                            tool.setRolloverIcon( VueResources.getImageIcon( pName+".rollover"));
+                            tool.setMenuItemIcon( VueResources.getImageIcon( pName+".menu"));
+                            tool.setMenuItemSelectedIcon( VueResources.getImageIcon( pName+".menuselected"));
+                        }
+
+                        tool.setShortcutKey(VueResources.getChar( pName+".shortcutKey"));
 
                         int cursorID = VueResources.getInt(pName+".cursorID", -1);
                         if (cursorID >= 0) {

@@ -118,6 +118,12 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
          mFillColorButton.setMargin(ButtonInsets);
 
+         // this skips painting background: will technically perform
+         // better as we don't need to fill it with the icon filling
+         // it all, but leaving off for now so we can see region for
+         // debug (not a performance concern)
+         // mFillColorButton.setContentAreaFilled(false);
+
          Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
          String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
          mStrokeColorButton = new ColorMenuButton( strokeColors, strokeColorNames, true);
@@ -160,6 +166,9 @@ public class NodeToolPanel extends JPanel implements ActionListener, PropertyCha
          mStrokeButton.setMargin(ButtonInsets);
  		
          if (!textOnly) {
+             JLabel label = new JLabel("   Node:");
+             label.setFont(VueConstants.FONT_SMALL);
+             box.add(label);
              box.add( mFillColorButton);
              box.add( mStrokeColorButton);
              box.add( mStrokeButton);

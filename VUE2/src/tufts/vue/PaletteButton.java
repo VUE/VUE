@@ -171,7 +171,8 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	 * @ return boolean true if should use image to draw indictor; false if not
 	 **/
 	public boolean isPopupIconIndicatorEnabled() {
-		return mUseIconIndicator;
+            //return mUseIconIndicator;
+            return false;
 	}
 
 	/**
@@ -203,7 +204,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	 * This removes an item from the popup menu
 	 * @param pItem the item to remove
 	 **/
-	 public void emovePaletteItem( PaletteButtonItem pItem ) {
+	 public void removePaletteItem( PaletteButtonItem pItem ) {
 	 	
 	 	if( mItems != null) {
 	 		int len = mItems.length;
@@ -353,7 +354,15 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		this.setRolloverEnabled(  pRollover != null );
 		
 	}
-	
+
+    public void setSelected(boolean b) {
+        //System.out.println(this + " setSelected " + b);
+        super.setSelected(b);
+    }
+    protected void fireStateChanged() {
+        //System.out.println("PaletteButton: fireStateChanged, selected="+isSelected() + " " + getIcon());
+        super.fireStateChanged();
+    }
 	/**
 	 * paint( Graphics g)
 	 * Overrides paint method and renders an additional icon ontop of
@@ -370,7 +379,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		
 		// now overlay the popup menu icon indicator
 		// either from an icon or by brute painting
-		if(  (!isPopupIconIndicatorEnabled() ) 
+		if( (!isPopupIconIndicatorEnabled() ) 
 			   &&  (mPopup != null) 
 			   && ( !mPopup.isVisible() ) ) {
 			// draw popup arrow
@@ -421,6 +430,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	 * @param pEvent the action event.
 	 **/
 	public void actionPerformed( ActionEvent pEvent) {
+            //System.out.println(pEvent);
 		// fake a click to handle radio selection after menu selection
 		doClick();		
 	}
@@ -435,6 +445,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 	
 		public boolean isPopupMenuTrigger( MouseEvent pEvent ) {
 			boolean retValue = false;
+                        System.out.println("PBPopupMenu: " + pEvent);
 			
 			if(pEvent.getID() == MouseEvent.MOUSE_PRESSED )
 				retValue =true;

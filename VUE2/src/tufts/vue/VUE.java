@@ -506,6 +506,8 @@ public class VUE
         //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
         frame.pack();
+        frame.setSize(800,600);
+        frame.validate();
 
         VueUtil.centerOnScreen(frame);
         
@@ -586,7 +588,6 @@ public class VUE
                 ex.printStackTrace();
             }
         }            
-        //setViewerScrollbarsDisplayed(true);
         System.out.println("VUE.main: loading fonts...");
         FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");

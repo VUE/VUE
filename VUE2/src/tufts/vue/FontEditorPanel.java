@@ -173,6 +173,9 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         mTextColorButton.addActionListener(this);
         */
          
+        JLabel label = new JLabel("   Text:");
+        label.setFont(VueConstants.FONT_SMALL);
+        add(label);
         add(mFontCombo);
         add(mSizeField);
         add(mBoldButton);

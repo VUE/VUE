@@ -140,6 +140,9 @@ import tufts.vue.beans.*;
          mStrokeButton.setBorderPainted(false);
  		
  		
+         JLabel label = new JLabel("   Link:");
+         label.setFont(VueConstants.FONT_SMALL);
+         box.add(label);
          box.add( mLinkColorButton);
          box.add( mStrokeButton);
          box.add( mArrowStartButton);

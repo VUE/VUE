@@ -145,6 +145,8 @@ public class NodeTool extends VueTool
         return (SubTool) getTool().getSelectedSubTool();
     }
 
+    private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
+    
     public static class SubTool extends VueSimpleTool
     {
         private Class shapeClass = null;
@@ -205,8 +207,8 @@ public class NodeTool extends VueTool
         
         class ShapeIcon implements Icon
         {
-            final int w = 38;
-            final int h = 27;
+            final int width = 38;
+            final int height = 27;
             final int xInset = 7;
             final int yInset = 6;
             final int arc = 15; // arc of rounded toolbar button border
@@ -235,19 +237,27 @@ public class NodeTool extends VueTool
                 this(c, false, false);
             }
             
-            public int getIconWidth() {return w; }
-            public int getIconHeight() { return h; }
+            public int getIconWidth() { return width; }
+            public int getIconHeight() { return height; }
 
+            static final private boolean roundButton = false;
+            static final private boolean debug = false;
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                //g2.setColor(Color.red);
-                //g2.fillRect(0,0, 99,99);
+                if (debug) {
+                    g2.setColor(Color.red);
+                    g2.fillRect(0,0, 99,99);
+                }
                 if (VueUtil.isMacPlatform())
                     g2.translate(3,3);
                 else
                     g2.translate(1,1);
-                float gw = w;
+
+                int w = width;
+                int h = height;
+                
+                float gw = width;
                 //GradientPaint gradient = new GradientPaint(gw/2,0,Color.white,gw/2,h/2,mColor,true);
                 //GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw/2,h/2,mColor,true);
                 GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw*.33f,h/2,mColor,true);
@@ -256,17 +266,29 @@ public class NodeTool extends VueTool
                     g2.setPaint(gradient);
                 else
                     g2.setColor(mColor);
-                if (mDrawButton) {
-                    g2.setColor(mColor);
-                    g2.fill3DRect(0,0, w-1,h-1, true);
-                    g2.setPaint(gradient);
-                    g2.fillRect(1,1, w-3,h-3);
+
+                if (!roundButton||mDrawButton) {
+                    g2.setColor(ToolbarColor);
+                    //g2.setColor(mColor);
+                    //g2.setColor(Color.white);
+                    //g2.draw3DRect(0,0, w,h, !mIsDown);
+                    //g2.draw3DRect(0,0, w-1,h-1, !mIsDown);
+                    g2.draw3DRect(0,0, w-2,h-2, !mIsDown);
+                    //g2.draw3DRect(1,1, w-2,h-2, !mIsDown);
+                    if (true) {
+                        g2.setPaint(gradient);
+                        g2.fillRect(1,1, w-3,h-3);
+                    }
+                    //g2.fillRect(2,2, w-4,h-4);
                     //g2.drawRect(0,0, w-3,h-3);
                 } else {
                     g2.fillRoundRect(0,0, w-3,h-3, arc,arc);
                     g2.setColor(Color.black);
                     g2.drawRoundRect(0,0, w-3,h-3, arc,arc);
                 }
+                
+                if (mIsDown)
+                    g2.translate(1,1);
                 
                 g2.setColor(sShapeColor);
                 RectangularShape shape = getShape();

@@ -62,6 +62,9 @@ public abstract class VueTool extends AbstractAction
     /** the icon to overlay if there are any sub items **/
     protected Icon mOverlayDownIcon = null;
 
+    /** the raw icon used as a base for the generated icons */
+    protected Icon mRawIcon = null;
+
     protected char mShortcutKey = 0;
 
     protected java.awt.Cursor mCursor = null;
@@ -435,6 +438,20 @@ public abstract class VueTool extends AbstractAction
 	public Icon getOverlayDownIcon() {
 		return mOverlayDownIcon;
 	}
+	public void setGeneratedIcons( Icon pIcon) {
+            mRawIcon = pIcon;
+            setIcon(new ToolIcon(mRawIcon, ToolIcon.UP));
+            setDownIcon(new ToolIcon(mRawIcon, ToolIcon.DOWN));
+            setSelectedIcon(new ToolIcon(mRawIcon, ToolIcon.SELECTED));
+            setDisabledIcon(new ToolIcon(mRawIcon, ToolIcon.DISABLED));
+            setRolloverIcon(new ToolIcon(mRawIcon, ToolIcon.ROLLOVER));
+            setMenuItemIcon(new ToolIcon(mRawIcon, ToolIcon.MENU));
+            setMenuItemSelectedIcon(new ToolIcon(mRawIcon, ToolIcon.MENU_SELECTED));
+	}
+	
+	public Icon getRawIcon() {
+            return mRawIcon;
+	}
 
     public String toString()
     {
@@ -444,6 +461,146 @@ public abstract class VueTool extends AbstractAction
         s += "]";
         return s;
     }
+
+    private static final Color sButtonColor = new Color(222,222,222);
+    private static final Color sOverColor = Color.gray;
+    //private static final Color sDownColor = new Color(211,211,211);
+    private static final Color sDownColor = sOverColor;
+    private static final Color ToolbarColor = VueResources.getColor("toolbar.background");
+    
+    class ToolIcon implements Icon
+    {
+        static final int UP = 0;        // TOOLBAR: unselected/default
+        static final int DOWN = 1;      // TOOLBAR: only while being held down, sometimes (rarely seen)
+        static final int SELECTED = 2;  // TOOLBAR: selected (down)
+        static final int DISABLED = 3;  // unimplemented
+        static final int ROLLOVER = 4;  // TOOLBAR: Rollover
+        static final int MENU = 5;      // SUB-MENU: default (palette menu)
+        static final int MENU_SELECTED = 6; // SUB-MENU: Rollover (palette menu)
+            
+        static final int width = 38;
+        static final int height = 27;
+        //static final int arc = 15; // arc of rounded toolbar button border
+
+        private Insets insets = new Insets(1,1,0,0);
+        private int mType = UP;
+        private Color mColor = sButtonColor;
+        //private Color mColor = new Color(230,230,230);
+        //private Color mColor = new Color(200,200,200);
+        //private Color mColor = Color.gray;
+
+        private Icon mRawIcon;
+        private boolean mIsDown;
+        private boolean mPaintGradient = false;
+
+        private final static boolean debug = false;
+
+        protected ToolIcon(Icon rawIcon, int t)
+        {
+            mRawIcon = rawIcon;
+            mType = t;
+            mIsDown = (t == DOWN || t == SELECTED || t == MENU_SELECTED);
+            mPaintGradient = mIsDown || t == ROLLOVER;
+            if (mPaintGradient)
+                mColor = Color.gray;
+                //mColor = ToolbarColor;
+            if (debug) {
+                if (t == MENU) mColor = Color.pink;
+                if (t == MENU_SELECTED) mColor = Color.magenta;
+                if (t == ROLLOVER) mColor = Color.green;
+            }
+        }
+            
+        public int getIconWidth() { return width; }
+        public int getIconHeight() { return height; }
+
+        /**
+         * paint the entire button as an icon plus it's visible icon graphic
+         */
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (debug) System.out.println("painting " + mRawIcon + " type = " + mType);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (mType >= MENU) {
+                // the drop-down menus have GC bugs on the PC such
+                // that we need to be sure to paint something in
+                // the entire region, or we appear to get another
+                // version of the icon painted *under* us.
+                g2.setColor(c.getBackground());
+                g2.fillRect(0,0, width,height);
+            }
+
+            if (debug) {
+                g2.setColor(Color.red);
+                g2.fillRect(0,0, 99,99);
+            }
+            x += insets.top;
+            y += insets.left;
+            //if (VueUtil.isMacPlatform()) { x += 2; y += 2; }// try now that attend to x/y above
+            g2.translate(x,y);
+
+            int w = width - (insets.left + insets.right);
+            int h = height - (insets.top + insets.bottom);
+                
+            float gw = width;
+            //GradientPaint gradient = new GradientPaint(gw/2,0,Color.white,gw/2,h/2,mColor,true);
+            //GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw/2,h/2,mColor,true);
+            GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw*.33f,h/2,mColor,true);
+            // Set gradient for the whole button.
+
+
+            if (true||mIsDown) {
+                // Draw the 3d button border -- raised/lowered depending on down state                
+                g2.setColor(c.getBackground());
+                g2.draw3DRect(0,0, w-1,h-1, !mIsDown);
+            } else {
+                // draw a plain flat border
+                g2.setColor(Color.darkGray);
+                g2.drawRect(0,0, w-1,h-1);
+            }
+
+            // now fill the icon
+            if (mPaintGradient)
+                g2.setPaint(gradient);
+            else
+                g2.setColor(mColor);
+            g2.fillRect(1,1, w-2,h-2);
+                
+            // if we're down, nudge icon
+            if (mIsDown)
+                g2.translate(1,1);
+
+            // now draw the actual graphic in the center
+            int ix = (w - mRawIcon.getIconWidth()) / 2;
+            int iy = (h - mRawIcon.getIconHeight()) / 2;
+            drawGraphic(c, g2, ix, iy);
+        }
+
+        void drawGraphic(Component c, Graphics2D g, int x, int y)
+        {
+            mRawIcon.paintIcon(c, g, x, y);
+        }
+
+        /*
+          void drawGraphic_nodeTool(Grahpics2D g)
+          {
+          g2.setColor(sShapeColor);
+          RectangularShape shape = getShape();
+          if (shape instanceof RoundRectangle2D) {
+          // hack to deal with arcs being too small on a tiny icon
+          shape = getShapeInstance();
+          // plus 2 on x/y inset for mac?
+          ((RoundRectangle2D)shape).setRoundRect(xInset, yInset, 20,12, 8,8);
+          } else
+          shape.setFrame(xInset,yInset, 20,12);
+          //shape.setFrame(xInset,yInset, w-xInset*2, h-yInset*2);                
+          g2.fill(shape);
+          g2.setColor(Color.black);
+          g2.draw(shape);
+          }
+        */
+    }
+    
 	
 	
 	/**

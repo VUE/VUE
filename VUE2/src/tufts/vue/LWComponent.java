@@ -380,8 +380,8 @@ public class LWComponent
     protected Color textColor = COLOR_TEXT;     //style
     protected Color strokeColor = COLOR_STROKE; //style
     protected float strokeWidth = 0f;            //style
-    //protected Font font = null;                 //style -- if we leave null won't bother to persist this value
     protected Font font = FONT_DEFAULT;
+    //protected Font font = null;                 //style -- if we leave null won't bother to persist this value
     
     /*
      * Runtime only information
