@@ -11,7 +11,13 @@ class DRBrowser extends javax.swing.JTabbedPane
     public DRBrowser()
     {
         setBorder(new TitledBorder("DR Browser"));
-        add("File", new JInternalFrame("Local Files"));
+        
+        DragTree tree = new DragTree();
+        JInternalFrame fileBrowser = new JInternalFrame("File System");
+         JScrollPane jSP = new JScrollPane(tree);
+      
+        
+        add("File", jSP);
         add("FEDORA",new JInternalFrame("FEDORA"));
     }
     
