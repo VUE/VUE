@@ -229,13 +229,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
-       
-        saveDataSourceViewer();
-     
         refreshDataSourceList();
-        
-        
-        
+        saveDataSourceViewer();
     }
     
     public void deleteDataSource(DataSource ds){
@@ -258,51 +253,27 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     }
     
     public static void refreshDataSourceList(){
-        
         int i =0; Vector dsVector;
         String breakTag = "";
         int NOOFTYPES = 6;
-        
-        
         if (!(dataSourceList.getContents().isEmpty()))dataSourceList.getContents().clear();
-        
         for (i = 0; i < NOOFTYPES; i++){
-            
-            
             dsVector = (Vector)allDataSources.get(i);
-            
             if (!dsVector.isEmpty()){
-                
-                
-                
                 int j = 0;
                 for(j = 0; j < dsVector.size(); j++){
                     dataSourceList.getContents().addElement(dsVector.get(j));
-                    
                 }
-                
                 boolean breakNeeded = false; int typeCount = i+1;
-                
                 while ((!breakNeeded) && (typeCount < NOOFTYPES)){
-                    
                     if (!((Vector)allDataSources.get(i)).isEmpty())breakNeeded = true;
-                    
                     typeCount++;
                 }
-                
                 if (breakNeeded) dataSourceList.getContents().addElement(breakTag);
-                
             }
-            
         }
-        
-        
         dataSourceList.setSelectedValue(getActiveDataSource(),true);
-        
         dataSourceList.validate();
-        
-        
-        
     }
     
     
@@ -453,58 +424,47 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             Vector rsources = rViewer.getSaveDataSources();
             while (!(rsources.isEmpty())){
                 DataSource ds = (DataSource)rsources.remove(0);
-           
-        
-      
+                
+                
+                
                 
                 System.out.println(ds.getDisplayName()+ds.getClass());
                 try {
-                 
+                    
                     addDataSource(ds);
                     setActiveDataSource(ds);
                     
-                   
+                    
                 } catch(Exception ex) {System.out.println("this is a problem in restoring the datasources");}
-                 
+                
             }
             saveDataSourceViewer();
             refreshDataSourceList();
             
         }catch (Exception ex) {
-            
+            if(DEBUG.DR) System.out.println("Datasource loading problem ="+ex);
             //VueUtil.alert(null,"Previously saved datasources file does not exist or cannot be read. Adding Default Datasources","Loading Datasources");
-           
-            DataSource ds1 = new LocalFileDataSource("My Computer","");
-            addDataSource(ds1);
-            DataSource ds2 = new FavoritesDataSource("My Favorites");
-            addDataSource(ds2);
-            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","snowflake.lib.tufts.edu", "test","test");
-            addDataSource(ds3);
-            DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
-            addDataSource(ds4);
-            saveDataSourceViewer();
-            setActiveDataSource(ds1);
-           
-            
-            
+            loadDefaultDataSources();
         }
-        
-        
-        
-        
-        
-        
-        
         refreshDataSourceList();
-        
-        
-        
-        
-        
-        
     }
     
-    
+    /**
+     *If load datasources fails this method is called
+     */
+
+    private void loadDefaultDataSources() {
+        DataSource ds1 = new LocalFileDataSource("My Computer","");
+        addDataSource(ds1);
+        DataSource ds2 = new FavoritesDataSource("My Favorites");
+        addDataSource(ds2);
+        DataSource ds3 = new FedoraDataSource("Tufts Digital Library","snowflake.lib.tufts.edu", "test","test");
+        addDataSource(ds3);
+        DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
+        addDataSource(ds4);
+        saveDataSourceViewer();
+        setActiveDataSource(ds1);
+    }
     /*
      * static method that returns all the datasource where Maps can be published.
      * Only FEDORA @ Tufts is available at present
@@ -531,8 +491,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
     }
     
-    public static void saveDataSourceViewer()
-    {
+    public static void saveDataSourceViewer() {
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         Vector sDataSources = new Vector();
         int size = dataSourceList.getModel().getSize();
@@ -553,8 +512,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     }
     
     
-    public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer)
-    {
+    public  static void marshallMap(File file,SaveDataSourceViewer dataSourceViewer) {
         Marshaller marshaller = null;
         Mapping mapping = new Mapping();
         

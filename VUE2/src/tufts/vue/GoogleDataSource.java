@@ -53,7 +53,7 @@ public class GoogleDataSource extends VueDataSource{
         this.url = url;
         this.setDisplayName(displayName);
         setAddress(createAddress());
-      
+        
     }
     
     
@@ -97,8 +97,12 @@ public class GoogleDataSource extends VueDataSource{
     
     
     private String createAddress() {
-        if(url.indexOf("http://") >=0 && url.length() > 7) 
-            url = url.substring(7); 
+        if((url != null) ) {
+            if((url.indexOf("http://") >=0 && url.length() > 7))
+                url = url.substring(7);
+        } else {
+            url ="";
+        }
         String address = "http://"+url+"/search?site="+site+"&client="+client+"&output=xml_no_dtd";
         return address;
     }

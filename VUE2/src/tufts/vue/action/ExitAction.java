@@ -10,7 +10,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -64,11 +64,10 @@ public class ExitAction extends AbstractAction {
         exitVue();
     }
     
-    public static void exitVue()
-    {
+    public static void exitVue() {
         if (!VUE.isOkayToExit())
             return;
-
+        
         try {
             VUE.getInstance().hide();
             System.out.println("Saving user preferences...");
@@ -83,47 +82,33 @@ public class ExitAction extends AbstractAction {
             System.exit(0);
         }
     }
-
-    private static void saveDataSourceInfo()
-    {
+    
+    private static void saveDataSourceInfo() {
+        tufts.vue.DataSourceViewer.saveDataSourceViewer();
         DataSource ds;
         ListModel model = tufts.vue.DataSourceViewer.dataSourceList.getModel();
         int i;
-         
         for (i =0 ; i< model.getSize(); i++){
-
-           
-        
-
-            if (!(model.getElementAt(i) instanceof String))
-            {
+            if (!(model.getElementAt(i) instanceof String)) {
                 ds = (DataSource)model.getElementAt(i) ;
-       
-            if (ds instanceof FavoritesDataSource){
-            
-                FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();              
-                if (fw.favoritesTree != null)  {
-                    //Saving favorites
-            
-                    tufts.vue.VueDandDTree ft = ((FavoritesWindow)ds.getResourceViewer()).getFavoritesTree();
-                    ft.setRootVisible(true);
-                  //  System.out.println("This is tree [" + (ft.getModel()).getRoot() + "]");
-                    tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
-                    File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ds.getDisplayName()+VueResources.getString("save.favorites"));
-                    ((FavoritesWindow)ds.getResourceViewer()).marshallFavorites(favf,sfavtree);
-                    //System.out.println("Favorites Saved ["+ds.getDisplayName() + "] to " + favf);
+                if (ds instanceof FavoritesDataSource){
+                    FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
+                    if (fw.favoritesTree != null)  {
+                        //Saving favorites
+                        tufts.vue.VueDandDTree ft = ((FavoritesWindow)ds.getResourceViewer()).getFavoritesTree();
+                        ft.setRootVisible(true);
+                        //  System.out.println("This is tree [" + (ft.getModel()).getRoot() + "]");
+                        tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
+                        File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ds.getDisplayName()+VueResources.getString("save.favorites"));
+                        ((FavoritesWindow)ds.getResourceViewer()).marshallFavorites(favf,sfavtree);
+                        //System.out.println("Favorites Saved ["+ds.getDisplayName() + "] to " + favf);
+                    }
                 }
             }
-
-            }
         }
         
-        tufts.vue.DataSourceViewer.saveDataSourceViewer();
-         
-        
- 
-        }
+    }
     
     
 }
-       
+
