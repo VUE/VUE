@@ -19,36 +19,51 @@ package tufts.vue;
 import javax.swing.*;
 import java.awt.*;
 
-public class VueButton extends JButton {
-    
-    /** Creates a new instance of VueButton */
-    public static String UP = "up";
-    public static String DOWN = "down";
-    public static String DISABLED = "disabled";
+public class VueButton extends JButton
+{
+    private static String UP = ".up";
+    private static String DOWN = ".down";
+    private static String DISABLED = ".disabled";
 
     public VueButton(String name, java.awt.event.ActionListener listener)
     {
-        super(VueResources.getImageIcon(name+"."+UP));
-        Icon i;
-        if ((i = VueResources.getImageIcon(name+"."+DOWN)) != null)     setPressedIcon(i);
-        if ((i = VueResources.getImageIcon(name+"."+DISABLED)) != null) setDisabledIcon(i);
-        setBorder(null);
-        setBorderPainted(false);
-        //setBackground(Color.white);
-        //setBackground(Color.red);
-        setOpaque(false);
-        Dimension imageSize = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
-        System.out.println("VueButton: icon size is " + VueUtil.out(imageSize) + " on " + name);
-        setPreferredSize(imageSize);
+        init(name);
         if (listener != null)
             addActionListener(listener);
-        setFocusable(false);
-        
-        //new Throwable().printStackTrace();
     }
     
     public VueButton(String name) {
-        this(name, null);
+        init(name);
+    }
+
+    public VueButton(Action a) {
+        setAction(a);
+        init((String) a.getValue(Action.ACTION_COMMAND_KEY));
+    }
+
+    private void init(String key)
+    {
+        Icon i;
+        
+        if ((i = VueResources.getImageIcon(key + UP)) != null)       setIcon(i);
+        if ((i = VueResources.getImageIcon(key + DOWN)) != null)     setPressedIcon(i);
+        if ((i = VueResources.getImageIcon(key + DISABLED)) != null) setDisabledIcon(i);
+
+        setBorder(null);
+        setBorderPainted(false);
+        setFocusable(false);
+        setOpaque(false);
+
+        if (getIcon() != null) {
+            Dimension imageSize = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
+            System.out.println("VueButton: icon size is " + VueUtil.out(imageSize) + " on " + key);
+            setPreferredSize(imageSize);
+        }
+
+        //setBackground(Color.white);
+        //setBackground(Color.red);
+        //new Throwable().printStackTrace();
+        
     }
    
 }

@@ -36,7 +36,6 @@ public class PathwayPanel extends JPanel implements ActionListener
     
     private AbstractButton btnPathwayDelete, btnPathwayCreate, btnPathwayLock;
     private AbstractButton btnElementRemove, btnElementAdd, btnElementUp, btnElementDown;
-    private AbstractButton firstButton, backButton, forwardButton, lastButton;
     
     private JLabel pathLabel;           // updated for current PathwayTable selection
     private JLabel pathElementLabel;    // updated for current PathwayTable selection
@@ -52,6 +51,11 @@ public class PathwayPanel extends JPanel implements ActionListener
     private final String[] colNames = {"A", "B", "C", "D", "E", "F"};
     private final int[] colWidths = {20,20,13,100,20,20};
  
+    private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
+    private static final Action path_backward = new PlayerAction("pathway.control.backward");
+    private static final Action path_forward = new PlayerAction("pathway.control.forward");
+    private static final Action path_last = new PlayerAction("pathway.control.last");
+
     public PathwayPanel(Frame parent) 
     {   
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
@@ -78,32 +82,17 @@ public class PathwayPanel extends JPanel implements ActionListener
             if (i != 3) col.setMaxWidth(colWidths[i]);
         }
         
-        Border controlBorder = BorderFactory.createMatteBorder(8, 0, 0, 5, Color.red);
-        //Border controlBorder = BorderFactory.createEmptyBorder(8, 0, 0, 5);
-        
         //-------------------------------------------------------
         // Setup selected pathway VCR style controls for current
         // element
         //-------------------------------------------------------
-        
-        JPanel VCRpanel = new JPanel(new GridLayout(1, 4, 1, 0));
-        
-        firstButton =   new VueButton("pathway.control.rewind", this);
-        backButton =    new VueButton("pathway.control.backward", this);
-        forwardButton = new VueButton("pathway.control.forward", this);
-        lastButton =    new VueButton("pathway.control.last", this);
-       
-        VCRpanel.add(firstButton);
-        VCRpanel.add(backButton);
-        VCRpanel.add(forwardButton);
-        VCRpanel.add(lastButton);
 
         JPanel playbackPanel = new VueUtil.JPanel_aa(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         JLabel playBackLabel = new JLabel("Highlight a path to playback:  ");
         playBackLabel.setFont(defaultFont);
         playbackPanel.setBorder(new EmptyBorder(7,0,0,0));
         playbackPanel.add(playBackLabel);
-        playbackPanel.add(VCRpanel);        
+        playbackPanel.add(new PlaybackToolPanel());
         
         //-------------------------------------------------------
         // Setup pathway master add/remove/lock control
@@ -350,7 +339,62 @@ public class PathwayPanel extends JPanel implements ActionListener
         return VUE.getActivePathway();
     }
 
-    
+    public static class PlaybackToolPanel extends JPanel
+    {
+        public PlaybackToolPanel() {
+            super(new GridLayout(1, 4, 1, 0));
+
+            add(new VueButton(path_rewind));
+            add(new VueButton(path_backward));
+            add(new VueButton(path_forward));
+            add(new VueButton(path_last));
+        }
+    }
+
+    private static class PlayerAction extends AbstractAction
+    {
+        PlayerAction(String name) {
+            putValue(Action.ACTION_COMMAND_KEY, name);
+        }
+        
+        public void actionPerformed(ActionEvent e)
+        {
+            LWPathway pathway = VUE.getActivePathway();
+            if (pathway == null)
+                return;
+            String cmd = e.getActionCommand();
+                 if (cmd.endsWith("rewind"))    pathway.setFirst();
+            else if (cmd.endsWith("last"))      pathway.setLast();
+            else if (cmd.endsWith("backward"))  pathway.setPrevious();
+            else if (cmd.endsWith("forward"))   pathway.setNext();
+            else
+                throw new IllegalArgumentException(this + " " + e);
+                 
+            VUE.getUndoManager().mark();
+        }
+
+        private static void setAllEnabled(boolean t) {
+            path_rewind.setEnabled(t);
+            path_backward.setEnabled(t);
+            path_forward.setEnabled(t);
+            path_last.setEnabled(t);
+        }
+
+        static void updateEnabledActions()
+        {
+            LWPathway pathway = VUE.getActivePathway();
+            if (pathway != null && pathway.length() > 1) {
+                boolean atFirst = pathway.atFirst();
+                boolean atLast = pathway.atLast();
+                path_rewind.setEnabled(!atFirst);
+                path_backward.setEnabled(!atFirst);
+                path_forward.setEnabled(!atLast);
+                path_last.setEnabled(!atLast);
+            } else
+                setAllEnabled(false);
+        }
+    }
+
     /**Reacts to actions dispatched by the buttons*/
     public void actionPerformed(ActionEvent e)
     {
@@ -382,19 +426,13 @@ public class PathwayPanel extends JPanel implements ActionListener
                 pathway.remove(VUE.ModelSelection.iterator());
             }
         }
-        else if (btn == btnElementAdd)     { pathway.add(VUE.ModelSelection.iterator()); }
+        else if (btn == btnElementAdd)  { pathway.add(VUE.ModelSelection.iterator()); }
+        else if (btn == btnElementUp)   { pathway.sendBackward(pathway.getCurrent()); }
+        else if (btn == btnElementDown) { pathway.bringForward(pathway.getCurrent()); }
 
-        else if (btn == firstButton)    { pathway.setFirst(); }
-        else if (btn == lastButton)     { pathway.setLast(); }
-        else if (btn == forwardButton)  { pathway.setNext(); }
-        else if (btn == backButton)     { pathway.setPrevious(); }
-        
         else if (btn == btnPathwayDelete)   { deletePathway(pathway); }
         else if (btn == btnPathwayCreate)   { new PathwayDialog(mParentFrame, mTableModel, getLocationOnScreen()).show(); }
         else if (btn == btnPathwayLock)     { pathway.setLocked(!pathway.isLocked()); }
-
-        else if (btn == btnElementUp)   { pathway.sendBackward(pathway.getCurrent()); }
-        else if (btn == btnElementDown) { pathway.bringForward(pathway.getCurrent()); }
 
         VUE.getUndoManager().mark();
     }
@@ -449,39 +487,18 @@ public class PathwayPanel extends JPanel implements ActionListener
         }
     }
 
-    /**A method which updates the widgets accordingly*/
     private void updateEnabledStates()
     {
         if (DEBUG.PATHWAY) System.out.println(this + " updateEnabledStates");
         
         updateAddRemoveActions();
 
-        if (getSelectedPathway() != null) {
-            if (getSelectedPathway().length() > 1) {
-                boolean atFirst = getSelectedPathway().atFirst();
-                boolean atLast = getSelectedPathway().atLast();
-                backButton.setEnabled(!atFirst);
-                firstButton.setEnabled(!atFirst);
-                forwardButton.setEnabled(!atLast);
-                lastButton.setEnabled(!atLast);
-            } else {
-                firstButton.setEnabled(false);
-                lastButton.setEnabled(false);
-                forwardButton.setEnabled(false);
-                backButton.setEnabled(false);
-            }
+        PlayerAction.updateEnabledActions();
+
+        if (getSelectedPathway() != null)
             btnPathwayLock.setEnabled(true);
-        }
         else
-        {
-            //if currently no pathway is selected, disables all buttons and resets the label
-            firstButton.setEnabled(false);
-            lastButton.setEnabled(false);
-            forwardButton.setEnabled(false);
-            backButton.setEnabled(false);
             btnPathwayLock.setEnabled(false);
-            //nodeLabel.setText(emptyLabel);
-        }
     }
     
     /** Delete's a pathway and all it's contents */

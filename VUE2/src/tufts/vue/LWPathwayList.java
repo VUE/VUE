@@ -18,7 +18,7 @@ import java.util.*;
 
 public class LWPathwayList implements LWComponent.Listener
 {
-    private List mElements = new java.util.ArrayList();
+    private List mPathways = new java.util.ArrayList();
     private LWMap mMap = null;
     private LWPathway mActive = null;
     private List mListeners = new java.util.ArrayList();
@@ -50,6 +50,8 @@ public class LWPathwayList implements LWComponent.Listener
             p.completeXMLRestore(getMap());
             p.addLWCListener(this);
         }
+        if (mActive == null && mPathways.size() > 0)
+            setActivePathway(getFirst());
     }
 
     /**
@@ -65,7 +67,7 @@ public class LWPathwayList implements LWComponent.Listener
     }
 
     public Collection getElementList() {
-        return mElements;
+        return mPathways;
     }
     
     public LWPathway getActivePathway() {
@@ -83,10 +85,10 @@ public class LWPathwayList implements LWComponent.Listener
         }
     }
 
-    private Object get(int i) { return mElements.get(i); }
-    public int size() { return mElements.size(); }
-    public Iterator iterator() { return mElements.iterator(); }
-    public int indexOf(Object o) { return mElements.indexOf(o); }
+    private Object get(int i) { return mPathways.get(i); }
+    public int size() { return mPathways.size(); }
+    public Iterator iterator() { return mPathways.iterator(); }
+    public int indexOf(Object o) { return mPathways.indexOf(o); }
    
     public LWPathway getFirst(){
         if (size() != 0)
@@ -104,7 +106,7 @@ public class LWPathwayList implements LWComponent.Listener
     
     public void add(LWPathway p) {
         p.setMap(getMap());
-        mElements.add(p);
+        mPathways.add(p);
         setActivePathway(p);
         // we don't need to worry about calling removeFromModel on remove, as a created pathway will always
         // be empty by the time we get to undo it's create (because we'll have undone any child add's first).
@@ -124,7 +126,7 @@ public class LWPathwayList implements LWComponent.Listener
     public void remove(LWPathway p)
     {
         p.removeFromModel();
-        if (!mElements.remove(p))
+        if (!mPathways.remove(p))
             throw new IllegalStateException(this + " didn't contain " + p + " for removal");
         if (mActive == p)
             setActivePathway(getFirst());
