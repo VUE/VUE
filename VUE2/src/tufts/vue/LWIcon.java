@@ -877,9 +877,9 @@ public abstract class LWIcon extends Rectangle2D.Float
             // todo perf: use StringBuffer
             String label = null;
             if (indent == 1)
-                label = "&nbsp;<b>" + c.getLabel() + "</b>";
+                label = "&nbsp;<b>" + c.getDisplayLabel() + "</b>";
             else
-                label = c.getLabel();
+                label = c.getDisplayLabel();
             
             String html = label + RightMargin + "<br>";
 

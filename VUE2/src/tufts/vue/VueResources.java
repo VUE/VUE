@@ -102,6 +102,18 @@ public class VueResources
         }
         return i;
     }
+    private static float parseFloat(String str) {
+        return parseFloat(str, 0f);
+    }
+    private static float parseFloat(String str, float exceptionValue) {
+        float f = exceptionValue;
+        try {
+            f = Float.parseFloat(str);
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+        return f;
+    }
         
         
     public static URL getURL(String pLookupKey) {
@@ -173,15 +185,26 @@ public class VueResources
      * @param String pLookupKey the key of the property
      * #return int [] the array of ints
      **/
-    public static int [] getIntArray( String pLookupKey) {
+    public static int[] getIntArray(String pLookupKey) {
+        int[] retValue = null;
+        String[] s = getStringArray(pLookupKey);
 		
-        int [] retValue = null;
-        String [] s = getStringArray( pLookupKey);
-		
-        if( s != null) {
+        if (s != null) {
             retValue = new int[s.length];
-            for( int i=0; i<s.length; i++)
-                retValue[i] = Integer.parseInt(s[i]);
+            for (int i = 0; i < s.length; i++)
+                retValue[i] = parseInt(s[i]);
+        }
+        return retValue;
+    }
+    
+    public static float[] getFloatArray(String pLookupKey) {
+        float[] retValue = null;
+        String[] s = getStringArray(pLookupKey);
+		
+        if (s != null) {
+            retValue = new float[s.length];
+            for (int i = 0; i < s.length; i++)
+                retValue[i] = parseFloat(s[i]);
         }
         return retValue;
     }

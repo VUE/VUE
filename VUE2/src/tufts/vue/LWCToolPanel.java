@@ -18,35 +18,23 @@ import tufts.vue.beans.*;
 public class LWCToolPanel extends JPanel implements ActionListener, PropertyChangeListener
 {
     /** fill button **/
-    ColorMenuButton mFillColorButton;
+    private ColorMenuButton mFillColorButton;
     /** stroke color editor button **/
-    ColorMenuButton mStrokeColorButton;
+    private ColorMenuButton mStrokeColorButton;
     /** Text color menu editor **/
-    ColorMenuButton mTextColorButton;
+    private ColorMenuButton mTextColorButton;
     /** stroke size selector menu **/
-    StrokeMenuButton mStrokeButton;
+    private StrokeMenuButton mStrokeButton;
     /** the Font selection combo box **/
-    FontEditorPanel mFontPanel;
+    private FontEditorPanel mFontPanel;
  	
-    VueBeanState mDefaultState = null;
-    VueBeanState mState = null;
+    protected VueBeanState mDefaultState = null;
+    protected VueBeanState mState = null;
 	
     protected static boolean debug = false;
      
     protected static final Insets NoInsets = new Insets(0,0,0,0);
     protected static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
-    //private static final Insets ButtonInsets = new Insets(-2,-2,-2,-1);
-    //private static final Insets ButtonInsets = NoInsets;
-
-    private static final float[] sStrokeValues = { 0,1,2,3,4,5,6};
-    private static final String[] sStrokeMenuLabels
-        = { "none",
-            "1 pixel",
-            "2 pixels",
-            "3 pixels",
-            "4 pixels",
-            "5 pixels",
-            "6 pixels"  };
 
     private Box box;
     
@@ -103,7 +91,9 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          // Stroke Width menu
          //-------------------------------------------------------
          
-         mStrokeButton = new StrokeMenuButton(sStrokeValues, sStrokeMenuLabels, true, false);
+         float[] strokeValues = VueResources.getFloatArray("strokeWeightValues");
+         String[] strokeMenuLabels = VueResources.getStringArray("strokeWeightNames");
+         mStrokeButton = new StrokeMenuButton(strokeValues, strokeMenuLabels, true, false);
          mStrokeButton.setIcon(new LineIcon(20,16));
          mStrokeButton.setStroke( (float) 1);
          mStrokeButton.setPropertyName( LWKey.StrokeWidth);
