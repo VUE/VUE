@@ -48,7 +48,7 @@ public class LWHierarchyTree extends InspectorWindow implements TreeModelListene
         tree.setEditable(true);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         
-        /*current commented out due to the interface complication
+        /*currently commented out due to the interface complication
         //mouse listener to let the user open up the resource associated with the selected tree node
         tree.addMouseListener
         (
@@ -95,8 +95,8 @@ public class LWHierarchyTree extends InspectorWindow implements TreeModelListene
                         LWComponent selectedComponent = selectedNode.getLWComponent();
                         
                         //if the selected node is not an instance of LWMap
-                        if(!(selectedComponent instanceof LWMap))
-                          VUE.ModelSelection.setTo(selectedComponent);
+                        //if(!(selectedComponent instanceof LWMap))
+                          //VUE.ModelSelection.setTo(selectedComponent);
                     }
                 }
             }
@@ -106,17 +106,6 @@ public class LWHierarchyTree extends InspectorWindow implements TreeModelListene
         
         getContentPane().add(scrollPane);
         getContentPane().setBackground(Color.white);
-
-        /*
-        super.addWindowListener(new WindowAdapter()
-            {
-                public void windowClosing(WindowEvent e) 
-                {
-                    displayAction.setButton(false);
-                }
-            }
-        );
-        */
     }
     
      /**A method that deals with dynamic changes to the tree element*/
@@ -170,40 +159,5 @@ public class LWHierarchyTree extends InspectorWindow implements TreeModelListene
         
         else
           tree.setModel(null);
-    }
-    
-    /**A method used by VUE to display the tree*/
-    /*
-    public Action getDisplayAction()
-    {
-        if (displayAction == null)
-            displayAction = new DisplayAction("Hierarchy Tree");
-        
-        return (Action)displayAction;
-    }
-    */
-    /**A class which controls the visibility of the tree */
-    /*
-    private class DisplayAction extends AbstractAction
-    {
-        private AbstractButton aButton;
-        
-        public DisplayAction(String label)
-        {
-            super(label);
-        }
-        
-        public void actionPerformed(ActionEvent e)
-        {
-            aButton = (AbstractButton) e.getSource();
-            setVisible(aButton.isSelected());
-        }
-        
-        public void setButton(boolean state)
-        {
-            aButton.setSelected(state);
-        }
-    }
-    */
-    
+    } 
 }

@@ -148,10 +148,16 @@ class Actions {
                 LWNode rootNode = (LWNode)(VUE.ModelSelection.get(0));
                 String name = new String(rootNode.getLabel() + "'s Hierarchy View");
                 String description = new String("Hierarchy view model of " + rootNode.getLabel());
+             
+                LWHierarchyMap hierarchyMap = new LWHierarchyMap(name);
                 
                 tufts.oki.hierarchy.HierarchyViewHierarchyModel model = 
-                      new tufts.oki.hierarchy.HierarchyViewHierarchyModel(rootNode, name, description);
+                      new tufts.oki.hierarchy.HierarchyViewHierarchyModel(rootNode, hierarchyMap, name, description);
                 
+                hierarchyMap.setHierarchyModel(model);
+                hierarchyMap.addAllComponents();
+                
+                /*
                 String mapLabel;
         
                 try
@@ -163,10 +169,11 @@ class Actions {
                 {
                     mapLabel = "Hierarchy Map"; 
                 }
+                */
                 
                 // Doesn't compile -- SMF 2004-01-04 12:32.18 Sunday 
                 //LWHierarchyMap hierarchyMap = new LWHierarchyMap(model, mapLabel);
-                //VUE.displayMap((LWMap)hierarchyMap);
+                VUE.displayMap((LWMap)hierarchyMap);
             }
             
             public boolean enabled()

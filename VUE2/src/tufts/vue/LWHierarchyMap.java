@@ -27,6 +27,16 @@ public class LWHierarchyMap extends LWMap
         addAllComponents();
     }
     
+    public LWHierarchyMap(String label)
+    {
+        super(label);
+    }
+    
+    public void setHierarchyModel(tufts.oki.hierarchy.HierarchyViewHierarchyModel hierarchyModel)
+    {
+        this.hierarchyModel = hierarchyModel;
+    }
+         
     public tufts.oki.hierarchy.HierarchyViewHierarchyModel getHierarchyModel()
     {
         return hierarchyModel;
