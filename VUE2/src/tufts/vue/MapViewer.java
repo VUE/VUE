@@ -1064,7 +1064,7 @@ public class MapViewer extends javax.swing.JPanel
                 cPopup.remove(assetMenu);
                 assetMenu = getAssetMenu(a);
                 cPopup.add(assetMenu);
-            }else if(a == null) {
+            }else if(a == null && assetMenu != null) {
                 cPopup.remove(assetMenu);
             }
         }
