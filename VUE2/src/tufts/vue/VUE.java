@@ -169,7 +169,7 @@ public class VUE
         tabbedPane2.setTabPlacement(SwingConstants.BOTTOM);
         tabbedPane2.setPreferredSize(new Dimension(300,400));
 
-        if (args.length < 1) {
+        if (true||args.length < 1) { // pathway code currently blowing us out unless we have these maps loaded
             //-------------------------------------------------------
             // Temporary: create example map(s)
             //-------------------------------------------------------
@@ -177,7 +177,7 @@ public class VUE
             LWMap map2 = new LWMap("Example Map");
 
             //installExampleMap(map1);
-            installExampleNodes(map1);//todo:selectall, makecolumn
+            installExampleNodes(map1);
             installExampleMap(map2);
 
             map1.setFillColor(new Color(255, 255, 192));
@@ -185,7 +185,7 @@ public class VUE
             displayMap(map1);
             displayMap(map2);
         }
-
+        
         
         //-------------------------------------------------------
         // create a an application frame and layout components
@@ -196,10 +196,7 @@ public class VUE
         toolPanel.add(new DRBrowser(), BorderLayout.CENTER);
         toolPanel.add(new LWCInspector(), BorderLayout.SOUTH);
 
-
         JSplitPane splitPane = new JSplitPane();
-        //JScrollPane leftScroller = new JScrollPane(toolPanel);
-
         splitPane.setResizeWeight(0.25); // 25% space to the left component
         splitPane.setContinuousLayout(false);
         splitPane.setOneTouchExpandable(true);
@@ -210,6 +207,7 @@ public class VUE
         viewerSplit.setOneTouchExpandable(true);
         viewerSplit.setLeftComponent(tabbedPane);
         viewerSplit.setRightComponent(tabbedPane2);
+        viewerSplit.setResizeWeight(0.5);
         viewerSplit.setDividerLocation(9999);
 
         //splitPane.setRightComponent(tabbedPane);
@@ -230,6 +228,10 @@ public class VUE
         
         pathwayInspector = new LWPathwayInspector(frame);
 
+        // Needed change this because what if we don't have an
+        // active map?  (getActiveMap() can return null here!)
+        // So can't depend having a map yet at this point.
+        // -- SF 2003-07-01 11:43.21 Tuesday
         //added by Daisuke Fujiwara
         LWPathwayManager manager = getActiveMap().getPathwayManager();
         control = new PathwayControl(frame, manager);
@@ -258,7 +260,7 @@ public class VUE
                                    pathwayInspector.getDisplayAction(),
                                    control.getDisplayAction()
                                  };
-
+        
         // adding the menus and toolbars
         setMenuToolbars(frame, windowActions);
         
@@ -284,6 +286,17 @@ public class VUE
             } finally {
                 VUE.clearWaitCursor();
             }
+        }
+
+        //setViewerScrollbarsDisplayed(true);
+    }
+
+    public static void setViewerScrollbarsDisplayed(boolean add)
+    {
+        if (add) {
+            JScrollPane scroller = new JScrollPane(tabbedPane.getComponentAt(0));
+            tabbedPane.addTab("scrolling test", scroller);
+            //tabbedPane.setComponentAt(0, scroller);
         }
     }
 
@@ -335,7 +348,10 @@ public class VUE
     
     public static LWMap getActiveMap()
     {
-        return getActiveViewer().getMap();
+        if (getActiveViewer() != null)
+            return getActiveViewer().getMap();
+        else
+            return null;
     }
 
     /*
@@ -357,6 +373,7 @@ public class VUE
         //System.out.println("VUE.displayMap " + map);
         MapViewer mapViewer = null;
         // todo: figure out if we're already displaying this map
+        /*
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             MapViewer mv = (MapViewer) tabbedPane.getComponentAt(i);
             if (mv.getMap() == map) {
@@ -365,6 +382,7 @@ public class VUE
                 break;
             }
         }
+        */
         if (mapViewer == null) {
             mapViewer = new tufts.vue.MapViewer(map);
             if (VUE.ActiveViewer == null)
