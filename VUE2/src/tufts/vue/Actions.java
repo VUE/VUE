@@ -167,20 +167,25 @@ class Actions {
     static final Action Cut =
         new MapAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
             public boolean isEnabled() { return false; }
-            void Xact(LWComponent c) {
+            void act(LWComponent c) {
+                //VUE.ScratchBuffer.add(c);
             }
         };
 
     static final Action Copy =
         new MapAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
             public boolean isEnabled() { return false; }
-            void Xact(LWComponent c) {
+            void act(LWComponent c) {
+                //VUE.ScratchBuffer.add(c.duplicate());
             }
         };
     static final Action Paste =
         new MapAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
-            public boolean isEnabled() { return false; }
-            void Xact(LWComponent c) {
+            public boolean isEnabled() { return true; }//listen for scratch buffer fill
+            void act() {
+                LWContainer parent = VUE.getActiveViewer().getMap();
+                // iter thru scratch buffer and do reparenting
+                //parent.
             }
         };
 
@@ -203,6 +208,10 @@ class Actions {
                 // doesn't currently make sense to duplicate links seperately
                 // -- will need to handle via LWContainer duplicate
                 if (false&&c instanceof LWLink) {
+                    // BELOW NOT AS RELEVANT as links can stand on their
+                    // own -- however, we still have problem of reconnecting
+                    // them...
+                    
                     //todo: implement cut/copy/paste before making this
                     // more sophisitcated -- will have to work out
                     // separte code to compute what links to add to
@@ -645,7 +654,7 @@ class Actions {
                 // todo hack: we need to paint right away so the node can compute it's size,
                 // so that the label edit will show up in the right place..
                 MapViewer viewer = VUE.getActiveViewer();
-                viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
+                //viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
                 viewer.activateLabelEdit(node);
                 
                 return node;
@@ -660,9 +669,9 @@ class Actions {
                 LWNode node = NodeTool.createTextNode("new text");
                 node.setLocation(newLocation);
                 VUE.getActiveMap().addNode(node);
-                VUE.ModelSelection.setTo(node); // also important so will be repainted (huh?)
+                VUE.ModelSelection.setTo(node); // also important so will be repainted (repaint optimziation only)
                 MapViewer viewer = VUE.getActiveViewer();
-                viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
+                //viewer.paintImmediately(viewer.getBounds());//todo opt: could do this off screen?
                 viewer.activateLabelEdit(node);
                 return node;
             }

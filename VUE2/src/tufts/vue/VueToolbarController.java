@@ -139,13 +139,16 @@ public class VueToolbarController
 
                         int cursorID = VueResources.getInt(pName+".cursorID", -1);
                         if (cursorID >= 0) {
+                            //System.out.println(tool + " found cursor ID: " + cursorID);
                             tool.setCursorByID(cursorID);
                         } else {
                             ImageIcon icon = VueResources.getImageIcon( pName+".cursor");
                             if (icon != null) {
+                                System.out.println(tool + " found cursor icon: " + icon);
+                                System.out.println(tool + " cursor icon image: " + icon.getImage());
                                 Toolkit toolkit = Toolkit.getDefaultToolkit();
                                 //System.out.println("Creating cursor for " + icon);
-                                tool.setCursor(toolkit.createCustomCursor(icon.getImage(), new Point(0,0), pName));
+                                tool.setCursor(toolkit.createCustomCursor(icon.getImage(), new Point(0,0), pName+":"+icon.toString()));
                             }
                         }
 			

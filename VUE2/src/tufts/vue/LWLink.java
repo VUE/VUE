@@ -82,9 +82,8 @@ public class LWLink extends LWComponent
         setTextColor(COLOR_LINK_LABEL);
         setEndPoint1(ep1);
         setEndPoint2(ep2);
-        setStrokeWidth(2f); //todo config: default link width
-        //computeLinkEndpoints();
-        //setTextColor(Color.red); // todo: TEMPORARY ANGLE DEBUG
+        setStrokeWidth(2f); //todo config: default link width / query LinkTool
+        computeLinkEndpoints();
     }
 
     /*
@@ -156,22 +155,34 @@ public class LWLink extends LWComponent
         }
     }
 
-    private Point2D.Float[] controlPoints = new Point2D.Float[2];
+    //private Point2D.Float[] controlPoints = new Point2D.Float[2];
+    //public Point2D.Float[] getControlPoints()
+    private LWSelection.ControlPoint[] controlPoints = new LWSelection.ControlPoint[2];
     /** interface ControlListener */
-    public Point2D.Float[] getControlPoints()
+    private final Color freeEndpointColor = new Color(128,0,0);
+    public LWSelection.ControlPoint[] getControlPoints()
     {
         if (endpointMoved)
             computeLinkEndpoints();
         // todo opt: don't create these new Point2D's all the time --
         // we iterate through this ALOT
-        controlPoints[0] = new Point2D.Float(startX, startY);
-        controlPoints[1] = new Point2D.Float(endX, endY);
+        // todo: need to indicate a color for these so we
+        // can show a connection as green and a hanging endpoint as red
+        //controlPoints[0] = new Point2D.Float(startX, startY);
+        //controlPoints[1] = new Point2D.Float(endX, endY);
+        controlPoints[0] = new LWSelection.ControlPoint(startX, startY);
+        controlPoints[1] = new LWSelection.ControlPoint(endX, endY);
+        //if (this.ep1 == null) controlPoints[0].setColor(Color.red);
+        //if (this.ep2 == null) controlPoints[1].setColor(Color.red);
         if (isCurved) {
             if (isCubicCurve) {
-                controlPoints[2] = (Point2D.Float) cubicCurve.getCtrlP1();
-                controlPoints[3] = (Point2D.Float) cubicCurve.getCtrlP2();
+                //controlPoints[2] = (Point2D.Float) cubicCurve.getCtrlP1();
+                //controlPoints[3] = (Point2D.Float) cubicCurve.getCtrlP2();
+                controlPoints[2] = new LWSelection.ControlPoint(cubicCurve.getCtrlP1());
+                controlPoints[3] = new LWSelection.ControlPoint(cubicCurve.getCtrlP2());
             } else {
-                controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
+                //controlPoints[2] = (Point2D.Float) quadCurve.getCtrlPt();
+                controlPoints[2] = new LWSelection.ControlPoint(quadCurve.getCtrlPt());
             }
         }
 
@@ -200,15 +211,15 @@ public class LWLink extends LWComponent
         if (isCurved) {
             if (isCubicCurve) {
                 this.curve = this.cubicCurve = new CubicCurve2D.Float();
-                this.controlPoints = new Point2D.Float[4];
+                this.controlPoints = new LWSelection.ControlPoint[4];//new Point2D.Float[4];
                 this.cubicCurve.ctrlx1 = Float.MIN_VALUE;
             } else {
                 this.curve = this.quadCurve = new QuadCurve2D.Float();
-                this.controlPoints = new Point2D.Float[3];
+                this.controlPoints = new LWSelection.ControlPoint[3];//new Point2D.Float[3];
                 this.quadCurve.ctrlx = Float.MIN_VALUE;
             }
         } else {
-            this.controlPoints = new Point2D.Float[2];
+            this.controlPoints = new LWSelection.ControlPoint[2];//new Point2D.Float[2];
             this.quadCurve = null;
             this.cubicCurve = null;
             this.curve = null;
@@ -435,6 +446,23 @@ public class LWLink extends LWComponent
     public MapItem getItem1() { return ep1; }
     public MapItem getItem2() { return ep2; }
 
+    void disconnectFrom(LWComponent c)
+    {
+        boolean changed = false;
+        if (this.ep1 == c) {
+            this.ep1 = null;
+            changed = true;
+        }
+        if (this.ep2 == c) {
+            this.ep2 = null;
+            changed = true;
+        }
+        if (changed) {
+            endpointMoved = true;
+            notify("link.endpointChanged");
+        }
+    }
+            
     void setEndPoint1(LWComponent c)
     {
         if (c == null) throw new IllegalArgumentException(this + " attempt to set endPoint1 to null");
@@ -759,7 +787,7 @@ public class LWLink extends LWComponent
      * unpredicatable happens, we just leave the connection
      * point as the center of the object.
      */
-    private void computeLinkEndpoints()
+    void computeLinkEndpoints()
     {
         //if (ep1 == null || ep2 == null) throw new IllegalStateException("LWLink: attempting to compute shape w/out endpoints");
         // we clear this at the top in case another thread

@@ -1282,19 +1282,21 @@ public class MapViewer extends javax.swing.JPanel
 
             if (c instanceof LWSelection.ControlListener) {
                 LWSelection.ControlListener cl = (LWSelection.ControlListener) c;
-                Point2D.Float[] ctrlPoints = cl.getControlPoints();
+                //Point2D.Float[] ctrlPoints = cl.getControlPoints();
+                LWSelection.ControlPoint[] ctrlPoints = cl.getControlPoints();
                 for (int i = 0; i < ctrlPoints.length; i++) {
-                    Point2D.Float cp = ctrlPoints[i];
+                    //Point2D.Float cp = ctrlPoints[i];
+                    LWSelection.ControlPoint cp = ctrlPoints[i];
+                    // todo: if a connected link pt, make green
+                    // if not connected
                     if (cp != null)
                         drawSelectionHandleCentered(g2,
                                                     mapToScreenX(cp.x),
                                                     mapToScreenY(cp.y),
-                                                    COLOR_SELECTION_CONTROL);
+                                                    cp.getColor());
                 }
             }
         }
-
-        
     }
 
     // exterior drawn box will be 1 pixel bigger
@@ -1571,6 +1573,8 @@ public class MapViewer extends javax.swing.JPanel
                     double oldY = screenToMapY(dragStart.y) + dragOffset.y;
                     dragComponent.setLocation(oldX, oldY);
                     dragComponent = null;
+                    linkSource = null;
+                    creationLink.setDisplayed(false);
                     mouseWasDragged = false;
                     clearIndicated(); // incase dragging new link
                     repaint();
@@ -1780,7 +1784,7 @@ public class MapViewer extends javax.swing.JPanel
             //if ((mods & RIGHT_BUTTON_MASK) != 0 && !e.isControlDown() && !activeTool.usesRightClick())
             //    && !e.isControlDown()
             //    && !activeTool.usesRightClick())
-            if (isRightClickEvent(e) && !activeTool.usesRightClick())
+            if ((e.isPopupTrigger() || isRightClickEvent(e)) && !activeTool.usesRightClick())
             {
                 //-------------------------------------------------------
                 // MOUSE: We've pressed the right button down, so pop
@@ -2339,22 +2343,43 @@ public class MapViewer extends javax.swing.JPanel
 
             }else
             if (linkSource != null) {
+                //-------------------------------------------------------
+                // CREATE A NEW LINK -- move to link tool
+                //-------------------------------------------------------
                 repaintMapRegionAdjusted(creationLink.getBounds());
                 creationLink.setDisplayed(false);
                 LWComponent linkDest = indication;
-                if (linkDest != null && linkDest != linkSource)
+
+                //LinkTool.createLink(linkSource, linkDest);
+                //if (linkDest != null && linkDest != linkSource)
+                if (linkDest != linkSource)
                 {
-                    LWLink l = linkDest.getLinkTo(linkSource);
-                    if (l != null) {
+                    LWLink existingLink = null;
+                    if (linkDest != null)
+                        existingLink = linkDest.getLinkTo(linkSource);
+                    if (existingLink != null) {
                         // There's already a link tween these two -- increment the weight
-                        l.incrementWeight();
+                        existingLink.incrementWeight();
                     } else {
-                        LWContainer addParent = getMap();
-                        if (linkSource.getParent() == linkDest.getParent() &&
-                            linkSource.getParent() != addParent)
-                            addParent = linkSource.getParent(); // common parent
-                        // todo: if parents different, add to the upper most parent
-                        addParent.addChild(new LWLink(linkSource, linkDest));
+                        LWContainer commonParent = getMap();
+                        if (linkDest == null)
+                            commonParent = linkSource.getParent();
+                        else if (linkSource.getParent() == linkDest.getParent() &&
+                                 linkSource.getParent() != commonParent) {
+                            // todo: if parents different, add to the upper most parent
+                            commonParent = linkSource.getParent();
+                        }
+                        boolean createdNode = false;
+                        if (linkDest == null) {
+                            // some compiler bug is requiring that we fully qualify NodeTool here!
+                            linkDest = tufts.vue.NodeTool.createNode("new node");
+                            linkDest.setCenterAt(screenToMapPoint(e.getPoint()));
+                            commonParent.addChild(linkDest);
+                            createdNode = true;
+                        }
+                        LWLink link = new LWLink(linkSource, linkDest);
+                        commonParent.addChild(link);
+                        activateLabelEdit(createdNode ? linkDest : link);
                     }
                 }
                 linkSource = null;

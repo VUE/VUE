@@ -84,6 +84,7 @@ public class NodeTool extends VueTool
         node.setFrame(mapRect);
         VUE.getActiveMap().addNode(node);
         VUE.ModelSelection.setTo(node);
+        VUE.getActiveViewer().activateLabelEdit(node);
     }
 
 

@@ -90,6 +90,7 @@ class MapDropTarget
         DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
 
         String resourceName = null;
+        String droppedText = null;
         java.awt.Image droppedImage = null;
         java.util.List fileList = null;
         java.util.List assetList = null;
@@ -129,8 +130,12 @@ class MapDropTarget
                     // 20-30 mime-types of "text/uri-list", but the
                     // reader only ever spits out the first character.
 
-                    resourceName = readTextFlavor(flavor, transfer);
-                    if (resourceName != null)
+                    // todo: handle RTF via text.trf.RTFReader(StyledDocument output)
+                    //  -- will need to figure out how to persist a styled document tho...
+                    // see text.rtf.RTFGenerator -- all of those accessed
+                    // thru the RTFEditorKit...
+                    droppedText = readTextFlavor(flavor, transfer);
+                    if (droppedText != null)
                         break;
                     
                 } else {
@@ -174,6 +179,9 @@ class MapDropTarget
         } else if (resourceName != null) {
             createNewNode(resourceName, null, dropLocation);
             success = true;
+        } else if (droppedText != null) {
+            createNewTextNode(droppedText, dropLocation);
+            success = true;
         }
 
         e.dropComplete(success);
@@ -208,17 +216,24 @@ class MapDropTarget
             resourceTitle = createResourceTitle(resourceName);
 
         LWNode node = NodeTool.createNode(resourceTitle);
-        node.setLocation(dropToMapLocation(p));
+        node.setCenterAt(dropToMapLocation(p));
         node.setResource(new Resource(resourceName));
         viewer.getMap().addNode(node);
         //set selection to node?
+    }
+
+    private void createNewTextNode(String text, java.awt.Point p)
+    {
+        LWNode node = NodeTool.createTextNode(text);
+        node.setCenterAt(dropToMapLocation(p));
+        viewer.getMap().addNode(node);
     }
 
     private void createNewNode(java.awt.Image image, java.awt.Point p)
     {
         // todo: query the NodeTool for current node shape, etc.
         LWNode node = NodeTool.createNode();
-        node.setLocation(dropToMapLocation(p));
+        node.setCenterAt(dropToMapLocation(p));
         node.setImage(image);
         node.setNotes(image.toString());
         viewer.getMap().addNode(node);
@@ -248,7 +263,7 @@ class MapDropTarget
       
        
         LWNode node = NodeTool.createNode(resourceTitle);
-        node.setLocation(dropToMapLocation(p));
+        node.setCenterAt(dropToMapLocation(p));
         node.setResource(resource);
         viewer.getMap().addNode(node);
     }

@@ -594,6 +594,12 @@ public class LWComponent
         setLocation((float) p.getX(), (float) p.getY());
     }
     
+    public void setCenterAt(Point2D p)
+    {
+        setLocation((float) p.getX() - getWidth()/2,
+                    (float) p.getY() - getHeight()/2);
+    }
+    
     public Point2D getLocation()
     {
         return new Point2D.Float(this.x, this.y);
@@ -872,10 +878,14 @@ public class LWComponent
     protected void removeFromModel()
     {
         removeAllLWCListeners();
-        removeConnectedLinks();
+        disconnectFromLinks();
+        //removeConnectedLinks(); links can stand on their own now
+        // help gc
+        this.links.clear();
+        this.links = null;
     }
 
-    private void removeConnectedLinks()
+    private void X_removeConnectedLinks()
     {
         // todo: more sophisticated?
         // for now, delete all links to a node we're deleting
@@ -885,10 +895,16 @@ public class LWComponent
             if (l.getParent() != null) // it's already been deleted
                 l.getParent().deleteChild(l);
         }
-        // help gc
-        this.links.clear();
-        this.links = null;
     }
+    
+    private void disconnectFromLinks()
+    {
+        Object[] links = this.links.toArray(); // may be modified concurrently
+        for (int i = 0; i < links.length; i++) {
+            LWLink l = (LWLink) links[i];
+            l.disconnectFrom(this);
+        }
+     }
     
     public void setSelected(boolean selected)
     {

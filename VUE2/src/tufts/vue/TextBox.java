@@ -131,7 +131,19 @@ class TextBox extends JTextPane
     private Font savedFont = null;
     private String savedText;
     private boolean keyWasPressed = false;
-    private static final int MinEditSize = 12;
+    private static final int MinEditSize = 11; // todo: prefs
+    // todo bug: on PC, font edits at size < 11 are failing produce the
+    // right selection or cursor coordinates, and what you see
+    // is NOT what you get anymore.  ACTUALLY, this may be due
+    // to special charactes in the string -- it was a piece of
+    // pasted HTML text with "1/2" chars and \226 dashes..
+    // Okay, no -- even vanilla text at 10 point does it
+    // (SansSerif-plain-10) -- okay, this is crap -- a "regular"
+    // node v.s. a text node is working fine down at nine-point,
+    // tho it does have only 3 lines -- ugh, this is going
+    // to require alot of fiddling and testing.
+
+
     void saveCurrentText()
     {
         savedText = getText();
@@ -139,7 +151,7 @@ class TextBox extends JTextPane
     public void addNotify()
     {
         if (getText().length() < 1)
-            setText("label");
+            setText("<label>");
         keyWasPressed = false;
         super.addNotify();
         // note: we get a a flash/move if we add the border before the super.addNotify()
@@ -263,8 +275,7 @@ class TextBox extends JTextPane
 
     public void keyPressed(KeyEvent e)
     {
-        //System.out.println(e);
-        keyWasPressed = true;
+        System.out.println("TextBox: " + e);
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
             setText(savedText);
@@ -274,9 +285,11 @@ class TextBox extends JTextPane
                     || (e.getModifiersEx() != 0 && (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK))) {
             // if we hit enter key either on numpad, or with any modifier down except a shift alone (in case of caps lock)
             // complete the edit.
+            keyWasPressed = true;
             e.consume();
             getParent().remove(this); // will trigger a save
-        }
+        } else
+            keyWasPressed = true;
     }
 
     public void keyReleased(KeyEvent e) {}
@@ -301,7 +314,7 @@ class TextBox extends JTextPane
             // only do this if they typed something (so we don't wind up with "label"
             // for the label on an accidental edit activation)
             lwc.setLabel0(getText(), false);
-            System.out.println("Label set to: [" + getText() + "]");
+            System.out.println("TextBox: key was pressed; label set to: [" + getText() + "]");
         }
     }
     public void focusGained(FocusEvent e)

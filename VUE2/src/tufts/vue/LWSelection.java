@@ -15,11 +15,38 @@ public class LWSelection extends java.util.ArrayList
     public interface Listener extends java.util.EventListener {
         void selectionChanged(LWSelection selection);
     }
+    public static class ControlPoint extends Point2D.Float
+    {
+        java.awt.Color color;
+        public ControlPoint(float x, float y)
+        {
+            this(x, y, VueConstants.COLOR_SELECTION_CONTROL);
+        }
+        public ControlPoint(java.awt.geom.Point2D p)
+        {
+            this((float)p.getX(), (float)p.getY());
+        }
+        public ControlPoint(float x, float y, java.awt.Color c)
+        {
+            super(x,y);
+            setColor(c);
+        }
+        public void setColor(java.awt.Color c)
+        {
+            this.color = c;
+        }
+        public java.awt.Color getColor()
+        {
+            return this.color;
+        }
+    }
     public interface ControlListener extends java.util.EventListener {
         void controlPointMoved(int index, Point2D newMapLocation);
         void controlPointDropped(int index, Point2D newMapLocation);
-        Point2D.Float[] getControlPoints();
+        //Point2D.Float[] getControlPoints();
+        ControlPoint[] getControlPoints();
     }
+    
 
     //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
     private void addControlListener(ControlListener listener)
