@@ -48,7 +48,7 @@ public class FilterEditor extends JPanel  {
     public static final Key keyNotes = new Key("Notes", TypeFactory.getStringType());
     public static final JLabel triangleLabel = new JLabel(VueResources.getImageIcon("triangleDownIcon"));
     JLabel questionLabel = new JLabel(tufts.vue.VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
-    public static final String FILTER_INFO = tufts.vue.VueResources.getString("info.filter.node");
+    public static final String FILTER_INFO = tufts.vue.VueResources.getString("info.filter.create");
     JButton addButton=new tufts.vue.gui.VueButton("add");
     JButton deleteButton=new tufts.vue.gui.VueButton("delete");
     
@@ -114,10 +114,10 @@ public class FilterEditor extends JPanel  {
         
         // GRID: addConditionButton
         addButton.addActionListener(new AddButtonListener(filterTableModel));
-        addButton.setToolTipText("Add Filter");
+        addButton.setToolTipText("Add Criteria");
         // GRID: deleteConditionButton
         deleteButton.setEnabled(false);
-        deleteButton.setToolTipText("Delete Filter");
+        deleteButton.setToolTipText("Delete Criteria");
         // adding the delete functionality */
         FilterSelectionListener sListener= new  FilterSelectionListener(deleteButton, -1);
         filterTable.getSelectionModel().addListSelectionListener(sListener);
@@ -199,11 +199,11 @@ public class FilterEditor extends JPanel  {
         
         public String getColumnName(int col) {
             if (col==0) {
-                return "Field";
+                return "Element Name";
             } else if(col == 1) {
-                return "Criteria";
+                return "Operator";
             } else
-                return "Search";
+                return "Value";
             
             
         }

@@ -61,8 +61,8 @@ public class MapFilterModelEditor extends JPanel {
         
     }
     private void setMapFilterModelPanel() {
-        addButton.setToolTipText("Add Map Filter");
-        deleteButton.setToolTipText("Delete Map Filter");
+        addButton.setToolTipText("Add Element");
+        deleteButton.setToolTipText("Delete Element");
         mapFilterTable = new JTable(mapFilterModel);
         mapFilterTable.addFocusListener(new FocusListener() {
              public void focusLost(FocusEvent e) {

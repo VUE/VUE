@@ -538,13 +538,13 @@ implements  VUE.ActiveMapListener {
             modeSelectionGroup.add(mHideButton);
             modeSelectionGroup.add(mSelectButton);
             
-            mUpperPanel.add( BorderLayout.NORTH, new JLabel("Display Criteria:"));
+            //mUpperPanel.add( BorderLayout.NORTH, new JLabel("Display Criteria:"));
             Box topBox = Box.createHorizontalBox();
             //topBox.add( mActionCombo);
             topBox.add(mShowButton);
             topBox.add(mHideButton);
             topBox.add(mSelectButton);
-            JLabel clause = new JLabel(" / objects on map ");
+            JLabel clause = new JLabel(" / Map Objects ");
             topBox.add( clause);
             //topBox.add( mAnyAllCombo);
             

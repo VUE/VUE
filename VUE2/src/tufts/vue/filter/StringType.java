@@ -36,7 +36,7 @@ public class StringType extends DefaultType {
     /** Creates a new instance of StringType */
     public StringType() {
         super(Type.STRING_TYPE);
-        Operator eqOperator = new DefaultOperator(OP_EQUAL ,"is",true) ;
+        Operator eqOperator = new DefaultOperator(OP_EQUAL ,"equals",true) ;
         Operator containOperator = new DefaultOperator(OP_CONTAIN,"contains",false);
         Operator stOperator = new DefaultOperator(OP_START,"starts with",false);
         Operator endOperator = new DefaultOperator(OP_END,"ends with",false);
