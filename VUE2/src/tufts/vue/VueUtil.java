@@ -113,9 +113,7 @@ public class VueUtil
     }
        
 
-    public static void openURL(String url)
-        throws java.io.IOException
-    {
+    public static void openURL(String url) throws java.io.IOException {
         // todo: spawn this in another thread just in case it hangs
         
         // there appears to be no point in quoting the URL...
@@ -124,10 +122,24 @@ public class VueUtil
             quotedURL = url;
         else
             quotedURL = "\'" + url + "\'";
-
+        
         //if (isMacPlatform()) quotedURL = "\'" + url + "\'";
-
+        
         System.err.println("Opening URL [" + quotedURL + "]");
+        
+        if(quotedURL.endsWith(VueResources.getString("vue.extension"))) {
+            try {
+                tufts.vue.action.OpenAction.displayMap(new File(quotedURL));
+            } catch(Exception ex) {
+                ex.printStackTrace();
+                openURL_Check_Platform(quotedURL);
+            }
+        } else {
+            openURL_Check_Platform(quotedURL);
+        }
+    }
+    
+    private static void openURL_Check_Platform(String quotedURL) throws java.io.IOException{
         if (isMacPlatform())
             openURL_Mac(quotedURL);
         else if (isUnixPlatform())
