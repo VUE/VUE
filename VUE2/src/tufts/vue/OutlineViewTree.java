@@ -25,8 +25,9 @@ import java.util.ArrayList;
  */
 
 /**A class that represents a tree structure which holds the outline view model*/
-public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener
+public class OutlineViewTree extends JTree implements LWComponent.Listener, TreeModelListener, LWSelection.Listener,java.awt.event.FocusListener
 { 
+    private boolean focused = false;
     private LWContainer currentContainer = null;
     private tufts.oki.hierarchy.HierarchyNode selectedNode = null;
     private tufts.oki.hierarchy.OutlineViewHierarchyModel hierarchyModel = null;
@@ -42,8 +43,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          setEditable(true);
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
-        
-         VUE.getSelection().addListener(this);
+         this.addFocusListener(this);
+         
+         
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -73,7 +75,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                           selectedIcon = linkIcon;  
                             
                         //if the selected node is not an instance of LWMap
-                        if(!(selectedComponent instanceof LWMap))
+                        if(!(selectedComponent instanceof LWMap) && focused)
                             VUE.getSelection().setTo(selectedComponent);
                     }
                 }
@@ -288,4 +290,17 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
+    
+    public void focusGained(java.awt.event.FocusEvent e) {
+        System.out.println("Focus Gained on OutlineView");
+        VUE.getSelection().removeListener(this);
+        focused = true;
+    }
+    
+    public void focusLost(java.awt.event.FocusEvent e) {
+        VUE.getSelection().addListener(this);
+        System.out.println("Focus lost on OutlineView");
+        focused = false;
+    }
+    
 }
