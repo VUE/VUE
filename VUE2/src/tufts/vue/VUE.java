@@ -1556,15 +1556,8 @@ public class VUE
         
         public WindowDisplayAction(Window w) {
             super("window: " + w.getName());
-            if (w instanceof Frame)
-                title = ((Frame)w).getTitle();
-            else if (w instanceof Dialog)
-                title = ((Dialog)w).getTitle();
-            else if (w instanceof ToolWindow)
-                title = ((ToolWindow)w).getTitle();
-            else
-                title = w.getName();
-            updateTitle(true);
+            title = getTitle(w);
+            updateActionTitle(true);
             mWindow = w;
             mWindow.addComponentListener(new ComponentAdapter() {
                     public void componentShown(ComponentEvent e) { handleShown(); }
@@ -1572,17 +1565,50 @@ public class VUE
             });
         }
 
+        private String getTitle() {
+            return getTitle(mWindow);
+        }
+        private static String getTitle(Window w) {
+            if (w instanceof Frame)
+                return ((Frame)w).getTitle();
+            else if (w instanceof Dialog)
+                return ((Dialog)w).getTitle();
+            else if (w instanceof ToolWindow)
+                return ((ToolWindow)w).getTitle();
+            else
+                return w.getName();
+        }
+
         private void handleShown() {
-            //out("handleShown " + title);
+            out("handleShown [" + getTitle() + "]");
+            if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
+                // this a major hack for the mac code, and it's totally
+                // fuckin unstable -- our mac code is bus-erroring
+                // doing it this way (could be cause we're removing as
+                // a child something that isn't tho).
+                Frame f = (Frame) mWindow;
+                f.setTitle(title);
+            }
             setButtonState(true);
-            updateTitle(false);
+            updateActionTitle(false);
         }
         
         private void handleHidden() {
+            out("handleHidden [" + getTitle() + "]");
+            if (VueUtil.isMacPlatform() && mWindow instanceof Frame) {
+                // this a major hack for the mac code
+                // Okay, not working: too late: window is already tagged
+                // by mac os x as a child window, and as such, when it's
+                // parent goes unhidden, it goes too, so need to DEPARENT
+                // the window here?
+                Frame f = (Frame) mWindow;
+                if (!f.getTitle().startsWith("@"))
+                    f.setTitle("@" + f.getTitle());
+            }
             setButtonState(false);
-            updateTitle(false);
+            updateActionTitle(false);
         }
-        private void updateTitle(boolean firstTime) {
+        private void updateActionTitle(boolean firstTime) {
             if (!firstTime && !showActionLabel)
                 return;
             if (showActionLabel) {
@@ -1614,6 +1640,7 @@ public class VUE
                 VUE.ensureToolWindowVisibility(title);
             } else {
                 mWindow.setVisible(false);
+                VUE.ensureToolWindowVisibility(null);
             }
             
         }
