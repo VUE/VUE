@@ -44,9 +44,10 @@ public class LWCFilter
 	/** property source types **/
 	static public final int ANYWHERE = 0;
 	static public final int LABEL = 1;
-	static public final int METADATA = 2;
-	static public final int USERDATA = 3;
-	static public final int NOTES = 4;
+	static public final int NOTES = 2;
+	static public final int USERTYPE= 3;
+	static public final int METADATA = 4;
+	static public final int USERDATA = 5;
 	
 	/////////////
 	// Fields
@@ -76,6 +77,10 @@ public class LWCFilter
 	}
 	
 	
+	public LWCFilter( LWMap pMap) {
+		this();
+		setMap( pMap);
+	}
 	
 	////////////////////
 	// Methods
@@ -106,6 +111,11 @@ public class LWCFilter
 	public boolean getIsAny() {
 		return mIsAny;
 	}
+	
+	public LogicalStatement createLogicalStatement() {
+		return new LogicalStatement();
+	}
+	
 	
 	public void setLogicalStatements(  LogicalStatement [] pArray ) {
 		mStatements = pArray;
@@ -253,8 +263,8 @@ public class LWCFilter
 		public boolean matchUserProperty( LWComponent pLWC, boolean pCheckAll) {
 			boolean state = false;
 			
-			String typeID = pLWC.getUserMapType();
-			UserMapType type = UserMapType.findUserMapType( getMap(), typeID);
+			
+			UserMapType type = pLWC.getUserMapType();
 			if( type != null) {
 				if( pCheckAll ) {
 					
