@@ -460,7 +460,7 @@ public class LWMap extends LWContainer
      * calling this notifyLWCListners.
      */
     protected void notifyLWCListeners(LWCEvent e) {
-        if (mEventsDisabled) {
+        if (mChangeSupport.eventsDisabled()) {
             if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
             return;
         }

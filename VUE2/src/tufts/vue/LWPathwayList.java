@@ -39,7 +39,8 @@ public class LWPathwayList implements LWComponent.Listener
     private List mPathways = new java.util.ArrayList();
     private LWMap mMap = null;
     private LWPathway mActive = null;
-    private List mListeners = new java.util.ArrayList();
+    //private List mListeners = new java.util.ArrayList();
+    private LWChangeSupport mChangeSupport = new LWChangeSupport(this);
 
     /** persistance constructor only */
     public LWPathwayList() {}
@@ -78,10 +79,12 @@ public class LWPathwayList implements LWComponent.Listener
      * from it's LWPathways.
      */
     public void addListener(LWComponent.Listener l) {
-        mListeners.add(l);
+        //mListeners.add(l);
+        mChangeSupport.addListener(l);
     }
     public void removeListener(LWComponent.Listener l) {
-        mListeners.remove(l);
+        mChangeSupport.removeListener(l);
+        //mListeners.remove(l);
     }
 
     public Collection getElementList() {
@@ -99,7 +102,10 @@ public class LWPathwayList implements LWComponent.Listener
     public void setActivePathway(LWPathway pathway) {
         if (mActive != pathway) {
             mActive = pathway;
-            getMap().notify(this, "pathway.list.active");
+            //getMap().notify(this, "pathway.list.active");
+            LWCEvent e = new LWCEvent(this, pathway, "pathway.list.active");
+            getMap().notifyProxy(e);
+            mChangeSupport.dispatchEvent(e);
         }
     }
 
@@ -133,7 +139,8 @@ public class LWPathwayList implements LWComponent.Listener
         getMap().notifyProxy(e);
         // dispatch the event to any direct listeners of this LWPathwayList
         // (such as the Pathway gui code)
-        LWComponent.dispatchLWCEvent(this, mListeners, e);
+        mChangeSupport.dispatchEvent(e);
+        //LWComponent.dispatchLWCEvent(this, mListeners, e);
         p.addLWCListener(this);
     }
     
@@ -158,12 +165,14 @@ public class LWPathwayList implements LWComponent.Listener
                                       }
                                   });
         getMap().notifyProxy(e);
-        LWComponent.dispatchLWCEvent(this, mListeners, e);
+        mChangeSupport.dispatchEvent(e);
+        //LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
 
     public void LWCChanged(LWCEvent e) {
         //if (DEBUG.PATHWAY) System.out.println(this + " " + e + " REBROADCASTING");
-        LWComponent.dispatchLWCEvent(this, mListeners, e);
+        mChangeSupport.dispatchEvent(e);
+        //LWComponent.dispatchLWCEvent(this, mListeners, e);
     }
     
     public int getCurrentIndex() {

@@ -904,24 +904,24 @@ public class LWLink extends LWComponent
                 bounds.add(quadCurve.ctrlx, quadCurve.ctrly);
             }
             try {
-                setEventsSuspended();
+                mChangeSupport.setEventsSuspended();
                 // todo check: any problem with events off here?
                 setSize(bounds.width, bounds.height);
                 setX(bounds.x);
                 setY(bounds.y);
             } finally {
-                setEventsResumed();
+                mChangeSupport.setEventsResumed();
             }
 
         } else {
             try {
-                setEventsSuspended();
+                mChangeSupport.setEventsSuspended();
                 // todo check: any problem with events off here?
                 setSize(Math.abs(startX - endX), Math.abs(startY - endY));
                 setX(this.centerX - getWidth()/2);
                 setY(this.centerY - getHeight()/2);
             } finally {
-                setEventsResumed();
+                mChangeSupport.setEventsResumed();
             }
         }
 

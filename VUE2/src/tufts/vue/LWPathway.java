@@ -384,11 +384,16 @@ public class LWPathway extends LWContainer
         
         if (e.getWhat() == LWKey.Deleting) {
             removeAll(e.getComponent());
-        } else if (super.listeners != null) {
+        } else {
+            // rebroadcast our child events so that the LWPathwayList which is
+            // listening to us can pass them on to the PathwayTableModel
+            mChangeSupport.dispatchEvent(e);
+        }
+        /*else if (super.listeners != null) {
             // rebroadcast our child events so that the LWPathwayList which is
             // listening to us can pass them on to the PathwayTableModel
             dispatchLWCEvent(this, super.listeners, e);
-        }
+            }*/
     }
 
     /**

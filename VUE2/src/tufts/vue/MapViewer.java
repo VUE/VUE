@@ -3985,7 +3985,7 @@ public class MapViewer extends javax.swing.JComponent
                     oldActiveMap = activeViewer.getMap();
                 VUE.setActiveViewer(this);
                 
-                getMap().setPriorityLWCListener(this);
+                getMap().getChangeSupport().setPriorityListener(this);
                 // TODO: VUE.getSelection().setPriorityListener(this);
                 
                 // outline view switching: TODO: make an active map listener instead of this

@@ -80,7 +80,10 @@ public class PathwayTableModel extends DefaultTableModel
             // the note icon.
             // We only really need the PathwayTable to repaint if a label
             // has changed, but this will do it.
-            fireTableDataChanged();
+            if (e.getWhat().equals("pathway.list.active"))
+                setCurrentPathway((LWPathway) e.getComponent());
+            else
+                fireTableDataChanged();
         }
     }
 
