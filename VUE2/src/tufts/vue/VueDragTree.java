@@ -299,6 +299,14 @@ class FileNode extends DefaultMutableTreeNode {
         final static int ASSET = 0;
         public static DataFlavor assetFlavor;
         String displayName = "";
+
+      static {
+          try {
+              assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
+              //    assetFlavor = new DataFlavor("asset","asset");
+          } catch (Exception e) { e.printStackTrace(); }
+      }
+      
         /**
          try {
                 assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
@@ -307,33 +315,32 @@ class FileNode extends DefaultMutableTreeNode {
         DataFlavor flavors[] = {DataFlavor.plainTextFlavor,
                                 DataFlavor.stringFlavor,
                                 DataFlavor.plainTextFlavor};
-        public VueDragTreeNodeSelection(Object resource)
+
+      public VueDragTreeNodeSelection(Object resource)
         {
             addElement(resource);
             if (resource instanceof Asset){
-            try {
-             assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
-         //    assetFlavor = new DataFlavor("asset","asset");
-                displayName = ((Asset)elementAt(0)).getDisplayName();
-            } catch (Exception e) { System.out.println("FedoraSelection "+e);}
-            
-
-            if(assetFlavor != null) {
-                flavors[ASSET] = assetFlavor;
-            }
-            }else if(resource instanceof File){
+                if (assetFlavor != null) {
+                    flavors[ASSET] = assetFlavor;
+                    try {
+                        displayName = ((Asset)elementAt(0)).getDisplayName();
+                    } catch (Exception e) { System.out.println("FedoraSelection "+e);}
+                }
+            } else if(resource instanceof File){
                 flavors[FILE] = DataFlavor.javaFileListFlavor;
                 displayName = ((File)elementAt(0)).getName();
-            }else
-            displayName = elementAt(0).toString();
-                
+            } else
+                displayName = elementAt(0).toString();
         }
+      
         /* Returns the array of flavors in which it can provide the data. */
         public synchronized java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
     	return flavors;
         }
         /* Returns whether the requested flavor is supported by this object. */
         public boolean isDataFlavorSupported(DataFlavor flavor) {
+            if (flavor == null)
+                return false;
             boolean b  = false;
             b |=flavor.equals(flavors[ASSET]);
             b |= flavor.equals(flavors[STRING]);
@@ -348,7 +355,7 @@ class FileNode extends DefaultMutableTreeNode {
             
     	if (flavor.equals(flavors[STRING])) {
             System.out.println("I am here"+this.elementAt(0));
-    	    return this.elementAt(0);
+    	    return this.elementAt(0).toString();
     	} else if (flavor.equals(flavors[PLAIN])) {
              System.out.println("I am plain"+this.elementAt(0));
     	    return new StringReader(displayName);
