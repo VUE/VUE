@@ -187,9 +187,15 @@ public class LWMap extends LWContainer
     public java.awt.geom.Rectangle2D getBounds()
     {
         Rectangle2D bounds = getBounds(getChildIterator());
-        setSize((float)bounds.getWidth(), (float)bounds.getHeight());
+        //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
+        setFrame(bounds);
         System.out.println(this + " getBounds: " + bounds);
         return bounds;
+    }
+    
+    public java.awt.geom.Rectangle2D getCachedBounds()
+    {
+        return super.getBounds();
     }
     
     /**
