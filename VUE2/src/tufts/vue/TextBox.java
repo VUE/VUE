@@ -274,6 +274,28 @@ class TextBox extends JTextPane
         handleChange();
     }
 
+    private boolean isFinishEditKeyPress(KeyEvent e)
+    {
+        // reversed logic of below description for now
+        return
+            e.getKeyCode() == KeyEvent.VK_ENTER &&
+          // (e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
+            !(e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
+              || (e.getModifiersEx() != 0 && !e.isShiftDown()));
+
+
+        // if we hit return key either on numpad ("enter" key), or
+        // with any modifier down except a shift alone (in case of
+        // caps lock) complete the edit.
+        /*
+        return
+            e.getKeyCode() == KeyEvent.VK_ENTER &&
+            (e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
+             || (e.getModifiersEx() != 0 && !e.isShiftDown()));
+             //|| (e.getModifiersEx() != 0 && (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK));
+        */
+    }
+    
     public void keyPressed(KeyEvent e)
     {
         //System.out.println("TextBox: " + e);
@@ -281,11 +303,7 @@ class TextBox extends JTextPane
             e.consume();
             setText(savedText);
             getParent().remove(this);
-        } else if (e.getKeyCode() == KeyEvent.VK_ENTER &&
-                   (e.getKeyLocation() == KeyEvent.KEY_LOCATION_NUMPAD
-                    || (e.getModifiersEx() != 0 && (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK))) {
-            // if we hit enter key either on numpad, or with any modifier down except a shift alone (in case of caps lock)
-            // complete the edit.
+        } else if (isFinishEditKeyPress(e)) {
             keyWasPressed = true;
             e.consume();
             getParent().remove(this); // will trigger a save
