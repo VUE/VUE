@@ -118,6 +118,11 @@ public class LWLink extends LWComponent
         }
         }*/
 
+    public boolean handleDoubleClick(MapMouseEvent e)
+    {
+        return mIconBlock.handleDoubleClick(e);
+    }
+
     
     
     /** interface ControlListener handler */
@@ -411,7 +416,9 @@ public class LWLink extends LWComponent
                 if (rect.intersectsLine(this.line))
                     return true;
             }
-            if (this.labelBox != null)
+            if (mIconBlock.intersects(rect))
+                return true;
+            else if (this.labelBox != null)
                 return labelBox.intersectsMapRect(rect);
             //return rect.intersects(getLabelX(), getLabelY(),
             //                         labelBox.getWidth(), labelBox.getHeight());
@@ -1297,23 +1304,10 @@ public class LWLink extends LWComponent
             }
         }
 
-
-        mIconBlock.setLocation(getLabelX() + textBoxWidth, getLabelY());
-        mIconBlock.draw(dc);
-
-        /*
-        float x = getLabelX()+textBoxWidth;
-        float y = getLabelY();
-        mIconResource.setLocation(x, y);
-        x+=LWIcon.IconWidth;
-        mIconNotes.setLocation(x, y);
-        x+=LWIcon.IconWidth;
-        mIconPathway.setLocation(x, y);
-        
-        mIconResource.draw(dc);
-        mIconNotes.draw(dc);
-        mIconPathway.draw(dc);
-        */
+        //if (mIconBlock.isShowing()) {
+            mIconBlock.setLocation(getLabelX() + textBoxWidth, getLabelY());
+            mIconBlock.draw(dc);
+            //}
 
         if (DEBUG_CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }

@@ -1549,7 +1549,7 @@ public class MapViewer extends javax.swing.JPanel
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
             // also use draggedSelectionGroup for this?)
-            if (DEBUG_BOXES || !VueSelection.allOfType(LWLink.class))
+            if (DEBUG_BOXES || VueSelection.size() > 1 || !VueSelection.allOfType(LWLink.class))
                 g2.draw(mapSelectionBounds);
             // no resize handles if only links or groups
             resizeControl.active = false;
@@ -2599,7 +2599,9 @@ public class MapViewer extends javax.swing.JPanel
                     hit.mouseMoved(mme);
                 else
                     hit.mouseEntered(mme);
-            }
+            } else
+                clearTip(); // if over nothing, always make sure no tip displayed
+            
             mMouseOver = hit;
 
             if (DEBUG_SHOW_MOUSE_LOCATION) {
@@ -2632,7 +2634,7 @@ public class MapViewer extends javax.swing.JPanel
 
         public void mouseEntered(MouseEvent e)
         {
-            System.out.println(e);
+            if (DEBUG_ROLLOVER) System.out.println(e);
             if (mMouseOver != null) {
                 mMouseOver.mouseExited(new MapMouseEvent(e));
                 mMouseOver = null;
@@ -2641,7 +2643,7 @@ public class MapViewer extends javax.swing.JPanel
 
         public void mouseExited(MouseEvent e)
         {
-            System.out.println(e);
+            if (DEBUG_ROLLOVER) System.out.println(e);
             if (false&&mMouseOver != null) {
                 mMouseOver.mouseExited(new MapMouseEvent(e));
                 mMouseOver = null;
@@ -2651,7 +2653,7 @@ public class MapViewer extends javax.swing.JPanel
             // the trigger region and mouse statys over it...  Okay, this should
             // never happen...
 
-            clearTip();//todo: on a timer instead so no flashing of rollover the tip
+            //clearTip();//todo: on a timer instead so no flashing of rollover the tip
 
             // would still be nice to do this tho because we get a mouse
             // exited when you rollover the tip-window itself, and if
@@ -3180,9 +3182,12 @@ public class MapViewer extends javax.swing.JPanel
                     if (activeTool == TextTool) {
                         activateLabelEdit(hitComponent);
                         handled = true;
-                    } else if (hitComponent instanceof ClickHandler) {
-                        handled = ((ClickHandler)hitComponent).handleSingleClick(new MapMouseEvent(e, hitComponent));
+                    } else {
+                        handled = hitComponent.handleSingleClick(new MapMouseEvent(e, hitComponent));
                     }
+                    //else if (hitComponent instanceof ClickHandler) {
+                    //handled = ((ClickHandler)hitComponent).handleSingleClick(new MapMouseEvent(e, hitComponent));
+                    //}
                     
                     //todo: below not triggering under arrow tool if we just dragged the link --
                     // justSelected must be inappropriately set to the dragged component
@@ -3201,20 +3206,22 @@ public class MapViewer extends javax.swing.JPanel
                 }
                 */
                 
-            } else if (isDoubleClickEvent(e) && toolKeyDown == 0) {
+            } else if (isDoubleClickEvent(e) && toolKeyDown == 0 && hitComponent != null) {
                 if (DEBUG_MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
                 
                 boolean handled = false;
                 
-                if (activeTool == TextTool && hitComponent != null) {
+                if (activeTool == TextTool) {
                     activateLabelEdit(hitComponent);
                     handled = true;
+                } else {
+                    handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
                 }
-                else if (hitComponent instanceof ClickHandler) {
-                    handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
-                }
+                //else if (hitComponent instanceof ClickHandler) {
+                //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
+                //}
                 
-                if (!handled && hitComponent != null && hitComponent.supportsUserLabel())
+                if (!handled && hitComponent.supportsUserLabel())
                     activateLabelEdit(hitComponent);
             }
             }

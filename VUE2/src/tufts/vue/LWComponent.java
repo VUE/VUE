@@ -1168,7 +1168,25 @@ public class LWComponent
         if (DEBUG_ROLLOVER) System.out.println(" MouseExited:     " + this);
         //e.getViewer().clearIndicated();
     }
+
+    /** pre-digested single-click
+     * @return true if you do anything with it, otherwise
+     * the viewer can/will provide default action.
+     */
+    public boolean handleSingleClick(MapMouseEvent e)
+    {
+        return false;
+    }
     
+    /** pre-digested double-click
+     * @return true if you do anything with it, otherwise
+     * the viewer can/will provide default action.
+     */
+    public boolean handleDoubleClick(MapMouseEvent e)
+    {
+        return false;
+    }
+
 
     /** pesistance default */
     public void addObject(Object obj)

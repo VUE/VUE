@@ -23,7 +23,7 @@ import java.util.Iterator;
  * @version 3/10/03
  */
 public class LWNode extends LWContainer
-    implements Node, ClickHandler
+    implements Node
 {
     //------------------------------------------------------------------
     // Constants affecting the internal layout of nodes & any children
@@ -388,28 +388,22 @@ public class LWNode extends LWContainer
         if (textBoxHit(cx, cy)) {
             e.getViewer().activateLabelEdit(this);
         } else {
-            // by default, a double-click anywhere else in
-            // node opens the resource
-            /*
-            if (hasNotes() && mIconNotes.contains(cx, cy)) {
-                VUE.objectInspectorPanel.activateNotesTab();
-                VUE.objectInspector.setVisible(true);
-            } else if (inPathway() && mIconPathway.contains(cx, cy)) {
-                VUE.pathwayInspector.setVisible(true);
-            } else
-            */
-            if (hasResource()) {
-                getResource().displayContent();
-                // todo: some kind of animation or something to show
-                // we're "opening" this node -- maybe an indication
-                // flash -- we'll need another thread for that.
-                
-                //mme.getViewer().setIndicated(this); or
-                //mme.getComponent().paintImmediately(mapToScreenRect(getBounds()));
-                //or mme.repaint(this)
-                // now open resource, and then clear indication
-                //clearIndicated();
-                //repaint();
+            if (!mIconBlock.handleDoubleClick(e)) {
+                // by default, a double-click anywhere else in
+                // node opens the resource
+                if (hasResource()) {
+                    getResource().displayContent();
+                    // todo: some kind of animation or something to show
+                    // we're "opening" this node -- maybe an indication
+                    // flash -- we'll need another thread for that.
+                    
+                    //mme.getViewer().setIndicated(this); or
+                    //mme.getComponent().paintImmediately(mapToScreenRect(getBounds()));
+                    //or mme.repaint(this)
+                    // now open resource, and then clear indication
+                    //clearIndicated();
+                    //repaint();
+                }
             }
         }
         return true;
@@ -423,6 +417,7 @@ public class LWNode extends LWContainer
         //return iconShowing() && genIcon.contains(e.getComponentPoint());
 
         // for now, never activate a label edit on just a single click.
+        // --prob better to conifg somehow than to depend on MapViewer side-effects
         return true;
     }
 
@@ -736,18 +731,11 @@ public class LWNode extends LWContainer
             float iconPillarY = IconPillarPadY;
             //iconPillarY = EdgePadY;
 
-            // hack just to get size for now
-            mIconBlock.setLocation(0,0);
-            /*
-            int icons = 0;
-            if (hasResource()) icons++;
-            if (hasNotes()) icons++;
-            if (hasMetaData()) icons++;
-            if (inPathway()) icons++;
-            */
+            
+            mIconBlock.layout(); // in order to compute the size
 
             //float totalIconHeight = icons * IconHeight;
-            float totalIconHeight = mIconBlock.getHeight();
+            float totalIconHeight = (float) mIconBlock.getHeight();
             float iconPillarHeight = totalIconHeight + IconPillarPadY * 2;
 
             if (height < iconPillarHeight)
@@ -1269,19 +1257,23 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
 
         if (iconShowing()) {
-            g.setColor(Color.gray);
+            Color renderFill = getRenderFillColor();
+            Color marginColor;
+            if (renderFill != null) {
+                if (renderFill.equals(Color.black))
+                    marginColor = Color.darkGray;
+                else
+                    marginColor = renderFill.darker();
+            } else {
+                // transparent
+                marginColor = getStrokeColor().brighter();
+            }
+            g.setColor(marginColor);
+            //g.setColor(Color.gray);
             g.setStroke(STROKE_ONE);
             g.draw(dividerMarginLine);
 
             mIconBlock.draw(dc);
-            /*
-            if (hasResource())
-                mIconResource.draw(dc);
-            if (hasNotes())
-                mIconNotes.draw(dc);
-            if (inPathway())
-                mIconPathway.draw(dc);
-            */
         }
     }
 

@@ -62,8 +62,9 @@ public abstract class LWIcon extends Rectangle2D.Float
     }
 
     abstract boolean isShowing();
+    abstract public JComponent getToolTipComponent();
 
-    public static class Block
+    public static class Block extends Rectangle2D.Float
     {
         public static final boolean VERTICAL = true;
         public static final boolean HORIZONTAL = false;
@@ -77,19 +78,10 @@ public abstract class LWIcon extends Rectangle2D.Float
         private LWIcon mIconPathway;
         //private LWIcon mIconMetaData;
 
-        private JComponent ttResource;
-        private JComponent ttNotes;
-        private JComponent ttPathway;
-        private String ttPathwayHtml;
-
         private LWIcon[] mIcons = new LWIcon[3];
 
         private boolean mVertical = true;
         private boolean mCoordsLocal;
-        private float mX;
-        private float mY;
-        private float mWidth;
-        private float mHeight;
         private float mIconWidth;
         private float mIconHeight;
         
@@ -108,9 +100,9 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIconWidth = iconWidth;
             mIconHeight = iconHeight;
             if (vertical)
-                mWidth = mIconWidth;
+                super.width = mIconWidth;
             else
-                mHeight = mIconHeight;
+                super.height = mIconHeight;
             mIcons[0] = mIconResource = new LWIcon.Resource(lwc, c);
             mIcons[1] = mIconNotes = new LWIcon.Notes(lwc, c);
             mIcons[2] = mIconPathway = new LWIcon.Pathway(lwc, c);
@@ -129,22 +121,22 @@ public abstract class LWIcon extends Rectangle2D.Float
          */
         public boolean contains(float x, float y)
         {
-            if (isShowing() && mWidth > 0 && mHeight > 0) {
-                return x >= mX
-                    && y >= mY
-                    && x <= mX + mWidth
-                    && y <= mY + mHeight;
+            if (isShowing() && super.width > 0 && super.height > 0) {
+                return x >= super.x
+                    && y >= super.y
+                    && x <= super.x + super.width
+                    && y <= super.y + super.height;
             }
             return false;
         }
 
         public String toString()
         {
-            return "LWIcon.Block[" + mX+","+mY + " " + mWidth+"x"+mHeight + " " + mBlockLWC + "]";
+            return "LWIcon.Block[" + super.x+","+super.y + " " + super.width+"x"+super.height + " " + mBlockLWC + "]";
         }
 
-        public float getWidth() { return mWidth; }
-        public float getHeight() { return mHeight; }
+        //public float getWidth() { return super.width; }
+        //public float getHeight() { return super.height; }
 
         boolean isShowing() {
             return true;
@@ -152,26 +144,34 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         void setLocation(float x, float y)
         {
-            this.mX = x;
-            this.mY = y;
+            super.x = x;
+            super.y = y;
+            layout();
+        }
+        
+        /** Layout whatever is currently relevant to show, computing
+         * width & height -- does NOT change location
+         */
+        void layout()
+        {
             if (mVertical) {
-                mHeight = 0;
-                float iconY = y;
+                super.height = 0;
+                float iconY = super.y;
                 for (int i = 0; i < mIcons.length; i++) {
                     if (mIcons[i].isShowing()) {
                         mIcons[i].setLocation(x, iconY);
                         iconY += mIconHeight;
-                        mHeight += mIconHeight;
+                        super.height += mIconHeight;
                     }
                 }
             } else {
-                mWidth = 0;
-                float iconX = x;
+                super.width = 0;
+                float iconX = super.x;
                 for (int i = 0; i < mIcons.length; i++) {
                     if (mIcons[i].isShowing()) {
                         mIcons[i].setLocation(iconX, y);
                         iconX += mIconWidth;
-                        mWidth += mIconWidth;
+                        super.width += mIconWidth;
                     }
                 }
             }
@@ -198,25 +198,26 @@ public abstract class LWIcon extends Rectangle2D.Float
                 cy = e.getMapY();
             }
             JComponent tipComponent = null;
-            Rectangle2D.Float tipRegion = null;
+            LWIcon tipIcon = null;
 
             // todo: collapse & delegate down to instance classes
             if (mBlockLWC.hasResource() && mIconResource.contains(cx, cy)) {
-                tipComponent = getResourceToolTip();
-                tipRegion = mIconResource;
+                //tipComponent = getResourceToolTip();
+                tipIcon = mIconResource;
             } else if (mBlockLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
-                tipComponent = getNotesToolTip();
-                tipRegion = mIconNotes;
+                //tipComponent = getNotesToolTip();
+                tipIcon = mIconNotes;
             } else if (mBlockLWC.inPathway() && mIconPathway.contains(cx, cy)) {
-                tipComponent = getPathwayToolTip();
-                tipRegion = mIconPathway;
+                //tipComponent = getPathwayToolTip();
+                tipIcon = mIconPathway;
             }
             
             // TODO: don't need to do this if there's already a tip showing!
-            if (tipComponent != null) {
-                // translate tipRegion from component to map coords
-                tipRegion = (Rectangle2D.Float) tipRegion.clone();
+            if (tipIcon != null) {
+                tipComponent = tipIcon.getToolTipComponent();
+                Rectangle2D.Float tipRegion = (Rectangle2D.Float) tipIcon.getBounds2D();
                 if (mCoordsLocal) {
+                    // translate tipRegion from component to map coords
                     tipRegion.x += mBlockLWC.getX();
                     tipRegion.y += mBlockLWC.getY();
                 }
@@ -224,100 +225,50 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
         }
 
-
-        private JComponent getResourceToolTip()
+        boolean handleDoubleClick(MapMouseEvent e)
         {
-            if (ttResource == null) {
-                ttResource = new AALabel("<html>&nbsp;<b>"
-                                         + mBlockLWC.getResource()
-                                         + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
-                ttResource.setFont(FONT_MEDIUM);
+            float cx = 0, cy = 0;
+            boolean handled = false;
+
+            if (mCoordsLocal) {
+                cx = e.getComponentX();
+                cy = e.getComponentY();
+            } else {
+                cx = e.getMapX();
+                cy = e.getMapY();
             }
-            return ttResource;
+
+            // todo: collapse & delegate down to instance classes
+            if (mBlockLWC.hasResource() && mIconResource.contains(cx, cy)) {
+                mBlockLWC.getResource().displayContent();
+                handled = true;
+            } else if (mBlockLWC.hasNotes() && mIconNotes.contains(cx, cy)) {
+                VUE.objectInspectorPanel.activateNotesTab();
+                VUE.objectInspector.setVisible(true);
+                handled = true;
+            } else if (mBlockLWC.inPathway() && mIconPathway.contains(cx, cy)) {
+                VUE.pathwayInspector.setVisible(true);
+                handled = true;
+            }
+            return handled;
         }
+        
+        
+    }
     
-        private JComponent getPathwayToolTip()
-        {
-            // We compute this one every time in case the
-            // pathway labels change.
-            String html = "<html>";
-            Iterator i = mBlockLWC.pathwayRefs.iterator();
-            int n = 0;
-            while (i.hasNext()) {
-                tufts.vue.Pathway p = (tufts.vue.Pathway) i.next();
-                if (n++ > 0)
-                    html += "<br>";
-                html += "&nbsp;In path: <b>" + p.getLabel() + "</b>&nbsp;";
-            }
-            if (ttPathwayHtml == null || !ttPathwayHtml.equals(html)) {
-                ttPathway = new AALabel(html);
-                ttPathway.setFont(FONT_MEDIUM);
-                ttPathwayHtml = html;
-            }
-            return ttPathway;
-        }
-    
-        private JComponent getNotesToolTip()
-        {
-            if (ttNotes == null) {
-                String notes = mBlockLWC.getNotes();
-                int width = notes.length();
-                //System.out.println("width="+width);
-
-                if (width > 30) {
-                    //JTextArea ta = new JTextArea(notes, 1, width);
-                    JTextArea ta = new JTextArea(notes, 1, 30);
-                    ta.setFont(FONT_SMALL);
-                    ta.setLineWrap(true);
-                    ta.setWrapStyleWord(true);
-                    /*
-                      System.out.println("    size="+ta.getSize());
-                      Dimension ps = ta.getPreferredSize();
-                      System.out.println("prefsize="+ps);
-                      System.out.println(" minsize="+ta.getMinimumSize());
-                    */
-                    ttNotes = ta;
-                } else {
-                    ttNotes = new JLabel(notes);
-                    ttNotes.setFont(FONT_SMALL);
-                }
-            
-                /*
-                  if (width > 30)
-                  width = 30;
-                  System.out.println("width="+width);
-                  JTextArea c = new JTextArea(notes, 1, width);
-                  c.setFont(FONT_SMALL);
-                  c.setLineWrap(true);
-                  c.setWrapStyleWord(true);
-                  System.out.println("    size="+c.getSize());
-                  Dimension ps = c.getPreferredSize();
-                  System.out.println("prefsize="+ps);
-                  System.out.println(" minsize="+c.getMinimumSize());
-
-                  if (notes.length() < 30) {
-                  ps.width = notes.length();
-                  c.setPreferredSize(ps);
-                  System.out.println("setprefsize="+ps);
-                  }
-                */
-
-            }
-            return ttNotes;
-        }
-
-        // AALabel: A JLabel that forces anti-aliasing -- use this if
-        // you want a tool-tip to be anti-aliased on the PC,
-        // because there's no way to set it otherwise.
-        // (This is redundant on the Mac which does it automatically)
-        class AALabel extends JLabel
-        {
-            AALabel(String s) { super(s); };
-            public void paintComponent(Graphics g) {
-                ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-                                                 java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                super.paintComponent(g);
-            }
+    /**
+     * AALabel: A JLabel that forces anti-aliasing -- use this if
+     * you want a tool-tip to be anti-aliased on the PC,
+     * because there's no way to set it otherwise.
+     * (This is redundant on the Mac which does it automatically)
+     */
+    class AALabel extends JLabel
+    {
+        AALabel(String s) { super(s); };
+        public void paintComponent(Graphics g) {
+            ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                                             java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            super.paintComponent(g);
         }
     }
     
@@ -331,6 +282,21 @@ public abstract class LWIcon extends Rectangle2D.Float
         Resource(LWComponent lwc) { super(lwc); }
 
         boolean isShowing() { return mLWC.hasResource(); }
+        
+        
+        private JComponent ttResource;
+        private String ttLastString;
+        public JComponent getToolTipComponent()
+        {
+            if (ttResource == null || !ttLastString.equals(mLWC.getResource().getSpec())) {
+                ttLastString = mLWC.getResource().getSpec();
+                ttResource = new AALabel("<html>&nbsp;<b>"
+                                         + ttLastString
+                                         + "</b><font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
+                ttResource.setFont(FONT_MEDIUM);
+            }
+            return ttResource;
+        }
         
         void draw(DrawContext dc)
         {
@@ -418,6 +384,40 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         boolean isShowing() { return mLWC.hasNotes(); }
         
+    
+        private JComponent ttNotes;
+        private String ttLastNotes;
+        public JComponent getToolTipComponent()
+        {
+            // todo: would be more efficent to list for note change
+            // events instead of comparing the whole string every time
+            // -- especially for big notes (this goes for all the other
+            // LWIcon tool tips also)
+            if (ttNotes == null || !ttLastNotes.equals(mLWC.getNotes())) {
+                ttLastNotes = mLWC.getNotes();
+                int width = ttLastNotes.length();
+                //System.out.println("width="+width);
+
+                if (width > 30) {
+                    //JTextArea ta = new JTextArea(notes, 1, width);
+                    JTextArea ta = new JTextArea(ttLastNotes, 1, 30);
+                    ta.setFont(FONT_SMALL);
+                    ta.setLineWrap(true);
+                    ta.setWrapStyleWord(true);
+                    //System.out.println("    size="+ta.getSize());
+                    //Dimension ps = ta.getPreferredSize();
+                    //System.out.println("prefsize="+ps);
+                    //System.out.println(" minsize="+ta.getMinimumSize());
+                    ttNotes = ta;
+                } else {
+                    ttNotes = new JLabel(ttLastNotes);
+                    ttNotes.setFont(FONT_SMALL);
+                }
+            }
+            return ttNotes;
+        }
+
+        
         public void draw(DrawContext dc)
         {
             super.draw(dc);
@@ -483,7 +483,30 @@ public abstract class LWIcon extends Rectangle2D.Float
         Pathway(LWComponent lwc, Color c) { super(lwc, c); }
         Pathway(LWComponent lwc) { super(lwc); }
 
+        //boolean isShowing() { return mLWC instanceof LWLink || mLWC.inPathway(); }//debug
         boolean isShowing() { return mLWC.inPathway(); }
+
+        private JComponent ttPathway;
+        private String ttPathwayHtml;
+        public JComponent getToolTipComponent()
+        {
+            String html = "<html>";
+            Iterator i = mLWC.pathwayRefs.iterator();
+            int n = 0;
+            while (i.hasNext()) {
+                tufts.vue.Pathway p = (tufts.vue.Pathway) i.next();
+                if (n++ > 0)
+                    html += "<br>";
+                html += "&nbsp;In path: <b>" + p.getLabel() + "</b>&nbsp;";
+            }
+            if (ttPathwayHtml == null || !ttPathwayHtml.equals(html)) {
+                ttPathway = new AALabel(html);
+                ttPathway.setFont(FONT_MEDIUM);
+                ttPathwayHtml = html;
+            }
+            return ttPathway;
+        }
+
         
         void draw(DrawContext dc)
         {
