@@ -120,7 +120,9 @@ public class DataSource {
             Vector cabVector = new Vector();
             RemoteFilingManager manager = new RemoteFilingManager();   // get a filing manager
             manager.createClient(address,userName,password);       // make a connection to the ftp site
+            System.out.println("can I connect?");
             RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots();
+             System.out.println("can I connect? 2");
             osid.shared.Agent agent = null; //  This may cause problems later.
             while(rootCabs.hasNext()){
                 RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
@@ -130,13 +132,24 @@ public class DataSource {
             }
             
             VueDragTree fileTree = new VueDragTree(cabVector.iterator(), displayName);
+            fileTree.setRootVisible(true);
+            fileTree.setShowsRootHandles(true);
+            fileTree.expandRow(0);
+            fileTree.setRootVisible(false);
+            
+            
             JPanel remotePanel = new JPanel();
+           
             JScrollPane rSP = new JScrollPane(fileTree);
+            
+           
             remotePanel.setMinimumSize(new Dimension(300,100));
             remotePanel.setLayout(new BorderLayout());
-            remotePanel.add(rSP,BorderLayout.CENTER,1);
+            remotePanel.add(rSP,BorderLayout.CENTER);
+             
             remotePanel.validate();
             this.resourceViewer = remotePanel;
+        
         }
         
         

@@ -250,24 +250,39 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     public void showAddEditWindow(int mode) {
         if ((addEditDialog == null)  || true) { // always true, need to work for cases where case where the dialog already exists
             addEditDialog = new JDialog(tufts.vue.VUE.getInstance(),"Add/Edit Dialog",true);
-             JTabbedPane tabbedPane = new JTabbedPane();
+           
+            JTabbedPane tabbedPane = new JTabbedPane();
+            tabbedPane.setPreferredSize(new Dimension(300,400));
             tabbedPane.setName("Tabbed Pane");
             JPanel addPanel = new JPanel(new GridLayout(8, 2));
+           // addPanel.setPreferredSize(new Dimension(300, 300));
             addPanel.setName("Add Panel");
+            JPanel outerAddPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            outerAddPanel.add(addPanel);
             JPanel editPanel = new JPanel(new GridLayout(7,2));
             editPanel.setName("Edit Panel");
-            tabbedPane.add("Add", addPanel);
-            tabbedPane.add("Edit",editPanel);
+           // editPanel.setPreferredSize(new Dimension(300, 300));
+            JPanel outerEditPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            outerEditPanel.add(editPanel);
+            tabbedPane.add("Add", outerAddPanel);
+            tabbedPane.add("Edit",outerEditPanel);
             createAddPanel(addPanel);
             createEditPanel(editPanel);
-            tabbedPane.setSelectedComponent(addPanel);
+            tabbedPane.setSelectedComponent(outerAddPanel);
             if(mode == EDIT_MODE) {
-                tabbedPane.setSelectedComponent(editPanel);
+                tabbedPane.setSelectedComponent(outerEditPanel);
             }
+            
+            
+           // addEditDialog.getContentPane().add(tabbedPane);
+           // addEditDialog.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT));
+           
+           
             addEditDialog.getContentPane().add(tabbedPane);
             addEditDialog.pack();
             addEditDialog.setLocation(300,300);
-            addEditDialog.setSize(new Dimension(250, 185));
+            addEditDialog.setSize(new Dimension(325, 245));
+            
             //dialog.setResizable(false);
             addEditDialog.show();
         }
@@ -308,11 +323,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     }
         
         try{
+              System.out.println("This is address" + address+"type" +type);
             ds = new DataSource("id", displayName, name, searchURL,address, user, password, type);
         }catch (Exception ex){
-            
+           
             VueUtil.alert(null,"There was a problem adding this Data Source","DataSource not added");
-          //  System.out.println("There was a problem adding this Data Source");
+           System.out.println("There was a problem adding this Data Source" + ex);
             return;
         }
         
@@ -954,9 +970,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JLabel userLabel =   new JLabel("User name: ");
         JLabel pwLabel =     new JLabel("Password: ");
         JLabel anon1 =        new JLabel("(For anonymous, leave ");
-        anon1.setFont(new Font(typeLabel.getFont().getName(),Font.PLAIN, 10));
+        //anon1.setFont(new Font(typeLabel.getFont().getName(),Font.PLAIN, 10));
         JLabel anon2 =        new JLabel("user and password blank)");
-        anon2.setFont(new Font(typeLabel.getFont().getName(),Font.PLAIN, 10));
+        //anon2.setFont(new Font(typeLabel.getFont().getName(),Font.PLAIN, 10));
         JLabel blank = new JLabel(" ");
         
         //  Create the buttons we need.
@@ -980,8 +996,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         addPanel.add(searchURLLabel);   //  10:   searchURL Label
         addPanel.add(searchURLField);   //  11:   searchURL
         
-        addPanel.add(anon1);            //  12:  anonymous label.
-        addPanel.add(anon2);            //  13:  anonymous label.
+      //  addPanel.add(anon1);            //  12:  anonymous label.
+       // addPanel.add(anon2);            //  13:  anonymous label.
         
         addPanel.add(blank);            //  14:  blank label.
         addPanel.add(okBut);            //  15:  submit button.
@@ -998,10 +1014,12 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 DataSourceViewer dsv = DRBrowser.dsViewer;
                 JDialog dia = dsv.getAddEditDialog();
                 JTabbedPane tabs = (JTabbedPane)dia.getContentPane().getComponent(0);
-                JPanel panel = (JPanel) tabs.getSelectedComponent();    // Either add or edit panel.
-                
+                JPanel outerPanel = (JPanel) tabs.getSelectedComponent();    // Either add or edit panel.
+                JPanel panel = (JPanel)outerPanel.getComponent(0);
+                //System.out.println("Did I get here in ok" + panel.getComponent(0));
                 JComboBox typeField = (JComboBox) panel.getComponent(1);
                 int type = typeField.getSelectedIndex();
+                  System.out.println("Did I get here in ok");
                 JTextField dsNameField = (JTextField) panel.getComponent(3);
                 String dsNameStr = dsNameField.getText();
                 String nameStr = dsNameStr;
@@ -1098,9 +1116,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         JLabel userLabel =   new JLabel("User name: ");
         JLabel pwLabel =     new JLabel("Password: ");
         JLabel searchURLLabel = new JLabel("Search URL");
-        JLabel anon1 =        new JLabel("(For anonymous, leave ");
+        //JLabel anon1 =        new JLabel("(For anonymous, leave ");
         //anon1.setFont (new Font (typeLabel.getFont().getName(),Font.PLAIN, 10));
-        JLabel anon2 =        new JLabel("user and password blank)");
+        //JLabel anon2 =        new JLabel("user and password blank)");
         //anon2.setFont (new Font (typeLabel.getFont().getName(),Font.PLAIN, 10));
         JLabel blank = new JLabel(" ");
         
@@ -1123,8 +1141,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         editPanel.add(searchURLLabel);   //  9:   searchURL Label
         editPanel.add(urlField);   //  10:   searchURL
         
-        editPanel.add(anon1);            //  11:  anonymous label.
-        editPanel.add(anon2);            //  12:  anonymous label.
+        //editPanel.add(anon1);            //  11:  anonymous label.
+        //editPanel.add(anon2);            //  12:  anonymous label.
         editPanel.add(blank);            //  13:  blank label.
         editPanel.add(okBut);            //  14:  submit button.
         
@@ -1137,8 +1155,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 DataSourceViewer dsv = DRBrowser.dsViewer;
                 JDialog dia = dsv.getAddEditDialog();
                 JTabbedPane tabs = (JTabbedPane)dia.getContentPane().getComponent(0);
-                JPanel panel = (JPanel) tabs.getSelectedComponent();    // Either add or edit panel.
-                
+              
+                JPanel outerPanel = (JPanel) tabs.getSelectedComponent();    // Either add or edit panel.
+                JPanel panel = (JPanel)outerPanel.getComponent(0);
                 
                 JTextField dsNameField = (JTextField) panel.getComponent(1);
                // JTextField adrField = (JTextField) panel.getComponent(3);
