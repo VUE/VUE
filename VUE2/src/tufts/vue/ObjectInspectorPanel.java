@@ -23,6 +23,7 @@
 **
 *********/
 
+
 package tufts.vue;
 
 
@@ -33,272 +34,360 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import tufts.vue.filter.*;
+
 
 /**
-* ObjectInspectorPanel
-*
-* The Object Inspector Panel!
-*
-\**/
-public class ObjectInspectorPanel  extends JPanel 
-			implements LWSelection.Listener, ResourceSelection.Listener
-{
-
-
-	/////////////
-	// Statics
-	//////////////
-	
+ * ObjectInspectorPanel
+ *
+ * The Object Inspector Panel!
+ *
+ * \**/
+public class ObjectInspectorPanel  extends JPanel
+implements LWSelection.Listener {
+    
+    
+    /////////////
+    // Statics
+    //////////////
+    
     // these 3 constants want to be elsewhere
     public static final int INFO_TAB = 0;
     public static final int NOTES_TAB = 1;
     public static final int TREE_TAB = 2;
     public static final int FILTER_TAB = 3;
-	
-	private static final String kNullType = "null";
-	private static final String kNodeType = "node";
-	private static final String kLinkType = "link";
-	private static final String kAssetType = "asset";
-	
-	/////////////
-	// Fields
-	//////////////
-	
-	/** the card panel **/
-	JPanel mCardPanel = null;
-	
-	/** the card layout **/
-	CardLayout mCards = null;
-	
-	/** **/
-	NodeInspectorPanel mNodeCard = null;
-	
-	/** **/
-	LinkInspectorPanel  mLinkCard = null;
-	
-	/** asset card **/
-	AssetInspectorPanel  mAssetCard = null;
-	
-	
-	/** no selection card **/
-	//JPanel mNullCard = null;
-	
-	/** currentn displayed object panel **/
-	JPanel mCurCard = null;
-	
-	/** the selected Object to inspect **/
-	LWComponent mObject = null;
-	
-	/** the selected resource to sinpect **/
-	Resource mAsset = null;
-	
-	
-	
-	///////////////////
-	// Constructors
-	////////////////////
-	
-	public ObjectInspectorPanel() {
-		super();
-		
-		setLayout(new BorderLayout());
-		
-		VueResources.initComponent( this, "tabPane");
-		
-		mCardPanel = new JPanel();
-		mCards = new CardLayout();
-		mCardPanel.setLayout( mCards );
-
-                /*
-		mNullCard = new JPanel();
-		mNullCard.setLayout( new BorderLayout() );
-		mNullCard.add( BorderLayout.CENTER, new JLabel("No Selection"));
-                */
-		
-		mNodeCard = new NodeInspectorPanel();
-		mLinkCard = new LinkInspectorPanel();
-		mAssetCard = new AssetInspectorPanel();
-		
-		//mCards.addLayoutComponent( kNullType,  mNullCard);
-		mCards.addLayoutComponent( kNodeType,  mNodeCard);
-		mCards.addLayoutComponent( kLinkType,  mLinkCard);
-		mCards.addLayoutComponent( kAssetType,  mAssetCard);
-		
-		add( mCardPanel);
-		//setCard( mNullCard);
-		//add( BorderLayout.CENTER, mCardPanel);
-	}
-	
-	
-	
-	////////////////////
-	// Methods
-	///////////////////
-	
-	
-	
-	private void setCard( JPanel pCard) {
-		if( mCurCard != null) {
-			mCardPanel.remove( mCurCard);
-			}
-		mCurCard = pCard;
-		if( pCard != null) {
-			debug( "  setting card to: "+pCard.getClass().getName() );
-			mCardPanel.add( BorderLayout.CENTER, pCard);
-			pCard.setVisible(true);
-			validate();
-			repaint();
-			}
-	}
+    
+    
+    /////////////
+    // Fields
+    //////////////
+    
+    /** The tabbed panel **/
+    JTabbedPane mTabbedPane = null;
+    
+    /** The node we are inspecting **/
+    LWComponent mComponent = null;
+    
+    /** info tab panel **/
+    InfoPanel mInfoPanel = null;
+    
+    /** pathways panel **/
+    TreePanel mTreePanel = null;
+    
+    /** notes panel **/
+    NotePanel mNotePanel = null;
+    
+    /** filter panel **/
+    
+    NodeFilterPanel mNodeFilterPanel = null;
+    ///////////////////
+    // Constructors
+    ////////////////////
+    
+    public ObjectInspectorPanel() {
+        super();
+        
+        setMinimumSize( new Dimension( 200,200) );
+        setLayout( new BorderLayout() );
+        setBorder( new EmptyBorder( 5,5,5,5) );
+        mTabbedPane = new JTabbedPane();
+        VueResources.initComponent( mTabbedPane, "tabPane");
+        
+        mInfoPanel = new InfoPanel();
+        mTreePanel = new TreePanel();
+        mNotePanel = new NotePanel();
+        mNodeFilterPanel = new NodeFilterPanel();
+        
+        mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
+        mTabbedPane.addTab( mTreePanel.getName(),  mTreePanel);
+        mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
+        mTabbedPane.addTab(mNodeFilterPanel.getName(),mNodeFilterPanel);
+        add( BorderLayout.CENTER, mTabbedPane );
+        System.out.println("CREATED OBJECT INSPECTOR PANEL");
+    }
+    
+    
+    
+    ////////////////////
+    // Methods
+    ///////////////////
+    
     
     /**
-     * Set the LWComponent to display
+     * setComponent
+     * Sets the LWMap component and updates the display
+     *
+     * @param pComponet - the LWMap to inspect
      **/
-    public void setLWComponent( LWComponent pObject) {
-		
-        // if we have a change in maps... 
-        if (pObject != mObject) {
-            mObject = pObject;
-
-            if (mObject == null) {
-                debug("  null type");
-                //mCards.show( mCardPanel, kNullType);
-                //setCard( mNullCard);
-                if (mCurCard != null)
-                    mCurCard.setEnabled(false);
-                return;
-            }
-            
-            if (mObject instanceof LWNode ) {
-                debug("  node type selection");
-                mNodeCard.setNode( (LWNode) mObject);
-                //mCards.show( mCardPanel, kNodeType);
-                setCard( mNodeCard);
-            }
-            else if (mObject instanceof  LWLink ) {
-                    debug("  link selection");
-                    mLinkCard.setLink( (LWLink) mObject);
-                    //mCards.show( mCardPanel, kLinkType);
-                    setCard( mLinkCard);
-            }
-            else {
-                debug("  unhandled selection: "+ pObject);
-            }
-
-            mCurCard.setEnabled(true);
-            
-        }
-    }
-	
-	
-	/**
-	 * updatePanels
-	 * This method updates the panel's content pased on the selected
-	 * Map
-	 *
-	 **/
-	public void updatePanels() {
-		
-	}
-	
-    public void activateNotesTab() {
-        if( mCurCard != null) {
-            if( mCurCard instanceof InspectorCard ) {
-                ( (InspectorCard) mCurCard).setTab( NOTES_TAB);
-            }
-        }
-    }
-    public void activateInfoTab() {
-        if( mCurCard != null) {
-            if( mCurCard instanceof InspectorCard ) {
-                ( (InspectorCard) mCurCard).setTab( INFO_TAB);
-            }
-        }
-    }
-    public void activateTreeTab() {
-        if( mCurCard != null) {
-            if( mCurCard instanceof InspectorCard ) {
-                ( (InspectorCard) mCurCard).setTab( TREE_TAB);
-            }
+    public void setLWComponent(LWComponent pComponent) {
+        
+        // if we have a change in maps...
+        if( pComponent != mComponent) {
+            mComponent = pComponent;
+            updatePanels();
         }
     }
     
-	//////////////////////
-	// OVerrides
-	//////////////////////
+    
+    /**
+     * updatePanels
+     * This method updates the panel's content pased on the selected
+     * Map
+     *
+     **/
+    public void updatePanels() {
+        mInfoPanel.updatePanel( mComponent);
+        mTreePanel.updatePanel( mComponent);
+        mNotePanel.updatePanel( mComponent);
+        mNodeFilterPanel.updatePanel(mComponent);
+    }
+    
+    //////////////////////
+    // OVerrides
+    //////////////////////
+    
+    
+    public Dimension getPreferredSize()  {
+        Dimension size =  super.getPreferredSize();
+        if( size.getWidth() < 300 ) {
+            size.setSize( 300, size.getHeight() );
+        }
+        if( size.getHeight() < 250 ) {
+            size.setSize( size.getWidth(), 250);
+        }
+        return size;
+    }
+    
+    
+    public void selectionChanged( LWSelection pSelection) {
+        LWComponent lwc = null;
+        if( pSelection.size() == 1 )  {
+           // debug( "Object Inspector single selection");
+            lwc = pSelection.first();
+             setLWComponent(lwc);
+        }
+        else {
+           // debug("ObjectInspector item selection size is: "+ pSelection.size() );
+        }
+       // setLWComponent(lwc);
+        
+    }
+    
+    
+    
+    /////////////////
+    // Inner Classes
+    ////////////////////
+    
+    
+    
+    
+    /**
+     * InfoPanel
+     * This is the tab panel for displaying Map Info
+     *
+     **/
+    public class InfoPanel extends JPanel {
+        
+        JScrollPane mInfoScrollPane = null;
+        JLabel nodeLabel = null;
+        Box mInfoBox = null;
+        
+        public InfoPanel() {
+            setLayout( new BorderLayout() );
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+            mInfoBox = Box.createVerticalBox();
+            
+            nodeLabel = new JLabel("Node");
+            nodeLabel.setFont(VueConstants.FONT_MEDIUM_BOLD);
+            JPanel labelPanel = new JPanel(new BorderLayout());
+            labelPanel.setBorder( BorderFactory.createEmptyBorder(0,0,5,0));
+            labelPanel.add(nodeLabel);
+            // DEMO FIXX:  Demo hack
+            mInfoBox.add(labelPanel);
+            mInfoBox.add( new LWCInfoPanel() );
+            mInfoScrollPane = new JScrollPane();
+            mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            mInfoScrollPane.setLocation(new Point(8, 9));
+            mInfoScrollPane.setVisible(true);
+            mInfoScrollPane.getViewport().add(mInfoBox);
+            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
+            //mInfoScrollPane.getViewport().add(new JPanel());
+            
+            setBorder( BorderFactory.createEmptyBorder(10,10,0,6));
+            add(mInfoScrollPane,BorderLayout.NORTH );
+            
+            //mInfoBox.add( new JLabel("Node Info") );
+            // mInfoBox.add( new PropertyPanel() );;
+        }
+        
+        
+        public String getName() {
+            String name = VueResources.getString("mapInfoTabName") ;
+            
+            if( name == null) {
+                name = "Info";
+            }
+            return name;
+        }
+        
+        
+        
+        /**
+         * updatePanel
+         * Updates the Map info panel
+         * @param LWMap the map
+         **/
+        public void updatePanel( LWComponent pComponent) {
+            if(pComponent instanceof LWLink) 
+                nodeLabel.setText("Link");
+            else
+                nodeLabel.setText("Node");
+            // update the display
+        }
+    }
+    
+    
+    /**
+     * This is the Pathway Panel for the Map Inspector
+     *
+     **/
+    public class TreePanel extends JPanel {
+        
+        /** the path scroll pane **/
+        JScrollPane mTreeScrollPane = null;
+        
+        /** the tree to represented in the scroll pane **/
+        OutlineViewTree tree = null;
+        
+        /** the header of the panel**/
+        //JLabel panelLabel = null;
+        
+        /**
+         * TreePanel
+         * Constructs a pathway panel
+         **/
+        public TreePanel() {
+            
+            //fix the layout?
+            setLayout( new BorderLayout() );
+            setBorder( new EmptyBorder(4,4,4,4) );
+            
+            
+            tree = new OutlineViewTree();
+            tree.setBorder(new EmptyBorder(4,4,4,4));
+            
+            //panelLabel = new JLabel();
+            
+            mTreeScrollPane = new JScrollPane(tree);
+            mTreeScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            mTreeScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            mTreeScrollPane.setLocation(new Point(8, 9));
+            mTreeScrollPane.setVisible(true);
+            
+            //add(panelLabel, BorderLayout.NORTH);
+            add(mTreeScrollPane, BorderLayout.CENTER);
+        }
+        
+        
+        public String getName() {
+            String name = VueResources.getString("nodeTreeTabName") ;
+            if( name == null) {
+                name = "Tree";
+            }
+            return name;
+        }
+        
+        
+        /**
+         * updatePanel
+         * This updates the Panel display based on a new LWMap
+         *
+         **/
+        public void updatePanel( LWComponent pComponent) {
+            // update display based on the LWNode
+           /** 
+             if(pComponent instanceof LWContainer)   {
+     
+                    add(mTreeScrollPane);
+                    tree.switchContainer((LWContainer)pComponent);
+                    validate();
+             }else if(pComponent instanceof LWLink) {
+                 //System.out.println("P Component  ="+pComponent);
+                 remove(mTreeScrollPane);
+                 validate();
+                 repaint();
+             }
+             **/
+             
+            //if the tree is not intiliazed, hidden, or doesn't contain the given node,
+            //then it switches the model of the tree using the given node
+             if (!tree.isInitialized() || !this.isVisible() || !tree.contains(pComponent)) {
+                //panelLabel.setText("Node: " + pNode.getLabel());
+               if(pComponent instanceof LWContainer)  
+                    tree.switchContainer((LWContainer)pComponent);
+             }
+            
+            //if the node is in the model and the panel is visible and intialized,
+            //then it sets the selected path to the one which ends with the given node
+             else
+                tree.setSelectionPath(pComponent);
+            }
+    }
+    
+    public class NodeFilterPanel extends JPanel implements ActionListener{
+        NodeFilterEditor nodeFilterEditor = null;
+        
+        public NodeFilterPanel() {
+            
+            setLayout(new BorderLayout());
+            setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
+            
+            // todo in VUE to create map before adding panels or have a model that
+            // has selection loaded when map is added.
+            // nodeFilterEditor = new NodeFilterEditor(mNode.getNodeFilter(),true);
+            // add(nodeFilterEditor);
+        }
+        
+        
+        public void actionPerformed(ActionEvent e) {
+        }
+        public String getName() {
+            return "Custom Metadata"; // this should come from VueResources
+        }
+        public void updatePanel( LWComponent pComponent) {
+            // update the display
+            if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + pComponent);
+            if(nodeFilterEditor!= null) {
+                nodeFilterEditor.setNodeFilter(pComponent.getNodeFilter());
+            }else {
+                nodeFilterEditor = new NodeFilterEditor(pComponent.getNodeFilter(),true);
+                add(nodeFilterEditor,BorderLayout.CENTER);
+            }
+            validate();
+        }
+    }
+    
+    
+    /**
+     * setTab
+     * Sets the selected Tab for teh panel to the specifided ObjectInspector panel key
+     **/
+    public void setTab( int pTabKey) {
+        if (pTabKey == NOTES_TAB ) {
+            mTabbedPane.setSelectedComponent( mNotePanel);
+        } else if (pTabKey == INFO_TAB ) {
+            mTabbedPane.setSelectedComponent( mInfoPanel );
+        } else if (pTabKey == TREE_TAB ) {
+            mTabbedPane.setSelectedComponent( mTreePanel );
+        } else if(pTabKey == FILTER_TAB) {
+            mTabbedPane.setSelectedComponent(mNodeFilterPanel);
+        }
+    }
+    
 
-
-	public Dimension getPreferredSize()  {
-		Dimension size =  super.getPreferredSize();
-		if( size.getWidth() < 320) {
-			size.setSize( 320, size.getHeight() );
-			}
-		if( size.getHeight() < 300 ) {
-			size.setSize( size.getWidth(), 300);
-			}
-		return size;
-	}
-
-	
-
-
-
-
-	/////////////
-		// LWSelection.Listener Interface Implementation
-		/////////
-		public void selectionChanged( LWSelection pSelection) {
-                    if (DEBUG.SELECTION) System.out.println("Selection changed in ObjectInspectorPanel");
-			LWComponent lwc = null;
-			if( pSelection.size() == 1 )  {
-				debug( "Object Inspector single selection");
-				lwc = pSelection.first();
-				}
-			else {
-				debug("ObjectInspector item selection size is: "+ pSelection.size() );
-				}
-			setLWComponent( lwc);
-			
-		}
-	
-	
-	/////////////
-		// ResourceSelection.Listener Interface Implementation
-		/////////
-		public void selectionChanged( ResourceSelection pSelection) {
-			
-			Resource resource = null;
-			if( pSelection.size() == 1 )  {
-				debug( "Object Inspector single RESOURCE selection");
-				resource = pSelection.first();
-				}
-			else {
-				debug("ObjectInspector RESOURCE selection size is: "+ pSelection.size() );
-				}
-			//setResource( resource);
-			
-		}
-	
-	
-	
-	
-	/////////////////
-	// Inner Classes
-	////////////////////
-	
-	
-	
-	
-
-
-    private static boolean sDebug = false;
-	private void debug( String str) {
-		if( sDebug) {
-			System.out.println( str);
-			}
-	}
-
-	public interface InspectorCard {
-		public void setTab( int pTabKey);
-	}
 }
+
+
+
