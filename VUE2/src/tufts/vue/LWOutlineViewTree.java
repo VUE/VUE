@@ -63,9 +63,10 @@ public class LWOutlineViewTree extends InspectorWindow implements LWComponent.Li
         
                     if (treeNode == null || treeNode.getUserObject() instanceof String) 
                       selectedComponent = null;
-
-                    else
+                    else {
                       selectedComponent = (LWComponent)treeNode.getUserObject();
+                      VUE.ModelSelection.setTo(selectedComponent);
+                    }
                 }
             }
         );
