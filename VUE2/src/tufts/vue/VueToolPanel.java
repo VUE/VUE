@@ -57,95 +57,109 @@ public class VueToolPanel extends JPanel
 	
 	
 	/***
-	* VueToolPanel()
-	* The constructor that builds an initial VUE ToolPanel
-	**/
-	public VueToolPanel() {
-		super();
-		mButtonGroup = new ButtonGroup();
+         * VueToolPanel()
+         * The constructor that builds an initial VUE ToolPanel
+         **/
+     private static final boolean debug = false;
+     public VueToolPanel() {
+         super();
+         mButtonGroup = new ButtonGroup();
 		
-		this.setBackground( VueResources.getColor( "toolbar.background") );
+         if (debug)
+             this.setBackground(Color.blue);
+         else
+             this.setBackground( VueResources.getColor( "toolbar.background") );
 		
-		this.setLayout( new BorderLayout() );
-		this.setBorder( new EmptyBorder(0,0,0,0) );
+         this.setLayout( new BorderLayout() );
+         this.setBorder( new EmptyBorder(0,0,0,0) );
 		
-		mMainToolPanel = new JPanel();
-		mMainBox = Box.createHorizontalBox();
+         mMainToolPanel = new JPanel();
+         mMainBox = Box.createHorizontalBox();
 		
-		BoxLayout boxLayout = new BoxLayout( mMainToolPanel, BoxLayout.X_AXIS);
-		mMainToolPanel.setLayout(boxLayout);
+         BoxLayout boxLayout = new BoxLayout( mMainToolPanel, BoxLayout.X_AXIS);
+         mMainToolPanel.setLayout(boxLayout);
 		
-		mMainToolPanel.setBackground( mBakColor);
+         if (debug)
+             mMainToolPanel.setBackground(Color.green);
+         else
+             mMainToolPanel.setBackground( mBakColor);
 
-		mContextualToolPanel = new JPanel();
-		mContextualToolPanel.setAlignmentX( LEFT_ALIGNMENT);
-		BoxLayout ctpLayout = new BoxLayout(  mContextualToolPanel, BoxLayout.X_AXIS); 
-		mContextualToolPanel.setLayout( ctpLayout ); 
-		mContextualToolPanel.setBackground( mBakColor);
-		
-		this.setAlignmentX( LEFT_ALIGNMENT);
-		this.add( BorderLayout.WEST, mMainToolPanel);
-		this.add( BorderLayout.EAST, mContextualToolPanel);
-		
-	}
-	
-	
-	/**
-	 * addToolButton
-	 * This method adds a PaletteButton to the main tool panel as
-	 * a tool to be used in the set of main tools
-	 *
-	 * @param PaletteButton - the button to add
-	 **/
-	public void addToolButton( PaletteButton pButton) {
+         mContextualToolPanel = new JPanel();
+         mContextualToolPanel.setAlignmentX( LEFT_ALIGNMENT);
+         BoxLayout ctpLayout = new BoxLayout(  mContextualToolPanel, BoxLayout.X_AXIS); 
+         mContextualToolPanel.setLayout( ctpLayout ); 
 
-		pButton.setBackground( mBakColor);
-		mMainToolPanel.add( pButton);
-		mButtonGroup.add( pButton);
-		if( mButtonGroup.getButtonCount() == 1) {
-			pButton.setSelected( true);
-                }
-	}
-	
-	
-	/**
-	 * addTools()
-	 * This method adds an array of VueTool items and creates
-	 * main toolbar buttons based on the VueTool.
-	 *
-	 * @param VueTool [] - the list of tools
-	 **/
-	public void addTools( VueTool [] pTools) {
-		for( int i=0; i<pTools.length; i++) {
-				addTool( pTools[i] );
-				}
-	}
-	
-	
-	/**
-	 * addTool
-	 * This method adds a single VueTool to the main toolbar.
-	 * It creates a PaleteButton for the tool and adds it to the toolbar panel.
-	 *
-	 * #param VueTool - the tool to add.
-	 **/
-	public void addTool( VueTool pTool) {
-	
-		if( mTools == null) {
-			mTools = new Vector();
-			}
-		mTools.add( pTool);
-		PaletteButton button = createPaletteButton( pTool);
+         if (debug)
+             mContextualToolPanel.setBackground( Color.orange);
+         else
+             mContextualToolPanel.setBackground( mBakColor);
 		
-		// save teh component in the button map
-		mToolButtons.put( pTool.getID(), button);
+         this.setAlignmentX( LEFT_ALIGNMENT);
+         this.add( BorderLayout.WEST, mMainToolPanel);
+         this.add( BorderLayout.EAST, mContextualToolPanel);
+		
+     }
+	
+	
+     /**
+      * addToolButton
+      * This method adds a PaletteButton to the main tool panel as
+      * a tool to be used in the set of main tools
+      *
+      * @param PaletteButton - the button to add
+      **/
+     public void addToolButton( PaletteButton pButton) {
+         
+         if (debug)
+             pButton.setBackground(Color.magenta);
+         else
+             pButton.setBackground( mBakColor);
+         mMainToolPanel.add( pButton);
+         mButtonGroup.add( pButton);
+         if( mButtonGroup.getButtonCount() == 1) {
+             pButton.setSelected( true);
+         }
+     }
+	
+	
+     /**
+      * addTools()
+      * This method adds an array of VueTool items and creates
+      * main toolbar buttons based on the VueTool.
+      *
+      * @param VueTool [] - the list of tools
+      **/
+     public void addTools( VueTool [] pTools) {
+         for( int i=0; i<pTools.length; i++) {
+             addTool( pTools[i] );
+         }
+     }
+	
+	
+     /**
+      * addTool
+      * This method adds a single VueTool to the main toolbar.
+      * It creates a PaleteButton for the tool and adds it to the toolbar panel.
+      *
+      * #param VueTool - the tool to add.
+      **/
+     public void addTool( VueTool pTool) {
+	
+         if( mTools == null) {
+             mTools = new Vector();
+         }
+         mTools.add( pTool);
+         PaletteButton button = createPaletteButton( pTool);
+		
+         // save teh component in the button map
+         mToolButtons.put( pTool.getID(), button);
                 
-                // todo: setting this mnemonic doesn't appear to work
-                //if (pTool.getShortcutKey() != 0)
-                //button.setMnemonic(pTool.getShortcutKey());
-		addToolButton( button);
+         // todo: setting this mnemonic doesn't appear to work
+         //if (pTool.getShortcutKey() != 0)
+         //button.setMnemonic(pTool.getShortcutKey());
+         addToolButton( button);
 		
-	}
+     }
 	
 	/**
 	 * getSelectedTool
@@ -196,18 +210,18 @@ public class VueToolPanel extends JPanel
 	 * any components already displayed.
 	 **/
 	public void setContextualToolPanel( JPanel pPanel) {
-		
-		
-		mContextualToolPanel.removeAll();
-		if( pPanel != null) {
-			pPanel.setBackground( mBakColor);
-			mContextualToolPanel.add( pPanel);
-			}
-				
-		validate();
-		repaint();
+            mContextualToolPanel.removeAll();
+            if (pPanel != null) {
+                if (debug)
+                    pPanel.setBackground(Color.cyan);
+                else
+                    pPanel.setBackground( mBakColor);
+                mContextualToolPanel.add( pPanel);
+            }
+            validate();
+            repaint();
 	}
-	
+     
 	
 	/**
 	 * removeTool()

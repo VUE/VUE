@@ -18,7 +18,8 @@ import tufts.vue.beans.*;
  *
  **/
  
- public class NodeToolPanel extends JPanel implements ActionListener, PropertyChangeListener {
+public class NodeToolPanel extends JPanel implements ActionListener, PropertyChangeListener {
+// public class NodeToolPanel extends Box implements ActionListener, PropertyChangeListener {
  
  	////////////
  	// Statics
@@ -69,99 +70,112 @@ import tufts.vue.beans.*;
  	//////////////////
  	
      
-     private static boolean debug = false;
+    private static boolean debug = false;
+     private static final Insets NoInsets = new Insets(0,0,0,0);
+    //private static final Insets ButtonInsets = new Insets(-2,-2,-2,-1);
+    private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
+    //private static final Insets ButtonInsets = NoInsets;
+     
      public NodeToolPanel() {
-         final Insets NoInsets = new Insets(0,0,0,0);
-                
- 		Color bakColor = VueResources.getColor("toolbar.background");
- 		if (debug) bakColor = Color.red;
-		if (false)
-                    setBackground(Color.blue);
-                else
-                    setBackground( bakColor);
- 		Box box = Box.createHorizontalBox();
-                if (false)
-                    box.setBackground(Color.green);
-                else
-                    box.setBackground(bakColor);
- 		this.setAlignmentX( LEFT_ALIGNMENT);
+         //super(BoxLayout.X_AXIS);
+         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+         // squeeze everything to keep the font editor panel from going right
+         // up against the edge -- any more than 2 tho and we grow bigger than
+         // the VueToolPanel which we don't want to do because the whole frame resizes.
+         if (debug)
+             setBorder(new javax.swing.border.LineBorder(Color.pink, 2));
+         else
+             setBorder(new javax.swing.border.EmptyBorder(2,1,2,1));//t,l,b,r
+
+         Color bakColor = VueResources.getColor("toolbar.background");
+         if (debug) bakColor = Color.red;
+         if (debug)
+             setBackground(Color.blue);
+         else
+             setBackground( bakColor);
+         Box box = Box.createHorizontalBox();
+         //if (false) box.setBackground(Color.green);
+         //else box.setBackground(bakColor);
+         box.setBackground(bakColor);
+         //this.setAlignmentX( LEFT_ALIGNMENT);
  		
- 		Color [] fillColors = VueResources.getColorArray( "fillColorValues");
- 		String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
- 		mFillColorButton = new ColorMenuButton( fillColors, fillColorNames, true);
- 		mFillColorButton.setBackground( bakColor);
-		ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
-		BlobIcon fillBlob = new BlobIcon();
-		fillBlob.setOverlay( fillIcon );
-		mFillColorButton.setIcon(fillBlob);
- 		mFillColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
- 		mFillColorButton.setBorderPainted(false);
- 		mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
- 		mFillColorButton.setMargin(NoInsets);
+         Color [] fillColors = VueResources.getColorArray( "fillColorValues");
+         String [] fillColorNames = VueResources.getStringArray( "fillColorNames");
+         mFillColorButton = new ColorMenuButton( fillColors, fillColorNames, true);
+         mFillColorButton.setBackground( bakColor);
+         ImageIcon fillIcon = VueResources.getImageIcon("nodeFillIcon");
+         BlobIcon fillBlob = new BlobIcon();
+         fillBlob.setOverlay( fillIcon );
+         mFillColorButton.setIcon(fillBlob);
+         mFillColorButton.setPropertyName( VueLWCPropertyMapper.kFillColor);
+         mFillColorButton.setBorderPainted(false);
+         mFillColorButton.setColor( VueResources.getColor( "defaultFillColor") );
+         mFillColorButton.setMargin(ButtonInsets);
 
- 		Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
- 		String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
- 		mStrokeColorButton = new ColorMenuButton( strokeColors, strokeColorNames, true);
- 		mStrokeColorButton.setBackground( bakColor);
-		ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
-		BlobIcon strokeBlob = new BlobIcon();
-		strokeBlob.setOverlay( strokeIcon );
-		mStrokeColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
-		mStrokeColorButton.setIcon( strokeBlob);
-		mStrokeColorButton.setBorderPainted(false);
-		mStrokeColorButton.setMargin(NoInsets);
+         Color [] strokeColors = VueResources.getColorArray( "strokeColorValues");
+         String [] strokeColorNames = VueResources.getStringArray( "strokeColorNames");
+         mStrokeColorButton = new ColorMenuButton( strokeColors, strokeColorNames, true);
+         mStrokeColorButton.setBackground( bakColor);
+         ImageIcon strokeIcon = VueResources.getImageIcon("nodeStrokeIcon");
+         BlobIcon strokeBlob = new BlobIcon();
+         strokeBlob.setOverlay( strokeIcon );
+         mStrokeColorButton.setPropertyName( VueLWCPropertyMapper.kStrokeColor);
+         mStrokeColorButton.setIcon( strokeBlob);
+         mStrokeColorButton.setBorderPainted(false);
+         mStrokeColorButton.setMargin(ButtonInsets);
 
- 		Color [] textColors = VueResources.getColorArray( "textColorValues");
- 		String [] textColorNames = VueResources.getStringArray( "textColorNames");
- 		mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
- 		mTextColorButton.setBackground( bakColor);
-		ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
-		BlobIcon textBlob = new BlobIcon();
-		textBlob.setOverlay( textIcon );
-		mTextColorButton.setIcon(textBlob);
- 		mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
- 		mTextColorButton.setBorderPainted(false);
- 		mTextColorButton.setMargin(NoInsets);
+         Color [] textColors = VueResources.getColorArray( "textColorValues");
+         String [] textColorNames = VueResources.getStringArray( "textColorNames");
+         mTextColorButton = new ColorMenuButton( textColors, textColorNames, true);
+         mTextColorButton.setBackground( bakColor);
+         ImageIcon textIcon = VueResources.getImageIcon("textColorIcon");
+         BlobIcon textBlob = new BlobIcon();
+         textBlob.setOverlay( textIcon );
+         mTextColorButton.setIcon(textBlob);
+         mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
+         mTextColorButton.setBorderPainted(false);
+         mTextColorButton.setMargin(ButtonInsets);
 
- 		mFontPanel = new FontEditorPanel();
-		mFontPanel.setBackground( bakColor);
- 		mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
-                mFontPanel.setBorder(null);
- 		//mFontPanel.setMargin(NoInsets); // how reduce border?
- 		
+         mFontPanel = new FontEditorPanel();
+         if (debug)
+             mFontPanel.setBackground(Color.green);
+         else
+             mFontPanel.setBackground(bakColor);
+         mFontPanel.setPropertyName( VueLWCPropertyMapper.kFont );
  		
 		
-		mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
-		LineIcon lineIcon = new LineIcon( 16,12);
-		mStrokeButton.setBackground( bakColor);
-		mStrokeButton.setIcon( lineIcon);
-		mStrokeButton.setStroke( (float) 1);
- 		mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
+         mStrokeButton = new StrokeMenuButton( sStrokeValues, sStrokeMenuLabels, true, false);
+         LineIcon lineIcon = new LineIcon( 16,12);
+         mStrokeButton.setBackground( bakColor);
+         mStrokeButton.setIcon( lineIcon);
+         mStrokeButton.setStroke( (float) 1);
+         mStrokeButton.setPropertyName( VueLWCPropertyMapper.kStrokeWeight);
+         //mStrokeButton.setBorderPainted(false);
+         mStrokeButton.setMargin(ButtonInsets);
  		
- 		box.add( mFillColorButton);
- 		box.add( mStrokeColorButton);
- 		box.add( mStrokeButton);
- 		box.add(mTextColorButton);
- 		box.add( mFontPanel);
+         box.add( mFillColorButton);
+         box.add( mStrokeColorButton);
+         box.add( mStrokeButton);
+         box.add( mTextColorButton);
+         box.add( mFontPanel);
  		
- 		this.add( box);
+         this.add(box);
  		
- 		initDefaultState();
- 	}
+         initDefaultState();
+     }
  	
  	
- 	////////////////
- 	// Methods
- 	/////////////////
+     ////////////////
+     // Methods
+     /////////////////
  	
  	
  	
- 	private void initDefaultState() {
- 	
- 		LWNode node = new LWNode();
- 		mDefaultState = VueBeans.getState( node);
- 		setValue( mDefaultState);
- 	}
+     private void initDefaultState() {
+         LWNode node = new LWNode();
+         mDefaultState = VueBeans.getState( node);
+         setValue( mDefaultState);
+     }
  	
  	/**
  	 * setValue
@@ -265,13 +279,13 @@ import tufts.vue.beans.*;
  	
     public static void main(String[] args) {
         System.out.println("NodeToolPanel:main");
-        //sFontNames = new String[] { "New Times Roman", "Courier", "Arial" }; // so doesn't bother to load system fonts
-
-        debug = true;
         VUE.initUI(true);
 
+        debug = true;
+
         JComponent comp = new NodeToolPanel();
-        JFrame frame = new JFrame("toolbar");
+
+        JFrame frame = new JFrame(comp.getClass().getName());
         comp.setSize(comp.getPreferredSize());
         frame.setContentPane(comp);
         frame.pack();
@@ -279,6 +293,5 @@ import tufts.vue.beans.*;
         VueUtil.centerOnScreen(frame);
         frame.show();
     }
- 	
  	
  }

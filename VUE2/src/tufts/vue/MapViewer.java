@@ -2816,10 +2816,11 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
+                else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
                 else
                     did = false;
                 if (did) {
-                    System.err.println("MapViewer diagnostic '" + c + "' toggled.");
+                    System.err.println("*** diagnostic '" + c + "' toggled.");
                     repaint();
                 }
             }

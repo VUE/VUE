@@ -72,7 +72,9 @@ import tufts.vue.beans.*;
  	
  	public LinkToolPanel() {
  		
-  		Color bakColor = VueResources.getColor("toolbar.background");
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+
+                Color bakColor = VueResources.getColor("toolbar.background");
 		Box box = Box.createHorizontalBox();
  		setBackground( bakColor);
  		

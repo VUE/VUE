@@ -349,7 +349,7 @@ public class LWMap extends LWContainer
             // otherwise will be in conjunction with a reparenting
             // event, and so we'll detect the change that way.
             if (DEBUG.EVENTS && mChanges == 0)
-                new Throwable(this + " FIRST MODIFICATION " + e).printStackTrace();
+                new Throwable("FIRST MODIFICATION " + e).printStackTrace();
             mChanges++;
         }
         super.notifyLWCListeners(e);

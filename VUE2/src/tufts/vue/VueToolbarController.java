@@ -539,18 +539,20 @@ public class VueToolbarController
 
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
-        JFrame frame = new JFrame("toolbar");
-        JComponent toolbar = getController().createDefaultToolbar();
-        toolbar.setSize(toolbar.getPreferredSize());
-        frame.setContentPane(toolbar);
+        VUE.initUI(true);
+
+        VueToolbarController controller = getController();
+
+        //JComponent comp = controller.createDefaultToolbar();
+        VueToolPanel comp = controller.createDefaultToolbar();
+        comp.setContextualToolPanel(new NodeToolPanel());
+
+        JFrame frame = new JFrame(comp.getClass().getName());
+        comp.setSize(comp.getPreferredSize());
+        frame.setContentPane(comp);
         frame.pack();
         frame.validate();
-        if (VueUtil.getJavaVersion() >= 1.4f) {
-            Point p = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
-            p.x -= frame.getWidth() / 2;
-            p.y -= frame.getHeight() / 2;
-            frame.setLocation(p);
-        }
+        VueUtil.centerOnScreen(frame);
         frame.show();
     }
      

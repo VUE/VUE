@@ -17,7 +17,7 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  *
  **/
  
- public class FontEditorPanel extends JPanel implements ActionListener, VueConstants {
+public class FontEditorPanel extends Box implements ActionListener, VueConstants {
  
  	////////////
  	// Statics
@@ -65,65 +65,92 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  	// Constructors
  	//////////////////
  	
- 	public FontEditorPanel() {
-                loadFontNames();
-                Insets NoInsets = new Insets(0,0,0,0);
+    private static final boolean debug = false;
+    private static final Insets NoInsets = new Insets(0,0,0,0);
+    private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
+    private static final int VertSqueeze = 5;
                 
- 		Box box = Box.createHorizontalBox();
- 		
+    public FontEditorPanel()
+    {
+	super(BoxLayout.X_AXIS);
 
-                mFontCombo = new JComboBox( sFontNames);
- 		mFontCombo.addActionListener( this );
- 		Font f = mFontCombo.getFont();
- 		Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
- 		mFontCombo.setFont( menuFont);
-                //mFontCombo.setBackground(Color.green);
- 		//mFontCombo.setBorderPainted(false);
+        setFocusable(false);
+        if (debug) setBackground(Color.blue);
+        
+        //Box box = Box.createHorizontalBox();
+        /*
+        // we set this border only to create a gap around these components
+        // so they don't expand to 100% of the height of the region they're
+        // in -- okay, that's not good enough -- will have to find another
+        // way to constrain the combo-box.
+
+        if (debug)
+            setBorder(new javax.swing.border.LineBorder(Color.pink, VertSqueeze));
+        else
+            setBorder(new javax.swing.border.EmptyBorder(VertSqueeze,1,VertSqueeze,1));//t,l,b,r
+        */
+
+        mFontCombo = new JComboBox(getFontNames());
+        mFontCombo.addActionListener( this );
+        Font f = mFontCombo.getFont();
+        Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
+        mFontCombo.setFont(menuFont);
+        mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
+        //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
+        //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
+        //mFontCombo.setMaximumSize(new Dimension(50,50)); // no effect
+        //mFontCombo.setSize(new Dimension(50,50)); // no effect
+        //mFontCombo.setBorder(null); // already has no border
+         		
+        mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
+        mSizeField.addActionListener( this);
+        f = mSizeField.getFont();
+        Font sizeFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
+        mSizeField.setFont( sizeFont);
  		
- 		
- 		mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
- 		mSizeField.addActionListener( this);
- 		f = mSizeField.getFont();
- 		Font sizeFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
- 		mSizeField.setFont( sizeFont);
- 		
- 		
- 		mBoldButton = new JToggleButton();
- 		mBoldButton.setSelectedIcon( sBoldOn);
- 		mBoldButton.setIcon( sBoldOff);
- 		mBoldButton.addActionListener( this);
-                mBoldButton.setBorderPainted(false);
-                mBoldButton.setMargin(NoInsets);
+        mBoldButton = new JToggleButton();
+        mBoldButton.setSelectedIcon( sBoldOn);
+        mBoldButton.setIcon( sBoldOff);
+        mBoldButton.addActionListener(this);
+        mBoldButton.setBorderPainted(false);
+        mBoldButton.setMargin(ButtonInsets);
                 
- 		mItalicButton = new JToggleButton();
- 		mItalicButton.setSelectedIcon( sItalicOn );
- 		mItalicButton.setIcon( sItalicOff);
- 		mItalicButton.addActionListener( this);
-                mItalicButton.setBorderPainted(false);
-                mItalicButton.setMargin(NoInsets);
+        mItalicButton = new JToggleButton();
+        mItalicButton.setSelectedIcon(sItalicOn);
+        mItalicButton.setIcon(sItalicOff);
+        mItalicButton.addActionListener(this);
+        mItalicButton.setBorderPainted(false);
+        mItalicButton.setMargin(ButtonInsets);
  		
- 		box.add( mFontCombo);
- 		box.add( mSizeField);
- 		box.add(mBoldButton);
- 		box.add( mItalicButton);
- 		this.add( box);
+        add(mFontCombo);
+        add(mSizeField);
+        add(mBoldButton);
+        add(mItalicButton);
  	
- 		setFontValue(  FONT_DEFAULT);
- 		this.initColors( VueResources.getColor("toolbar.background") );
- 	}
+        setFontValue(FONT_DEFAULT);
+        this.initColors( VueResources.getColor("toolbar.background") );
+    }
 
-     // as this can sometimes take a while, we can call this manually
-     // during startup to control when we take the delay.
-     private static Object sFontNamesLock = new Object();
-     static void loadFontNames()
-     {
-         synchronized (sFontNamesLock) {
-             if (sFontNames == null){
-                 //new Throwable("Loading system fonts...").printStackTrace();
-                 sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-             }
-         }
-     }
+    public void X_addNotify()
+    {
+        super.addNotify();
+        // this still doesn't shrink the button size: must use negative insets!
+        mBoldButton.setSize(new Dimension(sBoldOn.getIconWidth(), sBoldOn.getIconHeight()));
+    }
+
+    // as this can sometimes take a while, we can call this manually
+    // during startup to control when we take the delay.
+    private static Object sFontNamesLock = new Object();
+    static String[] getFontNames()
+    {
+        synchronized (sFontNamesLock) {
+            if (sFontNames == null){
+                //new Throwable("Loading system fonts...").printStackTrace();
+                sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+            }
+        }
+        return sFontNames;
+    }
  	
  	
  	////////////////
@@ -233,14 +260,15 @@ import tufts.vue.beans.VueLWCPropertyMapper;
  		return -1;
  	}
 
-    public static void main(String[] args) {
+     public static void main(String[] args) {
         System.out.println("FontEditorPanel:main");
-        sFontNames = new String[] { "New Times Roman", "Courier", "Arial" }; // so doesn't bother to load system fonts
-
         VUE.initUI(true);
+        
+        sFontNames = new String[] { "Lucida Sans Typewriter", "Courier", "Arial" }; // so doesn't bother to load system fonts
 
         JComponent comp = new FontEditorPanel();
-        JFrame frame = new JFrame("toolbar");
+
+        JFrame frame = new JFrame(comp.getClass().getName());
         comp.setSize(comp.getPreferredSize());
         frame.setContentPane(comp);
         frame.pack();

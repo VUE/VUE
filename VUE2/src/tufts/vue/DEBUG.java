@@ -11,4 +11,18 @@ class DEBUG
     static boolean ROLLOVER = false;
     static boolean EVENTS = false;
     static boolean SCROLL = false;
+    static boolean SELECTION = false;
+
+    //Mapper pSELECTION = new Mapper("selection") { void set(boolean v) { selection=v; } boolean get() { return selection; } }
+
+    abstract class Mapper {
+        String mName;
+        Mapper(String name) { mName = name; }
+        abstract void set(boolean v);
+        abstract boolean get();
+    }
+    Mapper[] props = {
+        new Mapper("selection") { void set(boolean v) { SELECTION=v; } boolean get() { return SELECTION; } },
+        new Mapper("scroll") { void set(boolean v) { SCROLL=v; } boolean get() { return SCROLL; } }
+    };
 }

@@ -8,7 +8,7 @@ import java.awt.geom.Point2D;
 
 public class LWSelection extends java.util.ArrayList
 {
-    public static final boolean DEBUG_SELECTION = VueResources.getBool("selection.debug");
+    //public static final boolean DEBUG.SELECTION = VueResources.getBool("selection.debug");
 
     private java.util.List listeners = new java.util.ArrayList();
     private java.util.List controlListeners = new java.util.LinkedList();
@@ -66,13 +66,13 @@ public class LWSelection extends java.util.ArrayList
     //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
     private void addControlListener(ControlListener listener)
     {
-        if (DEBUG_SELECTION) System.out.println(this + " adding control listener " + listener);
+        if (DEBUG.SELECTION) System.out.println(this + " adding control listener " + listener);
         controlListeners.add(listener);
     }
     
     private void removeControlListener(ControlListener listener)
     {
-        if (DEBUG_SELECTION) System.out.println(this + " removing control listener " + listener);
+        if (DEBUG.SELECTION) System.out.println(this + " removing control listener " + listener);
         if (!controlListeners.remove(listener))
             throw new IllegalStateException(this + " didn't contain control listener " + listener);
     }
@@ -95,12 +95,12 @@ public class LWSelection extends java.util.ArrayList
     {
         if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
         
-        if (DEBUG_SELECTION) System.out.println(this + " NOTIFYING LISTENERS");
+        if (DEBUG.SELECTION) System.out.println(this + " NOTIFYING LISTENERS");
         Iterator i = listeners.iterator();
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
             try {
-                if (DEBUG_SELECTION) System.out.println(this + " notifying: " + l);
+                if (DEBUG.SELECTION) System.out.println(this + " notifying: " + l);
                 l.selectionChanged(this);
             } catch (Exception ex) {
                 System.err.println(this + " notifyListeners: exception during selection change notification:"
@@ -136,7 +136,7 @@ public class LWSelection extends java.util.ArrayList
             add0(c);
             notifyListeners();
         } else
-            if (DEBUG_SELECTION) System.out.println(this + " addToSelection(already): " + c);
+            if (DEBUG.SELECTION) System.out.println(this + " addToSelection(already): " + c);
     }
     
     public boolean add(Object o)
@@ -179,7 +179,7 @@ public class LWSelection extends java.util.ArrayList
     
     private synchronized void add0(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println(this + " adding " + c);
+        if (DEBUG.SELECTION) System.out.println(this + " adding " + c);
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -199,7 +199,7 @@ public class LWSelection extends java.util.ArrayList
 
     private synchronized void remove0(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println(this + " removing " + c);
+        if (DEBUG.SELECTION) System.out.println(this + " removing " + c);
         if (!isClone) c.setSelected(false);
         if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
@@ -216,7 +216,7 @@ public class LWSelection extends java.util.ArrayList
      **/
     public synchronized void clearAndNotify() {
     	clear0();
-        if (DEBUG_SELECTION) System.out.println(this + " clearAndNotify: forced notification after clear");
+        if (DEBUG.SELECTION) System.out.println(this + " clearAndNotify: forced notification after clear");
     	notifyListeners();
     }
     
@@ -230,7 +230,7 @@ public class LWSelection extends java.util.ArrayList
     {
         if (isEmpty())
             return false;
-        if (DEBUG_SELECTION) System.out.println(this + " clear0");
+        if (DEBUG.SELECTION) System.out.println(this + " clear0");
 
         if (!isClone) {
             java.util.Iterator i = iterator();

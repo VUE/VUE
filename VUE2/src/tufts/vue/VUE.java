@@ -225,6 +225,7 @@ public class VUE
     {
         String laf = null;
         //laf = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        //laf = "javax.swing.plaf.basic.BasicLookAndFeel"; // not a separate L&F -- baseclass
         if (debug)
             laf = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
         try {
@@ -286,9 +287,13 @@ public class VUE
         String lafName = UIManager.getLookAndFeel().getName();
         System.out.println("LookAndFeel: \"" + lafName + "\" " + UIManager.getLookAndFeel());
         if (lafName.equals("Metal") || lafName.equals("Windows")) {
+
             UIManager.getLookAndFeelDefaults().put("TabbedPane.background", Color.lightGray);
-            //UIManager.getLookAndFeelDefaults().put("ComboBox.foreground", Color.red);
             UIManager.getLookAndFeelDefaults().put("ComboBox.background", Color.white);
+
+            // the rest of these are tests
+
+            //UIManager.getLookAndFeelDefaults().put("ComboBox.foreground", Color.red);
 
             // this doesn't do anything I can see:
             if (debug) UIManager.getLookAndFeelDefaults().put("ComboBox.buttonBackground", Color.yellow);
@@ -521,7 +526,7 @@ public class VUE
         }            
         //setViewerScrollbarsDisplayed(true);
         System.out.println("VUE.main: loading fonts...");
-        FontEditorPanel.loadFontNames();
+        FontEditorPanel.getFontNames();
         System.out.println("VUE.main completed.");
     }
 
