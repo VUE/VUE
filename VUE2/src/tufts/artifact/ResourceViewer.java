@@ -432,7 +432,9 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
             Iterator i  = results.iterator();
             while(i.hasNext()){
                 hit = (Hit)i.next();
-                MapResource resource = new MapResource(){
+                MapResource resource = new MapResource();
+                
+                /**
                     private String thumb = hit.thumb;
                     public JComponent getPreview() {
                         try {
@@ -444,6 +446,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
                     }
                     
                 };
+                 */
                 Properties properties = new Properties();
                 String displayTitle = hit.title;
                 if(hit.artist.length() > 0)
