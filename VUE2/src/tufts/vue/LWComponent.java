@@ -706,6 +706,7 @@ public class LWComponent
     /* for tracking who's linked to us */
     void addLinkRef(LWLink link)
     {
+        if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " adding link ref to " + link);
         if (this.links.contains(link))
             throw new IllegalStateException("addLinkRef: " + this + " already contains " + link);
         this.links.add(link);
@@ -713,6 +714,7 @@ public class LWComponent
     /* for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
+        if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
         if (!this.links.remove(link))
             throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
     }
@@ -1198,7 +1200,15 @@ public class LWComponent
         throw new UnsupportedOperationException("unimplemented draw in " + this);
     }
 
-    public synchronized void addLWCListener(LWComponent.Listener listener)
+    private static class LWCListener {
+        Listener listener;
+        Object eventKey;
+    }
+    
+    public synchronized void addLWCListener(Listener listener) {
+        addLWCListener(listener, null);
+    }
+    public synchronized void addLWCListener(Listener listener, Object eventKey)
     {
         if (listeners == null)
             listeners = new java.util.ArrayList();
@@ -1211,9 +1221,15 @@ public class LWComponent
         } else {
             if (DEBUG.EVENTS) System.out.println("*** LISTENER " + listener + "\t+++ADDS " + this);
             listeners.add(listener);
+            /*
+            if (eventKey == null)
+                listeners.add(listener);
+            else
+                listeners.add(new LWCListener(listener, eventKey));
+            */
         }
     }
-    public synchronized void removeLWCListener(LWComponent.Listener listener)
+    public synchronized void removeLWCListener(Listener listener)
     {
         if (listeners == null)
             return;
@@ -1415,6 +1431,19 @@ public class LWComponent
         removeAllLWCListeners();
         disconnectFromLinks();
         setDeleted(true);
+    }
+
+    /** undelete */
+    protected void restoreToModel()
+    {
+        if (!isDeleted()) {
+            //throw new IllegalStateException("Attempt to restore already restored: " + this);
+            out("FYI: already restored: " + this);
+            return;
+        }
+        // there is no reconnectToLinks: link endpoint connect events handle reconnect us back to our links
+        // We couldn't do it anyway as we wouldn't know which of the two endpoint to connect us to.
+        setDeleted(false);
     }
 
     public boolean isDeleted() {

@@ -370,7 +370,7 @@ public class LWLink extends LWComponent
     {
         if (curveControls == 0) {
             setControlCount(1);
-            System.out.println("implied curved link by setting control point 0 " + this);
+            if (DEBUG.UNDO) System.out.println("implied curved link by setting control point 0 " + this);
         }
         Object old;
         if (curveControls == 2) {
@@ -394,7 +394,7 @@ public class LWLink extends LWComponent
     {
         if (curveControls < 2) {
             setControlCount(2);
-            System.out.println("implied cubic curved link by setting a control point 1 " + this);
+            if (DEBUG.UNDO) System.out.println("implied cubic curved link by setting a control point 1 " + this);
         }
         Object old = new Point2D.Float(cubicCurve.ctrlx2, cubicCurve.ctrly2); 
         cubicCurve.ctrlx2 = x;
@@ -403,14 +403,19 @@ public class LWLink extends LWComponent
         notify("link.control.1", new Undoable(old) { void undo() { setCtrlPoint1((Point2D)old); }} );
     }
 
-    /*
     protected void removeFromModel()
     {
         super.removeFromModel();
         if (ep1 != null) ep1.removeLinkRef(this);
         if (ep2 != null) ep2.removeLinkRef(this);
     }
-    */
+
+    protected void restoreToModel()
+    {
+        super.restoreToModel();
+        if (ep1 != null) ep1.addLinkRef(this);
+        if (ep2 != null) ep2.addLinkRef(this);
+    }
 
     /** Is this link between a parent and a child? */
     public boolean isParentChildLink()

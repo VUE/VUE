@@ -90,11 +90,14 @@ public class UndoManager
             // and none of them are marked as deleted.
             while (ci.hasNext()) {
                 LWComponent child = (LWComponent) ci.next();
-                child.setDeleted(false); // in case had been deleted
                 if (parent instanceof LWPathway)
-                    ; // special case: todo something cleaner
-                else
-                    child.setParent(parent);
+                    ; // special case: todo: something cleaner
+                else {
+                    if (child.isDeleted()) {
+                        child.restoreToModel();
+                        child.setParent(parent);
+                    }
+                }
             }
             parent.setScale(parent.getScale());
             parent.layout();

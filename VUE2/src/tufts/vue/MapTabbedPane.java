@@ -130,7 +130,7 @@ public class MapTabbedPane extends JTabbedPane
             c = new JScrollPane(viewer);
         LWMap map = viewer.getMap();
         addTab(mapToTabTitle(map), c);
-        map.addLWCListener(this);
+        map.addLWCListener(this, LWKey.Label);
         // todo perf: we should be able to ask to listen only
         // for events from this object directly (that we don't
         // care to hear from it's children), and even that
