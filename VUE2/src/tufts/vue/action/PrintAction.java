@@ -61,7 +61,7 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
         if (isPrintingView())
             bounds = viewer.getVisibleMapBounds();
         else
-            bounds = map.getBounds(); // todo: need get visible component bounds
+            bounds = map.getBounds();
 
         if (bounds.isEmpty()) {
             out("Empty page: skipping print.");
@@ -112,7 +112,14 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
     {
         if (pageFormat == null) {
             pageFormat = job.defaultPage();
-            pageFormat.setOrientation(PageFormat.LANDSCAPE);
+            // todo: this guess assumes we're printing the whole
+            // map, not what's in the viewport...
+            Rectangle2D bounds = VUE.getActiveMap().getBounds();
+            // todo: keep a list of print formats for each map?
+            if (bounds.getWidth() > bounds.getHeight())
+                pageFormat.setOrientation(PageFormat.LANDSCAPE);
+            else
+                pageFormat.setOrientation(PageFormat.PORTRAIT);
         }
         return pageFormat;
     }
@@ -139,7 +146,8 @@ public class PrintAction extends Actions$VueAction implements Printable, Runnabl
             return;
         }
         this.jobName = VUE.getActiveMap().getDisplayLabel();
-        if (VUE.getActiveMap().isEmpty()) {
+        Rectangle2D bounds = VUE.getActiveMap().getBounds();
+        if (bounds.isEmpty()) {
             out("nothing to print");
             return;
         }
