@@ -136,7 +136,6 @@ public final class LWGroup extends LWContainer
      */
     static LWGroup createTemporary(java.util.ArrayList selection)
     {
-        //LWGroup group = new LWGroup(selection);
         LWGroup group = new LWGroup();
         group.children = (java.util.ArrayList) selection.clone();
         group.setSizeFromChildren();
@@ -191,7 +190,7 @@ public final class LWGroup extends LWContainer
 
         if (DEBUG.PARENTING) System.out.println("dispersing group " + this);
 
-        ArrayList children = getChildList();
+        List children = getChildList();
         Iterator i = children.iterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();

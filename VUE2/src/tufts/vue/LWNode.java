@@ -405,10 +405,11 @@ public class LWNode extends LWContainer
             return super.contains(x,y);
         else {
             // TODO: util irregular shapes can still give access to children
-            // outside their bounds, we're forcing everything in the bounding box
-            // for the moment.
-            if (true) return super.contains(x,y); else
-            if (mIsRectShape) {
+            // outside their bounds, we're checking everything in the bounding box
+            // for the moment if there are any children.
+            if (hasChildren())
+                return super.contains(x,y);
+            else if (mIsRectShape) {
                 return boundsShape.contains(x, y);
             } else {
                 float cx = x - getX();
@@ -419,11 +420,6 @@ public class LWNode extends LWContainer
                     || textBoxHit(cx, cy)
                     ;
                     //|| mIconBlock.contains(cx, cy)
-                    ///|| mIconResource.contains(cx, cy)
-                    ///|| mIconNotes.contains(cx, cy)
-                    ///|| mIconPathway.contains(cx, cy);
-                //todo: be sure above icons get zero width if not displayed!
-                // better: use a single iconPillar check
             }
         }
         

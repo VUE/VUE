@@ -415,8 +415,12 @@ public class LWPathway extends LWContainer
      * for persistance: override of LWContainer: pathways never save their children
      * as they don't own them -- they only save ID references to them.
      */
-    public ArrayList getChildList() {
+    public List getChildList() {
         return null;
+    }
+    /** hide children from hierarchy as per getChildList */
+    public Iterator getChildIterator() {
+        return VueUtil.EmptyIterator;
     }
     
     /** Pathway interface */

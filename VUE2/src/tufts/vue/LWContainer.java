@@ -21,7 +21,8 @@ import java.awt.geom.Rectangle2D;
  */
 public abstract class LWContainer extends LWComponent
 {
-    protected ArrayList children = new java.util.ArrayList();
+    //protected List children = new java.util.ArrayList();
+    protected List children = new UndoableArrayList();
     protected LWComponent focusComponent;
     
     /** for use during restore */
@@ -135,7 +136,7 @@ public abstract class LWContainer extends LWComponent
     {
         return children != null && children.size() > 0;
     }
-    public ArrayList getChildList()
+    public List getChildList()
     {
         return this.children;
     }
