@@ -1,10 +1,14 @@
 package tufts.vue;
 
 import java.awt.*;
+import java.awt.font.*;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+
+//import javax.swing.text.*;
+import javax.swing.JTextArea;
 
 /**
  * LWLink.java
@@ -86,7 +90,14 @@ public class LWLink extends LWComponent
         // todo: handle StrokeBug05
         float w = getStrokeWidth();
         if (true || w <= SmallestScaleableStrokeWidth) {
-            return rect.intersectsLine(this.line);
+            if (rect.intersectsLine(this.line))
+                return true;
+            if (this.labelBox != null)
+                return labelBox.intersectsMapRect(rect);
+            //return rect.intersects(getLabelX(), getLabelY(),
+            //                         labelBox.getWidth(), labelBox.getHeight());
+            else
+                return false;
         } else {
             // todo: finish this!
             Shape s = this.stroke.createStrokedShape(this.line); // todo: cache this!
@@ -117,7 +128,12 @@ public class LWLink extends LWComponent
             y -= 0.5f;
         }
         float maxDist = getStrokeWidth() / 2;
-        return line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1;
+        if (line.ptSegDistSq(x, y) <= (maxDist * maxDist) + 1)
+            return true;
+        if (this.labelBox != null)
+            return labelBox.containsMapLocation(x, y);
+        else
+            return false;
     }
     
     /**
@@ -130,7 +146,7 @@ public class LWLink extends LWComponent
             x -= 0.5f;
             y -= 0.5f;
         }
-        float swath = getStrokeWidth() / 2 + 20; // todo: preference
+        float swath = getStrokeWidth() / 2 + 20; // todo: config/preference
         float sx = this.centerX - swath;
         float sy = this.centerY - swath;
         float ex = this.centerX + swath;
@@ -352,8 +368,8 @@ public class LWLink extends LWComponent
         this.line.setLine(startX, startY, endX, endY);
     }
     
-    private static final int clearBorder = 4;
-    private Rectangle2D box = new Rectangle2D.Float();
+    //private static final int clearBorder = 4;
+    //private Rectangle2D box = new Rectangle2D.Float();
     public void draw(Graphics2D g)
     {
         computeShape(); // compute this.line
@@ -458,12 +474,28 @@ public class LWLink extends LWComponent
 
         String label = getLabel();
         if (label != null && label.length() > 0) {
+            TextBox textBox = getLabelBox();
+            if (textBox.getParent() == null) {
+                // only draw if we're not an active edit on the map
+                float lx = getLabelX();
+                float ly = getLabelY();
+                textBox.setMapLocation(lx, ly);
+                // todo: only need to do above set location when computing line
+                // or text changes somehow (content, font) or alignment changes
+                g.translate(lx, ly);
+                textBox.draw(g);
+            }
+
+            /*
             g.setColor(getTextColor());
             g.setFont(getFont());
             FontMetrics fm = g.getFontMetrics();
             float w = fm.stringWidth(label);
             g.drawString(label, centerX - w/2, centerY - (strokeWidth/2));
+            */
         }
+
+        
        
         // Draw a handle
         //g.setColor(Color.darkGray);
