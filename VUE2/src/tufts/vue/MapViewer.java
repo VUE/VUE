@@ -725,7 +725,7 @@ public class MapViewer extends javax.swing.JPanel
             float mapX = screenToMapX(lastMouseX);
             float mapY = screenToMapY(lastMouseY);
             LWComponent hit = getMap().findLWComponentAt(mapX, mapY);
-            if (hit != null)
+            if (hit != null && !hit.isSelected())
                 setRollover(hit);
             else
                 clearRollover();
@@ -2208,7 +2208,7 @@ public class MapViewer extends javax.swing.JPanel
                     if (rolloverTask != null)
                         rolloverTask.cancel();
                     rolloverTask = new RolloverTask();
-                    rolloverTimer.schedule(rolloverTask, 150);
+                    rolloverTimer.schedule(rolloverTask, 200);
                 } else {
                     new RolloverTask().run();
                 }
