@@ -1278,13 +1278,24 @@ public class MapViewer extends javax.swing.JComponent
         //if (e.getSource() == this || e.getSource() == this.inputHandler) -- this already filtered by LWCEvent dispatch
         if (e.getSource() == this.inputHandler)
             return;
-        if (OPTIMIZED_REPAINT && paintedSelectionBounds != null) {
-            // this will handle any size shrinkages -- old selection bounds
-            // will still include the old size (this depends on fact that
-            // we can only change the properties of a selected component)
-            RR(paintedSelectionBounds);
+
+        if (OPTIMIZED_REPAINT == false) {
+            repaint();
+        } else {
+            if (paintedSelectionBounds != null) {
+                // this will handle any size shrinkages -- old selection bounds
+                // will still include the old size (this depends on fact that
+                // we can only change the properties of a selected component)
+                RR(paintedSelectionBounds);
+            }
+            if (e.getComponents() != null) {
+                // todo: more than one component is in this event (e.g., it's a group add/remove)
+                // for full repaint optimization, will want to repaint the bounds of all those children.
+                repaint();
+            } else {
+                repaintMapRegionAdjusted(e.getComponent().getBounds());
+            }
         }
-        repaintMapRegionAdjusted(e.getComponent().getBounds());
     }
 
     /**
@@ -3934,14 +3945,16 @@ public class MapViewer extends javax.swing.JComponent
             while (pi.hasNext()) {
                 LWContainer parent = (LWContainer) pi.next();
                 if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
-                parent.removeChildren(moveList.iterator());
+                parent.reparentTo(parentTarget, moveList.iterator());
+                //parent.removeChildren(moveList.iterator());
             }
+            /*
             i = moveList.iterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 parentTarget.addChild(c);
             }
-
+            */
             // If we handled the above problem in LWContainer somehow,
             // we could just make this call:
             //parentTarget.addChildren(moveList.iterator());
