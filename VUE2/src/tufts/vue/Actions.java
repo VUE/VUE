@@ -592,11 +592,16 @@ class Actions {
         void act(LWSelection selection)
         {
             if (!selection.allOfType(LWLink.class)) {
-                // remove all links from our cloned copy of the selection
                 Iterator i = selection.iterator();
-                while (i.hasNext())
-                    if (i.next() instanceof LWLink)
+                while (i.hasNext()) {
+                    LWComponent c = (LWComponent) i.next();
+                    // remove all links from our cloned copy of the selection
+                    if (c instanceof LWLink)
                         i.remove();
+                    // remove all children of nodes or groups, who's parent handles their layout
+                    if (!(c.getParent() instanceof LWMap)) // really: c.isLaidOut()
+                        i.remove();
+                }
             }
     
             Rectangle2D.Float r = (Rectangle2D.Float) LWMap.getBounds(selection.iterator());
