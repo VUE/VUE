@@ -51,7 +51,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             {
               String label, description;
             
-              if ((label = container.getLabel()) == null)   
+              if ((label = container.getDisplayLabel()) == null)   
                 label = new String("Container:" + container.getID());
               
               if ((description = container.getNotes()) == null)
@@ -360,7 +360,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                
                LWLink link = (LWLink)component;
                
-               if(node.getDisplayName().equals(link.getLabel()))
+               if(node.getDisplayName().equals(link.getDisplayLabel()))
                  continue;
                
                if (link.getComponent1() == null || link.getComponent2() == null)    
@@ -420,7 +420,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
             String label, description;
             
             //if there is no label associated with the given component
-            if ((label = component.getLabel()) == null)
+            if ((label = component.getDisplayLabel()) == null)
             {
                 if (component instanceof LWLink)
                 {
@@ -429,10 +429,10 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                   
                   //gets the name of the component that the link connects to
                   if(link.getComponent1() != null && 
-                    (connectedNodeLabel = link.getComponent1().getLabel()).equals(parentNode.getDisplayName()))
+                    (connectedNodeLabel = link.getComponent1().getDisplayLabel()).equals(parentNode.getDisplayName()))
                   {
                       if (link.getComponent2() != null)
-                        connectedNodeLabel = link.getComponent2().getLabel();
+                        connectedNodeLabel = link.getComponent2().getDisplayLabel();
                   }
                   
                   label = new String("Link ID# " + link.getID() + ": to " + connectedNodeLabel);
