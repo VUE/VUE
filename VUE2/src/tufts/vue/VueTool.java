@@ -331,6 +331,7 @@ public abstract class VueTool extends AbstractAction
     }
 
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) { return false; }
+    public boolean handleKeyReleased(java.awt.event.KeyEvent e) { return false; }
     
     public boolean handleMousePressed(MapMouseEvent e) {
         if (DEBUG.TOOL) System.out.println(this + " handleMousePressed " + e);
