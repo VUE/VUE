@@ -24,6 +24,14 @@ import fedora.server.types.gen.*;
 public class Resource
 {
     static final long SIZE_UNKNOWN = -1;
+    // constats that define the type of resource
+    static final int NONE = 0;
+    static final int FILE = 1;
+    static final int URL = 2;
+    static final int DIRECTORY = 3;
+    static final int ASSET_OKIDR  = 10;
+    static final int ASSET_FEDORA = 11;
+    
     static final String[] dcFields = {"dc:title","dc:creator","dc:subject","dc:date","dc:type","dc:format","dc:identifier","dc:collection","dc:coverage"};
     
     long referenceCreated;
@@ -77,9 +85,10 @@ public class Resource
     
     public Asset getAsset() {
         
+     
         return this.asset;
     }
-    
+        
     public void setCastorFedoraObject(CastorFedoraObject castorFedoraObject) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.castorFedoraObject = castorFedoraObject; 
         this.asset = this.castorFedoraObject.getFedoraObject();
