@@ -85,7 +85,9 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         Font menuFont = new Font( f.getFontName(), f.getStyle(), f.getSize() - 2);
         mFontCombo.setFont(menuFont);
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
-        mFontCombo.setMaximumSize(mFontCombo.getPreferredSize());
+        //Dimension comboSize = mFontCombo.getPreferredSize();
+        //comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
+        //mFontCombo.setMaximumSize(comboSize);
         mFontCombo.setBackground(VueTheme.getVueColor());
 
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
@@ -97,15 +99,17 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         //mSizeField = new NumericField( NumericField.POSITIVE_INTEGER, 2 );
         
         mSizeField = new JComboBox(sFontSizes);
+        //Dimension d = mSizeField.getPreferredSize();
+        //d.height += 2;
+        //mSizeField.setMaximumSize(d);
         mSizeField.setEditable(true);
         
         //mSizeField.setPrototypeDisplayValue("100"); // no help in making it smaller
         //System.out.println("EDITOR " + mSizeField.getEditor());
         //System.out.println("EDITOR-COMP " + mSizeField.getEditor().getEditorComponent());
 
-        JTextField sizeEditor = null;
         if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
-            sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
+            JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
             sizeEditor.setColumns(2); // not exactly character columns
             sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
             //sizeEditor.setPreferredSize(new Dimension(20,10)); // does squat
@@ -153,8 +157,10 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
         add(label);
         add(mFontCombo);
         add(mSizeField);
+        add(Box.createHorizontalStrut(1)); // add this affects vertical preferred size of mSizeField!
         add(mBoldButton);
         add(mItalicButton);
+        add(Box.createHorizontalStrut(3));
         //add(mTextColorButton);
  	
         setFontValue(FONT_DEFAULT);
@@ -163,8 +169,28 @@ public class FontEditorPanel extends Box implements ActionListener, VueConstants
 
     public void addNotify()
     {
-        super.addNotify();
+
+        Dimension comboSize = mFontCombo.getPreferredSize();
+        comboSize.height -= 2; // if too small (eg, -3), will trigger major swing layout bug
+        mFontCombo.setMaximumSize(comboSize);
+
+        /*
+        if (mSizeField.getEditor().getEditorComponent() instanceof JTextField) {
+            JTextField sizeEditor = (JTextField) mSizeField.getEditor().getEditorComponent();
+            //sizeEditor.setColumns(2); // not exactly character columns
+            sizeEditor.setBackground(VueTheme.getTheme().getMenuBackground());
+        }
+        */
+        
+        Dimension d = mSizeField.getPreferredSize();
+        // Swing layout is royally buggy: if we add the horizontal strut above,
+        // we need height-2, if we take it out, height-1 -- !
+        d.height -= 2;
+        mSizeField.setMaximumSize(d);
+        mSizeField.setEditable(true);
+
         //System.out.println(this + " adding as parent of " + getParent());
+        super.addNotify();
     }
 
     // as this can sometimes take a while, we can call this manually

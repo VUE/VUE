@@ -42,12 +42,6 @@ public class PathwayTool extends VueSimpleTool
             // way the VueToolPanel manages it's content:
             VUE.sMapInspector.showTab("Pathway");
         }
-        
-        /*
-        public void setVisible(boolean t) {
-            super.setVisible(t);
-            System.out.println("setVisible " + t);
-            }*/
     };
     
 }

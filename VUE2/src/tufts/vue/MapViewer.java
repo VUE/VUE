@@ -1114,15 +1114,14 @@ public class MapViewer extends javax.swing.JComponent
     }
     
     
-    //private Point mLastCorner;
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
             getX() == x &&
             getY() == y &&
             getWidth() == w &&
             getHeight() == h;
-        //activeTextEdit == null;
-        // for some reason, we get reshape events during text edits which no change
+
+        // We get reshape events during text edits with no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
         if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
@@ -1131,38 +1130,15 @@ public class MapViewer extends javax.swing.JComponent
                 + " "
                 + x + "," + y
                 + (ignore?" (IGNORING)":""));
-        //out("reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
+
         super.reshape(x,y, w,h);
+
         if (ignore && activeTextEdit != null)
-            repaint(); // why do we need to do this? in case text edit transparent?
-        if (ignore)
-            return;
-        
-        fireViewerEvent(MapViewerEvent.PAN);
-        
-        /*
-        Point p=null;
-        if (isShowing()) {
-            p = getLocationOnScreen();
-            if (mLastCorner != null && !p.equals(mLastCorner)) {
-                int dx = mLastCorner.x - p.x;
-                int dy = mLastCorner.y - p.y;
-                setMapOriginOffset(this.mOffset.x - dx,
-                                   this.mOffset.x - dy);
-            }
-        }
-         */
-        //System.out.println(" ul start: "+p);
-        //
-        //if (p!=null) p = getLocationOnScreen();
-        //System.out.println("ul finish: "+p);
-        
-        //if (isShowing()) mLastCorner = getLocationOnScreen();
-        //repaint(250); // why the delay?
-        //requestFocus();
-        // may be causing problems on mac --
-        // some components in tabbed is getting a reshape call
-        // when switching tabs
+            // if active text is transparent, we'll need this to draw under blinking cursor
+            repaint(); 
+
+        if (!ignore)
+            fireViewerEvent(MapViewerEvent.PAN);
     }
     
     private boolean isDisplayed() {

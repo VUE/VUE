@@ -18,7 +18,8 @@ import java.util.*;
 /**
  * VueToolbarController
  *
- *
+ * This could use a serious re-write, along with VueToolPanel, VueTool, and the way
+ * contextual toolbars are handled.
  **/
 public class VueToolbarController  
     implements LWSelection.Listener  
@@ -497,11 +498,11 @@ public class VueToolbarController
             return;
         */
         
+        // todo: clean this up: interested tool panels should listen to selection themselves
         if (panel instanceof LWCToolPanel)
             ((LWCToolPanel)panel).loadValues(VUE.getSelection());
         else {
-            if (DEBUG.Enabled)
-                System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
+            //System.out.println(this + " IGNORING initContextualPanelFrom Selection on unknown JPanel " + panel);
         }
     }
 	 
