@@ -237,6 +237,7 @@ public class PathwayTable extends JTable
         public ColorRenderer() {
             setOpaque(true);
             setBorder(new LineBorder(bgColor, 3)); // fyi: empty border no good: won't paint over
+            setToolTipText("Select Color");
         }
         public java.awt.Component getTableCellRendererComponent(
                                     JTable table, Object color, 
@@ -324,6 +325,7 @@ public class PathwayTable extends JTable
                 if (col == 0) {
                     setIcon(bool ? eyeOpen : eyeClosed);
                     setBorder(iconBorder);
+                    setToolTipText("Show/Hide Pathway");
                 }
                 else if (col == 2) {
                     setIcon(bool ? open : close);

@@ -443,7 +443,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
     }
 
     public String toString() {
-        return "PaletteButton[" + getIcon() + "]";
+        return "PaletteButton[" + getContext() + "]";
     }
     private static boolean sDebug = false;
     private void debug( String pStr) {

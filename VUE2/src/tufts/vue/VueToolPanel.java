@@ -258,11 +258,11 @@ public class VueToolPanel extends JPanel
      * @param pTool -= the tool to map to aPaletteButton
      * @return PaletteButton - a PaletteButton with properties based on the VueTool
      **/
-    protected PaletteButton createPaletteButton( VueTool pTool) {
-		
+    protected PaletteButton createPaletteButton( VueTool pTool)
+    {
         PaletteButton button = null;
-		
-        if( pTool.hasSubTools()   ) {
+        
+        if (pTool.hasSubTools()) {
             // create button items
             Vector names = pTool.getSubToolIDs();
             int numSubTools = names.size();
@@ -281,6 +281,7 @@ public class VueToolPanel extends JPanel
                     item.setMenuItemIcon( subTool.getMenuItemIcon() );
                     item.setMenuItemSelectedIcon( subTool.getMenuItemSelectedIcon() );
                     item.setToolTipText( subTool.getToolTipText() );
+                    item.setToolTipText( pTool.getToolTipText() );
                     item.addActionListener( subTool);
 					
                     items[i] = item;
@@ -289,20 +290,15 @@ public class VueToolPanel extends JPanel
             button = new PaletteButton( items );
             button.setPropertiesFromItem( items[0]);
             button.setOverlayIcons (pTool.getOverlayUpIcon(), pTool.getOverlayDownIcon() );
-        }
-        else  {  // just a radio-like button, no popup items 
+            button.setToolTipText( pTool.getToolTipText() );
+        } else  {  // just a radio-like button, no popup items 
             button = new PaletteButton();
             button.setIcons( pTool.getIcon(), pTool.getDownIcon(), pTool.getSelectedIcon() ,
                              pTool.getDisabledIcon(), pTool.getRolloverIcon() );
-			
-			
             button.setToolTipText( pTool.getToolTipText() );
-
         }
-			
         // set the user context to the VueTOol
         button.setContext( pTool);
-		
         button.addActionListener( pTool);
         return button;
     }

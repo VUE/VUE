@@ -143,9 +143,9 @@ public class VueToolbarController
             tool = (VueTool) toolClass.newInstance();
 					
             // set the tool's properties...
-            tool.setID( pName);
-            tool.setToolName( VueResources.getString(( pName+".name") ) );
-            tool.setToolTipText( VueResources.getString( pName + ".tooltip") );
+            tool.setID(pName);
+            tool.setToolName(VueResources.getString(pName + ".name"));
+            tool.setToolTipText(VueResources.getString(pName + ".tooltip"));
 
             Icon rawIcon = VueResources.getImageIcon(pName+".raw");
             if (rawIcon != null) {

@@ -154,8 +154,8 @@ public class PathwayPanel extends JPanel implements ActionListener
         
         btnElementAdd = new VueButton("add-white", this);
         btnElementRemove = new VueButton("delete-white", this);
-        btnElementAdd.setToolTipText("Add items to pathway");
-        btnElementRemove.setToolTipText("Remove items from pathway");
+        //btnElementAdd.setToolTipText("Add items to pathway");
+        //btnElementRemove.setToolTipText("Remove items from pathway");
 
         btnElementUp = new VueButton("move-up", this);
         btnElementDown = new VueButton("move-down", this);

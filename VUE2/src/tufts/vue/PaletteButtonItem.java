@@ -49,7 +49,7 @@ public class PaletteButtonItem extends JMenuItem {
 	///////////
 
 	/*  what's teh current icon to render for this menu item */
-	Icon mCurrentIcon = null;
+	private Icon mCurrentIcon = null;
 	
 	/** the PaletteButton that owns this item **/
 	private PaletteButton mPaletteButton = null;
@@ -61,7 +61,7 @@ public class PaletteButtonItem extends JMenuItem {
 	private Icon mMenuSelectedIcon = null;
 	
 	/** contextual object for this item **/
-	Object mContext = null;
+	private Object mContext = null;
 	
 	
 	
@@ -268,6 +268,11 @@ public class PaletteButtonItem extends JMenuItem {
 	public void setDisplayName( String pName) {
 	  mDisplayName = pName;
 	}
+
+
+    public String toString() {
+        return "PaletteButtonItem[" + mDisplayName + " " + mContext + "]";
+    }
 	
 	
 	
