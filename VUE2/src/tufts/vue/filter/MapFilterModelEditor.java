@@ -41,6 +41,16 @@ public class MapFilterModelEditor extends JPanel {
     }
     private void setMapFilterModelPanel() {
         mapFilterTable = new JTable(mapFilterModel);
+        mapFilterTable.addFocusListener(new FocusListener() {
+             public void focusLost(FocusEvent e) {
+                 if(mapFilterTable.isEditing()) {
+                     mapFilterTable.getCellEditor(mapFilterTable.getEditingRow(),mapFilterTable.getEditingColumn()).stopCellEditing();
+                 }
+                 mapFilterTable.removeEditor();
+             }
+             public void focusGained(FocusEvent e) {
+             }
+         });
         mapFilterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         JScrollPane mapFilterScrollPane=new JScrollPane(mapFilterTable);
         mapFilterScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));

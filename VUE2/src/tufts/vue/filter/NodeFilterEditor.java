@@ -52,6 +52,24 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     
     private void setNodeFilterPanel() {
         nodeFilterTable = new JTable(nodeFilter);
+        nodeFilterTable.addFocusListener(new FocusListener() {
+             public void focusLost(FocusEvent e) {
+                 if(nodeFilterTable.isEditing()) {
+                     nodeFilterTable.getCellEditor(nodeFilterTable.getEditingRow(),nodeFilterTable.getEditingColumn()).stopCellEditing();
+                 }
+                 nodeFilterTable.removeEditor();
+             }
+             public void focusGained(FocusEvent e) {
+             }
+         });
+       nodeFilterTable.addKeyListener(new KeyAdapter() {
+             public void keyPressed(KeyEvent e) {
+                 if(nodeFilterTable.getSelectedRow() == (nodeFilterTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
+                     addButtonListener.addStatement();
+                 }
+             }
+         });  
+       
         nodeFilterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         JScrollPane nodeFilterScrollPane=new JScrollPane(nodeFilterTable);
         nodeFilterScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
@@ -122,7 +140,11 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
         }
         
         public void actionPerformed(ActionEvent e) {
-            if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
+           addStatement();
+        }
+        
+        void addStatement() {
+             if(tufts.vue.VUE.getActiveMap().getMapFilterModel().size() > 0) {
                 Key key = (Key) tufts.vue.VUE.getActiveMap().getMapFilterModel().get(0);
                 Statement stmt = new Statement();
                 stmt.setKey(key);
@@ -133,6 +155,7 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
                 model.fireTableDataChanged();
             }
         }
+        
     }
     
     
