@@ -330,7 +330,7 @@ public class VUE
 
         boolean scottHack =
             System.getProperty("user.name").equals("sfraize") &&
-            System.getProperty("scottHackDisabled") == null;
+            System.getProperty("scottHack") != null;
         // Need to factor some stuff out for the moment as has some bugs -- SMF 2003-12-29 21:32.39 Monday
 
         if (!scottHack) ModelSelection.addListener(tbc);
