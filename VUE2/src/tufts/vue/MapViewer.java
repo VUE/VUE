@@ -423,16 +423,23 @@ public class MapViewer extends javax.swing.JPanel
     
     private Rectangle mapRectToPaintRegion(Rectangle2D mapRect)
     {
+        // todo: is this taking into account the current zoom?
         Rectangle r = mapToScreenRect(mapRect);
+        r.width++;
+        r.height++;
+        // mac leaving trailing borders at right & bottom: todo: why?        
         r.width++;
         r.height++;
         return r;
     }
 
+    private boolean paintingRegion = false;
     private void repaintMapRegion(Rectangle2D mapRect)
     {
-        if (OPTIMIZED_REPAINT)
+        if (OPTIMIZED_REPAINT) {
+            paintingRegion = true;
             repaint(mapRectToPaintRegion(mapRect));
+        }
         else
             repaint();
     }
@@ -449,6 +456,8 @@ public class MapViewer extends javax.swing.JPanel
             repaint();
     }
 
+    /** repaint region adjusting for presence of selection handles
+        outside the edges of what's selected */
     private void repaintMapRegionAdjusted(Rectangle2D mapRect)
     {
         if (OPTIMIZED_REPAINT)
@@ -476,7 +485,7 @@ public class MapViewer extends javax.swing.JPanel
     {
         //System.out.println("MapViewer: selectionChanged");
         if (VUE.getActiveMap() != this.map)
-            VueSelection = null;
+            VueSelection = null; // insurance: nothing should be happening here if we're not active
         else
             VueSelection = VUE.ModelSelection;
         repaintSelection();
@@ -519,9 +528,10 @@ public class MapViewer extends javax.swing.JPanel
             return;
         }
         if (e.getWhat().equals("deleting")) {
-            // FYI, the selection itself could listen for this,
-            // but that's a ton of events for this one thing.
+            // todo: better for the selection itself listen for this,
+            //   but that's a ton of events for this one thing.
             // todo: maybe have LWContainer check isSelected & manage it in deleteChild?
+            // todo: also, can we coalesce this for big group deletions?
             LWComponent c = e.getComponent();
             boolean wasSelected = c.isSelected();
 
@@ -706,7 +716,7 @@ public class MapViewer extends javax.swing.JPanel
     LWComponent getIndication() { return indication; }
     
     private Timer rolloverTimer = new Timer();
-    private TimerTask rolloverTask = new RolloverTask();
+    private TimerTask rolloverTask = null;
     class RolloverTask extends TimerTask
     {
         public void run()
@@ -719,41 +729,61 @@ public class MapViewer extends javax.swing.JPanel
                 setRollover(hit);
             else
                 clearRollover();
+
+            rolloverTask = null;
         }
     }
         
     private float oldScale;
+    private Point2D oldLoc;
     void setRollover(LWComponent c)
     {
-        if (rollover != c) {
+        if (rollover != c && c instanceof LWNode) {
             clearRollover();
-            rollover = c;
-            c.setRollover(true);
+            // for moment rollover is really setTemporaryZoom
+            //rollover = c;
+            //c.setRollover(true);
             oldScale = c.getScale();
-            if (oldScale != 1f) {
-                float smallWidth = c.getWidth();
-                float smallHeight = c.getHeight();
-                c.setScale(1f);
-                float bigWidth = c.getWidth();
-                float bigHeight = c.getHeight();
-                float overlapX = bigWidth - smallWidth;
-                float overlapY = bigHeight - smallHeight;
-                c.setLocation(c.getX()-overlapX/2, c.getY()-overlapY/2);
+
+            double curZoom = getZoomFactor();
+
+            //double newScale = oldScale / curZoom;
+            double newScale = 1.0 / curZoom;
+
+            //if (newScale < 1.0) newScale = 1.0;
+            
+            //if (true||oldScale != 1f) {
+            if (newScale > oldScale) {
+                //c.setScale(1f);
+                rollover = c;
+                c.setRollover(true);
+                oldLoc = c.getLocation();
+                Point2D oldCenter = c.getCenterPoint();
+                c.setScale((float)newScale);
+                c.setCenterAt(oldCenter);
+                repaintMapRegion(rollover.getBounds());
             }
-            repaintMapRegion(rollover.getBounds());
         }
     }
     void clearRollover()
     {
         if (rollover != null) {
-            rolloverTask.cancel();
-            rollover.setRollover(false);
-            if (oldScale != 1f) {
-                rollover.setScale(oldScale);
-                // have the parent put it back in place
-                rollover.getParent().layoutChildren();
+            if (rolloverTask != null) {
+                rolloverTask.cancel();
+                rolloverTask = null;
             }
-            repaintMapRegion(rollover.getBounds());
+            Rectangle2D bigBounds = rollover.getBounds();
+            rollover.setRollover(false);
+            if (true||oldScale != 1f) {
+                rollover.setScale(oldScale);
+                //if (rollover.getParent() instanceof LWNode)
+                    // have the parent put it back in place
+                    //rollover.getParent().layoutChildren();
+                //else
+                    rollover.setLocation(oldLoc);
+
+            }
+            repaintMapRegion(bigBounds);
             rollover = null;
         }
     }
@@ -841,7 +871,8 @@ public class MapViewer extends javax.swing.JPanel
         
         if (OPTIMIZED_REPAINT) {
             // debug: shows the repaint region
-            if (DEBUG_PAINT && RepaintRegion != null) {
+            if (DEBUG_PAINT && (RepaintRegion != null || paintingRegion)) {
+                paintingRegion = false;
                 g2.setColor(rrColor);
                 g2.fillRect(0, 0, getWidth(), getHeight());
                 g2.setColor(Color.black);
@@ -879,28 +910,39 @@ public class MapViewer extends javax.swing.JPanel
         // LWNode's & LWGroup's are responsible for painting
         // their children (as any instance of LWContainer).
         //-------------------------------------------------------
+
+        DrawContext dc = new DrawContext(g2, getZoomFactor());
         
-        // anti-alias shapes by default
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
+        dc.setAntiAlias(DEBUG_ANTI_ALIAS);
+        dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
+        dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
+
+        dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+
         // anti-alias text
-        if (!DEBUG_ANTIALIAS_OFF)
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        //if (!DEBUG_ANTIALIAS_OFF) g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         // Do we need fractional metrics?  Gives us slightly more accurate
         // string widths on noticable on long strings
+        /*
         if (!DEBUG_ANTIALIAS_OFF) {
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         } else {
             // was hoping prioritizing render quality would improve computation of font string widths,
             // but no such luck...
             g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         }
 
+        if (DEBUG_FONT_METRICS)
+            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        else
+            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+        */
+        
         //-------------------------------------------------------
         // Draw the map: Ask the model to render itself to our GC
         //-------------------------------------------------------
 
-        this.map.draw(new DrawContext(g2, getZoomFactor()));
+        this.map.draw(dc);
 
         //-------------------------------------------------------
         // If current tool has anything it wants to draw, it
@@ -935,7 +977,8 @@ public class MapViewer extends javax.swing.JPanel
         g2.translate(getOriginX(), getOriginY());
 
         if (!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+            //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
+            dc.setAntiAlias(true);
 
         //-------------------------------------------------------
         // draw selection if there is one
@@ -974,7 +1017,9 @@ public class MapViewer extends javax.swing.JPanel
             g2.drawString("mapX " + mapX, 10, y+=15);
             g2.drawString("mapY " + mapY, 10, y+=15);;
             g2.drawString("zoom " + getZoomFactor(), 10, y+=15);
-            g2.drawString("anitAlias " + !DEBUG_ANTIALIAS_OFF, 10, y+=15);
+            g2.drawString("anitAlias " + DEBUG_ANTI_ALIAS, 10, y+=15);
+            g2.drawString("renderQuality " + DEBUG_RENDER_QUALITY, 10, y+=15);
+            g2.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, 10, y+=15);
             g2.drawString("findParent " + !DEBUG_FINDPARENT_OFF, 10, y+=15);
             g2.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, 10, y+=15);
         }
@@ -988,7 +1033,8 @@ public class MapViewer extends javax.swing.JPanel
             g2.draw(Yaxis);
         }
 
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
+        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
+        dc.setAntiAlias(true);
         
         //setOpaque(false);
         if (activeTextEdit != null)     // This is a real Swing JComponent 
@@ -1292,8 +1338,10 @@ public class MapViewer extends javax.swing.JPanel
         //x = Math.round(x);
         //y = Math.round(y);
         SelectionHandle.setFrame(x, y, SelectionHandleSize, SelectionHandleSize);
-        g.setColor(fillColor);
-        g.fill(SelectionHandle);
+        if (fillColor != null) {
+            g.setColor(fillColor);
+            g.fill(SelectionHandle);
+        }
         // todo: if fillColor == COLOR_SELECTION, then this control point
         // will have poor to no contrast if it's over the selection color --
         // e.g., a link connection point at the edge of node who at the moment
@@ -1386,82 +1434,151 @@ public class MapViewer extends javax.swing.JPanel
     }
     
     private JPopupMenu mapPopup = null;
-    private JPopupMenu cPopup = null;
+    private JPopupMenu groupPopup = null;
+    private JPopupMenu componentPopup = null;
     private JMenu assetMenu = null;
+    private JMenu linkMenu = null;
+
+    private JMenu getLinkMenu()
+    {
+        if (linkMenu == null) {
+            linkMenu = new JMenu("Link");
+            for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
+                Action a = Actions.LINK_MENU_ACTIONS[i];
+                if (a == null)
+                    linkMenu.addSeparator();
+                else
+                    linkMenu.add(a);
+            }
+        }
+        return linkMenu;
+            
+    }
+    
     private JPopupMenu getMapPopup()
     {
-        // this is just example menu code for the moment
         if (mapPopup == null) {
             mapPopup = new JPopupMenu("Map Menu");
             mapPopup.addSeparator();
             mapPopup.add(Actions.NewNode);
             mapPopup.add(Actions.NewText);
             mapPopup.addSeparator();
+            mapPopup.add(Actions.ZoomFit);
+            mapPopup.add(Actions.ZoomActual);
+            mapPopup.addSeparator();
             mapPopup.add(Actions.SelectAll);
-            //mapPopup.add(Actions.DeselectAll);
-            //would be pointless to add deselect at moment as this menu only pops when no selection
             //mapPopup.add("Visible");
             //mapPopup.setBackground(Color.gray);
         }
         return mapPopup;
     }
+
+    private JPopupMenu buildGroupPopup()
+    {
+        JPopupMenu m = new JPopupMenu("Group Menu");
+
+        m.add(Actions.Duplicate);
+        m.addSeparator();
+        m.add(Actions.Group);
+        m.add(Actions.Ungroup);
+        m.addSeparator();
+        m.add(Actions.BringToFront);
+        m.add(Actions.BringForward);
+        m.add(Actions.SendToBack);
+        m.add(Actions.SendBackward);
+        m.addSeparator();
+        for (int i = 0; i < Actions.ALIGN_MENU_ACTIONS.length; i++) {
+            Action a = Actions.ALIGN_MENU_ACTIONS[i];
+            if (a == null)
+                m.addSeparator();
+            else
+                m.add(a);
+        }
+        m.addSeparator();
+        m.add(Actions.Delete);
+        return m;
+    }
+    
+    private JPopupMenu buildComponentPopup()
+    {
+        JPopupMenu m = new JPopupMenu("Item Menu");
+
+        m.add(Actions.Rename);
+        m.add(Actions.Duplicate);
+        m.addSeparator();
+        m.add(Actions.BringToFront);
+        m.add(Actions.BringForward);
+        m.add(Actions.SendToBack);
+        m.add(Actions.SendBackward);
+        m.addSeparator();
+        m.add(Actions.Delete);
+        m.addSeparator();
+        m.add(Actions.AddPathwayNode);
+        m.add(Actions.DeletePathwayNode);
+        m.addSeparator();
+        m.add(Actions.HierarchyView);
+        
+        //end of addition
+        
+        // todo: special add-to selection action that adds
+        // hitComponent to selection so have way other
+        // than shift-click to add to selection (so you
+        // can do it all with the mouse)
+
+        return m;
+    }
+    
     private JPopupMenu getComponentPopup(LWComponent c)
     {
-        if (cPopup == null) {
-            cPopup = new JPopupMenu("Item Menu");
-            cPopup.add(Actions.Rename);
-            cPopup.add(Actions.Duplicate);
-            cPopup.addSeparator();
-            cPopup.add(Actions.Group);
-            cPopup.add(Actions.Ungroup);
-            cPopup.addSeparator();
-            cPopup.add(Actions.BringToFront);
-            cPopup.add(Actions.BringForward);
-            cPopup.add(Actions.SendToBack);
-            cPopup.add(Actions.SendBackward);
-            cPopup.addSeparator();
-            for (int i = 0; i < Actions.ALIGN_MENU_ACTIONS.length; i++) {
-                Action a = Actions.ALIGN_MENU_ACTIONS[i];
-                if (a == null)
-                    cPopup.addSeparator();
-                else
-                    cPopup.add(a);
-            }
-            cPopup.addSeparator();
-            cPopup.add(Actions.Delete);
-            
-            cPopup.addSeparator();
-            
-            //added by Daisuke and Jay
-            
-            cPopup.add(Actions.AddPathwayNode);
-            cPopup.add(Actions.DeletePathwayNode);
-            cPopup.addSeparator();
-            cPopup.add(Actions.HierarchyView);
-            
-            //end of addition
-            
-            // todo: special add-to selection action that adds
-            // hitComponent to selection so have way other
-            // than shift-click to add to selection (so you
-            // can do it all with the mouse)
-        }
+        if (c == null)
+            c = VueSelection.first(); // should be only thing in selection
+
+        if (componentPopup == null)
+            componentPopup = buildComponentPopup();
+        
         if (c instanceof LWNode) {
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
             Asset a = r == null ? null : r.getAsset();  
             if(a != null && assetMenu == null) {
                assetMenu = getAssetMenu(a);
-               cPopup.add(assetMenu);
+               componentPopup.add(assetMenu);
             }else if(a != null) {
-                cPopup.remove(assetMenu);
+                componentPopup.remove(assetMenu);
                 assetMenu = getAssetMenu(a);
-                cPopup.add(assetMenu);
+                componentPopup.add(assetMenu);
             }else if(a == null && assetMenu != null) {
-                cPopup.remove(assetMenu);
+                componentPopup.remove(assetMenu);
             }
         }
-        return cPopup;
+        else if (c instanceof LWLink) {
+            componentPopup.add(getLinkMenu());
+        }
+
+        if (!(c instanceof LWLink))
+            componentPopup.remove(getLinkMenu());
+
+        return componentPopup;
+    }
+    
+    private JPopupMenu getSelectionPopup(LWComponent c)
+    {
+        if (groupPopup == null)
+            groupPopup = buildGroupPopup();
+
+        if (VueSelection.allOfType(LWLink.class))
+            groupPopup.add(getLinkMenu());
+        else
+            groupPopup.remove(getLinkMenu());
+
+        return groupPopup;
+
+        /*
+        if (VueSelection.size() == 1 && !(VueSelection.first() instanceof LWGroup))
+            return componentPopup;
+        else
+            return groupPopup;
+        */
     }
     
     static final int RIGHT_BUTTON_MASK =
@@ -1643,10 +1760,10 @@ public class MapViewer extends javax.swing.JPanel
                 char c = e.getKeyChar();
                 boolean did = true;
                 if (c == 'A') {
-                    DEBUG_ANTIALIAS_OFF = !DEBUG_ANTIALIAS_OFF;
-                    if (DEBUG_ANTIALIAS_OFF)
-                         AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
-                    else AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+                    DEBUG_ANTI_ALIAS = !DEBUG_ANTI_ALIAS;
+                    if (DEBUG_ANTI_ALIAS)
+                         AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+                    else AA_ON = RenderingHints.VALUE_ANTIALIAS_OFF;
                 }
                 else if (c == 'I') { DEBUG_SHOW_MOUSE_LOCATION = !DEBUG_SHOW_MOUSE_LOCATION; }
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
@@ -1657,6 +1774,8 @@ public class MapViewer extends javax.swing.JPanel
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
                 else if (c == 'M') { DEBUG_MOUSE = !DEBUG_MOUSE; }
                 else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
+                else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
+                else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else
                     did = false;
                 if (did) {
@@ -1905,9 +2024,8 @@ public class MapViewer extends javax.swing.JPanel
         {
             if (VueSelection.isEmpty()) {
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
-            } else {
-                getComponentPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
-                
+            } else if (VueSelection.size() == 1) {
+
                 //enables and disables the add/delete pathway nodes menu 
                 //depending on whether there is a selected pathway and the selected component 
                 //belongs to the pathway
@@ -1928,6 +2046,13 @@ public class MapViewer extends javax.swing.JPanel
                     Actions.HierarchyView.setEnabled(true);
                 else
                     Actions.HierarchyView.setEnabled(false);
+
+                getComponentPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
+
+            } else {
+
+                getSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
+                
             }
         }
                 
@@ -2080,11 +2205,12 @@ public class MapViewer extends javax.swing.JPanel
 
             if (DEBUG_TIMER_ROLLOVER && !inDrag) {
                 if (true) {
-                    rolloverTask.cancel();
+                    if (rolloverTask != null)
+                        rolloverTask.cancel();
                     rolloverTask = new RolloverTask();
-                    rolloverTimer.schedule(rolloverTask, 100);
+                    rolloverTimer.schedule(rolloverTask, 150);
                 } else {
-                    rolloverTask.run();
+                    new RolloverTask().run();
                 }
             }
         }
@@ -2285,6 +2411,8 @@ public class MapViewer extends javax.swing.JPanel
                                                       
                 } else {
                     // TODO OPT: compute this once when we start the drag!
+                    // TODO BUG: sometimes dragComponent can be null when dragging control point??
+                    // should even be here if dragging control point (happens when all selected??)
                     i = dragComponent.getAllConnectedNodes().iterator();
                 }
                 while (i.hasNext()) {
@@ -2887,11 +3015,13 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");
     
     private boolean DEBUG_SHOW_ORIGIN = false;
-    private boolean DEBUG_ANTIALIAS_OFF = false;
+    private boolean DEBUG_ANTI_ALIAS = true;
+    private boolean DEBUG_RENDER_QUALITY = false;
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_FINDPARENT_OFF = false;
     private boolean DEBUG_FOCUS = false;
     private boolean DEBUG_TIMER_ROLLOVER = true;
+    private boolean DEBUG_FONT_METRICS = false;// fractional metrics looks worse to me --SF
     private boolean OPTIMIZED_REPAINT = false;
     static boolean DEBUG_PAINT = false;
 
