@@ -190,7 +190,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         c.gridy=3;
         c.insets = new Insets(10, 2,2,2);
         searchButton = new JButton("Search");
-        //searchButton.setPreferredSize(new Dimension(40,20));
+        searchButton.setPreferredSize(new Dimension(40,20));
         searchButton.addActionListener(this);
         gridbag.setConstraints(searchButton,c);
         DRSearchPanel.add(searchButton);

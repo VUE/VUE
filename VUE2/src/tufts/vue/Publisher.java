@@ -123,6 +123,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         informationArea = new JTextArea(" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.");
         informationArea.setEditable(false);
         informationArea.setLineWrap(true);
+        informationArea.setWrapStyleWord(true);
         informationArea.setRows(4);
         informationArea.setBorder(new LineBorder(Color.BLACK));
         //informationArea.setBackground(Color.WHITE);

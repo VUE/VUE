@@ -111,7 +111,7 @@ public class DataSource {
             fileTree.setRootVisible(false);
             JPanel localPanel = new JPanel();
             JScrollPane rSP = new JScrollPane(fileTree);
-            localPanel.setMinimumSize(new Dimension(300,100));
+            localPanel.setMinimumSize(new Dimension(290,100));
             localPanel.setLayout(new BorderLayout());
             localPanel.add(rSP,BorderLayout.CENTER);
             this.resourceViewer = localPanel;
@@ -143,7 +143,7 @@ public class DataSource {
             JScrollPane rSP = new JScrollPane(fileTree);
             
            
-            remotePanel.setMinimumSize(new Dimension(300,100));
+            remotePanel.setMinimumSize(new Dimension(290,100));
             remotePanel.setLayout(new BorderLayout());
             remotePanel.add(rSP,BorderLayout.CENTER);
              

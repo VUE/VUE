@@ -207,10 +207,15 @@ implements  VUE.ActiveMapListener {
             mTitleEditor = new JTextField();
             
             mAuthorEditor = new JTextField();
+            
             mDescriptionEditor = new JTextArea();
+            mDescriptionEditor.setLineWrap(true);
             mDescriptionEditor.setWrapStyleWord(true);
             mDescriptionEditor.setRows(5);
+            mDescriptionEditor.setMaximumSize(new Dimension(150, 300));
+            mDescriptionEditor.setPreferredSize(new Dimension(150,100));
             mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+            
             mDate = new JLabel();
             mLocation = new JLabel();
             //saveButton = new JButton("Save");
@@ -248,12 +253,14 @@ implements  VUE.ActiveMapListener {
             //metadataPanel.setBorder(BorderFactory.createEmptyBorder(0,9,0,6));
             innerPanel.add(metadataPanel);
             //innerPanel.add(mInfoScrollPane,BorderLayout.CENTER);
+            mInfoScrollPane.setSize( new Dimension( 200, 400));
             mInfoScrollPane.getViewport().add( innerPanel);
             mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-            
-            setLayout(new BorderLayout());
+            setLayout(new FlowLayout(FlowLayout.LEFT));
+            //setLayout(new BorderLayout());
             //setBorder( new EmptyBorder(4,4,4,4) );
-            add(mInfoScrollPane,BorderLayout.NORTH);
+            //add(mInfoScrollPane,BorderLayout.NORTH);
+            add(mInfoScrollPane);
             setBorder(BorderFactory.createEmptyBorder(10,10,0,6));
             addFocusListener(this);
         }
