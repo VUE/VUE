@@ -52,8 +52,14 @@ abstract class Undoable {
     }
 
     public String toString() {
-        return getClass().getName() + "<undoable>[" + old + "]";
+        String s = getClass().getName() + "<undoable>[";
+        if (old instanceof Object[])
+            s += java.util.Arrays.asList((Object[])old);
+        else
+            s += old;
+        return s + "]";
     }
+    
     /*
       // if can figure out how to make this a static class when created in-line,
       // can make this a bit more memory efficient as each subclass instance doesn't

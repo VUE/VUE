@@ -277,6 +277,7 @@ public class PathwayPanel extends JPanel implements ActionListener
 
     private void ensureNotesSaved() {
         if (mNoteKeyWasPressed && mDisplayedComponent != null) {
+            mNoteKeyWasPressed = false; // do this first or callback in updateTextAreas will cause 2 different setter calls
             String text = notesArea.getText();
             if (mDisplayedComponent instanceof LWPathway) {
                 if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
@@ -286,8 +287,9 @@ public class PathwayPanel extends JPanel implements ActionListener
                 mDisplayedComponentPathway.setElementNotes(mDisplayedComponent, text);                        
             }
             VUE.getUndoManager().mark();
-            mNoteKeyWasPressed = false;
         }
+        //else if (DEBUG.PATHWAY) System.out.println(this + " ensureNotesSaved: nothing to save: c=" + mDisplayedComponent
+        //                                         + " keyPressed=" + mNoteKeyWasPressed);
     }
 
     /** Returns the currently selected pathway.  As currently

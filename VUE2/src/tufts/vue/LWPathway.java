@@ -572,11 +572,11 @@ public class LWPathway extends LWContainer
     }
 
     public void setElementNotes(LWComponent c, String notes)
-    {   
-        if (notes == null || c == null) {
-            System.err.println("argument(s) to setElementNotes is null");
-            return;
-        }
+    {
+        if (c == null)
+            throw new IllegalArgumentException(this + " setElementNotes: LWComponent is null");
+        if (notes == null)
+            notes = "";
         
         for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
             LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
