@@ -235,6 +235,7 @@ public class LWComponent
     protected transient boolean displayed = true;
     protected transient boolean selected = false;
     protected transient boolean indicated = false;
+    protected transient boolean rollover = false;
 
     protected transient LWContainer parent = null;
 
@@ -583,7 +584,10 @@ public class LWComponent
     
     public float getScale()
     {
+        //if (parent == null || isIndicated() || parent.isIndicated())
+        //return this.rollover ? 1f : this.scale;
         return this.scale;
+        //return 1f;
     }
     public void translate(float dx, float dy)
     {
@@ -681,6 +685,8 @@ public class LWComponent
         throw new UnsupportedOperationException("unimplemented setShape in " + this);
     }
     */
+
+    public boolean doesRelativeDrawing() { return false; }    
 
     /**
      * Return bounds, including any stroke width.
@@ -835,6 +841,11 @@ public class LWComponent
         return (float) Math.sqrt(distanceToCenterSq(x, y));
     }
     
+    public void draw(DrawContext dc)
+    {
+        draw(dc.g);
+    }
+    
     public void draw(java.awt.Graphics2D g)
     {
         throw new UnsupportedOperationException("unimplemented draw in " + this);
@@ -965,12 +976,24 @@ public class LWComponent
 
     public void setIndicated(boolean indicated)
     {
-        this.indicated = indicated;
+        if (this.indicated != indicated) {
+            this.indicated = indicated;
+        }
+    }
+    public void setRollover(boolean rollover)
+    {
+        if (this.rollover != rollover) {
+            this.rollover = rollover;
+        }
     }
     
     public boolean isIndicated()
     {
         return this.indicated;
+    }
+    public boolean isRollover()
+    {
+        return this.rollover;
     }
 
     /** pesistance default */

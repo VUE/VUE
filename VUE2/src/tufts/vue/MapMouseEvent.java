@@ -50,6 +50,12 @@ public class MapMouseEvent extends MouseEvent
         this.mapY = getViewer().screenToMapY(e.getY());
     }
     
+    public MapMouseEvent(MouseEvent e, LWComponent c)
+    {
+        this(e);
+        setHitComponent(c);
+    }
+    
     public MapMouseEvent(MouseEvent e, Rectangle selectorBox)
     {
         this(e);
@@ -67,44 +73,53 @@ public class MapMouseEvent extends MouseEvent
     public void setDragRequest(LWComponent c) { this.dragRequest = c; }
     public LWComponent getDragRequest() { return this.dragRequest; }
 
-    void setSelectorBox(Rectangle r) { this.selectorBox = r; }
-    public Rectangle getSelectorBox() { return this.selectorBox; }
+    public Rectangle getSelectorBox() {
+        return this.selectorBox;
+    }
+    void setSelectorBox(Rectangle r) {
+        this.selectorBox = r;
+    }
     
     public Rectangle2D getMapSelectorBox()
     {
         return getViewer().screenToMapRect(this.selectorBox);
     }
 
-    public MapViewer getViewer()
-    {
+
+    public MapViewer getViewer() {
         return (MapViewer) super.getSource();
     }
-
-    public LWMap getMap()
-    {
+    public LWMap getMap() {
         return getViewer().getMap();
     }
 
-    public float getMapX()
-    {
+    public float getMapX() {
         return mapX;
     }
-    public float getMapY()
-    {
+    public float getMapY() {
         return mapY;
     }
-    public LWComponent getHitComponent()
-    {
-        return hitComponent;
-    }
-    void setHitComponent(LWComponent c)
-    {
-        this.hitComponent = c;
-    }
-    public Point2D.Float getMapPoint()
-    {
+    public Point2D.Float getMapPoint() {
         return new Point2D.Float(mapX, mapY);
     }
+
+    public float getComponentX() {
+        return (mapX - hitComponent.getX()) / hitComponent.getScale();
+    }
+    public float getComponentY() {
+        return (mapY - hitComponent.getY()) / hitComponent.getScale();
+    }
+    public Point2D.Float getComponentPoint() {
+        return new Point2D.Float(getComponentX(), getComponentY());
+    }
+
+    public LWComponent getHitComponent() {
+        return hitComponent;
+    }
+    void setHitComponent(LWComponent c) {
+        this.hitComponent = c;
+    }
+
 
     public String toString()
     {

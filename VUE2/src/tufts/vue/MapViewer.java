@@ -1,6 +1,8 @@
 package tufts.vue;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
@@ -63,7 +65,8 @@ public class MapViewer extends javax.swing.JPanel
     protected boolean inDrag;
     //protected Point2D.Float dragPosition = new Point2D.Float();
 
-    protected LWComponent indication;   // current indication (rollover hilite)
+    protected LWComponent indication;   // current indication (drag rollover hilite)
+    protected LWComponent rollover;   // current rollover (mouse rollover hilite)
 
     //-------------------------------------------------------
     // Pan & Zoom Support
@@ -699,8 +702,61 @@ public class MapViewer extends javax.swing.JPanel
             indication = null;
         }
     }
-
     LWComponent getIndication() { return indication; }
+    
+    private Timer rolloverTimer = new Timer();
+    private TimerTask rolloverTask = new RolloverTask();
+    class RolloverTask extends TimerTask
+    {
+        public void run()
+        {
+            //System.out.println("task run " + this);
+            float mapX = screenToMapX(lastMouseX);
+            float mapY = screenToMapY(lastMouseY);
+            LWComponent hit = getMap().findLWComponentAt(mapX, mapY);
+            if (hit != null)
+                setRollover(hit);
+            else
+                clearRollover();
+        }
+    }
+        
+    private float oldScale;
+    void setRollover(LWComponent c)
+    {
+        if (rollover != c) {
+            clearRollover();
+            rollover = c;
+            c.setRollover(true);
+            oldScale = c.getScale();
+            if (oldScale != 1f) {
+                float smallWidth = c.getWidth();
+                float smallHeight = c.getHeight();
+                c.setScale(1f);
+                float bigWidth = c.getWidth();
+                float bigHeight = c.getHeight();
+                float overlapX = bigWidth - smallWidth;
+                float overlapY = bigHeight - smallHeight;
+                c.setLocation(c.getX()-overlapX/2, c.getY()-overlapY/2);
+            }
+            repaintMapRegion(rollover.getBounds());
+        }
+    }
+    void clearRollover()
+    {
+        if (rollover != null) {
+            rolloverTask.cancel();
+            rollover.setRollover(false);
+            if (oldScale != 1f) {
+                rollover.setScale(oldScale);
+                // have the parent put it back in place
+                rollover.getParent().layoutChildren();
+            }
+            repaintMapRegion(rollover.getBounds());
+            rollover = null;
+        }
+    }
+
     
     /**
      * Render all the LWComponents on the panel
@@ -843,7 +899,7 @@ public class MapViewer extends javax.swing.JPanel
         // Draw the map: Ask the model to render itself to our GC
         //-------------------------------------------------------
 
-        this.map.draw(g2);
+        this.map.draw(new DrawContext(g2, getZoomFactor()));
 
         //-------------------------------------------------------
         // If current tool has anything it wants to draw, it
@@ -853,6 +909,9 @@ public class MapViewer extends javax.swing.JPanel
 
         // render the current indication on top
         //if (indication != null) indication.draw(g2);
+
+        // render the current rollover
+        //if (rollover != null) rollover.draw(g2);
 
         /*
         if (dragComponent != null) {
@@ -1596,6 +1655,7 @@ public class MapViewer extends javax.swing.JPanel
                 else if (c == 'P') { DEBUG_PAINT = !DEBUG_PAINT; }
                 else if (c == 'K') { DEBUG_KEYS = !DEBUG_KEYS; }
                 else if (c == 'M') { DEBUG_MOUSE = !DEBUG_MOUSE; }
+                else if (c == 'T') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
                 else
                     did = false;
                 if (did) {
@@ -1999,13 +2059,15 @@ public class MapViewer extends javax.swing.JPanel
         }
         */
 
-        
         public void mouseMoved(MouseEvent e)
         {
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+            lastMouseX = e.getX();
+            lastMouseY = e.getY();
+
             if (DEBUG_SHOW_MOUSE_LOCATION) {
-                mouse.x = e.getX();
-                mouse.y = e.getY();
+                mouse.x = lastMouseX;
+                mouse.y = lastMouseY;
                 repaint();
             }
             // Workaround for known Apple Mac OSX Java 1.4.1 bug:
@@ -2014,12 +2076,24 @@ public class MapViewer extends javax.swing.JPanel
                 if (DEBUG_MOUSE_MOTION) System.out.println("manually invoking mouseDragged");
                 mouseDragged(e);
             }
+
+            if (DEBUG_TIMER_ROLLOVER && !inDrag) {
+                if (true) {
+                    rolloverTask.cancel();
+                    rolloverTask = new RolloverTask();
+                    rolloverTimer.schedule(rolloverTask, 100);
+                } else {
+                    rolloverTask.run();
+                }
+            }
         }
+
 
         //private int drags=0;
         public void mouseDragged(MouseEvent e)
         {
             inDrag = true;
+            clearRollover();
             //System.out.println("drag " + drags++);
             if (mouseWasDragged == false) {
                 // dragStart
@@ -2493,11 +2567,7 @@ public class MapViewer extends javax.swing.JPanel
                         activateLabelEdit(hitComponent);
                         handled = true;
                     } else if (hitComponent instanceof ClickHandler) {
-                        Point2D.Float p = screenToMapPoint(e.getPoint());
-                        // Make point relative to the component
-                        p.x -= hitComponent.getX();
-                        p.y -= hitComponent.getY();
-                        handled = ((ClickHandler)hitComponent).handleSingleClick(p);
+                        handled = ((ClickHandler)hitComponent).handleSingleClick(new MapMouseEvent(e, hitComponent));
                     }
                     
                     //todo: below not triggering under arrow tool if we just dragged the link --
@@ -2527,19 +2597,7 @@ public class MapViewer extends javax.swing.JPanel
                     handled = true;
                 }
                 else if (hitComponent instanceof ClickHandler) {
-                    Point2D.Float p = screenToMapPoint(e.getPoint());
-                    // Make point relative to the component
-                    p.x -= hitComponent.getX();
-                    p.y -= hitComponent.getY();
-                    // move this paint code to the handler with a MapMouseEvent
-                    //setIndicated(hitComponent);
-                    //paintImmediately(mapToScreenRect(hitComponent.getBounds()));
-                    // translate coord into scale of child
-                    p.x /= hitComponent.getScale();
-                    p.y /= hitComponent.getScale();
-                    handled = ((ClickHandler)hitComponent).handleDoubleClick(p);
-                    //clearIndicated();
-                    //repaint();
+                    handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
                 }
                 
                 if (!handled && hitComponent != null && !(hitComponent instanceof LWGroup)) {
@@ -2832,6 +2890,7 @@ public class MapViewer extends javax.swing.JPanel
     private boolean DEBUG_SHOW_MOUSE_LOCATION = false; // slow (constant repaint)
     private boolean DEBUG_FINDPARENT_OFF = false;
     private boolean DEBUG_FOCUS = false;
+    private boolean DEBUG_TIMER_ROLLOVER = true;
     private boolean OPTIMIZED_REPAINT = false;
     static boolean DEBUG_PAINT = false;
 

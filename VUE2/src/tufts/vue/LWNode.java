@@ -34,12 +34,13 @@ public class LWNode extends LWContainer
     //------------------------------------------------------------------
     // Constants affecting the internal layout of nodes & any children
     //------------------------------------------------------------------
-    private static final boolean AlwaysShowIcon = true;
+    static final float ChildScale = 0.75f;   // % scale-down of children
+    
+    private static final boolean AlwaysShowIcon = false;
         
     private static final int PadTop = 3;
     //private static final int PadY = PadTop + 3;
     //private static final int PadX = 12;
-    private static final float ChildScale = 0.75f;   // % scale-down of children
 
     private static final int IconWidth = 28;
     private static final int IconHeight = 19;
@@ -53,11 +54,12 @@ public class LWNode extends LWContainer
     private static final int IconPadBottom = (int) IconAscent;
     private static final int IconMinY = IconPadLeft;
 
+    // TODO: need to multiply all these by ChildScale now...
     private static final int ChildOffsetX = IconMargin; // X offset of children when icon showing
+    private static final int ChildOffsetY = 1; // how far children down from bottom of icon
     private static final int ChildPadX = 5; // min space at left/right of children
     private static final int ChildVerticalGap = 3; // vertical space between children
     private static final int ChildHorizontalGap = 3; // horizontal space between children
-    private static final int ChildOffsetY = 1; // how far children down from bottom of icon
     private static final int ChildrenPadBottom = ChildPadX - ChildVerticalGap; // make same as space at right
     //    private static final int ChildrenPadBottom = 3; // space at bottom after all children
     
@@ -69,8 +71,6 @@ public class LWNode extends LWContainer
     // font strings, so this pad needs to be big enough to compensate
     // for the error in the worst case.
     private static final int DividerStubPadX = 9;
-    
-    //private int iconWidth =
     
     //------------------------------------------------------------------
     // Instance info
@@ -88,6 +88,8 @@ public class LWNode extends LWContainer
     private RectangularShape genIcon = new RoundRectangle2D.Float(0,0, IconWidth,IconHeight, 12,12);
     private Line2D dividerLine = new Line2D.Float();
     private Line2D dividerStub = new Line2D.Float();
+
+    private boolean isRectShape = true;
     
     public LWNode(String label)
     {
@@ -191,30 +193,65 @@ public class LWNode extends LWContainer
     {
         return AlwaysShowIcon || getResource() != null;
     }
-    
-    public boolean handleDoubleClick(Point2D p)
+
+    // was text box hit?  coordinates are component local
+    private boolean textBoxHit(float cx, float cy)
     {
-        System.out.println("handleDoubleClick " + p + " " + this);
-        if (iconShowing()) {
-            if (genIcon.contains(p)) {
-                // todo: flash the genIcon red or something
-                if (getResource() != null)
-                    getResource().displayContent();
+        float lx = relativeLabelX() - IconPadRight;
+        float ly = relativeLabelY() - PadTop;
+        float height = getLabelBox().getHeight() + PadTop;
+        float width = IconPadRight + getLabelBox().getWidth() + DividerStubPadX;
+
+        return
+            cx >= lx &&
+            cy >= ly &&
+            cx <= lx + width &&
+            cy <= ly + height;
+    }
+    
+    
+    public boolean handleDoubleClick(MapMouseEvent e)
+    {
+        //System.out.println("*** handleDoubleClick " + e + " " + this);
+
+        // need to get mapmouseevent here so can ask viewer
+        // to activate label edit.
+
+        float cx = e.getComponentX();
+        float cy = e.getComponentY();
+
+        if (textBoxHit(cx, cy)) {
+            e.getViewer().activateLabelEdit(this);
+        } else {
+            // by default, a double-click anywhere else in
+            // node opens the resource
+            
+            if (getResource() != null) {
+                getResource().displayContent();
                 // todo: some kind of animation or something to show
                 // we're "opening" this node -- maybe an indication
                 // flash -- we'll need another thread for that.
-                return true;
+                
+                //mme.getViewer().setIndicated(this); or
+                //mme.getComponent().paintImmediately(mapToScreenRect(getBounds()));
+                //or mme.repaint(this)
+                // now open resource, and then clear indication
+                //clearIndicated();
+                //repaint();
             }
         }
-        return false;
+        return true;
     }
 
-    public boolean handleSingleClick(Point2D p)
+    public boolean handleSingleClick(MapMouseEvent e)
     {
-        System.out.println("handleSingleClick " + p + " " + this);
+        //System.out.println("*** handleSingleClick " + e + " " + this);
         // "handle", but don't actually do anything, if they single click on
         // the icon (to prevent activating a label edit if they click here)
-        return iconShowing() && genIcon.contains(p);
+        //return iconShowing() && genIcon.contains(e.getComponentPoint());
+
+        // for now, never activate a label edit on just a single click.
+        return true;
     }
 
     // todo: remove this eventually
@@ -252,6 +289,10 @@ public class LWNode extends LWContainer
         //RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
         //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
         //}
+
+        // optimization hack
+        isRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        
         this.boundsShape = shape;
         this.drawnShape = (RectangularShape) shape.clone();
         adjustDrawnShape();
@@ -306,8 +347,19 @@ public class LWNode extends LWContainer
     {
         if (imageIcon != null)
             return super.contains(x,y);
-        else
-            return boundsShape.contains(x, y);
+        else {
+            if (isRectShape) {
+                return boundsShape.contains(x, y);
+            } else {
+                float cx = x - getX();
+                float cy = y - getY();
+                return boundsShape.contains(x, y)
+                    || textBoxHit(cx, cy)
+                    || genIcon.contains(cx, cy);
+            }
+        }
+        // if shape is not rectangular, check textBoxHit & genIcon hit
+        
         // to compensate for stroke width here, could get mathy here
         // and move the x/y strokeWidth units along a line toward
         // the center of the object, which wouldn't be perfect
@@ -355,7 +407,10 @@ public class LWNode extends LWContainer
     {
         super.setScale(scale);
         this.boundsShape.setFrame(getX(), getY(), getWidth(), getHeight());
+        //layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
+        // LWContainer.setScale handles this
     }
+    
     void setScaleOnChild(float scale, LWComponent c)
     {
         // todo: temporary hack color change for children
@@ -391,7 +446,7 @@ public class LWNode extends LWContainer
         // location of our children as they they try and notify us
         // back that we need to layout.
         
-        layoutChildren(null);
+        layoutChildren();
     }
     
     private boolean inLayout = false;
@@ -455,6 +510,8 @@ public class LWNode extends LWContainer
 
             height = PadTop + (float)dividerY + IconDescent;
             width = (float)stubX + IconPadLeft; // be symmetrical with left padding
+        } else {
+            width += 12;
         }
 
         //-------------------------------------------------------
@@ -491,12 +548,19 @@ public class LWNode extends LWContainer
         
 
         // todo: handle thru event?
-        if (getParent() != null && (oldWidth != getWidth() || oldHeight != getHeight()))
+        if (getParent() != null && (oldWidth != getWidth() || oldHeight != getHeight())) {
+            //new Throwable("LAYING OUT PARENT " + this).printStackTrace();
             getParent().layout();
+        }
 
         inLayout = false;
     }
 
+    public void layoutChildren()
+    {
+        layoutChildren(null);
+    }
+    
     /**
      * Need to be able to do this seperately from layout -- this
      * get's called everytime a node's location is changed so
@@ -508,6 +572,8 @@ public class LWNode extends LWContainer
      * the current scale factor of the parent.
      */
     
+    private float childBaseX = 0;
+    private float childBaseY = 0;
     protected void layoutChildren(float[] size)
     {
         if (!hasChildren())
@@ -525,6 +591,11 @@ public class LWNode extends LWContainer
         baseY += getY();
 
         //System.out.println("layoutChildren " + this);
+
+        childBaseX = baseX;
+        childBaseY = baseY;
+        // for relative-to-parent child layouts
+        //baseX = baseY = 0;
         
         //layoutChildrenSingleColumn(baseX, baseY, size);
         layoutChildrenGrid(baseX, baseY, size);
@@ -532,6 +603,8 @@ public class LWNode extends LWContainer
         if (size != null) {
             size[0] /= getScale();
             size[1] /= getScale();
+            //size[0] *= ChildScale;
+            //size[1] *= ChildScale;
         }
         
     }
@@ -546,12 +619,16 @@ public class LWNode extends LWContainer
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             c.setLocation(baseX, y);
+            //c.setAbsoluteLocation(getAbsoluteX() + childBaseX + baseX,
+            //                    getAbsoluteY() + childBaseY + y);
             y += c.getHeight();
+            //y += c.getAbsoluteHeight();
             y += ChildVerticalGap * getScale();
 
             if (size != null) {
                 // track max width
                 float w = c.getBoundsWidth();
+                //float w = c.getAbsoluteWidth();
                 if (w > maxWidth)
                     maxWidth = w;
             }
@@ -658,6 +735,7 @@ public class LWNode extends LWContainer
             // Center if no resource icon
             int w = getLabelBox().getPreferredSize().width;
             offset = (this.width - w) / 2;
+            offset++;
             //offset = 7;
         }
         return offset;
@@ -674,14 +752,13 @@ public class LWNode extends LWContainer
             return (this.height - getLabelBox().getPreferredSize().height) / 2;
     }
 
-    public void draw(Graphics2D g)
+    public void draw(DrawContext dc)
     {
+        Graphics2D g = dc.g;
+        
         g.translate(getX(), getY());
         float scale = getScale();
-        if (scale != 1f)
-            g.scale(scale, scale);
-            
-        String label = getLabel();
+        if (scale != 1f) g.scale(scale, scale);
 
         //-------------------------------------------------------
         // Fill the shape (if it's not transparent)
@@ -703,7 +780,12 @@ public class LWNode extends LWContainer
         // Draw the indicated border if any
         //-------------------------------------------------------
         // todo perf: factor out these conditionals
-        if (isIndicated()) {
+        if (false&&isRollover()) {
+            // temporary debug
+            //g.setColor(new Color(0,0,128));
+            g.setColor(Color.blue);
+        }
+        else if (isIndicated()) {
             // todo: okay, it is GROSS to handle the indication here --
             // do it all in the viewer!
             g.setColor(COLOR_INDICATION);
@@ -711,38 +793,21 @@ public class LWNode extends LWContainer
                 g.setStroke(STROKE_INDICATION);
             else
                 g.setStroke(this.stroke);
-            g.draw(drawnShape);
-        } else if (getStrokeWidth() > 0) {
+        }
+        else if (getStrokeWidth() > 0) {
             //if (LWSelection.DEBUG_SELECTION && isSelected())
             if (isSelected())
                 g.setColor(COLOR_SELECTION);
             else
                 g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
-            g.draw(drawnShape);
         }
 
-        //-------------------------------------------------------
-        // Draw the text label if any
-        //-------------------------------------------------------
-        
-        /*
-        if (label != null && label.length() > 0) {
-            float textBaseline = relativeLabelY();
-            g.setFont(getFont());
-            g.setColor(getTextColor());
-            g.drawString(label, relativeLabelX(), textBaseline);
-        }
-        */
-
+        g.draw(drawnShape);
 
         //-------------------------------------------------------
         // Draw the generated icon
         //-------------------------------------------------------
-
-        // OKAY, create that DrawContext, which can have
-        // the zoom factor in there (as well as handle anti-alias,
-        // and allow for paint requests back to the parent)
 
         // Here we'll check the zoom level, and if iit's say,
         // over 800%, we could draw the resource string in a tiny
@@ -772,6 +837,10 @@ public class LWNode extends LWContainer
             g.translate(lx, ly);
             this.labelBox.draw(g);
             g.translate(-lx, -ly);
+
+            // todo: this (and in LWLink) is a hack -- can't we
+            // do this relative to the node?
+            //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
         }
         
         //-------------------------------------------------------
@@ -789,17 +858,73 @@ public class LWNode extends LWContainer
         // auto multiply by the scale factor, and actually resizing
         // the bounds-shape when we scale an object.
         
-        if (scale != 1f)
-            g.scale(1/scale, 1/scale);
+        if (scale != 1f) g.scale(1/scale, 1/scale);
         g.translate(-getX(), -getY());
 
         //-------------------------------------------------------
         // Draw any children
         //-------------------------------------------------------
-        super.draw(g);
-        
 
+        // This produces the cleanest code in all above -- don't
+        // need to manage scaling if we translate to a region
+        // where all the nodes will lie within, and then their
+        // positioning auto-collapses as their scaled down...
+        if (hasChildren()) {
+            //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
+            //g.scale(ChildScale, ChildScale);
+            //super.draw(dc.createScaled(ChildScale)); // not using this
+            super.draw(dc);
+        }
     }
+
+    public boolean doesRelativeDrawing() { return false; }
+
+    /*
+    public void XX_drawChild(LWComponent child, DrawContext dc)
+    {
+        // can use this if children could ever do anything to the scale
+        // (thus we'd need to protect each child from changes made
+        // by others)
+        //child.draw(dc.createScaled(ChildScale));
+    }
+    
+    public void X_drawChild(LWComponent child, DrawContext dc)
+    {
+        //Graphics2D g = dc.g;
+        //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
+        // we double the translation because the translation done by
+        // the child will happen in a shrunk context -- but that only works if ChildScale == 0.5!
+        //g.translate((double)child.getX() * ChildScale, (double)child.getY() * ChildScale);
+        dc.g.translate(child.getX(), child.getY());
+        dc.g.scale(ChildScale, ChildScale);
+        child.draw(dc);
+        //g.translate(-childBaseX, -childBaseY);
+    }
+
+    public LWComponent relative_findLWComponentAt(float mapX, float mapY)
+    {
+        if (DEBUG_CONTAINMENT) System.out.println("LWCNode.findLWComponentAt[" + getLabel() + "]");
+        // hit detection must traverse list in reverse as top-most
+        // components are at end
+        java.util.ListIterator i = children.listIterator(children.size());
+
+        mapX -= getX() + childBaseX;
+        mapY -= getY() + childBaseY;
+        mapX /= ChildScale;
+        mapY /= ChildScale;
+        while (i.hasPrevious()) {
+            LWComponent c = (LWComponent) i.previous();
+            if (c.contains(mapX, mapY)) {
+                if (c.hasChildren())
+                    return ((LWContainer)c).findLWComponentAt(mapX, mapY);
+                else
+                    return c;
+            }
+        }
+        return this;
+    }
+    */
+    
 
     private static final String NoResource = VueUtil.isMacPlatform() ? "---" : "__";
     // On PC, two underscores look better than "---" in default Trebuchet font,
@@ -888,7 +1013,7 @@ public class LWNode extends LWContainer
         if (hasNotes()) {
             Font f = FONT_ICON.deriveFont((float) (FONT_ICON.getSize() - 3));
             g.setFont(f);
-            g.setColor(Color.gray);
+             g.setColor(Color.gray);
             g.drawString("notes", IconWidth+IconPadRight, IconHeight-1);
             //g.drawString("notes", childOffseX(), IconHeight-1);
             //g.drawString("notes", IconWidth/4, IconHeight-1);
@@ -1085,5 +1210,6 @@ public class LWNode extends LWContainer
         maxWidth /= getScale();
         return new Rectangle2D.Float(0f, 0f, maxWidth, height);
     }
-    */
     
+    
+    */

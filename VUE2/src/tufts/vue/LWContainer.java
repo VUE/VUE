@@ -201,6 +201,11 @@ public abstract class LWContainer extends LWComponent
             return getParent().getNextUniqueID();
     }
 
+    public void layoutChildren()
+    {
+        // in case the container can do anything to lay out it's children
+    }
+
     protected void addChildInternal(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
@@ -420,6 +425,7 @@ VueAction: Zoom 100% n=1
     /**
      * Only called AFTER we've determined that mapX, mapY already
      * lie within the bounds of this LWComponent via contains(x,y)
+     * -- REALLY?  No, I don't think so anymore...
      */
 
     public LWComponent findLWComponentAt(float mapX, float mapY)
@@ -487,6 +493,8 @@ VueAction: Zoom 100% n=1
                 if (!(c instanceof LWNode))
                     continue;
                 //if (c != excluded && c.contains(mapX, mapY)) {
+                // todo: why do skip if node is selected here???
+                // was a reason once but now I think this is a bug
                 if (!c.isSelected() && c.contains(mapX, mapY)) {
                     if (c.hasChildren())
                         return ((LWContainer)c).findLWNodeAt(mapX, mapY);
@@ -603,7 +611,7 @@ VueAction: Zoom 100% n=1
         children.add(c);
         // we layout the parent because a parent node will lay out
         // it's children in the order they appear in this list
-        c.getParent().layout();
+        c.getParent().layoutChildren();
         return true;
     }
     boolean sendToBack(LWComponent c)
@@ -615,7 +623,7 @@ VueAction: Zoom 100% n=1
         //System.out.println("sendToBack " + c);
         children.remove(idx);
         children.add(0, c);
-        c.getParent().layout();
+        c.getParent().layoutChildren();
         return true;
     }
     boolean bringForward(LWComponent c)
@@ -627,7 +635,7 @@ VueAction: Zoom 100% n=1
             return false;
         //System.out.println("bringForward " + c);
         swap(idx, idx + 1);
-        c.getParent().layout();
+        c.getParent().layoutChildren();
         return true;
     }
     boolean sendBackward(LWComponent c)
@@ -638,7 +646,7 @@ VueAction: Zoom 100% n=1
             return false;
         //System.out.println("sendBackward " + c);
         swap(idx, idx - 1);
-        c.getParent().layout();
+        c.getParent().layoutChildren();
         return true;
     }
 
@@ -676,8 +684,6 @@ VueAction: Zoom 100% n=1
         
     }
 
-    // todo: even better, support this feature in a much cleaner way
-    // (e.g., tweak the font size or something)
     void setScale(float scale)
     {
         //System.out.println("Scale set to " + scale + " in " + this);
@@ -687,7 +693,10 @@ VueAction: Zoom 100% n=1
             LWComponent c = (LWComponent) i.next();
             setScaleOnChild(scale, c);
         }
-        layout(); // todo: if we leave scaling in, see if can do this less frequently
+        //layout(); // okay, we were calling this here as a side effect for
+        // everyone to compute their proper sizes as this gets called after a restore --
+        // now handled properly in LWMap
+        layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
     }
 
     void setScaleOnChild(float scale, LWComponent c)
@@ -695,16 +704,15 @@ VueAction: Zoom 100% n=1
         // vanilla containers don't scale down their children -- only nodes do
         c.setScale(scale);
     }
-    //void float getChildScale() // if we get rid of color toggling, cleaner to implement this way
-    
-    public void draw(java.awt.Graphics2D g)
+
+    public void draw(DrawContext dc)
     {
         int nodes = 0;
         int links = 0;
         
         if (this.children.size() > 0) {
 
-            Rectangle clipBounds = g.getClipBounds();
+            Rectangle clipBounds = dc.g.getClipBounds();
 
             // fudge clip bounds to deal with anti-aliasing
             // edges that are being missed.
@@ -718,10 +726,18 @@ VueAction: Zoom 100% n=1
                 System.out.println("      mvrr="+MapViewer.RepaintRegion);
                 }*/
                 
+            LWComponent rollover = null;
             java.util.Iterator i = getChildIterator();
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
 
+                // make sure the rollover is painted on top
+                // a bit of a hack to do this here -- better MapViewer
+                if (c.isRollover() && c.getParent() instanceof LWNode) {
+                    rollover = c;
+                    continue;
+                }
+                
                 //-------------------------------------------------------
                 // This is a huge speed optimzation.  Eliminating all
                 // the Graphics2D calls that would end up having to
@@ -730,36 +746,59 @@ VueAction: Zoom 100% n=1
                 // -------------------------------------------------------
                 
                 if (c.isDisplayed() && c.intersects(clipBounds)) {
-                    // todo opt: don't create all these GC's
-                    Graphics2D gg = (Graphics2D) g.create();
-                    try {
-                        c.draw(gg);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.err.println("*** Exception drawing: " + c);
-                        System.err.println("***         In parent: " + this);
-                        System.err.println("***    Graphics-start: " + g);
-                        System.err.println("***      Graphics-end: " + gg);
-                        System.err.println("***   Transform-start: " + g.getTransform());
-                        System.err.println("***     Transform-end: " + gg.getTransform());
-                    } finally {
-                        gg.dispose();
-                    }
+                    _drawChild(dc, c);
                     if (MapViewer.DEBUG_PAINT) { // todo: remove MapViewer reference
                         if (c instanceof LWLink) links++;
-                        else nodes++;
+                        else if (c instanceof LWNode) nodes++;
                     }
                 }
             }
+
+            if (rollover != null) {
+                _drawChild(dc, rollover);
+            }
+                
             if (MapViewer.DEBUG_PAINT) // todo: remove MapViewer reference
                 System.out.println(this + " painted " + links + " links, " + nodes + " nodes");
         }
         if (DEBUG_CONTAINMENT) {
-            g.setColor(java.awt.Color.green);
-            g.setStroke(STROKE_ONE);
-            g.draw(getBounds());
+            dc.g.setColor(java.awt.Color.green);
+            dc.g.setStroke(STROKE_ONE);
+            dc.g.draw(getBounds());
         }
     }
+
+    private void _drawChild(DrawContext dc, LWComponent c)
+    {
+        // todo opt: don't create all these GC's?
+        Graphics2D g = dc.g;
+        Graphics2D gg = (Graphics2D) dc.g.create();
+        try {
+            if (c.doesRelativeDrawing())
+                gg.translate(c.getX(), c.getY());
+            dc.g = gg;
+            drawChild(c, dc);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("*** Exception drawing: " + c);
+            System.err.println("***         In parent: " + this);
+            System.err.println("***    Graphics-start: " + g);
+            System.err.println("***      Graphics-end: " + gg);
+            System.err.println("***   Transform-start: " + g.getTransform());
+            System.err.println("***     Transform-end: " + gg.getTransform());
+        } finally {
+            gg.dispose();
+        }
+        dc.g = g;
+    }
+
+    
+
+    public void drawChild(LWComponent child, DrawContext dc)
+    {
+        child.draw(dc);
+    }
+    
 
     public String paramString()
     {

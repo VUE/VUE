@@ -84,6 +84,12 @@ public class LWMap extends LWContainer
         nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
+
+        Iterator i = getAllDescendents().iterator();//slow
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.layout();
+        }
     }
     
     public void draw(Graphics2D g){
