@@ -3218,13 +3218,14 @@ public class MapViewer extends javax.swing.JComponent
         }
         
         private void scrollToVisible(LWComponent c, int pad) {
-            //Rectangle r = growForSelection(mapToScreenRect(c.getBounds()), pad);
+            Rectangle r = growForSelection(mapToScreenRect(c.getBounds()), pad);
+            // [turned back on now that we only scroll to mouse during drags]
             // turned off growth: don't scroll till really at edge:
             // todo: follow-on adjustscrollregion is adjusting to content-bounds
             // of map, which is still giving us a big margin when against edge
             // of canvas, as opposed to when against edge of viewport on bigger
             // canvas.
-            Rectangle r = mapToScreenRect(c.getBounds());
+            //Rectangle r = mapToScreenRect(c.getBounds());
 
             // TODO: if component was off screen or is bigger than
             // screen, need to know what direction we're dragging
@@ -3237,7 +3238,7 @@ public class MapViewer extends javax.swing.JComponent
             // we can pad it a bit to be sure we'll totally come up against
             // the edge of the max scroll region, or so we don't bother
             // auto-scrolling unless we really need to.
-            if (r.width < getVisibleWidth() && r.height < getVisibleHeight()) {
+            if (r.width < getVisibleWidth() / 2 && r.height < getVisibleHeight() / 2) {
                 if (DEBUG.SCROLL) out("scrollToComponent " + c);
                 scrollRectToVisible(r);
             }
@@ -3371,7 +3372,8 @@ public class MapViewer extends javax.swing.JComponent
                 //dragPosition.setLocation(mapX + dragOffset.x,mapY + dragOffset.y);
                 
                 if (inScrollPane)
-                    scrollToVisible(dragComponent);
+                    //scrollToVisible(dragComponent); // unexpected behaviour with large selections
+                    scrollToMouse(e);
                 
                 //-------------------------------------------------------
                 // Compute more repaint region
