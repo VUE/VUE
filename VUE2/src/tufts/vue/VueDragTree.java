@@ -265,7 +265,7 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
     }
  } 
 
-class AssetNode extends DefaultMutableTreeNode {
+ public class AssetNode extends DefaultMutableTreeNode {
 	private boolean explored = false;
         private Asset asset;
 	public AssetNode(Asset asset) 	{ 
