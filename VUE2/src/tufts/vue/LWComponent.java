@@ -1090,7 +1090,7 @@ public class LWComponent
         throw new UnsupportedOperationException("unimplemented draw in " + this);
     }
 
-    public void addLWCListener(LWComponent.Listener listener)
+    public synchronized void addLWCListener(LWComponent.Listener listener)
     {
         if (listeners == null)
             listeners = new java.util.ArrayList();
@@ -1099,18 +1099,18 @@ public class LWComponent
         else
             listeners.add(listener);
     }
-    public void removeLWCListener(LWComponent.Listener listener)
+    public synchronized void removeLWCListener(LWComponent.Listener listener)
     {
         if (listeners == null)
             return;
         listeners.remove(listener);
     }
-    public void removeAllLWCListeners()
+    public synchronized void removeAllLWCListeners()
     {
         if (listeners != null)
             listeners.clear();
     }
-    protected void notifyLWCListeners(LWCEvent e)
+    protected synchronized void notifyLWCListeners(LWCEvent e)
     {
         if (isDeleted())
             throw new IllegalStateException("ZOMBIE ON THE LOOSE! deleted component attempting event notification:"

@@ -82,16 +82,16 @@ public class LWSelection extends java.util.ArrayList
         return controlListeners;
     }
 
-    public void addListener(Listener l)
+    public synchronized void addListener(Listener l)
     {
         listeners.add(l);
     }
-    public void removeListener(Listener l)
+    public synchronized void removeListener(Listener l)
     {
         listeners.remove(l);
     }
 
-    private void notifyListeners()
+    private synchronized void notifyListeners()
     {
         if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
         
@@ -118,19 +118,19 @@ public class LWSelection extends java.util.ArrayList
         return this.listeners;
     }
 
-    void setTo(LWComponent c)
+    synchronized void setTo(LWComponent c)
     {
         clear0();
         add(c);
     }
     
-    void setTo(Iterator i)
+    synchronized void setTo(Iterator i)
     {
         clear0();
         add(i);
     }
      
-    void add(LWComponent c)
+    synchronized void add(LWComponent c)
     {
         if (!c.isSelected()) {
             add0(c);
@@ -145,7 +145,7 @@ public class LWSelection extends java.util.ArrayList
     }
     
     /** Make sure all in iterator are in selection & do a single change notify at the end */
-    void add(Iterator i)
+    synchronized void add(Iterator i)
     {
         LWComponent c;
         boolean changed = false;
@@ -161,7 +161,7 @@ public class LWSelection extends java.util.ArrayList
     }
     
     /** Change the selection status of all LWComponents in iterator */
-    void toggle(Iterator i)
+    synchronized void toggle(Iterator i)
     {
         LWComponent c;
         boolean changed = false;
@@ -177,7 +177,7 @@ public class LWSelection extends java.util.ArrayList
             notifyListeners();
     }
     
-    private void add0(LWComponent c)
+    private synchronized void add0(LWComponent c)
     {
         if (DEBUG_SELECTION) System.out.println(this + " adding " + c);
         
@@ -191,13 +191,13 @@ public class LWSelection extends java.util.ArrayList
             throw new RuntimeException(this + " attempt to add already selected component " + c);
     }
     
-    public void remove(LWComponent c)
+    public synchronized void remove(LWComponent c)
     {
         remove0(c);
         notifyListeners();
     }
 
-    private void remove0(LWComponent c)
+    private synchronized void remove0(LWComponent c)
     {
         if (DEBUG_SELECTION) System.out.println(this + " removing " + c);
         if (!isClone) c.setSelected(false);
@@ -214,19 +214,19 @@ public class LWSelection extends java.util.ArrayList
      * listeners of a change.
      *
      **/
-    public void clearAndNotify() {
+    public synchronized void clearAndNotify() {
     	clear0();
         if (DEBUG_SELECTION) System.out.println(this + " clearAndNotify: forced notification after clear");
     	notifyListeners();
     }
     
-    public void clear()
+    public synchronized void clear()
     {
         if (clear0())
             notifyListeners();
     }
 
-    private boolean clear0()
+    private synchronized boolean clear0()
     {
         if (isEmpty())
             return false;
