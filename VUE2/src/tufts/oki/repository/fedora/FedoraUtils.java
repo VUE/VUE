@@ -80,8 +80,10 @@ public class FedoraUtils {
             if (prefs != null)
                 return prefs;
             //String filename = url.getFile().replaceAll("%20"," ");
-            prefs = Preferences.userRoot().node("/");
-            System.out.println("*** FedoraUtils.getPreferences: loading & caching prefs from \"" + url + "\"");
+            //prefs = Preferences.userRoot().node("/");
+            Class clazz = new FedoraUtils().getClass();
+            prefs = Preferences.userNodeForPackage(clazz);
+            System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
             //InputStream stream = new BufferedInputStream(new FileInputStream(filename));
             InputStream stream = new BufferedInputStream(url.openStream());
             prefs.importPreferences(stream);
@@ -162,4 +164,6 @@ public class FedoraUtils {
             throw new osid.repository.RepositoryException("FedoraUtils.getFedoraAction "+t.getMessage());
         }
     }
+
+    private FedoraUtils() {}    
 }

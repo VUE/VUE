@@ -71,22 +71,54 @@ public class FedoraUtils {
     }
     
     public static Preferences getPreferences(DR dr)
-    throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException {
-        if(dr.getPrefernces() != null) {
+        throws java.io.FileNotFoundException,
+               java.io.IOException,
+               java.util.prefs.InvalidPreferencesFormatException
+    {
+        if (dr.getPrefernces() != null) {
             return dr.getPrefernces();
         } else {
+            return getDefaultPreferences(dr.getConfiguration());
+            /*
             URL url = dr.getConfiguration();
             Preferences prefs = (Preferences) prefsCache.get(url);
             if (prefs != null)
                 return prefs;
-            prefs = Preferences.userRoot().node("/");
-            System.out.println("*** FedoraUtils.getPreferences: loading & caching prefs from \"" + url + "\"");
+            //prefs = Preferences.userRoot().node("/");
+            Class clazz = new FedoraUtils().getClass();
+            prefs = Preferences.userNodeForPackage(clazz);
+            System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
+            System.out.println("*** " + clazz.getName() + ".getPreferences: prefs=" + prefs);
             InputStream stream = new BufferedInputStream(url.openStream());
             prefs.importPreferences(stream);
             prefsCache.put(url, prefs);
             stream.close();
             return prefs;
+            */
         }
+    }
+    
+    public static Preferences getDefaultPreferences(URL url)
+        throws java.io.FileNotFoundException,
+               java.io.IOException,
+               java.util.prefs.InvalidPreferencesFormatException
+    {
+        if (url == null) {
+            url = new FedoraUtils().getClass().getResource("fedora.conf");
+            new Throwable("using default preferences " + url).printStackTrace();
+        }
+        Preferences prefs = (Preferences) prefsCache.get(url);
+        if (prefs != null)
+            return prefs;
+        Class clazz = new FedoraUtils().getClass();
+        prefs = Preferences.userRoot().node(clazz.getPackage().getName());
+        System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
+        System.out.println("*** " + clazz.getName() + ".getPreferences: prefs=" + prefs);
+        InputStream stream = new BufferedInputStream(url.openStream());
+        prefs.importPreferences(stream);
+        prefsCache.put(url, prefs);
+        stream.close();
+        return prefs;
     }
     
     public static String[] getFedoraPropertyArray(DR dr,String pLookupKey)
@@ -149,4 +181,6 @@ public class FedoraUtils {
             throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraAction "+ex.getMessage());
         }
     }
+
+    private FedoraUtils() {}
 }
