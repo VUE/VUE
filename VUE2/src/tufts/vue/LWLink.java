@@ -1484,9 +1484,8 @@ public class LWLink extends LWComponent
         totalWidth += mIconBlock.getWidth();
         totalHeight += mIconBlock.getHeight();
 
-        boolean putBelow =
-            hasResource() ||
-            (hasLabel() && labelBox.getMapWidth() < totalWidth);
+        boolean putBelow = hasResource();
+        //|| (hasLabel() && labelBox.getMapWidth() < totalWidth);
 
         float lx = 0;
         float ly = 0;
