@@ -166,17 +166,22 @@ public class TuftsGoogle extends JPanel implements ActionListener{
             Vector resultVector = new Vector();
             
            while(i.hasNext()) {
-               Result r = (Result)i.next();
-              // resultVector.add(r.getUrl());
-               resultVector.add(r.getUrl());
+               
+                Result r = (Result)i.next();
+               resultVector.add(r);
+              //resultVector.add(r.get());
+              // resultVector.add(r.getTitle());
                System.out.println(r.getTitle()+" "+r.getUrl());
+
+             
            } 
           
                 VueDragTree tree = new VueDragTree(resultVector.iterator(),"GoogleSearchResults");
                 tree.setEditable(true);
                 tree.setRootVisible(false);
               
-             
+            
+
                 JScrollPane jsp = new JScrollPane(tree);
          
                     
