@@ -139,7 +139,7 @@ implements VueConstants {
     //-----------------------------------------------------------------------------
     
     /** Action to Edit Datasource **/
-    static final Action editDataSource = new AbstractAction("DataSource") {
+    static final Action editDataSource = new AbstractAction("Edit DataSource") {
         public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
             AddEditDataSourceDialog dialog = new AddEditDataSourceDialog();
             dialog.show(AddEditDataSourceDialog.EDIT_MODE);
