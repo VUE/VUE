@@ -15,12 +15,9 @@ import javax.swing.border.*;
  * @version March 2004
  *
  */
-
 public abstract class MenuButton extends JButton
 // todo: cleaner to get this to subclass from JMenu, and then cross-menu drag-rollover
-// menu-popups would automatically work also.  Actualy, this should probably
-// either just be a JComboBox or subclass if JComboBox can handle arbitrary contents.
-// (that's essentailly what this is: a combo box that supports non string types)
+// menu-popups would automatically work also.
 {
     protected String mPropertyName;
     protected JPopupMenu mPopup;
@@ -90,6 +87,11 @@ public abstract class MenuButton extends JButton
      * @param values can be property values or actions
      * @param names is optional
      * @param createCustom - add a "Custom" menu item that calls runCustomChooser
+     *
+     * If values are actions, the default handleValueSelection won't ever
+     * do anything as a value wasn't set on the JMenuItem -- it's assumed
+     * that the action is handling the value change.  In this case override
+     * handleMenuSelection to change the buttons appearance after a selection change.
      */
     protected void buildMenu(Object[] values, String[] names, boolean createCustom)
     {
@@ -105,14 +107,15 @@ public abstract class MenuButton extends JButton
             
         for (int i = 0; i < values.length; i++) {
             JMenuItem item;
-            if (values[i] instanceof Action)
+            if (values[i] instanceof Action) {
                 item = new JMenuItem((Action)values[i]);
-            else
+            } else {
                 item = new JMenuItem();
+                item.putClientProperty(mValueKey, values[i]);
+            }
             Icon icon = makeIcon(values[i]);
             if (icon != null)
                 item.setIcon(makeIcon(values[i]));
-            item.putClientProperty(mValueKey, values[i]);
             if (names != null)
                 item.setText(names[i]);
             item.addActionListener(menuItemAction);
