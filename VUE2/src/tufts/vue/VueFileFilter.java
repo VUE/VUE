@@ -34,6 +34,10 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
     private String[] extensions;
     private String description;
     
+    public VueFileFilter() {
+        super();
+    }
+    
     public VueFileFilter(String description)
     {
         super();
@@ -67,6 +71,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         if (f.isDirectory())
             return true;
         String lname = f.getName().toLowerCase();
+        if(extensions != null)
         for (int i = 0; i < extensions.length; i++)
             if (lname.endsWith(extensions[i]))
                 return true;
