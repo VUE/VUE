@@ -358,7 +358,7 @@ public class VUE
         out("parsed args " + allArgs);
     }
 
-    static JFrame toolParent = new JFrame();
+    //static JFrame toolParent = new JFrame();
     static ToolWindow createToolWindow(String title) {
         //return new ToolWindow(title, toolParent);
         return new ToolWindow(title, VUE.frame);
