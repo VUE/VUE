@@ -84,7 +84,7 @@ public class LWCToolPanel extends JPanel implements ActionListener, PropertyChan
          Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
          String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
          mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
-         mStrokeColorButton.setButtonIcon(new LineIcon(20,16, 3, false));
+         mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
          mStrokeColorButton.setPropertyName(LWKey.StrokeColor);
          mStrokeColorButton.setToolTipText("Stroke Color");
          mStrokeColorButton.addPropertyChangeListener(this);

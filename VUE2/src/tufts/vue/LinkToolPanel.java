@@ -41,7 +41,7 @@ import tufts.vue.beans.*;
 
          //----
 
-         JLabel label = new JLabel("   Link:");         
+         JLabel label = new JLabel("   Link: ");
          label.setFont(VueConstants.FONT_SMALL);
          getBox().add(label);
          

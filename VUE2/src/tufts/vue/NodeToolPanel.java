@@ -18,7 +18,7 @@ import javax.swing.border.*;
 public class NodeToolPanel extends LWCToolPanel
 {
      public NodeToolPanel() {
-         JLabel label = new JLabel("   Node:");
+         JLabel label = new JLabel("   Node: ");
          label.setFont(VueConstants.FONT_SMALL);
          getBox().add(new ShapeMenuButton(), 0);
          getBox().add(label, 0);
@@ -42,7 +42,9 @@ public class NodeToolPanel extends LWCToolPanel
             // note: without a property name we won't pick up shape
             // values when a node is selected -- that's okay tho.
             
-            setBorder(new CompoundBorder(getBorder(), new EmptyBorder(1,1,2,1)));
+            // had this when MenuButtons were in etched borders;
+            //setBorder(new CompoundBorder(getBorder(), new EmptyBorder(1,1,2,1)));
+            
             //setBorder(new MatteBorder(3,3,4,3, Color.red));
             //setBorder(new EmptyBorder(3,3,3,3));
 
