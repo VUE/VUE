@@ -113,18 +113,18 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
                 Object o = ((JList)e.getSource()).getSelectedValue();
                 if (o !=null){
                     
-                   if (!(o instanceof String)){
-                    DataSourceViewer.this.setActiveDataSource((DataSource)o);
-                   }
-                   else{
-                       
-                      int index = ((JList)e.getSource()).getSelectedIndex();
-                      DataSourceViewer.this.setActiveDataSource((DataSource)(dataSourceList.getContents().getElementAt(index-1))); 
-                       
-                   }
+                    if (!(o instanceof String)){
+                        DataSourceViewer.this.setActiveDataSource((DataSource)o);
+                    }
+                    else{
+                        
+                        int index = ((JList)e.getSource()).getSelectedIndex();
+                        DataSourceViewer.this.setActiveDataSource((DataSource)(dataSourceList.getContents().getElementAt(index-1)));
+                        
+                    }
                 }
-                    
-                }}
+                
+            }}
         );
         dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -231,7 +231,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         dataSourceVector.add(ds);
         saveDataSourceViewer();
         refreshDataSourceList();
-       
+        
         
         
     }
@@ -247,11 +247,11 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
         else type = 6;
-        if(JOptionPane.showConfirmDialog(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation",JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {   
+        if(JOptionPane.showConfirmDialog(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation",JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
             Vector dataSourceVector = (Vector)allDataSources.get(type);
             dataSourceVector.removeElement(ds);
         }
-         saveDataSourceViewer();
+        saveDataSourceViewer();
         
     }
     
@@ -315,7 +315,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         
         
         dataSourceList.setSelectedValue(ds,true);
-         
+        
     }
     public static void refreshDataSourcePanel(DataSource ds){
         
@@ -330,7 +330,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
         drBrowser.repaint();
         drBrowser.validate();
-  
+        
         
     }
     
@@ -496,21 +496,22 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
      */
     public static Vector getPublishableDataSources(int i) {
         Vector mDataSources = new Vector();
-        try {
-            mDataSources.add(new FedoraDataSource("Tufts Digital Library","vue-dl.tccs.tufts.edu","test","test"));
-            
-        } catch (Exception ex) {
-            System.out.println("Datasources can't be loaded");
+        /**
+         * try {
+         * mDataSources.add(new FedoraDataSource("Tufts Digital Library","vue-dl.tccs.tufts.edu","test","test"));
+         *
+         * } catch (Exception ex) {
+         * System.out.println("Datasources can't be loaded");
+         * }
+         **/
+        
+        Enumeration e = dataSourceList.getContents().elements();
+        while(e.hasMoreElements() ) {
+            Object mDataSource = e.nextElement();
+            if(mDataSource instanceof Publishable)
+                mDataSources.add(mDataSource);
         }
         
-        /**
-         * Iterator i = dataSources.iterator();
-         * while(i.hasNext() ) {
-         * DataSource mDataSource = (DataSource)i.next();
-         * if(mDataSource.getType() == DataSource.DR_FEDORA)
-         * mDataSources.add(mDataSource);
-         * }
-         */
         return mDataSources;
         
     }
