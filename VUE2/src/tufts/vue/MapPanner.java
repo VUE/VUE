@@ -141,8 +141,8 @@ public class MapPanner extends javax.swing.JPanel
             return;
 
         // hack till we disallow the maprect from going beyond edge
-        if (e.getX() < 0 || e.getX() > getWidth() || e.getY() < 0 || e.getY() > getHeight())
-            return;
+        //if (e.getX() < 0 || e.getX() > getWidth() || e.getY() < 0 || e.getY() > getHeight())
+        //return;
         
         double factor = this.zoomFactor / mapViewer.getZoomFactor();
         double dragOffsetX = (e.getX() - dragStart.getX()) / factor;
