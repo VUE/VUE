@@ -209,50 +209,7 @@ class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
 public VueDragTreeCellRenderer(VueDragTree pTree) {
         this.tree = pTree;
         metaData = "default metadata";
-        /*
-        tree.addMouseMotionListener(new MouseMotionAdapter() {
-                //JPopupMenu popUp
-            public void mouseMoved(MouseEvent me) {
-                TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
-                
-                if (treePath!=null) {
-                          
-                 System.out.println("This is in my house");   
-                }
-                    
-        /*
-         tree.addMouseMotionListener(new MouseMotionAdapter() {
-                //JPopupMenu popUp
-            public void mouseMoved(MouseEvent me) {
-                TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
-                
-                if (treePath!=null) {
-                          //obj = treePath.getLastPathComponent();
-                          Node = (ResultNode)treePath.getLastPathComponent();
-                          Result resultObj = Node.getResult();
-                          String resultTitle = resultObj.getTitle();
-                          metaData =  resultTitle; 
-               
-        
-                tree.repaint();
-               
-                } else {
-                    Node  = null;
        
-                }
-                if (Node!=lastNode) {
-                    lastNode = Node;
-              
-                   // System.out.println("Last Node");
-                }
-                
-                
-            }
-            
-        
-            
-        });
-         */
 
          
     }
@@ -266,18 +223,7 @@ public VueDragTreeCellRenderer(VueDragTree pTree) {
  } 
 
  
-/**
- public class FavoritesNode extends DefaultMutableTreeNode {
-        public FavoritesNode(String displayName){
-            super(displayName);
-            
-        }
-        public void explore() {
-                this.explore();
-		
-		}
- }    
-   **/ 
+
 }
 
 class AssetNode extends DefaultMutableTreeNode {
