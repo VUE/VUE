@@ -59,19 +59,11 @@ public class FedoraObject implements osid.dr.Asset{
         this.pid  = (PID)id;
     }
     public FedoraObject(osid.shared.Id id, DR dr) throws osid.dr.DigitalRepositoryException{
-        this.pid  = (PID)id;
+        this(id);
         this.dr = dr;
     }
     
-    public FedoraObject(DR dr,String displayName,osid.shared.Type assetType)  throws osid.dr.DigitalRepositoryException{
-        this.dr = dr;
-        this.displayName = displayName;
-        this.assetType = assetType;
-        try{
-            this.pid = new PID(displayName);
-        } catch(Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("FedoraObject "+ex);
-        }
+    public FedoraObject(DR dr,String displayName,osid.shared.Type assetType)  throws osid.dr.DigitalRepositoryException,osid.shared.SharedException{
     }
     
     public FedoraObject(DR dr, String id, String displayName,osid.shared.Type assetType)  throws osid.dr.DigitalRepositoryException,osid.shared.SharedException{
@@ -82,17 +74,12 @@ public class FedoraObject implements osid.dr.Asset{
         // inforecords are not added toe BDEFs and BMECHs
         if(!(assetType.getKeyword().equals("fedora:BDEF") || assetType.getKeyword().equals("fedora:BMECH")))
             infoRecordVector = FedoraSoapFactory.getDissemintionInfoRecords(id,((FedoraObjectAssetType) assetType).getDissemiationInfoStructure(),dr);
+        infoRecordVector.add(VUEInfoStructure.createVUEInfoRecord(id,(VUEInfoStructure)((FedoraObjectAssetType) assetType).getVUEInfoStructure(), dr,pid,(FedoraObjectAssetType) assetType));
+        
     }
     
     //this method is for viewing objects in vue.  will be gone soon.
-    public String getDefaultViewURL() throws osid.dr.DigitalRepositoryException, osid.OsidException{
-        if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
-            return getDR().getFedoraProperties().getProperty("url.fedora.get")+"/"+pid.getIdString()+"/demo:60/getStandard/";
-        else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
-            return getDR().getFedoraProperties().getProperty("url.fedora.get")+"/"+pid.getIdString()+"/demo:77/getDocument/";
-        else
-            return getDR().getFedoraProperties().getProperty("url.fedora.get")+"/"+pid.getIdString();
-    }
+    
     // set-get methods.
     public  void setLocation(String location) {
         this.location = location;
@@ -147,6 +134,7 @@ public class FedoraObject implements osid.dr.Asset{
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public void deleteInfoRecord(osid.shared.Id infoRecordId) throws osid.dr.DigitalRepositoryException {
+        throw new osid.dr.DigitalRepositoryException("InfoRecord can't be deleted");
     }
     
     /**     Description_getAssetTypes=Get the AssetType of this Asset.  AssetTypes are used to categorize Assets.
@@ -218,8 +206,25 @@ public class FedoraObject implements osid.dr.Asset{
      *     @return InfoRecordIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws DigitalRepositoryException if there is a general failure
      */
-    public InfoRecordIterator getInfoRecords(osid.shared.Id infoStructureId) throws osid.dr.DigitalRepositoryException {
-        return null;
+    public osid.dr.InfoRecordIterator getInfoRecords(osid.shared.Id infoStructureId) throws osid.dr.DigitalRepositoryException {
+        if (infoStructureId == null) {
+            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.NULL_ARGUMENT);
+        }
+        
+        java.util.Vector result = new java.util.Vector();
+        
+        for (int i = 0, size = infoRecordVector.size(); i < size; i++) {
+            try {
+                osid.dr.InfoRecord infoRecord = (osid.dr.InfoRecord) infoRecordVector.elementAt(i);
+                if (infoStructureId.isEqual(infoRecord.getInfoStructure().getId())) {
+                    result.addElement(infoRecord);
+                }
+            } catch (osid.OsidException oex) {
+                throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.OPERATION_FAILED);
+            }
+        }
+        
+        return (osid.dr.InfoRecordIterator) (new InfoRecordIterator(result));
     }
     
     /**     Get all the InfoStructures for this Asset.  InfoStructures are used to categorize information about Assets.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -338,7 +343,7 @@ public class FedoraObject implements osid.dr.Asset{
         while(i.hasNext()) {
             osid.dr.InfoRecord infoRecord = (InfoRecord)i.next();
             try {
-                 if(infoRecord.getId().getIdString().equals(id.getIdString()))
+                if(infoRecord.getId().getIdString().equals(id.getIdString()))
                     return infoRecord;
             } catch (osid.shared.SharedException ex) {
                 throw new osid.dr.DigitalRepositoryException(ex.getMessage());
@@ -348,7 +353,18 @@ public class FedoraObject implements osid.dr.Asset{
     }
     
     public osid.dr.InfoRecordIterator getInfoRecordsByInfoStructure(osid.shared.Id id) throws osid.dr.DigitalRepositoryException {
-        return null;
+        java.util.Vector result = new java.util.Vector();
+        Iterator i = infoRecordVector.iterator();
+        while(i.hasNext()) {
+            osid.dr.InfoRecord infoRecord = (InfoRecord)i.next();
+            try {  
+                if(infoRecord.getInfoStructure().getId().getIdString().equals(id.getIdString()))
+                    result.add(infoRecord);
+            } catch (osid.shared.SharedException ex) {
+                throw new osid.dr.DigitalRepositoryException(ex.getMessage());
+            }
+        }
+        return new InfoRecordIterator(result);
     }
     
     public void updateEffectiveDate(java.util.Calendar calendar) throws osid.dr.DigitalRepositoryException {

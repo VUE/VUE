@@ -21,6 +21,7 @@ public class FedoraObjectAssetType extends osid.shared.Type {
     private String id;
     private String type ="TUFTS_STD_IMAGE";
     private osid.dr.InfoStructure disseminationInfoStructure = null;
+    private osid.dr.InfoStructure sVUEInfoStructure = null;
     /** Creates a new instance of FedoraObjectAssetType */
     public FedoraObjectAssetType(DR dr,String type) throws osid.dr.DigitalRepositoryException {
         super("Fedora_Asset","tufts.edu",type);
@@ -45,46 +46,20 @@ public class FedoraObjectAssetType extends osid.shared.Type {
         return this.disseminationInfoStructure;
             
     }
-    /**
-    private void loadInfoStructures() throws  osid.dr.DigitalRepositoryException {
-        java.util.prefs.Preferences   prefs = java.util.prefs.Preferences.userRoot().node("/");
-=======
-    private Vector loadInfoStructures(DR dr)
-        throws osid.dr.DigitalRepositoryException
-    {
-        Vector infoStructures = new Vector();
->>>>>>> 1.8
-        try {
-            Preferences prefs = FedoraUtils.getPreferences(dr.getConfiguration());
-            String infoStructureString = prefs.get(type,"fedora-system:3");
-            Vector infoStructureVector = FedoraUtils.stringToVector(infoStructureString);
-            Iterator i = infoStructureVector.iterator();
-            while (i.hasNext()) {
-                String strBehaviorInfoStructure = (String)i.next();
-                Vector infoPartVector = FedoraUtils.stringToVector(prefs.get(strBehaviorInfoStructure,""));
-                out("infoStructure " + strBehaviorInfoStructure
-                    + " infoPartString " + prefs.get(strBehaviorInfoStructure,"")
-                    + " count=" + infoPartVector.capacity());
-                infoStructures.add(new BehaviorInfoStructure(dr,strBehaviorInfoStructure,infoPartVector.iterator()));
-            }
-        } catch (Exception ex) {
-            throw new osid.dr.DigitalRepositoryException("DR.loadInfoStructure  "+ex);
-        }
-        return infoStructures;
-    }
 
-    private void out(String s)
-        throws osid.dr.DigitalRepositoryException
-    {
-        System.out.println("FOAT[" + dr.getDisplayName() + ", " + type + "] " + s);
+     public osid.dr.InfoStructure getVUEInfoStructure()  throws osid.dr.DigitalRepositoryException  {
+        if(this.sVUEInfoStructure == null) 
+            throw new osid.dr.DigitalRepositoryException("VUE InfoStructure doesn't exist");
+        return this.sVUEInfoStructure;
+            
     }
-    **/
-    
 
     private void loadInfoStructures() throws osid.dr.DigitalRepositoryException {
         try {
             disseminationInfoStructure = new DisseminationInfoStructure(dr);
+            sVUEInfoStructure = new VUEInfoStructure(dr);
             infoStructures.add(disseminationInfoStructure);
+            infoStructures.add(sVUEInfoStructure);
         }catch(Exception ex) {
             throw new osid.dr.DigitalRepositoryException("FedoraObjecAssetType.loadInfoStructure  "+ex);
         }
