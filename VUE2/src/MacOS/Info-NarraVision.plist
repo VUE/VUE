@@ -51,7 +51,7 @@
 		<string>-useMacLookAndFeel</string>
 		<key>ClassPath</key>
 		<array>
-                  <string>$APP_PACKAGE/Contents/VUE.jar</string>
+                  <string>$APP_PACKAGE/Contents/NarraVision.jar</string>
                   <string>$APP_PACKAGE/Contents/BlackShipsImages.jar</string>
                   <string>$JAVAROOT</string>
                   <string>/System/Library/Java</string>

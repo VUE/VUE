@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.37 $ / $Date: 2005-03-25 21:37:45 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.37 2005-03-25 21:37:45 sfraize Exp $ -->
+<!-- $Revision: 1.38 $ / $Date: 2005-03-25 23:36:09 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.38 2005-03-25 23:36:09 sfraize Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -451,7 +451,24 @@
       <zipgroupfileset dir="${basedir}" includes="VUE-core.jar"/>
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
     </jar>
-    <copy file="${vue.jar}" tofile="${narravision.jar}" verbose="true"/>
+  </target>
+  
+  <target name="jar-narravision" depends="jar"
+          description="Create NarraVision.jar - a single, distributable, runnable jar file containing NarraVision and all supporting libraries.">
+    <tstamp/>
+    <echo message="Building ${narravision.jar}..."/>
+    <jar destfile="${narravision.jar}" compress="true" index="true" update="false">
+      <manifest>
+        <attribute name="Description" value="MIT NarraVision Alpha (Derivative of Tufts VUE: Visual Understanding Environment)"/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
+        <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
+        <attribute name="Main-Class" value="tufts.vue.VUE"/>
+      </manifest>
+      <zipgroupfileset dir="${basedir}" includes="VUE-core.jar"/>
+      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+      <zipgroupfileset dir="${lib.home}" includes="BlackShipsImages.jar"/>
+    </jar>
   </target>
 
 
@@ -522,12 +539,14 @@
       <make-mac-osx-application name="VUE" plist="Info.plist"/>
     </target>
 
-    <target name="mac-dist-nv" depends="jar" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
-      <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist">
+    <target name="mac-dist-nv" depends="jar-narravision" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
+      <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist" jar-0="${narravision.jar}"/>
+        <!--
       <extra-tasks>
         <copy file="${lib.home}/BlackShipsImages.jar" todir="${build.home}/NarraVision.app/Contents" verbose="true"/>
       </extra-tasks>
       </make-mac-osx-application>
+      -->
     </target>
 
     <target name="test" depends="mac-dist,mac-dist-nv"/>
@@ -541,7 +560,7 @@
       <attribute name="mac.appdir" default="${build.home}/@{name}.app"/>
       <attribute name="contents" default="@{mac.appdir}/Contents"/>
       <attribute name="jar-0" default="${vue.jar}"/>
-      <attribute name="jar-1" default="${vue.jar}"/>
+      <attribute name="jar-1" default="@{jar-0}"/>
       <sequential>
         <echo>*** Building Mac OS X application "@{name}" to @{mac.appdir}</echo>
         <mkdir dir="@{contents}/MacOS"/>
