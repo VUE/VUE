@@ -24,10 +24,11 @@ public class SaveVueJTree {
     }
 
     public SaveVueJTree(JTree tree){
-     
+       
+    
      TreeModel treeModel = tree.getModel();
      
-    setSaveTreeRoot(new SaveNode(treeModel.getRoot()));
+    setSaveTreeRoot(new SaveNode((ResourceNode)treeModel.getRoot()));
       
           }
     
@@ -47,38 +48,16 @@ public class SaveVueJTree {
     public VueDandDTree restoreTree(){
         
         
-      VueDandDTree vueTree;
-       FavoritesNode rootNode;
+     VueDandDTree vueTree;
+     FavoritesNode rootNode;
        
        
-        SaveNode rootSNode = this.getSaveTreeRoot();
-       
-        
-        String s = rootSNode.getNodeType();
-        
-      
-        
-        if (s.equals("FavoritesNode")){ 
-            
-              
-               
-         rootNode = new FavoritesNode(rootSNode.getResourceName());
-       
-           
-          
-      }
-      else{
-           rootNode = new FavoritesNode("Invalid Tree");
-           
-         
-          
-      }
-      
-      vueTree = new VueDandDTree(rootNode);
-  
-      DefaultTreeModel model = (DefaultTreeModel)vueTree.getModel();
-      restoreModel(model,rootNode,rootSNode);
-          vueTree.expandRow(0);
+       SaveNode rootSNode = this.getSaveTreeRoot();
+       rootNode = new FavoritesNode(rootSNode.getResource());
+       vueTree = new VueDandDTree(rootNode);
+       DefaultTreeModel model = (DefaultTreeModel)vueTree.getModel();
+       restoreModel(model,rootNode,rootSNode);
+       vueTree.expandRow(0);
      
       return vueTree;
            
@@ -87,128 +66,47 @@ public class SaveVueJTree {
  
   }
    
-   public void restoreModel(DefaultTreeModel model, Object obj, SaveNode rootSNode){
+   public void restoreModel(DefaultTreeModel model, ResourceNode rootNode, SaveNode rootSNode){
       
                 
-               
+               int FAVORITES = 4;
                 
                 Vector v = rootSNode.getChildren();
                 
-                //System.out.println("Thi s is v" + v);
+              System.out.println("Thi s is v FWWWWW" + v);
                 
-                
-                if (v != null){
+                 if (v != null){
                     
-              
-                    int i = v.size();
-                
-                 
-                while (i > 0){
                     
-                        i = i -1;
-                     
-                   SaveNode nextSNode = (SaveNode)v.elementAt(i);
-                   
-                   
-                     if ((nextSNode.getNodeType()).equalsIgnoreCase("FavoritesNode")){ 
-                           
-                     FavoritesNode nextNode = new FavoritesNode(nextSNode.getResourceName());
-                      if (obj instanceof FavoritesNode){
-                         model.insertNodeInto(nextNode, (FavoritesNode)obj, 0);
-                         }
-                         else if (obj instanceof FileNode){
-                         model.insertNodeInto(nextNode,(FileNode)obj,0);
-                         }
-                         else if (obj instanceof AssetNode){
-                         model.insertNodeInto(nextNode,(AssetNode)obj,0);
-                             
-                         }
-                         else{
-                          model.insertNodeInto(nextNode,(DefaultMutableTreeNode)obj,0); 
-                         
-                         }
-                         
-                              
-                            restoreModel(model, nextNode, nextSNode);
-                     
-                   
-                     }
-                     else if ((nextSNode.getNodeType()).equalsIgnoreCase("FileNode")){
-                      
-                      FileNode nextNode = new FileNode(new File(nextSNode.getResourceName()));
-                      
-                       if (obj instanceof FavoritesNode){
-                         model.insertNodeInto(nextNode, (FavoritesNode)obj, 0);
-                         }
-                         else if (obj instanceof FileNode){
-                         model.insertNodeInto(nextNode,(FileNode)obj,0);
-                         }
-                         else if (obj instanceof AssetNode){
-                         model.insertNodeInto(nextNode,(AssetNode)obj,0);
-                             
-                         }
-                         else{
-                          model.insertNodeInto(nextNode,(DefaultMutableTreeNode)obj,0); 
-                         
-                         }
-                         
-                              
-                            restoreModel(model, nextNode, nextSNode);
-                     }
-                   
-                     else if ((nextSNode.getNodeType()).equalsIgnoreCase("AssetNode")){
-                       DefaultMutableTreeNode  nextNode = new DefaultMutableTreeNode(nextSNode.getResourceName());
-                        if (obj instanceof FavoritesNode){
-                         model.insertNodeInto(nextNode, (FavoritesNode)obj, 0);
-                         }
-                         else if (obj instanceof FileNode){
-                         model.insertNodeInto(nextNode,(FileNode)obj,0);
-                         }
-                         else if (obj instanceof AssetNode){
-                         model.insertNodeInto(nextNode,(AssetNode)obj,0);
-                             
-                         }
-                         else{
-                          model.insertNodeInto(nextNode,(DefaultMutableTreeNode)obj,0); 
-                         
-                         }
-                         
-                              
-                            restoreModel(model, nextNode, nextSNode);
-                     }
-                   
-                     else {
-                         
-                         DefaultMutableTreeNode nextNode = new DefaultMutableTreeNode(nextSNode.getResourceName());
-                          if (obj instanceof FavoritesNode){
-                         model.insertNodeInto(nextNode, (FavoritesNode)obj, 0);
-                         }
-                         else if (obj instanceof FileNode){
-                         model.insertNodeInto(nextNode,(FileNode)obj,0);
-                         }
-                         else if (obj instanceof AssetNode){
-                         model.insertNodeInto(nextNode,(AssetNode)obj,0);
-                             
-                         }
-                         else{
-                          model.insertNodeInto(nextNode,(DefaultMutableTreeNode)obj,0); 
-                         
-                         }
-                              
-                            restoreModel(model, nextNode, nextSNode);
-                         
-                           }
-                         
-                         
-                     
-                         
+                        int i = v.size();
+                                while (i > 0){
+                                 i = i -1;
+                                SaveNode nextSNode = (SaveNode)v.elementAt(i);
+                                if (nextSNode.getResource() instanceof CabinetResource){
+                                    
+                                    System.out.println("oopsy daisy");
+                                }
+                                else{
+                                  System.out.println("I am a ha" + nextSNode.getResource().getType());
+                                }  
+                                  //  if (((nextSNode.getResource()).getType()) == FAVORITES){
+                                    //System.out.println("I am a favorite" + nextSNode.getResource());
+                                    //FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
+                                     //model.insertNodeInto(nextFNode,rootNode,0); 
+                                     //restoreModel(model, nextFNode, nextSNode);
+                                //}
+                                //else{
+                                    
+                                    ResourceNode nextNode = new ResourceNode(nextSNode.getResource());
+                                     model.insertNodeInto(nextNode,rootNode,0); 
+                                     restoreModel(model, nextNode, nextSNode);
+                                //}
+                                
+                                              }
+                                      }
+                  
                         
-                         
-                         
-                         }
-                }
                
-        
-            }
-  
+   }
+   
 }
