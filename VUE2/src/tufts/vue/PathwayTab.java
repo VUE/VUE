@@ -225,7 +225,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
                             addElement.setEnabled(false);
                         
                         LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
-                        if (!path.getLocked() && path.getCurrentIndex() > -1)
+                        if (path != null && !path.getLocked() && path.getCurrentIndex() > -1)
                             removeElement.setEnabled(true);
                         else
                             removeElement.setEnabled(false);
