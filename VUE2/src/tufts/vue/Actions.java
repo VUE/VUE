@@ -149,6 +149,7 @@ implements VueConstants {
     
     static final LWCAction LinkMakeStraight =
         new LWCAction("Straight", VueResources.getIcon("linkTool.line.raw")) {
+        //new LWCAction("Straight", VueResources.getIcon("link.style.straight")) {
             void init() { putValue("property.value", new Integer(0)); } // for use in a MenuButton
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWLink.class))
@@ -159,6 +160,7 @@ implements VueConstants {
         };
     static final LWCAction LinkMakeQuadCurved =
         new LWCAction("Curved", VueResources.getIcon("linkTool.curve1.raw")) {
+        //new LWCAction("Curved", VueResources.getIcon("link.style.curved")) {
             void init() { putValue("property.value", new Integer(1)); }
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWLink.class))
@@ -169,6 +171,7 @@ implements VueConstants {
         };
     static final LWCAction LinkMakeCubicCurved =
         new LWCAction("S-Curved", VueResources.getIcon("linkTool.curve2.raw")) {
+        ///new LWCAction("S-Curved", VueResources.getIcon("link.style.s-curved")) {
             void init() { putValue("property.value", new Integer(2)); }
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWLink.class))
