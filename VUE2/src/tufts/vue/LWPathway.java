@@ -88,7 +88,7 @@ public class LWPathway //extends tufts.vue.LWComponent
                     clipArea.subtract(new Area(ep2.getShape()));
                 g.clip(clipArea);
             }
-                g.draw(link.getLine());
+                g.draw(link.getShape());
             }
         }
         g.setColor(oldColor);
