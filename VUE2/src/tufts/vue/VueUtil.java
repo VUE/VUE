@@ -50,18 +50,24 @@ public class VueUtil
     }
 
     public static void main(String args[])
+        throws java.io.IOException
     {
-        test_OpenURL();
+        if (args.length > 0)
+            openURL(args[0]);
+        else
+            test_OpenURL();
+        System.exit(0);
     }
 
     public static void test_OpenURL()
     {
-         System.getProperties().list(System.out);
+        //System.getProperties().list(System.out);
         try {
-            openURL("file:///tmp/two words.txt");       // does not work on OSX 10.2
-            openURL("\"file:///tmp/two words.txt\"");   // does not work on OSX 10.2
-            openURL("\'file:///tmp/two words.txt\'");   // does not work on OSX 10.2
-            openURL("file:///tmp/two%20words.txt");     // works on OSX 10.2, but not Windows 2000
+            openURL("http://hosea.lib.tufts.edu:8080/fedora/get//tufts:7/demo:60/getThumbnail/");
+            //openURL("file:///tmp/two words.txt");       // does not work on OSX 10.2 (does now with %20 space replacement)
+            //openURL("\"file:///tmp/two words.txt\"");   // does not work on OSX 10.2
+            //openURL("\'file:///tmp/two words.txt\'");   // does not work on OSX 10.2
+            //openURL("file:///tmp/two%20words.txt");     // works on OSX 10.2, but not Windows 2000
             //openURL("file:///tmp/foo.txt");
             //openURL("file:///tmp/index.html");
             //openURL("file:///tmp/does_not_exist");
@@ -89,7 +95,10 @@ public class VueUtil
             quotedURL = url;
         else
             quotedURL = "\'" + url + "\'";
-        
+
+        //if (isMacPlatform()) quotedURL = "\'" + url + "\'";
+
+        System.err.println("Opening URL [" + quotedURL + "]");
         if (isMacPlatform())
             openURL_Mac(quotedURL);
         else if (isUnixPlatform())
@@ -115,10 +124,12 @@ public class VueUtil
             System.err.println("exit value=" + p.exitValue());
         }
     }
-    
+
+    private static java.lang.reflect.Method macOpenURL_Method = null;
     private static void openURL_Mac(String url)
         throws java.io.IOException
     {
+        url = url.replaceAll(" ", "%20");
         System.err.println("Opening Mac URL: [" + url + "]");
         if (url.indexOf(':') < 0 && !url.startsWith("/")) {
             // OSX won't default to use current directory
@@ -128,19 +139,39 @@ public class VueUtil
             System.err.println("Opening Mac URL: [" + url + "]");
         }
         if (getJavaVersion() >= 1.4f) {
-            // FYI -- this will not compile using mac java 1.3
-          //  com.apple.eio.FileManager.openURL(url);
+            // Can't call this directly because wont compile on the PC
+            //com.apple.eio.FileManager.openURL(url);
 
-            // use this if want to compile < 1.4
-            //Class c = Class.forName("com.apple.eio.FileManager");
-            //java.lang.reflect.Method openURL = c.getMethod("openURL", new Class[] { String[].class });
-            //openURL.invoke(null, new Object[] { new String[] { url } });
+            if (macOpenURL_Method == null) {
+                try {
+                    Class macFileManager = Class.forName("com.apple.eio.FileManager");
+                    //Class macFileManager = ClassLoader.getSystemClassLoader().loadClass("com.apple.eio.FileManager");
+                    macOpenURL_Method = macFileManager.getMethod("openURL", new Class[] { String.class });
+                } catch (Exception e) {
+                    System.err.println("Failed to find Mac FileManager or openURL method: will not be able to display URL content.");
+                    e.printStackTrace();
+                    throw new UnsupportedOperationException("com.apple.eio.FileManager:openURL " + e);
+                }
+            }
+            
+            if (macOpenURL_Method != null) {
+                try {
+                    macOpenURL_Method.invoke(null, new Object[] { url });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new UnsupportedOperationException("com.apple.eio.FileManager.openURL " + e);
+                }
+            } else
+                throw new UnsupportedOperationException("openURL_Mac");
+
 
         } else {
+            throw new UnsupportedOperationException("mac java <= 1.3 openURL unimplemented");
+            // put this back if want to suppor mac java 1.3
             // this has been deprecated in mac java 1.4, so
             // just ignore the warning if using a 1.4 or beyond
             // compiler
-        //    com.apple.mrj.MRJFileUtils.openURL(url);
+            //    com.apple.mrj.MRJFileUtils.openURL(url);
         }
         System.err.println("returned from openURL_Mac " + url);
     }
