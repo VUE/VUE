@@ -291,7 +291,6 @@ public class FilterEditor extends JPanel{
             super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            System.out.println("Started editor");
             TableModel tableModel = table.getModel();
             if (tableModel instanceof FilterTableModel) {
                 FilterTableModel filterTableModel  = (FilterTableModel) tableModel;
@@ -301,7 +300,6 @@ public class FilterEditor extends JPanel{
                 keys.add(keyNotes);
                 keys.addAll(VUE.getActiveMap().getMapFilterModel().getKeyVector());
                 editor = new JComboBox(keys);
-                System.out.println("Returned editor");            
                 return editor;
             }
             return (new JComboBox());
