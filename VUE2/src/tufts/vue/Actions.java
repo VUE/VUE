@@ -868,7 +868,8 @@ class Actions {
         };
     static final Action ZoomActual =
         new VueAction("Zoom 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
-            boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
+            // no way to listen for zoom change events to keep this current
+            //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
             public void act() {
                 ZoomTool.setZoom(1.0);
             }
@@ -924,7 +925,15 @@ class Actions {
                 System.err.println("*** VueAction: event was " + ae);
             }
             updateActionListeners();
-            //setEnabled(enabled());
+            // normally handled by updateActionListeners, but if someone
+            // has actually defined "enabled" instead of enabledFor, we'll
+            // need this.
+            // setEnabled(enabled());
+            // Okay, do NOT do this -- enabled sometimes use to just
+            // ring the bell when an action is attempted that you
+            // can't actually do right now -- problem is if we
+            // disable the action based on enabled(), it has
+            // no way of ever getting turned back on!
         }
 
         // To update action's enabled state after an action is performed.
@@ -937,7 +946,7 @@ class Actions {
                     l.selectionChanged(VUE.ModelSelection);
                     //System.out.println("Notifying action " + l);
                 }
-                else System.out.println("Skipping listener " + l);
+                //else System.out.println("Skipping listener " + l);
             }
         }
 
