@@ -101,7 +101,13 @@ public class LWSelection extends java.util.ArrayList
             l.selectionChanged(this);
         }
     }
-       
+
+    /** for Actions.java */
+    java.util.List getListeners()
+    {
+        return this.listeners;
+    }
+
     void setTo(LWComponent c)
     {
         clear0();

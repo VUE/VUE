@@ -164,9 +164,9 @@ class Actions {
                     mapLabel = "Hierarchy Map"; 
                 }
                 
-                LWHierarchyMap hierarchyMap = new LWHierarchyMap(model, mapLabel);
-                
-                VUE.displayMap((LWMap)hierarchyMap);
+                // Doesn't compile -- SMF 2004-01-04 12:32.18 Sunday 
+                //LWHierarchyMap hierarchyMap = new LWHierarchyMap(model, mapLabel);
+                //VUE.displayMap((LWMap)hierarchyMap);
             }
             
             public boolean enabled()
@@ -192,7 +192,6 @@ class Actions {
                     return false;
                 return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 0 : true;
             }
-            public void act(LWSelection s) { super.act(s); checkLinkEnabled(); }
             public void act(LWLink c) { c.setControlCount(0); }
         };
     static final MapAction LinkMakeQuadCurved =
@@ -202,7 +201,6 @@ class Actions {
                     return false;
                 return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 1 : true;
             }
-            public void act(LWSelection s) { super.act(s); checkLinkEnabled(); }
             public void act(LWLink c) { c.setControlCount(1); }
         };
     static final MapAction LinkMakeCubicCurved =
@@ -212,7 +210,6 @@ class Actions {
                     return false;
                 return s.size() == 1 ? ((LWLink)s.first()).getControlCount() != 2 : true;
             }
-            public void act(LWSelection s) { super.act(s); checkLinkEnabled(); }
             public void act(LWLink c) { c.setControlCount(2); }
         };
     static final Action LinkArrows =
@@ -221,12 +218,7 @@ class Actions {
             public void act(LWLink c) { c.rotateArrowState(); }
         };
 
-    private static final void checkLinkEnabled()
-    {
-        LinkMakeStraight.checkEnabled();
-        LinkMakeQuadCurved.checkEnabled();
-        LinkMakeCubicCurved.checkEnabled();
-    }
+    
     /** Helper for menu creation.  Null's indicate good places
         for menu separators. */
     public static final Action[] LINK_MENU_ACTIONS = {
@@ -241,7 +233,7 @@ class Actions {
     // Node actions
     //-----------------------------------------------------------------------------
 
-    static final Action NodeMakeAutoSized =
+    static final MapAction NodeMakeAutoSized =
         new MapAction("Set Auto-Sized") {
             boolean enabledFor(LWSelection s) {
                 if (!s.containsType(LWNode.class))
@@ -510,14 +502,6 @@ class Actions {
             }
             void act(LWSelection selection) {
                 LWContainer.bringToFront(selection);
-                checkEnabled();
-            }
-            void checkEnabled()
-            {
-                super.checkEnabled();
-                BringForward.checkEnabled();
-                SendToBack.checkEnabled();
-                SendBackward.checkEnabled();
             }
         };
     static final MapAction SendToBack =
@@ -533,7 +517,6 @@ class Actions {
             }
             void act(LWSelection selection) {
                 LWContainer.sendToBack(selection);
-                BringToFront.checkEnabled();
             }
         };
     static final MapAction BringForward =
@@ -542,7 +525,6 @@ class Actions {
             boolean enabledFor(LWSelection s) { return BringToFront.enabledFor(s); }
             void act(LWSelection selection) {
                 LWContainer.bringForward(selection);
-                BringToFront.checkEnabled();
             }
         };
     static final MapAction SendBackward =
@@ -551,7 +533,6 @@ class Actions {
             boolean enabledFor(LWSelection s) { return SendToBack.enabledFor(s); }
             void act(LWSelection selection) {
                 LWContainer.sendBackward(selection);
-                BringToFront.checkEnabled();
             }
         };
 
@@ -942,7 +923,30 @@ class Actions {
                 System.err.println("*** VueAction: selection is " + VUE.ModelSelection);
                 System.err.println("*** VueAction: event was " + ae);
             }
+            updateActionListeners();
+            //setEnabled(enabled());
         }
+
+        // To update action's enabled state after an action is performed.
+        private void updateActionListeners()
+        {
+            Iterator i = VUE.ModelSelection.getListeners().iterator();
+            while (i.hasNext()) {
+                LWSelection.Listener l = (LWSelection.Listener) i.next();
+                if (l instanceof javax.swing.Action) {
+                    l.selectionChanged(VUE.ModelSelection);
+                    //System.out.println("Notifying action " + l);
+                }
+                else System.out.println("Skipping listener " + l);
+            }
+        }
+
+        /** note that overriding this will not update the action's enabled
+         * state based on what's in the selection -- you need to use
+         * enabledFor(LWSelection s) for that -- it gets called whenever
+         * the selection changes and will update the actions enabled
+         * state based on the return value.
+         */
         boolean enabled() { return true; }
 
         void act() {
@@ -1030,6 +1034,8 @@ class Actions {
             System.out.println(this + " enabled=" + tv);
         }
         */
+
+        boolean enabled() { return enabledFor(VUE.ModelSelection); }
 
         public void selectionChanged(LWSelection selection) {
             setEnabled(enabledFor(selection));

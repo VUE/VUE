@@ -3172,6 +3172,7 @@ public class MapViewer extends javax.swing.JPanel
         {
             //System.out.println("MapViewer: resize control point " + index + " dropped");
             draggedBounds = null;
+            Actions.NodeMakeAutoSized.checkEnabled();
         }
 
     }
@@ -3234,11 +3235,13 @@ public class MapViewer extends javax.swing.JPanel
                         VUE.getOutlineViewTree().getTree().switchContainer(this.map);
                         
                         //hierarchy view
+                        /*
+                          Doesn't compile -- SMF 2004-01-04 12:32.51 Sunday
                         if(this.map instanceof LWHierarchyMap)
                           VUE.getHierarchyTree().setHierarchyModel(((LWHierarchyMap)this.map).getHierarchyModel());
-                        
                         else
                           VUE.getHierarchyTree().setHierarchyModel(null);
+                        */
                     }
                 }
                 //end of addition
