@@ -19,7 +19,8 @@ import javax.swing.border.*;
 public class PaletteButton extends JRadioButton implements ActionListener {
 
 	
-    private static final Color sToolbarColor = VueResources.getColor("toolbar.background");
+    private static final Color ButtonBackgroundColor = VueResources.getColor("toolbar.background");
+    //private static final Color ButtonBackgroundColor = VueResources.getColor("menubarColor");
     
 	//////////////////
 	//  Fields
@@ -84,7 +85,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		super();
 		setBorder( null);
                 setFocusable(false);
-                setBackground(sToolbarColor);
+                setBackground(ButtonBackgroundColor);
 	}
 	
 	
@@ -105,7 +106,7 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 		setRolloverEnabled( true);
 		setBorder( null);
                 setFocusable(false);
-                setBackground(sToolbarColor);
+                setBackground(ButtonBackgroundColor);
 	}
 	
 	
@@ -461,9 +462,9 @@ public class PaletteButton extends JRadioButton implements ActionListener {
 
         public PBPopupMenu() {
             setFocusable(false);
-            setBackground(sToolbarColor);
+            setBackground(ButtonBackgroundColor);
             //setBorderPainted(false);
-            setBorder(new LineBorder(sToolbarColor.darker().darker(), 1));
+            setBorder(new LineBorder(ButtonBackgroundColor.darker().darker(), 1));
             //setBorder(new LineBorder(Color.black));
         }
             

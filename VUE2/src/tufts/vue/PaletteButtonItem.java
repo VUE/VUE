@@ -24,7 +24,7 @@ import javax.swing.border.*;
  **/
 public class PaletteButtonItem extends JMenuItem {
 
-    private static final Color sToolbarColor = VueResources.getColor("toolbar.background");
+    private static final Color ButtonBackgroundColor = VueResources.getColor("toolbar.background");
 
 
 	///////////
@@ -62,7 +62,7 @@ public class PaletteButtonItem extends JMenuItem {
 		setRolloverEnabled( true);
 		this.addMouseListener( new PaletteButtonItem.PBMouseListener() );
 		this.addActionListener( new PaletteButtonItem.PaletteItemActionListener() );
-                setBackground(sToolbarColor);
+                setBackground(ButtonBackgroundColor);
 	}
 	
 	
