@@ -97,17 +97,25 @@ public class LWSelection extends java.util.ArrayList
         
         if (DEBUG.SELECTION) System.out.println(this + " NOTIFYING LISTENERS");
         Iterator i = listeners.iterator();
+        long start = 0;
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
             try {
-                if (DEBUG.SELECTION) System.out.println(this + " notifying: " + l);
+                if (DEBUG.SELECTION) {
+                    System.out.print(this + " notifying: " + l + "...");
+                    start = System.currentTimeMillis();
+                }
                 l.selectionChanged(this);
+                if (DEBUG.SELECTION) {
+                    long delta = System.currentTimeMillis() - start;
+                    System.out.println(delta + "ms");
+                }
             } catch (Exception ex) {
                 System.err.println(this + " notifyListeners: exception during selection change notification:"
                                    + "\n\tselection: " + this
                                    + "\n\tfailing listener: " + l);
                 ex.printStackTrace();
-                java.awt.Toolkit.getDefaultToolkit().beep();
+                //java.awt.Toolkit.getDefaultToolkit().beep();
             }
         }
     }
