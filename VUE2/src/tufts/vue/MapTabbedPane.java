@@ -60,7 +60,9 @@ public class MapTabbedPane extends JTabbedPane
                 setBackgroundAt(selected, BgColor);
             }
             mWasSelected = selected;
-            getSelectedViewer().requestFocus();
+            Component viewer = getSelectedViewer();
+            if (viewer != null)
+                viewer.requestFocus();
         }
     }
         
