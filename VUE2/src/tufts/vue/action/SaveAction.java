@@ -113,14 +113,14 @@ public class SaveAction extends AbstractAction
         //if (this.marshaller == null) {
             Mapping mapping = new Mapping();
             try {                
-                System.out.println("Creating marshaller with output[" + getFileName() + "]");
+                System.out.println("Creating marshaller with output file=\"" + getFileName() + "\"");
                 this.marshaller = new Marshaller(new FileWriter(getFileName()));
                 System.out.println("Loading mapping for marshaller: " + XML_MAPPING);
                 mapping.loadMapping(XML_MAPPING);
                 this.marshaller.setMapping(mapping);
                 System.out.println("Marshaller mapping has been set to: " + XML_MAPPING);
             } catch (Exception e) {
-                System.err.println("SaveAction.getMarshaller: " + e + "file[" + getFileName() + "]");
+                System.err.println("SaveAction.getMarshaller: " + e + " file=\"" + getFileName() + "\"");
             }
         //}
         return this.marshaller;
