@@ -225,6 +225,10 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
                 typeIterator = this.digitalRepository.getSearchTypes();
             }
 //            while (typeIterator.hasNextType())
+            if (!typeIterator.hasNext())
+            {
+                typeVector.addElement("unspecified");
+            }
             while (typeIterator.hasNext())
             {
 //                osid.shared.Type type = typeIterator.nextType();
@@ -234,6 +238,7 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
         }
         catch (osid.OsidException oex)
         {
+            typeVector.addElement("unspecified");
         }
         String items[] = new String[typeVector.size()];
         for (int i=0; i < typeVector.size(); i++)
@@ -482,9 +487,12 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
             searchButton.setEnabled(false);
             System.out.println("Searching OSID Repository...");
             
+            osid.shared.Type searchType = null;
             String selectedType = (String)(this.searchTypesComboBox.getSelectedItem());
-            osid.shared.Type searchType = stringToType(selectedType);
-            
+            if ( (selectedType != null) && (!(selectedType.equals("unspecified"))) )
+            {            
+                searchType = stringToType(selectedType);
+            }
             VueDragTree tree = null;
 /*
             if (this.repository != null)

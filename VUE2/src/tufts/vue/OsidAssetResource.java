@@ -140,12 +140,18 @@ public class OsidAssetResource extends MapResource
                 sharedImplementation,
                 this.owner);
 
+System.out.println("here0a");
             setType(Resource.ASSET_OKIDR);
+System.out.println("here0a");
             String displayName = asset.getDisplayName();
+System.out.println("here0b");
             setTitle(displayName);
+System.out.println("here0c");
             mProperties.put("title",displayName);
+System.out.println("here0d");
             try
             {
+System.out.print("here1");
                 osid.dr.InfoRecord record = asset10.getInfoRecord(sharedManager.getId(VUE_INTEGRATION_RECORD));
                 // replace the above with integration by type, if added to OSID 2.0
                 if (record != null)
@@ -162,14 +168,17 @@ public class OsidAssetResource extends MapResource
             }
             catch (Exception ex) 
             {
+System.out.print("here2");
                 this.spec = (String)asset10.getContent();            
                 System.out.println("No VUE integration record.  Fetching Asset's content " + this.spec);
             }
+System.out.print("here3");
             Object o = mProperties.get("spec");
             if (this.spec == null)
             {
                 this.spec = (o != null) ? (String)o : asset10.getDisplayName();
             }
+System.out.print("here4");
         }
         catch (Exception ex)
         {
