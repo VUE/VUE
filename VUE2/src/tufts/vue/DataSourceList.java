@@ -82,6 +82,8 @@ public class DataSourceList extends JList implements DropTargetListener{
                     this.setPreferredSize(new Dimension(200,20));
                 }
                 else  if (((DataSource)value).getType() == DataSource.BREAK){
+                    
+                    
                   
                      JPanel linePanel = new JPanel() {
                    protected void paintComponent(Graphics g) {
