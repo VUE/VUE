@@ -48,7 +48,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
                                                     DocumentListener,
                                                     KeyListener,
                                                     TableModelListener,
-                                                    MapViewer.Listener
+                                                    MapViewer.Listener//,
+                                                    //LWSelection.Listener
 {    
     //necessary widgets
     private PathwayTable pathwayTable = null;
@@ -61,6 +62,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
     private JDialog parent;
     private JPanel buttons = null, pnPanel = null, pcPanel = null, buttonPanel = null;
     private JLabel pathName = null;
+    
+    private boolean elemSelection = false;
     
     private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     
@@ -96,8 +99,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
     
     /* end Pathway Control Properties */
     
-    private String[] colNames = {"A", "B", "C", "D", "E"};
-    private int[] colWidths = {20,20,20,100,20};
+    private String[] colNames = {"A", "B", "C", "D", "E", "F"};
+    private int[] colWidths = {20,20,20,100,20,20};
  
     /** Creates a new instance of PathwayTab */
     public PathwayTab(JDialog parent) 
@@ -183,7 +186,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
         pathwayTable.setBackground(bgColor);
         pathwayTable.setModel(tableModel);
         
-        for(int i = 0; i < 5; i++){
+        for(int i = 0; i < 6; i++){
             TableColumn col = pathwayTable.getColumn(colNames[i]);
             if(i != 3) col.setMaxWidth(colWidths[i]);
         } 
@@ -191,6 +194,23 @@ public class PathwayTab extends JPanel implements   ActionListener,
         JScrollPane tablePane = new JScrollPane(pathwayTable);
         
         setButtons();
+        //toggles the add button's availability depending on the selection
+        VUE.ModelSelection.addListener( new LWSelection.Listener() {
+                public void selectionChanged(LWSelection sel)
+                {
+                    setElemSelection(!sel.isEmpty());
+                    if (!sel.isEmpty()){
+                        if (VUE.getActiveMap().getPathwayManager().length() > 0
+                            && !VUE.getActiveMap().getPathwayManager().getCurrentPathway().getLocked())
+                            addElement.setEnabled(true);
+                        else
+                            addElement.setEnabled(false);
+                    }else{
+                        addElement.setEnabled(false);
+                    }
+                }
+            }     
+        );
         
         JLabel addLabel = new JLabel("Add selected object on map to pathway");
         addLabel.setFont(defaultFont);
@@ -248,6 +268,9 @@ public class PathwayTab extends JPanel implements   ActionListener,
         
         notesArea = new JTextArea("");
         notesArea.setColumns(5);
+        notesArea.setWrapStyleWord(true);
+        notesArea.setAutoscrolls(true);
+        notesArea.setLineWrap(true);
         notesArea.addKeyListener(this);
         notesArea.setBackground(Color.white);
         notesArea.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED, Color.white, Color.darkGray));
@@ -286,7 +309,44 @@ public class PathwayTab extends JPanel implements   ActionListener,
         add(notesPanel);
         
         /* End of Layout for pathways tab */
+        
+        
     }
+    
+    
+    public void setAddElementEnabled(){
+        System.out.println("selection: " + this.elemSelection);
+        if(this.elemSelection && !this.getPathwayTableModel().getCurrentPathway().getLocked())
+            this.addElement.setEnabled(true);
+        else
+            this.addElement.setEnabled(false);
+    }
+    
+    public void setElemSelection(boolean val){
+        System.out.println("set element selection: " + val);
+        this.elemSelection = val;
+    }
+    /*
+    public void selectionChanged(LWSelection sel) {
+        System.out.println("setting selection in Pathway Tab...");
+        if(!sel.isEmpty())
+            selection = true;
+        else
+            selection = false;
+        /*if(!compArray.equals(selection.getArray())){
+            compArray = selection.getArray();
+            System.out.println("compArray different from selection.getArray()");
+            if(compArray != null && compArray.length != 0
+                && VUE.getPathwayInspector().getCurrentPathway() != null)
+            {
+                System.out.println("compArray size: "+compArray.length);
+                this.addElement.setEnabled(true);
+            }
+            else
+                this.addElement.setEnabled(false);
+                
+         }
+    }*/
     
     public void setButton(JButton button){
         button.addActionListener(this);
@@ -369,18 +429,6 @@ public class PathwayTab extends JPanel implements   ActionListener,
         removeElement.setPreferredSize(new Dimension(16, 16));
         removeElement.addActionListener(this);
         removeElement.setEnabled(false);
-        
-        //toggles the add button's availability depending on the selection
-        VUE.ModelSelection.addListener( new LWSelection.Listener() {
-                public void selectionChanged(LWSelection selection)
-                {
-                    if (!selection.isEmpty() && VUE.getActiveMap().getPathwayManager().length() > 0)
-                      addElement.setEnabled(true);
-                    else
-                      addElement.setEnabled(false);
-                }
-            }     
-        );
         
         buttons = new JPanel(new GridLayout(0, 2, 1, 0));
         buttons.setBackground(altbgColor);
@@ -498,7 +546,6 @@ public class PathwayTab extends JPanel implements   ActionListener,
     public void keyTyped(KeyEvent e){
         
         if(e.getKeyChar()== KeyEvent.VK_ENTER){
-            System.out.println("focus owner: " + e.getSource());
             if (text.isFocusOwner())
                 if(pathName.getText() == "Edit Name:"){
                     this.getCurrentPathway().setLabel(text.getText());
@@ -509,13 +556,15 @@ public class PathwayTab extends JPanel implements   ActionListener,
                     text.setText(this.getCurrentPathway().getLabel());
                 }                
         }
-        if (notesArea.isFocusOwner())
+        if (notesArea.isFocusOwner()){
             if(dispPath != null){
                 if(dispComp != null){
                     dispComp.setNotes(notesArea.getText());
                 }else
                     dispPath.setNotes(notesArea.getText());
-            }        
+            } 
+        }
+        this.getPathwayTableModel().fireTableDataChanged();
     }
     
     /**Reacts to actions dispatched by the buttons*/
@@ -556,7 +605,10 @@ public class PathwayTab extends JPanel implements   ActionListener,
             dialog.show();
         }
         else if (e.getSource() == lockButton){
-            //add lock code here
+            int currentRow = this.getPathwayTableModel().getManager().getPathwayIndex(
+                this.getPathwayTableModel().getCurrentPathway());
+            this.getPathwayTable().setValueAt(this, currentRow, 5);
+            this.setAddElementEnabled();
         }
         
         this.getPathwayTableModel().fireTableDataChanged();
@@ -698,6 +750,8 @@ public class PathwayTab extends JPanel implements   ActionListener,
     {
         if (this.getCurrentPathway() != null){
             LWComponent currentElement = this.getCurrentPathway().getCurrent();
+            
+            
             
             removeButton.setEnabled(true);
             

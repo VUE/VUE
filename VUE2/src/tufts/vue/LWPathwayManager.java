@@ -21,6 +21,7 @@ import java.awt.*;
 public class LWPathwayManager {
     
     private ArrayList pathways = null;
+    private HashMap pathwaysNotes = null;
     private LWPathway current = null;
     private LWMap map = null;
     //private boolean currentOpen = false;
@@ -30,10 +31,12 @@ public class LWPathwayManager {
     /* constructors */
     public LWPathwayManager() {
         pathways = new ArrayList();
+        pathwaysNotes = new HashMap();
     }
     
     public LWPathwayManager(LWMap map) {
         pathways = new ArrayList();
+        pathwaysNotes = new HashMap();
         this.map = map;
     }
     
@@ -89,12 +92,10 @@ public class LWPathwayManager {
     }
 
     public void setPathwayList(ArrayList pathways){
-        //System.out.println(this + " setPathwayList *** " + pathways);
         this.pathways = pathways;
     }
      
     public ArrayList getPathwayList(){
-        //System.out.println(this + " getPathwayList *** " + pathways);
         return pathways;
     }
     

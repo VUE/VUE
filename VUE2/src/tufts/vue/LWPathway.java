@@ -31,9 +31,11 @@ public class LWPathway
     private String label = "";
     private int currentIndex;
     private String notes = "";
-    private boolean showing = false;
-    private boolean open = false;
+    private boolean showing = true;
+    private boolean open = true;
+    private boolean locked = false;
     private boolean mDoingXMLRestore = false;
+    private ArrayList colorArray = new ArrayList();
     
     /**default constructor used for marshalling*/
     public LWPathway() {
@@ -41,7 +43,19 @@ public class LWPathway
         elementList = new LinkedList();    
         currentIndex = -1;
         mDoingXMLRestore = true;
-        //System.out.println(this + " XML restore creation");
+        colorArray.add(new Color(255, 255, 51));
+        colorArray.add(new Color(255, 102, 51));
+        colorArray.add(new Color(204, 51, 204));
+        colorArray.add(new Color(51, 204, 204));
+        colorArray.add(new Color(51, 204, 51));
+        LWPathwayManager manager = VUE.getActiveMap().getPathwayManager();
+        if(manager != null && manager.getPathwayList() != null){
+            int num = manager.getPathwayList().size();
+            borderColor = (Color)colorArray.get(num % 5);
+        }
+        
+        System.out.println("manager: " + manager.toString());
+        System.out.println("pathway border color: " + borderColor.toString());
     }
     
     public LWPathway(LWMap map, String label) {
@@ -54,6 +68,20 @@ public class LWPathway
         this.setLabel(label);
         elementList = new LinkedList();
         currentIndex = -1;
+        
+        colorArray.add(new Color(255, 255, 51));
+        colorArray.add(new Color(255, 102, 51));
+        colorArray.add(new Color(204, 51, 204));
+        colorArray.add(new Color(51, 204, 204));
+        colorArray.add(new Color(51, 204, 51));
+        LWPathwayManager manager = VUE.getActiveMap().getPathwayManager();
+        if(manager != null && manager.getPathwayList() != null){
+            int num = manager.getPathwayList().size();
+            borderColor = (Color)colorArray.get(num % 5);
+        }
+        
+        System.out.println("manager: " + manager.toString());
+        System.out.println("pathway border color: " + borderColor.toString());
     }
      
     /** adds an element to the end of the pathway */
@@ -82,6 +110,17 @@ public class LWPathway
     
     public boolean getShowing(){
         return showing;
+    }
+    
+    public void setLocked(){
+         if(this.locked)
+            this.locked = false;
+        else
+            this.locked = true;
+    }
+    
+    public boolean getLocked(){
+        return locked;
     }
     
     public void setOpen(boolean open){

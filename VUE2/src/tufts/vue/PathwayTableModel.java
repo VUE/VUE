@@ -102,7 +102,7 @@ public class PathwayTableModel extends DefaultTableModel{
     }
 
     public int getColumnCount(){
-        return 5;
+        return 6;
     }
     
     public String getColumnName(int col){
@@ -118,6 +118,8 @@ public class PathwayTableModel extends DefaultTableModel{
                     return "D";
                 case 4:
                     return "E";
+                case 5:
+                    return "F";
             }
         }catch (Exception e){
             System.err.println("exception in the table model:" + e);
@@ -128,7 +130,7 @@ public class PathwayTableModel extends DefaultTableModel{
     public Class getColumnClass(int col){
         if(col == 1)
             return Color.class;
-        else if(col == 0 || col == 2 || col == 4)
+        else if(col == 0 || col == 2 || col == 4 || col == 5)
             return ImageIcon.class;
         else if(col == 3)
             return Object.class;
@@ -141,7 +143,14 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public boolean isCellEditable(int row, int col){
-        //Class colClass = this.getColumnClass(col);
+        LWPathway path = null;
+        if(this.getManager().getPathwaysElement(row) instanceof LWPathway){
+            path = (LWPathway)this.getManager().getPathwaysElement(row);
+        }else{
+            path = this.getManager().getPathwayforElementAt(row);
+        }
+        if(path != null && path.getLocked())
+            return false;
         return (col == 1 || col == 3);
     }
     
@@ -177,6 +186,10 @@ public class PathwayTableModel extends DefaultTableModel{
                 boolean isOpen = false;
                 if(pathway.getOpen())
                     isOpen = true;
+                
+                boolean isLocked = false;
+                if(pathway.getLocked())
+                    isLocked = true;
 
                 try{
                     switch(col){
@@ -190,6 +203,8 @@ public class PathwayTableModel extends DefaultTableModel{
                             return pathway.getLabel();
                         case 4:
                             return new Boolean(hasNotes);
+                        case 5:
+                            return new Boolean(isLocked);
                     }
                 }catch (Exception e){
                     System.err.println("exception in the table model, setting pathway cell:" + e);
@@ -230,6 +245,9 @@ public class PathwayTableModel extends DefaultTableModel{
                     else if(col == 3){
                         path.setLabel((String)aValue);
                         //manager.setCurrentPathway(path);
+                    }
+                    else if(col == 5){
+                        path.setLocked();
                     }
                     
                 }

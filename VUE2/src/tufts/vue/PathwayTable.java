@@ -43,6 +43,8 @@ public class PathwayTable extends JTable{
     
     private final Color currentNodeColor = Color.red;
     
+    int lastSelectedRow = -1;
+    
     private final LineBorder normalBorder = null;//new LineBorder(regular, 2);
     private final LineBorder selectedBorder = null;//new LineBorder(selected, 2);
     
@@ -61,6 +63,11 @@ public class PathwayTable extends JTable{
         
         this.setBackground(bgColor);
         //this.setSelectionBackground(selectedbgColor);
+        
+        
+        
+        //this.setDragEnabled(true);
+        
         
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);
@@ -89,9 +96,10 @@ public class PathwayTable extends JTable{
                 ListSelectionModel lsm = (ListSelectionModel)le.getSource();
                 if (!lsm.isSelectionEmpty()){
                     int row = lsm.getMinSelectionIndex();
+                    lastSelectedRow = row;
                     int col = getSelectedColumn();
                     System.out.println("clicked row, col: "+row+", "+col);    
-                
+                    
                     PathwayTableModel tableModel = tab.getPathwayTableModel();
                     if(tableModel != null){
                         Object elem = tableModel.getElement(row);
@@ -99,12 +107,14 @@ public class PathwayTable extends JTable{
                         if(elem instanceof LWPathway){
                             LWPathway path = (LWPathway)elem;
                             tableModel.setCurrentPathway(path);
+                            tab.setAddElementEnabled();
                             
                             tab.removeElement.setEnabled(false);
                             
                             if(col == 0 || col == 2){
                                 setValueAt(path, row, col);
                             }
+                            
                             tableModel.fireTableDataChanged();
                             tab.updateControlPanel();
                             
@@ -112,6 +122,8 @@ public class PathwayTable extends JTable{
                             tab.removeElement.setEnabled(true);
                             LWPathway path = tab.getPathwayTableModel().getManager().getPathwayforElementAt(row);
                             tab.getPathwayTableModel().getManager().setCurrentPathway(path);
+                            int pathwayLoc = tab.getPathwayTableModel().getManager().getPathwayIndex(path);
+                            path.setCurrentIndex(row-pathwayLoc-1);
                             tab.updateControlPanel();
                         }
                     }
@@ -152,6 +164,8 @@ public class PathwayTable extends JTable{
         //tab.setCurrentElement(row);
     }
     
+   
+    
     private class ColorEditor extends AbstractCellEditor
                          implements TableCellEditor,
 			            ActionListener {
@@ -180,19 +194,24 @@ public class PathwayTable extends JTable{
         }
 
         public void actionPerformed(ActionEvent e) {
-            if (EDIT.equals(e.getActionCommand())) {
-                
-                colorChooser.setColor(currentColor);
-                dialog.setVisible(true);
-                fireEditingStopped();
-
-            } else { 
-                currentColor = colorChooser.getColor();
-                if(currentColor != null){
-                    int row = tab.getPathwayTable().getSelectedRow();
-                    tab.getPathwayTable().setValueAt(currentColor, row, 1);
-                    tab.getPathwayTableModel().fireTableDataChanged();
-                }               
+            if(!VUE.getPathwayInspector().getCurrentPathway().getLocked()){
+                if (EDIT.equals(e.getActionCommand())) {
+                    colorChooser.setColor(currentColor);
+                    dialog.setVisible(true);
+                    fireEditingStopped();
+                } else { 
+                    currentColor = colorChooser.getColor();
+                    if(currentColor != null){
+                        int row = tab.getPathwayTable().getSelectedRow();
+                        if(row == -1)
+                            row = lastSelectedRow;
+                        if(row != -1){
+                            tab.getPathwayTable().setValueAt(currentColor, row, 1);
+                            tab.getPathwayTableModel().fireTableDataChanged();
+                            VUE.getActiveViewer().repaint();
+                        }
+                    }               
+                }
             }
         }
 
@@ -387,20 +406,29 @@ public class PathwayTable extends JTable{
                     else
                         this.setIcon(null);
                 }
+                else if(col == 5){
+                    if(((Boolean)obj).booleanValue())
+                        this.setIcon(lock);
+                    else
+                        this.setIcon(null);
+                }
                 
             }else{
                 this.setBorder(selectedBorder);
                 if(col == 0){
                     this.setIcon(null);
                 }
-                if(col == 2){
+                else if(col == 2){
                     this.setIcon(null);
                 }
-                if(col == 4){
+                else if(col == 4){
                     if( ((LWComponent)path).getNotes() != null && ((LWComponent)path).getNotes() != "")
                         this.setIcon(notes);
                     else
                         this.setIcon(null);
+                }
+                else if(col == 5){
+                    this.setIcon(null);
                 }
             }
             if(tab.getPathwayTable().getSelectedRow() == row){
