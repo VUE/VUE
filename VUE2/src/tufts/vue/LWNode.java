@@ -105,7 +105,9 @@ public class LWNode extends LWContainer
     private Line2D dividerStub = new Line2D.Float();
 
     private boolean isRectShape = true;
-
+	
+	private boolean mIsTextNode = false;
+	
     private NodeIcon resourceIcon = new ResourceIcon();
     private NodeIcon notesIcon = new NotesIcon(this);
 
@@ -289,6 +291,16 @@ public class LWNode extends LWContainer
     
     public void setIcon(javax.swing.ImageIcon icon) {}
     public javax.swing.ImageIcon getIcon() { return null; }
+    
+    
+    public void setIsTextNode( boolean pState) {
+    	mIsTextNode = pState;
+    }
+    
+    public boolean isTextNode() {
+    	return mIsTextNode;
+    }
+    
     
     /** If true, compute node size from label & children */
     public boolean isAutoSized()
