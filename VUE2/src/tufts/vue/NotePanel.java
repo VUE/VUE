@@ -12,10 +12,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class NotePanel extends JPanel {
-
-
-
+public class NotePanel extends JPanel
+    implements LWComponent.Listener
+{
 	//////////////////
 	//  Fields
 	//////////////////
@@ -105,25 +104,33 @@ public class NotePanel extends JPanel {
 			}
 	*********/
 	}
-	/** 
-	 * updatePanel
-	 *
-	 **/
-	public void updatePanel( LWComponent pObj) {
-		if( pObj != mObject )  {
-			
-			saveNotes();
-			mObject = pObj;
-			if( pObj != null) {
-				String text = pObj.getNotes();
-				if( text == null) {
-					text = "";
-					}
-				mTextPane.setText(  text );
-				}
-			}
-	}
+    
+    /** 
+     * updatePanel
+     *
+     **/
+    public void updatePanel( LWComponent pObj) {
+        if (pObj != mObject)  {
+            saveNotes();
+            if (mObject != null)
+                mObject.removeLWCListener(this);
+            mObject = pObj;
+            if (pObj != null) {
+                String text = pObj.getNotes();
+                if (text == null)
+                    text = "";
+                mTextPane.setText(text);
+                pObj.addLWCListener(this);
+            }
+        }
+    }
 	
+    public void LWCChanged(LWCEvent e)
+    {
+        if (e.getComponent() == mObject && e.getWhat().equals("deleting"))
+            mObject = null;
+    }
+    
 	/**
 	 * NoteFocusListener
 	 * This inner cclass is used to listen to focus to save any changes to
