@@ -63,6 +63,8 @@ public class EditDataSourcePanel extends JPanel{
             editDataSourcePanel = new FedoraDataSourcePanel((FedoraDataSource)dataSource);
         } else if(dataSource instanceof GoogleDataSource) {
             editDataSourcePanel = new GoogleDataSourcePanel((GoogleDataSource)dataSource);
+        } else if(dataSource instanceof OsidDataSource) {
+            editDataSourcePanel = new OsidDataSourcePanel((OsidDataSource)dataSource);
         }
         add(editDataSourcePanel,BorderLayout.NORTH);
         validate();
@@ -639,10 +641,10 @@ public class EditDataSourcePanel extends JPanel{
     class OsidDataSourcePanel extends JPanel {
         JTextField dsNameField;
         JTextField addressField;
-        GoogleDataSource dataSource;
+        OsidDataSource dataSource;
         String cDsNameField; //cached field to be used for reset.
         String cAddressField; // cached path to be used on reset.
-        public OsidDataSourcePanel(GoogleDataSource dataSource) {
+        public OsidDataSourcePanel(OsidDataSource dataSource) {
             this.dataSource = dataSource;
             cDsNameField = dataSource.getDisplayName();
             cAddressField = dataSource.getAddress();
@@ -659,7 +661,7 @@ public class EditDataSourcePanel extends JPanel{
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
                         OsidDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
-                        OsidDataSourcePanel.this.dataSource.setUrl(addressField.getText());
+                        OsidDataSourcePanel.this.dataSource.setAddress(addressField.getText());
                         dialog.hide();
                         dialog.dispose();
                     }
