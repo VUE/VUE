@@ -463,11 +463,19 @@ public class LWComponent
                 public boolean hasNext() {return i.hasNext();}
 		public Object next()
                 {
-                    LWLink lwl = (LWLink) i.next();
-                    if (lwl.getComponent1() == LWComponent.this)
-                        return lwl.getComponent2();
+                    LWLink l = (LWLink) i.next();
+                    LWComponent c1 = l.getComponent1();
+                    LWComponent c2 = l.getComponent2();
+                    // Every link, as it's connected to us, should
+                    // have us as one of it's endpoints -- so return
+                    // the opposite endpoint.
+                    // todo: now that links can have null endpoints,
+                    // this iterator can return null -- hasNext
+                    // will have to get awfully fancy to handle this.
+                    if (c1 == LWComponent.this)
+                        return c2;
                     else
-                        return lwl.getComponent1();
+                        return c1;
                 }
 		public void remove() {
 		    throw new UnsupportedOperationException();
@@ -655,18 +663,21 @@ public class LWComponent
     public Rectangle2D getBounds()
     {
         // todo opt: cache this object?
-        final Rectangle2D b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
-        final double sw = getStrokeWidth();
+        final Rectangle2D.Float b = new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
+        final float strokeWidth = getStrokeWidth();
 
         // we need this adjustment for repaint optimzation to
         // work properly -- would be a bit cleaner to compensate
         // for this in the viewer
-        //if (isIndicated() && STROKE_INDICATION.getLineWidth() > sw)
-        //    sw = STROKE_INDICATION.getLineWidth();
+        //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
+        //    strokeWidth = STROKE_INDICATION.getLineWidth();
 
-        if (sw > 0) {
-            double adj = sw / 2;
-            b.setRect(b.getX()-adj, b.getY()-adj, b.getWidth()+sw, b.getHeight()+sw);
+        if (strokeWidth > 0) {
+            final float adj = strokeWidth / 2;
+            b.x -= adj;
+            b.y -= adj;
+            b.width += strokeWidth;
+            b.height += strokeWidth;
         }
         return b;
     }
@@ -699,7 +710,7 @@ public class LWComponent
     {
         return rect.intersects(getBounds());
     }
-
+    
     /**
      * Does x,y fall within the selection target for this component.
      * This default impl adds a 30 pixel swath to bounding box.
