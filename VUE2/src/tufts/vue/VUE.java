@@ -41,8 +41,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-<!-- $Revision: 1.287 $ / $Date: 2005-03-11 03:24:43 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.287 2005-03-11 03:24:43 sfraize Exp $ -->
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.288 2005-03-11 03:25:46 sfraize Exp $
     
 /**
  * Vue application class.
