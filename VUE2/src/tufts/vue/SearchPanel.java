@@ -80,7 +80,7 @@ public class SearchPanel extends JInternalFrame{
                 
                if (!searchString.equals("")){
               
-                  //resultPanel.invalidate();
+              
                 VueDragTree tree = new VueDragTree("Google Search Results",searchString);
                 tree.setEditable(true);
                 tree.setRootVisible(false);
@@ -92,7 +92,7 @@ public class SearchPanel extends JInternalFrame{
                 resultPanel.add(jsp,BorderLayout.CENTER); 
                     
                 resultPanel.revalidate();
-                //resultPanel.repaint();
+              
                 }
                 
             
@@ -104,18 +104,5 @@ public class SearchPanel extends JInternalFrame{
         
     }
     
-    /*public static void main(String[] args){
-       // System.out.println("Om Shri Ganeshaya Namah");
-        
-        //Initialize the Search Panel
-       
-     
-        final SearchPanel searchPanel = new SearchPanel(400,600);
-        searchPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        searchPanel.pack();
-        searchPanel.setSize(400,400);
-        searchPanel.setVisible(true);
-        
-    }
-     */
+  
 }
