@@ -12,6 +12,7 @@ import tufts.vue.LWComponent;
 import tufts.vue.LWContainer;
 import tufts.vue.LWNode;
 import tufts.vue.LWLink;
+import tufts.vue.LWHierarchyMap;
 
 /**
  *
@@ -27,20 +28,20 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
     //an arraylist which holds all the nodes that were connected from the root node
     private ArrayList originalNodes;
     
+    private LWHierarchyMap hierarchyMap = null;
     //problems:
-    //get the switching mode in VUE
-    //debug switching
     //fix layout (where to call)
     //duplicate problem
     
     /** Creates a new instance of HierarchyViewHierarchyModel */
-    public HierarchyViewHierarchyModel(LWNode node) 
+    public HierarchyViewHierarchyModel(LWNode node, LWHierarchyMap hierarchyMap) 
     {
         super();
         
         hierarchyHash = new HashMap();
         nodeHash = new Hashtable();
         originalNodes = new ArrayList();
+        this.hierarchyMap = hierarchyMap;
         
         computeShortestPath(node);
         createLinks();
@@ -48,13 +49,14 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         setUpHierarchyNodes(getDuplicatedNode(node), null);
     }
     
-    public HierarchyViewHierarchyModel(LWNode node, String name, String description) 
+    public HierarchyViewHierarchyModel(LWNode node, LWHierarchyMap hierarchyMap, String name, String description) 
     {
         super(name, description);
         
         hierarchyHash = new HashMap();
         nodeHash = new Hashtable();
         originalNodes = new ArrayList();
+        this.hierarchyMap = hierarchyMap;
         
         computeShortestPath(node);
         System.out.println("beginning of links");
@@ -67,17 +69,22 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
     /*** create the duplicates of the nodes and map them to the original nodes
          using the node hashtable
      */
-    public void duplicateNode(LWNode node)
+    public LWNode duplicateNode(LWNode node, LWContainer parent)
     {
         LWNode copy = (LWNode)node.duplicate();
+        //copy.setParent(parent);
         
-        //how to fully copy?
-        for (Iterator i = node.getChildIterator(); i.hasNext();)
+        /*
+        for (Iterator i = node.getNodeIterator(); i.hasNext();)
         {
-            copy.addChild((LWComponent)i.next());
+            LWNode childCopy = duplicateNode((LWNode)i.next(), copy);
+            copy.addChild(childCopy);
         }
+        */
         
         nodeHash.put(node, copy);
+        
+        return copy;
     }
      
     public LWNode getDuplicatedNode(LWNode node)
@@ -94,8 +101,8 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         //initial set up for the computation for the shortest path
         nodesVector.add(rootNode); 
         originalNodes.add(rootNode);
-        duplicateNode(rootNode);
-        
+        duplicateNode(rootNode, hierarchyMap);
+       
         //stores default values to the hierarchy hashmap
         hierarchyHash.put((LWNode)nodeHash.get(rootNode), new ShortestPathData(null, 0));
         
@@ -129,7 +136,7 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
                 if(!originalNodes.contains(nextNode))
                 {
                   originalNodes.add(nextNode);
-                  duplicateNode(nextNode);
+                  duplicateNode(nextNode, hierarchyMap);
                 }
                 
                 LWNode nextNodeCopy = (LWNode)nodeHash.get(nextNode);
