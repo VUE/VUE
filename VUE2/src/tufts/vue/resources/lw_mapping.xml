@@ -43,6 +43,7 @@
     <field name="arcwidth" direct="true"><bind-xml node="attribute"/></field>
     <field name="archeight" direct="true"><bind-xml node="attribute"/></field>
   </class>
+  <!--
   <class name="tufts.vue.LWNode$NodeShape">
     <map-to xml="nodeShape"/>
     <field name="equalAspect" type="boolean">
@@ -52,6 +53,7 @@
       <bind-xml node="element"/>
     </field>
   </class>
+  -->
   <class name="tufts.vue.LWComponent">
     <!-- castor can figure out types, we leave string as defaulted.
       -->
@@ -95,7 +97,9 @@
 		<field name="autoSized" type="boolean">
 			<bind-xml name="autoSized" node="attribute"/>
 		</field>
-                
+                 <field name="nodeFilter">
+                    <bind-xml name="nodeFilter" node="element"/>
+                 </field> 
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
@@ -189,6 +193,9 @@
                 <field name="description">
                     <bind-xml name="description" node="element"/>
                  </field>
+                 <field name="mapFilterModel">
+                    <bind-xml name="mapFilterModel" node="element"/>
+                 </field> 
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                   <bind-xml matches="*"/> 
                 </field>
@@ -236,8 +243,51 @@
                     -->
                 </field>
         </class>
-    
-        
+
+        <class name="tufts.vue.filter.MapFilterModel" > 
+            <map-to xml="mapFilterModel"/>
+            <field name="keyVector" type="tufts.vue.filter.Key" collection="vector">
+                <bind-xml name="key"/>
+            </field>
+         </class>
+         
+          <class name="tufts.vue.filter.NodeFilter" > 
+            <map-to xml="nodeFilter"/>
+            <field name="statementVector" type="tufts.vue.filter.Statement" collection="vector">
+                <bind-xml name="statement"/>
+            </field>
+         </class>
+     
+         <class name="tufts.vue.filter.Key">
+            <map-to xml="key"/>
+            <field name="sKey" set-method="setKey" get-method="getKey" type="java.lang.Object" >
+                <bind-xml name="sKey" node="element" />
+             </field>
+             <field name="defaultValue" type="java.lang.Object" >
+                <bind-xml name="defaultValue" node="element" />
+             </field>
+              <field name="type" type="tufts.vue.filter.Type" >
+                <bind-xml name="type" node="element" />
+             </field>
+         </class>
+          <class name="tufts.vue.filter.DefaultType">
+            <map-to xml="defaultType"/>
+            <field name="displayName" type="string">
+		<bind-xml name="displayName" node="element" />
+	     </field>
+             <field name="operatorList" set-method="setOperators" get-method="getOperators"  collection="vector">
+             </field>
+         </class>
+         <class name="tufts.vue.filter.IntegerType" extends="tufts.vue.filter.DefaultType">
+                <map-to xml="integerType"/>
+         </class>
+         <class name="tufts.vue.filter.StringType" extends="tufts.vue.filter.DefaultType">
+            <map-to xml="stringType"/>
+         </class>
+          <class name="tufts.vue.filter.BooleanType" extends="tufts.vue.filter.DefaultType">
+            <map-to xml="booleanType"/>
+         </class>
+         
          <class name="tufts.vue.PropertyEntry">
             <map-to xml="propertyEntry"/>
             <field name="entryKey" type="java.lang.Object" >
