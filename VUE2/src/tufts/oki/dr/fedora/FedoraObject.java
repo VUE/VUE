@@ -60,6 +60,7 @@ public class FedoraObject implements osid.dr.Asset{
     private DR dr;
     private String displayName;
     private String description ="Fedora Repository";
+    private String content = "";
     // private BehaviorIterator behaviorIterator;
     java.util.Vector infoRecordVector = new java.util.Vector();
     java.util.Vector infoStructureVector = new java.util.Vector();
@@ -178,6 +179,23 @@ public class FedoraObject implements osid.dr.Asset{
      *     @throws DigitalRepositoryException if there is a general failure
      */
     public java.io.Serializable getContent() throws osid.dr.DigitalRepositoryException {
+        osid.dr.InfoRecordIterator iri = getInfoRecords();
+        while (iri.hasNext())
+        {
+            osid.dr.InfoRecord ir = iri.next();
+            if (ir.getInfoStructure().getDisplayName().equals("VUE Specific Data"))
+            {
+                osid.dr.InfoFieldIterator ifi = ir.getInfoFields();
+                while (ifi.hasNext())
+                {
+                    osid.dr.InfoField ifield = ifi.next();
+                    if (ifield.getInfoPart().getDisplayName().equals("VUEDefaultViewInfoPart"))
+                    {
+                        return ifield.getValue();
+                    }
+                }
+            }
+        }
         return null;
     }
     

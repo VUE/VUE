@@ -479,7 +479,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         Vector mDataSources = new Vector();
         /**
          * try {
-         * mDataSources.add(new FedoraDataSource("Tufts Digital Library","vue-dl.tccs.tufts.edu","test","test"));
+         * mDataSources.add(new FedoraDataSource("Tufts Digital Library","snowflake.lib.tufts.edu","test","test"));
          *
          * } catch (Exception ex) {
          * System.out.println("Datasources can't be loaded");

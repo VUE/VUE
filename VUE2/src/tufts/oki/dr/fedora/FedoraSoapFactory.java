@@ -86,7 +86,6 @@ public class FedoraSoapFactory {
         Call call;
         String fedoraApiUrl = dr.getFedoraProperties().getProperty("url.fedora.api");
         
-        
         FieldSearchResult searchResults=new FieldSearchResult();
         NonNegativeInteger maxRes=new NonNegativeInteger(maxResults);
         

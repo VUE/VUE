@@ -73,7 +73,7 @@ import fedora.client.ingest.AutoIngestor;
 public class DR implements osid.dr.DigitalRepository {
     public final boolean DEBUG = false;
     public static final String DC_NAMESPACE = "dc:";
-    public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage","description"};
+    public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
     
     private Preferences prefs = null;
     private String displayName = "";
@@ -421,14 +421,15 @@ public class DR implements osid.dr.DigitalRepository {
     }
     
     public osid.dr.AssetIterator getAssets(java.io.Serializable searchCriteria, osid.shared.Type searchType) throws osid.dr.DigitalRepositoryException {
-        System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
+
         SearchCriteria lSearchCriteria = null;
-        
         if (searchCriteria instanceof String)
         {
             lSearchCriteria = new SearchCriteria();
             lSearchCriteria.setKeywords((String)searchCriteria);
             lSearchCriteria.setMaxReturns("10");
+            lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
+            lSearchCriteria.setResults(0);
         }
         else if (searchCriteria instanceof SearchCriteria)
         {
@@ -438,24 +439,57 @@ public class DR implements osid.dr.DigitalRepository {
         {
             throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.UNKNOWN_TYPE);
         }
-        
-        
-        System.out.println("Search Type is " + searchType.getDomain() + "," + searchType.getAuthority() + searchType.getKeyword());
-        
-        if(searchType.getKeyword().equals("Search")) 
+                
+        if ( (searchType.getKeyword().equals("Search")) ) 
         {
             return (FedoraSoapFactory.search(this,lSearchCriteria));
-        } else if(searchType.getKeyword().equals("Advanced Search")) 
+        }
+        else if(searchType.getKeyword().equals("Advanced Search")) 
         {
             return (FedoraSoapFactory.advancedSearch(this,lSearchCriteria));
-        }else 
+        }
+        else
         {
-            throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.UNKNOWN_TYPE);
+            if (!(searchCriteria instanceof String))
+            {
+                throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.UNKNOWN_TYPE);
+            }
+            try
+            {
+                java.util.Vector results = new java.util.Vector();
+                java.util.Vector ids = new java.util.Vector();
+                java.util.StringTokenizer st = new java.util.StringTokenizer((String)searchCriteria,",");
+                while (st.hasMoreTokens())
+                {
+                    String nextKeyword = st.nextToken().trim();
+                    lSearchCriteria = new SearchCriteria();
+                    lSearchCriteria.setKeywords(nextKeyword);
+                    lSearchCriteria.setMaxReturns("10");
+                    lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
+                    lSearchCriteria.setResults(0);
+                    osid.dr.AssetIterator ai = FedoraSoapFactory.search(this,lSearchCriteria);
+                    while (ai.hasNext())
+                    {
+                        osid.dr.Asset asset = ai.next();
+                        String idString = asset.getId().getIdString();
+                        if (ids.indexOf(idString) == -1)
+                        {
+                            results.addElement(asset);
+                            ids.addElement(idString);
+                        }
+                    }
+                }
+                return new AssetIterator(results);
+            }
+            catch (Throwable t)
+            {
+                throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.OPERATION_FAILED);
+            }
         }
     }
     
     public osid.shared.Type getType() throws osid.dr.DigitalRepositoryException {
-        throw new osid.dr.DigitalRepositoryException("Not Implemented");
+        throw new osid.dr.DigitalRepositoryException(osid.dr.DigitalRepositoryException.UNIMPLEMENTED);
     }
     
     public osid.dr.Asset getAssetByDate(osid.shared.Id id, java.util.Calendar calendar) throws osid.dr.DigitalRepositoryException {

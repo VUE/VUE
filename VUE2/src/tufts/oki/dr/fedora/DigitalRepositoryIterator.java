@@ -1,7 +1,7 @@
 package tufts.oki.dr.fedora;
 
     /**
-    DigitalRepositoryIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.1 $ / $Date: 2004-06-23 18:37:35 $
+    DigitalRepositoryIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.2 $ / $Date: 2005-01-26 21:41:07 $
     */
 public class DigitalRepositoryIterator
 implements osid.dr.DigitalRepositoryIterator

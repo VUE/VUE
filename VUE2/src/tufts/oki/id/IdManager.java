@@ -1,47 +1,62 @@
-package tufts.oki.dr.fedora;
+package tufts.oki.id;
 
-    /**
-    CalendarIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.2 $ / $Date: 2005-01-26 21:41:07 $
-    */
-public class CalendarIterator
-implements osid.shared.CalendarIterator
+public class IdManager
+implements org.osid.id.IdManager
 {
-    private java.util.Vector vector = new java.util.Vector();
-    private int i = 0;
+    org.osid.OsidContext context = null;
+    java.util.Properties configuration = null;
 
-    public CalendarIterator(java.util.Vector vector)
-    throws osid.shared.SharedException
+    public org.osid.OsidContext getOsidContext()
+    throws org.osid.id.IdException
     {
-        this.vector = vector;
+        return context;
     }
 
-        /**
-        Return true if there are additional  Calendars ; false otherwise.
-        @return boolean
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED
-        */
-    public boolean hasNext()
-    throws osid.shared.SharedException
+    public void assignOsidContext(org.osid.OsidContext context)
+    throws org.osid.id.IdException
     {
-        return i < vector.size();
+        this.context = context;
     }
 
-        /**
-        Return the next Calendar
-        @return Calendar
-        @throws An exception with one of the following messages defined in osid.dr.DigitalRepositoryException may be thrown:  OPERATION_FAILED, NO_MORE_ITERATOR_ELEMENTS
-        */
-    public java.util.Calendar next()
-    throws osid.shared.SharedException
+    public void assignConfiguration(java.util.Properties configuration)
+    throws org.osid.id.IdException
     {
-        if (i < vector.size())
+        this.configuration = configuration;
+    }
+
+    public org.osid.shared.Id createId()
+    throws org.osid.id.IdException
+    {
+        try
         {
-            return (java.util.Calendar)vector.elementAt(i++);
+            return new Id();
         }
-        else
+        catch (org.osid.shared.SharedException sex)
         {
-            throw new osid.shared.SharedException(osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
+            throw new org.osid.id.IdException(sex.getMessage());
         }
+    }
+
+    public org.osid.shared.Id getId(String idString)
+    throws org.osid.id.IdException
+    {
+        if (idString == null)
+        {
+            throw new org.osid.id.IdException(org.osid.id.IdException.NULL_ARGUMENT);    
+        }
+        try
+        {
+            return new Id(idString);
+        }
+        catch (org.osid.shared.SharedException sex)
+        {
+            throw new org.osid.id.IdException(sex.getMessage());
+        }
+    }
+
+    public void osidVersion_2_0()
+    throws org.osid.id.IdException
+    {
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.
