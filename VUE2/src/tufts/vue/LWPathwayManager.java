@@ -218,6 +218,9 @@ public class LWPathwayManager {
 
     public String toString()
     {
-        return "LWPathwayManger[pathways=" + (pathways==null?-1:pathways.size()) + " map=" +  getMap() + "]";
+        return "LWPathwayManger[pathways="
+            + (pathways==null?-1:pathways.size())
+            + " map=" + (map==null?"null":map.getLabel())
+            + "]";
     }
 }

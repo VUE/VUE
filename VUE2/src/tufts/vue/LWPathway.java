@@ -382,7 +382,7 @@ public class LWPathway
             + " n="
             + (elementList==null?-1:elementList.size())
             + " idx="+currentIndex
-            + " map=" + map
+            + " map=" + (map==null?"null":map.getLabel())
             + "]";
     }
 
