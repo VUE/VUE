@@ -200,7 +200,6 @@ public class LWLink extends LWComponent
                 setComponent2(dropTarget);
             // todo: ensure paint sequence same as LinkTool.makeLink
         }
-        notify("link.control.drop");
     }
 
 
