@@ -14,34 +14,44 @@ public class LWPathwayElementProperty
 {
     private String ID = null;
     private String notes = null;
+    private transient LWComponent c;
     
-    /** Creates a new instance of LWPathwayElement */
+    /** for persistance restores */
     public LWPathwayElementProperty()
     {
         ID = "no ID";
-        //notes = "no pathway notes";
     }
     
-    public LWPathwayElementProperty(String ID) 
+    public LWPathwayElementProperty(LWComponent c) 
     {
-        this.ID = ID;
-        //notes = "no pathway notes";
+        setComponent(c);
     }
     
+    /*    
     public LWPathwayElementProperty(String ID, String notes)
     {
         this.ID = ID;
         this.notes = notes;
     }
+    */
     
-    public String getElementID()
-    {
+    /** for persistance */
+    public String getElementID() {
         return ID;
     }
     
-    public void setElementID(String ID)
-    {
+    /** for persistance */
+    public void setElementID(String ID) {
         this.ID = ID;
+    }
+
+    void setComponent(LWComponent c) {
+        this.c = c;
+        this.ID = c.getID();
+    }
+    
+    LWComponent getComponent() {
+        return this.c;
     }
     
     public String getElementNotes()
@@ -50,7 +60,7 @@ public class LWPathwayElementProperty
             this.notes = null;
         return notes;
     }
-    
+
     public void setElementNotes(String notes)
     {
         if (notes != null && notes.trim().length() < 1)

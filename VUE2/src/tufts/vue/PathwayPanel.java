@@ -310,7 +310,7 @@ public class PathwayPanel extends JPanel implements ActionListener
                 if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
                 mDisplayedComponent.setNotes(text);
             } else {
-                if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
+                if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"] for " + mDisplayedComponent);
                 mDisplayedComponentPathway.setElementNotes(mDisplayedComponent, text);                        
             }
             VUE.getUndoManager().mark();

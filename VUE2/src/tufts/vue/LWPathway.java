@@ -178,7 +178,7 @@ public class LWPathway extends LWContainer
             // want to ultimately support a set of properties for each index
             // within the pathway.
             if (!hasElementProperties(c))
-                elementPropertyList.add(new LWPathwayElementProperty(c.getID()));
+                elementPropertyList.add(new LWPathwayElementProperty(c));
             
             added.add(c);
         }
@@ -341,8 +341,8 @@ public class LWPathway extends LWContainer
                 // modification exception from LWCompononent.notifyLWCListeners
                 c.removeLWCListener(this);
             }
-            disposeElementProperties(c);  // only remove property if last time appears in list.
-            // todo undo: don't dispose at all for undo or put undo code in the dispose (latter may be more sound)
+            //disposeElementProperties(c);  // only remove property if last time appears in list.
+            // For now, we don't dispose at all for undo.
         }
 
         // If what we just deleted was the current item, the currentIndex
@@ -540,11 +540,6 @@ public class LWPathway extends LWContainer
         return super.children;
     }
 
-    /** for persistance: XML save/restore only */
-    public java.util.List getElementPropertyList() {
-        return elementPropertyList;
-    }
-    
     private List idList = new ArrayList();
     /** for persistance: XML save/restore only */
     public List getElementIDList() {
@@ -563,41 +558,65 @@ public class LWPathway extends LWContainer
     }
 
 
-    /*
-    public void setElementIDList(List idList) {
-        System.out.println(this + " setElementIDList: " + idList);
-        this.idList = idList;
+    /** for persistance: XML save/restore only */
+    public java.util.List getElementPropertyList()
+    {
+        if (!mDoingXMLRestore) {
+            // cull any entries for components that have been deleted
+            // or are no longer in the pathway.
+            for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
+                LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
+                if (pep.getComponent().isDeleted() || !pep.getComponent().inPathway(this))
+                    i.remove();
+            }
+        }
+        
+        return elementPropertyList;
     }
-    */
+    
     
     void completeXMLRestore(LWMap map)
     {
         System.out.println(this + " completeXMLRestore, map=" + map);
         setParent(map);
-        Iterator i = this.idList.iterator();
-        while (i.hasNext()) {
+        for (Iterator i = this.idList.iterator(); i.hasNext();) {
             String id = (String) i.next();
             LWComponent c = getMap().findChildByID(id);
             if (DEBUG.PATHWAY) System.out.println("\tpath adding " + c);
             add(c);
         }
+        for (Iterator i = this.elementPropertyList.iterator(); i.hasNext();) {
+            LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
+            pep.setComponent(findElementByID(pep.getElementID()));
+        }
         mDoingXMLRestore = false;
     }
+
+    private LWComponent findElementByID(String ID)
+    {
+        java.util.Iterator i = children.iterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            if (c.getID().equals(ID))
+                return c;
+        }
+        new Throwable(this + " couldn't find ID [" + ID + "]").printStackTrace();
+        return null;
+    }
+    
     
     public String getElementNotes(LWComponent c)
     {
         if (c == null) return null;
         
-        String notes = null;
+        //String notes = null;
         for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
-            LWPathwayElementProperty prop = (LWPathwayElementProperty) i.next();
-            if (prop.getElementID().equals(c.getID())) {
-                notes = prop.getElementNotes();
-                break;
-            }
+            LWPathwayElementProperty pep = (LWPathwayElementProperty) i.next();
+            if (pep.getComponent() == c)
+                return pep.getElementNotes();
         }
         //System.out.println("returning notes for " + c + " [" + notes + "]");
-        return notes;
+        return null;
     }
     
     public boolean hasElementProperties(LWComponent c)
