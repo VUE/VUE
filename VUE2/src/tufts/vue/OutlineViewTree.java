@@ -78,6 +78,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
          getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
          setCellRenderer(new OutlineViewTreeRenderer());
          setCellEditor(new OutlineViewTreeEditor());
+         setInvokesStopCellEditing(true); // so focus-loss during edit triggers a save instead of abort edit
          
          //tree selection listener to keep track of the selected node 
          addTreeSelectionListener(
@@ -251,6 +252,9 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             {
                 String newLabel = treeNode.toString();
                 treeNode.setUserObject(selectedNode);
+                if (DEBUG.FOCUS)
+                    new Throwable("treeNodesChanged " + e + " newLabel=[" + newLabel + "]").printStackTrace();
+                //System.out.println("treeNodesChanged " + e + " newLabel=[" + newLabel + "]");
                 selectedNode.changeLWComponentLabel(newLabel);
             }
             
@@ -362,7 +366,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
     }   
     
     /**A class that specifies the editing method of the outline view tree*/
-    private class OutlineViewTreeEditor extends AbstractCellEditor implements TreeCellEditor, KeyListener, FocusListener 
+    private class OutlineViewTreeEditor extends AbstractCellEditor implements TreeCellEditor, KeyListener
     {
         // This is the component that will handle the editing of the cell value
         private OutlineViewEditorElement editorElement = null;
@@ -405,16 +409,12 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
         public Object getCellEditorValue() 
         {
             Object text = editorElement.getText();
-            if (DEBUG.FOCUS) new Throwable("getCellEditorValue returns [" + text + "]").printStackTrace();
+            if (DEBUG.FOCUS) System.out.println("getCellEditorValue returns [" + text + "]");
             return text;
         }
         
-        /** When a certain combination of keys are pressed then the tree node value is modified */
-        public void keyReleased(KeyEvent e) 
-        {
-        }
-        
-        /** When any key is pressed on the text area, then it sets the flag that the value needs to be modified **/
+        /** When any key is pressed on the text area, then it sets the flag that the value needs to be modified,
+        and when a certain combination of keys are pressed then the tree node value is modified */
         public void keyPressed(KeyEvent e) 
         {
             // if we hit return key either on numpad ("enter" key), or
@@ -433,9 +433,10 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                 modified = true;
         }
         
+        /** notused */
+        public void keyReleased(KeyEvent e) {}
         /** not used **/
-        public void keyTyped(KeyEvent e) 
-        {}
+        public void keyTyped(KeyEvent e) {}
         
         /** The tree node is only editable when it's clicked on more than a specified value */
         public boolean isCellEditable(java.util.EventObject anEvent) 
@@ -448,13 +449,13 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
 	    return true;
         }
 
-        /** not used **/
+        /*
         public void focusGained(FocusEvent e) 
         {
             if (DEBUG.FOCUS) System.out.println(this + " focusGained from " + e.getOppositeComponent());
         }
         
-        /** When the focus is lost and if the text area has been modified, it changes the tree node value */
+        // When the focus is lost and if the text area has been modified, it changes the tree node value
         public void focusLost(FocusEvent e) 
         {
             if (DEBUG.FOCUS) System.out.println(this + " focusLost to " + e.getOppositeComponent());
@@ -463,7 +464,8 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
                 this.stopCellEditing();
                 modified = false;
             }
-        }     
+        }
+        */
     }
     
     /** A class which displays the specified icon*/
@@ -572,8 +574,7 @@ public class OutlineViewTree extends JTree implements LWComponent.Listener, Tree
             this.editor = editor;
             addKeyListener(editor);
             //addFocusListener(editor);
-            if (DEBUG.FOCUS) System.out.println(label + " adds focus listener " + editor);
-            label.addFocusListener(this.editor);
+            //label.addFocusListener(this.editor);
             
             iconPanel = new IconPanel();
 
