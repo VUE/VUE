@@ -2004,7 +2004,7 @@ public class MapViewer extends javax.swing.JComponent
                     repaint();
                     requestFocus();
                 } finally {
-                    Actions.setAllIgnored(false);
+                    VueAction.setAllIgnored(false);
                 }
             }
         }
@@ -2041,7 +2041,7 @@ public class MapViewer extends javax.swing.JComponent
             return;
         if (activeTextEdit != null)
             remove(activeTextEdit);
-        Actions.setAllIgnored(true);
+        VueAction.setAllIgnored(true);
         activeTextEdit = lwc.getLabelBox();        
         activeTextEdit.saveCurrentText();
         if (activeTextEdit.getText().length() < 1)

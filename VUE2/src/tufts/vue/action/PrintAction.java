@@ -25,7 +25,7 @@ import java.awt.event.ActionEvent;
  * @version March 2004
  */
 
-public class PrintAction extends tufts.vue.Actions$VueAction
+public class PrintAction extends tufts.vue.VueAction
 {
     private static PrintAction singleton;
     public static PrintAction getPrintAction() {

@@ -202,8 +202,8 @@ public abstract class MenuButton extends JButton implements ActionListener
         Object o = getPropertyValue();
         if (DEBUG.SELECTION||DEBUG.EVENTS) System.out.println(this + " firePropertySetter " + o);
         if (o instanceof Action) {
-            if (o instanceof Actions.VueAction)
-                ((Actions.VueAction)o).fire(this);
+            if (o instanceof VueAction)
+                ((VueAction)o).fire(this);
             else {
                 Action a = (Action) o;
                 a.actionPerformed(new ActionEvent(this, 0, (String) a.getValue(Action.NAME)));
