@@ -16,13 +16,17 @@ import org.exolab.castor.xml.Unmarshaller;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import java.io.OutputStreamWriter;
+
+import tufts.vue.*;
 /**
  *
  * @author  akumar03
  */
 public class SaveAction extends AbstractAction {
+  
     
     /** Creates a new instance of SaveAction */
+    
     public SaveAction() {
     }
     
@@ -35,16 +39,19 @@ public class SaveAction extends AbstractAction {
         Mapping mapping;
         Marshaller marshaller;
         JFileChooser chooser = new JFileChooser();
+        if(VueUtil.isCurrentDirectoryPathSet()) 
+            chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         int option = chooser.showSaveDialog(tufts.vue.VUE.frame);
         String fileName = "test.xml";
         if(option == JFileChooser.APPROVE_OPTION) {
             fileName = chooser.getSelectedFile().getAbsolutePath();
+            VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
         }
         marshaller = new Marshaller(new FileWriter(fileName));
         mapping =  new Mapping();
         mapping.loadMapping( "mapping.xml" );
         marshaller.setMapping(mapping);
-      marshaller.marshal(tufts.vue.VUE.getMap());
+        marshaller.marshal(tufts.vue.VUE.getMap());
         
       }catch(Exception ex) {System.out.println(ex);}
           System.out.println("Action["+e.getActionCommand()+"] performed!");

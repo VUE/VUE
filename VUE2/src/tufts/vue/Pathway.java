@@ -40,5 +40,11 @@ public class Pathway extends MapItem
     {
         return this.ordered;
     }
+     public java.util.Vector getNodeList() {
+        return (java.util.Vector)nodeList;
+    }
     
+    public void setNodeList(java.util.Vector nodeList) {
+        this.nodeList = (java.util.List)nodeList;
+    }
 }

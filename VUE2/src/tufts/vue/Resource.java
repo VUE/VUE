@@ -17,6 +17,9 @@ public class Resource
     
     String spec;
 
+    public Resource() {   
+    }
+    
     public Resource(String spec)
     {
         this.spec = spec;
@@ -66,6 +69,42 @@ public class Resource
         }
     }
 
+    public long getReferenceCreated() {
+        return this.referenceCreated;
+    }
     
+    public void setReferenceCreated(long referenceCreated) {
+        this.referenceCreated = referenceCreated;
+    }
+    
+    public long getAccessAttempted() {
+        return this.accessAttempted;
+    }
+    
+    public void setAccessAttempted(long accessAttempted) {
+        this.accessAttempted = accessAttempted;
+    }
+    
+    public long getAccessSuccessful() {
+        return this.accessSuccessful;
+    }
+    
+    public void setAccessSuccessful(long accessSuccessful) {
+        this.accessSuccessful = accessSuccessful;
+    }
+    public long getSize() {
+        return this.size;
+    }
+    
+    public void setSize(long size) {
+        this.size = size;
+    }
 
+    public void setSpec(String spec) {
+        this.spec = spec;
+    }
+    
+    public String getSpec() {
+       return this.spec;
+    }
 }

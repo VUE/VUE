@@ -17,7 +17,7 @@ public class VUE
     public static ConceptMap map1 = null;
     
     public static JFrame frame;
-
+    static JTabbedPane tabbedPane;
     static {
         /*
         String imgLocation = "toolbarButtonGraphics/navigation/Back24.gif";
@@ -116,7 +116,7 @@ public class VUE
         installExampleMap(map1);
         installExampleMap(map2);
 
-        JTabbedPane tabbedPane = new JTabbedPane();        
+        tabbedPane = new JTabbedPane();        
         tabbedPane.addTab(map1.getLabel(), mapViewer1);
         tabbedPane.addTab(map1.getLabel() + "[View 2]", mapViewer2);
         tabbedPane.addTab(map2.getLabel(), mapViewer3);
@@ -161,6 +161,8 @@ public class VUE
         
         //adding actions
         SaveAction saveAction = new SaveAction("Save");
+        OpenAction openAction = new OpenAction("open");
+        menu.add(openAction);
         menu.add(saveAction);
         frame.setJMenuBar(menuBar);
         frame.setContentPane(vuePanel);
@@ -218,5 +220,13 @@ public class VUE
     
     public static  ConceptMap getMap() {
         return map1;
+    }
+    
+    public static void setMap(ConceptMap cm) {
+       map1 = cm;
+        Container mapViewer5 = new tufts.vue.MapViewer(map1);
+        map1.addNode(new Node("Hello"));
+        tabbedPane.addTab(map1.getLabel(), mapViewer5);
+        frame.pack();
     }
 }

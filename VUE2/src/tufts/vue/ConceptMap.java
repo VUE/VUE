@@ -9,6 +9,8 @@ package tufts.vue;
  * @author Scott Fraize
  * @version 3/10/03
  */
+
+import java.util.Vector;
 public class ConceptMap extends MapItem
 {
     private java.util.List nodeList = new java.util.Vector();
@@ -136,5 +138,27 @@ public class ConceptMap extends MapItem
     public java.util.Vector getNodeList() {
         return (java.util.Vector)nodeList;
     }
+    
+ 
+    public void setNodeList(Vector nodeList) {
+        this.nodeList = (java.util.List)nodeList;
+    }
+       
+    public java.util.Vector getLinkList() {
+        return (java.util.Vector)linkList;
+    }
+    
+    public void setLinkList(Vector linkList) {
+        this.linkList = (java.util.List)linkList;
+    }
+     
+    public java.util.Vector getPathwayList() {
+        return (java.util.Vector) pathwayList;
+    }
+    
+    public void setPathwayList(Vector pathwayList) {
+        this.pathwayList = (java.util.List)pathwayList;
+    }
+    
     
 }
