@@ -108,8 +108,8 @@ public class VUE
     {
         final int TitleChangeMask =
             MapViewerEvent.DISPLAYED |
-            MapViewerEvent.FOCUSED |
-            MapViewerEvent.ZOOM;        // title includes zoom
+            MapViewerEvent.FOCUSED;
+            //MapViewerEvent.ZOOM;        // title includes zoom
         
         VueFrame() {
             super("VUE: Visual Understanding Environment");
