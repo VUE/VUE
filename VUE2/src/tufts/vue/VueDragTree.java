@@ -186,7 +186,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         try {
             if(e.getPath().getLastPathComponent() != null ) {
                 resourceSelection.clear();
-                resourceSelection.add((Resource)e.getPath().getLastPathComponent());
+                resourceSelection.add((Resource)((ResourceNode)e.getPath().getLastPathComponent()).getResource());
                 //resourceSelection.remove(createResource(e.getPath().getLastPathComponent()));
             }
             /**
@@ -202,47 +202,14 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         }
         // System.out.println("elements in path = "+e.getPath().getPathCount());
     }
-    /**
- private Resource createResource(Object object) throws osid.dr.DigitalRepositoryException,osid.OsidException {
-     if(object instanceof String) {
-         return new Resource((String)object);
-     } else if(object instanceof osid.dr.Asset) {
-         Asset asset = (Asset)object;
-         Resource resource = new Resource(asset.getDisplayName());
-         resource.setAsset(asset);
-         return resource;
-     } else if(object instanceof FileNode) {
-         FileNode fileNode = (FileNode) object;
-         return new Resource(fileNode.getFile().getName());
-     } else if(object instanceof AssetNode) {
-         Asset asset = ((AssetNode)object).getAsset();
-         Resource resource = new Resource(asset.getDisplayName());
-         resource.setAsset(asset);
-         return resource;
- 
- 
-     }else {
-         throw new RuntimeException(object.getClass()+" : Not Supported");
-     }
- }
-     **/
-    
-    //Cell Renderer
-    
-    //Cell Renderer
     
     class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
         String meta = "";
-        protected VueDragTree tree;
-        
+        protected VueDragTree tree;   
         public VueDragTreeCellRenderer(VueDragTree vdTree) {
-            
             this.tree = vdTree;
-            
-            vdTree.addMouseMotionListener(new MouseMotionAdapter() {
-                
-                public void mouseClicked(MouseEvent me){
-                    
+            vdTree.addMouseMotionListener(new MouseMotionAdapter() {    
+                public void mouseClicked(MouseEvent me){         
                     if  (me.getClickCount() == 1) {
                         TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
                     }
@@ -250,15 +217,11 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                 public void mouseMoved(MouseEvent me) {
                     //tree.clearSelection();
                     TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
-                    //tree.setSelectionPath(treePath);
-                    
-                }
-                
-            });
-            
+                    //tree.setSelectionPath(treePath);      
+                }   
+            });    
         }
-        /* -----------------------------------  */
-        
+        /* -----------------------------------  */   
         
         public Component getTreeCellRendererComponent(
         JTree tree,
@@ -386,30 +349,6 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
 
 
 
-
- /*
-class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
-    protected VueDragTree tree;
-   // protected ResultNode lastNode;
-    private String metaData;
-  
-    public VueDragTreeCellRenderer(VueDragTree pTree) {
-        this.tree = pTree;
-        metaData = "default metadata";
-  
-  
-  
-    }
-  
-  
-    public String getToResource.javaolTipText(){
-  
-         return metaData;
-  
-    }
- }
-  
-  */
 
 class ResourceNode extends DefaultMutableTreeNode {
     private boolean explored = false;
