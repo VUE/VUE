@@ -168,11 +168,12 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         editPathwaysPanel.add(lab);
         editPathwaysPanel.add(groupPanel);
         
-        
+        /*
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));
         questionLabel.setBackground(altbgColor);
         questionLabel.setToolTipText("Check boxes below to display paths on the map. Click on path's layer to make a specific path active for editing or playback.");
+        */
         
         
         JLabel filler = new JLabel(" ");
@@ -193,9 +194,9 @@ public class PathwayPanel extends JPanel implements   ActionListener,
         JPanel northPanel = new JPanel(new BorderLayout(0,0));
         northPanel.setBackground(altbgColor);
         
-        questionLabel.setBorder(BorderFactory.createMatteBorder(0, 5, 0, 0, this.altbgColor));
+        //questionLabel.setBorder(BorderFactory.createMatteBorder(0, 5, 0, 0, this.altbgColor));
         buttonGroupPanel.setBorder(BorderFactory.createMatteBorder(8, 0, 0, 5, this.altbgColor));
-        northPanel.add(questionLabel, BorderLayout.WEST);
+        //northPanel.add(questionLabel, BorderLayout.WEST);
         northPanel.add(buttonGroupPanel, BorderLayout.EAST);
         
         //pathway table setup
