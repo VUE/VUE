@@ -233,7 +233,7 @@ public class DataSourceViewer  extends JPanel{
         JTextField searchURLField = new JTextField();
         JTextField adrField = new JTextField();
         JTextField userField = new JTextField();
-        JTextField pwField = new JTextField();
+        JPasswordField pwField = new JPasswordField();
 
         //  Set them to a uniform size.
         Dimension dim = new Dimension (150, 22);

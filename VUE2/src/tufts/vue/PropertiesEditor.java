@@ -58,7 +58,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         PropertiesSelectionListener sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
         propertiesTable.getSelectionModel().addListSelectionListener(sListener);
         addPropertyButton.addActionListener(new AddPropertiesButtonListener(tableModel));
-        deletePropertyButton.addActionListener(new DeletePropertiesButtonListener(tableModel,sListener));
+        deletePropertyButton.addActionListener(new DeletePropertiesButtonListener(propertiesTable,sListener));
 
         // setting the properties editor for fields 
         JComboBox comboBox = new JComboBox(DC_FIELDS);
@@ -131,6 +131,10 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
                 cond.setOperator(ComparisonOperator.eq);
                 cond.setValue(properties.getProperty(key));
                 m_conditions.add(cond);
+            }
+            
+            if(m_conditions.size() == 0) {
+                addProperty(DC_FIELDS[0], "");
             }
         }
         
@@ -270,21 +274,25 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     }
 
      public class DeletePropertiesButtonListener implements ActionListener { 
-          private PropertiesTableModel m_model;
+       
           private PropertiesSelectionListener m_sListener;
+          private JTable table;
           
-          public DeletePropertiesButtonListener(PropertiesTableModel model, PropertiesSelectionListener sListener) {
-              m_model=model;
+          public DeletePropertiesButtonListener(JTable table,PropertiesSelectionListener sListener) {
+     
+              this.table = table;
               m_sListener=sListener;
           }
           
           public void actionPerformed(ActionEvent e) {
               // will only be invoked if an existing row is selected
               int r=m_sListener.getSelectedRow();
-              m_model.getConditions().remove(r);
-              if(r > 0) 
-                  m_sListener.setSelectedRow(r-1);
-              m_model.fireTableRowsDeleted(r,r);
+              ((PropertiesTableModel)table.getModel()).getConditions().remove(r);
+              ((PropertiesTableModel)table.getModel()).fireTableRowsDeleted(r,r);
+              if(r> 0)
+                table.setRowSelectionInterval(r-1, r-1);
+              else if(table.getRowCount() > 0)
+                  table.setRowSelectionInterval(0,0);
           }
       }
       
