@@ -206,7 +206,6 @@ implements ConceptMap//, Printable
             LWComponent c = (LWComponent) i.next();
             c.setIsFiltered(false);
         }
-        setIsFiltered(false);
         mLWCFilter.setFilterOn(false);       
         notify(LWKey.MapFilter);
     }
@@ -236,7 +235,6 @@ implements ConceptMap//, Printable
             }
             filterWasOn = true;
             mLWCFilter.setFilterOn(true);
-            setIsFiltered(true);
      
         notify(LWKey.MapFilter);
     }
