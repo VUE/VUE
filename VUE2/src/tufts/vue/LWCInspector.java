@@ -18,8 +18,9 @@ class LWCInspector extends javax.swing.JPanel
     JLabel idField = new JLabel();
     JLabel locationField = new JLabel();
     JLabel sizeField = new JLabel();
-    JTextField fontField = new JTextField();
     JTextField labelField = new JTextField(15);
+    JTextField fontField = new JTextField();
+    JTextField strokeField = new JTextField();
     JTextField colorField = new JTextField();
     JTextField categoryField = new JTextField();
     JTextField resourceField = new JTextField();
@@ -50,8 +51,9 @@ class LWCInspector extends javax.swing.JPanel
             "-ID",      idField,
             "-Location",locationField,
             "-Size",    sizeField,
-            "Font",     fontField,
             "Label",    labelField,
+            "Font",     fontField,
+            "Stroke",   strokeField,
             "Fill Color",colorField,
             "Category", categoryField,
             "Resource", resourceField,
@@ -230,6 +232,7 @@ class LWCInspector extends javax.swing.JPanel
             //sizeField.setText(lwc.getWidth() + "x" + lwc.getHeight());
 
             colorField.setText(lwc.getXMLfillColor());
+            strokeField.setText(""+lwc.getStrokeWidth());
         }
         
     }
@@ -242,20 +245,24 @@ class LWCInspector extends javax.swing.JPanel
         String text = e.getActionCommand();
         Object src = (JTextComponent) e.getSource();
         //System.out.println("Inspector " + e);
-        if (src == labelField)
-            lwc.setLabel(text);
-        else if (src == categoryField)
-            lwc.setCategory(text);
-        else if (src == notesField)
-            lwc.setNotes(text);
-        else if (src == resourceField)
-            lwc.setResource(text);
-        else if (src == fontField)
-            lwc.setXMLfont(text);
-        else if (src == colorField)
-            lwc.setXMLfillColor(text);
-        else
-            return;
+        try {
+            if (src == labelField)          lwc.setLabel(text);
+            else if (src == categoryField)  lwc.setCategory(text);
+            else if (src == notesField)     lwc.setNotes(text);
+            else if (src == resourceField)  lwc.setResource(text);
+            else if (src == fontField)      lwc.setXMLfont(text);
+            else if (src == colorField)     lwc.setXMLfillColor(text);
+            else if (src == strokeField) {
+                float w = Float.parseFloat(text);
+                lwc.setStrokeWidth(w);
+            }
+            else
+                return;
+        } catch (Exception ex) {
+            System.err.println(ex);
+            System.err.println("LWCInspector: error setting property value ["+text+"] on " + src);
+        }
+        
         transferFocus(); // this isn't going to next field
         
         //todo: getNextFocusableComponent().requestFocus();
