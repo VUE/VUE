@@ -14,7 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.BasicStroke;
 import java.awt.geom.Area;
-
+import java.util.ArrayList;
 /**
  *
  * @author  Jay Briedis
@@ -304,6 +304,18 @@ public class LWPathway extends tufts.vue.LWComponent
         
         if (elementList.size() >= 1) currentIndex = 0;
     }
+    
+    /** Interface for the linked list used by the Castor mapping file*/
+    public ArrayList getArrayElementList()
+    {
+        return new ArrayList(elementList);
+    }
+    
+    public void setArrayElementList(ArrayList list)
+    {
+        elementList = new LinkedList(list);
+    }
+    /** end of Castor Interface */
     
     public LWComponent getCurrent() {
  
