@@ -153,7 +153,7 @@ public class LWNode extends LWContainer
     {
         super.addChild(c);
         //c.setScale(getScale() * ChildScale);
-        setScale(getScale());// to prop color toggle hack
+        setScale(getScale());// to propagate color toggle hack
         layout();
     }
 
@@ -347,6 +347,7 @@ public class LWNode extends LWContainer
 
         float oldWidth = getWidth();
         this.fontHeight = fm.getAscent() - fm.getDescent() / 1;
+        //this.fontHeight = fm.getAscent() + fm.getDescent();
         this.fontStringWidth = fm.stringWidth(label);
         float width = this.fontStringWidth + (this.padX*2) + borderWidth;
         float height = this.fontHeight + (this.padY*2) + borderWidth;
@@ -493,7 +494,7 @@ public class LWNode extends LWContainer
         // Draw the text label if any
         //-------------------------------------------------------
         
-        if (label != null) {
+        if (label != null && label.length() > 0) {
             float textBaseline = labelY();
             if (false) {
                 // box the text for seeing layout metrics
