@@ -73,8 +73,8 @@ public class ImageMap extends AbstractAction {
             
             String out = "<HTML><HEAD><TITLE>Image Map Test</TITLE></HEAD><BODY>";
             Dimension size = map.getSize();
-            out = out + "<img src=\""+file+"\" border=0 usemap=\"#map\" HEIGHT="+size.height+" WIDTH="+size.width+">";
-            out = out + "<map name=\"map\">";
+            out += "<img src=\""+file+"\" border=0 usemap=\"#map\" HEIGHT="+size.height+" WIDTH="+size.width+">";
+            out += "<map name=\"map\">";
             
             java.util.List list = (java.util.List) map.getAllLWNodes();
             java.util.Iterator iter = list.iterator();
@@ -97,8 +97,7 @@ public class ImageMap extends AbstractAction {
                 String href = "";
                 if(res.equals("null")) href = "nohref";
                 else href = "href=" + res;
-                out = out 
-                    + "<area " + href
+                out += "<area " + href
                     +" alt=\""+label
                     +"\" shape=\""+shape
                     +"\" coords=\""+ox
@@ -107,7 +106,7 @@ public class ImageMap extends AbstractAction {
                     +","+(oy + oh)
                     +"\">";
             }
-            out = out + "</map></BODY></HTML>"; 
+            out += "</map></BODY></HTML>"; 
             System.out.println("out: \n   " +out); 
             try{         
                 File outputFile = new File("C:\\ImageMap.html");
