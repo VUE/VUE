@@ -60,8 +60,7 @@ public class LWPathway extends tufts.vue.LWComponent
             this.addNode(node4);
         }
     }
-    
-    
+   
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(String label) {
         super.setLabel(label);
@@ -70,14 +69,14 @@ public class LWPathway extends tufts.vue.LWComponent
     /** adds a node to the 'end' of the pathway */
     public void addNode(Node node) {
         nodeList.add(node);
-        if(currentNode.equals(null)) currentNode = node;
+        if(currentNode == null) currentNode = node;
     }
     
     /** adds a node at the specified location within the pathway*/
     public void addNode(Node node, int index){
         if(nodeList.size() >= index){
             nodeList.add(index, node);
-            if(currentNode.equals(null)) currentNode = node;
+            if(currentNode == null) currentNode = node;
         }else{
             System.out.println("LWPathway.addNode(node, index), index out of bounds");
         }
@@ -130,6 +129,7 @@ public class LWPathway extends tufts.vue.LWComponent
     }
     
     public Node getFirst() {
+        
         return (Node)nodeList.getFirst();
     }
     
@@ -142,10 +142,6 @@ public class LWPathway extends tufts.vue.LWComponent
         return (Node)nodeList.getLast();
     }
     
-    public Node getCurrent() {
-        return currentNode;
-    }
-    
     public boolean isLast(Node node)
     {
         return (node.equals(getLast()));
@@ -155,32 +151,26 @@ public class LWPathway extends tufts.vue.LWComponent
         int index = nodeList.indexOf(current);
         
         if (index > 0)
-        {
-            System.out.println("returning: " + index);
-            return (Node)nodeList.get(--index);
-        }
-        
+          return (Node)nodeList.get(--index);
+       
         else
-        {
-            System.out.println("returning null");
-            return null;
-        }
+          return null;
+        
     }
     
     public Node getNext(Node current) {
         int index = nodeList.indexOf(current);
         
         if (index >= 0 && index < (length() - 1))
-        {
-            System.out.println("returning: " + index);
-            return (Node)nodeList.get(++index);
-        }
+          return (Node)nodeList.get(++index);
         
         else
-        {
-            System.out.println("returning null");
-            return null;
-        }
+          return null;
+    }
+   
+    public Node getNode(int index)
+    {
+        return (Node)nodeList.get(index);
     }
     
     public java.util.Iterator getNodeIterator() {
@@ -197,6 +187,10 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public boolean isOrdered() {
         return ordered;
+    }
+    
+    public Node getCurrent() {
+        return currentNode;
     }
     
     public void removeNode(Node node) {
