@@ -13,7 +13,11 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JComboBox;
+<<<<<<< PathwayControl.java
+import javax.swing.JDialog;
+=======
 import javax.swing.JTextField;
+>>>>>>> 1.5
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.border.LineBorder;
 import java.awt.FlowLayout;

@@ -18,20 +18,29 @@ import java.awt.Graphics2D;
 public class LWPathway extends tufts.vue.LWComponent 
     implements Pathway{
         
-    LinkedList nodeList = null;
+    private LinkedList nodeList = null;
     private Node currentNode = null;
-    int weight = 1;
-    String comment;
-    boolean ordered = false;
-    Color borderColor = Color.blue;
+    private int weight = 1;
+    private String comment = "";
+    private boolean ordered = false;
+    private Color borderColor = Color.blue;
+    private LWPathwayManager manager = null;
     
     public LWPathway() {
-        super.setLabel("DEFAULT PATHWAY");
         nodeList = new LinkedList();
+        manager = LWPathwayManager.getInstance();
+        manager.addPathway(this);
+        manager.setCurrentPathway(this);
+    }
+    
+    /** Creates a new instance of LWPathway with the specified label */
+    public LWPathway(String label) {
+        this();
+        super.setLabel(label);
     }
     
     //testing constructor
-    public LWPathway(int i)
+    /*public LWPathway(int i)
     {
         this();
         
@@ -63,12 +72,7 @@ public class LWPathway extends tufts.vue.LWComponent
             this.setComment("Testing new notes section with a long string." +
                 "This string needs to be much longer than this.");
         }
-    }
-   
-    /** Creates a new instance of LWPathway with the specified label */
-    public LWPathway(String label) {
-        super.setLabel(label);
-    }
+    }*/
     
     /** adds a node to the 'end' of the pathway */
     public void addNode(Node node) {

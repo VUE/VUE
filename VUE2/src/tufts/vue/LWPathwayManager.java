@@ -23,7 +23,7 @@ public class LWPathwayManager {
     }
     
     /** Constructor used for testing */
-    /*
+    
     private LWPathwayManager(int test){
         if(test == 1){
             LWPathway path1 = new LWPathway("Path 1");
@@ -37,7 +37,7 @@ public class LWPathwayManager {
             this.addPathway(path4);
             this.addPathway(path5);
         }
-    }*/
+    }
     
     public static LWPathwayManager getInstance(){
         if(manager==null) manager = new LWPathwayManager();       
