@@ -29,7 +29,7 @@ import tufts.vue.beans.*;
 \**/
 public class LWCFilter  
 {
-    static public final String ACTION_HIDE = "Hide";
+    static public final String ACTION_HIDE = "Hide All";
     static public final String ACTION_SHOW = "Show Only";
     static public final String ACTION_SELECT = "Select";
     

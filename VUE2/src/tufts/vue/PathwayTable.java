@@ -108,6 +108,14 @@ public class PathwayTable extends JTable
                 }
                 });
 
+
+        addKeyListener(new KeyAdapter() {
+                public void keyTyped(KeyEvent e) {
+                    if (DEBUG.PATHWAY) System.out.println(this + " " + e);
+                }
+            });
+        
+
         /*
         model.addTableModelListener(new TableModelListener() {
                 public void tableChanged(TableModelEvent e) {

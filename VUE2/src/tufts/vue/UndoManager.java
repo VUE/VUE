@@ -11,7 +11,7 @@ import javax.swing.Action;
 public class UndoManager
     implements LWComponent.Listener, VUE.ActiveMapListener
 {
-    private static boolean sInUndo = false;
+    private static boolean sUndoUnderway = false;
 
     private ArrayList mUndoActions = new ArrayList(); // the list of undo actions (named groups of property changes)
     private ArrayList mRedoActions = new ArrayList(); // the list of redo actions (named groups of property changes)
@@ -161,14 +161,15 @@ public class UndoManager
     private UndoAction mRedoAction;
     public void redo()
     {
+        if (true)return;
         checkAndHandleUnmarkedChanges();
 
         if (DEBUG.UNDO) System.out.println(this + ": REDO");
 
-        sInUndo = true;
+        sUndoUnderway = true;
         mRedoCaptured = false;
         mRedoAction.undoPropertyChanges();
-        sInUndo = false;
+        sUndoUnderway = false;
     }
     
     public void undo()
@@ -179,11 +180,11 @@ public class UndoManager
         if (DEBUG.UNDO) System.out.println(this + " undoing " + undoAction);
         if (undoAction != null) {
             try {
-                sInUndo = true;
+                sUndoUnderway = true;
                 mRedoCaptured = false;
                 undoAction.undoPropertyChanges();
             } finally {
-                sInUndo = false;
+                sUndoUnderway = false;
             }
         }
         //mRedoAction = collectChangesAsUndoAction("Redo " + undoAction.name);
@@ -270,7 +271,7 @@ public class UndoManager
 
     private boolean mRedoCaptured = false;
     public void LWCChanged(LWCEvent e) {
-        if (sInUndo) {
+        if (sUndoUnderway) {
 if (true)return;
             if (!mRedoCaptured && mChangeCount > 0) 
                 throw new Error("Undo Error: have changes at start of redo record: " + mChangeCount + " " + mPropertyChanges + " " + e);

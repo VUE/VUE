@@ -101,17 +101,17 @@ implements VueConstants {
          */
     
     static class VueFrame extends JFrame
-    implements MapViewer.Listener {
+        implements MapViewer.Listener
+    {
         final int TitleChangeMask =
-        MapViewerEvent.DISPLAYED |
-        MapViewerEvent.FOCUSED |
-        MapViewerEvent.ZOOM;        // title includes zoom
+            MapViewerEvent.DISPLAYED |
+            MapViewerEvent.FOCUSED |
+            MapViewerEvent.ZOOM;        // title includes zoom
         
         VueFrame() {
-            super("VUE: Tufts Concept Map Tool");
+            super("VUE: Visual Understanding Environment");
             System.out.println("LOADING IMAGE"+Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon16x16")));
             setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
-
         }
         
         /** never let the frame be hidden -- always ignored */
@@ -131,25 +131,27 @@ implements VueConstants {
         }
         
         private void setTitleFromViewer(MapViewer viewer) {
-            String label = viewer.getMap().getLabel();
-            if (viewer.getMap().getFile() != null)
-                label = viewer.getMap().getFile().getName();
-            String title = "VUE: " + label;
+            setTitle("VUE: " + viewer.getMap().getLabel());
+            //setTitle("VUE: " + getViewerTitle(viewer));
+        }
+        
+        private String getViewerTitle(MapViewer viewer) {
+            String title = viewer.getMap().getLabel();
             
             int displayZoom = (int) (viewer.getZoomFactor() * 10000.0);
             // Present the zoom factor as a percentange
             // truncated down to 2 digits
-            title += " [";
+            title += " (";
             if ((displayZoom / 100) * 100 == displayZoom)
                 title += (displayZoom / 100) + "%";
             else
                 title += (((float) displayZoom) / 100f) + "%";
-            title += "]";
-            setTitle(title);
+            title += ")";
+            return title;
         }
     }
     
-    static class VuePanel extends JPanel {
+    private static class AAPanel extends JPanel {
         public void paint(Graphics g) {
             // only works when, of course, the panel is asked
             // to redraw -- but if you mess with subcomponents
@@ -157,8 +159,8 @@ implements VueConstants {
             // todo: There must be a way to stick this in a global
             // property somewhere.
             ((Graphics2D)g).setRenderingHint
-            (RenderingHints.KEY_TEXT_ANTIALIASING,
-            RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                (RenderingHints.KEY_TEXT_ANTIALIASING,
+                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             super.paint(g);
         }
     }
@@ -442,7 +444,8 @@ implements VueConstants {
         splitPane.setRightComponent(viewerSplit);
         
         frame = new VueFrame();
-        JPanel vuePanel = new VuePanel();
+        //JPanel vuePanel = new AAPanel();
+        JPanel vuePanel = new JPanel();
         vuePanel.setLayout(new BorderLayout());
         vuePanel.add(splitPane, BorderLayout.CENTER);
         
