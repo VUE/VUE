@@ -46,7 +46,6 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private VueDandDTree favoritesTree ;
     private JScrollPane browsePane;
     final static String XML_MAPPING = VueResources.getURL("mapping.lw").getFile();
-    private static java.util.prefs.Preferences prefs;
     private static String  FAVORITES_MAPPING;
     private static int newFavorites = 0;
     /** Creates a new instance of HierarchyTreeWindow */
@@ -57,18 +56,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
        JTabbedPane favoritesPane = new JTabbedPane();
        
     
-    
- 
-       
-           prefs = tufts.vue.VUE.prefs;
-        try {
-          
-            FAVORITES_MAPPING = prefs.get("mapping.favorites","") ;
-        }catch(Exception e) { System.out.println("Favorites"+e);}
-        
-           
+   
          
-           File f  = new File(FAVORITES_MAPPING);
+           File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
              
               if (f.exists()){ 
                   
@@ -225,7 +215,6 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
               }
         
             if (e.getActionCommand().toString().equals("Add Bookmark Folder")){
-              ;   
             
                  
                       
@@ -295,24 +284,6 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                           
                                             }
                 }
-              //-----------------------------Save/Restore Tree
-             else if (e.getActionCommand().toString().equals("Save Favorites")){
-                 
-                         
-                            TreePath testp = favoritesTree.getSelectionPath();
-                            int ine1 = favoritesTree.getMinSelectionRow();
-                            int ine2 = favoritesTree.getMaxSelectionRow();
-                            
-                           System.out.println("getSelection Path" + testp+ ine1 + ine2);
-                           
-                         
-        
-                 
-                        SaveVueJTree sfavtree = new SaveVueJTree(favoritesTree);
-                         
-                         File f  = new File(FAVORITES_MAPPING);
-                          marshallMap(f,sfavtree);
-                            }
              else if (e.getActionCommand().toString().equals("Restore Favorites")){
                  
                          // File f  = new File("C:\\temp\\savetree.xml");

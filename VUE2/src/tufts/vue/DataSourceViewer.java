@@ -48,8 +48,6 @@ public class DataSourceViewer  extends JPanel{
     AbstractAction deleteAction;
     AbstractAction saveAction;
     final static String XML_MAPPING =  VueResources.getURL("mapping.lw").getFile();
-    private static String  DATASOURCES_MAPPING;
-    private static java.util.prefs.Preferences prefs;
 
     public DataSourceViewer(DRBrowser drBrowser){
         
@@ -63,7 +61,6 @@ public class DataSourceViewer  extends JPanel{
         resourcesPanel = new JPanel();
         dataSourceList = new DataSourceList();     
         loadDataSources();
-       
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
@@ -215,14 +212,9 @@ public class DataSourceViewer  extends JPanel{
             return true;
     }
 
-    public void saveDataSourceViewer(){
-          prefs = tufts.vue.VUE.prefs;
-        try {
-          
-            DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
-        }catch(Exception e) { System.out.println("datasources"+e);}
-            File f  = new File(DATASOURCES_MAPPING);
-            SaveDataSourceViewer sViewer= new SaveDataSourceViewer(this.dataSources);
+    public static void saveDataSourceViewer(){
+            File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));     
+            SaveDataSourceViewer sViewer= new SaveDataSourceViewer(dataSources);
             marshallMap(f,sViewer);
     }
         
@@ -412,15 +404,7 @@ public class DataSourceViewer  extends JPanel{
         //--Marshalling etc
       
           
-         
-           prefs = tufts.vue.VUE.prefs;
-        try {
-          
-            DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
-        }catch(Exception e) { System.out.println("datasources"+e);}
-        
-           
-            File f  = new File(DATASOURCES_MAPPING);
+            File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
             if(f.exists()){
         

@@ -54,33 +54,13 @@ public class ExitAction extends AbstractAction {
             
             tufts.vue.VueDandDTree ft =  tufts.vue.VUE.favoritesWindow.getFavoritesTree();
             tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
-                        
-            try {
-          
-                FAVORITES_MAPPING = prefs.get("mapping.favorites","") ;
-            }catch(Exception e) { System.out.println("Favorites"+e);}
-        
-                         
-            File favf  = new File(FAVORITES_MAPPING);
+            File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
             FavoritesWindow.marshallMap(favf,sfavtree);
             System.out.println("Favorites Saved");
         }
+        
+        tufts.vue.DataSourceViewer.saveDataSourceViewer();
 
-        if (tufts.vue.VUE.dataSourceViewer != null) {
-            //Saving Datasources
-            try {
-                DATASOURCES_MAPPING = prefs.get("mapping.datasources","") ;
-            }catch(Exception e) { System.out.println("datasources"+e);}
-        
-            File dsf  = new File(DATASOURCES_MAPPING);
-            Vector sdataSources = tufts.vue.VUE.dataSourceViewer.getDataSources();
-            tufts.vue.SaveDataSourceViewer sViewer= new tufts.vue.SaveDataSourceViewer(sdataSources);
-             
-            tufts.vue.DataSourceViewer.marshallMap(dsf,sViewer);
-                         
-            System.out.println("Datasources Saved");
-        }
-        
         System.exit(0);
     }
     
