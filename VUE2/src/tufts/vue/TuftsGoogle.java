@@ -41,7 +41,6 @@ public class TuftsGoogle extends JPanel implements ActionListener{
             "20" 
       };
     private static  String searchURL;
-    private static java.util.prefs.Preferences prefs;
     private static String  XML_MAPPING;
     private static String query;
     
@@ -52,6 +51,7 @@ public class TuftsGoogle extends JPanel implements ActionListener{
       
     /** Creates a new instance of TuftsGoogle */
     public TuftsGoogle() {
+         
            
          setLayout(new BorderLayout());
          maxReturns = new JComboBox(maxReturnItems);
@@ -125,14 +125,9 @@ public class TuftsGoogle extends JPanel implements ActionListener{
          add(googlePane,BorderLayout.CENTER );
         
 //--------------------------------------------------------------------
-        
-          prefs = tufts.vue.VUE.prefs;
-        try {
-            searchURL = prefs.get("url.google","")  ;
-            XML_MAPPING = prefs.get("mapping.google","") ;
-        }catch(Exception e) { System.out.println("TuftsGoogle :"+e);}
-        
-          System.out.println("XMLMAPPING--"+XML_MAPPING);
+            searchURL = VueResources.getString("url.google");
+            XML_MAPPING = VueResources.getString("mapping.google");
+
     }
     
     public void actionPerformed(ActionEvent e) {
@@ -150,18 +145,19 @@ public class TuftsGoogle extends JPanel implements ActionListener{
                     
                    
        url = new URL(searchURL+"&num="+maxReturns.getSelectedItem().toString()+"&q="+searchString);
-        
+            System.out.println("Google search = "+url);
            InputStream input = url.openStream();
            int c;
            while((c=input.read())!= -1) {
                result = result + (char) c;
            }
-           FileWriter fileWriter = new FileWriter("google_result.xml");
+           String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results");
+           FileWriter fileWriter = new FileWriter(googleResultsFile);
            fileWriter.write(result);
            fileWriter.close();
            result = "";
          
-          GSP gsp = loadGSP("google_result.xml");
+          GSP gsp = loadGSP(googleResultsFile);
            Iterator i = gsp.getRES().getResultList().iterator();
             Vector resultVector = new Vector();
             
