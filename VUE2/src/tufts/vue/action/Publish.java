@@ -39,35 +39,12 @@ public class Publish   extends AbstractAction  {
     }
     public void actionPerformed(java.awt.event.ActionEvent e) {
         try {
-           // Publisher publisher = new Publisher();
-       /**
-            createIMSCP();
-           
-            transferMap();
-           createMETSFile();
-          **/
+            Publisher publisher = new Publisher();
+      
         } catch(Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
            ex.printStackTrace();
         }
-    }
-    
-  
-    private void setLocalResourceVector(Vector vector,LWContainer map) {
-       
-       Iterator i = map.getChildIterator();
-       while(i.hasNext()) {
-           LWComponent component = (LWComponent) i.next();
-           if(component.hasResource()){
-               Resource resource = component.getResource();
-               if(resource.isLocalFile())
-                   vector.add(resource);
-           }
-           if(component instanceof LWContainer) {
-                setLocalResourceVector(vector,(LWContainer)component);
-           }
-       }
-     
     }
         
 }
