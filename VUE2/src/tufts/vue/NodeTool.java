@@ -192,8 +192,11 @@ public class NodeTool extends VueTool
         //private static final Color sShapeColor = new Color(255,178,208); // diagnostic color
         private static final Color sShapeColor = new Color(165,178,208); // melanie's steel blue
         private static final Color sButtonColor = new Color(222,222,222);
-        private static final Color sOverColor = new Color(244,244,244);
-        private static final Color sDownColor = new Color(211,211,211);
+        private static final Color sOverColor = Color.gray;
+        //private static final Color sDownColor = new Color(211,211,211);
+        private static final Color sDownColor = sOverColor;
+        //private static final Color sOverColor = Color.white;
+        //private static final Color sOverColor = new Color(244,244,244);
         
         class ShapeIcon implements Icon
         {
@@ -244,13 +247,17 @@ public class NodeTool extends VueTool
                 //GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw/2,h/2,mColor,true);
                 GradientPaint gradient = new GradientPaint(gw/6,0,Color.white,gw*.33f,h/2,mColor,true);
                 // Set gradient for the whole button.
-                //g2.setPaint(gradient);
-                g2.setColor(mColor);
+                if (mColor.equals(sDownColor))
+                    g2.setPaint(gradient);
+                else
+                    g2.setColor(mColor);
                 if (mDrawButton) {
+                    g2.setColor(mColor);
                     g2.fill3DRect(0,0, w-1,h-1, true);
+                    g2.setPaint(gradient);
+                    g2.fillRect(1,1, w-3,h-3);
                     //g2.drawRect(0,0, w-3,h-3);
                 } else {
-                    
                     g2.fillRoundRect(0,0, w-3,h-3, arc,arc);
                     g2.setColor(Color.black);
                     g2.drawRoundRect(0,0, w-3,h-3, arc,arc);
@@ -273,7 +280,6 @@ public class NodeTool extends VueTool
         }
 
         private boolean debug = false;
-        /*
         
         // TOOLBAR: Unselected/default
         public Icon getIcon() {
@@ -292,8 +298,8 @@ public class NodeTool extends VueTool
         // down, and the sub-menu goes away, and you get this icon.
         // Rarely seen, so maybe don't even bother with anything different.
 	public Icon getDownIcon() {
-            return new ShapeIcon(Color.red, false, true);
-            //return getSelectedIcon();
+            if (debug) return new ShapeIcon(Color.red, false, true);
+            return getSelectedIcon();
 
         }
         // TOOLBAR: Selected (down)
@@ -316,7 +322,7 @@ public class NodeTool extends VueTool
 	}
 	
 	public Icon getDisabledIcon() {
-            return new ShapeIcon(Color.black);
+            return new ShapeIcon(Color.cyan);
 	}
 
 
@@ -332,7 +338,6 @@ public class NodeTool extends VueTool
             //return mOverlayDownIcon;
 	}
 
-        */
     }
     
 }

@@ -135,8 +135,6 @@ public class MapViewer extends javax.swing.JComponent
      * extent when in a JViewport/JScrollPane */
     private Point2D.Float mOrigin = new Point2D.Float();
     private Point2D.Float mUserOrigin;
-    //private float mOrigin.x = 0;
-    //private float mOrigin.y = 0;
 
     //-------------------------------------------------------
     //
@@ -395,7 +393,7 @@ public class MapViewer extends javax.swing.JComponent
         //------------------------------------------------------------------
 
         Rectangle2D.Float mapExtent = getAllComponentBounds();
-        System.out.println(getMap().getLabel() + "   MAP EXTENT: " + mapExtent);
+        if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + "   MAP EXTENT: " + mapExtent);
 
         // always add the current origin, otherwise everything would
         // always be jamming itself up against the upper
@@ -404,11 +402,11 @@ public class MapViewer extends javax.swing.JComponent
         if (reset) {
             //mOrigin.x = mapExtent.x;
             //mOrigin.y = mapExtent.y;
-            System.out.println(getMap().getLabel() + " RESET ORIGIN: " + mOrigin);
+            if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + " RESET ORIGIN: " + mOrigin);
         } else {
-            System.out.println(getMap().getLabel() + "       ORIGIN: " + mOrigin);
+            if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + "       ORIGIN: " + mOrigin);
             mapExtent.add(mOrigin);
-            System.out.println(getMap().getLabel() + "   plusOrigin: " + mapExtent);
+            if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + "   plusOrigin: " + mapExtent);
         }
         //Point vPos = mViewport.getViewPosition();
         /*
@@ -429,7 +427,7 @@ public class MapViewer extends javax.swing.JComponent
             
         Dimension extent = mapToScreenDim(mapExtent);
         //Rectangle extent = mapToScreenRect(mapExtent);
-        System.out.println(getMap().getLabel() + " PIXEL EXTENT: " + extent);
+        if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + " PIXEL EXTENT: " + extent);
         //Rectangle vb = mapToScreenRect(mapExtent);
             
         if (alwaysAdjust || extent.width > newWidth)
@@ -437,7 +435,7 @@ public class MapViewer extends javax.swing.JComponent
         if (alwaysAdjust || extent.height > newHeight)
             newHeight = extent.height;
         Dimension newSize = new Dimension(newWidth, newHeight);
-        System.out.println(getMap().getLabel() + " SETTING SIZE: " + newSize);
+        if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + " SETTING SIZE: " + newSize);
             
             
         //------------------------------------------------------------------
@@ -508,13 +506,13 @@ public class MapViewer extends javax.swing.JComponent
         float oy = mOrigin.y;
         boolean originMoved = false;
         if (location.x < 0) {
-            System.out.println("PAN: ADJUST X " + location.x);
+            if (DEBUG_SCROLL) System.out.println("PAN: ADJUST X " + location.x);
             ox += location.x;
             location.x = 0;
             originMoved = true;
         }
         if (location.y < 0) {
-            System.out.println("PAN: ADJUST Y " + location.y);
+            if (DEBUG_SCROLL) System.out.println("PAN: ADJUST Y " + location.y);
             oy += location.y;
             location.y = 0;
             originMoved = true;
@@ -534,7 +532,7 @@ public class MapViewer extends javax.swing.JComponent
         Point vPos = location;
             
         Rectangle2D.union(extent, getVisibleMapBounds(), extent);
-        System.out.println(getMap().getLabel() + "   plusVISMAP: " + extent);
+        if (DEBUG_SCROLL) System.out.println(getMap().getLabel() + "   plusVISMAP: " + extent);
         
         //extent.add(mOrigin);
         //System.out.println(getMap().getLabel() + "   plusOrigin: " + extent);
@@ -568,7 +566,7 @@ public class MapViewer extends javax.swing.JComponent
 
     public void setPreferredSize(Dimension d)
     {
-        System.out.println(this + " setPreferredSize " + d);
+        if (DEBUG_SCROLL) System.out.println(this + " setPreferredSize " + d);
         super.setPreferredSize(d);
     }
 
@@ -806,7 +804,7 @@ public class MapViewer extends javax.swing.JComponent
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (inScrollPane||DEBUG_PAINT||DEBUG_EVENTS)
+        if (DEBUG_SCROLL||DEBUG_PAINT||DEBUG_EVENTS)
             System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
         super.reshape(x,y, w,h);
         if (ignore)

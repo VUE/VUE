@@ -577,21 +577,48 @@ public class VUE
             addFocusListener(this);
         }
         
+        
+        public void addViewer(MapViewer viewer)
+        {
+            Component c = viewer;
+            if (DEBUG_SCROLL || !this.name.startsWith("*"))
+                c = new JScrollPane(viewer);
+            LWMap map = viewer.getMap();
+            addTab(map.getLabel(), c);
+            map.addLWCListener(this);
+            // todo perf: we should be able to ask to listen only
+            // for events from this object directly (that we don't
+            // care to hear from it's children), and even that
+            // we'd only like to see, e.g., LABEL events.
+            // -- create bit masks in LWCEvent
+            if (map.getFile() != null)
+                setToolTipTextAt(indexOfComponent(c), map.getFile().toString());
+        }
+        
+        /*
+            // put BACKINGSTORE mode on a diag switch and test
+            // performance difference -- the obvious difference is
+            // vastly better performance if an inspector window is
+            // obscuring any part of the canvas (or any other window
+            // for that mater), which kills off a huge chunk of
+            // BLIT_SCROLL_MODE's optimization.  However, using
+            // backing store completely fucks up if we start
+            // hand-panning the map, tho I'm presuming that's because
+            // the hand panning isn't being done thru the viewport
+            // yet.
+            //
+            //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
+            
         public void addTab(LWMap pMap, Component c)
         {
             //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             //super.addTab(pMap.getLabel(), c instanceof JScrollPane ? c : new JScrollPane(c));
             super.addTab(pMap.getLabel(), c);
             pMap.addLWCListener(this);
-            // todo perf: we should be able to ask to listen only
-            // for events from this object directly (that we don't
-            // care to hear from it's children), and even that
-            // we'd only like to see, e.g., LABEL events.
-            // -- create bit masks in LWCEvent
-
             if (pMap.getFile() != null)
                 setToolTipTextAt(indexOfComponent(c), pMap.getFile().toString());
         }
+        */
 
         public void LWCChanged(LWCEvent e)
         {
@@ -706,48 +733,20 @@ public class VUE
             }
         }
         
-        //final boolean useScrollbars = false; // in-progress feature
-        //JScrollPane sp = null;
         if (mapViewer == null) {
-
             mapViewer = new tufts.vue.MapViewer(pMap);
             System.out.println("VUE.displayMap: currently active viewer: " + getActiveViewer());
             if (getActiveViewer() == null)
                 setActiveViewer(mapViewer);// unless null, wait till viewer gets focus
             System.out.println("VUE.displayMap:      created new viewer: " + mapViewer);
-            //if (useScrollbars)
-            //    mMapTabsLeft.addTab(map, sp = new JScrollPane(mapViewer));
-            //else
-                mMapTabsLeft.addTab(pMap, mapViewer);
-
-            // put BACKINGSTORE mode on a diag switch and test
-            // performance difference -- the obvious difference is
-            // vastly better performance if an inspector window is
-            // obscuring any part of the canvas (or any other window
-            // for that mater), which kills off a huge chunk of
-            // BLIT_SCROLL_MODE's optimization.  However, using
-            // backing store completely fucks up if we start
-            // hand-panning the map, tho I'm presuming that's because
-            // the hand panning isn't being done thru the viewport
-            // yet.
-            //
-            //sp.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
-            
-            MapViewer mv2 = new tufts.vue.MapViewer(pMap, true);
-            mMapTabsRight.addTab(pMap, mv2);
-
+            //mMapTabsLeft.addTab(pMap, mapViewer);
+            mMapTabsLeft.addViewer(mapViewer);
+            mMapTabsRight.addViewer(new tufts.vue.MapViewer(pMap, true));
+            //mMapTabsRight.addTab(pMap, mv2);
             //mMapTabsLeft.requestFocus();
-            
         }
-
-        mMapTabsLeft.setSelectedComponent(mapViewer);
         
-        /*
-        if (useScrollbars)
-            mMapTabsLeft.setSelectedComponent(sp);
-        else
-            mMapTabsLeft.setSelectedComponent(mapViewer);
-        */
+        mMapTabsLeft.setSelectedComponent(mapViewer);
 
     }
     
