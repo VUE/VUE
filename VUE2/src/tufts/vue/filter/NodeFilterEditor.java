@@ -38,12 +38,13 @@ public class NodeFilterEditor extends JPanel implements MapFilterModel.Listener,
     public NodeFilterEditor( NodeFilter nodeFilter,boolean editable) {
         this.nodeFilter = nodeFilter;
         tufts.vue.VUE.getActiveMap().getMapFilterModel().addListener(this);
+        tufts.vue.VUE.addActiveMapListener(this);
         setNodeFilterPanel();
     }
     
     public NodeFilterEditor( NodeFilter nodeFilter) {
-        this.nodeFilter = nodeFilter;
-        setNodeFilterPanel();
+        this(nodeFilter,true);
+ 
     }
      public void mapFilterModelChanged(MapFilterModelEvent e) {
         nodeFilter.fireTableDataChanged();
