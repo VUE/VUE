@@ -31,15 +31,16 @@ public class NotePanel extends JPanel
 	/** the property of the notes **/
 	//VuePropertyDescriptor mPropertyDescriptor = null;
 
-	
+        /** was a key pressed since we loaded the current text? */
+        private boolean mKeyWasPressed = false;
 	
 	///////////////////
 	// Constructors
 	////////////////////
 	
 	public NotePanel() {
-		super();
-		initComponents();
+            super();
+            initComponents();
 	}
 	
 	
@@ -80,30 +81,33 @@ public class NotePanel extends JPanel
 		setSize(new java.awt.Dimension(200, 400));
 		
 		mTextPane.addFocusListener( new NoteFocusListener() );
-
+                mTextPane.addKeyListener(new KeyAdapter() {
+                        public void keyPressed(KeyEvent e) { mKeyWasPressed = true; }
+                    });
 	}
 
 	
-	/**
-	 * saveNotes
-	 * This method saves the notes by setting the appropriate proeprty
-	 * value on the property descriptor.
-	 *
-	 **/
-	public void saveNotes() {
-		debug("   Saving notes...");
-		
-		if( mObject != null) {
-			mObject.setNotes( mTextPane.getText() );
-			}	
-	/*******
-		if( mPropertyDescriptor != null) {
-			
-			String notes = mTextPane.getText();
-			//mPropertyDescriptor.setValue( notes);
-			}
-	*********/
-	}
+    /**
+     * saveNotes
+     * This method saves the notes by setting the appropriate property
+     * value on the property descriptor.  Will only save value if
+     * a key has been pressed since we loaded the text, indicating
+     * a possible change in the text.
+     **/
+    public void saveNotes() {
+        debug("   Saving notes...");
+        
+        if (mKeyWasPressed && mObject != null) {
+            mObject.setNotes( mTextPane.getText() );
+        }	
+        /*******
+                if( mPropertyDescriptor != null) {
+                
+                String notes = mTextPane.getText();
+                //mPropertyDescriptor.setValue( notes);
+                }
+        *********/
+    }
     
     /** 
      * updatePanel
@@ -120,6 +124,7 @@ public class NotePanel extends JPanel
                 if (text == null)
                     text = "";
                 mTextPane.setText(text);
+                mKeyWasPressed = false;
                 pObj.addLWCListener(this);
             }
         }
