@@ -289,10 +289,11 @@ public class Publisher extends JDialog implements ActionListener {
         }
     }
     
-    public void publishMap() {
+    public void publishMap(LWMap map) {
+        
         try {
-            saveActiveMap();
-            Properties metadata = VUE.getActiveMap().getMetadata();
+            saveMap(map);
+            Properties metadata = map.getMetadata();
             String pid = getDR().ingest(activeMapFile.getName(), "obj-binary.xml", activeMapFile, metadata).getIdString();
             JOptionPane.showMessageDialog(null, "Map successfully exported. Asset ID for Map = "+pid, "Map Exported",JOptionPane.INFORMATION_MESSAGE);
             System.out.println("Exported Map: id = "+pid);
@@ -303,21 +304,31 @@ public class Publisher extends JDialog implements ActionListener {
         }
     }
     
+    public void publishMap() {
+        try {
+            publishMap((LWMap)VUE.getActiveMap().clone());
+        } catch (Exception ex) {
+            VueUtil.alert(null,  "Export Not Supported:"+ex.getMessage(), "Export Error");
+            ex.printStackTrace();
+        }
+        
+    }
+    
+    
+    
     public void publishCMap() {
         try {
             File savedCMap = createIMSCP();
             if(((DataSource)dataSourceComboBox.getSelectedItem()).getType() == DataSource.FILING_LOCAL) {
-                BufferedReader br = new BufferedReader(new FileReader(savedCMap));
-                BufferedWriter bw = new BufferedWriter(new FileWriter(ActionUtil.selectFile("IMSCP","zip")));
-                int fileLength = (int)savedCMap.length();
-                char bytes[] = new  char[fileLength];
-                while (br.read(bytes,0,fileLength) != -1)
-                    bw.write(bytes,0,fileLength);
-                if (br != null)
-                    br.close();
+                InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
+                OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip")));
                 
-                if (bw != null)
-                    bw.close();
+                int fileLength = (int)savedCMap.length();
+                byte bytes[] = new  byte[fileLength];
+                while (istream.read(bytes,0,fileLength) != -1)
+                    ostream.write(bytes,0,fileLength);
+                istream.close();
+                ostream.close();
             } else {
                 Properties metadata  = VUE.getActiveMap().getMetadata();
                 String pid = getDR().ingest(savedCMap.getName(), "obj-vue-concept-map-mc.xml", savedCMap, metadata).getIdString();
@@ -336,6 +347,7 @@ public class Publisher extends JDialog implements ActionListener {
     
     public  void publishAll() {
         try {
+            LWMap saveMap = (LWMap) tufts.vue.VUE.getActiveMap().clone();
             
             Iterator i = resourceVector.iterator();
             while(i.hasNext()) {
@@ -349,12 +361,13 @@ public class Publisher extends JDialog implements ActionListener {
                     resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                     String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
                     resourceTable.getModel().setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                    VUE.getActiveMap().replaceResource(r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
+                    saveMap.replaceResource(r,new AssetResource(getDR().getAsset(new tufts.oki.dr.fedora.PID(pid))));
                     
                 }
                 
             }
-            publishMap();
+            publishMap(saveMap);
+            this.dispose();
             System.out.println("Export All");
         } catch (Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Export Error");
@@ -362,8 +375,9 @@ public class Publisher extends JDialog implements ActionListener {
         }
     }
     
-    private void saveActiveMap() throws IOException {
-        LWMap map = tufts.vue.VUE.getActiveMap();
+    private void saveActiveMap() throws IOException, CloneNotSupportedException {
+        LWMap map = (LWMap) tufts.vue.VUE.getActiveMap().clone();
+        
         activeMapFile = map.getFile();
         if(activeMapFile == null) {
             String prefix = "concept_map";
@@ -373,16 +387,23 @@ public class Publisher extends JDialog implements ActionListener {
         ActionUtil.marshallMap(activeMapFile, map);
     }
     
-    
-    
-    
-    private File createIMSCP() throws IOException,URISyntaxException {
+    private void saveMap(LWMap map) throws IOException {
+        activeMapFile = map.getFile();
+        if(activeMapFile == null) {
+            String prefix = "concept_map";
+            String suffix = ".vue";
+            activeMapFile  = File.createTempFile(prefix,suffix);
+        }
+        ActionUtil.marshallMap(activeMapFile, map);
         
-        LWMap map = tufts.vue.VUE.getActiveMap();
+    }
+    
+    
+    
+    
+    private File createIMSCP() throws IOException,URISyntaxException,CloneNotSupportedException {
+        LWMap saveMap = (LWMap) tufts.vue.VUE.getActiveMap().clone();
         IMSCP imscp = new IMSCP();
-        saveActiveMap();
-        System.out.println("Writing Active Map : "+activeMapFile.getName());
-        imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);
         Iterator i = resourceVector.iterator();
         while(i.hasNext()) {
             Vector vector = (Vector)i.next();
@@ -395,12 +416,14 @@ public class Publisher extends JDialog implements ActionListener {
                 resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                 imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
                 resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-            }
-            
+                saveMap.replaceResource(r,new MapResource(IMSCP.RESOURCE_FILES+"/"+file.getName()));
+            }            
         }
+        saveMap(saveMap);
+        imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);
+        System.out.println("Writing Active Map : "+activeMapFile.getName());
         imscp.closeZOS();
         return imscp.getFile();
-        
     }
     
     public void actionPerformed(ActionEvent e) {

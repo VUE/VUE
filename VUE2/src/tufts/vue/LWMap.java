@@ -23,8 +23,7 @@ import tufts.vue.beans.*;
 import tufts.vue.filter.*;
 
 public class LWMap extends LWContainer
-    implements ConceptMap
-{
+implements ConceptMap {
     // these for persistance use only
     private float userOriginX;
     private float userOriginY;
@@ -48,8 +47,8 @@ public class LWMap extends LWContainer
     private String mDescription = null;
     /** the current Map Filter **/
     LWCFilter mLWCFilter = new LWCFilter();
-
-    /** Metadata for Publishing **/ 
+    
+    /** Metadata for Publishing **/
     Properties metadata = new Properties();
     
     /** Map Metadata-  this is for adding specific metadata and filtering **/
@@ -62,15 +61,13 @@ public class LWMap extends LWContainer
     
     
     // only to be used during a restore from persisted
-    public LWMap()
-    {   
+    public LWMap() {
         setLabel("<map-during-XML-restoration>");
         //setEventsSuspended();
-    	markDate();
+        markDate();
     }
-
-    public LWMap(String label)
-    {
+    
+    public LWMap(String label) {
         setID("0");
         setFillColor(java.awt.Color.white);
         setTextColor(COLOR_TEXT);
@@ -81,49 +78,42 @@ public class LWMap extends LWContainer
         markDate();
         markAsSaved();
     }
-
-    private void markDate()
-    {
-    	long time = System.currentTimeMillis();
-    	java.util.Date date = new java.util.Date( time);
-    	java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
-    	String dateStr = df.format( date);
-    	setDate(dateStr);
+    
+    private void markDate() {
+        long time = System.currentTimeMillis();
+        java.util.Date date = new java.util.Date( time);
+        java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd");
+        String dateStr = df.format( date);
+        setDate(dateStr);
     }
-
+    
     private UndoManager mUndoManager;
-    public UndoManager getUndoManager()
-    {
+    public UndoManager getUndoManager() {
         return mUndoManager;
     }
-    public void setUndoManager(UndoManager um)
-    {
+    public void setUndoManager(UndoManager um) {
         if (mUndoManager != null)
             throw new IllegalStateException(this + " already has undo manager " + mUndoManager);
         mUndoManager = um;
     }
-
-    public void setFile(File file)
-    {
+    
+    public void setFile(File file) {
         this.file = file;
         if (file != null)
             setLabel(file.getName());
     }
-
-    public File getFile()
-    {
+    
+    public File getFile() {
         return this.file;
     }
-
-    public void markAsModified()
-    {
+    
+    public void markAsModified() {
         System.out.println(this + " explicitly marking as modified");
         if (mChanges == 0)
             mChanges = 1;
         // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
-    public void markAsSaved()
-    {
+    public void markAsSaved() {
         System.out.println(this + " marking " + mChanges + " modifications as current");
         mChanges = 0;
         /*
@@ -131,20 +121,20 @@ public class LWMap extends LWContainer
             setUndoManager(new UndoManager(this));
         else
             getUndoManager().flush();
-        */
+         */
         // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public boolean isModified() {
         return mChanges > 0;
     }
-    long getModCount() { return mChanges; } 
+    long getModCount() { return mChanges; }
     
     /**
      * getLWCFilter()
      * This gets the current LWC filter
      **/
     public LWCFilter getLWCFilter() {
-    	return mLWCFilter;
+        return mLWCFilter;
     }
     
     /**
@@ -153,7 +143,7 @@ public class LWMap extends LWContainer
      * @param LWCFilter - the filter
      **/
     public void setLWCFilter( LWCFilter pFilter) {
-    	mLWCFilter = pFilter;
+        mLWCFilter = pFilter;
     }
     
     /**
@@ -163,17 +153,21 @@ public class LWMap extends LWContainer
      * @return UserMapType [] the array of map types
      **/
     public UserMapType [] getUserMapTypes() {
-     	return mUserTypes;
-     }
-     
+        return mUserTypes;
+    }
+    
     /**
-     * \Types
+     * \Types if(filterTable.isEditing()) {
+     * filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
+     * System.out.println("Focus Lost: Row="+filterTable.getEditingRow()+ "col ="+ filterTable.getEditingColumn());
+     * }
+     * filterTable.removeEditor();
      * This sets the array of UserMapTypes for teh map
      *  @param pTypes - uthe array of UserMapTypes
      **/
     public void setUserMapTypes( UserMapType [] pTypes) {
-    	mUserTypes = pTypes;
-    	validateUserMapTypes();
+        mUserTypes = pTypes;
+        validateUserMapTypes();
     }
     
     /**
@@ -181,49 +175,49 @@ public class LWMap extends LWContainer
      * Searches the list of LW Compone
      **/
     private void validateUserMapTypes() {
-
+        
         java.util.List list = getAllDescendents();
-
-		Iterator it = list.iterator();
-		while (it.hasNext()) {
-			LWComponent c = (LWComponent) it.next();
-			if ( c.getUserMapType() != null)  {
-				// Check that type still exists...
-				UserMapType type = c.getUserMapType();
-				if( !hasUserMapType( type) ) {
-					c.setUserMapType( null);
-					}
-				}
-			}
- 	}
- 	
- 	/**
- 	 * hasUserMapType
- 	 * This method verifies that the UserMapType exists for this Map.
- 	 * @return boolean true if exists; false if not
- 	 **/
- 	private boolean hasUserMapType( UserMapType pType) {
- 		boolean found = false;
- 		if( mUserTypes != null) {
- 			for( int i=0; i< mUserTypes.length; i++) {
- 				if( pType.getID().equals( mUserTypes[i].getID() ) ) {
- 					return true;
- 					}
- 				}
- 			}
- 		return found;
- 	}
- 	
+        
+        Iterator it = list.iterator();
+        while (it.hasNext()) {
+            LWComponent c = (LWComponent) it.next();
+            if ( c.getUserMapType() != null)  {
+                // Check that type still exists...
+                UserMapType type = c.getUserMapType();
+                if( !hasUserMapType( type) ) {
+                    c.setUserMapType( null);
+                }
+            }
+        }
+    }
+    
+    /**
+     * hasUserMapType
+     * This method verifies that the UserMapType exists for this Map.
+     * @return boolean true if exists; false if not
+     **/
+    private boolean hasUserMapType( UserMapType pType) {
+        boolean found = false;
+        if( mUserTypes != null) {
+            for( int i=0; i< mUserTypes.length; i++) {
+                if( pType.getID().equals( mUserTypes[i].getID() ) ) {
+                    return true;
+                }
+            }
+        }
+        return found;
+    }
+    
     /**
      * getAuthor
-     * 
+     *
      **/
     public String getAuthor() {
-    	return mAuthor;
+        return mAuthor;
     }
     
     public void setAuthor( String pName) {
-    	mAuthor = pName;
+        mAuthor = pName;
     }
     
     
@@ -234,35 +228,35 @@ public class LWMap extends LWContainer
     public void setDescription(String pDescription) {
         mDescription = pDescription;
     }
-        
-    public String getDate() {
-    	return mDate;
-   }
-   public void setDate( String pDate) {
-   	mDate = pDate;
-   }
     
-   public Properties getMetadata(){
-       return metadata;
-   }
-     
-   public void setMetadata(Properties metadata) {
-       this.metadata = metadata;
-   }
-   
-   public MapFilterModel getMapFilterModel() {
-       return mapFilterModel;
-   }
-   
-   public void setMapFilterModel(MapFilterModel mapFilterModel) {
-       this.mapFilterModel = mapFilterModel;
-   }
-    /* 
-    public LWPathwayManager getPathwayManager(){ 
+    public String getDate() {
+        return mDate;
+    }
+    public void setDate( String pDate) {
+        mDate = pDate;
+    }
+    
+    public Properties getMetadata(){
+        return metadata;
+    }
+    
+    public void setMetadata(Properties metadata) {
+        this.metadata = metadata;
+    }
+    
+    public MapFilterModel getMapFilterModel() {
+        return mapFilterModel;
+    }
+    
+    public void setMapFilterModel(MapFilterModel mapFilterModel) {
+        this.mapFilterModel = mapFilterModel;
+    }
+    /*
+    public LWPathwayManager getPathwayManager(){
         return mPathwayManager;
     }
-    */
-    public LWPathwayList getPathwayList() { 
+     */
+    public LWPathwayList getPathwayList() {
         return mPathways;
     }
     /** for persistance restore only */
@@ -271,23 +265,21 @@ public class LWMap extends LWContainer
         mPathways = l;
         mPathways.setMap(this);
     }
-
+    
     /*
     public void setPathwayManager(LWPathwayManager manager)
     {
         mPathwayManager = manager;
         mPathwayManager.setMap(this);
     }
-    */
+     */
     
     private int nextID = 1;
-    protected String getNextUniqueID()
-    {
+    protected String getNextUniqueID() {
         return Integer.toString(nextID++, 10);
     }
-
-    public void completeXMLRestore()
-    {
+    
+    public void completeXMLRestore() {
         System.out.println(getLabel() + ": completing restore...");
         resolvePersistedLinks(this);
         setChildScaleValues();
@@ -299,7 +291,7 @@ public class LWMap extends LWContainer
         this.nextID = findGreatestChildID() + 1;
         System.out.println(getLabel() + ": nextID=" + nextID);
         System.out.println(getLabel() + ": restore completed.");
-
+        
         Iterator i = getAllDescendentsIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
@@ -329,9 +321,8 @@ public class LWMap extends LWContainer
             }
         }
     }
-
-    protected LWComponent findChildByID(String ID)
-    {
+    
+    protected LWComponent findChildByID(String ID) {
         LWComponent c = super.findChildByID(ID);
         if (c == null) {
             System.err.println(this + " failed to locate a LWComponent with id [" + ID + "]");
@@ -341,8 +332,7 @@ public class LWMap extends LWContainer
     }
     
     /** for viewer to report user origin sets via pan drags */
-    void setUserOrigin(float x, float y)
-    {
+    void setUserOrigin(float x, float y) {
         if (userOriginX != x || userOriginY != y){
             this.userOriginX = x;
             this.userOriginY = y;
@@ -357,8 +347,12 @@ public class LWMap extends LWContainer
     public void setUserOrigin(Point2D.Float p) {
         setUserOrigin((float) p.getX(), (float) p.getY());
     }
-
-    /** for persistance.  Note that as maps can be in more than
+    
+    /** for persi if(filterTable.isEditing()) {
+     * filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
+     * System.out.println("Focus Lost: Row="+filterTable.getEditingRow()+ "col ="+ filterTable.getEditingColumn());
+     * }
+     * filterTable.removeEditor();stance.  Note that as maps can be in more than
      * one viewer, each with it's own zoom, we take on only
      * the zoom value set in the more recent viewer to change
      * it's zoom.
@@ -370,21 +364,21 @@ public class LWMap extends LWContainer
     public double getUserZoom() {
         return this.userZoom;
     }
-      
+    
     /*
     public LWComponent findLWComponentAt(float mapX, float mapY)
     {
         LWComponent c = super.findLWComponentAt(mapX, mapY);
         return c == this ? null : c;
     }
-
+     
     public LWComponent findDeepestComponentAt(float mapX, float mapY, LWComponent excluded)
     {
         LWComponent c = super.findDeepestComponentAt(mapX, mapY, excluded);
         return c == this ? null : c;
     }
-    */
-
+     */
+    
     /** override of LWContainer: default hit component on the map
      * is nothing -- we just @return null.
      */
@@ -392,15 +386,15 @@ public class LWMap extends LWContainer
         return null;
     }
     
-
+    
     /* override of LWComponent: parent == null indicates deleted,
      * but map parent is always null.  For now always returns
      * false.  If need to support tracking deleted map, create
-     * a different internal indicator for LWMap's [OLD] 
+     * a different internal indicator for LWMap's [OLD]
     public boolean isDeleted() {
         return false;
     }
-    */
+     */
     
     /** override of LWComponent: normally, parent == null indicates orphan,
      * which is considered a problem condition if attempting to deliver
@@ -411,32 +405,27 @@ public class LWMap extends LWContainer
         return false;
     }
     
-    public LWNode addNode(LWNode c)
-    {
+    public LWNode addNode(LWNode c) {
         addChild(c);
         return c;
     }
-    public LWLink addLink(LWLink c)
-    {
+    public LWLink addLink(LWLink c) {
         addChild(c);
         return c;
     }
-
-    public LWPathway addPathway(LWPathway p)
-    {
+    
+    public LWPathway addPathway(LWPathway p) {
         getPathwayList().add(p);
         return p;
     }
-
-    protected void addChildInternal(LWComponent c)
-    {
+    
+    protected void addChildInternal(LWComponent c) {
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
         super.addChildInternal(c);
     }
     
-    LWComponent addLWC(LWComponent c)
-    {
+    LWComponent addLWC(LWComponent c) {
         addChild(c);
         return c;
     }
@@ -445,14 +434,13 @@ public class LWMap extends LWContainer
     {
         removeChild(c);
     }
-    */
-
+     */
+    
     /**
      * Every single event anywhere in the map will ultimately end up
      * calling this notifyLWCListners.
      */
-    protected void notifyLWCListeners(LWCEvent e)
-    {
+    protected void notifyLWCListeners(LWCEvent e) {
         if (mEventsDisabled) {
             if (DEBUG.EVENTS) System.out.println(e + " SKIPPING (events disabled)");
             return;
@@ -471,12 +459,12 @@ public class LWMap extends LWContainer
         super.notifyLWCListeners(e);
         flushBounds();
     }
-
+    
     private void flushBounds() {
         mCachedBounds = null;
         if (DEBUG.EVENTS&&DEBUG.META) out(this + " flushed cached bounds");
     }
-
+    
     private void markChange(Object e) {
         if (mChanges == 0) {
             if (DEBUG.EVENTS)
@@ -487,8 +475,7 @@ public class LWMap extends LWContainer
         mChanges++;
     }
     
-    public java.awt.geom.Rectangle2D getBounds()
-    {
+    public java.awt.geom.Rectangle2D getBounds() {
         if (true||mCachedBounds == null) {
             mCachedBounds = getBounds(getChildIterator());
             try {
@@ -504,22 +491,21 @@ public class LWMap extends LWContainer
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
         return mCachedBounds;
     }
-
+    
     /*
     public java.awt.geom.Rectangle2D getCachedBounds()
     {
         return super.getBounds();
     }
-    */
+     */
     
     /**
      * return the bounds for all LWComponents in the iterator
      * (includes shape stroke widhts)
      */
-    public static Rectangle2D getBounds(java.util.Iterator i)
-    {
+    public static Rectangle2D getBounds(java.util.Iterator i) {
         Rectangle2D rect = null;
-
+        
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             if (c.isDrawn()) {
@@ -538,10 +524,9 @@ public class LWMap extends LWContainer
      * (does NOT include stroke widths) -- btw -- would make
      * more sense to put these in the LWContainer class.
      */
-    public static Rectangle2D getShapeBounds(java.util.Iterator i)
-    {
+    public static Rectangle2D getShapeBounds(java.util.Iterator i) {
         Rectangle2D rect = new Rectangle2D.Float();
-
+        
         if (i.hasNext()) {
             rect.setRect(((LWComponent)i.next()).getShapeBounds());
             while (i.hasNext())
@@ -549,13 +534,12 @@ public class LWMap extends LWContainer
         }
         return rect;
     }
-
+    
     /** returing a bounding rectangle that includes all the upper left
      * hand corners of the given components */
-    public static Rectangle2D.Float getULCBounds(java.util.Iterator i)
-    {
+    public static Rectangle2D.Float getULCBounds(java.util.Iterator i) {
         Rectangle2D.Float rect = new Rectangle2D.Float();
-
+        
         if (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             rect.x = c.getX();
@@ -567,10 +551,9 @@ public class LWMap extends LWContainer
     }
     /** returing a bounding rectangle that includes all the lower right
      * hand corners of the given components */
-    public static Rectangle2D.Float getLRCBounds(java.util.Iterator i)
-    {
+    public static Rectangle2D.Float getLRCBounds(java.util.Iterator i) {
         Rectangle2D.Float rect = new Rectangle2D.Float();
-
+        
         if (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             rect.x = c.getX() + c.getWidth();
@@ -578,21 +561,33 @@ public class LWMap extends LWContainer
             while (i.hasNext()) {
                 c = (LWComponent) i.next();
                 rect.add(c.getX() + c.getWidth(),
-                         c.getY() + c.getHeight());
+                c.getY() + c.getHeight());
             }
         }
         return rect;
     }
-
-    public String toString()
-    {
+    
+    public String toString() {
         return "LWMap[" + getLabel()
-            + " n=" + children.size()
-            + (file==null?"":" <" + this.file + ">")
-            + "]";
+        + " n=" + children.size()
+        + (file==null?"":" <" + this.file + ">")
+        + "]";
     }
-    public String X_paramString()
-    {
+    //todo: this method must be re-written. not to save and restore
+    public Object clone() throws CloneNotSupportedException{
+        try {
+        String prefix = "concept_map";
+        String suffix = ".vue";
+        File tempFile  = File.createTempFile(prefix,suffix,VueUtil.getDefaultUserFolder());
+        tufts.vue.action.ActionUtil.marshallMap(tempFile, this);
+        return tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
+        }catch(Exception ex) {
+            throw new CloneNotSupportedException(ex.getMessage());
+        }
+    }
+    
+    
+    public String X_paramString() {
         if (this.file == null)
             return " n=" + children.size();
         else
@@ -603,10 +598,13 @@ public class LWMap extends LWContainer
             return super.paramString();
         else
             return super.paramString() + " <" + this.file + ">";
-        */
+         */
     }
     
-
+    
+    
+    
+    
     /*public Dimension getSize()
     {
         return new Dimension(getWidth(), getHeight());
@@ -619,7 +617,7 @@ public class LWMap extends LWContainer
         float yMin = Float.POSITIVE_INFINITY;
         float xMax = Float.NEGATIVE_INFINITY;
         float yMax = Float.NEGATIVE_INFINITY;
-        
+     
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
             float x = c.getX();
@@ -631,18 +629,18 @@ public class LWMap extends LWContainer
             if (mx > xMax) xMax = mx;
             if (my > yMax) yMax = my;
         }
-
+     
         // In case there's nothing in there
         if (xMin == Float.POSITIVE_INFINITY) xMin = 0;
         if (yMin == Float.POSITIVE_INFINITY) yMin = 0;
         if (xMax == Float.NEGATIVE_INFINITY) xMax = 0;
         if (yMax == Float.NEGATIVE_INFINITY) yMax = 0;
-
+     
         return new Rectangle2D.Float(xMin, yMin, xMax - xMin, yMax - yMin);
     }
-
-    */
-
+     
+     */
     
-
+    
+    
 }
