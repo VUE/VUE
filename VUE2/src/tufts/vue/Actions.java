@@ -3,6 +3,7 @@ package tufts.vue;
 import java.util.Iterator;
 import java.awt.Event;
 import java.awt.Point;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
@@ -233,7 +234,56 @@ class Actions {
             
         };
 
+    //-------------------------------------------------------
+    // Font/Text Actions
+    //-------------------------------------------------------
         
+    static final Action FontSmaller =
+        new MapAction("Font Smaller", keyStroke(KeyEvent.VK_8, META))//todo: chance accelerators
+        {
+            void act(LWComponent c) {
+                Font f = c.getFont();
+                c.setFont(new Font(f.getName(), f.getStyle(), f.getSize()-1));
+            }
+        };
+    static final Action FontBigger =
+        new MapAction("Font Bigger", keyStroke(KeyEvent.VK_9, META))
+        {
+            void act(LWComponent c) {
+                Font f = c.getFont();
+                c.setFont(new Font(f.getName(), f.getStyle(), f.getSize()+1));
+            }
+        };
+    static final Action FontBold =
+        new MapAction("Font Bold", keyStroke(KeyEvent.VK_B, META))
+        {
+            void act(LWComponent c) {
+                Font f = c.getFont();
+                int newStyle = f.getStyle();
+                if (f.isBold())
+                    newStyle &= ~Font.BOLD;
+                else
+                    newStyle |= Font.BOLD;
+                c.setFont(new Font(f.getName(), newStyle, f.getSize()));
+            }
+        };
+    static final Action FontItalic =
+        new MapAction("Font Italic", keyStroke(KeyEvent.VK_I, META))
+        {
+            void act(LWComponent c) {
+                Font f = c.getFont();
+                int newStyle = f.getStyle();
+                if (f.isItalic())
+                    newStyle &= ~Font.ITALIC;
+                else
+                    newStyle |= Font.ITALIC;
+                c.setFont(new Font(f.getName(), newStyle, f.getSize()));
+            }
+        };
+
+    //-------------------------------------------------------
+    // Align actions
+    //-------------------------------------------------------
     abstract static class AlignAction extends MapAction
     {
         static float minX, minY;
@@ -513,7 +563,7 @@ class Actions {
         void act()
         {
             LWSelection selection = VUE.ModelSelection;
-            System.out.println("MapAction: " + getActionName() + " " + selection);
+            System.out.println("MapAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
                 if (mayModifySelection())
                     selection = (LWSelection) selection.clone();
@@ -555,6 +605,8 @@ class Actions {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 act(c);
+                if (c instanceof LWGroup)
+                    act(((LWGroup)c).getChildIterator());
             }
         }
         void act(LWComponent c)

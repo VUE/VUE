@@ -322,8 +322,9 @@ public class MapViewer extends javax.swing.JPanel
     
     public void LWCChanged(LWCEvent e)
     {
-        // TODO: OPTIMIZE -- we get tons of location events
-        // when dragging, esp if there are children!
+        // todo: optimize -- we get tons of location events
+        // when dragging, esp if there are children if
+        // we have those events turned in...
         System.out.println("MapViewer: " + e);
         if (e.getWhat().equals("location"))
             return;
@@ -342,7 +343,7 @@ public class MapViewer extends javax.swing.JPanel
         }
         if (e.getSource() == this)
             return;
-        repaint();
+        repaint(); // todo opt: could opt region 
     }
     
     /**
@@ -1319,7 +1320,6 @@ public class MapViewer extends javax.swing.JPanel
                 dragOffset.setLocation(dragComponent.getX() - mapX,
                                        dragComponent.getY() - mapY);
 
-            //repaint(); // todo opt: could do some repaint opt here
         }
         
         public void mouseMoved(MouseEvent e)

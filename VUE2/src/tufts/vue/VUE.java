@@ -362,10 +362,14 @@ public class VUE
         }
         */
                            
-        formatMenu.add(fontMenu);
-        formatMenu.add(new JMenuItem("Size"));
-        formatMenu.add(new JMenuItem("Style"));
-        formatMenu.add(new JMenuItem("Justify"));
+        //formatMenu.add(fontMenu);
+        formatMenu.add(Actions.FontSmaller);
+        formatMenu.add(Actions.FontBigger);
+        formatMenu.add(Actions.FontBold);
+        formatMenu.add(Actions.FontItalic);
+        //formatMenu.add(new JMenuItem("Size"));
+        //formatMenu.add(new JMenuItem("Style"));
+        formatMenu.add("Text Justify").setEnabled(false);
 
         alignMenu.add(Actions.AlignLeftEdges);
         alignMenu.add(Actions.AlignRightEdges);

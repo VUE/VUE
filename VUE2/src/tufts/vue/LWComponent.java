@@ -124,11 +124,12 @@ public class LWComponent
     // persistent impl
     protected float width;
     protected float height;
-    protected Color fillColor = null;
-    protected Color textColor = COLOR_TEXT;
-    protected Color strokeColor = COLOR_STROKE;
-    protected float strokeWidth = 1f;
-    protected Font font = null;
+
+    protected Color fillColor = null;           //style
+    protected Color textColor = COLOR_TEXT;     //style
+    protected Color strokeColor = COLOR_STROKE; //style
+    protected float strokeWidth = 1f;            //style
+    protected Font font = null;                 //style
     //protected Font font = FONT_DEFAULT;
     
     /*
