@@ -651,7 +651,7 @@ public class MapInspectorPanel  extends JPanel
 		
 		public MetadataPanel() {
 			
-			setLayout( new BorderLayout() );
+			setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
 			setBorder( new EmptyBorder(4,4,4,4) );
                        // add(propertiesEditor);
                        
