@@ -211,13 +211,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
          innerConditionsPanel.add(conditionsScrollPane, BorderLayout.CENTER);
          
          // GRID: addConditionButton
-         JButton addConditionButton=new JButton(VueResources.getImageIcon("addLight"));
-         addConditionButton.setPreferredSize(new Dimension(17, 17));
-
-         
+         JButton addConditionButton=new VueButton("add");
+         addConditionButton.setBackground(this.getBackground());
          // GRID: deleteConditionButton
          JButton deleteConditionButton=new JButton( VueResources.getImageIcon("deleteLight"));
-         deleteConditionButton.setPreferredSize(new Dimension(17, 17));
+         deleteConditionButton.setBackground(this.getBackground());
          
         JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
         questionLabel.setPreferredSize(new Dimension(22, 17));

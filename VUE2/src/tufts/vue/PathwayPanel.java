@@ -59,12 +59,6 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     private ImageIcon forwardDisabled = VueResources.getImageIcon("controlPlayForwardDisabled");
     private ImageIcon lastDisabled = VueResources.getImageIcon("controlForwardDisabled");
     
-    private ImageIcon addUpIcon = VueResources.getImageIcon("addPathwayUp");
-    private ImageIcon addDownIcon = VueResources.getImageIcon("addPathwayDown");
-    private ImageIcon addDisabledIcon = VueResources.getImageIcon("addDisabled");
-    private ImageIcon deleteUpIcon = VueResources.getImageIcon("deletePathwayUp");
-    private ImageIcon deleteDownIcon = VueResources.getImageIcon("deletePathwayDown");
-    private ImageIcon deleteDisabledIcon = VueResources.getImageIcon("deleteDisabled");
     private ImageIcon lockUpIcon = VueResources.getImageIcon("lockUp");
         
     private JButton removeButton, createButton, lockButton;
@@ -98,20 +92,13 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         
         setupPathwayControl();
          
-        createButton = new JButton(addUpIcon);
-        createButton.setSelectedIcon(addDownIcon);
-        createButton.setDisabledIcon(this.addDisabledIcon);
+        createButton = new VueButton("add");
         createButton.addActionListener(this);
-        createButton.setBorderPainted(false);
-        createButton.setBackground(Color.white);
         
-        removeButton = new JButton(deleteUpIcon);
-        removeButton.setSelectedIcon(deleteDownIcon);
-        removeButton.setDisabledIcon(this.deleteDisabledIcon);
+        removeButton = new VueButton("delete");
         removeButton.addActionListener(this);
-        removeButton.setBorderPainted(false);
-        removeButton.setBackground(Color.white);
-        
+        removeButton.setEnabled(false);
+
         lockButton = new JButton(lockUpIcon);
         lockButton.setSelectedIcon(lockUpIcon);
         lockButton.setBackground(Color.white);
@@ -367,21 +354,15 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     }
 
     private void setupButtons() {
-        addElement = new JButton(addUpIcon);
-        addElement.setSelectedIcon(addDownIcon);
-        addElement.setDisabledIcon(this.addDisabledIcon);
+        addElement = new VueButton("add");
         addElement.setBackground(this.altbgColor);
         addElement.addActionListener(this);
         addElement.setEnabled(false);
-        addElement.setBorderPainted(false);
         
-        removeElement = new JButton(deleteUpIcon);
-        removeElement.setSelectedIcon(deleteDownIcon);
-        removeElement.setDisabledIcon(this.deleteDisabledIcon);
+        removeElement = new VueButton("delete");
         removeElement.setBackground(this.altbgColor);
         removeElement.addActionListener(this);
         removeElement.setEnabled(false);
-        removeElement.setBorderPainted(false);
         
         buttons = new JPanel(new GridLayout(1, 2, 0, 0));
         buttons.setBackground(altbgColor);
