@@ -180,9 +180,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, --selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
-            
-            //update the pathway control panel
-            VUE.getPathwayControl().updateControlPanel();
         }
         
         //moves down the selected row
@@ -191,9 +188,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             ((PathwayTableModel)pathwayTable.getModel()).switchRow(selected, ++selected);
             pathwayTable.setRowSelectionInterval(selected, selected);
             submit.setEnabled(false);
-            
-            //update the pathway control panel
-            VUE.getPathwayControl().updateControlPanel();
         }
         
         //removes the selected row
@@ -201,9 +195,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {    
              if (selected != -1)
              {
-                ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);
-                VUE.getPathwayControl().updateControlPanel();
-                
+                ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);     
                 submit.setEnabled(false);
              }  
         }        
@@ -220,9 +212,6 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             }
             
             pathwayTable.setRowSelectionInterval(selected, selected);
-            
-            //update the pathway control panel
-            VUE.getPathwayControl().updateControlPanel();
         }
 
         //submit
@@ -386,13 +375,19 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {
             pathway.addElement(element, row);
             fireTableRowsInserted(row, row);
+            
+            //update the pathway control panel
+            VUE.getPathwayControl().updateControlPanel();
         }
         
         //deletes the given row from the table
         public synchronized void deleteRow(int row)
         {
             pathway.removeElement(row);
-            fireTableRowsDeleted(row, row);  
+            fireTableRowsDeleted(row, row); 
+            
+            //update the pathway control panel
+            VUE.getPathwayControl().updateControlPanel();
         }
         
         //switches a row to a new location
@@ -400,6 +395,9 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {
             pathway.moveElement(oldRow, newRow);
             fireTableDataChanged();
+            
+            //update the pathway control panel
+            VUE.getPathwayControl().updateControlPanel();
         }
     }
 }

@@ -328,7 +328,8 @@ public class VUE
                     return (MapViewer) tabbedPane.getComponentAt(i);
                 }
             }
-        }        
+        } 
+        
         // don't know how this will impact the pathway stuff, but we're (?)
         // ActiveViewer now has to be maintained seperately, so we
         // can't query the tabbed panes.
