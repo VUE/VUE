@@ -16,6 +16,9 @@ import java.util.Vector;
 import javax.swing.event.*;
 import osid.dr.*;
 
+import osid.filing.*;
+import tufts.oki.remoteFiling.*;
+import tufts.oki.localFiling.*;
 
 
 import javax.swing.tree.*;
@@ -25,29 +28,37 @@ import java.util.Iterator;
  *
  * @author  rsaigal
  */
-public class VueDragTree extends JTree implements DragGestureListener,DragSourceListener,TreeSelectionListener {
+public class VueDragTree extends JTree implements DragGestureListener,DragSourceListener,TreeSelectionListener,ActionListener {
     
     private DefaultMutableTreeNode oldnode;     
     private ResourceSelection resourceSelection = null;
                  
-    public VueDragTree(Object obj, String treeName) { 
-        if (obj instanceof FavoritesNode){
-            setModel(new DefaultTreeModel((FavoritesNode)obj));
-            //this.setShowsRootHandles(true);
-            this.setRootVisible(false);
-            this.expandRow(0);
-        }
-        else{
+    public VueDragTree(Object  obj, String treeName) { 
             setModel(createTreeModel(obj, treeName));
+           
             this.expandRow(0);
             this.expandRow(1);
-        }        
+               
         implementDrag(this);
+        createPopupMenu();
+     
+         
         resourceSelection = VUE.sResourceSelection;
         addTreeSelectionListener(this);
-    }   
+       }   
   
-     
+      public VueDragTree(FavoritesNode favoritesNode) { 
+            setModel(new DefaultTreeModel(favoritesNode));
+           
+            this.expandRow(0);
+            createPopupMenu();
+               
+             implementDrag(this);
+           resourceSelection = VUE.sResourceSelection;
+           addTreeSelectionListener(this);
+          }   
+    
+    
     private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
 	dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
@@ -68,8 +79,23 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
                         }
                 }
         });
-         
-          VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer();
+          //  Add a tree will expand listener.
+        addTreeWillExpandListener (new TreeWillExpandListener() {
+                   public void treeWillExpand(TreeExpansionEvent e)
+                   {
+                        TreePath path = e.getPath();
+                        if (path.getLastPathComponent() instanceof CabinetNode) { 
+                            CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
+                            if (cabNode == null) return;
+                            setSelectionPath(path);
+                            cabNode.getDataModel().reload();
+                        }
+                   }
+                   public void treeWillCollapse(TreeExpansionEvent e) {}
+        }); 
+
+
+          VueDragTreeCellRenderer renderer = new VueDragTreeCellRenderer(this);
          tree.setCellRenderer(renderer);
 
      
@@ -80,27 +106,45 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
   
    
     private DefaultTreeModel createTreeModel(Object obj, String treeName ){
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(treeName); 
-        if(obj instanceof Iterator){
-            Iterator i = (Iterator)obj;
+         
+        ResourceNode root = new ResourceNode(new MapResource(treeName)); 
+        
+             if (obj instanceof Iterator){
+                  
+                 Iterator i = (Iterator)obj;
+            
+          
              while (i.hasNext()){
+                 
                 Object resource = i.next(); 
-                System.out.println("Object = "+resource+" type ="+resource.getClass().getName());
-                if(resource instanceof Resource) {
+              
+                 if (resource instanceof CabinetResource) {
+                     
+                    CabinetEntry entry = ((CabinetResource)resource).getEntry();
+                    CabinetNode cabNode = null;
+                    if (entry instanceof RemoteCabinetEntry)
+                        cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.REMOTE);
+                    else
+                        
+                        cabNode = new CabinetNode ((CabinetResource)resource, CabinetNode.LOCAL);
+                        
+                    root.add(cabNode);
+                    cabNode.explore();
+                }
+
+                
+                 else{
+
+                
                   ResourceNode node = new ResourceNode((Resource)resource);
                   root.add(node);
-                }else if(resource instanceof File) {
-                             
-                    FileNode rootNode = new FileNode((File)resource);
-                    root.add(rootNode);
-                    rootNode.explore();
-                }else {
-                    root.add(new DefaultMutableTreeNode(resource));
                  }
+                }
+                
+                 
              }
             
-            
-        }
+        
         return new DefaultTreeModel(root);  
     }
    
@@ -189,10 +233,30 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
  
  //Cell Renderer
  
-  public class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
+  class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
    String meta = "";
+   protected VueDragTree tree;
            
-   public VueDragTreeCellRenderer() {
+   public VueDragTreeCellRenderer(VueDragTree vdTree) {
+       
+                   this.tree = vdTree;
+        
+                vdTree.addMouseMotionListener(new MouseMotionAdapter() {
+             
+                         public void mouseClicked(MouseEvent me){
+                 
+                         if  (me.getClickCount() == 1) {
+                        TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
+                               }
+                           }
+                         public void mouseMoved(MouseEvent me) {
+                             //tree.clearSelection();
+                         TreePath treePath = tree.getPathForLocation(me.getX(), me.getY());
+                              //tree.setSelectionPath(treePath);
+                
+                            }          
+            
+                  });
        
    }
      /* -----------------------------------  */
@@ -250,12 +314,82 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         
                       }  
    }
-        
+      
+  
+   public void createPopupMenu() {
+        JMenuItem menuItem;
 
+        //Create the popup menu.
+        JPopupMenu popup = new JPopupMenu();
+        menuItem = new JMenuItem("Open Resource");
+        menuItem.addActionListener(this);
+        popup.add(menuItem);
+        System.out.println("Was I in vuedragtree popup menu?");
+       
+       
+        //Add listener to the text area so the popup menu can come up.
+        MouseListener popupListener = new PopupListener(popup);
+        this.addMouseListener(popupListener);
+    }
+     public void actionPerformed(ActionEvent e) {
+         
+            if (e.getSource() instanceof JMenuItem){
+                
+                
+                JMenuItem source = (JMenuItem)(e.getSource());
+                TreePath tp = this.getSelectionPath();
+                
+                System.out.println("This is treePath in here" + tp);;
+                
+                if (tp != null){
+                     ResourceNode resNode = (ResourceNode)tp.getLastPathComponent();
+                     resNode.getResource().displayContent();
+                    
+                    
+                }
+                
+                
+            }
+            
+           
+     }
  }
  
- 
+ class PopupListener extends MouseAdapter {
+        JPopupMenu popup;
 
+        PopupListener(JPopupMenu popupMenu) {
+            popup = popupMenu;
+        }
+
+        public void mousePressed(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+         public void mouseClicked(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            maybeShowPopup(e);
+        }
+
+        private void maybeShowPopup(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+               
+                  System.out.println(" did trigger ever happen? resource listen haha");
+                 
+                popup.show(e.getComponent(),
+                           e.getX(), e.getY());
+              
+            }
+        }
+   }      
+ 
+/*---------------*/
+
+ 
+ 
  
  /*
 class VueDragTreeCellRenderer extends DefaultTreeCellRenderer {
@@ -287,8 +421,10 @@ class ResourceNode extends DefaultMutableTreeNode {
     public ResourceNode() {
     }
     public ResourceNode(Resource resource) {
+       
         this.resource = resource;
         setUserObject(resource);
+         
     }
     public Resource getResource() {
         return resource;
@@ -299,7 +435,105 @@ class ResourceNode extends DefaultMutableTreeNode {
 }
 
 
+class CabinetNode extends ResourceNode {
+     //DefaultTreeModel dataModel;
+     public static final String LOCAL = "local";
+     public static final String REMOTE = "remote";
+     private String type = "unknown";
+     private boolean explored = false;
+   
 
+     public CabinetNode (CabinetResource cabinet, String type) {
+         super(cabinet);
+         this.type = type;
+     }
+     
+   
+    /**
+     *  Return true if this node is a leaf.
+     */
+    public boolean isLeaf() {
+        CabinetResource res = (CabinetResource) getUserObject();
+        if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
+            return false;
+        else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet())
+            return false;
+        else
+            return true;
+    }
+
+    /**
+     *  Return the cabinet entry associated with this tree node.  If it is a cabinet,
+     *  then return it.  Otherwise, return null.
+     */
+    private Cabinet getCabinet() {
+        CabinetResource res = (CabinetResource) getUserObject();
+        if (res.getEntry() instanceof Cabinet)
+            return (Cabinet) res.getEntry();
+        return null;
+    }
+
+    /*
+     *  Expand the tree (ie. find the cabinet entries below this node). 
+     *  This only applies if the current node is a cabinet. 
+     */
+    public void explore() {
+        //  If this is not a cabinet, then it cannot be expanded.
+        if(getCabinet() != null) {
+            try {
+                if (this.type.equals(CabinetNode.REMOTE)) {
+                
+                    CabinetEntryIterator i = (RemoteCabinetEntryIterator) getCabinet().entries();
+
+                    while (i.hasNext()) {
+                        CabinetEntry ce = (RemoteCabinetEntry) i.next();
+                        CabinetResource res = new CabinetResource (ce);
+                        CabinetNode rootNode = new CabinetNode(res, this.type);
+                        this.add(rootNode);
+                    }
+                }
+                else if (this.type.equals(CabinetNode.LOCAL)) {
+                    CabinetEntryIterator i = (LocalCabinetEntryIterator) getCabinet().entries();
+
+                    while (i.hasNext()) {
+                        CabinetEntry ce = (LocalCabinetEntry) i.next();
+                        //System.out.println ("CabinetNode explore: "+ce.getDisplayName());
+                        CabinetResource res = new CabinetResource (ce);
+                        CabinetNode rootNode = new CabinetNode(res, this.type);
+                        this.add(rootNode);
+                    }
+                this.explored = true;
+                }
+            } catch (FilingException e) {
+                return;
+            }    
+            return;
+        }
+        else return;
+    }
+
+    /**
+     *  Return a string version of the node.  In this implementation, the display name
+     *  of the cabinet entry is returned.
+     */
+    public String toString() {
+        CabinetResource res = (CabinetResource) getUserObject();
+        try {
+            CabinetEntry ce = (CabinetEntry) res.getEntry();
+            return ce.getDisplayName();
+        } catch (Exception e) {
+            return userObject.getClass().toString();
+        }
+    }
+
+    /**
+     *  Return the data model used.
+     */
+    DefaultTreeModel getDataModel() {
+        explore();
+        return new DefaultTreeModel(this);
+    }
+}
 
 class FileNode extends ResourceNode {
 	private boolean explored = false;
@@ -353,8 +587,10 @@ class FileNode extends ResourceNode {
 	}
  }
  class FavoritesNode extends ResourceNode {
-        public FavoritesNode(String displayName){
-            super(new MapResource(displayName));
+  
+        public FavoritesNode(Resource resource){
+           super(resource);
+           
             
         }
         public void explore() {
@@ -395,6 +631,7 @@ class FileNode extends ResourceNode {
                     flavors[RESOURCE] = resourceFlavor;
                     try {
                         displayName = ((Resource)elementAt(0)).getTitle();
+                        
                     } catch (Exception e) { System.out.println("FedoraSelection "+e);}
                 }
             } else if(resource instanceof File){
@@ -440,3 +677,6 @@ class FileNode extends ResourceNode {
         }
          
     }
+
+
+
