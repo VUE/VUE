@@ -82,7 +82,7 @@ public class MapViewer extends javax.swing.JPanel
         addMouseMotionListener(ih);
         addKeyListener(ih);
 
-        MapDropTarget mapDropTarget = new MapDropTarget(this);
+        MapDropTarget mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
 
         // todo: tab to show/hide all tool windows
@@ -221,6 +221,30 @@ public class MapViewer extends javax.swing.JPanel
                         screenToMapDim(screenRect.width),
                         screenToMapDim(screenRect.height));
         return mapRect;
+    }
+
+    private int lastMouseX;
+    private int lastMouseY;
+    private int lastMousePressX;
+    private int lastMousePressY;
+    private void setLastMousePressPoint(int x, int y)
+    {
+        lastMousePressX = x;
+        lastMousePressY = y;
+        setLastMousePoint(x,y);
+    }
+    Point getLastMousePressPoint()
+    {
+        return new Point(lastMousePressX, lastMousePressY);
+    }
+    private void setLastMousePoint(int x, int y)
+    {
+        lastMouseX = x;
+        lastMouseY = y;
+    }
+    Point getLastMousePoint()
+    {
+        return new Point(lastMouseX, lastMouseY);
     }
 
     public void setZoomFactor(double zoomFactor)
@@ -968,7 +992,9 @@ public class MapViewer extends javax.swing.JPanel
         // this is just example menu code for the moment
         if (mapPopup == null) {
             mapPopup = new JPopupMenu("Map Menu");
-            mapPopup.add("New Node");
+            mapPopup.addSeparator();
+            mapPopup.add(VUE.Actions.NewNode);
+            mapPopup.addSeparator();
             //mapPopup.add("Visible");
             mapPopup.setBackground(Color.gray);
         }
@@ -982,12 +1008,13 @@ public class MapViewer extends javax.swing.JPanel
             cPopup.add(VUE.Actions.Copy);
             cPopup.add(VUE.Actions.Rename);
             cPopup.add(VUE.Actions.Delete);
+            cPopup.addSeparator();
             cPopup.add(VUE.Actions.BringToFront);
-            cPopup.add(VUE.Actions.SendToBack);
             cPopup.add(VUE.Actions.BringForward);
+            cPopup.add(VUE.Actions.SendToBack);
             cPopup.add(VUE.Actions.SendBackward);
             cPopup.addSeparator();
-            
+            cPopup.add(VUE.Actions.Group);
             cPopup.add(VUE.Actions.Ungroup);
         }
         return cPopup;
@@ -1139,6 +1166,7 @@ public class MapViewer extends javax.swing.JPanel
             // System.err.println("[" + e.paramString() + "]");
         }
 
+
         private LWComponent hitComponent = null;
         private Point2D originBeforeDrag;
         public void mousePressed(MouseEvent e)
@@ -1160,9 +1188,11 @@ public class MapViewer extends javax.swing.JPanel
                 return;
             }
             
+            setLastMousePressPoint(e.getX(), e.getY());
+            
             float mapX = screenToMapX(e.getX());
             float mapY = screenToMapY(e.getY());
-            
+
             this.hitComponent = getLWComponentAt(mapX, mapY);
             if (DEBUG_MOUSE)
                 System.err.println("\ton " + hitComponent);
@@ -1406,6 +1436,8 @@ public class MapViewer extends javax.swing.JPanel
         public void mouseReleased(MouseEvent e)
         {
             if (DEBUG_MOUSE) System.err.println("[" + e.paramString() + "]");
+
+            setLastMousePoint(e.getX(), e.getY());
             
             if (linkSource != null) {
                 creationLink.setDisplayed(false);

@@ -1,6 +1,7 @@
 package tufts.vue;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.action.*;
@@ -274,23 +275,26 @@ public class VUE
         static final private KeyStroke keyStroke(int vk, int mod) {
             return KeyStroke.getKeyStroke(vk, mod);
         }
+        static final private KeyStroke keyStroke(int vk) {
+            return keyStroke(vk, 0);
+        }
         
     static final MapAction Copy = new MapAction("Copy") {
             void Xact(LWComponent c) {
 
             }};
     static final MapAction Group =
-        new MapAction("Group", keyStroke(KeyEvent.VK_G, CTRL))
+        new MapAction("Group", keyStroke(KeyEvent.VK_G, META))
         {
             // enable only when two or more objects in selection
-            boolean enabled(java.util.List l) { return l.size() > 1; }
+            boolean enabledFor(java.util.List l) { return l.size() > 1; }
             void Xact(java.util.List selectionList)
             {
                 //getMap().createGroup(selectionList);
             }
         };
     static final MapAction Ungroup =
-        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, CTRL+SHIFT))
+        new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, META+SHIFT))
         {
             void act(LWComponent c) {
                 if (c instanceof LWGroup)
@@ -298,14 +302,16 @@ public class VUE
             }
         };
     static final MapAction Rename =
-        new MapAction("Rename")
+        new MapAction("Rename", keyStroke(KeyEvent.VK_F2))
         {
-            boolean enabled(java.util.List l) { return l.size() == 1; }
+            boolean enabledFor(java.util.List l) { return l.size() == 1; }
             void act(LWComponent c) {
                 getActiveViewer().activateLabelEdit(c);
             }
         };
-    static final MapAction Delete = new MapAction("Delete") {
+    static final MapAction Delete =
+        new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
+        {
             void act(java.util.List selectionList)
             {
                 // need to copy list as selection gets modified as we delete
@@ -314,11 +320,12 @@ public class VUE
                     LWComponent c = (LWComponent) comps[i];
                     c.getParent().removeChild(c);
                 }
-            }};
+            }
+        };
     static final MapAction BringToFront =
         new MapAction("Bring to Front",
                       "Raise object to the top, completely unobscured",
-                      keyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL+SHIFT))
+                      keyStroke(KeyEvent.VK_CLOSE_BRACKET, META+SHIFT))
         {
             void act(java.util.List selection) {
                 LWGroup.bringToFront(selection);
@@ -327,24 +334,75 @@ public class VUE
     static final MapAction SendToBack =
         new MapAction("Send to Back",
                       "Make sure this object doesn't obscure any other object",
-                      keyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL+SHIFT))
+                      keyStroke(KeyEvent.VK_OPEN_BRACKET, META+SHIFT))
         {
             void act(java.util.List selection) {
                 LWGroup.sendToBack(selection);
             }
         };
     static final MapAction BringForward =
-        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, CTRL))
+        new MapAction("Bring Forward", keyStroke(KeyEvent.VK_CLOSE_BRACKET, META))
         {
             void act(java.util.List selection) {
                 LWGroup.bringForward(selection);
             }
         };
     static final MapAction SendBackward =
-        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, CTRL))
+        new MapAction("Send Backward", keyStroke(KeyEvent.VK_OPEN_BRACKET, META))
         {
             void act(java.util.List selection) {
                 LWGroup.sendBackward(selection);
+            }
+        };
+    static final MapAction NewNode =
+        new MapAction("New Node", keyStroke(KeyEvent.VK_N, META))
+        {
+            LWNode lastNode = null;
+            Point lastMousePress = null;
+            Point2D lastNodeLocation = null;
+            
+            public void actionPerformed(ActionEvent ae)
+            {
+                System.out.println(ae.getActionCommand());
+                // todo: this is where we'll get the active NodeTool
+                // and have it create the new node based on it's current
+                // settings -- move this logic to NodeTool
+                
+                MapViewer viewer = getActiveViewer();
+                LWNode node = new LWNode("new node");
+                Point mousePress = viewer.getLastMousePoint();
+                //System.out.println("    mousePress: " + mousePress);
+                //System.out.println("lastMousePress: " + lastMousePress);
+                
+                Point2D newNodeLocation = viewer.screenToMapPoint(mousePress);
+                
+                if (mousePress.equals(lastMousePress) &&
+                    lastNode.getLocation().equals(lastNodeLocation))
+                {
+                    newNodeLocation.setLocation(lastNodeLocation.getX() + 10,
+                                                lastNodeLocation.getY() + 10);
+                }
+                
+                node.setLocation(newNodeLocation);
+                viewer.getMap().addNode(node);
+
+                //better: run a timer and do this if no activity (e.g., node creation)
+                // for 250ms or something -- todo bug: every other new node not activating label edit
+                viewer.paintImmediately(viewer.getBounds());
+                viewer.activateLabelEdit(node);
+
+                lastNode = node;
+                lastNodeLocation = newNodeLocation;
+                lastMousePress = mousePress;
+            }
+            
+        };
+
+    static final MapAction ZoomIn =
+        new MapAction("Zoom In", keyStroke(KeyEvent.VK_PLUS, META))
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
             }
         };
     }
@@ -381,18 +439,21 @@ public class VUE
         {
             java.util.List selectionList = getActiveViewer().getSelectionList();
             //todo: if no active viewer, try a static MapViewer in case it's running alone
+            System.out.println(ae);
             System.out.println(ae.getActionCommand() + " " + selectionList);
+            /*
             if (selectionList.size() == 0) {
                 System.err.println("MapAction: nothing in selection!");
                 return;
             }
-            if (enabled(selectionList)) {
+            */
+            if (enabledFor(selectionList)) {
                 act(selectionList);
                 getActiveViewer().repaint();
             } else
-                System.out.println("Not allowed now");
+                System.out.println("Not enabled given this selection.");//todo: disable action
         }
-        boolean enabled(java.util.List l) { return true; }
+        boolean enabledFor(java.util.List l) { return l.size() > 0; }
         
         void act(java.util.List selectionList)
         {
@@ -455,6 +516,8 @@ public class VUE
         editMenu.add(new JMenuItem("Undo"));
         editMenu.add(new JMenuItem("Redo"));
         editMenu.addSeparator();
+        editMenu.add(Actions.NewNode);
+        editMenu.addSeparator();
         editMenu.add(new JMenuItem("Cut"));
         editMenu.add(new JMenuItem("Copy"));
         editMenu.add(new JMenuItem("Paste"));
@@ -494,8 +557,8 @@ public class VUE
         alignMenu.add(new JMenuItem("Column"));
         
         arrangeMenu.add(Actions.BringToFront);
-        arrangeMenu.add(Actions.SendToBack);
         arrangeMenu.add(Actions.BringForward);
+        arrangeMenu.add(Actions.SendToBack);
         arrangeMenu.add(Actions.SendBackward);
         arrangeMenu.addSeparator();
         arrangeMenu.add(Actions.Group);
@@ -540,6 +603,7 @@ public class VUE
         frame.getContentPane().add(toolBar,BorderLayout.NORTH);
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {System.exit(0);}});
+
     }
 
 
