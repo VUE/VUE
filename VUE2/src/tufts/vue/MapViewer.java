@@ -2480,8 +2480,9 @@ public class MapViewer extends javax.swing.JPanel
                   InfoFieldIterator inf = (InfoFieldIterator)infoRecord.getInfoFields();
                   while(inf.hasNext()) {
                       InfoField infoField = (InfoField)inf.next();
-                      String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getValue().toString();
-                      infoRecordMenu.add(new FedoraAction(infoField.getValue().toString(),method));
+                      //String method = asset.getId().getIdString()+"/"+infoRecord.getId().getIdString()+"/"+infoField.getId().getIdString();
+                      infoRecordMenu.add(tufts.dr.fedora.FedoraUtils.getFedoraAction(infoField));
+                      //infoRecordMenu.add(new FedoraAction(infoField.getId().getIdString(),method));
                   }
                   
                   returnMenu.add(infoRecordMenu);
@@ -2527,22 +2528,4 @@ public class MapViewer extends javax.swing.JPanel
 
 }
 
-class FedoraAction extends AbstractAction {
-    
-    /** Creates a new instance of exitAction */
-    static final String FEDORA_URL= "http://hosea.lib.tufts.edu:8080/fedora/";
-    String method = null;
-    public FedoraAction() {
-    }
-    
-    public FedoraAction(String label,String method) {
-        super(label);
-        this.method = method;
-    }
-    
-    public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
-      try {
-        VueUtil.openURL(FEDORA_URL+"get/"+method);
-      } catch(Exception e) { System.out.println("AbstractAction.actionPerformed" +e);} 
-    }
-}
+
