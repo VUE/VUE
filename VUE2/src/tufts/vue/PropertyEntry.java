@@ -55,7 +55,7 @@ public class PropertyEntry {
     }
 
     public String toString() {
-        return "PropertyEntry[" + entryKey + " val=" + entryValue + "]";
+        return "PropertyEntry[" + entryKey + "=" + entryValue + "]";
     }
     
     
