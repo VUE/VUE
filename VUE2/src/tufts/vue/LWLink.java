@@ -1016,6 +1016,7 @@ public class LWLink extends LWComponent
 
         double rotation1 = 0;
         double rotation2 = 0;
+
         if (isCurved) {
             if (isCubicCurve) {
                 rotation1 = computeAngle(startX, startY, cubicCurve.ctrlx1, cubicCurve.ctrly1);
@@ -1028,32 +1029,33 @@ public class LWLink extends LWComponent
             rotation1 = computeAngle(line.getX1(), line.getY1(), line.getX2(), line.getY2());
             rotation2 = rotation1 + Math.PI;  // flip: add 180 degrees
         }
+
         
         AffineTransform savedTransform = gg.getTransform();
         
         gg.setStroke(this.stroke);
-        
+
         // draw the first arrow
         // todo: adjust the arrow shape with the stroke width
         // do the adjustment in setStrokeWidth, actually.
-        gg.translate(line.getX1(), line.getY1());
+        //gg.translate(line.getX1(), line.getY1());
+        gg.translate(startX, startY);
         gg.rotate(rotation1);
-        gg.translate(-ep1Shape.getWidth() / 2, 0); // todo: based on assumption is our Triangle2D
+        gg.translate(-ep1Shape.getWidth() / 2, 0); // center shape on point (makes some assumption)
         gg.fill(ep1Shape);
-//if (rotation1 == Math.PI / 4) gg.setColor(Color.red);
         gg.draw(ep1Shape);
 
         gg.setTransform(savedTransform);
-
+        
         // draw the second arrow
-        gg.translate(line.getX2(), line.getY2());
+        //gg.translate(line.getX2(), line.getY2());
+        gg.translate(endX, endY);
         gg.rotate(rotation2);
-        gg.translate(-ep2Shape.getWidth()/2, 0); // todo: based on assumption is our Triangle2D
+        gg.translate(-ep2Shape.getWidth()/2, 0); // center shape on point 
         gg.fill(ep2Shape);
         gg.draw(ep2Shape);
 
         gg.setTransform(savedTransform);
-//gg.setColor(strokeColor);
     }
 
     
