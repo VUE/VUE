@@ -236,11 +236,11 @@ public class LWMap extends LWContainer
     }
     
     public void draw(DrawContext dc){
-        super.draw(dc);
         LWPathway path = this.getPathwayManager().getCurrentPathway();        
         if (path != null) {
-            path.drawPathway(dc.g);
+            path.drawPathway((Graphics2D) dc.g.create());
         }
+        super.draw(dc);
 
         if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.red);
