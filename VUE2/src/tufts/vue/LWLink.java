@@ -37,6 +37,11 @@ class LWLink extends LWComponent
         c2.addLink(this);
     }
 
+    public boolean absoluteDrawing()
+    {
+        return true;
+    }
+    
     public boolean intersects(Rectangle2D rect)
     {
         return rect.intersectsLine(this.line);
@@ -111,7 +116,10 @@ class LWLink extends LWComponent
         g.setColor(Color.lightGray);
         g.setStroke(STROKE_ONE);
         //g.drawRect((int)getX(), (int)getY(), (int)getWidth(), (int)getHeight());
-        box.setRect(getX(), getY(), getWidth(), getHeight());
+        if (VueUtil.StrokeBug05)
+            box.setRect(getX()-0.5, getY()-0.5, getWidth(), getHeight());
+        else
+            box.setRect(getX(), getY(), getWidth(), getHeight());
         g.draw(box);
 
         /*
@@ -134,6 +142,12 @@ class LWLink extends LWComponent
             if (strokeWidth > MAX_RENDER_WIDTH)
                 strokeWidth = MAX_RENDER_WIDTH;
             g.setStroke(new BasicStroke(strokeWidth));
+        }
+        if (VueUtil.StrokeBug05) {
+            sx -= 0.5;
+            sy -= 0.5;
+            ex -= 0.5;
+            ey -= 0.5;
         }
         this.line.setLine(sx, sy, ex, ey);
         g.draw(this.line);
