@@ -37,6 +37,12 @@ public class Publisher extends JDialog implements ActionListener {
     public final int RESOURCE_COL = 1; // column that displays the name of resource
     public final int SIZE_COL = 2; // the column that displays size of files.
     public final int STATUS_COL = 3;// the column that displays the status of objects that will be ingested.
+    public final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
+    public final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
+    public final int WIDTH = 600; 
+    public final int HEIGHT = 250;
+    public final String[] PUBLISH_INFORMATION = {"Publish Map","Publish Map and its contents","Publish each item of the map and then the map with references to publish items."};
+    
     private int publishMode = PUBLISH_MAP; 
     private final int BUFFER_SIZE = 10240;// size for transferring files
     private int stage; // keep tracks of the screen
@@ -49,6 +55,7 @@ public class Publisher extends JDialog implements ActionListener {
     JRadioButton publishMapRButton;
     JRadioButton publishCMapRButton;
     JRadioButton publishAllRButton;
+    JTextArea informationArea;
     Vector resourceVector;
     File activeMapFile;
     ResourceTableModel resourceTableModel;
@@ -69,15 +76,18 @@ public class Publisher extends JDialog implements ActionListener {
      
         stage = 1;
         
-        setLocation(300,300);
+        setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
-        setSize(600, 250);
+        setSize(WIDTH,HEIGHT);
         setResizable(false);
         show();
        
     }
     
     private void setUpModeSelectionPanel() {
+        Vector dataSourceVector = new Vector();
+        dataSourceVector.add("Tufts Digital Library");
+        
         modeSelectionPanel = new JPanel();
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -86,9 +96,19 @@ public class Publisher extends JDialog implements ActionListener {
         
         ButtonGroup modeSelectionGroup = new ButtonGroup();
         JLabel topLabel = new JLabel("Select the Publish Mode");
-        JLabel dsLabel = new JLabel("Datasource selection");
+        
+        //area for displaying information about publishing mode
+        informationArea = new JTextArea("Please select the mode for publiscation from above");
+        informationArea.setEditable(false);
+        informationArea.setLineWrap(true);
+        informationArea.setRows(4);
+        //informationArea.setBackground(Color.WHITE);
+        informationArea.setSize(WIDTH-50, HEIGHT/3);
+        
+        JLabel dsLabel = new JLabel("Where would you like to save the map:");
+        JComboBox dataSourceComboBox = new JComboBox(dataSourceVector);
+        
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBorder(new LineBorder(Color.LIGHT_GRAY));
         publishMapRButton = new JRadioButton("Publish Map");
         publishCMapRButton = new JRadioButton("Publish CMAP");
         publishAllRButton = new JRadioButton("Publish All");
@@ -96,49 +116,58 @@ public class Publisher extends JDialog implements ActionListener {
         publishCMapRButton.addActionListener(this);
         publishAllRButton.addActionListener(this);
         
-        nextButton.setEnabled(false);
-        finishButton.setEnabled(false);
-        
-        
         modeSelectionGroup.add(publishMapRButton);
         modeSelectionGroup.add(publishCMapRButton);
         modeSelectionGroup.add(publishAllRButton);
         buttonPanel.add(publishMapRButton);
         buttonPanel.add(publishCMapRButton);
         buttonPanel.add(publishAllRButton);
+       
+        JPanel bottomPanel = new JPanel();
+       // bottomPanel.setBorder(new LineBorder(Color.BLACK));
+        bottomPanel.add(nextButton);
+        bottomPanel.add(finishButton);
+        bottomPanel.add(cancelButton);
+       //bottomPanel.setSize(WIDTH/3, HEIGHT/10);
+         
         
-        c.gridx = 0;
+        nextButton.setEnabled(false);
+        finishButton.setEnabled(false);
+        
         c.gridy = 0;
-        c.gridwidth = 4;
+        c.gridx = 0;
+        c.gridwidth = 6;
+        c.anchor = GridBagConstraints.WEST;
         c.insets = defaultInsets;
         gridbag.setConstraints(topLabel, c);
         modeSelectionPanel.add(topLabel);
         
-        c.gridx = 0;
         c.gridy = 1;
         gridbag.setConstraints(buttonPanel, c);
         modeSelectionPanel.add(buttonPanel);
         
-        c.gridx = 0;
         c.gridy = 2;
+        c.gridwidth = 6;
+        gridbag.setConstraints(informationArea, c);
+        modeSelectionPanel.add(informationArea);
+
+        c.gridy = 3;
+        c.gridwidth =2;
         gridbag.setConstraints(dsLabel,c);
         modeSelectionPanel.add(dsLabel);
-        
-        c.gridy = 3;
-        c.gridx = 1;
-        c.gridwidth = 1;
-        c.insets = new Insets(2, 80,2, 2);
-        gridbag.setConstraints(nextButton, c);
-        modeSelectionPanel.add(nextButton);
-        
-        c.gridx = 2;
-        c.insets = defaultInsets;
-        gridbag.setConstraints(finishButton, c);
-        modeSelectionPanel.add(finishButton);
-        
+
+        c.gridy = 4;
+        c.gridwidth =2;
+        gridbag.setConstraints(dataSourceComboBox,c);
+        modeSelectionPanel.add(dataSourceComboBox);
+
+        c.gridy = 5;
         c.gridx = 3;
-        gridbag.setConstraints(cancelButton,c);
-        modeSelectionPanel.add(cancelButton);   
+        c.gridwidth =3;
+        c.anchor = GridBagConstraints.EAST;
+        c.insets = defaultInsets;
+        gridbag.setConstraints(bottomPanel, c);
+        modeSelectionPanel.add(bottomPanel);
     }
     
     private void  setUpResourceSelectionPanel() {
@@ -148,18 +177,27 @@ public class Publisher extends JDialog implements ActionListener {
         resourceSelectionPanel.setLayout(gridbag);
         Insets defaultInsets = new Insets(2,2,2,2);
         
+        
+        JPanel bottomPanel = new JPanel();
+       // bottomPanel.setBorder(new LineBorder(Color.BLACK));
+        bottomPanel.add(backButton);
+        bottomPanel.add(finishButton);
+        bottomPanel.add(cancelButton);
+        finishButton.setEnabled(true);
+        
+        
         c.gridx = 0;
         c.gridy = 0;
-        c.gridwidth = 4;
+        c.gridwidth = 6;
         c.insets = defaultInsets;
-        JLabel topLabel = new JLabel("Following Objects will be ingested");
+        c.anchor = GridBagConstraints.WEST;
+        JLabel topLabel = new JLabel("The following objects will be published with the map:");
         gridbag.setConstraints(topLabel,c);
         resourceSelectionPanel.add(topLabel);
         
         c.gridx =0;
         c.gridy =1;
         c.gridheight = 2;
-        c.fill = GridBagConstraints.BOTH;
         JPanel resourceListPanel = new JPanel();
         JComponent resourceListPane = getResourceListPane();
         resourceListPanel.add(resourceListPane);
@@ -167,21 +205,11 @@ public class Publisher extends JDialog implements ActionListener {
         resourceSelectionPanel.add(resourceListPanel);
         
         c.gridy = 3;
-        c.gridx = 1;
-        c.gridwidth = 1;
-        c.insets = new Insets(2, 80,2, 2);
-        gridbag.setConstraints(backButton, c);
-        resourceSelectionPanel.add(backButton);
+        c.anchor = GridBagConstraints.EAST;
+        gridbag.setConstraints(bottomPanel, c);
+        resourceSelectionPanel.add(bottomPanel);
         
-        c.gridx = 2;
-        c.insets = defaultInsets;
-        gridbag.setConstraints(finishButton, c);
-        resourceSelectionPanel.add(finishButton);
-        finishButton.setEnabled(true);
-        
-        c.gridx = 3;
-        gridbag.setConstraints(cancelButton,c);
-        resourceSelectionPanel.add(cancelButton);   
+        // c.insets = new Insets(2, 60,2, 2);
         
     }
     
@@ -197,7 +225,7 @@ public class Publisher extends JDialog implements ActionListener {
         resourceTableModel = new ResourceTableModel(resourceVector, columnNamesVector);
         
         resourceTable = new JTable(resourceTableModel);
-        resourceTable.setPreferredScrollableViewportSize(new Dimension(500, 70));
+        resourceTable.setPreferredScrollableViewportSize(new Dimension(500,100));
 
       //  resourceList.setDefaultRenderer(String.class,resourceTableCellRenderer);
         return new JScrollPane(resourceTable);
@@ -205,10 +233,7 @@ public class Publisher extends JDialog implements ActionListener {
         
     }
     private void setLocalResourceVector(Vector vector,LWContainer map) {
-
-       
        Iterator i = map.getChildIterator();
-
        while(i.hasNext()) {
            LWComponent component = (LWComponent) i.next();
            if(component.hasResource()){
@@ -366,10 +391,8 @@ public class Publisher extends JDialog implements ActionListener {
         IMSCP imscp = new IMSCP();
         saveActiveMap();
         System.out.println("Writing Active Map : "+activeMapFile.getName());
-        imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);
-        
-        Iterator i = resourceVector.iterator();
-        
+        imscp.putEntry(IMSCP.MAP_FILE,activeMapFile);        
+        Iterator i = resourceVector.iterator();       
         while(i.hasNext()) {
             Vector vector = (Vector)i.next();
             Resource r = (Resource)(vector.elementAt(1));
@@ -377,17 +400,15 @@ public class Publisher extends JDialog implements ActionListener {
 
             File file = new File(r.getFileName());
 
-       
+
             if(file.isFile() && b.booleanValue()) {
                  System.out.println("Resource = " + r+"size = "+r.getSize()+ " FileName = "+file.getName()+" index ="+resourceVector.indexOf(vector));
                  resourceTable.setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                  imscp.putEntry(IMSCP.RESOURCE_FILES+"/"+file.getName(),file);
                  resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                 
             }    
            
-        }
-       
+        }   
         imscp.closeZOS();
         return imscp.getFile();
         
@@ -433,16 +454,19 @@ public class Publisher extends JDialog implements ActionListener {
             finishButton.setEnabled(true);
             nextButton.setEnabled(false);
             publishMode = PUBLISH_MAP;
+            informationArea.setText(PUBLISH_INFORMATION[PUBLISH_MAP]);
         }
         if(e.getSource() == publishCMapRButton || e.getSource() == publishAllRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
             publishMode = PUBLISH_CMAP;
+            informationArea.setText(PUBLISH_INFORMATION[PUBLISH_CMAP]);
         }
         if(e.getSource() == publishAllRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
             publishMode = PUBLISH_ALL;
+            informationArea.setText(PUBLISH_INFORMATION[PUBLISH_ALL]);
         }
         
     }
