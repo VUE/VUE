@@ -20,6 +20,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.Graphics2D;
 import java.io.File;
 import tufts.vue.beans.*;
+import tufts.vue.filter.*;
 
 public class LWMap extends LWContainer
     implements ConceptMap
@@ -47,6 +48,10 @@ public class LWMap extends LWContainer
 
     /** Metadata for Publishing **/ 
     Properties metadata = new Properties();
+    
+    /** Map Metadata-  this is for adding specific metadata and filtering **/
+    
+    MapFilterModel  mapFilterModel = new MapFilterModel();
     
     private long mChanges = 0;
     private boolean mCachedBoundsOld = true;
@@ -231,6 +236,14 @@ public class LWMap extends LWContainer
      
    public void setMetadata(Properties metadata) {
        this.metadata = metadata;
+   }
+   
+   public MapFilterModel getMapFilterModel() {
+       return mapFilterModel;
+   }
+   
+   public void setMapFilterModel(MapFilterModel mapFilterModel) {
+       this.mapFilterModel = mapFilterModel;
    }
     /* 
     public LWPathwayManager getPathwayManager(){ 

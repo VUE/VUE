@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 import tufts.vue.beans.UserMapType;
+import tufts.vue.filter.*;
 
 /**
  * LWComponent.java
@@ -230,6 +231,14 @@ public class LWComponent
         else
             return getLabel();
     }
+    
+    public void setNodeFilter(NodeFilter nodeFilter) {
+        this.nodeFilter = nodeFilter;
+    }
+    
+    public NodeFilter getNodeFilter() {
+        return nodeFilter;
+    }
 
     /** does this support a user editable label? */
     public boolean supportsUserLabel() {
@@ -264,7 +273,7 @@ public class LWComponent
     }
     public boolean hasMetaData()
     {
-        return this.metaData != null;
+        return this.metaData != null;gajendracircle
     }
     */
     public boolean inPathway()
@@ -418,6 +427,7 @@ public class LWComponent
     private UserMapType mUserMapType = null;
     private java.util.Map mUserPropertyValues = new java.util.HashMap();
    private boolean mIsFiltered = false;
+   private NodeFilter nodeFilter = new NodeFilter();
     
     // persistent impl
     protected float width = 10;

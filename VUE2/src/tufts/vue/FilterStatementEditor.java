@@ -26,9 +26,9 @@ import javax.swing.border.*;
 		// Statics
 		///////////
 		
-		static private String [] sConditions = {"contains","is","starts with","ends with" };
+		static private String [] sConditions = {"contains","equals","starts with","ends with" };
 		
-		static private String [] sSources = { "Anywhere", "Label","Notes","User Type","Resource","User Data" };
+		static private String [] sSources = { "All ", "Label","Notes","User Type","Resource","User Data" };
 		
 		protected SourceItem mAnywhereSource = new SourceItem( sSources[0], 0, null);
 		private SourceItem mLabelSource = new SourceItem( sSources[1], 1, null);		

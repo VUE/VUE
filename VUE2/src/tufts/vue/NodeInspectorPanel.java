@@ -15,6 +15,8 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 
+import tufts.vue.filter.*;
+
 /**
 * NodeInspectorPanel
 *
@@ -41,9 +43,12 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 	/** pathways panel **/
 	TreePanel mTreePanel = null;
 	
-	/** filter panel **/
+	/** notes panel **/
 	NotePanel mNotePanel = null;
 	
+        /** filter panel **/
+        
+        NodeFilterPanel mNodeFilterPanel = null;
 	///////////////////
 	// Constructors
 	////////////////////
@@ -60,10 +65,12 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 		mInfoPanel = new InfoPanel();
 		mTreePanel = new TreePanel();
 		mNotePanel = new NotePanel();
+                mNodeFilterPanel = new NodeFilterPanel();
 		
 		mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
 		mTabbedPane.addTab( mTreePanel.getName(),  mTreePanel);
 		mTabbedPane.addTab( mNotePanel.getName(), mNotePanel);
+                mTabbedPane.addTab(mNodeFilterPanel.getName(),mNodeFilterPanel);
 	
 		add( BorderLayout.CENTER, mTabbedPane );
 	}
@@ -102,6 +109,7 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 		mInfoPanel.updatePanel( mNode);
 		mTreePanel.updatePanel( mNode);
 		mNotePanel.updatePanel( mNode);
+                mNodeFilterPanel.updatePanel(mNode);
 	}
 	
 	//////////////////////
@@ -265,6 +273,41 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                       tree.setSelectionPath(pNode);
 		 }
 	}
+        
+         public class NodeFilterPanel extends JPanel implements ActionListener{
+             NodeFilterEditor nodeFilterEditor = null;
+             
+             public NodeFilterPanel() {
+                 
+                 setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+                 setBorder( new EmptyBorder(4,4,4,4) );
+                 
+                 // todo in VUE to create map before adding panels or have a model that
+                 // has selection loaded when map is added.
+                // nodeFilterEditor = new NodeFilterEditor(mNode.getNodeFilter(),true);
+                // add(nodeFilterEditor);
+             }
+            
+             
+             public void actionPerformed(ActionEvent e) {
+             }
+             public String getName() {
+                 return "Node Filters"; // this should come from VueResources
+             }
+             public void updatePanel( LWNode node) {
+                 // update the display
+                 System.out.println("Updated Panel ="+node);
+                 if(nodeFilterEditor!= null)
+                     remove(nodeFilterEditor);
+                 nodeFilterEditor = new NodeFilterEditor(node.getNodeFilter(),true);
+                 add(nodeFilterEditor);
+                 validate();
+                 
+                 
+             }
+             
+             
+         }
 	
 
     /**
@@ -278,6 +321,8 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
             mTabbedPane.setSelectedComponent( mInfoPanel );
         } else if (pTabKey == ObjectInspectorPanel.TREE_TAB ) {
             mTabbedPane.setSelectedComponent( mTreePanel );
+        } else if(pTabKey == ObjectInspectorPanel.FILTER_TAB) {
+            mTabbedPane.setSelectedComponent(mNodeFilterPanel);
         }
     }
 

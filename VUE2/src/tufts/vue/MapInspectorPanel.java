@@ -16,15 +16,17 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 
+import tufts.vue.filter.*;
+
 /**
 * ObjectInspectorPanel
 *
 * The Object  Inspector Panel!
 *
 \**/
-public class MapInspectorPanel extends JPanel 
-    implements VUE.ActiveMapListener
-{
+public class MapInspectorPanel  extends JPanel 
+			implements  VUE.ActiveMapListener {
+
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
     static public final int NOT_ANY_MODE = 2;
@@ -52,13 +54,16 @@ public class MapInspectorPanel extends JPanel
         /** Metadata Panel **/
         MetadataPanel metadataPanel = null;
 	
+        /** Map Filters **/
+        
+        MapFilterPanel mapFilterPanel = null;
 	///////////////////
 	// Constructors
 	////////////////////
 	
 	public MapInspectorPanel() {
 		super();
-		
+		VUE.addActiveMapListener(this);
 		setMinimumSize( new Dimension( 150,200) );
 		setLayout( new BorderLayout() );
 		setBorder( new EmptyBorder( 5,5,5,5) );
@@ -70,11 +75,13 @@ public class MapInspectorPanel extends JPanel
 		mPathPanel = new PathwayPane();
 		mFilterPanel = new FilterPanel();
                 metadataPanel = new MetadataPanel();
+                mapFilterPanel = new MapFilterPanel();
 		
 		mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
 		mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
 		mTabbedPane.addTab( mFilterPanel.getName(), mFilterPanel);
                 mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
+                mTabbedPane.addTab(mapFilterPanel.getName(),mapFilterPanel);
 	
 		add( BorderLayout.CENTER, mTabbedPane );
                 setMap(VUE.getActiveMap());
@@ -122,6 +129,7 @@ public class MapInspectorPanel extends JPanel
 			mPathPanel.updatePanel( mMap);
 			mFilterPanel.updatePanel( mMap);
                         metadataPanel.updatePanel(mMap);
+                        mapFilterPanel.updatePanel(mMap);
 			}
 	}
 	
@@ -157,6 +165,7 @@ public class MapInspectorPanel extends JPanel
 		mTabbedPane.setSelectedComponent( metadataPanel);
 	}
 	
+
         public void activeMapChanged(LWMap map) {
             setMap(map);
         }
@@ -418,11 +427,12 @@ public class MapInspectorPanel extends JPanel
 			topBox.add( mAnyAllCombo);
 			
 			mUpperPanel.add( BorderLayout.SOUTH, topBox);
-			
-			mFilterButton = new JButton("Apply Filter");
-			mClearFilterButton = new JButton("Cancel Filter");
-			mMoreButton = new JButton("More");
-			mFewerButton = new JButton("Fewer");
+
+			mFilterButton = new JButton( "Apply Filter");
+			mClearFilterButton = new JButton("Disable Filter");
+			mMoreButton = new VueButton("add");
+			mFewerButton = new VueButton("delete");
+
 			mFewerButton.hide();
 			
 			mFilterButton.addActionListener( this);
@@ -631,12 +641,18 @@ public class MapInspectorPanel extends JPanel
         
     public class MetadataPanel extends JPanel implements ActionListener, PropertyChangeListener {
                 PropertiesEditor propertiesEditor = null;
+                public MetadataPanel() {
+			setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+			setBorder( new EmptyBorder(4,4,4,4) );
+                }
+                
 		
-		public MetadataPanel() {
+		public MetadataPanel(LWMap map) {
 			
 			setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
 			setBorder( new EmptyBorder(4,4,4,4) );
-                       // add(propertiesEditor);
+                        propertiesEditor = new PropertiesEditor(map.getMetadata(),true);
+                        add(propertiesEditor);
                        
                 }
                 
@@ -654,6 +670,47 @@ public class MapInspectorPanel extends JPanel
                         remove(propertiesEditor);
                     propertiesEditor = new PropertiesEditor(pMap.getMetadata(),true);
                     add(propertiesEditor);
+                    validate();
+
+                        
+		}
+             
+                
+    }
+    
+    public class MapFilterPanel extends JPanel implements ActionListener, PropertyChangeListener {
+                MapFilterModelEditor mapFilterModelEditor = null;
+                
+                public MapFilterPanel() {
+			
+			setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+			setBorder( new EmptyBorder(4,4,4,4) );
+                       
+                }
+		
+		public MapFilterPanel(LWMap map) {
+			
+			setLayout( new FlowLayout(FlowLayout.LEFT,6,6) );
+			setBorder( new EmptyBorder(4,4,4,4) );
+                        mapFilterModelEditor = new MapFilterModelEditor(map.getMapFilterModel());
+                        add(mapFilterModelEditor);
+                       
+                }
+                
+                public void actionPerformed(ActionEvent e) {
+                }
+                
+                public void propertyChange(PropertyChangeEvent evt) {
+                }
+                public String getName() {
+                    return "Map Filters"; // this should come from VueResources
+                }
+                public void updatePanel( LWMap pMap) {
+			// update the display
+                    if(mapFilterModelEditor!= null)
+                        remove(mapFilterModelEditor);
+                    mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
+                    add(mapFilterModelEditor);
                     validate();
 
                         

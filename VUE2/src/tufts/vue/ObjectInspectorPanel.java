@@ -34,6 +34,7 @@ public class ObjectInspectorPanel  extends JPanel
     public static final int INFO_TAB = 0;
     public static final int NOTES_TAB = 1;
     public static final int TREE_TAB = 2;
+    public static final int FILTER_TAB = 3;
 	
 	private static final String kNullType = "null";
 	private static final String kNodeType = "node";
@@ -229,7 +230,7 @@ public class ObjectInspectorPanel  extends JPanel
 		// LWSelection.Listener Interface Implementation
 		/////////
 		public void selectionChanged( LWSelection pSelection) {
-			
+			System.out.println("Selection changed in ObjectInspectorPanel");
 			LWComponent lwc = null;
 			if( pSelection.size() == 1 )  {
 				debug( "Object Inspector single selection");

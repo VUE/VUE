@@ -47,13 +47,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         propertiesPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
         
         // GRID: addConditionButton
-        JButton addPropertyButton=new JButton(VueResources.getImageIcon("addLight"));
-        addPropertyButton.setPreferredSize(new Dimension(17, 17));
-        
+        JButton addPropertyButton=new VueButton("add");
         // GRID: deleteConditionButton
-        JButton deletePropertyButton=new JButton(VueResources.getImageIcon("deleteLight"));
-        deletePropertyButton.setPreferredSize(new Dimension(17, 17));
-
+        JButton deletePropertyButton=new VueButton("delete");
         //setting the listeners
         PropertiesSelectionListener sListener = new PropertiesSelectionListener(deletePropertyButton,-1);
         propertiesTable.getSelectionModel().addListSelectionListener(sListener);
