@@ -270,7 +270,7 @@ public class Publisher extends JDialog implements ActionListener {
                    try {
                         System.out.println("Resource = "+resource.getSpec());
                        // File file = new File(new URL(resource.getSpec()).getFile());
-                        File file = new File(resource.getSpec());
+                        File file = new File(new URL(resource.getSpec()).getFile());
                         if(file.isFile()) {
                             Vector row = new Vector();
                             row.add(new Boolean(true));
@@ -328,7 +328,8 @@ public class Publisher extends JDialog implements ActionListener {
                 Resource r = (Resource)(vector.elementAt(1));
                 Boolean b = (Boolean)(vector.elementAt(0));
                // File file = new File((String)vector.elementAt(1));
-                File file = new File(r.getSpec());
+                System.out.println("RESOURCE = "+r.getSpec());
+                File file = new File(new URL(r.getSpec()).getFile());
                 if(file.isFile() && b.booleanValue()) {
                     resourceTable.getModel().setValueAt("Processing",resourceVector.indexOf(vector),STATUS_COL);
                     String pid = getDR().ingest(file.getName(),"obj-binary.xml",file, r.getProperties()).getIdString();
