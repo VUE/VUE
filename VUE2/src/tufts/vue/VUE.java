@@ -37,6 +37,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import net.roydesign.mac.MRJAdapter;
+import net.roydesign.event.ApplicationEvent;
+
+//import com.apple.mrj.*;
 
 /**
  * Vue application class.
@@ -391,6 +394,23 @@ public class VUE
         else
             splashScreen = new SplashScreen();
 
+        if (VueUtil.isMacPlatform()) {
+            MRJAdapter.addQuitApplicationListener(new ExitAction());
+            MRJAdapter.addAboutListener(new AboutAction());
+            MRJAdapter.addOpenApplicationListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("VUE: OpenApplication " + e);
+                    }
+                });
+            MRJAdapter.addOpenDocumentListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("VUE: OpenDocument " + e);
+                        ApplicationEvent ae = (ApplicationEvent) e;
+                        VUE.displayMap(ae.getFile());
+                    }
+                });
+        }
+        
         //-------------------------------------------------------
         // Create the tabbed pane for the viewers
         //-------------------------------------------------------
@@ -705,16 +725,9 @@ public class VUE
         if (drBrowser != null && drBrowserTool != null)
             drBrowserTool.addTool(new DRBrowser());
 
-        if (VueUtil.isMacPlatform()) {
-            MRJAdapter.addQuitApplicationListener(new ExitAction());
-            MRJAdapter.addAboutListener(new AboutAction());
-            MRJAdapter.addOpenDocumentListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("VUE: open " + e);
-                    }
-                });
-            
             /*
+              // this was working for double-click launch AND open of a .vue file --
+              // above MRJAdapater callbacks aren't getting the open call after launch...
             MRJApplicationUtils.registerOpenDocumentHandler(new MRJOpenDocumentHandler() {
             public void handleOpenFile(File file) {
             System.err.println("MRJOpenDocumentHandler: " + file);
@@ -722,7 +735,6 @@ public class VUE
             }
             });
             */
-        }
         
         // An attempt to get the mac metal look picked up by something other than a frame
         // & other window experiments.
