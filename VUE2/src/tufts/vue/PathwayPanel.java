@@ -171,7 +171,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             });
         
         
-        pathwayTable = new PathwayTable(this, tableModel);
+        pathwayTable = new PathwayTable(tableModel);
         pathwayTable.setBackground(bgColor);
         
         for(int i = 0; i < 6; i++){
@@ -187,7 +187,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
                 public void selectionChanged(LWSelection s) {
                     if (s.size() == 1 && s.first().inPathway(getSelectedPathway()))
                         getSelectedPathway().setCurrentElement(s.first());
-                    updateEnabledStates();
+                    //updateEnabledStates();
                 }
             }     
         );
@@ -505,49 +505,29 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     }
     
     /**Removes the given pathway from the combo box list and the pathway manager*/
-    private void removePathway(LWPathway oldPathway)
-    {
+    private void removePathway(LWPathway oldPathway) {
         VUE.getActiveMap().getPathwayList().remove(oldPathway);
     }
     
     private void updateLabels()
     {
-        /*
-                    if(obj instanceof LWPathway){
-                        newText = newText + ((LWPathway)obj).getLabel();
-                        notesText = ((LWPathway)obj).getNotes();
-                        path = (LWPathway)obj;
-                    }
-                    else{
-                        path = tableModel.getCurrentPathway();
-                        comp = (LWComponent)tableModel.getElement(row);
-                        newText = newText + path.getLabel() 
-                            + " / " 
-                            + comp.getLabel();
-                        
-                        //notesText = comp.getNotes();
-                        notesText = path.getElementNotes(comp);
-                    }
-        pathLabel.setText(getSelectedPathway().getLabel());
-        pathLabel.repaint();
+        LWPathway pathway = getSelectedPathway();
+        LWComponent c = pathway.getCurrent();
         
-        notesArea.setText(notes);
-        notesArea.repaint();
-        
-        dispPath = path;
-        dispComp = comp;
-        */
-    }
+        String labelText = "Notes: " + pathway.getLabel();
+        String notesText = "";
 
-    void updateLabels(String text, String notes, LWPathway path, LWComponent comp){
-        pathLabel.setText(text);   
-        pathLabel.repaint();
+        if (c instanceof LWPathway) {
+            notesText = c.getNotes();
+        } else if (c != null) {
+            notesText = pathway.getElementNotes(c);
+            labelText += " / " + c.getLabel();
+        }
+        pathLabel.setText(labelText);
+        notesArea.setText(notesText);
         
-        notesArea.setText(notes);
-        notesArea.repaint();
-        
-        displayedComponent = comp;
-        displayedComponentPathway = path;
+        displayedComponent = c;
+        displayedComponentPathway = pathway;
     }
 
     public String toString() {

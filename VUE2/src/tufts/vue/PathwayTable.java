@@ -47,7 +47,7 @@ public class PathwayTable extends JTable
     private int lastSelectedRow = -1;
     private boolean showHeaders = true;    //sets whether or not table column headers are shown
     
-    public PathwayTable(PathwayPanel ta, PathwayTableModel model) {
+    public PathwayTable(PathwayTableModel model) {
         super(model);
 
         /*
@@ -57,8 +57,6 @@ public class PathwayTable extends JTable
                 }
             });
         */
-
-        final PathwayPanel pathPanel = ta;
 
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
@@ -103,8 +101,6 @@ public class PathwayTable extends JTable
                     int col = getSelectedColumn();
                     if (DEBUG.PATHWAY) System.out.println("PathwayTable: clicked row "+row+", col "+col);    
                     
-                    //PathwayTableModel tableModel = pathPanel.getTableModel();
-                    // could this have even been null??
                     LWComponent c = tableModel.getElement(row);
                     LWPathway path = null;
                     if (c instanceof LWPathway)
@@ -119,31 +115,6 @@ public class PathwayTable extends JTable
                     } else {
                         path.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
                     }
-
-
-                    String newText = "Notes: ";
-                    String notesText = "";
-                    //LWPathway path = null;
-                    LWComponent comp = null;
-                    //LWComponent c = tableModel.getElement(row);
-
-                    if (c instanceof LWPathway){
-                        newText = newText + c.getDisplayLabel();
-                        notesText = c.getNotes();
-                        path = (LWPathway) c;
-                    } else {
-                        //path = tableModel.getCurrentPathway();
-                        path = VUE.getActivePathway(); // is this too much an assumption at this point?
-                        newText = newText + path.getDisplayLabel() 
-                            + " / " 
-                            + c.getDisplayLabel();
-                        
-                        //notesText = comp.getNotes();
-                        notesText = path.getElementNotes(c);
-                    }
-                    
-                    pathPanel.updateLabels(newText, notesText, path, c);
-                    pathPanel.repaint();
                 }
                 });
 
