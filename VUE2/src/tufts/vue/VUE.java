@@ -533,7 +533,7 @@ public class VUE
             linkedlist.add(n3);
             linkedlist.add(k1);
             p1.setElementList(linkedlist);
-            map.addPathway(p1);
+            //map.addPathway(p1);
         }else{        
             LWPathway p2 = new LWPathway("Pathway 2");
             LinkedList anotherList = new LinkedList();
@@ -543,7 +543,7 @@ public class VUE
             anotherList.add(k2);
             anotherList.add(k3);
             p2.setElementList(anotherList);
-            map.addPathway(p2);
+            //map.addPathway(p2);
             
         }
     }
