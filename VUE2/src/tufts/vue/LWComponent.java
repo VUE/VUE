@@ -127,6 +127,15 @@ public class LWComponent
     {
         return this.label;
     }
+
+    /** does this support a user editable label? */
+    public boolean supportsUserLabel() {
+        return false;
+    }
+    /** does this support user resizing? */
+    public boolean supportsUserResize() {
+        return false;
+    }
     
     public boolean hasLabel()
     {
