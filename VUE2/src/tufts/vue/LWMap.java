@@ -178,10 +178,6 @@ implements ConceptMap//, Printable
     }
     long getModCount() { return mChanges; }
 
-    /** set the fill color w/out sending any events -- for temporary use */
-    void takeFillColor(java.awt.Color c) {
-        super.fillColor = c;
-    }
     
     /**
      * getLWCFilter()
@@ -527,6 +523,10 @@ implements ConceptMap//, Printable
     }
     
     LWComponent addLWC(LWComponent c) {
+        addChild(c);
+        return c;
+    }
+    public LWComponent add(LWComponent c) {
         addChild(c);
         return c;
     }
