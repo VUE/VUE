@@ -199,14 +199,11 @@ public class LWSelection extends java.util.ArrayList
     
     public boolean allOfSameType()
     {
-        Object oc = null;
         Iterator i = iterator();
-        while (i.hasNext()) {
-            Object c = i.next();
-            if (oc != null && oc.getClass() != c.getClass())
+        Object first = i.next();
+        while (i.hasNext())
+            if (i.next().getClass() != first.getClass())
                 return false;
-            oc = c;
-        }
         return true;
     }
 
