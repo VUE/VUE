@@ -121,13 +121,13 @@ public class LWLink extends LWComponent
             startX = e.getMapX();
             startY = e.getMapY();
             endpointMoved = true;
-            LinkTool.setMapIndicationIfOverValidTarget(ep2, e);
+            LinkTool.setMapIndicationIfOverValidTarget(ep2, this, e);
         } else if (index == 1) {
             setComponent2(null);
             endX = e.getMapX();
             endY = e.getMapY();
             endpointMoved = true;
-            LinkTool.setMapIndicationIfOverValidTarget(ep1, e);
+            LinkTool.setMapIndicationIfOverValidTarget(ep1, this, e);
         } else if (index == 2) {
             setCtrlPoint0(e.getMapPoint());
         } else if (index == 3) {
@@ -382,14 +382,6 @@ public class LWLink extends LWComponent
             return this.line;
     }
 
-    /** @deprecated -- use getShape() */
-    public Line2D getLine()
-    {
-        if (endpointMoved)
-            computeLinkEndpoints();
-        return this.line;
-    }
-
     private final int MaxZoom = 1; //todo: get from Zoom code
     private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
     public boolean intersects(Rectangle2D rect)
@@ -468,10 +460,6 @@ public class LWLink extends LWComponent
     {
         if (endpointMoved)
             computeLinkEndpoints();
-        if (VueUtil.StrokeBug05) {
-            x -= 0.5f;
-            y -= 0.5f;
-        }
         float swath = getStrokeWidth() / 2 + 20; // todo: config/preference
         float sx = this.centerX - swath;
         float sy = this.centerY - swath;
@@ -563,6 +551,7 @@ public class LWLink extends LWComponent
     {
         this.endPoint2_ID = s;
     }
+
     public boolean isOrdered()
     {
         return this.ordered;
@@ -684,7 +673,7 @@ public class LWLink extends LWComponent
         if (!m2vertical)
             m2 = (s2y1 - s2y2) / (s2x1 - s2x2);
         
-        // solve for b using any two points from each line
+        // Solve for b using any two points from each line.
         // to solve for b:
         //      y = mx + b
         //      y + -b = mx
@@ -936,7 +925,6 @@ public class LWLink extends LWComponent
         
         this.centerX = startX - (startX - endX) / 2;
         this.centerY = startY - (startY - endY) / 2;
-
         
         // Set our location to the midpoint between
         // the nodes we're connecting.
@@ -1001,13 +989,6 @@ public class LWLink extends LWComponent
             setY(this.centerY - getHeight()/2);
         }
 
-        if (VueUtil.StrokeBug05) {
-            startX -= 0.5;
-            startY -= 0.5;
-            endX -= 0.5;
-            endY -= 0.5;
-        }
-
         //-------------------------------------------------------
         // Set the stroke line
         //-------------------------------------------------------
@@ -1017,13 +998,11 @@ public class LWLink extends LWComponent
             quadCurve.y1 = startY;
             quadCurve.x2 = endX;
             quadCurve.y2 = endY;
-            //quadCurve.setCurve(startX, startY, ctrlX, ctrlY, endX, endY);
         } else if (curveControls == 2) {
             cubicCurve.x1 = startX;
             cubicCurve.y1 = startY;
             cubicCurve.x2 = endX;
             cubicCurve.y2 = endY;
-            //cubicCurve.setCurve(startX, startY, ctrlX, ctrlY, ctrlX, ctrlY + 20, endX, endY);
         }
         
         // if there are any links connected to this link, make sure they
@@ -1228,7 +1207,7 @@ public class LWLink extends LWComponent
                 //g.setStroke(new BasicStroke(0.5f));
                 //g.setStroke(new BasicStroke(0.2f));
                 g.setStroke(new BasicStroke(0.5f / (float) g.getTransform().getScaleX()));
-                // todo opt: less object allocation
+                // todo opt: less object allocation (put constant screen strokes in the DrawContext)
                 if (curveControls == 2) {
                     Line2D ctrlLine = new Line2D.Float(line.getP1(), cubicCurve.getCtrlP1());
                     g.draw(ctrlLine);
@@ -1262,8 +1241,8 @@ public class LWLink extends LWComponent
         if (label != null && label.length() > 0)
         {
             TextBox textBox = getLabelBox();
+            // only draw if we're not an active edit on the map
             if (textBox.getParent() == null) {
-                // only draw if we're not an active edit on the map
                 float lx = getLabelX();
                 float ly = getLabelY();
 
@@ -1288,6 +1267,9 @@ public class LWLink extends LWComponent
                 // todo: only need to do above set location when computing line
                 // or text changes somehow (content, font) or alignment changes
                 g.translate(lx, ly);
+                //if (isZoomedFocus()) g.scale(getScale(), getScale());
+                // todo: need to re-center label when this component relative to scale,
+                // and patch contains to understand a scaled label box...
                 textBox.draw(g);
                 if (isSelected()) {
                     Dimension s = textBox.getSize();
@@ -1298,10 +1280,13 @@ public class LWLink extends LWComponent
                     // keep such a stroke handy for us... (DrawContext would be handy again...)
                     g.drawRect(0,0, s.width, s.height);
                 }
+                //if (isZoomedFocus()) g.scale(1/getScale(), 1/getScale());
                 g.translate(-lx, -ly);
                 
             }
         }
+
+        if (DEBUG_CONTAINMENT) { g.setStroke(STROKE_HALF); g.draw(getBounds()); }
     }
 
     /** Create a duplicate LWLink.  The new link will

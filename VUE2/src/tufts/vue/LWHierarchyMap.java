@@ -96,7 +96,8 @@ public class LWHierarchyMap extends LWMap
                 
                 //calculates the distance to adjacent nodes from the root node passing through the given node
                 //could lose the precision..
-                int length = (int)connectedLink.getLine().getP1().distance(connectedLink.getLine().getP2());
+                // todo: how to handle curved links?
+                int length = (int)connectedLink.getPoint1().distance(connectedLink.getPoint2());
                 totalDistance += length;
              
                 //gets the component associated with the given link
