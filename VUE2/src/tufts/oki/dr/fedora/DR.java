@@ -57,20 +57,20 @@ public class DR implements osid.dr.DigitalRepository {
     public static final String DC_NAMESPACE = "dc:";
     public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
     
-    
-    // using the vue.conf file.  This is the default file. the file name will be set in the constructor in future.
-    private String displayName;
-    private String description;
-    private URL address;
-    private String userName;
-    private String password;
-    private String conf;
+    private Preferences prefs = null;
+    private String displayName = "";
+    private String description = "";
+    private URL address = null;
+    private String userName = null;
+    private String password = null;
+    private String conf = null;
     private java.util.Vector infoStructures = new java.util.Vector();
     private java.util.Vector assetTypes = new java.util.Vector();
     private java.util.Vector searchTypes = new java.util.Vector();
     private java.util.Vector assets = new java.util.Vector();
-    private osid.shared.Id id;
-    private URL configuration;
+    private osid.shared.Id id = null;
+    private URL configuration = null;
+
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
@@ -118,7 +118,7 @@ public class DR implements osid.dr.DigitalRepository {
         fedoraProperties = new Properties();
         try {
             System.out.println("Fedora Properties " + conf);
-            Preferences prefs = FedoraUtils.getPreferences(conf);
+            prefs = FedoraUtils.getPreferences(this);
             fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
             fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", ""));
@@ -145,7 +145,7 @@ public class DR implements osid.dr.DigitalRepository {
         return configuration;
     }
     
-    
+ 
     /**To create AssetTypes that don't exist when repository is loaded. OKI NEEDS to add such a feature
      *@ param String type
      *@ return FedoraObjectAssetType
@@ -556,7 +556,12 @@ public class DR implements osid.dr.DigitalRepository {
     public void setConf(String conf) {
         this.conf = conf;
     }
-    
+    public Preferences getPrefernces() {
+        return this.prefs;
+    }
+    public void setConf(Preferences prefs) {
+        this.prefs = prefs;
+    }
 }
 
 
