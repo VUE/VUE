@@ -31,7 +31,7 @@ public class IMSCP {
     
     public IMSCP() throws  IOException{
         tempFile = File.createTempFile("vueCMAP",".zip");
-        zos = new ZipOutputStream(new FileOutputStream(tempFile));
+        zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)));
     }
     /**
     public IMSCP(tufts.vue.ConceptMap map,URL location) {
@@ -61,19 +61,24 @@ public class IMSCP {
     }
     
     public void putEntry(String entryName,File file) throws ZipException, IOException {
+        
         byte[] buf = new byte[1024]; // buffer for reading file
         int len;
         if(zos == null) 
             throw new ZipException("IMSCP.putEntry(File file): ZipOutputstream not initialized");
-        
+        try {
         ZipEntry ze = new ZipEntry(entryName);
         zos.putNextEntry(ze);
-        FileInputStream fis = new FileInputStream(file);
+        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
         while ((len = fis.read(buf)) > 0) {
            zos.write(buf, 0, len);
         }
         fis.close();
         zos.closeEntry();
+        } catch(ZipException ex) {
+           if(!ex.getMessage().startsWith("duplicate")) // ignoring duplicate entries
+               throw ex;
+        }
     }
     
     public void putEntry(File file) throws ZipException, IOException {
