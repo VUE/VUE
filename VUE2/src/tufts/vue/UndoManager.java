@@ -13,11 +13,17 @@ public class UndoManager
 {
     ArrayList mChanges;
     ArrayList mNamedChangeGroups = new ArrayList();
+    ArrayList mPropertyChanges = new ArrayList();
 
     public UndoManager(LWMap map)
     {
         map.addLWCListener(this);
         mChanges = new ArrayList();
+    }
+
+    public static void undo()
+    {
+        if (DEBUG.UNDO) System.out.println("UNDO");
     }
     
     public void markChangesAsUndoable(String name)
@@ -28,11 +34,22 @@ public class UndoManager
 
     public void LWCChanged(LWCEvent e) {
         if (DEBUG.UNDO) System.out.println("UNDO: tracking " + e);
-        String t = e.getWhat();
+        String prop = e.getWhat();
+        LWComponent c = e.getComponent(); // can be list...
         Object old = e.getOldValue();
-        if (DEBUG.UNDO && old != null)
-            System.out.println("\tgot old value " + old);
+        if (old != null) {
+            if (DEBUG.UNDO) System.out.println("\tgot old value " + old);
+            if (mPropertyChanges.get
+        } else {
+            if (DEBUG.UNDO) System.out.println("\tunhandled");
+        }
         
+        
+    }
+
+    public String toString()
+    {
+        return "UndoManager[]";
     }
     
 }

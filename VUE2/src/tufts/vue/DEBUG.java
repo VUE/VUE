@@ -15,7 +15,6 @@ public class DEBUG
     public static boolean FOCUS = false;
     public static boolean UNDO = false;
     public static boolean PATHWAY = false;
-    public static boolean OLDPW = false;
 
     public static boolean META = false; // generic toggle to use in combination with other flags
 

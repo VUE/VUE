@@ -48,12 +48,10 @@ public class VUE
     private static MapTabbedPane mMapTabsRight;
     private static JSplitPane viewerSplit;
     
-    //pathway components
-    //public static LWPathwayInspector pathwayInspector;
-    //public static PathwayControl control;
-    static MapInspectorPanel sMapInspectorPanel;
+    static ToolWindow sMapInspector;
     static ToolWindow objectInspector;
     static ObjectInspectorPanel objectInspectorPanel;
+    //private static MapInspectorPanel sMapInspectorPanel;
     
     //hierarchy view tree window component
     private static LWHierarchyTree hierarchyTree;
@@ -481,10 +479,10 @@ public class VUE
         // Map Inspector
 		
         // get the proper scree/main frame size
-        ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
-        sMapInspectorPanel = new MapInspectorPanel();
-        ModelSelection.addListener(sMapInspectorPanel);
-        mapInspector.addTool(sMapInspectorPanel);
+        sMapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
+        MapInspectorPanel mi = new MapInspectorPanel();
+        ModelSelection.addListener(mi);
+        sMapInspector.addTool(mi);
         
         //ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
         objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
@@ -519,7 +517,7 @@ public class VUE
        
         Window[] toolWindows = {
             objectInspector,
-            mapInspector,
+            sMapInspector,
             drBrowserTool,
             toolbarWindow,
             //pathwayInspector,
@@ -543,9 +541,9 @@ public class VUE
         VueUtil.centerOnScreen(frame);
         
         // position inspectors pased on frame location
-        int inspectorx = frame.getX() + frame.getWidth() - mapInspector.getWidth();
-        mapInspector.setLocation( inspectorx, frame.getY());
-        objectInspector.setLocation( inspectorx, frame.getY() + mapInspector.getHeight() );
+        int inspectorx = frame.getX() + frame.getWidth() - sMapInspector.getWidth();
+        sMapInspector.setLocation( inspectorx, frame.getY());
+        objectInspector.setLocation( inspectorx, frame.getY() + sMapInspector.getHeight() );
         
         frame.addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {

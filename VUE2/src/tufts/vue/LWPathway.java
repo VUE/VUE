@@ -300,7 +300,7 @@ public class LWPathway extends LWContainer
     }
 
     public void setLocked(boolean t) {
-        Object oldValue = new Boolean(this.locked);
+        Object oldValue = locked ? Boolean.TRUE : Boolean.FALSE;
         this.locked = t;
         notify(t ? "pathway.lock" : "pathway.unlock", oldValue);
     }
@@ -309,7 +309,7 @@ public class LWPathway extends LWContainer
     }
     
     public void setOpen(boolean open){
-        Object oldValue = new Boolean(this.open);
+        Object oldValue = open ? Boolean.TRUE : Boolean.FALSE;
         this.open = open;
         notify(open ? "pathway.open" : "pathway.close", oldValue);
     }

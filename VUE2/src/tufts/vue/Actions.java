@@ -733,6 +733,7 @@ class Actions
         new VueAction("New Map")
         {
             private int count = 1;
+            public boolean undoable() { return false; }
             public void act()
             {
                 LWMap map = new LWMap("New Map " + count++);
@@ -745,8 +746,7 @@ class Actions
             // todo: listen to map viewer display event to tag
             // with currently displayed map name\
             boolean enabled() { return VUE.openMapCount() > 0; }
-            public void act()
-            {
+            public void act() {
                 VUE.closeMap(VUE.getActiveMap());
             }
         };
@@ -754,6 +754,9 @@ class Actions
         new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
             public boolean isEnabled() { return true; }
+            public void act() {
+                UndoManager.undo();
+            }
 
         };
     static final Action Redo =
@@ -863,6 +866,8 @@ class Actions
             this(name, null, null);
         }
 
+        public boolean undoable() { return true; }
+
         public String getActionName()
         {
             return (String) getValue(Action.NAME);
@@ -898,7 +903,7 @@ class Actions
             }
             //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
             System.out.println("active map: "+VUE.getActiveMap());
-            if (VUE.getActiveMap() != null)
+            if (VUE.getActiveMap() != null && undoable())
                 VUE.getActiveMap().getUndoManager().markChangesAsUndoable(ae.getActionCommand());
             //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
             updateActionListeners();

@@ -1340,7 +1340,7 @@ public class LWComponent
     
     public void setHidden(boolean hidden)
     {
-        Object oldValue = new Boolean(this.hidden);
+        Object oldValue = hidden ? Boolean.TRUE : Boolean.FALSE;
         this.hidden = hidden;
         notify("hidden", oldValue);
     }
@@ -1446,7 +1446,6 @@ public class LWComponent
         return false;
     }
 
-
     /** pesistance default */
     public void addObject(Object obj)
     {
@@ -1477,41 +1476,4 @@ public class LWComponent
         s += "]";
         return s;
     }
- 
-    /**for hashtable usage 
-       added by Daisuke Fujiwara
-       Why do we need this over the built-in native hashCode?  the ID
-       isn't always set and this won't work in those cases. --SF
-    */
-    
-    public int broken_hashCode()
-    {
-        if (getID() != null)
-          return Integer.parseInt(getID());
-        
-        else 
-          throw new IllegalStateException("illegal null ID for the component:" + toString());
-    }
-    
-    // There is no such thing as node "equality" -- either it's
-    // the same object or it's not, so use == to compute equality. --SF
-    // (or allow the default Object.equals, which does the same).
-    public boolean broken_equals(LWComponent component)
-    {   
-        //if the object comparing with is a null pointer then return false
-        if (component == null)
-          return false;
-        
-        else
-        {
-            //if the ID matches
-            if(getID().equals(component.getID()))
-              return true;
-        
-            else
-              return false;
-        }
-    }
-    
-    /**End of addition by Daisuke Fujiwara*/
 }
