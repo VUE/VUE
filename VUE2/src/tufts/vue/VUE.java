@@ -726,8 +726,6 @@ public class VUE
             
             u.setBackground(Color.white);
             r.setBackground(Color.white);
-            u.setFont(FONT_SMALL);
-            r.setFont(FONT_SMALL);
             menuBar.add(u).setFocusable(false);
             menuBar.add(r).setFocusable(false);
             menuBar.add(p).setFocusable(false);

@@ -19,13 +19,10 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         return super.getName() + " (VUE)";
     }
     
-    public FontUIResource getMenuTextFont() {
-        return defaultFont;
-    }
-    public FontUIResource getUserTextFont() {
-        return defaultFont;
-    }
-
+    public FontUIResource getMenuTextFont() { return defaultFont;  }
+    public FontUIResource getUserTextFont() { return defaultFont; }
+    public FontUIResource getControlTextFont() { return defaultFont; } // labels, buttons & tabs
+    
     protected ColorUIResource getSecondary1() { return VueSecondary1; }
     protected ColorUIResource getSecondary2() { return VueSecondary2; }
     protected ColorUIResource getSecondary3() { return VueSecondary3; }
@@ -38,7 +35,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     public void addCustomEntriesToTable(UIDefaults table)
     {
         table.put("ComboBox.background", Color.white);
-
+        table.put("Button.font", FONT_SMALL);
+        
         //new Throwable("addCustomEntriesToTable " + table).printStackTrace();
 
         /*
