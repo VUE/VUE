@@ -24,11 +24,7 @@ public class LWPathwayManager {
     private HashMap pathwaysNotes = null;
     private LWPathway current = null;
     private LWMap map = null;
-    //private boolean currentOpen = false;
     
-    /* beginning of castor mapping methods */
-    
-    /* constructors */
     public LWPathwayManager() {
         pathways = new ArrayList();
         pathwaysNotes = new HashMap();
@@ -40,7 +36,6 @@ public class LWPathwayManager {
         this.map = map;
     }
     
-    /* get and set the concept map for the arraylist of pathways*/
     public void setMap(LWMap map){
         this.map = map;
     }
@@ -49,7 +44,6 @@ public class LWPathwayManager {
         return map;
     }
 
-    /* iterates through arraylist of pathways elements */
     public java.util.Iterator getPathwayIterator() {
         return pathways.iterator();
     }
@@ -67,28 +61,11 @@ public class LWPathwayManager {
         }
     }
     
-    /* methods for accessing data from and manipulating the arraylist */
     public Object getPathwaysElement(int index){
-        return pathways.get(index);
+        if(index > -1)
+            return pathways.get(index);
+        return null;
     }
-    /*
-    public boolean getCurrentOpen(){
-        return this.currentOpen;
-    }
-    
-    public void setCurrentOpen(boolean currentOpen){
-        this.currentOpen = currentOpen;
-        if(this.currentOpen){
-            this.showPathwayElements();
-        }else{
-            this.hidePathwayElements();
-        }
-    }
-    
-    public void setCurrentOpen(){
-        boolean newValue = !this.currentOpen;
-        this.setCurrentOpen(newValue);
-    }*/
     
     public int getPathwayIndex(LWPathway path){
         return this.pathways.indexOf(path);
@@ -138,30 +115,6 @@ public class LWPathwayManager {
             java.util.List elementList = path.getElementList();
             this.pathways.addAll(this.getPathwayIndex(path)+1, elementList);
         }
-        
-        /*boolean c = true;
-        int index = 0;
-        
-        while(c){
-            LWPathway path = null;
-            
-            for(int i = index; i < pathways.size(); i++){
-                boolean chosen = false;
-                if(pathways.get(i) instanceof LWPathway && ((LWPathway)pathways.get(i)).getOpen() && !chosen){
-                    path = (LWPathway)pathways.get(i);
-                    chosen = true;
-                    index = i;
-                }
-            }
-            
-            if(path == null)
-                c =false;
-            else{
-                java.util.List list = path.getElementList();
-                this.pathways.addAll(this.getCurrentIndex()+1, list);
-                index += list.size();
-            }               
-        }*/
     }
     
     public void setPathOpen(LWPathway path){
@@ -171,7 +124,6 @@ public class LWPathwayManager {
     }
     
     private void hidePathwayElements(){
-        //LWPathway pathway = this.getCurrentPathway();
         
         ArrayList list = new ArrayList();
         for(int i = 0; i < pathways.size(); i++){
@@ -187,10 +139,8 @@ public class LWPathwayManager {
     }
     
     public LWPathway getPathwayforElementAt(int index){
-        System.out.println("in pathway manager get p for e:: index: " +index);
         if(index > 0){
             for(int i = index; i > -1; i--){
-                System.out.println("in pathway manager get p for e:: i: " +i+", inst: " + pathways.get(i).getClass());
                 if(pathways.get(i) instanceof LWPathway){
                     return (LWPathway)pathways.get(i);
                 }
@@ -200,15 +150,11 @@ public class LWPathwayManager {
     }
     
     public LWPathway getCurrentPathway() {
-        System.out.println("getting current pathway...current: "+current);
         return current;
     }
     
     public void setCurrentPathway(LWPathway pathway) {
-        //if(this.getCurrentPathway() != null && !this.getCurrentPathway().equals(pathway))
-        //    this.hidePathwayElements();
         current = pathway;
-        System.out.println("'setting current pathway...curreny: "+current);
         
         if (VUE.getActiveMap() != null)
             VUE.getActiveMap().notify(this, LWCEvent.Repaint);

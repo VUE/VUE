@@ -73,23 +73,31 @@ public class PathwayTab extends JPanel implements   ActionListener,
     private Font highlightFont = null;
     /* Pathway control properties */
 
-    private JButton firstButton = new JButton(VueResources.getImageIcon("controlRewindUp"));
-    private JButton backButton = new JButton(VueResources.getImageIcon("controlPlayBackwardUp"));
-    private JButton forwardButton = new JButton(VueResources.getImageIcon("controlPlayForwardUp"));
-    private JButton lastButton = new JButton(VueResources.getImageIcon("controlForwardUp"));
+    private ImageIcon firstUp = VueResources.getImageIcon("controlRewindUp");
+    private ImageIcon backUp = VueResources.getImageIcon("controlPlayBackwardUp");
+    private ImageIcon forwardUp = VueResources.getImageIcon("controlPlayForwardUp");
+    private ImageIcon lastUp = VueResources.getImageIcon("controlForwardUp");
+    private ImageIcon firstDown = VueResources.getImageIcon("controlRewindDown");
+    private ImageIcon backDown = VueResources.getImageIcon("controlPlayBackwardDown");
+    private ImageIcon forwardDown = VueResources.getImageIcon("controlPlayForwardDown");
+    private ImageIcon lastDown = VueResources.getImageIcon("controlForwardDown");
+    private ImageIcon firstDisabled = VueResources.getImageIcon("controlRewindDisabled");
+    private ImageIcon backDisabled = VueResources.getImageIcon("controlPlayBackwardDisabled");
+    private ImageIcon forwardDisabled = VueResources.getImageIcon("controlPlayForwardDisabled");
+    private ImageIcon lastDisabled = VueResources.getImageIcon("controlForwardDisabled");
     
     private ImageIcon addUpIcon = VueResources.getImageIcon("addPathwayUp");
     private ImageIcon addDownIcon = VueResources.getImageIcon("addPathwayDown");
+    private ImageIcon addDisabledIcon = VueResources.getImageIcon("addDisabled");
     private ImageIcon deleteUpIcon = VueResources.getImageIcon("deletePathwayUp");
     private ImageIcon deleteDownIcon = VueResources.getImageIcon("deletePathwayDown");
+    private ImageIcon deleteDisabledIcon = VueResources.getImageIcon("deleteDisabled");
     private ImageIcon lockUpIcon = VueResources.getImageIcon("lockUp");
         
     private JButton removeButton, createButton, lockButton;
-    //private JComboBox pathwayList;
+    private JButton firstButton, backButton, forwardButton, lastButton;
     private JPanel southNotes = null;
     private JTextArea notesArea = null;
-    
-    //private LWPathwayManager pathwayManager = null;
     
     private final String noPathway = "                          ";
     private final String emptyLabel = "empty";
@@ -107,7 +115,6 @@ public class PathwayTab extends JPanel implements   ActionListener,
  
     /** Creates a new instance of PathwayTab */
     public PathwayTab(JDialog parent) 
-    //public PathwayTab(Frame parent) 
     {   
         this.parent = parent;
         this.setBorder(BorderFactory.createMatteBorder(4, 4, 7, 4, bgColor));
@@ -123,14 +130,14 @@ public class PathwayTab extends JPanel implements   ActionListener,
          
         createButton = new JButton(addUpIcon);
         createButton.setSelectedIcon(addDownIcon);
-        createButton.setDisabledIcon(null);
+        createButton.setDisabledIcon(this.addDisabledIcon);
         createButton.addActionListener(this);
         createButton.setBorderPainted(false);
         createButton.setBackground(Color.white);
         
         removeButton = new JButton(deleteUpIcon);
         removeButton.setSelectedIcon(deleteDownIcon);
-        removeButton.setDisabledIcon(null);
+        removeButton.setDisabledIcon(this.deleteDisabledIcon);
         removeButton.addActionListener(this);
         removeButton.setBorderPainted(false);
         removeButton.setBackground(Color.white);
@@ -216,8 +223,15 @@ public class PathwayTab extends JPanel implements   ActionListener,
                             addElement.setEnabled(true);
                         else
                             addElement.setEnabled(false);
+                        
+                        LWPathway path = VUE.getActiveMap().getPathwayManager().getCurrentPathway();
+                        if (!path.getLocked() && path.getCurrentIndex() > -1)
+                            removeElement.setEnabled(true);
+                        else
+                            removeElement.setEnabled(false);
                     }else{
                         addElement.setEnabled(false);
+                        removeElement.setEnabled(false);
                     }
                 }
             }     
@@ -264,7 +278,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
         
         gc.weighty = 0.0;
         gc.gridheight = 1;
-        southPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
+        //southPanel.setPreferredSize(new Dimension(this.getWidth(), 15));
         southPanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.gray));
         bagLayout.setConstraints(southPanel, gc);
         tablePanel.add(southPanel);
@@ -359,11 +373,6 @@ public class PathwayTab extends JPanel implements   ActionListener,
          }
     }*/
     
-    public void setButton(JButton button){
-        button.addActionListener(this);
-        buttonPanel.add(button);
-    }
-    
     public JDialog getDialogParent(){
     //public Frame getParentFrame(){
         return parent;
@@ -377,25 +386,42 @@ public class PathwayTab extends JPanel implements   ActionListener,
         //pcPanel = new JPanel(new BorderLayout());
         
         /* buttons that are not used */
-        buttonPanel = new JPanel(new GridLayout(1, 4, 1, 0));
-        buttonPanel.setPreferredSize(new Dimension(79, 19));
+        buttonPanel = new JPanel(new GridLayout(1, 4, 0, 0));
+        buttonPanel.setPreferredSize(new Dimension(80, 20));
         buttonPanel.setBackground(altbgColor);
         
-        firstButton.setPreferredSize(new Dimension(19, 19));
-        lastButton.setPreferredSize(new Dimension(19, 19));
-        forwardButton.setPreferredSize(new Dimension(19, 19));
-        backButton.setPreferredSize(new Dimension(19, 19));
+        firstButton = new JButton(this.firstUp);
+        firstButton.setSelectedIcon(this.firstDown);
+        firstButton.setDisabledIcon(this.firstDisabled);
+        firstButton.addActionListener(this);
+        firstButton.setBackground(this.altbgColor);
+        firstButton.setBorderPainted(false);
         
-        setButton(firstButton);
-        setButton(backButton);
-        setButton(forwardButton);
-        setButton(lastButton);
+        backButton = new JButton(this.backUp);
+        backButton.setSelectedIcon(this.backDown);
+        backButton.setDisabledIcon(this.backDisabled);
+        backButton.addActionListener(this);
+        backButton.setBackground(this.altbgColor);
+        backButton.setBorderPainted(false);
         
-        /*JPanel mainPanel = new JPanel();
-        mainPanel.add(new JLabel("Select:"));
+        forwardButton = new JButton(this.forwardUp);
+        forwardButton.setSelectedIcon(this.forwardDown);
+        forwardButton.setDisabledIcon(this.forwardDisabled);
+        forwardButton.addActionListener(this);
+        forwardButton.setBackground(this.altbgColor);
+        forwardButton.setBorderPainted(false);
         
-        mainPanel.add(new JLabel("???"));
-        pcPanel.add(mainPanel, BorderLayout.CENTER);*/
+        lastButton = new JButton(this.lastUp);
+        lastButton.setSelectedIcon(this.lastDown);
+        lastButton.setDisabledIcon(this.lastDisabled);
+        lastButton.addActionListener(this);
+        lastButton.setBackground(this.altbgColor);
+        lastButton.setBorderPainted(false);
+       
+        buttonPanel.add(firstButton);
+        buttonPanel.add(backButton);
+        buttonPanel.add(forwardButton);
+        buttonPanel.add(lastButton);
     }
     
     public void setPathwayNameLabel(){
@@ -433,21 +459,27 @@ public class PathwayTab extends JPanel implements   ActionListener,
         
         addElement = new JButton(addUpIcon);
         addElement.setSelectedIcon(addDownIcon);
-        addElement.setPreferredSize(new Dimension(16, 16));
+        addElement.setDisabledIcon(this.addDisabledIcon);
+        addElement.setBackground(this.altbgColor);
         addElement.addActionListener(this);
         addElement.setEnabled(false);
+        addElement.setBorderPainted(false);
+        
         
         removeElement = new JButton(deleteUpIcon);
         removeElement.setSelectedIcon(deleteDownIcon);
-        removeElement.setPreferredSize(new Dimension(16, 16));
+        removeElement.setDisabledIcon(this.deleteDisabledIcon);
+        removeElement.setBackground(this.altbgColor);
         removeElement.addActionListener(this);
         removeElement.setEnabled(false);
+        removeElement.setBorderPainted(false);
         
-        buttons = new JPanel(new GridLayout(0, 2, 1, 0));
+        buttons = new JPanel(new GridLayout(1, 2, 0, 0));
         buttons.setBackground(altbgColor);
         
         buttons.add(addElement);
         buttons.add(removeElement);
+        buttons.setPreferredSize(new Dimension(40,24));
         
     }
     /*
@@ -586,12 +618,21 @@ public class PathwayTab extends JPanel implements   ActionListener,
         int selected = pathwayTable.getSelectedRow();
         
         if (e.getSource() == removeElement){    
-             Object obj = this.getPathwayTableModel().getElement(selected);
-             if (obj != null && obj instanceof LWComponent){   
+            Object obj = null;
+            if(selected != -1) 
+                obj = this.getPathwayTableModel().getElement(selected);
+            else{
+                if(this.getPathwayTableModel().getCurrentPathway() != null
+                    && this.getPathwayTableModel().getCurrentPathway().getCurrent() != null)
+                    obj = this.getPathwayTableModel().getCurrentPathway().getCurrent();
+            }
+            if (obj != null && obj instanceof LWComponent){   
                 LWComponent comp = (LWComponent)obj;
                 this.getPathwayTableModel().removeElement(comp);
                 //this.getPathwayTableModel().fireTableDataChanged();               
-             }  
+            }else{
+                System.out.println("Error trying to remove pathway element: selected object not found.");
+            }
         }            
         else if (e.getSource() == addElement){
             LWComponent array[] = VUE.ModelSelection.getArray();             
@@ -765,9 +806,6 @@ public class PathwayTab extends JPanel implements   ActionListener,
     {
         if (this.getCurrentPathway() != null){
             LWComponent currentElement = this.getCurrentPathway().getCurrent();
-            
-            
-            
             removeButton.setEnabled(true);
             
             if(currentElement != null){

@@ -252,7 +252,7 @@ public class PathwayTable extends JTable{
                                                   bgColor);
                     
             setBorder(selectedBorder);
-            
+            this.setBackground(bgColor);
             
             Object path = tab.getPathwayTableModel().getElement(row);
             if(path instanceof LWPathway){
@@ -261,7 +261,7 @@ public class PathwayTable extends JTable{
                 //if(((LWPathway)path).getOpen())
                 //    this.setBorder(selectedBorder);
             }else{
-                this.setBackground(Color.white);
+                this.setBackground(bgColor);
                 Border compBorder = BorderFactory.createMatteBorder(3,3,3,3,
                                                   bgColor);
                     

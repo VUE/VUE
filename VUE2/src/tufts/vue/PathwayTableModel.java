@@ -19,12 +19,10 @@ public class PathwayTableModel extends DefaultTableModel{
     
     private PathwayTab tab = null;
     private LWPathwayManager manager = null;
-    //private ArrayList tableList = null;
-   
+    
     
     public PathwayTableModel(PathwayTab tab){
        this.tab = tab;
-       //tableList = new ArrayList();
        this.addTableModelListener(tab);
     }
 
@@ -32,7 +30,6 @@ public class PathwayTableModel extends DefaultTableModel{
         if(manager == null && VUE.getActiveMap() != null) {
             this.manager = VUE.getActiveMap().getPathwayManager();
         }
-        //if (manager == null) new Throwable("PathwayTableModel.getManager() returning null").printStackTrace();
         return manager;
     }
     
@@ -43,56 +40,68 @@ public class PathwayTableModel extends DefaultTableModel{
     
     public void addPathway(LWPathway pathway){
         if(this.getManager() != null){  
-            manager.addPathway(pathway);         
-            this.fireTableDataChanged(); 
-        }
-        tab.updateControlPanel();
+            this.getManager().addPathway(pathway);         
+            this.fireTableDataChanged();
+            tab.updateControlPanel();
+        }        
     }
     
     public LWPathway getCurrentPathway(){
         if(this.getManager() != null)
-            return this.manager.getCurrentPathway();
+            return this.getManager().getCurrentPathway();
         else
             return null;
     }
-  /*  
-    public int getCurrentIndex(){
-        if(this.getManager() != null)
-            return this.manager.getCurrentIndex();
-        return 0;
-    }
-    */
+  
     public Object getElement(int row){
-        if(this.manager != null)
-            return manager.getPathwaysElement(row);
+        if(this.getManager() != null)
+            return this.getManager().getPathwaysElement(row);
         return null;
     }
     
     public void addElement(LWComponent comp){
-        this.manager.addPathwayElement(comp, this.getCurrentPathway());
+        if(this.getManager() != null){
+            this.getManager().addPathwayElement(comp, this.getCurrentPathway());
+            this.fireTableDataChanged();
+            tab.updateControlPanel();
+        }
     }
     
     public void addElements(LWComponent[] array){
-        this.manager.addPathwayElements(array, this.getCurrentPathway());
+        if(this.getManager() != null){
+            this.getManager().addPathwayElements(array, this.getCurrentPathway());
+            this.fireTableDataChanged();
+            tab.updateControlPanel();
+        }
     }
     
     public void removeElement(LWComponent comp){
-        this.manager.removeElement(comp);
+        if(this.getManager() != null){
+            this.getManager().removeElement(comp);
+            this.fireTableDataChanged();
+            /*if (this.getManager().getCurrentPathway().getCurrent() == null){
+                tab.removeElement.setEnabled(false);
+            }*/
+            tab.updateControlPanel();
+        }
     }
     
     public void removePathway(LWPathway pathway){
         if(this.getManager() != null){
             
-            manager.removePathway(pathway);
-            
-            if (manager.getCurrentPathway() == null){
+            this.getManager().removePathway(pathway);
+            this.fireTableDataChanged();
+            tab.updateControlPanel();
+            /*if (this.getManager().getCurrentPathway() == null){
                 tab.removeElement.setEnabled(false);
                 tab.addElement.setEnabled(false);
-            }   
-            
-            this.fireTableDataChanged();
+            }else if(this.getManager().getCurrentPathway().getCurrent() == null){
+                tab.removeElement.setEnabled(false);
+            }else{
+                tab.removeElement.setEnabled(true);
+                tab.addElement.setEnabled(true);
+            }*/
         }
-        tab.updateControlPanel();
     }
     
     public synchronized int getRowCount(){
@@ -139,30 +148,39 @@ public class PathwayTableModel extends DefaultTableModel{
     }
     
     public void setCurrentPathway(LWPathway path){
-        manager.setCurrentPathway(path);
+        if(this.getManager() != null){           
+            this.getManager().setCurrentPathway(path);
+            this.fireTableDataChanged();
+            tab.updateControlPanel();
+        }
     }
     
     public boolean isCellEditable(int row, int col){
         LWPathway path = null;
-        if(this.getManager().getPathwaysElement(row) instanceof LWPathway){
-            path = (LWPathway)this.getManager().getPathwaysElement(row);
-        }else{
-            path = this.getManager().getPathwayforElementAt(row);
+        if(this.getManager() != null){
+            if(this.getManager().getPathwaysElement(row) instanceof LWPathway){
+                path = (LWPathway)this.getManager().getPathwaysElement(row);
+            }else{
+                path = this.getManager().getPathwayforElementAt(row);
+            }
+            if(path != null && path.getLocked())
+                return false;
+            return (col == 1 || col == 3);
         }
-        if(path != null && path.getLocked())
-            return false;
-        return (col == 1 || col == 3);
+        return false;
     }
     
     public boolean isRepeat(String name){
         boolean isRep = false;
-        Iterator iter = manager.getPathwayIterator();
-        while(iter.hasNext()){
-            Object obj = iter.next();
-            if(obj instanceof LWPathway){
-                LWPathway path = (LWPathway)obj;
-                if(path.getLabel().equals(name))
-                    isRep = true;
+        if(this.getManager() != null){
+            Iterator iter = this.getManager().getPathwayIterator();
+            while(iter.hasNext()){
+                Object obj = iter.next();
+                if(obj instanceof LWPathway){
+                    LWPathway path = (LWPathway)obj;
+                    if(path.getLabel().equals(name))
+                        isRep = true;
+                }
             }
         }
         return isRep;
@@ -171,7 +189,7 @@ public class PathwayTableModel extends DefaultTableModel{
     public synchronized Object getValueAt(int row, int col){
         
         if(this.getManager() != null){
-            Object elem = manager.getPathwaysElement(row);
+            Object elem = this.getManager().getPathwaysElement(row);
             if(elem instanceof LWPathway){
                 LWPathway pathway = (LWPathway)elem;
 
@@ -226,7 +244,7 @@ public class PathwayTableModel extends DefaultTableModel{
     
     public void setValueAt(Object aValue, int row, int col){
         if(this.getManager() != null){
-            Object elem = manager.getPathwaysElement(row);
+            Object elem = this.getManager().getPathwaysElement(row);
             if(elem instanceof LWPathway){
 
                 LWPathway path = (LWPathway)elem;
@@ -239,7 +257,7 @@ public class PathwayTableModel extends DefaultTableModel{
                         path.setBorderColor((Color)aValue);
                     }
                     else if(col == 2){
-                        manager.setPathOpen(path);
+                        this.getManager().setPathOpen(path);
                         //manager.setCurrentPathway(path);                   
                     }
                     else if(col == 3){
@@ -258,132 +276,7 @@ public class PathwayTableModel extends DefaultTableModel{
                     comp.setLabel((String)aValue);
                 }
             }
-            this.fireTableDataChanged();
-          
+            this.fireTableDataChanged();         
         }   
     }
-} //end of PathwayTableModel class
-
-
-/*
-    //switches a row to a new location
-    public void switchRow(int oldRow, int newRow){
-        //pathway.moveElement(oldRow, newRow);
-        fireTableDataChanged();
-
-        //update the pathway control panel
-        tab.updateControlPanel();
-    }
-    */
-    /*
-    //adds a row at the designated location
-    public synchronized void addRow(LWComponent element, int row){
-        //pathway.addElement(element, row);
-        fireTableRowsInserted(row, row);
-
-        //update the pathway control panel
-        tab.updateControlPanel();
-    }
-
-    //deletes the given row from the table
-    public synchronized void deleteRow(int row){
-        //pathway.removeElement(row);
-        fireTableRowsDeleted(row, row); 
-
-        //update the pathway control panel
-        tab.updateControlPanel();
-        this.removePathway(pathway);
-    }
-*/
-/*if(-1 < row && row < tableList.size()){
-            Object element = this.tableList.get(row);
-            if(element instanceof LWPathway){
-                LWPathway rowPath = (LWPathway)element; 
-
-                boolean hasNotes = true;
-                if(rowPath.getNotes().equals(null) || rowPath.getNotes().equals(""))
-                    hasNotes = false;
-                
-                boolean isCurrent = false;
-                if( ((LWPathway)manager.getCurrentPathway()) != null
-                    &&((LWPathway)manager.getCurrentPathway()).equals(rowPath))
-                    isCurrent = true;
-
-                try{
-                    switch(column){
-                        case 0:
-                            return new Boolean(true); //return new Boolean(isCurrent);
-                        case 1:
-                            return rowPath.getBorderColor();
-                        case 2:
-                            return new Boolean(isCurrent);
-                        case 3:
-                            return rowPath.getLabel();
-                        case 4:
-                            return new Boolean(hasNotes);
-                    }
-                }catch (Exception e){
-                    System.err.println("exception in the table model, setting pathway cell:" + e);
-                }    
-            }
-            else if(element instanceof Object[]){
-                Object[] storage = (Object[])element;
-                LWPathway rowPath = (LWPathway)storage[0];
-                Integer stor = (Integer)storage[1];
-                int elemIndex = stor.intValue();
-
-                boolean isCurrent = false;
-                if(rowPath.getCurrentIndex() == elemIndex){
-                    isCurrent = true;
-                }
-
-                try{
-                    switch(column){
-                        case 0:
-                            return null;
-                        case 1:
-                            return null;
-                        case 2:
-                            return new Boolean(isCurrent);
-                        case 3:
-                            return rowPath.getElement(elemIndex).getLabel();
-                        case 4:
-                            return null;
-                    }
-                }catch (Exception e){
-                    System.err.println("exception in the table model, setting pathway element cell:" + e);
-                }  
-            }
-        }
-        */ 
-
-/*
-        Iterator iter = this.tableList.iterator();
-        int j = 0;
-        while(iter.hasNext()){
-            Object object = iter.next();
-            if(object instanceof Object[])
-                this.tableList.remove(j);
-            j++;
-        }*/
-    /*int endRange = tableIndex+1;
-            if(endRange < tableList.size()){
-                boolean found = false;
-                while(!found && endRange < tableList.size()){
-                    if(tableList.get(endRange) instanceof LWPathway){
-                        found = true;
-                    }
-                    else{
-                        endRange++;
-                        
-                    }
-                }
-                System.out.println("tableIndex, endRange: "+tableIndex+","+endRange);
-                    
-                for(int range = tableIndex+1; range < endRange-1; range++){
-                    tableList.remove(range);
-                    System.out.println("removing element from tableList at index: "+range);
-                }
-            }*/
-        
-    
+}

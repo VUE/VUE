@@ -118,6 +118,10 @@ public class LWPathwayInspector extends InspectorWindow
         */
     }
     
+    public PathwayTab getPathwayTab(){
+        return this.pathwayTab;
+    }
+    
     public void setPathwayManager(LWPathwayManager pathwayManager){
         pathwayTab.setPathwayManager(pathwayManager);
     }
