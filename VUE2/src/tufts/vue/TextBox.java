@@ -460,7 +460,8 @@ class TextBox extends JTextPane
         // todo: draw a 1 pixel border?
     }
 
-    private static final BasicStroke MinStroke = new BasicStroke(1/24);
+    private static final BasicStroke MinStroke = new BasicStroke(1/8f);
+    private static final BasicStroke MinStroke2 = new BasicStroke(1/24f);
     public void draw(Graphics2D g)
     {
         if (getParent() != null)
@@ -493,7 +494,7 @@ class TextBox extends JTextPane
         
         if (debug || debug_box) {
             Dimension s = getPreferredSize();
-            g.setColor(Color.green);
+            g.setColor(Color.blue);
             g.setStroke(MinStroke);
             g.drawRect(0,0, s.width-1, s.height);
         }
@@ -506,7 +507,7 @@ class TextBox extends JTextPane
         if (debug || debug_box || getParent() != null) {
             Dimension s = getSize();
             g.setColor(Color.red);
-            g.setStroke(MinStroke);
+            g.setStroke(MinStroke2);
             g.drawRect(0,0, s.width-1, s.height);
         }
 
