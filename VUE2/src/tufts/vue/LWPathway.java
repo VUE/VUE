@@ -80,6 +80,16 @@ public class LWPathway extends tufts.vue.LWComponent
         return (Node)nodeList.getLast();
     }
     
+    public Node getPrevious(Node current) {
+        int index = nodeList.indexOf(current);
+        return (Node)nodeList.get(index--);
+    }
+    
+    public Node getNext(Node current) {
+        int index = nodeList.indexOf(current);
+        return (Node)nodeList.get(index++);
+    }
+    
     public java.util.Iterator getNodeIterator() {
         return nodeList.iterator();
     }
