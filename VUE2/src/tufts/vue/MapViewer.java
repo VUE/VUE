@@ -87,21 +87,18 @@ public class MapViewer extends javax.swing.JComponent
     //-------------------------------------------------------
     // Pan & Zoom Support
     //-------------------------------------------------------
-    private double mZoomFactor = 1.0;
-    private double mZoomInverse = 1/mZoomFactor;
-    /** the map coordinate that's in the uppper left hand of the
-     * panel, which is always the upper left hand corner of the
-     * extent when in a JViewport/JScrollPane */
-    private Point2D.Float mOffset = new Point2D.Float();
-    private Point2D.Float mUserOrigin;
+    double mZoomFactor = 1.0;
+    double mZoomInverse = 1/mZoomFactor;
+    Point2D.Float mOffset = new Point2D.Float();
     
     //-------------------------------------------------------
     // VueTool support
     //-------------------------------------------------------
     
     /** The currently selected tool **/
-    private VueTool activeTool = ArrowTool;
+    private VueTool activeTool;
     
+    /*
     private static final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
     private static final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
     private static final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
@@ -109,15 +106,24 @@ public class MapViewer extends javax.swing.JComponent
     private static final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
     private static final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
     private static final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
+    */
+
+    private final VueTool ArrowTool = VueToolbarController.getController().getTool("arrowTool");
+    private final VueTool HandTool = VueToolbarController.getController().getTool("handTool");
+    private final VueTool ZoomTool = VueToolbarController.getController().getTool("zoomTool");
+    private final NodeTool NodeTool = (NodeTool) VueToolbarController.getController().getTool("nodeTool");
+    private final VueTool LinkTool = VueToolbarController.getController().getTool("linkTool");
+    private final VueTool TextTool = VueToolbarController.getController().getTool("textTool");
+    private final VueTool PathwayTool = VueToolbarController.getController().getTool("pathwayTool");
     
     //-------------------------------------------------------
     // Scroll-pane support
     //-------------------------------------------------------
     
     private boolean inScrollPane = false;
-    private static final boolean scrollerCoords = false;
-    private JViewport mViewport;
-
+    private MapViewport mViewport;
+    private static final boolean scrollerCoords = false;// get rid of this
+    
     public MapViewer(LWMap map) {
         this(map, "");
     }
@@ -126,70 +132,36 @@ public class MapViewer extends javax.swing.JComponent
     MapViewer(LWMap map, String instanceName)
     {
         this.instanceName = instanceName;
+        this.activeTool = ArrowTool;
+        this.mapDropTarget = new MapDropTarget(this); // new CanvasDropHandler
+        this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
     
         setOpaque(true);
-        //if (isRightSide)
-        //setFocusable(false); // not till setVsible 
-        
         setLayout(null);
-        addKeyListener(inputHandler);
-        
-        //MapDropTarget mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
-        this.mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
-        this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
-        
-        // todo: tab to show/hide all tool windows
-        
-        //setPreferredSize(new Dimension(cw,ch));
-        //setSize(new Dimension(cw,ch));
-        
-        setPreferredSize(mapToScreenDim(map.getBounds()));
-        
-        //for (int i = 0; i < resizeHandles.length; i++) {
-        //resizeHandles[i] = new LWSelection.ControlPoint(COLOR_SELECTION_HANDLE);
-        //}
-        
-        //-------------------------------------------------------
-        // set the background color here on the panel instead
-        // of querying the map BG color every time in paintComponent
-        // because the MapPanner, for instance, wants to use
-        // it's own background color setting (hmm: should we let it?)
-        //-------------------------------------------------------
-        setBackground(map.getFillColor()); // todo: will need to listen for fill color changes
-        
-        //setFont(VueConstants.DefaultFont);
+        setBackground(map.getFillColor());
         loadMap(map);
-        
-        // we repaint any time the global selection changes
-        VUE.ModelSelection.addListener(this);
-        
-        // draggedSelectionGroup is always a selected component as
-        // it's only used when it IS the selection
-        // There was some reason we need to have the set -- what was it?
-        draggedSelectionGroup.setSelected(true);
-
-        /*
-        Toolkit.getDefaultToolkit().addAWTEventListener(this,
-                                                        AWTEvent.INPUT_METHOD_EVENT_MASK
-                                                        | AWTEvent.TEXT_EVENT_MASK
-                                                        | AWTEvent.MOUSE_EVENT_MASK);
-         */
-        
-        // TODO: need to remove us as listener for this & VUE selection
-        // if this map is closed.
-        // listen to tool selection events
-        VueToolbarController.getController().addToolSelectionListener( this);
         
         //-------------------------------------------------------
         // If this map was just restored, there might
         // have been an existing userZoom or userOrigin
         // set -- we honor that last user configuration here.
         //-------------------------------------------------------
-        setZoomFactor(getMap().getUserZoom(), false, null);
-        //mUserOrigin = (Point2D.Float) getMap().getUserOrigin();
-        //setMapOriginOffset(p.getX(), p.getY());
+        if (getMap().getUserZoom() != 1.0)
+            setZoomFactor(getMap().getUserZoom(), false, null);
 
+        VUE.ModelSelection.addListener(this);
         VUE.addActiveViewerListener(this);
+        
+        // draggedSelectionGroup is always a selected component as
+        // it's only used when it IS the selection
+        // There was some reason we need to have the set -- what was it?
+        draggedSelectionGroup.setSelected(true);
+        
+        // TODO: need to remove us as listener for this & VUE selection this map is closed.
+        // listen to tool selection events
+        VueToolbarController.getController().addToolSelectionListener(this);
+
+        addKeyListener(inputHandler);
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
     
@@ -205,17 +177,27 @@ public class MapViewer extends javax.swing.JComponent
     {
         super.addNotify();
         if (mAddNotifyUnderway) {
-            out("ADD-NOTIFY ALREADY UNDERWAY");
+            out("(bootstrapped add-notify for viewport)");
             return;
         }
         mAddNotifyUnderway = true;
         inScrollPane = (getParent() instanceof JViewport);
         if (inScrollPane) {
             JScrollPane sp = (JScrollPane) getParent().getParent();
-            mViewport = (JViewport) getParent();
-            // todo perf: auto-scroll is slowing down operations that
-            // don't need it whenever the mouse is dragged just beyond
-            // the edge of the map
+
+            if (true) {
+                out("creating viewport");
+                mViewport = new MapViewport(this);
+                out("installing our own viewport on JScrollPane");
+                sp.setViewport(mViewport);
+                out("back from installing our own viewport on JScrollPane");
+            } else {
+                //mViewport = (JViewport) getParent();
+                // todo perf: auto-scroll is slowing down operations that
+                // don't need it whenever the mouse is dragged just beyond
+                // the edge of the map (still?)
+            }
+            
             setAutoscrolls(true);
             //scrollerCoords = true;
             // don't know if this every worked: weren't
@@ -246,16 +228,6 @@ public class MapViewer extends javax.swing.JComponent
                 };
             sp.setCorner(JScrollPane.LOWER_RIGHT_CORNER, mIndicator);
 
-            /*
-            if (false) {
-                out("creating viewport");
-                mViewport = new Viewport();
-                out("setting viewport on JScrollPane");
-                sp.setViewport(mViewport);
-                out("back from setting viewport on JScrollPane");
-            }
-            */
-            
         } else {
             //scrollerCoords = false;
             mViewport = null;
@@ -377,248 +349,18 @@ public class MapViewer extends javax.swing.JComponent
             new MapViewerEvent(this, id).raise();
     }
     
-
-    
-    /**
-     * This is scary complicated to deal with the fact that
-     * we operate on an infinite canvas and need to guess
-     * at something reasonable to do in a bunch of different cases,
-     * and because JScrollPane's/JViewport weren't designed
-     * to handle components that may grow up/left as opposed
-     * to just down/right.
-     */
-    private Rectangle2D lastMapBounds = new Rectangle2D.Float();
-    private Dimension lastExtent = new Dimension();
-    private Point2D lastMapLocationAtExtentOrigin = new Point2D.Float();
-
-    private void setExtentPosition(Point p) {
-        if (DEBUG.SCROLL) {
-            out("setExtentPosition " + out(p));
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
-        if (p.x > 0 || p.y > 0) {
-            out("GROW ORIGIN");
-            //placeMapLocationAtExtentOrigin(mapExtent.x, mapExtent.y);
-            //mViewport.setViewPosition(p);
-            panScrollRegion(-p.x, -p.y, true);
-        } else {
-            mViewport.setViewPosition(p);
-        }
-        if (DEBUG.SCROLL) {
-            out("setExtentPosition, setViewPosition completed");
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
-        /*
-        out("setExtentPosition, ASR:");
-        try { Thread.sleep(1000); } catch (Exception e) {}
-        adjustExtent(false, false);
-        */
-    }
-
     void resetScrollRegion() {
-        adjustExtent(false, true, true);
+        adjustCanvasSize(false, true, true);
     }
     
-    void adjustExtent() {
-        adjustExtent(true, false, false);
+    private void adjustCanvasSize() {
+        adjustCanvasSize(true, false, false);
     }
-
-    /**
-     * adjustExtent
-     *
-     * Called after changes to map bounds (drag or resize operations).
-     *
-     * Adjust the size of the "extent" -- the size of the region being scrolled over.  This
-     * changes as the size of the map bounds changes, and as we zoom in and out.  E.g., zooming
-     * in from 100% to 200% will generally double the size the extent. Zooming to less than
-     * 100% will generally set the extent to the same size as the viewport.  The extent will never
-     * be less than the size of the viewport.  What happens exactly on each adjustment depends
-     * on where the user is currently panned to -- e.g., on zooms, we want to center on the
-     * viewport, which means that besides resizing the extent for the soom factor, if we're
-     * zooming in on, say, the upper left of the extent, and the soom would result in the upper
-     * left of the extent now being in the middle of the viewport, we have to grow the extent
-     * and reset the offset so that the upper left of the extent is in the upper left of the
-     * viewport so the focused region is in the actual center of the screen.  This is because
-     * the extent (the MapViewer JComponent), can never have a positive location -- it can never
-     * be > 0,0, although if we scroll over it, it can take on negative location values as we scroll.
-     *
-     * @param expand -- automatically expand the extent to cover the current map origin offset (mOffset) & viewport size
-     * @param trimNorthWest -- trim north west corner of extent to map bounds, and place map at upper left of display
-     * @param trimSouthEst -- trim south west corner of extent to the current on-screen viewport display size
-     *
-     * Expand is incompatable with the trims.
-     */
     
-    private void adjustExtent(boolean expand, boolean trimNorthWest, boolean trimSouthEast)
+    private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast)
     {
-        if (!inScrollPane)
-            return;
-
-        if (DEBUG.SCROLL && DEBUG.META)
-            new Throwable("ADJUST-SCROLL-REGION").printStackTrace();
-        
-        /*
-        if (trimNorthWest && mUserOrigin != null) {
-            mUserOrigin.x = extent.x;
-            mUserOrigin.y = extent.y;
-        }
-        float eox = mOffset.x;
-        float eoy = mOffset.y;
-        // So the region can shrink automatically from the left, but
-        // never past their startup x/y offset (usually 0,0) as a
-        // sheer conveince to the user to create some stability in
-        // their canvas region.
-        if (!trimNorthWest) {
-        if (eox > mUserOrigin.x)
-                eox = mUserOrigin.x;
-            if (eoy > mUserOrigin.y)
-                eoy = mUserOrigin.y;
-        }
-         */
-        //mapExtent.add(mUserOrigin);
-        
-        //------------------------------------------------------------------
-        // Compute the extent, which is going to be the new total size
-        // of the region we're going to have available to scroll over.
-        // We always include the bounds of every object, as well as
-        // the current map origin -- so grows up & to the left are
-        // "permanent" until a an adjustExtend with both trims sis called (currently
-        // only via ZoomFit).
-        //------------------------------------------------------------------
-        
-        Rectangle2D mapBounds = map.getBounds();
-        if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds)
-                              + " expand="+expand
-                              + " trimNorthWest="+trimNorthWest
-                              + " trimSouthEast="+trimSouthEast
-                              );
-        if (DEBUG.SCROLL) out("view position: " + out(mViewport.getViewPosition()));
-
-        Rectangle2D.Float mapExtent = getContentBounds();
-        if (DEBUG.SCROLL) out("   map extent: " + out(mapExtent));
-        
-        Point2D.Float mapLocationAtExtentOrigin = getMapLocationAtExtentOrigin();
-        
-        if (trimNorthWest) {
-            
-            // If we're collapsing, compress the extent by moving the
-            // origin to the upper left hand corner of all the
-            // component bounds.  We "trim" the extent of usused map
-            // "whitespace" when we trimNorthWest.
-            
-            if (DEBUG.SCROLL) out("   old origin: " + out(mOffset));
-            placeMapLocationAtExtentOrigin(mapExtent.x, mapExtent.y);
-            if (DEBUG.SCROLL) out(" reset origin: " + out(mOffset));
-        } else {
-            
-            // add the current origin, otherwise everything would
-            // always be jamming itself up against the upper left hand
-            // corner.  This has no effect unless they've moved the
-            // component with the smallest x/y (the farthest to the upper
-            // left).
-            
-            if (DEBUG.SCROLL) out("   add offset: " + out(mOffset));
-            if (DEBUG.SCROLL) out("   is map loc: " + out(mapLocationAtExtentOrigin));
-            mapExtent.add(mapLocationAtExtentOrigin);
-            if (DEBUG.SCROLL) out("  +plusOrigin: " + out(mapExtent));
-        }
-        //Point vPos = mViewport.getViewPosition();
-        /*
-        if (panning) {
-            Point vPos = mViewport.getViewPosition();
-            System.out.println("SCROLL: vp="+vPos);
-            //extent.add(vPos.x, vPos.y);
-            //System.out.println(getMap().getLabel() + "plusViewerPos: " + extent);
-            extent.add(vPos.x + mViewport.getWidth(),
-                       vPos.y + mViewport.getHeight());
-            System.out.println(getMap().getLabel() + "   plusCorner: " + extent);
-        }
-         */
-        
-        Dimension curSize = getPreferredSize();
-        int newWidth = curSize.width;
-        int newHeight = curSize.height;
-        
-        // okay to call this mapToScreen while adjusting origin as we're
-        // only interested in the zoom conversion for the size.
-        Dimension extent = mapToScreenDim(mapExtent);
-        if (DEBUG.SCROLL) out(" pixel extent: " + out(extent));
-        //Rectangle vb = mapToScreenRect(mapExtent);
-
-        //if (!trimNorthWest && lastExtent.equals(extent) && lastMapLocationAtExtentOrigin.equals(mapLocationAtExtentOrigin))
-        //    return;
-        
-        lastExtent = extent;
-        lastMapLocationAtExtentOrigin = mapLocationAtExtentOrigin;
-        
-        if (extent.width > newWidth)
-            newWidth = extent.width;
-        if (extent.height > newHeight)
-            newHeight = extent.height;
-        Dimension newSize = new Dimension(newWidth, newHeight);
-        
-        
-        //------------------------------------------------------------------
-        // If extent is outside the the current map origin (that is,
-        // something's been dragged off the left or top of the screen),
-        // reset the origin to include the region where the components
-        // were moved to.
-        //------------------------------------------------------------------
-        
-        if (!trimNorthWest) {
-            boolean originGrew = false;
-            // mOffset is what?
-            //float ox = mOffset.x;
-            //float oy = mOffset.y;
-            float ox = mapLocationAtExtentOrigin.x;
-            float oy = mapLocationAtExtentOrigin.y;
-            if (mapExtent.x < mapLocationAtExtentOrigin.x) {
-                ox = mapExtent.x;
-                originGrew = true;
-            }
-            if (mapExtent.y < mapLocationAtExtentOrigin.y) {
-                oy = mapExtent.y;
-                originGrew = true;
-            }
-            if (originGrew)
-                placeMapLocationAtExtentOrigin(ox, oy);
-        }
-        
-        //mViewport.setViewSize(d);
-        // extent.x is what we want to normalize to 0,
-        // or the current position on screen
-        /*
-          if (extent.x < getX()) {
-          System.out.println("Moving viewport back from " + getX() + " to " + extent.x);
-          mViewport.setViewPosition(new Point(-extent.x, getY()));
-          int dx = getX() - extent.x;
-          setMapOriginOffset(mOffset.x+dx, mOffset.y);
-          }
-         */
-        //if (trimNorthWest)
-        //if (DEBUG.SCROLL) out(" setting size: " + out(newSize));
-        //setSize(newSize); // does this tract preferred size at all?  -- is called thru the revalidate.
-
-        //if (curSize.equals(newSize))
-        //return;
-
-        if (DEBUG.SCROLL) {
-            out("cur pref size: " + out(curSize));
-            out("new pref size: " + out(newSize));
-            out("   panel size: " + out(getSize()));
-            out("   vport size: " + out(mViewport.getSize()) + " (calling revalidate)");
-        }
-        
-        if (!trimSouthEast) {
-            // don't let new size be less than current size
-            if (newSize.width < curSize.width)
-                newSize.width = curSize.width;
-            if (newSize.height < curSize.height)
-                newSize.height = curSize.height;
-        }
-        
-        setExtentSize(newSize);
-        revalidate();
+        if (inScrollPane)
+            mViewport.adjustSize(expand, trimNorthWest, trimSouthEast);
     }
     
     /**
@@ -646,22 +388,15 @@ public class MapViewer extends javax.swing.JComponent
         // Record the on-screen map location of focus point before
         // the zoom.
         Point2D.Float mapAnchor = null;
+        Point2D.Float offset = new Point2D.Float();
         if (pFocus != null) {
             mapAnchor = screenToMapPoint(pFocus);
             if (DEBUG.SCROLL) System.out.println(" ZOOM VIEWPORT FOCUS: " + out(pFocus));
             if (DEBUG.SCROLL) System.out.println("     ZOOM MAP ANCHOR: " + out(mapAnchor));
-            Point2D.Float offset = new Point2D.Float();
             offset.x = (float) ((mapAnchor.getX() * pZoomFactor) - pFocus.getX());
             offset.y = (float) ((mapAnchor.getY() * pZoomFactor) - pFocus.getY());
-            if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
-            //if (inScrollPane) {
-            //offsetX += getX();
-            //offsetY += getY(); }
-            // if adjust w/panning were to handle all auto-extent
-            // growths, we could simply adjust the offset
-            // and it could figure out everything from there.
-
-            //if (!inScrollPane)
+            //if (DEBUG.SCROLL) System.out.println("   ZOOM FOCUS OFFSET: " + out(offset));
+            if (!inScrollPane)
                 setMapOriginOffset(offset.x, offset.y, false);
         }
         
@@ -673,7 +408,6 @@ public class MapViewer extends javax.swing.JComponent
         // exception of map coordinate value 0,0 if it happens to be
         // on screen)
         // ------------------------------------------------------------------
-        
 
         mZoomFactor = pZoomFactor;
         mZoomInverse = 1.0 / mZoomFactor;
@@ -685,154 +419,42 @@ public class MapViewer extends javax.swing.JComponent
         
         //------------------------------------------------------------------
         
-        
         if (inScrollPane) {
-            adjustExtent(!pReset, pReset, true);
-            if (mapAnchor != null && !pReset) {
-                Point extentAnchor = mapToScreenPoint(mapAnchor);
-                if (DEBUG.SCROLL) System.out.println("  ZOOM EXTENT ANCHOR: " + out(extentAnchor));
-                Point extentOffset = new Point(extentAnchor);
-                extentOffset.x -= getVisibleWidth() / 2;
-                extentOffset.y -= getVisibleHeight() / 2;
-                if (DEBUG.SCROLL) System.out.println("  ZOOM EXTENT OFFSET: " + out(extentOffset));
-
-                setExtentPosition(extentOffset);
-
-                //mViewport.setViewPosition(extentOffset);
-                //setLocation(-extentOffset.x, -extentOffset.y);
-                //adjustExtent(false, false);
-            }// else
-            //adjustExtent(false, pReset);
+            if (mapAnchor != null && !pReset)
+                mViewport.placeMapLocationAtViewCenter(mapAnchor);
+            else
+                adjustCanvasSize(false, true, true);
         } else {
             if (mapAnchor != null) {
+                setMapOriginOffset(offset.x, offset.y);
                 // Now: find out where the anchor has moved to,
                 // and adjust the viewport so it's back at it's old
                 // location.
                 /*
+                  // from old ZoomTool code:
                 Point newFocus = mapToScreenPoint(pFocus);
                 int offsetX = newFocus.getX() - pFocus.getX();
                 int offsetY = newFocus.getY() - pFocus.getY();
                 viewer.setMapOriginOffset(offsetX, offsetY);
                  */
             }
-            repaint();
         }
         
+        repaint();
         fireViewerEvent(MapViewerEvent.ZOOM);
     }
     
-    public void setExtentSize(Dimension d) {
-        setPreferredSize(d);
-    }
 
     void panScrollRegion(int dx, int dy) {
         panScrollRegion(dx, dy, true);
     }
     
-    // allowGrowth == true not working
     private void panScrollRegion(int dx, int dy, boolean allowGrowth) {
-        Point location = mViewport.getViewPosition();
-        if (DEBUG.SCROLL) out("PAN: dx=" + dx + " dy=" + dy);
-        if (DEBUG.SCROLL) out("PAN: viewport start: " + location);
-        location.translate(dx, dy);
-        if (DEBUG.SCROLL) out("PAN: viewport   end: " + location);
-        
-        float ox = mOffset.x;
-        float oy = mOffset.y;
-        boolean originMoved = false;
-        if (location.x < 0) {
-            if (allowGrowth) {
-                if (DEBUG.SCROLL) out("PAN: ADJUST X " + location.x);
-                ox += location.x;
-                originMoved = true;
-                location.x = 0;
-            } else {
-                // if drag would take us to left of existing extent, clip
-                location.x = 0;
-            }
+        if (inScrollPane) {
+            mViewport.pan(dx, dy, allowGrowth);
+        } else {
+            setMapOriginOffset(mOffset.x + dx, mOffset.y + dy);
         }
-        if (location.y < 0) {
-            if (allowGrowth) {
-                if (DEBUG.SCROLL) out("PAN: ADJUST Y " + location.y);
-                oy += location.y;
-                originMoved = true;
-                location.y = 0;
-            } else {
-                // if drag would take us above existing extent, clip
-                location.y = 0;
-            }
-        }
-        if (!allowGrowth) {
-            // If drag would take us beyond width or height of existing extent,
-            // clip to existing extent.
-            if (location.x + mViewport.getWidth() > getExtentWidth())
-                location.x = getExtentWidth() - mViewport.getWidth();
-            if (location.y + mViewport.getHeight() > getExtentHeight())
-                location.y = getExtentHeight() - mViewport.getHeight();
-        }
-        if (originMoved) {
-            // not working -- adjustExtent should
-            // handle setPreferredSize?
-            //setMapOriginOffset(ox, oy);
-            Dimension s = getPreferredSize();
-            s.width += dx;
-            s.height += dy;
-            setExtentSize(s);
-        }
-        
-        if (DEBUG.SCROLL) {
-            out("PAN: setViewPosition " + out(location));
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
-        
-        // Okay -- BEFORE we set the view position, increase the size if need be
-
-        mViewport.setViewPosition(location);
-        
-        if (DEBUG.SCROLL) {
-            out("PAN: adjustExtent");
-            if (DEBUG.META) try { Thread.sleep(1000); } catch (Exception e) {}
-        }
-        
-        adjustExtent(true, false, false);
-        
-        if (false){
-            Rectangle2D.Float extent = getContentBounds();
-            
-            //Point vPos = mViewport.getViewPosition();
-            Point vPos = location;
-            
-            Rectangle2D.union(extent, getVisibleMapBounds(), extent);
-            if (DEBUG.SCROLL) System.out.println(getMap().getLabel() + "   plusVISMAP: " + extent);
-            
-            //extent.add(mOffset);
-            //System.out.println(getMap().getLabel() + "   plusOrigin: " + extent);
-            //System.out.println("SCROLL: vp="+vPos);
-            // NOTE: Extent is current a bunch of map coords...
-            //extent.add(vPos.x, vPos.y);
-            //System.out.println(getMap().getLabel() + "plusViewerPos: " + extent);
-            //extent.add(vPos.x + mViewport.getWidth(), vPos.y + mViewport.getHeight());
-            //System.out.println(getMap().getLabel() + "   plusCorner: " + extent);
-            
-        /*
-        Dimension curSize = getSize();
-        int newWidth = curSize.width;
-        int newHeight = curSize.height;
-         
-        Rectangle canvasSize = mapToScreenRect(extent);
-         
-        if (canvasSize.width > newWidth)
-            newWidth = canvasSize.width;
-        if (canvasSize.height > newHeight)
-            newHeight = canvasSize.height;
-        Dimension newSize = new Dimension(newWidth, newHeight);
-        System.out.println("PAN: size to " + newSize);
-        setPreferredSize(newSize);
-         */
-            setPreferredSize(mapToScreenDim(extent));
-            revalidate();
-        }
-        fireViewerEvent(MapViewerEvent.PAN);
     }
     
     public void setPreferredSize(Dimension d) {
@@ -842,16 +464,13 @@ public class MapViewer extends javax.swing.JComponent
         super.setPreferredSize(d);
     }
 
-    
     public void setSize(Dimension d) {
         if (DEBUG.SCROLL) out("      setSize: " + out(d));
         super.setSize(d);
     }
     
     
-    
     /**
-     *
      * The given PIXEL offset is the pixel location that the
      * 0,0 map coordinate will appear on screen/or in the extent.
      * Values < 0 or greater the the view size mean the
@@ -862,8 +481,8 @@ public class MapViewer extends javax.swing.JComponent
      */
     
     void setMapOriginOffset(float panelX, float panelY, boolean update) {
-        if (DEBUG.SCROLL) out("setMapOriginOffset " + out(mOffset) + " (old)");
-        if (DEBUG.SCROLL) out("setMapOriginOffset " + panelX + ", " + panelY);
+        if (DEBUG.SCROLL) out("setMapOriginOffset old:" + out(mOffset));
+        if (DEBUG.SCROLL) out("setMapOriginOffset new:" + panelX + ", " + panelY);
         mOffset.x = panelX;
         mOffset.y = panelY;
         // todo: when in scroll region, user origin being offset 12 or so pixels
@@ -885,36 +504,6 @@ public class MapViewer extends javax.swing.JComponent
         setMapOriginOffset((float) panelX, (float) panelY);
     }
     
-    /**
-     * Configures the viewer to display the given map coordinate in the
-     * 0,0 location of the panel.  Note that if we're in a scroll
-     * region, this results in setting what displays in the 0,0 of the
-     * extent -- not what's actually on screen, unelss user happens to
-     * be scrolled all the way up and to the left.
-     *
-     * E.g. -- to have map location 10,10 display in the upper left
-     * hand corner of the extent (panel location 0,0) we use
-     * setMapOriginoffset to position the 0,0 map offset position
-     * at 10,10, thus when we draw, location 10,10 will be at
-     * 0,0. This method is here to compensate for the zoom factor:
-     * E.g., at a zoom of 200%, we actually have to set the map offset
-     * to 20,20, as each map coordinate unit now takes up two pixels.
-     *
-     */
-    void placeMapLocationAtExtentOrigin(float mapX, float mapY) {
-        setMapOriginOffset((float) (mapX * mZoomFactor),
-                           (float) (mapY * mZoomFactor),
-                           false);
-    }
-    
-    void placeMapLocationAtExtentOrigin(Point2D.Float p) {
-        placeMapLocationAtExtentOrigin(p.x, p.y);
-    }
-    Point2D.Float getMapLocationAtExtentOrigin() {
-        return new Point2D.Float
-            ((float) (mOffset.x * mZoomInverse),
-             (float) (mOffset.y * mZoomInverse));
-    }
     
     public Point2D.Float getOriginLocation() {
         return new Point2D.Float(getOriginX(), getOriginY());
@@ -926,21 +515,6 @@ public class MapViewer extends javax.swing.JComponent
     public float getOriginY() {
         //return inScrollPane ? -getY() : mOffset.y;
         return mOffset.y;
-    }
-    /** width of the extent region we're scrolling over in a scroll pane
-     * -- also equal to getPreferredSize().width
-     */
-    int getExtentWidth() {
-        return getWidth();
-    }
-    /** height of the extent region we're scrolling over in a scroll pane
-     * -- also equal to getPreferredSize().height
-     */
-    int getExtentHeight() {
-        return getHeight();
-    }
-    Dimension getExtentSize() {
-        return getSize();
     }
 
     //------------------------------------------------------------------
@@ -1066,7 +640,7 @@ public class MapViewer extends javax.swing.JComponent
      * which if scroll all the way up-left, will be same as extent coords, but if not,
      * will be offset by scrolled amount.
      */
-    Point getVisibleCenter() {
+    public Point getVisibleCenter() {
         return viewportToExtentPoint(getVisibleWidth() / 2, getVisibleHeight() / 2);
     }
     
@@ -1135,7 +709,7 @@ public class MapViewer extends javax.swing.JComponent
             r.height += SelectionStrokeWidth;
         }
         Rectangle2D.Float rr = growForSelection(r); // now grow it for the selection handles
-        if (DEBUG.SCROLL) out("getContentBounds " + rr);
+        //if (DEBUG.SCROLL) out("getContentBounds " + rr);
         return rr;
     }
     
@@ -1159,7 +733,7 @@ public class MapViewer extends javax.swing.JComponent
 
         super.reshape(x,y, w,h);
 
-        if (ignore && activeTextEdit != null)
+        if (DEBUG.VIEWER || ignore && activeTextEdit != null)
             // if active text is transparent, we'll need this to draw under blinking cursor
             repaint(); 
 
@@ -1399,7 +973,7 @@ public class MapViewer extends javax.swing.JComponent
         //            return;
         
         //if (isBoundsEvent(key))
-            adjustExtent();
+            adjustCanvasSize();
         
         // TODO: OPTIMIZE -- we get tons of location events
         // when dragging, esp if there are children if
@@ -1876,7 +1450,7 @@ public class MapViewer extends javax.swing.JComponent
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
         }
         if (paints == 0 && inScrollPane)
-            adjustExtent();
+            adjustCanvasSize();
         if (DEBUG.PAINT) {
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
@@ -1965,14 +1539,6 @@ public class MapViewer extends javax.swing.JComponent
                 g2.draw(Yaxis);
             }
         }
-        
-        if (DEBUG.SCROLL && mUserOrigin != null) {
-            g2.setStroke(STROKE_ONE);
-            g2.setColor(Color.blue);
-            g2.draw(new Line2D.Float(-1000, mUserOrigin.y, 1000, mUserOrigin.y));
-            g2.draw(new Line2D.Float(mUserOrigin.x, -1000, mUserOrigin.x, 1000));
-        }
-        
         
         //-------------------------------------------------------
         // Draw the map: nodes, links, etc.
@@ -2074,9 +1640,9 @@ public class MapViewer extends javax.swing.JComponent
             int y = -getY();
             //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
             if (true) {
-                g2.drawString("        origin: " + out(getOriginLocation()), x, y+=15);
-                g2.drawString("         mouse: " + out(mouse), x, y+=15);
-                g2.drawString("           map: " + out(mapCoords), x, y+=15);
+                g2.drawString("     origin at: " + out(getOriginLocation()), x, y+=15);
+                g2.drawString("      mouse at: " + out(mouse), x, y+=15);
+                g2.drawString("  map mouse at: " + out(mapCoords), x, y+=15);
                 /*if (inScrollPane){
                 Point extent = viewportToExtentPoint(mouse);
                 Point2D map = extentToMapPoint(extent);
@@ -2087,7 +1653,9 @@ public class MapViewer extends javax.swing.JComponent
                 if (inScrollPane){
                 g2.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
                 }
-                g2.drawString("extent-getSize: " + out(getSize()), x, y+=15);
+                g2.drawString("map-extent-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
+                g2.drawString("map-extent-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
+                g2.drawString("    extent-size " + out(getSize()), x, y+=15);
             }
             if (inScrollPane) {
                 g2.drawString("viewport---size " + out(mViewport.getSize()), x, y+=15);
@@ -3121,7 +2689,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(MapViewer.this); }
                 else if (c == '!') {
                     if (debugInspector == null) {
-                        debugInspector = new ToolWindow("Inspector", VUE.frame);
+                        debugInspector = new ToolWindow("Inspector", VUE.frame == null ? debugFrame : VUE.frame);
                         debugInspector.addTool(new LWCInspector());
                     }
                     debugInspector.setVisible(true);
@@ -4038,7 +3606,7 @@ public class MapViewer extends javax.swing.JComponent
             // reset all in-drag only state
             //-------------------------------------------------------
             
-            adjustExtent();
+            adjustCanvasSize();
             // now that scroll region has been adjust to fit everything,
             // scroll to visible anything we may have dropped off the edge
             // of the screen.
@@ -4476,13 +4044,35 @@ public class MapViewer extends javax.swing.JComponent
         // for print testing & generally handy
         LWNode origin = new LWNode("ORIGIN", 0,0);
         origin.setShape(new Rectangle2D.Float());
-        origin.setStrokeWidth(6);
-        map.addNode(origin);
+        origin.setStrokeWidth(0);
+        //origin.setStrokeWidth(6);
+        Actions.FontBold.actOn(origin);
+
+        LWNode end = new LWNode("400x300");
+        end.setShape(new Rectangle2D.Float());
+        end.setStrokeWidth(0);
+        end.setAutoSized(false);
+        end.setFrame(300,250, 100,50);
+        end.setFillColor(Color.blue);
+        Actions.FontBold.actOn(end);
         
-        // group resize testing
-        map.addNode(new LWNode("aaa", 100,100));
-        map.addNode(new LWNode("bbb", 150,130));
-        map.addNode(new LWNode("ccc", 200,160));
+        LWNode center = new LWNode("center");
+        center.setShape(new Rectangle2D.Float());
+        center.setAutoSized(false);
+        center.setFrame(200,125, 100,50);
+        center.setStrokeWidth(0);
+        center.setFillColor(Color.green);
+
+        map.addNode(origin);
+        map.addNode(center);
+        map.addNode(end);
+            
+        if (true) {
+            // group resize testing
+            //map.addNode(new LWNode("aaa", 100,100));
+            //map.addNode(new LWNode("bbb", 150,130));
+            //map.addNode(new LWNode("ccc", 200,160));
+        }
         
         /*
         map.addNode(n4);
@@ -4529,38 +4119,48 @@ public class MapViewer extends javax.swing.JComponent
     final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
     Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
     
-    /*
-    //private Viewport mViewport;
-    class Viewport extends JViewport {
-        public Viewport() {
-            setView(MapViewer.this);
-        }
-        public Dimension getViewSize() {
-            //new Throwable("getViewSize").printStackTrace();
-            return mapToScreenDim(getContentBounds());
-        }
-        void update() {
-            fireStateChanged();
-        }
-    }
-    */
-
-
+    private static JFrame debugFrame;
     public static void main(String[] args) {
         DEBUG.Enabled = true;
+        DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = true;
         
-        LWMap map = new LWMap("Example Map");
+        System.out.println("MapViewer:main");
+        
+            javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new VueTheme() {
+                    public javax.swing.plaf.FontUIResource getControlTextFont() { return fontTiny; }
+                    public javax.swing.plaf.FontUIResource getMenuTextFont() { return fontTiny; }
+                    public javax.swing.plaf.FontUIResource getSmallFont() { return fontTiny; }
+                });
+            
+        LWMap map = new LWMap("test");
         
         installExampleNodes(map);
-        
-        //VueUtil.displayComponent(new MapViewer(map), 400,300);
-        JFrame frame = VueUtil.displayComponent(new JScrollPane(new MapViewer(map)), 300,200);
-        frame.setJMenuBar(VUE.getMenuBar(null));
 
-        ToolWindow pannerTool = new ToolWindow("Panner", frame);
-        pannerTool.setSize(120,120);
-        pannerTool.addTool(new MapPanner());
-        pannerTool.setVisible(true);
+        if (args.length > 0) {
+            // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
+            VueUtil.displayComponent(new MapViewer(map), 400,300);
+        } else {
+
+            MapViewer viewer = new MapViewer(map);
+            viewer.DEBUG_SHOW_ORIGIN = true;
+            viewer.DEBUG_KEYS = true;
+            viewer.setPreferredSize(new Dimension(500,300));
+            JScrollPane scrollPane = new JScrollPane(viewer);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+            // set the menu bar just so we can get all the actions connected to MapViewer
+            JFrame frame = VueUtil.displayComponent(scrollPane);
+            JMenuBar menu = VUE.getMenuBar(null);
+            menu.setFont(FONT_TINY);
+            frame.setJMenuBar(menu);
+            frame.pack();
+            debugFrame = frame;
+            
+            ToolWindow pannerTool = new ToolWindow("Panner", frame);
+            pannerTool.setSize(120,120);
+            pannerTool.addTool(new MapPanner());
+            pannerTool.setVisible(true);
+        }
     }
     
 }

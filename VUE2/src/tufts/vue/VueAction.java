@@ -57,7 +57,7 @@ public class VueAction extends javax.swing.AbstractAction
     }
     public void actionPerformed(ActionEvent ae)
     {
-        if (DEBUG.EVENTS) System.out.println("\n------------------------------------------------------------------\n"
+        if (DEBUG.EVENTS) System.out.println("\n-----------------------------------------------------------------------------\n"
                                              + this
                                              + " START OF actionPerformed: ActionEvent="
                                              + ae.paramString()

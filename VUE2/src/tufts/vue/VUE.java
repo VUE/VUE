@@ -1104,6 +1104,6 @@ public class VUE
     }
 
     static protected void out(Object o) {
-        System.out.println((o==null?"null":o.toString()));
+        System.out.println("VUE: " + (o==null?"null":o.toString()));
     }
 }

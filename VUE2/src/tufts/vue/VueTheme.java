@@ -13,11 +13,12 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
         return singleton;
     }
 
-    private VueTheme() {}
+    VueTheme() {}
     
-    private FontUIResource fontMedium = new FontUIResource("SansSerif", Font.PLAIN, 12);
-    private FontUIResource fontSmall  = new FontUIResource("SansSerif", Font.PLAIN, 11);
-    private FontUIResource fontControl  = new FontUIResource("SansSerif", Font.PLAIN, 12);
+    protected FontUIResource fontMedium = new FontUIResource("SansSerif", Font.PLAIN, 12);
+    protected FontUIResource fontSmall  = new FontUIResource("SansSerif", Font.PLAIN, 11);
+    protected FontUIResource fontTiny  = new FontUIResource("SansSerif", Font.PLAIN, 8);
+    protected FontUIResource fontControl  = new FontUIResource("SansSerif", Font.PLAIN, 12);
     //private FontUIResource fontWindowTitle  = new FontUIResource(FixedFont);
     //private FontUIResource fontSubText  = new FontUIResource(FONT_TINY);
     
@@ -36,6 +37,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     public String getName() {
         return super.getName() + " (VUE)";
     }
+
+    protected FontUIResource getSmallFont() { return fontSmall; }
     
     public static Color getVueColor() { return getTheme().VueColor;  }
     
@@ -63,8 +66,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     public void addCustomEntriesToTable(UIDefaults table)
     {
         table.put("ComboBox.background", Color.white);
-        table.put("Button.font", fontSmall);
-        table.put("Label.font", fontSmall);
+        table.put("Button.font", getSmallFont());
+        table.put("Label.font", getSmallFont());
         table.put("TitledBorder.font", fontMedium.deriveFont(Font.BOLD));
 
         // From BasicLookAndFeel:

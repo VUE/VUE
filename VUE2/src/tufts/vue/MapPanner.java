@@ -179,8 +179,8 @@ public class MapPanner extends javax.swing.JPanel
             mapViewer.setMapOriginOffset(mapStart.getX() + dragOffsetX,
                                          mapStart.getY() + dragOffsetY);
 
-            if (mapViewer.inScrollPane())
-                mapViewer.adjustExtent();
+            //if (mapViewer.inScrollPane())
+            //    mapViewer.adjustExtent();
 
             mapViewer.repaint();
             repaint();

@@ -491,7 +491,7 @@ class Actions
     // Font/Text Actions
     //-------------------------------------------------------
         
-    static final Action FontSmaller =
+    static final LWCAction FontSmaller =
         new LWCAction("Font Smaller", keyStroke(KeyEvent.VK_MINUS, COMMAND))
         {
             void act(LWComponent c) {
@@ -506,7 +506,7 @@ class Actions
                 }
             }
         };
-    static final Action FontBigger =
+    static final LWCAction FontBigger =
         new LWCAction("Font Bigger", keyStroke(KeyEvent.VK_EQUALS, COMMAND))
         {
             void act(LWComponent c) {
@@ -519,22 +519,22 @@ class Actions
                 c.setFont(new Font(f.getName(), f.getStyle(), size));
             }
         };
-    static final Action FontBold =
+    static final LWCAction FontBold =
         new LWCAction("Font Bold", keyStroke(KeyEvent.VK_B, COMMAND))
         {
             void act(LWComponent c) {
                 //System.out.println("BOLDING " + c);
                 Font f = c.getFont();
-                int newStyle = f.getStyle() ^ Font.BOLD;;
+                int newStyle = f.getStyle() ^ Font.BOLD;
                 c.setFont(new Font(f.getName(), newStyle, f.getSize()));
             }
         };
-    static final Action FontItalic =
+    static final LWCAction FontItalic =
         new LWCAction("Font Italic", keyStroke(KeyEvent.VK_I, COMMAND))
         {
             void act(LWComponent c) {
                 Font f = c.getFont();
-                int newStyle = f.getStyle() ^ Font.ITALIC;;
+                int newStyle = f.getStyle() ^ Font.ITALIC;
                 c.setFont(new Font(f.getName(), newStyle, f.getSize()));
             }
         };
@@ -1056,6 +1056,7 @@ class Actions
         void act(LWNode c) {
             if (DEBUG.SELECTION) System.out.println("LWCAction(node): ignoring " + getActionName() + " on " + c);
         }
+        void actOn(LWComponent c) { act(c); } // for manual init calls from internal code
         
         public String toString() { return "LWCAction[" + getActionName() + "]"; }
     }
