@@ -42,6 +42,9 @@ public class LWMap extends LWContainer
     
     /** the current Map Filter **/
     LWCFilter mLWCFilter = new LWCFilter();
+
+    private long mChanges = 0;
+    private boolean mCachedBoundsOld = true;
     
     // only to be used during a restore from persisted
     public LWMap()
@@ -316,19 +319,38 @@ public class LWMap extends LWContainer
         removeChild(c);
     }
 
-    public java.awt.geom.Rectangle2D getBounds()
+    /**
+     * Every single event anywhere in the map will ultimately end up
+     * calling this notifyLWCListners.
+     */
+    protected void notifyLWCListeners(LWCEvent e)
     {
-        Rectangle2D bounds = getBounds(getChildIterator());
-        //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
-        setFrame(bounds);
-        //System.out.println(this + " getBounds: " + bounds);
-        return bounds;
+        mCachedBoundsOld = true;
+        mChanges++;
+        super.notifyLWCListeners(e);
     }
     
+    private Rectangle2D mCachedBounds = null;
+    public java.awt.geom.Rectangle2D getBounds()
+    {
+        if (mCachedBoundsOld) {
+            mCachedBounds = getBounds(getChildIterator());
+            setFrame(mCachedBounds);
+            System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
+            if (!DEBUG_SCROLL && !DEBUG_CONTAINMENT)
+                mCachedBoundsOld = false;
+        }
+        //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
+        return mCachedBounds;
+    }
+    
+
+    /*
     public java.awt.geom.Rectangle2D getCachedBounds()
     {
         return super.getBounds();
     }
+    */
     
     /**
      * return the bounds for all LWComponents in the iterator

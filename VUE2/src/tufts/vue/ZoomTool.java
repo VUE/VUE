@@ -21,7 +21,7 @@ public class ZoomTool extends VueTool
         1.25, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64
         //, 96, 128, 256, 384, 512
     };
-    static private final int ZOOM_FIT_PAD = 16;
+    static private final int ZOOM_FIT_PAD = 8;
     static private final double MaxZoom = ZoomDefaults[ZoomDefaults.length - 1];
 
     
@@ -163,13 +163,15 @@ public class ZoomTool extends VueTool
     {
         MapViewer viewer = VUE.getActiveViewer();
         
-        if (!DEBUG_SCROLL && adjustViewport) {
+        //        if (!DEBUG_SCROLL && adjustViewport) {
+        if (adjustViewport) {
             if (focus == null) {
                 // If no user selected zoom focus point, zoom in to
                 // towards the map location at the center of the
                 // viewport.
-                Container c = viewer;
-                focus = new Point(c.getWidth() / 2, c.getHeight() / 2);
+                focus = new Point(viewer.getVisibleWidth() / 2,
+                                  viewer.getVisibleHeight() / 2);
+                // this probably doesn't compute right if we're scrolled...
             }
             Point2D mapAnchor = viewer.screenToMapPoint(focus);
             double offsetX = (mapAnchor.getX() * newZoomFactor) - focus.getX();
@@ -184,8 +186,8 @@ public class ZoomTool extends VueTool
     /** fit everything in the current map into the current viewport */
     public static void setZoomFit()
     {
-        setZoomFitRegion(VUE.getActiveViewer().getMap().getBounds(),
-                         ZOOM_FIT_PAD);
+        setZoomFitRegion(VUE.getActiveViewer().getAllComponentBounds(),
+                         DEBUG_SCROLL ? 0 : ZOOM_FIT_PAD);
     }
     
     public static void setZoomFitRegion(Rectangle2D mapRegion)
@@ -204,7 +206,7 @@ public class ZoomTool extends VueTool
         if (newZoom > MaxZoom) {
             setZoom(MaxZoom, true, null);
             Point2D mapAnchor = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
-            Point focus = new Point(viewer.getWidth()/2, viewer.getHeight()/2);
+            Point focus = new Point(viewer.getVisibleWidth()/2, viewer.getVisibleHeight()/2);
             double offsetX = (mapAnchor.getX() * MaxZoom) - focus.getX();
             double offsetY = (mapAnchor.getY() * MaxZoom) - focus.getY();
             viewer.setMapOriginOffset(offsetX, offsetY);
@@ -212,6 +214,7 @@ public class ZoomTool extends VueTool
             setZoom(newZoom, false, null);
             viewer.setMapOriginOffset(offset.getX(), offset.getY());
         }
+        viewer.resetScrollRegion();
     }
     
     /*

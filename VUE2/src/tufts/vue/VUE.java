@@ -526,7 +526,7 @@ public class VUE
     }
 
     static class MapTabbedPane extends JTabbedPane
-        implements LWComponent.Listener
+        implements LWComponent.Listener, FocusListener
     {
         private static final Color BgColor = VueResources.getColor("toolbar.background");
 
@@ -559,6 +559,14 @@ public class VUE
         }
         */
         
+        public void focusGained(FocusEvent e)
+        {
+            System.out.println(this + " focusGained (from " + e.getOppositeComponent() + ")");
+        }
+        public void focusLost(FocusEvent e)
+        {
+            System.out.println(this + " focusLost (to " + e.getOppositeComponent() + ")");
+        }
         public void addNotify()
         {
             super.addNotify();
@@ -566,13 +574,13 @@ public class VUE
                 setForeground(Color.darkGray);
                 //setBackground(BgColor);
             }
+            addFocusListener(this);
         }
         
         public void addTab(LWMap pMap, Component c)
         {
             //scroller.getViewport().setScrollMode(javax.swing.JViewport.BACKINGSTORE_SCROLL_MODE);
             //super.addTab(pMap.getLabel(), c instanceof JScrollPane ? c : new JScrollPane(c));
-            //super.addTab(pMap.getLabel() + " - 100%", c);
             super.addTab(pMap.getLabel(), c);
             pMap.addLWCListener(this);
             // todo perf: we should be able to ask to listen only
@@ -600,6 +608,13 @@ public class VUE
             }
         }
 
+        /*
+         * Will find either the component index (default superclass
+         * behavior), or, if the component found at any location
+         * is a JScrollPane, look within it at the JViewport's
+         * view, and if it matches the component sought, return that index.
+         */
+        
         public int indexOfComponent(Component component) {
             for (int i = 0; i < getTabCount(); i++) {
                 Component c = getComponentAt(i);
@@ -607,7 +622,7 @@ public class VUE
                     (c == null && c == component)) { 
                     return i;
                 }
-                if (component instanceof MapViewer && c instanceof JScrollPane) {
+                if (c instanceof JScrollPane) {
                     if (component == ((JScrollPane)c).getViewport().getView())
                         return i;
                 }
@@ -629,10 +644,11 @@ public class VUE
         public LWMap getMapAt(int index)
         {
             MapViewer viewer = getViewerAt(index);
+            LWMap map = null;
             if (viewer != null)
-                return viewer.getMap();
-            else
-                return null;
+                map = viewer.getMap();
+            //System.out.println(this + " map at index " + index + " is " + map);
+            return map;
         }
         
         private int findTabWithMap(LWMap map)
@@ -640,14 +656,18 @@ public class VUE
             int tabs = getTabCount();
             for (int i = 0; i < tabs; i++) {
                 LWMap m = getMapAt(i);
-                if (m != null && m == map)
+                if (m != null && m == map) {
+                    //System.out.println(this + " found map " + map + " at index " + i);
                     return i;
+                }
             }
+            System.out.println(this + " failed to find map " + map);
             return -1;
         }
 
         public void closeMap(LWMap map)
         {
+            System.out.println(this + " closing " + map);
             remove(findTabWithMap(map));
         }
 
@@ -937,6 +957,7 @@ public class VUE
     {
         AbstractButton mLinkedButton;
         Window mWindow;
+        boolean firstDisplay = true;
         public WindowDisplayAction(Window w)
         {
             super("window: " + w.getName());
@@ -962,6 +983,10 @@ public class VUE
         public void actionPerformed(ActionEvent e) {
             if (mLinkedButton == null)
                 mLinkedButton = (AbstractButton) e.getSource();
+            if (firstDisplay && mWindow.getX() == 0 && mWindow.getY() == 0) {
+                mWindow.setLocation(20,20);
+            }
+            firstDisplay = false;
             mWindow.setVisible(mLinkedButton.isSelected());
         }
     }

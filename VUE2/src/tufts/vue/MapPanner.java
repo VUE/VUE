@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import javax.swing.JViewport;
 
 /**
  * MapPanner.java
@@ -79,12 +80,21 @@ public class MapPanner extends javax.swing.JPanel
         }
 
         Rectangle2D allComponentBounds = mapViewer.getAllComponentBounds();
-        Rectangle   viewerBounds = new Rectangle(mapViewer.getScreenWidth()-1, mapViewer.getScreenHeight()-1);
+        Rectangle   viewerBounds = new Rectangle(mapViewer.getVisibleWidth()-1, mapViewer.getVisibleHeight()-1);
 
         if (viewerBounds.isEmpty())
             return;
         
-        Rectangle2D mapViewerRect = mapViewer.screenToMapRect(viewerBounds);
+        //Rectangle2D.Float mapViewerRect = (Rectangle2D.Float) mapViewer.screenToMapRect(viewerBounds);
+        Rectangle2D mapViewerRect = mapViewer.getVisibleMapBounds();
+        /*
+        if (mapViewer.getParent() instanceof JViewport) {
+            JViewport vp = (JViewport) mapViewer.getParent();
+            Point vpos = vp.getViewPosition();
+            mapViewerRect.x = vpos.x;
+            mapViewerRect.y = vpos.y;
+        }
+        */
         Rectangle2D pannerRect = mapViewerRect.createUnion(allComponentBounds);
 
         Dimension pannerViewportSize = getSize();
