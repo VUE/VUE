@@ -63,8 +63,15 @@ class Actions {
             {
                 LWComponent[] array = VUE.ModelSelection.getArray();
                 
+                //adds the elements to the current pathway associated with the map
                 for (int i = 0; i < array.length; i++)
                     VUE.getPathwayInspector().getPathway().addElement(array[i]);
+                
+                //updates the inspector's pathwayTab
+                VUE.getPathwayInspector().notifyPathwayTab();
+                
+                //updates the control panel
+                VUE.getPathwayControl().updateControlPanel();
             }
         };
         
