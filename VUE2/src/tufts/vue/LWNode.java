@@ -514,7 +514,11 @@ public class LWNode extends LWContainer
                 g.setColor(getStrokeColor());
             g.setStroke(this.stroke);
             g.draw(drawnShape);
-        }       
+        }
+        // todo: would be nice if this shape has no border and isn't rectangular
+        // (e.g., a circle or a triangle) to draw a selection border around it's
+        // actual border when selected so you can see the shape if it happens to
+        // be transparent or on a background of the same color
 
         //-------------------------------------------------------
         // Draw the text label if any
@@ -573,7 +577,7 @@ public class LWNode extends LWContainer
         /** for XML persistance */
         public NodeShape() {}
 
-        public Shape getShape()
+        public RectangularShape getShape()
         {
             return shape;
         }
@@ -605,8 +609,11 @@ public class LWNode extends LWContainer
         new NodeShape("Square", new Rectangle2D.Float(0,0,10,10), true),
         new NodeShape("Rectangle", new Rectangle2D.Float(0,0,10,10)),
         new NodeShape("Rounded Rectangle", new RoundRectangle2D.Float(0,0, 10,10, 20,20)),
-        //new NodeShape("Triangle", new tufts.vue.shape.Triangle2D(0,0, 60,80)),
-        //new NodeShape("Diamond", new tufts.vue.shape.Diamond2D(0,0, 60,60)),
+        new NodeShape("Triangle", new tufts.vue.shape.Triangle2D(0,0, 60,120)),
+        new NodeShape("Diamond", new tufts.vue.shape.Diamond2D(0,0, 60,60)),
+
+        // Polygon class not a RectangularShape...
+        //new NodeShape("Poly3", new Polygon(new int[] {0, 10, 20}, new int[] {0, 20, 0}, 3)),
         //new NodeShape("Parallelogram", null),
     };
     
