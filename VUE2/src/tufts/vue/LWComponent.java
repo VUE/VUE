@@ -136,7 +136,6 @@ public class LWComponent
             this.label = null;
             if (labelBox != null)
                 labelBox.setText("");
-                
         } else {
             this.label = label;
             // todo opt: only do this if node or link

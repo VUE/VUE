@@ -45,12 +45,12 @@ public class UndoManager
     private static class UndoActionList extends ArrayList
     {
         private String name;
+        private int current = -1;
 
         UndoActionList(String name) {
             this.name = name;
         }
         
-        int current = -1;
         public boolean add(Object o) {
             // when adding, flush anything after the top
             if (current < size() - 1) {
@@ -58,7 +58,6 @@ public class UndoManager
                 int e = size();
                 if (DEBUG.UNDO) out("flushing " + s + " to " + e + " in " + this);
                 removeRange(s, e);
-                if (DEBUG.UNDO) out("flushed: " + this);
             }
             if (DEBUG.UNDO) out("adding: " + o);
             super.add(o);
@@ -241,7 +240,7 @@ public class UndoManager
             // todo: compute additions/deletions and generate childrenAdded & childrenRemoved events
             // for things like the outline view which listen for them (or: redo outline code
             // to just rebuild everything on the HierarchyChanged event)
-            parent.notify(LWKey.HierarchyChanging);
+            parent.notify(LWKey.HierarchyChanging); // this event important for REDO (can we optimize?)
             parent.children = (List) oldValue;
             Iterator ci = parent.children.iterator();
             // now make sure all the children are properly parented,
@@ -349,13 +348,8 @@ public class UndoManager
         UndoAction undoAction = UndoList.pop();
         if (DEBUG.UNDO) System.out.println(this + " undoing " + undoAction);
         if (undoAction != null) {
-            try {
-                sUndoUnderway = true;
-                mRedoCaptured = false;
-                undoAction.undo();
-            } finally {
-                sUndoUnderway = false;
-            }
+            mRedoCaptured = false;
+            undoAction.undo();
         }
         RedoList.add(collectChangesAsUndoAction(undoAction.name));
         updateActionLabels();
