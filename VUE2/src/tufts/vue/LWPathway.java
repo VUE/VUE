@@ -9,6 +9,7 @@ package tufts.vue;
 
 import java.util.*;
 import java.awt.Color;
+import java.awt.Graphics2D;
 
 /**
  *
@@ -24,6 +25,14 @@ public class LWPathway extends tufts.vue.LWComponent
     
     public LWPathway() {
         super.setLabel("DEFAULT PATHWAY");
+        LWNode node1 = new LWNode("Node 1");
+        LWNode node2 = new LWNode("Node 2");
+        LWNode node3 = new LWNode("Node 3");
+        LWNode node4 = new LWNode("Node 4");
+        this.addNode(node1);
+        this.addNode(node2);
+        this.addNode(node3);
+        this.addNode(node4);
     }
     
     /** Creates a new instance of LWPathway with the specified label */
@@ -51,6 +60,17 @@ public class LWPathway extends tufts.vue.LWComponent
                 nodeList.add(index2, node);
             else
                 nodeList.add(index1, node);
+        }
+    }
+    
+    public void draw(Graphics2D g)
+    {
+        System.out.println("attempting to draw a pathway...");
+        Iterator iter = getNodeIterator();
+        while(iter.hasNext()){
+            LWNode node = (LWNode)iter.next();
+            if(!node.getStrokeColor().equals(borderColor))
+                node.setStrokeColor(borderColor);
         }
     }
     
