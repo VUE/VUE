@@ -236,7 +236,7 @@ public class FedoraObject implements osid.dr.Asset{
      *     @return InfoStructureIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws DigitalRepositoryException if there is a general failure
      */
-    public InfoStructureIterator getInfoStructures() throws osid.dr.DigitalRepositoryException {
+    public osid.dr.InfoStructureIterator getInfoStructures() throws osid.dr.DigitalRepositoryException {
         return (osid.dr.InfoStructureIterator) new BehaviorIterator(infoStructures);
     }
     

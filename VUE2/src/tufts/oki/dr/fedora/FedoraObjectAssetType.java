@@ -32,7 +32,7 @@ public class FedoraObjectAssetType extends osid.shared.Type {
     }
     
     public osid.dr.InfoStructureIterator getInfoStructures() throws osid.dr.DigitalRepositoryException{
-            return (osid.dr.InfoStructureIterator)new BehaviorInfoStructureIterator(infoStructures);
+            return (osid.dr.InfoStructureIterator)new InfoStructureIterator(infoStructures);
     }
     
     public String toString() {
