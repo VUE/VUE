@@ -297,6 +297,7 @@ public class MapViewer extends javax.swing.JPanel
         return this.map;
     }
     
+    
     private void unloadMap()
     {
         this.map.removeLWCListener(this);
@@ -1059,8 +1060,12 @@ public class MapViewer extends javax.swing.JPanel
             if(a != null && assetMenu == null) {
                assetMenu = getAssetMenu(a);
                cPopup.add(assetMenu);
-            } else if(a != null) {
+            }else if(a != null) {
+                cPopup.remove(assetMenu);
                 assetMenu = getAssetMenu(a);
+                cPopup.add(assetMenu);
+            }else if(a == null) {
+                cPopup.remove(assetMenu);
             }
         }
         return cPopup;
