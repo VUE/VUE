@@ -21,14 +21,21 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import fedora.server.types.gen.*;
 import java.io.*;
 import java.net.*;
+
+import javax.swing.*;
+/** Rssource implementation for Fedora Assets **/
+
 public class AssetResource extends MapResource{
     
     /** Creates a new instance of AssetResource */
-    static final int DC_NAMESPACE_LENGTH = 3 ;// (dc:) the namespacepresent in metadata fields. Beginning is chopped off for clean rendering
-    static final String DISSEMINATION_ID = "getDublinCore";
-    static final String DC_FIELD_ID = "fedora.disseminationURL";
-    static final String[] dcFields = tufts.oki.dr.fedora.DR.DC_FIELDS;
-    static final String  DC_NAMESPACE = tufts.oki.dr.fedora.DR.DC_NAMESPACE;
+    public static final int DC_NAMESPACE_LENGTH = 3 ;// (dc:) the namespacepresent in metadata fields. Beginning is chopped off for clean rendering
+    public static final String DISSEMINATION_ID = "getDublinCore";
+    public static final String DC_FIELD_ID = "fedora.disseminationURL";
+    public static final String DISSEMINATION_INFOSTRUCTURE_ID = "fedora.dissemination";
+    public static final String VUE_INFOSTRUCTURE_ID = "fedora.vue";
+    public static final String VUE_DEFAULT_VIEW_ID = "fedora.vue.defaultView";
+    public static final String[] dcFields = tufts.oki.dr.fedora.DR.DC_FIELDS;
+    public static final String  DC_NAMESPACE = tufts.oki.dr.fedora.DR.DC_NAMESPACE;
     
     private Asset asset;
     private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
@@ -44,8 +51,8 @@ public class AssetResource extends MapResource{
     public void setAsset(Asset asset) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.asset = asset;
         setPropertiesByAsset();
-        this.spec = ((FedoraObject)asset).getDefaultViewURL();
-        setTitle(((FedoraObject)asset).getDisplayName());
+        this.spec = asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString();
+        setTitle(asset.getDisplayName());
         this.castorFedoraObject = new CastorFedoraObject((FedoraObject)asset);
     }
     
@@ -96,11 +103,34 @@ public class AssetResource extends MapResource{
     public void setCastorFedoraObject(CastorFedoraObject castorFedoraObject) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this.castorFedoraObject = castorFedoraObject;
         this.asset = this.castorFedoraObject.getFedoraObject();
-        this.spec =  ((FedoraObject)this.castorFedoraObject.getFedoraObject()).getDefaultViewURL();
+        this.spec =   asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString();
     }
     
     public CastorFedoraObject getCastorFedoraObject() {
         return this.castorFedoraObject;
     }
-    
+     public static AbstractAction getFedoraAction(osid.dr.InfoRecord infoRecord,osid.dr.DigitalRepository dr) throws osid.dr.DigitalRepositoryException {
+         final DR mDR = (DR)dr;
+         final tufts.oki.dr.fedora.InfoRecord mInfoRecord = (tufts.oki.dr.fedora.InfoRecord)infoRecord;
+        
+        try {
+            AbstractAction fedoraAction = new AbstractAction(infoRecord.getId().getIdString()) {
+                public void actionPerformed(java.awt.event.ActionEvent actionEvent) {
+                    try {
+                      //String fedoraUrl = mDR.getFedoraProperties().getProperty("url.fedora.get","http://vue-dl.tccs..tufts.edu:8080/fedora/get");
+                      String fedoraUrl = mInfoRecord.getInfoField(new PID(FedoraUtils.getFedoraProperty(mDR, "DisseminationURLInfoPartId"))).getValue().toString();
+                      URL url = new URL(fedoraUrl);
+                      URLConnection connection = url.openConnection();
+                      System.out.println("FEDORA ACTION: Content-type:"+connection.getContentType()+" for url :"+fedoraUrl);
+                      
+                      VueUtil.openURL(fedoraUrl);
+                     } catch(Exception ex) {  } 
+                }
+
+            };
+            return fedoraAction;
+        } catch(Exception ex) {
+            throw new osid.dr.DigitalRepositoryException("FedoraUtils.getFedoraAction "+ex.getMessage());
+        } 
+    }
 }

@@ -2396,13 +2396,14 @@ public class MapViewer extends javax.swing.JComponent
         sAssetMenu.removeAll();
         osid.dr.InfoRecordIterator i;
         try {
-            i = asset.getInfoRecords();
+            i = asset.getInfoRecordsByInfoStructure(new PID(AssetResource.DISSEMINATION_INFOSTRUCTURE_ID));
             while(i.hasNext()) {
                 osid.dr.InfoRecord infoRecord = i.next();
                 sAssetMenu.add(FedoraUtils.getFedoraAction(infoRecord,((FedoraObject)asset).getDR()));
             }
         } catch (Exception ex) {
             System.out.println("MapViewer.getAssetMenu"+ex);
+            ex.printStackTrace();
         }
     }
     
