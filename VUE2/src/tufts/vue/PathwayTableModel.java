@@ -184,9 +184,8 @@ public class PathwayTableModel extends DefaultTableModel {
                 return false;
             if (col == 3) // label always editable
                 return true;
-            LWComponent c = getElement(row);
-            if (c == p) // if pathway, visible & color also editable
-                return col == 1 || col == 3;
+            if (getElement(row) instanceof LWPathway)
+                return col == 1;  // if pathway, color also editable
         }
         return false;
     }
