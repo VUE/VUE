@@ -52,7 +52,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     DeletePropertiesButtonListener deletePropertiesButtonListener;
     JButton addPropertyButton=new VueButton("add");
     JButton deletePropertyButton=new VueButton("delete");
-    
+    JLabel questionLabel = new JLabel(VueResources.getImageIcon("smallInfo"), JLabel.LEFT);
+        
     
     /** Creates a new instance of ResourcePropertiesEditor */
     public PropertiesEditor(boolean editable) {
@@ -67,6 +68,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     private void setResourePropertiesPanel() {
         addPropertyButton.setToolTipText("Add Metadata");
         deletePropertyButton.setToolTipText("Delete Metadata");
+        questionLabel.setToolTipText("Add or delete resource metadata");
         propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -100,7 +102,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         
         JPanel labelPanel=new JPanel(new BorderLayout());
         //labelPanel.setBorder(BorderFactory.createEmptyBorder(3,6,3,6));
-        JLabel label = new JLabel("Metadata");
+        JLabel label = new JLabel("Resource Metadata");
         label.setAlignmentX(Label.LEFT_ALIGNMENT);
         labelPanel.add(label,BorderLayout.WEST);
         JPanel topPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,2,0));
@@ -119,6 +121,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             deletePropertyButton.addActionListener(deletePropertiesButtonListener);
             topPanel.add(addPropertyButton);
             topPanel.add(deletePropertyButton);
+            topPanel.add(questionLabel);
             JComboBox comboBox = new JComboBox(DC_FIELDS);
             propertiesTable.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(comboBox));
             
