@@ -610,24 +610,42 @@ public class VUE
     {
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
+        Color menuColor = VueResources.getColor( "menubarColor");
         JMenuBar menuBar = new JMenuBar();
+        menuBar.setBackground( menuColor);
+        
         JMenu fileMenu = new JMenu("File");
+        fileMenu.setBackground( menuColor);
+        
         JMenu editMenu = new JMenu("Edit");
+        editMenu.setBackground( menuColor);
+        
         JMenu viewMenu = new JMenu("View");
+        viewMenu.setBackground( menuColor);
+        
         JMenu formatMenu = new JMenu("Format");
+        formatMenu.setBackground( menuColor);
+        
         JMenu arrangeMenu = new JMenu("Arrange");
+        arrangeMenu.setBackground( menuColor);
+        
         //JMenu alignMenu = new JMenu("Align");
         JMenu windowMenu = new JMenu("Window");
+        windowMenu.setBackground( menuColor);
+        
         JMenu optionsMenu = new JMenu("Options");
+        optionsMenu.setBackground( menuColor);
+        
         JMenu helpMenu = new JMenu("Help");
+        helpMenu.setBackground( menuColor);
         
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
         menuBar.add(viewMenu);
         menuBar.add(formatMenu);
         menuBar.add(arrangeMenu);
-        menuBar.add(windowMenu);
         menuBar.add(optionsMenu);
+        menuBar.add(windowMenu);
         menuBar.add(helpMenu);
         //adding actions
         SaveAction saveAction = new SaveAction("Save", false);
