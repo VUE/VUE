@@ -432,16 +432,11 @@ public class DataSourceViewer  extends JPanel{
             else{*/
                 
         // this should be created automatically from a config file. That will be done in future.
-                try {
-                    
-                    try{
-                          System.out.println("was I here? - Before DataSource");
+                try {  
                     DataSource ds1 = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
                     //ds1.setDisplayColor(Color.BLACK);
-                   System.out.println("was I here? - After DataSource" +ds1);
-                   dataSources.add(ds1);
-                   dataSourceList.getContents().addElement(ds1);
-                    }catch (Exception ex){}
+                    dataSources.add(ds1);
+                    dataSourceList.getContents().addElement(ds1);
                     DataSource ds2 =  new DataSource("ds2", "Tufts Digital Library","fedora","130.64.77.144","test","test",DataSource.DR_FEDORA);
                     //ds2.setDisplayColor(Color.RED);
                     dataSources.add(ds2);
@@ -449,12 +444,16 @@ public class DataSourceViewer  extends JPanel{
                     setActiveDataSource(ds2);
                     DataSource ds3 = new DataSource("ds3", "My Favorites","favorites",DataSource.FAVORITES);
                     //ds3.setDisplayColor(Color.BLUE);
-                   dataSources.add(ds3);
+                    dataSources.add(ds3);
                     dataSourceList.getContents().addElement(ds3);
-                   DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
+                    DataSource ds4 = new DataSource("ds4", "Tufts Google","google",DataSource.GOOGLE);
                     //ds4.setDisplayColor(Color.YELLOW);
                     dataSources.add(ds4);
                     dataSourceList.getContents().addElement(ds4);
+                    DataSource ds5 = new DataSource("ds5","UVA: Findiing Aids","uva:fedora","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
+                    dataSources.add(ds5);
+                    dataSourceList.getContents().addElement(ds5);
+
                 } catch (Exception ex) {
                     System.out.println("Datasources can't be loaded");
                 }

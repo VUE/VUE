@@ -53,30 +53,17 @@ public class DataSourceList extends JList implements DropTargetListener{
     
     public DataSourceList() {
         super(new DefaultListModel());
-        
-        
-        this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
-        
+        this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);  
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
-        
-        
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                if (((DataSource)value).getType() == 0){
+                if (((DataSource)value).getType() == 0)
                     setIcon(myFavoritesIcon);
-                }
-                else if (((DataSource)value).getType() == 1){
-                    
+                else if (((DataSource)value).getType() == 1)
                     setIcon(myComputerIcon);
-                    
-                }
-                else {
-                    
+                else 
                     setIcon(remoteIcon);
-                    
-                }
-                
                 return this;
             }
         };
