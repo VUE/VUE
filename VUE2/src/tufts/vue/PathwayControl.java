@@ -192,7 +192,6 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
         
         //update the inspector here
         VUE.getPathwayInspector().setPathway(currentPathway);
-        //LWPathwayInspector.setPathway(pathway);
     }
     
     /**Returns the currently selected pathway*/
@@ -343,6 +342,9 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                     pathwayManager.setCurrentPathway(currentPathway);
                 }
                 
+                //update the inspector here
+                VUE.getPathwayInspector().setPathway(currentPathway);
+                
                 updateControlPanel();
             }
             
@@ -354,7 +356,10 @@ public class PathwayControl extends InspectorWindow implements ActionListener, I
                 
                 //if there is a pathwayManager currently set 
                 if (pathwayManager != null)
-                    pathwayManager.setCurrentPathway(null);
+                    pathwayManager.setCurrentPathway(currentPathway);
+                
+                //update the inspector here
+                VUE.getPathwayInspector().setPathway(currentPathway);
                 
                 updateControlPanel();
             }
