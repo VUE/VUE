@@ -30,6 +30,7 @@ public class LWPathway //extends tufts.vue.LWComponent
     private String label = "";
     private int currentIndex;
     private String notes = "";
+    //private boolean isShowing = false;
     
     /**default constructor used for marshalling*/
     public LWPathway() {

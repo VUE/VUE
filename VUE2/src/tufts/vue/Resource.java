@@ -11,7 +11,6 @@ import java.util.*;
 
 import osid.dr.*;
 import tufts.oki.dr.fedora.*;
-
 public class Resource
 {
     static final long SIZE_UNKNOWN = -1;

@@ -120,7 +120,7 @@ public class MapViewer extends javax.swing.JPanel
         //addMouseMotionListener(ih);
         addKeyListener(inputHandler);
         addFocusListener(this);
-        
+         
         //MapDropTarget mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
         this.mapDropTarget = new MapDropTarget(this);// new CanvasDropHandler
         this.setDropTarget(new java.awt.dnd.DropTarget(this, mapDropTarget));
@@ -200,6 +200,7 @@ public class MapViewer extends javax.swing.JPanel
      * Updates any selection or state issues pased on the tool
      * @param pTool - the new tool
      **/
+
     public void toolSelected(VueTool pTool)
     {
         if (pTool == null) {
@@ -2908,7 +2909,6 @@ public class MapViewer extends javax.swing.JPanel
 
     /*
     public Component findComponentAt(int x, int y) {
-        System.out.println("MapViewer findComponentAt " + x + "," + y);
         return super.findComponentAt(x,y);
     }
 

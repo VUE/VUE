@@ -43,24 +43,24 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  */
 
 /**A class which displays nodes in a pathway */
-public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener, DocumentListener, ItemListener, KeyListener
+public class PathwayTab extends JPanel implements ActionListener, ListSelectionListener, DocumentListener, KeyListener
 {    
     //necessary widgets
     private PathwayTable pathwayTable = null;
+    private PathwayTableModel tableModel = null;
     private JButton remove = null, plus = null; //moveUp, moveDown, submit 
     private JTextField text;
     //private PathwayControl pathwayControl;
     private JDialog parent;
     private JPanel buttons = null, pnPanel = null, pcPanel = null, buttonPanel = null;
     private JLabel pathName = null;
-    private final Font selectedFont = new Font("SansSerif", Font.BOLD, 12);
-    private final Font normalFont = new Font("SansSerif", Font.PLAIN, 12);
     
+private int bHeight = 23, bWidth = 42, bWidth2 = 48;
     /* Pathway control properties */
     
     private JButton firstButton, lastButton, forwardButton, backButton;
     private JButton removeButton, createButton;
-    private JComboBox pathwayList;
+    //private JComboBox pathwayList;
     
     private LWPathwayManager pathwayManager = null;
     
@@ -75,31 +75,87 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     {   
         this.parent = parent;
         
-        setLayout(new GridLayout(5,1,5,0));
+        setLayout(new GridLayout(2,1,5,0));
         
-        add(getRadioPanel());
-        
+        //used but not added to GUI
         setPathwayControl();
-        add(pcPanel);
-        //pathwayControl = new PathwayControl(parent, this);
-        //add(pathwayControl);
-        
         setPathwayNameLabel();
-        add(pnPanel);
+        //end of used
         
+        JPanel pathwayPanel = new JPanel(new BorderLayout());
+        
+        createButton = new JButton("+");
+        createButton.setPreferredSize(new Dimension(bWidth, bHeight));
+        createButton.addActionListener(this);
+        removeButton = new JButton("-");
+        removeButton.setPreferredSize(new Dimension(bWidth, bHeight));
+        removeButton.addActionListener(this);
+        
+        JPanel editPathwaysPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        editPathwaysPanel.add(new JLabel("Add / Delete Pathways"));
+        editPathwaysPanel.add(createButton);
+        editPathwaysPanel.add(removeButton);
+        
+        pathwayPanel.add(editPathwaysPanel, BorderLayout.NORTH);
+        
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        FlowLayout flow = new FlowLayout(FlowLayout.RIGHT);
+        JPanel northPanel = new JPanel(flow);
+   
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        
+        tableModel = new PathwayTableModel(this);
         pathwayTable = new PathwayTable(this);
-        add(new JScrollPane(pathwayTable));
+        pathwayTable.setModel(tableModel);
+        
+        northPanel.add(new JLabel("Highlight a path to playback:"));
+        northPanel.add(buttonPanel);
+        northPanel.setBackground(new Color(200, 200, 255));
         
         setButtons();
-        add(buttons);
+        southPanel.add(new JLabel("Add selected object on map to path"));
+        southPanel.add(buttons);
+        southPanel.setBackground(new Color(200, 200, 255));
+        
+        tablePanel.add(northPanel, BorderLayout.NORTH);
+        tablePanel.add(new JScrollPane(pathwayTable), BorderLayout.CENTER);
+        tablePanel.add(southPanel, BorderLayout.SOUTH);
+        
+        pathwayPanel.add(tablePanel, BorderLayout.CENTER);
+        
+        add(pathwayPanel);
+        
+        JPanel notesPanel = new JPanel(new BorderLayout());
+        JPanel southNotes = new JPanel(new FlowLayout(FlowLayout.LEFT));
+     
+        southNotes.add(new JLabel("Notes: "));
+        southNotes.add(new JLabel("Path 3 / "));
+        southNotes.add(new JLabel("Node 15"));
+        notesPanel.add(southNotes, BorderLayout.NORTH);
+        
+        JTextArea notesArea = new JTextArea("Notes area.");
+        notesArea.setColumns(5);
+        notesPanel.add(notesArea, BorderLayout.CENTER);
+        
+        add(notesPanel);
+        
     }
     
     public void setButton(JButton button){
         button.addActionListener(this);
+        button.setPreferredSize(new Dimension(bWidth2, bHeight));
         buttonPanel.add(button);
     }
     
-    
+    public JDialog getDialogParent(){
+        return parent;
+    }
+    /*
+    public JComboBox getPathwayList(){
+        return pathwayList;
+    }
+    */
     public void setPathwayControl(){
         pcPanel = new JPanel(new BorderLayout());
         
@@ -116,25 +172,14 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         setButton(backButton);
         setButton(forwardButton);
         setButton(lastButton);
-        /* end of buttons that are not used */
         
-        createButton = new JButton("Create New Path");
-        createButton.addActionListener(this);
-        removeButton = new JButton("Delete Selected Path");
-        removeButton.addActionListener(this);
-        
-        JPanel pathwayPanel = new JPanel();
-        pathwayPanel.add(createButton);
-        pathwayPanel.add(removeButton);
-        pcPanel.add(pathwayPanel, BorderLayout.SOUTH);
-        
-        pathwayList = new JComboBox();
-        pathwayList.setRenderer(new PathwayRenderer());
-        pathwayList.addItemListener(this);
+        //pathwayList = new JComboBox();
+        //pathwayList.setRenderer(new PathwayRenderer());
+        //pathwayList.addItemListener(this);
         
         JPanel mainPanel = new JPanel();
         mainPanel.add(new JLabel("Select:"));
-        mainPanel.add(pathwayList);
+        //mainPanel.add(pathwayList);
         mainPanel.add(new JLabel("???"));
         pcPanel.add(mainPanel, BorderLayout.CENTER);
     }
@@ -172,11 +217,13 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     
     public void setButtons(){
         
-        buttons = new JPanel();
-        plus = new JButton("Add Selected Node To Path");
+        buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        plus = new JButton("+");
+        plus.setPreferredSize(new Dimension(bWidth, bHeight));
         plus.addActionListener(this);
         plus.setEnabled(false);
-        remove = new JButton("Remove Node");
+        remove = new JButton("-");
+        remove.setPreferredSize(new Dimension(bWidth, bHeight));
         remove.addActionListener(this);
         remove.setEnabled(false);
         
@@ -184,7 +231,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         VUE.ModelSelection.addListener( new LWSelection.Listener() {
                 public void selectionChanged(LWSelection selection)
                 {
-                    if (!selection.isEmpty() && getPathway() != null)
+                    if (!selection.isEmpty() && VUE.getActiveMap().getPathwayManager().length() > 0)
                       plus.setEnabled(true);
                     else
                       plus.setEnabled(false);
@@ -269,18 +316,22 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     }
     
     /**Gets the current pathway associated with the pathway table*/
-    public LWPathway getPathway()
+    /*public LWPathway getPathway()
     {
         return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
     }
-    
+    */
     /**Sets the current node of the pathway to be the selected one from the table*/
-    public void setCurrentElement(int index)
+    /*public void setCurrentElement(int index)
     {
        ((PathwayTableModel)pathwayTable.getModel()).getPathway().setCurrentIndex(index);
        
         //update the pathway control panel
         updateControlPanel();
+    }*/
+    
+    public PathwayTableModel getPathwayTableModel(){
+        return this.tableModel;
     }
     
     /**Notifies the table of data change*/
@@ -338,7 +389,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         {    
              if (selected != -1)
              {
-                ((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);     
+                //((PathwayTableModel)pathwayTable.getModel()).deleteRow(selected);     
                 //submit.setEnabled(false);
              }  
         }        
@@ -351,7 +402,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             //adds everything in the current selection 
             for (int i = 0; i < array.length; i++)
             {
-                ((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], ++selected);
+                //((PathwayTableModel)pathwayTable.getModel()).addRow(array[i], ++selected);
             }
             
             pathwayTable.setRowSelectionInterval(selected, selected);
@@ -390,13 +441,15 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         //temporarily here
         else if (e.getSource() == removeButton){
           removePathway(this.getCurrentPathway());
-          pathName.setText("Path Name:");
+          //pathName.setText("Path Name:");
         }
         
         else if (e.getSource() == createButton){    
                 //parent.setSize(350, 350);
-                pathName.setText("Path Name:");
-                text.setText("");
+                //pathName.setText("Path Name:");
+                //text.setText("");
+                PathwayDialog dialog = new PathwayDialog(this, getLocationOnScreen());
+                dialog.show();
         }
           
         //notifies the change to the panel
@@ -415,8 +468,8 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
             int selectedRow = lsm.getMinSelectionIndex();
             remove.setEnabled(true);
             
-            LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
-            text.setText(element.getNotes());
+            //LWComponent element = ((PathwayTableModel)pathwayTable.getModel()).getPathway().getElement(selectedRow);
+            //text.setText(element.getNotes());
       
             //if the selected row is the last row, then disables the move down button
             /*if(selectedRow == pathwayTable.getRowCount() - 1)
@@ -466,7 +519,7 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
        //LWPathway pathway = this.getPathway();
        //pathway.setLabel(text.getText());
     } 
-    
+    /*
     public void itemStateChanged(ItemEvent ie) {
         if (ie.getStateChange() == ItemEvent.SELECTED) 
         {
@@ -489,208 +542,16 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
                 text.setText("");
             }
             //if "add" pathway was selected, then adds a pathway, sets it to the current pathway, and updates accordingly
-            /*
+            
             else if (pathwayList.getSelectedItem().equals(addPathway))
             {    
                 PathwayDialog dialog = new PathwayDialog(parent, getLocationOnScreen());
                 dialog.show();
             }
-             */
+             
         } 
-    }
-    
-    private class PathwayTable extends JTable{
-        
-        PathwayTab tab = null;
-        
-        public PathwayTable(PathwayTab tab){
-            super(new PathwayTableModel());
-            this.tab = tab;
-            setBorder(null);
-            setShowGrid(false);
-            setDefaultRenderer(getModel().getColumnClass(0), new DefaultTableCellRenderer(){
-                public Component getTableCellRendererComponent(JTable table,
-                                                   Object value,
-                                                   boolean isSelected,
-                                                   boolean hasFocus,
-                                                   int row,
-                                                   int column)
-                {
-                    int num = row + 1;
-                    setBackground(Color.white);
-                    setText(num + ". " + (String)value);
-                    setForeground(Color.black);
-                    setFont(normalFont);
-                    if(isSelected){
-                        setForeground(Color.blue);
-                        setFont(selectedFont);
-                        setText(" > " + getText());
-                    }else setText("    " + getText());
-
-                    return this;
-                }
-            });       
-            setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            setToolTipText("Double click to select the current elment");
-            addMouseListener(
-                new MouseAdapter()
-                {
-                    public void mouseClicked(MouseEvent me)
-                    {
-                        if (me.getClickCount() == 2)
-                           setCurrentElement(getSelectedRow());
-                    }  
-                }
-            );
-            ListSelectionModel lsm = getSelectionModel();
-            lsm.addListSelectionListener(tab);     
-        }
-    }
-    
-    /**A model used by the table which displays nodes of the pathway*/
-    private class PathwayTableModel extends AbstractTableModel
-    {
-        //pathway whose nodes are displayed in the table
-        private LWPathway pathway;
-        
-        //column names for the table
-        private final String[] columnNames = {"Nodes/Links"};
-         
-        public PathwayTableModel()
-        {
-           pathway = new LWPathway("default");
-        }
-        
-        //sets the pathway to the given pathway
-        public synchronized void setPathway(LWPathway pathway)
-        {
-            this.pathway = pathway;
-            fireTableDataChanged();
-        }
-        
-        //returns the current pathway
-        public synchronized LWPathway getPathway()
-        {
-            return pathway;
-        }
-        
-        //returns the number of row (nodes of the pathway)
-        public synchronized int getRowCount()
-        {
-            if(pathway != null) 
-                return pathway.length();
-            
-            else
-                return 0;
-        }
-        
-        public int getColumnCount()
-        {
-            return columnNames.length;
-        }
-        
-        public String getColumnName(int column)
-        {
-            return "";
-        }
-        
-        //a method which defines how what each cell should display
-        public synchronized Object getValueAt(int row, int column)
-        {
-            try
-            {
-                switch(column)
-                {                    
-                    case 0:
-                        LWComponent rowElement = pathway.getElement(row);
-                        return rowElement.getLabel();
-                    //case 1:
-                       // return new String("Comments about the node");
-                }
-            }
-            
-            catch (Exception e)
-            {
-                System.err.println("exception in the table model:" + e);
-            }
-            
-            return "";
-        }
-        
-        //adds a row at the designated location
-        public synchronized void addRow(LWComponent element, int row)
-        {
-            pathway.addElement(element, row);
-            fireTableRowsInserted(row, row);
-            
-            //update the pathway control panel
-            updateControlPanel();
-        }
-        
-        //deletes the given row from the table
-        public synchronized void deleteRow(int row)
-        {
-            pathway.removeElement(row);
-            fireTableRowsDeleted(row, row); 
-            
-            //update the pathway control panel
-            updateControlPanel();
-        }
-        
-        //switches a row to a new location
-        public void switchRow(int oldRow, int newRow)
-        {
-            pathway.moveElement(oldRow, newRow);
-            fireTableDataChanged();
-            
-            //update the pathway control panel
-            updateControlPanel();
-        }
-    }
-    
-    /**A private class which defines how the combo box should be rendered*/
-    private class PathwayRenderer extends BasicComboBoxRenderer 
-    {
-        public PathwayRenderer ()
-        {
-            super();
-        }
-        
-        //a method which defines how to render cells
-        public Component getListCellRendererComponent(JList list,
-               Object value, int index, boolean isSelected, boolean cellHasFocus) 
-        {
-            //if the cell contains a pathway, then displays its label
-            if (value instanceof LWPathway)
-            {    
-                LWPathway pathway = (LWPathway)value;
-                if(pathway.getLabel().length() > 15)
-                    setText(pathway.getLabel().substring(0, 13) + "...");
-                else
-                    setText(pathway.getLabel());
-            }
-            
-            //if it is a string, then displays the string itself
-            else
-                setText((String)value);
-            
-            //setting the color to the default setting
-            if (isSelected)
-            {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
-            }
-            
-            else
-            {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
-            }
-            
-            return this;
-        }   
-    }
-    
+    }*/
+   
     /*** Pathway Control methods ***/
     /**Sets the pathway manager to the given pathway manager*/
     public void setPathwayManager(LWPathwayManager pathwayManager)
@@ -699,19 +560,19 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
         
         //clears the combo box list 
         //come up with a better way
-        pathwayList.removeAllItems();
-        pathwayList.addItem(noPathway);
+        //pathwayList.removeAllItems();
+        //pathwayList.addItem(noPathway);
         //pathwayList.addItem(addPathway);
         
         //iterting through to add existing pathways to the combo box list
         for (Iterator i = pathwayManager.getPathwayIterator(); i.hasNext();)
-           pathwayList.addItem((LWPathway)i.next());           
+           //pathwayList.addItem((LWPathway)i.next());           
         
         //sets the current pathway to the current pathway of the manager
         if ((pathwayManager.getCurrentPathway() != null) 
             && (pathwayManager.getCurrentPathway().getCurrent() == null) )
           pathwayManager.getCurrentPathway().getFirst();
-        pathwayList.setSelectedItem(pathwayManager.getCurrentPathway());
+        //pathwayList.setSelectedItem(pathwayManager.getCurrentPathway());
         
         updateControlPanel();
     }
@@ -725,11 +586,11 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     /**Adds the given pathway to the combo box list and the pathway manager*/
     public void addPathway(LWPathway newPathway)
     {
-        pathwayList.addItem(newPathway);
-        pathwayManager.addPathway(newPathway);
+        //pathwayList.addItem(newPathway);
+        //pathwayManager.addPathway(newPathway);
         
         //switches to the newly added pathway
-        pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);        
+        //pathwayList.setSelectedIndex(pathwayList.getModel().getSize() - 1);        
     }
     
     /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
@@ -828,141 +689,9 @@ public class PathwayTab extends JPanel implements ActionListener, ListSelectionL
     public void removePathway(LWPathway oldPathway)
     {
         //switches to the no pathway selected
-        pathwayList.setSelectedIndex(0);
+        //pathwayList.setSelectedIndex(0);
         
-        pathwayList.removeItem(oldPathway);
+        //pathwayList.removeItem(oldPathway);
         pathwayManager.removePathway(oldPathway);
     }
 }
-
-
-
-
-
-
-
-
-    /**A dialog displayed when the user chooses to add a new pathway to the current map */
-    /*private class PathwayDialog extends JDialog implements ActionListener, KeyListener
-    {
-        JButton okButton, cancelButton;
-        JTextField textField;
-        
-        public PathwayDialog(JDialog dialog, Point location)
-        {
-            super(dialog, "New Pathway Name", true);
-            setSize(250, 100);
-            setLocation(location);
-            setUpUI();
-        }
-        
-        public void setUpUI()
-        {
-            okButton = new JButton("Ok");
-            cancelButton = new JButton("Cancel");
-            
-            okButton.addActionListener(this);
-            okButton.addKeyListener(this);
-            cancelButton.addActionListener(this);
-            cancelButton.addKeyListener(this);
-            
-            textField = new JTextField("default", 18);
-            textField.addKeyListener(this);
-            textField.setPreferredSize(new Dimension(40, 20));
-            
-            JPanel buttons = new JPanel();
-            buttons.setLayout(new FlowLayout());
-            buttons.add(okButton);
-            buttons.add(cancelButton);
-            
-            JPanel textPanel = new JPanel();
-            textPanel.setLayout(new FlowLayout());
-            textPanel.add(textField);
-            
-            Container dialogContentPane = getContentPane();
-            dialogContentPane.setLayout(new BorderLayout());
-            
-            dialogContentPane.add(textPanel, BorderLayout.CENTER);
-            dialogContentPane.add(buttons, BorderLayout.SOUTH);
-        }
-        
-        public void actionPerformed(java.awt.event.ActionEvent e) 
-        {
-            if (e.getSource() == okButton)
-            {
-                //calls addPathway method defined in PathwayControl
-                addPathway(new LWPathway(textField.getText()));
-                dispose();
-            }
-            
-            else if (e.getSource() == cancelButton)
-            {
-                //selects empty pathway if the cancel button was pressed
-                pathwayList.setSelectedItem(noPathway);
-                dispose();
-            }
-        }
-        
-        //key events for the dialog box
-        public void keyPressed(KeyEvent e) {}
-        public void keyReleased(KeyEvent e) {}
-        
-        public void keyTyped(KeyEvent e) 
-        {
-            //when enter is pressed
-            if(e.getKeyChar()== KeyEvent.VK_ENTER)
-            {
-                //if the ok button or the text field has the focus, add a designated new pathway
-                if (okButton.isFocusOwner() || textField.isFocusOwner())
-                {    
-                    addPathway(new LWPathway(textField.getText()));
-                    dispose();                  
-                }
-                
-                //else if the cancel button has the focus, just aborts it
-                else if (cancelButton.isFocusOwner())
-                {
-                    //selects empty pathway if the cancel button was pressed
-                    pathwayList.setSelectedItem(noPathway);
-                    dispose(); //does catch event?
-                }
-            }
-        }
-        
-    }*/
-
-/* removed from PathwayTab */
-        
-        /*JPanel descriptionPanel = new JPanel();
-        descriptionPanel.setLayout(new FlowLayout());
-        descriptionPanel.setBackground(Color.white);
-        descriptionPanel.add(new JLabel("Label:"));
-        descriptionPanel.add(new JLabel(emptyLabel));
-        */
-        
-
-        //moveUp = new JButton("^");
-        //moveDown = new JButton("v");
-        //submit = new JButton("Submit");
-        //moveUp.addActionListener(this);
-        //moveDown.addActionListener(this);
-        //submit.addActionListener(this);
-        //moveUp.setEnabled(false);
-        //moveDown.setEnabled(false);
-        //submit.setEnabled(false);
-        //buttons.add(moveUp);
-        //buttons.add(moveDown);
-        //add(textPanel);
-        //JScrollPane textScrollPane = new JScrollPane(text);
-        //textScrollPane.setPreferredSize(new Dimension(200, 70));
-        //textScrollPane.setBorder(new TitledBorder("Node Comment"));
-        //JPanel textPanel = new JPanel();
-        //textPanel.setLayout(new FlowLayout());
-        //textPanel.add(textScrollPane);
-        //textPanel.add(text);
-        //textPanel.add(submit);
-        //text.setLineWrap(true);
-        //text.setWrapStyleWord(true);
-        //JPanel temp = new JPanel(new BorderLayout());
-        //add(temp);
-        
