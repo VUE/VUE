@@ -54,6 +54,7 @@ public class SaveVueJTree {
        
        SaveNode rootSNode = this.getSaveTreeRoot();
        rootNode = new FavoritesNode(rootSNode.getResource());
+       //System.out.println("This is rootnode"+ rootSNode.getResource().toString());
        vueTree = new VueDandDTree(rootNode);
        DefaultTreeModel model = (DefaultTreeModel)vueTree.getModel();
        restoreModel(model,rootNode,rootSNode);
@@ -73,7 +74,7 @@ public class SaveVueJTree {
                 
                 Vector v = rootSNode.getChildren();
                 
-              System.out.println("Thi s is v FWWWWW" + v);
+            //  System.out.println("Thi s is v FWWWWW" + v);
                 
                  if (v != null){
                     
@@ -82,19 +83,21 @@ public class SaveVueJTree {
                                 while (i > 0){
                                  i = i -1;
                                 SaveNode nextSNode = (SaveNode)v.elementAt(i);
-                                if (nextSNode.getResource() instanceof CabinetResource){
+                              /*  if (nextSNode.getResource() instanceof CabinetResource){
                                     
-                                    System.out.println("oopsy daisy");
+                                   // System.out.println("oopsy daisy");
                                 }
                                 else{
-                                  System.out.println("I am a ha" + nextSNode.getResource().getType());
-                                }  
+                                  //System.out.println("I am a ha" + nextSNode.getResource().getType());
+                                } 
+                               */ 
                                   if (((nextSNode.getResource()).getType()) == FAVORITES){
-                                    //System.out.println("I am a favorite" + nextSNode.getResource());
+                                  
                                     FavoritesNode nextFNode = new FavoritesNode(nextSNode.getResource());
                                      model.insertNodeInto(nextFNode,rootNode,0); 
                                     restoreModel(model, nextFNode, nextSNode);
                                 }
+                                
                                 else{
                                     
                                     ResourceNode nextNode = new ResourceNode(nextSNode.getResource());

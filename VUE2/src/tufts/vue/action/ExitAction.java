@@ -54,20 +54,33 @@ public class ExitAction extends AbstractAction {
         // todo: if either of these last minute saves throw an
         // exception, the user will never be able to exit the
         // application!
-        
        
-        if (tufts.vue.VUE.favoritesWindow != null) {
+       
+         DataSource ds;
+         ListModel model = tufts.vue.DataSourceViewer.dataSourceList.getModel();
+         int i;
+         
+        for (i =0 ; i< model.getSize(); i++){
+        
+        ds = (DataSource)model.getElementAt(i);
+         
+        if (ds.getType() == DataSource.FAVORITES){
+            
+               FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();              
+        if (fw.favoritesTree != null)  {
             //Saving favorites
             
-            tufts.vue.VueDandDTree ft =  tufts.vue.VUE.favoritesWindow.getFavoritesTree();
+            tufts.vue.VueDandDTree ft = ((FavoritesWindow)ds.getResourceViewer()).getFavoritesTree();
             ft.setRootVisible(true);
             System.out.println("This is tree" + (ft.getModel()).getRoot());
             tufts.vue.SaveVueJTree sfavtree = new tufts.vue.SaveVueJTree(ft);
-            File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.favorites"));
-            FavoritesWindow.marshallMap(favf,sfavtree);
-            System.out.println("Favorites Saved");
+            File favf  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+ds.getDisplayName()+VueResources.getString("save.favorites"));
+            ((FavoritesWindow)ds.getResourceViewer()).marshallMap(favf,sfavtree);
+            System.out.println("Favorites Saved"+ds.getDisplayName());
+        }
         }
         
+        }
         tufts.vue.DataSourceViewer.saveDataSourceViewer();
 
         System.out.println("Exiting VUE.");

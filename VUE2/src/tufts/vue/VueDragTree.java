@@ -30,7 +30,7 @@ import java.util.Iterator;
  */
 public class VueDragTree extends JTree implements DragGestureListener,DragSourceListener,TreeSelectionListener,ActionListener {
     
-    private DefaultMutableTreeNode oldnode;
+    public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
     
     public VueDragTree(Object  obj, String treeName) {
@@ -154,8 +154,12 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
         // drag anything ...
         if (getSelectionPath() != null)
         {TreePath path = getLeadSelectionPath();
-        oldnode = (DefaultMutableTreeNode)path.getLastPathComponent();
-        Object resource = getObject();
+        oldnode = (ResourceNode)path.getLastPathComponent();
+        ResourceNode parentnode = (ResourceNode)oldnode.getParent();
+       //Object resource = getObject();
+       
+       Resource resource = oldnode.getResource();
+        
         
         if (resource != null) {
             e.startDrag(DragSource.DefaultCopyDrop, // cursor
@@ -167,7 +171,9 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     public void dragDropEnd(DragSourceDropEvent e) {
         if (e.getDropAction() == DnDConstants.ACTION_MOVE){
+            
             DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+            
             model.removeNodeFromParent(oldnode);
         }
     }
@@ -354,10 +360,46 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
 
 
 /*---------------*/
+//If someday we want to drop favorites onto the map
+/*
+class ResourceTransfer extends Object  {
+    private Resource resource;
+    private ResourceNode parent;
+    private Vector children;
+    
+    public ResourceTransfer(){
+    }
+    
+    
+    public ResourceTransfer(ResourceNode parent,ResourceNode selectedNode){
+        this.parent = parent;
+        this.resource = selectedNode.getResource();
+        this.children = new Vector();
+        int i;
+        for (i = 1; i < selectedNode.children(); i++){
+            
+            
+            
+        }
+        
+        
+        
+        
+        }
+     public Resource getResource() {
+        return resource;
+    }
+     public ResourceNode getParent() {
+        return parent;
+    }
+    
+     public Vector getChildren() {
+        return children;
+    }
+    
+}
 
-
-
-
+*/
 class ResourceNode extends DefaultMutableTreeNode {
     private boolean explored = false;
     private Resource resource;
@@ -570,7 +612,9 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     final static int PLAIN = 2;
     final static int RESOURCE = 0;
     public static DataFlavor resourceFlavor;
+    public static DataFlavor favoritesFlavor;
     String displayName = "";
+   
     
     static {
         try {
@@ -584,6 +628,9 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
      * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
      * } catch (Exception e) { System.out.println("FedoraSelection "+e);}
      **/
+    
+ 
+    
     DataFlavor flavors[] = {DataFlavor.plainTextFlavor,
     DataFlavor.stringFlavor,
     DataFlavor.plainTextFlavor};

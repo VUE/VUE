@@ -30,6 +30,7 @@ public class DataSource {
     public static final int FILING_REMOTE = 2;
     public static final int DR_FEDORA = 3;
     public static final int GOOGLE = 4;
+    public static final int BREAK = 5;
  
     private String id;
     private int type;
@@ -146,7 +147,12 @@ public class DataSource {
         else  if (type== GOOGLE) {
             this.resourceViewer = new TuftsGoogle(displayName,searchURL);
            
-        } else {
+        }else if (type == BREAK){
+            this.resourceViewer = new JPanel();
+            
+        }
+        
+        else {
             this.resourceViewer = new JLabel(displayName+" : No Viewer Available");
             
         }

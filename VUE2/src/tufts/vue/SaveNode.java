@@ -39,19 +39,19 @@ public class SaveNode{
         {    
               
                ResourceNode newResNode =(ResourceNode)e.nextElement();
-              if (newResNode.getResource() instanceof CabinetResource)
-            { 
-               //SaveNode child = new SaveNode(new ResourceNode(new MapResource("CabinetNode Placeholder")));
-               //v.add(child);
-            }
+            //  if (newResNode.getResource() instanceof CabinetResource)
+            //{ 
+             //  SaveNode child = new SaveNode(new ResourceNode));
+              // v.add(child);
+            //}
            
           
-            else{
+            //else{
             
             SaveNode child = new SaveNode(newResNode);
             v.add(child);
           
-            }
+            //}
            
         }
           

@@ -39,7 +39,7 @@ public class DataSourceViewer  extends JPanel{
     public final int EDIT_MODE = 1;
  
     public static final String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google"};
-    private static int filinglocal,favorites,fedora,google,filingremote;
+    private static int filinglocal,favorites,fedora,google,filingremote,preBreakSpot,postBreakSpot;
    
     public static java.util.Vector dataSources;
     DataSource activeDataSource;
@@ -60,7 +60,7 @@ public class DataSourceViewer  extends JPanel{
         setLayout(new BorderLayout());
         setBorder(new TitledBorder("DataSource"));
         
-        dataSources = new java.util.Vector();
+       // dataSources = new java.util.Vector();
         setPopup();
         this.drBrowser = drBrowser;
         resourcesPanel = new JPanel();
@@ -84,10 +84,12 @@ public class DataSourceViewer  extends JPanel{
         add(jSP,BorderLayout.CENTER);
         drBrowser.add(resourcesPanel,BorderLayout.CENTER);
     }
+    /*
     public Vector getDataSources(){
         return this.dataSources;
         
     }
+     */
     public DataSource getActiveDataSource() {
         return this.activeDataSource;
     }
@@ -185,121 +187,328 @@ public class DataSourceViewer  extends JPanel{
           //System.out.print("Search string" + searchURL );
            System.out.println("type" + type+ "filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         DataSource ds = new DataSource ("id", displayName, name, searchURL,address, user, password, type);
-        int insertBefore =  0 ;
+        int insertBefore =  0 ; boolean isBeginning = false; postBreakSpot = 0;
         if (type == DataSource.FILING_LOCAL){
-                        System.out.println("I am in the filing part");
-                        if (favorites >0 ){insertBefore = favorites;}
-                        else if (filingremote > 0 ){insertBefore = filingremote;}
-                        else if (fedora > 0 ) {insertBefore = fedora;}
-                        else if(google >0 ){insertBefore = google;}
-                        else{}
-                      
-                       
+            
+            if (filinglocal == 0){
+                if (favorites > 0 ){insertBefore = favorites - 1;
+                }
+                else if (filingremote > 0 ){insertBefore = filingremote - 1;}
+                else if (fedora > 0 ) {insertBefore = fedora - 1;}
+                else if(google >0 ){insertBefore = google - 1;}
+                else{}
+            }
+            
+            else{
+                
+                insertBefore = filinglocal;
+                
+            }
+            
+            if ((filinglocal == 0)  && (favorites > 0 || filingremote > 0 || fedora > 0 || google > 0)){postBreakSpot = 1; isBeginning = true;}
+            
+            if (favorites >0 )favorites = postBreakSpot + favorites +1;
+            
+            if (filingremote > 0 ) filingremote = postBreakSpot + filingremote +1;
+            if (fedora > 0 ) fedora = postBreakSpot + fedora + 1;
+            if(google >0 ) google = postBreakSpot + google + 1;
+            
+            filinglocal = filinglocal + 1;
+            
+            
+            
+            
         }
         else if (type == DataSource.FAVORITES){
-          
-                      if (filingremote > 0 ){insertBefore = filingremote;}
-                      else if (fedora > 0 ) {insertBefore = fedora ;}
-                                  
-                     else if(google >0 ){insertBefore = google;
-                                                }
-                     else {
-                       if(!(dataSourceList.getContents().isEmpty())){insertBefore = dataSourceList.getContents().getSize();
-                     }
-                     }
-                      if (favorites == 0){favorites = insertBefore;}
-                     
-        
+            
+            
+            if (filingremote > 0 ){insertBefore = filingremote - 1;
+            
+            }
+            else if (fedora > 0 ) {insertBefore = fedora - 1 ;}
+            else if(google >0 ){insertBefore = google - 1;
+            }
+            else {
+                if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
+                
+            }
+            
+            
+            if (favorites == 0) {
+                
+                
+                if (filinglocal >0 ){
+                    
+                    preBreakSpot = insertBefore;
+                    insertBefore = insertBefore + 1;
+                    if (filingremote > 0 ) filingremote = filingremote + 1;
+                    if (fedora > 0 ) fedora = fedora + 1;
+                    if  (google >0 ) google = google +  1;
+                    
+                    
+                }
+                
+                
+                
+                favorites = insertBefore;
+                
+                
+                
+            }
+            if (dataSourceList.getContents().isEmpty()){favorites = favorites + 1;}
+            
+            
+            if (filingremote > 0 ) filingremote = filingremote + 1;
+            if (fedora > 0 ) fedora = fedora + 1;
+            if  (google >0 ) google = google +  1;
+            
+            
+            
+            
+            
+            System.out.println("isnertBef" +insertBefore );
+            
         }
         else if (type == DataSource.FILING_REMOTE){
-                     if (fedora > 0 ) {insertBefore = fedora ;
-                                               
-                        }
-                     else if(google >0 ){insertBefore = google;
-                                                }
-                     else {
-                         
-                         if(!(dataSourceList.getContents().isEmpty())){insertBefore = dataSourceList.getContents().getSize();
-                         }
-                     }
-                        if (filingremote  == 0){filingremote = insertBefore;}
-         
-                  
-                   
+            
+            System.out.println("fed in remote " + fedora );
+            
+            if (fedora > 0 ) insertBefore = fedora - 1 ;
+            else if(google >0 )insertBefore = google - 1;
+            
+            else {
+                if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
+                
+            }
+            
+            
+            if (filingremote == 0) {
+                
+                if (filinglocal > 0 || favorites > 0 ){
+                    
+                    
+                    preBreakSpot = insertBefore;
+                    insertBefore = insertBefore + 1;
+                    if (fedora > 0 ) fedora = fedora +  1;
+                    if  (google >0 ) google = google  + 1;
+                    
+                }
+                
+                filingremote = insertBefore;
+                
+                
+                
+            }
+            
+            
+            if (dataSourceList.getContents().isEmpty()){filingremote = filingremote + 1;}
+            
+            
+            if (fedora > 0 ) fedora = fedora +  1;
+            if  (google >0 ) google = google  + 1;
+            
+            
+            
+            
+            
+            
+            
+            
             
         }
         else if (type == DataSource.DR_FEDORA){
+            System.out.println("google in fedora " + google );
             
-            if(google >0 ){insertBefore = google;}
-            else { if(!(dataSourceList.getContents().isEmpty())){insertBefore = dataSourceList.getContents().getSize();}
+            if(google >0 ){insertBefore = google - 1;
             }
-               if (fedora == 0){fedora = insertBefore;}
-           
-       
+            else {
+                if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
+                
+            }
+            
+            
+            if (fedora == 0) {
+                
+                if (filinglocal > 0 || favorites > 0 || filingremote > 0){
+                    
+                    preBreakSpot = insertBefore;
+                    insertBefore = insertBefore + 1;
+                    
+                    
+                }
+                
+                
+                
+                
+                fedora = insertBefore;
+                
+                
+                
+            }
+            
+            
+            if (dataSourceList.getContents().isEmpty()){fedora = fedora + 1;}
+            
+            if  (google >0 ) google = google + preBreakSpot + 1;
+            
+            System.out.println("isnertBef" +insertBefore + "preBreakSpot" + preBreakSpot);
+            
+            
+            
+            
+            
+        }
+        
+        else {
+            
+            
+            if(!(dataSourceList.getContents().isEmpty()))insertBefore = dataSourceList.getContents().getSize();
+            
+            if (google == 0) {
+                
+                if (favorites  > 0 | filinglocal > 0 | filingremote > 0 | fedora > 0){
+                    
+                    preBreakSpot = insertBefore;
+                    insertBefore = insertBefore + 1;
+                    
+                }
+                
+                google  = insertBefore;
+                
+                
+                
+            }
+            
+            if (dataSourceList.getContents().isEmpty()){google = google + 1;}
+     
+        }
+        
+        
+        
+        
+        
+      
+        
+        
+        if (preBreakSpot  > 0){
+            
+            DataSource bds = new DataSource("id", ".", "",DataSource.BREAK);
+            if (preBreakSpot != dataSourceList.getContents().getSize()){
+               // dataSources.insertElementAt(bds,preBreakSpot);
+                dataSourceList.getContents().insertElementAt(bds,preBreakSpot);
+            }
+            else{
+                //dataSources.add(bds);
+                dataSourceList.getContents().addElement(bds);
+            }
+            
+            preBreakSpot = 0;
+        }
+        
+        System.out.println("Insert Before " + insertBefore+"type" + type);
+        
+        if ((insertBefore > 0) || isBeginning){
+            //dataSources.insertElementAt(ds, insertBefore);
+            dataSourceList.getContents().insertElementAt(ds,insertBefore);
+            
         }
         else {
             
-           if(!(dataSourceList.getContents().isEmpty())){google = dataSourceList.getContents().getSize();
-          }
+            //dataSources.add(ds);
+            dataSourceList.getContents().addElement(ds);
         }
+        
+        if (postBreakSpot  > 0){
             
-        
-        
-                 
-        
-       System.out.println("Insert Before " + insertBefore+"type" + type);
-                               
-        if (insertBefore > 0){
-                        dataSources.insertElementAt(ds, insertBefore);
-                        dataSourceList.getContents().insertElementAt(ds,insertBefore);    
+            DataSource pds = new DataSource("id", ".", "",DataSource.BREAK);
+            //dataSources.insertElementAt(pds,postBreakSpot);
+            dataSourceList.getContents().insertElementAt(pds,postBreakSpot);
+            postBreakSpot = 0;
         }
-        else {
-            
-         dataSources.add(ds);
-         dataSourceList.getContents().addElement(ds);       
-        }
-               System.out.println("filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
+        
+        
+        
+        System.out.println("filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         if (active) setActiveDataSource(ds);
        }catch (Exception ex){}
-        drBrowser.repaint();
-        drBrowser.validate();
+       drBrowser.repaint();
+       drBrowser.validate();
     }
     
     public void deleteDataSource(DataSource dataSource) {
-        
+          int prev = 0;boolean onlyone = false; DataSource breakDs = new DataSource();
           System.out.println("DataSource --filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
         int choice = JOptionPane.showConfirmDialog(null,"Do you want to delete Datasource "+dataSource.getDisplayName(),"Confirm Delete",JOptionPane.YES_NO_CANCEL_OPTION);
         if(choice == 0) {
             
+            prev = this.dataSourceList.getSelectedIndex() - 1;
+            
+            if (prev > 0){
+            DataSource prevds = (DataSource)(dataSourceList.getModel()).getElementAt(prev);
+            if (prevds.getType() == DataSource.BREAK){
+                                    breakDs = (DataSource)(dataSourceList.getModel()).getElementAt(prev);
+                                        prev = prev -1;
+                                  
+                                  prevds = (DataSource)(dataSourceList.getModel()).getElementAt(prev);}
+              setActiveDataSource(prevds);
+            }                            
+            
+            
+            
             // THIS PART NEEDS TO BE FIXED.  Doesn't handle deletion of first datasource.
-            if(dataSources.size() >0 ) {
-                setActiveDataSource((DataSource)dataSources.firstElement());
-            }
+            //if(dataSources.size() >0 ) {
+              //  setActiveDataSource((DataSource)dataSources.firstElement());
+            //}
            
-         
-            if (dataSource.getType() == DataSource.FILING_LOCAL) {if (favorites > 0 )favorites = favorites - 1;
-                                                                  if (filingremote > 0)filingremote = filingremote - 1;
-                                                                  if (fedora > 0)fedora = fedora - 1;
-                                                                  if (google > 0)google = google - 1;
-           
+                
+            if (dataSource.getType() == DataSource.FILING_LOCAL) {
+                                                                  
+                 filinglocal = filinglocal -1;
+                 if (filinglocal == 1)onlyone = true;
+                 
+                 if (favorites > 0 )favorites = favorites - 1;
+                 if (filingremote > 0)filingremote = filingremote - 1;
+                 if (fedora > 0)fedora = fedora - 1;
+                 if (google > 0)google = google - 1;
+                 if (onlyone){
+                     breakDs = (DataSource)(dataSourceList.getModel()).getElementAt(1);
+ 
+     if (dataSourceList.getContents().getSize() > 1)setActiveDataSource((DataSource)(dataSourceList.getModel().getElementAt(2)));
+                     if (favorites > 0 )favorites = favorites - 1;
+                     if (filingremote > 0)filingremote = filingremote - 1;
+                     if (fedora > 0)fedora = fedora - 1;
+                     if (google > 0)google = google - 1;
+                     
+                 }
+                 
             }
-            else if  (dataSource.getType() == DataSource.FAVORITES){if (favorites == 1) favorites = 0;
-                                                                   if (filingremote > 0 ) filingremote = filingremote - 1;
-                                                                  if (fedora > 0)fedora = fedora - 1;
-                                                                  if (google > 0)google = google - 1;
-                                                                    
+            
+            else if  (dataSource.getType() == DataSource.FAVORITES){
+                if (favorites == 1){onlyone = true;}
+                favorites =favorites - 1;
+                if (filingremote > 0 )filingremote = filingremote - 1;
+                if (fedora > 0)fedora = fedora - 1;
+                if (google > 0)google = google - 1;
+                
+                if (onlyone){
+                    if (filingremote > 0 )filingremote = filingremote - 1;
+                    if (fedora > 0)fedora = fedora - 1;
+                    if (google > 0)google = google - 1;
+                }
+                
             }
-            else if (dataSource.getType() == DataSource.FILING_REMOTE){ if (filingremote == 1) filingremote = 0;
+            else if (dataSource.getType() == DataSource.FILING_REMOTE){ filingremote = filingremote -1 ;
                                                               if (fedora > 0)fedora = fedora - 1;
                                                                   if (google > 0)google = google - 1;
             }
-            else if (dataSource.getType() == DataSource.DR_FEDORA){ if (fedora == 1) fedora = 0;
+            else if (dataSource.getType() == DataSource.DR_FEDORA){ fedora = fedora - 1;
                                                                     if (google > 0)google = google - 1;
             }
                  
-                System.out.println("Delete -after filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
-               dataSources.remove(dataSource);
+               System.out.println("Delete -after filinglocal"+ filinglocal+"favorites" + favorites+"filingremote" +filingremote+"fedora" +fedora+"google"+google);
+              // dataSources.remove(dataSource);
             dataSourceList.getContents().removeElement(dataSource);
+            if (onlyone) {dataSourceList.getContents().removeElement(breakDs);}
             
         }
     }
@@ -324,8 +533,16 @@ public class DataSourceViewer  extends JPanel{
     }
 
     public static void saveDataSourceViewer(){
-            File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));     
-            SaveDataSourceViewer sViewer= new SaveDataSourceViewer(dataSources);
+            File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
+            Vector sDataSources = new Vector();
+            int size = dataSourceList.getModel().getSize();
+            int i;
+            for (i = 0; i< size; i++){
+                    DataSource sds = (DataSource)dataSourceList.getModel().getElementAt(i); 
+                     if (sds.getType() != DataSource.BREAK) sDataSources.add(sds);
+     
+            }
+            SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
             marshallMap(f,sViewer);
     }
         
@@ -502,11 +719,7 @@ public class DataSourceViewer  extends JPanel{
         editPanel.add(blank);            //  13:  blank label.
         editPanel.add(okBut);            //  14:  submit button.
        
-        
-        
-       
-        
-      
+     
         
          //editPanel.add(canBut);         //  15:  cancel button.
         okBut.addActionListener (new ActionListener() {
@@ -557,8 +770,9 @@ public class DataSourceViewer  extends JPanel{
         
         
         //--Marshalling etc
-            filinglocal = 0; favorites = 0;fedora=0;google=0;filingremote = 0;
+            filinglocal = 0; favorites = 0;fedora=0;google=0;filingremote = 0;preBreakSpot = 0;postBreakSpot =0;
           
+            
             File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
             
             if(f.exists()){
@@ -585,21 +799,35 @@ public class DataSourceViewer  extends JPanel{
                 try {  
                     System.out.println("this is load " + DataSource.FILING_LOCAL+"rem" +DataSource.FILING_REMOTE+"Fav"+DataSource.FAVORITES+"goo"+DataSource.GOOGLE);
                     
-                    
+                  
                     DataSource ds = new DataSource("ds1", "My Computer", "My Computer",DataSource.FILING_LOCAL);
                      try {
                 addNewDataSource(ds.getDisplayName(),
                                          ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
                                          ds.getPassword(), ds.getType(),false);
                                  }catch (Exception ex){}
+                
+                  /*  
+                     ds = new DataSource("ds9", ".", "",DataSource.BREAK);
+                    
+                    try {
+                addNewDataSource(ds.getDisplayName(),
+                                         ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
+                                         ds.getPassword(), ds.getType(),false);
+                                 }catch (Exception ex){}
                  
-                     ds = new DataSource("ds2", "My Favorites","favorites","","","","",DataSource.FAVORITES);
+                   */
+                    
+                    ds = new DataSource("ds2", "My Favorites","favorites","","","","",DataSource.FAVORITES);
+                     
+                     
                    
                       try {
                 addNewDataSource(ds.getDisplayName(),
                                          ds.getName(),ds.getSearchURL(),ds.getAddress(), ds.getUserName(), 
                                          ds.getPassword(), ds.getType(),ds.isActiveDataSource());
                                  }catch (Exception ex){}
+                     
                      
                     ds =  new DataSource("ds3", "Tufts Digital Library","fedora","","130.64.77.144","test","test",DataSource.DR_FEDORA);
                   try {
@@ -609,7 +837,7 @@ public class DataSourceViewer  extends JPanel{
                                  }catch (Exception ex){}
                      
                     setActiveDataSource(ds);
-                    
+                   
                     ds= new DataSource("ds4","UVA: Finding Aids","uva:fedora","","dl.lib.virginia.edu", "test","test", DataSource.DR_FEDORA);
                     
                     try {
@@ -637,6 +865,7 @@ public class DataSourceViewer  extends JPanel{
                                          ds.getPassword(), ds.getType(),ds.isActiveDataSource());
                                  }catch (Exception ex){}
 
+                   
                 }catch (Exception ex) {
                     System.out.println("Datasources can't be loaded");
                 }

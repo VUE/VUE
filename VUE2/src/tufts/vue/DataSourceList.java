@@ -13,6 +13,7 @@ import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import osid.dr.*;
 
+
 import java.util.List;
 import java.util.Vector;
 import java.util.Iterator;
@@ -49,26 +50,62 @@ public class DataSourceList extends JList implements DropTargetListener{
     private final Icon myComputerIcon = new ImageIcon("tufts/vue/images/datasourceMyComputer.gif");
     private final Icon myFavoritesIcon = new ImageIcon("tufts/vue/images/datasourceMyFavorites.gif");
     private final Icon remoteIcon = new ImageIcon("tufts/vue/images/datasourceRemote.gif");
+    private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
+    
+    
+    
     
     
     public DataSourceList() {
         super(new DefaultListModel());
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);  
+        this.setFixedCellHeight(-1);
         dropTarget = new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
+       
+        breakIcon.setIconWidth(400);
+        breakIcon.setIconHeight(1);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             public Component getListCellRendererComponent(JList list,Object value, int index, boolean iss,boolean chf)   {
                 super.getListCellRendererComponent(list,((DataSource)value).getDisplayName(), index, iss, chf);
-                if (((DataSource)value).getType() == DataSource.FAVORITES)
+                 
+         
+                if (((DataSource)value).getType() == DataSource.FAVORITES){
                     setIcon(myFavoritesIcon);
-                else if (((DataSource)value).getType() == DataSource.FILING_LOCAL)
+                    this.setPreferredSize(new Dimension(200,20));
+                }
+                else if (((DataSource)value).getType() == DataSource.FILING_LOCAL){
                     setIcon(myComputerIcon);
-                else 
+                    this.setPreferredSize(new Dimension(200,20));
+                }
+                else  if (((DataSource)value).getType() == DataSource.BREAK){
+                    setIcon(breakIcon);
+                    
+                    this.setPreferredSize(new Dimension(400,3));
+                    
+                }
+                else{
                     setIcon(remoteIcon);
+                    this.setPreferredSize(new Dimension(200,20));
+                    
+                }
+    
+               
                 return this;
+                
             }
+            
+            
+            
+
         };
+         
         this.setCellRenderer(renderer);
     }
+    
+   
+
+
+
     
     public DefaultListModel getContents() {
         return (DefaultListModel)getModel();
