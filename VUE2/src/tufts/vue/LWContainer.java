@@ -471,6 +471,12 @@ public abstract class LWContainer extends LWComponent
         this.focusComponent = c;
     }
     
+    public LWComponent findChildAt(Point2D p)
+    {
+        return findChildAt((float)p.getX(), (float)p.getY());
+    }
+
+
     /*
      * Find child at mapX, mapY -- may actually return this component also.
      */
@@ -513,12 +519,6 @@ public abstract class LWContainer extends LWComponent
         return defaultHitComponent();
     }
 
-    public LWComponent findChildAt(Point2D p)
-    {
-        return findChildAt((float)p.getX(), (float)p.getY());
-    }
-
-
     /** Code is mostly duplicated from above here, but subclasses (e.g.,
      * LWGroup) handle this differently, and we can't reuse
      * above code due to recursive usage.
@@ -532,6 +532,9 @@ public abstract class LWContainer extends LWComponent
         if (DEBUG_CONTAINMENT) System.out.println("LWContainer.findDeepestChildAt[" + getLabel() + "]");
         if (DEBUG_CONTAINMENT && focusComponent != null) System.out.println("\tfocusComponent=" + focusComponent);
 
+        // TODO: change this gross focusComponent hack to a cleaner special case:
+        // have the entire LWMap maintain a list of all the current focus components,
+        // (the deepest + all it's parents) and always check that first & no matter what
         if (focusComponent != null && focusComponent.contains(mapX, mapY))
             return focusComponent.findDeepestChildAt(mapX, mapY, excluded);
         
