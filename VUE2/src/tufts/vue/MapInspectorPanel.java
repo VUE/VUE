@@ -52,7 +52,7 @@ implements  VUE.ActiveMapListener {
     FilterPanel mFilterPanel = null;
     
     /** Metadata Panel **/
-    MetadataPanel metadataPanel = null;
+    //MetadataPanel metadataPanel = null; // metadata added to infoPanel
     
     
     ///////////////////
@@ -72,12 +72,12 @@ implements  VUE.ActiveMapListener {
         mInfoPanel = new InfoPanel();
         mPathPanel = new PathwayPane();
         mFilterPanel = new FilterPanel();
-        metadataPanel = new MetadataPanel();
+        //metadataPanel = new MetadataPanel();
         
         mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
         mTabbedPane.addTab( mFilterPanel.getName(), mFilterPanel);
-        mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
+       // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         
         add( BorderLayout.CENTER, mTabbedPane );
         setMap(VUE.getActiveMap());
@@ -123,7 +123,7 @@ implements  VUE.ActiveMapListener {
             mInfoPanel.updatePanel( mMap);
             mPathPanel.updatePanel( mMap);
             
-            metadataPanel.updatePanel(mMap);
+         //   metadataPanel.updatePanel(mMap);
         }
     }
     
@@ -155,11 +155,12 @@ implements  VUE.ActiveMapListener {
     public void activateFilterTab() {
         mTabbedPane.setSelectedComponent( mFilterPanel);
     }
+    /**
     public void activateMetadataTab() {
         mTabbedPane.setSelectedComponent( metadataPanel);
     }
     
-    
+    **/
     public void activeMapChanged(LWMap map) {
         setMap(map);
     }
@@ -191,11 +192,12 @@ implements  VUE.ActiveMapListener {
         JTextArea mDescriptionEditor = null;
         //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
+        PropertiesEditor propertiesEditor = null;
         
         public InfoPanel() {
-            
-            setLayout( new BorderLayout() );
-            setBorder( new EmptyBorder(4,4,4,4) );
+            JPanel innerPanel = new JPanel();
+            BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
+            innerPanel.setLayout(boxLayout);
             
             mInfoScrollPane = new JScrollPane();
             mInfoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -208,22 +210,35 @@ implements  VUE.ActiveMapListener {
             mAuthorEditor = new JTextField();
             mDescriptionEditor = new JTextArea();
             mDescriptionEditor.setRows(5);
-            //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+            mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
             mDate = new JLabel();
             mLocation = new JLabel();
             //saveButton = new JButton("Save");
             //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
-            mPropPanel.addProperty( "Label:", mTitleEditor);
+            mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
             //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
             mPropPanel.addProperty("Date:", mDate);
             mPropPanel.addProperty("Location:",mLocation);
             mPropPanel.addProperty("Description:",mDescriptionEditor);
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
+            innerPanel.add(mPropPanel);
+            JPanel metaDataLabelPanel  = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+            metaDataLabelPanel.add(new JLabel("Metadata"));
+            innerPanel.add(metaDataLabelPanel);
+            propertiesEditor = new PropertiesEditor(true);
+            JPanel metadataPanel = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+            metadataPanel.add(propertiesEditor);
+            innerPanel.add(metadataPanel);
+            //innerPanel.add(mInfoScrollPane,BorderLayout.CENTER);
+            mInfoScrollPane.getViewport().add( innerPanel);
+            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
+           
+            setLayout(new BorderLayout());
+            setBorder( new EmptyBorder(4,4,4,4) );
+            add(innerPanel,BorderLayout.NORTH);
+            add(innerPanel);
             addFocusListener(this);
-            mInfoScrollPane.getViewport().add( mPropPanel);    
-            add(mInfoScrollPane,BorderLayout.NORTH);
-            
         }
         
         public String getName() {
@@ -249,6 +264,7 @@ implements  VUE.ActiveMapListener {
                 path = file.getPath();
             }
             mLocation.setText( path);
+            propertiesEditor.setProperties(pMap.getMetadata(),true);
         }
         
         protected void saveInfo() {
@@ -259,14 +275,14 @@ implements  VUE.ActiveMapListener {
             }
         }
         /**
-        public void actionPerformed( ActionEvent pEvent) {
-            Object source = pEvent.getSource();
-            System.out.println("Action Performed :"+source);
-            if( (source == saveButton) || (source == mTitleEditor) || (source == mAuthorEditor) || (source == mDescriptionEditor) ) {
-                saveInfo();
-            }
-        }
-        **/
+         * public void actionPerformed( ActionEvent pEvent) {
+         * Object source = pEvent.getSource();
+         * System.out.println("Action Performed :"+source);
+         * if( (source == saveButton) || (source == mTitleEditor) || (source == mAuthorEditor) || (source == mDescriptionEditor) ) {
+         * saveInfo();
+         * }
+         * }
+         **/
         public void propertyChange( PropertyChangeEvent pEvent) {
             
         }

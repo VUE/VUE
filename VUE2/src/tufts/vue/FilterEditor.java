@@ -24,10 +24,11 @@ import java.awt.*;
 import java.util.*;
 import tufts.vue.filter.*;
 
-public class FilterEditor extends JPanel{
+public class FilterEditor extends JPanel {
     public static final Key keyLabel = new Key("Label", TypeFactory.getStringType());
     public static final Key keyAnywhere = new Key("Anywhere", TypeFactory.getStringType());
     public static final Key keyNotes = new Key("Notes", TypeFactory.getStringType());
+    
     
     FilterTableModel filterTableModel;
     boolean editable = true;
@@ -38,35 +39,42 @@ public class FilterEditor extends JPanel{
     
     /** Creates a new instance ofFilterEditor */
     public FilterEditor() {
+        
         filterTableModel = new FilterTableModel();
-        setNodeFilterPanel();
-    }
-    public FilterEditor(FilterTableModel filterTableModel) {
-        this.filterTableModel = filterTableModel;
+        setFilterEditorPanel();
+        
     }
     
     public FilterTableModel getFilterTableModel() {
-        return filterTableModel;
+        return this.filterTableModel;
     }
-    private void setNodeFilterPanel() {
+        
+    /**
+     * public FilterEditor(FilterTableModel filterTableModel) {
+     * this.filterTableModel = filterTableModel;
+     * setFilterEditorPanel();
+     * }
+     **/
+  
+    private void setFilterEditorPanel() {
         filterTable = new JTable(filterTableModel);
         filterTable.addFocusListener(new FocusListener() {
-             public void focusLost(FocusEvent e) {
-                 if(filterTable.isEditing()) {
-                     filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
-                 }
-                 filterTable.removeEditor();
-             }
-             public void focusGained(FocusEvent e) {
-             }
-         });
-         filterTable.addKeyListener(new KeyAdapter() {
-             public void keyPressed(KeyEvent e) {
-                 if(filterTable.getSelectedRow() == (filterTableModel.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
-                     filterTableModel.addStatement();
-                 }
-             }
-         });
+            public void focusLost(FocusEvent e) {
+                if(filterTable.isEditing()) {
+                    filterTable.getCellEditor(filterTable.getEditingRow(),filterTable.getEditingColumn()).stopCellEditing();
+                }
+                filterTable.removeEditor();
+            }
+            public void focusGained(FocusEvent e) {
+            }
+        });
+        filterTable.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if(filterTable.getSelectedRow() == (filterTableModel.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
+                    filterTableModel.addStatement();
+                }
+            }
+        });
         filterTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         filterTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
         JScrollPane filterScrollPane=new JScrollPane(filterTable);
@@ -78,11 +86,14 @@ public class FilterEditor extends JPanel{
         
         // GRID: addConditionButton
         JButton addButton=new tufts.vue.VueButton("add");
+        JButton deleteButton=new tufts.vue.VueButton("delete");
+        
+        
+        
         addButton.addActionListener(new AddButtonListener(filterTableModel));
         
         
         // GRID: deleteConditionButton
-        JButton deleteButton=new tufts.vue.VueButton("delete");
         deleteButton.setEnabled(false);
         // adding the delete functionality */
         FilterSelectionListener sListener= new  FilterSelectionListener(deleteButton, -1);
@@ -112,7 +123,9 @@ public class FilterEditor extends JPanel{
         
         validate();
     }
-    public class FilterTableModel extends AbstractTableModel {
+    
+    
+    public class FilterTableModel extends AbstractTableModel{
         public static final int KEY_COL = 0;
         public static final int OPERATOR_COL = 1;
         public static final int VALUE_COL = 2;
@@ -123,13 +136,17 @@ public class FilterEditor extends JPanel{
         Vector filters;
         
         public FilterTableModel() {
-            this.editable = editable;
             filters = new Vector();
-            
         }
         
         public Vector getFilters() {
             return this.filters;
+        }
+        
+        public void setFilters(Vector filters) {
+            this.filters = filters;
+            fireTableDataChanged();
+           
         }
         
         public void addStatement(Statement statement) {
@@ -148,7 +165,7 @@ public class FilterEditor extends JPanel{
             stmt.setValue(key.getDefaultValue());
             addStatement(stmt);
         }
-            
+        
         
         public boolean isEditable() {
             return editable;
@@ -187,10 +204,10 @@ public class FilterEditor extends JPanel{
             Statement statement = (Statement) filters.get(row);
             Key key = statement.getKey();
             if(col == VALUE_COL) {
-                 if(statement.getKey().getType().getDisplayName().equals(Type.INTEGER_TYPE)) {
+                if(statement.getKey().getType().getDisplayName().equals(Type.INTEGER_TYPE)) {
                     statement.setValue(new Integer(value.toString()));
                 } else {
-                     statement.setValue(value);
+                    statement.setValue(value);
                 }
             }else if(col == KEY_COL)  {
                 
@@ -223,6 +240,8 @@ public class FilterEditor extends JPanel{
             //  return editable;
             return true;
         }
+        
+        
     }
     
     public class AddButtonListener implements ActionListener {
@@ -263,14 +282,8 @@ public class FilterEditor extends JPanel{
             super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            
-            TableModel tableModel = table.getModel();
-            if (tableModel instanceof FilterTableModel) {
-                FilterTableModel filterTableModel  = (FilterTableModel) tableModel;
-                editor =  new JComboBox((Vector)((Statement)(filterTableModel.getFilters().get(row))).getKey().getType().getOperators());
-                return editor;
-            }
-            return (new JComboBox());
+                editor =  new JComboBox((Vector)((Statement)(VUE.getActiveMap().getLWCFilter().getStatements().get(row))).getKey().getType().getOperators());
+                return editor;  
         }
         
         public Object getCellEditorValue() {
@@ -280,32 +293,27 @@ public class FilterEditor extends JPanel{
                 throw new RuntimeException("No Keys present");
             
         }
-
+        
     }
     
     public class KeyCellEditor extends DefaultCellEditor {
         /** setting the defaultCellEditor **/
-        Vector keys;
+        Vector keys = new Vector();;
         JComboBox editor = null;
         public KeyCellEditor() {
             super(new JComboBox());
         }
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            TableModel tableModel = table.getModel();
-            if (tableModel instanceof FilterTableModel) {
-                FilterTableModel filterTableModel  = (FilterTableModel) tableModel;
-                keys = new Vector();
+                keys.removeAllElements();
                 keys.add(keyAnywhere);
                 keys.add(keyLabel);
                 keys.add(keyNotes);
                 keys.addAll(VUE.getActiveMap().getMapFilterModel().getKeyVector());
                 editor = new JComboBox(keys);
                 return editor;
-            }
-            return (new JComboBox());
         }
         
-      
+        
         
         public Object getCellEditorValue() {
             if(editor!= null) {

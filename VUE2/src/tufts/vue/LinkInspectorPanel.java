@@ -152,14 +152,14 @@ public class LinkInspectorPanel  extends JPanel implements ObjectInspectorPanel.
 			mInfoBox.add( new  LWCInfoPanel() );
 			
 			mInfoScrollPane = new JScrollPane();
-			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mInfoScrollPane.setLocation(new Point(8, 9));
 			mInfoScrollPane.setVisible(true);
 			mInfoScrollPane.getViewport().add( mInfoBox);
+			mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
 			
-			
-			add( BorderLayout.CENTER, mInfoScrollPane );
+			add( BorderLayout.NORTH, mInfoScrollPane );
 		}
 		
 		

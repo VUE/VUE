@@ -36,7 +36,10 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     
     
     /** Creates a new instance of ResourcePropertiesEditor */
-    
+    public PropertiesEditor(boolean editable) {
+        tableModel = new PropertiesTableModel(editable);
+        setResourePropertiesPanel();
+    }
     public PropertiesEditor(Properties properties,boolean editable) {
         tableModel = new PropertiesTableModel(properties, editable);
         setResourePropertiesPanel();
@@ -47,6 +50,23 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         propertiesTable=new JTable(tableModel);
         propertiesTable.setPreferredScrollableViewportSize(new Dimension(200,100));
         propertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        propertiesTable.addFocusListener(new FocusListener() {
+            public void focusLost(FocusEvent e) {
+                if(propertiesTable.isEditing()) {
+                    propertiesTable.getCellEditor(propertiesTable.getEditingRow(),propertiesTable.getEditingColumn()).stopCellEditing();
+                }
+                propertiesTable.removeEditor();
+            }
+            public void focusGained(FocusEvent e) {
+            }
+        });
+        propertiesTable.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if(propertiesTable.getSelectedRow() == (propertiesTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER){
+                    tableModel.addDefaultProperty();
+                }
+            }
+        });
         JScrollPane conditionsScrollPane=new JScrollPane(propertiesTable);
         conditionsScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         JPanel propertiesPanel=new JPanel();
@@ -121,7 +141,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
     }
     
     public void clear() {
-       setProperties(new Properties(), true);
+        setProperties(new Properties(), true);
     }
     
     // a model for Properties table
@@ -129,6 +149,10 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         java.util.List m_conditions;
         Properties properties;
         boolean editable;
+        
+        public PropertiesTableModel(boolean editable) {
+            this(new Properties(), editable);
+        }
         
         public PropertiesTableModel(Properties properties,boolean editable) {
             this.editable = editable;
@@ -160,6 +184,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
                 addProperty(DC_FIELDS[0], "");
             }
         }
+        
         
         public boolean isEditable() {
             return editable;
@@ -201,7 +226,12 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
             cond.setValue(value);
             properties.put(key, value);
             m_conditions.add(cond);
+            fireTableDataChanged();
         }
+        public void addDefaultProperty() {
+            addProperty(DC_FIELDS[0], "");
+        }
+        
         
         public boolean isCellEditable(int row, int col) {
             //Note that the data/cell address is constant,
@@ -278,8 +308,7 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         }
     }
     
-    public class AddPropertiesButtonListener
-    implements ActionListener {
+    public class AddPropertiesButtonListener implements ActionListener {
         
         private PropertiesTableModel m_model;
         
@@ -289,11 +318,8 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         }
         
         public void actionPerformed(ActionEvent e) {
-            
-            m_model.addProperty(DC_FIELDS[0], "");
-            m_model.fireTableDataChanged();
+            m_model.addDefaultProperty();
         }
-        
     }
     
     public class DeletePropertiesButtonListener implements ActionListener {

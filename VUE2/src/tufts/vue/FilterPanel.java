@@ -39,19 +39,23 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
     FilterApplyPanel filterApplyPanel = null;
     
     /** Creates a new instance of FilterPanel */
-    public FilterPanel() {
-        
+    public FilterPanel() {   
         super();
         VUE.addActiveMapListener(this);
         //setMinimumSize( new Dimension( 150,200) );
         mTabbedPane = new JTabbedPane();
         VueResources.initComponent( mTabbedPane, "tabPane");
         filterCreatePanel = new FilterCreatePanel();
-        filterApplyPanel = new FilterPanel.FilterApplyPanel();
+        filterApplyPanel = new FilterApplyPanel();
+        //mTabbedPane.setBackground(VueResources.getColor("filterPanelColor"));        
+        //filterCreatePanel.setBackground(VueResources.getColor("filterPanelColor"));
+        //filterApplyPanel.setBackground(VueResources.getColor("filterPanelColor"));
         mTabbedPane.addTab(filterCreatePanel.getName(),filterCreatePanel);
         mTabbedPane.addTab(filterApplyPanel.getName(),filterApplyPanel);
+        mTabbedPane.setSelectedComponent(filterApplyPanel);
+        mTabbedPane.setBorder(BorderFactory.createEmptyBorder());
         setLayout(new BorderLayout());
-        add( BorderLayout.WEST, mTabbedPane );
+        add( mTabbedPane,BorderLayout.CENTER );
         setMap(VUE.getActiveMap());
         validate();
         show();
@@ -146,7 +150,6 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             
             setLayout( new BorderLayout() );
             setBorder( new EmptyBorder( 4,4,4,4) );
-            
             mMainFilterPanel = new JPanel();
             mMainFilterPanel.setLayout( new BorderLayout() );
             mLowerPanel = new JPanel();
@@ -223,15 +226,17 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             
             filterEditor = new FilterEditor();
             
-            mMainFilterPanel.add( BorderLayout.NORTH, mUpperPanel);
-            mMainFilterPanel.add( BorderLayout.SOUTH, mLowerPanel);
-            mMainFilterPanel.add( BorderLayout.CENTER, filterEditor);
+            mFilterBox.add(mUpperPanel);
+            mFilterBox.add(filterEditor);
+            mFilterBox.add(mLowerPanel);
+            mMainFilterPanel.add( BorderLayout.NORTH, mFilterBox);
             
             mFilterScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             mFilterScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             mFilterScrollPane.setLocation(new Point(8, 9));
             mFilterScrollPane.setVisible(true);
             mFilterScrollPane.getViewport().add( mMainFilterPanel);
+            mFilterScrollPane.setBorder( BorderFactory.createEmptyBorder());
             
             add( BorderLayout.CENTER, mFilterScrollPane );
         }
@@ -256,12 +261,24 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mClearFilterButton.enable( hasMap);
             mMoreButton.enable( hasMap);
             mFewerButton.enable( hasMap);
-            
+            /**
             if (hasMap)
                 mFilter = pMap.getLWCFilter();
             else
                 mFilter = new LWCFilter();
+            **/
             
+            
+            if(pMap.getLWCFilter() == null) {
+                pMap.setLWCFilter(new LWCFilter(pMap));
+                System.out.println("Created new filter for map ="+pMap);
+            }
+            if(pMap.getLWCFilter().getStatements() == null) {
+                 pMap.getLWCFilter().setStatements(new Vector());
+                 System.out.println("Created new statements ="+pMap.getLWCFilter());
+            }
+            mFilter = pMap.getLWCFilter();
+            filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
             mActionCombo.setSelectedItem(mFilter.getFilterAction());
             
             int val = ANY_MODE;
@@ -271,28 +288,29 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
                 val += 2;
             
             mAnyAllCombo.setSelectedIndex( val);
-            buildFilterBox( pMap);
-    
+            //buildFilterBox( pMap);
+            /**
             mMainFilterPanel.remove(filterEditor);
+
             filterEditor = new FilterEditor();
             mFilter.setStatements(filterEditor.getFilterTableModel());          
             mMainFilterPanel.add(BorderLayout.CENTER, filterEditor);
+             */
             mMainFilterPanel.validate();
            
+   
+
             
             
         }
         
         public LWCFilter makeNewFIlter() {
-            LWCFilter filter = new LWCFilter();
-            
+            LWCFilter filter = new LWCFilter();  
             LWCFilter.LogicalStatement [] satements = new LWCFilter.LogicalStatement[ mStatementEditors.size() ];
-            
-            
             return filter;
         }
         
-        
+      /**  
         public void buildFilterBox(  LWMap pMap) {
             
             LWCFilter filter = null;
@@ -329,11 +347,11 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
             mMainFilterPanel.validate();
             validate();
         }
-        
+        **/
         public LWCFilter makeFilter() {
             LWCFilter filter = new LWCFilter( mStatementEditors );
             //LWCFilter filter = new LWCFilter(filterEditor.getFilterTableModel());
-            filter.setStatements(filterEditor.getFilterTableModel());
+            filter.setStatements(filterEditor.getFilterTableModel().getFilters());
             filter.setMap( mMap);
             filter.setFilterAction(mActionCombo.getSelectedItem());
             int mode = mAnyAllCombo.getSelectedIndex();
@@ -428,9 +446,7 @@ public class FilterPanel extends JPanel implements  VUE.ActiveMapListener{
         }
         public void updatePanel( LWMap pMap) {
             // update the display
-            System.out.println("Map Editor "+mapFilterModelEditor);
-            System.out.println("Map Editor Model  "+pMap.getMapFilterModel());
-            if(mapFilterModelEditor == null) {
+             if(mapFilterModelEditor == null) {
                 mapFilterModelEditor = new MapFilterModelEditor(pMap.getMapFilterModel());
                 add(mapFilterModelEditor);
             }else {

@@ -149,28 +149,30 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
         
         JScrollPane mInfoScrollPane = null;
         
-        Box mInfoBox = null;
+        //Box mInfoBox = null;
         
         public InfoPanel() {
             
             setLayout( new BorderLayout() );
-            setBorder( new EmptyBorder(4,4,4,4) );
-            
+           // setBorder( new EmptyBorder(4,4,4,4) );
+           /** 
             mInfoBox = Box.createVerticalBox();
             mInfoBox.setAlignmentX(Box.LEFT_ALIGNMENT);
             mInfoBox.setAlignmentY(Box.TOP_ALIGNMENT);
             
             // DEMO FIXX:  Demo hack
             mInfoBox.add( new LWCInfoPanel() );
-            
+            **/
             mInfoScrollPane = new JScrollPane();
             mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             mInfoScrollPane.setLocation(new Point(8, 9));
             mInfoScrollPane.setVisible(true);
-            mInfoScrollPane.getViewport().add( mInfoBox);
+            mInfoScrollPane.getViewport().add( new LWCInfoPanel());
+            mInfoScrollPane.setBorder(BorderFactory.createEmptyBorder());
+            //mInfoScrollPane.getViewport().add(new JPanel());
             
-            add( BorderLayout.NORTH, mInfoScrollPane );
+            add(mInfoScrollPane,BorderLayout.NORTH );
             
             //mInfoBox.add( new JLabel("Node Info") );
             // mInfoBox.add( new PropertyPanel() );;
@@ -301,12 +303,8 @@ public class NodeInspectorPanel  extends JPanel implements ObjectInspectorPanel.
                 nodeFilterEditor = new NodeFilterEditor(node.getNodeFilter(),true);
                 add(nodeFilterEditor);
             }
-            validate();
-            
-            
+            validate();  
         }
-        
-        
     }
     
     
