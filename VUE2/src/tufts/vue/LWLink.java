@@ -1148,6 +1148,7 @@ public class LWLink extends LWComponent
         // in a variable width narrowing as it went...)
         // todo: cache this scaled stroke
         // todo: do we really even want this functionality?
+        /*
         if (ep1 != null && ep2 != null) { // todo cleanup
         if ((ep1 != null && ep1.getScale() != 1f) || (ep2 != null && ep2.getScale() != 1f)) {
             float strokeWidth = getStrokeWidth();
@@ -1162,7 +1163,7 @@ public class LWLink extends LWComponent
             stroke = this.stroke;
         }
         }
-    
+        */
         Graphics2D g = dc.g;
         
         if (isSelected()) {
