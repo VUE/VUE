@@ -16,8 +16,6 @@ public class ResourceSelection extends java.util.ArrayList
     public interface Listener extends java.util.EventListener {
         void selectionChanged(ResourceSelection selection);
     }
-    
- 
 
     //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
  
