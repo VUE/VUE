@@ -110,12 +110,22 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 
-                if ((DataSource)((JList)e.getSource()).getSelectedValue()!=null){
-                    DataSourceViewer.this.setActiveDataSource(((DataSource)((JList)e.getSource()).getSelectedValue()));
+                Object o = ((JList)e.getSource()).getSelectedValue();
+                if (o !=null){
                     
+                   if (!(o instanceof String)){
+                    DataSourceViewer.this.setActiveDataSource((DataSource)o);
+                   }
+                   else{
+                       
+                      int index = ((JList)e.getSource()).getSelectedIndex();
+                      DataSourceViewer.this.setActiveDataSource((DataSource)(dataSourceList.getContents().getElementAt(index-1))); 
+                       
+                   }
+                }
                     
                 }}
-        });
+        );
         dataSourceList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if(e.getButton() == e.BUTTON3) {
