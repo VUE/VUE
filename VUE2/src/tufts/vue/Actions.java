@@ -34,6 +34,18 @@ class Actions {
         return keyStroke(vk, 0);
     }
 
+    private static boolean allIgnored = false;
+    /** Set's all action events to be temporarily ignored.
+        E.g., used while a TextBox edit is active */
+    // todo: may want to allow NewItem actions as they automatically
+    // activate an edit, thus preventing a quick series of NewItem
+    // actions to be done.
+    static void setAllIgnored(boolean tv)
+    {
+        allIgnored = tv;
+    }
+        
+
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------
@@ -457,6 +469,8 @@ class Actions {
             void align(LWComponent c) { c.setLocation(c.getX(), centerY - c.getHeight()/2); }
         };
     static final AlignAction MakeRow = new AlignAction("Make Row", KeyEvent.VK_R) {
+            // todo bug: an already made row is shifting everything to the left
+            // (probably always, actually)
             void align(LWSelection selection) {
                 AlignCentersRow.align(selection);
                 maxX = minX + totalWidth;
@@ -508,6 +522,8 @@ class Actions {
         };
 
 
+    /** Helper for menu creation.  Null's indicate good places
+        for menu separators. */
     public static final Action[] ALIGN_MENU_ACTIONS = {
         AlignLeftEdges,
         AlignRightEdges,
@@ -660,12 +676,15 @@ class Actions {
         VueAction(String name) {
             this(name, null, null);
         }
+
         public String getActionName()
         {
             return (String) getValue(Action.NAME);
         }
         public void actionPerformed(ActionEvent ae)
         {
+            if (allIgnored)
+                return;
             try {
                 String msg = "VueAction: " + getActionName();
                 if (!ae.getActionCommand().equals(getActionName()))
@@ -711,7 +730,7 @@ class Actions {
             Point2D newLocation = viewer.screenToMapPoint(mousePress);
                 
             if (mousePress.equals(lastMousePress) && lastItem.getLocation().equals(lastLocation)) {
-                newLocation.setLocation(lastLocation.getX(),
+                newLocation.setLocation(lastLocation.getX() + 10,
                                         lastLocation.getY() + lastItem.getBoundsHeight());
             }
 
