@@ -46,8 +46,11 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
           
                
                  super(root,"Favorites");
+               
                  this.setEditable(true);
-                 
+                 this.setShowsRootHandles(true);
+                 this.setExpandsSelectedPaths(true);
+
                 
                  VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
                   this.setCellRenderer(renderer);
@@ -70,6 +73,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 TreePath treePath = this.getPathForLocation(dropLocation.x, dropLocation.y);
         
                   if (isvalidDropNode(treePath)){
+                      
                        if (e.isLocalTransfer()) {
                                          
                                            e.acceptDrop(DnDConstants.ACTION_MOVE);
@@ -121,8 +125,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                        
                        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
                        model.insertNodeInto(newNode, node, 0);    
-                      
+                       this.setRootVisible(true);
                        this.expandRow(node.getLevel());
+                       this.setRootVisible(false);
                         System.out.println("node level " + node.getLevel());
                                                         
                                                 }
@@ -261,7 +266,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
    
     }
      /* -----------------------------------  */
-                  public Component getTreeCellRendererComponent(
+                public Component getTreeCellRendererComponent(
                             JTree tree,
                             Object value,
                             boolean sel,
@@ -270,10 +275,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                             int row,
                             boolean hasFocus) {
                                 
-                     Icon leafIcon = new ImageIcon("tufts/vue/images/icon_document.gif");
-                     Icon inactiveIcon = new ImageIcon("tufts/vue/images/icon_folder_inactive.gif");
-                     Icon activeIcon = new ImageIcon("tufts/vue/images/icon_folder_active.gif");
-
+                       
+                     Icon leafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+                     Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+                     Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+                     
+                  
+                     
+                     
             super.getTreeCellRendererComponent(
                             tree, value, sel,
                             expanded, leaf, row,
@@ -285,19 +294,23 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                        if (value instanceof FavoritesNode)
                       {
                           
+                 
                         if ( ((FavoritesNode)value).getChildCount() >0 )
                         {
                           setIcon(activeIcon);
+                          
                         }
                         else
                         {
                             setIcon(inactiveIcon);
+                          
                         }
                        
                           
                         }
                        else if (leaf){ setIcon(leafIcon);}
-                       else {}
+                     
+                       else {setIcon(activeIcon);}
                            
                            
                        
