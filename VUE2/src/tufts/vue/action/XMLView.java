@@ -48,7 +48,7 @@ public class XMLView extends AbstractAction{
     final String XML_MAPPING = VUE.CASTOR_XML_MAPPING;
     private static  String fileName = "default.xml";
     private Marshaller marshaller = null;
-    private JTextPane xmlArea = null;
+    private XMLTextPane xmlArea = null;
     private StyledDocument doc = null;
     private ArrayList braces = null;
     
@@ -62,19 +62,9 @@ public class XMLView extends AbstractAction{
     }
     
     class XMLTextPane extends JTextPane implements Scrollable{
-        /*public boolean getScrollableTracksViewportWidth() {
-             if (getParent() instanceof JViewport) {
-                 JViewport port = (JViewport)getParent();
-                 TextUI ui = getUI();
-                 int w = port.getWidth();
-                 Dimension min = ui.getMinimumSize(this);
-                 Dimension max = ui.getMaximumSize(this);
-                 if ((w >= min.width) && (w <= max.width)) {
-                     return true;
-                 }
-             }
+        public boolean getScrollableTracksViewportWidth() {
              return false;
-         }*/
+         }
         
     }
     
@@ -89,7 +79,7 @@ public class XMLView extends AbstractAction{
             
             //create html view from default.xml
             File xmlFile = new File(fileName);
-            xmlArea = new JTextPane();
+            xmlArea = new XMLTextPane();
             doc = (StyledDocument)xmlArea.getDocument();
             
             xmlArea.setText("");
@@ -111,13 +101,8 @@ public class XMLView extends AbstractAction{
                 System.out.println("transformer exception: "+te);
             }
             
-            setAttributes();
-            for(int i = 0; i < braces.size(); i++){
-                System.out.println(braces.get(i));
-            }
-            
             JScrollPane pane = new JScrollPane(xmlArea);
-
+            
             String mapName = VUE.getActiveMap().getLabel();
             JTabbedPane tabPane = VUE.tabbedPane;
             for(int i = 0; i < tabPane.getComponentCount(); i++){
@@ -130,7 +115,11 @@ public class XMLView extends AbstractAction{
 
             VUE.tabbedPane.addTab(mapName+".xml", pane);
             VUE.tabbedPane.setSelectedIndex(VUE.tabbedPane.getComponentCount()-1);
-
+            setAttributes();
+            for(int i = 0; i < braces.size(); i++){
+                System.out.println(braces.get(i));
+            }
+            pane.repaint();
             System.out.println("Action["+e.getActionCommand()+"] completed.");
         }
     }
@@ -153,36 +142,82 @@ public class XMLView extends AbstractAction{
         TransformerFactory factory = TransformerFactory.newInstance();
         Transformer transformer = factory.newTransformer();
         
-        transformer.setOutputProperty("indent","yes");
         transformer.transform(domSource, result);        
         
-        Pattern p = Pattern.compile("</|<");
-        Matcher m = p.matcher(stringWriter.toString());
+        Pattern p = Pattern.compile("</|<|>");
+        String lookUp = stringWriter.toString();
+        Matcher m = p.matcher(lookUp);
         StringBuffer sb = new StringBuffer();
         int indent = -2;
         braces = new ArrayList(); 
-        System.out.println("before find...");
         while(m.find()){
             String group = m.group();
             String tab = "";
-            String tabInd = "     ";
-            System.out.println("group: " + group);
+            String tabInd = "          ";
+            //System.out.println("group: " + group);
             
             if(group.equals("</")){
                 
                 for(int i = 0; i < indent; i++)
                     tab += tabInd;
                 indent--;
-                m.appendReplacement(sb, tab + "</");
-                braces.add(Integer.toString(m.start()));
+                m.appendReplacement(sb, "\n" + tab + "</");
+                //braces.add(Integer.toString(m.start()));
             }
             else if(group.equals("<")){
                 indent++;
                 for(int i = 0; i < indent; i++)
                     tab += tabInd;
                 
-                m.appendReplacement(sb, tab + "<");
-                braces.add(Integer.toString(m.start()));
+                m.appendReplacement(sb, "\n" + tab + "<");
+                //braces.add(Integer.toString(m.start()));
+            }
+            /*else if(group.equals("/>")){
+                indent++;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                
+                m.appendReplacement(sb, "/>\n" + tab);
+                indent--;
+                //braces.add(Integer.toString(m.start()));
+            }*/
+            else if(group.equals(">")){
+                indent++;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                if(m.end() < lookUp.length()){
+                    Pattern pat = Pattern.compile("\\w|#");
+                    Matcher match = pat.matcher(lookUp.substring(m.end(), m.end()+1));
+                    boolean b = match.matches();
+
+                    if(b)
+                    {   m.appendReplacement(sb, ">\n" + tab);
+                        System.out.println("word...");
+                    }
+                    else{
+                        m.appendReplacement(sb, ">");
+                        System.out.println("no word...");
+                    }indent--;
+                    //braces.add(Integer.toString(m.start()));
+                }
+            }
+            else if(group.equals(">#")){
+                indent++;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd;
+                
+                m.appendReplacement(sb, ">\n" + tab + "     #" );
+                indent--;
+                //braces.add(Integer.toString(m.start()));
+            }
+            else if(group.equals(">\\w")){
+                indent++;
+                for(int i = 0; i < indent; i++)
+                    tab += tabInd; 
+                
+                m.appendReplacement(sb, ">\n" + tab + "     $1" );
+                indent--;
+                //braces.add(Integer.toString(m.start()));
             }
         }
         m.appendTail(sb);
