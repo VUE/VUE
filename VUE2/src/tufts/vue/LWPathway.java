@@ -113,16 +113,25 @@ public class LWPathway extends LWContainer
         return c;
     }
     
+    /**
+     * Set the current index to @param i, and also set the
+     * VUE selection to the component at that index.
+     * @return the index as a convenience
+     */
     private int setIndex(int i)
     {
         if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
         if (mCurrentIndex == i)
             return i;
-        Object oldValue = new Integer(mCurrentIndex);
+        //Object oldValue = new Integer(mCurrentIndex);
         if (i >= 0 && VUE.getActivePathway() == this)
             VUE.ModelSelection.setTo(getElement(i));
         mCurrentIndex = i;
-        notify("index", oldValue);
+        notify("pathway.index");
+        // Although this property is actually saved, it doesn't seem worthy of having
+        // it be in the undo list -- it's more of a GUI config. (And FYI, I'm not sure if
+        // this property is being properly restored at the moment either).
+        //notify("pathway.index", new Undoable(old) { void undo(int i) { setIndex(i); }} );
         return mCurrentIndex;
     }
 
@@ -300,18 +309,21 @@ public class LWPathway extends LWContainer
     }
 
     public void setLocked(boolean t) {
-        Object oldValue = locked ? Boolean.TRUE : Boolean.FALSE;
+        Object old = Boolean.valueOf(locked);
         this.locked = t;
-        notify(t ? "pathway.lock" : "pathway.unlock", oldValue);
+        notify("pathway.lock", new Undoable(old) { void undo(boolean b) { setLocked(b); }} );
     }
     public boolean isLocked(){
         return locked;
     }
     
     public void setOpen(boolean open){
-        Object oldValue = open ? Boolean.TRUE : Boolean.FALSE;
+        //Object old = Boolean.valueOf(open);
         this.open = open;
-        notify(open ? "pathway.open" : "pathway.close", oldValue);
+        notify("pathway.open");
+        // Although this property is actually saved, it doesn't seem worthy of having
+        // it be in the undo list -- it's more of a GUI config.
+        //notify("pathway.open", new Undoable(old) { void undo(boolean b) { setOpen(b); }} );
     }
     
     public boolean isOpen() {
@@ -499,8 +511,14 @@ public class LWPathway extends LWContainer
             LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
             if (element.getElementID().equals(c.getID())) {
                 Object oldNotes = element.getElementNotes();
+                Object[] undoInfo = {c, oldNotes};
                 element.setElementNotes(notes);
-                notify("pathway.element.notes", oldNotes); // not enough info for undo...
+                notify("pathway.element.notes",
+                       new Undoable(undoInfo) {
+                           void undo(Object[] a) {
+                               setElementNotes((LWComponent) a[0], (String) a[1]);
+                           }
+                       });
                 break;
             }
         }

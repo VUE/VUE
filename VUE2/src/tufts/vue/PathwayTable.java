@@ -103,6 +103,8 @@ public class PathwayTable extends JTable
                     } else {
                         pathway.setCurrentIndex(tableModel.getPathwayIndexForElementAt(row));
                     }
+
+                    VUE.getUndoManager().mark();
                 }
                 });
 

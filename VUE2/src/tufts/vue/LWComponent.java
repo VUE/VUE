@@ -1274,7 +1274,7 @@ public class LWComponent
                 l.LWCChanged(e);
 
             } catch (Exception ex) {
-                System.err.println("LWComponent.notifyLWCListeners: exception during LWCEvent notification:"
+                System.err.println("LWComponent.dispatchLWCEvent: exception during LWCEvent notification:"
                                    + "\n\tnotifying component: " + source
                                    + "\n\tevent was: " + e
                                    + "\n\tfailing listener: " + l);

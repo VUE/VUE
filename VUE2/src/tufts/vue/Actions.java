@@ -749,7 +749,7 @@ class Actions
             // todo: listen to map viewer display event to tag
             // with currently displayed map name\
             boolean undoable() { return false; }
-            boolean enabled() { return VUE.openMapCount() > 0; }
+            boolean enabled() { return VUE.openMapCount() > 1; }
             public void act() {
                 VUE.closeMap(VUE.getActiveMap());
             }
@@ -758,7 +758,6 @@ class Actions
         new VueAction("Undo", keyStroke(KeyEvent.VK_Z, COMMAND))
         {
             boolean undoable() { return false; }
-            public boolean isEnabled() { return true; }
             public void act() {
                 VUE.getUndoManager().undo();
             }
@@ -768,7 +767,6 @@ class Actions
         new VueAction("Redo", keyStroke(KeyEvent.VK_Z, COMMAND+SHIFT))
         {
             boolean undoable() { return false; }
-            public boolean isEnabled() { return false; }
         };
 
     static final VueAction NewNode =

@@ -313,6 +313,8 @@ class TextBox extends JTextPane
     public void keyPressed(KeyEvent e)
     {
         //System.out.println("TextBox: " + e);
+
+        //if (VueUtil.isAbortKey(e)) // check for ESCAPE for CTRL-Z or OPTION-Z if on mac
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
             setText(savedText);
@@ -348,7 +350,7 @@ class TextBox extends JTextPane
             // for the label on an accidental edit activation)
             System.out.println("TextBox: key was pressed; setting label to: [" + getText() + "]");
             lwc.setLabel0(getText(), false);
-            VUE.getUndoManager().markChangesAsUndo("Rename");
+            VUE.getUndoManager().mark();
         }
     }
     public void focusGained(FocusEvent e)

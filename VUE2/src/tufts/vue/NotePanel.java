@@ -1,9 +1,11 @@
 /** 
  * NotesPanel.java
  *
- * Description:	This is an editable notes panel
- * @author			
- * @version			
+ * Provides an editable note panel for an LWComponents notes.
+ *
+ * @author scottb
+ * @author Scott Fraize
+ * @version February 2004
  */
 
 package tufts.vue;
@@ -15,76 +17,61 @@ import javax.swing.*;
 public class NotePanel extends JPanel
     implements LWComponent.Listener
 {
-	//////////////////
-	//  Fields
-	//////////////////
+    /** the LWComponent **/
+    private LWComponent mObject = null;
 	
-	/** the LWComponent **/
-	LWComponent mObject = null;
+    /** the scrollable pane for the text **/
+    private JScrollPane mScrollPane = new JScrollPane();
 	
-	/** the scrollable pane for the text **/
-	JScrollPane mScrollPane = new JScrollPane();
-	
-	/** the text pane **/
-	JTextPane mTextPane = new JTextPane();
+    /** the text pane **/
+    private JTextPane mTextPane = new JTextPane();
 
-	/** the property of the notes **/
-	//VuePropertyDescriptor mPropertyDescriptor = null;
+    /* the property of the notes **/
+    //VuePropertyDescriptor mPropertyDescriptor = null;
 
-        /** was a key pressed since we loaded the current text? */
-        private boolean mKeyWasPressed = false;
+    /** was a key pressed since we loaded the current text? */
+    private boolean mKeyWasPressed = false;
 	
-	///////////////////
-	// Constructors
-	////////////////////
+    public NotePanel() {
+        super();
+        initComponents();
+    }
 	
-	public NotePanel() {
-            super();
-            initComponents();
-	}
-	
-	
-	///////////////////////
-	// Methods
-	////////////////////
-	
-	
-	public String getName() {
-		//FIX:
-		return "Notes";
-	}
-	/**
-	 * initComponents()
-	 *
-	 **/
-	public void initComponents()  {
+    public String getName() {
+        //FIX:(fix what?)
+        return "Notes";
+    }
 
-		this.setVisible(true);
-		this.setLayout( new BorderLayout() );
-		
-		mScrollPane.setSize( new Dimension( 200, 400));
-		mScrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		mScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		
-		mScrollPane.setLocation(new Point(8, 9));
-		mScrollPane.setVisible(true);
-		
-		
-		
-		mTextPane.setVisible(true);
-		mTextPane.setText("mTextPane");
-		mTextPane.setText("Notes...");
-		
-		this.add( BorderLayout.CENTER, mScrollPane);
-		mScrollPane.getViewport().add( mTextPane);
+    private void initComponents()  {
 
-		setSize(new java.awt.Dimension(200, 400));
+        this.setVisible(true);
+        this.setLayout( new BorderLayout() );
 		
-		mTextPane.addFocusListener( new NoteFocusListener() );
-                mTextPane.addKeyListener(new KeyAdapter() {
-                        public void keyPressed(KeyEvent e) { mKeyWasPressed = true; }
-                    });
-	}
+        mScrollPane.setSize( new Dimension( 200, 400));
+        mScrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        mScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+        mScrollPane.setLocation(new Point(8, 9));
+        mScrollPane.setVisible(true);
+		
+		
+		
+        mTextPane.setVisible(true);
+        mTextPane.setText("mTextPane");
+        mTextPane.setText("Notes...");
+		
+        this.add( BorderLayout.CENTER, mScrollPane);
+        mScrollPane.getViewport().add( mTextPane);
+
+        setSize(new java.awt.Dimension(200, 400));
+		
+        mTextPane.addFocusListener(new FocusAdapter() {
+                public void focusLost(FocusEvent e) { saveNotes(); }
+            });
+        mTextPane.addKeyListener(new KeyAdapter() {
+                public void keyPressed(KeyEvent e) { mKeyWasPressed = true; }
+            });
+    }
 
 	
     /**
@@ -94,39 +81,36 @@ public class NotePanel extends JPanel
      * a key has been pressed since we loaded the text, indicating
      * a possible change in the text.
      **/
-    public void saveNotes() {
-        debug("   Saving notes...");
-        
+    protected void saveNotes() {
         if (mKeyWasPressed && mObject != null) {
             mObject.setNotes( mTextPane.getText() );
+            VUE.getUndoManager().mark();
         }	
-        /*******
-                if( mPropertyDescriptor != null) {
-                
-                String notes = mTextPane.getText();
-                //mPropertyDescriptor.setValue( notes);
-                }
-        *********/
+        //if( mPropertyDescriptor != null) {
+        //String notes = mTextPane.getText();
+        //mPropertyDescriptor.setValue( notes);
+        //}
     }
     
     /** 
-     * updatePanel
-     *
+     * Set us editing notes for @param pObj LWComponent
      **/
-    public void updatePanel( LWComponent pObj) {
-        if (pObj != mObject)  {
+    public void updatePanel(LWComponent pObj) {
+        System.out.println(this + " updatePanel " + pObj);
+        if (true||pObj != mObject) {
             saveNotes();
-            if (mObject != null)
+            if (mObject != null && mObject != pObj)
                 mObject.removeLWCListener(this);
-            mObject = pObj;
             if (pObj != null) {
                 String text = pObj.getNotes();
                 if (text == null)
                     text = "";
                 mTextPane.setText(text);
                 mKeyWasPressed = false;
-                pObj.addLWCListener(this);
+                if (pObj != mObject)
+                    pObj.addLWCListener(this);
             }
+            mObject = pObj;
         }
     }
 	
@@ -135,39 +119,11 @@ public class NotePanel extends JPanel
         if (e.getComponent() == mObject && e.getWhat() == LWKey.Deleting)
             mObject = null;
     }
-    
-	/**
-	 * NoteFocusListener
-	 * This inner cclass is used to listen to focus to save any changes to
-	 * the users notes.
-	 **/
-	public class NoteFocusListener implements FocusListener {
-	
-		public NoteFocusListener() {
-		
-		}
-		
-		
-		public void focusGained( FocusEvent pEvent) {
-		
-		}
-		
-		public void focusLost( FocusEvent pEvent) {
-			saveNotes();
-		}
-		
-	}
 
     public String toString()
     {
         return "NotePanel[" + mObject + "]";
     }
 
-	static private boolean  sDebug = false;
-	private void debug( String str) {
-		if( sDebug) {
-			System.out.println( str + " [NotePanel]");
-			}
-	}
 
 }

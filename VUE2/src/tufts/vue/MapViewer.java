@@ -2693,6 +2693,7 @@ public class MapViewer extends javax.swing.JComponent
     static final int KEY_TOOL_PAN   = KeyEvent.VK_SPACE;
     static final int KEY_TOOL_ZOOM  = KeyEvent.VK_BACK_QUOTE;
     static final int KEY_TOOL_LINK = VueUtil.isMacPlatform() ? KeyEvent.VK_ALT : KeyEvent.VK_CONTROL;
+    static final int KEY_TOOL_ARROW = KeyEvent.VK_Q;
     // Mac overrides CONTROL-MOUSE to look like right-click (context menu popup) so we can't
     // use CTRL wih mouse drag -- todo: change to ALT for PC too -- might as well be consistent.
     static final int KEY_ABORT_ACTION = KeyEvent.VK_ESCAPE;
@@ -2818,6 +2819,7 @@ public class MapViewer extends javax.swing.JComponent
                 if      (key == KEY_TOOL_PAN) tempTool = HandTool;
                 else if (key == KEY_TOOL_ZOOM) tempTool = ZoomTool;
                 else if (key == KEY_TOOL_LINK) tempTool = LinkTool;
+                else if (key == KEY_TOOL_ARROW) tempTool = ArrowTool;
                 if (tempTool != null) {
                     toolKeyDown = key;
                     //toolKeyEvent = e;

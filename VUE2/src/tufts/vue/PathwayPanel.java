@@ -429,6 +429,8 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         else if (btn == removeButton)   { removePathway(pathway); }
         else if (btn == createButton)   { new PathwayDialog(this.parent, this.tableModel, getLocationOnScreen()).show(); }
         else if (btn == lockButton)     { pathway.setLocked(!pathway.isLocked()); }
+
+        VUE.getUndoManager().mark();
     }
    
     private void updateAddRemoveActions()

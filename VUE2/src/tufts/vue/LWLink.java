@@ -1278,28 +1278,28 @@ public class LWLink extends LWComponent
             g.draw(getShape());
         }
 
-        /*
-         * Split the curves into green & red halves for debugging
-        if (curveControls == 1) {
-            QuadCurve2D left = new QuadCurve2D.Float();
-            QuadCurve2D right = new QuadCurve2D.Float();
-            quadCurve.subdivide(left,right);
-            g.setColor(Color.red);
-            g.setStroke(STROKE_TWO);
-            g.draw(left);
-            g.setColor(Color.green);
-            g.draw(right);
-        } else if (curveControls == 2) {
-            CubicCurve2D left = new CubicCurve2D.Float();
-            CubicCurve2D right = new CubicCurve2D.Float();
-            cubicCurve.subdivide(left,right);
-            g.setColor(Color.red);
-            g.setStroke(STROKE_TWO);
-            g.draw(left);
-            g.setColor(Color.green);
-            g.draw(right);
+        if (DEBUG.BOXES) {
+            // Split the curves into green & red halves for debugging
+            if (curveControls == 1) {
+                QuadCurve2D left = new QuadCurve2D.Float();
+                QuadCurve2D right = new QuadCurve2D.Float();
+                quadCurve.subdivide(left,right);
+                g.setColor(Color.red);
+                g.setStroke(new BasicStroke(strokeWidth+4));
+                g.draw(left);
+                g.setColor(Color.green);
+                g.draw(right);
+            } else if (curveControls == 2) {
+                CubicCurve2D left = new CubicCurve2D.Float();
+                CubicCurve2D right = new CubicCurve2D.Float();
+                cubicCurve.subdivide(left,right);
+                g.setColor(Color.red);
+                g.setStroke(new BasicStroke(strokeWidth+4));
+                g.draw(left);
+                g.setColor(Color.green);
+                g.draw(right);
+            }
         }
-        */
         
         //-------------------------------------------------------
         // Draw the stroke
