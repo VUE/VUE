@@ -64,6 +64,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         setLayout(new BorderLayout());
         DRSearchResults = new JPanel();
         tabbedPane = new JTabbedPane();
+        
         maxReturns = new JComboBox(maxReturnItems);
         maxReturns.setEditable(true);
         searchCriteria  = new SearchCriteria();
@@ -81,8 +82,11 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         }
         keywords = new JTextField();
         setSearchPanel();
-        tabbedPane.add("Search", DRSearch);
+        tabbedPane.addTab("Search",new PolygonIcon(Color.RED) , DRSearch);
         tabbedPane.add("Search Results",DRSearchResults);   
+        tabbedPane.setBackground(new Color(200,200,50));
+        tabbedPane.setBackgroundAt(1,new Color(100,100,50));
+        tabbedPane.setForeground(new Color(100,100,240));
         tabbedPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 /**
@@ -103,6 +107,7 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
      private void  setSearchPanel() {
         DRSearch = new JPanel(new BorderLayout());
         JPanel DRSearchPanel = new JPanel();
+        DRSearchPanel.setBackground(Color.LIGHT_GRAY);
         GridBagLayout gridbag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         DRSearchPanel.setLayout(gridbag);
@@ -184,10 +189,6 @@ public class DRViewer extends JPanel implements ActionListener,KeyListener {
         setAdvancedSearchPanel();
         gridbag.setConstraints(advancedSearchPanel,c);
         DRSearchPanel.add(advancedSearchPanel);
-        
-      
-        
-        
         DRSearch.add(DRSearchPanel,BorderLayout.NORTH);
     }
     private void setAdvancedSearchPanel() {
