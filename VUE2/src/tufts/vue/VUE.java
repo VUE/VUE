@@ -57,14 +57,14 @@ public class VUE
         /*
          * create some test nodes & links
          */
-        Node n1 = new Node("Test node1");
-        Node n2 = new Node("Test node2");
-        Node n3 = new Node("foo.txt", new Resource("/tmp/foo.txt"));
-        Node n4 = new Node("Tester Node Four");
-        n1.setPosition(100, 50);
+        Node n1 = new Node("Google", new Resource("http://www.google.com/"));
+        Node n2 = new Node("Program Files", new Resource("C:\\Program Files"));
+        Node n3 = new Node("readme.txt", new Resource("readme.txt"));
+        Node n4 = new Node("Slash", new Resource("file:///"));
+        n1.setPosition(100, 30);
         n2.setPosition(100, 100);
-        n3.setPosition(50, 150);
-        n4.setPosition(150, 150);
+        n3.setPosition(50, 180);
+        n4.setPosition(200, 180);
         map.addNode(n1);
         map.addNode(n2);
         map.addNode(n3);
