@@ -143,7 +143,7 @@ public class DataSource {
         
         else if(type== DR_FEDORA) {
             this.resourceViewer = new DRViewer("fedora.conf", id,displayName,displayName,new URL("http",this.address,8080,"fedora/"),userName,password);
-            if(address.equals("130.64.77.144")) {
+            if(address.equals(VueResources.getString("dataSouceFedoraPublishableAddress"))) {
                 this.publishMode = Publisher.PUBLISH_ALL_MODES;
             }
             

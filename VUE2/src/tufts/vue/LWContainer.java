@@ -991,7 +991,7 @@ public abstract class LWContainer extends LWComponent
                     component.setResource(r2);
             }
             if(component instanceof LWContainer)
-                replaceResource(r1,r2);
+                ((LWContainer)component).replaceResource(r1,r2);
         }
 
   

@@ -1177,7 +1177,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             try {
                 addNewDataSource("My Computer", "My Computer", "", "", "", "", DataSource.FILING_LOCAL,true);
                 addNewDataSource("My Favorties", "My Favorties", "", "", "", "", DataSource.FAVORITES,true);
-                addNewDataSource("Tufts Digital Library", "Fedora", "", "130.64.77.144", "test", "test", DataSource.DR_FEDORA,true);
+                addNewDataSource("Tufts Digital Library", "Fedora", "", VueResources.getString("dataSouceFedoraPublishableAddress"),VueResources.getString("dataSouceFedoraPublishableUser"), VueResources.getString("dataSouceFedoraPublishablePassword"), DataSource.DR_FEDORA,true);
                 addNewDataSource("UVA Finding Aids", "uva:fedora", "", "dl.lib.virginia.edu", "test", "test", DataSource.DR_FEDORA, false);
                 addNewDataSource("Tufts Web","google",VueResources.getString("url.google"), "","", "", DataSource.GOOGLE,false);
                 addNewDataSource("NYU Web", "google","http://google.nyu.edu/search?site=NYUWeb_Main&client=NYUWeb_Main&output=xml_no_dtd&q=nyu&btnG.x=15&btnG.y=9", "","", "", DataSource.GOOGLE, false);
