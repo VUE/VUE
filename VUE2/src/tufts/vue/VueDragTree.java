@@ -72,20 +72,7 @@ public class VueDragTree extends JTree implements DragGestureListener,
 			}
 			public void treeExpanded(TreeExpansionEvent e) {
 				TreePath path = e.getPath();
-                                /*
-
-				if(path != null) {
-					FileNode node = (FileNode)
-								   path.getLastPathComponent();
-
-					if( !node.isExplored()) {
-						DefaultTreeModel model = 
-									(DefaultTreeModel)getModel();
-						node.explore();
-						model.nodeStructureChanged(node);
-					}
-				}
-                                 */
+                              
 			}
 		});
          
@@ -162,52 +149,7 @@ public class VueDragTree extends JTree implements DragGestureListener,
     public void dragOver(DragSourceDragEvent e) {}
     public void dropActionChanged(DragSourceDragEvent e) {}  
     
-  /*  
-    class ResultSelection extends Vector implements Transferable
-    {
-        final static int FILE = 0;
-        final static int STRING = 1;
-       
-        DataFlavor flavors[] = {DataFlavor.javaFileListFlavor,
-                                DataFlavor.stringFlavor,
-                               };
-        public ResultSelection(String resultUrl)
-        {
-            addElement(resultUrl);
-        }
-        /* Returns the array of flavors in which it can provide the data. */
-    /*   
-    public synchronized DataFlavor[] getTransferDataFlavors() {
-    	return flavors;
-        }
-        /* Returns whether the requested flavor is supported by this object. */
-    /*  
-    public boolean isDataFlavorSupported(DataFlavor flavor) {
-            boolean b  = false;
-            b |=flavor.equals(flavors[FILE]);
-            b |= flavor.equals(flavors[STRING]);
-           
-        	return (b);
-        }
-        /**
-         * If the data was requested in the "java.lang.String" flavor,
-         * return the String representing the selection.
-         */
-        /*
-        public synchronized Object getTransferData(DataFlavor flavor)
-    			throws UnsupportedFlavorException, IOException {
-    	if (flavor.equals(flavors[FILE])) {
-    	    return this;
-    	 	} 
-        else if (flavor.equals(flavors[STRING])) {
-    	    return this;
-    	} else {
-    	    throw new UnsupportedFlavorException(flavor);
-    	}
-        }
-    }
-    
-    */
+
  public Result getResult() {
         TreePath path = getLeadSelectionPath();
         if (path == null)
