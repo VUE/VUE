@@ -244,16 +244,11 @@ public class PathwayTable extends JTable
             this.setBackground(bgColor);
             
             Object path = getTableModel().getElement(row);
-            if(path instanceof LWPathway){
-                this.setBackground(newColor);
-                //if(VUE.getPathwayInspector().getCurrentPathway().equals((LWPathway)path))
-                //if(((LWPathway)path).isOpen())
-                //    this.setBorder(selectedBorder);
-            }else{
-                this.setBackground(bgColor);
-                Border compBorder = BorderFactory.createMatteBorder(3,3,3,3,
-                                                  bgColor);
-                    
+            if (path instanceof LWPathway){
+                setBackground(newColor);
+            } else {
+                setBackground(bgColor);
+                Border compBorder = BorderFactory.createMatteBorder(3,3,3,3, bgColor);
                 setBorder(compBorder);
                 //this.setBorder(selectedBorder);
             }
@@ -297,8 +292,6 @@ public class PathwayTable extends JTable
                 LWPathway elementPath = getTableModel().getPathwayForElementAt(row);
                 int elementIndexInPath = getTableModel().getPathwayIndexForElementAt(row);
                 
-                //LWPathway curPath = getTableModel().getCurrentPathway();
-                //System.out.println("LabelRenderer current path: " + curPath);
                 if (elementPath == activePath && elementPath.getCurrentIndex() == elementIndexInPath) {
                     // This is the current item on the current path
                     this.setForeground(currentNodeColor);
@@ -326,42 +319,28 @@ public class PathwayTable extends JTable
             
             if (c instanceof LWPathway) {
                 LWPathway p = (LWPathway) c;
+                boolean bool = false;
+                if (obj instanceof Boolean)
+                    bool = ((Boolean)obj).booleanValue();
                 
                 if (p.isOpen())
                     setBorder(selectedBorder);
                 
-                if (col == 0) {
-                    if (((Boolean)obj).booleanValue())
-                        setIcon(eyeOpen);
-                    else
-                        setIcon(eyeClosed);
-                }
-                else if (col == 2) {
-                    if(((Boolean)obj).booleanValue())
-                        setIcon(open);
-                    else
-                        setIcon(close);
-                }
+                     if (col == 0) { setIcon(bool ? eyeOpen : eyeClosed); }
+                else if (col == 2) { setIcon(bool ? open : close); }
                 else if (col == 4) {
+                    setIcon(bool ? notes : null);
                     if (p == VUE.getActivePathway())
                         setBackground(Color.yellow);
                     else
                         setBackground(bgColor);
-                    if (((Boolean)obj).booleanValue())
-                        setIcon(notes);
-                    else
-                        setIcon(null);
                 }
                 else if (col == 5) {
+                    setIcon(bool ? lock : null);
                     if (p == VUE.getActivePathway())
                         setBackground(Color.yellow);
                     else
                         setBackground(bgColor);
-                      
-                    if (((Boolean)obj).booleanValue())
-                        setIcon(lock);
-                    else
-                        setIcon(null);
                 }
             } else {
                 setBorder(selectedBorder);

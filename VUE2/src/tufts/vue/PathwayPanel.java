@@ -17,9 +17,10 @@ import javax.swing.border.*;
 /**
  * 8-fold cyclic repetition of a beta-strand-loop-alpha- helix-loop module with helix alpha 7 missing. 
  * @author  Daisuke Fujiwara
+ * @author  Scott Fraize
+ * @version February 2004
  */
 
-/**A class which displays nodes in a pathway */
 public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.Listener
 {    
     private PathwayTable pathwayTable = null;
@@ -33,14 +34,12 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     private JPanel buttonPanel = null;
     private JLabel pathName = null;
     
-    private boolean elemSelection = false;
-    
     //private Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
     //private Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
     private Font defaultFont = null;
     private Font highlightFont = null;
-    /* Pathway control properties */
 
+    /* Pathway control properties */
     private ImageIcon firstUp = VueResources.getImageIcon("controlRewindUp");
     private ImageIcon backUp = VueResources.getImageIcon("controlPlayBackwardUp");
     private ImageIcon forwardUp = VueResources.getImageIcon("controlPlayForwardUp");
@@ -185,11 +184,15 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         setupButtons();
         //toggles the add button's availability depending on the selection
         VUE.ModelSelection.addListener(new LWSelection.Listener() {
-                public void selectionChanged(LWSelection s) { updateEnabledFromSelection(); }
+                public void selectionChanged(LWSelection s) {
+                    if (s.size() == 1 && s.first().inPathway(getSelectedPathway()))
+                        getSelectedPathway().setCurrentElement(s.first());
+                    updateEnabledStates();
+                }
             }     
         );
         
-        JLabel addLabel = new JLabel("Add selected object on map to pathway");
+        JLabel addLabel = new JLabel("Add/remove selected pathway object(s)");
         addLabel.setFont(defaultFont);
         addLabel.setBackground(altbgColor);
         
@@ -258,21 +261,16 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
                         return;
                     // we get this event before the typed key is included in the text,
                     // thus we add it here manually (already slow and a hack to do this every
-                    // key press -- should do it on focus loss instead)
+                    // key press -- should do it on focus loss instead -- this won't handle
+                    // saving after a selection delete for example!)
                     String text = notesArea.getText() + e.getKeyChar();
-                    //boolean updateIcon = false;
                     if (displayedComponent instanceof LWPathway) {
                         if (DEBUG.PATHWAY) System.out.println(this + " setPathNotes["+text+"]");
-                        //updateIcon = !displayedComponent.hasNotes();
                         displayedComponent.setNotes(text);
                     } else {
                         if (DEBUG.PATHWAY) System.out.println(this + " setElementNotes["+text+"]");
-                        //updateIcon = (displayedComponentPathway.getElementNotes(displayedComponent) == null);
                         displayedComponentPathway.setElementNotes(displayedComponent, text);                        
                     }
-                    //if (updateIcon)
-                    //fireTableModelUpdate(); // only need this if first time notes set to turn on note icon
-                    // don't need to do this at all as note set will trigger LWCEvent picked up by table model
                 }
             });
 
@@ -310,8 +308,6 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         add(notesPanel);
         
         /* End of Layout for pathways tab */
-        
-        
     }
 
     /** Returns the currently selected pathway.  As currently
@@ -401,7 +397,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             
             // This is a heuristic to try and best guess what the user
             // might want to actually remove.  If nothing in
-            // selection, and way have a current pathway
+            // selection, and we have a current pathway
             // index/element, remove that current pathway element.  If
             // one item in selection, also remove whatever the current
             // element is (which ideally is usually also the
@@ -410,7 +406,7 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             // there's MORE than one item in selection, do a removeAll
             // of everything in the selection.  This removes ALL instances
             // of everything in selection, so that, for instance,
-            // a select all followed by pathway delete is guaranteed to
+            // a SelectAll followed by pathway delete is guaranteed to
             // empty the pathway entirely.
 
             if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
@@ -429,45 +425,39 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         else if (btn == lockButton)     { pathway.setLocked(!pathway.isLocked()); }
     }
    
-    private void setElemSelection(boolean val){
-        //System.out.println("set element selection: " + val);
-        this.elemSelection = val;
-    }
-    
-    /** PathwayTable still calling this */
-    // GET RID OF THIS & elemSelection (it's depending on it being set also)
-    private void updateAddElementEnabled(){
-        //System.out.println("selection: " + this.elemSelection);
-        //SMF if(this.elemSelection && !getTableModel().getCurrentPathway().isLocked())
-        boolean enabled = true;
-        if (VUE.getActivePathway() != null && VUE.getActivePathway().isLocked())
-            enabled = false;
-        else if (!this.elemSelection)
-            enabled = false;
-        this.addElement.setEnabled(enabled);
-    }
-
-    private void updateEnabledFromSelection()
+    private void updateAddRemoveActions()
     {
-        if (DEBUG.PATHWAY) System.out.println(this + " updateEnabledFromSelection");
+        if (DEBUG.PATHWAY) System.out.println(this + " updateAddRemoveActions");
         
-        LWSelection selection = VUE.ModelSelection;
-        setElemSelection(selection.size() > 0);
+        LWPathway path = getSelectedPathway();
+        boolean removeDone = false;
+        
+        if (path == null || path.isLocked()) {
+            addElement.setEnabled(false);
+            removeElement.setEnabled(false);
+            return;
+        }
 
+        LWSelection selection = VUE.ModelSelection;
+        
+        if (path.getCurrentIndex() >= 0) {
+            removeElement.setEnabled(true);
+            removeDone = true;
+        }
+            
         if (selection.size() > 0) {
-            LWPathway path = VUE.getActivePathway();
-            addElement.setEnabled(path != null && !path.isLocked());
-            if (path == null || path.length() <= 0 || path.isLocked()) {
-                removeElement.setEnabled(false);
-            } else {
+            addElement.setEnabled(true);
+            if (!removeDone) {
                 // if at least one element in selection is on current path,
-                // enable remove.
+                // enable remove.  Theoretically this code should never happen
+                // as long as there's always a current item in the pathway.
                 boolean enabled = false;
                 Iterator i = selection.iterator();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
                     if (c.inPathway(path)) {
-                        if (DEBUG.PATHWAY) System.out.println("Found " + c + " on " + path);
+                        //if (DEBUG.PATHWAY)
+                        System.out.println(this + " updateAddRemoveActions: found for remove enable " + c + " on " + path);
                         enabled = true;
                         break;
                     }
@@ -476,7 +466,8 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             }
         } else {
             addElement.setEnabled(false);
-            removeElement.setEnabled(false);
+            if (!removeDone)
+                removeElement.setEnabled(false);
         }
     }
     
@@ -485,16 +476,8 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
     {
         if (DEBUG.PATHWAY) System.out.println(this + " updateEnabledStates");
         
-        //-------------------------------------------------------
-        // handle selection
-        //updateEnabledFromSelection();
-        
-        //-------------------------------------------------------
-        // handle add elem?
-        updateAddElementEnabled();
+        updateAddRemoveActions();
 
-        //-------------------------------------------------------
-        // original handle
         if (getSelectedPathway() != null) {
             if (getSelectedPathway().length() > 1) {
                 boolean atFirst = getSelectedPathway().atFirst();
@@ -518,9 +501,6 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
             forwardButton.setEnabled(false);
             backButton.setEnabled(false);
             //nodeLabel.setText(emptyLabel);
-            
-            //temporarily here
-            removeButton.setEnabled(false);
         }
     }
     
@@ -570,156 +550,8 @@ public class PathwayPanel extends JPanel implements ActionListener//, MapViewer.
         displayedComponentPathway = path;
     }
 
-    /*
-    public void X_mapViewerEventRaised(MapViewerEvent e) {
-        if ((e.getID() & MapViewerEvent.DISPLAYED) != 0){
-            if (DEBUG.PATHWAY) System.out.println(this + " got " + e + " updating...");
-            fireTableModelUpdate();
-            //updateEnabledStates();
-            //getTableModel().fireTableDataChanged();
-
-            //old:
-            //parent.repaint();
-            //this.setPathwayManager();
-            //VUE.getPathwayInspector().repaint();
-            //System.out.println("Map Viewer Event: "+e.getID());
-            //System.out.println("Active Map: "+VUE.getActiveMap().getLabel());
-        }   
-    }
-    */
-
-    public String toString()
-    {
+    public String toString() {
         return "PathwayPanel[" + VUE.getActivePathway() + "]";
     }
     
 }
-
-
-
-
-    
-    /**Sets the current pathway to the given pathway and updates the control panel accordingly*/
-    /*
-    public void setCurrentPathway(LWPathway pathway)
-    {
-        if (DEBUG.PATHWAY) System.out.println(this + " setCurrentPathway " + pathway);
-        //if(this.getPathwayManager() != null)
-        //    this.getPathwayManager().setCurrentPathway(pathway);
-        getTableModel().setCurrentPathway(pathway);
-            
-        //sets to the first node if there is no current node set
-        if (pathway != null) {
-            // wow: how fucked up -- getFirst has a fuckin side effect
-            if (pathway.getCurrent() == null && pathway.length() > 0)
-                pathway.setFirst();
-        }       
-        
-        // would be better to wait till we get a callback to do these:
-        updateEnabledFromSelection();
-        updateEnabledStates();
-    }
-    */
-    
-    
-
-
-/*
-    private void setButton(JButton button){
-        button.addActionListener(this);
-        buttonPanel.add(button);
-    }
-    */
-    
-
-    /*
-    public PathwayControl getPathwayControl(){
-        if(this.pathwayControl == null){
-            this.pathwayControl = new PathwayControl(parent, this);
-        }
-        return this.pathwayControl;
-    }
-    
-    public void setPathwayControl(PathwayControl pathwayControl){
-        this.pathwayControl = pathwayControl;
-    }
-    */
-    /* what was this for???
-    public JPanel getRadioPanel(){
-        //JPanel pathPanel = new JPanel(new GridLayout(4,1,5,0));
-        
-        ButtonGroup group = new ButtonGroup();
-        JRadioButton create = new JRadioButton("Create / Edit Path", true);
-        JRadioButton play = new JRadioButton("Playback / View Multiple Paths";)
-        group.add(create);
-        group.add(play);
-        
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-         
-        JPanel radioPanel = new JPanel();
-         
-        radioPanel.setLayout(gridbag);
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 1.0;
-        c.gridwidth = GridBagConstraints.REMAINDER; //end row
-        JLabel label = new JLabel();
-        gridbag.setConstraints(label, c);
-        radioPanel.add(label);
-        c.weightx = 0.0;		   
-
-        c.gridwidth = GridBagConstraints.RELATIVE; 
-        gridbag.setConstraints(create, c);
-        radioPanel.add(create);
-         
-        c.gridwidth = GridBagConstraints.REMAINDER; 
-        JLabel label1 = new JLabel(" ");
-        label1.setAlignmentY(JLabel.CENTER_ALIGNMENT);
-        gridbag.setConstraints(label1, c);
-        radioPanel.add(label1);
-
-        c.gridwidth = GridBagConstraints.RELATIVE; 
-        gridbag.setConstraints(play, c);
-        radioPanel.add(play);
-         
-        c.gridwidth = GridBagConstraints.REMAINDER; 
-        JLabel label2 = new JLabel(" ");
-        label2.setAlignmentY(JLabel.CENTER_ALIGNMENT);
-        gridbag.setConstraints(label2, c);
-        radioPanel.add(label2);
-        
-        return radioPanel;
-    }
-    */
-    //sets the table's pathway to the given pathway
-    /*
-    public void setPathway(LWPathway pathway)
-    {
-        //((PathwayTableModel)pathwayTable.getModel()).setPathway(pathway);
-        
-        
-        //disables the add button if the pathway is not selected
-        if (pathway == null)
-          addElement.setEnabled(false);
-        
-        //if the pathway is selected and map items are selected, enable the add button
-        else if (!VUE.ModelSelection.isEmpty())
-          addElement.setEnabled(true);
-    }
-    */
-    
-    /**Gets the current pathway associated with the pathway table*/
-    /*public LWPathway getPathway()
-    {
-        return ((PathwayTableModel)pathwayTable.getModel()).getPathway();
-    }
-    */
-    /**Sets the current node of the pathway to be the selected one from the table*/
-    /*public void setCurrentElement(int index)
-    {
-       ((PathwayTableModel)pathwayTable.getModel()).getPathway().setCurrentIndex(index);
-       
-        //update the pathway control panel
-        updateEnabledStates();
-    }*/
-

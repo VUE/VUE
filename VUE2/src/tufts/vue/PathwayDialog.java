@@ -19,7 +19,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 {
     private JButton okButton, cancelButton;
     private JTextField textField;
-    private PathwayTableModel tableModel = null;
+    private PathwayTableModel tableModel;
     
     public PathwayDialog(Frame parentFrame, PathwayTableModel model, Point location)
     {
@@ -102,6 +102,11 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
                 dispose();
             }
         }
+    }
+
+    public String toString()
+    {
+        return "PathwayDialog[]";
     }
 
 }

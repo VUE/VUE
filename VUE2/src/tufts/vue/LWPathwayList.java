@@ -100,11 +100,11 @@ public class LWPathwayList implements LWComponent.Listener
     public void add(LWPathway p) {
         p.setMap(getMap());
         mElements.add(p);
+        setActivePathway(p);
         LWCEvent e = new LWCEvent(this, p, "pathway.list.added");
         getMap().notifyProxy(e);
         LWComponent.dispatchLWCEvent(this, mListeners, e);
         p.addLWCListener(this);
-        setActivePathway(p);
     }
     
     public void addPathway(LWPathway pathway){

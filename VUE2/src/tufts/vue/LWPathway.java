@@ -85,6 +85,27 @@ public class LWPathway extends LWContainer
         setIndex(i);
     }
 
+    /** Set the current index to the first instance of LWComponent @param c in the pathway
+     */
+    void setCurrentElement(LWComponent c) {
+        setIndex(children.indexOf(c));
+    }
+    
+    /** return the current element */
+    public LWComponent getCurrent() { 
+        LWComponent c = null;
+        if (mCurrentIndex < 0 && length() > 0) {
+            System.out.println(this + " lazy default of index to 0");
+            mCurrentIndex = 0;
+        }
+        try {
+            c = (LWComponent) children.get(mCurrentIndex);
+        } catch (IndexOutOfBoundsException ie){
+            c = null;
+        }      
+        return c;
+    }
+    
     private int setIndex(int i)
     {
         if (DEBUG.PATHWAY) System.out.println(this + " setIndex " + i);
@@ -431,27 +452,6 @@ public class LWPathway extends LWContainer
             add(c);
         }
         mDoingXMLRestore = false;
-    }
-    
-    /** return the current element */
-    public LWComponent getCurrent() { 
-        LWComponent c = null;
-        if (mCurrentIndex < 0 && length() > 0) {
-            System.out.println(this + " lazy default of index to 0");
-            mCurrentIndex = 0;
-        }
-        try {
-            c = (LWComponent) children.get(mCurrentIndex);
-        } catch (IndexOutOfBoundsException ie){
-            c = null;
-        }      
-        return c;
-    }
-    
-    /** for PathwayTable */
-    void setCurrentElement(LWComponent c) {
-        setIndex(children.indexOf(c));
-        notify(LWCEvent.Repaint);
     }
     
     public String getElementNotes(LWComponent c)
