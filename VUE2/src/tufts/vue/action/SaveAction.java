@@ -32,8 +32,6 @@ public class SaveAction extends AbstractAction
     private Marshaller marshaller = null;
     private boolean saveAs = true;
    
-    
-    
     public SaveAction() {
     }
     
@@ -83,9 +81,7 @@ public class SaveAction extends AbstractAction
         System.out.println("Saved " + getFileName());
         System.out.println("Action["+e.getActionCommand()+"] completed.");
     }
-    
-    
-    
+     
     private void selectFile()
     {
         try {  

@@ -105,6 +105,7 @@ public class ImageConversion extends AbstractAction {
                 
                     VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
         
+                    //up to this point
                     //retrives the current map and gets its size
                     MapViewer currentMap = VUE.getActiveViewer();
                     Dimension size = currentMap.getSize();
