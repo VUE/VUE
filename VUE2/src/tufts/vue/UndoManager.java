@@ -101,10 +101,9 @@ public class UndoManager
                 if (parent instanceof LWPathway)
                     ; // special case: todo: something cleaner (pathways don't "own" their children)
                 else {
-                    if (child.isDeleted()) {
+                    if (child.isDeleted())
                         child.restoreToModel();
-                        child.setParent(parent);
-                    }
+                    child.setParent(parent);
                 }
             }
             parent.setScale(parent.getScale());
