@@ -462,7 +462,7 @@ implements VueConstants {
             inspectorTool.addTool(new LWCInspector());
         }
         
-        ToolWindow drBrowserTool  = new ToolWindow("DR Browser", frame);
+        ToolWindow drBrowserTool  = new ToolWindow("Data Sources", frame);
         if (drBrowser != null)
             drBrowserTool.addTool(drBrowser);
         
@@ -529,6 +529,7 @@ implements VueConstants {
         //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
         frame.setBackground(Color.white);
+        frame.setIconImage(Toolkit.getDefaultToolkit().getImage(VueResources.getURL("vueIcon32x32")));
         frame.pack();
         frame.setSize(800,600);
         frame.validate();
