@@ -29,8 +29,8 @@ import tufts.vue.filter.*;
  *
  * \**/
 public class LWCFilter {
-    static public final String ACTION_HIDE = "Exclude";
-    static public final String ACTION_SHOW = "Display";
+    static public final String ACTION_HIDE = "Hide";
+    static public final String ACTION_SHOW = "Show";
     static public final String ACTION_SELECT = "Select";
     
     /** condition constants **/
