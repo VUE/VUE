@@ -17,7 +17,7 @@
 	<key>CFBundleSignature</key>
 	<string>TVUE</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Tufts Visual Understanding Environment (Mac GUI pre-release)</string>
+	<string>Tufts Visual Understanding Environment 0.9 (Mac GUI pre-release)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleIconFile</key>
