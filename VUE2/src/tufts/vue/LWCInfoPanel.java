@@ -87,6 +87,13 @@ class LWCInfoPanel extends javax.swing.JPanel
             gridbag.setConstraints(field, c);
             container.add(field);
 
+            
+          field  = new JLabel("Metadata");
+          c.gridwidth = GridBagConstraints.REMAINDER;     //end row
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.anchor = GridBagConstraints.WEST;
+            gridbag.setConstraints(field, c);
+            container.add(field);
             if (readOnly) {
                 field.setBorder(new EmptyBorder(1,1,1,1));
                 if (field instanceof JTextField) {

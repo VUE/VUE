@@ -142,6 +142,12 @@ class LWCInspector extends javax.swing.JPanel
                     field.setBackground(SystemColor.control);
             }
         }
+          JComponent field = new JLabel("Metadata");
+          c.gridwidth = GridBagConstraints.RELATIVE;     //end row
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.anchor = GridBagConstraints.WEST;
+            gridbag.setConstraints(field, c);
+            container.add(field);
     }
     
 
