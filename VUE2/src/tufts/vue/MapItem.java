@@ -69,11 +69,20 @@ public abstract class MapItem
     {
         return this.x;
     }
+   
+    public void setX(float x)
+    {
+        this.x = x;
+    }
     public float getY()
     {
         return this.y;
     }
-
+    public void setY(float y)
+    {
+        this.y = y;
+    }
+    
     public void setPosition(java.awt.geom.Point2D p)
     {
         setPosition((float)p.getX(), (float)p.getY());

@@ -279,9 +279,10 @@ public class MapViewer extends javax.swing.JPanel
             System.out.println("loaded " + node + " " + node.getPosition());
             addNode(new LWNode(node));
         }
-        i = map.getLinkIterator();
+        i = map.getLinkIterator();        
         while (i.hasNext()) {
             Link l = (Link) i.next();
+            System.out.println("loaded " + l + " "+findLWComponent(l.getItem1())+" "+l.getItem2());
             LWComponent c1 = findLWComponent(l.getItem1());
             LWComponent c2 = findLWComponent(l.getItem2());
             addLink(new LWLink(l, c1, c2));
