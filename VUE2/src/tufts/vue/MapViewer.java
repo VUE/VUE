@@ -518,7 +518,11 @@ public class MapViewer extends javax.swing.JComponent
     //private Point mLastCorner;
     public void reshape(int x, int y, int w, int h)
     {
-        if (inScrollPane||DEBUG_PAINT) System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h);
+        boolean ignore = (getX() == x && getY() == y && getWidth() == w && getHeight() == h);
+        if (inScrollPane||DEBUG_PAINT||DEBUG_EVENTS)
+            System.out.println(this + " reshape " + x + "," + y + " " + w + "x" + h + (ignore?" (IGNORING)":""));
+        if (ignore)
+            return;
         /*
         Point p=null;
         if (isShowing()) {
@@ -689,23 +693,7 @@ public class MapViewer extends javax.swing.JComponent
             return;
         }
         if (e.getWhat().equals("deleting")) {
-            // todo: better for the selection itself listen for this,
-            //   but that's a ton of events for this one thing.
-            // todo: maybe have LWContainer check isSelected & manage it in deleteChild?
-            // todo: also, can we coalesce this for big group deletions?
-            LWComponent c = e.getComponent();
-            boolean wasSelected = c.isSelected();
-
-            if (wasSelected) {
-                selectionRemove(c); // ensure isn't in selection
-                
-                // if we just dispersed a group that was selected,
-                // put all the former children into the selection instead
-                if (c instanceof LWGroup)
-                    selectionAdd(((LWGroup)c).getChildIterator());
-            }
-
-            if (rollover == c)
+            if (rollover == e.getComponent())
                 clearRollover();
         }
         // ignore events from ourself: they're there only
@@ -3605,7 +3593,7 @@ public class MapViewer extends javax.swing.JComponent
                     if (DEBUG_FOCUS) System.out.println("oldActive=" + oldActiveMap + " active=" + this.map + " CLEARING SELECTION");
                     resizeControl.active = false;
                     // clear and notify since the selected map changed.
-                    VUE.ModelSelection.clearAndNotify();
+                    VUE.ModelSelection.clearAndNotify(); // why must we force a notification here?
                 }
             }
         } 

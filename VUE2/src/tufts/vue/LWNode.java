@@ -32,8 +32,6 @@ public class LWNode extends LWContainer
     static final float NODE_DEFAULT_STROKE_WIDTH = 1f;
     static final Color NODE_DEFAULT_STROKE_COLOR = Color.darkGray;
 
-    private static final int SelectionStrokeWidth = 8;
-    
     private static final boolean AlwaysShowIcon = false;
         
     private static final int EdgePadY = 3;

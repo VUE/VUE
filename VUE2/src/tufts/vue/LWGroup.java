@@ -360,32 +360,37 @@ public final class LWGroup extends LWContainer
     */
     
     
-    public void draw(java.awt.Graphics2D g)
+    public void draw(DrawContext dc)
     {
         if (getStrokeWidth() == -1) { // todo: temporary debug
             System.err.println("hiding " + this);
             return;
         }
-        super.draw(g);
-        if (isIndicated()) {
-            // this shouldn't happen, but just in case...
-            if (isIndicated()) {
-                g.setColor(COLOR_INDICATION);
-                g.setStroke(STROKE_INDICATION);
-                g.draw(getBounds());
-            }
+        if (isSelected()) {
+            dc.g.setColor(COLOR_HIGHLIGHT);
+            dc.g.setStroke(new java.awt.BasicStroke(SelectionStrokeWidth));
+            dc.g.draw(getBounds());
         }
+        super.draw(dc);
+        if (isIndicated()) {
+            // this should never happen, but just in case...
+            dc.g.setColor(COLOR_INDICATION);
+            dc.g.setStroke(STROKE_INDICATION);
+            dc.g.draw(getBounds());
+        }
+
+        
 
         if (DEBUG_CONTAINMENT) {
             if (isRollover())
-                g.setColor(java.awt.Color.green);
+                dc.g.setColor(java.awt.Color.green);
             else
-                g.setColor(java.awt.Color.red);
+                dc.g.setColor(java.awt.Color.red);
             if (isIndicated())
-                g.setStroke(STROKE_INDICATION);
+                dc.g.setStroke(STROKE_INDICATION);
             else
-                g.setStroke(STROKE_TWO);
-            g.draw(getBounds());
+                dc.g.setStroke(STROKE_TWO);
+            dc.g.draw(getBounds());
         }
     }
     

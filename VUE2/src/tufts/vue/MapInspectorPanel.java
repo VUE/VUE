@@ -311,6 +311,11 @@ public class MapInspectorPanel  extends JPanel
 		}
 	
 	}
+
+    public String toString() {
+        return getClass().getName() + "@" + Integer.toHexString(hashCode());
+    }
+
 }
 
 

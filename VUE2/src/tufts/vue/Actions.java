@@ -23,7 +23,9 @@ import javax.swing.AbstractAction;
  * @author Scott Fraize
  * @version 6/19/03
  */
-class Actions {
+class Actions
+    implements VueConstants
+{
     static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
     static final int CTRL = Event.CTRL_MASK;
     static final int SHIFT = Event.SHIFT_MASK;
@@ -308,6 +310,10 @@ class Actions {
         new MapAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            // hierarchicalAction set to true: if parent being duplicated, don't duplicate
+            // any selected children, creating extra siblisngs.
+            boolean hierarchicalAction() { return true; } 
+
             // TODO: preserve layering order of components -- don't
             // just leave in the arbitrary selection order!
             void act(Iterator i) {
@@ -399,7 +405,16 @@ class Actions {
     static final MapAction Delete =
         new MapAction("Delete", keyStroke(KeyEvent.VK_DELETE))
         {
+            // hierarchicalAction is true: if parent being deleted,
+            // let it handle deleting the children (ignore any
+            // children in selection who's parent is also in selection)
+            boolean hierarchicalAction() { return true; }
             boolean mayModifySelection() { return true; }
+            
+            void act(Iterator i) {
+                super.act(i);
+                VUE.ModelSelection.clear();
+            }
             void act(LWComponent c) {
                 //have to update pathways - jay briedis (remove this code and add listeners in pathway instead --SMF)
                 Iterator iter = VUE.getActiveViewer()
@@ -429,13 +444,13 @@ class Actions {
                 if (parent == null) {
                     // right now this can happen because links are auto-deleted if
                     // both their endpoints are deleted
-                    System.out.println("DELETE: " + c + " null parent (already deleted)");
+                    System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
                 } else if (c.isDeleted()) {
                     // right now this can happen because links are auto-deleted if
                     // both their endpoints are deleted
-                    System.out.println("DELETE: " + c + " (already deleted)");
+                    System.out.println("DELETE: " + c + " skipping (already deleted)");
                 } else if (parent.isDeleted()) {
-                    System.out.println("DELETE: " + c + " (parent already deleted)");
+                    System.out.println("DELETE: " + c + " skipping (parent already deleted)");
                 } else if (parent.isSelected()) { // if parent selected, it will delete it's children
                     System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
                 } else {
@@ -474,17 +489,21 @@ class Actions {
         new MapAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT))
         {
             boolean mayModifySelection() { return true; }
-            boolean enabledFor(LWSelection s)
-            {
+            boolean enabledFor(LWSelection s) {
                 return s.countTypes(LWGroup.class) > 0;
             }
             void act(Iterator i)
             {
+                List dispersedChildren = new ArrayList();
                 while (i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
-                    if (c instanceof LWGroup)
-                        ((LWGroup)c).disperse();
+                    if (c instanceof LWGroup) {
+                        LWGroup group = (LWGroup) c;
+                        dispersedChildren.addAll(group.getChildList());
+                        group.disperse();
+                    }
                 }
+                VUE.ModelSelection.setTo(dispersedChildren.iterator());
             }
         };
     static final Action Rename =
@@ -917,8 +936,12 @@ class Actions {
         }
         public void actionPerformed(ActionEvent ae)
         {
-            if (allIgnored)
+            if (DEBUG_EVENTS) System.out.println("\n-------------------------------------------------------\n"
+                                                 + this + " START OF actionPerformed: ActionEvent=" + ae.paramString());
+            if (allIgnored) {
+                if (DEBUG_EVENTS) System.out.println("ACTIONS DISABLED.");
                 return;
+            }
             try {
                 /*
                 String msg = "VueAction: " + getActionName();
@@ -940,7 +963,9 @@ class Actions {
                 System.err.println("*** VueAction: selection is " + VUE.ModelSelection);
                 System.err.println("*** VueAction: event was " + ae);
             }
+            //if (DEBUG_EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
             updateActionListeners();
+            if (DEBUG_EVENTS) System.out.println("\n" + this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
             // normally handled by updateActionListeners, but if someone
             // has actually defined "enabled" instead of enabledFor, we'll
             // need this.
@@ -1087,6 +1112,13 @@ class Actions {
 
         boolean mayModifySelection() { return false; }
         
+        /** hierarchicalAction: any children in selection who's
+         * parent is also in the selection are ignore during
+         * iterator -- for actions such as delete where deleting
+         * the parent will automatically delete any children.
+         */
+        boolean hierarchicalAction() { return false; }
+        
         void act(LWSelection selection)
         {
             act(selection.iterator());
@@ -1108,8 +1140,12 @@ class Actions {
         {
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
+                if (hierarchicalAction() && c.getParent().isSelected())
+                    continue;
                 act(c);
-                if (c instanceof LWGroup) {
+                // it's possible c was deleted by above action,
+                // so make sure we don't proceed if that's the case.
+                if (c instanceof LWGroup && !hierarchicalAction() && !c.isDeleted()) {
                     Iterator gi = ((LWGroup)c).getChildIterator();
                     while (gi.hasNext()) {
                         LWComponent gc = (LWComponent) gi.next();
@@ -1131,11 +1167,11 @@ class Actions {
         }
         void act(LWLink c)
         {
-            System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
+            System.out.println("Unhandled MapAction: " + getActionName() + " on " + c);
         }
         void act(LWNode c)
         {
-            System.err.println("Unhandled MapAction: " + getActionName() + " on " + c);
+            System.out.println("Unhandled MapAction: " + getActionName() + " on " + c);
         }
         
         void Xact(LWComponent c) {}// for commenting convenience

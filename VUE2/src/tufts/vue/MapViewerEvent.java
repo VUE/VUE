@@ -2,6 +2,7 @@ package tufts.vue;
 
 public class MapViewerEvent
     extends EventRaiser
+    implements VueConstants
 {
     public static final int DISPLAYED = 1;
     public static final int HIDDEN = 2;
@@ -33,6 +34,14 @@ public class MapViewerEvent
 
     public void dispatch(Object listener)
     {
+        if (DEBUG_EVENTS)  {
+            System.out.println(this
+                               + " dispatching to "
+                               + listener.getClass().getName()
+                               + "@" +  Integer.toHexString(listener.hashCode()));
+            if (id == PAN)
+                new Throwable().printStackTrace();
+        }
         ((MapViewer.Listener)listener).mapViewerEventRaised(this);
     }
 

@@ -66,15 +66,15 @@ public class LWSelection extends java.util.ArrayList
     //public void addSelectionControl(java.awt.geom.Point2D mapLocation, ControlListener listener)
     private void addControlListener(ControlListener listener)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection: adding control listener " + listener);
+        if (DEBUG_SELECTION) System.out.println(this + " adding control listener " + listener);
         controlListeners.add(listener);
     }
     
     private void removeControlListener(ControlListener listener)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection: removing control listener " + listener);
+        if (DEBUG_SELECTION) System.out.println(this + " removing control listener " + listener);
         if (!controlListeners.remove(listener))
-            throw new IllegalStateException("LWSelection: didn't contain control listener " + listener);
+            throw new IllegalStateException(this + " didn't contain control listener " + listener);
     }
 
     java.util.List getControlListeners()
@@ -93,17 +93,17 @@ public class LWSelection extends java.util.ArrayList
 
     private void notifyListeners()
     {
-        if (isClone) throw new IllegalStateException("LWSelection: clone's can't notify listeners! " + this);
+        if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
         
-        if (DEBUG_SELECTION) System.out.println("LWSelection NOTIFYING LISTENERS " + this);
+        if (DEBUG_SELECTION) System.out.println(this + " NOTIFYING LISTENERS");
         Iterator i = listeners.iterator();
         while (i.hasNext()) {
             Listener l = (Listener) i.next();
             try {
-                if (DEBUG_SELECTION) System.out.println("LWSelection notifying: " + l);
+                if (DEBUG_SELECTION) System.out.println(this + " notifying: " + l);
                 l.selectionChanged(this);
             } catch (Exception ex) {
-                System.err.println("LWSelection.notifyListeners: exception during selection change notification:"
+                System.err.println(this + " notifyListeners: exception during selection change notification:"
                                    + "\n\tselection: " + this
                                    + "\n\tfailing listener: " + l);
                 ex.printStackTrace();
@@ -136,12 +136,12 @@ public class LWSelection extends java.util.ArrayList
             add0(c);
             notifyListeners();
         } else
-            if (DEBUG_SELECTION) System.out.println("addToSelection(already): " + c);
+            if (DEBUG_SELECTION) System.out.println(this + " addToSelection(already): " + c);
     }
     
     public boolean add(Object o)
     {
-        throw new RuntimeException("LWSelection can't add " + o.getClass() + ": " + o);
+        throw new RuntimeException(this + " can't add " + o.getClass() + ": " + o);
     }
     
     /** Make sure all in iterator are in selection & do a single change notify at the end */
@@ -179,7 +179,7 @@ public class LWSelection extends java.util.ArrayList
     
     private void add0(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection: adding " + c);
+        if (DEBUG_SELECTION) System.out.println(this + " adding " + c);
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -188,7 +188,7 @@ public class LWSelection extends java.util.ArrayList
             if (!isClone && c instanceof ControlListener)
                 addControlListener((ControlListener)c);
         } else
-            throw new RuntimeException("LWSelection: attempt to add already selected component " + c);
+            throw new RuntimeException(this + " attempt to add already selected component " + c);
     }
     
     public void remove(LWComponent c)
@@ -199,13 +199,13 @@ public class LWSelection extends java.util.ArrayList
 
     private void remove0(LWComponent c)
     {
-        if (DEBUG_SELECTION) System.out.println("LWSelection: removing " + c);
+        if (DEBUG_SELECTION) System.out.println(this + " removing " + c);
         if (!isClone) c.setSelected(false);
         if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
         bounds = null;
         if (!super.remove(c))
-            throw new RuntimeException("LWSelection remove: list doesn't contain " + c);
+            throw new RuntimeException(this + " remove: list doesn't contain " + c);
     }
     
     /**
@@ -216,6 +216,7 @@ public class LWSelection extends java.util.ArrayList
      **/
     public void clearAndNotify() {
     	clear0();
+        if (DEBUG_SELECTION) System.out.println(this + " clearAndNotify: forced notification after clear");
     	notifyListeners();
     }
     
@@ -229,7 +230,7 @@ public class LWSelection extends java.util.ArrayList
     {
         if (isEmpty())
             return false;
-        if (DEBUG_SELECTION) System.out.println("LWSelection clear " + this);
+        if (DEBUG_SELECTION) System.out.println(this + " clear0");
 
         if (!isClone) {
             java.util.Iterator i = iterator();
@@ -349,6 +350,11 @@ public class LWSelection extends java.util.ArrayList
         copy.listeners = null;
         copy.controlListeners = null;
         return copy;
+    }
+
+    public String toString()
+    {
+        return "LWSelection[" + size() + (isClone?" CLONE]":"]");
     }
     
 }

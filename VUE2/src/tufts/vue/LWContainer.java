@@ -347,7 +347,13 @@ public abstract class LWContainer extends LWComponent
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (this.children == null) {
+            // this should never be possible now
             new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
+            return;
+        }
+        if (isDeleted()) {
+            // just in case:
+            new Throwable(this + " FYI: ZOMBIE PARENT DELETING CHILD " + c).printStackTrace();
             return;
         }
         if (!this.children.remove(c))
@@ -356,12 +362,11 @@ public abstract class LWContainer extends LWComponent
 
         // gunk to handle scale stuff
         //if (c.isManagedColor()) c.setFillColor(COLOR_NODE_DEFAULT);
-        c.setScale(1f);
 
-        //if (c instanceof LWContainer)
-        //  ((LWContainer)c).layout();//why doing this here instead of setScale?
-        // todo: check layout diags with it at end of setScale to see if
-        // too many layouts happening is a problem
+        // If this child was scaled inside us (as all children are except groups)
+        // besure to restore it's scale back to 1 when de-parenting it.
+        if (c.getScale() != 1f)
+            c.setScale(1f);
     }
     
     /**
@@ -392,30 +397,36 @@ public abstract class LWContainer extends LWComponent
     /**
      * Delete a child and PERMANENTLY remove it from the model.
      * Differs from removeChild / removeChildren, which just
-     * de-parent the nodes, tho leave any listeners in place.
+     * de-parent the nodes, tho leave any listeners & links to it in place.
      */
     public void deleteChildPermanently(LWComponent c)
     {
         if (true||DEBUG_PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
+        // we do the "deleting" notification first, so anybody listening
+        // can still see the node in it's full current state before
+        // anything changes.
         c.notify("deleting");
         removeChild(c);
-        // note that parents of c will not get this event as
-        // c.parent has been nulled by now -- but listeners will get it.
-        //c.notify("deleted");
         c.removeFromModel();
     }
 
     protected void removeFromModel()
     {
-        //removeChildren(getChildIterator());
-        //actually -- lets leave children intact -- but what if they're selected?
-
+        // don't actaully deparent our children -- leave them parented
+        // to us even tho we're being deleted, which will facilitate
+        // undo.
+        Iterator i = getChildIterator();
+        while (i.hasNext()) {
+            LWComponent c = (LWComponent) i.next();
+            c.notify("deleting");
+            c.removeFromModel();
+        }
         super.removeFromModel();
         if (this.children == VUE.ModelSelection) // todo: tmp debug
             throw new IllegalStateException("attempted to delete selection");
         // help the gc
-        this.children.clear();
-        this.children = null;
+        //this.children.clear();
+        //this.children = null;
     }
 
     /*
@@ -694,7 +705,7 @@ public abstract class LWContainer extends LWComponent
     }
     private int getIndex(Object c)
     {
-        if (children == null)
+        if (isDeleted())
             throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
                                             + "\n\tdeleted parent=" + this
                                             + "\n\tseeking index of child=" + c);
