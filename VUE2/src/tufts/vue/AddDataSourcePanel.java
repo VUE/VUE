@@ -1,0 +1,554 @@
+/*
+ * -----------------------------------------------------------------------------
+ *
+ * <p><b>License and Copyright: </b>The contents of this file are subject to the
+ * Mozilla Public License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License
+ * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
+ *
+ * <p>Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.</p>
+ *
+ * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004
+ * Tufts University. All rights reserved.</p>
+ *
+ * -----------------------------------------------------------------------------
+ */
+
+/*
+ * AddDataSourcePanel.java
+ *
+ * Created on June 2, 2004, 10:12 PM
+ */
+
+
+package tufts.vue;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+/**
+ * This  panel is the UI to add/edit datasources.
+ * @author  akumar03
+ */
+public class AddDataSourcePanel extends JPanel {
+    
+    /** Creates a new instance of AddDataSourcePanel */
+    String[] dataSourceTypes = {"Filing-Local","Favorites", "Filing-Remote","Fedora","Google","OSID-DR"};
+    Box addDataSourceBox;
+    JPanel addPanel;
+    JPanel typesPanel;
+    AddEditDataSourceDialog dialog;
+    
+    public AddDataSourcePanel(AddEditDataSourceDialog dialog) {
+        this.dialog = dialog;
+        addDataSourceBox = Box.createVerticalBox();
+        typesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        addPanel = new JPanel(new BorderLayout());
+        addPanel.setBorder(BorderFactory.createEmptyBorder(0, 5,0, 5));
+        addPanel.add(new FileDataSourcePanel());
+        JComboBox typeField = new JComboBox(dataSourceTypes);    //  This will be a menu, later.
+        typeField.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                if(e.getStateChange() == ItemEvent.SELECTED) {
+                    addPanel.removeAll();
+                    if(e.getItem().toString().equals(dataSourceTypes[0])){
+                        addPanel.add(new FileDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[1])){
+                        addPanel.add(new FavoritesDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[2])){
+                        addPanel.add(new RemoteFileDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[3])){
+                        addPanel.add(new FedoraDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[4])) {
+                        addPanel.add(new GoogleDataSourcePanel(),BorderLayout.CENTER);
+                    }
+                    validate();
+                }
+            }
+        });
+        typesPanel.add(new JLabel("DataSource Type:"));
+        typesPanel.add(typeField);
+        addDataSourceBox.add(typesPanel);
+        addDataSourceBox.add(addPanel);
+        setLayout(new BorderLayout());
+        add(addDataSourceBox,BorderLayout.NORTH);
+    }
+    
+    class FileDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField pathField ;
+        public FileDataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel pathLabel = new JLabel("Path :");
+            dsNameField = new JTextField();
+            pathField = new JTextField();
+            
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        DataSource ds = new LocalFileDataSource(dsNameField.getText(), pathField.getText());
+                        DataSourceViewer.addDataSource(ds);
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(pathLabel,c);
+            this.add(pathLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(pathField,c);
+            this.add(pathField);
+            
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+            pathField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && pathField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
+    class FavoritesDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        public FavoritesDataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            dsNameField = new JTextField();
+            
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        DataSource ds = new FavoritesDataSource(dsNameField.getText());
+                        DataSourceViewer.addDataSource(ds);
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
+    class RemoteFileDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField addressField ;
+        JTextField userField;
+        JPasswordField passwordField;
+        public RemoteFileDataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel addressLabel = new JLabel("Address :");
+            JLabel userLabel = new JLabel("User Name:");
+            JLabel passwordLabel = new JLabel("Password");
+            dsNameField = new JTextField();
+            addressField = new JTextField();
+            userField = new JTextField();
+            passwordField = new JPasswordField();
+            
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        DataSource ds = new RemoteFileDataSource(dsNameField.getText(), addressField.getText(),userField.getText(),new String(passwordField.getPassword()));
+                        DataSourceViewer.addDataSource(ds);
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(addressLabel,c);
+            this.add(addressLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(addressField,c);
+            this.add(addressField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(userLabel,c);
+            this.add(userLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(userField,c);
+            this.add(userField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(passwordLabel,c);
+            this.add(passwordLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(passwordField,c);
+            this.add(passwordField);
+            
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+            addressField.setText("");
+            userField.setText("");
+            passwordField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && addressField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name and address should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
+    class FedoraDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField addressField ;
+        JTextField userField;
+        JPasswordField passwordField;
+        public FedoraDataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel addressLabel = new JLabel("Address :");
+            JLabel userLabel = new JLabel("User Name:");
+            JLabel passwordLabel = new JLabel("Password");
+            dsNameField = new JTextField();
+            addressField = new JTextField();
+            userField = new JTextField();
+            passwordField = new JPasswordField();
+            
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        DataSource ds = new FedoraDataSource(dsNameField.getText(), addressField.getText(),userField.getText(),new String(passwordField.getPassword()));
+                        DataSourceViewer.addDataSource(ds);
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(addressLabel,c);
+            this.add(addressLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(addressField,c);
+            this.add(addressField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(userLabel,c);
+            this.add(userLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(userField,c);
+            this.add(userField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(passwordLabel,c);
+            this.add(passwordLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(passwordField,c);
+            this.add(passwordField);
+            
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+            addressField.setText("");
+            userField.setText("");
+            passwordField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && addressField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name and address should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
+    class GoogleDataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField addressField ;
+        public GoogleDataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel addressLabel = new JLabel("Address :");
+            dsNameField = new JTextField();
+            addressField = new JTextField();
+            
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if(validateFields()) {
+                        DataSource ds = new GoogleDataSource(dsNameField.getText(), addressField.getText());
+                        DataSourceViewer.addDataSource(ds);
+                        dialog.hide();
+                        dialog.dispose();
+                    }
+                }
+            });
+            
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(addressLabel,c);
+            this.add(addressLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(addressField,c);
+            this.add(addressField);
+            
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+            addressField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && addressField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
+    
+    
+}
