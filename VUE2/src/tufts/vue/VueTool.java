@@ -218,12 +218,13 @@ public abstract class VueTool extends AbstractAction
     // rename supportsClickSelection?
     public boolean supportsSelection() { return false; }
     
-    public boolean supportsDraggedSelector(MouseEvent e)
+    public boolean supportsDraggedSelector(java.awt.event.MouseEvent e)
     {
         return true;
     }
 
     public final boolean supportsXORSelectorDrawing()
+    // temporarily disabled feature
     {
         return false;
     }
@@ -239,6 +240,16 @@ public abstract class VueTool extends AbstractAction
     {
         //g.fill(r);//if mac?
         g.draw(r);
+    }
+
+    public boolean supportsClick()
+    {
+        return false;
+    }
+
+    public void handleMouseClicked(java.awt.event.MouseEvent e, LWComponent hitComponent)
+    {
+        System.out.println(this + " handleMouseClicked on " + hitComponent);
     }
 
     public void handleSelectorRelease(java.awt.geom.Rectangle2D mapRect)
