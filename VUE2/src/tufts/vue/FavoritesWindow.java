@@ -185,9 +185,11 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                    if (model.getRoot() != dn){
                  FavoritesNode node = (FavoritesNode)dn.getParent();
                     model.insertNodeInto(newNode, node, 0);  
+                     favoritesTree.expandRow(dn.getLevel());
                  }
                  else {
-                      model.insertNodeInto(newNode, dn, 0);  
+                      model.insertNodeInto(newNode, dn, 0); 
+                       favoritesTree.expandRow(dn.getLevel());
                  }
               
            
@@ -199,6 +201,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                                  
                     FavoritesNode newNode= new FavoritesNode("New Bookmark Folder");
                     model.insertNodeInto(newNode, dn, 0);  
+                      favoritesTree.expandRow(dn.getLevel());
             
              
                          }
