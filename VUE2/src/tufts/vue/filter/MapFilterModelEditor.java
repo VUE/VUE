@@ -254,7 +254,7 @@ public class MapFilterModelEditor extends JPanel {
         
         public void actionPerformed(ActionEvent e) {
             // will only be invoked if an existing row is selected
-            if(JOptionPane.showConfirmDialog(tufts.vue.VUE.getInstance(),"All Statments in nodes with this key will be deleted. Are you sure?","Delete Key",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+            if(JOptionPane.showConfirmDialog(tufts.vue.VUE.getInstance(),"Would you like to remove all instance of selected metadata element throughtout the map?","Delete Custom Metdata",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,tufts.vue.VueResources.getImageIcon("vueIcon32x32")) == JOptionPane.YES_OPTION){
                 int r=m_sListener.getSelectedRow();
                 ((MapFilterModel) table.getModel()).remove(r);
                 ((MapFilterModel) table.getModel()).fireTableRowsDeleted(r,r);
