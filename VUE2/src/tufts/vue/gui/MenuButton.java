@@ -128,7 +128,7 @@ public abstract class MenuButton extends JButton implements ActionListener
 
     public void setIcon(Icon i) {
         System.out.println("MENUBUTTON " + this + " setIcon " + i);
-        new Throwable("ICON SET").printStackTrace();
+        //new Throwable("ICON SET").printStackTrace();
         super.setIcon(i);
     }
     

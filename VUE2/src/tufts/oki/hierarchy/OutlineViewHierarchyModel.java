@@ -190,7 +190,11 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
         try
         {
             ArrayList nodes = findHierarchyNodeByComponentID(getRootNode(), id);
-          
+            if (nodes == null) {
+                System.out.println("OutlineViewHierarchyModel: unhandled case, nodes is null");
+                return;
+            }
+
             for (Iterator i = nodes.iterator(); i.hasNext();)
             {
                 HierarchyNode hierarchyNode = (HierarchyNode)i.next();
