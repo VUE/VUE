@@ -147,13 +147,18 @@ public class LinkInspectorPanel  extends JPanel
 			
 			mInfoBox = Box.createVerticalBox();
 		
+			// DEMO FIX:  adding hack for demo
+			mInfoBox.add( new JLabel("Link Info") );
+			mInfoBox.add( new  LWCInspector() );
+			
 			mInfoScrollPane = new JScrollPane();
 			mInfoScrollPane.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 			mInfoScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			mInfoScrollPane.setLocation(new Point(8, 9));
 			mInfoScrollPane.setVisible(true);
 			mInfoScrollPane.getViewport().add( mInfoBox);
-		
+			
+			
 			add( BorderLayout.CENTER, mInfoScrollPane );
 		}
 		
