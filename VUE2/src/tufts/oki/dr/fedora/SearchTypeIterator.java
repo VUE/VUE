@@ -22,8 +22,7 @@
  * Created on November 1, 2003, 10:05 AM
  */
 
-package src.tufts.dr.fedora;
-
+package tufts.oki.dr.fedora;
 /**
  *
  * @author  akumar03
