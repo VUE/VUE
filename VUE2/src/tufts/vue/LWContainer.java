@@ -346,13 +346,16 @@ public abstract class LWContainer extends LWComponent
     protected void removeChildInternal(LWComponent c)
     {
         if (DEBUG_PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
+        if (this.children == null) {
+            new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
+            return;
+        }
         if (!this.children.remove(c))
             throw new IllegalStateException(this + " didn't contain child for removal: " + c);
         c.setParent(null);
 
         // gunk to handle scale stuff
-        if (c.isManagedColor())
-            c.setFillColor(COLOR_NODE_DEFAULT);
+        //if (c.isManagedColor()) c.setFillColor(COLOR_NODE_DEFAULT);
         c.setScale(1f);
 
         //if (c instanceof LWContainer)
