@@ -540,7 +540,7 @@ public class LWLink extends LWComponent
             c.addLinkRef(this);
         endPoint1_ID = null;
         endpointMoved = true;
-        notify("link.endpointChanged");
+        notify("link.endpointChanged.1");
         //System.out.println(this + " ep1 = " + c);
     }
     void setComponent2(LWComponent c)
@@ -557,7 +557,7 @@ public class LWLink extends LWComponent
             c.addLinkRef(this);
         endPoint2_ID = null;
         endpointMoved = true;
-        notify("link.endpointChanged");
+        notify("link.endpointChanged.2");
         //System.out.println(this + " ep1 = " + c);
     }
 

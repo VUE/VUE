@@ -34,7 +34,7 @@ public class MapViewerEvent
 
     public void dispatch(Object listener)
     {
-        if (DEBUG_EVENTS)  {
+        if (DEBUG.EVENTS)  {
             System.out.println(this
                                + " dispatching to "
                                + listener.getClass().getName()

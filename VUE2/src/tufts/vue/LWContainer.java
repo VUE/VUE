@@ -243,8 +243,8 @@ public abstract class LWContainer extends LWComponent
     {
         addChildInternal(c);
         ensureLinksPaintOnTopOfAllParents(c);//todo: not working when nested group removed from parent back to map
-        c.notify("added", this);
-        notify("childAdded", c);
+        c.notify(LWCEvent.Added, this);
+        notify(LWCEvent.ChildAdded, c);
     }
     
     public void addChildren(Iterator i)
@@ -268,7 +268,7 @@ public abstract class LWContainer extends LWComponent
         
         
         if (addedChildren.size() > 0) {
-            notify("childrenAdded", addedChildren);
+            notify(LWCEvent.ChildrenAdded, addedChildren);
             //todo: change all these child events to a structureChanged event
             layout();
         }
@@ -339,7 +339,7 @@ public abstract class LWContainer extends LWComponent
     {
         removeChildInternal(c);
         //c.notify("removed", this); // don't need to let anyone know this
-        notify("childRemoved", c);
+        notify(LWCEvent.ChildRemoved, c);
         layout();
     }
 
@@ -388,7 +388,7 @@ public abstract class LWContainer extends LWComponent
                 throw new IllegalArgumentException(this + " asked to remove child it doesn't own: " + c);
         }
         if (deletedChildren.size() > 0) {
-            notify("childrenRemoved", deletedChildren);
+            notify(LWCEvent.ChildrenRemoved, deletedChildren);
             //todo: change all these child events to a structureChanged event
             layout();
         }
@@ -405,7 +405,7 @@ public abstract class LWContainer extends LWComponent
         // we do the "deleting" notification first, so anybody listening
         // can still see the node in it's full current state before
         // anything changes.
-        c.notify("deleting");
+        c.notify(LWCEvent.Deleting);
         removeChild(c);
         c.removeFromModel();
     }
@@ -418,7 +418,7 @@ public abstract class LWContainer extends LWComponent
         Iterator i = getChildIterator();
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            c.notify("deleting");
+            c.notify(LWCEvent.Deleting);
             c.removeFromModel();
         }
     }

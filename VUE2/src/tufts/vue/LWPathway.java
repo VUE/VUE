@@ -364,7 +364,7 @@ public class LWPathway
     public void setCurrentIndex(int i){
         System.out.println("Current pathway node is now " + i);
         currentIndex = i;
-        VUE.getActiveViewer().repaint();
+        VUE.getActiveMap().notify(this, LWCEvent.Repaint);
     }
     
     public int getCurrentIndex(){

@@ -561,7 +561,7 @@ public class PathwayTab extends JPanel implements   ActionListener,
         
         this.getPathwayTableModel().fireTableDataChanged();
         updateControlPanel();
-        VUE.getActiveViewer().repaint();
+        VUE.getActiveMap().notify(this, LWCEvent.Repaint);
     }
    
     /**document listener's methods*/

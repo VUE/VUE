@@ -934,10 +934,10 @@ class Actions
         }
         public void actionPerformed(ActionEvent ae)
         {
-            if (DEBUG_EVENTS) System.out.println("\n-------------------------------------------------------\n"
+            if (DEBUG.EVENTS) System.out.println("\n-------------------------------------------------------\n"
                                                  + this + " START OF actionPerformed: ActionEvent=" + ae.paramString());
             if (allIgnored) {
-                if (DEBUG_EVENTS) System.out.println("ACTIONS DISABLED.");
+                if (DEBUG.EVENTS) System.out.println("ACTIONS DISABLED.");
                 return;
             }
             try {
@@ -961,9 +961,9 @@ class Actions
                 System.err.println("*** VueAction: selection is " + VUE.ModelSelection);
                 System.err.println("*** VueAction: event was " + ae);
             }
-            //if (DEBUG_EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
+            //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
             updateActionListeners();
-            if (DEBUG_EVENTS) System.out.println("\n" + this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
+            if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
             // normally handled by updateActionListeners, but if someone
             // has actually defined "enabled" instead of enabledFor, we'll
             // need this.

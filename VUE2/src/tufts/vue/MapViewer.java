@@ -1044,7 +1044,7 @@ public class MapViewer extends javax.swing.JComponent
         // for some reason, we get reshape events during text edits which no change
         // in size, yet are crucial for repaint update (thus: no ignore if activeTextEdit)
         
-        if (DEBUG_SCROLL||DEBUG_PAINT||DEBUG_EVENTS)
+        if (DEBUG_SCROLL||DEBUG_PAINT||DEBUG.EVENTS)
             System.out.println(this + "      reshape: "
                                + w + "x" + h
                                + " "
@@ -1173,6 +1173,13 @@ public class MapViewer extends javax.swing.JComponent
     }
 
     /*
+    public void repaint() { // heavy-duty debug
+        new Throwable().printStackTrace();
+        super.repaint();
+    }
+    */
+
+    /*
     private Rectangle growForSelection(Rectangle r, int pad)
     {
         final int margin = SelectionHandleSize;
@@ -1242,9 +1249,8 @@ public class MapViewer extends javax.swing.JComponent
         // we have those events turned in...
         //if (!isRightSide)
         //System.out.println(e + " delivered to " + this);
-        if (e.getWhat().equals("location")
-            || e.getWhat().equals("added") // depend on childAdded 
-            )
+        //if (e.getWhat().equals("location") || // no such event right now
+        if (e.getWhat() == LWCEvent.Added) // depend on childAdded 
             // || e.getWhat.equals("childRemoved"))
             // todo: deleting even will set up for repainting that node,
             // but the childRemoved event's component object is the whole map --
@@ -1256,7 +1262,7 @@ public class MapViewer extends javax.swing.JComponent
             repaint();
             return;
         }
-        if (e.getWhat().equals("deleting")) {
+        if (e.getWhat() == LWCEvent.Deleting) {
             if (rollover == e.getComponent())
                 clearRollover();
         }
@@ -2809,6 +2815,7 @@ public class MapViewer extends javax.swing.JComponent
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
                 else if (c == '|') { DEBUG_FONT_METRICS = !DEBUG_FONT_METRICS; }
                 else if (c == 'Z') { resetScrollRegion(); }
+                else if (c == 'E') { DEBUG.EVENTS = !DEBUG.EVENTS; }
                 else
                     did = false;
                 if (did) {
@@ -3666,7 +3673,7 @@ public class MapViewer extends javax.swing.JComponent
             // don't sent event notifications for location & size changes
             // for performance)
             if (mouseWasDragged)
-                getMap().notify(MapViewer.this, "repaint");
+                getMap().notify(MapViewer.this, "repaint-drag"); // this is a hack for now to ensure any map modifications are noticed
 
             if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(e))
                 System.err.println("Illegal state warning: we've drawn a selector box w/out tool that supports it!");

@@ -324,6 +324,11 @@ public class VueUtil
             p.x -= window.getWidth() / 2;
             p.y -= window.getHeight() / 2;
             window.setLocation(p);
+        } else {
+            java.awt.Dimension d = window.getToolkit().getScreenSize();
+            int x = d.width/2 - window.getWidth()/2;
+            int y = d.height/2 - window.getHeight()/2;
+            window.setLocation(x, y);
         }
     }
     

@@ -121,6 +121,7 @@ import tufts.vue.beans.*;
 		mTextColorButton.setIcon(textBlob);
  		mTextColorButton.setPropertyName( VueLWCPropertyMapper.kTextColor);
  		mTextColorButton.setBorderPainted(false);
+ 		mTextColorButton.setMargin(NoInsets);
 
  		mFontPanel = new FontEditorPanel();
 		mFontPanel.setBackground( bakColor);

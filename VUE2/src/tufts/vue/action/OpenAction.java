@@ -87,7 +87,6 @@ public class OpenAction extends AbstractAction
             //return map;
             File file = new File(filename);
             LWMap map = ActionUtil.unmarshallMap(file);
-            map.setFile(file);
             return map;
         } 
         catch (Exception e) 

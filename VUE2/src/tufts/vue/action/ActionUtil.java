@@ -200,6 +200,7 @@ public class ActionUtil {
             FileReader reader = new FileReader(file);
             
             map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
+            map.setFile(file); // appears as a modification, so be sure to do completeXMLRestore last.
             map.completeXMLRestore();
             
             reader.close();

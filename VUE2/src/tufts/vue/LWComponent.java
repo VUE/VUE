@@ -127,7 +127,7 @@ public class LWComponent
                 getLabelBox().setText(label);
         }
         layout();
-        notify("label");
+        notify(LWCEvent.Label);
     }
 
     TextBox getLabelBox()
@@ -154,7 +154,7 @@ public class LWComponent
                 this.notes = null;
         }
         layout();
-        notify("notes");
+        notify(LWCEvent.Notes);
     }
 
     // todo: setMetaData still relevant?
@@ -175,7 +175,7 @@ public class LWComponent
     {
         this.resource = resource;
         layout();
-        notify("resource");
+        notify(LWCEvent.Resource);
     }
     public void setResource(String urn)
     {
@@ -245,11 +245,13 @@ public class LWComponent
             pathwayRefs = new ArrayList();
         pathwayRefs.add(p);
         layout();
+        notify("pathway.add");
     }
     void removePathwayRef(Pathway p)
     {
         pathwayRefs.remove(p);
         layout();
+        notify("pathway.remove");
     }
     
 
@@ -453,7 +455,7 @@ public class LWComponent
     public void setFillColor(Color color)
     {
         this.fillColor = color;
-        notify("fillColor");
+        notify(LWCEvent.FillColor);
     }
 
     /** for persistance */
@@ -476,7 +478,7 @@ public class LWComponent
         this.textColor = color;
         if (labelBox != null)
             labelBox.copyStyle(this); // todo better: handle thru style.textColor notification?
-        notify("textColor");
+        notify(LWCEvent.TextColor);
     }
     /** for persistance */
     public String getXMLtextColor()
@@ -496,7 +498,7 @@ public class LWComponent
     public void setStrokeColor(Color color)
     {
         this.strokeColor = color;
-        notify("strokeColor");
+        notify(LWCEvent.StrokeColor);
     }
     /** for persistance */
     public String getXMLstrokeColor()
@@ -549,7 +551,7 @@ public class LWComponent
                 getParent().layout();
             }
             layout();
-            notify("strokeWidth");
+            notify(LWCEvent.StrokeWidth);
         }
     }
     public Font getFont()
@@ -562,7 +564,7 @@ public class LWComponent
         if (labelBox != null)
             labelBox.copyStyle(this);
         layout();
-        notify("font");
+        notify(LWCEvent.Font);
     }
     /** to support XML persistance */
     public String getXMLfont()
@@ -790,7 +792,7 @@ public class LWComponent
     void setScale(float scale)
     {
         this.scale = scale;
-        notify("scale");
+        notify(LWCEvent.Scale);
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
@@ -1121,7 +1123,7 @@ public class LWComponent
             java.util.Iterator i = listeners.iterator();
             while (i.hasNext()) {
                 Listener l = (Listener) i.next();
-                if (DEBUG_EVENTS) System.out.println(e + " -> " + l);
+                if (DEBUG.EVENTS) System.out.println(e + " -> " + l);
                 //if (DEBUG_EVENTS) System.out.println(e + " -> " + l.getClass().getName() + "@" + l.hashCode());
                 try {
                     l.LWCChanged(e);
@@ -1135,7 +1137,7 @@ public class LWComponent
                 }
             }
         } else {
-            if (DEBUG_EVENTS) System.out.println(e + " -> " + "<NO LISTENERS>");
+            if (DEBUG.EVENTS) System.out.println(e + " -> " + "<NO LISTENERS>");
         }
 
         // todo: have a seperate notifyParent? -- every parent

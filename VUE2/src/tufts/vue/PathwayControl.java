@@ -304,7 +304,7 @@ public class PathwayControl extends JPanel implements ActionListener, ItemListen
           
         //notifies the change to the panel
         updateControlPanel();
-        VUE.getActiveViewer().repaint();
+        VUE.getActiveMap().notify(this, LWCEvent.Repaint);
     }
     
     /**Reacts to item events dispatched by the combo box*/

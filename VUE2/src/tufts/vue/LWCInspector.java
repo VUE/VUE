@@ -166,7 +166,7 @@ class LWCInspector extends javax.swing.JPanel
         //System.out.println(this + " " + e);
         if (this.lwc != e.getSource())
             return;
-        if (e.getWhat().equals("deleting")) {
+        if (e.getWhat() == LWCEvent.Deleting) {
             this.lwc = null;
             //loadItem(null);
             setAllEnabled(false);

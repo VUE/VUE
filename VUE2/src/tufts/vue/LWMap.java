@@ -88,11 +88,13 @@ public class LWMap extends LWContainer
 
     public void markAsModified()
     {
+        System.out.println(this + " explicitly marking as modified");
         if (mChanges == 0)
             mChanges = 1;
     }
     public void markAsSaved()
     {
+        System.out.println(this + " marking " + mChanges + " modifications as current");
         mChanges = 0;
     }
     public boolean isModified() {
@@ -239,7 +241,7 @@ public class LWMap extends LWContainer
             path.drawPathway(dc.g);
         }
 
-        if (DEBUG_SCROLL || DEBUG_CONTAINMENT) {
+        if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
             dc.g.setColor(java.awt.Color.red);
             dc.setAbsoluteStrokeWidth(1);
             dc.g.draw(getBounds());
@@ -338,8 +340,18 @@ public class LWMap extends LWContainer
      */
     protected void notifyLWCListeners(LWCEvent e)
     {
-        mCachedBoundsOld = true;
-        mChanges++;
+        mCachedBoundsOld = true; // consider flushing bounds if layout() called also (any child layout bubbles up to us)
+        String what = e.getWhat();
+        if (/*what != LWCEvent.Repaint &&*/ what != LWCEvent.Scale) {
+            // repaint is for non-permanent changes.
+            // scale sets not considered modifications as they can
+            // happen do to rollover -- any time a scale happens
+            // otherwise will be in conjunction with a reparenting
+            // event, and so we'll detect the change that way.
+            if (DEBUG.EVENTS && mChanges == 0)
+                new Throwable(this + " FIRST MODIFICATION " + e).printStackTrace();
+            mChanges++;
+        }
         super.notifyLWCListeners(e);
     }
     
@@ -350,7 +362,7 @@ public class LWMap extends LWContainer
             mCachedBounds = getBounds(getChildIterator());
             setFrame(mCachedBounds);
             //System.out.println(getLabel() + " cachedBounds: " + mCachedBounds);
-            if (!DEBUG_SCROLL && !DEBUG_CONTAINMENT)
+            if (!DEBUG.SCROLL && !DEBUG.CONTAINMENT)
                 mCachedBoundsOld = false;
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());

@@ -161,14 +161,30 @@ public class VUE
         }
     }
 
-    public static void activateWaitCursor()
+    private static Cursor oldCursor;
+    public static synchronized void activateWaitCursor()
     {
-        // todo: save current cursor and pop off stack when we clear
-        SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_WAIT);
+        /*
+        JRootPane rp = SwingUtilities.getRootPane(VUE.frame);
+        if (oldCursor != null)
+            System.out.println("multiple wait-cursors");
+        else if (getActiveViewer() != null)
+            oldCursor = getActiveViewer().getCursor();
+        //oldCursor = rp.getCursor();
+        // okay -- need to get this from the MapViewer..
+        System.out.println("GOT OLD CURSOR " + oldCursor);
+        rp.setCursor(CURSOR_WAIT);
+        */
     }
-    public static void clearWaitCursor()
+    public static synchronized void clearWaitCursor()
     {
-        SwingUtilities.getRootPane(VUE.frame).setCursor(CURSOR_DEFAULT);
+        /*
+        if (getActiveViewer() != null)
+            getActiveViewer().setCursor(oldCursor);
+        SwingUtilities.getRootPane(VUE.frame).setCursor(oldCursor);
+        System.out.println("USED OLD CURSOR " + oldCursor);
+        oldCursor = null;
+        */
     }
     
     /**Pathway related methods added by the PowerTeam*/
@@ -469,15 +485,12 @@ public class VUE
         frame.setBackground(Color.white);
         frame.pack();
 
-        Dimension d = frame.getToolkit().getScreenSize();
-        int x = d.width/2 - frame.getWidth()/2;
-        int y = d.height/2 - frame.getHeight()/2;
-        frame.setLocation(x, y);
+        VueUtil.centerOnScreen(frame);
         
         // position inspectors pased on frame location
-        int inspectorx = x + frame.getWidth() - mapInspector.getWidth();
-        mapInspector.setLocation( inspectorx, y);
-        objectInspector.setLocation( inspectorx, y + mapInspector.getHeight() );
+        int inspectorx = frame.getX() + frame.getWidth() - mapInspector.getWidth();
+        mapInspector.setLocation( inspectorx, frame.getY());
+        objectInspector.setLocation( inspectorx, frame.getY() + mapInspector.getHeight() );
         
         
         
@@ -485,14 +498,11 @@ public class VUE
         System.out.println("after showing frame...");
         if (args.length > 0) {
             try {
-                OpenAction oa = null;
                 for (int i = 0; i < args.length; i++) {
                     if (args[i].charAt(0) == '-')
                         continue;
-                    if (oa == null)
-                        oa = new OpenAction();
                     VUE.activateWaitCursor();
-                    LWMap map = oa.loadMap(args[i]);
+                    LWMap map = OpenAction.loadMap(args[i]);
                     if (map != null)
                         displayMap(map);
                 }
@@ -555,9 +565,9 @@ public class VUE
         if (map.isModified()) {
             // todo: even better - make buttons say "save", "don't save" & "cancel" like OSX
             int response = JOptionPane.showConfirmDialog(VUE.frame,
-                                                         "\"" + map.getLabel() + "\" "
+                                                         "'" + map.getLabel() + "' "
                                                          + "has been modified.  \nSave changes before closing?"
-                                                         + (DEBUG_EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
+                                                         + (DEBUG.EVENTS?("\n[modifications="+map.getModCount()+"]"):""),
                                                          " Save changes?",
                                                          JOptionPane.YES_NO_CANCEL_OPTION);
             if (response == JOptionPane.YES_OPTION) {
@@ -1171,4 +1181,5 @@ public class VUE
             map.addPathway(p2);            
         }*/
     }
+
 }

@@ -204,7 +204,7 @@ public class LWPathwayManager {
         //    this.hidePathwayElements();
         current = pathway;
         if (VUE.getActiveMap() != null)
-            VUE.getActiveMap().notify(this, "repaint");
+            VUE.getActiveMap().notify(this, LWCEvent.Repaint);
     }
    
     public Object getFirst(){
