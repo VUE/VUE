@@ -973,22 +973,40 @@ public class VUE
     }
     
     static class WindowDisplayAction extends AbstractAction {
-        AbstractButton mLinkedButton;
-        Window mWindow;
-        boolean firstDisplay = true;
+        private AbstractButton mLinkedButton;
+        private Window mWindow;
+        private boolean firstDisplay = true;
+        private String title;
+        private boolean showActionLabel = false;
+        
         public WindowDisplayAction(Window w) {
             super("window: " + w.getName());
             if (w instanceof Frame)
-                putValue(Action.NAME, ((Frame)w).getTitle());
+                title = ((Frame)w).getTitle();
             else if (w instanceof Dialog)
-                putValue(Action.NAME, ((Dialog)w).getTitle());
+                title = ((Dialog)w).getTitle();
             else if (w instanceof ToolWindow)
-                putValue(Action.NAME, ((ToolWindow)w).getTitle());
+                title = ((ToolWindow)w).getTitle();
+            else
+                title = w.getName();
+            updateTitle(true);
             mWindow = w;
             mWindow.addComponentListener(new ComponentAdapter() {
-                public void componentShown(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(true); }
-                public void componentHidden(ComponentEvent e) { /*System.out.println(e);*/ setButtonState(false); }
+                    public void componentShown(ComponentEvent e) { setButtonState(true); updateTitle(false); }
+                    public void componentHidden(ComponentEvent e) { setButtonState(false); updateTitle(false); }
             });
+        }
+        private void updateTitle(boolean firstTime) {
+            if (!firstTime && !showActionLabel)
+                return;
+            if (showActionLabel) {
+                String action = "Show ";
+                if (mLinkedButton != null && mLinkedButton.isSelected())
+                    action = "Hide ";
+                putValue(Action.NAME, action + title);
+            } else {
+                putValue(Action.NAME, title);
+            }
         }
         void setLinkedButton(AbstractButton b) {
             mLinkedButton = b;
