@@ -149,6 +149,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         menuItem = new JMenuItem("Remove Resource");
         menuItem.addActionListener(this);
         popup.add(menuItem);
+        /*
          menuItem = new JMenuItem("Save Favorites");
         menuItem.addActionListener(this);
         popup.add(menuItem);
@@ -156,7 +157,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         menuItem.addActionListener(this);
         popup.add(menuItem);
         
-        
+        */
 
         //Add listener to the text area so the popup menu can come up.
         MouseListener popupListener = new PopupListener(popup);
@@ -205,8 +206,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                    DefaultTreeModel model = (DefaultTreeModel)favoritesTree.getModel();
                                  
                     FavoritesNode newNode= new FavoritesNode("New Bookmark Folder");
-                    model.insertNodeInto(newNode, dn, 0);  
-                      favoritesTree.expandRow(dn.getLevel());
+                     model.insertNodeInto(newNode, dn, 0);  
+                     favoritesTree.expandRow(dn.getLevel());
             
              
                          }
@@ -281,12 +282,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                  
                             if ((dn.getUserObject()) instanceof  Asset){
                                 
-                           /**
-                             AssetViewer a = new AssetViewer((Asset)dn.getUserObject());
-                            a.setSize(600,400);
-                            a.setLocation(10,10);
-                            a.show();
-                            */
+                       
                             }
                             else
                             {
@@ -416,7 +412,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         final JTextField queryBox = new JTextField();
         queryPanel.add(queryBox,BorderLayout.NORTH);
         JButton searchButton = new JButton("Search");     
-        searchButton.setPreferredSize(new Dimension(280,30));      
+        searchButton.setPreferredSize(new Dimension(250,30));      
         queryPanel.add(searchButton,BorderLayout.SOUTH);
         this.add(queryPanel,BorderLayout.NORTH);
      
@@ -435,8 +431,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                if (!searchString.equals("")){
                    
                     VueDragTree serResultTree = new VueDragTree("some","Search Results");
-                    serResultTree.setShowsRootHandles(true);
-                    TreeModel serTreeModel = serResultTree.getModel();
+                    //serResultTree.setShowsRootHandles(true);
+                   
+                    DefaultTreeModel serTreeModel = (DefaultTreeModel)serResultTree.getModel();
                     DefaultMutableTreeNode serTreeRoot = (DefaultMutableTreeNode)serTreeModel.getRoot();
                     TreeModel favTreeModel = favoritesTree.getModel();
                     DefaultMutableTreeNode favRoot = (DefaultMutableTreeNode)favTreeModel.getRoot();
@@ -444,41 +441,89 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                     
                    
                     Enumeration enum = favRoot.depthFirstEnumeration();
+                    Vector validResultVector = new Vector();
                       
                     while (enum.hasMoreElements()){
                         
-                        Object o = enum.nextElement();
-                
+                        DefaultMutableTreeNode o = (DefaultMutableTreeNode)enum.nextElement();
+                      
                         if (searchString.compareToIgnoreCase(o.toString()) == 0){
                           
-                           serTreeRoot.add((DefaultMutableTreeNode)o);
+                         
+                  // DefaultMutableTreeNode foundNode1 = (DefaultMutableTreeNode)o;
+                    System.out.println("outhere" +  o + "Child"+ o.getPath());
+                     System.out.println("outhere fav" +  o + "Child"+ favRoot.getChildCount());
+                             serTreeModel.insertNodeInto(o, serTreeRoot,0);
+                          
+                        }
+                        else {
+                         
+                            int startIndex = 0; 
+                            int lenSearchString = searchString.length();
+                            String thisString = o.toString();
+                            int lenthisString = thisString.length();
+                            int endIndex = startIndex + lenSearchString;
+                            boolean found = false;
+                            
+                            while ((endIndex < lenthisString) && !found){
+                             
+                           String   testString  = thisString.substring(startIndex,endIndex);
+                           
+            //  System.out.println(testString+"found"+found+"startInd --"+ startIndex + "LenSearchString"+ lenSearchString +"lenthisstring"+
+              //               lenthisString+"end Index"+endIndex);
+              
+                              if (searchString.compareToIgnoreCase(testString)== 0){
+                                  
+                                   
+                                 // DefaultMutableTreeNode foundNode1 = (DefaultMutableTreeNode)o;
+                                    System.out.println("outhere" +  o + "Child"+ o.getPath());
+                                     System.out.println("outhere fav" +  o + "Child"+ favRoot.getChildCount());
+                                   serTreeModel.insertNodeInto(o, serTreeRoot,0);
+                                       
+                                    
+                                        found = true;
+                                       
+                                     }
+                                 
+                                     startIndex = startIndex + 1;
+                                     endIndex = endIndex + 1;
+                                     
+                                  
+                                 
+                                 }
+                                
+                                
+                            }
+                            
+                            
                             
                         }
                         
                         
-                    }
-                    
-                     
-                    JScrollPane fPane = new JScrollPane(serResultTree);
-                   
                  
+                         serResultTree.expandRow(0);
+                     
+                        JScrollPane fPane = new JScrollPane(serResultTree);
                    
-                    FavSearchPanel.this.sp.setLayout(new BorderLayout());
-                      FavSearchPanel.this.sp.add(fPane,BorderLayout.CENTER);   
+               
+                   
+                      FavSearchPanel.this.sp.setLayout(new BorderLayout());
+                      FavSearchPanel.this.sp.add(fPane,BorderLayout.CENTER,index);
+                      index = index++;
                  
                    FavSearchPanel.this.fp.setSelectedIndex(1);
                    
-                   
-              
+               }
+               }
                   
                    
-               }
+               
                 
-                 }
+                 
             
             });
                    
-        
+     
         
      }
      
