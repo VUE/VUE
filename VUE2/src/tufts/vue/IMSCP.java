@@ -20,7 +20,7 @@ import java.util.zip.*;
 public class IMSCP {
     
     public static final String MANIFEST_FILE = "imsmanifest.xml";
-    public static final String MAP_FILE = "concept_map.xml";
+    public static final String MAP_FILE = "concept_map.vue";
     public static final String RESOURCE_FILES = "resource-files";
     private final int BUFFER_SIZE = 10240;
 
