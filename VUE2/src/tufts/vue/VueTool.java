@@ -324,7 +324,15 @@ public abstract class VueTool extends AbstractAction
 	public Icon getOverlayDownIcon() {
 		return mOverlayDownIcon;
 	}
-	
+
+    public String toString()
+    {
+        String s = "VueTool[" + getID();
+        if (getSelectedSubTool() != null)
+            s += " subSelected=" + getSelectedSubTool();
+        s += "]";
+        return s;
+    }
 	
 	
 	/**
