@@ -6,6 +6,15 @@ import com.apple.cocoa.application.*;
 
 import java.awt.*;
 
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/maclib/Screen.java,v 1.2 2005-03-25 00:06:26 sfraize Exp $
+
+/**
+ * This class provides access to native Mac OS X functionality
+ * for things such as fading the screen to black and forcing
+ * child windows to stay attached to their parent.
+ *
+ * @author Scott Fraize
+ */
 public class Screen
 {
     private static NSWindow sFullScreen;
