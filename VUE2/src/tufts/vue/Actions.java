@@ -82,21 +82,19 @@ class Actions
                 
                 //adds the elements to the current pathway associated with the map
                 for (int i = 0; i < array.length; i++)
-                    VUE.getPathwayInspector().getPathway().addElement(array[i]);
+                    VUE.getActivePathway().addElement(array[i]);
                 
                 //updates the inspector's pathwayTab
+                // This should be happening thru internal model notification
+                // as a result of the above addElement! -- SMF
                 VUE.getPathwayInspector().notifyPathwayTab();
                 
                 //updates the control panel
                 //VUE.getPathwayControl().updateControlPanel();
             }
             
-            public boolean enabled()
-            {
-              if (VUE.getPathwayInspector().getPathway() == null)
-                  return false;
-              else
-                  return true;
+            public boolean enabled() {
+                return VUE.getActivePathway() != null;
             }
         };
         
@@ -113,22 +111,19 @@ class Actions
                 System.out.println("deleting the current node for the pathway...");
                 //deletes the elements to the current pathway associated with the map
                 for (int i = 0; i < array.length; i++)
-                    VUE.getPathwayInspector().getPathway().removeElement(array[i]);
+                    VUE.getActivePathway().removeElement(array[i]);
 
                 //updates the inspector's pathwayTab
+                // This should be happening thru internal model notification
+                // as a result of the above removeElement! -- SMF
                 VUE.getPathwayInspector().notifyPathwayTab();
 
                 //updates the control panel
                 //VUE.getPathwayControl().updateControlPanel();
             }
 
-            public boolean enabled()
-            {
-              if (VUE.getPathwayInspector().getPathway() == null)
-                  return false;
-
-              else
-                  return true;
+            public boolean enabled() {
+                return VUE.getActivePathway() != null;
             }
         }; 
     

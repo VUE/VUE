@@ -8,6 +8,7 @@ public class DrawContext
 {
     Graphics2D g;
     double zoom = 1.0;
+    int index;
     private boolean disableAntiAlias = false;
     
     public DrawContext(Graphics2D g, double zoom)
@@ -25,6 +26,7 @@ public class DrawContext
         this.g = dc.g;
         this.zoom = dc.zoom;
         this.disableAntiAlias = dc.disableAntiAlias;
+        this.index = dc.index;
     }
 
     public void disableAntiAlias(boolean tv)
@@ -71,6 +73,19 @@ public class DrawContext
     public void setAbsoluteStrokeWidth(float width)
     {
         this.g.setStroke(new java.awt.BasicStroke(width / (float) this.g.getTransform().getScaleX()));
+    }
+
+    /**
+     * An arbitrary counter that can be set & read.
+     */
+    public void setIndex(int i) {
+        this.index = i;
+    }
+    /**
+     * An arbitrary counter that can be set & read.
+     */
+    public int getIndex() {
+        return this.index;
     }
 
     public DrawContext create()

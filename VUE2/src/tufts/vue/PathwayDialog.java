@@ -31,6 +31,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         setUpUI();
     }
 
+    private static int newcnt = 1;
     public void setUpUI()
     {
         okButton = new JButton("Ok");
@@ -41,7 +42,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         cancelButton.addActionListener(this);
         cancelButton.addKeyListener(this);
 
-        textField = new JTextField("default", 18);
+        textField = new JTextField("New Pathway " + newcnt++, 18);
         textField.addKeyListener(this);
         textField.setPreferredSize(new Dimension(40, 20));
 

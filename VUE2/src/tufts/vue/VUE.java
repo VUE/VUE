@@ -203,6 +203,14 @@ public class VUE
     public static LWPathwayInspector getPathwayInspector(){
         return pathwayInspector;
     }
+    public static LWPathway getActivePathway() {
+        LWPathway p1 = pathwayInspector.getPathway();
+        LWPathway p2 = getActiveMap().getPathwayManager().getCurrentPathway();
+        if (p1 != p2) {
+            System.out.println("Pathway mayhem: too many cooks:\n\t" + p1 + "\n\t" + p2);
+        }
+        return p2 == null ? p1 : p2;
+    }
     
     /*public static PathwayControl getPathwayControl()
     {
@@ -459,32 +467,33 @@ public class VUE
 
         frame.getContentPane().add( tbc.getToolbar(), BorderLayout.NORTH);
 		
-		// Map Inspector
+        // Map Inspector
 		
-		// get the proper scree/main frame size
-		ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
-		MapInspectorPanel mip = new MapInspectorPanel();
-		ModelSelection.addListener( mip);
-		mapInspector.addTool( mip );
-		
-		//ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
-		objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
-		objectInspectorPanel = new ObjectInspectorPanel();
-		ModelSelection.addListener(objectInspectorPanel);
-		sResourceSelection.addListener( objectInspectorPanel);
-		objectInspector.addTool(objectInspectorPanel);
-		
-		
-		if( false) {
-			JFrame testFrame = new JFrame("Debug");
-			testFrame.setSize( 300,300);
-			//testFrame.getContentPane().add( new NodeInspectorPanel() );
-			testFrame.getContentPane().add(objectInspectorPanel);
-			testFrame.show();
-		}
-		
-		
+        // get the proper scree/main frame size
+        ToolWindow mapInspector = new ToolWindow(  VueResources.getString("mapInspectorTitle"), frame);
+        MapInspectorPanel mip = new MapInspectorPanel();
+        ModelSelection.addListener( mip);
+        mapInspector.addTool( mip );
+        
+        //ToolWindow objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+        objectInspector = new ToolWindow( VueResources.getString("objectInspectorTitle"), frame);
+        objectInspectorPanel = new ObjectInspectorPanel();
+        ModelSelection.addListener(objectInspectorPanel);
+        sResourceSelection.addListener( objectInspectorPanel);
+        objectInspector.addTool(objectInspectorPanel);
+        
+        
+        if( false) {
+            JFrame testFrame = new JFrame("Debug");
+            testFrame.setSize( 300,300);
+            //testFrame.getContentPane().add( new NodeInspectorPanel() );
+            testFrame.getContentPane().add(objectInspectorPanel);
+            testFrame.show();
+        }
+        
+        
         //addtion by the power team
+        // why do we need the LWPathwayInspector anymore?? -- SMF
         pathwayInspector = new LWPathwayInspector(frame);
         //control = new PathwayControl(frame);
         
@@ -501,7 +510,7 @@ public class VUE
             objectInspector,
             drBrowserTool,
             toolbarWindow,
-            pathwayInspector,
+            //pathwayInspector,
             pannerTool,
             //htWindow,
             mapInspector,
