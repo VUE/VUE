@@ -27,35 +27,10 @@ public class PathwayTableModel extends DefaultTableModel {
         return VUE.getActiveMap() == null ? VueUtil.EmptyIterator : VUE.getActiveMap().getPathwayList().iterator();
     }
     
-    private void setActivePathway(LWPathway p)
-    {
-        getPathwayList().setActivePathway(p);
-    }
-
-    private class DataEvent extends javax.swing.event.TableModelEvent {
-        private Object invoker;
-        DataEvent(Object invoker) {
-            super(PathwayTableModel.this);
-            this.invoker = invoker;
-        }
-        public String toString()
-        {
-            return "TableModelEvent["
-                + "src=" + getSource()
-                + " rows=" + getFirstRow() + "-" + getLastRow()
-                + " col=" + getColumn()
-                + " type=" + getType()
-                + " invoker=" + invoker.getClass().getName()
-                + "]";
-        }
-    }
-
-    void fireChanged(Object invoker)
-    {
+    void fireChanged(Object invoker) {
         fireTableChanged(new DataEvent(invoker));
     }
 
-    
     // get rid of this
     void setCurrentPathway(LWPathway path){
         if (getPathwayList() != null){           
@@ -203,11 +178,14 @@ public class PathwayTableModel extends DefaultTableModel {
     }
     
     public boolean isCellEditable(int row, int col){
-        if (getPathwayList() != null){
+        if (getPathwayList() != null) {
             LWPathway p = getPathwayForElementAt(row);
             if (p.isLocked())
                 return false;
-            else
+            if (col == 3) // label always editable
+                return true;
+            LWComponent c = getElement(row);
+            if (c == p) // if pathway, visible & color also editable
                 return col == 1 || col == 3;
         }
         return false;
@@ -261,15 +239,13 @@ public class PathwayTableModel extends DefaultTableModel {
             if (col == 0) {
                 p.setVisible(!p.isVisible()); // not proper
             } else if (col == 1){
-                p.setStrokeColor((Color)aValue);
+                p.setStrokeColor((Color)aValue); // proper
             } else if (col == 2){
                 p.setOpen(!p.isOpen()); // not proper
-                setActivePathway(p);
             } else if (col == 3){
-                p.setLabel((String)aValue);
-                setActivePathway(p);
+                p.setLabel((String)aValue); // proper
             } else if (col == 5) {
-                //p.setLocked(((Boolean)aValue).getBooleanValue());
+                //p.setLocked(((Boolean)aValue).getBooleanValue()); // proper
                 p.setLocked(!p.isLocked()); // not proper
             }
             fireTableDataChanged();
@@ -277,6 +253,33 @@ public class PathwayTableModel extends DefaultTableModel {
             if (col == 3)
                 c.setLabel((String)aValue);
         }
-    }   
+    }
+
+
+    private class DataEvent extends javax.swing.event.TableModelEvent {
+        private Object invoker;
+        DataEvent(Object invoker) {
+            super(PathwayTableModel.this);
+            this.invoker = invoker;
+        }
+        public String toString()
+        {
+            return "TableModelEvent["
+                + "src=" + getSource()
+                + " rows=" + getFirstRow() + "-" + getLastRow()
+                + " col=" + getColumn()
+                + " type=" + getType()
+                + " invoker=" + invoker.getClass().getName()
+                + "]";
+        }
+    }
+
+    /*
+    private void setActivePathway(LWPathway p) {
+        getPathwayList().setActivePathway(p);
+    }
+    */
+
+    
 
 }

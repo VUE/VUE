@@ -475,7 +475,7 @@ public class LWPathway extends LWContainer
         for (Iterator i = elementPropertyList.iterator(); i.hasNext();) {
             LWPathwayElementProperty element = (LWPathwayElementProperty)i.next();
             if (element.getElementID().equals(c.getID())) {
-                String oldNotes = element.getElementNotes();
+                Object oldNotes = element.getElementNotes();
                 element.setElementNotes(notes);
                 notify("pathway.element.notes", oldNotes); // not enough info for undo...
                 break;

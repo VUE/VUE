@@ -1245,7 +1245,7 @@ public class LWComponent
         notifyLWCListeners(new LWCEvent(this, contents, what));
     }
 
-    private void notify(String what, Object oldValue)
+    protected void notify(String what, Object oldValue)
     {
         notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
     }

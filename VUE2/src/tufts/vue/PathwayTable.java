@@ -115,10 +115,10 @@ public class PathwayTable extends JTable
                         //pathPanel.setAddElementEnabled();
                         //pathPanel.removeElement.setEnabled(false);
                         
-                        if (col == 0 || col == 2)
-                            setValueAt(path, row, col); // what's this do??
+                        if (col == 0 || col == 2 || col == 5)
+                            setValueAt(path, row, col); // toggle pathway visible, open or locked
                         
-                        tableModel.fireChanged(this);
+                        //tableModel.fireChanged(this); // setValueAt will trigger this...
                         //tableModel.fireTableDataChanged(new TableModelEvent(this));
                         //pathPanel.updateControlPanel();
                         
@@ -132,6 +132,10 @@ public class PathwayTable extends JTable
                         // be able to pick up an LWCEvent issued from the setCurrentElement
                         // above.
                                 tableModel.fireChanged(this);
+                                // BTW: repaint will NOT be enough to update the table --
+                                // it covers changes in field values no problem, but
+                                // it doesn't detect a change in the number of rows.
+
                         
                         //pathPanel.removeElement.setEnabled(true);
                         //tableModel.fireChanged(this);
