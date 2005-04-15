@@ -1,25 +1,25 @@
 package tufts.oki.repository.fedora;
 
 public class LongValueIterator
-implements osid.shared.LongValueIterator
+implements org.osid.shared.LongValueIterator
 {
     private java.util.Vector vector = new java.util.Vector();
     private int i = 0;
 
     public LongValueIterator(java.util.Vector vector)
-    throws osid.shared.SharedException
+    throws org.osid.shared.SharedException
     {
         this.vector = vector;
     }
 
     public boolean hasNextLongValue()
-    throws osid.shared.SharedException
+    throws org.osid.shared.SharedException
     {
         return i < vector.size();
     }
 
     public long nextLongValue()
-    throws osid.shared.SharedException
+    throws org.osid.shared.SharedException
     {
         if (i < vector.size())
         {
@@ -27,7 +27,7 @@ implements osid.shared.LongValueIterator
         }
         else
         {
-            throw new osid.shared.SharedException(osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
+            throw new org.osid.shared.SharedException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
         }
     }
 /**

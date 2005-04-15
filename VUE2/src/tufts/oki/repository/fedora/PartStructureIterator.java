@@ -1,31 +1,31 @@
 package tufts.oki.repository.fedora;
 
 public class PartStructureIterator
-implements osid.repository.PartStructureIterator
+implements org.osid.repository.PartStructureIterator
 {
     private java.util.Vector vector = new java.util.Vector();
     private int i = 0;
 
     public PartStructureIterator(java.util.Vector vector)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         this.vector = vector;
     }
 
     public boolean hasNextPartStructure()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.PartStructure nextPartStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructure nextPartStructure()
+    throws org.osid.repository.RepositoryException
     {
         if (i >= vector.size())
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.NO_MORE_ITERATOR_ELEMENTS);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NO_MORE_ITERATOR_ELEMENTS);
         }
-        return (osid.repository.PartStructure)vector.elementAt(i++);
+        return (org.osid.repository.PartStructure)vector.elementAt(i++);
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

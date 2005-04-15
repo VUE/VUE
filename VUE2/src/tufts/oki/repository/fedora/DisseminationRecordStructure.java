@@ -1,27 +1,27 @@
 package tufts.oki.repository.fedora;
 
 public class DisseminationRecordStructure
-implements osid.repository.RecordStructure
+implements org.osid.repository.RecordStructure
 {
     private java.util.Vector partsVector = new java.util.Vector();
     private String displayName = "Dissemination";
     private String description = "Provides information to get the Dissemination";
-    private osid.shared.Id id = null;
+    private org.osid.shared.Id id = null;
     private String schema = null;
     private String format = "Plain Text";
-    private osid.shared.Type type = new Type("repository","tufts.edu","dissemination_record");
-    private osid.repository.PartStructure BDEFPartStructure = null;
-    private osid.repository.PartStructure disseminationURLPartStructure = null;
-    private osid.repository.PartStructure parameterPartStructure = null;
+    private org.osid.shared.Type type = new Type("tufts.edu","recordStructure","dissemination");
+    private org.osid.repository.PartStructure BDEFPartStructure = null;
+    private org.osid.repository.PartStructure disseminationURLPartStructure = null;
+    private org.osid.repository.PartStructure parameterPartStructure = null;
 
     protected DisseminationRecordStructure(Repository repository)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         try
         {
             this.id = new PID(FedoraUtils.getFedoraProperty(repository, "DisseminationInfoStructureId"));
         }
-        catch (osid.shared.SharedException sex)
+        catch (org.osid.shared.SharedException sex)
         {
         }
         this.BDEFPartStructure = new BDEFPartStructure(this,repository);
@@ -33,91 +33,91 @@ implements osid.repository.RecordStructure
     }
 
     public String getDisplayName()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.displayName;
     }
 
     public void updateDisplayName(String displayName)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public String getDescription()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.description;
     }
 
     public String getFormat()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.format;
     }
 
-    public osid.shared.Id getId()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Id getId()
+    throws org.osid.repository.RepositoryException
     {
         return this.id;
     }
 
-    public osid.repository.PartStructureIterator getPartStructures()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructureIterator getPartStructures()
+    throws org.osid.repository.RepositoryException
     {
         return new PartStructureIterator(this.partsVector);
     }
 
     public String getSchema()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.schema;
     }
 
-    public osid.shared.Type getType()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Type getType()
+    throws org.osid.repository.RepositoryException
     {
         return this.type;
     }
 
     public boolean isRepeatable()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return false;
     }
 
-    public boolean validateRecord(osid.repository.Record record)
-    throws osid.repository.RepositoryException
+    public boolean validateRecord(org.osid.repository.Record record)
+    throws org.osid.repository.RepositoryException
     {
         return true;
     }
 
-    public osid.repository.PartStructure getBDEFPartStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructure getBDEFPartStructure()
+    throws org.osid.repository.RepositoryException
     {
         if (this.BDEFPartStructure == null)
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.OPERATION_FAILED);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
         }
         return this.BDEFPartStructure;
     }
 
-    public osid.repository.PartStructure getDisseminationURLPartStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructure getDisseminationURLPartStructure()
+    throws org.osid.repository.RepositoryException
     {
         if (this.disseminationURLPartStructure == null)
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.OPERATION_FAILED);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
         }
         return this.disseminationURLPartStructure;
     }
 
-    public osid.repository.PartStructure getParameterPartStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructure getParameterPartStructure()
+    throws org.osid.repository.RepositoryException
     {
         if (this.parameterPartStructure == null)
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.OPERATION_FAILED);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
         }
         return this.parameterPartStructure;
     }

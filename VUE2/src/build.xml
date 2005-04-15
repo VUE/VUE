@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.38 $ / $Date: 2005-03-25 23:36:09 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.38 2005-03-25 23:36:09 sfraize Exp $ -->
+<!-- $Revision: 1.39 $ / $Date: 2005-04-15 20:28:45 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.39 2005-04-15 20:28:45 jeff Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -88,8 +88,7 @@
     <path refid="thirdparty.jarfiles.classpath"/>
   </path>
 
-  <!-- This is the list of 3rd party jar files that VUE uses.  It requires special ordering:
-       The jar file okiOSID_v2.jar must load AFTER okiSID_rc6_1.jar -->
+  <!-- This is the list of 3rd party jar files that VUE uses. -->
   <!-- We have to use a property (as opposed to a fileset) for the
        libraries as we have to preserve the order.  We can't use a filelist
        either (which does preserve order) because we need the list for a
@@ -157,7 +156,8 @@
                    okiReversi.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
-                   okiOSID_v2.jar
+                   okiOSID-2.0.jar
+                   MITSearchTypes.jar
                    postgresql.jar
                    saaj.jar
                    saxon6.5.jar
@@ -200,7 +200,7 @@
                    jaxrpc.jar
                    MRJAdapter.jar
                    okiSID_rc6_1.jar
-                   okiOSID_v2.jar
+                   okiOSID-2.0.jar
                    saaj.jar
                    xercesImpl.jar
                    "/>
@@ -228,6 +228,7 @@
     <pathelement path="${lib.home}/saaj.jar"/>
     <pathelement path="${lib.home}/MRJAdapter.jar"/>
     <pathelement path="${lib.home}/apple-laf.jar"/>
+    <pathelement path="${lib.home}/MITSearchTypes.jar"/>
   </path>
     
   <path id="compile.classpath.google">
@@ -238,7 +239,7 @@
   <path id="compile.classpath.oki">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -247,7 +248,7 @@
 
   <path id="compile.classpath.oki2">
     <path refid="compile.classpath.common"/>
-    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -257,7 +258,7 @@
   <path id="compile.classpath.oki1and2">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -267,7 +268,7 @@
   <path id="compile.classpath.vue">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
-    <pathelement path="${lib.home}/okiOSID_v2.jar"/>
+    <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
     <pathelement path="${lib.home}/xercesImpl.jar"/>
     <pathelement path="${lib.home}/xml-apis.jar"/>
     <pathelement path="${lib.home}/apache-commons.jar"/>
@@ -362,9 +363,6 @@
            >
       <classpath refid="compile.classpath.oki"/>
       <include name="tufts/oki/**/*.java"/>
-      <!-- id is pure 2.0 code (org.osid) we can't use yet -->
-      <exclude name="tufts/oki/id/**"/>
-      <exclude name="tufts/oki/repository/fedora/*.java"/>
     </javac>
 
     <javac srcdir="${basedir}" 

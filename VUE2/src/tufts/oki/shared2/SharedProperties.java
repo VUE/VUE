@@ -1,34 +1,47 @@
-package tufts.oki.repository.fedora;
+package tufts.oki.shared2;
 
-public class TypeIterator
-implements org.osid.shared.TypeIterator
+public class SharedProperties
+implements org.osid.shared.Properties
 {
-    private java.util.Vector vector = new java.util.Vector();
-    private int i = 0;
+    private java.util.Map map = new java.util.HashMap();
+    private org.osid.shared.Type type = new Type("mit.edu","shared","empty");
 
-    public TypeIterator(java.util.Vector vector)
+    public SharedProperties()
     throws org.osid.shared.SharedException
     {
-        this.vector = vector;
     }
 
-    public boolean hasNextType()
+    public SharedProperties(java.util.Map map
+                          , org.osid.shared.Type type)
     throws org.osid.shared.SharedException
     {
-        return i < vector.size();
+        this.map = map;
+        this.type = type;
     }
 
-    public org.osid.shared.Type nextType()
+    public org.osid.shared.ObjectIterator getKeys()
     throws org.osid.shared.SharedException
     {
-        if (i < vector.size())
+        return new ObjectIterator(new java.util.Vector(this.map.keySet()));
+    }
+
+    public java.io.Serializable getProperty(java.io.Serializable key)
+    throws org.osid.shared.SharedException
+    {
+        if (this.map.containsKey(key))
         {
-            return (org.osid.shared.Type)vector.elementAt(i++);
+            return (java.io.Serializable)this.map.get(key);
         }
         else
         {
-            throw new org.osid.shared.SharedException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
+            throw new org.osid.shared.SharedException(org.osid.shared.SharedException.UNKNOWN_KEY);
         }
+    }
+
+    public org.osid.shared.Type getType()
+    throws org.osid.shared.SharedException
+    {
+        return this.type;
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.
@@ -98,6 +111,5 @@ implements org.osid.shared.TypeIterator
 	Government. It is the responsibility of any person or
 	organization contemplating export to obtain such a
 	license before exporting this Work.
-  </p>
-*/
+  </p>*/
 }

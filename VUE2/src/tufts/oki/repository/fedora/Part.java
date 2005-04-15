@@ -1,19 +1,19 @@
 package tufts.oki.repository.fedora;
 
 public class Part
-implements osid.repository.Part
+implements org.osid.repository.Part
 {
     private java.util.Vector partVector = new java.util.Vector();
-    private osid.repository.RecordStructure recordStructure = null;
-    private osid.shared.Id id = null;
+    private org.osid.repository.RecordStructure recordStructure = null;
+    private org.osid.shared.Id id = null;
     private java.io.Serializable value = null;
-    private osid.repository.PartStructure partStructure = null;
+    private org.osid.repository.PartStructure partStructure = null;
 
-    protected Part(osid.shared.Id id
-                 , osid.repository.RecordStructure recordStructure
-                 , osid.repository.PartStructure partStructure
+    protected Part(org.osid.shared.Id id
+                 , org.osid.repository.RecordStructure recordStructure
+                 , org.osid.repository.PartStructure partStructure
                  , java.io.Serializable value)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         this.id = id;
         this.recordStructure = recordStructure;
@@ -22,89 +22,89 @@ implements osid.repository.Part
     }
 
     public String getDisplayName()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public void updateDisplayName(String displayName)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public osid.shared.Id getId()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Id getId()
+    throws org.osid.repository.RepositoryException
     {
         return this.id;
     }
 
-    public osid.repository.Part createPart(osid.shared.Id partStructureId
+    public org.osid.repository.Part createPart(org.osid.shared.Id partStructureId
                                          , java.io.Serializable value)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         if ( (partStructureId == null) || (value == null) )
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.NULL_ARGUMENT);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
         }
 
-        osid.repository.PartStructureIterator psi = recordStructure.getPartStructures();
+        org.osid.repository.PartStructureIterator psi = recordStructure.getPartStructures();
         
         while (psi.hasNextPartStructure()) 
         {
-            osid.repository.PartStructure partStructure = psi.nextPartStructure();
+            org.osid.repository.PartStructure partStructure = psi.nextPartStructure();
             try 
             {
                 if (partStructureId.isEqual(partStructure.getId())) 
                 {
-                    osid.repository.Part part = new Part(partStructureId, recordStructure, partStructure, value);
+                    org.osid.repository.Part part = new Part(partStructureId, recordStructure, partStructure, value);
                     partVector.addElement(part);
                     this.partStructure = partStructure;
                     return part;
                 }
             } 
-            catch (osid.OsidException oex) 
+            catch (org.osid.OsidException oex) 
             {
-                throw new osid.repository.RepositoryException(osid.repository.RepositoryException.OPERATION_FAILED);
+                throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
             }
         }
-        throw new osid.repository.RepositoryException(osid.repository.RepositoryException.UNKNOWN_ID);
+        throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_ID);
     }
 
-    public void deletePart(osid.shared.Id partId)
-    throws osid.repository.RepositoryException
+    public void deletePart(org.osid.shared.Id partId)
+    throws org.osid.repository.RepositoryException
     {
         if (partId == null)
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.NULL_ARGUMENT);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
         }
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public osid.repository.PartIterator getParts()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartIterator getParts()
+    throws org.osid.repository.RepositoryException
     {
         return new PartIterator(this.partVector);
     }
 
     public java.io.Serializable getValue()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.value;
     }
 
     public void updateValue(java.io.Serializable value)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         if (value == null)
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.NULL_ARGUMENT);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NULL_ARGUMENT);
         }
         this.value = value;
     }
 
-    public osid.repository.PartStructure getPartStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructure getPartStructure()
+    throws org.osid.repository.RepositoryException
     {
         return this.partStructure;
     }

@@ -1,34 +1,21 @@
-package tufts.oki.repository.fedora;
+package tufts.oki.shared2;
 
-public class TypeIterator
-implements org.osid.shared.TypeIterator
+public class Type
+extends org.osid.shared.Type
 {
-    private java.util.Vector vector = new java.util.Vector();
-    private int i = 0;
-
-    public TypeIterator(java.util.Vector vector)
-    throws org.osid.shared.SharedException
+    public Type(String authority
+               , String domain
+               , String keyword
+               , String description)
     {
-        this.vector = vector;
+        super(authority,domain,keyword,description);
     }
 
-    public boolean hasNextType()
-    throws org.osid.shared.SharedException
+    public Type(String authority
+               , String domain
+               , String keyword)
     {
-        return i < vector.size();
-    }
-
-    public org.osid.shared.Type nextType()
-    throws org.osid.shared.SharedException
-    {
-        if (i < vector.size())
-        {
-            return (org.osid.shared.Type)vector.elementAt(i++);
-        }
-        else
-        {
-            throw new org.osid.shared.SharedException(org.osid.shared.SharedException.NO_MORE_ITERATOR_ELEMENTS);
-        }
+        super(authority,domain,keyword);
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.
@@ -98,6 +85,5 @@ implements org.osid.shared.TypeIterator
 	Government. It is the responsibility of any person or
 	organization contemplating export to obtain such a
 	license before exporting this Work.
-  </p>
-*/
+  </p>*/
 }

@@ -29,20 +29,23 @@ package tufts.vue;
  *  object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
  */
 
-public class OsidAssetResource extends MapResource
+public class Osid2AssetResource extends MapResource
 {
     public static final String VUE_INTEGRATION_RECORD = "VUE_Integration_Record";
     private osid.shared.SharedManager sharedManager = null;
     private osid.OsidOwner owner = null;
-    private osid.dr.Asset asset;
+    private org.osid.OsidContext context = null;
+    private org.osid.repository.Asset asset = null;
+
+//    private osid.dr.Asset asset;
 //    private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
 
-    public OsidAssetResource(osid.dr.Asset asset, osid.OsidOwner owner) throws osid.dr.DigitalRepositoryException 
+    public Osid2AssetResource(org.osid.repository.Asset asset, org.osid.OsidContext context) throws org.osid.repository.RepositoryException 
     {
         super();
         try
         {
-            this.owner = owner;
+            this.context = context;
             this.asset = asset;
             setAsset(asset);
         }
@@ -58,40 +61,35 @@ public class OsidAssetResource extends MapResource
         to a field with a published name and a published InfoStructure Type after the OSID changes.
     */
 
-    public void setAsset(osid.dr.Asset asset) throws osid.dr.DigitalRepositoryException 
+    public void setAsset(org.osid.repository.Asset asset) throws org.osid.repository.RepositoryException 
     {
+        this.asset = asset;
         try
         {
             java.util.Properties osid_registry_properties = new java.util.Properties();
-            osid_registry_properties.load(new java.io.FileInputStream("osid_registry.properties"));
-            String sharedImplementation = osid_registry_properties.getProperty("Shared_Implementation");
-            this.sharedManager = (osid.shared.SharedManager)osid.OsidLoader.getManager(
-                "osid.shared.SharedManager",
-                sharedImplementation,
-                this.owner);
 
-            setType(Resource.ASSET_OKIDR);
+            setType(Resource.ASSET_OKIREPOSITORY);
             String displayName = asset.getDisplayName();
             setTitle(displayName);
             mProperties.put("title",displayName);
             try
             {
-                osid.dr.InfoRecord record = asset.getInfoRecord(sharedManager.getId(VUE_INTEGRATION_RECORD));
-                if (record != null)
+                org.osid.repository.RecordIterator recordIterator = asset.getRecordsByRecordStructureType(new tufts.oki.repository.fedora.VUERecordStructureType());
+                if (recordIterator.hasNextRecord())
                 {
-                    osid.dr.InfoFieldIterator partIterator = record.getInfoFields();
-                    while (partIterator.hasNext())
+                    org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
+                    while (partIterator.hasNextPart())
                     {
-                        osid.dr.InfoField part = partIterator.next();
-                        osid.dr.InfoPart partStructure = part.getInfoPart();
+                        org.osid.repository.Part part = partIterator.nextPart();
+                        org.osid.repository.PartStructure partStructure = part.getPartStructure();
                         String dname = partStructure.getDisplayName();
-                        mProperties.put(part.getInfoPart().getDisplayName(),part.getValue());
+                        mProperties.put(part.getPartStructure().getDisplayName(),part.getValue());
                     }
                 }
             }
-            catch (Exception ex) 
+            catch (Throwable t) 
             {
-                setSpec( (String)asset.getContent() );            
+                setSpec((String)asset.getContent());            
                 System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
             Object o = mProperties.get("spec");
@@ -100,13 +98,13 @@ public class OsidAssetResource extends MapResource
                 setSpec( (o != null) ? (String)o : asset.getDisplayName() );
             }
         }
-        catch (Exception ex)
+        catch (Throwable t)
         {
             setSpec(asset.getDisplayName());
         }
     }
 
-    public osid.dr.Asset getAsset() 
+    public org.osid.repository.Asset getAsset() 
     {
         return this.asset;
     }    

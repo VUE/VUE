@@ -1,22 +1,22 @@
 package tufts.oki.repository.fedora;
 
 public class Type
-extends osid.shared.Type
+extends org.osid.shared.Type
 {
 
-    public Type(String domain
-              , String authority
+    public Type(String authority
+              , String domain
               , String keyword)
     {
-        super(domain,authority,keyword);        
+        super(authority,domain,keyword);        
     }
 
-    public Type(String domain
-              , String authority
+    public Type(String authority
+              , String domain
               , String keyword
               , String description)
     {
-        super(domain,authority,keyword,description);        
+        super(authority,domain,keyword,description);        
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

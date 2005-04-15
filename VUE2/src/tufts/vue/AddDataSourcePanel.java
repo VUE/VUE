@@ -36,7 +36,7 @@ import java.awt.event.*;
 public class AddDataSourcePanel extends JPanel {
     
     /** Creates a new instance of AddDataSourcePanel */
-    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID-DR","Artifact"};
+    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID 1.0","OSID 2.0","Artifact"};
     Box addDataSourceBox;
     JPanel addPanel;
     JPanel typesPanel;
@@ -66,7 +66,9 @@ public class AddDataSourcePanel extends JPanel {
                         addPanel.add(new GoogleDataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[5])) {
                         addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
-                    }else if(e.getItem().toString().equals(dataSourceTypes[6])){
+                    }else if(e.getItem().toString().equals(dataSourceTypes[6])) {
+                        addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
+                    }else if(e.getItem().toString().equals(dataSourceTypes[7])){
                         addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
                     }
                     validate();
@@ -641,7 +643,7 @@ public class AddDataSourcePanel extends JPanel {
             GridBagConstraints c = new GridBagConstraints();
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
-            JLabel addressLabel = new JLabel("Address:");
+            JLabel addressLabel = new JLabel("Implementation Package:");
             dsNameField = new JTextField();
             addressField = new JTextField();
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -657,7 +659,7 @@ public class AddDataSourcePanel extends JPanel {
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
-                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID DR Alert", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ ex.getMessage(), "OSID Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
                             if (DEBUG.DR) System.out.println(this + " dialog.hide");
                             dialog.hide();

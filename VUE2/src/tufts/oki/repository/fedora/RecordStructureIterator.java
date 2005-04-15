@@ -1,31 +1,31 @@
 package tufts.oki.repository.fedora;
 
 public class RecordStructureIterator
-implements osid.repository.RecordStructureIterator
+implements org.osid.repository.RecordStructureIterator
 {
     private java.util.Vector vector = new java.util.Vector();
     private int i = 0;
 
     public RecordStructureIterator(java.util.Vector vector)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         this.vector = vector;
     }
 
     public boolean hasNextRecordStructure()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.RecordStructure nextRecordStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.RecordStructure nextRecordStructure()
+    throws org.osid.repository.RepositoryException
     {
         if (i >= vector.size())
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.NO_MORE_ITERATOR_ELEMENTS);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NO_MORE_ITERATOR_ELEMENTS);
         }
-        return (osid.repository.RecordStructure)vector.elementAt(i++);
+        return (org.osid.repository.RecordStructure)vector.elementAt(i++);
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

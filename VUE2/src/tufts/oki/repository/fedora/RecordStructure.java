@@ -1,73 +1,73 @@
 package tufts.oki.repository.fedora;
 
 public class RecordStructure
-implements osid.repository.RecordStructure
+implements org.osid.repository.RecordStructure
 {
-    private osid.shared.Id id = null;
+    private org.osid.shared.Id id = null;
 
     protected RecordStructure()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
     }
 
     public String getDisplayName()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public void updateDisplayName(String displayName)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public String getDescription()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public String getFormat()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public osid.shared.Id getId()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Id getId()
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public osid.repository.PartStructureIterator getPartStructures()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructureIterator getPartStructures()
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public String getSchema()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public osid.shared.Type getType()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Type getType()
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public boolean isRepeatable()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public boolean validateRecord(osid.repository.Record record)
-    throws osid.repository.RepositoryException
+    public boolean validateRecord(org.osid.repository.Record record)
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

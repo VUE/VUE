@@ -1,95 +1,95 @@
 package tufts.oki.repository.fedora;
 
 public class DisseminationURLPartStructure
-implements osid.repository.PartStructure
+implements org.osid.repository.PartStructure
 {
     private java.util.Vector partsVector = new java.util.Vector();
-    private osid.repository.RecordStructure disseminationRecordStructure = null;
-    private String displayName = "DisseminationURL";
+    private org.osid.repository.RecordStructure disseminationRecordStructure = null;
+    private String displayName = "Dissemination URL";
     private String description = "A URL to get the dissemination of Fedora Object";
-    private osid.shared.Id id = null;
+    private org.osid.shared.Id id = null;
     private boolean populatedByRepository = true;
     private boolean mandatory = true;
     private boolean repeatable = false;
-    private osid.shared.Type type = new Type("repository","tufts.edu","disseminationURL_part_structure");
-    private osid.repository.RecordStructure recordStructure = (osid.repository.RecordStructure) disseminationRecordStructure;
+    private org.osid.shared.Type type = new Type("tufts.edu","partStructure","disseminationURL");
+    private org.osid.repository.RecordStructure recordStructure = (org.osid.repository.RecordStructure) disseminationRecordStructure;
 
-    protected DisseminationURLPartStructure(osid.repository.RecordStructure recordStructure
+    protected DisseminationURLPartStructure(org.osid.repository.RecordStructure recordStructure
                                           , Repository repository)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         this.recordStructure = recordStructure;
         try
         {
             this.id = new PID(FedoraUtils.getFedoraProperty(repository, "DisseminationURLInfoPartId"));
         }
-        catch (osid.shared.SharedException sex)
+        catch (org.osid.shared.SharedException sex)
         {
         }
     }
 
     public String getDisplayName()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.displayName;
     }
 
     public void updateDisplayName(String displayName)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     public String getDescription()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.description;
     }
 
-    public osid.shared.Id getId()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Id getId()
+    throws org.osid.repository.RepositoryException
     {
         return this.id;
     }
 
-    public osid.shared.Type getType()
-    throws osid.repository.RepositoryException
+    public org.osid.shared.Type getType()
+    throws org.osid.repository.RepositoryException
     {
         return this.type;
     }
 
-    public osid.repository.PartStructureIterator getPartStructures()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.PartStructureIterator getPartStructures()
+    throws org.osid.repository.RepositoryException
     {
         return new PartStructureIterator(this.partsVector);
     }
 
-    public osid.repository.RecordStructure getRecordStructure()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.RecordStructure getRecordStructure()
+    throws org.osid.repository.RepositoryException
     {
         return this.recordStructure;
     }
 
     public boolean isMandatory()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.mandatory;
     }
 
     public boolean isPopulatedByRepository()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.populatedByRepository;
     }
 
     public boolean isRepeatable()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return this.repeatable;
     }
 
-    public boolean validatePart(osid.repository.Part part)
-    throws osid.repository.RepositoryException
+    public boolean validatePart(org.osid.repository.Part part)
+    throws org.osid.repository.RepositoryException
     {
         return true;
     }

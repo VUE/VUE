@@ -30,7 +30,7 @@ package tufts.oki.repository.fedora;
  */
 
 
-import osid.repository.*;
+import org.osid.repository.*;
 import tufts.oki.shared.TypeIterator;
 
 
@@ -70,7 +70,7 @@ import fedora.server.utilities.StreamUtility;
 import fedora.client.ingest.AutoIngestor;
 
 
-public class Repository implements osid.repository.Repository {
+public class Repository implements org.osid.repository.Repository {
     public final boolean DEBUG = false;
     public static final String DC_NAMESPACE = "dc:";
     public static final String[] DC_FIELDS = {"title","creator","subject","date","type","format","identifier","collection","coverage"};
@@ -86,7 +86,7 @@ public class Repository implements osid.repository.Repository {
     private java.util.Vector assetTypes = new java.util.Vector();
     private java.util.Vector searchTypes = new java.util.Vector();
     private java.util.Vector assets = new java.util.Vector();
-    private osid.shared.Id id = null;
+    private org.osid.shared.Id id = null;
     private URL configuration = null;
 
     
@@ -94,7 +94,7 @@ public class Repository implements osid.repository.Repository {
     private Properties fedoraProperties;
     /** Creates a new instance of Repository */
     public Repository(String conf,String id,String displayName,String description,URL address,String userName,String password)
-        throws osid.repository.RepositoryException
+        throws org.osid.repository.RepositoryException
     {
         System.out.println("Repository CONSTRUCTING["
                            + conf + ", "
@@ -109,7 +109,7 @@ public class Repository implements osid.repository.Repository {
         {
             this.id = new PID(id);
         }
-        catch (osid.shared.SharedException sex) {}
+        catch (org.osid.shared.SharedException sex) {}
         this.displayName = displayName;
         this.description = description;
         this.address = address;
@@ -121,8 +121,9 @@ public class Repository implements osid.repository.Repository {
         setFedoraProperties(configuration);
         loadFedoraObjectAssetTypes();
         //setFedoraProperties(FedoraUtils.CONF);
-        searchTypes.add(new SearchType("Search"));
-        searchTypes.add(new SearchType("Advanced Search"));
+        searchTypes.add(new SimpleSearchType());
+        searchTypes.add(new AdvancedSearchType());
+        searchTypes.add(new org.osid.types.mit.KeywordSearchType());
         //loadAssetTypes();
     }
     
@@ -171,10 +172,10 @@ public class Repository implements osid.repository.Repository {
     /**To create AssetTypes that don't exist when repository is loaded. OKI NEEDS to add such a feature
      *@ param String type
      *@ return FedoraObjectAssetType
-     *@throws osid.repository.RepositoryException
+     *@throws org.osid.repository.RepositoryException
      */
     
-    public FedoraObjectAssetType createFedoraObjectAssetType(String type) throws osid.repository.RepositoryException {
+    public FedoraObjectAssetType createFedoraObjectAssetType(String type) throws org.osid.repository.RepositoryException {
         java.util.Iterator i = assetTypes.iterator();
         while(i.hasNext()) {
             FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) i.next();
@@ -182,9 +183,9 @@ public class Repository implements osid.repository.Repository {
                 return fedoraObjectAssetType;
         }
         FedoraObjectAssetType fedoraObjectAssetType = new FedoraObjectAssetType(this,type);
-        osid.repository.RecordStructureIterator iter =  fedoraObjectAssetType.getRecordStructures();
+        org.osid.repository.RecordStructureIterator iter =  fedoraObjectAssetType.getRecordStructures();
         while(iter.hasNextRecordStructure()) {
-            osid.repository.RecordStructure recordStructure = (osid.repository.RecordStructure)iter.nextRecordStructure();
+            org.osid.repository.RecordStructure recordStructure = (org.osid.repository.RecordStructure)iter.nextRecordStructure();
             if(recordStructures.indexOf(recordStructure) < 0)
                 recordStructures.add(recordStructure);
         }
@@ -197,11 +198,11 @@ public class Repository implements osid.repository.Repository {
      * @ throws RepositoryException
      */
     
-    private void loadAssetTypes() throws  osid.repository.RepositoryException {
+    private void loadAssetTypes() throws  org.osid.repository.RepositoryException {
         FedoraObjectAssetType fedoraObjectAssetType = new FedoraObjectAssetType(this,"TUFTS_STD_IMAGE");
     }
     
-    public FedoraObjectAssetType getAssetType(String type) throws osid.repository.RepositoryException {
+    public FedoraObjectAssetType getAssetType(String type) throws org.osid.repository.RepositoryException {
         java.util.Iterator i = assetTypes.iterator();
         while(i.hasNext()) {
             FedoraObjectAssetType fedoraObjectAssetType = (FedoraObjectAssetType) i.next();
@@ -227,38 +228,38 @@ public class Repository implements osid.repository.Repository {
      *     @return Asset
      *     @throws RepositoryException if there is a general failure or if the Type is unknown
      */
-    public osid.repository.Asset createAsset(String displayName, String description, osid.shared.Type assetType) throws osid.repository.RepositoryException{
+    public org.osid.repository.Asset createAsset(String displayName, String description, org.osid.shared.Type assetType) throws org.osid.repository.RepositoryException{
         if(!assetTypes.contains(assetType))
             assetTypes.add(assetType);
         try {
-            osid.repository.Asset obj = new Asset(this,displayName,description,assetType);
+            org.osid.repository.Asset obj = new Asset(this,displayName,description,assetType);
             assets.add(obj);
             return obj;
-        } catch(osid.shared.SharedException ex) {
-            throw new osid.repository.RepositoryException("DR.createAsset"+ex.getMessage());
+        } catch(org.osid.shared.SharedException ex) {
+            throw new org.osid.repository.RepositoryException("DR.createAsset"+ex.getMessage());
         }
     }
     
     /**     Delete an Asset from this Repository.
-     *     @param osid.shared.Id
+     *     @param org.osid.shared.Id
      *     @throws RepositoryException if there is a general failure  or if the object has not been created
      */
-    public void deleteAsset(osid.shared.Id assetId) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public void deleteAsset(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
-    public osid.repository.RecordStructureIterator getRecordStructuresByType(osid.shared.Type recordStructureType) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.repository.RecordStructureIterator getRecordStructuresByType(org.osid.shared.Type recordStructureType) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
 
     
     /**     Get all the AssetTypes in this Repository.  AssetTypes are used to categorize Assets.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
-     *     @return osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
+     *     @return org.osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.shared.TypeIterator getAssetTypes() throws osid.repository.RepositoryException {
+    public org.osid.shared.TypeIterator getAssetTypes() throws org.osid.repository.RepositoryException {
         // this method needs an implementation of TypeIterator which has not yet been implemented
-        return new TypeIterator(assetTypes);
+        return new tufts.oki.shared2.TypeIterator(assetTypes);
     }
     
     /**     Get all the Assets in this Repository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -267,7 +268,7 @@ public class Repository implements osid.repository.Repository {
      */
     
     
-    public osid.repository.AssetIterator getAssets() throws osid.repository.RepositoryException {
+    public org.osid.repository.AssetIterator getAssets() throws org.osid.repository.RepositoryException {
         Vector assetVector = new Vector();
         String assetId = "tufts:";
         String location = null;
@@ -275,13 +276,13 @@ public class Repository implements osid.repository.Repository {
             for(int i=1;i<=10;i++) {
                 // location = getObject(assetId+i);
                 // FedoraObject obj = createObject(location);
-                osid.repository.Asset asset = new Asset(new PID(assetId+i),this);
+                org.osid.repository.Asset asset = new Asset(new PID(assetId+i),this);
                 assetVector.add(asset);
             }
         } catch(Throwable t) {
             throw new RepositoryException(t.getMessage());
         }
-        return (osid.repository.AssetIterator) new AssetIterator(assetVector);
+        return (org.osid.repository.AssetIterator) new AssetIterator(assetVector);
     }
     
     /**     Get all the Assets of the specified AssetType in this Repository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
@@ -294,7 +295,7 @@ public class Repository implements osid.repository.Repository {
      *     @return String the name
      *     @throws RepositoryException if there is a general failure
      */
-    public String getDescription() throws osid.repository.RepositoryException {
+    public String getDescription() throws org.osid.repository.RepositoryException {
         return this.description;
     }
     
@@ -302,15 +303,15 @@ public class Repository implements osid.repository.Repository {
      *     @return String the name
      *     @throws RepositoryException if there is a general failure
      */
-    public String getDisplayName() throws osid.repository.RepositoryException {
+    public String getDisplayName() throws org.osid.repository.RepositoryException {
         return displayName;
     }
     
     /**     Get the Unique Id for this Repository.
-     *     @return osid.shared.Id Unique Id this is usually set by a create method's implementation
+     *     @return org.osid.shared.Id Unique Id this is usually set by a create method's implementation
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.shared.Id getId() throws osid.repository.RepositoryException {
+    public org.osid.shared.Id getId() throws org.osid.repository.RepositoryException {
         return id;
     }
     
@@ -318,47 +319,47 @@ public class Repository implements osid.repository.Repository {
      *     @return InfoStructureIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.repository.RecordStructureIterator getRecordStructures() throws osid.repository.RepositoryException {
-        return (osid.repository.RecordStructureIterator) new RecordStructureIterator(recordStructures);
+    public org.osid.repository.RecordStructureIterator getRecordStructures() throws org.osid.repository.RepositoryException {
+        return (org.osid.repository.RecordStructureIterator) new RecordStructureIterator(recordStructures);
     }
     
     /**     Get the InfoStructures that this AssetType must support.  InfoStructures are used to categorize information about Assets.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
      *     @return InfoStructureIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.repository.RecordStructureIterator getMandatoryRecordStructures(osid.shared.Type assetType) throws osid.repository.RepositoryException {
+    public org.osid.repository.RecordStructureIterator getMandatoryRecordStructures(org.osid.shared.Type assetType) throws org.osid.repository.RepositoryException {
         return new RecordStructureIterator(new java.util.Vector());
     }
     
     /**     Get all the SearchTypes supported by this Repository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
-     *     @return osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
+     *     @return org.osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.shared.TypeIterator getSearchTypes() throws osid.repository.RepositoryException {
-        return new TypeIterator(searchTypes);
+    public org.osid.shared.TypeIterator getSearchTypes() throws org.osid.repository.RepositoryException {
+        return new tufts.oki.shared2.TypeIterator(searchTypes);
     }
     
     /**     Get the the StatusTypes of this Asset.
-     *     @return osid.shared.Type
+     *     @return org.osid.shared.Type
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.shared.Type getStatus(osid.shared.Id assetId) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.Type getStatus(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
     /**     Get all the StatusTypes supported by this Repository.  Iterators return a set, one at a time.  The Iterator's hasNext method returns true if there are additional objects available; false otherwise.  The Iterator's next method returns the next object.
-     *     @return osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
+     *     @return org.osid.shared.TypeIterator  The order of the objects returned by the Iterator is not guaranteed.
      *     @throws RepositoryException if there is a general failure
      */
-    public osid.shared.TypeIterator getStatusTypes() throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.TypeIterator getStatusTypes() throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
     /**     Update the description for this Repository.
      *     @param String description
      *     @throws RepositoryException if there is a general failure
      */
-    public void updateDescription(String description) throws osid.repository.RepositoryException {
+    public void updateDescription(String description) throws org.osid.repository.RepositoryException {
         this.description = description;
     }
     
@@ -366,33 +367,33 @@ public class Repository implements osid.repository.Repository {
      *     @param String name
      *     @throws RepositoryException if there is a general failure
      */
-    public void updateDisplayName(String displayName) throws osid.repository.RepositoryException {
+    public void updateDisplayName(String displayName) throws org.osid.repository.RepositoryException {
         this.displayName = displayName;
     }
     
     /**     Set the Asset's status Type accordingly and relax validation checking when creating InfoRecords and InfoFields or updating InfoField's values.
-     *     @param osid.shared.Id
+     *     @param org.osid.shared.Id
      *     @return boolean
      *     @throws RepositoryException if there is a general failure
      */
-    public void invalidateAsset(osid.shared.Id assetId) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public void invalidateAsset(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
     /**     Validate all the InfoRecords for an Asset and set its status Type accordingly.  If the Asset is valid, return true; otherwise return false.  The implementation may throw an Exception for any validation failures and use the Exception's message to identify specific causes.
-     *     @param osid.shared.Id
+     *     @param org.osid.shared.Id
      *     @return boolean
      *     @throws RepositoryException if there is a general failure
      */
-    public boolean validateAsset(osid.shared.Id assetId) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public boolean validateAsset(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.shared.Id copyAsset(osid.repository.Asset asset) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.Id copyAsset(org.osid.repository.Asset asset) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.repository.Asset getAsset(osid.shared.Id assetId) throws osid.repository.RepositoryException {
+    public org.osid.repository.Asset getAsset(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
         Condition[] condition = new Condition[1];
         condition[0] = new Condition();
         condition[0].setProperty("pid");
@@ -401,77 +402,100 @@ public class Repository implements osid.repository.Repository {
         try {
             System.out.println("Searching for object ="+assetId.getIdString());
             condition[0].setValue(assetId.getIdString());
-        } catch(osid.shared.SharedException ex) {
-            throw new osid.repository.RepositoryException(ex.getMessage());
+        } catch(org.osid.shared.SharedException ex) {
+            throw new org.osid.repository.RepositoryException(ex.getMessage());
         }
         SearchCriteria searchCriteria = new SearchCriteria();
         searchCriteria.setConditions(condition);
         searchCriteria.setMaxReturns("1");
-        osid.repository.AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
+        org.osid.repository.AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
         if(mAssetIterator.hasNextAsset())
             return  mAssetIterator.nextAsset();
         else
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.UNKNOWN_ID);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_ID);
         
     }
     
-    public osid.repository.Asset getAsset(osid.shared.Id assetId, long date) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.repository.Asset getAsset(org.osid.shared.Id assetId, long date) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.shared.PropertiesIterator getProperties() throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.PropertiesIterator getProperties() throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.shared.Properties getPropertiesByType(osid.shared.Type propertiesType) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.Properties getPropertiesByType(org.osid.shared.Type propertiesType) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.shared.TypeIterator getPropertyTypes() throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.TypeIterator getPropertyTypes() throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.shared.LongValueIterator getAssetDates(osid.shared.Id assetId) throws osid.repository.RepositoryException {
-        throw new osid.repository.RepositoryException(osid.OsidException.UNIMPLEMENTED);
+    public org.osid.shared.LongValueIterator getAssetDates(org.osid.shared.Id assetId) throws org.osid.repository.RepositoryException {
+        throw new org.osid.repository.RepositoryException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
-    public osid.repository.AssetIterator getAssets(java.io.Serializable searchCriteria, osid.shared.Type searchType) throws osid.repository.RepositoryException {
+    public org.osid.repository.AssetIterator getAssets(java.io.Serializable searchCriteria, org.osid.shared.Type searchType) throws org.osid.repository.RepositoryException {
         System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
-        SearchCriteria lSearchCriteria = (SearchCriteria)searchCriteria;
-        if(searchType.getKeyword().equals("Search")) {
+
+        SearchCriteria lSearchCriteria = null;
+        if (searchCriteria instanceof SearchCriteria)
+        {
+            lSearchCriteria = (SearchCriteria)searchCriteria;
+            if(searchType.isEqual(new SimpleSearchType()))
+            {
+                return FedoraSoapFactory.search(this,lSearchCriteria);
+            } 
+            else if(searchType.isEqual(new AdvancedSearchType())) 
+            {
+                return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
+            }
+            else 
+            {
+                throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
+            }
+        }
+        else if ( (searchCriteria instanceof String) && (searchType.isEqual(new org.osid.types.mit.KeywordSearchType())) )
+        {
+            lSearchCriteria = new SearchCriteria();
+            lSearchCriteria.setKeywords((String)searchCriteria);
+            lSearchCriteria.setMaxReturns("100");
+            lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
+            lSearchCriteria.setResults(0);
             return FedoraSoapFactory.search(this,lSearchCriteria);
-        } else if(searchType.getKeyword().equals("Advanced Search")) {
-            return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
-        }else {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.UNKNOWN_TYPE);
+        }
+        else
+        {
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
         }
     }
     
-    public osid.shared.Type getType() throws osid.repository.RepositoryException {
-        return new Type("repository","tufts.edu","fedora_image","");
+    public org.osid.shared.Type getType() throws org.osid.repository.RepositoryException {
+        return new Type("tufts.edu","repository","fedoraImage");
     }
     
-    public osid.repository.Asset getAssetByDate(osid.shared.Id id, long date) throws osid.repository.RepositoryException {
+    public org.osid.repository.Asset getAssetByDate(org.osid.shared.Id id, long date) throws org.osid.repository.RepositoryException {
         return getAsset(id,date);
     }
     
-    public osid.repository.AssetIterator getAssetsBySearch(java.io.Serializable serializable, osid.shared.Type type, osid.shared.Properties properties) throws osid.repository.RepositoryException {
+    public org.osid.repository.AssetIterator getAssetsBySearch(java.io.Serializable serializable, org.osid.shared.Type type, org.osid.shared.Properties properties) throws org.osid.repository.RepositoryException {
         return getAssets(serializable, type);
     }
     
-    public osid.repository.AssetIterator getAssetsByType(osid.shared.Type type) throws osid.repository.RepositoryException {
+    public org.osid.repository.AssetIterator getAssetsByType(org.osid.shared.Type type) throws org.osid.repository.RepositoryException {
         return getAssets();
     }
     
-    public boolean supportsUpdate() throws osid.repository.RepositoryException {
+    public boolean supportsUpdate() throws org.osid.repository.RepositoryException {
         return false;
     }
     
-    public boolean supportsVersioning() throws osid.repository.RepositoryException {
+    public boolean supportsVersioning() throws org.osid.repository.RepositoryException {
         return false;
     }
     
-    public  osid.shared.Id ingest(String fileName,String templateFileName,String fileType, File file,Properties properties) throws osid.repository.RepositoryException, java.net.SocketException,java.io.IOException,osid.shared.SharedException,javax.xml.rpc.ServiceException{
+    public  org.osid.shared.Id ingest(String fileName,String templateFileName,String fileType, File file,Properties properties) throws org.osid.repository.RepositoryException, java.net.SocketException,java.io.IOException,org.osid.shared.SharedException,javax.xml.rpc.ServiceException{
         long sTime = System.currentTimeMillis();
         if(DEBUG) System.out.println("INGESTING FILE TO FEDORA:fileName ="+fileName+"fileType ="+fileType+"t = 0");
         // this part transfers file to a ftp server.  this is required since the content management part of fedora server needs object to be on web server

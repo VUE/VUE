@@ -1,31 +1,31 @@
 package tufts.oki.repository.fedora;
 
 public class RecordIterator
-implements osid.repository.RecordIterator
+implements org.osid.repository.RecordIterator
 {
     private java.util.Vector vector = new java.util.Vector();
     private int i = 0;
 
     public RecordIterator(java.util.Vector vector)
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         this.vector = vector;
     }
 
     public boolean hasNextRecord()
-    throws osid.repository.RepositoryException
+    throws org.osid.repository.RepositoryException
     {
         return (i < vector.size());
     }
 
-    public osid.repository.Record nextRecord()
-    throws osid.repository.RepositoryException
+    public org.osid.repository.Record nextRecord()
+    throws org.osid.repository.RepositoryException
     {
         if (i >= vector.size())
         {
-            throw new osid.repository.RepositoryException(osid.repository.RepositoryException.NO_MORE_ITERATOR_ELEMENTS);
+            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.NO_MORE_ITERATOR_ELEMENTS);
         }
-        return (osid.repository.Record)vector.elementAt(i++);
+        return (org.osid.repository.Record)vector.elementAt(i++);
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

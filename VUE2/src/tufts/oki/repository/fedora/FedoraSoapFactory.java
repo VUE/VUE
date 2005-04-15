@@ -28,7 +28,7 @@ package tufts.oki.repository.fedora;
  *
  * @author  akumar03
  */
-import osid.repository.*;
+import org.osid.repository.*;
 import java.net.*;
 import java.io.*;
 import java.util.Vector;
@@ -53,14 +53,14 @@ public class FedoraSoapFactory {
     
     /** Creates a new instance of FedoraSoapFactory */
    
-    public static  Vector getDisseminationRecords(String pid,osid.repository.RecordStructure recordStructure,Repository repository)   throws osid.repository.RepositoryException  {
+    public static  Vector getDisseminationRecords(String pid,org.osid.repository.RecordStructure recordStructure,Repository repository)   throws org.osid.repository.RepositoryException  {
         Call call;
         Vector disseminationList = new Vector();
         try {
             call = getCallMethods(repository);
             ObjectMethodsDef[] objMethods= (ObjectMethodsDef[]) call.invoke(new Object[] {pid} );
             if(objMethods == null)
-                throw new osid.repository.RepositoryException("tufts.oki.repository.Asset():No Disseminations  returned");
+                throw new org.osid.repository.RepositoryException("tufts.oki.repository.Asset():No Disseminations  returned");
             else {
                 for(int i=0;i<objMethods.length;i++){
                     Record record = new Record(new PID(objMethods[i].getMethodName()),recordStructure);
@@ -71,13 +71,13 @@ public class FedoraSoapFactory {
                 }
             }
         } catch(Throwable t) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getDisseminators "+t.getMessage());
         }
         return disseminationList;
     }
     
  
-    public static  AssetIterator search(Repository repository,SearchCriteria lSearchCriteria)  throws osid.repository.RepositoryException {
+    public static  AssetIterator search(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
         String term = lSearchCriteria.getKeywords();
         String maxResults = lSearchCriteria.getMaxReturns();
         String searchOperation = lSearchCriteria.getSearchOperation();
@@ -141,12 +141,12 @@ public class FedoraSoapFactory {
             return new AssetIterator(resultObjects) ;
         }catch(Throwable t) {
             t.printStackTrace();
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.search"+t.getMessage());
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.search"+t.getMessage());
             
         }
     }
     
-    public static osid.repository.AssetIterator advancedSearch(Repository repository,SearchCriteria lSearchCriteria)  throws osid.repository.RepositoryException {
+    public static org.osid.repository.AssetIterator advancedSearch(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
         Condition cond[] = lSearchCriteria.getConditions();
         String maxResults = lSearchCriteria.getMaxReturns();
         
@@ -179,12 +179,12 @@ public class FedoraSoapFactory {
             }
             return new AssetIterator(resultObjects) ;
         }catch(Throwable t) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.advancedSearch"+t.getMessage());
         }
     }
     
    
-    private static  Call getCallMethods(Repository repository)  throws osid.repository.RepositoryException  {
+    private static  Call getCallMethods(Repository repository)  throws org.osid.repository.RepositoryException  {
         //creates the new service and call instance
         Call call;
         try {
@@ -209,12 +209,12 @@ public class FedoraSoapFactory {
             call.registerTypeMapping(MethodParmDef.class, qn3,new BeanSerializerFactory(MethodParmDef.class, qn3),
             new BeanDeserializerFactory(MethodParmDef.class, qn3));
         }catch (Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.getCallMethods "+ex.getMessage());
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getCallMethods "+ex.getMessage());
         }
         return call;
     }
    
-    private static Call getCallSearch(Repository repository)  throws osid.repository.RepositoryException {
+    private static Call getCallSearch(Repository repository)  throws org.osid.repository.RepositoryException {
         Call call;
         try {
             String fedoraTypeUrl = repository.getFedoraProperties().getProperty("url.fedora.type");
@@ -250,11 +250,11 @@ public class FedoraSoapFactory {
             new BeanDeserializerFactory(ListSession.class, qn6));
             return call;
         }catch (Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.getCallSearch "+ex);
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getCallSearch "+ex);
         }
     }
     
-    private static Call getCallAdvancedSearch(Repository repository)  throws osid.repository.RepositoryException {
+    private static Call getCallAdvancedSearch(Repository repository)  throws org.osid.repository.RepositoryException {
         Call call;
         try {
             String fedoraTypeUrl = repository.getFedoraProperties().getProperty("url.fedora.type");
@@ -289,7 +289,7 @@ public class FedoraSoapFactory {
             new BeanDeserializerFactory(ListSession.class, qn6));
             return call;
         }catch (Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraSoapFactory.getCallSearch "+ex.getMessage());
+            throw new org.osid.repository.RepositoryException("FedoraSoapFactory.getCallSearch "+ex.getMessage());
         }
     }
     

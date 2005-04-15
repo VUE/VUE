@@ -62,11 +62,11 @@ public class FedoraUtils {
     }
     
     public static String getFedoraProperty(Repository repository,String pLookupKey)
-    throws osid.repository.RepositoryException {
+    throws org.osid.repository.RepositoryException {
         try {
             return getPreferences(repository).get(pLookupKey, NOT_DEFINED);
         } catch (Exception ex) {
-            throw new osid.repository.RepositoryException("FedoraUtils.getFedoraProperty: " + ex);
+            throw new org.osid.repository.RepositoryException("FedoraUtils.getFedoraProperty: " + ex);
         }
     }
     
@@ -94,19 +94,19 @@ public class FedoraUtils {
     }
     
     public static String[] getFedoraPropertyArray(Repository repository,String pLookupKey)
-    throws osid.repository.RepositoryException {
+    throws org.osid.repository.RepositoryException {
         String pValue = getFedoraProperty(repository,pLookupKey);
         return pValue.split(SEPARATOR);
     }
     
-    public static String[] getAdvancedSearchFields(Repository repository)  throws osid.repository.RepositoryException{
+    public static String[] getAdvancedSearchFields(Repository repository)  throws org.osid.repository.RepositoryException{
         return getFedoraPropertyArray(repository,"fedora.search.advanced.fields");
     }
-    public static String[] getAdvancedSearchOperators(Repository repository)  throws osid.repository.RepositoryException{
+    public static String[] getAdvancedSearchOperators(Repository repository)  throws org.osid.repository.RepositoryException{
         return getFedoraPropertyArray(repository,"fedora.search.advanced.operators");
         
     }
-    public static String getAdvancedSearchOperatorsActuals(Repository repository,String pOperator) throws osid.repository.RepositoryException{
+    public static String getAdvancedSearchOperatorsActuals(Repository repository,String pOperator) throws org.osid.repository.RepositoryException{
         String[] pOperators =   getAdvancedSearchOperators(repository);
         String[] pOperatorsActuals = getFedoraPropertyArray(repository,"fedora.search.advanced.operators.actuals");
         String pValue = NOT_DEFINED;
@@ -123,13 +123,13 @@ public class FedoraUtils {
     
     
     
-    public static String getSaveFileName(osid.shared.Id objectId,osid.shared.Id behaviorId,osid.shared.Id disseminationId) throws osid.OsidException {
+    public static String getSaveFileName(org.osid.shared.Id objectId,org.osid.shared.Id behaviorId,org.osid.shared.Id disseminationId) throws org.osid.OsidException {
         String saveFileName = processId(objectId.getIdString()+"-"+behaviorId.getIdString()+"-"+disseminationId.getIdString());
         return saveFileName;
     }
     
     
-    public static AbstractAction getFedoraAction(osid.repository.Record record,osid.repository.Repository repository) throws osid.repository.RepositoryException {
+    public static AbstractAction getFedoraAction(org.osid.repository.Record record,org.osid.repository.Repository repository) throws org.osid.repository.RepositoryException {
         final Repository mRepository = (Repository)repository;
         final Record mRecord = (Record)record;
         
@@ -141,11 +141,11 @@ public class FedoraUtils {
                         
                         // get part by iterating otherwise, we need the asset.                        
 //                        String fedoraUrl = mRecord.getPart(new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"))).getValue().toString();
-                        osid.shared.Id id = new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"));
-                        osid.repository.PartIterator partIterator = mRecord.getParts();
+                        org.osid.shared.Id id = new PID(getFedoraProperty(mRepository, "DisseminationURLInfoPartId"));
+                        org.osid.repository.PartIterator partIterator = mRecord.getParts();
                         while (partIterator.hasNextPart())
                         {
-                            osid.repository.Part part = partIterator.nextPart();
+                            org.osid.repository.Part part = partIterator.nextPart();
 //                            if (part.getId().isEqual(id))
                             {
                                 String fedoraUrl = part.getValue().toString();
@@ -161,7 +161,7 @@ public class FedoraUtils {
             };
             return fedoraAction;
         } catch(Throwable t) {
-            throw new osid.repository.RepositoryException("FedoraUtils.getFedoraAction "+t.getMessage());
+            throw new org.osid.repository.RepositoryException("FedoraUtils.getFedoraAction "+t.getMessage());
         }
     }
 
