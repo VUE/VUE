@@ -109,7 +109,7 @@ public class Repository implements org.osid.repository.Repository {
         {
             this.id = new PID(id);
         }
-        catch (org.osid.shared.SharedException sex) {}
+        catch (Throwable t) { t.printStackTrace(); }
         this.displayName = displayName;
         this.description = description;
         this.address = address;

@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.39 $ / $Date: 2005-04-15 20:28:45 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.39 2005-04-15 20:28:45 jeff Exp $ -->
+<!-- $Revision: 1.40 $ / $Date: 2005-04-18 13:19:28 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.40 2005-04-18 13:19:28 jeff Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -405,6 +405,24 @@
   </path>
 
 <!-- ==================== Vue JAR files ================================ -->
+  <target name="jar-repository"  
+          depends="compile"
+          description="Create TuftsDigitalLibraryOSID.jar containing all supporting files">
+
+    <mkdir dir="dist/lib/osid"/>    
+    <delete file="dist/lib/osid/TuftsDigitalLibraryOSID.jar"/>
+    <jar zipfile="dist/lib/osid/TuftsDigitalLibraryOSID.jar" update="true" compress="false" index="true">
+      <fileset dir="${src}" includes="vue.conf"/>
+      <fileset dir="${src}" includes="tufts/vue/VueResources.properties"/>
+      <fileset dir="${src}" includes="tufts/oki/repository/fedora/RepositoryManager.properties"/>
+      <fileset dir="${src}" includes="tufts/oki/repository/fedora/fedora.conf"/>
+      <fileset dir="${build.class}" includes="tufts/oki/repository/**"/>
+      <fileset dir="${build.class}" includes="tufts/oki/id/**"/>
+      <fileset dir="${build.class}" includes="tufts/oki/shared2/**"/>
+    </jar>
+    <copy file="${lib.home}/fedora-server.jar" todir="dist/lib/osid" verbose="true"/>
+  </target>
+
   <target name="jar-core"
           depends="compile"
           description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">

@@ -4,7 +4,7 @@ public class Type
 extends osid.shared.Type
 {
 
-    protected Type(String domain
+    public Type(String domain
                  , String authority
                  , String keyword
                  , String description)
@@ -12,7 +12,7 @@ extends osid.shared.Type
         super(domain,authority,keyword,description);        
     }
 
-    protected Type(String domain
+    public Type(String domain
                  , String authority
                  , String keyword)
     {

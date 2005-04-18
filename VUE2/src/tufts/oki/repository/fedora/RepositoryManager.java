@@ -57,7 +57,7 @@ implements org.osid.repository.RepositoryManager
                                          "",
                                          "Tufts Digital Library",
                                          "",
-                                         new java.net.URL("http","vue-dl.tccs.tufts.edu",8080,"fedora/"),
+                                         new java.net.URL("http","snowflake.lib.tufts.edu",8080,"fedora/"),
                                          "test",
                                          "test"));
         }
