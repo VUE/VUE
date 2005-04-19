@@ -67,7 +67,7 @@ public class AddDataSourcePanel extends JPanel {
                     }else if(e.getItem().toString().equals(dataSourceTypes[5])) {
                         addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[6])) {
-                        addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
+                        addPanel.add(new Osid2DataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[7])){
                         addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
                     }
@@ -733,5 +733,109 @@ public class AddDataSourcePanel extends JPanel {
         }
     }
     
+    
+    class Osid2DataSourcePanel extends JPanel {
+        JTextField dsNameField;
+        JTextField addressField;
+        public Osid2DataSourcePanel() {
+            GridBagLayout gridbag = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            this.setLayout(gridbag);
+            JLabel dsNameLabel = new JLabel("Display Name: ");
+            JLabel addressLabel = new JLabel("Implementation Package:");
+            dsNameField = new JTextField();
+            addressField = new JTextField();
+            JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton submitButton = new JButton("Submit");
+            submitButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    if (DEBUG.DR) System.out.println(this + " " + e);
+                    if(validateFields()) {
+                        if (DEBUG.DR) System.out.println(this + " creating DataSource");
+                        try {
+                            DataSource ds = new Osid2DataSource(dsNameField.getText(), addressField.getText());
+                            if (DEBUG.DR) System.out.println(this + " adding DataSource");
+System.out.println("in AddDataSourcepanel1");
+                            DataSourceViewer.addDataSource(ds);
+System.out.println("in AddDataSourcepanel2");
+                        } catch(Throwable t) {
+System.out.println("in AddDataSourcepanel2a");
+//                            if(DEBUG.DR) System.out.println(t);
+//                            t.printStackTrace();
+                            System.out.println(dsNameField.getText());
+                            JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ t.getMessage(), "OSID Alert", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            if (DEBUG.DR) System.out.println(this + " dialog.hide");
+                            dialog.hide();
+                            if (DEBUG.DR) System.out.println(this + " dialog.dispose");
+                            dialog.dispose();
+                        }
+                    } else {
+                        if (DEBUG.DR) System.out.println(this + " fields not valid.");
+                    }
+                }
+            });
+            
+System.out.println("in AddDataSourcepanel3");
+            JButton resetButton = new JButton("Reset");
+            resetButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    resetPanel();
+                }
+            });
+            bottomPanel.add(submitButton);
+            bottomPanel.add(resetButton);
+            c.anchor = GridBagConstraints.WEST;
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(dsNameLabel,c);
+            this.add(dsNameLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(dsNameField,c);
+            this.add(dsNameField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
+            gridbag.setConstraints(addressLabel,c);
+            this.add(addressLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(addressField,c);
+            this.add(addressField);
+            
+            
+            c.anchor = GridBagConstraints.EAST;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.weightx = 1.0;
+            c.fill = GridBagConstraints.NONE;
+            gridbag.setConstraints(bottomPanel,c);
+            this.add(bottomPanel);
+            
+            
+            
+        }
+        
+        private void resetPanel() {
+            dsNameField.setText("");
+            addressField.setText("");
+        }
+        
+        private boolean validateFields(){
+            
+            if(dsNameField.getText().length() > 0 && addressField.getText().length() >0) {
+                return true;
+            } else {
+                VueUtil.alert(AddDataSourcePanel.this, "Name should be atleast one character long", "DataSource Creation Error");
+                return false;
+            }
+        }
+    }
     
 }

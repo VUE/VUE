@@ -479,6 +479,8 @@
 	</class>
 <class name="tufts.vue.OsidDataSource" extends="tufts.vue.VueDataSource">
 	</class>
+<class name="tufts.vue.Osid2DataSource" extends="tufts.vue.VueDataSource">
+	</class>
         
         <class name="tufts.artifact.DataSource" extends="tufts.vue.VueDataSource">
 	</class>

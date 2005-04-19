@@ -72,9 +72,10 @@ public class Osid2AssetResource extends MapResource
             String displayName = asset.getDisplayName();
             setTitle(displayName);
             mProperties.put("title",displayName);
+            org.osid.shared.Type specPartStructureType = new tufts.osid.types.VueSpecPartStructureType();
             try
             {
-                org.osid.repository.RecordIterator recordIterator = asset.getRecordsByRecordStructureType(new tufts.oki.repository.fedora.VUERecordStructureType());
+                org.osid.repository.RecordIterator recordIterator = asset.getRecordsByRecordStructureType(new tufts.osid.types.VueRecordStructureType());
                 if (recordIterator.hasNextRecord())
                 {
                     org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
@@ -83,7 +84,12 @@ public class Osid2AssetResource extends MapResource
                         org.osid.repository.Part part = partIterator.nextPart();
                         org.osid.repository.PartStructure partStructure = part.getPartStructure();
                         String dname = partStructure.getDisplayName();
-                        mProperties.put(part.getPartStructure().getDisplayName(),part.getValue());
+                        mProperties.put(dname,part.getValue());
+                        if (part.getPartStructure().getType().isEqual(specPartStructureType))
+                        {
+                            System.out.println("setting spec to " + part.getValue());
+                            mProperties.put("spec",part.getValue());
+                        }
                     }
                 }
             }
@@ -93,7 +99,7 @@ public class Osid2AssetResource extends MapResource
                 System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
             Object o = mProperties.get("spec");
-            if (getSpec() == null)
+//            if (getSpec() == null)
             {
                 setSpec( (o != null) ? (String)o : asset.getDisplayName() );
             }
@@ -102,6 +108,7 @@ public class Osid2AssetResource extends MapResource
         {
             setSpec(asset.getDisplayName());
         }
+        System.out.println("getSpec " + getSpec());
     }
 
     public org.osid.repository.Asset getAsset() 

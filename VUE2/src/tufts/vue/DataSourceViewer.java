@@ -224,13 +224,14 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         int type;
         
         if (ds instanceof LocalFileDataSource) type = 0;
-        else if (ds instanceof FavoritesDataSource) type = 1;
+        else if  (ds instanceof FavoritesDataSource) type = 1;
         else  if (ds instanceof RemoteFileDataSource) type = 2;
         else  if (ds instanceof FedoraDataSource) type = 3;
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
-        else if(ds instanceof tufts.artifact.DataSource) type = 6;
-        else type = 7;
+        else  if (ds instanceof Osid2DataSource) type = 6;
+        else if  (ds instanceof tufts.artifact.DataSource) type = 7;
+        else type = 8;
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
@@ -248,7 +249,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof FedoraDataSource) type = 3;
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
-        else type = 6;
+        else  if (ds instanceof Osid2DataSource) type = 6;
+        else type = 7;
         if(VueUtil.confirm(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation") == JOptionPane.OK_OPTION) {
             Vector dataSourceVector = (Vector)allDataSources.get(type);
             dataSourceVector.removeElement(ds);
@@ -260,7 +262,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     public static void refreshDataSourceList(){
         int i =0; Vector dsVector;
         String breakTag = "";
-        int NOOFTYPES = 7;
+        int NOOFTYPES = 8;
         if (!(dataSourceList.getContents().isEmpty()))dataSourceList.getContents().clear();
         for (i = 0; i < NOOFTYPES; i++){
             dsVector = (Vector)allDataSources.get(i);
@@ -413,6 +415,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         Vector dataSource4 = new Vector();
         Vector dataSource5 = new Vector();
         Vector dataSource6 = new Vector();
+        Vector dataSource7 = new Vector();
         
         allDataSources.add(dataSource0);
         allDataSources.add(dataSource1);
@@ -421,6 +424,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         allDataSources.add(dataSource4);
         allDataSources.add(dataSource5);
         allDataSources.add(dataSource6);
+        allDataSources.add(dataSource7);
         
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
@@ -515,10 +519,17 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             }
             
         }
-        if (DEBUG.DR) System.out.println("saveDataSourceViewer: creating new SaveDataSourceViewer");
-        SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
-        if (DEBUG.DR) System.out.println("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + f);
-        marshallMap(f,sViewer);
+        try
+        {
+            if (DEBUG.DR) System.out.println("saveDataSourceViewer: creating new SaveDataSourceViewer");
+            SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
+            if (DEBUG.DR) System.out.println("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + f);
+            marshallMap(f,sViewer);
+        }
+        catch (Throwable t)
+        {
+            t.printStackTrace();
+        }
     }
     
     
@@ -537,8 +548,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             if (DEBUG.DR) System.out.println("DataSourceViewer.marshallMap: done marshalling.");
             writer.flush();
             writer.close();
-        } catch (Exception e) {
-            System.err.println("DRBrowser.marshallMap " + e);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.err.println("DRBrowser.marshallMap " + t.getMessage());
         }
     }
     

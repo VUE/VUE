@@ -68,7 +68,7 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
     JComboBox endusersComboBox;
     CellEditor defaultCellEditor;
     
-    org.osid.repository.Repository repository = null; // Repository connected to.
+    java.util.Vector repositoryVector = new java.util.Vector(); // Repositories connected to.
     
     org.osid.repository.AssetIterator assetIterator;
     SearchCriteria searchCriteria;
@@ -116,20 +116,16 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
 
         try 
         {
-            org.osid.OsidManager osidManager = osidManager = org.osid.OsidLoader.getManager(
-                "osid.repository.RepositoryManager",
+            org.osid.OsidManager osidManager = osidManager = tufts.vue.OsidLoader.getManager(
+                "org.osid.repository.RepositoryManager",
                 implementation,
                 context,
                 new java.util.Properties());            
             org.osid.repository.RepositoryManager repositoryManager = (org.osid.repository.RepositoryManager)osidManager;
             org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
-            if (repositoryIterator.hasNextRepository())
+            while (repositoryIterator.hasNextRepository())
             {
-                repository = repositoryIterator.nextRepository();
-            }
-            else
-            {
-                System.out.println("Cannot find any repository");
+                this.repositoryVector.addElement(repositoryIterator.nextRepository());
             }
         }
         catch (Throwable t)
@@ -154,6 +150,7 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
             }
         });
         add(tabbedPane,BorderLayout.CENTER);
+System.out.println("abc");
     }
     
     private void setSearchTypes()
@@ -162,12 +159,21 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
         java.util.Vector typeVector = new java.util.Vector();
         try
         {
-            org.osid.shared.TypeIterator typeIterator = this.repository.getSearchTypes();
-            while (typeIterator.hasNextType())
+            for (int i=0, size = this.repositoryVector.size(); i < size; i++)
             {
-                org.osid.shared.Type type = typeIterator.nextType();
-                typeVector.addElement(new String(type.getAuthority() + "," + type.getDomain() + "," + type.getKeyword()));
+                org.osid.shared.TypeIterator typeIterator = 
+                    ((org.osid.repository.Repository)this.repositoryVector.elementAt(i)).getSearchTypes();
+                while (typeIterator.hasNextType())
+                {
+                    org.osid.shared.Type type = typeIterator.nextType();
+                    String s = new String(type.getAuthority() + "," + type.getDomain() + "," + type.getKeyword());
+                    // avoid duplicates
+                    if (typeVector.indexOf(s) == -1)
+                    {
+                        typeVector.addElement(s);
+                    }
                 }
+            }
         }
         catch (Throwable t)
         {
@@ -418,9 +424,10 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
         return new tufts.oki.repository.fedora.Type(authority,domain,keyword,"");
     }
 
-    private void performSearch() {
-        
-        try {
+    private void performSearch() 
+    {
+        try 
+        {
             searchButton.setEnabled(false);
             System.out.println("Searching OSID Repository...");
             
@@ -431,15 +438,42 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
                 searchType = stringToType(selectedType);
             }
             VueDragTree tree = null;
-            resultObjectsIterator = this.repository.getAssetsBySearch(keywords.getText(),searchType,new tufts.oki.shared2.SharedProperties());
-            tree = new VueDragTree(getOsidAssetResourceIterator(resultObjectsIterator),"Repository Search Results");
+            
+            java.util.Vector results = new java.util.Vector();
+            org.osid.shared.Properties sharedProperties = new tufts.oki.shared2.SharedProperties();
+            String criteria = keywords.getText();
+            
+            org.osid.repository.Repository nextRepository = null;
+            for (int j=0, size = this.repositoryVector.size(); j < size; j++)
+            {
+                nextRepository = (org.osid.repository.Repository)this.repositoryVector.elementAt(j);
+                //optionally add a separate thread here
+                try
+                {
+                    org.osid.repository.AssetIterator assetIterator = 
+                        nextRepository.getAssetsBySearch(criteria,searchType,sharedProperties);
+                    while (assetIterator.hasNextAsset())
+                    {
+                        results.addElement(new Osid2AssetResource(assetIterator.nextAsset(),this.context));
+                    }
+                }
+                catch (Throwable t) 
+                {
+                    t.printStackTrace();
+                }
+            }            
+                        
+//            resultObjectsIterator = new tufts.oki.repository.fedora.AssetIterator(results);
+//            resultObjectsIterator = nextRepository.getAssetsBySearch(criteria,searchType,sharedProperties);
+//            tree = new VueDragTree(getOsidAssetResourceIterator(resultObjectsIterator),"Repository Search Results");
+            tree = new VueDragTree(results.iterator(),"Repository Search Results");
 
             tree.setRootVisible(false);
             jsp = new JScrollPane(tree);
             setSearchResultsPanel();
             countError = 0;
         }  catch (Throwable t) {
-                VueUtil.alert(this, "OSID","Search Error");
+                VueUtil.alert(this, "Exception thrown during getAssetsBySearch() implementation","Search Error");
             System.out.println("OSID Viewer performing search :"+t.getMessage());
         } finally {
             searchButton.setEnabled(true);
@@ -464,9 +498,33 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
 
             String selectedType = (String)(this.searchTypesComboBox.getSelectedItem());
             org.osid.shared.Type searchType = stringToType(selectedType);
+            org.osid.shared.Properties sharedProperties = new tufts.oki.shared2.SharedProperties();
+            String criteria = keywords.getText();
             
             VueDragTree tree = null;
-            resultObjectsIterator = this.repository.getAssetsBySearch(keywords.getText(),searchType,new tufts.oki.shared2.SharedProperties());
+
+            java.util.Vector results = new java.util.Vector();
+            for (int j=0, size = this.repositoryVector.size(); j < size; j++)
+            {
+                org.osid.repository.Repository nextRepository = (org.osid.repository.Repository)this.repositoryVector.elementAt(j);
+                //optionally add a separate thread here
+                try
+                {
+                    org.osid.repository.AssetIterator assetIterator = 
+                        nextRepository.getAssetsBySearch(criteria,searchType,sharedProperties);
+                    while (assetIterator.hasNextAsset())
+                    {
+                        results.addElement(assetIterator.nextAsset());
+                    }
+                }
+                catch (Throwable t) 
+                {
+                    // log exceptions but don't stop searching
+                    t.printStackTrace();
+                }
+            }            
+                        
+            resultObjectsIterator = new tufts.oki.repository.fedora.AssetIterator(results);
             tree = new VueDragTree(resultObjectsIterator,"Search Results");
 
             tree.setRootVisible(false);
@@ -550,7 +608,8 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
     }
     
     public org.osid.repository.Repository getRepository() {
-        return repository;
+        // who calls this???
+        return (org.osid.repository.Repository)this.repositoryVector.firstElement();
     }
     
     
