@@ -73,42 +73,87 @@ public class Osid2AssetResource extends MapResource
             setTitle(displayName);
             mProperties.put("title",displayName);
             org.osid.shared.Type specPartStructureType = new tufts.osid.types.VueSpecPartStructureType();
+            boolean foundIntegrationRecord = false;
             try
             {
                 org.osid.repository.RecordIterator recordIterator = asset.getRecordsByRecordStructureType(new tufts.osid.types.VueRecordStructureType());
                 if (recordIterator.hasNextRecord())
                 {
+                    foundIntegrationRecord = true;
                     org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
                     while (partIterator.hasNextPart())
                     {
                         org.osid.repository.Part part = partIterator.nextPart();
                         org.osid.repository.PartStructure partStructure = part.getPartStructure();
-                        String dname = partStructure.getDisplayName();
-                        mProperties.put(dname,part.getValue());
-                        if (part.getPartStructure().getType().isEqual(specPartStructureType))
+                        java.io.Serializable ser = part.getValue();
+                        if (ser instanceof String)
                         {
-                            System.out.println("setting spec to " + part.getValue());
-                            mProperties.put("spec",part.getValue());
+                            mProperties.put(partStructure.getDisplayName(),ser);
                         }
                     }
                 }
             }
             catch (Throwable t) 
             {
-                setSpec((String)asset.getContent());            
                 System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
-            Object o = mProperties.get("spec");
-//            if (getSpec() == null)
+System.out.println("checking if int record found");
+            if (!foundIntegrationRecord)
             {
-                setSpec( (o != null) ? (String)o : asset.getDisplayName() );
+System.out.println("int record not found");
+                try
+                {
+                    org.osid.repository.RecordIterator recordIterator = asset.getRecords();
+                    while (recordIterator.hasNextRecord())
+                    {
+System.out.println("found record");
+                        org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
+                        while (partIterator.hasNextPart())
+                        {
+System.out.println("found part");
+                            org.osid.repository.Part part = partIterator.nextPart();
+                            org.osid.repository.PartStructure partStructure = part.getPartStructure();
+                            java.io.Serializable ser = part.getValue();
+System.out.println("ser " + ser);
+                            if (ser instanceof String)
+                            {
+                                mProperties.put(partStructure.getDisplayName(),ser);
+                            }
+                        }
+                    }
+                }
+                catch (Throwable t) 
+                {
+                    System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
+                }
+            }
+            
+            /*
+                We looked for a chance to load the spec as part of a VUE Record above.  Now try the asset content.  If that fails,
+                use the asset display name
+            */
+            if ((getSpec() == null) || (getSpec().trim().length() == 0))
+            {
+                try
+                {
+                    java.io.Serializable s = asset.getContent();
+                    if (s instanceof String)
+                    {
+                        setSpec((String)s);
+                    }
+                }
+                catch (Throwable t) {}
+                if (getSpec() == null)
+                {
+                    Object o = mProperties.get("spec");
+                    setSpec( (o != null) ? (String)o : asset.getDisplayName() );
+                }
             }
         }
         catch (Throwable t)
         {
             setSpec(asset.getDisplayName());
         }
-        System.out.println("getSpec " + getSpec());
     }
 
     public org.osid.repository.Asset getAsset() 

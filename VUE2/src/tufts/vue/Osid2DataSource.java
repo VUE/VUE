@@ -61,7 +61,6 @@ public class Osid2DataSource extends VueDataSource{
              
        
           this.resourceViewer = new Osid2AssetViewer(this.address,new org.osid.OsidContext());
-System.out.println("in Osid2DataSource");
    }
 
    public JComponent getResourceViewer(){

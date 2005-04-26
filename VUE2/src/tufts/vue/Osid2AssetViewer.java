@@ -150,7 +150,6 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
             }
         });
         add(tabbedPane,BorderLayout.CENTER);
-System.out.println("abc");
     }
     
     private void setSearchTypes()

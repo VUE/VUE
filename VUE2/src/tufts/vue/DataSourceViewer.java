@@ -462,7 +462,7 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             addDataSource(ds1);
             DataSource ds2 = new FavoritesDataSource("My Favorites");
             addDataSource(ds2);
-            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.lib.tufts.edu", "test","test");
+            DataSource ds3 = new FedoraDataSource("Tufts Digital Library","dl.tufts.edu", "test","test");
             addDataSource(ds3);
             DataSource ds4 = new GoogleDataSource("Tufts Web","http://googlesearch.tufts.edu","tufts01","tufts01");
             addDataSource(ds4);
