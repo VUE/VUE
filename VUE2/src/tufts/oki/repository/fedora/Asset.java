@@ -183,7 +183,25 @@ public class Asset implements org.osid.repository.Asset{
      *     @return java.io.Serializable
      *     @throws RepositoryException if there is a general failure
      */
-    public java.io.Serializable getContent() throws org.osid.repository.RepositoryException {
+    public java.io.Serializable getContent() throws org.osid.repository.RepositoryException 
+    {
+        org.osid.repository.RecordIterator ri = getRecords();
+        while (ri.hasNextRecord())
+        {
+            org.osid.repository.Record r = ri.nextRecord();
+            if (r.getRecordStructure().getDisplayName().equals("VUE Specific Data"))
+            {
+                org.osid.repository.PartIterator pi = r.getParts();
+                while (pi.hasNextPart())
+                {
+                    org.osid.repository.Part p = pi.nextPart();
+                    if (p.getPartStructure().getDisplayName().equals("VUE Default View Part Structure"))
+                    {
+                        return p.getValue();
+                    }
+                }
+            }
+        }
         return null;
     }
     

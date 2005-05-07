@@ -110,7 +110,7 @@ implements org.osid.repository.RecordStructure
             if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
             {
                 record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get") + "/"+objectId.getIdString()+"/demo:60/getStandard/");
+                              repository.getFedoraProperties().getProperty("url.fedora.get") + "/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
             }
             else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
             {

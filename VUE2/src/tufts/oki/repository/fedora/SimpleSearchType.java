@@ -5,7 +5,7 @@ extends org.osid.shared.Type
 {
     public SimpleSearchType()
     {
-        super ("tufts.edu","search","fedoraSimple");
+        super ("tufts.edu","search","fedoraSimple","Tufts Simple Search");
     }
 /**
 <p>MIT O.K.I&#46; SID Implementation License.

@@ -96,6 +96,7 @@ public class Repository implements org.osid.repository.Repository {
     public Repository(String conf,String id,String displayName,String description,URL address,String userName,String password)
         throws org.osid.repository.RepositoryException
     {
+        /*
         System.out.println("Repository CONSTRUCTING["
                            + conf + ", "
                            + id + ", "
@@ -104,7 +105,7 @@ public class Repository implements org.osid.repository.Repository {
                            + address + ", "
                            + userName + ", "
                            + password + "] " + this);
-        
+        */
         try
         {
             this.id = new PID(id);
@@ -137,16 +138,17 @@ public class Repository implements org.osid.repository.Repository {
     
     public void setFedoraProperties(java.net.URL conf) {
         String url = address.getProtocol()+"://"+address.getHost()+":"+address.getPort()+"/"+address.getFile();
-        System.out.println("FEDORA Address = "+ url);
+        //System.out.println("FEDORA Address = "+ url);
         fedoraProperties = new Properties();
         try {
-            System.out.println("Fedora Properties " + conf);
+            //System.out.println("Fedora Properties " + conf);
             prefs = FedoraUtils.getPreferences(this);
-            fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api",""));
-            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", ""));
-            fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", ""));
-            fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", ""));
-            fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types",""));
+            fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api","http://www.fedora.info/definitions/1/0/api/"));
+            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/"));
+
+            fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", "access/soap"));
+            fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
+            fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest"));
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
         
     }
@@ -437,10 +439,21 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     public org.osid.repository.AssetIterator getAssets(java.io.Serializable searchCriteria, org.osid.shared.Type searchType) throws org.osid.repository.RepositoryException {
-        System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
+        //System.out.println("SEARCHING FEDORA = "+ this.fedoraProperties.getProperty("url.fedora.soap.access"));
 
         SearchCriteria lSearchCriteria = null;
-        if (searchCriteria instanceof SearchCriteria)
+        
+        org.osid.shared.Type keywordType = new org.osid.types.mit.KeywordSearchType();
+        if ( (searchCriteria instanceof String) && (searchType.isEqual(keywordType)) )
+        {
+            lSearchCriteria = new SearchCriteria();
+            lSearchCriteria.setKeywords((String)searchCriteria);
+            lSearchCriteria.setMaxReturns("10");
+            lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
+            lSearchCriteria.setResults(0);
+            return FedoraSoapFactory.search(this,lSearchCriteria);
+        }
+        else if (searchCriteria instanceof SearchCriteria)
         {
             lSearchCriteria = (SearchCriteria)searchCriteria;
             if(searchType.isEqual(new SimpleSearchType()))
@@ -451,19 +464,10 @@ public class Repository implements org.osid.repository.Repository {
             {
                 return FedoraSoapFactory.advancedSearch(this,lSearchCriteria);
             }
-            else 
+            else
             {
                 throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.UNKNOWN_TYPE);
             }
-        }
-        else if ( (searchCriteria instanceof String) && (searchType.isEqual(new org.osid.types.mit.KeywordSearchType())) )
-        {
-            lSearchCriteria = new SearchCriteria();
-            lSearchCriteria.setKeywords((String)searchCriteria);
-            lSearchCriteria.setMaxReturns("100");
-            lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
-            lSearchCriteria.setResults(0);
-            return FedoraSoapFactory.search(this,lSearchCriteria);
         }
         else
         {
@@ -579,7 +583,7 @@ public class Repository implements org.osid.repository.Repository {
         }
         if (url == null)
             url = getClass().getResource(name);
-        System.out.println("fedora.conf = "+url.getFile());
+        //System.out.println("fedora.conf = "+url.getFile());
         return url;
     }
     

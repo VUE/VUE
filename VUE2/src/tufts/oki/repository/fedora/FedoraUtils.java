@@ -83,7 +83,7 @@ public class FedoraUtils {
             //prefs = Preferences.userRoot().node("/");
             Class clazz = new FedoraUtils().getClass();
             prefs = Preferences.userNodeForPackage(clazz);
-            System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
+            //System.out.println("*** " + clazz.getName() + ".getPreferences: loading & caching prefs from \"" + url + "\"");
             //InputStream stream = new BufferedInputStream(new FileInputStream(filename));
             InputStream stream = new BufferedInputStream(url.openStream());
             prefs.importPreferences(stream);

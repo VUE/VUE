@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resourceList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsRLICommonSchema_v1p0 http://www.imsglobal.org/rli/rliv1p0pd/bindings/rlicommon/xsd/imsRLICommonSchema_v1p0.xsd">
+<resourceListMetadata>
+<title>
+<metadataLangString>JISC ELF Discovery+ RLI test XML</metadataLangString>
+</title>
+<rightsDescription>
+<metadataLangString/>
+</rightsDescription>
+</resourceListMetadata>
+<resource>
+<indexId>4466</indexId>
+<resourceMetadata>
+<language>eng</language>
+<citation>
+<title>
+<metadataLangString>Brain stimulation and motivation :research and commentary /</metadataLangString>
+</title>
+<creator>
+<metadataLangString>Valenstein, Elliot S.</metadataLangString>
+</creator>
+<publicationDate>
+<metadataDate>[1973]</metadataDate>
+</publicationDate>
+<publicationPlace>
+<metadataLangString>Glenview, Ill. :</metadataLangString>
+</publicationPlace>
+<publisher>
+<metadataLangString>Scott, Foresman,</metadataLangString>
+</publisher>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>urn:ISBN:0673054438</metadataString>
+</identifierString>
+</standardIdentifier>
+</citation>
+</resourceMetadata>
+</resource>
+<resource>
+<indexId>1070406</indexId>
+<resourceMetadata>
+<language>eng</language>
+<citation>
+<title>
+<metadataLangString>E-learning and teaching in library and information services /</metadataLangString>
+</title>
+<creator>
+<metadataLangString>Allan, Barbara.</metadataLangString>
+</creator>
+<publicationDate>
+<metadataDate>2002.</metadataDate>
+</publicationDate>
+<publicationPlace>
+<metadataLangString>London :</metadataLangString>
+</publicationPlace>
+<publisher>
+<metadataLangString>Facet,</metadataLangString>
+</publisher>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>urn:ISBN:1856044394</metadataString>
+</identifierString>
+</standardIdentifier>
+</citation>
+</resourceMetadata>
+</resource>
+<resource>
+<indexId>1098240</indexId>
+<resourceMetadata>
+<language>eng</language>
+<citation>
+<title>
+<metadataLangString>E-Learning and the science of instruction :proven guidelines for consumers and designers of multimedia learning /</metadataLangString>
+</title>
+<creator>
+<metadataLangString>Clark, Ruth Colvin.</metadataLangString>
+</creator>
+<publicationDate>
+<metadataDate>c2003.</metadataDate>
+</publicationDate>
+<publicationPlace>
+<metadataLangString>San Francisco, CA :</metadataLangString>
+</publicationPlace>
+<publisher>
+<metadataLangString>Jossey-Bass/Pfeiffer,</metadataLangString>
+</publisher>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>urn:ISBN:0787960519</metadataString>
+</identifierString>
+</standardIdentifier>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>
+                    info:lccn:  2002028700</metadataString>
+</identifierString>
+</standardIdentifier>
+</citation>
+</resourceMetadata>
+</resource>
+<resource>
+<indexId>1124205</indexId>
+<resourceMetadata>
+<language>eng</language>
+<citation>
+<title>
+<metadataLangString>E-learning and training in Europe :a survey into the use of e-learning in training and professional development in the European Union /</metadataLangString>
+</title>
+<publicationDate>
+<metadataDate>2002.</metadataDate>
+</publicationDate>
+<publicationPlace>
+<metadataLangString>Luxembourg :</metadataLangString>
+</publicationPlace>
+<publisher>
+<metadataLangString>Office for Official Publications of the European Communities,</metadataLangString>
+</publisher>
+<volumeDesignation>
+<metadataString>26</metadataString>
+</volumeDesignation>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>urn:ISBN:928960106x</metadataString>
+</identifierString>
+</standardIdentifier>
+<relatedTitle>
+<title>
+<metadataLangString>CEDEFOP reference series</metadataLangString>
+</title>
+<volumeDesignation>
+<metadataString>26</metadataString>
+</volumeDesignation>
+</relatedTitle>
+</citation>
+</resourceMetadata>
+</resource>
+<resource>
+<indexId>970489</indexId>
+<resourceMetadata>
+<language>eng</language>
+<citation>
+<title>
+<metadataLangString>E-learning in the 21st century :a framework for research and practice /</metadataLangString>
+</title>
+<creator>
+<metadataLangString>Garrison, D. R.</metadataLangString>
+</creator>
+<publicationDate>
+<metadataDate>2003.</metadataDate>
+</publicationDate>
+<publicationPlace>
+<metadataLangString>London :</metadataLangString>
+</publicationPlace>
+<publisher>
+<metadataLangString>RoutledgeFalmer,</metadataLangString>
+</publisher>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>urn:ISBN:041526345x</metadataString>
+</identifierString>
+</standardIdentifier>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>urn:ISBN:0415263468 (pbk.)</metadataString>
+</identifierString>
+</standardIdentifier>
+<standardIdentifier>
+<standardIdentifierType>URI</standardIdentifierType>
+<identifierString>
+<metadataString>
+                    info:lccn:  2002026984</metadataString>
+</identifierString>
+</standardIdentifier>
+</citation>
+</resourceMetadata>
+</resource>
+</resourceList>

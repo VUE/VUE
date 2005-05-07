@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<LOBSTERS>
+
+   <LOBSTER>
+      <WSDLLOCATION>http://81.208.38.215/LobsterWebService/Lobster.wsdl</WSDLLOCATION>
+      <HOST>81.208.38.215:81</HOST>
+      <HOSTCONTENT>learnexact.ammeweb.org</HOSTCONTENT>
+      <DOMAIN>demo1</DOMAIN>
+      <DBNAME>MDC_3121_1</DBNAME>
+      <USER>osiduser</USER>
+      <PASSWORD>jeff</PASSWORD>
+   </LOBSTER>
+   <LOBSTER>
+      <WSDLLOCATION>http://81.208.38.215/LobsterWebService/Lobster.wsdl</WSDLLOCATION>
+      <HOST>81.208.38.215:81</HOST>
+      <HOSTCONTENT>learnexact.ammeweb.org</HOSTCONTENT>
+      <DOMAIN>demo2</DOMAIN>
+      <DBNAME>MDC_3121_2</DBNAME>
+      <USER>osiduser</USER>
+      <PASSWORD>jeff</PASSWORD>
+   </LOBSTER>
+</LOBSTERS>

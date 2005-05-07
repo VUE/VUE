@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.42 $ / $Date: 2005-04-26 20:05:41 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.42 2005-04-26 20:05:41 jeff Exp $ -->
+<!-- $Revision: 1.43 $ / $Date: 2005-05-07 01:28:23 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.43 2005-05-07 01:28:23 jeff Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -110,25 +110,32 @@
   <property name="thirdparty.jarfiles.names"
             value="
                    VUE-MacOSX.jar
+                   activation.jar
                    activation_unsigned.jar
                    an_az.jar
                    apache-commons.jar
                    apple-laf.jar
                    avalon-framework-cvs-20020806.jar
+                   axis.jar
                    axis-ant.jar
                    axis-fedora.jar
-                   axis.jar
                    batik-awt-util.jar
                    batik-ext.jar
                    batik-svggen.jar
                    batik-util.jar
                    batik.jar
                    castor-0.9.4.3-xml.jar
+                   celebrate_xml.jar
                    commons-discovery.jar
                    commons-httpclient.jar
+                   commons-httpclient-2.0.jar
                    commons-logging.jar
+                   CometOsidImpl.jar
+                   CometOsid2Impl.jar
+                   connectionTamino.jar
                    cryptix-asn1.jar
                    cryptix32.jar
+                   dom.jar
                    dom2.jar
                    drSql.jar
                    ecldr.jar
@@ -137,13 +144,23 @@
                    fedoragentypes.jar
                    fedorautilities.jar
                    fop.jar
+                   giuntiOSID.jar
                    gnu-getopt-1.0.9.jar
                    HiveRepositoryOSID.jar
                    id.jar
-                   iTunesDR.jar
                    iPhotosDR.jar
+                   imq.jar
+                   iTunesDR.jar
                    jakarta-regexp-1.2.jar
+                   jax-qname.jar
+                   jaxb-api.jar
+                   jaxb-impl.jar
+                   jaxb-libs.jar
+                   jaxb-xjc.jar
                    jaxrpc.jar
+                   jaxrpc-api.jar
+                   jaxrpc-impl.jar
+                   jaxrpc-spi.jar
                    jdom.jar
                    jhapi.jar
                    jhbasic_unsigned.jar
@@ -157,33 +174,46 @@
                    log4j-1.2.8.jar
                    logging.jar
                    mail.jar
+                   MITAuthenticationTypes.jar
                    MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    MRJAdapter.jar
                    mysql.jar
+                   mysql-connector-java-3.0.15-ga-bin.jar
+                   namespace.jar
+                   ocw2.jar
                    okiReversi.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
                    okiOSID-2.0.jar
+                   NarraVision.jar
                    postgresql.jar
+                   relaxngDatatype.jar
                    repositoryImage.jar
                    repositorySQL.jar
+                   rliOxfordDR.jar
                    saaj.jar
+                   saaj-api.jar
                    saxon6.5.jar
                    scorm.jar
                    servlet.jar
+                   SessionManager.jar
                    smete.jar
                    smeteclient.jar
                    splash.jar
                    srw.jar
+                   TaminoAPI4j.jar
+                   TaminoJCA.jar
                    UvaOSIDTypes.jar
                    wsdl4j.jar
+                   xalan.jar
                    xalan-2.4.1.jar
                    xerces-1.2.1.jar
                    xercesImpl-2.2.1.jar
                    xercesImpl.jar
                    xml-apis.jar
                    xmlrpc-1.1.jar
+                   xsdlib.jar
                    "/>
   
   <!-- VUE will actually run with this minimal set of jar files, with the exception
@@ -239,9 +269,103 @@
     <pathelement path="${lib.home}/saaj.jar"/>
     <pathelement path="${lib.home}/MRJAdapter.jar"/>
     <pathelement path="${lib.home}/apple-laf.jar"/>
-    <pathelement path="${lib.home}/MITSearchTypes.jar"/>
-    <pathelement path="${lib.home}/repositorySQL.jar"/>
-    <pathelement path="${lib.home}/srw.jar"/>
+
+    <pathelement path="${lib.home}/okiOSID-2.0.jar" />	
+    <pathelement path="${lib.home}/okiSID.jar" />	
+    <pathelement path="${lib.home}/okiSIDImpl.jar" />	
+    <pathelement path="${lib.home}/okiReversi.jar" />	
+    <pathelement path="${lib.home}/MITSearchTypes.jar" />
+    <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
+    <pathelement path="${lib.home}/MITAuthenticationTypes.jar" />
+
+    <pathelement path="${lib.home}/jaxb-api.jar" />
+    <pathelement path="${lib.home}/jaxb-xjc.jar" />
+    <pathelement path="${lib.home}/jaxb-libs.jar" />
+    <pathelement path="${lib.home}/jaxp-impl.jar" />
+    <pathelement path="${lib.home}/celebrate_xml.jar" />
+    <pathelement path="${lib.home}/jax-qname.jar" />
+    <pathelement path="${lib.home}/relaxngDatatype.jar" />
+    <pathelement path="${lib.home}/SessionManager.jar" />
+    <pathelement path="${lib.home}/imq.jar" />
+    <pathelement path="${lib.home}/jms.jar" />
+    <pathelement path="${lib.home}/namespace.jar" />
+    <pathelement path="${lib.home}/xsdlib.jar" />
+    <pathelement path="${lib.home}/jaxrpc-api.jar" />
+    <pathelement path="${lib.home}/jaxrpc-impl.jar" />
+    <pathelement path="${lib.home}/jaxrpc-spi.jar" />
+    <pathelement path="${lib.home}/activation.jar" />
+    <pathelement path="${lib.home}/mail.jar" />
+    <pathelement path="${lib.home}/saaj-api.jar" />
+    <pathelement path="${lib.home}/saaj-impl.jar" />
+    <pathelement path="${lib.home}/xercesImpl.jar" />
+    <pathelement path="${lib.home}/dom.jar" />
+<!--
+    <pathelement path="${lib.home}/ELNClient.jar" />
+    <pathelement path="${lib.home}/CelebrateOSID.jar" />
+    <pathelement path="${lib.home}" />
+-->
+    <pathelement path="${lib.home}/tufts/TuftsDigitalLibraryOSID.jar"/>
+    <pathelement path="${lib.home}/tufts/fedora-server.jar"/>
+    <pathelement path="${lib.home}/tufts/TuftsOSIDTypes.jar"/>
+    <pathelement path="${lib.home}/tufts/VUE-core.jar" />
+    
+    <pathelement path="${lib.home}/srw/srw.jar"/>
+    <pathelement path="${lib.home}/uva/UvaOSIDTypes.jar"/>
+    <pathelement path="${lib.home}/uva/repositoryImage.jar"/>    
+    <pathelement path="${lib.home}/rliOxford/ocus/osid/repository/rliOxford"/>    
+    <pathelement path="${lib.home}/rliOxford/ocus/osid/repository/rliOxford/rliOxfordDR.jar"/>    
+
+    <pathelement path="${lib.home}/activation.jar" />
+    <pathelement path="${lib.home}/axis-ant.jar" />
+    <pathelement path="${lib.home}/axis.jar" />
+    <pathelement path="${lib.home}/commons-discovery.jar" />
+    <pathelement path="${lib.home}/commons-httpclient.jar" />
+    <pathelement path="${lib.home}/commons-logging.jar" />
+    <pathelement path="${lib.home}/cryptix-asn1.jar" />
+    <pathelement path="${lib.home}/cryptix32.jar" />
+    <pathelement path="${lib.home}/dom2.jar"/>
+    <pathelement path="${lib.home}/ecldr.jar"/>
+    <pathelement path="${lib.home}/jaxrpc.jar" />
+    <pathelement path="${lib.home}/jdom.jar" />
+    <pathelement path="${lib.home}/jms.jar" />
+    <pathelement path="${lib.home}/jxtaid.jar" />
+    <pathelement path="${lib.home}/jxtasecurity.jar" />
+    <pathelement path="${lib.home}/log4j-1.2.4.jar" />
+    <pathelement path="${lib.home}/saaj.jar" />
+    <pathelement path="${lib.home}/xalan.jar" />
+    <pathelement path="${lib.home}/xercesImpl.jar" />
+    <pathelement path="${lib.home}/xml-apis.jar" />
+
+    <pathelement path="${lib.home}" />
+    <pathelement path="${lib.home}/iPhotos" />
+    <pathelement path="${lib.home}/iTunes" />
+    <pathelement path="${lib.home}/ocw" />
+    <pathelement path="${lib.home}/scorm" />
+                
+    <pathelement path="${lib.home}/iPhotos/iPhotosDR.jar" />
+    <pathelement path="${lib.home}/iTunes/iTunesDR.jar" />
+    <pathelement path="${lib.home}/ocw/ocw2.jar" />
+    <pathelement path="${lib.home}/scorm/scorm.jar" />
+
+    <pathelement path="${lib.home}/CometOsidImpl.jar" />
+    <pathelement path="${lib.home}/CometOsid2Impl.jar" />
+    <pathelement path="${lib.home}/postgresql.jar" />
+    <pathelement path="${lib.home}/mysql-connector-java-3.0.15-ga-bin.jar"/>  	
+    <pathelement path="${lib.home}/NarraVision.jar" />	
+
+    <pathelement path="${lib.home}/giunti" />
+    <pathelement path="${lib.home}/giunti/giuntiOSID.jar" />
+    <pathelement path="${lib.home}/giunti/connectionTamino.jar" />
+    <pathelement path="${lib.home}/giunti/TaminoAPI4j.jar" />
+    <pathelement path="${lib.home}/giunti/TaminoJCA.jar" />
+
+    <pathelement path="${lib.home}/HiveRepositoryOsid.jar" />
+    <pathelement path="${lib.home}/commons-httpclient-2.0.jar" />
+    <pathelement path="${lib.home}/commons-logging.jar" />
+    <pathelement path="${lib.home}/jdom.jar" />
+    <pathelement path="${lib.home}/jhapi.jar" />
+    <pathelement path="${lib.home}/jnet.jar" />
+    <pathelement path="${lib.home}/jsse.jar" />
   </path>
     
   <path id="compile.classpath.google">
