@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.43 $ / $Date: 2005-05-07 01:28:23 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.43 2005-05-07 01:28:23 jeff Exp $ -->
+<!-- $Revision: 1.44 $ / $Date: 2005-05-09 19:14:57 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.44 2005-05-09 19:14:57 jeff Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -109,10 +109,30 @@
   <!-- castor-0.9.4.3.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.4.3-xml.jar -->
   <property name="thirdparty.jarfiles.names"
             value="
+                   connectionTamino.jar
+                   jaxb-api.jar
+                   jaxb-impl.jar
+                   jaxb-libs.jar
+                   SessionManager.jar
+                   imq.jar
+                   jms.jar
+                   celebrate_xml.jar
+                   jax-qname.jar
+                   relaxngDatatype.jar
+                   namespace.jar
+                   xsdlib.jar
+                   jaxrpc-api.jar
+                   jaxrpc-impl.jar
+                   jaxrpc-spi.jar
                    VUE-MacOSX.jar
-                   activation.jar
                    activation_unsigned.jar
+                   mail.jar
+                   xercesImpl.jar
+                   saaj-api.jar
+                   saaj-impl.jar
                    an_az.jar
+                   VisualizingCultures.jar
+                   NarraVision.jar
                    apache-commons.jar
                    apple-laf.jar
                    avalon-framework-cvs-20020806.jar
@@ -125,14 +145,12 @@
                    batik-util.jar
                    batik.jar
                    castor-0.9.4.3-xml.jar
-                   celebrate_xml.jar
                    commons-discovery.jar
                    commons-httpclient.jar
                    commons-httpclient-2.0.jar
                    commons-logging.jar
                    CometOsidImpl.jar
                    CometOsid2Impl.jar
-                   connectionTamino.jar
                    cryptix-asn1.jar
                    cryptix32.jar
                    dom.jar
@@ -149,23 +167,14 @@
                    HiveRepositoryOSID.jar
                    id.jar
                    iPhotosDR.jar
-                   imq.jar
                    iTunesDR.jar
                    jakarta-regexp-1.2.jar
-                   jax-qname.jar
-                   jaxb-api.jar
-                   jaxb-impl.jar
-                   jaxb-libs.jar
                    jaxb-xjc.jar
                    jaxrpc.jar
-                   jaxrpc-api.jar
-                   jaxrpc-impl.jar
-                   jaxrpc-spi.jar
                    jdom.jar
                    jhapi.jar
                    jhbasic_unsigned.jar
                    jlfgr-1_0.jar
-                   jms.jar
                    jnet.jar
                    jsse.jar
                    jxtaid.jar
@@ -173,36 +182,30 @@
                    log4j-1.2.4.jar
                    log4j-1.2.8.jar
                    logging.jar
-                   mail.jar
                    MITAuthenticationTypes.jar
                    MITRepositoryTypes.jar
                    MITSearchTypes.jar
                    MRJAdapter.jar
                    mysql.jar
                    mysql-connector-java-3.0.15-ga-bin.jar
-                   namespace.jar
                    ocw2.jar
                    okiReversi.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
                    okiOSID-2.0.jar
-                   NarraVision.jar
                    postgresql.jar
-                   relaxngDatatype.jar
                    repositoryImage.jar
                    repositorySQL.jar
                    rliOxfordDR.jar
                    saaj.jar
-                   saaj-api.jar
                    saxon6.5.jar
                    scorm.jar
                    servlet.jar
-                   SessionManager.jar
                    smete.jar
                    smeteclient.jar
                    splash.jar
                    srw.jar
-                   TaminoAPI4j.jar
+                   TaminoAPI4J.jar
                    TaminoJCA.jar
                    UvaOSIDTypes.jar
                    wsdl4j.jar
@@ -210,10 +213,8 @@
                    xalan-2.4.1.jar
                    xerces-1.2.1.jar
                    xercesImpl-2.2.1.jar
-                   xercesImpl.jar
                    xml-apis.jar
                    xmlrpc-1.1.jar
-                   xsdlib.jar
                    "/>
   
   <!-- VUE will actually run with this minimal set of jar files, with the exception
@@ -249,6 +250,7 @@
   <path id="compile.classpath.common">
 
     <pathelement path="."/>                
+    <pathelement path="${lib.home}/VisualizingCultures.jar" />	
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX - we only need XML-->
     <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/>
@@ -351,7 +353,6 @@
     <pathelement path="${lib.home}/CometOsid2Impl.jar" />
     <pathelement path="${lib.home}/postgresql.jar" />
     <pathelement path="${lib.home}/mysql-connector-java-3.0.15-ga-bin.jar"/>  	
-    <pathelement path="${lib.home}/NarraVision.jar" />	
 
     <pathelement path="${lib.home}/giunti" />
     <pathelement path="${lib.home}/giunti/giuntiOSID.jar" />
