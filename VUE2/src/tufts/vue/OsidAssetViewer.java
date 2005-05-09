@@ -452,7 +452,23 @@ public class OsidAssetViewer extends JPanel implements ActionListener,KeyListene
                 searchType = stringToType(selectedType);
             }
             VueDragTree tree = null;
-            resultObjectsIterator = this.digitalRepository.getAssetsBySearch(keywords.getText(),searchType);
+
+            String xquery = "<filter:filter schemaVersion=\"0.1\" xmlns:filter=\"http://celebrate.eun.org/xml/ns/filter-0_1\">"
+            + "<filter:comp>" +
+            "<filter:op>in</filter:op>" +
+            "<filter:field>1.2</filter:field>" +
+            "<filter:value>" +
+            keywords.getText() +
+            "</filter:value>" +
+            "</filter:comp></filter:filter>";
+            
+            if (!selectedType.endsWith("Query"))
+            {
+                xquery = keywords.getText();
+            }
+            System.out.println("Query is " + xquery);
+            
+            resultObjectsIterator = this.digitalRepository.getAssetsBySearch(xquery,searchType);
             tree = new VueDragTree(getOsidAssetResourceIterator(resultObjectsIterator),"Repository Search Results");
 
             tree.setRootVisible(false);

@@ -116,12 +116,41 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
 
         try 
         {
-            org.osid.OsidManager osidManager = osidManager = tufts.vue.OsidLoader.getManager(
-                "org.osid.repository.RepositoryManager",
-                implementation,
-                context,
-                new java.util.Properties());            
-            org.osid.repository.RepositoryManager repositoryManager = (org.osid.repository.RepositoryManager)osidManager;
+            org.osid.repository.RepositoryManager repositoryManager = null;
+            //temporary fix
+            if (implementation.equals("mit.edu.narravision.repository"))
+            {
+                try
+                {
+                    clouseau.Settings settings = clouseau.Settings.getInstance();
+
+                    settings.setContext(context);
+                    settings.setIdImplementation("comet.osidimpl.id.no_persist");
+                    settings.setTypeAsStringDelimiter(",");
+                    settings.setSystemResourceDirectory("");
+                    settings.setNoImage("images/NoImage.gif");
+                    repositoryManager = (org.osid.repository.RepositoryManager)org.osid.OsidLoader.getManager(
+                            "org.osid.repository.RepositoryManager",
+                            "mit.edu.narravision.repository",
+                            context,
+                            new java.util.Properties());
+                    ((mit.edu.narravision.repository.RepositoryManager)repositoryManager).openXML(new java.io.FileInputStream("data/narravision/BlackShipsAndSamurai.xml"));
+                    ((mit.edu.narravision.repository.RepositoryManager)repositoryManager).openXML(new java.io.FileInputStream("data/narravision/YokohamaBoomtown.xml"));
+                }
+                catch (Throwable t) 
+                {
+                    t.printStackTrace();
+                }
+            }
+            else
+            {
+                org.osid.OsidManager osidManager = osidManager = tufts.vue.OsidLoader.getManager(
+                    "org.osid.repository.RepositoryManager",
+                    implementation,
+                    context,
+                    new java.util.Properties());            
+                repositoryManager = (org.osid.repository.RepositoryManager)osidManager;
+            }
             org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
             while (repositoryIterator.hasNextRepository())
             {
@@ -132,6 +161,8 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
         {
             t.printStackTrace();
         }
+        try
+        {
         keywords = new JTextField();
         setSearchTypes();
         setSearchPanel();
@@ -150,6 +181,11 @@ public class Osid2AssetViewer extends JPanel implements ActionListener,KeyListen
             }
         });
         add(tabbedPane,BorderLayout.CENTER);
+        }
+        catch (Throwable t)
+        {
+            t.printStackTrace();
+        }
     }
     
     private void setSearchTypes()

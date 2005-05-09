@@ -86,45 +86,44 @@ public class Osid2AssetResource extends MapResource
                         org.osid.repository.Part part = partIterator.nextPart();
                         org.osid.repository.PartStructure partStructure = part.getPartStructure();
                         java.io.Serializable ser = part.getValue();
+                        String name = partStructure.getDisplayName();
                         if (ser instanceof String)
                         {
-                            mProperties.put(partStructure.getDisplayName(),ser);
+                            mProperties.put(name,ser);
+                            if (name.equals("spec")) setSpec((String)ser);
                         }
                     }
                 }
             }
             catch (Throwable t) 
             {
-                System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
+                System.out.println("No VUE integration record.  Looking at all records");
             }
-System.out.println("checking if int record found");
             if (!foundIntegrationRecord)
             {
-System.out.println("int record not found");
                 try
                 {
                     org.osid.repository.RecordIterator recordIterator = asset.getRecords();
                     while (recordIterator.hasNextRecord())
                     {
-System.out.println("found record");
                         org.osid.repository.PartIterator partIterator = recordIterator.nextRecord().getParts();
                         while (partIterator.hasNextPart())
                         {
-System.out.println("found part");
                             org.osid.repository.Part part = partIterator.nextPart();
                             org.osid.repository.PartStructure partStructure = part.getPartStructure();
+                            String name = partStructure.getDisplayName();
                             java.io.Serializable ser = part.getValue();
-System.out.println("ser " + ser);
                             if (ser instanceof String)
                             {
-                                mProperties.put(partStructure.getDisplayName(),ser);
+                                mProperties.put(name,ser);
+                                if (name.equals("NARRAVISION_MEDIUM_IMAGE_DISPLAY_NAME_PART_STRUCTURE")) setSpec((String)ser);
                             }
                         }
                     }
                 }
                 catch (Throwable t) 
                 {
-                    System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
+                    t.printStackTrace();
                 }
             }
             
@@ -151,6 +150,10 @@ System.out.println("ser " + ser);
             }
         }
         catch (Throwable t)
+        {
+            setSpec(asset.getDisplayName());
+        }
+        if ((getSpec() == null) || (getSpec().trim().length() == 0))
         {
             setSpec(asset.getDisplayName());
         }

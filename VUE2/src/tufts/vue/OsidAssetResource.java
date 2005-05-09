@@ -76,6 +76,7 @@ public class OsidAssetResource extends MapResource
             mProperties.put("title",displayName);
             try
             {
+                setSpec( (String)asset.getContent() );            
                 osid.dr.InfoRecord record = asset.getInfoRecord(sharedManager.getId(VUE_INTEGRATION_RECORD));
                 if (record != null)
                 {
@@ -91,7 +92,6 @@ public class OsidAssetResource extends MapResource
             }
             catch (Exception ex) 
             {
-                setSpec( (String)asset.getContent() );            
                 System.out.println("No VUE integration record.  Fetching Asset's content " + getSpec());
             }
             Object o = mProperties.get("spec");
