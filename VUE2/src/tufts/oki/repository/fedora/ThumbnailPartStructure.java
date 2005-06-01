@@ -1,29 +1,32 @@
 package tufts.oki.repository.fedora;
 
-public class VUERecordStructure
-implements org.osid.repository.RecordStructure
+public class ThumbnailPartStructure
+implements org.osid.repository.PartStructure
 {
     private java.util.Vector partsVector = new java.util.Vector();
-    private String displayName = "VUE Specific Data";
-    private String description = "Provides information to be used by VUE";
+    private org.osid.repository.RecordStructure disseminationRecordStructure = null;
+    private String displayName = "Thumbnail";
+    private String description = "Image thumbnail to be display alongside others";
     private org.osid.shared.Id id = null;
-    private String schema = null;
-    private String format = "Plain Text";
-    private org.osid.shared.Type type = new Type("tufts.edu","recordStructure","vue");
-    private org.osid.repository.PartStructure sVUEDefaultViewPartStructure = null;
+    private boolean populatedByRepository = true;
+    private boolean mandatory = true;
+    private boolean repeatable = false;
+    private org.osid.shared.Type type = new Type("mit.edu","partStructure","thumbnail");
+    private org.osid.repository.RecordStructure recordStructure = (org.osid.repository.RecordStructure) disseminationRecordStructure;
 
-    protected VUERecordStructure(Repository repository)
+    protected ThumbnailPartStructure(org.osid.repository.RecordStructure recordStructure
+                              , Repository repository)
     throws org.osid.repository.RepositoryException
     {
+        this.recordStructure = recordStructure;
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "VUEInfoStructureId"));
+            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "ThumbnailPartStructureId"));
         }
         catch (org.osid.shared.SharedException sex)
         {
+			sex.printStackTrace();
         }
-        this.sVUEDefaultViewPartStructure = new VUEDefaultViewPartStructure(this, repository);
-        this.partsVector.add(this.sVUEDefaultViewPartStructure);        
     }
 
     public String getDisplayName()
@@ -44,28 +47,10 @@ implements org.osid.repository.RecordStructure
         return this.description;
     }
 
-    public String getFormat()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.format;
-    }
-
     public org.osid.shared.Id getId()
     throws org.osid.repository.RepositoryException
     {
         return this.id;
-    }
-
-    public org.osid.repository.PartStructureIterator getPartStructures()
-    throws org.osid.repository.RepositoryException
-    {
-        return new PartStructureIterator(this.partsVector);
-    }
-
-    public String getSchema()
-    throws org.osid.repository.RepositoryException
-    {
-        return this.schema;
     }
 
     public org.osid.shared.Type getType()
@@ -74,63 +59,41 @@ implements org.osid.repository.RecordStructure
         return this.type;
     }
 
+    public org.osid.repository.PartStructureIterator getPartStructures()
+    throws org.osid.repository.RepositoryException
+    {
+        return new PartStructureIterator(this.partsVector);
+    }
+
+    public org.osid.repository.RecordStructure getRecordStructure()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.recordStructure;
+    }
+
+    public boolean isMandatory()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.mandatory;
+    }
+
+    public boolean isPopulatedByRepository()
+    throws org.osid.repository.RepositoryException
+    {
+        return this.populatedByRepository;
+    }
+
     public boolean isRepeatable()
     throws org.osid.repository.RepositoryException
     {
-        return false;
+        return this.repeatable;
     }
 
-    public boolean validateRecord(org.osid.repository.Record record)
+    public boolean validatePart(org.osid.repository.Part part)
     throws org.osid.repository.RepositoryException
     {
         return true;
     }
-
-    public org.osid.repository.PartStructure getVUEDefaultViewPartStructure()
-    throws org.osid.repository.RepositoryException
-    {
-        if (this.sVUEDefaultViewPartStructure == null)
-        {
-            throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
-        }
-        return this.sVUEDefaultViewPartStructure;
-    }
-
-    public static Record createVUERecord(String pid
-                                       , VUERecordStructure recordStructure
-                                       , Repository repository
-                                       , PID objectId
-                                       , FedoraObjectAssetType assetType)
-    throws org.osid.repository.RepositoryException
-    {
-        Record record = null;
-        try
-        {
-            record = new Record(new PID(pid),recordStructure);
-            if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
-            {
-                record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get") + "/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
-            }
-            else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
-            {
-                record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString()+"/demo:77/getDocument/");
-            }
-            else
-            {
-                record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString());
-            }
-                }
-        catch (Throwable t)
-        {
-            t.printStackTrace();
-        }
-        return record;
-    }
-
-	
 /**
 <p>MIT O.K.I&#46; SID Implementation License.
   <p>	<b>Copyright and license statement:</b>

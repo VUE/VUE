@@ -40,6 +40,7 @@ public class FedoraObjectAssetType extends org.osid.shared.Type {
     private String type ="TUFTS_STD_IMAGE";
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private org.osid.repository.RecordStructure sVUERecordStructure = null;
+    private org.osid.repository.RecordStructure sUVARecordStructure = null;
     /** Creates a new instance of FedoraObjectAssetType */
     public FedoraObjectAssetType(Repository repository,String type) throws org.osid.repository.RepositoryException {
         super("tufts.edu","asset",type);
@@ -72,12 +73,20 @@ public class FedoraObjectAssetType extends org.osid.shared.Type {
             
     }
 
+     public org.osid.repository.RecordStructure getUVARecordStructure()  throws org.osid.repository.RepositoryException  {
+        if(this.sUVARecordStructure == null) 
+            throw new org.osid.repository.RepositoryException("UVA RecordStructure doesn't exist");
+        return this.sUVARecordStructure;
+            
+    }
     private void loadRecordStructures() throws org.osid.repository.RepositoryException {
         try {
             disseminationRecordStructure = new DisseminationRecordStructure(repository);
             sVUERecordStructure = new VUERecordStructure(repository);
+            sUVARecordStructure = new UVARecordStructure(repository);
             recordStructures.add(disseminationRecordStructure);
             recordStructures.add(sVUERecordStructure);
+            recordStructures.add(sUVARecordStructure);
         }catch(Exception ex) {
             throw new org.osid.repository.RepositoryException("FedoraObjecAssetType.loadRecordStructure  "+ex);
         }

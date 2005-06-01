@@ -17,7 +17,7 @@ implements org.osid.repository.PartStructure
     protected VUEDefaultViewPartStructure(org.osid.repository.RecordStructure recordStructure
                                         , Repository repository)
     throws org.osid.repository.RepositoryException
-    {
+	{
         this.recordStructure = recordStructure;
         try
         {

@@ -1,29 +1,29 @@
 package tufts.oki.repository.fedora;
 
-public class VUERecordStructure
+public class UVARecordStructure
 implements org.osid.repository.RecordStructure
 {
     private java.util.Vector partsVector = new java.util.Vector();
-    private String displayName = "VUE Specific Data";
+    private String displayName = "UVA Specific Data";
     private String description = "Provides information to be used by VUE";
     private org.osid.shared.Id id = null;
     private String schema = null;
     private String format = "Plain Text";
-    private org.osid.shared.Type type = new Type("tufts.edu","recordStructure","vue");
-    private org.osid.repository.PartStructure sVUEDefaultViewPartStructure = null;
+    private org.osid.shared.Type type = new Type("edu.uva","recordStructure","image");
+    private org.osid.repository.PartStructure sThumbnailPartStructure = null;
 
-    protected VUERecordStructure(Repository repository)
+    protected UVARecordStructure(Repository repository)
     throws org.osid.repository.RepositoryException
     {
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "VUEInfoStructureId"));
+            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "UVARecordStructureId"));
         }
         catch (org.osid.shared.SharedException sex)
         {
         }
-        this.sVUEDefaultViewPartStructure = new VUEDefaultViewPartStructure(this, repository);
-        this.partsVector.add(this.sVUEDefaultViewPartStructure);        
+        this.sThumbnailPartStructure = new ThumbnailPartStructure(this, repository);
+        this.partsVector.add(this.sThumbnailPartStructure);        
     }
 
     public String getDisplayName()
@@ -86,18 +86,18 @@ implements org.osid.repository.RecordStructure
         return true;
     }
 
-    public org.osid.repository.PartStructure getVUEDefaultViewPartStructure()
+    public org.osid.repository.PartStructure getThumbnailPartStructure()
     throws org.osid.repository.RepositoryException
     {
-        if (this.sVUEDefaultViewPartStructure == null)
+        if (this.sThumbnailPartStructure == null)
         {
             throw new org.osid.repository.RepositoryException(org.osid.repository.RepositoryException.OPERATION_FAILED);
         }
-        return this.sVUEDefaultViewPartStructure;
+        return this.sThumbnailPartStructure;
     }
 
-    public static Record createVUERecord(String pid
-                                       , VUERecordStructure recordStructure
+    public static Record createUVARecord(String pid
+                                       , UVARecordStructure recordStructure
                                        , Repository repository
                                        , PID objectId
                                        , FedoraObjectAssetType assetType)
@@ -109,20 +109,10 @@ implements org.osid.repository.RecordStructure
             record = new Record(new PID(pid),recordStructure);
             if(assetType.getKeyword().equals("TUFTS_STD_IMAGE"))
             {
-                record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get") + "/"+objectId.getIdString()+"/bdef:11/getDefaultView/");
+	                record.createPart(recordStructure.getThumbnailPartStructure().getId(),
+                              repository.getFedoraProperties().getProperty("url.seastar.fedora.get") +objectId.getIdString()+"/fedora-system:3/getItem?itemID=THUMB");
             }
-            else if(assetType.getKeyword().equals("XML_TO_HTMLDOC"))
-            {
-                record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString()+"/demo:77/getDocument/");
-            }
-            else
-            {
-                record.createPart(recordStructure.getVUEDefaultViewPartStructure().getId(),
-                              repository.getFedoraProperties().getProperty("url.fedora.get")+"/"+objectId.getIdString());
-            }
-                }
+		}
         catch (Throwable t)
         {
             t.printStackTrace();

@@ -148,6 +148,7 @@ public class Repository implements org.osid.repository.Repository {
 
             fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", "access/soap"));
             fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
+            fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
             fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest"));
         } catch (Exception ex) { System.out.println("Unable to load fedora Properties"+ex);}
         
