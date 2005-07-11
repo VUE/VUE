@@ -36,7 +36,11 @@ import java.awt.event.*;
 public class AddDataSourcePanel extends JPanel {
     
     /** Creates a new instance of AddDataSourcePanel */
+<<<<<<< AddDataSourcePanel.java
+    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID-DR","Artifact","Google"};
+=======
     String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID 1.0","OSID 2.0","Artifact"};
+>>>>>>> 1.13
     Box addDataSourceBox;
     JPanel addPanel;
     JPanel typesPanel;
@@ -66,10 +70,17 @@ public class AddDataSourcePanel extends JPanel {
                         addPanel.add(new GoogleDataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[5])) {
                         addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
+<<<<<<< AddDataSourcePanel.java
+                   }else if(e.getItem().toString().equals(dataSourceTypes[6])){
+                          addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
+                    } else if(e.getItem().toString().equals(dataSourceTypes[7])) {
+                         addPanel.add(new tufts.googleapi.AddPanel(AddDataSourcePanel.this.dialog));
+=======
                     }else if(e.getItem().toString().equals(dataSourceTypes[6])) {
                         addPanel.add(new Osid2DataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[7])){
                         addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
+>>>>>>> 1.13
                     }
                     validate();
                 }
