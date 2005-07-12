@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.44 $ / $Date: 2005-05-09 19:14:57 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.44 2005-05-09 19:14:57 jeff Exp $ -->
+<!-- $Revision: 1.45 $ / $Date: 2005-07-12 21:05:48 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.45 2005-07-12 21:05:48 anoop Exp $ -->
 
 
 <!-- ==================== File and Directory Names ======================== -->
@@ -164,6 +164,7 @@
                    fop.jar
                    giuntiOSID.jar
                    gnu-getopt-1.0.9.jar
+                   googleapi.jar
                    HiveRepositoryOSID.jar
                    id.jar
                    iPhotosDR.jar
@@ -239,6 +240,7 @@
                    fedoragentypes.jar
                    fedorautilities.jar
                    fop.jar
+                   googleapi.jar
                    jaxrpc.jar
                    MRJAdapter.jar
                    okiSID_rc6_1.jar
@@ -262,6 +264,7 @@
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
     <pathelement path="${lib.home}/fedora-client.jar"/>
     <pathelement path="${lib.home}/fedora-server.jar"/>
+    <pathelement path="${lib.home}/googleapi.jar"/>
     <pathelement path="${lib.home}/axis.jar"/>
     <pathelement path="${lib.home}/axis-ant.jar"/>
     <pathelement path="${lib.home}/commons-discovery.jar"/>
@@ -527,6 +530,7 @@
            >
       <classpath refid="compile.classpath.vue"/>
       <include name="tufts/artifact/*.java"/>
+      <include name="tufts/googleapi/*.java"/>
       <include name="tufts/vue/**/*.java"/>
       <exclude name="tufts/vue/OsidAsset*.java"/>
       <exclude name="**/macosx/**"/>
@@ -584,7 +588,7 @@
 
   <target name="run-jar-core">
     <jar zipfile="${vue-core.jar}" update="true" compress="false" index="true">
-      <!--fileset dir="${src}" includes="**/*.xml"/-->
+      <fileset dir="${src}" includes="**/*.xml"/>
       <fileset dir="${src}" includes="**/*.conf"/>
       <fileset dir="${src}" includes="**/*.properties"/>
       <fileset dir="${src}" includes="tufts/vue/resources/**"/>
