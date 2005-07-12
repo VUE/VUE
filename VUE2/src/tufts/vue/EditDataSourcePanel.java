@@ -67,6 +67,8 @@ public class EditDataSourcePanel extends JPanel{
             editDataSourcePanel = new OsidDataSourcePanel((OsidDataSource)dataSource);
         } else if(dataSource instanceof tufts.artifact.DataSource){
             editDataSourcePanel = new tufts.artifact.EditPanel((tufts.artifact.DataSource)dataSource,this.dialog);
+        }else if(dataSource instanceof tufts.googleapi.DataSource){
+            editDataSourcePanel = new tufts.googleapi.EditPanel((tufts.googleapi.DataSource)dataSource,this.dialog);
         }
         add(editDataSourcePanel,BorderLayout.NORTH);
         validate();

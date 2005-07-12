@@ -203,12 +203,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         topPanel.add(refreshButton);
         topPanel.add(questionLabel);
         
-        
-        
         dataSourcePanel = new JPanel();
         dataSourcePanel.setLayout(new BorderLayout());
         dataSourcePanel.add(topPanel,BorderLayout.NORTH);
-        
         
         JScrollPane dataJSP = new JScrollPane(dataSourceList);
         dataSourcePanel.add(dataJSP,BorderLayout.CENTER);
@@ -230,8 +227,9 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
         else  if (ds instanceof Osid2DataSource) type = 6;
-        else if  (ds instanceof tufts.artifact.DataSource) type = 7;
-        else type = 8;
+        else if(ds instanceof tufts.artifact.DataSource) type = 7;
+        else if(ds instanceof tufts.googleapi.DataSource) type = 8;
+        else type = 9;
         
         Vector dataSourceVector = (Vector)allDataSources.get(type);
         dataSourceVector.add(ds);
@@ -250,7 +248,10 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
         else  if (ds instanceof GoogleDataSource) type = 4;
         else  if (ds instanceof OsidDataSource) type = 5;
         else  if (ds instanceof Osid2DataSource) type = 6;
-        else type = 7;
+        else if(ds instanceof tufts.artifact.DataSource) type = 6;
+        else if(ds instanceof tufts.googleapi.DataSource) type = 7;
+        else type = 9;
+        
         if(VueUtil.confirm(this,"Are you sure you want to delete DataSource :"+ds.getDisplayName(),"Delete DataSource Confirmation") == JOptionPane.OK_OPTION) {
             Vector dataSourceVector = (Vector)allDataSources.get(type);
             dataSourceVector.removeElement(ds);
@@ -519,15 +520,13 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
             }
             
         }
-        try
-        {
+        try {
             if (DEBUG.DR) System.out.println("saveDataSourceViewer: creating new SaveDataSourceViewer");
             SaveDataSourceViewer sViewer= new SaveDataSourceViewer(sDataSources);
             if (DEBUG.DR) System.out.println("saveDataSourceViewer: marshallMap: saving " + sViewer + " to " + f);
             marshallMap(f,sViewer);
         }
-        catch (Throwable t)
-        {
+        catch (Throwable t) {
             t.printStackTrace();
         }
     }

@@ -36,11 +36,7 @@ import java.awt.event.*;
 public class AddDataSourcePanel extends JPanel {
     
     /** Creates a new instance of AddDataSourcePanel */
-<<<<<<< AddDataSourcePanel.java
-    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID-DR","Artifact","Google"};
-=======
-    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID 1.0","OSID 2.0","Artifact"};
->>>>>>> 1.13
+    String[] dataSourceTypes = {"Local Folder","Favorites List", "FTP Server","Fedora","Local Google","OSID 1.0","OSID 2.0","Artifact","Google"};
     Box addDataSourceBox;
     JPanel addPanel;
     JPanel typesPanel;
@@ -70,17 +66,12 @@ public class AddDataSourcePanel extends JPanel {
                         addPanel.add(new GoogleDataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[5])) {
                         addPanel.add(new OsidDataSourcePanel(),BorderLayout.CENTER);
-<<<<<<< AddDataSourcePanel.java
-                   }else if(e.getItem().toString().equals(dataSourceTypes[6])){
-                          addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
-                    } else if(e.getItem().toString().equals(dataSourceTypes[7])) {
-                         addPanel.add(new tufts.googleapi.AddPanel(AddDataSourcePanel.this.dialog));
-=======
                     }else if(e.getItem().toString().equals(dataSourceTypes[6])) {
                         addPanel.add(new Osid2DataSourcePanel(),BorderLayout.CENTER);
                     }else if(e.getItem().toString().equals(dataSourceTypes[7])){
                         addPanel.add(new tufts.artifact.AddPanel(AddDataSourcePanel.this.dialog));
->>>>>>> 1.13
+                    } else if(e.getItem().toString().equals(dataSourceTypes[8])) {
+                        addPanel.add(new tufts.googleapi.AddPanel(AddDataSourcePanel.this.dialog));
                     }
                     validate();
                 }
@@ -766,13 +757,13 @@ public class AddDataSourcePanel extends JPanel {
                         try {
                             DataSource ds = new Osid2DataSource(dsNameField.getText(), addressField.getText());
                             if (DEBUG.DR) System.out.println(this + " adding DataSource");
-System.out.println("in AddDataSourcepanel1");
+                            System.out.println("in AddDataSourcepanel1");
                             DataSourceViewer.addDataSource(ds);
-System.out.println("in AddDataSourcepanel2");
+                            System.out.println("in AddDataSourcepanel2");
                         } catch(Throwable t) {
-System.out.println("in AddDataSourcepanel2a");
-//                            if(DEBUG.DR) System.out.println(t);
-//                            t.printStackTrace();
+                            System.out.println("in AddDataSourcepanel2a");
+                            //                            if(DEBUG.DR) System.out.println(t);
+                            //                            t.printStackTrace();
                             System.out.println(dsNameField.getText());
                             JOptionPane.showMessageDialog(VUE.getRootParent(),"Can't add datasource: "+dsNameField.getText()+" "+ t.getMessage(), "OSID Alert", JOptionPane.ERROR_MESSAGE);
                         } finally {
@@ -787,7 +778,7 @@ System.out.println("in AddDataSourcepanel2a");
                 }
             });
             
-System.out.println("in AddDataSourcepanel3");
+            System.out.println("in AddDataSourcepanel3");
             JButton resetButton = new JButton("Reset");
             resetButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
