@@ -17,55 +17,52 @@
  */
 
 /*
- * PropertiesIterator.java
+ * AgentIterator.java
  *
- * Created on October 22, 2003, 7:45 AM
+ * Created on October 22, 2003, 8:05 AM
  */
 
-package tufts.oki.shared2;
+package tufts.oki.agent;
 import java.util.*;
 
 /**
- *  Imlements a way to iterate over lists of Properties.
+ *  Implements a means to iterate over a list of Agent objects.
  *
  *  @author  Mark Norton
  */
-public class PropertiesIterator implements org.osid.shared.PropertiesIterator {
+public class AgentIterator implements org.osid.agent.AgentIterator {
     
-    private Vector properties_vector = null;
-    int offset = 0;
+    private Vector agent_vector = null;
     
-    /** 
-     *  Creates a new instance of PropertiesIterator 
-     *
-     *  @author Mark Norton
-     */
-    public PropertiesIterator(Vector vector) {
-        properties_vector = vector;
+    private int offset = 0;
+    
+    /** Creates a new instance of AgentIterator */
+    public AgentIterator(Vector vector) {
+        agent_vector = vector;
     }
     
     /**
-     *  See if there is another Properties object in the list.
+     *  Determine if there is at least one more Agent in this iteration list.
      *
      *  @author Mark Norton
      *
-     *  @return true if there is at least one more Properties object in the list.
+     *  @return True if there a next agent in the iterator.
      */
-    public boolean hasNextProperties() {
-        return (offset < properties_vector.size());
+    public boolean hasNextAgent() {
+        return (offset < agent_vector.size());
     }
     
     /**
-     *  Get the next Properties object in this iteration list.
+     *  Get the next Agent in this iteration list.
      *
      *  @author Mark Norton
      *
-     *  @return the next Properties object in the iteration list.
+     *  @return The next agent in the iteration list.
      */
-    public org.osid.shared.Properties nextProperties() {
-        org.osid.shared.Properties prop = (org.osid.shared.Properties) properties_vector.elementAt(offset);
+    public org.osid.agent.Agent nextAgent() {
+        org.osid.agent.Agent agent = (org.osid.agent.Agent) agent_vector.elementAt(offset);
         offset++;
-        return prop;
-   }
+        return agent;
+    }
     
 }

@@ -22,7 +22,7 @@
  * Created on September 20, 2003, 6:32 PM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 import java.util.*;
 
 /**
@@ -34,7 +34,7 @@ import java.util.*;
  *  Unlike the various object iterators in osid.shared, value iterators like this one
  *  are based on an array instead of a vector.
  */
-public class ByteValueIterator implements osid.shared.ByteValueIterator {
+public class ByteValueIterator implements org.osid.shared.ByteValueIterator {
     
     private byte[] byte_array = null;
     
@@ -54,7 +54,7 @@ public class ByteValueIterator implements osid.shared.ByteValueIterator {
      *
      *  @return True if there is another byte to be returned from the array.
      */
-    public boolean hasNext() throws osid.shared.SharedException {
+    public boolean hasNextByteValue() throws org.osid.shared.SharedException {
         return (offset < byte_array.length);
     }
     
@@ -63,7 +63,7 @@ public class ByteValueIterator implements osid.shared.ByteValueIterator {
      *
      *  @return The next byte in the byte array.
      */
-    public byte next() throws osid.shared.SharedException {
+    public byte nextByteValue() throws org.osid.shared.SharedException {
         byte next_byte = byte_array[offset];
         offset++;
         return next_byte;
