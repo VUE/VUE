@@ -39,6 +39,7 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
     
     private String UserName;
     private String password;
+    private int port;
     
     public FedoraDataSource(){
         
@@ -49,11 +50,16 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
         this.setAddress(address);
         this.setUserName(username);
         this.setPassword(password);
-        this.setResourceViewer();
-        
-        
+        this.setResourceViewer(); 
     }
-    
+     public FedoraDataSource(String displayName, String address, String username, String password,int port) throws DataSourceException{
+        this.setDisplayName(displayName);
+        this.setAddress(address);
+        this.setUserName(username);
+        this.setPassword(password);
+        this.setPort(port);
+        this.setResourceViewer(); 
+    }
     
     
     public void setUserName(String username){
@@ -72,6 +78,16 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
         this.password = password;
         
     }
+    public int getPort(){
+        
+        return this.port;
+        
+    }
+     public void setPort(int port){
+        
+        this.port = port;
+        
+    }
     public String getPassword(){
         
         return this.password;
@@ -82,7 +98,7 @@ public class FedoraDataSource extends VueDataSource implements Publishable{
     public void  setResourceViewer() throws DataSourceException{
         
         try{
-            this.resourceViewer = new DRViewer("fedora.conf",this.getDisplayName(),this.getDisplayName(),this.getDisplayName(),new URL("http",this.getAddress(),8080,"fedora/"),this.getUserName(),this.getPassword());
+            this.resourceViewer = new DRViewer("fedora.conf",this.getDisplayName(),this.getDisplayName(),this.getDisplayName(),new URL("http",this.getAddress(),this.getPort(),"fedora/"),this.getUserName(),this.getPassword());
         }catch (Exception ex){
             throw new DataSourceException("FedoraDataSource.setResourceViewer "+ex);
         }

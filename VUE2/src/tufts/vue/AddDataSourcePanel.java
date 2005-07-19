@@ -397,6 +397,7 @@ public class AddDataSourcePanel extends JPanel {
     class FedoraDataSourcePanel extends JPanel {
         JTextField dsNameField;
         JTextField addressField ;
+        JTextField portField;
         JTextField userField;
         JPasswordField passwordField;
         public FedoraDataSourcePanel() {
@@ -405,10 +406,12 @@ public class AddDataSourcePanel extends JPanel {
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel addressLabel = new JLabel("Address:");
+            JLabel portLabel = new JLabel("Port:");
             JLabel userLabel = new JLabel("User Name:");
             JLabel passwordLabel = new JLabel("Password:");
             dsNameField = new JTextField();
             addressField = new JTextField();
+            portField = new JTextField("8080");
             userField = new JTextField();
             passwordField = new JPasswordField();
             
@@ -418,7 +421,7 @@ public class AddDataSourcePanel extends JPanel {
                 public void actionPerformed(ActionEvent e){
                     if(validateFields()) {
                         try {
-                            DataSource ds = new FedoraDataSource(dsNameField.getText(), addressField.getText(),userField.getText(),new String(passwordField.getPassword()));
+                            DataSource ds = new FedoraDataSource(dsNameField.getText(), addressField.getText(),userField.getText(),new String(passwordField.getPassword()),Integer.parseInt(portField.getText()));
                             DataSourceViewer.addDataSource(ds);
                         } catch(Exception ex) {
                             if(DEBUG.DR) System.out.println(ex);
@@ -467,6 +470,18 @@ public class AddDataSourcePanel extends JPanel {
             c.gridwidth = GridBagConstraints.RELATIVE;
             c.fill = GridBagConstraints.NONE;
             c.weightx = 0.0;
+            gridbag.setConstraints(portLabel,c);
+            this.add(portLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(portField,c);
+            this.add(portField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
             gridbag.setConstraints(userLabel,c);
             this.add(userLabel);
             
@@ -494,9 +509,7 @@ public class AddDataSourcePanel extends JPanel {
             c.fill = GridBagConstraints.NONE;
             gridbag.setConstraints(bottomPanel,c);
             this.add(bottomPanel);
-            
-            
-            
+ 
         }
         
         private void resetPanel() {

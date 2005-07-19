@@ -405,10 +405,12 @@ public class EditDataSourcePanel extends JPanel{
     class FedoraDataSourcePanel extends JPanel {
         JTextField dsNameField;
         JTextField addressField ;
+        JTextField portField;
         JTextField userField;
         JPasswordField passwordField;
         String cDsNameField;
         String cAddressField;
+        String cPortField;
         String cUserField;
         String cPasswordField;
         FedoraDataSource dataSource;
@@ -417,6 +419,7 @@ public class EditDataSourcePanel extends JPanel{
             this.dataSource = dataSource;
             cDsNameField = dataSource.getDisplayName();
             cAddressField = dataSource.getAddress();
+            cPortField = new String(""+dataSource.getPort());
             cUserField = dataSource.getUserName();
             cPasswordField = dataSource.getPassword();
             
@@ -425,12 +428,14 @@ public class EditDataSourcePanel extends JPanel{
             this.setLayout(gridbag);
             JLabel dsNameLabel = new JLabel("Display Name: ");
             JLabel addressLabel = new JLabel("Address:");
+            JLabel portLabel = new JLabel("Port:");
             JLabel userLabel = new JLabel("User Name:");
             JLabel passwordLabel = new JLabel("Password:");
             dsNameField = new JTextField();
             addressField = new JTextField();
             userField = new JTextField();
             passwordField = new JPasswordField();
+            portField = new JTextField();
             
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton submitButton = new JButton("Submit");
@@ -440,6 +445,7 @@ public class EditDataSourcePanel extends JPanel{
                         try {
                             FedoraDataSourcePanel.this.dataSource.setDisplayName(dsNameField.getText());
                             FedoraDataSourcePanel.this.dataSource.setAddress(addressField.getText());
+                             FedoraDataSourcePanel.this.dataSource.setPort(Integer.parseInt(portField.getText()));
                             FedoraDataSourcePanel.this.dataSource.setUserName(userField.getText());
                             FedoraDataSourcePanel.this.dataSource.setPassword(new String(passwordField.getPassword()));
                         } catch(Exception ex) {
@@ -489,6 +495,18 @@ public class EditDataSourcePanel extends JPanel{
             c.gridwidth = GridBagConstraints.RELATIVE;
             c.fill = GridBagConstraints.NONE;
             c.weightx = 0.0;
+            gridbag.setConstraints(portLabel,c);
+            this.add(portLabel);
+            
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.weightx = 1.0;
+            gridbag.setConstraints(portField,c);
+            this.add(portField);
+            
+            c.gridwidth = GridBagConstraints.RELATIVE;
+            c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.0;
             gridbag.setConstraints(userLabel,c);
             this.add(userLabel);
             
@@ -524,6 +542,7 @@ public class EditDataSourcePanel extends JPanel{
         private void resetPanel() {
             dsNameField.setText(cDsNameField);
             addressField.setText(cAddressField);
+            portField.setText(cPortField);
             userField.setText(cUserField);
             passwordField.setText(cPasswordField);
         }
