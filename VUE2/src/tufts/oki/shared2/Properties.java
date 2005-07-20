@@ -22,9 +22,9 @@
  * Created on Oct. 21, 2003, 19:21 PM
  */
 
-package tufts.oki.shared2;
+package tufts.oki.shared;
 import java.util.*;
-import org.osid.*;
+import osid.shared.SharedException;
 
 /**
  *  Properties implement a means to collect key / value pairs together into a typed
@@ -39,19 +39,19 @@ import org.osid.*;
  *
  *  @author  Mark Norton
  */
-public class Properties implements org.osid.shared.Properties {
+public class Properties implements osid.shared.Properties {
     
     private HashMap map = null;
-    private org.osid.shared.Type prop_type = null;
+    private osid.shared.Type prop_type = null;
     
     /** 
      *  Creates a new instance of Properties 
      *
      *  @author Mark Norton
      */
-    public Properties(org.osid.shared.Type type) throws org.osid.shared.SharedException {
+    public Properties(osid.shared.Type type) throws osid.shared.SharedException {
         if (type == null)
-            throw new org.osid.shared.SharedException (org.osid.shared.SharedException.NULL_ARGUMENT);
+            throw new osid.shared.SharedException (osid.shared.SharedException.NULL_ARGUMENT);
         map = new HashMap (100);
         prop_type = type;
     }
@@ -63,11 +63,11 @@ public class Properties implements org.osid.shared.Properties {
      *
      *  @return A SerializalbeObjectIterator which walks a list of property keys.
      */
-    public org.osid.shared.ObjectIterator getKeys() {
+    public osid.shared.SerializableObjectIterator getKeys() {
         Set set = map.keySet();
         Vector map_vector = new Vector(100);
         map_vector.addAll(set);
-        org.osid.shared.ObjectIterator it = new ObjectIterator(map_vector);
+        SerializableObjectIterator it = new SerializableObjectIterator(map_vector);
         return it;
     }
     
@@ -89,14 +89,14 @@ public class Properties implements org.osid.shared.Properties {
      *
      *  @return The type associated with this Properties object.
      */
-    public org.osid.shared.Type getType() throws org.osid.shared.SharedException {
+    public osid.shared.Type getType() throws osid.shared.SharedException {
         return prop_type;
     }
     
     /**
      *  Add a key / value pair to this properties collection.
      *  <p>
-     *  Note that this is an extension to org.osid.shared.Properties.
+     *  Note that this is an extension to osid.shared.Properties.
      *
      *  @author Mark Norton
      */
@@ -107,8 +107,8 @@ public class Properties implements org.osid.shared.Properties {
     /**
      *  Get the internal hash map used to store key /value pairs.
      *  <p>
-     *  This is an extension to org.osid.shared.Properties to support properties in 
-     *  org.osid.filing.
+     *  This is an extension to osid.shared.Properties to support properties in 
+     *  osid.filing.
      *
      *  @author Mark Norton
      *

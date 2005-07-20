@@ -22,11 +22,11 @@
  * Created on October 22, 2003, 8:30 AM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 import tufts.oki.*;
 import java.util.*;
 import java.io.*;
-import osid.shared.SharedException;
+import org.osid.shared.SharedException;
 
 /**
  *  The Shared Manager allows creation and manipulation of Id, Agent, and Group objects.
@@ -39,7 +39,7 @@ import osid.shared.SharedException;
  *
  *  @author  Mark Norton
  */
-public class SharedManager extends OsidManager implements osid.shared.SharedManager {
+public class SharedManager extends org.osid.OsidManager implements org.osid.shared.SharedManager {
     public static final String SERIALIZED_FILE_NAME = "c:/java/serialized/osid_shared_manager.sid";
     private Vector ids = null;
     private Vector agents = null;
@@ -67,7 +67,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An Id with a new unique identifier.
      */
-    public osid.shared.Id createId() throws osid.shared.SharedException {
+    public osid.shared.Id createId() throws org.osid.shared.SharedException {
         Id id = new Id ();      //  Allocate a new Id object.
         ids.add (id);           //  Add it to the SharedManager ids list.
         return id;
@@ -86,13 +86,13 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An ID corrsponding to the string given.
      */
-    public osid.shared.Id getId(String idString) throws osid.shared.SharedException {
+    public osid.shared.Id getId(String idString) throws org.osid.shared.SharedException {
         for (int i=0; i < ids.size(); i++) {
             Id id = (Id) ids.elementAt (i);
             if (id.getIdString() == idString)
                 return id;
         }
-        throw new osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_ID);
+        throw new org.osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_ID);
     }
     
     /**
@@ -102,7 +102,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An Agent with the name and type provided.
      */
-    public osid.shared.Agent createAgent(String name, osid.shared.Type agentType) throws osid.shared.SharedException {
+    public org.osid.shared.Agent createAgent(String name, org.osid.shared.Type agentType) throws org.osid.shared.SharedException {
         Agent agent = new Agent (name, agentType);
         agents.add (agent);     //  Add it to the SharedManager agents list.
         return agent;          
@@ -115,7 +115,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return A Group with the Id provided.
      */
-    public osid.shared.Group createGroup(String name, osid.shared.Type groupType, String description) throws osid.shared.SharedException {
+    public org.osid.shared.Group createGroup(String name, osid.shared.Type groupType, String description) throws org.osid.shared.SharedException {
         Group group = new Group (name, groupType, description);
         groups.add (group);     //  Add it to the SharedManager agents list.
         return group;          
@@ -126,7 +126,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @author Mark Norton
      */
-    public void deleteAgent(osid.shared.Id id) throws osid.shared.SharedException {
+    public void deleteAgent(org.osid.shared.Id id) throws org.osid.shared.SharedException {
          osid.shared.Agent ag = this.getAgent (id);
          agents.remove(ag);
     }
@@ -139,10 +139,10 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @author Mark Norton
      */
-    public void deleteGroup(osid.shared.Id id) throws osid.shared.SharedException {
+    public void deleteGroup(org.osid.shared.Id id) throws org.osid.shared.SharedException {
         tufts.oki.shared.Group gp = (tufts.oki.shared.Group)this.getGroup (id);
         if (!gp.isEmpty()) {
-            throw new osid.shared.SharedException ("Group is not empty.");
+            throw new org.osid.shared.SharedException ("Group is not empty.");
         }
         
         groups.remove(gp);
@@ -156,13 +156,13 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An agent who's id is equal to the one passed.
      */
-    public osid.shared.Agent getAgent(osid.shared.Id id) throws osid.shared.SharedException {
+    public org.osid.shared.Agent getAgent(org.osid.shared.Id id) throws org.osid.shared.SharedException {
         for (int i=0; i < ids.size(); i++) {
             Agent agent = (Agent) agents.elementAt (i);
             if ((agent.getId()).isEqual (id))
                 return agent;
         }
-        throw new osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_ID);
+        throw new org.osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_ID);
     }
     
     /**
@@ -173,13 +173,13 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An agent who's display name is equal to the one passed.
      */
-    public osid.shared.Agent getAgent(String name) throws osid.shared.SharedException {
+    public osid.shared.Agent getAgent(String name) throws org.osid.shared.SharedException {
         for (int i=0; i < agents.size(); i++) {
             Agent agent = (Agent) agents.elementAt (i);
             if (agent.getDisplayName().compareTo(name) == 0)
                 return agent;
         }
-        throw new osid.shared.SharedException ("Unknown Name");
+        throw new org.osid.shared.SharedException ("Unknown Name");
     }
     
     /**
@@ -193,12 +193,12 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An iterator which walks a list of unique agent types.
      */
-    public osid.shared.TypeIterator getAgentTypes() throws osid.shared.SharedException {  
+    public org.osid.shared.TypeIterator getAgentTypes() throws org.osid.shared.SharedException {  
         /*  Iterate over all agents, extract type, and add to a HashSet.  */
         HashSet type_set = new HashSet();
         for (int i=0; i < ids.size(); i++) {
             Agent agent = (Agent) agents.elementAt (i);
-            osid.shared.Type type = agent.getType();
+            org.osid.shared.Type type = agent.getType();
             type_set.add(type);
         }
         
@@ -218,7 +218,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An AgentIterator which will interate over all known agents.
      */
-    public osid.shared.AgentIterator getAgents() {
+    public org.osid.shared.AgentIterator getAgents() {
         AgentIterator it = new AgentIterator (agents);
         return it;
     }
@@ -232,7 +232,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An AgentIterator which lists out all agents of the type given.
      */
-    public osid.shared.AgentIterator getAgentsByType(osid.shared.Type agentType) throws osid.shared.SharedException {
+    public org.osid.shared.AgentIterator getAgentsByType(org.osid.shared.Type agentType) throws org.osid.shared.SharedException {
         /*  Iterate over all agents, extract type, and add to a HashSet.  */
         HashSet agent_set = new HashSet();
         for (int i=0; i < ids.size(); i++) {
@@ -258,13 +258,13 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
       *
       *  @return A group who's id is equal to the one passed.
       */
-    public osid.shared.Group getGroup(osid.shared.Id id) throws osid.shared.SharedException {
+    public org.osid.shared.Group getGroup(org.osid.shared.Id id) throws org.osid.shared.SharedException {
         for (int i=0; i < ids.size(); i++) {
             Group group = (Group) groups.elementAt (i);
             if ((group.getId()).isEqual (id))
                 return group;
         }
-        throw new osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_ID);
+        throw new org.osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_ID);
     }
     
     /**
@@ -277,12 +277,12 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An iterator which walks a list of unique group types.
      */
-   public osid.shared.TypeIterator getGroupTypes() throws osid.shared.SharedException {
+   public org.osid.shared.TypeIterator getGroupTypes() throws org.osid.shared.SharedException {
         /*  Iterate over all agents, extract type, and add to a HashSet.  */
         HashSet type_set = new HashSet();
         for (int i=0; i < ids.size(); i++) {
             Group group = (Group) groups.elementAt (i);
-            osid.shared.Type type = group.getType();
+            org.osid.shared.Type type = group.getType();
             type_set.add(type);
         }
         
@@ -302,7 +302,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An AgentIterator which will interate over all known groups.
      */
-   public osid.shared.AgentIterator getGroups() throws osid.shared.SharedException {
+   public org.osid.shared.AgentIterator getGroups() throws org.osid.shared.SharedException {
         AgentIterator it = new AgentIterator (groups);
         return it;
     }
@@ -314,12 +314,12 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @return An AgentIterator which lists out all groups of the type given.
      */
-    public osid.shared.AgentIterator getGroupsByType(osid.shared.Type groupType) throws osid.shared.SharedException {
+    public org.osid.shared.AgentIterator getGroupsByType(org.osid.shared.Type groupType) throws org.osid.shared.SharedException {
         /*  Iterate over all agents, extract type, and add to a HashSet.  */
         HashSet group_set = new HashSet();
         for (int i=0; i < ids.size(); i++) {
             Group group = (Group) groups.elementAt (i);
-            osid.shared.Type type = group.getType();
+            org.osid.shared.Type type = group.getType();
             if (type.isEqual(groupType))
                 group_set.add(group);
         }
@@ -348,7 +348,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @author Mark Norton
      */
-    public void writeState() throws osid.shared.SharedException {
+    public void writeState() throws org.osid.shared.SharedException {
         try {
             FileOutputStream fout = new FileOutputStream (tufts.oki.shared.SharedManager.SERIALIZED_FILE_NAME);
             ObjectOutputStream  oout = new ObjectOutputStream (fout);
@@ -358,7 +358,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
             oout.close();
         }
         catch (java.io.IOException ex) {
-            throw new osid.shared.SharedException ("I/O error on writing state data out of SharedManager.");
+            throw new org.osid.shared.SharedException ("I/O error on writing state data out of SharedManager.");
         }
     }
     
@@ -379,7 +379,7 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
      *
      *  @author Mark Norton
      */
-    public void readState() throws osid.shared.SharedException {
+    public void readState() throws org.osid.shared.SharedException {
         if (this.isEmpty()) {
             //  Open up the serilization file, if it exists.
             FileInputStream fin = null;
@@ -407,14 +407,14 @@ public class SharedManager extends OsidManager implements osid.shared.SharedMana
                 restored = true;
             }
             catch (java.io.IOException ex2) {
-                throw new osid.shared.SharedException ("SharedManager exception: " + ex2.getMessage());
+                throw new org.osid.shared.SharedException ("SharedManager exception: " + ex2.getMessage());
             }
             catch (java.lang.ClassNotFoundException ex4) {
-                throw new osid.shared.SharedException ("Class not found error on reading state data into SharedManager.");
+                throw new org.osid.shared.SharedException ("Class not found error on reading state data into SharedManager.");
             }
         }
         else
-            throw new osid.shared.SharedException ("Attempt to read state into an modified SharedManager.");
+            throw new org.osid.shared.SharedException ("Attempt to read state into an modified SharedManager.");
     }
     
     /**

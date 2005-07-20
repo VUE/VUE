@@ -22,7 +22,7 @@
  * Created on September 22, 2003, 2:57 PM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 
 import tufts.oki.*;
 /**
@@ -30,7 +30,7 @@ import tufts.oki.*;
  *
  *  @author  Mark Norton
  */
-public class AgentPersonType extends osid.shared.Type {
+public class AgentPersonType extends org.osid.shared.Type {
     /* Use this keyword to search for the person type.  */
     public static final String AGENT_PERSON_TYPE_KEY = "osid.shared.Agent.Person";
     

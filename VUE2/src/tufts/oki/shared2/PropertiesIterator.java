@@ -22,7 +22,7 @@
  * Created on October 22, 2003, 7:45 AM
  */
 
-package tufts.oki.shared2;
+package tufts.oki.shared;
 import java.util.*;
 
 /**
@@ -30,7 +30,7 @@ import java.util.*;
  *
  *  @author  Mark Norton
  */
-public class PropertiesIterator implements org.osid.shared.PropertiesIterator {
+public class PropertiesIterator implements osid.shared.PropertiesIterator {
     
     private Vector properties_vector = null;
     int offset = 0;
@@ -51,7 +51,7 @@ public class PropertiesIterator implements org.osid.shared.PropertiesIterator {
      *
      *  @return true if there is at least one more Properties object in the list.
      */
-    public boolean hasNextProperties() {
+    public boolean hasNext() {
         return (offset < properties_vector.size());
     }
     
@@ -62,8 +62,8 @@ public class PropertiesIterator implements org.osid.shared.PropertiesIterator {
      *
      *  @return the next Properties object in the iteration list.
      */
-    public org.osid.shared.Properties nextProperties() {
-        org.osid.shared.Properties prop = (org.osid.shared.Properties) properties_vector.elementAt(offset);
+    public osid.shared.Properties next() {
+        osid.shared.Properties prop = (osid.shared.Properties) properties_vector.elementAt(offset);
         offset++;
         return prop;
    }

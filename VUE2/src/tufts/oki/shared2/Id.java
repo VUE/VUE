@@ -22,12 +22,12 @@
  * Created on October 21, 2003, 4:36 PM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 import java.lang.*;
 
 
 /**
- *  This is a complete implementation of the osid.shared.Id object.  It uses a constant
+ *  This is a complete implementation of the org.osid.shared.Id object.  It uses a constant
  *  called IdSource to hold a string which idenfies this particular source of Identifiers.
  *  This makes the Id strings less likely to collide with other systems which use this
  *  implementation.
@@ -37,7 +37,7 @@ import java.lang.*;
  *
  *  @author  Mark Norton
  */
-public class Id implements osid.shared.Id {
+public class Id implements org.org.osid.shared.Id {
     private static int counter = 0;
     private String id_str;
     private String IdSource = "tufts.edu";
@@ -49,7 +49,7 @@ public class Id implements osid.shared.Id {
      *
      *  @author Mark Norton
      */
-    public Id() throws osid.shared.SharedException {
+    public Id() throws org.osid.shared.SharedException {
         long now = System.currentTimeMillis();
 
         id_str = IdSource + "-" + java.lang.Long.toHexString(now) + "-" + tufts.oki.shared.Id.counter++;
@@ -64,9 +64,9 @@ public class Id implements osid.shared.Id {
      *  @author OkiImpl_1_0_rc05
      *
      */
-    public Id(String idString) throws osid.shared.SharedException {
+    public Id(String idString) throws org.osid.shared.SharedException {
         if (idString == null) {
-            throw new osid.shared.SharedException(osid.shared.SharedException.NULL_ARGUMENT);
+            throw new org.osid.shared.SharedException(org.osid.shared.SharedException.NULL_ARGUMENT);
         }
 
         this.id_str = idString;
@@ -79,7 +79,7 @@ public class Id implements osid.shared.Id {
      *
      *  @return The string form of the id.
      */
-    public String getIdString() throws osid.shared.SharedException {
+    public String getIdString() throws org.osid.shared.SharedException {
         return id_str;
     }
     
@@ -90,7 +90,7 @@ public class Id implements osid.shared.Id {
      *
      *  @return True if this Id is equal to the one passed.
      */
-    public boolean isEqual(osid.shared.Id id)  throws osid.shared.SharedException {
+    public boolean isEqual(org.osid.shared.Id id)  throws org.osid.shared.SharedException {
         return id_str.equals(id.getIdString());
     }
 

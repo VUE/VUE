@@ -22,9 +22,8 @@
  * Created on October 21, 2003, 5:31 PM
  */
 
-package tufts.oki.shared;
-import osid.*;
-import osid.shared.SharedException;
+package tufts.oki.shared2;
+import org.osid.*;
 import java.util.*;
 import java.io.*;
 
@@ -39,7 +38,7 @@ import java.io.*;
  *
  *  @see Properties
  */
-public class Agent implements osid.shared.Agent{
+public class Agent implements org.osid.agent.Agent{
     private Id ag_id = null;                        //  The unique ID of this Agent.
     private String ag_name = "unknown";             //  This display name of this Agent.
     private osid.shared.Type ag_type;               //  The type of this Agent.

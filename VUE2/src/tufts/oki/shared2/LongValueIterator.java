@@ -22,7 +22,7 @@
  * Created on September 19, 2003, 2:42 PM
  */
 
-package tufts.oki.shared2;
+package tufts.oki.shared;
 import java.util.*;
 
 /**
