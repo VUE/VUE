@@ -39,9 +39,9 @@ import java.io.*;
  *  @see Properties
  */
 public class Agent implements org.osid.agent.Agent{
-    private Id ag_id = null;                        //  The unique ID of this Agent.
+    private org.osid.shared.Id ag_id = null;                        //  The unique ID of this Agent.
     private String ag_name = "unknown";             //  This display name of this Agent.
-    private osid.shared.Type ag_type;               //  The type of this Agent.
+    private org.osid.shared.Type ag_type;               //  The type of this Agent.
     private Vector ag_props = null;                 //  A list of properties for this agent.
     
     /**
@@ -49,8 +49,12 @@ public class Agent implements org.osid.agent.Agent{
      *
      *  @author Mark Norton
      */
-    public Agent(String display_name, osid.shared.Type type) throws osid.shared.SharedException {
-        ag_id = new Id();
+    public Agent(String display_name, org.osid.shared.Type type) throws org.osid.agent.AgentException {
+        try
+        {
+            ag_id = new tufts.oki.id.Id();
+        }
+        catch (Throwable t) {}
         ag_name = display_name;
         ag_type = type;
         ag_props = new Vector(100);   // List will expand automatically if needed.
@@ -74,8 +78,8 @@ public class Agent implements org.osid.agent.Agent{
      *
      *  @return  The unique ID object for this Agent.
      */
-    public osid.shared.Id getId() {
-        return (osid.shared.Id) ag_id;
+    public org.osid.shared.Id getId() {
+        return (org.osid.shared.Id) ag_id;
     }
     
     /**
@@ -85,7 +89,7 @@ public class Agent implements org.osid.agent.Agent{
      *
      *  @return The OSID Type associated with this Agent.
      */
-    public osid.shared.Type getType() {
+    public org.osid.shared.Type getType() {
          return ag_type;
     }
     
@@ -99,7 +103,7 @@ public class Agent implements org.osid.agent.Agent{
      *  @return A PropertiesIterator which iterates over the list of Properties
      *  associated with this Agent.  Each Properties will have its own, unique Type.
      */
-    public osid.shared.PropertiesIterator getProperties() {
+    public org.osid.shared.PropertiesIterator getProperties() {
          return new PropertiesIterator (ag_props);
     }
     
@@ -112,12 +116,16 @@ public class Agent implements org.osid.agent.Agent{
      *  @return Returns a TypeIterator that iterates over all of the Types represented in
      *      the collection of Properties maintained by this Agent.
      */
-    public osid.shared.TypeIterator getPropertiesTypes() throws osid.shared.SharedException {
+    public org.osid.shared.TypeIterator getPropertiesTypes() throws osid.shared.SharedException {
         Vector type_list = new Vector (100);
          
         for (int i = 0; i < ag_props.size(); i++) {
             Properties prop = (Properties) ag_props.elementAt (i);
-            type_list.addElement (prop.getType());
+            try
+            {
+                type_list.addElement (prop.getType());
+            }
+            catch (Throwable t) {}
         }
 
         return new TypeIterator (type_list);
@@ -134,13 +142,17 @@ public class Agent implements org.osid.agent.Agent{
      *  @return The Properties object associated with type.
      *
      */
-    public osid.shared.Properties getPropertiesByType(osid.shared.Type propertiesType) throws osid.shared.SharedException {
+    public org.osid.shared.Properties getPropertiesByType(org.osid.shared.Type propertiesType) throws org.osid.agent.AgentException {
         for (int i = 0; i < ag_props.size(); i++) {
             Properties prop = (Properties) ag_props.elementAt (i);
-            if ((prop.getType()).isEqual(propertiesType))
-                return prop;
+            try
+            {
+                if ((prop.getType()).isEqual(propertiesType))
+                    return prop;
+            }
+            catch (Throwable t) {}
         }
-        throw new osid.shared.SharedException (osid.shared.SharedException.UNKNOWN_TYPE);
+        throw new org.osid.agent.AgentException (osid.shared.SharedException.UNKNOWN_TYPE);
     }
     
     /*  Extensions to osid.shared.Agent  */
@@ -154,8 +166,12 @@ public class Agent implements org.osid.agent.Agent{
      *  
      *  @author Mark Norton
      */
-    public void addProperties (osid.shared.Properties prop) {
+    public void addProperties (org.osid.shared.Properties prop) {
         ag_props.add (prop);
+    }
+    
+    public org.osid.shared.TypeIterator getPropertyTypes() throws org.osid.agent.AgentException {
+        throw new org.osid.agent.AgentException(org.osid.OsidException.UNIMPLEMENTED);
     }
     
 }

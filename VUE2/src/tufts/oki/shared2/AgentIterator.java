@@ -30,7 +30,7 @@ import java.util.*;
  *
  *  @author  Mark Norton
  */
-public class AgentIterator implements org.osid.shared2.AgentIterator {
+public class AgentIterator implements org.osid.agent.AgentIterator {
     
     private Vector agent_vector = null;
     
@@ -59,8 +59,8 @@ public class AgentIterator implements org.osid.shared2.AgentIterator {
      *
      *  @return The next agent in the iteration list.
      */
-    public osid.shared.Agent nextAgent() {
-        org.osid.shared.Agent agent = (org.osid.shared.Agent) agent_vector.elementAt(offset);
+    public org.osid.agent.Agent nextAgent() {
+        org.osid.agent.Agent agent = (org.osid.agent.Agent) agent_vector.elementAt(offset);
         offset++;
         return agent;
     }

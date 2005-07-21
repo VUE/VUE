@@ -54,7 +54,7 @@ public class ByteValueIterator implements org.osid.shared.ByteValueIterator {
      *
      *  @return True if there is another byte to be returned from the array.
      */
-    public boolean hasNextByteValue() throws osid.shared.SharedException {
+    public boolean hasNextByteValue() throws org.osid.shared.SharedException {
         return (offset < byte_array.length);
     }
     
@@ -63,7 +63,7 @@ public class ByteValueIterator implements org.osid.shared.ByteValueIterator {
      *
      *  @return The next byte in the byte array.
      */
-    public byte nextByteValue() throws osid.shared.SharedException {
+    public byte nextByteValue() throws org.osid.shared.SharedException {
         byte next_byte = byte_array[offset];
         offset++;
         return next_byte;

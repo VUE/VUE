@@ -22,9 +22,10 @@
  * Created on Oct. 22, 2003, 8:15 AM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 import java.util.*;
-import osid.shared.SharedException;
+import org.osid.agent.AgentException;
+import org.osid.agent.AgentException;
 
 /**
  *  The Groups class defines a collection of agents.  Groups may also have sub-groups,
@@ -33,11 +34,11 @@ import osid.shared.SharedException;
  *
  * @author  Mark Norton
  */
-public class Group extends Agent implements osid.shared.Group {
+public class Group extends Agent implements org.osid.agent.Group {
     
     //private String display_name = null;   // Inherited from Agent.
-    //private osid.shared.Id id = null;     // Inherited from Agent.    
-    //private osid.shared.Type type = null; // Inherited from Agent.
+    //private org.osid.shared.Id id = null;     // Inherited from Agent.    
+    //private org.osid.shared.Type type = null; // Inherited from Agent.
     
     private String group_description = null;    //  Description of this group.
     private Vector agents = null;               //  Agents included in this group.
@@ -49,7 +50,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @author Mark Norton
      */
-    public Group(String display_name, osid.shared.Type type, String description) throws SharedException {
+    public Group(String display_name, org.osid.shared.Type type, String description) throws AgentException {
         super(display_name, type);
         group_description = description;
         agents = new Vector(100);
@@ -59,12 +60,12 @@ public class Group extends Agent implements osid.shared.Group {
     /**
      *  Add an agent or group to this group.
      *  <p>
-     *  This method is an extention to osid.shared.Group.
+     *  This method is an extention to org.osid.agent.Group.
      *
      *  @author Mark Norton
      */
-    public void add(osid.shared.Agent memberOrGroup) {
-        if (memberOrGroup instanceof osid.shared.Group) {
+    public void add(org.osid.agent.Agent memberOrGroup) {
+        if (memberOrGroup instanceof org.osid.agent.Group) {
             subgroups.add (memberOrGroup);
         }
         else {
@@ -80,12 +81,12 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @return true if the agent is included in this group or subgroups.
      */
-    public boolean contains(osid.shared.Agent memberOrGroup, boolean searchSubgroups) throws SharedException {
+    public boolean contains(org.osid.agent.Agent memberOrGroup, boolean searchSubgroups) throws AgentException {
         if (agents.contains(memberOrGroup))
             return true;
         else if (searchSubgroups) {
             for (int i = 0; i < subgroups.size(); i++) {
-                osid.shared.Group sg = (osid.shared.Group) subgroups.elementAt(i);
+                org.osid.agent.Group sg = (org.osid.agent.Group) subgroups.elementAt(i);
                 return sg.contains (memberOrGroup, searchSubgroups);
             }
         }
@@ -141,7 +142,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @return an AgentIterator for all groups in this group.
      */
-    public osid.shared.AgentIterator getGroups(boolean includeSubgroups) {
+    public org.osid.agent.AgentIterator getGroups(boolean includeSubgroups) {
         Vector temp = new Vector(100);
         for (int i=0; i < subgroups.size(); i++) {
             Group sub = (Group) subgroups.elementAt(i);
@@ -158,7 +159,7 @@ public class Group extends Agent implements osid.shared.Group {
     *  This private method adds all groups containing the indicated agent to a Vector
     *  passed in. 
     */
-    private void makeGroupsWithAgentVector (osid.shared.Agent member, Vector master) throws SharedException {
+    private void makeGroupsWithAgentVector (org.osid.agent.Agent member, Vector master) throws AgentException {
         for (int i=0; i < subgroups.size(); i++) {
             Group sub = (Group) subgroups.elementAt(i);
             if (sub.contains (member, true))
@@ -174,7 +175,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @author Mark Norton
      */
-     public osid.shared.AgentIterator getGroupsContainingMember(osid.shared.Agent member) throws SharedException {
+     public org.osid.agent.AgentIterator getGroupsContainingMember(org.osid.agent.Agent member) throws AgentException {
         Vector temp = new Vector(100);
         for (int i=0; i < subgroups.size(); i++) {
             Group sub = (Group) subgroups.elementAt(i);
@@ -193,7 +194,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @return The unique Id of this group.
      */
-    public osid.shared.Id getId() {
+    public org.osid.shared.Id getId() {
         return super.getId();
     }
     
@@ -222,7 +223,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @author Mark Norton
      */
-    public osid.shared.AgentIterator getMembers(boolean includeSubgroups) {
+    public org.osid.agent.AgentIterator getMembers(boolean includeSubgroups) {
         Vector temp = (Vector) agents.clone();
         AgentIterator it = new AgentIterator(temp);
         return it;
@@ -235,7 +236,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @return the group type.
      */
-    public osid.shared.Type getType() {
+    public org.osid.shared.Type getType() {
         return super.getType();
     }
     
@@ -245,7 +246,7 @@ public class Group extends Agent implements osid.shared.Group {
      *
      *  @author Mark Norton
      */
-    public void remove(osid.shared.Agent memberOrGroup) {
+    public void remove(org.osid.agent.Agent memberOrGroup) {
         if (memberOrGroup instanceof Group)
             subgroups.remove (memberOrGroup);
         else
@@ -263,7 +264,7 @@ public class Group extends Agent implements osid.shared.Group {
     
     /**
      *  Check to see if this group is emtpy, meaning that it contains no agents or sub-groups.
-     *  Note that this method is not defined by the osid.shared.Group interface defintiion.
+     *  Note that this method is not defined by the org.osid.agent.Group interface defintiion.
      *
      *  @author Mark Norton
      *
@@ -272,4 +273,5 @@ public class Group extends Agent implements osid.shared.Group {
     public boolean isEmpty () {
         return (agents.isEmpty() && subgroups.isEmpty());
     }  
+
 }
