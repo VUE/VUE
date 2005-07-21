@@ -22,7 +22,7 @@
  * Created on October 22, 2003, 8:05 AM
  */
 
-package tufts.oki.shared;
+package tufts.oki.shared2;
 import java.util.*;
 
 /**
@@ -30,7 +30,7 @@ import java.util.*;
  *
  *  @author  Mark Norton
  */
-public class AgentIterator implements osid.shared.AgentIterator {
+public class AgentIterator implements org.osid.shared2.AgentIterator {
     
     private Vector agent_vector = null;
     
@@ -48,7 +48,7 @@ public class AgentIterator implements osid.shared.AgentIterator {
      *
      *  @return True if there a next agent in the iterator.
      */
-    public boolean hasNext() {
+    public boolean hasNextAgent() {
         return (offset < agent_vector.size());
     }
     
@@ -59,8 +59,8 @@ public class AgentIterator implements osid.shared.AgentIterator {
      *
      *  @return The next agent in the iteration list.
      */
-    public osid.shared.Agent next() {
-        osid.shared.Agent agent = (osid.shared.Agent) agent_vector.elementAt(offset);
+    public osid.shared.Agent nextAgent() {
+        org.osid.shared.Agent agent = (org.osid.shared.Agent) agent_vector.elementAt(offset);
         offset++;
         return agent;
     }
