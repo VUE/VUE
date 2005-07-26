@@ -38,7 +38,7 @@ import java.lang.*;
  *  @author  Mark Norton
  */
 public class Id implements osid.shared.Id {
-    private static int counter = 0;
+   public  static int counter = 0;
     private String id_str;
     private String IdSource = "tufts.edu";
 
