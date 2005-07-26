@@ -29,8 +29,11 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.45 $ / $Date: 2005-07-12 21:05:48 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.45 2005-07-12 21:05:48 anoop Exp $ -->
+<!-- $Revision: 1.46 $ / $Date: 2005-07-26 02:59:41 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.46 2005-07-26 02:59:41 sfraize Exp $ -->
+
+<!-- We want to ignore anything in the environment CLASSPATH variable -->
+<property name="build.sysclasspath"      value="ignore"/>
 
 
 <!-- ==================== File and Directory Names ======================== -->
