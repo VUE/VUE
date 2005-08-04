@@ -197,6 +197,7 @@ public class MapViewer extends javax.swing.JComponent
     private InputHandler inputHandler = new InputHandler(this);
     private boolean mAddNotifyUnderway = false;
     
+    // THIS IS BREAKING US IN JAVA 1.5.0 ON MAC
     public void addNotify()
     {
         super.addNotify();
@@ -775,7 +776,7 @@ public class MapViewer extends javax.swing.JComponent
      * bigger than getMap().getBounds(). todo: account for zoom?
      */
     
-    private final float SelectionStrokeMargin = SelectionStrokeWidth/2;
+    private final static float SelectionStrokeMargin = SelectionStrokeWidth/2;
     public Rectangle2D.Float getContentBounds() {
         Rectangle2D.Float r = (Rectangle2D.Float) getMap().getBounds().clone();
         // because the selection stroke is rendered at scale (gets bigger
@@ -2669,6 +2670,7 @@ public class MapViewer extends javax.swing.JComponent
         
         private int kk = 0;
         private ToolWindow debugInspector;
+        private ToolWindow debugPanner;
         public void keyPressed(KeyEvent e) {
             if (DEBUG.KEYS) out("[" + e.paramString() + "] consumed=" + e.isConsumed());
             
@@ -2870,6 +2872,12 @@ public class MapViewer extends javax.swing.JComponent
                         debugInspector.addTool(new LWCInspector());
                     }
                     debugInspector.setVisible(true);
+                } else if (c == '@') {
+                    if (debugPanner == null) {
+                        debugPanner = new ToolWindow("Panner", VUE.getRootFrame() == null ? debugFrame : VUE.getRootFrame());
+                        debugPanner.addTool(new MapPanner());
+                    }
+                    debugPanner.setVisible(true);
                 } else
                     did = false;
                 if (did) {

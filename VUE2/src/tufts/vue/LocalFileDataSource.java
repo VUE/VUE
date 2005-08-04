@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.10 2005-03-24 23:38:05 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.11 2005-08-04 23:29:24 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -96,7 +96,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     {
         osid.shared.Agent agent = null; //  This may cause problems later.
 
-        File home = new File(System.getProperty("user.home"));
+        File home = new File(VUE.getSystemProperty("user.home"));
         if (home.exists() && home.canRead()) {
             // This might be better handled via addRoot on the LocalFilingManager, but
             // we can't set the label (title) for it that way. -- SMF
@@ -114,7 +114,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             if (added == 0 || tufts.Util.isWindowsPlatform() == false) {
                 CabinetResource r = new CabinetResource(new LocalCabinet(home.getPath(), agent, null));
                 String title = "Home";
-                String user = System.getProperty("user.name");
+                String user = VUE.getSystemProperty("user.name");
                 if (user != null)
                     title += " (" + user + ")";
                 r.setTitle(title);

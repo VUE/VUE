@@ -46,12 +46,19 @@ public class VueResources
 
     static {
 
-        final String featureSet = System.getProperty("tufts.vue.features");
-        final String classPath = System.getProperty("java.class.path");
+        String featureSet = null;
+        String classPath = null;
+
+        try {
+            featureSet = System.getProperty("tufts.vue.features");
+            classPath = System.getProperty("java.class.path");
+            System.out.println("CLASSPATH: " + classPath);
+        } catch (java.security.AccessControlException e) {
+            System.err.println("Can't access system properties: applet assumed");
+        }
+
         boolean NarraVision = false;
             
-        System.out.println("CLASSPATH: " + classPath);
-        
         if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")
             || classPath != null && classPath.toLowerCase().indexOf("narravision") >= 0) {
             // If running as a mac app, or explicitly from command line with -Dtufts.vue.featres=NarraVision,

@@ -53,7 +53,7 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     }
 
     public static boolean isMacMetalLAF() {
-        String p = System.getProperty("apple.awt.brushMetalLook");
+        String p = VUE.getSystemProperty("apple.awt.brushMetalLook");
         return p != null && p.equals("true");
     }
     

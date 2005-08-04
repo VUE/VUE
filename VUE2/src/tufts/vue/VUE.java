@@ -36,12 +36,14 @@ import javax.swing.border.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import java.applet.AppletContext;
+
 import net.roydesign.mac.MRJAdapter;
 import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.295 2005-07-19 20:16:15 anoop Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.296 2005-08-04 23:29:25 sfraize Exp $
     
 /**
  * Vue application class.
@@ -53,6 +55,8 @@ import net.roydesign.event.ApplicationEvent;
 public class VUE
     implements VueConstants
 {
+    private static AppletContext sAppletContext = null;
+    
     /** The currently active viewer (e.g., is visible
      * and has focus).  Actions (@see Actions.java) are performed on
      * the active model (sometimes querying the active viewer). */
@@ -96,6 +100,33 @@ public class VUE
     public interface ActiveViewerListener {
         public void activeViewerChanged(MapViewer viewer);
     }
+
+    public static void setAppletContext(AppletContext ac) {
+        sAppletContext = ac;
+    }
+    public static AppletContext getAppletContext() {
+        return sAppletContext;
+    }
+    public static boolean isApplet() {
+        return sAppletContext != null;
+    }
+
+    public static String getSystemProperty(String name) {
+        // If we're an applet, System.getProperty will trhow an AccessControlException
+        if (false && isApplet())
+            return null;
+        else {
+            String prop;
+            try {
+                prop = System.getProperty(name);
+                out("got property " + name);
+            } catch (java.security.AccessControlException e) {
+                System.err.println(e);
+                prop = null;
+            }
+            return prop;
+        }
+    }
     
     /*
     public static java.net.URL getResource(String name) {
@@ -125,7 +156,7 @@ public class VUE
     static class VueFrame extends JFrame
         implements MapViewer.Listener
     {
-        final int TitleChangeMask =
+        final static int TitleChangeMask =
             MapViewerEvent.DISPLAYED |
             MapViewerEvent.FOCUSED;
             //MapViewerEvent.ZOOM;        // title includes zoom
@@ -764,20 +795,28 @@ public class VUE
         VUE.isStartupUnderway = false;
         
         if (!nodr) {
+            LWMap startupMap = null;
             try {
                 //File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
                 //LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
                 java.net.URL startupURL = VueResources.getURL("resource.startmap");
-                LWMap startupMap = OpenAction.loadMap(startupURL);
+                startupMap = OpenAction.loadMap(startupURL);
                 startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
                 startupMap.setLabel("Welcome");
                 startupMap.markAsSaved();
-                displayMap(startupMap);
-               
-            } catch(Exception ex) {
-                VueUtil.alert(null, "Cannot load the Start up map", "Start Up Map Error");
+            } catch (Exception ex) {
                 ex.printStackTrace();
+                VueUtil.alert(null, "Cannot load the Start-up map", "Start Up Map Error");
             }
+
+            try {
+                if (startupMap != null)
+                    displayMap(startupMap);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                VueUtil.alert(null, "Failed to display Start-up Map", "Internal Error");
+            }
+            
         } else {
             //pannerTool.setVisible(true);
         }
@@ -1253,12 +1292,12 @@ public class VUE
     
     public static JFrame createFrame(String title)
     {
-        JFrame frame = new JFrame(title);
+        JFrame newFrame = new JFrame(title);
         if (VueUtil.isMacPlatform() && useMacLAF) {
             JMenuBar menu = new VUE.VueMenuBar();
-            frame.setJMenuBar(menu);
+            newFrame.setJMenuBar(menu);
         }
-        return frame;
+        return newFrame;
     }
 
     /** @return a new JWindow, parented to the root VUE window */
@@ -1289,7 +1328,8 @@ public class VUE
 
     /** call the given runnable after all pending AWT events are completed */
     static void invokeAfterAWT(Runnable runnable) {
-        java.awt.Toolkit.getDefaultToolkit().getSystemEventQueue().invokeLater(runnable);
+        //java.awt.Toolkit.getDefaultToolkit().getSystemEventQueue().invokeLater(runnable);
+        java.awt.EventQueue.invokeLater(runnable);
     }
 
     static class VueToolBar extends JToolBar
@@ -1352,13 +1392,13 @@ public class VUE
             addFocusListener(this);
             final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
-            JMenu fileMenu = add(new JMenu("File"));
-            JMenu editMenu = add(new JMenu("Edit"));
-            JMenu viewMenu = add(new JMenu("View"));
-            JMenu formatMenu = add(new JMenu("Format"));
-            JMenu arrangeMenu = add(new JMenu("Arrange"));
-            JMenu windowMenu = add(new JMenu("Window"));
-            JMenu alignMenu = add(new JMenu("Arrange/Align"));
+            JMenu fileMenu = new JMenu("File");
+            JMenu editMenu = new JMenu("Edit");
+            JMenu viewMenu = new JMenu("View");
+            JMenu formatMenu = new JMenu("Format");
+            JMenu arrangeMenu = new JMenu("Arrange");
+            JMenu windowMenu = null;
+            JMenu alignMenu = new JMenu("Arrange/Align");
             //JMenu optionsMenu = menuBar.add(new JMenu("Options"))l
             JMenu helpMenu = add(new JMenu("Help"));
 
@@ -1416,7 +1456,7 @@ public class VUE
             fileMenu.add(publishAction);
             // GET RECENT FILES FROM PREFS!
             //fileMenu.add(exportMenu);
-            if (MRJAdapter.isSwingUsingScreenMenuBar() == false) {
+            if (isApplet() == false && MRJAdapter.isSwingUsingScreenMenuBar() == false) {
                 fileMenu.addSeparator();
                 fileMenu.add(exitAction);
             }
@@ -1472,6 +1512,9 @@ public class VUE
         
             int index = 0;
             if (toolWindows != null) {
+
+                windowMenu = add(new JMenu("Window"));
+                
                 for (int i = 0; i < toolWindows.length; i++) {
                     //System.out.println("adding " + toolWindows[i]);
                     ToolWindow toolWindow = toolWindows[i];
@@ -1492,6 +1535,16 @@ public class VUE
             helpMenu.add(new ShowURLAction("User Guide", "http://vue.tccs.tufts.edu/userdoc/"));
             helpMenu.add(new AboutAction());
             helpMenu.add(new ShortcutsAction());
+
+            add(fileMenu);
+            add(editMenu);
+            add(viewMenu);
+            add(formatMenu);
+            add(arrangeMenu);
+            if (windowMenu != null)
+                add(windowMenu);
+            add(helpMenu);
+            
         }
 
         public boolean doProcessKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
@@ -1732,7 +1785,7 @@ public class VUE
          * create some test nodes & links
          */
 
-        map.addLWC(new LWImage(new MapResource("/Users/sfraize/Desktop/Test Image.jpg"))).setLocation(350, 90);
+        //map.addLWC(new LWImage(new MapResource("/Users/sfraize/Desktop/Test Image.jpg"))).setLocation(350, 90);
         
         LWNode n1 = new LWNode("Google", new MapResource("http://www.google.com/"));
         LWNode n2 = new LWNode("Program Files", new MapResource("C:\\Program Files"));

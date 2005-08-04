@@ -68,7 +68,6 @@ public class ActionUtil {
         File picked = null;
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
-        
         chooser.setAcceptAllFileFilterUsed(false);
         
         if (fileType != null)
@@ -238,9 +237,9 @@ public class ActionUtil {
                          + " -->\n");
             writer.write("<!-- Do Not Remove:"
                          + " Saved " + new java.util.Date()
-                         + " by " + System.getProperty("user.name")
-                         + " on platform " + System.getProperty("os.name")
-                         + " " + System.getProperty("os.version")
+                         + " by " + VUE.getSystemProperty("user.name")
+                         + " on platform " + VUE.getSystemProperty("os.name")
+                         + " " + VUE.getSystemProperty("os.version")
                          + " -->\n");
             //System.out.println("Wrote " + VersionString);
             marshaller = new Marshaller(writer);

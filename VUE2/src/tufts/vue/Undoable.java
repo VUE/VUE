@@ -19,11 +19,11 @@
 package tufts.vue;
 
 abstract class Undoable {
-    protected Object old; // old property value: protected so is visible in sub-classed undo method
+    protected final Object old; // old property value: protected so is visible in sub-classed undo method
     public Undoable(Object old) {
         this.old = old;
     }
-    public Undoable() {}
+    public Undoable() { old = null; }
 
     /**
      * If your type isn't one we've provided an automatic convenience

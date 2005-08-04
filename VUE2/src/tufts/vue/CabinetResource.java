@@ -331,7 +331,7 @@ public class CabinetResource extends MapResource{
     private void openRemoteByteStore() throws IOException,osid.filing.FilingException{
         RemoteByteStore rbs = (RemoteByteStore)this.entry;
         String fileName = rbs.getFullName();
-        File tempFile = new File( System.getProperty("java.io.tmpdir"),rbs.getDisplayName());
+        File tempFile = new File( VUE.getSystemProperty("java.io.tmpdir"),rbs.getDisplayName());
         FileOutputStream fos = new FileOutputStream(tempFile);
         fos.write(rbs.getBytes());
         fos.close();

@@ -45,11 +45,21 @@ public class VueUtil extends tufts.Util
             try {
                 tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
             } catch(Exception ex) {
-                ex.printStackTrace();
                 tufts.Util.openURL(platformURL);
             }
         } else {
-            tufts.Util.openURL(platformURL);
+            if (VUE.isApplet()) {
+                java.net.URL url = null;
+                try {
+                    url = new java.net.URL(platformURL);
+                    System.out.println("Applet URL display: " + url);
+                    VUE.getAppletContext().showDocument(url, "_blank");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                tufts.Util.openURL(platformURL);
+            }
         }
     }
     
@@ -69,9 +79,9 @@ public class VueUtil extends tufts.Util
     }
 
     public static File getDefaultUserFolder() {
-        File userHome = new File(System.getProperty("user.home"));
+        File userHome = new File(VUE.getSystemProperty("user.home"));
         if(userHome == null) 
-            userHome = new File(System.getProperty("java.io.tmpdir"));
+            userHome = new File(VUE.getSystemProperty("java.io.tmpdir"));
         final String vueUserDir = isWindowsPlatform() ? "vue" : ".vue";
         File userFolder = new File(userHome.getPath() + File.separatorChar + vueUserDir);
         if(userFolder.isDirectory())

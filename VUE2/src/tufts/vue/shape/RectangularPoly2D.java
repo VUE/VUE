@@ -22,7 +22,6 @@ import java.awt.geom.RectangularShape;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.AffineTransform;
-import sun.awt.geom.Crossings;
 
 /**
  * This class implements a polygon shape fit into a specified rectanular region.
