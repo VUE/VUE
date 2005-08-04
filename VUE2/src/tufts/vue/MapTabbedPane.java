@@ -156,7 +156,7 @@ public class MapTabbedPane extends JTabbedPane
         }
     }
     
-    final int TitleChangeMask =
+    static final int TitleChangeMask =
         MapViewerEvent.DISPLAYED |
         MapViewerEvent.FOCUSED |
         MapViewerEvent.ZOOM;        // title includes zoom
@@ -190,14 +190,25 @@ public class MapTabbedPane extends JTabbedPane
         
     public void addViewer(MapViewer viewer) {
         Component c = viewer;
-        if (true || !this.name.startsWith("*")) {
+        //if (true || !this.name.startsWith("*")) {
+        if (tufts.Util.getJavaVersion() < 1.5f) { // our special viewport code hits a bug in 1.5
             JScrollPane scrollPane = new JScrollPane(viewer);
             //scrollPane.setViewportBorder(new LineBorder(Color.green, 50));
             scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
             c = scrollPane;
         }
-        addTab(viewerToTabTitle(viewer), c);
+        
+        if (false) {
+            String tabTitle = viewerToTabTitle(viewer);
+            if (tabTitle == null)
+                tabTitle = "unknown";
+            System.out.println("Adding tab '" + tabTitle + "' component=" + c);
+            addTab(tabTitle, c);
+        } else {
+            addTab(viewerToTabTitle(viewer), c);
+        }
+        
         LWMap map = viewer.getMap();
         map.addLWCListener(this, new Object[] { LWKey.MapFilter, LWKey.Label } );
         // todo perf: we should be able to ask to listen only
