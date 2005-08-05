@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.47 $ / $Date: 2005-08-05 03:12:00 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.47 2005-08-05 03:12:00 sfraize Exp $ -->
+<!-- $Revision: 1.48 $ / $Date: 2005-08-05 07:06:09 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.48 2005-08-05 07:06:09 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -646,9 +646,9 @@
   </target>
 
 
-  <pathconvert pathsep="," property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
   <target name="jar-lib"
           description="Create VUE-lib.jar - a separate jar file containing the kitchen-sink set of third party libraries to run VUE (dev convenience target).">
+    <pathconvert pathsep=" " property="info.jarfiles" refid="thirdparty.jarfiles.classpath"/>
     <echo message="Jaring: ${info.jarfiles}"/>
     <!-- There is a bunch of of crap in the lib file we really don't need: figure out how to exclude. -->
     <!-- Stuff like .java sources, .html files and .txt files, and from axis-ant.jar, a big fat js.jar (javascript) & bsf.jar files? -->
@@ -824,22 +824,24 @@ class Version {
 
 <!-- ==================== Tasks to run VUE  ================================ -->
 
-    <target name="vue" depends="" description="Run the VUE application.">
+    <target name="vue" depends="" description="Run the VUE application (Default Look and Feel)">
       <java classname="tufts.vue.VUE" failonerror="true" fork="true">
+        <jvmarg value="-Dtufts.vue.features=TUFTS"/>
         <classpath refid="runtime.classpath"/>
       </java>
     </target>
     
-    <target name="vue-mac" depends="" description="Run the VUE application (Mac Look and Feel).">
+    <target name="vue-mac-plain" depends="" description="Run the VUE application (Mac Look and Feel: Default)">
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dcom.apple.mrj.application.apple.menu.about.name=VUE"/>
+          <jvmarg value="-Dtufts.vue.features=TUFTS"/>
           <arg value="-useMacLookAndFeel"/>
           <classpath refid="runtime.classpath"/>
         </java>
     </target>
     
-    <target name="vue-mac-metal" depends="" description="Run the VUE application (Mac Look and Feel, Brushed Metal).">
+    <target name="vue-mac-metal" depends="" description="Run the VUE application (Mac Look and Feel: Brushed Metal)">
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
@@ -850,7 +852,7 @@ class Version {
         </java>
     </target>
     
-    <target name="vue-nv" depends="" description="Run the NarraVision demo.">
+    <target name="vue-nv" depends="" description="Run the NarraVision demo (Mac)">
       <pathconvert pathsep=":" property="classpath.nv" refid="runtime.classpath"/>
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
@@ -873,13 +875,14 @@ class Version {
     
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
-      <pathconvert pathsep="," property="info.classpath" refid="runtime.classpath"/>
-      <pathconvert pathsep="," property="info.compilepath.common" refid="compile.classpath.common"/>
-      <pathconvert pathsep="," property="info.compilepath.vue" refid="compile.classpath.vue"/>
-      <echo message="Distribution jar files: ${info.jarfiles}"/>
-      <echo message="Runtime classpath: ${info.classpath}"/>
-      <echo message="common compile classpath: ${info.compilepath.common}"/>
-      <echo message="tufts/vue compile classpath: ${info.compilepath.vue}"/>
+      <pathconvert pathsep="${line.separator}" property="dist.jarfiles" refid="thirdparty.jarfiles.classpath"/>
+      <pathconvert pathsep="  " property="info.classpath" refid="runtime.classpath"/>
+      <pathconvert pathsep="  " property="info.compilepath.common" refid="compile.classpath.common"/>
+      <pathconvert pathsep="  " property="info.compilepath.vue" refid="compile.classpath.vue"/>
+      <echo message="DISTRIBUTION JAR FILES:${line.separator}${dist.jarfiles}"/>
+      <echo message="RUNTIME CLASSPATH:         ${info.classpath}"/>
+      <echo message="COMMON COMPILE CLASSPATH:  ${info.compilepath.common}"/>
+      <echo message="TUFTS/VUE COMPILE CLASSPATH: ${info.compilepath.vue}"/>
     </target>
 
     <target name="info-jarlib">
