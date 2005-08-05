@@ -59,15 +59,15 @@ public class VueResources
 
         boolean NarraVision = false;
             
-        if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")
-            || classPath != null && classPath.toLowerCase().indexOf("narravision") >= 0) {
+        if (featureSet != null && featureSet.equalsIgnoreCase("NarraVision")) {
+            NarraVision = true;
+        } else if (featureSet == null && classPath != null && classPath.toLowerCase().indexOf("narravision") >= 0) {
             // If running as a mac app, or explicitly from command line with -Dtufts.vue.featres=NarraVision,
             // we know to run as NarraVision.  However, if running just from a jar file on the PC,
             // we guess from classpath -- if "NarraVision" appears anywhere in it, run
             // as MIT NarraVision.  (e.g.: "MIT-NarraVision-2005-03-20.jar") will still work.
             NarraVision = true;
         }
-
 
         if (NarraVision) {
             // This will load VueResources.properties as the parent,

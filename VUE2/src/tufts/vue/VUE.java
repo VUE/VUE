@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.296 2005-08-04 23:29:25 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.297 2005-08-05 03:11:16 sfraize Exp $
     
 /**
  * Vue application class.
@@ -476,7 +476,7 @@ public class VUE
     private static boolean exitAfterInit = false;
 
 
-    public static final boolean TUFTS = true;// Not returning correct variable VueResources.getBool("application.features.tufts");
+    public static final boolean TUFTS = VueResources.getBool("application.features.tufts");
     public static final boolean NARRAVISION = !TUFTS;
     public static final String NAME = VueResources.getString("application.name");
     
