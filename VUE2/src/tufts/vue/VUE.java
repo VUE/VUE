@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.297 2005-08-05 03:11:16 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.298 2005-08-05 06:27:21 sfraize Exp $
     
 /**
  * Vue application class.
@@ -119,7 +119,7 @@ public class VUE
             String prop;
             try {
                 prop = System.getProperty(name);
-                out("got property " + name);
+                if (DEBUG.INIT) out("got property " + name);
             } catch (java.security.AccessControlException e) {
                 System.err.println(e);
                 prop = null;
