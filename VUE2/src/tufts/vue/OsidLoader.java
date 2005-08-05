@@ -162,10 +162,10 @@ System.out.println("mcn " + managerClassName);
                                     }
 
                                     if (null != additionalConfiguration) {
-                                        java.util.Enumeration enum = additionalConfiguration.propertyNames();
+                                        java.util.Enumeration keys = additionalConfiguration.propertyNames();
 
-                                        while (enum.hasMoreElements()) {
-                                            java.io.Serializable key = (java.io.Serializable) enum.nextElement();
+                                        while (keys.hasMoreElements()) {
+                                            java.io.Serializable key = (java.io.Serializable) keys.nextElement();
 
                                             if (null != key) {
                                                 java.io.Serializable value = (java.io.Serializable) additionalConfiguration.get(key);
