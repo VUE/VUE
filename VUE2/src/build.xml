@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.53 $ / $Date: 2005-08-09 04:35:15 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.53 2005-08-09 04:35:15 sfraize Exp $ -->
+<!-- $Revision: 1.54 $ / $Date: 2005-08-09 05:16:24 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.54 2005-08-09 05:16:24 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -229,6 +229,13 @@
      doesn't tell us anything about what it can't find, so we're just going to
      go with the overkill list above.  But it looks like with some vetting, we
      could reduce the size of the distriubtion to less than half it's current size. -->
+     <!--
+         Used for exporting to SVG:
+                   batik-awt-util.jar
+                   batik-ext.jar
+                   batik-svggen.jar
+                   batik-util.jar
+       -->
   <property name="thirdparty.jarfiles.names.minimal"
             value="
                    apache-commons.jar
