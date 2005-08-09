@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.49 $ / $Date: 2005-08-05 20:21:54 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.49 2005-08-05 20:21:54 sfraize Exp $ -->
+<!-- $Revision: 1.50 $ / $Date: 2005-08-09 03:52:34 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.50 2005-08-09 03:52:34 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -113,26 +113,26 @@
   <property name="thirdparty.jarfiles.names"
             value="
                    connectionTamino.jar
-                   jaxb-api.jar
-                   jaxb-impl.jar
-                   jaxb-libs.jar
+                   jaxb-api-unsigned.jar
+                   jaxb-impl-unsigned.jar
+
                    SessionManager.jar
                    imq.jar
                    jms.jar
                    celebrate_xml.jar
-                   jax-qname.jar
+                   jax-qname-unsigned.jar
                    relaxngDatatype.jar
-                   namespace.jar
+                   namespace-unsigned.jar
                    xsdlib_unsigned.jar
-                   jaxrpc-api.jar
-                   jaxrpc-impl.jar
-                   jaxrpc-spi.jar
+                   jaxrpc-api-unsigned.jar
+                   jaxrpc-impl-unsigned.jar
+                   jaxrpc-spi-unsigned.jar
                    VUE-MacOSX.jar
                    activation_unsigned.jar
                    mail.jar
                    xercesImpl.jar
-                   saaj-api.jar
-                   saaj-impl_unsigned.jar
+                   saaj-api-unsigned.jar
+                   saaj-impl-unsigned.jar
                    an_az.jar
                    VisualizingCultures.jar
                    NarraVision.jar
@@ -156,7 +156,7 @@
                    CometOsid2Impl.jar
                    cryptix-asn1.jar
                    cryptix32.jar
-                   dom.jar
+
                    dom2.jar
                    drSql.jar
                    ecldr.jar
@@ -173,8 +173,8 @@
                    iPhotosDR.jar
                    iTunesDR.jar
                    jakarta-regexp-1.2.jar
-                   jaxb-xjc.jar
-                   jaxrpc.jar
+
+
                    jdom.jar
                    jhapi.jar
                    jhbasic_unsigned.jar
@@ -183,7 +183,7 @@
                    jsse.jar
                    jxtaid.jar
                    jxtasecurity.jar
-                   log4j-1.2.4.jar
+
                    log4j-1.2.8.jar
                    logging.jar
                    MITAuthenticationTypes.jar
@@ -220,8 +220,14 @@
                    xml-apis.jar
                    xmlrpc-1.1.jar
                    "/>
-  
-  <!-- VUE will actually run with this minimal set of jar files, with the exception
+
+<!-- removed log4j-1.2.4.jar (old) from above SMF 8/5/05 -->
+<!-- removed dom.jar from above (old) SMF 8/8/05 -->
+<!-- removed jaxb-xjc.jar from above (old?) SMF 8/8/05 -->
+<!-- removed jaxb-libs.jar from above (old?) SMF 8/8/05 --->
+<!-- removed jaxrpc.jar from above (old?) SMF 8/8/05 -->
+
+     <!-- VUE will actually run with this minimal set of jar files, with the exception
      of adding new OSID-DR datasources (e.g., comet.osidimpl.iTunesDR, if you also
      include iTunesDR.jar).  The error message we get when attempting to do that
      doesn't tell us anything about what it can't find, so we're just going to
@@ -862,7 +868,9 @@ class Version {
         </java>
     </target>
     
-    <target name="vue-mac-metal" depends="" description="Run the VUE application (Mac Look and Feel: Brushed Metal)">
+    <target name="vue-mac-metal" depends="vue-mac"/>
+    
+    <target name="vue-mac" depends="" description="Run the VUE application (Mac Look and Feel: Brushed Metal)">
         <java classname="tufts.vue.VUE" failonerror="true" fork="true">
           <jvmarg value="-Dapple.laf.useScreenMenuBar=true"/>
           <jvmarg value="-Dapple.awt.brushMetalLook=true"/>
