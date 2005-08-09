@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.55 $ / $Date: 2005-08-09 05:30:29 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.55 2005-08-09 05:30:29 sfraize Exp $ -->
+<!-- $Revision: 1.56 $ / $Date: 2005-08-09 23:39:33 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.56 2005-08-09 23:39:33 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -240,7 +240,7 @@
          saaj (javax.xml.soap)          For SOAP (FEDORA access support)
          fop (org.apache.fop)           For PDFTransform.java
          castor (org.exolab.castor)     For XML persistance support
-         dom2 (org.w3c.dom)             For SCGConverion, XMLView & AssetResource
+         dom2 (org.w3c.dom)             For SVGConverion, XMLView & AssetResource
          jaxrpc (javax.xml.rpc)         FEDORA
          
        -->
