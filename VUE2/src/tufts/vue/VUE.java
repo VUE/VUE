@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.298 2005-08-05 06:27:21 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.299 2005-08-10 23:51:04 sfraize Exp $
     
 /**
  * Vue application class.
@@ -558,6 +558,7 @@ public class VUE
             
             //displayMap(map1);
             displayMap(map2);
+            toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
         }
 
         if (DEBUG.INIT) out("map loaded");
@@ -729,7 +730,17 @@ public class VUE
                 Window w = toolWindow.getWindow();
 
                 if (w instanceof JFrame) {
-                    ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
+                    if (nodr) {
+                        // we're hitting bug in java 1.4.2 on Tiger here (apple.laf.ScreenMenuBar bounds exception)
+                        // Mysteriously, it only happens using the debug option -nodr for no DR browser.
+                        out("adding menu bar to " + w);
+                    }
+                    try {
+                        ((JFrame)w).setJMenuBar(new VueMenuBar(ToolWindows));
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        out("OSX TIGER JAVA BUG");
+                        e.printStackTrace();
+                    }
                     toolWindow.setProcessKeyBindingsToMenuBar(false);
                 }
             }
@@ -741,7 +752,12 @@ public class VUE
         //frame.setContentPane(vuePanel);
         //frame.setContentPane(splitPane);
         //frame.setBackground(Color.white);
-        frame.pack();
+        try {
+            frame.pack();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            out("OSX TIGER JAVA BUG at frame.pack()");
+            e.printStackTrace();
+        }
         if (nodr) {
             frame.setSize(750,450);
         } else {

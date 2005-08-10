@@ -186,6 +186,7 @@ public class MapViewer extends javax.swing.JComponent
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
+        addMouseWheelListener(inputHandler); // have zoom tool do this?
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
     
@@ -2642,7 +2643,7 @@ public class MapViewer extends javax.swing.JComponent
     // todo: if java ever supports moving an inner class to another file,
     // move the InputHandler out: this file has gotten too big.
     private class InputHandler extends tufts.vue.MouseAdapter
-        implements java.awt.event.KeyListener
+        implements java.awt.event.KeyListener, java.awt.event.MouseWheelListener
     {
         LWComponent dragComponent;//todo: RENAME dragGroup -- make a ControlListener??
         LWSelection.ControlListener dragControl;
@@ -3296,7 +3297,22 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
          */
-        
+
+        private long lastRotationTime = 0;
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+            long now = System.currentTimeMillis();
+            if (now - lastRotationTime < 50) { // todo: preference
+                if (DEBUG.MOUSE) System.out.println("ignoring speedy wheel event");
+                return;
+            }
+            int rotation = e.getWheelRotation();
+            if (rotation > 0)
+                tufts.vue.ZoomTool.setZoomSmaller(null);
+            else if (rotation < 0)
+                tufts.vue.ZoomTool.setZoomBigger(null);
+            lastRotationTime = System.currentTimeMillis();
+        }
         
         public void mouseMoved(MouseEvent e) {
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
@@ -4522,6 +4538,7 @@ public class MapViewer extends javax.swing.JComponent
                 JScrollPane scrollPane = new JScrollPane(viewer);
                 scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                scrollPane.setWheelScrollingEnabled(false);
                 frame = VueUtil.displayComponent(scrollPane);
             } else {
                 frame = VueUtil.displayComponent(viewer);

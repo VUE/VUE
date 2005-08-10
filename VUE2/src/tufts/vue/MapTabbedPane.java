@@ -196,6 +196,7 @@ public class MapTabbedPane extends JTabbedPane
             //scrollPane.setViewportBorder(new LineBorder(Color.green, 50));
             scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+            scrollPane.setWheelScrollingEnabled(false);
             c = scrollPane;
         }
         
