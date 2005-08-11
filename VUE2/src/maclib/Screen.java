@@ -12,7 +12,7 @@ import java.awt.*;
 // any platform.
 // Scott Fraize 2005-03-27
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/maclib/Screen.java,v 1.4 2005-03-28 03:18:35 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/maclib/Screen.java,v 1.5 2005-08-11 03:58:35 sfraize Exp $
 
 /**
  * This class provides access to native Mac OS X functionality
@@ -146,7 +146,7 @@ public class Screen
     }
     
     public static void dumpMenu(NSMenu m) {
-        System.out.println("Mac Main Menu: " + m + " visible="+m.menuBarVisible() + " hash=" + m.hashCode());
+        System.out.println("Mac Main Menu: " + m + " visible="+NSMenu.menuBarVisible() + " hash=" + m.hashCode());
     }
 
     private static NSWindow MainWindow = null;
@@ -197,6 +197,11 @@ public class Screen
                     MainWindow = w;
             }
         }
+        if (DEBUG) System.out.println("tufts.macosx.Screen.adjustMacWindows:"
+                                      + "\n\tmainTitleStart is \"" + mainWindowTitleStart + '"'
+                                      + "\n\tMainWindow=" + MainWindow
+                                      + "\n\tFullWindow=" + FullWindow
+                                      );
         for (int i = 0; i < windows.count(); i++) {
             w = (NSWindow) windows.objectAtIndex(i);
             if (w == MainWindow || w == FullWindow || w.title().startsWith("_"))
@@ -211,11 +216,8 @@ public class Screen
             // child of the vue frame, and it went invisible with it...)  We can do this,
             // but VUE will have to help us specifically.
             
-            //if (w.title().startsWith("@")) {
             if (ensureHidden != null && w.title().equals(ensureHidden)) {
-                //EXPERIMENTAL
                 if (DEBUG) System.out.println("--- REMOVE AS CHILD OF MAIN-WINDOW: #" + i + " [" + w.title() + "]");
-                // todo: clear the @ from the title now?  What if we already removed it once?
                 MainWindow.removeChildWindow(w);
                 continue;
             }
@@ -301,8 +303,12 @@ public class Screen
         try { Thread.sleep(500); } catch (Exception e) {}
         NSWindow main = NSApplication.sharedApplication().mainWindow();
         System.out.println("mainWindow="+main);
-        main.setBackgroundColor(NSColor.redColor());
-        main.setAlphaValue(0.5f);
+        if (main == null) {
+            System.out.println("COULDN'T FIND MAIN WINDOW!");
+        } else {
+            main.setBackgroundColor(NSColor.redColor());
+            main.setAlphaValue(0.5f);
+        }
         fadeFromBlack();
         //try { Thread.sleep(5000); } catch (Exception e) {}
     }
