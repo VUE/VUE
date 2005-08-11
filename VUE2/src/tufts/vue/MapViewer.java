@@ -3298,20 +3298,22 @@ public class MapViewer extends javax.swing.JComponent
         }
          */
 
-        private long lastRotationTime = 0;
+        //private long lastRotationTime = 0;
         public void mouseWheelMoved(MouseWheelEvent e) {
             if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+            /*
             long now = System.currentTimeMillis();
             if (now - lastRotationTime < 50) { // todo: preference
                 if (DEBUG.MOUSE) System.out.println("ignoring speedy wheel event");
                 return;
             }
+            */
             int rotation = e.getWheelRotation();
             if (rotation > 0)
                 tufts.vue.ZoomTool.setZoomSmaller(null);
             else if (rotation < 0)
                 tufts.vue.ZoomTool.setZoomBigger(null);
-            lastRotationTime = System.currentTimeMillis();
+            //lastRotationTime = System.currentTimeMillis();
         }
         
         public void mouseMoved(MouseEvent e) {

@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.299 2005-08-10 23:51:04 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.300 2005-08-11 03:58:04 sfraize Exp $
     
 /**
  * Vue application class.
@@ -195,7 +195,10 @@ public class VUE
                     */
                 }
             }
+
+            // why do we do this?  Must have to do with full-screen or something...
             if (VUE.getRootWindow() != VUE.getMainWindow()) {
+                if (DEBUG.Enabled) out("VueFrame: processEvent: root != main: forcing root visible & front");
                 VUE.getRootWindow().setVisible(true);
                 VUE.getRootWindow().toFront();
             }
@@ -463,8 +466,12 @@ public class VUE
                 DEBUG.FOCUS = true;
             else if (args[i].equals("-debug_dr"))
                 DEBUG.DR = true;
+            else if (args[i].equals("-debug_tool"))
+                DEBUG.TOOL = true;
             else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
+
+            if (args[i].startsWith("-debug")) DEBUG.Enabled = true;
         }
         out("parsed args " + allArgs);
     }
@@ -558,7 +565,7 @@ public class VUE
             
             //displayMap(map1);
             displayMap(map2);
-            toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
+            //toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
         }
 
         if (DEBUG.INIT) out("map loaded");
@@ -1434,7 +1441,10 @@ public class VUE
             SVGConversion svgAction = new SVGConversion("SVG");
             XMLView xmlAction = new XMLView("XML View");
         
-            if (DEBUG.Enabled) {
+            if (false && DEBUG.Enabled) {
+                // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG:
+                // we're hitting bug in java (1.4.2, 1.5) on Tiger (OSX 10.4.2) here
+                // (apple.laf.ScreenMenuBar array index out of bounds exception)
                 JButton u = new JButton(Actions.Undo);
                 JButton r = new JButton(Actions.Redo);
                 JButton p = new JButton(printAction);
@@ -1452,7 +1462,8 @@ public class VUE
                 // not picking up icon yet...
             }
 
-            if (DEBUG.Enabled) {
+            if (false && DEBUG.Enabled) {
+                // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG (see above)
                 JMenu exportMenu = add(new JMenu("Export"));
                 exportMenu.add(htmlAction);
                 exportMenu.add(pdfAction);

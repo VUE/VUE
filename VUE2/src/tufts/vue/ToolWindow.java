@@ -78,9 +78,9 @@ public class ToolWindow
      *
      * Reasons we use a Frame on Mac OS X:
      *
-     * 1: It's the only way to keep the VUE menu bar from going away we get focus.
+     * 1: It's the only way to keep the VUE menu bar from going away when we get focus.
      *    Frame's allow us to attach a JMenuBar, and Window's do not.
-     *    On the Mac, VUE attaches a duplicate of main menu bar to every
+     *    On the Mac, VUE attaches a duplicate of the main menu bar to every
      *    created Frame, so when Mac OS X forcably switches to the
      *    JMenuBar attached to a Frame when it get's focus (which it does
      *    even if NO menu bar has been defined), it looks like nothing happened.
@@ -95,7 +95,7 @@ public class ToolWindow
      *
      * -2: The Frame's "roll-up" size isn't a small as we'd like: they're
      *     forced by the Mac OS X to have a minimum size that's bigger
-     *     than we need.
+    *     than we need.
      *
      * -3: We can't override setLocation on a Frame, to make the window's
      * "sticky" to the edge's of the main window.
@@ -122,15 +122,34 @@ public class ToolWindow
         public void setVisible(boolean show) { ToolWindow.this.setVisible(show); }
         public void setSize(int width, int height) { ToolWindow.this.setSize(width, height); }
         public void setSuperSize(int width, int height) { super.setSize(width, height); }
-        public void setSuperVisible(boolean show) { super.setVisible(show); }
+        public void setSuperVisible(boolean show) {
+            if (DEBUG.Enabled) out("setSuperVisible [" + getTitle() + "] (detach immediate)");
+            if (show == false) {
+                // if going invisible, must be sure to detach from a Cocoa established parent or
+                // parent will going invisible also!
+                detachFromMainWindow(getTitle());
+            }
+            super.setVisible(show);
+        }
 
         private void handleShown() {
-            if (DEBUG.Enabled) out("handleShown [" + getTitle() + "]");
-            adjustMacWindows(getTitle(), null);
+            if (DEBUG.Enabled) out("handleShown [" + getTitle() + "] (attach later)");
+            attachToMainWindow(getTitle());
         }
         private void handleHidden() {
-            if (DEBUG.Enabled) out("handleHidden [" + getTitle() + "]");
-            adjustMacWindows(null, getTitle());
+            if (DEBUG.Enabled) out("handleHidden [" + getTitle() + "] (noop)");
+
+            // As of Mac OS X Tiger (at least 10.4.2), hiding a window
+            // (via java setVisible) that has been attached to a
+            // parent (via Cocoa NSWindow.addChildWIndow) ALSO hides
+            // the parent window!  So we need to detach it from the
+            // parrent immediately when it's requested to go
+            // invisible, so it's detached by the time the
+            // setVisible(false) goes through.  Thus we can't handle
+            // this here anymore in this after-the-fact event handler.
+            // So it's now handled above in setSuperVisible.
+            
+            //detachFromMainWindow(getTitle());
         }
 
         protected void processEvent(AWTEvent e) {
@@ -141,17 +160,29 @@ public class ToolWindow
     
     }
 
-    static void adjustMacWindows() {
-        adjustMacWindows(null, null);
+    private static void attachToMainWindow(String title) {
+        adjustMacWindows(title, null, false);
     }
-    static void adjustMacWindows(final String ensureShown, final String ensureHidden) {
+    // This happens IMMEDIATELY, as opposed to attach, which happens after AWT
+    private static void detachFromMainWindow(String title) {
+        adjustMacWindows(null, title, true);
+    }
+
+    private static void adjustMacWindows(final String ensureShown, final String ensureHidden, final boolean immediate) {
         if (VueUtil.isMacPlatform() && !VUE.inNativeFullScreen()) {
-            VUE.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        tufts.Util.adjustMacWindows(VUE.NAME + ":", ensureShown, ensureHidden, VUE.inFullScreen());
-                    }
-                });
+            if (immediate) {
+                tufts.Util.adjustMacWindows(VUE.NAME + ":", ensureShown, ensureHidden, VUE.inFullScreen());
+            } else {
+                VUE.invokeAfterAWT(new Runnable() {
+                        public void run() {
+                            tufts.Util.adjustMacWindows(VUE.NAME + ":", ensureShown, ensureHidden, VUE.inFullScreen());
+                        }
+                    });
+            }
         }
+    }
+    static void adjustMacWindows() {
+        adjustMacWindows(null, null, false);
     }
     
     
@@ -235,7 +266,7 @@ public class ToolWindow
 
         //new Throwable(this + "SET VISIBLE " + show).printStackTrace();
 
-        if (DEBUG.FOCUS) out("setVisible " + show);
+        if (DEBUG.FOCUS || DEBUG.TOOL) out("setVisible " + show);
         if (show && isRolledUp()) {
             setRolledUp(false);
         } else if (!show) {
@@ -259,6 +290,7 @@ public class ToolWindow
                 }
             }
         }
+        //if (DEBUG.TOOL) out("delegate setSuperVisible " + show + " " + mDelegate);
         mDelegate.setSuperVisible(show);
     }
 
