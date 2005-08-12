@@ -89,6 +89,8 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
     public static Color getToolbarColor() {
         if (VueUtil.isMacAquaLookAndFeel()) {
             if (isMacMetalLAF())
+                // FYI/BUG: Mac OS X 10.4+ Java 1.5: applying SystemColor.window is no longer 
+                // working for some components (e.g., palette button menu's (a JPopupMenu))
                 return SystemColor.window;
             else
                 return SystemColor.control;
@@ -96,18 +98,24 @@ class VueTheme extends javax.swing.plaf.metal.DefaultMetalTheme
             return ToolbarColor;
     }
 
-    /** In the case of the Mac Aqua L&F, this does nothing, picking up the default.
-        Otherwise, it sets the background to getToolBarColor() */
+    /** Sets the background to getToolBarColor() */
     public static void applyToolbarColor(Component c) {
+        //c.setBackground(Color.gray);
+        c.setBackground(getToolbarColor());
+        /*
         if (VueUtil.isMacAquaLookAndFeel()) {
             //if (DEBUG.Enabled) System.out.println("MAC AQUA: skipping toolbar application to " + c);
+            // as of Mac OS X 10.4 (Tiger), we need to set this explicitly
+            //c.setBackground(getToolbarColor());
+            c.setBackground(Color.red);
         } else {
             //if (DEBUG.Enabled) System.out.println("*** APPLYING TOOLBAR COLOR TO: " + c);
             c.setBackground(getToolbarColor());
         }
+        */
     }
     
-    public static Color getVueColor() { return getTheme().VueColor;  }
+    public static Color getVueColor() { return VueColor;  }
     //public static Color getVueColor() { return Color.red;  }
     
     public FontUIResource getMenuTextFont() { return fontMedium;  }

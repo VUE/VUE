@@ -70,7 +70,9 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	
     /** the current overlay popup indicator icon **/
     protected Icon mPopupIndicatorIcon = null;	
-    protected Icon mPopupIndicatorUpIcon = null;	
+    protected Icon mPopupIndicatorUpIcon = null;
+
+    private static final boolean debug = false;
 	
 	
     /**
@@ -170,19 +172,18 @@ public class PaletteButton extends JRadioButton implements ActionListener
      *
      * @param pItem the new PaletteButtonItem to be added.
      **/
-    public void addPaletteItem( PaletteButtonItem  pItem ) {
+    public void addPaletteItem(PaletteButtonItem pItem) {
         if( mItems == null) {
             mItems = new PaletteButtonItem[1];
             mItems[0] = pItem;
-        }
-        else {
+        } else {
             int len = mItems.length;
-            PaletteButtonItem newItems[] = new PaletteButtonItem[ len+1];
+            PaletteButtonItem newItems[] = new PaletteButtonItem[len+1];
             for(int i=0; i< len; i++) {
                 newItems[i] = mItems[i];
             }
             newItems[len] = pItem;
-            setPaletteButtonItems( newItems);
+            setPaletteButtonItems(newItems);
         }
     }
 	
@@ -225,7 +226,8 @@ public class PaletteButton extends JRadioButton implements ActionListener
      * Sets the set of PaletteButtonItems for the popup menu
      * @param pItems the array of items.
      **/
-    public void setPaletteButtonItems( PaletteButtonItem [] pItems) {
+    public void setPaletteButtonItems(PaletteButtonItem [] pItems) {
+        if (debug) System.out.println(this + " setPaletteButtonItems n=" + pItems.length);
         mItems = pItems;
         buildPalette();
     }
@@ -255,47 +257,71 @@ public class PaletteButton extends JRadioButton implements ActionListener
         // clear the old
         mPopup = null;
 		
-        if( mItems == null) {
+        if (mItems == null || mItems.length < 2) {
             mHasPopup = false;
             return;
         }
 		 
+        mHasPopup = true;
         int numItems = mItems.length;
 		
-        if( numItems < 2) {
-            mHasPopup = false;
-            return;
-        }
-			
-        mHasPopup = true;
         int cols = 0;
-        while(  (mColThreshold[cols] < numItems) && (cols < mColThreshold.length) )  {
+        while (mColThreshold[cols] < numItems && cols < mColThreshold.length)
             cols++;
-        }
         int rows = (numItems + (numItems % cols )) / cols ;
+
+        if (rows < 3 && VueUtil.isMacAquaLookAndFeel() && VueUtil.getJavaVersion() < 1.5f /*&& tiger */) { // total hack for now
+
+            // JAVA BUG: there appears to be an absolute minimunm width & height
+            // for pop-up's: approx 125 pixels wide, no smaller, and approx 34 pixels
+            // tall, no smaller.
+            //
+            // This bug only shows up in Java 1.4.2 on Mac OS X Tiger (10.4+) if
+            // we're using the Metal version of the Mac Aqua Look & Feel.
+            // The default Mac Aqua L&F doesn't see the bug, and java 1.5 works fine.
+            // 
+            // Note this bug affects almost all pop-ups: even combo-box's!  (See
+            // VUE font-size), as well as many roll-over / tool-tip pop-ups.
+            // I'm guessing the bug is somewhere down in the PopupFactory or PopupMenuUI
+            // or the java small-window caching code shared by pop-ups and tool-tips.
+            //
+            // SMF 2005-08-11
+
+            // This forces the smaller menus we use into 1 row which use
+            // up the forced width better.  These #'s hard-coded based
+            // on our current usage...
+            rows = 1;
+            cols = 3;
+        }
 		
-        GridLayout grid = new GridLayout( rows, cols);
-        grid.setVgap( 0);
-        grid.setHgap( 0);
+        GridLayout grid = new GridLayout(rows, cols);
+        grid.setVgap(0);
+        grid.setHgap(0);
+        if (debug) System.out.println("*** CREATED GRID LAYOUT " + grid.getRows() + "x" + grid.getColumns());
 		
+        //JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+
         PBPopupMenu pbPopup = new PBPopupMenu();
         mPopup = pbPopup;
-        mPopup.setLayout( grid);
         this.addMouseListener(pbPopup);
 		
-        // why not just put the adapter in our subclass PBPopupMenu?
-        //VueToolPopupAdapter ourPopupAdapter;
-        //ourPopupAdapter = new VueToolPopupAdapter( mPopup);
-        //this.addMouseListener(  ourPopupAdapter );
+        mPopup.setLayout(grid);
 
-		
-        for(int i=0; i<numItems; i++) {
-            mItems[i].setPaletteButton( this);
-            mPopup.add( mItems[i] );
-            mItems[i].addActionListener( this);
+        for (int i = 0; i < numItems; i++) {
+            mPopup.add(mItems[i]);
+            mItems[i].setPaletteButton(this);
+            mItems[i].addActionListener(this);
         }
-		 
+        
+        if (debug)
+            System.out.println("*** CREATED POPUP " + mPopup
+                               + " margin=" + mPopup.getMargin()
+                               + " layout=" + mPopup.getLayout()
+                               );
         //mPopup.pack();
+        //mPopup.validate();
+        //mPopup.setSize(20,60);
+        //mPopup.setPopupSize(20,30);
 	
     }
 	
@@ -444,6 +470,11 @@ public class PaletteButton extends JRadioButton implements ActionListener
 	
     /**
      * JPopupMenu subclass  to deal with popup triggers.
+     *
+     * As of java 1.4.2 on Tiger (Mac OS X 10.4+) the layout
+     * of this is broken (too much space).  OS X 10.3 works
+     * in 1.4.2, and it works fine in java 1.5 on 10.4+.
+     *
      **/
     public class PBPopupMenu extends JPopupMenu
         implements MouseListener
@@ -453,11 +484,13 @@ public class PaletteButton extends JRadioButton implements ActionListener
 
         public PBPopupMenu() {
             setFocusable(false);
-            Color bg = VueTheme.getToolbarColor();
-            setBackground(bg);
-            setBorder(new LineBorder(bg.darker().darker(), 1));
+            VueTheme.applyToolbarColor(this);
+            //setBackground(Color.white);
+            setBorder(new LineBorder(getBackground().darker().darker(), 1));
             //setBorderPainted(false);
         }
+
+        //public int getWidth() { return 20; }
             
         public void setVisibleLocked(boolean t) {
             if (mDebug) System.out.println(this + " LOCK " + t);

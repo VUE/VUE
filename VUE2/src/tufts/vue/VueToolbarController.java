@@ -504,7 +504,8 @@ public class VueToolbarController
 	
     public static void main(String[] args) {
         System.out.println("VueToolbarController:main");
-        DEBUG.Enabled = DEBUG.INIT = true;
+        DEBUG.Enabled = true;
+        //DEBUG.INIT = true;
         DEBUG.TOOL = true;
         VUE.parseArgs(args);
         VUE.initUI(true);
@@ -513,7 +514,7 @@ public class VueToolbarController
         VueToolbarController controller = getController();
 
         //JComponent comp = controller.createDefaultToolbar();
-        VueToolPanel comp = controller.createDefaultToolbar();
+        VueToolPanel comp = controller.mToolPanel;
         comp.setContextualToolPanel(new NodeToolPanel());
 
         JFrame frame = new JFrame(comp.getClass().getName());
