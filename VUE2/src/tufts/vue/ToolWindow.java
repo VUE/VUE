@@ -804,13 +804,21 @@ public class ToolWindow
         private int iconSize;
         private int yoff;
         private int edgeInset;
+        private java.awt.BasicStroke X_STROKE;
         
         public void addNotify()
         {
             if (iconSize == 0) {
-                iconSize = TitleHeight - (VueUtil.isMacAquaLookAndFeel() ? 4 : 5);
-                yoff = VueUtil.isMacAquaLookAndFeel() ? 2 : 4;
-                edgeInset = VueUtil.isMacAquaLookAndFeel() ? TitleHeight : TitleHeight+1;
+                X_STROKE = new java.awt.BasicStroke(1.3f);
+                //iconSize = TitleHeight - (VueUtil.isMacAquaLookAndFeel() ? 4 : 5);
+                iconSize = TitleHeight - 5;
+                if (VueUtil.isMacAquaLookAndFeel()) {
+                    yoff = 2;
+                    edgeInset = TitleHeight - 2;
+                } else {
+                    yoff = 3;
+                    edgeInset = TitleHeight + 1;
+                }
             }
             super.addNotify();
             //System.out.println("hideButton=" + hideButton);
@@ -825,14 +833,40 @@ public class ToolWindow
                 if (false && VueUtil.isMacAquaLookAndFeel()) {
                     //macWindowClose.paintIcon(this, g, xoff, yoff);
                 } else {
-                    g.setColor(SystemColor.activeCaption);
-                    if (!VueTheme.isMacMetalLAF())
+                    
+                    // JAVA MAC BUG: Unbelievably, when using
+                    // activeCaptionText to draw the below, mac java
+                    // offset's the Y value of the fillRect or
+                    // drawRect by +1 or -1, depending on god knows
+                    // what. This on tiger java 1.4.2 or 1.5, aqua
+                    // standard or metal L&F.
+                    
+                    if (!VueTheme.isMacMetalLAF()) {
+                        //g.setColor(SystemColor.activeCaption);
+                        // we fill in case window is so narrow that title text
+                        // would appear under this icon: we don't want to see that.
+                        g.setColor(Color.white);
                         g.fillRect(xoff, yoff, iconSize,iconSize);
-                    g.setColor(SystemColor.activeCaptionText);
+                    }
+                    g.setColor(Color.darkGray);
+                    //g.setColor(SystemColor.activeCaptionText);
                     //g.setColor(SystemColor.activeCaption.brighter().brighter());
-                    g.drawRect(xoff, yoff, iconSize,iconSize);
-                    g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
-                    g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
+                    if (true) {
+                        g.drawRect(xoff, yoff, iconSize,iconSize);
+                        ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,  RenderingHints.VALUE_ANTIALIAS_ON);
+                        ((Graphics2D)g).setStroke(X_STROKE);
+                        //g.setColor(Color.red);
+                        int inset = 2;
+                        int len = iconSize - inset;
+                        // UL to LR
+                        g.drawLine(xoff+inset, yoff+inset, xoff+len, yoff+len);
+                        // LL to UR
+                        g.drawLine(xoff+inset, yoff+len, xoff+len, yoff+inset);
+                    } else {
+                        g.drawRect(xoff, yoff, iconSize,iconSize);
+                        g.drawLine(xoff, yoff, xoff+iconSize,yoff+iconSize);
+                        g.drawLine(xoff, yoff+iconSize, xoff+iconSize,yoff);
+                    }
                 }
             }
         }
@@ -930,7 +964,7 @@ public class ToolWindow
         DEBUG.BOXES=true;
         DEBUG.KEYS=true;
         DEBUG.MOUSE=true;
-        ToolWindow tw = new ToolWindow("Title", null);
+        ToolWindow tw = new ToolWindow("Ya Biggie Title", null);
         JPanel p = new JPanel();
         p.setBorder(new TitledBorder("Yippity Vue Tool"));
         JLabel l = new JLabel("I am a label");

@@ -270,7 +270,7 @@ public class PaletteButton extends JRadioButton implements ActionListener
             cols++;
         int rows = (numItems + (numItems % cols )) / cols ;
 
-        if (rows < 3 && VueUtil.isMacAquaLookAndFeel() && VueUtil.getJavaVersion() < 1.5f /*&& tiger */) { // total hack for now
+        if (rows < 3 && VueTheme.isMacMetalLAF() && VueUtil.getJavaVersion() < 1.5f /*&& tiger */) { // total hack for now
 
             // JAVA BUG: there appears to be an absolute minimunm width & height
             // for pop-up's: approx 125 pixels wide, no smaller, and approx 34 pixels

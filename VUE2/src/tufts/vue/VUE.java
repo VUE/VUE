@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.300 2005-08-11 03:58:04 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.301 2005-08-13 00:22:21 sfraize Exp $
     
 /**
  * Vue application class.
@@ -415,8 +415,9 @@ public class VUE
             themeSet = true;
         } else {
             // by default, force windows L&F on the mac.
-            if (VueUtil.isMacPlatform())
+            if (VueUtil.isMacPlatform()) {
                 lafn = javax.swing.UIManager.getCrossPlatformLookAndFeelClassName();
+            }
         }
 
         // Note that it is essential that the theme be set before a single
@@ -437,6 +438,7 @@ public class VUE
         if (!themeSet) {
             out("Installing VUE MetalLookAndFeel theme.");
             MetalLookAndFeel.setCurrentTheme(vueTheme);
+            //MetalLookAndFeel.setCurrentTheme(new javax.swing.plaf.metal.OceanTheme());
         }
         
         try {
