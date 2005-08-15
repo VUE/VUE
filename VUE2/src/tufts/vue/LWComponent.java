@@ -599,6 +599,11 @@ public class LWComponent
     /** for persistance -- gets called by castor after it reads in XML */
     public void setXMLnotes(String text)
     {
+        setNotes(decodeCastorMultiLineText(text));
+    }
+
+    protected static String decodeCastorMultiLineText(String text)
+    {
 
         // If castor xml indent was on when save was done
         // (org.exolab.castor.indent=true in castor.properties
@@ -606,18 +611,20 @@ public class LWComponent
         // readable) it will break up elements like: <note>many chars
         // of text...</note> with newlines and whitespaces to indent
         // the new lines in the XML -- however, on reading them back
-        // in, it puts this white space into the string you saved! So
-        // we patch up note strings here in case of that.  (btw, this
+        // in, it puts this white space into the string you saved!  So
+        // when we save we're sure to manually encode newlines and
+        // runs of white space, so when we get here, if see any actual
+        // newlines followed by runs of white space, we know to trash
+        // them because it was castor formatting fluff.  (btw, this
         // isn't a problem for labels because they're XML attributes,
         // not elements, which are quoted).
         
         text = text.replaceAll("\n[ \t]*%nl;", "%nl;");
         text = text.replaceAll("\n[ \t]*", " ");
-        String notes = unEscapeWhitespace(text);
-        setNotes(notes);
+        return unEscapeWhitespace(text);
     }
 
-    private String escapeNewlines(String text)
+    private static String escapeNewlines(String text)
     {
         if (text == null)
             return null;
@@ -625,7 +632,7 @@ public class LWComponent
             return text.replaceAll("[\n\r]", "%nl;");
         }
     }
-    private String unEscapeNewlines(String text)
+    private static String unEscapeNewlines(String text)
     {
         if (text == null)
             return null;
@@ -634,7 +641,7 @@ public class LWComponent
         }
 
     }
-    private String escapeWhitespace(String text)
+    private static String escapeWhitespace(String text)
     {
         if (text == null)
             return null;
@@ -647,7 +654,7 @@ public class LWComponent
             return escapeNewlines(text);
         }
     }
-    private String unEscapeWhitespace(String text)
+    private static String unEscapeWhitespace(String text)
     {
         if (text == null)
             return null;

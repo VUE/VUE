@@ -28,121 +28,74 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.VueTextPane;
+
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 
 public class NotePanel extends JPanel
-    implements LWComponent.Listener
 {
-    /** the LWComponent **/
-    private LWComponent mObject = null;
-	
-    /** the scrollable pane for the text **/
-    private JScrollPane mScrollPane = new JScrollPane();
-	
     /** the text pane **/
-    private JTextPane mTextPane = new JTextPane();
+    private VueTextPane mTextPane = new VueTextPane();
 
-    /* the property of the notes **/
-    //VuePropertyDescriptor mPropertyDescriptor = null;
-
-    /** was a key pressed since we loaded the current text? */
-    private boolean mKeyWasPressed = false;
-	
     public NotePanel() {
-        super();
-        initComponents();
+
+        setLayout( new BorderLayout() );
+		
+        JScrollPane scrollPane = new JScrollPane();
+	
+        scrollPane.setSize(new Dimension( 200, 400));
+        scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setLocation(new Point(8, 9));
+        scrollPane.getViewport().add(mTextPane);
+
+        add(BorderLayout.CENTER, scrollPane);
     }
 	
     public String getName() {
-        //FIX:(fix what?)
         return "Notes";
-    }
-
-    private void initComponents()  {
-
-        this.setVisible(true);
-        this.setLayout( new BorderLayout() );
-		
-        mScrollPane.setSize( new Dimension( 200, 400));
-        mScrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        mScrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		
-        mScrollPane.setLocation(new Point(8, 9));
-        mScrollPane.setVisible(true);
-		
-		
-		
-        mTextPane.setVisible(true);
-        mTextPane.setText("mTextPane");
-        mTextPane.setText("Notes...");
-		
-        this.add( BorderLayout.CENTER, mScrollPane);
-        mScrollPane.getViewport().add( mTextPane);
-
-        setSize(new java.awt.Dimension(200, 400));
-		
-        mTextPane.addFocusListener(new FocusAdapter() {
-                public void focusLost(FocusEvent e) { saveNotes(); }
-            });
-        mTextPane.addKeyListener(new KeyAdapter() {
-                public void keyPressed(KeyEvent e) { mKeyWasPressed = true; }
-            });
-    }
-
-	
-    /**
-     * saveNotes
-     * This method saves the notes by setting the appropriate property
-     * value on the property descriptor.  Will only save value if
-     * a key has been pressed since we loaded the text, indicating
-     * a possible change in the text.
-     **/
-    protected void saveNotes() {
-        if (mKeyWasPressed && mObject != null) {
-            mObject.setNotes( mTextPane.getText() );
-            VUE.getUndoManager().mark();
-        }	
-        //if( mPropertyDescriptor != null) {
-        //String notes = mTextPane.getText();
-        //mPropertyDescriptor.setValue( notes);
-        //}
     }
     
     /** 
-     * Set us editing notes for @param pObj LWComponent
+     * Set us editing notes for @param c LWComponent
      **/
-    public void updatePanel(LWComponent pObj) {
-        //System.out.println(this + " updatePanel " + pObj);
-        if (true||pObj != mObject) {
-            saveNotes();
-            if (mObject != null && mObject != pObj)
-                mObject.removeLWCListener(this);
-            if (pObj != null) {
-                String text = pObj.getNotes();
-                if (text == null)
-                    text = "";
-                mTextPane.setText(text);
-                mKeyWasPressed = false;
-                if (pObj != mObject)
-                    pObj.addLWCListener(this, LWKey.Deleting);
-            }
-            mObject = pObj;
-        }
-    }
-	
-    public void LWCChanged(LWCEvent e)
-    {
-        //if (e.getComponent() == mObject && e.getWhat() == LWKey.Deleting)
-        if (e.getComponent() == mObject)
-            mObject = null;
+    public void updatePanel(LWComponent c) {
+        mTextPane.attachToProperty(c, LWKey.Notes);
     }
 
     public String toString()
     {
-        return "NotePanel[" + mObject + "]";
+        return "NotePanel[" + mTextPane + "]";
     }
+
+    public static void main(String args[]) {
+        DEBUG.Enabled = DEBUG.EVENTS = true;
+        DEBUG.KEYS = true;
+        NotePanel p = new NotePanel();
+        p.updatePanel(new LWMap("Test Map"));
+        try {
+            if (args.length > 0) {
+                if (args[0].endsWith(".rtf")) {
+                    p.mTextPane.setContentType("text/rtf");
+                    p.mTextPane.read(new java.io.FileInputStream(args[0]), "description");
+                } else {
+                    p.mTextPane.setPage(args[0]);
+                    if (args.length > 1)
+                        p.mTextPane.setEditable(false);
+                }
+            }
+            //p.mTextPane.setPage("http://www.google.com/");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("content type: " + p.mTextPane.getContentType());
+        tufts.Util.displayComponent(p, 300, 200);
+    }
+
+
+    
 
 
 }

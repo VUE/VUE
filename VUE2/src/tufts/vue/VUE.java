@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.301 2005-08-13 00:22:21 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.302 2005-08-15 02:54:20 sfraize Exp $
     
 /**
  * Vue application class.
@@ -539,7 +539,7 @@ public class VUE
         //toolPanel.setMinimumSize(new Dimension(329,1)); // until DRBrowser loaded
         toolPanel.setLayout(new BorderLayout());
         DRBrowser drBrowser = null;
-        if (!nodr)  {
+        if (nodr == false)  {
             drBrowser = new DRBrowser(true);
             //if (VueUtil.isMacAquaLookAndFeel()) drBrowser.setBackground(SystemColor.control);
             toolPanel.add(drBrowser, BorderLayout.CENTER);
@@ -553,24 +553,8 @@ public class VUE
                 System.err.println("DR browser blowing up -- try another day.");
             }
             */
-        } else {
-            //-------------------------------------------------------
-            // create example map(s)
-            //-------------------------------------------------------
-            //LWMap map1 = new LWMap("Map 1");
-            LWMap map2 = new LWMap("Map 2");
-            
-            //installExampleNodes(map1);
-            installExampleMap(map2);
-            
-            //map1.setFillColor(new Color(255, 255, 192));
-            
-            //displayMap(map1);
-            displayMap(map2);
-            //toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
         }
 
-        if (DEBUG.INIT) out("map loaded");
         
         JSplitPane splitPane = new JSplitPane();
         //splitPane.setResizeWeight(0.40); // 25% space to the left component
@@ -854,6 +838,8 @@ public class VUE
             splashScreen.setVisible(false);
 
         VUE.activateWaitCursor();
+
+        boolean gotMapFromCommandLine = false;
         
         if (args.length > 0) {
             try {
@@ -861,14 +847,34 @@ public class VUE
                     if (args[i].charAt(0) == '-')
                         continue;
                     LWMap map = OpenAction.loadMap(args[i]);
-                    if (map != null)
+                    if (map != null) {
                         displayMap(map);
+                        gotMapFromCommandLine = true;
+                    }
                 }
             } finally {
                 //VUE.clearWaitCursor();                
             }
         }
         
+        if (nodr && gotMapFromCommandLine == false) {
+            //-------------------------------------------------------
+            // create example map(s)
+            //-------------------------------------------------------
+            //LWMap map1 = new LWMap("Map 1");
+            LWMap map2 = new LWMap("Map 2");
+            
+            //installExampleNodes(map1);
+            installExampleMap(map2);
+            
+            //map1.setFillColor(new Color(255, 255, 192));
+            
+            //displayMap(map1);
+            displayMap(map2);
+            //toolPanel.add(new JLabel("Empty Label"), BorderLayout.CENTER);
+        }
+
+        if (DEBUG.INIT) out("map loaded");
         if (drBrowser != null) {
             drBrowser.loadDataSourceViewer();
             if (VUE.TUFTS) // leave collapsed if NarraVision
@@ -1099,6 +1105,24 @@ public class VUE
             return map.getUndoManager();
         else
             return null;
+    }
+    
+    public static void markUndo() {
+        markUndo(null);
+    }
+    
+    /** mark prior change(s) with the given undo name */
+    public static void markUndo(String name) {
+        LWMap map = getActiveMap();
+        if (map != null) {
+            UndoManager um = map.getUndoManager();
+            if (um != null) {
+                if (name != null)
+                    um.markChangesAsUndo(name);
+                else
+                    um.mark();
+            }
+        }
     }
     
     /**

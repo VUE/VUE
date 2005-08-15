@@ -16,14 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-/*******
- **  MapInspectorPanel.java
- **
- **
- *********/
-
 package tufts.vue;
-
 
 import java.io.*;
 import java.util.*;
@@ -33,52 +26,41 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-
 import tufts.vue.filter.*;
 import tufts.vue.gui.*;
 
 /**
- * ObjectInspectorPanel
+ * A tabbed-pane collection of property sheets that apply
+ * globally to a given map.
  *
- * The Object  Inspector Panel!
- *
- * \**/
-public class MapInspectorPanel  extends JPanel
-implements  VUE.ActiveMapListener {
-    
+ */
+public class MapInspectorPanel extends JPanel
+    implements  VUE.ActiveMapListener
+{
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
     static public final int NOT_ANY_MODE = 2;
     static public final int NONE_MODE = 3;
     
-    /////////////
-    // Fields
-    //////////////
-    
     /** The tabbed panel **/
-    JTabbedPane mTabbedPane = null;
+    private JTabbedPane mTabbedPane = null;
     
     /** The map we are inspecting **/
-    LWMap mMap = null;
+    private LWMap mMap = null;
     
     /** info tab panel **/
-    InfoPanel mInfoPanel = null;
+    private InfoPanel mInfoPanel = null;
     
     /** pathways panel **/
-    PathwayPane mPathPanel = null;
+    private PathwayPane mPathPanel = null;
     
     /** filter panel **/
-    FilterApplyPanel mFilterApplyPanel = null;
+    private FilterApplyPanel mFilterApplyPanel = null;
     
     /** Filter Create Panel **/
-    FilterCreatePanel mFilterCreatePanel = null;
+    private FilterCreatePanel mFilterCreatePanel = null;
     /** Metadata Panel **/
     //MetadataPanel metadataPanel = null; // metadata added to infoPanel
-    
-    
-    ///////////////////
-    // Constructors
-    ////////////////////
     
     public MapInspectorPanel() {
         super();
@@ -107,12 +89,6 @@ implements  VUE.ActiveMapListener {
         validate();
         setVisible(true);
     }
-    
-    
-    
-    ////////////////////
-    // Methods
-    ///////////////////
     
     
     /**
@@ -151,11 +127,7 @@ implements  VUE.ActiveMapListener {
         }
     }
     
-    //////////////////////
-    // OVerrides
-    //////////////////////
-    
-    
+    // override
     public Dimension getPreferredSize()  {
         Dimension size =  super.getPreferredSize();
         if( size.getWidth() < 200 ) {
@@ -214,7 +186,8 @@ implements  VUE.ActiveMapListener {
         JTextField mAuthorEditor = null;
         JLabel mDate = null;
         JLabel mLocation = null;
-        JTextArea mDescriptionEditor = null;
+        //JTextArea mDescriptionEditor = null;
+        VueTextPane mDescriptionEditor = null;
         //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
@@ -236,23 +209,22 @@ implements  VUE.ActiveMapListener {
             
             mAuthorEditor = new JTextField();
             
-            mDescriptionEditor = new JTextArea();
-            mDescriptionEditor.setLineWrap(true);
-            mDescriptionEditor.setWrapStyleWord(true);
-            mDescriptionEditor.setRows(5);
+            mDescriptionEditor = new VueTextPane("Map Description");
             mDescriptionEditor.setMaximumSize(new Dimension(180, 300));
             mDescriptionEditor.setPreferredSize(new Dimension(180,100));
             mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+
+            //mDescriptionEditor.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
             
             mDate = new JLabel();
             mLocation = new JLabel();
             //saveButton = new JButton("Save");
             //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
-            mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
+            //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
             //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
-            mPropPanel.addProperty("Date:", mDate);
             mPropPanel.addProperty("Location:",mLocation);
+            mPropPanel.addProperty("Created:", mDate);
             mPropPanel.addProperty("Description:",mDescriptionEditor);
             //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
@@ -323,7 +295,9 @@ implements  VUE.ActiveMapListener {
             mDate.setText( mMap.getDate() );
             mTitleEditor.setText( mMap.getLabel() );
             mAuthorEditor.setText( mMap.getAuthor() );
-            mDescriptionEditor.setText(mMap.getDescription());
+            mDescriptionEditor.attachToProperty(mMap, LWKey.Notes);
+            //mDescriptionEditor.setText(mMap.getDescription());
+            //mDescriptionEditor.setText(mMap.getNotes());
             File file = mMap.getFile() ;
             String path = "";
             if( file != null) {
@@ -333,11 +307,14 @@ implements  VUE.ActiveMapListener {
             propertiesEditor.setProperties(pMap.getMetadata(),true);
         }
         
-        protected void saveInfo() {
+        private void saveInfo() {
+            //System.out.println("MIP saveInfo " + mDescriptionEditor.getText());
             if( mMap != null) {
-                mMap.setLabel( mTitleEditor.getText() );
-                mMap.setAuthor(  mAuthorEditor.getText() );
-                mMap.setDescription(mDescriptionEditor.getText());
+                // for now, only description/notes needs saving, and it handles that it itself
+                //mMap.setLabel( mTitleEditor.getText() );
+                //mMap.setAuthor(  mAuthorEditor.getText() );
+                //mMap.setNotes(mDescriptionEditor.getText());
+                //mMap.setDescription(mDescriptionEditor.getText());
             }
         }
         /**
@@ -650,7 +627,12 @@ implements  VUE.ActiveMapListener {
             if(mFilter.getStatements() == null) {
                 mFilter.setStatements(new Vector());
             }
-            filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
+            try {
+                filterEditor.getFilterTableModel().setFilters(mFilter.getStatements());
+            } catch (NullPointerException e) {
+                // for testing: FilterEditor bombs if no active map
+                e.printStackTrace();
+            }
             //mActionCombo.setSelectedItem(mFilter.getFilterAction());
             if(mFilter.getFilterAction().toString().equals(LWCFilter.ACTION_HIDE)) {
                 mHideButton.setSelected(true);
@@ -778,6 +760,22 @@ implements  VUE.ActiveMapListener {
             }
             validate();
         }
+    }
+
+    public static void main(String args[]) {
+        VUE.parseArgs(args);
+        VUE.initUI(true);
+        DEBUG.Enabled = DEBUG.EVENTS = true;
+        LWMap map = new LWMap("test_map");
+        map.setFile(new java.io.File("/tmp/test.vue"));
+        MapInspectorPanel inspector = new MapInspectorPanel();
+        //VUE.setActiveMap(map);
+        inspector.setMap(map);
+        ToolWindow w = VUE.createToolWindow("Test Map Inspector");
+        w.addTool(inspector);
+        w.setVisible(true);
+        if (args.length > 1)
+            VueUtil.displayComponent(new VueTextPane(map, LWKey.Notes, null));
     }
     
 }

@@ -75,11 +75,9 @@ implements ConceptMap//, Printable
     /** the author of the map **/
     private String mAuthor;
     
-    /** the date created (modified?) **/
-    private String mDate;
-    
-    /** user description **/
-    private String mDescription;
+    /** the date created **/
+    // todo: change to arbirary meta-data, and add modification date & user-name of modifier
+    private String mDateCreated;
     
     /** the current Map Filter **/
     LWCFilter mLWCFilter;
@@ -315,32 +313,43 @@ implements ConceptMap//, Printable
     }
      **/
     
-    /**
-     * getAuthor
-     *
-     **/
+    // todo: change this to arbitrary meta-data
     public String getAuthor() {
         return mAuthor;
     }
     
+    // todo: change this to arbitrary meta-data
     public void setAuthor( String pName) {
         mAuthor = pName;
     }
     
     
+    /** @deprecated - safe file back compat only - use getNotes - this always returns null */
     public String getDescription() {
-        return mDescription;
+        //return mDescription;
+        return null;
     }
     
+    /** @deprecated - use setNotes -- this does nothing if notes already are set */
     public void setDescription(String pDescription) {
-        mDescription = pDescription;
+        //mDescription = pDescription;
+        // backward compat: we're getting rid of redunant
+        // "description" field that was supposed to have
+        // used notes in the first place. This should
+        // only be happening from a map-restore, as
+        // nobody should be calling setDescription anymore.
+        if (!hasNotes()) 
+            setNotes(pDescription);
     }
     
+    // creation date.  todo: change this to arbitrary meta-data
     public String getDate() {
-        return mDate;
+        return mDateCreated;
     }
-    public void setDate( String pDate) {
-        mDate = pDate;
+    
+    // creation date. todo: change this to arbitrary meta-data
+    public void setDate(String pDate) {
+        mDateCreated = pDate;
     }
     
     public Properties getMetadata(){
