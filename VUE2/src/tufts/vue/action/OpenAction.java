@@ -121,6 +121,9 @@ public class OpenAction extends VueAction {
             }
         }
         catch (Exception e) {
+            // todo bug: need to notice simple file-not-found exceptions.
+            // maybe move all exception code here, taking the file-not-found handling
+            // out of the Open File dialog box.
             VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
             e.printStackTrace();
