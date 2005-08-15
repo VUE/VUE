@@ -4,6 +4,7 @@
 <LW-MAP xsi:noNamespaceSchemaLocation="none" ID="0" label="Welcome"
     x="35.0" y="24.0" width="646.35" height="474.5" strokeWidth="0.0"
     autoSized="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <notes>This is the VUE start-up map.</notes>
     <fillColor>#ffffff</fillColor>
     <font>SansSerif-plain-18</font>
     <nodeFilter/>
