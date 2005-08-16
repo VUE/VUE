@@ -177,18 +177,16 @@ public class MapInspectorPanel extends JPanel
      * This is the tab panel for displaying Map Info
      *
      **/
-    public class InfoPanel extends JPanel implements  PropertyChangeListener,FocusListener {
-        
-        //JScrollPane mInfoScrollPane = null;
-        
-        
-        JTextField mTitleEditor = null;
+    public class InfoPanel extends JPanel implements PropertyChangeListener, FocusListener
+    {
+        //JTextField mTitleEditor = null;
         //JTextField mAuthorEditor = null;
         JLabel mDate = null;
         JLabel mLocation = null;
         VueTextPane mDescriptionEditor = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
+        
         public InfoPanel() {
             JPanel innerPanel = new JPanel();
             GridBagLayout gridbag = new GridBagLayout();
@@ -196,29 +194,19 @@ public class MapInspectorPanel extends JPanel
         
             //BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
             innerPanel.setLayout(gridbag);
-            
-            /*
-            mInfoScrollPane = new JScrollPane();
-            mInfoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            mInfoScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            mInfoScrollPane.setLocation(new Point(8, 9));
-            mInfoScrollPane.setVisible(true);
-            */
-            //add( BorderLayout.NORTH, mInfoScrollPane );
-            mTitleEditor = new JTextField();
-            
+            //mTitleEditor = new JTextField();
             //mAuthorEditor = new JTextField();
             
             mDescriptionEditor = new VueTextPane("Map Description");
-            mDescriptionEditor.setMaximumSize(new Dimension(180, 300));
-            mDescriptionEditor.setPreferredSize(new Dimension(180,100));
+            mDescriptionEditor.setMinimumSize(new Dimension(180, 60));
             JScrollPane descriptionScroller = new JScrollPane(mDescriptionEditor);
+            descriptionScroller.setMinimumSize(new Dimension(180, 60));
+            descriptionScroller.setPreferredSize(new Dimension(180,100));
             descriptionScroller.setOpaque(false);
             descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(3,0,0,0), descriptionScroller.getBorder()));
             //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
             //descriptionScroller.setBorder(new EmptyBorder(9,0,0,0));
             //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
-            //mDescriptionEditor.setBorder(
             
             mDate = new JLabel();
             mLocation = new JLabel();
@@ -298,7 +286,7 @@ public class MapInspectorPanel extends JPanel
         public void updatePanel( LWMap pMap) {
             // update the display
             mDate.setText( mMap.getDate() );
-            mTitleEditor.setText( mMap.getLabel() );
+            //mTitleEditor.setText( mMap.getLabel() );
             //mAuthorEditor.setText( mMap.getAuthor() );
             mDescriptionEditor.attachToProperty(mMap, LWKey.Notes);
             File file = mMap.getFile() ;
