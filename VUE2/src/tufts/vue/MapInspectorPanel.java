@@ -179,16 +179,14 @@ public class MapInspectorPanel extends JPanel
      **/
     public class InfoPanel extends JPanel implements  PropertyChangeListener,FocusListener {
         
-        JScrollPane mInfoScrollPane = null;
+        //JScrollPane mInfoScrollPane = null;
         
         
         JTextField mTitleEditor = null;
-        JTextField mAuthorEditor = null;
+        //JTextField mAuthorEditor = null;
         JLabel mDate = null;
         JLabel mLocation = null;
-        //JTextArea mDescriptionEditor = null;
         VueTextPane mDescriptionEditor = null;
-        //JButton saveButton = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
         public InfoPanel() {
@@ -199,22 +197,28 @@ public class MapInspectorPanel extends JPanel
             //BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
             innerPanel.setLayout(gridbag);
             
+            /*
             mInfoScrollPane = new JScrollPane();
             mInfoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
             mInfoScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             mInfoScrollPane.setLocation(new Point(8, 9));
             mInfoScrollPane.setVisible(true);
+            */
             //add( BorderLayout.NORTH, mInfoScrollPane );
             mTitleEditor = new JTextField();
             
-            mAuthorEditor = new JTextField();
+            //mAuthorEditor = new JTextField();
             
             mDescriptionEditor = new VueTextPane("Map Description");
             mDescriptionEditor.setMaximumSize(new Dimension(180, 300));
             mDescriptionEditor.setPreferredSize(new Dimension(180,100));
-            mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
-
-            //mDescriptionEditor.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
+            JScrollPane descriptionScroller = new JScrollPane(mDescriptionEditor);
+            descriptionScroller.setOpaque(false);
+            descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(3,0,0,0), descriptionScroller.getBorder()));
+            //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
+            //descriptionScroller.setBorder(new EmptyBorder(9,0,0,0));
+            //mDescriptionEditor.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+            //mDescriptionEditor.setBorder(
             
             mDate = new JLabel();
             mLocation = new JLabel();
@@ -225,7 +229,8 @@ public class MapInspectorPanel extends JPanel
             //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
             mPropPanel.addProperty("Location:",mLocation);
             mPropPanel.addProperty("Created:", mDate);
-            mPropPanel.addProperty("Description:",mDescriptionEditor);
+            mPropPanel.addProperty("Description:", descriptionScroller);
+            //mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.setBorder(BorderFactory.createEmptyBorder(6,9,6, 6));
             //mInfoBox.add(saveButton,BorderLayout.EAST); added focuslistener
              c.weightx = 1.0;
@@ -294,10 +299,8 @@ public class MapInspectorPanel extends JPanel
             // update the display
             mDate.setText( mMap.getDate() );
             mTitleEditor.setText( mMap.getLabel() );
-            mAuthorEditor.setText( mMap.getAuthor() );
+            //mAuthorEditor.setText( mMap.getAuthor() );
             mDescriptionEditor.attachToProperty(mMap, LWKey.Notes);
-            //mDescriptionEditor.setText(mMap.getDescription());
-            //mDescriptionEditor.setText(mMap.getNotes());
             File file = mMap.getFile() ;
             String path = "";
             if( file != null) {
