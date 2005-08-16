@@ -135,7 +135,7 @@ public class VueTextPane extends JTextPane
         System.out.println("text[" + text + "]");
         setContentType("text/rtf");
         try {
-            read(new java.io.StringBufferInputStream(text), "description");
+            read(new java.io.StringReader(text), "description");
         } catch (Exception e) {
             e.printStackTrace();
         }
