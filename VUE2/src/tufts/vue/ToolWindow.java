@@ -537,9 +537,11 @@ public class ToolWindow
         if (isRolledUp) {
             savedSize = mWindow.getSize();
             setSize(getWidth(), 0);
+            getContentPanel().setVisible(false);
         } else {
             setSize(savedSize.width, savedSize.height);
             //setSize(getPreferredSize());
+            getContentPanel().setVisible(true);
         }
     }
 
