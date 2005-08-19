@@ -3,20 +3,24 @@
 <!-- Change log:
      1.1: MapResource spec changed from element to attribute to handle long paths with spaces (newlines were being added)
           and MapResource type changed from element to attribute while we were at it.
-     
+     8/18/05 SMF: made changes required for new castor version 0.9.7 which is
+                  more demanding, tho more consistent & sane.  These changes should
+                  only affect the interface to castor, and NOT the save file format,
+                  so we're not adding a new version of this file.   These same
+                  changes were made to all the other old mapping files.
   -->
           
 <mapping>
-  <class name="java.awt.Rectangle">
     <!-- Rectangle's default castor introspection produces a recursive
          loop (getBounds returns a Rectangle) that blows stack: this
          gets around it.  May need create also Rectangle2D.
       -->
+  <!-- class name="java.awt.Rectangle">
     <field name="x" direct="true"><bind-xml node="attribute"/></field>
     <field name="y" direct="true"><bind-xml node="attribute"/></field>
     <field name="width" direct="true"><bind-xml node="attribute"/></field>
     <field name="height" direct="true"><bind-xml node="attribute"/></field>
-  </class>
+  </class -->
   
   <class name="java.awt.geom.Point2D$Float">
     <map-to xml="point"/>
@@ -47,6 +51,10 @@
   </class>
   <class name="java.awt.geom.Rectangle2D$Float">
     <map-to xml="rectangle"/>
+    <field name="x"      direct="true" transient="true" type="float"><bind-xml node="attribute"/></field>
+    <field name="y"      direct="true" transient="true" type="float"><bind-xml node="attribute"/></field>
+    <field name="width"  direct="true" transient="true" type="float"><bind-xml node="attribute"/></field>
+    <field name="height" direct="true" transient="true" type="float"><bind-xml node="attribute"/></field>
   </class>
   <class name="java.awt.geom.Ellipse2D$Float">
     <map-to xml="ellipse"/>
@@ -229,8 +237,13 @@
 		<field name="revealerIndex" type="integer">
 			<bind-xml name="revealerIndex" node="attribute" />
 		</field>
-		<field name="elementList" collection="collection">
-			<bind-xml name="pathway" />
+                <!-- This field def giving us a NPE in the latest version of castor! -->
+                <!-- Is it because in the .vue file, it's an empty list? -->
+                <!-- It seems to at least *save* if we change the collection kind from "collection" to "arraylist" -->
+                <!-- Oh, crap.  It was just that the freakin type was missing, and apparently the new version
+                     of castor doesn't notice that tufts.vue.LWPathway is mapped to "pathway" elsewhere like it used to -->
+		<field name="elementList" type="tufts.vue.LWPathway" collection="collection">
+			<bind-xml name="pathway"/>
 		</field>
 	</class>
 	
