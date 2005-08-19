@@ -79,7 +79,7 @@ public class OpenAction extends VueAction {
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
     public static LWMap loadMap(String filename) {
         try {
-            if (debug) System.err.println("\nUnmarshalling from " + filename);
+            if (DEBUG.CASTOR) System.err.println("\nUnmarshalling from " + filename);
             File file = new File(filename);
             String extension = file.getName().substring(file.getName().length()-3);
             System.out.println("Extension = "+extension);
@@ -133,7 +133,7 @@ public class OpenAction extends VueAction {
     
     public static LWMap loadMap(java.net.URL url) {
         try {
-            if (debug) System.err.println("\nUnmarshalling from " + url);
+            if (DEBUG.CASTOR) System.err.println("\nUnmarshalling from " + url);
             LWMap map = ActionUtil.unmarshallMap(url);
             return map;
         }
@@ -145,13 +145,11 @@ public class OpenAction extends VueAction {
         }
     }
     
-    public static void main(String args[])
-    throws Exception {
+    public static void main(String args[]) throws Exception {
         String file = args.length == 0 ? "test.xml" : args[0];
         System.err.println("Attempting to read map from " + file);
-        debug = true;
         DEBUG.Enabled = true;
-        //DEBUG.INIT = true;
+        VUE.parseArgs(args);
         LWMap map;
         if (file.indexOf(':') >= 0)
             map = new OpenAction().loadMap(new java.net.URL(file));
