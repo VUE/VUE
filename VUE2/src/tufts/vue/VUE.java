@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.302 2005-08-15 02:54:20 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.303 2005-08-19 02:03:27 sfraize Exp $
     
 /**
  * Vue application class.
@@ -454,7 +454,7 @@ public class VUE
         out("             " + javax.swing.UIManager.getLookAndFeel().getClass());
     }
 
-    static void parseArgs(String[] args) {
+    public static void parseArgs(String[] args) {
         String allArgs = "";
         for (int i = 0; i < args.length; i++) {
             allArgs += "[" + args[i] + "]";
@@ -462,14 +462,14 @@ public class VUE
                 nodr = true;
             else if (args[i].equals("-mac") || args[i].equals("-useMacLookAndFeel"))
                 useMacLAF = true;
-            else if (args[i].equals("-debug_init"))
-                DEBUG.INIT = true;
-            else if (args[i].equals("-debug_focus"))
-                DEBUG.FOCUS = true;
-            else if (args[i].equals("-debug_dr"))
-                DEBUG.DR = true;
-            else if (args[i].equals("-debug_tool"))
-                DEBUG.TOOL = true;
+            else if (args[i].equals("-debug_init"))     DEBUG.INIT = true;
+            else if (args[i].equals("-debug_focus"))    DEBUG.FOCUS = true;
+            else if (args[i].equals("-debug_dr"))       DEBUG.DR = true;
+            else if (args[i].equals("-debug_tool"))     DEBUG.TOOL = true;
+            else if (args[i].equals("-debug_drop"))     DEBUG.DND = true;
+            else if (args[i].equals("-debug_event"))    DEBUG.EVENTS = true;
+            else if (args[i].equals("-debug_undo"))     DEBUG.UNDO = true;
+            else if (args[i].equals("-debug_castor"))   DEBUG.CASTOR = true;
             else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
 
@@ -503,7 +503,7 @@ public class VUE
             System.out.println("VUE: MIT/development features enabled");
         
         parseArgs(args);
-        
+
         // initUI installs the VueTheme (unless mac look), which must be done
         // before any other GUI code (including the SlpashScreen)
         // or our VueTheme gets ignored by swing.
@@ -808,7 +808,11 @@ public class VUE
             try {
                 //File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
                 //LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
-                java.net.URL startupURL = VueResources.getURL("resource.startmap");
+                final java.net.URL startupURL;
+                if (VueUtil.isMacPlatform() && VUE.NARRAVISION == false)
+                    startupURL = VueResources.getURL("resource.startmap.unicode");
+                else
+                    startupURL = VueResources.getURL("resource.startmap");
                 startupMap = OpenAction.loadMap(startupURL);
                 startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
                 startupMap.setLabel("Welcome");
@@ -1531,6 +1535,8 @@ public class VUE
             editMenu.add(Actions.DeselectAll);
             editMenu.addSeparator();
             editMenu.add(Actions.editDataSource);
+            editMenu.addSeparator();
+            editMenu.add(Actions.UpdateResource);
         
             viewMenu.add(Actions.ZoomIn);
             viewMenu.add(Actions.ZoomOut);
