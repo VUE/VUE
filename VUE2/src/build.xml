@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.57 $ / $Date: 2005-08-13 00:22:51 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.57 2005-08-13 00:22:51 sfraize Exp $ -->
+<!-- $Revision: 1.58 $ / $Date: 2005-08-19 02:27:59 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.58 2005-08-19 02:27:59 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -109,7 +109,7 @@
   -->
   <!-- Notes about individual jar files: -->
   <!-- jlfgr-1_0.jar: Contains Java toolbarButtonGraphics -->
-  <!-- castor-0.9.4.3.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.4.3-xml.jar -->
+  <!-- castor-0.9.7.jar contains XML, JDO & DAX: we only need the XML in castor-0.9.7-xml.jar -->
   <property name="thirdparty.jarfiles.names"
             value="
                    connectionTamino.jar
@@ -130,7 +130,6 @@
                    VUE-MacOSX.jar
                    activation_unsigned.jar
                    mail.jar
-                   xercesImpl.jar
                    saaj-api-unsigned.jar
                    saaj-impl-unsigned.jar
                    an_az.jar
@@ -147,7 +146,7 @@
                    batik-svggen.jar
                    batik-util.jar
                    batik.jar
-                   castor-0.9.4.3-xml.jar
+                   castor-0.9.7-xml.jar
                    commons-discovery.jar
                    commons-httpclient.jar
                    commons-httpclient-2.0.jar
@@ -210,11 +209,20 @@
                    wsdl4j.jar
                    xalan.jar
                    xalan-2.4.1.jar
-                   xerces-1.2.1.jar
-                   xercesImpl-2.2.1.jar
-                   xml-apis.jar
+                   xercesImpl-2.7.1.jar
+                   xerces-2.7.1-xml-apis.jar
                    xmlrpc-1.1.jar
                    "/>
+
+
+<!-- added xercesImpl-2.7.1.jar to above 8/18/05 -->
+<!-- added xerces-2.7.1-xml-apis.jar to above 8/18/05 -->
+<!-- added castor-0.9.7-xml.jar to above 8/18/05 (and removed old castor) -->
+
+<!-- removed xercesImpl.jar (old) from above 8/18/05 -->
+<!-- removed xercesImpl-2.2.1.jar (old) from above 8/18/05 -->
+<!-- removed xerces-1.2.1.jar (old) from above 8/18/05 -->
+<!-- removed xml-apis.jar (old) from above 8/18/05 -->
 
 <!-- removed log4j-1.2.4.jar (old) from above SMF 8/5/05 -->
 <!-- removed dom.jar from above (old) SMF 8/8/05 -->
@@ -242,6 +250,7 @@
          castor (org.exolab.castor)     For XML persistance support
          dom2 (org.w3c.dom)             For SVGConverion, XMLView & AssetResource
          jaxrpc (javax.xml.rpc)         FEDORA
+         xercesImpl.jar                 For SVGConversion (Document/DocumentImpl)  WHICH VERSION??
          
        -->
   <property name="thirdparty.jarfiles.names.minimal"
@@ -252,7 +261,7 @@
                    batik-ext.jar
                    batik-svggen.jar
                    batik-util.jar
-                   castor-0.9.4.3-xml.jar
+                   castor-0.9.7-xml.jar
                    commons-discovery.jar
                    commons-logging.jar
                    dom2.jar
@@ -266,7 +275,8 @@
                    okiSID_rc6_1.jar
                    okiOSID-2.0.jar
                    saaj.jar
-                   xercesImpl.jar
+                   xercesImpl-2.7.1.jar
+                   xerces-2.7.1-xml-apis.jar
                    "/>
                                                                                                           
   <path id="compile.classpath.common">
@@ -274,8 +284,7 @@
     <pathelement path="."/>                
     <pathelement path="${lib.home}/VisualizingCultures.jar" />	
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
-    <!-- pathelement path="${lib.home}/castor-0.9.4.3.jar"/ contains XML,JDO & DAX - we only need XML-->
-    <pathelement path="${lib.home}/castor-0.9.4.3-xml.jar"/>
+    <pathelement path="${lib.home}/castor-0.9.7-xml.jar"/>
     <pathelement path="${lib.home}/batik-svggen.jar"/>
     <pathelement path="${lib.home}/batik-awt-util.jar"/>
     <pathelement path="${lib.home}/batik-util.jar"/>
@@ -322,7 +331,7 @@
     <pathelement path="${lib.home}/mail.jar" />
     <pathelement path="${lib.home}/saaj-api.jar" />
     <pathelement path="${lib.home}/saaj-impl.jar" />
-    <pathelement path="${lib.home}/xercesImpl.jar" />
+    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
     <pathelement path="${lib.home}/dom.jar" />
 <!--
     <pathelement path="${lib.home}/ELNClient.jar" />
@@ -361,8 +370,8 @@
     <pathelement path="${lib.home}/log4j-1.2.4.jar" />
     <pathelement path="${lib.home}/saaj.jar" />
     <pathelement path="${lib.home}/xalan.jar" />
-    <pathelement path="${lib.home}/xercesImpl.jar" />
-    <pathelement path="${lib.home}/xml-apis.jar" />
+    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
 
     <pathelement path="${lib.home}" />
     <pathelement path="${lib.home}/iPhotos" />
@@ -404,8 +413,8 @@
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
     <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
-    <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xml-apis.jar"/>
+    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
     
   </path>
@@ -413,8 +422,8 @@
   <path id="compile.classpath.oki2">
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
-    <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xml-apis.jar"/>
+    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
     
   </path>
@@ -423,8 +432,8 @@
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
     <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
-    <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xml-apis.jar"/>
+    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
     
   </path>
@@ -433,8 +442,8 @@
     <path refid="compile.classpath.common"/>
     <pathelement path="${lib.home}/okiSID_rc6_1.jar"/>
     <pathelement path="${lib.home}/okiOSID-2.0.jar"/>
-    <pathelement path="${lib.home}/xercesImpl.jar"/>
-    <pathelement path="${lib.home}/xml-apis.jar"/>
+    <pathelement path="${lib.home}/xercesImpl-2.7.1.jar" />
+    <pathelement path="${lib.home}/xerces-2.7.1-xml-apis.jar" />
     <pathelement path="${lib.home}/apache-commons.jar"/>
     <!-- pathelement path="${lib.home}/MRJAdapter.jar"/ not working, unknown why -->
   </path>
@@ -752,11 +761,16 @@
     <target name="mac-dist" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE">
       <make-mac-osx-application name="VUE" plist="Info.plist"/>
     </target>
+
+    <target name="mac-dist-raw"> <make-mac-osx-application name="VUE" plist="Info.plist"/> </target>
+    
     
     <target name="mac-dist-15" depends="jar" description="Creates a Mac OS X distributable Applcation directory for VUE under Java 1.5">
       <make-mac-osx-application name="VUE15" plist="Info-Java15.plist"/>
     </target>
 
+    <target name="mac-dist-15-raw"> <make-mac-osx-application name="VUE15" plist="Info-Java15.plist"/> </target>
+    
     <target name="mac-dist-nv" depends="jar-narravision" description="Creates a Mac OS X distributable Applcation directory for NarraVision.">
       <make-mac-osx-application name="NarraVision" plist="Info-NarraVision.plist" jar-0="${narravision.jar}"/>
         <!--
