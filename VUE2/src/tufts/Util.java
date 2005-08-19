@@ -719,7 +719,7 @@ public class Util
     }
 
 
-    /** encode the given String in the default java 16-bit unicode format into persistable 8-bit UTF */
+    /** encode the given String in some charset into easily persistable UTF-8 8-bit format */
     public static String encodeUTF(String s) {
         if (s == null) return null;
         try {
@@ -733,7 +733,8 @@ public class Util
     }
 
     
-    /** decode the given String in 8-bit UTF to the default java 16-bit unicode format for display */
+    /** decode the given String in 8-bit UTF-8 to the default java 16-bit unicode format
+        (the platform default, which varies) for display */
     public static String decodeUTF(String s) {
         if (s == null) return null;
         try {
