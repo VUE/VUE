@@ -362,11 +362,16 @@ public abstract class LWIcon extends Rectangle2D.Float
         private JComponent ttResource;
         private String ttLastString;
         private boolean hadTitle = false;
+        private long lastAccess = 0;
         public JComponent getToolTipComponent()
         {
             tufts.vue.Resource r = mLWC.getResource();
             boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
+            long access = 0;
+            if (r instanceof MapResource)
+                access = ((MapResource)r).getAccessSuccessful();
             if (ttResource == null
+                || access > lastAccess // title may have been updated
                 || !ttLastString.equals(mLWC.getResource().getSpec())
                 || hadTitle != hasTitle)
             {
@@ -379,6 +384,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                                          + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
                 ttResource.setFont(FONT_MEDIUM);
             }
+                lastAccess = access;
             return ttResource;
         }
 
