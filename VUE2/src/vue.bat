@@ -1,4 +1,3 @@
-
 @echo off
 REM Change the following two lines to set your JDK path and vue home path
 
