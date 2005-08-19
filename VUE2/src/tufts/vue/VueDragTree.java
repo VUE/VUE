@@ -83,8 +83,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
-        //dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
-         dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY,tree);
+        dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
         addTreeExpansionListener(new TreeExpansionListener(){
             public void treeCollapsed(TreeExpansionEvent e) {}
             public void treeExpanded(TreeExpansionEvent e) {
@@ -219,7 +218,7 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     public void dragExit(DragSourceEvent e) {}
     public void dragOver(DragSourceDragEvent e) {}
     public void dropActionChanged(DragSourceDragEvent e) {
-        System.out.println(this + " dropActionChanged " + e);
+        System.out.println("VueDragTree: dropActionChanged  to  " + MapDropTarget.dropName(e.getDropAction()));
     }
     
     
@@ -614,10 +613,10 @@ class FileNode extends ResourceNode {
         
         if(!isExplored()) {
             File file = getFile();
-            File[] children = file.listFiles();
+            File[] contents = file.listFiles();
             
-            for(int i=0; i < children.length; ++i)
-                add(new FileNode(children[i]));
+            for(int i=0; i < contents.length; ++i)
+                add(new FileNode(contents[i]));
             
             explored = true;
         }
