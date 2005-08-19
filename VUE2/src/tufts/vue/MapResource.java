@@ -231,7 +231,7 @@ public class MapResource implements Resource {
         } catch (Exception e) {
             return;
         }
-        final boolean labelIsTitle = mTitle != null && mTitle.equals(c.getLabel());
+        final boolean labelIsTitle = c.getLabel() == null || c.getLabel().equals(mTitle);
 
         new Thread("URL meta-data search of " + _url) {
             public void run() {
@@ -310,6 +310,10 @@ public class MapResource implements Resource {
         try {
             //title = searchStreamForRegex(new InputStreamReader(url_conn.getInputStream()), HTML_Title, 2048);
             title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
+            // todo: would it help our windows encoding problem if we instead coverted
+            // this entire stream to UTF as it came in?  tho that's prob not it:
+            // that might make sense if errors were showing at head or tail of the title
+            // (perhaps clipping a multi-byte char)
             if (title == null) {
                 if (DEBUG.DND) System.out.println("*** no title found");
                 return null;
