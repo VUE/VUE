@@ -1,7 +1,5 @@
 @echo off
 REM Change the following two lines to set your JDK path and vue home path
-
-
 set JAVA_HOME=C:\Progra~1\j2sdk_nb\j2sdk1.4.2
  
 set VUE_HOME=C:\Vue\VUEDevelopment\src\
