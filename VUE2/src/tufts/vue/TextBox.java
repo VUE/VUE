@@ -121,6 +121,8 @@ class TextBox extends JTextPane
             
         //setAlignmentX(1f);//nobody's paying attention to this
 
+        //setContentType("text/rtf"); for attributes + unicode, but will need lots of work
+
         addKeyListener(this);
         addFocusListener(this);
         getDocument().addDocumentListener(this);
@@ -131,11 +133,29 @@ class TextBox extends JTextPane
         if (debug) System.out.println("new TextBox[" + text + "] " + getSize());
     }
 
-    LWComponent getLWC()
-    {
+    /*
+    public String getText() {
+        //java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+        Document doc = getDocument();
+        String text = null;
+        try {
+            // better to use doc.getText(0, doc.getLength())
+            //getEditorKit().write(buf, doc, 0, doc.getLength());
+            text = doc.getText(0, doc.getLength());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (text == null || text.length() == 0)
+            return ":"+super.getText();
+        return text;
+        //return buf.toString();
+    }
+    */
+
+
+    LWComponent getLWC() {
         return this.lwc;
     }
-
 
 
     /*
@@ -341,6 +361,13 @@ class TextBox extends JTextPane
             keyWasPressed = true;
             e.consume();
             getParent().remove(this); // will trigger a save
+        } else if (e.getKeyCode() == KeyEvent.VK_U && e.isMetaDown()) {
+            e.consume();
+            String t = getText();
+            if (e.isShiftDown())
+                setText(t.toUpperCase()); // upper whole string
+            else
+                setText(Character.toUpperCase(t.charAt(0)) + t.substring(1)); // upper first char
         } else
             keyWasPressed = true;
     }
