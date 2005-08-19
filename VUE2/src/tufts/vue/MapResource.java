@@ -221,43 +221,94 @@ public class MapResource implements Resource {
     
     /**
      * Scan an initial chunk of our content for an HTML title tag, and if one is found, set our title
-     * field to what we find there.
+     * field to what we find there.  RUNS IN IT'S OWN THREAD.  If the give LWC's label is the same
+     * as the title at the start, that is updated also.
      */
-    
-    public void setTitleFromContent() {
-        URL url = null;
+    public void setTitleFromContentAsync(final LWComponent c) {
+        final URL _url;
         try {
-            url = toURL();
-        } catch (Exception e) {}
-        if (url != null) {
-            try {
-                System.out.println("Opening connection to " + url);
-                URLConnection conn = url.openConnection();
-                //System.err.println("Connecting...");
-                //conn.connect();
-                if (DEBUG.DND) {
-                    System.err.println("Getting headers from " + conn);
-                    System.err.println("Headers: " + conn.getHeaderFields());
-                    //Object content = conn.getContent();
-                    //System.err.println("GOT CONTENT[" + content + "]"); // is stream
-                }
-                //System.out.println("Content-type[" + conn.getContentType() + "]");
-                String title = searchURLforTitle(conn);
-                // TODO: do NOT do this if it came from a .url shortcut -- we
-                // already have the file-name
-                if (title != null)
-                    setTitle(title);
-            } catch (Exception e) {
-                System.err.println("Resource title scrape: " + e);
-            }
+            _url = toURL();
+        } catch (Exception e) {
+            return;
         }
+        final boolean labelIsTitle = mTitle != null && mTitle.equals(c.getLabel());
+
+        new Thread("URL meta-data search of " + _url) {
+            public void run() {
+                _setTitleFromContent(_url);
+                if (labelIsTitle)
+                    c.setLabel(getTitle());
+            }
+        }.start();
     }
     
-    private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+).*",
-    Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+    public void setTitleFromContent() {
+        URL _url = null;
+        try {
+            _url = toURL();
+        } catch (Exception e) {}
+        if (_url != null)
+            _setTitleFromContent(_url);
+    }
+    
+    private void _setTitleFromContent(URL _url) {
+        try {
+            System.out.println("*** Opening connection to " + _url);
+            markAccessAttempt();
+            URLConnection conn = _url.openConnection();
+            //System.err.println("Connecting...");
+            //conn.connect();
+            if (DEBUG.DND && DEBUG.META) {
+                System.err.println("Getting headers from " + conn);
+                System.err.println("Headers: " + conn.getHeaderFields());
+                //Object content = conn.getContent();
+                //System.err.println("GOT CONTENT[" + content + "]"); // is stream
+                //System.out.println("Content-type[" + conn.getContentType() + "]");
+                //System.out.println("Content-Encoding[" + conn.getContentEncoding() + "]");
+            }
+            if (DEBUG.DND) System.err.println("*** getting contentType");
+            String contentType = conn.getContentType();
+            // note: be sure to call getContentType and don't rely on getting it from the HeaderFields,
+            // as sometimes it's set by the OS for a file:/// URL when there are no header fields (no http server)
+            // (actually, this is set by java via a mime type table based on file extension, or a guess based on the stream)
+            if (contentType.toLowerCase().startsWith("text/html")) {
+                System.err.println("*** contentType [" + contentType + "]");
+            } else {
+                System.err.println("*** contentType [" + contentType + "] not HTML; aborting meta-data scan");
+                return;
+            }
+            // TODO: charset sometimes come's with the contentType
+            if (DEBUG.DND) System.err.println("*** scanning for HTML meta-data...");
+            String title = searchURLforTitle(conn);
+            markAccessSuccess();
+            // TODO: do NOT do this if it came from a .url shortcut -- we
+            // already have the file-name
+            if (title != null)
+                setTitle(title);
+        } catch (Exception e) {
+            System.err.println("Resource title scrape: " + e);
+        }
+    }
+
+    private void markAccessAttempt() {
+        this.accessAttempted = System.currentTimeMillis();
+    }
+    private void markAccessSuccess() {
+        this.accessSuccessful = System.currentTimeMillis();
+    }
+
+    
+    // TODO: need to handle <title lang=he> example (is that legal HTML?) --
+    //private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+)", // did we need .* at end? 
+   // need to ensure there is a space after title or the '>' immediately: don't want to match a tag that was <title-i-am-not> !
+    private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title[^>]*>\\s*([^<]+)", // hacked for lang=he, but too broad
+                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+    private static final Pattern Content_Charset = Pattern.compile(".*charset\\s*=\\s*([^\">\\s]+)",
+                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
     private static String searchURLforTitle(URLConnection url_conn) {
         String title = null;
         try {
+            //title = searchStreamForRegex(new InputStreamReader(url_conn.getInputStream()), HTML_Title, 2048);
             title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
             if (title == null) {
                 if (DEBUG.DND) System.out.println("*** no title found");
@@ -270,48 +321,77 @@ public class MapResource implements Resource {
         }
         return title;
     }
-    
+
     /** search a stream for a single regex -- one matching group only.
      * Only search the first n bytes of input stream. */
-    private static String searchStreamForRegex(InputStream in, Pattern regex, int bytes) {
+    // TODO: break this out into a buffered stream loaded, then regex searchers on the buf
+    // TODO: break out searching into looking for regex with each chunk of data we get in at least x size (e.g, 256)
+    //private static String searchStreamForRegex(Reader in, Pattern regex, int maxSearchChars) {
+    
+    private static String searchStreamForRegex(InputStream in, Pattern regex, int maxSearchChars) {
+        //InputStreamReader in = new InputStreamReader(_in);
         String result = null;
         try {
-            System.out.println("*** Searching for regex in " + in);
-            if (!(in instanceof BufferedInputStream)) {
+            //System.out.println("*** Searching for regex in " + in + " encode=" + in.getEncoding());
+            /*
+            if (!(in instanceof BufferedReader)) {
                 // this handles a possibly "chunked" http stream,
                 // which would only hand back, say, 23 bytes the first
                 // time, as Yahoo's http server did.
-                in = new BufferedInputStream(in, bytes);
-                if (DEBUG.DND) System.out.println("*** created buffered input stream " + in);
+                in = new BufferedReader(in, maxSearchChars);
+                if (DEBUG.DND) System.out.println("*** created buffered reader " + in);
             }
-            byte[] buf = new byte[bytes];
-            //int len = in.read(buf);
+            */
+            //char[] buf = new char[maxSearchChars];
+            byte[] buf = new byte[maxSearchChars];
             int total = 0;
             int len = 0;
             // BufferedInputStream still won't read thru a block, so we need to allow
             // a few reads here to get thru a couple of blocks, so we can get up to
             // our maxbytes (e.g., a common return chunk count is 1448 bytes, presumably related to the MTU)
             do {
-                len = in.read(buf);
-                System.out.println("read " + len);
+                int max = maxSearchChars - total;
+                len = in.read(buf, total, max);
+                System.out.println("*** read " + len);
                 if (len > 0) total += len;
-            } while (len > 0 && total < bytes);
+            } while (len > 0 && total < maxSearchChars);
+            if (DEBUG.DND) System.out.println("*** Got total chars: " + total);
             in.close();
             String str = new String(buf, 0, total);
-            System.out.println("*** Got total bytes: " + total);
-            //System.out.println("*** String[" + str + "]");
+            if (DEBUG.DND && DEBUG.META) System.out.println("*** String[" + str + "]");
             Matcher m = regex.matcher(str);
-            if (DEBUG.DND) System.err.println("*** got Matcher " + m);
+            //if (DEBUG.DND) System.err.println("*** got Matcher " + m);
             if (m.lookingAt()) {
                 if (DEBUG.DND) System.err.println("*** found match");
                 result = m.group(1);
-                System.err.println("*** regex found ["+result+"]");
+                if (DEBUG.DND) System.err.println("*** regex found ["+result+"]");
             }
+
+            String charset = "UTF-8"; // default
+
+            if (result != null) {
+                Matcher cm = Content_Charset.matcher(str);
+                if (cm.lookingAt()) {
+                    charset = cm.group(1);
+                    if (DEBUG.DND) System.err.println("*** found HTML specified charset ["+charset+"]");
+                    // TODO: PUT THIS CHARSET AS A PIECE OF RESOURCE META-DATA!
+                }
+            }
+
+            try {
+                result = new String(result.getBytes(), charset);
+                if (DEBUG.DND) System.err.println("*** successfully converted from " + charset + " to local unicode");
+            } catch (java.io.UnsupportedEncodingException e) {
+                System.err.println("*** charset not found [" + charset + "]; defaulting to UTF-8");
+                result = VueUtil.decodeUTF(result);
+            }
+
         } catch (Throwable e) {
             System.err.println("searchStreamForRegex: " + e);
             if (DEBUG.DND) e.printStackTrace();
         }
-        if (DEBUG.DND) System.err.println("*** searchStreamForRegex returning [" + result + "]");
+
+        if (DEBUG.DND || DEBUG.Enabled) System.err.println("*** searchStreamForRegex returning [" + result + "]");
         return result;
     }
     
