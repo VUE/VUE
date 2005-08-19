@@ -4498,12 +4498,31 @@ public class MapViewer extends javax.swing.JComponent
     
     final Object AA_OFF = RenderingHints.VALUE_ANTIALIAS_OFF;
     Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;
+
     
     private static JFrame debugFrame;
     public static void main(String[] args) {
-        DEBUG.Enabled = true;
-        
         System.out.println("MapViewer:main");
+        
+        DEBUG.Enabled = true;
+        VUE.parseArgs(args);
+
+        boolean test_zoom = false;
+        boolean test_node = false;
+        boolean show_panner = false;
+        boolean use_scroller = false;
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-zoom"))
+                test_zoom = true;
+            else if (args[i].equals("-node"))
+                test_node = true;
+            else if (args[i].equals("-panner"))
+                show_panner = true;
+            else if (args[i].equals("-scroll"))
+                use_scroller = true;
+        }
+        
         
         javax.swing.plaf.metal.MetalLookAndFeel.setCurrentTheme(new VueTheme(false) {
                 public javax.swing.plaf.FontUIResource getControlTextFont() { return fontTiny; }
@@ -4513,18 +4532,18 @@ public class MapViewer extends javax.swing.JComponent
             
         LWMap map = new LWMap("test");
         
-        final boolean zoomTest = true;
-
-        if (zoomTest) {
+        if (test_zoom) {
             DEBUG.EVENTS = DEBUG.SCROLL = DEBUG.VIEWER = DEBUG.MARGINS = true; // zoom test
             DEBUG.KEYS = DEBUG.MOUSE = true;
             installZoomTestMap(map);
-        } else {
+        } else if (test_node) {
             DEBUG.BOXES = true; // node layout test
             installExampleNodes(map);
         }
         
-        if (args.length == 1) {
+        JFrame frame = null;
+        
+        if (test_zoom == false) {
             // raw, simple, non-scrolled mapviewer (WITHOUT actions attached!)
             DEBUG.FOCUS = true;
             VueUtil.displayComponent(new MapViewer(map), 400,300);
@@ -4535,8 +4554,7 @@ public class MapViewer extends javax.swing.JComponent
             viewer.DEBUG_SHOW_ORIGIN = true;
             viewer.DEBUG_TIMER_ROLLOVER = false;
             viewer.setPreferredSize(new Dimension(500,300));
-            JFrame frame;
-            if (args.length != 2) {
+            if (use_scroller) {
                 JScrollPane scrollPane = new JScrollPane(viewer);
                 scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                 scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -4551,13 +4569,13 @@ public class MapViewer extends javax.swing.JComponent
             frame.setJMenuBar(menu);
             frame.pack();
             debugFrame = frame;
+        }
             
-            if (zoomTest) {
-                ToolWindow pannerTool = new ToolWindow("Panner", frame);
-                pannerTool.setSize(120,120);
-                pannerTool.addTool(new MapPanner());
-                pannerTool.setVisible(true);
-            }
+        if (test_zoom || show_panner) {
+            ToolWindow pannerTool = new ToolWindow("Panner", frame);
+            pannerTool.setSize(120,120);
+            pannerTool.addTool(new MapPanner());
+            pannerTool.setVisible(true);
         }
     }
     
