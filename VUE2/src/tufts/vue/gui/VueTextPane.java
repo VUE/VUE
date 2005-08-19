@@ -24,7 +24,7 @@ public class VueTextPane extends JTextPane
     private LWComponent lwc;
     private Object propertyKey;
     /** was a key pressed since we loaded the current text? */
-    private boolean keyWasPressed = false;
+    private boolean keyWasPressed = false; // TODO: also need to know if cut or paste happened!
     private boolean styledText = false;
     private String undoName;
 	
@@ -32,12 +32,6 @@ public class VueTextPane extends JTextPane
     {
         addFocusListener(new FocusAdapter() {
                 public void focusLost(FocusEvent e) { saveText(); }
-            });
-        addKeyListener(new KeyAdapter() {
-                public void keyPressed(KeyEvent e) {
-                    if (DEBUG.KEYS) System.out.println(e);
-                    keyWasPressed = true;
-                }
             });
 
         if (c != null && propertyKey != null)
@@ -53,6 +47,14 @@ public class VueTextPane extends JTextPane
         this(null, null, null);
     }
     
+    protected void processKeyEvent(KeyEvent e) {
+        if (DEBUG.KEYS && e.getID() == KeyEvent.KEY_PRESSED) System.out.println(e);
+        // if any key activity, assume it may have changed
+        // (to make sure we catch cut's and paste's as well newly input characters)
+        keyWasPressed = true;
+        super.processKeyEvent(e);
+    }
+
     public void attachToProperty(LWComponent c, Object key) {
         if (c == null || key == null)
             throw new IllegalArgumentException("component=" + c + " propertyKey="+key + " neither can be null");
@@ -81,7 +83,9 @@ public class VueTextPane extends JTextPane
             String text = null;
             try {
                 if (DEBUG.KEYS) System.out.println(this + " saveText [" + doc.getText(0, doc.getLength()) + "]");
-                java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+                java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();                
+                //java.io.CharArrayWriter buf = new java.io.CharArrayWriter(); // RTFEditorKit won't write 16 bit characters.
+                // But it turns out it still handles unicode via self-encoding the special chars.
                 getEditorKit().write(buf, doc, 0, doc.getLength());
                 text = buf.toString();
                 if (DEBUG.KEYS) System.out.println(this + " EDITOR KIT OUTPUT [" + text + "]");
@@ -104,9 +108,11 @@ public class VueTextPane extends JTextPane
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("VueTextPane only handles properties of type String");
             }
-            setEditable(true);
+            //setEditable(true);
+            setEnabled(true);
         } else {
-            setEditable(false);
+            //setEditable(false);
+            setEnabled(false);
         }
         if (text == null)
             setText("");
