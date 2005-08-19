@@ -54,11 +54,11 @@ class MapDropTarget
     // this existed in 1.3, but apparently went away in 1.4.
     static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
 
-    private final int ACCEPTABLE_DROP_TYPES =
-        DnDConstants.ACTION_COPY |
-        DnDConstants.ACTION_LINK |
+    private static final int ACCEPTABLE_DROP_TYPES =
+        DnDConstants.ACTION_COPY | // 1
+        DnDConstants.ACTION_LINK | // 0x40000000
         0xFFFFFF;
-        //DnDConstants.ACTION_MOVE;
+        //DnDConstants.ACTION_MOVE; // 2
         // Do NOT include MOVE, or dragging a URL from the IE address bar becomes
         // a denied drag option!  Even dragged text from IE becomes disabled.
         // FYI, also, "move" doesn't appear to actually ever mean delete original source.
@@ -67,7 +67,7 @@ class MapDropTarget
         // any data-flavors available to process it, so we might as well indicate
         // that we can't accept it.
 
-    private final boolean debug = true;
+    private final static boolean debug = true;
     private final static boolean CenterNodesOnDrop = true;
     
     private MapViewer viewer;
@@ -105,6 +105,20 @@ class MapDropTarget
         //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
     }
 
+    public static String dropName(int dropAction) {
+        String name = "";
+        if ((dropAction & DnDConstants.ACTION_COPY) != 0)
+            name += "COPY";
+        if ((dropAction & DnDConstants.ACTION_MOVE) != 0)
+            name += "MOVE";
+        if ((dropAction & DnDConstants.ACTION_LINK) != 0)
+            name += "LINK";
+        if (name.length() < 1)
+            name = "NONE";
+        name += " (0x" + Integer.toHexString(dropAction) + ")";
+        return name;
+    }
+    
     public void dragExit(DropTargetEvent e)
     {
         if (debug) System.out.println("MapDropTarget: dragExit " + e);
@@ -112,7 +126,7 @@ class MapDropTarget
 
     public void dropActionChanged(DropTargetDragEvent e)
     {
-        if (debug) System.out.println("MapDropTarget: dropActionChanged " + e + " dropAction=" + e.getDropAction());
+        if (debug) System.out.println("MapDropTarget: dropActionChanged to " + dropName(e.getDropAction()));
 
     }
     
@@ -126,8 +140,8 @@ class MapDropTarget
             }
         }
         if (debug) System.out.println("MapDropTarget: DROP " + e
-                                      + "\n\tsourceActions=" + e.getSourceActions()
-                                      + "\n\tdropAction=" + e.getDropAction()
+                                      + "\n\tdropAction is " + dropName(e.getDropAction())
+                                      + "\n\tsourceActions are " + dropName(e.getSourceActions())
                                       + "\n\tlocation=" + e.getLocation()
                                       );
 
@@ -193,10 +207,15 @@ class MapDropTarget
         boolean modifierKeyWasDown = false;
         
         if (e != null) {
-            dropLocation = e.getLocation();
-            dropAction = e.getDropAction();
+            //dropLocation = e.getLocation();
+            //dropAction = e.getDropAction();
 
-            // ACTION_MOVE action is default action on PC, COPY on the
+            if (DEBUG.DND) System.out.println("MapDropTarget: processTransferable: dropAction is " + dropName(e.getDropAction()));
+
+            // BELOW HAS CHANGED AS OF AT LEAST OS X 10.4.2 / JVM 1.4.2:
+            // Mac now ACTION_MOVE as the default action, just like the PC
+            // 
+            // [OLD] ACTION_MOVE action is default action on PC, COPY on the
             // Mac, so if not that, assume a modifier key was being
             // held down to change the from the default OS drag
             // action.  We have no way of knowing anything about
@@ -212,7 +231,9 @@ class MapDropTarget
             // default action is different in drag from windows file explorer
             // than on drag from Mozilla (or maybe web browsers in general)
 
-            // FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
+            // [ The below has been fixed as of at least OS X 10.4.2 JVM 1.4.2 ]
+            // 
+            // [OLD] FYI, Mac OS X 10.2.8/JVM 1.4.1_01 is not telling us about
             // changes to dropAction that happen when the drag was
             // initiated (e.g., ctrl was down) -- this is a BUG, however,
             // if you press ctrl down AFTER the drop starts, sourceAction
@@ -230,8 +251,10 @@ class MapDropTarget
             System.out.println("\thitComponent=" + hitComponent);
         }
 
+        // Now: when either CTRl or ALT is down on the mac, drop action changes from
+        // default of 2 (MOVE) to 1 (COPY)
         if (VueUtil.isMacPlatform()) {
-            if (dropAction > 2) // hack: drop action == 1073741842 with Ctrl down on mac.
+            if (dropAction > 2) // hack: drop action == 1073741842 with Ctrl down on mac [OLD OS X / JVM].
                 modifierKeyWasDown = true;
         } else {
             // not safe: see above re: unpredictable due to drags from browsers and/or WinXP
