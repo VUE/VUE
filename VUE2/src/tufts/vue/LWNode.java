@@ -262,6 +262,7 @@ public class LWNode extends LWContainer
     }
     
     public boolean isTextNode() {
+        // todo: "text" node should display no note icon, but display the note if any when any part of it is rolled over.
         // Just what a text node is is a bit confusing right now, but it's useful
         // guess for now.
     	//return (mIsTextNode || (getFillColor() == null && mIsRectShape)) && !hasChildren();
@@ -357,7 +358,7 @@ public class LWNode extends LWContainer
     // and just eat the wasted shape objects built when doing castor XML restores.
     public void setShape(RectangularShape shape)
     {
-        //System.out.println("SETSHAPE " + shape + " in " + this);
+        if (DEBUG.CASTOR) System.out.println("SETSHAPE " + shape.getClass() + " in " + this + " " + shape);
         //System.out.println("SETSHAPE bounds " + shape.getBounds());
         //if (shape instanceof RoundRectangle2D.Float) {
         //RoundRectangle2D.Float rr = (RoundRectangle2D.Float) shape;
