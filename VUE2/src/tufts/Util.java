@@ -543,6 +543,9 @@ public class Util
                 tufts.macosx.Screen.adjustMacWindows(mainWindowTitleStart, ensureShown, ensureHidden, inFullScreenMode);
             } catch (LinkageError e) {
                 eout(e);
+            } catch (Exception e) {
+                System.err.println("failed to handle mac window adjustment");
+                e.printStackTrace();
             }
         }
     }
@@ -625,6 +628,24 @@ public class Util
                                        //.list(System.out);
 
         // TESTING CODE
+        System.out.println("Default JVM character encoding for this platform: " +
+                           (new java.io.OutputStreamWriter(new java.io.ByteArrayOutputStream())).getEncoding());
+            
+        if (args.length > 0 && args[0].equals("-charsets")) {
+            Map cs = java.nio.charset.Charset.availableCharsets();
+            //System.out.println("Charsets: " + cs.values());
+            Iterator i = cs.values().iterator();
+            while (i.hasNext()) {
+                java.nio.charset.Charset o = (java.nio.charset.Charset) i.next();
+                System.out.println(o
+                                   + "\t" + o.aliases()
+                                   //+ " " + o.getClass()
+                                   );
+            }
+            System.exit(0);
+        }
+
+        
         
         if (args.length == 1) {
             openURL(args[0]);
@@ -697,7 +718,33 @@ public class Util
         }
     }
 
-               
+
+    /** encode the given String in the default java 16-bit unicode format into persistable 8-bit UTF */
+    public static String encodeUTF(String s) {
+        if (s == null) return null;
+        try {
+            String encoded = new String(s.getBytes("UTF-8"));
+            //System.out.println("ENCODED [" + encoded + "]");
+            return encoded;
+        } catch (java.io.UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return s;
+        }
+    }
+
+    
+    /** decode the given String in 8-bit UTF to the default java 16-bit unicode format for display */
+    public static String decodeUTF(String s) {
+        if (s == null) return null;
+        try {
+            String decoded = new String(s.getBytes(), "UTF-8");
+            //System.out.println("DECODED [" + decoded + "]");
+            return decoded;
+        } catch (java.io.UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return s;
+        }
+    }
         
     
 }
