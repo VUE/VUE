@@ -103,6 +103,19 @@ implements VueConstants {
         }
     };
     
+    static final Action UpdateResource =
+    new LWCAction("Update Resource") {
+        public void act(LWComponent c) {
+            if (c.getResource() instanceof MapResource) {
+                MapResource r = (MapResource) c.getResource();
+                r.setTitleFromContentAsync(c);
+            }
+        }
+        boolean enabledFor(LWSelection s) {
+            return s.size() > 1 || (s.size() == 1 && s.first().hasResource());
+        }
+    };
+    
     
     //-------------------------------------------------------
     // Alternative View actions
