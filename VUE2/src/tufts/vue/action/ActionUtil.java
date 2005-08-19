@@ -23,6 +23,7 @@ import tufts.vue.VUE;
 import tufts.vue.LWMap;
 import tufts.vue.VueFileFilter;
 import tufts.vue.VueResources;
+import tufts.vue.DEBUG;
 
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.MarshalListener;
@@ -241,9 +242,13 @@ public class ActionUtil {
                          + " on platform " + VUE.getSystemProperty("os.name")
                          + " " + VUE.getSystemProperty("os.version")
                          + " -->\n");
-            //System.out.println("Wrote " + VersionString);
+            writer.write("<!-- Do Not Remove:"
+                         + " Saved by " + tufts.vue.Version.WhatString
+                         + " -->\n");
+            if (DEBUG.CASTOR) System.out.println("Wrote VUE header to " + writer);
             marshaller = new Marshaller(writer);
             marshaller.setDebug(true);
+            //marshaller.setDebug(DEBUG.CASTOR);
 
             // on by default -- adds at top: <?xml version="1.0" encoding="UTF-8"?>
             //marshaller.setMarshalAsDocument(false);
@@ -269,6 +274,9 @@ public class ActionUtil {
             //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
             marshaller.setMapping(getDefaultMapping());
+            Logger logger = new Logger(System.err);
+            logger.setPrefix("Castor ");
+            marshaller.setLogWriter(logger);
             
             System.out.println("Marshalling " + map + " ...");
             marshaller.marshal(map);
@@ -293,19 +301,20 @@ public class ActionUtil {
     }
 
     private static class VueUnmarshalListener implements UnmarshalListener {
-        public void attributesProcessed(Object o) {
-            System.out.println("\tattributes processed " + o.getClass().getName() + " " + o);
-        }
-        public void fieldAdded(String name, Object parent, Object child) {
-            System.out.println("fieldAdded: parent=" + parent
-                               + " child=" + child.getClass().getName() + " " + child
-                               );
-        }
         public void initialized(Object o) {
-            System.out.println("initialized " + o.getClass().getName() + " " + o);
+            System.out.println("**** VUL initialized " + o.getClass().getName() + " " + o);
+        }
+        public void attributesProcessed(Object o) {
+            System.out.println("      got attributes " + o.getClass().getName() + " " + o);
         }
         public void unmarshalled(Object o) {
-            System.out.println("unmarshalled " + o.getClass().getName() + " " + o);
+            System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + o);
+        }
+        public void fieldAdded(String name, Object parent, Object child) {
+            System.out.println("VUL fieldAdded: parent=" + parent
+                               + " child=" + child.getClass().getName() + " " + child
+                               + "\n"
+                               );
         }
     }
 
@@ -352,7 +361,7 @@ public class ActionUtil {
                 System.err.println("Unexpected end-of-stream in [" + url + "]");
                 throw new java.io.IOException("end of stream in " + url);
             }
-            System.out.println("Top of file[" + line + "]");
+            if (DEBUG.CASTOR||true) System.out.println("Top of file[" + line + "]");
             if (!line.startsWith("<!--"))
                 break;
             commentCount++;
@@ -368,7 +377,7 @@ public class ActionUtil {
                 int x = s.indexOf(')');
                 if (x > 0) {
                     versionID = s.substring(9,x);
-                    System.out.println("Found version ID[" + versionID + "]");
+                    if (DEBUG.CASTOR||true) System.out.println("Found version ID[" + versionID + "]");
                     if (versionID.equals(XML_MAPPING_CURRENT_VERSION_ID)) {
                         mapping = getDefaultMapping();
                     } else {
@@ -386,18 +395,29 @@ public class ActionUtil {
         reader.reset();
         if (versionID == null) {
             oldFormat = true;
-            System.out.println("Save file is of old pre-versioned type.");
+            if (DEBUG.CASTOR||true) System.out.println("Save file is of old pre-versioned type.");
             if (mapping == null)
                 mapping = getMapping(XML_MAPPING_UNVERSIONED);
         }
             
         try {
             Unmarshaller unmarshaller = new Unmarshaller(); // todo: can cache this with it's mapping set
-            unmarshaller.setDebug(true);
-            unmarshaller.setLogWriter(new Logger(System.out));
+            unmarshaller.setIgnoreExtraAttributes(true);
             unmarshaller.setIgnoreExtraElements(true);
-            //unmarshaller.setWhitespacePreserve(true); // not in our version yet
-            if (false) unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
+            unmarshaller.setValidation(false);
+            //unmarshaller.setWhitespacePreserve(true); // doesn't affect elements!  (e.g. <notes> foo bar </notes>)
+            // HOWEVER: castor 0.9.7 now automatically encodes/decodes white space for attributes...
+            //unmarshaller.setLogWriter(new PrintWriter(System.out));
+            Logger logger = new Logger(System.err);
+            logger.setPrefix("Castor " + url);
+            unmarshaller.setLogWriter(logger);
+            //unmarshaller.setLogWriter(new Logger.getSystemLogger());
+            // not a good sign: above getSystemLogger is public in castor code, but not public in doc, and non-existent in jar
+
+            if (DEBUG.CASTOR) {
+                unmarshaller.setDebug(true);
+                unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
+            }
             unmarshaller.setMapping(mapping);
 
             // unmarshall the map:
