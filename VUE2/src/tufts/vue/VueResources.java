@@ -52,7 +52,7 @@ public class VueResources
         try {
             featureSet = System.getProperty("tufts.vue.features");
             classPath = System.getProperty("java.class.path");
-            System.out.println("CLASSPATH: " + classPath);
+            if (DEBUG.INIT) System.out.println("CLASSPATH: " + classPath);
         } catch (java.security.AccessControlException e) {
             System.err.println("Can't access system properties: applet assumed");
         }
@@ -237,7 +237,7 @@ public class VueResources
         try {
             //url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
             url = sResourceBundle.getClass().getResource(getString(pLookupKey));
-            System.out.println("URL found for lookup key <" + pLookupKey + "> : " + url);
+            if (DEBUG.INIT) System.out.println("URL found for lookup key <" + pLookupKey + "> : " + url);
         } catch (Exception e) {
             alert("  !!! failed to lead due to "+ e.toString() );    
         }    
