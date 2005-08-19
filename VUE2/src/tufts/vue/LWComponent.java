@@ -228,7 +228,7 @@ public class LWComponent
     protected String getNextUniqueID()
     {
         if (getParent() == null)
-            throw new IllegalStateException("LWComponent needs a parent subclass of LWContainer that implements getNextUniqueID: " + this);
+            throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
         else
             return getParent().getNextUniqueID();
     }
@@ -408,10 +408,21 @@ public class LWComponent
     */
     public void setResource(Resource resource)
     {
+        if (DEBUG.CASTOR) out("SETTING RESOURCE TO " + resource.getClass() + " [" + resource + "]");
         Object old = this.resource;
         this.resource = resource;
         layout();
+        if (DEBUG.CASTOR) out("NOTIFYING");
         notify(LWKey.Resource, old);
+        
+        /*
+        try {
+            layout();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (DEBUG.CASTOR) System.exit(-1);
+        }
+        */
     }
 
     public void setResource(String urn)
@@ -573,6 +584,7 @@ public class LWComponent
         layout();
         //notify("pathway.remove");
     }
+
     
 
     /** for persistance */
@@ -581,13 +593,13 @@ public class LWComponent
     // save mechanism.
     public String getXMLlabel()
     {
-        return escapeNewlines(this.label);
+        return tufts.Util.encodeUTF(this.label);
     }
 
     /** for persistance */
     public void setXMLlabel(String text)
     {
-        setLabel(unEscapeNewlines(text));
+        setLabel(unEscapeNewlines(tufts.Util.decodeUTF(text)));
     }
 
     /** for persistance */
@@ -618,12 +630,20 @@ public class LWComponent
         // them because it was castor formatting fluff.  (btw, this
         // isn't a problem for labels because they're XML attributes,
         // not elements, which are quoted).
+
+        // Update: As of castor 0.9.7, this no longer appears true
+        // (it doesn't indent new text lines with white space
+        // even after wrapping them), but we still need this
+        // here to deal with old save files.
         
         text = text.replaceAll("\n[ \t]*%nl;", "%nl;");
         text = text.replaceAll("\n[ \t]*", " ");
         return unEscapeWhitespace(text);
     }
 
+    // FYI, this is no longer needed for castor XML attributes, as
+    // of version 0.9.7 it automatically encodes & preserves them.
+    // Note that this is still NOT true for XML elements.
     private static String escapeNewlines(String text)
     {
         if (text == null)
