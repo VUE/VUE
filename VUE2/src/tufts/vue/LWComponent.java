@@ -593,18 +593,22 @@ public class LWComponent
     // save mechanism.
     public String getXMLlabel()
     {
-        return tufts.Util.encodeUTF(this.label);
+        return this.label;
+        //return tufts.Util.encodeUTF(this.label);
     }
 
     /** for persistance */
     public void setXMLlabel(String text)
     {
-        setLabel(unEscapeNewlines(tufts.Util.decodeUTF(text)));
+        setLabel(unEscapeNewlines(text));
+        //setLabel(unEscapeNewlines(tufts.Util.decodeUTF(text)));
     }
 
     /** for persistance */
     public String getXMLnotes()
     {
+        //return this.notes;
+        // TODO: can escape newlines new with &#xa; and tab with &#x9;
         return escapeWhitespace(this.notes);
     }
 
