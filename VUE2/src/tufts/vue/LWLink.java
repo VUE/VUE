@@ -82,7 +82,7 @@ public class LWLink extends LWComponent
     private int endPoint2Style = 0;
     
     // todo: create set of arrow types
-    private final float ArrowBase = 5;
+    private final static float ArrowBase = 5;
     private RectangularShape ep1Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
     private RectangularShape ep2Shape = new tufts.vue.shape.Triangle2D(0,0, ArrowBase,ArrowBase*1.3);
 
@@ -143,9 +143,9 @@ public class LWLink extends LWComponent
         };
 
     //private final String Key_LinkStartPoint = "link.start.location";
-    private final String Key_LinkEndPoint = "link.end.location";
-    private final String Key_Control_0 = "link.control.0";
-    private final String Key_Control_1 = "link.control.1";
+    private final static String Key_LinkEndPoint = "link.end.location";
+    private final static String Key_Control_0 = "link.control.0";
+    private final static String Key_Control_1 = "link.control.1";
 
     /**
      * @param key property key (see LWKey)
@@ -563,8 +563,8 @@ public class LWLink extends LWComponent
             mIconBlock.checkAndHandleMouseOver(e);
     }
     
-    private final int MaxZoom = 1; //todo: get from Zoom code
-    private final float SmallestScaleableStrokeWidth = 1 / MaxZoom;
+    private final static int MaxZoom = 1; //todo: get from Zoom code
+    private final static float SmallestScaleableStrokeWidth = 1 / MaxZoom;
     public boolean intersects(Rectangle2D rect)
     {
         if (endpointMoved)
@@ -1194,9 +1194,11 @@ public class LWLink extends LWComponent
         if (endpointMoved)
             computeLinkEndpoints();
 
+        //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(true);
+
         super.draw(dc);
 
-        BasicStroke stroke = this.stroke;
+        //BasicStroke stroke = this.stroke;
 
         // If either end of this link is scaled, scale stroke
         // to smallest of the scales (even better: render the stroke
@@ -1219,7 +1221,7 @@ public class LWLink extends LWComponent
         }
         }
         */
-        Graphics2D g = dc.g;
+        final Graphics2D g = dc.g;
         
         if (isSelected() && !dc.isPrinting()) {
             g.setColor(COLOR_HIGHLIGHT);
@@ -1267,7 +1269,10 @@ public class LWLink extends LWComponent
         */
 
         g.setColor(getStrokeColor());
-        g.setStroke(stroke);
+        if (dc.drawAbsoluteLinks)
+            dc.setAbsoluteStroke(stroke.getLineWidth());
+        else
+            g.setStroke(stroke);
         
         if (this.curve != null) {
             //-------------------------------------------------------
@@ -1341,6 +1346,9 @@ public class LWLink extends LWComponent
         }
                 
         if (DEBUG.CONTAINMENT) { dc.setAbsoluteStroke(0.1); g.draw(getBounds()); }
+
+        //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(false);
+        
     }
 
 
