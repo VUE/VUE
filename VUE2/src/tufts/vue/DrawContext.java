@@ -30,6 +30,8 @@ public class DrawContext
 {
     public final Graphics2D g;
     public final double zoom;
+    public final boolean drawAbsoluteLinks;
+    
     private final float offsetX;
     private final float offsetY;
     
@@ -46,18 +48,19 @@ public class DrawContext
     // MapViewer, etc.  And replace zoom with a getZoom
     // that grabs transform scale value.
 
-    public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame)
+    public DrawContext(Graphics g, double zoom, float offsetX, float offsetY, Rectangle frame, boolean absoluteLinks)
     {
         this.g = (Graphics2D) g;
         this.zoom = zoom;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
         this.frame = frame;
+        this.drawAbsoluteLinks = absoluteLinks;
     }
     
     public DrawContext(Graphics g, double zoom)
     {
-        this(g, zoom, 0, 0, null);
+        this(g, zoom, 0, 0, null, false);
     }
     public DrawContext(Graphics g)
     {
@@ -181,6 +184,14 @@ public class DrawContext
         return this.index;
     }
 
+    // todo: make this safer
+    public void setAbsoluteDrawing(boolean unZoom) {
+        if (unZoom)
+            g.scale(1/zoom, 1/zoom);
+        else
+            g.scale(zoom, zoom);
+    }
+
     private boolean inMapDraw = false;
     private AffineTransform savedTransform;
     /** set up for drawing a model: adjust to the current zoom and offset.
@@ -226,6 +237,7 @@ public class DrawContext
         this.activeTool = dc.activeTool;
         this.inMapDraw = dc.inMapDraw;
         this.frame = dc.frame;
+        this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
     }
 
 
