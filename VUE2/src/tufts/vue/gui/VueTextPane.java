@@ -79,6 +79,7 @@ public class VueTextPane extends JTextPane
     protected void saveText() {
         if (keyWasPressed && lwc != null) {
             if (DEBUG.KEYS) System.out.println(this + " saveText [" + getText() + "]");
+            /*
             Document doc = getDocument();
             String text = null;
             try {
@@ -93,6 +94,8 @@ public class VueTextPane extends JTextPane
                 e.printStackTrace();
             }
             lwc.setProperty(propertyKey, text);
+            */
+            lwc.setProperty(propertyKey, getText());
             if (undoName != null)
                 VUE.markUndo(undoName);
             else
