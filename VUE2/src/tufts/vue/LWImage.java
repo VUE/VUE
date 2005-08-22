@@ -31,7 +31,7 @@ import javax.swing.ImageIcon;
  * Handle the presentation of an image resource, allowing cropping.
  */
 public class LWImage extends LWComponent
-    implements LWSelection.ControlListener
+    implements LWSelection.ControlListener, java.awt.image.ImageObserver
 {
     private final static int MinWidth = 10;
     private final static int MinHeight = 10;
@@ -79,29 +79,52 @@ public class LWImage extends LWComponent
         }
     }
     
+    private Image mImage; // test
     public void setResource(Resource r) {
         super.setResource(r);
         if (r instanceof MapResource) {
-            MapResource mr = (MapResource) r;
+
+            final MapResource mr = (MapResource) r;
+
+            // todo: have the LWMap make a call at the end of a
+            // restore to all LWComponents telling them to start
+            // loading any media they need.  Pass in a media tracker
+            // that the LWMap and/or MapViewer can use to track/report
+            // the status of loading, and know when it's 100%
+            // complete.
+
             try {
-                this.imageIcon = new ImageIcon(mr.toURL());
-                System.out.println("LWImage size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight() + " from " + mr.toURL());
-                //System.out.println("LWImage got " + imageIcon + " size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
-                //out("\tconent size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
+                if (false) {
+                    mImage = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
+                } else {
+                    new Thread("LWImage loader for " + mr) {
+                        public void run() { loadImageAsync(mr); }
+                    }.start();
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            // don't set size if this is during a restore, which is the only
-            // time width & height should be allowed less than 10
-            if (this.width < 10 && this.height < 10) 
-                setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
         }
-        //resourceIcon.layout();
-        mIconBlock.layout();
     }
 
     public void layout() {
         mIconBlock.layout();
+    }
+
+    private void loadImageAsync(MapResource r) {
+        try {
+            imageIcon = (ImageIcon) r.getContent();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // don't set size if this is during a restore, which is the only
+        // time width & height should be allowed less than 10
+        // [ What?? ]
+        if (this.width < 10 && this.height < 10) 
+            setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
+        layout();
+        notify(LWKey.RepaintComponent);
     }
 
 
@@ -165,6 +188,20 @@ public class LWImage extends LWComponent
         setLocation(x, y);
     }
 
+    public static final Key KEY_Rotation = new Key("image.rotation") { // rotation in radians
+            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
+            public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
+        };
+    
+    public void setRotation(double rad) {
+        Object old = new Double(rotation);
+        this.rotation = rad;
+        notify(KEY_Rotation, old);
+    }
+    public double getRotation() {
+        return rotation;
+    }
+
     public static final Key Key_ImageOffset = new Key("image.pan") {
             public void setValue(LWComponent c, Object val) { ((LWImage)c).setOffset((Point2D)val); }
             public Object getValue(LWComponent c) { return ((LWImage)c).getOffset(); }
@@ -204,9 +241,9 @@ public class LWImage extends LWComponent
         drawSelectionDecorations(dc);
         
         dc.g.translate(getX(), getY());
-        float scale = getScale();
+        float _scale = getScale();
 
-        if (scale != 1f) dc.g.scale(scale, scale);
+        if (_scale != 1f) dc.g.scale(_scale, _scale);
 
         /*
         if (getStrokeWidth() > 0) {
@@ -233,28 +270,34 @@ public class LWImage extends LWComponent
             mIconBlock.draw(dc);
         }
 
-        if (scale != 1f) dc.g.scale(1/scale, 1/scale);
+        if (_scale != 1f) dc.g.scale(1/_scale, 1/_scale);
         dc.g.translate(-getX(), -getY());
-    }
-
-    public static final Key KEY_Rotation = new Key("image.rotation") { // rotation in radians
-            public void setValue(LWComponent c, Object val) { ((LWImage)c).setRotation(((Double)val).doubleValue()); }
-            public Object getValue(LWComponent c) { return new Double(((LWImage)c).getRotation()); }
-        };
-    
-    public void setRotation(double rad) {
-        Object old = new Double(rotation);
-        this.rotation = rad;
-        notify(KEY_Rotation, old);
-    }
-    public double getRotation() {
-        return rotation;
     }
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
 
+    public boolean imageUpdate(Image img,
+                               int flags,
+                               int x,
+                               int y,
+                               int width,
+                               int height)
+    {
+        out("IUF=" + flags);
+        notify(LWKey.RepaintComponent);
+        return true;
+    }
+
+    protected void XdrawImage(DrawContext dc) {
+        if (mImage != null)
+            dc.g.drawImage(mImage, null, this);
+    }
+
     protected void drawImage(DrawContext dc)
     {
+        if (imageIcon == null) // it's loading
+            return;
+        
         AffineTransform transform = AffineTransform.getTranslateInstance(offset.x, offset.y);
         if (rotation != 0 && rotation != 360)
             transform.rotate(rotation, getImageWidth() / 2, getImageHeight() / 2);
