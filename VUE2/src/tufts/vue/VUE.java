@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.303 2005-08-19 02:03:27 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.304 2005-08-22 22:22:32 sfraize Exp $
     
 /**
  * Vue application class.
@@ -154,7 +154,7 @@ public class VUE
     */
     
     static class VueFrame extends JFrame
-        implements MapViewer.Listener
+        implements MapViewer.Listener, MouseWheelListener
     {
         final static int TitleChangeMask =
             MapViewerEvent.DISPLAYED |
@@ -164,15 +164,24 @@ public class VUE
         VueFrame() {
             super(VueResources.getString("application.title"));
             setIconImage(VueResources.getImageIcon("vueIcon32x32").getImage());
+            //addMouseWheelListener(this); this causing stack overflows in JVM 1.4 & 1.5, and only works for unclaimed areas
+            // (e.g., not mapviewer, even if it hasn't registered a wheel listener)
         }
 
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            System.err.println("VUE MSW");
+        }
+        
         protected void processEvent(AWTEvent e) {
+            // if (e instanceof MouseWheelEvent) System.err.println("VUE MSM PE"); only works w/listener, which has problem as above
+            // try a generic AWT event queue listener?
+            
             if (e instanceof MouseEvent) {
                 super.processEvent(e);
                 return;
             }
         
-            if (DEBUG.Enabled) out("VueFrame: processEvent " + e);
+            if (DEBUG.FOCUS) out("VueFrame: processEvent " + e);
             // todo: if frame is getting key events, handle them
             // and/or pass off to MapViewer (e.g., tool switch events!)
             // or: put tool's w/action events in vue menu
@@ -470,6 +479,7 @@ public class VUE
             else if (args[i].equals("-debug_event"))    DEBUG.EVENTS = true;
             else if (args[i].equals("-debug_undo"))     DEBUG.UNDO = true;
             else if (args[i].equals("-debug_castor"))   DEBUG.CASTOR = true;
+            else if (args[i].equals("-debug_xml"))      DEBUG.XML = true;
             else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
 
@@ -806,15 +816,10 @@ public class VUE
         if (!nodr) {
             LWMap startupMap = null;
             try {
-                //File startupFile = new File(VueResources.getURL("resource.startmap").getFile());
-                //LWMap startupMap = OpenAction.loadMap(startupFile.getAbsolutePath());
                 final java.net.URL startupURL;
-                if (VueUtil.isMacPlatform() && VUE.NARRAVISION == false)
-                    startupURL = VueResources.getURL("resource.startmap.unicode");
-                else
-                    startupURL = VueResources.getURL("resource.startmap");
+                startupURL = VueResources.getURL("resource.startmap");
                 startupMap = OpenAction.loadMap(startupURL);
-                startupMap.setFile(null); // dissasociate startup map from it's file so we don't write over it
+                startupMap.setFile(null); // dissassociate startup map from it's file so we don't write over it
                 startupMap.setLabel("Welcome");
                 startupMap.markAsSaved();
             } catch (Exception ex) {
@@ -1536,7 +1541,7 @@ public class VUE
             editMenu.addSeparator();
             editMenu.add(Actions.editDataSource);
             editMenu.addSeparator();
-            editMenu.add(Actions.UpdateResource);
+            editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
         
             viewMenu.add(Actions.ZoomIn);
             viewMenu.add(Actions.ZoomOut);
