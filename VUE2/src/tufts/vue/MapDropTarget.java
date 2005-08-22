@@ -195,6 +195,17 @@ class MapDropTarget
         }
     }
 
+    /** attempt to make a URL from a string: return null if malformed */
+    private static URL makeURL(String s) {
+        try {
+            return new URL(s);
+        } catch (MalformedURLException ex) {
+            return null;
+        }
+    }
+
+    
+
     //    public boolean processTransferable(Transferable transfer, java.awt.Point dropLocation)
     /**
      * Process any transferrable: @param e can be null if don't have a drop event
@@ -207,7 +218,7 @@ class MapDropTarget
         boolean modifierKeyWasDown = false;
         
         if (e != null) {
-            //dropLocation = e.getLocation();
+            dropLocation = e.getLocation();
             //dropAction = e.getDropAction();
 
             if (DEBUG.DND) System.out.println("MapDropTarget: processTransferable: dropAction is " + dropName(e.getDropAction()));
@@ -296,7 +307,7 @@ class MapDropTarget
                 fileList = (java.util.List) foundData;
 
             } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            
+                
                 foundFlavor = DataFlavor.stringFlavor;
                 foundData = transfer.getTransferData(DataFlavor.stringFlavor);
                 droppedText = (String) foundData;
@@ -332,7 +343,7 @@ class MapDropTarget
         // TODO: we can handle Mac .fileloc's if we check multiple data-flavors: the initial LIST
         // flavor gives us the .fileloc, which we could even pull a name from if we want, and in
         // any case, a later STRING data-flavor actually gives us the source of the link!
-        // SAME APPLIES TO .webloc files...
+        // SAME APPLIES TO .webloc files... AND .textClipping files
         // Of course, if they drop multple ones of these, we're screwed, as only the last
         // one gets translated for us in the later string data-flavor.  Oh well -- at least
         // we can handle the single case if we want.
@@ -350,8 +361,9 @@ class MapDropTarget
                 //String resourceSpec = "file://" + file.getPath(); // why was this done? it breaks URL shortcuts
                 String resourceSpec = file.getPath();
                 String resourceName = file.getName();
+                String path = file.getPath();
                 
-                if (file.getPath().toLowerCase().endsWith(".url")) {
+                if (path.toLowerCase().endsWith(".url")) {
                     // Search a windows .url file (an internet shortcut)
                     // for the actual web reference.
                     String url = convertWindowsURLShortCutToURL(file);
@@ -363,6 +375,33 @@ class MapDropTarget
                             resourceName = file.getName().substring(0, file.getName().length() - 4);
                         else
                             resourceName = file.getName();
+                    }
+                } else if (path.endsWith(".textClipping")  || path.endsWith(".webloc") || path.endsWith(".fileloc")) {
+
+                    if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+
+                        // Unforunately, this only works if there's ONE ITEM IN THE LIST,
+                        // or more accurately, the last item in the list, or perhaps even
+                        // more accurately, the item that also shows up as the application/x-java-url.
+                        // Which is why ultimately we'll want to put all this type of processing
+                        // in a full-and-fancy filing OSID to end all filing OSID's, that'll
+                        // handle windows .url shortcuts, the above mac cases plus mac aliases, etc, etc.
+
+                        String unicodeString;
+                        try {
+                            unicodeString = (String) transfer.getTransferData(DataFlavor.stringFlavor);
+                            System.out.println("*** GOT MAC REDIRECT DATA [" + unicodeString + "]");
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+
+                        // for textClipping, the string data is raw dropped text, for webloc,
+                        // it's URL be we already have text->URL in dropped text code below,
+                        // and same for .fileloc...  REFACTOR THIS MESS.
+
+                        //resourceSpec = unicodeString; 
+                        //resourceName = 
+                        // NOW WE NEED TO JUMP DOWN TO HANDLING DROPPED TEXT...
                     }
                 }
                 
@@ -420,9 +459,7 @@ class MapDropTarget
             String resourceTitle = null;
 
             if (rows.length < 3) {
-                try {
-                    url = new URL(rows[0]);
-                } catch (MalformedURLException ex) {}
+                url = makeURL(rows[0]);
                 if (rows.length > 1) {
                     // Current version of Mozilla (at least on Windows XP, as of 2004-02-22)
                     // includes the HTML <title> as second row of text.
@@ -430,7 +467,28 @@ class MapDropTarget
                 }
             }
 
+            if (url != null && url.getQuery() != null) {
+                final String query = url.getQuery();
+                // special case for google image search:
+                System.out.println("host " + url.getHost() + " query " + url.getQuery());
+                if ("images.google.com".equals(url.getHost()) && query.startsWith("imgurl=")) {
+                    int endURLindex = query.indexOf('&');
+                    String imageURL = query.substring(7, endURLindex);
+
+                    //-------------------------------------------------------
+                    // WIERD -- what is google doing here? or is %2520 some obscure
+                    // whitespace code not understood on mac?
+                    imageURL = imageURL.replaceAll("%2520", "%20");
+                    //-------------------------------------------------------
+                    
+                    System.out.println("redirect to google image search url " + imageURL);
+                    url = makeURL(imageURL);
+                }
+            }
+
+                
             if (url != null) {
+
                 if (hitComponent != null) {
                     if (createAsChildren)
                         ((LWNode)hitComponent).addChild(createNewNode(url.toString(), resourceTitle, dropLocation));
@@ -661,7 +719,9 @@ if (MapResource.isImage(resource))
 
     private Point2D dropToMapLocation(int x, int y)
     {
-        return viewer.screenToMapPoint(x, y);
+        Point2D p = viewer.screenToMapPoint(x, y);
+        //if (DEBUG.DND) System.out.println("drop location " + x + "," + y + " mapLoc=" + p);
+        return p;
         /*
         java.awt.Insets mapInsets = viewer.getInsets();
         java.awt.Point mapLocation = viewer.getLocation();
@@ -684,200 +744,5 @@ if (MapResource.isImage(resource))
             return i > 0 ? resourceName.substring(i+1) : resourceName;
         // todo: go search the HTML for <title>
     }
-
-    /*
-    public boolean OLD_processTransferable(Transferable transfer, DropTargetDropEvent e)
-    {
-        Point dropLocation = null;
-        int dropAction = DnDConstants.ACTION_MOVE; // default action
-
-        if (e != null) {
-            dropLocation = e.getLocation();
-            dropAction = e.getDropAction();
-        }
-
-        boolean modifierKeyWasDown = (dropAction == DnDConstants.ACTION_COPY);
-
-        LWComponent hitComponent = null;
-
-        if (dropLocation != null) {
-            hitComponent = viewer.getMap().findChildAt(dropToMapLocation(dropLocation));
-            System.out.println("\thitComponent=" + hitComponent);
-        }
-        
-        // if no drop location (e.g., we did a "Paste") then assume where
-        // they last clicked.
-        if (dropLocation == null)
-            dropLocation = viewer.getLastMousePressPoint();
-        //dropLocation = new java.awt.Point(viewer.getWidth()/2, viewer.getHeight()/2);
-        
-        boolean success = false;
-
-
-        String resourceName = null;
-        String droppedText = null;
-        java.awt.Image droppedImage = null;
-        java.util.List fileList = null;
-        java.util.List assetList = null;
-        DataFlavor foundFlavor = null;
-        Object foundData = null;
-
-        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-        if (debug) System.out.println("TRANSFER: found " + dataFlavors.length + " dataFlavors");
-        dumpFlavors(transfer);
-
-        try {
-            if (VueDragTreeNodeSelection.assetFlavor == null)
-                System.err.println("ASSET FLAVOR IS NULL");
-                
-            if (transfer.isDataFlavorSupported(VueDragTreeNodeSelection.assetFlavor)) {
-                
-                foundFlavor = VueDragTreeNodeSelection.assetFlavor;
-                foundData = transfer.getTransferData(foundFlavor);
-                assetList = (java.util.List) foundData;
-            
-            } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-
-                foundFlavor = DataFlavor.javaFileListFlavor;
-                foundData = transfer.getTransferData(foundFlavor);
-                fileList = (java.util.List) foundData;
-
-            } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            
-                foundFlavor = DataFlavor.stringFlavor;
-                foundData = transfer.getTransferData(DataFlavor.stringFlavor);
-                droppedText = (String) foundData;
-            
-            } else {
-                System.out.println("TRANSFER: found no supported dataFlavors");
-                dumpFlavors(transfer);
-                return false;
-            }
-        } catch (UnsupportedFlavorException ex) {
-            ex.printStackTrace();
-            System.err.println("TRANSFER: Transfer lied about supporting " + foundFlavor);
-            return false;
-        } catch (ClassCastException ex) {
-            ex.printStackTrace();
-            System.err.println("TRANSFER: Transfer data did not match declared type! flavor="
-                               + foundFlavor + " data=" + foundData.getClass());
-            return false;
-        } catch (java.io.IOException ex) {
-            ex.printStackTrace();
-            System.err.println("TRANSFER: data no longer available");
-            return false;
-        }
-
-        System.out.println("TRANSFER: Found supported flavor " + foundFlavor
-                           + "\n\tdata=[" + foundData + "]");
-
-        
-        for (int i = 0; i < dataFlavors.length; i++) {
-            DataFlavor flavor = dataFlavors[i];
-            Object data = null;
-            //System.out.println("DATA FLAVOR "+flavor+"  Mime type" +flavor.getHumanPresentableName());
-            
-            //if (debug) System.out.print("FLAVOR " + (i<10?" ":"") + i + " " + flavor.getMimeType());
-            try {
-                data = transfer.getTransferData(flavor);
-            } catch (Exception ex) {
-                System.out.println("\tEXCEPTION: getTransferData: " + ex);
-            }
-            //if (debug) System.out.println("\ttransferData=" + data);
-
-            try {
-                if (data instanceof java.awt.Image) {
-                    droppedImage = (java.awt.Image) data;
-                    if (debug) System.out.println("TRANSFER: found image " + droppedImage);
-                    break;
-                } else if (flavor.isFlavorJavaFileListType()) {
-                    fileList = (java.util.List) transfer.getTransferData(flavor);
-                    break;
-                } else if (flavor.getHumanPresentableName().equals("asset")) {
-                    System.out.println("ASSET FOUND");
-                    assetList = (java.util.List) transfer.getTransferData(flavor);
-                    break;
-                } else if (false&&flavor.equals(DataFlavor.stringFlavor)) {
-                    
-                } else if (flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
-                    //} else if (flavor.isFlavorTextType() || flavor.getMimeType().startsWith(MIME_TYPE_TEXT_PLAIN))
-                    // flavor.isFlavorTextType() is picking up text/html, etc, which we don't want here.
-                {
-                    // checking isFlavorTextType() above should be
-                    // enough, but some Windows apps (e.g.,
-                    // Netscape-6) are leading the flavor list with
-                    // 20-30 mime-types of "text/uri-list", but the
-                    // reader only ever spits out the first character.
-
-                    // todo: handle RTF via text.trf.RTFReader(StyledDocument output)
-                    //  -- will need to figure out how to persist a styled document tho...
-                    // see text.rtf.RTFGenerator -- all of those accessed
-                    // thru the RTFEditorKit...
-                    droppedText = readTextFlavor(flavor, transfer);
-                    if (droppedText != null)
-                        break;
-                    
-                } else {
-                    //System.out.println("Unhandled flavor: " + flavor);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                //System.out.println(ex);
-                continue;
-            }
-        }
-
-        if (droppedImage != null) {
-            createNewNode(droppedImage, dropLocation);
-            success = true;
-        } else if (fileList != null) {
-            if (debug) System.out.println("\tLIST, size= " + fileList.size());
-            java.util.Iterator iter = fileList.iterator();
-            int x = dropLocation.x;
-            int y = dropLocation.y;
-
-            while (iter.hasNext()) {
-                File file = (File) iter.next();
-                if (debug) System.out.println("\t" + file.getClass().getName() + " " + file);
-                if (hitComponent != null && fileList.size() == 1) {
-                    if (!modifierKeyWasDown && hitComponent instanceof LWNode) {
-                        ((LWNode)hitComponent).addChild(createNewNode(file, null));
-                    } else {
-                        hitComponent.setResource(file.toString());
-                    }
-                } else {
-                    //createNewNode("file:///"+file.toString(), file.getName(), new java.awt.Point(x, y));
-                    createNewNode(file, new java.awt.Point(x, y));
-                    x += 15;
-                    y += 15;
-                }
-                success = true;
-            }
-            
-        } else if (assetList != null) {
-            java.util.Iterator iter = assetList.iterator();
-            int x = dropLocation.x;
-            int y = dropLocation.y;
-            while(iter.hasNext()) {
-                Asset asset = (Asset) iter.next();
-                createNewNode(asset, new java.awt.Point(x,y));
-                x += 15;
-                y+= 15;
-                success = true;
-            }
-        } else if (resourceName != null) { // Christ! - what happened to this code?? resourceName is never set anywhere!
-            if (hitComponent != null)
-                hitComponent.setResource(resourceName);
-            else
-                createNewNode(resourceName, null, dropLocation);
-            success = true;
-        } else if (droppedText != null) {
-            createNewTextNode(droppedText, dropLocation);
-            success = true;
-        }
-
-        return success;
-    }
-    */    
     
 }
