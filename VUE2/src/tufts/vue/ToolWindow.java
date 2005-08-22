@@ -102,10 +102,15 @@ public class ToolWindow
      *
      * FYI, if we use Frames on the PC, they can go behind the
      * the main application, which we don't want.
+     *
+     * Note: as of java 1.5, there is a way to force a window to be on top,
+     * which would allow us to use windows on the mac if we can solve the
+     * menu bar problem (tho we may still have the missing brushed-metal
+     * look problem).
      */
     private class FrameDelegate extends JFrame implements Delegate {
         FrameDelegate(String title) {
-            // important to set the title if if Undecorated for
+            // important to set the title even if Undecorated for
             // our tufts.macosx.Screen hacks to work.
             setTitle(title); 
             setUndecorated(true);
@@ -194,7 +199,19 @@ public class ToolWindow
      * "Command-1" can make the ObjectInspector appear, but it usually
      * get's focus right away, and then "Command-1" no longer works to
      * make it dissapear until you click back on the main VUE window.
+     * May be able to address this bug by creating an invisible frame
+     * with a menu-bar attached that get's focus when this window
+     * gets focus, but not sure of feasability of handing off focus.
+     * But window's aren't focusable until their parents are visible on screen,
+     * so maybe the frame can be made "invisible" if moved off screen.
+     * If this works, all floating windows could use this "invisible"
+     * frame as their parent (i think this is similar to the method
+     * net.roydesign / MRJAdapter users).
      *
+     * Note: as of java 1.5, there is a way to force a window to be on top,
+     * which would allow us to use frame's on the PC if that need should
+     * arise, although we ideally want to be moving in the opposite direction
+     * and have everything just be windows.
      */
     private class WindowDelegate extends JWindow implements Delegate {
         WindowDelegate(Window owner) {
