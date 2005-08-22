@@ -1587,7 +1587,7 @@ public class MapViewer extends javax.swing.JComponent
             }
         }
         
-        DrawContext dc = new DrawContext(g2, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds());
+        DrawContext dc = new DrawContext(g2, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), true);
         dc.setAntiAlias(DEBUG_ANTI_ALIAS);
         dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
         dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
@@ -2638,6 +2638,11 @@ public class MapViewer extends javax.swing.JComponent
             toolSelected(toolKeyOldTool); // restore prior cursor
             toolKeyOldTool = null;
         }
+    }
+
+
+    MouseWheelListener getMouseWheelListener() {
+        return inputHandler;
     }
     
     // todo: if java ever supports moving an inner class to another file,
