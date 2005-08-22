@@ -35,6 +35,7 @@ class LWCInspector extends javax.swing.JPanel
     private JLabel idField = new JLabel();
     private JLabel locationField = new JLabel();
     private JLabel sizeField = new JLabel();
+    private JLabel labelHex = new JLabel();
     private JTextField labelField = new JTextField(15);
     private JTextField widthField = new JTextField();
     private JTextField heightField = new JTextField();
@@ -62,6 +63,7 @@ class LWCInspector extends javax.swing.JPanel
         "-ID",      idField,
         "-Location",locationField,
         "-Size",    sizeField,
+        "-Label(hex)", labelHex,
         "Label",    labelField,
         "Width",    widthField,
         "Height",    heightField,
@@ -328,6 +330,7 @@ class LWCInspector extends javax.swing.JPanel
         if (!c.isAutoSized())
             sizeText += " userSize";
         sizeField.setText(sizeText);
+        //labelHex.setText
         widthField.setText(""+c.getAbsoluteWidth());
         heightField.setText(""+c.getAbsoluteHeight());
         xField.setText(""+c.getX());
