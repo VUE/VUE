@@ -39,7 +39,8 @@ public class MapPanner extends javax.swing.JPanel
                VUE.ActiveViewerListener,
                LWComponent.Listener,
                MouseListener,
-               MouseMotionListener
+               MouseMotionListener,
+               MouseWheelListener
 {
     private MapViewer mapViewer; // active MapViewer
     private double zoomFactor; // zoomFactor that will fit entire map in the panner
@@ -67,6 +68,7 @@ public class MapPanner extends javax.swing.JPanel
         
         addMouseListener(this);
         addMouseMotionListener(this);
+        addMouseWheelListener(this);
 
         VUE.addActiveViewerListener(this);
     }
@@ -211,6 +213,11 @@ public class MapPanner extends javax.swing.JPanel
 
     }
     
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if (mapViewer != null)
+            mapViewer.getMouseWheelListener().mouseWheelMoved(e);
+    }
+    
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
@@ -277,7 +284,7 @@ public class MapPanner extends javax.swing.JPanel
          * map on the panner window.
          */
 
-        final DrawContext dc = new DrawContext(g, zoomFactor, -offset.x, -offset.y, null);
+        final DrawContext dc = new DrawContext(g, zoomFactor, -offset.x, -offset.y, null, false);
 
         dc.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);//pickup MapViewer AA state for debug
         dc.setPrioritizeSpeed(true);
