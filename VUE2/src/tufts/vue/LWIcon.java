@@ -382,7 +382,16 @@ public abstract class LWIcon extends Rectangle2D.Float
                                          + ttLastString + "</b>"
                                          + (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
                                          + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;");
-                ttResource.setFont(FONT_MEDIUM);
+
+                //ttResource.setFont(FONT_MEDIUM);
+                
+                // todo: "Arial Unicode MS" looks great on mac (which it maps to Hevetica, which on
+                // mac supports unicode, and appears identical to Arial), but is only thing that
+                // works for unicode on the PC, yet looks relaively crappy for regular text.  Check
+                // into fonts avail on Win XP (this was Win2k) todo: try embedding the font name in
+                // the HTML above for just the title, and not the URL & click message.
+                
+                ttResource.setFont(FONT_MEDIUM_UNICODE);
             }
                 lastAccess = access;
             return ttResource;
