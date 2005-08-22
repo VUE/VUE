@@ -46,6 +46,7 @@ public class DEBUG
     public static boolean TOOL = false; // toolbars & tool events
     public static boolean IMAGE = false; // images
     public static boolean CASTOR = false; // castor persist (save/restore)
+    public static boolean XML = false; // castor persist (save/restore)
 
     public static boolean DR = false; // digital repository & data sources
     
