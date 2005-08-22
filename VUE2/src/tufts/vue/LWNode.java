@@ -38,10 +38,7 @@ import javax.swing.ImageIcon;
 
 public class LWNode extends LWContainer
 {
-    /* Mac arial fonts broken in java (no bold or italic) so using verdana on mac right now */
-    public static final Font  DEFAULT_NODE_FONT = VueUtil.isMacPlatform() ?
-        new Font("Verdana", Font.PLAIN, 14)
-            : VueResources.getFont("node.font");
+    public static final Font  DEFAULT_NODE_FONT = VueResources.getFont("node.font");
     public static final Color DEFAULT_NODE_FILL = VueResources.getColor("node.fillColor");
     public static final int   DEFAULT_NODE_STROKE_WIDTH = VueResources.getInt("node.strokeWidth");
     public static final Color DEFAULT_NODE_STROKE_COLOR = VueResources.getColor("node.strokeColor");
