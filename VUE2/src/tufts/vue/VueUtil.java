@@ -118,6 +118,32 @@ public class VueUtil extends tufts.Util
     }
 
 
+    public static String oneDigitDecimal(double x) {
+        int tenX = (int) Math.round(x * 10);
+        if ((tenX / 10) * 10 == tenX)
+            return new Integer(tenX / 10).toString();
+        else
+            return new Float( ((float)tenX) / 10f ).toString();
+    }
+
+    /** @return a friendly looking string to represent the given number of bytes: e.g.: 120k, or 3.8M.
+     * for values less than zero, returns ""
+     */
+    
+    public static String abbrevBytes(long bytes) {
+        if (bytes > 1024*1024)
+            return oneDigitDecimal(bytes/(1024.0*1024)) + "M";
+        else if (bytes > 1024)
+            return bytes/1024 + "k";
+        else if (bytes >= 0)
+            return "" + bytes;
+        else
+            return "";
+    }
+    
+    
+
+
     /**
      * Compute the intersection point of two lines, as defined
      * by two given points for each line.
