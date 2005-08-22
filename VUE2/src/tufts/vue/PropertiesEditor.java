@@ -86,7 +86,9 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         });
         propertiesTable.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
-                if(propertiesTable.getSelectedRow() == (propertiesTable.getRowCount()-1) && e.getKeyCode() == e.VK_ENTER && tableModel.isEditable()){
+                if (propertiesTable.getSelectedRow() == (propertiesTable.getRowCount()-1)
+                    && e.getKeyCode() == KeyEvent.VK_ENTER && tableModel.isEditable())
+                {
                     tableModel.addDefaultProperty();
                 }
             }
@@ -209,10 +211,18 @@ public class PropertiesEditor extends JPanel implements DublinCoreConstants {
         public void setProperties(Properties properties) {
             m_conditions=new ArrayList();
             this.properties = properties;
+
+            ArrayList keys = new ArrayList(properties.size());
             Enumeration e = properties.keys();
-            while(e.hasMoreElements()) {
+            while (e.hasMoreElements()) {
+                keys.add(e.nextElement());
+            }
+            Collections.sort(keys);
+            
+            Iterator i = keys.iterator();
+            while (i.hasNext()) {
                 Condition cond = new Condition();
-                String key = (String)e.nextElement();
+                String key = (String) i.next();
                 cond.setProperty(key);
                 cond.setOperator(ComparisonOperator.eq);
                 cond.setValue(properties.getProperty(key));
