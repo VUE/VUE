@@ -24,6 +24,8 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 
+import tufts.vue.gui.VueTextField;
+
 // TODO FIX: the text input fields should save value on focus loss
 
 class LWCInfoPanel extends javax.swing.JPanel
@@ -33,7 +35,8 @@ class LWCInfoPanel extends javax.swing.JPanel
                ActionListener
 {
     private JTextField labelField = new JTextField(15);
-    private tufts.vue.gui.VueTextField resourceField = new tufts.vue.gui.VueTextField();
+    private VueTextField resourceField = new tufts.vue.gui.VueTextField();
+    private JLabel sizeField = new JLabel();
     
     private JPanel fieldPane = new JPanel();
     private JPanel resourceMetadataPanel = new JPanel();
@@ -43,6 +46,7 @@ class LWCInfoPanel extends javax.swing.JPanel
     private Object[] labelTextPairs = {
         "Label",    labelField,
         "Resource", resourceField,
+        "-Size",    sizeField,
     };
     
     private LWComponent lwc;
@@ -193,13 +197,20 @@ class LWCInfoPanel extends javax.swing.JPanel
         
         setAllEnabled(true);
         //System.out.println(this + " loading " + c);
+
+        final Resource r = c.getResource();
         
-        if (c.getResource() != null)
-            loadText(resourceField, c.getResource().toString());
+        if (r != null)
+            loadText(resourceField, r.toString());
         else
             loadText(resourceField, "");
         
         loadText(labelField, c.getLabel());
+
+        String ss = "";
+        if (r instanceof MapResource) // REALLY got to clean up the Resource interface & add an abstract class...
+            ss = VueUtil.abbrevBytes(((MapResource)r).getSize());
+        sizeField.setText(ss);
         
         //loading the metadata if it exists
         if(c.getResource() != null){
