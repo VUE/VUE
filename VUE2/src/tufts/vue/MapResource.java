@@ -39,7 +39,7 @@ import com.sun.image.codec.jpeg.*;
  * to either a local file or a URL.
  */
 
-public class MapResource implements Resource {
+public class MapResource implements Resource, XMLUnmarshalListener  {
     static final long SIZE_UNKNOWN = -1;
     public static java.awt.datatransfer.DataFlavor resourceFlavor;
     // constats that define the type of resource
@@ -48,7 +48,7 @@ public class MapResource implements Resource {
             resourceFlavor = new java.awt.datatransfer.DataFlavor(Class.forName("tufts.vue.Resource"),"Resource");
         } catch(Exception ex) {ex.printStackTrace();}
     }
-    private long referenceCreated;
+    private long referenceCreated; // this currently meaningless -- gets set every time -- is there anything meaningful here?
     private long accessAttempted;
     private long accessSuccessful;
     private long size = SIZE_UNKNOWN;
@@ -59,7 +59,7 @@ public class MapResource implements Resource {
     private JComponent preview = null;
     
     /** the metadata property map **/
-    protected   Map mProperties = new Properties();
+    protected Properties mProperties = new Properties();
     
     /** property name cache **/
     private String [] mPropertyNames = null;
@@ -68,17 +68,22 @@ public class MapResource implements Resource {
     protected String mTitle;
     
     private URL url = null;
+
+    private boolean mXMLrestoreUnderway;
+    private ArrayList mXMLpropertyList;
     
     // for castor to save and restore
-    Vector propertyList = null;
     
     // we REALLY need to get rid of this constructor: all the code
     // expects SPEC to be non-null!  Castor won't let us though...
     public MapResource() {
         this.type =  Resource.NONE;
+        mXMLrestoreUnderway = true;
+        mXMLpropertyList = new ArrayList();
     }
     
     public MapResource(String spec) {
+        mXMLrestoreUnderway = false;
         setSpec(spec);
         this.mTitle = spec; // why are we doing this??  title is an OPTIONAL field...
     }
@@ -142,7 +147,7 @@ public class MapResource implements Resource {
             System.err.println(e);
         }
     }
-    
+
     public long getReferenceCreated() {
         return this.referenceCreated;
     }
@@ -236,7 +241,7 @@ public class MapResource implements Resource {
         new Thread("URL meta-data search of " + _url) {
             public void run() {
                 _setTitleFromContent(_url);
-                if (labelIsTitle)
+                if (DEBUG.DND || labelIsTitle)
                     c.setLabel(getTitle());
             }
         }.start();
@@ -252,41 +257,27 @@ public class MapResource implements Resource {
     }
     
     private void _setTitleFromContent(URL _url) {
+        System.out.println(this + " prop vector " + mXMLpropertyList);
         try {
             System.out.println("*** Opening connection to " + _url);
             markAccessAttempt();
-            URLConnection conn = _url.openConnection();
-            //System.err.println("Connecting...");
-            //conn.connect();
-            if (DEBUG.DND && DEBUG.META) {
-                System.err.println("Getting headers from " + conn);
-                System.err.println("Headers: " + conn.getHeaderFields());
-                //Object content = conn.getContent();
-                //System.err.println("GOT CONTENT[" + content + "]"); // is stream
-                //System.out.println("Content-type[" + conn.getContentType() + "]");
-                //System.out.println("Content-Encoding[" + conn.getContentEncoding() + "]");
-            }
-            if (DEBUG.DND) System.err.println("*** getting contentType");
-            String contentType = conn.getContentType();
-            // note: be sure to call getContentType and don't rely on getting it from the HeaderFields,
-            // as sometimes it's set by the OS for a file:/// URL when there are no header fields (no http server)
-            // (actually, this is set by java via a mime type table based on file extension, or a guess based on the stream)
-            if (contentType.toLowerCase().startsWith("text/html")) {
-                System.err.println("*** contentType [" + contentType + "]");
-            } else {
-                System.err.println("*** contentType [" + contentType + "] not HTML; aborting meta-data scan");
-                return;
-            }
-            // TODO: charset sometimes come's with the contentType
-            if (DEBUG.DND) System.err.println("*** scanning for HTML meta-data...");
-            String title = searchURLforTitle(conn);
+
+            Properties metaData = scrapeHTMLmetaData(_url.openConnection(), 2048);
+            System.out.println("*** Got meta-data " + metaData);
             markAccessSuccess();
-            // TODO: do NOT do this if it came from a .url shortcut -- we
-            // already have the file-name
-            if (title != null)
+            String title = metaData.getProperty("title");
+            if (title != null) {
+                setProperty("title", title);
+                title = title.replace('\n', ' ').trim();
                 setTitle(title);
+            }
+            try {
+                setSize(Integer.parseInt((String) getProperty("contentLength")));
+            } catch (Exception e) {}
+
         } catch (Exception e) {
-            System.err.println("Resource title scrape: " + e);
+            e.printStackTrace();
+            System.err.println("HTML meta-data scrape failed of " + _url);
         }
     }
 
@@ -301,102 +292,186 @@ public class MapResource implements Resource {
     // TODO: need to handle <title lang=he> example (is that legal HTML?) --
     //private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title\\s*>\\s*([^<]+)", // did we need .* at end? 
    // need to ensure there is a space after title or the '>' immediately: don't want to match a tag that was <title-i-am-not> !
-    private static final Pattern HTML_Title = Pattern.compile(".*<\\s*title[^>]*>\\s*([^<]+)", // hacked for lang=he, but too broad
-                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
-    private static final Pattern Content_Charset = Pattern.compile(".*charset\\s*=\\s*([^\">\\s]+)",
-                                                              Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
-    private static String searchURLforTitle(URLConnection url_conn) {
-        String title = null;
-        try {
-            //title = searchStreamForRegex(new InputStreamReader(url_conn.getInputStream()), HTML_Title, 2048);
-            title = searchStreamForRegex(url_conn.getInputStream(), HTML_Title, 2048);
-            // todo: would it help our windows encoding problem if we instead coverted
-            // this entire stream to UTF as it came in?  tho that's prob not it:
-            // that might make sense if errors were showing at head or tail of the title
-            // (perhaps clipping a multi-byte char)
-            if (title == null) {
-                if (DEBUG.DND) System.out.println("*** no title found");
-                return null;
-            }
-            title = title.replace('\n', ' ').trim();
-            //System.out.println("*** got title ["+title+"]");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return title;
-    }
 
-    /** search a stream for a single regex -- one matching group only.
-     * Only search the first n bytes of input stream. */
-    // TODO: break this out into a buffered stream loaded, then regex searchers on the buf
-    // TODO: break out searching into looking for regex with each chunk of data we get in at least x size (e.g, 256)
-    //private static String searchStreamForRegex(Reader in, Pattern regex, int maxSearchChars) {
+    private static final Pattern HTML_Title_Regex =
+        Pattern.compile(".*<\\s*title[^>]*>\\s*([^<]+)", // hacked for lang=he constructs, but too broad
+                        Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern Content_Charset_Regex =
+        Pattern.compile(".*charset\\s*=\\s*([^\">\\s]+)",
+                        Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
     
-    private static String searchStreamForRegex(InputStream in, Pattern regex, int maxSearchChars) {
-        //InputStreamReader in = new InputStreamReader(_in);
-        String result = null;
+    // TODO: break out searching into looking for regex with each chunk of data we get in at least x size (e.g, 256)
+
+    private Properties scrapeHTMLmetaData(URLConnection connection, int maxSearchBytes)
+        throws java.io.IOException
+    {
+        Properties metaData = new Properties();
+        
+        InputStream byteStream = connection.getInputStream();
+
+        if (DEBUG.DND && DEBUG.META) {
+            System.err.println("Getting headers from " + connection);
+            System.err.println("Headers: " + connection.getHeaderFields());
+        }
+        
+        // note: be sure to call getContentType and don't rely on getting it from the HeaderFields map,
+        // as sometimes it's set by the OS for a file:/// URL when there are no header fields (no http server)
+        // (actually, this is set by java via a mime type table based on file extension, or a guess based on the stream)
+        if (DEBUG.DND) System.err.println("*** getting contentType & encoding...");
+        final String contentType = connection.getContentType();
+        final String contentEncoding = connection.getContentEncoding();
+        final int contentLength = connection.getContentLength();
+        
+        if (DEBUG.DND) System.err.println("*** contentType [" + contentType + "]");
+        if (DEBUG.DND) System.err.println("*** contentEncoding [" + contentEncoding + "]");
+        if (DEBUG.DND) System.err.println("*** contentLength [" + contentLength + "]");
+        
+        setProperty("contentType", contentType);
+        setProperty("contentEncoding", contentEncoding);
+        if (contentLength >= 0)
+            setProperty("contentLength", contentLength);
+        
+        if (contentType.toLowerCase().startsWith("text/html") == false) {
+            System.err.println("*** contentType [" + contentType + "] not HTML; terminating meta-data scan");
+            return metaData;
+        }
+        
+        if (DEBUG.DND) System.err.println("*** scanning for HTML meta-data...");
+
         try {
-            //System.out.println("*** Searching for regex in " + in + " encode=" + in.getEncoding());
-            /*
-            if (!(in instanceof BufferedReader)) {
-                // this handles a possibly "chunked" http stream,
-                // which would only hand back, say, 23 bytes the first
-                // time, as Yahoo's http server did.
-                in = new BufferedReader(in, maxSearchChars);
-                if (DEBUG.DND) System.out.println("*** created buffered reader " + in);
-            }
-            */
-            //char[] buf = new char[maxSearchChars];
-            byte[] buf = new byte[maxSearchChars];
-            int total = 0;
+            final BufferedInputStream bufStream = new BufferedInputStream(byteStream, maxSearchBytes);
+            bufStream.mark(maxSearchBytes);
+
+            final byte[] byteBuffer = new byte[maxSearchBytes];
+            int bytesRead = 0;
             int len = 0;
             // BufferedInputStream still won't read thru a block, so we need to allow
             // a few reads here to get thru a couple of blocks, so we can get up to
             // our maxbytes (e.g., a common return chunk count is 1448 bytes, presumably related to the MTU)
             do {
-                int max = maxSearchChars - total;
-                len = in.read(buf, total, max);
+                int max = maxSearchBytes - bytesRead;
+                len = bufStream.read(byteBuffer, bytesRead, max);
                 System.out.println("*** read " + len);
-                if (len > 0) total += len;
-            } while (len > 0 && total < maxSearchChars);
-            if (DEBUG.DND) System.out.println("*** Got total chars: " + total);
-            in.close();
-            String str = new String(buf, 0, total);
-            if (DEBUG.DND && DEBUG.META) System.out.println("*** String[" + str + "]");
-            Matcher m = regex.matcher(str);
-            //if (DEBUG.DND) System.err.println("*** got Matcher " + m);
+                if (len > 0)
+                    bytesRead += len;
+                else if (len < 0)
+                    break;
+            } while (len > 0 && bytesRead < maxSearchBytes);
+            if (DEBUG.DND) System.out.println("*** Got total chars: " + bytesRead);
+            String html = new String(byteBuffer, 0, bytesRead);
+            if (DEBUG.DND && DEBUG.META) System.out.println("*** HTML-STRING[" + html + "]");
+
+            // first, look for a content encoding, so we can search for and get the title
+            // on a properly encoded character stream
+
+            String charset = null;
+
+            Matcher cm = Content_Charset_Regex.matcher(html);
+            if (cm.lookingAt()) {
+                charset = cm.group(1);
+                if (DEBUG.DND) System.err.println("*** found HTML specified charset ["+charset+"]");
+                setProperty("charset", charset);
+            }
+
+            if (charset == null && contentEncoding != null) {
+                if (DEBUG.DND||true) System.err.println("*** no charset found: using contentEncoding charset " + contentEncoding);
+                charset = contentEncoding;
+            }
+            
+            final String decodedHTML;
+            
+            if (charset != null) {
+                bufStream.reset();
+                InputStreamReader decodedStream = new InputStreamReader(bufStream, charset);
+                //InputStreamReader decodedStream = new InputStreamReader(new ByteArrayInputStream(byteBuffer), charset);
+                if (true||DEBUG.DND) System.out.println("*** decoding bytes into characters with official encoding " + decodedStream.getEncoding());
+                setProperty("contentEncoding", decodedStream.getEncoding());
+                char[] decoded = new char[bytesRead];
+                int decodedChars = decodedStream.read(decoded);
+                decodedStream.close();
+                if (true||DEBUG.DND) System.err.println("*** " + decodedChars + " characters decoded using " + charset);
+                decodedHTML = new String(decoded, 0, decodedChars);
+            } else
+                decodedHTML = html; // we'll just have to go with the default platform charset...
+            
+            // these needed to be left open till the decodedStream was done, which
+            // although it should never need to read beyond what's already buffered,
+            // some internal java code has checks that make sure the underlying stream
+            // isn't closed, even it it isn't used.
+            byteStream.close();
+            bufStream.close();
+            
+            Matcher m = HTML_Title_Regex.matcher(decodedHTML);
             if (m.lookingAt()) {
-                if (DEBUG.DND) System.err.println("*** found match");
-                result = m.group(1);
-                if (DEBUG.DND) System.err.println("*** regex found ["+result+"]");
-            }
-
-            String charset = "UTF-8"; // default
-
-            if (result != null) {
-                Matcher cm = Content_Charset.matcher(str);
-                if (cm.lookingAt()) {
-                    charset = cm.group(1);
-                    if (DEBUG.DND) System.err.println("*** found HTML specified charset ["+charset+"]");
-                    // TODO: PUT THIS CHARSET AS A PIECE OF RESOURCE META-DATA!
-                }
-            }
-
-            try {
-                result = new String(result.getBytes(), charset);
-                if (DEBUG.DND) System.err.println("*** successfully converted from " + charset + " to local unicode");
-            } catch (java.io.UnsupportedEncodingException e) {
-                System.err.println("*** charset not found [" + charset + "]; defaulting to UTF-8");
-                result = VueUtil.decodeUTF(result);
+                String title = m.group(1);
+                if (true||DEBUG.DND) System.err.println("*** found title ["+title+"]");
+                metaData.put("title", title);
             }
 
         } catch (Throwable e) {
-            System.err.println("searchStreamForRegex: " + e);
+            System.err.println("scrapeHTMLmetaData: " + e);
             if (DEBUG.DND) e.printStackTrace();
         }
 
-        if (DEBUG.DND || DEBUG.Enabled) System.err.println("*** searchStreamForRegex returning [" + result + "]");
-        return result;
+        if (DEBUG.DND || DEBUG.Enabled) System.err.println("*** scrapeHTMLmetaData returning [" + metaData + "]");
+        return metaData;
+    }
+
+    private static void dumpBytes(String s) {
+        try {
+            dumpBytes(s.getBytes("UTF-8"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void dumpBytes(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            byte b = bytes[i];
+            System.out.println("byte " + (i<10?" ":"") + i
+                               + " (" + ((char)b) + ")"
+                               + " " + pad(' ', 4, new Byte(b).toString())
+                               + "  " + pad(' ', 2, Integer.toHexString( ((int)b) & 0xFF))
+                               + "  " + pad('X', 8, toBinary(b))
+                               );
+        }
+    }
+    
+    private static String toBinary(byte b) {
+        StringBuffer buf = new StringBuffer(8);
+        buf.append((b & (1<<7)) == 0 ? '0' : '1');
+        buf.append((b & (1<<6)) == 0 ? '0' : '1');
+        buf.append((b & (1<<5)) == 0 ? '0' : '1');
+        buf.append((b & (1<<4)) == 0 ? '0' : '1');
+        buf.append((b & (1<<3)) == 0 ? '0' : '1');
+        buf.append((b & (1<<2)) == 0 ? '0' : '1');
+        buf.append((b & (1<<1)) == 0 ? '0' : '1');
+        buf.append((b & (1<<0)) == 0 ? '0' : '1');
+	return buf.toString();
+    }
+    
+    private static void dumpString(String s) {
+        char[] chars = s.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            int cv = (int) chars[i];
+            System.out.println("char " + (i<10?" ":"") + i
+                               + " (" + chars[i] + ")"
+                               + " " + pad(' ', 6, new Integer(cv).toString())
+                               + " " + pad(' ', 4, Integer.toHexString(cv))
+                               + "  " + pad('0', 16, Integer.toBinaryString(cv))
+                               );
+        }
+    }
+    
+    private static String pad(char c, int wide, String s) {
+        int pad = wide - s.length();
+        StringBuffer buf = new StringBuffer(wide);
+        while (pad-- > 0) {
+            buf.append(c);
+        }
+        buf.append(s);
+        return buf.toString();
     }
     
     
@@ -476,42 +551,48 @@ public class MapResource implements Resource {
     }
     
     /**
-     * setPropertyValue+-
-     * This method sets a property value
-     * Note:  This method will add a new property if called.
-     *        Since this is a small version of a VUEBean, only
-     *        two property class values are supported:  String and Vector
-     *        where Vector is a vector of String objects.
-     * @param STring pName the proeprty name
-     * @param Object pValue the value
+     * This method sets a property value. 
+     * Does nothing if either key or value is null.
      **/
-    public void setPropertyValue( String pName, Object pValue) {
+    public void setProperty(String key, Object value) {
         /** invalidate our dumb cache of names if we add a new one **/
+        /*
+          BAD IDEA -- whenever we add a new propery value, it will clear out all the others!!
         if( !mProperties.containsKey( pName) ) {
             mPropertyNames = null;
         }
-        mProperties.put( pName, pValue);
+        */
+        System.out.println(this + " setProperty key=" + key + " value[" + value + "]");
+        if (key != null && value != null)
+            mProperties.put(key, value);
     }
-    
-    public Properties getProperties() {
-        return (Properties)mProperties;
-    }
-    
-    public void setProperties(Properties pProperties) {
-        System.out.println("SET PROPERTIES");
-        this.mProperties = pProperties;
+
+    public void setProperty(String key, int value) {
+        //setProperty(key, new Integer(value)); // PropertiesEditor bombs out on anything but string
+        setProperty(key, new Integer(value).toString());
     }
     
     /**
      * getPropertyValue
      * This method returns a value for the given property name.
-     * @param pname the property name.
+     * @param pName the property name.
      * @return Object the value
      **/
-    public Object getPropertyValue( String pName) {
+    public Object getProperty(String pName) {
         Object value = null;
-        value = mProperties.get( pName);
+        value = mProperties.get(pName);
         return value;
+    }
+    
+    
+    public Properties getProperties() {
+        return mProperties;
+    }
+    
+    public void setProperties(Properties pProperties) {
+        System.out.println("SET PROPERTIES " + this + " " + pProperties);
+        new Throwable("setProperties").printStackTrace();
+        this.mProperties = pProperties;
     }
     
     public boolean isSelected(){
@@ -534,35 +615,81 @@ public class MapResource implements Resource {
     public String getToolTipInformation() {
         return "ToolTip Information";
     }
+
+
+    /*
+    public Map getPropertyMap() {
+        System.out.println(this + " *** getPropertyMap " + mProperties);
+        return mProperties;
+    }
+    public void setPropertyMap(Map m) {
+        System.out.println(this + " *** setPropertyMap " + m.getClass().getName() + " " + m);
+        mProperties = (Properties) m;
+    }
+    */
     
     
-    
-    public Vector getPropertyList() {
-        propertyList = new Vector();
-        if(mProperties.size() ==0) // a hack for castor to work
-            return null;
+    public java.util.List getPropertyList() {
         
-        
-        Iterator i = mProperties.keySet().iterator();
-        while(i.hasNext()) {
-            Object object = i.next();
-            PropertyEntry entry = new PropertyEntry();
-            entry.setEntryKey(object);
-            entry.setEntryValue(mProperties.get(object));
-            propertyList.add(entry);
+        if (mXMLrestoreUnderway == false) {
+
+            if (mProperties.size() == 0) // a hack for castor to work
+                return null;
+
+            mXMLpropertyList = new ArrayList();
+
+            Iterator i = mProperties.keySet().iterator();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                final PropertyEntry entry = new PropertyEntry();
+                entry.setEntryKey(key);
+                entry.setEntryValue(mProperties.get(key));
+                mXMLpropertyList.add(entry);
+            }
         }
-        if (DEBUG.Enabled) System.out.println(this + " getPropertyList: " + propertyList);
-        return propertyList;
+
+        if (DEBUG.CASTOR) System.out.println(this + " getPropertyList " + mXMLpropertyList);
+        return mXMLpropertyList;
     }
     
+    public void XML_initialized() {
+        if (DEBUG.CASTOR) System.out.println(getClass() + " XML INIT");
+    }
+    public void XML_completed()
+    {
+        if (DEBUG.CASTOR) System.out.println(this + " XML COMPLETED");
+        Iterator i = mXMLpropertyList.iterator();
+        while (i.hasNext()) {
+            final PropertyEntry entry = (PropertyEntry) i.next();
+            final Object key = entry.getEntryKey();
+            final Object value = entry.getEntryValue();
+            setProperty((String)key, value);
+        }
+        mXMLpropertyList = null;
+        mXMLrestoreUnderway = false;
+    }
+    
+    public void XML_addNotify(String name, Object parent) {
+        if (DEBUG.CASTOR) System.out.println(this + " XML ADDNOTIFY as \"" + name + "\" to parent " + parent);
+    }
+
+    /** @deprecated -- for backward compat with lw_mapping_1.0.xml only, where this never worked */
     public void setPropertyList(Vector propertyList) {
-        this.propertyList = propertyList;
+        // This actually never get's called, but the old mapping file demands that it's here.
+        System.out.println("IGNORING OLD SAVE FILE DATA " + propertyList + " for " + this);
+        /*
+        System.out.println(this + " setPropertyList " + mXMLpropertyList);
+        this.mXMLpropertyList = mXMLpropertyList;
         this.mProperties = new Properties();
-        Iterator i = propertyList.iterator();
+        Iterator i = mXMLpropertyList.iterator();
         while(i.hasNext()) {
             PropertyEntry entry = (PropertyEntry) i.next();
-            mProperties.put(entry.getEntryKey(),entry.getEntryValue());
+            final Object key = entry.getEntryKey();
+            final Object value = entry.getEntryValue();
+            setProperty((String)key, value);
+            //mProperties.put(entry.getEntryKey(),entry.getEntryValue());
         }
+        */
     }
     
     public JComponent getAssetViewer(){
@@ -592,6 +719,29 @@ public class MapResource implements Resource {
 
     public boolean isImage() {
         return isImage(this);
+    }
+
+    public Object getContent()
+        throws IOException, MalformedURLException
+    {
+        if (isImage()) {
+            URL u = toURL();
+            ImageIcon imageIcon = new ImageIcon(u);
+            setProperty("width", imageIcon.getIconWidth());
+            setProperty("height", imageIcon.getIconHeight());
+            System.out.println("LWImage size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight() + " from " + u);
+            return imageIcon;
+        } else {
+            return getContentData();
+        }
+    }
+    
+    public Object getContentData()
+        throws IOException, MalformedURLException
+    {
+        // in the case of an HTML page, this just gets us a sun.net.www.protocol.http.HttpURLConnection$HttpInputStream,
+        // -- the same as we get from openConnection()
+        return toURL().getContent();
     }
 
     public JComponent getPreview()
