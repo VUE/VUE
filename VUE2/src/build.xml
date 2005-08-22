@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.58 $ / $Date: 2005-08-19 02:27:59 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.58 2005-08-19 02:27:59 sfraize Exp $ -->
+<!-- $Revision: 1.59 $ / $Date: 2005-08-22 22:33:34 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.59 2005-08-22 22:33:34 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -619,7 +619,7 @@
   </target>
 
   <target name="run-jar-core">
-    <jar zipfile="${vue-core.jar}" update="false" compress="false" index="true" duplicate="add">
+    <jar zipfile="${vue-core.jar}" update="false" compress="false" index="true" duplicate="preserve">
       <fileset dir="${src}">
         <!-- exclude data/narravision?  2mb of meta-data... -->
         <exclude name="**/old/**"/>
@@ -661,16 +661,18 @@
           description="Create VUE.jar - a single, distributable, runnable jar file containing VUE and all supporting libraries.">
     <tstamp/>
     <echo message="Building ${vue.jar}..."/>
-    <jar destfile="${vue.jar}" compress="true" index="true" update="false">
-      <manifest>
+    <jar destfile="${vue.jar}" compress="true" index="true" update="false" duplicate="preserve">
+        <manifest>
         <attribute name="Description" value="Tufts/MIT VUE 0.9+ (Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Built" value="${TODAY} ${TSTAMP}"/>
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
       </manifest>
-      <zipgroupfileset dir="${basedir}" includes="VUE-core.jar"/>
-      <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+        <!-- zipfileset src="${basedir}/VUE-core.jar" excludes="**/*.properties"/ example excludes that works for one file -->
+        <zipfileset src="${basedir}/VUE-core.jar"/>
+        <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+        <!-- may be able to modify this to exclude README's, .txt files, etc -->
     </jar>
   </target>
   
@@ -678,7 +680,7 @@
           description="Create NarraVision.jar - a single, distributable, runnable jar file containing NarraVision and all supporting libraries.">
     <tstamp/>
     <echo message="Building ${narravision.jar}..."/>
-    <jar destfile="${narravision.jar}" compress="true" index="true" update="false">
+    <jar destfile="${narravision.jar}" compress="true" index="true" update="false" duplicate="preserve">
       <manifest>
         <attribute name="Description" value="MIT NarraVision Alpha (Derivative of Tufts VUE: Visual Understanding Environment)"/>
         <attribute name="Built-By" value="${user.name}"/>
@@ -686,9 +688,11 @@
         <attribute name="Build-Platform" value="${os.name} ${os.version} ${os.arch}"/>
         <attribute name="Main-Class" value="tufts.vue.VUE"/>
       </manifest>
-      <zipgroupfileset dir="${basedir}" includes="VUE-core.jar"/>
+      <zipfileset src="${basedir}/VUE-core.jar"/>
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
-      <zipgroupfileset dir="${lib.home}" includes="BlackShipsImages.jar"/>
+      <zipfileset src="${lib.home}/BlackShipsImages.jar"/> <!-- try exporting blackships startup file as a vue zip archive... -->
+      <!-- zipfileset src="${build.home}/VUE.jar"/>  this is a crazy slow method of doing this: it's file compressed from 50mb -->
+      
     </jar>
   </target>
 
@@ -700,7 +704,7 @@
     <!-- There is a bunch of of crap in the lib file we really don't need: figure out how to exclude. -->
     <!-- Stuff like .java sources, .html files and .txt files, and from axis-ant.jar, a big fat js.jar (javascript) & bsf.jar files? -->
     <!-- Also: do we really need the /hyph/*.hyp files?  Are these Hyphenation Dictionaries? -->
-    <jar destfile="VUE-lib.jar" compress="false" index="true" update="false">
+    <jar destfile="VUE-lib.jar" compress="false" index="true" update="false" duplicate="preserve">
       <!-- zipgroupfileset is extremely picky and limited: each one can name one dir & one string represeting names from that dir,
         and cannont include sub-items, such as a filelist, which would have been a bit cleaner for an ordered set of jar files. -->
       <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
