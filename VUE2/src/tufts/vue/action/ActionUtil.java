@@ -23,6 +23,7 @@ import tufts.vue.VUE;
 import tufts.vue.LWMap;
 import tufts.vue.VueFileFilter;
 import tufts.vue.VueResources;
+import tufts.vue.XMLUnmarshalListener;
 import tufts.vue.DEBUG;
 
 import org.exolab.castor.xml.Marshaller;
@@ -59,6 +60,21 @@ public class ActionUtil {
     private final static URL XML_MAPPING_DEFAULT =      VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private final static URL XML_MAPPING_UNVERSIONED =  VueResources.getURL("mapping.lw.version_none");
     private final static URL XML_MAPPING_OLD_RESOURCES =VueResources.getURL("mapping.lw.version_resource_fix");
+
+    //private final static String OUTPUT_ENCODING = "UTF-8";
+    private final static String OUTPUT_ENCODING = "US-ASCII";
+
+    // Note: the encoding format of the incoming file will normally
+    // either be UTF-8 for older VUE save files, or US-ASCII for newer
+    // files.  In any case, the encoding is indicated in the <?xml>
+    // tag at the top of the file, and castor handles adjusting for
+    // it.  If we want to write UTF-8 files, we have to be sure the
+    // stream that's created to write the file is created with the
+    // same encoding, or we sometimes get problems, depending on the
+    // platform.  We always READ (unmarshall) via a UTF-8 stream, no
+    // matter what, as US-ASCII will pass through a UTF-8 stream
+    // untouched, and it will handle UTF-8 if that turns out to be the
+    // encoding.
     
     public ActionUtil() {}
     
@@ -125,6 +141,7 @@ public class ActionUtil {
        It returns the selected file or null if the process didn't complete
     TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
     will open two open file dialogs. */
+    
     public static File openFile(String title, String extension)
     {
         File file = null;
@@ -138,33 +155,38 @@ public class ActionUtil {
         
         int option = chooser.showDialog(tufts.vue.VUE.getRootParent(), "Open");
         
-        if (option == JFileChooser.APPROVE_OPTION) 
-        {
-            File chooserFile = chooser.getSelectedFile();
+        if (option == JFileChooser.APPROVE_OPTION) {
+            final File chooserFile = chooser.getSelectedFile();
             if (chooserFile == null)
                 return null;
-            String fileName = chooserFile.getAbsolutePath();
+            final String fileName;
+            final String chosenPath = chooserFile.getAbsolutePath();
             
             // if they type a file name w/out an extension
-            if (fileName.indexOf('.') < 0)
-                fileName += "." + extension;
-            
-            //if the file with the given name exists
-            if ((file = new File(fileName)).exists())
-            {
-                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-            }
-            
+            if (chooserFile.getName().indexOf('.') < 0)
+                fileName = chosenPath + "." + extension;
             else
-            {
-                System.err.println("File name '"+fileName+"' " + file + " can't  be found.");
-                tufts.vue.VueUtil.alert(chooser,file + " can't  be found.", "File Not Found");
+                fileName = chosenPath;
+
+            file = new File(fileName);
+
+            if (file.exists()) {
+                VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+            } else {
+                File dir = new File(chosenPath);
+                if (dir.exists() && dir.isDirectory()) {
+                    //System.out.println("chdir " + chosenPath);
+                    VueUtil.setCurrentDirectoryPath(chosenPath);
+                } else {
+                    System.out.println("File '" + chosenPath + "' " + file + " can't  be found.");
+                    tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
+                }
                 file = null;
             }
         }
-        
         return file;
     }
+    
     
     /**
      * Return the current mapping used for saving new VUE data.
@@ -217,7 +239,6 @@ public class ActionUtil {
         marshallMap(file, tufts.vue.VUE.getActiveMap());
     }
 
-    
     /**
      * Marshall the given map to XML and write it out to the given file.
      */
@@ -228,9 +249,15 @@ public class ActionUtil {
                org.exolab.castor.xml.ValidationException*/
     {
         Marshaller marshaller = null;
-            
+
         try {  
-            FileWriter writer = new FileWriter(file.getAbsolutePath().replaceAll("%20"," "));
+            final String path = file.getAbsolutePath().replaceAll("%20"," ");
+            final Writer writer;
+            if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8"))
+                writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
+            else
+                writer = new FileWriter(path); // we can use the local encoding if writing in US-ASCII (pretty much any encoding)
+            
             writer.write("<!-- Do Not Remove:"
                          + " VUE mapping "
                          + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
@@ -247,12 +274,11 @@ public class ActionUtil {
                          + " -->\n");
             if (DEBUG.CASTOR) System.out.println("Wrote VUE header to " + writer);
             marshaller = new Marshaller(writer);
-            marshaller.setDebug(true);
             //marshaller.setDebug(DEBUG.CASTOR);
-
-            // on by default -- adds at top: <?xml version="1.0" encoding="UTF-8"?>
-            //marshaller.setMarshalAsDocument(false);
-
+            marshaller.setDebug(true); // doesn't appear to do anything yet...
+            marshaller.setEncoding(OUTPUT_ENCODING);
+            // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
+            marshaller.setMarshalAsDocument(true);
             marshaller.setNoNamespaceSchemaLocation("none");
             // setting to "none" gets rid of all the spurious tags like these:
             // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -302,19 +328,24 @@ public class ActionUtil {
 
     private static class VueUnmarshalListener implements UnmarshalListener {
         public void initialized(Object o) {
-            System.out.println("**** VUL initialized " + o.getClass().getName() + " " + o);
+            if (DEBUG.XML) System.out.println("**** VUL initialized " + o.getClass().getName() + " " + o);
+            if (o instanceof XMLUnmarshalListener)
+                ((XMLUnmarshalListener)o).XML_initialized();
         }
         public void attributesProcessed(Object o) {
-            System.out.println("      got attributes " + o.getClass().getName() + " " + o);
+            if (DEBUG.XML) System.out.println("      got attributes " + o.getClass().getName() + " " + o);
         }
         public void unmarshalled(Object o) {
-            System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + o);
+            if (DEBUG.XML) System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + o);
+            if (o instanceof XMLUnmarshalListener)
+                ((XMLUnmarshalListener)o).XML_completed();
         }
         public void fieldAdded(String name, Object parent, Object child) {
-            System.out.println("VUL fieldAdded: parent=" + parent
-                               + " child=" + child.getClass().getName() + " " + child
-                               + "\n"
+            if (DEBUG.XML) System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t[" + parent + "]\n"
+                             + "             new child: " +  child.getClass().getName() + " \"" + name + "\" [" + child + "]\n"
                                );
+            if (child instanceof XMLUnmarshalListener)
+                ((XMLUnmarshalListener)child).XML_addNotify(name, parent);
         }
     }
 
@@ -340,16 +371,26 @@ public class ActionUtil {
     {
         LWMap map = null;
 
-        // Scan lines at top of file that are comments.  If there
-        // are NO comment lines, file is of one of our original save
-        // formats that is not versioned, and that may need special
-        // processing for the Resource class to Resource interface
-        // change over.  If there are comments, the version instance
-        // of the string "@version(##)" will set the version ID to ##,
-        // and we'll use the mapping appropriate for that version
-        // of the save file.
+        // We scan for lines at top of file that are comments.  If
+        // there are NO comment lines, the file is of one of our
+        // original save formats that is not versioned, and that may
+        // need special processing for the Resource class to Resource
+        // interface change over.  If there are comments, the version
+        // instance of the string "@version(##)" will set the version
+        // ID to ##, and we'll use the mapping appropriate for that
+        // version of the save file.
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+        // We ALWAYS read with an input encoding of UTF-8, even if the
+        // XML was written with a US-ASCII encoding.  This is because
+        // pure ascii will translate fine through UTF-8, but in case
+        // it winds up being that the XML was written out my the
+        // marshaller with a UTF-8 encoding, we're covered.
+
+        // (tho maybe with very old save files with platform specific
+        // encodings, (e.g, MacRoman or windows-1255/Cp1255) we'll 
+        // lose a special char here or there, such as left-quote / right-quote).
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
         String line;
         int commentCount = 0;
         boolean oldFormat = false;
@@ -412,12 +453,11 @@ public class ActionUtil {
             logger.setPrefix("Castor " + url);
             unmarshaller.setLogWriter(logger);
             //unmarshaller.setLogWriter(new Logger.getSystemLogger());
-            // not a good sign: above getSystemLogger is public in castor code, but not public in doc, and non-existent in jar
+            // not a good sign: above getSystemLogger is decl public in castor code, but not public in doc, and non-existent in jar
 
-            if (DEBUG.CASTOR) {
-                unmarshaller.setDebug(true);
-                unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
-            }
+            if (DEBUG.XML) unmarshaller.setDebug(true);
+
+            unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
             unmarshaller.setMapping(mapping);
 
             // unmarshall the map:
@@ -428,7 +468,7 @@ public class ActionUtil {
                 if (oldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
                     System.err.println("ActionUtil.unmarshallMap: " + me);
                     System.err.println("Attempting specialized MapResource mapping for old format.");
-                    // NOTE: delicate recusion here: won't loop as long as we pass in a non-null mapping.
+                    // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
                     return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES));
                     /*
                     unmarshaller.setMapping(loadMapping(XML_MAPPING_OLD));
@@ -446,12 +486,11 @@ public class ActionUtil {
         }
         catch (Exception e) 
         {
-            System.err.println("ActionUtil.unmarshallMap:");
+            System.err.println("ActionUtil.unmarshallMap: url=" + url);
             System.err.println("\texception: " + e.getClass());
             System.err.println("\tcause: " + e.getCause());
             System.err.println("\t" + e);
             //System.err.println("\tmessage=" + e.getLocalizedMessage());
-            //System.err.println("\tXML_MAPPING WAS " + XML_MAPPING);
             e.printStackTrace();
             map = null;
         }
