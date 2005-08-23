@@ -8,6 +8,7 @@
                   only affect the interface to castor, and NOT the save file format,
                   so we're not adding a new version of this file.   These same
                   changes were made to all the other old mapping files.
+     8/23/05 SMF: resource properties are now attributes, and backward compat with old resource save files
   -->
           
 <mapping>
@@ -326,12 +327,29 @@
          
          <class name="tufts.vue.PropertyEntry">
             <map-to xml="property"/>
-            <field name="entryKey" type="java.lang.String">
-                <bind-xml name="key" node="attribute"/>
-            </field>
-            <field name="entryValue" type="java.lang.Object">
+            <field name="entryKey" type="java.lang.String"><bind-xml name="key" node="attribute"/></field>
+            <field name="entryValue" type="java.lang.Object"><bind-xml name="value" node="attribute"/></field>
+            
+            <!-- this hack allows us to READ any properties that were stored as an element,
+                 but prevents us from ever writing one out as an element (it'll be written as an attribute as per above).
+                 This technique can be used to switch between attribute and element in other areas we may need.
+              -->
+            <field name="IgnoredName1" type="java.lang.Object" set-method="setEntryValue" get-method="getNull">
                 <bind-xml name="value" node="element"/>
             </field>
+            <!-- If want to persist data other than strings in future for property values, could
+            add an optional "objectValue" element which normally returns null (and so doesn't even
+            appear in the save file), but if it's non-string data, castor could still serialize
+            whatever object is there -->
+
+            <!-- Backward compat for old save files in case they actually managed to save resource properties: -->
+            <field name="IgnoredName2" type="java.lang.String" set-method="setEntryKey" get-method="getNull">
+                <bind-xml name="entryKey" node="element"/>
+            </field>
+            <field name="IgnoredName3" type="java.lang.Object" set-method="setEntryValue" get-method="getNull">
+                <bind-xml name="entryValue" node="element"/>
+            </field>
+            
          </class>
 
         
@@ -380,9 +398,10 @@
 	</class>
         <class name="tufts.vue.CabinetResource" extends="tufts.vue.MapResource">
             <map-to xml="cabinetResource"/>
-            <field name="extension" type="string">
+            <!-- getting rid of extension - why are we saving this?  do we even need a cabinet resource? -->
+            <!-- field name="extension" type="string">
                 <bind-xml name="extension" node="element"/>
-             </field>
+             </field -->
 	</class>
 		
 		<!-- FEDORA OBJECTS -->
