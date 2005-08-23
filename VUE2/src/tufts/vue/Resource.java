@@ -66,6 +66,7 @@ public interface Resource {
      *  Return the filename extension of this resource (if any).
      *  (What if it doesn't have an extension?  Unix files are not required to have one)
      */
+    // get rid of this, and perhaps add a getType?  needs to encompass file/directory/URL/DR 
     public String getExtension();
     
     /**
@@ -79,6 +80,18 @@ public interface Resource {
      *  properties.  Dublin core metadata has defined keywords (where defined?)
      */
     public Properties getProperties();
+    
+
+    /**
+     * @return the value for the given property key, or null if no such property.
+     */
+    public String getProperty(String key);
+
+    /**
+     * Set the property named by the given key to value.
+     */
+    public void setProperty(String key, Object value);
+
     
     /** 
      *  Return true if the resource is selected.  Initialize select flag to false.
