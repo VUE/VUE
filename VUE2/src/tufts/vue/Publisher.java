@@ -371,8 +371,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             this.dispose();
             
         } catch (Exception ex) {
-            VueUtil.alert(null, ex.getMessage(), "Export Error");
             ex.printStackTrace();
+            VueUtil.alert(null, ex.getMessage(), "Export Error");
         }
     }
     
