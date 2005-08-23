@@ -352,7 +352,7 @@ public class ToolWindow
 
         mWindow.pack();
         
-        if (DEBUG.Enabled) out("constructed.");
+        if (DEBUG.INIT) out("constructed.");
         
         //setLocationRelativeTo(owner);
         //setFocusableWindowState(false); // nothing can get input at all...
@@ -449,7 +449,7 @@ public class ToolWindow
     
     public void addTool(JComponent c, boolean addBorder)
     {
-        out("adding " + c.getClass());
+        if (DEBUG.INIT) out("adding " + c.getClass());
         // todo: make it so can add more than one tool
         // -- probably use BoxLayout
         getContentPanel().add(c, BorderLayout.CENTER);
@@ -464,7 +464,7 @@ public class ToolWindow
                 getContentPanel().setBorder(new EmptyBorder(5,5,5,5));
         }
         mWindow.pack();
-        if (DEBUG.Enabled) out("added " + c + " mouseListeners=" + ml.length);
+        if (DEBUG.INIT) out("added " + c + " mouseListeners=" + ml.length);
     }
 
     //JPanel hackpanel = new JPanel();

@@ -43,7 +43,7 @@ import net.roydesign.event.ApplicationEvent;
 //import com.apple.mrj.*;
 
 
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.304 2005-08-22 22:22:32 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/VUE.java,v 1.305 2005-08-23 22:34:44 sfraize Exp $
     
 /**
  * Vue application class.
@@ -720,7 +720,7 @@ public class VUE
         // adding the menus and toolbars
         if (DEBUG.INIT) out("setting JMenuBar...");
         frame.setJMenuBar(new VueMenuBar(VUE.ToolWindows));
-        out("VueMenuBar installed.");;
+        if (DEBUG.INIT) out("VueMenuBar installed.");;
 
         // On Mac, need to set any frame's to have a duplicate
         // of the main menu bar, so it stay's active at top
@@ -747,7 +747,7 @@ public class VUE
                     toolWindow.setProcessKeyBindingsToMenuBar(false);
                 }
             }
-            out("Mac ToolWindow VueMenuBar's installed.");
+            if (DEBUG.INIT) out("Mac ToolWindow VueMenuBar's installed.");
         }
         
         frame.addComp(vuePanel,BorderLayout.CENTER);
@@ -768,9 +768,9 @@ public class VUE
             if (VUE.NARRAVISION)
                 frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         }
-        out("validating frame...");
+        if (DEBUG.INIT) out("validating frame...");
         frame.validate();
-        out("frame validated");
+        if (DEBUG.INIT) out("frame validated");
 
         VueUtil.centerOnScreen(frame);
         
@@ -841,7 +841,7 @@ public class VUE
 
         out("showing frame...");
         frame.show();
-        out("frame visible");
+        if (DEBUG.INIT) out("frame visible");
         
         if (splashScreen != null)
             splashScreen.setVisible(false);
@@ -1372,7 +1372,7 @@ public class VUE
     public static ToolWindow createToolWindow(String title, JComponent component) {
         //Window parent = getRootFrame();
         Window parent = getRootWindow();
-        if (DEBUG.Enabled) out("creating ToolWindow " + title + " with parent " + parent);
+        if (DEBUG.INIT) out("creating ToolWindow " + title + " with parent " + parent);
         ToolWindow w = new ToolWindow(title, parent);
         if (component != null)
             w.addTool(component);
