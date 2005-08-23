@@ -256,7 +256,7 @@ public class UndoManager
             } else if (oldValue instanceof Undoable) {
                 ((Undoable)oldValue).undo();
             } else {
-                if (DEBUG.Enabled) {
+                if (DEBUG.Enabled && DEBUG.META) {
                     try {
                         Object curValue = component.getPropertyValue(propKey);
                         if (curValue != null)
