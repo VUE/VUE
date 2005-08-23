@@ -83,7 +83,11 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
-        dragSource.createDefaultDragGestureRecognizer(tree,DnDConstants.ACTION_COPY_OR_MOVE,tree);
+        dragSource.createDefaultDragGestureRecognizer(tree,
+                                                      DnDConstants.ACTION_COPY |
+                                                      DnDConstants.ACTION_MOVE |
+                                                      DnDConstants.ACTION_LINK,
+                                                      tree);
         addTreeExpansionListener(new TreeExpansionListener(){
             public void treeCollapsed(TreeExpansionEvent e) {}
             public void treeExpanded(TreeExpansionEvent e) {
@@ -203,15 +207,11 @@ public class VueDragTree extends JTree implements DragGestureListener,DragSource
     
     
     public void dragDropEnd(DragSourceDropEvent e) {
-       
-            if (tufts.vue.VUE.dropIsLocal == true){
+        if (tufts.vue.VUE.dropIsLocal == true){
             DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-            
             model.removeNodeFromParent(oldnode);
-            
-             tufts.vue.VUE.dropIsLocal = false;
-            }
-        
+            tufts.vue.VUE.dropIsLocal = false;
+        }
     }
     
     public void dragEnter(DragSourceDragEvent e) { }
@@ -644,18 +644,18 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     public static DataFlavor favoritesFlavor;
     String displayName = "";
    
-   
     /**
      * try {
      * assetFlavor = new DataFlavor(Class.forName("osid.dr.Asset"),"asset");
      * } catch (Exception e) { System.out.println("FedoraSelection "+e);}
      **/
     
- 
-    
-    DataFlavor flavors[] = {DataFlavor.plainTextFlavor,
-    DataFlavor.stringFlavor,
-    DataFlavor.plainTextFlavor, DataFlavor.javaFileListFlavor};
+    private DataFlavor flavors[] = {
+        DataFlavor.plainTextFlavor,
+        DataFlavor.stringFlavor,
+        DataFlavor.plainTextFlavor,
+        //DataFlavor.javaFileListFlavor // not supported!
+    };
     
     public VueDragTreeNodeSelection(Object resource) {
         addElement(resource);
@@ -695,6 +695,8 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
     public synchronized Object getTransferData(DataFlavor flavor)
         throws UnsupportedFlavorException, IOException
     {
+        if (DEBUG.DND) System.out.println("VueDragTreeNodeSelection: getTransferData, flavor=" + flavor);
+        
         Object result = null;
         
         if (flavor.equals(flavors[STRING])) {
@@ -713,9 +715,9 @@ class VueDragTreeNodeSelection extends Vector implements Transferable{
         } else {
             throw new UnsupportedFlavorException(flavor);
         }
-        if (DEBUG.DND && DEBUG.META)
-            System.out.println("VueDragTreeNodeSelection: getTransferData(flavor=" + flavor + ") returns "
-                               + result.getClass() + "[" + result + "]");
+        
+        if (DEBUG.DND) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
+
         return result;
     }
     
