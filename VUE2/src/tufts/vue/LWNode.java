@@ -178,16 +178,16 @@ public class LWNode extends LWContainer
         float lx = relativeLabelX() - IconPadRight;
         float ly = relativeLabelY() - PadTop;
         Size size = getTextSize();
-        float height = size.height + PadTop;
-        float width = size.width + IconPadRight;
+        float h = size.height + PadTop;
+        float w = size.width + IconPadRight;
         //float height = getLabelBox().getHeight() + PadTop;
         //float width = (IconPadRight + getLabelBox().getWidth()) * TextWidthFudgeFactor;
 
         return
             cx >= lx &&
             cy >= ly &&
-            cx <= lx + width &&
-            cy <= ly + height;
+            cx <= lx + w &&
+            cy <= ly + h;
     }
 
     public void setNotes(String notes)
