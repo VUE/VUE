@@ -57,6 +57,9 @@ public class PropertyEntry {
     public String toString() {
         return "PropertyEntry[" + entryKey + "=" + entryValue + "]";
     }
+
+    // this for castor hacks
+    public Object getNull() { return null; }
     
     
     
