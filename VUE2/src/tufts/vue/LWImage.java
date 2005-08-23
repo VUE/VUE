@@ -97,11 +97,14 @@ public class LWImage extends LWComponent
                 if (false) {
                     mImage = java.awt.Toolkit.getDefaultToolkit().getImage(mr.toURL());
                 } else {
-                    new Thread("LWImage loader for " + mr) {
-                        public void run() { loadImageAsync(mr); }
-                    }.start();
+                    if (DEBUG.CASTOR == false) {
+                        new Thread("LWImage loader for " + mr) {
+                            public void run() { loadImageAsync(mr); }
+                        }.start();
+                    } else {
+                        loadImageAsync(mr);
+                    }
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -113,16 +116,33 @@ public class LWImage extends LWComponent
     }
 
     private void loadImageAsync(MapResource r) {
+        Object content = new Object();
         try {
-            imageIcon = (ImageIcon) r.getContent();
+            content = r.getContent();
+            imageIcon = (ImageIcon) content;
+        } catch (ClassCastException cce) {
+            cce.printStackTrace();
+            System.err.println("getContent didn't return ImageIcon: got "
+                               + content.getClass().getName() + " from " + r.getClass() + " " + r);
+            imageIcon = null;
+            //if (DEBUG.CASTOR) System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("error getting " + r);
         }
-        // don't set size if this is during a restore, which is the only
+        // don't set size if this is during a restore [why not?], which is the only
         // time width & height should be allowed less than 10
-        // [ What?? ]
-        if (this.width < 10 && this.height < 10) 
-            setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
+        // [ What?? ] -- todo: this doesn't work if we're here because the resource was changed...
+        //if (this.width < 10 && this.height < 10)
+        if (imageIcon != null) {
+            int w = imageIcon.getIconWidth();
+            int h = imageIcon.getIconHeight();
+            if (w > 0 && h > 0)
+                setSize(w, h);
+            // todo: WHOA -- if this happens in thread, Undo manager can get this setSize AFTER the
+            // user mark has been made, leaving us with unmarked changes that get noticed if
+            // move back & then forward thru the undo chain.
+        }
         layout();
         notify(LWKey.RepaintComponent);
     }
