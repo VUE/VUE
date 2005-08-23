@@ -67,8 +67,8 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
     static JPanel resourcesPanel,dataSourcePanel;
     String breakTag = "";
     
-    public final int ADD_MODE = 0;
-    public final int EDIT_MODE = 1;
+    public final static int ADD_MODE = 0;
+    public final static int EDIT_MODE = 1;
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT = VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     
@@ -491,13 +491,15 @@ public class DataSourceViewer  extends JPanel implements KeyListener{
          * }
          **/
         
-        Enumeration e = dataSourceList.getContents().elements();
-        while(e.hasMoreElements() ) {
-            Object mDataSource = e.nextElement();
-            if(mDataSource instanceof Publishable)
-                mDataSources.add(mDataSource);
+        if (dataSourceList != null) {
+            Enumeration e = dataSourceList.getContents().elements();
+            while(e.hasMoreElements() ) {
+                Object mDataSource = e.nextElement();
+                if(mDataSource instanceof Publishable)
+                    mDataSources.add(mDataSource);
+            }
         }
-        
+            
         return mDataSources;
         
     }
