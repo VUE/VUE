@@ -562,7 +562,7 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
             mPropertyNames = null;
         }
         */
-        System.out.println(this + " setProperty key=" + key + " value[" + value + "]");
+        System.out.println(this + " setProperty " + key + " [" + value + "]");
         if (key != null && value != null)
             mProperties.put(key, value);
     }
@@ -573,17 +573,14 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     }
     
     /**
-     * getPropertyValue
      * This method returns a value for the given property name.
      * @param pName the property name.
      * @return Object the value
      **/
-    public Object getProperty(String pName) {
-        Object value = null;
-        value = mProperties.get(pName);
-        return value;
+    public String getProperty(String key) {
+        final Object value = mProperties.get(key);
+        return value == null ? null : value.toString();
     }
-    
     
     public Properties getProperties() {
         return mProperties;
@@ -704,17 +701,31 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
     }
 
     //todo: move to Resource spec & a new AbstractResource class
-    public static boolean isImage(Resource r) {
+    public static boolean isImage(final Resource r) {
         String s = r.getSpec().toLowerCase();
         // will need java advanced imageio for bmp & tiff
-        return s.endsWith(".gif")
+        if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
             || s.endsWith(".jpeg")
-            //|| s.endsWith(".bmp")
             || s.endsWith(".png")
+            //|| s.endsWith(".bmp") // i think java 1.5 handles these now
             //|| s.endsWith(".tif")
             //|| s.endsWith(".tiff")
-            ;
+               ) return true;
+
+        return isImageMimeType(r.getProperty("contentType")) // http contentType
+            || isImageMimeType(r.getProperty("format")); // fedora dublin-core mime-type
+    }
+
+    private static boolean isImageMimeType(final String s) {
+        return s != null && s.startsWith("image/") && (
+            // need these sub-type checks because we only handle certian kinds of images right now
+            s.endsWith("gif") ||
+            s.endsWith("jpg") ||
+            s.endsWith("jpeg") ||
+            s.endsWith("png") ||
+            s.endsWith("unknown")
+            );
     }
 
     public boolean isImage() {
@@ -725,15 +736,31 @@ public class MapResource implements Resource, XMLUnmarshalListener  {
         throws IOException, MalformedURLException
     {
         if (isImage()) {
-            URL u = toURL();
-            ImageIcon imageIcon = new ImageIcon(u);
-            setProperty("width", imageIcon.getIconWidth());
-            setProperty("height", imageIcon.getIconHeight());
-            System.out.println("LWImage size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight() + " from " + u);
-            return imageIcon;
+            return getImageIcon();
         } else {
-            return getContentData();
+            final Object content = getContentData();
+            if (content instanceof ImageProducer) {
+                // flag us as an image and/or pull that from contentType at other end of URL,
+                // then re-try getContent to get the image.  We can get here if someone
+                // manually edits a resource string inside a LWImage, which will try
+                // and pull it's image, but the resource doesn't know it is one yet.
+                setProperty("contentType", "image/unknown");
+                return getImageIcon();
+            } else
+                return content;
         }
+    }
+
+    private ImageIcon getImageIcon()
+        throws IOException, MalformedURLException
+    {
+        URL u = toURL();
+        System.out.println(u + " fetching image");
+        ImageIcon imageIcon = new ImageIcon(u);
+        System.out.println(u + " got image size " + imageIcon.getIconWidth() + "x" + imageIcon.getIconHeight());
+        setProperty("width", imageIcon.getIconWidth());
+        setProperty("height", imageIcon.getIconHeight());
+        return imageIcon;
     }
     
     public Object getContentData()
