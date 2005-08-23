@@ -68,9 +68,9 @@ public class Publish   extends AbstractAction  {
         try {
             Publisher publisher = new Publisher(VUE.getRootFrame(), label);
             //Publisher publisher = new Publisher(owner,label);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
+            ex.printStackTrace();
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
-           ex.printStackTrace();
         }
     }
         
