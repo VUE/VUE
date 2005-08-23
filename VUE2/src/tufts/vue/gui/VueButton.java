@@ -154,7 +154,7 @@ public class VueButton extends JButton
 
         //setBackground(Color.white);
         //setBackground(Color.red);
-        if (DEBUG.Enabled) System.out.println("Created new " + b);
+        if (DEBUG.INIT) System.out.println("Created new " + b);
         //if (true||DEBUG.SELECTION&&DEBUG.META) new Throwable().printStackTrace();
     }
 
