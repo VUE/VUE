@@ -158,6 +158,8 @@ public class VueAction extends javax.swing.AbstractAction
         //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
         if (VUE.getUndoManager() != null && undoable()) {
             String undoName = ae.getActionCommand();
+            if (undoName == null)
+                undoName = getActionName();
             if (hadException && DEBUG.Enabled)
                 undoName += " (!)";
             VUE.getUndoManager().markChangesAsUndo(undoName);
